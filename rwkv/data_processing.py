@@ -192,14 +192,26 @@ def add_segment_features(df, equalize_review_ths=[]):
     return df
 
 
+def read_user_metadata(table_path, user_id):
+    """Read the user's Hive partition without discovering every other user.
+
+    Some users have no metadata partition; the filtered root read retains the
+    empty table's schema in that case, as in the original loader.
+    """
+    partition = table_path / f"{user_id=}"
+    if partition.is_dir():
+        return pd.read_parquet(partition).assign(user_id=user_id)
+    return pd.read_parquet(table_path, filters=[("user_id", "=", user_id)])
+
+
 def get_rwkv_data(data_path, user_id, equalize_review_ths=[]):
     df = pd.read_parquet(data_path / "revlogs" / f"{user_id=}")
     df_len = len(df)
     df["user_id"] = user_id
     df["review_th"] = range(1, df.shape[0] + 1)
-    df_cards = pd.read_parquet(data_path / "cards", filters=[("user_id", "=", user_id)])
+    df_cards = read_user_metadata(data_path / "cards", user_id)
     df_cards.drop(columns=["user_id"], inplace=True)
-    df_decks = pd.read_parquet(data_path / "decks", filters=[("user_id", "=", user_id)])
+    df_decks = read_user_metadata(data_path / "decks", user_id)
     df_decks.drop(columns=["user_id", "parent_id"], inplace=True)
     df = df.merge(df_cards, on="card_id", how="left", validate="many_to_one")
     df = df.merge(df_decks, on="deck_id", how="left", validate="many_to_one")

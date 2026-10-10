@@ -8,6 +8,7 @@ check:
     uv run --locked python scripts/check.py
 
 build-cuda:
+    uv pip install "setuptools>=68" wheel
     RWKV_BUILD_CUDA=1 uv pip install --no-build-isolation --no-deps -e .
 
 labels:
@@ -35,3 +36,14 @@ infer:
 # Float32 CPU trial using the upstream reference recurrence and loss.
 train-cpu-trial:
     uv run --locked python scripts/train_cpu_trial.py --config configs/train-cpu-trial.toml
+
+# Matched baseline/Expertium trials and temporal validation.
+compare-cpu:
+    uv run --locked python scripts/compare.py --config configs/compare-cpu.toml
+
+# Run setup and build-cuda first; avoid re-syncing away the native extension.
+check-cuda:
+    uv run --no-sync python scripts/check_cuda.py
+
+compare-cuda:
+    uv run --no-sync python scripts/compare.py --config configs/compare-cuda.toml

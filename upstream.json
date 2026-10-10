@@ -45,7 +45,11 @@
   "adapted": [
     "features/__init__.py",
     "features/factory.py",
-    "utils.py"
+    "utils.py",
+    "rwkv/data_processing.py"
   ],
-  "baseline_reason": "RWKV revision before runtime tensor-shape annotation changes; preserves conventional PyTorch imports."
+  "baseline_reason": "RWKV revision before runtime tensor-shape annotation changes; preserves conventional PyTorch imports.",
+  "adaptations": {
+    "rwkv/data_processing.py": "Read existing cards/decks user partitions directly; preserve filtered-root reads for absent partitions. Feature engineering is unchanged."
+  }
 }

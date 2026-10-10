@@ -1,0 +1,18 @@
+# Short matched trial on RTX 5080; independent chunks share a batch.
+DATA_PATH = "data/anki-revlogs-10k"
+USER_START = 1
+USER_END = 20
+TRAIN_REVIEWS_PER_USER = 128
+VALIDATION_REVIEWS_PER_USER = 128
+CHUNK_REVIEWS = 32
+BATCH_CHUNKS = 8
+EPOCHS = 1
+CPU_THREADS = 1
+SEED = 2025
+PEAK_LR = 7e-4
+WARMUP_STEPS = 5
+DEVICE = "cuda:0"
+DTYPE = "bfloat16"
+CACHE_PATH = "artifacts/comparison-cuda-20-users/prepared.pt"
+OUTPUT_DIR = "artifacts/comparison-cuda-20-users"
+CHECKPOINT_DIR = "checkpoints/comparison-cuda-20-users"
