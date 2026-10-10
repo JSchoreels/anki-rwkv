@@ -31,3 +31,7 @@ evaluate:
 
 infer:
     uv run --locked python -m rwkv.run_as_rnn --config configs/inference.toml
+
+# Float32 CPU trial using the upstream reference recurrence and loss.
+train-cpu-trial:
+    uv run --locked python scripts/train_cpu_trial.py --config configs/train-cpu-trial.toml

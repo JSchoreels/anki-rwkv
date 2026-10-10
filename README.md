@@ -31,13 +31,13 @@ These settings are a documented starting point, not a guarantee of reproducing t
 
 Use [open-spaced-repetition/anki-revlogs-10k on Hugging Face](https://huggingface.co/datasets/open-spaced-repetition/anki-revlogs-10k). The benchmark describes approximately 727 million reviews from 10,000 Anki users.
 
-The dataset is referenced here only. Obtain it separately and place its directory layout under `data/anki-revlogs-10k/`, or change `DATA_PATH` in the preprocessing, label, and inference configurations. Preserve its partitioned `revlogs/user_id=...` directories and accompanying tables. Data, LMDB databases, checkpoints, and generated evaluation results are Git-ignored.
+The dataset is not committed. Obtain it separately and place its directory layout under `data/anki-revlogs-10k/`, or change `DATA_PATH` in the preprocessing, label, and inference configurations. On the current workspace, that directory is a Git-ignored symbolic link to the existing sibling `../../anki-revlogs-10k` dataset, so no duplicate copy is needed. Preserve its partitioned `revlogs/user_id=...` directories and accompanying tables. Data, LMDB databases, checkpoints, and generated evaluation results are Git-ignored.
 
 Full preprocessing needs roughly 400 GB of storage, plus the dataset and checkpoints. Begin with a smaller user range if needed; update label, preprocessing, training, validation, and evaluation ranges consistently, and reduce the LMDB map sizes. Upstream training needs at least five batch groups because of its prefetch queue.
 
 ## Setup and verification
 
-Use Python 3.12, [uv](https://docs.astral.sh/uv/), and [just](https://github.com/casey/just). Training and parallel evaluation require an NVIDIA CUDA GPU and a compatible installed CUDA toolkit. The dependency configuration selects PyTorch 2.9.1 with CUDA 12.6 on Linux/Windows. macOS can run installation checks and recurrent CPU inference; it cannot run this CUDA trainer.
+Use Python 3.12, [uv](https://docs.astral.sh/uv/), and [just](https://github.com/casey/just). Accelerated training and parallel evaluation use an NVIDIA CUDA GPU and a compatible installed CUDA toolkit. The imported model also includes a differentiable PyTorch reference recurrence for CPU training. The dependency configuration selects PyTorch 2.9.1 with CUDA 12.6 on Linux/Windows. macOS can run installation checks, recurrent CPU inference, and float32 reference training. The default large training configurations select CUDA; the CPU trial below uses smaller history chunks.
 
 ```sh
 git clone https://github.com/JSchoreels/anki-rwkv.git
@@ -55,6 +55,32 @@ just build-cuda
 ```
 
 The extension is built only when requested, so normal installation does not require a CUDA compiler. PyTorch, the CUDA toolkit, and the host C++ compiler must be compatible. The inherited CUDA kernel requires a head dimension of 32.
+
+## First 20 users: local CPU trial
+
+The existing dataset can be linked without copying it. From the repository root, with `anki-revlogs-10k` in the same parent directory:
+
+```sh
+mkdir -p data
+ln -s ../../anki-revlogs-10k data/anki-revlogs-10k
+just train-cpu-trial
+```
+
+Skip the link command if it already exists. The `data/` ignore rule excludes the link and dataset from Git.
+
+[`configs/train-cpu-trial.toml`](configs/train-cpu-trial.toml) selects user IDs **1–20**, the first **128 reviews per user**, 32-review chunks, one epoch, one CPU thread, and float32. This trains the unchanged **2,762,884-parameter** baseline with the existing feature processing, reference recurrence, joint Curve/Instant loss, AdamW parameter groups, and gradient clipping. A five-step linear warmup reaches `7e-4`; this short schedule differs from the upstream large run. The script stops on invalid losses or gradients.
+
+This is a bounded pipeline trial, not a full epoch over those users' histories or a benchmark accuracy measurement. It selects up to 2,560 review events before adding query rows, skips and counts chunks without supervised labels, resets recurrent context between chunks as the upstream chunked pipeline does, and uses no benchmark-alignment label database. Metrics include the joint training objective and a fixed training chunk measured before/after optimization; that chunk is not held-out validation.
+
+The trial directly prepares chunks in memory, so it does not build the full LMDB databases. Outputs are ignored by Git:
+
+- `artifacts/cpu-trial/metrics.jsonl`: per-step losses, label counts, gradient norm, and elapsed time.
+- `artifacts/cpu-trial/summary.json`: configuration, per-user coverage, fixed-chunk losses, and completion status.
+- `checkpoints/cpu-trial/rwkv_cpu_trial.pth` and `rwkv_cpu_trial_optim.pth`: model and optimizer state dictionaries.
+
+The local trial on 2026-10-11 completed in **61.3 seconds**, with **79 optimizer steps** across all 20 users and **2,528 review events** contributing to those steps. One 32-review chunk had no supervised labels and was skipped. The fixed training-chunk joint loss changed from **2.5655 to 2.2333**. All optimizer-step losses and gradient norms were finite. These users have 913,958 raw reviews in total; the trial used only the bounded subset described above.
+
+Set `REVIEWS_PER_USER = 0` to train on every review from users 1–20, retaining the CPU-sized chunks. This will take substantially longer. Each invocation starts from fresh weights and replaces the trial outputs; copy them first if you want to keep an earlier run. For benchmark comparisons, use the full preprocessing/evaluation workflow and disjoint evaluation users.
 
 ## Preprocess, train, and evaluate
 
@@ -115,8 +141,7 @@ Further background: [RWKV-Lite](https://arxiv.org/abs/2412.10856) and [RWKVQuant
 rwkv/           Upstream model, training, preprocessing, evaluation, and CUDA kernel
 features/       Minimal FSRS features needed to align benchmark labels
 configs/        Dataset paths, preprocessing, two training phases, and evaluation
-scripts/check.py
-                Dataset-free import, provenance, optimizer, and recurrent smoke check
+scripts/        Dataset-free verification and first-20-user CPU training trial
 upstream.json   Exact imported revision and source hashes
 pyproject.toml  Training dependencies and optional native build metadata
 uv.lock         Resolved dependency versions

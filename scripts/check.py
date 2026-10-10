@@ -17,7 +17,7 @@ def main():
 
     torch.set_num_threads(1)
     print("Checking source, configs, provenance, and pipeline imports...", flush=True)
-    for path in [*ROOT.glob("*.py"), *ROOT.glob("rwkv/**/*.py"), *ROOT.glob("features/**/*.py")]:
+    for path in [*ROOT.glob("*.py"), *ROOT.glob("rwkv/**/*.py"), *ROOT.glob("features/**/*.py"), *ROOT.glob("scripts/*.py")]:
         ast.parse(path.read_text(), filename=str(path))
     for path in ROOT.glob("configs/*.toml"):
         tomllib.loads(path.read_text())
@@ -54,7 +54,7 @@ def main():
             assert ((recall > 0) & (recall < 1)).all()
             assert ((curve > 0) & (curve < 1)).all()
     print(f"Source, TOML, provenance, imports, AdamW setup, and 3 CPU recurrent steps passed ({parameters:,} parameters).")
-    print(f"CUDA available: {torch.cuda.is_available()}; full training/evaluation requires CUDA and the dataset.")
+    print(f"CUDA available: {torch.cuda.is_available()}; CPU reference training is available; accelerated training requires the CUDA extension.")
 
 
 if __name__ == "__main__":

@@ -1,0 +1,14 @@
+# A bounded training check across users 1-20, not a benchmark reproduction.
+DATA_PATH = "data/anki-revlogs-10k"
+USER_START = 1
+USER_END = 20
+# Use 0 for all reviews from each user (substantially slower).
+REVIEWS_PER_USER = 128
+CHUNK_REVIEWS = 32
+EPOCHS = 1
+CPU_THREADS = 1
+SEED = 2025
+PEAK_LR = 7e-4
+WARMUP_STEPS = 5
+OUTPUT_DIR = "artifacts/cpu-trial"
+CHECKPOINT_DIR = "checkpoints/cpu-trial"
