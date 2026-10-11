@@ -26,6 +26,7 @@ def main():
         if result["nodes_sha256"] != sha256((args.audit / "nodes.json").read_bytes()).hexdigest():
             raise ValueError("Benchmark does not describe these graph nodes")
         public_summary["benchmark_seconds"] = result["elapsed_seconds"]
+        public_summary["benchmark_cache_hits"] = result["cache_hits"]
     nodes = [{key: node[key] for key in ("id", "users", "reviews", "rows")}
              for node in json.loads((args.audit / "nodes.json").read_text())]
     edges = []

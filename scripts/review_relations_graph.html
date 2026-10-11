@@ -79,6 +79,7 @@
   document.getElementById("minimum-block").min = summary.min_segment;
   document.getElementById("footnote").textContent = "Exact review keys; canonical order by answer ID. Block indexes start at zero and end before the listed upper bound. Equal histories are grouped. " + (graph.edges_truncated ? "The viewer embeds the strongest " + number(graph.edges.length) + " links; relations.sqlite and relations.jsonl retain all verified links." : "All verified links are embedded; the visible group limit only affects this view.");
   if (graph.aggregate_only) document.getElementById("footnote").textContent = "Computed relationships and counts from the full cohort; all verified links are embedded. Review timestamps and block ranges remain in the local audit. Equal histories share a node. The visible group limit only affects this view.";
+  if (summary.benchmark_seconds != null) document.getElementById("footnote").textContent += " Audit time includes source checksums and graph generation." + (summary.benchmark_cache_hits != null ? " Canonical histories reused: " + number(summary.benchmark_cache_hits) + " / " + number(summary.users) + "." : "");
   function evidence(edge) {
     const detail = document.getElementById("detail"); detail.replaceChildren();
     element("strong", edge.kind === "subset" ? label(edge.subset_id) + " ⊂ " + label(edge.superset_id) : label(edge.a) + " ↔ " + label(edge.b), detail);

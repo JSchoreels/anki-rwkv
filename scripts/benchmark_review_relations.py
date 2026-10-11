@@ -67,7 +67,7 @@ def main():
     report = {"label": args.label, "implementation_sha256": sha256(source).hexdigest(),
               "implementation_source": str((output / "implementation.py").relative_to(ROOT)),
               "provenance": provenance, "profiled": args.profile, "results": [],
-              "stage_scope": "Function-call durations are summed, with synchronized counters. Concurrent compare calls overlap; their sum is not phase wall time. Ordered-map phase elapsed includes main-thread result consumption. End-to-end elapsed is the acceptance metric.",
+              "stage_scope": "Function-call durations are summed, with synchronized counters. Concurrent call durations overlap; their sum is not phase wall time. Ordered-map phase elapsed includes main-thread result consumption. End-to-end elapsed is the acceptance metric.",
               "environment": {"python": sys.version, "numpy": np.__version__, "pyarrow": pa.__version__,
                   "logical_cpus": psutil.cpu_count(), "physical_cpus": psutil.cpu_count(logical=False),
                   "system_ram_bytes": psutil.virtual_memory().total},

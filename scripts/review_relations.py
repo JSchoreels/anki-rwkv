@@ -6,7 +6,8 @@ only discover candidates: every reported relation is verified on all fields.
 """
 
 from argparse import ArgumentParser
-from collections import defaultdict
+from collections import defaultdict, deque
+from concurrent.futures import ThreadPoolExecutor
 from contextlib import ExitStack, closing
 from datetime import datetime, timezone
 from hashlib import sha256
@@ -31,6 +32,25 @@ EVENT_DTYPE = np.dtype([(name, "<i8") for name in ("revlog_id", "card_id", "rati
 POSTING_DTYPE = np.dtype([("hash", "<u8"), ("owner", "<u4")])
 CACHE_VERSION = 1
 BATCH_ROWS = 65_536
+
+
+def _ordered_map(function, items, workers=2):
+    """At most workers futures; return results in immutable input order."""
+    with ThreadPoolExecutor(max_workers=workers) as pool:
+        iterator, pending = iter(items), deque()
+        for _ in range(workers):
+            try:
+                item = next(iterator)
+            except StopIteration:
+                break
+            pending.append(pool.submit(function, item))
+        while pending:
+            yield pending.popleft().result()
+            try:
+                item = next(iterator)
+            except StopIteration:
+                continue
+            pending.append(pool.submit(function, item))
 
 
 def _canonical_array(events):
@@ -290,18 +310,37 @@ def _add_candidates(db, pairs, flag):
                    f"ON CONFLICT(a,b) DO UPDATE SET {flag}=1", pairs)
 
 
-def subset_candidates(groups, db, anchor_count=3):
-    selections = []
-    for group in groups:
-        events = load_events(group)
-        count = min(anchor_count, len(events))
-        chosen = events[np.argpartition(event_hashes(events), count - 1)[:count]] if count else events[:0]
-        selections.append(np.array(chosen))
+def subset_candidates(groups, db, anchor_count=3, selections=None, native_threshold=12000):
+    if selections is None:
+        selections = []
+        for group in groups:
+            events = load_events(group)
+            count = min(anchor_count, len(events))
+            chosen = events[np.argpartition(event_hashes(events), count - 1)[:count]] if count else events[:0]
+            selections.append(np.array(chosen))
+    elif len(selections) != len(groups):
+        raise ValueError("One anchor selection is required per history group")
     anchors = np.unique(np.concatenate(selections)) if selections else np.empty(0, dtype=EVENT_DTYPE)
     postings = [0] * len(anchors)
+    if not len(anchors):
+        return
+    fields = list(EVENT_DTYPE.names)
+    use_native = len(anchors) >= native_threshold
+    anchor_table = pa.table({**{name: anchors[name] for name in fields},
+                             "anchor_index": np.arange(len(anchors), dtype=np.int64)}) if use_native else None
     for owner, group in enumerate(groups):
-        _, hit = _matches(anchors, load_events(group))
-        for index in np.flatnonzero(hit):
+        events = load_events(group)
+        if not len(events):
+            continue
+        if use_native:
+            event_table = pa.table({name: events[name] for name in fields})
+            # Unique complete keys prevent any timestamp-tie cross product.
+            matched = event_table.join(anchor_table, keys=fields, join_type="inner", use_threads=False)
+            indexes = matched["anchor_index"].combine_chunks().to_numpy()
+        else:
+            _, hit = _matches(anchors, events)
+            indexes = np.flatnonzero(hit)
+        for index in indexes:
             postings[int(index)] |= 1 << owner
     for owner, chosen in enumerate(selections):
         if not len(chosen):
@@ -325,15 +364,25 @@ def subset_candidates(groups, db, anchor_count=3):
     db.commit()
 
 
-def segment_candidates(groups, db, work, min_segment=20, partitions=256, index_memory_mib=256):
+def segment_candidates(groups, db, work, min_segment=20, partitions=256, index_memory_mib=256, anchor_selections=None):
     """Sparse winnowing index on disk, with an enforced per-shard read limit."""
     if partitions < 1 or partitions & (partitions - 1) or index_memory_mib < 1:
         raise ValueError("partitions must be a power of two; index_memory_mib must be positive")
     paths = {}
     with ExitStack() as handles:
         opened = {}
-        for owner, group in enumerate(groups):
-            selected = window_minimizers(event_hashes(load_events(group)), min_segment)
+        def prepare_index(item):
+            owner, group = item
+            events = load_events(group)
+            hashes = event_hashes(events)
+            chosen = None
+            if anchor_selections is not None:
+                count = min(3, len(events))
+                chosen = np.array(events[np.argpartition(hashes, count - 1)[:count]]) if count else np.array(events[:0])
+            return owner, window_minimizers(hashes, min_segment), chosen
+        for owner, selected, chosen in _ordered_map(prepare_index, enumerate(groups)):
+            if anchor_selections is not None:
+                anchor_selections.append(chosen)
             codes = _mix(selected) & np.uint64(partitions - 1)
             order = np.argsort(codes, kind="stable")
             codes, selected = codes[order], selected[order]
@@ -401,20 +450,25 @@ def find_relations(histories, output, min_segment=20, partitions=256, index_memo
         db.execute("PRAGMA cache_size=-16384")
         db.execute("CREATE TABLE candidates(a INTEGER,b INTEGER,subset_candidate INTEGER DEFAULT 0,segment_candidate INTEGER DEFAULT 0,PRIMARY KEY(a,b)) WITHOUT ROWID")
         db.execute("CREATE TABLE relations(a INTEGER,b INTEGER,kind TEXT,subset_id INTEGER,superset_id INTEGER,shared_reviews INTEGER,coverage_a REAL,coverage_b REAL,longest_segment INTEGER,segments TEXT)")
-        subset_candidates(groups, db)
+        anchor_selections = []
         with TemporaryDirectory(prefix="segment-index-", dir=output) as folder:
             work = Path(folder).resolve()
             if not work.is_relative_to(output):
                 raise ValueError("Index workspace must remain inside output")
-            postings_count = segment_candidates(groups, db, work, min_segment, partitions, index_memory_mib)
+            postings_count = segment_candidates(groups, db, work, min_segment, partitions, index_memory_mib,
+                                                anchor_selections=anchor_selections)
+        subset_candidates(groups, db, selections=anchor_selections)
         candidates = db.execute("SELECT count(*) FROM candidates").fetchone()[0]
         if progress:
             progress(f"{candidates:,} candidate pairs; verifying original review tuples")
         related_ids, counts = set(), defaultdict(int)
+        def verify_pair(pair):
+            a, b = pair
+            return a, b, compare_histories(load_events(groups[a]), load_events(groups[b]), min_segment)
         with (output / "relations.jsonl").open("w", encoding="utf-8") as stream:
-            for a, b in db.execute("SELECT a,b FROM candidates ORDER BY a,b"):
+            pairs = db.execute("SELECT a,b FROM candidates ORDER BY a,b")
+            for a, b, comparison in _ordered_map(verify_pair, pairs):
                 left, right = groups[a], groups[b]
-                comparison = compare_histories(load_events(left), load_events(right), min_segment)
                 subset_id = superset_id = None
                 if comparison["a_is_subset"] or comparison["b_is_subset"]:
                     smaller, larger = (left, right) if comparison["a_is_subset"] else (right, left)

@@ -11,7 +11,7 @@ steps. GPU and training optimization tracks belong in
 |---|---|---|---|---|
 | DQ01 | Audit repeated review patterns | Pending; feasibility inspection only | Raw reviews contain chronological card order, day offsets, ratings, learning states, answer durations and per-card elapsed times. No detector or thresholds have been tested. | Rank repeated long card sequences and ordering of shared cards across days, with rating/duration evidence. Inspect examples before choosing anomaly thresholds; report supporting review ranges. |
 | DQ02 | Exact history containment, uninterrupted common blocks, and user graph | Implemented; functional checks and full 10,000-user audit complete | [Detector](../scripts/review_relations.py), [checks](data-quality/checks.json), [full-cohort measurements](data-quality/benchmarks/optimized-full-cold.json), and [D3 results](data-quality/index.html). 727,738,650 events; two equal-history groups, 18 strict containment edges and 14,880 common-block edges. | Inspect related components before proposing any filtering. Training impact remains unmeasured. |
-| DQ03 | Improve exact relation detector speed | Three rounds retained; bracketing R12/R13 trials running | [Matched measurements](data-quality/performance.json): 1,000-user cache-hit median fell from 31.27 to 12.42 seconds (2.52×); retained full-cohort run 417.67 seconds, 656.5 MiB sampled peak process RSS. [Continuation](data-quality/performance-continuation.json): R09 full 446.61 then 417.46 seconds; R10 425.51; R11 471.68. Exact outputs and candidate flags agree; timing drift prevents adopting marginal gains. | Retain round 3 pending stronger evidence. Compare adaptive lookup with bounded two-worker indexing/verification between before/after controls. |
+| DQ03 | Improve exact relation detector speed | R13 retained; parallel preparation pending | [Matched measurements](data-quality/performance.json): R13 full audit **317.00 seconds**, **21.07%** below the faster of bracketing R12 controls (410.72 / 401.60 seconds); 452.9 MiB sampled peak process RSS. Complete candidates and exact outputs agree. Earlier rounds and inconclusive trials remain in [continuation records](data-quality/performance-continuation.json). | Retain the two-worker detector. Test bounded parallel history preparation with complete integrity checks before the next stopping decision. |
 | DQ04 | Freeze benchmark dataset identity during active-folder replacement | Resolved for GPU batch F01–F08; no filtering | The first short runner check stopped before updates with `review_time not found` after the timestamped export replaced the active folder. [Failed check](../artifacts/gpu-batch1-smoke/baseline/control/result.json), [replacement record](../artifacts/dataset-inspection/anki-revlogs-10k-id/replacement.json). The original export and count artifact share revision `75299740cff05894ef42d7ad990666691efdd2da`. | Pin the 500-user GPU batch to `data/anki-revlogs-10k-original-20261011` and record that path/revision. Timestamp-export training compatibility remains a separate, untested change. |
 
 DQ01 was originally recorded as F12 in `GPU_OPTIMIZATIONS.md` and moved here
@@ -300,8 +300,8 @@ the median is only 2.5% below the earlier control, with identical outputs.
 It is not retained. Full-cohort verification and further indexing ideas remain
 pending. These candidates are based on retained round 3 rather than the
 rejected R05 anchor experiment. [Continuation records](data-quality/performance-continuation.json)
-preserve reports and immutable sources; the original performance report remains
-the record of the retained implementation.
+preserve reports and immutable sources; the performance report links the
+historical measurements and the current retained implementation.
 
 R09 (exact full-cohort outputs confirmed, speed gain provisional): reuse the event-hash scan for both anchor selection and block
 minimizers, rather than reading and hashing every canonical event twice.
@@ -407,7 +407,7 @@ R12's current source retains the original pair verifier.
 Both the default branch and forced native lookup pass the eight independent
 checks, including brute-force cohort comparisons and forced hash collisions.
 
-R13 (correctness checked, timing pending): process two histories at a time during hash/minimizer creation
+R13 (retained; correctness and full bracketing comparisons passed): process two histories at a time during hash/minimizer creation
 and two candidate pairs at a time during verification, using bounded ordered
 thread queues. Keep owner-ordered shard writes and sorted relation output in
 the main thread; workers read immutable arrays and do not access SQLite.
@@ -436,7 +436,33 @@ This later archive commit is separate from the measured initial HEADs and
 dirty-workspace snapshots in each report. Unmeasured combined-verifier
 prototypes remain archived with explicit `unmeasured` names.
 
-The retained implementation audited **all 10,000 users and 727,738,650 reviews
+The first full-cohort R12 control completed in **410.72 seconds**. R13's
+following full trial completed in **317.00 seconds (5 minutes 17 seconds)**,
+an observed **22.82% reduction**. All complete candidate rows/flags and the
+canonical, node and relation digests agree. Both used 10,000 canonical-cache
+hits. Sampled process peak RSS was 452.6 versus 452.9 MiB. R13 stages included
+84.40 seconds of preparation, 75.50 for common blocks (62.08 for ordered
+index creation/writing), 65.71 for subset membership and **87.43 seconds**
+for the complete ordered verification phase, including main-thread result
+emission. Its concurrent pair-call duration sum is 108.15 seconds and must
+not be read as phase elapsed. The following full control remains running;
+promotion waited for this bracketing comparison. The following control
+completed in **401.60 seconds**, confirming a **21.07% reduction** against the
+faster full control. All complete candidate flags and actual output-file
+digests agree across the three full runs. R13 is now the default detector;
+the published graph retains all 14,898 derived relations and shows the 317.00
+second measurement with explicit canonical-cache reuse and integrity-check
+scope. The preserved and production detector SHA-256 is
+`753c93b6e5f2f74b983e3b48eb958775698ae5c7e747216047edb75366b86a68`.
+
+R14 (correctness checked, timing pending): use the same bounded two-worker ordered queue for history
+preparation and source checksums. R13's full trial still spends 84.40 seconds
+there. Preserve complete checksum/stamp checks, sorted user ordering and
+atomic per-history cache writes; do not substitute metadata-only integrity
+checks. Measure the whole audit against R13 before deciding on the gain. Both
+default and forced-native configurations pass the eight independent checks.
+
+The previously retained round-3 implementation audited **all 10,000 users and 727,738,650 reviews
 in 417.67 seconds (6 minutes 58 seconds)**, including graph generation, from an
 empty canonical cache. Sampled peak process RSS was **656.5 MiB**; memory-mapped
 file pages in the OS cache are outside that figure. The on-disk canonical cache
