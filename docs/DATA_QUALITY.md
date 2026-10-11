@@ -195,6 +195,12 @@ The viewer groups equal histories, draws arrows from subset to superset, and
 uses dashed links for partial histories with common blocks. User, relation,
 block-length, and visible-group filters narrow the view; selecting a link shows
 coverage and exact review ranges. D3 and its license are bundled locally. The
+minimum coverage filter applies to the shared-review fraction for both users
+by default, or either user when selected. It filters drawn links and the table;
+it does not change the detector's complete audit. For example, a 5% threshold
+with "Both users" hides a relation whose directional coverage is 5.2% / 3.4%,
+while "Either user" retains it. Reset restores a 0% threshold and "Both users".
+The
 default viewer cap is 5,000 strongest edges and explicitly reports truncation;
 the SQLite/JSONL outputs retain all edges. Increase `--graph-edge-limit` if needed.
 

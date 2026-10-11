@@ -20,6 +20,8 @@
 <label>User ID<input id="user-search" type="search" placeholder="All related users" aria-label="Filter relations by user ID"></label>
 <label>Relation<select id="relation-filter"><option value="all">All relations</option><option value="subset">Containment</option><option value="common_segment">Common blocks</option><option value="equal">Equal histories</option></select></label>
 <label>Minimum block<input id="minimum-block" type="number" min="1" step="1" value="20"></label>
+<label>Minimum coverage (%)<input id="minimum-coverage" type="number" min="0" max="100" step="0.1" value="0"></label>
+<label>Coverage requirement<select id="coverage-mode"><option value="both">Both users</option><option value="either">Either user</option></select></label>
 <label>Visible groups<select id="node-limit"><option value="100">100</option><option value="300" selected>300</option><option value="1000">1,000</option><option value="100000">All</option></select></label>
 <button id="reset-view" type="button">Reset view</button>
 </div>
@@ -126,9 +128,11 @@ THIS SOFTWARE.
     const query = document.getElementById("user-search").value.trim();
     const kind = document.getElementById("relation-filter").value;
     const minimum = Math.max(summary.min_segment, Number(document.getElementById("minimum-block").value) || summary.min_segment);
+    const coverage = Math.min(100, Math.max(0, Number(document.getElementById("minimum-coverage").value) || 0)) / 100;
+    const coverageMode = document.getElementById("coverage-mode").value;
     const limit = Number(document.getElementById("node-limit").value);
     const matching = new Set(graph.nodes.filter(n => !query || n.users.some(u => String(u) === query)).map(n => n.id));
-    const filtered = graph.edges.filter(e => (kind === "all" || e.kind === kind) && (e.kind === "subset" || e.longest_segment >= minimum) && (!query || matching.has(e.a) || matching.has(e.b)));
+    const filtered = graph.edges.filter(e => (kind === "all" || e.kind === kind) && (e.kind === "subset" || e.longest_segment >= minimum) && (!query || matching.has(e.a) || matching.has(e.b)) && (coverageMode === "either" ? Math.max(e.coverage_a ?? 0, e.coverage_b ?? 0) : Math.min(e.coverage_a ?? 0, e.coverage_b ?? 0)) >= coverage);
     const ids = new Set();
     filtered.forEach(e => { const extra = Number(!ids.has(e.a)) + Number(!ids.has(e.b)); if (ids.size + extra <= limit) { ids.add(e.a); ids.add(e.b); } });
     if (kind === "all" || kind === "equal") graph.nodes.filter(n => n.users.length > 1 && matching.has(n.id)).forEach(n => { if (ids.size < limit) ids.add(n.id); });
@@ -171,8 +175,8 @@ THIS SOFTWARE.
     selectedId = null;
     document.getElementById("detail").textContent = "Select a user or relation to inspect its matching reviews.";
   }
-  ["user-search","relation-filter","minimum-block","node-limit"].forEach(id => document.getElementById(id).addEventListener("input", () => {clearSelection(); draw();}));
-  document.getElementById("reset-view").addEventListener("click",()=>{document.getElementById("user-search").value="";document.getElementById("relation-filter").value="all";document.getElementById("minimum-block").value=summary.min_segment;clearSelection();svg.call(zoom.transform,d3.zoomIdentity);draw();});
+  ["user-search","relation-filter","minimum-block","minimum-coverage","coverage-mode","node-limit"].forEach(id => document.getElementById(id).addEventListener("input", () => {clearSelection(); draw();}));
+  document.getElementById("reset-view").addEventListener("click",()=>{document.getElementById("user-search").value="";document.getElementById("relation-filter").value="all";document.getElementById("minimum-block").value=summary.min_segment;document.getElementById("minimum-coverage").value="0";document.getElementById("coverage-mode").value="both";clearSelection();svg.call(zoom.transform,d3.zoomIdentity);draw();});
   new ResizeObserver(draw).observe(document.getElementById("network"));
   draw();
 })();
