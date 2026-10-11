@@ -1,0 +1,63 @@
+{
+  "label": "r13-control-before-full",
+  "implementation_sha256": "753c93b6e5f2f74b983e3b48eb958775698ae5c7e747216047edb75366b86a68",
+  "implementation_source": "artifacts\\data-quality\\relations-performance\\r13-control-before-full-b8c9ee\\implementation.py",
+  "provenance": {
+    "captured_utc": "2026-10-11T13:59:56.724990+00:00",
+    "git_commit": "d1c40fb94ee71618f2fde0771f7c319200830429",
+    "git_dirty": true,
+    "git_status_porcelain_z": " M README.md\u0000 M docs/COMPARISON.md\u0000 M expertium/model/rwkv_model.py\u0000 M justfile\u0000 M pyproject.toml\u0000 M rwkv/data_processing.py\u0000 M rwkv/model/rwkv_model.py\u0000 M rwkv/prepare_batch.py\u0000 M scripts/check.py\u0000 M scripts/check_cuda.py\u0000 M scripts/compare.py\u0000 M upstream.json\u0000 M uv.lock\u0000?? AGENT.md\u0000?? AGENTS.md\u0000?? configs/train-gpu-trial.toml\u0000?? docs/GPU_OPTIMIZATIONS.md\u0000?? docs/GPU_TRAINING.md\u0000?? rwkv/model/fused_shift.py\u0000?? rwkv/model/nvrtc.py\u0000?? scripts/audit_gpu_batch1_pair.py\u0000?? scripts/benchmark_gpu_optimizations.py\u0000?? scripts/benchmark_gpu_trial.py\u0000?? scripts/check_future_integration_results.py\u0000?? scripts/check_gpu.py\u0000?? scripts/check_gpu_batch1.py\u0000?? scripts/check_gpu_bucket_admission.py\u0000?? scripts/check_gpu_fused_loss.py\u0000?? scripts/check_gpu_fused_post.py\u0000?? scripts/check_gpu_future.py\u0000?? scripts/check_gpu_future_report.py\u0000?? scripts/check_gpu_logloss.py\u0000?? scripts/check_gpu_optimizations.py\u0000?? scripts/check_gpu_perf.py\u0000?? scripts/check_gpu_reproducibility.py\u0000?? scripts/check_gpu_shape_buckets.py\u0000?? scripts/check_training_tradeoffs.py\u0000?? scripts/compare_gpu_throughput.py\u0000?? scripts/compile_gpu_row_tiles.py\u0000?? scripts/download_trial_data.py\u0000?? scripts/gpu_batch1.py\u0000?? scripts/gpu_fp8.py\u0000?? scripts/gpu_fused_loss.py\u0000?? scripts/gpu_fused_post.py\u0000?? scripts/gpu_future_models.py\u0000?? scripts/gpu_optimizations.py\u0000?? scripts/gpu_packed_encodings.py\u0000?? scripts/gpu_power.py\u0000?? scripts/gpu_row_tiles.py\u0000?? scripts/gpu_shape_buckets.py\u0000?? scripts/gpu_training_targets.py\u0000?? scripts/kernels/rwkv_fused_post.cu\u0000?? scripts/kernels/rwkv_masked_means.cu\u0000?? scripts/kernels/rwkv_row_tiles.cu\u0000?? scripts/profile_gpu_kernels.py\u0000?? scripts/report_gpu_batch1.py\u0000?? scripts/report_gpu_batch1_relative.py\u0000?? scripts/report_gpu_future.py\u0000?? scripts/report_gpu_optimizations.py\u0000?? scripts/report_training_tradeoffs.py\u0000?? scripts/run_gpu_batch1.ps1\u0000?? scripts/run_gpu_batch1.py\u0000?? scripts/run_gpu_optimizations.py\u0000?? scripts/run_gpu_optimizations_extra.py\u0000?? scripts/run_gpu_trial.ps1\u0000?? scripts/train_gpu_future.py\u0000?? scripts/train_gpu_trial.py\u0000?? scripts/trial_batches.py\u0000",
+    "source_tree_sha256": "1d568ab9bbf13d947965ee2cbca0ff670a2f31c581ff498894a3191d3e3115af",
+    "source_archive": "artifacts/experiment-sources/1d568ab9bbf13d947965ee2cbca0ff670a2f31c581ff498894a3191d3e3115af/source.zip",
+    "source_paths": [
+      "rwkv",
+      "expertium",
+      "scripts",
+      "configs",
+      "pyproject.toml",
+      "uv.lock",
+      "justfile",
+      "upstream.json"
+    ]
+  },
+  "profiled": false,
+  "results": [
+    {
+      "repeat": 1,
+      "elapsed_seconds": 308.5830864999989,
+      "stage_seconds": {
+        "prepare_history": 83.26939310020316,
+        "equal_groups": 0.03920109999671695,
+        "prepare_index_phase_elapsed": 57.89120349999939,
+        "segment_candidates": 68.94432619999861,
+        "subset_candidates": 61.96527320000314,
+        "compare_histories": 112.32891759994527,
+        "verify_pair_phase_elapsed": 90.4278661999997,
+        "write_graph": 0.6972871999969357
+      },
+      "peak_rss_bytes_sampled": 475475968,
+      "users": 10000,
+      "distinct_reviews": 727738650,
+      "cache_hits": 10000,
+      "candidate_pairs": 25109,
+      "minimizer_postings": 69300344,
+      "equal_groups": 2,
+      "subset_edges": 18,
+      "common_segment_edges": 14880,
+      "relations_sha256": "02cdd06f77628230fca7ed8e899b0cd938e1dbcb1c473105ce031a1e64a3837b",
+      "nodes_sha256": "57fd3d6f319cd5e4f66e84d00b4666f118e38955296886f80ade4b755f1d0f57",
+      "canonical_sha256": "57574a899957bbd91963efe46a8cc8677b036d1a6cba5a75667c149112423f7d"
+    }
+  ],
+  "stage_scope": "Function-call durations are summed, with synchronized counters. Concurrent call durations overlap; their sum is not phase wall time. Ordered-map phase elapsed includes main-thread result consumption. End-to-end elapsed is the acceptance metric.",
+  "environment": {
+    "python": "3.12.14 (main, Aug 25 2026, 14:01:42) [MSC v.1944 64 bit (AMD64)]",
+    "numpy": "2.5.4",
+    "pyarrow": "26.0.0",
+    "logical_cpus": 16,
+    "physical_cpus": 8,
+    "system_ram_bytes": 33346146304
+  },
+  "scope": "CPU data audit, no training; end-to-end includes graph writing; OS cache and other system work are uncontrolled.",
+  "status": "complete"
+}

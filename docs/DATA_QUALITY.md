@@ -474,6 +474,12 @@ CPU workers remain external timing influences; the initial control repetition
 was 21.42 seconds, followed by 10.93 / 10.54 seconds. Use the recorded median,
 not that outlier, and wait for both full controls before deciding retention.
 [Screen reports and parity evidence](data-quality/performance-continuation.json).
+The full R13 preceding control completed in **308.58 seconds** (83.27 seconds
+preparation, 68.94 common-block candidates, 61.97 subset candidates and 90.43
+ordered verification). Complete candidate rows/flags and actual output files
+also match the previously retained R13 full trial. The R14 full trial and
+following control are pending; this preceding control alone implies a 277.72
+second upper bound for clearing 10%, before considering the following control.
 
 The previously retained round-3 implementation audited **all 10,000 users and 727,738,650 reviews
 in 417.67 seconds (6 minutes 58 seconds)**, including graph generation, from an
