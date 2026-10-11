@@ -11,7 +11,7 @@ steps. GPU and training optimization tracks belong in
 |---|---|---|---|---|
 | DQ01 | Audit repeated review patterns | Pending; feasibility inspection only | Raw reviews contain chronological card order, day offsets, ratings, learning states, answer durations and per-card elapsed times. No detector or thresholds have been tested. | Rank repeated long card sequences and ordering of shared cards across days, with rating/duration evidence. Inspect examples before choosing anomaly thresholds; report supporting review ranges. |
 | DQ02 | Exact history containment, uninterrupted common blocks, and user graph | Implemented; functional checks and full 10,000-user audit complete | [Detector](../scripts/review_relations.py), [checks](data-quality/checks.json), [full-cohort measurements](data-quality/benchmarks/optimized-full-cold.json), and [D3 results](data-quality/index.html). 727,738,650 events; two equal-history groups, 18 strict containment edges and 14,880 common-block edges. | Inspect related components before proposing any filtering. Training impact remains unmeasured. |
-| DQ03 | Improve exact relation detector speed | Three rounds retained; R04/R05 inconclusive, R06–R08 screened, further rounds pending | [Matched measurements](data-quality/performance.json): 1,000-user cache-hit median fell from 31.27 to 12.42 seconds (2.52×); retained full-cohort run 417.67 seconds, 656.5 MiB sampled peak process RSS. [Continuation](data-quality/performance-continuation.json) establishes no additional end-to-end gain above 10%. Exact outputs agree across completed trials. | Retain round 3. Test shared hash scanning and controlled full-cohort verification before concluding the optimization stop audit. |
+| DQ03 | Improve exact relation detector speed | Three rounds retained; R09 improves the 1,000-user screen, full cohort running | [Matched measurements](data-quality/performance.json): 1,000-user cache-hit median fell from 31.27 to 12.42 seconds (2.52×); retained full-cohort run 417.67 seconds, 656.5 MiB sampled peak process RSS. [Continuation](data-quality/performance-continuation.json): R09 is 14.3–14.6% faster than bracketing controls on 1,000 users. Exact outputs and complete candidate flags agree across these trials. | Retain round 3 until full-cohort comparison completes. Continue the optimization stop audit if the gain exceeds 10%. |
 | DQ04 | Freeze benchmark dataset identity during active-folder replacement | Resolved for GPU batch F01–F08; no filtering | The first short runner check stopped before updates with `review_time not found` after the timestamped export replaced the active folder. [Failed check](../artifacts/gpu-batch1-smoke/baseline/control/result.json), [replacement record](../artifacts/dataset-inspection/anki-revlogs-10k-id/replacement.json). The original export and count artifact share revision `75299740cff05894ef42d7ad990666691efdd2da`. | Pin the 500-user GPU batch to `data/anki-revlogs-10k-original-20261011` and record that path/revision. Timestamp-export training compatibility remains a separate, untested change. |
 
 DQ01 was originally recorded as F12 in `GPU_OPTIMIZATIONS.md` and moved here
@@ -303,10 +303,38 @@ rejected R05 anchor experiment. [Continuation records](data-quality/performance-
 preserve reports and immutable sources; the original performance report remains
 the record of the retained implementation.
 
-R09 (pending): reuse the event-hash scan for both anchor selection and block
+R09 (functional and 1,000-user checks passed, full-cohort pending): reuse the event-hash scan for both anchor selection and block
 minimizers, rather than reading and hashing every canonical event twice.
 Preserve all three actual anchors and complete minimizer postings, then verify
-unchanged candidate pairs and exact outputs. End-to-end gain is unmeasured.
+unchanged candidate pairs and exact outputs. The eight independent functional
+checks pass, including forced hash collisions and empty histories. End-to-end
+three-repeat 1,000-user median is 15.59 seconds versus 18.20 seconds for its
+preceding control (14.3% less elapsed time). Canonical, node and complete
+relation digests agree. Its subset stage falls from a 4.07-second median to
+1.32 seconds; common-block indexing includes both shared hash computation and
+anchor selection. System work remains uncontrolled, so a following control and
+full-cohort trials are needed before promotion. The following control's median
+was 18.26 seconds, also yielding more than 10% improvement (14.6%). All nine
+control/trial outputs have identical complete candidate rows and flags, in
+addition to canonical, node and relation digests. The full-cohort control and
+R09 trial now run sequentially from the same existing canonical cache. Their
+phase order differs because R09 obtains anchors during block-index creation;
+this is part of its implementation rather than a discarded timing cost.
+
+Archived R05–R08 trial implementation commit:
+[a19266cfff7d83efb45750691cce2b50bd6b337c](https://github.com/JSchoreels/anki-rwkv/commit/a19266cfff7d83efb45750691cce2b50bd6b337c).
+This is separate from their measured process HEADs and dirty source snapshots.
+R09 is currently uncommitted.
+
+R10 (functional checks passed, slower on 1,000 users): use a single-threaded native Arrow hash join on all four exact
+event fields to locate global anchors in each history. Anchors and canonical
+histories are distinct full tuples, so there is no timestamp-tie cross product.
+Preserve the three-anchor intersections and complete verification. Its benefit
+and memory cost on the full cohort are unmeasured; this differs from R08's pair
+timestamp join. The 1,000-user median was 17.00 seconds versus R09's 15.59,
+with identical outputs. Sampled peak process RSS reached 343.6 MiB versus
+254.2 MiB for R09. It is not retained; full-cohort anchor lookup remains a
+possible separate diagnostic, without an established end-to-end gain.
 
 The retained implementation audited **all 10,000 users and 727,738,650 reviews
 in 417.67 seconds (6 minutes 58 seconds)**, including graph generation, from an
@@ -379,7 +407,7 @@ GitHub Pages is enabled; subsequent result commits update this view after deploy
 [functional check report](data-quality/checks.json) are committed research
 results. Raw logs, complete review-range evidence, and complete workspace source
 archives remain under ignored `artifacts/data-quality/relations-performance`
-and `artifacts/experiment-sources` in this workspace. Every measured process
+and `artifacts/experiment-sources` in this workspace. The initial measured processes
 recorded full Git HEAD **020e2fac1e62fe8e69c2d8daa36a81c881919a95** and a dirty
 working tree; this later implementation commit is separate from that tested
 revision. The retained detector SHA-256 is
