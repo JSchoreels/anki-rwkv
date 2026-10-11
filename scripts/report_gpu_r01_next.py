@@ -146,6 +146,9 @@ def main():
     for model, result in comparisons.items():
         lines += [f"{model}: {selection[model]['reason']}", ""]
         for track in cases[model]:
+            case = cases[model][track]
+            if case.get('gpu_copy_milliseconds', 0):
+                lines += [f"{describe(track)}: measured GPU input-stage time **{case['gpu_copy_milliseconds']/1000:.3f} s**, with **{case['gpu_copy_overlap_training_milliseconds']/1000:.3f} s** overlapping the preceding training batch. The input-stage event covers copying and GPU feature materialization; this is separate device timing, not a wall-time saving estimate.", ""]
             profile = output / "profiles" / f"{model}-{track}" / "result.json"
             if profile.exists():
                 p = json.loads(profile.read_text())
@@ -168,7 +171,9 @@ def main():
         p = case["provenance"]
         checkpoint = path.with_name('master.pth')
         saved = f"[checkpoint]({link(checkpoint, output)})" if checkpoint.exists() else "no checkpoint saved"
-        lines.append(f"- [{case['model']}: {describe(case['track'])}{' smoke' if case['smoke_only'] else ''}]({link(path,output)}): {case['status']}; training start UTC {case.get('training_started_utc','—')}; commit `{p['git_commit']}`, dirty `{p['git_dirty']}`; [source snapshot]({link(ROOT/p['source_archive'], output)}), [updates]({link(path.with_name('updates.jsonl'),output)}), {saved}.")
+        log = path.with_name('updates.jsonl')
+        updates = f"[updates]({link(log, output)})" if log.exists() else "no training updates"
+        lines.append(f"- [{case['model']}: {describe(case['track'])}{' smoke' if case['smoke_only'] else ''}]({link(path,output)}): {case['status']}; training start UTC {case.get('training_started_utc','—')}; commit `{p['git_commit']}`, dirty `{p['git_dirty']}`; [source snapshot]({link(ROOT/p['source_archive'], output)}), {updates}, {saved}.")
     lines += ["", f"Implementation commit: `{implementation['git_commit']}` (after experiments)." if implementation else "Implementation commit pending the completed speed/quality decision.", "", report["limitations"] + ". This iteration is complete. The latest user request authorizes five completed current-loop iterations in total, with the loop reread between runs; no broader validation is authorized.", ""]
     update = output / "authorization-update-001.json"
     if update.exists():

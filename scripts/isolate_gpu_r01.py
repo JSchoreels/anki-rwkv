@@ -32,8 +32,9 @@ def build(archive, runtime):
         target.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(ROOT / name, target)
     base = ROOT / 'artifacts/retraining/gpu-retrain-r01'
-    for name in ('cohorts-user-holdout-v1.json', 'iteration-0002',
-                 'iteration-0003', 'iteration-0004', 'iterations'):
+    names = ['cohorts-user-holdout-v1.json', 'iterations']
+    names.extend(path.name for path in sorted(base.glob('iteration-*')) if path.is_dir())
+    for name in names:
         source = base / name
         target = runtime / source.relative_to(ROOT)
         target.parent.mkdir(parents=True, exist_ok=True)
@@ -46,6 +47,8 @@ def build(archive, runtime):
         provenance = case.get('provenance', {})
         if provenance.get('source_archive'):
             source = ROOT / provenance['source_archive']
+            if not source.exists() and provenance.get('git_commit') == 'synthetic-only':
+                continue
             target = runtime / provenance['source_archive']
             target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(source, target)
