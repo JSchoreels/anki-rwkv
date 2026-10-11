@@ -11,7 +11,7 @@ steps. GPU and training optimization tracks belong in
 |---|---|---|---|---|
 | DQ01 | Audit repeated review patterns | Pending; feasibility inspection only | Raw reviews contain chronological card order, day offsets, ratings, learning states, answer durations and per-card elapsed times. No detector or thresholds have been tested. | Rank repeated long card sequences and ordering of shared cards across days, with rating/duration evidence. Inspect examples before choosing anomaly thresholds; report supporting review ranges. |
 | DQ02 | Exact history containment, uninterrupted common blocks, and user graph | Implemented; functional checks and full 10,000-user audit complete | [Detector](../scripts/review_relations.py), [checks](data-quality/checks.json), [full-cohort measurements](data-quality/benchmarks/optimized-full-cold.json), and [D3 results](data-quality/index.html). 727,738,650 events; two equal-history groups, 18 strict containment edges and 14,880 common-block edges. | Inspect related components before proposing any filtering. Training impact remains unmeasured. |
-| DQ03 | Improve exact relation detector speed | R13 retained; R14 full comparison running | [Matched measurements](data-quality/performance.json): R13 full audit **317.00 seconds**, **21.07%** below the faster of bracketing R12 controls (410.72 / 401.60 seconds); 452.9 MiB sampled peak process RSS. R14's 1,000-user screen gains **5.89%**, below the 10% acceptance threshold. Complete candidates and exact outputs agree. Earlier rounds and inconclusive trials remain in [continuation records](data-quality/performance-continuation.json). | Retain the two-worker detector. Complete the full parallel-preparation comparison before the stopping decision. |
+| DQ03 | Improve exact relation detector speed | R14 retained; stopped below updated 20% threshold | [Matched measurements](data-quality/performance.json): final full trial **270.77 seconds**, **4.88%** below the faster R13 control (308.58 / 284.65 seconds); 413.1 MiB sampled peak process RSS. Complete candidates and exact outputs agree. Controls varied by 7.75%, limiting precision of the speedup estimate. Earlier rounds and inconclusive trials remain in [continuation records](data-quality/performance-continuation.json). | Keep bounded two-worker preparation and the final viewer. No further rounds under the user's updated 20% stopping rule; preserve R15 as unmeasured. |
 | DQ04 | Freeze benchmark dataset identity during active-folder replacement | Resolved for GPU batch F01–F08; no filtering | The first short runner check stopped before updates with `review_time not found` after the timestamped export replaced the active folder. [Failed check](../artifacts/gpu-batch1-smoke/baseline/control/result.json), [replacement record](../artifacts/dataset-inspection/anki-revlogs-10k-id/replacement.json). The original export and count artifact share revision `75299740cff05894ef42d7ad990666691efdd2da`. | Pin the 500-user GPU batch to `data/anki-revlogs-10k-original-20261011` and record that path/revision. Timestamp-export training compatibility remains a separate, untested change. |
 
 DQ01 was originally recorded as F12 in `GPU_OPTIMIZATIONS.md` and moved here
@@ -407,7 +407,7 @@ R12's current source retains the original pair verifier.
 Both the default branch and forced native lookup pass the eight independent
 checks, including brute-force cohort comparisons and forced hash collisions.
 
-R13 (retained; correctness and full bracketing comparisons passed): process two histories at a time during hash/minimizer creation
+R13 (retained after its round; included in R14; correctness and full bracketing comparisons passed): process two histories at a time during hash/minimizer creation
 and two candidate pairs at a time during verification, using bounded ordered
 thread queues. Keep owner-ordered shard writes and sorted relation output in
 the main thread; workers read immutable arrays and do not access SQLite.
@@ -449,8 +449,8 @@ not be read as phase elapsed. Promotion waited for the bracketing comparison.
 The following control
 completed in **401.60 seconds**, confirming a **21.07% reduction** against the
 faster full control. All complete candidate flags and actual output-file
-digests agree across the three full runs. R13 is now the default detector;
-the published graph retains all 14,898 derived relations and shows the 317.00
+digests agree across the three full runs. R13 became the default detector;
+the graph at that stage retained all 14,898 derived relations and showed the 317.00
 second measurement with explicit canonical-cache reuse and integrity-check
 scope. The preserved and production detector SHA-256 is
 `753c93b6e5f2f74b983e3b48eb958775698ae5c7e747216047edb75366b86a68`.
@@ -458,7 +458,7 @@ Production promotion and updated viewer implementation commit:
 [f81dfd120a8a3de4435669235b394339108ab651](https://github.com/JSchoreels/anki-rwkv/commit/f81dfd120a8a3de4435669235b394339108ab651).
 This later delivery commit is separate from the preserved experiment revisions.
 
-R14 (correctness checked; full bracketing comparison running): use the same bounded two-worker ordered queue for history
+R14 (retained; stopped below updated 20% threshold): use the same bounded two-worker ordered queue for history
 preparation and source checksums. R13's full trial still spends 84.40 seconds
 there. Preserve complete checksum/stamp checks, sorted user ordering and
 atomic per-history cache writes; do not substitute metadata-only integrity
@@ -468,18 +468,56 @@ The completed 1,000-user screen has median **10.28 seconds**, versus R13
 controls **10.93 / 11.39 seconds** (three repetitions each), a **5.89%**
 reduction against the faster control. Recomputed canonical manifests,
 actual node/relation files and every candidate row/flag agree across all nine
-runs. Full-cohort controls and trial are running sequentially on the same
+runs. Full-cohort controls and trial ran sequentially on the same
 cache, with all source checksums preserved. Concurrent GPU training and its
 CPU workers remain external timing influences; the initial control repetition
 was 21.42 seconds, followed by 10.93 / 10.54 seconds. Use the recorded median,
-not that outlier, and wait for both full controls before deciding retention.
+not that outlier. Retention waited for both full controls.
 [Screen reports and parity evidence](data-quality/performance-continuation.json).
 The full R13 preceding control completed in **308.58 seconds** (83.27 seconds
 preparation, 68.94 common-block candidates, 61.97 subset candidates and 90.43
 ordered verification). Complete candidate rows/flags and actual output files
-also match the previously retained R13 full trial. The R14 full trial and
-following control are pending; this preceding control alone implies a 277.72
-second upper bound for clearing 10%, before considering the following control.
+also match the previously retained R13 full trial. Before the R14 full trial and
+following control finished, this preceding control alone implied a 277.72
+second upper bound for clearing the original 10% threshold, before considering the following control.
+The R14 full trial completed in **270.77 seconds**, **12.25%** below that
+preceding control. Preparation phase wall time is 48.98 seconds; overlapping
+`prepare_history` call durations sum to 91.59 seconds and are not phase elapsed.
+Common-block candidates take 71.67 seconds, subset candidates 55.31 and ordered
+verification 90.68. The following R13 control completed in **284.65 seconds**,
+so the final observed reduction is **4.88%** against the faster control. Controls
+varied by **7.75%**; the observed elapsed difference is not a precise independent
+speedup estimate. Preparation phase wall time was 48.98 seconds versus 83.27 /
+88.63 seconds in the controls; other stages varied with system conditions.
+All complete candidate rows/flags, canonical manifest digests and recomputed
+node/relation file digests agree across all three full runs. Both versions
+produce **1,685 related groups, 18 strict subsets and 14,880 common-block links**.
+R14 is retained as the faster observed, exact implementation; sampled peak
+process RSS was **413.1 MiB**. Its production and archived SHA-256 is
+`91d0e736932552e821323628b5470bb471bb92ecc5d5565852d954a564d40629`.
+The final viewer publishes the 270.77-second measurement, keeps all 14,898 links
+and coverage controls, and explicitly labels canonical-cache reuse plus source
+checksums and graph generation. No fresh-cache R14 full-cohort timing is claimed.
+The production entry point also passed all eight independent checks after
+promotion; [final check report](data-quality/benchmarks/final-production-checks.json).
+
+R15 (not pursued under the updated 20% stopping threshold): move hash-shard partition sorting
+and packed posting allocation into the existing two index workers. Allocate one
+posting array per history instead of one per occupied shard; consume slices on
+the main writer in the same ascending-owner order. Allow four bounded pending
+results while retaining only two active workers, to overlap worker preparation
+with main-thread writes. Preserve the complete postings, SQLite ownership and
+shard read limit. Measure full elapsed time and peak RSS against bracketing R14
+controls; the index phase remains about 60 seconds in the current full trial.
+Do not project a full-audit gain from that phase cost.
+The user changed the per-round stopping threshold from 10% to **20%** while
+R14's following control was running. R14's gain against the faster bracketing
+control cannot exceed its 12.25% gain against the preceding control, so this
+round already fell below the updated stopping threshold. The following control
+confirmed the complete output parity and remained slower than the trial. Further
+rounds were stopped. R15 remains an unmeasured idea; it was not implemented or
+benchmarked. The stopping threshold governs further iteration, not whether a
+smaller, exact observed improvement may be retained.
 
 The previously retained round-3 implementation audited **all 10,000 users and 727,738,650 reviews
 in 417.67 seconds (6 minutes 58 seconds)**, including graph generation, from an

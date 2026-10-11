@@ -1,6 +1,6 @@
 {
-  "status": "round14_full_bracketing_trials_running",
-  "retained_variant": "round13-two-workers",
+  "status": "stopped_below_twenty_percent",
+  "retained_variant": "round14-parallel-preparation",
   "full_comparison_confounded": true,
   "cases": {
     "r05-control-1000": {
@@ -98,17 +98,30 @@
     "r13-control-before-full": {
       "median_seconds": 308.5830864999989,
       "report": "benchmarks/r13-control-before-full.json"
+    },
+    "r14-parallel-preparation-full": {
+      "median_seconds": 270.76611080000293,
+      "report": "benchmarks/r14-parallel-preparation-full.json"
+    },
+    "r13-control-after-full": {
+      "median_seconds": 284.65467029999854,
+      "report": "benchmarks/r13-control-after-full.json"
     }
   },
   "pair_diagnostic": "benchmarks/pair-variant-probe.json",
-  "conclusion": "R14 1,000-user median 10.28s against bracketing R13 medians 10.93s / 11.39s: 5.89% below the faster control. All complete candidate flags and exact output digests agree across nine runs. Full-cohort comparison remains running; R13 stays retained.",
+  "conclusion": "Retained R14's exact two-worker preparation: full trial 270.77 seconds against R13 controls 308.58 / 284.65 seconds, 4.88% below the faster control. Complete candidate flags and original-tuple-derived outputs agree. Controls drifted by 7.75%; this is an observed run comparison, not a precise independent speedup estimate. The user changed the stopping threshold to 20%; no further rounds were started. R15 remains unmeasured.",
   "round9_1000_elapsed_reduction_fraction": 0.14333674321803558,
   "round9_full_elapsed_reduction_fraction": 0.1002276089549069,
   "round9_full_gain_provisional": true,
   "round10_full_has_competing_cpu_workers": true,
   "round13_1000_elapsed_reduction_fraction": 0.10339154001966577,
   "round13_full_elapsed_reduction_before_fraction": 0.22819607021603183,
-  "retained_implementation_sha256": "753c93b6e5f2f74b983e3b48eb958775698ae5c7e747216047edb75366b86a68",
+  "retained_implementation_sha256": "91d0e736932552e821323628b5470bb471bb92ecc5d5565852d954a564d40629",
   "round13_full_bracketing_elapsed_reduction_fraction": 0.21065823341520185,
-  "round14_1000_elapsed_reduction_fraction": 0.05887199051795944
+  "round14_1000_elapsed_reduction_fraction": 0.05887199051795944,
+  "round14_full_bracketing_elapsed_reduction_fraction": 0.048790906839358716,
+  "round14_full_meets_ten_percent_threshold": false,
+  "stopping_threshold_fraction": 0.2,
+  "round14_full_meets_stopping_threshold": false,
+  "round15_status": "unmeasured_not_pursued_after_user_threshold_change"
 }

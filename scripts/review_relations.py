@@ -553,8 +553,10 @@ def run(args):
     manifest = json.loads(manifest_file.read_text()) if manifest_file.is_file() else None
     log = lambda message: print(message, flush=True)
     histories = []
-    for index, user in enumerate(users):
-        histories.append(prepare_history(user, available[user], cache, args.time_kind))
+    def prepare_user(user):
+        return prepare_history(user, available[user], cache, args.time_kind)
+    for index, history in enumerate(_ordered_map(prepare_user, users)):
+        histories.append(history)
         if index == 0 or (index + 1) % 20 == 0 or index + 1 == len(users):
             log(f"Prepared {index + 1}/{len(users)} users ({sum(h['reviews'] for h in histories):,} distinct reviews)")
     (output / "input_manifest.json").write_text(json.dumps({"data_path": str(data), "available_users_at_start": len(available),
