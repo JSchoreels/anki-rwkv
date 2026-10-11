@@ -97,6 +97,9 @@ def main():
         arr = events[user]
         _, ref_hit = _matches(ref, arr)
         _, is_ref = _matches(arr, ref)
+        non_reference_positions = np.flatnonzero(~is_ref)
+        overlap = min(len(arr), len(ref))
+        prefix_mismatches = np.flatnonzero(arr[:overlap] != ref[:overlap])
         _, is_repeated = _matches(arr, repeated)
         extras = arr[~is_ref]
         private = arr[~is_repeated]
@@ -118,6 +121,10 @@ def main():
         comparison = compare_histories(ref, arr)
         per_user.append({
             "user": user, "reviews": len(arr), "shared_reference": int(ref_hit.sum()),
+            "first_event_is_reference_first": bool(len(arr) and arr[0] == ref[0]),
+            "initial_reference_only_reviews": int(non_reference_positions[0]) if len(non_reference_positions) else len(arr),
+            "initial_exact_reference_prefix_reviews": int(prefix_mismatches[0]) if len(prefix_mismatches) else overlap,
+            "non_reference_before_first_reference": int(np.sum(extras["revlog_id"] < ref["revlog_id"][0])),
             "missing_reference": int((~ref_hit).sum()), "extra_reference": len(extras),
             "extra_before_or_during_reference": int(np.sum(extras["revlog_id"] <= ref["revlog_id"][-1])),
             "extra_after_reference": int(np.sum(extras["revlog_id"] > ref["revlog_id"][-1])),

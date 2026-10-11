@@ -13,7 +13,7 @@ steps. GPU and training optimization tracks belong in
 | DQ02 | Exact history containment, uninterrupted common blocks, and user graph | Implemented; functional checks and full 10,000-user audit complete | [Detector](../scripts/review_relations.py), [checks](data-quality/checks.json), [full-cohort measurements](data-quality/benchmarks/optimized-full-cold.json), and [D3 results](data-quality/index.html). 727,738,650 events; two equal-history groups, 18 strict containment edges and 14,880 common-block edges. | Inspect related components before proposing any filtering. Training impact remains unmeasured. |
 | DQ03 | Improve exact relation detector speed | R14 retained; stopped below updated 20% threshold | [Matched measurements](data-quality/performance.json): final full trial **270.77 seconds**, **4.88%** below the faster R13 control (308.58 / 284.65 seconds); 413.1 MiB sampled peak process RSS. Complete candidates and exact outputs agree. Controls varied by 7.75%, limiting precision of the speedup estimate. Earlier rounds and inconclusive trials remain in [continuation records](data-quality/performance-continuation.json). | Keep bounded two-worker preparation and the final viewer. No further rounds under the user's updated 20% stopping rule; preserve R15 as unmeasured. |
 | DQ04 | Freeze benchmark dataset identity during active-folder replacement | Resolved for GPU batch F01–F08; no filtering | The first short runner check stopped before updates with `review_time not found` after the timestamped export replaced the active folder. [Failed check](../artifacts/gpu-batch1-smoke/baseline/control/result.json), [replacement record](../artifacts/dataset-inspection/anki-revlogs-10k-id/replacement.json). The original export and count artifact share revision `75299740cff05894ef42d7ad990666691efdd2da`. | Pin the 500-user GPU batch to `data/anki-revlogs-10k-original-20261011` and record that path/revision. Timestamp-export training compatibility remains a separate, untested change. |
-| DQ05 | Explain the large high-coverage common-block cluster | Investigated; inherited package likely, original package unidentified | [Findings](data-quality/cluster-95.html): 43 users / 40 groups / 447 links; 13,784 inherited events, 11,804 present in all users. Common deck hierarchy and 200,511 distinct personal reviews support copied history followed by separate activity. All 4,493 missing old review rows occur on cards with later learning restarts, consistent with the export's last-sequence filter. | Identify the original package using deck names, note content or import records unavailable in this export. Consider event-level lineage labels; no filtering or training-quality benefit measured. |
+| DQ05 | Explain the large high-coverage common-block cluster | Investigated; user decision: retain users and inherited reviews | [Findings](data-quality/cluster-95.html): 43 users / 40 groups / 447 links; 13,784 inherited events, 11,804 present in all users. Common deck hierarchy and 200,511 distinct personal reviews support copied history followed by separate activity. All 4,493 missing old review rows occur on cards with later learning restarts, consistent with the export's last-sequence filter. | Keep all currently exported histories, including inherited reviews. Lineage flags remain descriptive. The original package is unidentified; any future exclusion/deduplication needs a new decision and any claimed training benefit remains unmeasured. |
 
 DQ01 was originally recorded as F12 in `GPU_OPTIMIZATIONS.md` and moved here
 because it concerns data quality.
@@ -64,6 +64,55 @@ states that scheduling exports can include review history, and its
 describes adopting another author's learning progress. These establish a
 supported mechanism, not proof of the exact package, donor, import route or
 intent. Shared history alone does not imply misconduct or shared user identity.
+
+### User decision: retain users and inherited reviews
+
+**2026-10-11, explicitly requested by the user:** continue using these users
+and their currently exported review histories, including the repeated inherited
+events. Do not exclude users or deduplicate/remove their shared reviews on the
+basis of this cluster. Imported past history can be present in a real user's
+revlog and therefore be part of the history available to the model in use.
+
+The common-history evidence is an explanation and an audit annotation, not an
+exclusion rule. This decision does not establish that the inherited reviews
+measure each recipient's own memory or that retaining them improves training
+quality. No filtering or training comparison has been performed. Any future
+proposal to remove or deduplicate these events requires reconsidering this
+decision; claimed training benefits still require the separately authorized
+validation phase in `AGENT.md`.
+
+### A shared prefix is different from exact containment
+
+The follow-up [prefix investigation](../artifacts/data-quality/cluster-95-either/prefix-investigation.json)
+rechecks the 43 sources and shows that **all 43 exported histories begin with
+the same 1,672 consecutive reference events**. None has a non-reference review timestamp
+before that event. This does not establish when each person's collection
+actually began: importing old revlogs inserts events at their original review
+times, not at the import time.
+
+Relative to the complete 13,784-event reference history:
+
+- **21 users** retain it as a complete chronological prefix, including the
+  four users whose exported histories equal the reference exactly.
+- **18 users** have only later additional reviews but are missing some old
+  reference events. The retained old part comes first, but is incomplete.
+- **4 users** (7123, 7249, 7934 and 9124) have additional reviews interleaved
+  during the reference's 2017–2020 period. Their initial uninterrupted
+  reference prefixes contain 7,810, 7,400, 7,766 and 7,398 reviews respectively.
+
+An imported deck in an already active collection can therefore explain why
+common events are not one uninterrupted prefix. It does **not**, by itself,
+break the detector's subset relation: `[1, 2, 3]` is still an exact subset of
+`[1, x, 2, 3, y]`. User **7934** demonstrates this: all 13,784 reference events
+are present despite interleaving, so reference 449 is an exact subset, while
+their longest uninterrupted common block is only 7,766 reviews.
+
+The other three interleaved histories are missing 93, 91 and 42 reference
+events respectively. Together with the 18 later-only histories with gaps,
+these account for all 21 failures of complete reference containment. The
+learning-restart/export-filter pattern below explains the missing events.
+The 11,804-event intersection is an exact subset of all 43 histories, but it
+need not form one uninterrupted block in any of them.
 
 ### Why the inherited history develops gaps
 
