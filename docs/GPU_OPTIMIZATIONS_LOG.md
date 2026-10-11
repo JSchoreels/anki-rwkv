@@ -21,4 +21,6 @@ Functional smoke runs (two train/two disjoint test users, 1,024 training/1,024 h
 - [baseline/F01: complete](../artifacts/retraining/gpu-retrain-r01/iteration-0002/functional-smoke-v1/baseline/F01/result.json), training UTC 2026-10-11T17:56:57.504120+00:00; 2.990 s, 342 reviews/s; binary losses in raw result, no comparable previous/baseline; commit `aa8f3069de8196f48e1776fa59a693e915b8a91f`, dirty `True`, [snapshot](../artifacts/sources/experiment-sources/55b7969d7d8506424c19243f7af14a30a856e406dfa063338975e71616a29e1e/source.zip).
 - [expertium/control: complete](../artifacts/retraining/gpu-retrain-r01/iteration-0002/functional-smoke-v1/expertium/control/result.json), training UTC 2026-10-11T17:57:32.768639+00:00; 2.867 s, 357 reviews/s; binary losses in raw result, no comparable previous/baseline; commit `aa8f3069de8196f48e1776fa59a693e915b8a91f`, dirty `True`, [snapshot](../artifacts/sources/experiment-sources/b04b92d0f4a33f73ae29cfbafe1f4be4ebe57eb9bc23ab0cb60e969758042154/source.zip).
 
+Implementation commit after successful comparisons: `50a1957b2b1d66c65e29bcef32369a6f8b059d61`. Experiment revision remains `aa8f3069de8196f48e1776fa59a693e915b8a91f` (dirty, per-run snapshots above); [commit record](../artifacts/retraining/gpu-retrain-r01/iteration-0002/implementation-commit.json).
+
 <!-- r01-0002:end -->
