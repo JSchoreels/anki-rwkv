@@ -7,7 +7,7 @@ import json
 from pathlib import Path
 import pstats
 import sys
-from threading import Event, Thread
+from threading import Event, Thread, Lock
 from time import perf_counter
 from types import ModuleType
 from uuid import uuid4
@@ -43,6 +43,7 @@ def main():
     module.__file__ = str(ROOT / "scripts/review_relations.py")
     exec(compile(source, str(output / "implementation.py"), "exec"), module.__dict__)
     stages = {}
+    stage_lock = Lock()
     for name in ("prepare_history", "equal_groups", "subset_candidates", "segment_candidates", "compare_histories", "write_graph"):
         function = getattr(module, name)
         def measured(*items, _name=name, _function=function, **kwargs):
@@ -50,11 +51,23 @@ def main():
             try:
                 return _function(*items, **kwargs)
             finally:
-                stages[_name] = stages.get(_name, 0.0) + perf_counter() - start
+                elapsed = perf_counter() - start
+                with stage_lock:
+                    stages[_name] = stages.get(_name, 0.0) + elapsed
         setattr(module, name, measured)
+    if hasattr(module, "_ordered_map"):
+        ordered_map = module._ordered_map
+        def measured_map(function, items, **kwargs):
+            start = perf_counter()
+            try:
+                yield from ordered_map(function, items, **kwargs)
+            finally:
+                stages[function.__name__ + "_phase_elapsed"] = perf_counter() - start
+        module._ordered_map = measured_map
     report = {"label": args.label, "implementation_sha256": sha256(source).hexdigest(),
               "implementation_source": str((output / "implementation.py").relative_to(ROOT)),
               "provenance": provenance, "profiled": args.profile, "results": [],
+              "stage_scope": "Function-call durations are summed, with synchronized counters. Concurrent compare calls overlap; their sum is not phase wall time. Ordered-map phase elapsed includes main-thread result consumption. End-to-end elapsed is the acceptance metric.",
               "environment": {"python": sys.version, "numpy": np.__version__, "pyarrow": pa.__version__,
                   "logical_cpus": psutil.cpu_count(), "physical_cpus": psutil.cpu_count(logical=False),
                   "system_ram_bytes": psutil.virtual_memory().total},
