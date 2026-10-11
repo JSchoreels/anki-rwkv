@@ -369,6 +369,10 @@ The combination passes the eight independent functional checks, including
 random-cohort candidate recall and forced hash collisions. Its preserved
 implementation SHA-256 is
 `c7611386a787b7da47cbb13b780c80a5eca3cefb961ab40f2add36f1487b3ad6`.
+Archived R11 trial implementation commit:
+[ebdfc083d9518ae3db750693ab58dcd2beecf34a](https://github.com/JSchoreels/anki-rwkv/commit/ebdfc083d9518ae3db750693ab58dcd2beecf34a).
+The test report and later full benchmark retain their own measured process
+HEADs, dirty-workspace source snapshots and implementation hashes.
 
 The retained implementation audited **all 10,000 users and 727,738,650 reviews
 in 417.67 seconds (6 minutes 58 seconds)**, including graph generation, from an
