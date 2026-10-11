@@ -430,6 +430,11 @@ R13's common-block stage median is 5.12 seconds versus 6.17 before and 6.23
 after. Parallel pair-call time sums are not the pair phase wall time; the latter
 is recorded as `verify_pair_phase_elapsed`. Full-cohort before/trial/after
 measurements remain running; no full-cohort gain is projected from this screen.
+Archived R12/R13 implementations and synchronized benchmark instrumentation:
+[67b3df0003459ede4a21ec2e507d7c955c999d11](https://github.com/JSchoreels/anki-rwkv/commit/67b3df0003459ede4a21ec2e507d7c955c999d11).
+This later archive commit is separate from the measured initial HEADs and
+dirty-workspace snapshots in each report. Unmeasured combined-verifier
+prototypes remain archived with explicit `unmeasured` names.
 
 The retained implementation audited **all 10,000 users and 727,738,650 reviews
 in 417.67 seconds (6 minutes 58 seconds)**, including graph generation, from an
