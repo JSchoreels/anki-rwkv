@@ -13,9 +13,96 @@ steps. GPU and training optimization tracks belong in
 | DQ02 | Exact history containment, uninterrupted common blocks, and user graph | Implemented; functional checks and full 10,000-user audit complete | [Detector](../scripts/review_relations.py), [checks](data-quality/checks.json), [full-cohort measurements](data-quality/benchmarks/optimized-full-cold.json), and [D3 results](data-quality/index.html). 727,738,650 events; two equal-history groups, 18 strict containment edges and 14,880 common-block edges. | Inspect related components before proposing any filtering. Training impact remains unmeasured. |
 | DQ03 | Improve exact relation detector speed | R14 retained; stopped below updated 20% threshold | [Matched measurements](data-quality/performance.json): final full trial **270.77 seconds**, **4.88%** below the faster R13 control (308.58 / 284.65 seconds); 413.1 MiB sampled peak process RSS. Complete candidates and exact outputs agree. Controls varied by 7.75%, limiting precision of the speedup estimate. Earlier rounds and inconclusive trials remain in [continuation records](data-quality/performance-continuation.json). | Keep bounded two-worker preparation and the final viewer. No further rounds under the user's updated 20% stopping rule; preserve R15 as unmeasured. |
 | DQ04 | Freeze benchmark dataset identity during active-folder replacement | Resolved for GPU batch F01–F08; no filtering | The first short runner check stopped before updates with `review_time not found` after the timestamped export replaced the active folder. [Failed check](../artifacts/gpu-batch1-smoke/baseline/control/result.json), [replacement record](../artifacts/dataset-inspection/anki-revlogs-10k-id/replacement.json). The original export and count artifact share revision `75299740cff05894ef42d7ad990666691efdd2da`. | Pin the 500-user GPU batch to `data/anki-revlogs-10k-original-20261011` and record that path/revision. Timestamp-export training compatibility remains a separate, untested change. |
+| DQ05 | Explain the large high-coverage common-block cluster | Investigated; inherited package likely, original package unidentified | [Findings](data-quality/cluster-95.html): 43 users / 40 groups / 447 links; 13,784 inherited events, 11,804 present in all users. Common deck hierarchy and 200,511 distinct personal reviews support copied history followed by separate activity. All 4,493 missing old review rows occur on cards with later learning restarts, consistent with the export's last-sequence filter. | Identify the original package using deck names, note content or import records unavailable in this export. Consider event-level lineage labels; no filtering or training-quality benefit measured. |
 
 DQ01 was originally recorded as F12 in `GPU_OPTIMIZATIONS.md` and moved here
 because it concerns data quality.
+
+## DQ05: the large 95% common-block component
+
+The user's current viewer settings were **Common blocks, minimum block 20,
+minimum coverage 95%, Either user, All groups**, with no user search. The same
+filters applied to the full SQLite audit yield 74 groups and 500 links. The
+largest component has **40 representative groups, 43 actual users and 447
+links**. An edge passing the Either threshold need cover only one endpoint;
+connectivity does not imply 95% coverage for every pair or for both endpoints.
+
+The public [aggregate investigation](data-quality/cluster-95.html) and
+[JSON findings](data-quality/cluster-95-summary.json) describe the evidence.
+Private event ranges, timestamps, card/deck IDs and metadata checksums remain
+in [the local investigation](../artifacts/data-quality/cluster-95-either/investigation.json).
+Reusable scripts are [component inspection](../scripts/inspect_review_clusters.py),
+[event/metadata investigation](../scripts/investigate_review_cluster.py), and
+[aggregate publishing](../scripts/publish_review_cluster.py).
+
+### Inherited review history and deck structure
+
+- The component's repeated-event union contains **13,784 distinct events**
+  from 2017–2020. Every event occurs in **34–43 users**. All **43 users** share
+  11,804 exact events concerning 4,747 card IDs. Identity includes recovered
+  answer timestamp, card ID, rating and duration, not merely card order.
+- This union exactly equals the reference history of user 449. Users 449,
+  2066, 6812 and 7872 have equal exported histories consisting of those events.
+  Twenty-two users retain the entire reference event set; 21 have some gaps.
+- The shared events occupy **588,219 review rows** across these collections.
+  The other **200,511 events** occur in exactly one user each within the
+  component. Of the 39 users with additional events, 35 add them only after
+  the inherited history ends. Four also have earlier/interleaved activity.
+  This supports an inherited history followed by separate studying, including
+  imports into already active collections.
+- **24 users** retain all 46 non-default deck IDs in the reference hierarchy;
+  **22** also retain all parent links. Those IDs lie in a **160-millisecond
+  allocation batch in November 2020**, shortly after the common history ends.
+  IDs indicate allocation, not each user's import date. **21 users** retain
+  the same 2,730 reviewed card IDs with identical note/deck assignments.
+
+The strongest working explanation is a deck package distributed with review
+history, or another copy/transfer of the same collection. Anki's
+[export documentation](https://github.com/ankitects/anki/blob/main/docs-site/manual/exporting.mdx)
+states that scheduling exports can include review history, and its
+[import documentation](https://github.com/ankitects/anki/blob/main/docs-site/manual/importing/packaged-decks.mdx)
+describes adopting another author's learning progress. These establish a
+supported mechanism, not proof of the exact package, donor, import route or
+intent. Shared history alone does not imply misconduct or shared user identity.
+
+### Why the inherited history develops gaps
+
+Across the 21 users with gaps, **4,493 missing reference review rows** belong
+to **1,229 whole card histories** (counts sum across users). Every affected
+card has a later exported learning start, and none has a partially retained
+old reference history. Conversely, no reference card has a later learning
+start while retaining its old reference events.
+
+The dataset's exact
+[builder revision](https://github.com/open-spaced-repetition/anki-revlogs-dataset-builder/blob/e29946556796443283bf9c8e9d21f4502cb2e9c1/build_parquet.py)
+keeps only the last learning sequence per card. That filter explains the
+observed pattern: later learning restarts can remove old inherited events
+from the export, splitting otherwise matching chronological sequences into
+common blocks. This is a much stronger explanation for these gaps than random
+rating edits. The filtered export cannot establish whether every missing
+event still exists in its original raw collection.
+
+### Verification, limits and next steps
+
+All 43 selected review source SHA256s were checked against the complete audit.
+Rebuilding canonical events from their Parquet files matched the cached arrays
+exactly. Card/deck source SHA256s, the source manifest checksum and initial
+Git/source-snapshot provenance are preserved in the private report. Publisher
+assertions check the event-ownership and learning-restart interpretations.
+The run's initial Git commit and dirty source snapshot appear in the public
+JSON; a later implementation commit is not substituted for the run revision.
+
+Current metadata is incomplete for the inherited cards: 14 users retain none
+of the reference reviewed card IDs in their current cards table. The builder's
+[join example](https://github.com/open-spaced-repetition/anki-revlogs-dataset-builder/blob/e29946556796443283bf9c8e9d21f4502cb2e9c1/process_dataset.py)
+explicitly accounts for review logs surviving deleted cards. Metadata absence
+therefore does not refute inherited review history.
+
+Deck names, note text, package identities and import logs are absent. They
+would be needed to identify the named deck and confirm distribution. Event
+ownership and deck lineage can support proposed inherited-review labels.
+Removing whole users would discard 200,511 unique reviews; no filtering has
+been applied and no training benefit has been measured.
 
 For this audit, use raw chronological reviews before feature processing sorts or
 filters them. Account for deck and note structure, learning states, legitimate
