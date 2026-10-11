@@ -7,8 +7,10 @@ from scripts.gpu_batch1 import frame_stream, prepare_job, split_frame
 
 
 def training_batches(rows, span, seed, pool, options, cache_paths=None, depth=8):
-    if options != {"prefetch_users": True} or cache_paths is not None or depth < 1:
-        raise ValueError("R01 F01 is an isolated ordered-prefetch experiment")
+    if (options.get("prefetch_users") is not True
+            or set(options) - {"prefetch_users", "reduced_sync", "preparation_workers"}
+            or cache_paths is not None or depth < 1):
+        raise ValueError("R01 ordered prefetch supports only synchronization/worker-count additions")
 
     def jobs():
         for row, frame in frame_stream(rows, prefetch=True):

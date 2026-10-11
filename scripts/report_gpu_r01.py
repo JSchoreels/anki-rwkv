@@ -10,6 +10,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 from scripts.experiment_provenance import process_provenance
 from scripts.gpu_r01_statistics import METRICS, paired_relative_losses
+from scripts.gpu_r01_log import update_run_log
 from scripts.run_gpu_batch1 import atomic_json
 
 
@@ -123,53 +124,7 @@ def main():
     (output / "summary.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
     index = ROOT / "artifacts/retraining/gpu-retrain-r01/iterations/iteration-0002.md"
     index.write_text("# R01 iteration 0002\n\n" + f"Status: **{report['status']}**. [Open the full iteration record](../iteration-0002/summary.md), [frozen protocol](../iteration-0002/protocol.json), and [raw comparisons](../iteration-0002/comparison.json).\n", encoding="utf-8")
-    log_path = ROOT / "docs/GPU_OPTIMIZATIONS_LOG.md"
-    prefix = """# GPU retraining run log
-
-Current R01 runs are recorded below. Prior B01/F01–F08 attempts remain in the [optimization history](GPU_OPTIMIZATION_HISTORY.md) and linked raw artifact reports; their missing historical revisions are not inferred.
-
-<!-- r01-0002:start -->
-## R01 iteration 0002
-
-One iteration requested on 2026-10-11. F01 loads/prepares the next user while the current user trains, preserving ordered updates, review exposure and seeds. Baselines use the same loop with prefetch across users disabled. [Full iteration record](../artifacts/retraining/gpu-retrain-r01/iteration-0002/summary.md).
-
-| Start of training (UTC) | Model / IDs | Train / test users | Training reviews / updates | Training s / reviews/s | Speed delta vs previous / baseline | Weighted Curve / Instant (delta vs previous / baseline) | User-average Curve / Instant | Trial commit / dirty / source |
-|---|---|---:|---:|---|---|---|---|---|
-"""
-    for path in sorted(sources, key=lambda p: json.loads(p.read_text()).get("training_started_utc", "")):
-        case = json.loads(path.read_text())
-        p = case["provenance"]
-        link = "../" + path.relative_to(ROOT).as_posix()
-        if case["status"] != "complete":
-            logged = [json.loads(line) for line in (path.parent / "updates.jsonl").read_text().splitlines()] if (path.parent / "updates.jsonl").exists() else []
-            users = len({row["user_id"] for row in logged})
-            partial = f"{case['training_elapsed_seconds']:.3f} partial / —" if "training_elapsed_seconds" in case else "—"
-            prefix += f"| {case.get('training_started_utc', '—')} | [{case['model']}/{path.parent.name}: {case['status']}]({link}) | {users} reached / 0 evaluated ({case.get('training_users', '—')} / {case.get('evaluation_users', '—')} planned) | {case.get('review_presentations', '—')} / {case.get('updates', '—')} | {partial} | — | — | — | `{p['git_commit']}` / {p['git_dirty']} / [snapshot](../{p['source_archive']}) |\n"
-            continue
-        e = case["evaluation"]
-        comparison = comparisons.get(case["model"]) if case["track"] != "control" else None
-        gain = f"{comparison['throughput_gain_percent']:+.2f}% / same" if comparison else "—"
-        losses = " / ".join(f"{e[key]:.9f}" + (f" ({comparison['losses']['metrics'][key]['relative_delta_percent']:+.6f}% / same)" if comparison else " (—)") for key in (METRICS[0], METRICS[2]))
-        users = " / ".join(f"{e[key]:.9f}" + (f" ({comparison['losses']['metrics'][key]['relative_delta_percent']:+.6f}% / same)" if comparison else " (—)") for key in (METRICS[1], METRICS[3]))
-        prefix += f"| {case['training_started_utc']} | [{case['model']}/{case['track']}]({link}) | {case['training_users']} / {case['evaluation_users']} | {case['review_presentations']:,} / {case['updates']} | {case['training_seconds']:.3f} / {case['reviews_per_second']:,.0f} | {gain} | {losses} | {users} | `{p['git_commit']}` / {p['git_dirty']} / [snapshot](../{p['source_archive']}) |\n"
-    prefix += "\nFunctional smoke runs (two train/two disjoint test users, 1,024 training/1,024 held-out reviews each) are infrastructure checks, excluded from speed/quality comparisons:\n\n"
-    for path in sorted(output.glob("functional-smoke-v1/*/*/result.json")):
-        case = json.loads(path.read_text())
-        p = case["provenance"]
-        prefix += f"- [{case['model']}/{case['track']}: {case['status']}](../{path.relative_to(ROOT).as_posix()}), training UTC {case.get('training_started_utc', '—')}; {case.get('training_seconds', 0):.3f} s, {case.get('reviews_per_second', 0):,.0f} reviews/s; binary losses in raw result, no comparable previous/baseline; commit `{p['git_commit']}`, dirty `{p['git_dirty']}`, [snapshot](../{p['source_archive']}).\n"
-    prefix += "\n<!-- r01-0002:end -->\n"
-    if implementation:
-        prefix = prefix.replace("\n<!-- r01-0002:end -->", f"\nImplementation commit after successful comparisons: `{implementation['git_commit']}`. Experiment revision remains `{implementation['experiment_git_commit']}` (dirty, per-run snapshots above); [commit record](../artifacts/retraining/gpu-retrain-r01/iteration-0002/implementation-commit.json).\n\n<!-- r01-0002:end -->")
-    if log_path.exists():
-        old = log_path.read_text(encoding="utf-8")
-        marker = "<!-- r01-0002:start -->"
-        if marker in old:
-            begin = old.index(marker)
-            end = old.index("<!-- r01-0002:end -->", begin) + len("<!-- r01-0002:end -->")
-            prefix = old[:begin] + prefix[prefix.index(marker):].rstrip() + old[end:]
-        else:
-            prefix = old.rstrip() + "\n\n" + prefix[prefix.index(marker):]
-    log_path.write_text(prefix, encoding="utf-8")
+    update_run_log(output)
     print(json.dumps({"status": report["status"], "comparisons": {key: {name: value[name] for name in ("track", "throughput_gain_percent", "update_mismatch_count", "decision")} for key, value in comparisons.items()}}))
 
 

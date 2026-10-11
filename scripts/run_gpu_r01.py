@@ -19,7 +19,9 @@ BASE = ROOT / "artifacts/retraining/gpu-retrain-r01"
 COHORT = BASE / "cohorts-user-holdout-v1.json"
 OPTIONS = {"control": {}, "F01": {"prefetch_users": True},
            "F03": {"worker_local": True, "packed_ipc": True},
-           "F04": {"async_transfer": True}}
+           "F04": {"async_transfer": True},
+           "F01-F06": {"prefetch_users": True, "reduced_sync": True},
+           "F01-F16": {"prefetch_users": True, "preparation_workers": 8}}
 
 
 class R01SourceWatch(shared.SourceWatch):
@@ -27,13 +29,13 @@ class R01SourceWatch(shared.SourceWatch):
         super().__init__(provenance)
         with ZipFile(ROOT / provenance["source_archive"]) as archive:
             manifest = json.loads(archive.read("source-manifest.json"))["files"]
-        for name in ("scripts/run_gpu_r01.py", "scripts/gpu_r01_training.py", "scripts/gpu_r01_prefetch.py", "scripts/gpu_resource_monitor.py"):
+        for name in ("scripts/run_gpu_r01.py", "scripts/gpu_r01_training.py", "scripts/gpu_r01_prefetch.py", "scripts/gpu_r01_sync.py", "scripts/gpu_resource_monitor.py"):
             self.hashes[name] = manifest[name]
         self.implementation_sha256 = hashlib.sha256(json.dumps(self.hashes, sort_keys=True).encode()).hexdigest()
         self.check()
 
 
-def prepare(output):
+def prepare(output, iteration="0002", previous=None):
     import numpy as np
     if (output / "protocol.json").exists():
         raise FileExistsError("Preserve the frozen iteration; use a new output for a new round")
@@ -83,7 +85,7 @@ def prepare(output):
         if (train | heldout) & set(cohort["independent_final_test_users"]):
             raise ValueError("Independent final-test overlap")
     output.mkdir(parents=True, exist_ok=True)
-    protocol = {**stage, "protocol_status": "frozen before experiments", "iteration": "0002",
+    protocol = {**stage, "protocol_status": "frozen before experiments", "iteration": iteration,
                 "authorization": "2026-10-11: user requested exactly one iteration of current docs/GPU_RETRAIN_LOOP.md",
                 "cohort_file": COHORT.relative_to(ROOT).as_posix(), "cohort_sha256": hashlib.sha256(COHORT.read_bytes()).hexdigest(),
                 "dataset_path": cohort["dataset_path"], "dataset_revision": cohort["dataset_revision"],
@@ -110,6 +112,29 @@ def prepare(output):
                 "timing": "raw review presentations/s uses complete training including loads, preparation/worker startup+shutdown, transfers, updates and logs; setup/primer/save/evaluation/process wall recorded separately",
                 "frozen_utc": datetime.now(timezone.utc).isoformat(), "preparation_provenance": provenance,
                 "implementation_sha256": R01SourceWatch(provenance).implementation_sha256}
+    if previous is not None:
+        previous = (ROOT / previous).resolve()
+        old_protocol = json.loads((previous / "protocol.json").read_text())
+        if old_protocol["cohort_sha256"] != protocol["cohort_sha256"]:
+            raise ValueError("Continuation must reuse the exact frozen cohort")
+        references = {}
+        for model in protocol["models"]:
+            references[model] = {}
+            for kind, track in (("previous", "F01"), ("original_baseline", "control")):
+                path = previous / model / track / "result.json"
+                result = json.loads(path.read_text())
+                if result["status"] != "complete":
+                    raise ValueError("Continuation requires completed references")
+                references[model][kind] = {"path": path.relative_to(ROOT).as_posix(),
+                                           "sha256": hashlib.sha256(path.read_bytes()).hexdigest()}
+        protocol.update(control_track="F01", case_options={key: OPTIONS[key] for key in ("F01", "F01-F06", "F01-F16")},
+                        previous_iteration=old_protocol["iteration"], references=references,
+                        authorization="2026-10-11: user requested one new iteration",
+                        budget="two fresh F01 incumbent controls plus one resource-selected candidate per architecture; two-user functional smokes; no larger cohort",
+                        eligible_tracks={key: OPTIONS[key] for key in ("F01-F06", "F01-F16")})
+        protocol["acceptance"]["family_tests"] = 24
+        protocol["acceptance"]["comparisons"] = "all four losses vs fresh matched F01 and previous iteration F01 <1%; original baseline preferably <2%"
+        protocol["prior_no_20_percent_gain_streak"] = {model: 0 for model in protocol["models"]}
     shared.atomic_json(output / "protocol.json", protocol)
     print(json.dumps({"protocol": str(output / "protocol.json"), "train_users": 80, "heldout_users": 20,
                       "training_reviews": stage["training_reviews"], "heldout_reviews": stage["validation_reviews"],
@@ -125,7 +150,10 @@ def run_case(args, output):
     provenance = process_provenance()
     if R01SourceWatch(provenance).implementation_sha256 != protocol["implementation_sha256"]:
         raise RuntimeError("Training source changed after protocol freeze; preserve this iteration")
-    if args.track != "control" and not args.smoke:
+    options = protocol.get("case_options", OPTIONS)
+    if args.track not in options:
+        raise ValueError("Track is outside the frozen iteration budget")
+    if args.track != protocol.get("control_track", "control") and not args.smoke:
         selection = json.loads((output / "selection.json").read_text())
         if selection[args.model]["track"] != args.track:
             raise ValueError("Candidate was not selected from baseline resource evidence")
@@ -151,9 +179,9 @@ def run_case(args, output):
         raise RuntimeError("R01 requires a fresh CUDA process")
     torch._C._set_graph_executor_optimize(False)
     torch.use_deterministic_algorithms(True, warn_only=False)
-    gpu_batch1.TRACKS = OPTIONS
+    gpu_batch1.TRACKS = options
     gpu_r01_training.SourceWatch = R01SourceWatch
-    if args.track == "F01":
+    if options[args.track].get("prefetch_users"):
         from scripts.gpu_r01_prefetch import training_batches
         gpu_batch1.training_batches = training_batches
     args.output = output.relative_to(ROOT).as_posix()
@@ -178,7 +206,7 @@ def run_case(args, output):
                 gpu_power.limited_gpu = power
                 torch.save = save
         result = json.loads((folder / "result.json").read_text())
-        result.update(iteration="0002", execution_mode=protocol["execution_mode"], checkpoint_saves=saves,
+        result.update(iteration=protocol["iteration"], execution_mode=protocol["execution_mode"], checkpoint_saves=saves,
                       protocol_sha256=hashlib.sha256((output / "protocol.json").read_bytes()).hexdigest(),
                       process_wall_seconds=time.time() - psutil.Process().create_time(),
                       evaluation_scope=protocol["evaluation"], quality_status="preliminary screen; broader validation pending")
@@ -193,6 +221,8 @@ def main():
     parser = ArgumentParser(description=__doc__)
     parser.add_argument("--output", type=Path, default=Path("artifacts/retraining/gpu-retrain-r01/iteration-0002"))
     parser.add_argument("--prepare", action="store_true")
+    parser.add_argument("--iteration", default="0002")
+    parser.add_argument("--previous", type=Path)
     parser.add_argument("--case", action="store_true")
     parser.add_argument("--model", choices=("baseline", "expertium"))
     parser.add_argument("--track", choices=tuple(OPTIONS), default="control")
@@ -202,7 +232,7 @@ def main():
     if not output.is_relative_to(ROOT / "artifacts"):
         parser.error("Output must remain under workspace artifacts")
     if args.prepare:
-        return prepare(output)
+        return prepare(output, args.iteration, args.previous)
     if args.case and args.model:
         return run_case(args, output)
     parser.error("Choose --prepare or --case --model")

@@ -54,13 +54,14 @@ def run_case(args):
     from rwkv.train_rwkv import CLIP, get_optimizer, transfer_child_grad_to_master
     from scripts.benchmark_gpu_trial import benchmark_models, fresh_checkpoint
     from scripts.compare import evaluate
-    from scripts.gpu_batch1 import (DATA, TRACKS, DynamicGraphs, ReducedSyncLoss,
+    from scripts.gpu_batch1 import (DATA, TRACKS, DynamicGraphs,
                                     build_sample_cache, make_samples, split_frame,
                                     training_batches, transfer_batches)
     from scripts.gpu_power import limited_gpu
     from scripts.trial_batches import preparation_pool
     from rwkv.data_processing import get_rwkv_data
     from rwkv.prepare_batch import prepare
+    from scripts.gpu_r01_sync import ReducedSyncLoss
 
     path = output / args.model / args.track
     path.mkdir(parents=True, exist_ok=True)
@@ -71,6 +72,9 @@ def run_case(args):
         evaluation_rows = [dict(row, validation_range=[512, 1024]) for row in evaluation_rows[:2]]
     options = TRACKS[args.track]
     chunks, workers = (128, 4) if args.model == "baseline" else (256, 6)
+    workers = options.get("preparation_workers", workers)
+    if type(workers) is not int or not 1 <= workers <= 8:
+        raise ValueError("Preparation workers must be an integer between 1 and 8")
     config = {"MODEL": args.model, "DTYPE": "bfloat16", "WKV_BACKEND": "nvrtc", "SEED": 2025,
               "BATCH_CHUNKS": chunks, "CHUNK_REVIEWS": 128, "PREFETCH_WORKERS": workers,
               "PREFETCH_BATCHES": workers * 2, "CPU_THREADS": 4, "EPOCHS": 1,
