@@ -22,7 +22,10 @@ OPTIONS = {"control": {}, "F01": {"prefetch_users": True},
            "F03": {"worker_local": True, "packed_ipc": True},
            "F04": {"async_transfer": True},
            "F01-F06": {"prefetch_users": True, "reduced_sync": True},
-           "F01-F16": {"prefetch_users": True, "preparation_workers": 8}}
+           "F01-F16": {"prefetch_users": True, "preparation_workers": 8},
+           "F01-F16-F14": {"prefetch_users": True, "preparation_workers": 8, "gpu_packed_features": True},
+           "F01-F16-F14-F03": {"prefetch_users": True, "preparation_workers": 8, "gpu_packed_features": True, "packed_ipc": True},
+           "F01-F16-F14-F03-F04": {"prefetch_users": True, "preparation_workers": 8, "gpu_packed_features": True, "packed_ipc": True, "async_transfer": True}}
 
 
 class R01SourceWatch(shared.SourceWatch):

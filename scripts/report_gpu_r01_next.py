@@ -159,11 +159,16 @@ def main():
         lines.append("")
         if result["resource_retuning_pending"]:
             lines += [result["retuning_next_step"], ""]
-    lines += ["## Evidence and provenance", "", "Each process captures its own dirty source snapshot and full commit at start; the shared training-implementation fingerprint is checked at every user boundary. Historical references retain their original revisions. [Ordered-prefetch contracts](prefetch-checks-v1/result.json); functional smoke results are separate from full-history timing.", ""]
+    checks = output / "prefetch-checks-v1/result.json"
+    if not checks.exists():
+        checks = ROOT / "artifacts/retraining/gpu-retrain-r01/iteration-0004/prefetch-checks-v1/result.json"
+    lines += ["## Evidence and provenance", "", "Each process captures its own dirty source snapshot and full commit at start; the shared training-implementation fingerprint is checked at every user boundary. Historical references retain their original revisions. " + f"[Recorded ordered-prefetch contracts]({link(checks, output)}); functional smoke results are separate from full-history timing.", ""]
     for path in [*sources, *sorted(output.glob("functional-smoke-v1/*/*/result.json"))]:
         case = json.loads(path.read_text())
         p = case["provenance"]
-        lines.append(f"- [{case['model']}/{case['track']}{' smoke' if case['smoke_only'] else ''}]({link(path,output)}): {case['status']}; training start UTC {case.get('training_started_utc','—')}; commit `{p['git_commit']}`, dirty `{p['git_dirty']}`; [source snapshot]({link(ROOT/p['source_archive'], output)}), [updates]({link(path.with_name('updates.jsonl'),output)}), [checkpoint]({link(path.with_name('master.pth'),output)}).")
+        checkpoint = path.with_name('master.pth')
+        saved = f"[checkpoint]({link(checkpoint, output)})" if checkpoint.exists() else "no checkpoint saved"
+        lines.append(f"- [{case['model']}: {describe(case['track'])}{' smoke' if case['smoke_only'] else ''}]({link(path,output)}): {case['status']}; training start UTC {case.get('training_started_utc','—')}; commit `{p['git_commit']}`, dirty `{p['git_dirty']}`; [source snapshot]({link(ROOT/p['source_archive'], output)}), [updates]({link(path.with_name('updates.jsonl'),output)}), {saved}.")
     lines += ["", f"Implementation commit: `{implementation['git_commit']}` (after experiments)." if implementation else "Implementation commit pending the completed speed/quality decision.", "", report["limitations"] + ". This iteration is complete. The latest user request authorizes five completed current-loop iterations in total, with the loop reread between runs; no broader validation is authorized.", ""]
     update = output / "authorization-update-001.json"
     if update.exists():

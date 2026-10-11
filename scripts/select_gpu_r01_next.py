@@ -13,6 +13,7 @@ sys.path.insert(0, str(ROOT))
 from scripts.experiment_provenance import process_provenance
 from scripts.gpu_r01_training import atomic_json
 from scripts.gpu_r01_policy import POLICY, find_profile, read_reference, require_active
+from scripts.report_gpu_r01_next import describe
 
 
 def main():
@@ -61,7 +62,7 @@ def main():
     if track == "F01-F16" and (worker < 80 or gpu >= 80):
         raise ValueError("The F16 candidate is not supported by the recorded bottleneck profile")
     explanation = protocol.get("case_explanations", {}).get(args.model, {}).get(track)
-    reason = (f"Recorded {case['track']} GPU activity is {gpu:.2f}% and worker-pool CPU {worker:.2f}%. " + (explanation if explanation else
+    reason = (f"Recorded {describe(case['track'])} GPU activity is {gpu:.2f}% and worker-pool CPU {worker:.2f}%. " + (explanation if explanation else
               ("Alex is near the GPU-activity target; remove internal NaN/count waits, consolidate metric transfers and buffer log writes, preserving finite-loss/gradient checks and loss arithmetic."
                if args.model == "baseline" else "Expertium's preparation workers are saturated while GPU activity remains below target; raise the pool from 6 to 8 workers and the bounded queue from 12 to 16 on this 8-core/16-thread host, preserving ordered batches and seeds.")))
     selection_path = output / "selection.json"
