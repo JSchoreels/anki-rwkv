@@ -37,6 +37,18 @@ def atomic_json(path, value):
             time.sleep(0.2)
 
 
+def sampled_tree_rss(process):
+    """A short-lived monitor child can exit between discovery and RSS sampling."""
+    import psutil
+    total, skipped = 0, 0
+    for item in (process, *process.children(recursive=True)):
+        try:
+            total += item.memory_info().rss
+        except (psutil.NoSuchProcess, psutil.AccessDenied):
+            skipped += 1
+    return total / 2**20, skipped
+
+
 def run_case(args):
     started = time.perf_counter()
     provenance = process_provenance()
@@ -155,8 +167,8 @@ def run_case(args):
                         watch.check()
                         import psutil
                         process = psutil.Process()
-                        processes = [process, *process.children(recursive=True)]
-                        rss = sum(p.memory_info().rss for p in processes if p.is_running()) / 2**20
+                        rss, skipped = sampled_tree_rss(process)
+                        report["rss_sampling_skipped_processes"] = report.get("rss_sampling_skipped_processes", 0) + skipped
                         report["peak_process_tree_rss_mib"] = max(report["peak_process_tree_rss_mib"], rss)
                         if last_user is not None:
                             report["progress_users"] += 1

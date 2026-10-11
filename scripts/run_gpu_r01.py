@@ -161,6 +161,12 @@ def prepare(output, iteration="0002", previous=None, plan=None):
             plan_path = (ROOT / plan).resolve()
             proposed = json.loads(plan_path.read_text())
             protocol.update(plan_path=plan_path.relative_to(ROOT).as_posix(), plan_sha256=hashlib.sha256(plan_path.read_bytes()).hexdigest())
+        protocol["retuning_dispositions"] = proposed.get("retuning_dispositions", {})
+        for model, review in protocol["retuning_dispositions"].items():
+            if model in protocol["retuning_candidates"] and review.get("decision") == "continue from accepted reference":
+                if not review.get("evidence"):
+                    raise ValueError("Retuning disposition requires recorded resource evidence")
+                protocol["retuning_candidates"].pop(model)
         for model in models:
             if proposed["control_tracks"][model] != controls[model]:
                 raise ValueError("Plan must retain the previous accepted run")
