@@ -11,7 +11,7 @@ steps. GPU and training optimization tracks belong in
 |---|---|---|---|---|
 | DQ01 | Audit repeated review patterns | Pending; feasibility inspection only | Raw reviews contain chronological card order, day offsets, ratings, learning states, answer durations and per-card elapsed times. No detector or thresholds have been tested. | Rank repeated long card sequences and ordering of shared cards across days, with rating/duration evidence. Inspect examples before choosing anomaly thresholds; report supporting review ranges. |
 | DQ02 | Exact history containment, uninterrupted common blocks, and user graph | Implemented; functional checks and full 10,000-user audit complete | [Detector](../scripts/review_relations.py), [checks](data-quality/checks.json), [full-cohort measurements](data-quality/benchmarks/optimized-full-cold.json), and [D3 results](data-quality/index.html). 727,738,650 events; two equal-history groups, 18 strict containment edges and 14,880 common-block edges. | Inspect related components before proposing any filtering. Training impact remains unmeasured. |
-| DQ03 | Improve exact relation detector speed | R13 retained; parallel preparation pending | [Matched measurements](data-quality/performance.json): R13 full audit **317.00 seconds**, **21.07%** below the faster of bracketing R12 controls (410.72 / 401.60 seconds); 452.9 MiB sampled peak process RSS. Complete candidates and exact outputs agree. Earlier rounds and inconclusive trials remain in [continuation records](data-quality/performance-continuation.json). | Retain the two-worker detector. Test bounded parallel history preparation with complete integrity checks before the next stopping decision. |
+| DQ03 | Improve exact relation detector speed | R13 retained; R14 full comparison running | [Matched measurements](data-quality/performance.json): R13 full audit **317.00 seconds**, **21.07%** below the faster of bracketing R12 controls (410.72 / 401.60 seconds); 452.9 MiB sampled peak process RSS. R14's 1,000-user screen gains **5.89%**, below the 10% acceptance threshold. Complete candidates and exact outputs agree. Earlier rounds and inconclusive trials remain in [continuation records](data-quality/performance-continuation.json). | Retain the two-worker detector. Complete the full parallel-preparation comparison before the stopping decision. |
 | DQ04 | Freeze benchmark dataset identity during active-folder replacement | Resolved for GPU batch F01–F08; no filtering | The first short runner check stopped before updates with `review_time not found` after the timestamped export replaced the active folder. [Failed check](../artifacts/gpu-batch1-smoke/baseline/control/result.json), [replacement record](../artifacts/dataset-inspection/anki-revlogs-10k-id/replacement.json). The original export and count artifact share revision `75299740cff05894ef42d7ad990666691efdd2da`. | Pin the 500-user GPU batch to `data/anki-revlogs-10k-original-20261011` and record that path/revision. Timestamp-export training compatibility remains a separate, untested change. |
 
 DQ01 was originally recorded as F12 in `GPU_OPTIMIZATIONS.md` and moved here
@@ -458,12 +458,22 @@ Production promotion and updated viewer implementation commit:
 [f81dfd120a8a3de4435669235b394339108ab651](https://github.com/JSchoreels/anki-rwkv/commit/f81dfd120a8a3de4435669235b394339108ab651).
 This later delivery commit is separate from the preserved experiment revisions.
 
-R14 (correctness checked, timing pending): use the same bounded two-worker ordered queue for history
+R14 (correctness checked; full bracketing comparison running): use the same bounded two-worker ordered queue for history
 preparation and source checksums. R13's full trial still spends 84.40 seconds
 there. Preserve complete checksum/stamp checks, sorted user ordering and
 atomic per-history cache writes; do not substitute metadata-only integrity
 checks. Measure the whole audit against R13 before deciding on the gain. Both
 default and forced-native configurations pass the eight independent checks.
+The completed 1,000-user screen has median **10.28 seconds**, versus R13
+controls **10.93 / 11.39 seconds** (three repetitions each), a **5.89%**
+reduction against the faster control. Recomputed canonical manifests,
+actual node/relation files and every candidate row/flag agree across all nine
+runs. Full-cohort controls and trial are running sequentially on the same
+cache, with all source checksums preserved. Concurrent GPU training and its
+CPU workers remain external timing influences; the initial control repetition
+was 21.42 seconds, followed by 10.93 / 10.54 seconds. Use the recorded median,
+not that outlier, and wait for both full controls before deciding retention.
+[Screen reports and parity evidence](data-quality/performance-continuation.json).
 
 The previously retained round-3 implementation audited **all 10,000 users and 727,738,650 reviews
 in 417.67 seconds (6 minutes 58 seconds)**, including graph generation, from an
