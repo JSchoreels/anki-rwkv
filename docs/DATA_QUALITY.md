@@ -500,6 +500,10 @@ and coverage controls, and explicitly labels canonical-cache reuse plus source
 checksums and graph generation. No fresh-cache R14 full-cohort timing is claimed.
 The production entry point also passed all eight independent checks after
 promotion; [final check report](data-quality/benchmarks/final-production-checks.json).
+Final production promotion and viewer implementation commit:
+[634d3542e14e9923629cdc2b4d555178ca0f7bd3](https://github.com/JSchoreels/anki-rwkv/commit/634d3542e14e9923629cdc2b4d555178ca0f7bd3).
+This delivery commit is separate from the recorded experiment initial revisions
+and preserved source snapshots; its detector bytes match the measured R14 copy.
 
 R15 (not pursued under the updated 20% stopping threshold): move hash-shard partition sorting
 and packed posting allocation into the existing two index workers. Allocate one
