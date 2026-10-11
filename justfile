@@ -7,6 +7,19 @@ setup:
 check:
     uv run --locked python scripts/check.py
 
+# Exact review containment, uninterrupted matching blocks, and an offline D3 graph.
+review-relations *args:
+    uv run --no-sync python scripts/review_relations.py {{args}}
+
+check-review-relations:
+    uv run --no-sync python scripts/check_review_relations.py
+
+benchmark-review-relations *args:
+    uv run --no-sync python scripts/benchmark_review_relations.py {{args}}
+
+publish-review-relations *args:
+    uv run --no-sync python scripts/publish_review_relations.py {{args}}
+
 build-cuda:
     uv pip install "setuptools>=68" wheel
     RWKV_BUILD_CUDA=1 uv pip install --no-build-isolation --no-deps -e .

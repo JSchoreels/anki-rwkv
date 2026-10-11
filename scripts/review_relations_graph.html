@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'none'">
+<title>Review history relations</title>
+<style>
+:root{color-scheme:light dark;--bg:light-dark(#f7f8fa,#141719);--fg:light-dark(#202630,#ecf0f5);--muted:light-dark(#586371,#a8b3c1);--panel:light-dark(#fff,#1c2228);--line:light-dark(#dde3eb,#3c4652);--blue:light-dark(#225cbe,#87b3ff);--orange:light-dark(#a95313,#ffbb79);--green:light-dark(#237458,#87d9b7);--node:light-dark(#e6ecf4,#303d4c)}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.5 system-ui,sans-serif}main{max-width:1360px;margin:0 auto;padding:28px}h1{font-size:25px;font-weight:600;margin:0 0 5px}h2{font-size:16px;margin:0 0 12px}p{margin:0 0 12px}.muted{color:var(--muted)}.summary{display:flex;gap:24px;flex-wrap:wrap;margin:20px 0}.summary strong{display:block;font-size:22px;font-weight:600;font-variant-numeric:tabular-nums}.summary span{color:var(--muted)}.controls{display:flex;gap:14px;align-items:end;flex-wrap:wrap;margin:16px 0}label{display:grid;gap:4px;font-size:13px}input,select,button{font:inherit;color:var(--fg);background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:7px 10px}input{max-width:170px}button{cursor:pointer}button:hover{border-color:var(--blue)}.layout{display:grid;grid-template-columns:minmax(0,1fr) 310px;gap:24px}.chart{min-width:0}#network{display:block;width:100%;height:540px;background:var(--panel);border-radius:10px;touch-action:none}#network text{fill:var(--fg);font:12px system-ui,sans-serif;pointer-events:none}#network .edge{cursor:pointer;fill:none}#network .node{cursor:grab}#network .selected{stroke:var(--blue);stroke-width:3px}.legend{display:flex;gap:18px;flex-wrap:wrap;margin:12px 0;color:var(--muted)}.swatch{display:inline-block;width:24px;margin-right:5px;border-top:2px solid;vertical-align:middle}.subset{color:var(--blue)}.common{color:var(--orange);border-top-style:dashed}.equal{color:var(--green)}aside{min-width:0;padding:18px;background:var(--panel);border-radius:10px}#detail{overflow-wrap:anywhere}dl{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin:12px 0}dt{color:var(--muted)}dd{margin:0;text-align:right;font-variant-numeric:tabular-nums}.member-list{max-height:160px;overflow:auto}.table-wrap{overflow:auto;margin-top:22px}table{width:100%;border-collapse:collapse;font-size:13px}th{text-align:left;color:var(--muted);font-weight:500}td,th{padding:9px 8px;border-bottom:1px solid var(--line)}td.numeric{text-align:right;font-variant-numeric:tabular-nums}.block{border-left:3px solid var(--orange);padding:8px 12px;margin:12px 0}.empty{padding:20px;text-align:center;color:var(--muted)}footer{margin-top:20px;color:var(--muted);font-size:12px}@media(max-width:800px){main{padding:18px}.layout{grid-template-columns:1fr}#network{height:430px}aside{min-height:140px}}@media(max-width:420px){main{padding:12px}.controls label{width:calc(50% - 8px)}input,select{max-width:100%;width:100%}#network{height:360px}.summary{gap:14px}}
+.layout aside{align-self:start;max-height:620px;overflow:auto}
+</style>
+</head>
+<body>
+<main>
+<h1>Review history relations</h1>
+<p id="scope" class="muted"></p>
+<div id="summary" class="summary"></div>
+<div class="controls">
+<label>User ID<input id="user-search" type="search" placeholder="All related users" aria-label="Filter relations by user ID"></label>
+<label>Relation<select id="relation-filter"><option value="all">All relations</option><option value="subset">Containment</option><option value="common_segment">Common blocks</option><option value="equal">Equal histories</option></select></label>
+<label>Minimum block<input id="minimum-block" type="number" min="1" step="1" value="20"></label>
+<label>Visible groups<select id="node-limit"><option value="100">100</option><option value="300" selected>300</option><option value="1000">1,000</option><option value="100000">All</option></select></label>
+<button id="reset-view" type="button">Reset view</button>
+</div>
+<div class="layout">
+<section class="chart" aria-label="Relations graph">
+<svg id="network" role="img" aria-label="Interactive graph of users with matching review histories"><title>User history relationships</title><desc>Arrows point from a subset to a superset. Dashed lines join histories with an uninterrupted matching block. Equal histories share a node.</desc></svg>
+<div class="legend"><span><i class="swatch subset"></i>Subset → superset</span><span><i class="swatch common"></i>Common block</span><span><i class="swatch equal"></i>Equal histories grouped</span></div>
+<p id="visible-count" class="muted" aria-live="polite"></p>
+</section>
+<aside><h2>Evidence</h2><div id="detail" aria-live="polite">Select a user or relation to inspect its matching reviews.</div></aside>
+</div>
+<div class="table-wrap"><table><caption id="table-caption" class="muted"></caption><thead><tr><th>Users A / B</th><th>Relation</th><th>Shared reviews</th><th>Coverage A / B</th><th>Longest block</th><th>Evidence</th></tr></thead><tbody id="relation-table"></tbody></table></div>
+<footer id="footnote"></footer>
+</main>
+<script id="relations-data" type="application/json">__REVIEW_RELATIONS_DATA__</script>
+<script>__D3_SOURCE__</script>
+<script>
+(() => {
+  "use strict";
+  const graph = JSON.parse(document.getElementById("relations-data").textContent);
+  const summary = graph.summary;
+  const byId = new Map(graph.nodes.map(n => [n.id, n]));
+  const svg = d3.select("#network");
+  const canvas = svg.append("g");
+  const defs = svg.append("defs");
+  defs.append("marker").attr("id", "subset-arrow").attr("viewBox", "0 -5 10 10").attr("refX", 10).attr("refY", 0).attr("markerWidth", 6).attr("markerHeight", 6).attr("orient", "auto").append("path").attr("d", "M0,-5L10,0L0,5").attr("fill", "var(--blue)");
+  let simulation, selectedId, currentEdges = [], currentNodes = [];
+  const zoom = d3.zoom().scaleExtent([0.15, 8]).on("zoom", e => canvas.attr("transform", e.transform));
+  svg.call(zoom);
+  const number = n => Number(n).toLocaleString();
+  const percent = n => n == null ? "—" : (n * 100).toFixed(1) + "%";
+  const label = id => {
+    const node = byId.get(id);
+    return "User " + id + (node && node.users.length > 1 ? " +" + (node.users.length - 1) : "");
+  };
+  const date = value => {
+    const converted = new Date(Number(value));
+    return Number.isFinite(converted.getTime()) ? converted.toISOString().replace("T", " ").replace(".000Z", " UTC").replace("Z", " UTC") : String(value) + " ms";
+  };
+  const element = (tag, text, parent, className) => {
+    const item = document.createElement(tag);
+    if (text != null) item.textContent = text;
+    if (className) item.className = className;
+    if (parent) parent.append(item);
+    return item;
+  };
+  const metric = (labelText, value) => {
+    const part = element("div", null, document.getElementById("summary"));
+    element("strong", number(value), part); element("span", labelText, part);
+  };
+  document.getElementById("scope").textContent = (summary.fixture ? "Synthetic verification dataset · " : "Selected dataset audit · ") + number(summary.users) + " users · " + number(summary.distinct_reviews || 0) + " distinct review events";
+  metric("equal-history groups", summary.equal_groups); metric("containment links", summary.subset_edges); metric("common-block links", summary.common_segment_edges);
+  if (summary.benchmark_seconds != null) metric("audit time (seconds)", summary.benchmark_seconds.toFixed(1));
+  document.getElementById("minimum-block").value = summary.min_segment;
+  document.getElementById("minimum-block").min = summary.min_segment;
+  document.getElementById("footnote").textContent = "Exact review keys; canonical order by answer ID. Block indexes start at zero and end before the listed upper bound. Equal histories are grouped. " + (graph.edges_truncated ? "The viewer embeds the strongest " + number(graph.edges.length) + " links; relations.sqlite and relations.jsonl retain all verified links." : "All verified links are embedded; the visible group limit only affects this view.");
+  if (graph.aggregate_only) document.getElementById("footnote").textContent = "Computed relationships and counts from the full cohort; all verified links are embedded. Review timestamps and block ranges remain in the local audit. Equal histories share a node. The visible group limit only affects this view.";
+  function evidence(edge) {
+    const detail = document.getElementById("detail"); detail.replaceChildren();
+    element("strong", edge.kind === "subset" ? label(edge.subset_id) + " ⊂ " + label(edge.superset_id) : label(edge.a) + " ↔ " + label(edge.b), detail);
+    const list = element("dl", null, detail);
+    for (const [name, value] of [["Shared reviews", number(edge.shared_reviews)], ["Coverage of " + label(edge.a), percent(edge.coverage_a)], ["Coverage of " + label(edge.b), percent(edge.coverage_b)], ["Longest block", number(edge.longest_segment)], ["Qualifying blocks", number(edge.segment_count ?? edge.segments.length)]]) { element("dt", name, list); element("dd", value, list); }
+    if (graph.aggregate_only) { element("p", "Detailed block ranges and review timestamps are available in the local audit report.", detail, "muted"); return; }
+    [...edge.segments].sort((a,b) => b.reviews-a.reviews || a.a_start-b.a_start).slice(0, 10).forEach(segment => {
+      const block = element("div", null, detail, "block");
+      element("strong", number(segment.reviews) + " consecutive reviews", block);
+      element("div", label(edge.a) + " [" + segment.a_start + ", " + segment.a_end + ") · " + label(edge.b) + " [" + segment.b_start + ", " + segment.b_end + ")", block);
+      element("div", date(segment.first_revlog_id) + " → " + date(segment.last_revlog_id), block, "muted");
+    });
+    if (edge.segments.length > 10) element("p", "10 longest blocks shown; every block is retained in the audit output.", detail, "muted");
+    if (!edge.segments.length) element("p", "The full event set is contained, with other reviews interleaved; no uninterrupted block reaches the selected minimum.", detail, "muted");
+  }
+  function selectNode(node) {
+    selectedId = node.id;
+    canvas.selectAll(".node").classed("selected", n => n.id === selectedId);
+    const detail = document.getElementById("detail"); detail.replaceChildren();
+    element("strong", label(node.id), detail);
+    const list = element("dl", null, detail);
+    for (const [name, value] of [["Reviews per history", number(node.reviews)], ["Equivalent users", number(node.users.length)], ["Visible relations", number(currentEdges.filter(e => e.a === node.id || e.b === node.id).length)]]) { element("dt", name, list); element("dd", value, list); }
+    element("p", "User IDs: " + node.users.join(", "), detail, "member-list");
+    if (node.first_revlog_id != null) element("p", date(node.first_revlog_id) + " → " + date(node.last_revlog_id), detail, "muted");
+  }
+  function draw() {
+    if (simulation) simulation.stop();
+    canvas.selectAll("*").remove();
+    const query = document.getElementById("user-search").value.trim();
+    const kind = document.getElementById("relation-filter").value;
+    const minimum = Math.max(summary.min_segment, Number(document.getElementById("minimum-block").value) || summary.min_segment);
+    const limit = Number(document.getElementById("node-limit").value);
+    const matching = new Set(graph.nodes.filter(n => !query || n.users.some(u => String(u) === query)).map(n => n.id));
+    const filtered = graph.edges.filter(e => (kind === "all" || e.kind === kind) && (e.kind === "subset" || e.longest_segment >= minimum) && (!query || matching.has(e.a) || matching.has(e.b)));
+    const ids = new Set();
+    filtered.forEach(e => { const extra = Number(!ids.has(e.a)) + Number(!ids.has(e.b)); if (ids.size + extra <= limit) { ids.add(e.a); ids.add(e.b); } });
+    if (kind === "all" || kind === "equal") graph.nodes.filter(n => n.users.length > 1 && matching.has(n.id)).forEach(n => { if (ids.size < limit) ids.add(n.id); });
+    currentNodes = graph.nodes.filter(n => ids.has(n.id)).map(n => ({...n}));
+    currentEdges = filtered.filter(e => ids.has(e.a) && ids.has(e.b));
+    const rect = document.getElementById("network").getBoundingClientRect();
+    const width = rect.width, height = rect.height;
+    svg.attr("viewBox", "0 0 " + width + " " + height);
+    document.getElementById("visible-count").textContent = number(currentNodes.length) + " groups · " + number(currentEdges.length) + " links visible" + (currentEdges.length < filtered.length ? " · increase Visible groups or select a user to explore more" : "");
+    if (!currentNodes.length) canvas.append("text").attr("x", width / 2).attr("y", height / 2).attr("text-anchor", "middle").text(graph.nodes.length ? "No relations match these filters" : "No matching histories in this cohort");
+    const links = currentEdges.map(e => ({...e, source: e.kind === "subset" ? e.subset_id : e.a, target: e.kind === "subset" ? e.superset_id : e.b}));
+    const lines = canvas.append("g").selectAll("line").data(links).join("line").attr("class", "edge").attr("stroke", e => e.kind === "subset" ? "var(--blue)" : "var(--orange)").attr("stroke-width", e => 1.5 + Math.min(3, Math.log10(1 + e.shared_reviews) / 2)).attr("stroke-dasharray", e => e.kind === "subset" ? null : "6 4").attr("marker-end", e => e.kind === "subset" ? "url(#subset-arrow)" : null).on("click", (_, e) => evidence(e));
+    lines.append("title").text(e => label(e.a) + " / " + label(e.b) + ": " + number(e.shared_reviews) + " shared reviews; longest block " + e.longest_segment);
+    const nodes = canvas.append("g").selectAll("g").data(currentNodes).join("g");
+    const shapes = nodes.append("circle").attr("class", "node").classed("selected", n => n.id === selectedId).attr("r", n => n.users.length > 1 ? 15 : 11).attr("fill", n => n.users.length > 1 ? "var(--green)" : "var(--node)").attr("stroke", "var(--line)").attr("stroke-width", 1).on("click", (_, n) => selectNode(n));
+    shapes.append("title").text(n => label(n.id) + ": " + number(n.reviews) + " reviews; " + n.users.length + " equivalent users");
+    const labels = nodes.append("text").attr("y", -20).attr("text-anchor", "middle").text(n => currentNodes.length <= 80 || n.id === selectedId ? label(n.id) : "");
+    simulation = d3.forceSimulation(currentNodes).force("link", d3.forceLink(links).id(n => n.id).distance(105)).force("charge", d3.forceManyBody().strength(-190)).force("center", d3.forceCenter(width / 2, height / 2)).force("collision", d3.forceCollide(24)).alphaDecay(0.07);
+    function tick() {
+      lines.attr("x1", e => e.source.x).attr("y1", e => e.source.y).attr("x2", e => {const dx=e.target.x-e.source.x,dy=e.target.y-e.source.y,d=Math.hypot(dx,dy)||1;return e.target.x-dx/d*(e.target.users.length>1?18:14);}).attr("y2", e => {const dx=e.target.x-e.source.x,dy=e.target.y-e.source.y,d=Math.hypot(dx,dy)||1;return e.target.y-dy/d*(e.target.users.length>1?18:14);});
+      nodes.attr("transform", n => "translate(" + n.x + "," + n.y + ")");
+    }
+    simulation.stop(); for (let i=0;i<100;i++) simulation.tick(); tick();
+    shapes.call(d3.drag().on("start", (e, n) => {if(!e.active)simulation.alphaTarget(0.15).restart();n.fx=n.x;n.fy=n.y;}).on("drag", (e,n) => {n.fx=e.x;n.fy=e.y;}).on("end", (e,n) => {if(!e.active)simulation.alphaTarget(0);n.fx=null;n.fy=null;}));
+    simulation.on("tick", tick);
+    const table = document.getElementById("relation-table"); table.replaceChildren();
+    document.getElementById("table-caption").textContent = "Strongest " + Math.min(50,currentEdges.length) + " visible relations; select a user to narrow the graph";
+    currentEdges.slice(0, 50).forEach(edge => {
+      const row = element("tr", null, table);
+      element("td", label(edge.a) + " / " + label(edge.b), row);
+      element("td", edge.kind === "subset" ? edge.subset_id + " → " + edge.superset_id : "Common block", row);
+      element("td", number(edge.shared_reviews), row, "numeric");
+      element("td", percent(edge.coverage_a) + " / " + percent(edge.coverage_b), row, "numeric");
+      element("td", number(edge.longest_segment), row, "numeric");
+      const cell = element("td", null, row); element("button", "Inspect", cell).addEventListener("click", () => evidence(edge));
+    });
+    if (!currentEdges.length) {const row=element("tr",null,table);const cell=element("td",currentNodes.length?"Equal histories are grouped; select a node for its user IDs.":"No relations to display",row);cell.colSpan=6;}
+  }
+  function clearSelection() {
+    selectedId = null;
+    document.getElementById("detail").textContent = "Select a user or relation to inspect its matching reviews.";
+  }
+  ["user-search","relation-filter","minimum-block","node-limit"].forEach(id => document.getElementById(id).addEventListener("input", () => {clearSelection(); draw();}));
+  document.getElementById("reset-view").addEventListener("click",()=>{document.getElementById("user-search").value="";document.getElementById("relation-filter").value="all";document.getElementById("minimum-block").value=summary.min_segment;clearSelection();svg.call(zoom.transform,d3.zoomIdentity);draw();});
+  new ResizeObserver(draw).observe(document.getElementById("network"));
+  draw();
+})();
+</script>
+</body>
+</html>

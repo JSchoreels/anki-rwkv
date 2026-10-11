@@ -177,6 +177,8 @@ Model-weight size and recurrent-state size are separate measurements. For large 
 
 Further background: [RWKV-Lite](https://arxiv.org/abs/2412.10856) and [RWKVQuant](https://arxiv.org/abs/2505.03803). These papers concern other RWKV model sizes and tasks; their results are not measurements of this Anki model.
 
+For dataset duplicate and overlap audits, use `just review-relations --data data/anki-revlogs-10k`. It detects exact history containment and uninterrupted matching blocks, then writes an offline D3 graph with review-range evidence. See [data quality methods and usage](docs/DATA_QUALITY.md#run-the-detector); `just check-review-relations` checks candidate recall and exact matching against independent references. The full 10,000-user audit took **6 minutes 58 seconds**, with a **2.52×** speedup on matched 1,000-user cache-hit trials. The [live D3 results](https://jschoreels.github.io/anki-rwkv/docs/data-quality/) contain all computed relationships and counts; detailed review evidence stays local.
+
 ## Repository layout
 
 ```text
