@@ -339,6 +339,13 @@ The full run's preserved workspace snapshot is
 Its recorded environment was Python 3.12.14, NumPy 2.5.4, PyArrow 26.0.0,
 eight physical / sixteen logical CPU cores, and approximately 31.1 GiB RAM.
 
+Implementation commit: [ef1d345c3d6b7db02e70e5b695b8db8193a62b4c](https://github.com/JSchoreels/anki-rwkv/commit/ef1d345c3d6b7db02e70e5b695b8db8193a62b4c)
+contains DQ02/DQ03, the retained round-3 detector, archived trial implementations,
+benchmark records, and the public D3 graph. The committed detector's SHA-256
+matches the preserved full-run implementation. This commit records the code
+after measurement; the earlier experiment HEAD and dirty source snapshots above
+remain the identities of the measured runs.
+
 To reproduce the measurements or publish a later completed audit:
 
 ```powershell
