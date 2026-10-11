@@ -428,8 +428,8 @@ reduction against the faster control median. Every complete candidate row/flag,
 canonical digest, node digest and relation digest agrees across all nine runs.
 R13's common-block stage median is 5.12 seconds versus 6.17 before and 6.23
 after. Parallel pair-call time sums are not the pair phase wall time; the latter
-is recorded as `verify_pair_phase_elapsed`. Full-cohort before/trial/after
-measurements remain running; no full-cohort gain is projected from this screen.
+is recorded as `verify_pair_phase_elapsed`. The completed full-cohort
+before/trial/after measurements are recorded below.
 Archived R12/R13 implementations and synchronized benchmark instrumentation:
 [67b3df0003459ede4a21ec2e507d7c955c999d11](https://github.com/JSchoreels/anki-rwkv/commit/67b3df0003459ede4a21ec2e507d7c955c999d11).
 This later archive commit is separate from the measured initial HEADs and
@@ -445,8 +445,8 @@ hits. Sampled process peak RSS was 452.6 versus 452.9 MiB. R13 stages included
 index creation/writing), 65.71 for subset membership and **87.43 seconds**
 for the complete ordered verification phase, including main-thread result
 emission. Its concurrent pair-call duration sum is 108.15 seconds and must
-not be read as phase elapsed. The following full control remains running;
-promotion waited for this bracketing comparison. The following control
+not be read as phase elapsed. Promotion waited for the bracketing comparison.
+The following control
 completed in **401.60 seconds**, confirming a **21.07% reduction** against the
 faster full control. All complete candidate flags and actual output-file
 digests agree across the three full runs. R13 is now the default detector;
@@ -454,6 +454,9 @@ the published graph retains all 14,898 derived relations and shows the 317.00
 second measurement with explicit canonical-cache reuse and integrity-check
 scope. The preserved and production detector SHA-256 is
 `753c93b6e5f2f74b983e3b48eb958775698ae5c7e747216047edb75366b86a68`.
+Production promotion and updated viewer implementation commit:
+[f81dfd120a8a3de4435669235b394339108ab651](https://github.com/JSchoreels/anki-rwkv/commit/f81dfd120a8a3de4435669235b394339108ab651).
+This later delivery commit is separate from the preserved experiment revisions.
 
 R14 (correctness checked, timing pending): use the same bounded two-worker ordered queue for history
 preparation and source checksums. R13's full trial still spends 84.40 seconds
