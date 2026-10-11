@@ -321,6 +321,14 @@ R09 trial now run sequentially from the same existing canonical cache. Their
 phase order differs because R09 obtains anchors during block-index creation;
 this is part of its implementation rather than a discarded timing cost.
 
+The new full-cohort control completed in **496.36 seconds (8 minutes 16
+seconds)** using 10,000 canonical-cache hits. Its stages were 81.36 seconds
+for input checksums/preparation, 172.47 for subset candidates, 79.63 for common
+blocks, 118.58 for exact verification and 0.73 for graph generation (plus
+other audit overhead). Complete candidate flags and all three output digests
+match the original full audit. The immediately following R09 full trial is
+running. These timings do not replace the earlier fresh-cache measurements.
+
 Archived R05–R08 trial implementation commit:
 [a19266cfff7d83efb45750691cce2b50bd6b337c](https://github.com/JSchoreels/anki-rwkv/commit/a19266cfff7d83efb45750691cce2b50bd6b337c).
 This is separate from their measured process HEADs and dirty source snapshots.
@@ -340,6 +348,12 @@ timestamp join. The 1,000-user median was 17.00 seconds versus R09's 15.59,
 with identical outputs. Sampled peak process RSS reached 343.6 MiB versus
 254.2 MiB for R09. It is not retained; full-cohort anchor lookup remains a
 possible separate diagnostic, without an established end-to-end gain.
+
+R11 (pending): combine R09's shared hash scan with R07's timestamp-bound
+restriction and reusable timestamp column for pair verification. The isolated
+R07 diagnostic improves large real candidate pairs, but the earlier 1,000-user
+end-to-end screen did not exceed 10%. Measure the combination against R09 on
+the full cohort rather than projecting a combined gain from separate tests.
 
 The retained implementation audited **all 10,000 users and 727,738,650 reviews
 in 417.67 seconds (6 minutes 58 seconds)**, including graph generation, from an
