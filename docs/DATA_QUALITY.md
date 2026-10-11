@@ -11,7 +11,7 @@ steps. GPU and training optimization tracks belong in
 |---|---|---|---|---|
 | DQ01 | Audit repeated review patterns | Pending; feasibility inspection only | Raw reviews contain chronological card order, day offsets, ratings, learning states, answer durations and per-card elapsed times. No detector or thresholds have been tested. | Rank repeated long card sequences and ordering of shared cards across days, with rating/duration evidence. Inspect examples before choosing anomaly thresholds; report supporting review ranges. |
 | DQ02 | Exact history containment, uninterrupted common blocks, and user graph | Implemented; functional checks and full 10,000-user audit complete | [Detector](../scripts/review_relations.py), [checks](data-quality/checks.json), [full-cohort measurements](data-quality/benchmarks/optimized-full-cold.json), and [D3 results](data-quality/index.html). 727,738,650 events; two equal-history groups, 18 strict containment edges and 14,880 common-block edges. | Inspect related components before proposing any filtering. Training impact remains unmeasured. |
-| DQ03 | Improve exact relation detector speed | Three rounds retained; fourth trial inconclusive and reverted | [Matched measurements](data-quality/performance.json): 1,000-user cache-hit median fell from 31.27 to 12.42 seconds (2.52×); retained full-cohort run 417.67 seconds, 656.5 MiB sampled peak process RSS. Exact outputs agree across trials. | Retain round 3. More controlled repeated full-cohort measurements would be needed to establish a benefit from the anchor-bucket experiment. |
+| DQ03 | Improve exact relation detector speed | Three rounds retained; R04/R05 inconclusive, R06–R08 screened, further rounds pending | [Matched measurements](data-quality/performance.json): 1,000-user cache-hit median fell from 31.27 to 12.42 seconds (2.52×); retained full-cohort run 417.67 seconds, 656.5 MiB sampled peak process RSS. [Continuation](data-quality/performance-continuation.json) establishes no additional end-to-end gain above 10%. Exact outputs agree across completed trials. | Retain round 3. Test shared hash scanning and controlled full-cohort verification before concluding the optimization stop audit. |
 | DQ04 | Freeze benchmark dataset identity during active-folder replacement | Resolved for GPU batch F01–F08; no filtering | The first short runner check stopped before updates with `review_time not found` after the timestamped export replaced the active folder. [Failed check](../artifacts/gpu-batch1-smoke/baseline/control/result.json), [replacement record](../artifacts/dataset-inspection/anki-revlogs-10k-id/replacement.json). The original export and count artifact share revision `75299740cff05894ef42d7ad990666691efdd2da`. | Pin the 500-user GPU batch to `data/anki-revlogs-10k-original-20261011` and record that path/revision. Timestamp-export training compatibility remains a separate, untested change. |
 
 DQ01 was originally recorded as F12 in `GPU_OPTIMIZATIONS.md` and moved here
@@ -263,6 +263,50 @@ timestamps. Its [raw result](../artifacts/data-quality/relations-100-users/sourc
 records the separate verification and updated viewer-render provenance.
 
 ### DQ03: measured optimization rounds
+
+Further rounds are in progress under the user's stop rule: continue while a
+round reduces matched end-to-end audit time by more than 10%, with unchanged
+canonical, node, and complete relation digests. Compare sequential controls and
+trials on users 1–1000, then verify substantial gains on the complete cohort.
+The first new trial (R05) indexes only the lowest-hash anchor, then checks the
+other two anchors only for possible supersets. Its 1,000-user median was
+16.25 seconds versus a sequential round-3 control of 15.79 seconds (three
+repetitions each). Full-cohort times were 451.05 versus 494.40 seconds,
+with identical canonical, node and relation digests. The full comparison was
+confounded by competing CPU preparation workers in the control; it does not
+establish a speedup. R05 is not retained.
+
+R06 filters timestamp matches before fetching complete tuples and reuses a
+contiguous timestamp column during exact pair verification. It retains
+complete tuple verification and the same candidate-recall guarantees.
+
+R07 restricts exact searches to overlapping timestamp bounds. R08 tests a native
+Arrow timestamp hash join for large, comparable-sized histories; all fields
+are verified afterwards, and repeated timestamps use the binary-search
+fallback to avoid a Cartesian explosion. Both have passed the existing eight
+functional checks; R08 also passed an independent 72,000-event join/payload and
+timestamp-tie check. End-to-end gains are pending. A separate GPU training run
+had four CPU workers active during the first new full-cohort control; that run
+is preserved but cannot by itself establish a matched speedup.
+
+An interleaved diagnostic on 140 real candidate pairs (seed 51273, three
+repetitions, rotated execution order) returned identical exact results for
+every pair. Median pair-comparison totals were 0.967 seconds for the original
+verification path, 0.744 for R06, 0.696 for R07, and 2.029 for R08. This excludes
+preparation, discovery, indexing, mapping and graph generation; it is not an
+end-to-end gain. R08 is slower in this diagnostic and is not retained. R07's
+three 1,000-user end-to-end trials took 26.30, 15.39 and 15.17 seconds;
+the median is only 2.5% below the earlier control, with identical outputs.
+It is not retained. Full-cohort verification and further indexing ideas remain
+pending. These candidates are based on retained round 3 rather than the
+rejected R05 anchor experiment. [Continuation records](data-quality/performance-continuation.json)
+preserve reports and immutable sources; the original performance report remains
+the record of the retained implementation.
+
+R09 (pending): reuse the event-hash scan for both anchor selection and block
+minimizers, rather than reading and hashing every canonical event twice.
+Preserve all three actual anchors and complete minimizer postings, then verify
+unchanged candidate pairs and exact outputs. End-to-end gain is unmeasured.
 
 The retained implementation audited **all 10,000 users and 727,738,650 reviews
 in 417.67 seconds (6 minutes 58 seconds)**, including graph generation, from an
