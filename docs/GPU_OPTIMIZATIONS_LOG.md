@@ -1,0 +1,24 @@
+# GPU retraining run log
+
+Current R01 runs are recorded below. Prior B01/F01–F08 attempts remain in the [optimization history](GPU_OPTIMIZATION_HISTORY.md) and linked raw artifact reports; their missing historical revisions are not inferred.
+
+<!-- r01-0002:start -->
+## R01 iteration 0002
+
+One iteration requested on 2026-10-11. F01 loads/prepares the next user while the current user trains, preserving ordered updates, review exposure and seeds. Baselines use the same loop with prefetch across users disabled. [Full iteration record](../artifacts/retraining/gpu-retrain-r01/iteration-0002/summary.md).
+
+| Start of training (UTC) | Model / IDs | Train / test users | Training reviews / updates | Training s / reviews/s | Speed delta vs previous / baseline | Weighted Curve / Instant (delta vs previous / baseline) | User-average Curve / Instant | Trial commit / dirty / source |
+|---|---|---:|---:|---|---|---|---|---|
+| 2026-10-11T17:59:30.072031+00:00 | [baseline/control-failed-atomic-write-v1: failed](../artifacts/retraining/gpu-retrain-r01/iteration-0002/baseline/control-failed-atomic-write-v1/result.json) | 28 reached / 0 evaluated (80 / 20 planned) | 1194296 / 88 | 100.363 partial / — | — | — | — | `aa8f3069de8196f48e1776fa59a693e915b8a91f` / True / [snapshot](../artifacts/sources/experiment-sources/9b852f0a25c18b447c82c559bb26ba175a61da73874ef8ff0645dc62e1bac632/source.zip) |
+| 2026-10-11T18:02:34.078530+00:00 | [baseline/control](../artifacts/retraining/gpu-retrain-r01/iteration-0002/baseline/control/result.json) | 80 / 20 | 7,654,975 / 507 | 354.365 / 21,602 | — | 0.412930716 (—) / 0.402708756 (—) | 0.398556745 (—) / 0.388806668 (—) | `aa8f3069de8196f48e1776fa59a693e915b8a91f` / True / [snapshot](../artifacts/sources/experiment-sources/b54ace45b38c120b0f99f7ff0380536fc873e708501c93b1b48c7d9d07382add/source.zip) |
+| 2026-10-11T18:10:57.046918+00:00 | [expertium/control](../artifacts/retraining/gpu-retrain-r01/iteration-0002/expertium/control/result.json) | 80 / 20 | 7,654,975 / 276 | 255.122 / 30,005 | — | 0.400473461 (—) / 0.401470289 (—) | 0.387772420 (—) / 0.386436931 (—) | `aa8f3069de8196f48e1776fa59a693e915b8a91f` / True / [snapshot](../artifacts/sources/experiment-sources/9d988c54925c0aadc41f050977871c711c214bc8c661883a4f2296ec225d16f3/source.zip) |
+| 2026-10-11T18:18:15.518488+00:00 | [baseline/F01](../artifacts/retraining/gpu-retrain-r01/iteration-0002/baseline/F01/result.json) | 80 / 20 | 7,654,975 / 507 | 268.402 / 28,521 | +32.03% / same | 0.412930716 (+0.000000% / same) / 0.402708756 (+0.000000% / same) | 0.398556745 (+0.000000% / same) / 0.388806668 (+0.000000% / same) | `aa8f3069de8196f48e1776fa59a693e915b8a91f` / True / [snapshot](../artifacts/sources/experiment-sources/214f754a2256761920173437d2edc5f15f0f067d48296ac337c366512eed0752/source.zip) |
+| 2026-10-11T18:24:56.143161+00:00 | [expertium/F01](../artifacts/retraining/gpu-retrain-r01/iteration-0002/expertium/F01/result.json) | 80 / 20 | 7,654,975 / 276 | 137.161 / 55,810 | +86.00% / same | 0.400473461 (+0.000000% / same) / 0.401470289 (+0.000000% / same) | 0.387772420 (+0.000000% / same) / 0.386436931 (+0.000000% / same) | `aa8f3069de8196f48e1776fa59a693e915b8a91f` / True / [snapshot](../artifacts/sources/experiment-sources/d83186c00ee7fcfc0539e3c7e6e5a834e749ff217bc18a715b07539acbeaf987/source.zip) |
+
+Functional smoke runs (two train/two disjoint test users, 1,024 training/1,024 held-out reviews each) are infrastructure checks, excluded from speed/quality comparisons:
+
+- [baseline/control: complete](../artifacts/retraining/gpu-retrain-r01/iteration-0002/functional-smoke-v1/baseline/control/result.json), training UTC 2026-10-11T17:56:06.550954+00:00; 3.002 s, 341 reviews/s; binary losses in raw result, no comparable previous/baseline; commit `aa8f3069de8196f48e1776fa59a693e915b8a91f`, dirty `True`, [snapshot](../artifacts/sources/experiment-sources/55b7969d7d8506424c19243f7af14a30a856e406dfa063338975e71616a29e1e/source.zip).
+- [baseline/F01: complete](../artifacts/retraining/gpu-retrain-r01/iteration-0002/functional-smoke-v1/baseline/F01/result.json), training UTC 2026-10-11T17:56:57.504120+00:00; 2.990 s, 342 reviews/s; binary losses in raw result, no comparable previous/baseline; commit `aa8f3069de8196f48e1776fa59a693e915b8a91f`, dirty `True`, [snapshot](../artifacts/sources/experiment-sources/55b7969d7d8506424c19243f7af14a30a856e406dfa063338975e71616a29e1e/source.zip).
+- [expertium/control: complete](../artifacts/retraining/gpu-retrain-r01/iteration-0002/functional-smoke-v1/expertium/control/result.json), training UTC 2026-10-11T17:57:32.768639+00:00; 2.867 s, 357 reviews/s; binary losses in raw result, no comparable previous/baseline; commit `aa8f3069de8196f48e1776fa59a693e915b8a91f`, dirty `True`, [snapshot](../artifacts/sources/experiment-sources/b04b92d0f4a33f73ae29cfbafe1f4be4ebe57eb9bc23ab0cb60e969758042154/source.zip).
+
+<!-- r01-0002:end -->

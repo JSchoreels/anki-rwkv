@@ -1,0 +1,297 @@
+"""R01 training with independent gradient-training and evaluation users.
+
+Adapted from the preserved batch runner; its historical protocols remain intact.
+"""
+
+from argparse import Namespace
+from datetime import datetime, timezone
+import gc
+import hashlib
+import json
+import os
+from pathlib import Path
+import sys
+import time
+import traceback
+from uuid import uuid4
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+from scripts.experiment_provenance import process_provenance
+from scripts.run_gpu_batch1 import SourceWatch, tensor_hash, aggregate
+
+
+def atomic_json(path, value):
+    """Windows readers can briefly deny deletion/replacement of progress JSON."""
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    temporary = path.with_name(f"{path.name}.{uuid4().hex}.tmp")
+    temporary.write_text(json.dumps(value, indent=2, allow_nan=False) + "\n", encoding="utf-8")
+    for attempt in range(26):
+        try:
+            temporary.replace(path)
+            return
+        except PermissionError:
+            if attempt == 25:
+                raise
+            time.sleep(0.2)
+
+
+def run_case(args):
+    started = time.perf_counter()
+    provenance = process_provenance()
+    watch = SourceWatch(provenance)
+    if args.expected_source and watch.implementation_sha256 != args.expected_source:
+        failure = {"model": args.model, "track": args.track, "status": "failed",
+                   "provenance": provenance, "error": "Training implementation changed between cases; restart from the preserved source"}
+        atomic_json(ROOT / args.output / args.model / args.track / "result.json", failure)
+        return 1
+    output = ROOT / args.output
+    protocol = json.loads((output / "protocol.json").read_text())
+    os.environ["GPU_BATCH1_DATA_PATH"] = protocol["dataset_path"]
+    import torch
+    from rwkv.model import nvrtc
+    from rwkv.train_rwkv import CLIP, get_optimizer, transfer_child_grad_to_master
+    from scripts.benchmark_gpu_trial import benchmark_models, fresh_checkpoint
+    from scripts.compare import evaluate
+    from scripts.gpu_batch1 import (DATA, TRACKS, DynamicGraphs, ReducedSyncLoss,
+                                    build_sample_cache, make_samples, split_frame,
+                                    training_batches, transfer_batches)
+    from scripts.gpu_power import limited_gpu
+    from scripts.trial_batches import preparation_pool
+    from rwkv.data_processing import get_rwkv_data
+    from rwkv.prepare_batch import prepare
+
+    path = output / args.model / args.track
+    path.mkdir(parents=True, exist_ok=True)
+    rows = protocol["rows"]
+    evaluation_rows = protocol.get("evaluation_rows", rows)
+    if args.smoke:
+        rows = [dict(row, train_range=[0, 512], validation_range=[512, 1024]) for row in rows[:2]]
+        evaluation_rows = [dict(row, validation_range=[512, 1024]) for row in evaluation_rows[:2]]
+    options = TRACKS[args.track]
+    chunks, workers = (128, 4) if args.model == "baseline" else (256, 6)
+    config = {"MODEL": args.model, "DTYPE": "bfloat16", "WKV_BACKEND": "nvrtc", "SEED": 2025,
+              "BATCH_CHUNKS": chunks, "CHUNK_REVIEWS": 128, "PREFETCH_WORKERS": workers,
+              "PREFETCH_BATCHES": workers * 2, "CPU_THREADS": 4, "EPOCHS": 1,
+              "DATA_PATH": protocol["dataset_path"], "DATASET_REVISION": protocol["dataset_revision"],
+              "GPU_MEMORY_FRACTION": 0.72, "PEAK_LR": 7e-4, "WARMUP_STEPS": 5}
+    report = {"model": args.model, "track": args.track, "options": options, "config": config,
+              "torch": str(torch.__version__), "cuda": torch.version.cuda,
+              "gpu": torch.cuda.get_device_name(0), "training_dropout": "enabled",
+              "master_dtype": "float32", "float32_matmul_precision": torch.get_float32_matmul_precision(),
+              "cuda_matmul_allow_tf32": torch.backends.cuda.matmul.allow_tf32,
+              "rss_sampling": "process tree at user transitions; sampled maximum, not continuous peak",
+              "provenance": provenance, "status": "running", "smoke_only": args.smoke,
+              "implementation_sha256": watch.implementation_sha256,
+              "started_utc": datetime.now(timezone.utc).isoformat(),
+              "training_users": len(rows), "evaluation_users": len(evaluation_rows), "progress_users": 0, "updates": 0,
+              "review_presentations": 0, "training_curve_labels": 0, "training_instant_labels": 0,
+              "hierarchical_padded_positions": 0, "peak_process_tree_rss_mib": 0.0,
+              "gpu_copy_milliseconds": 0.0, "gpu_copy_overlap_training_milliseconds": 0.0}
+    atomic_json(path / "result.json", report)
+    try:
+        torch.set_num_threads(4)
+        torch.cuda.set_per_process_memory_fraction(0.72, 0)
+        nvrtc.register()
+        nvrtc.set_checkpoint_length(32)
+        nvrtc.set_raw_pointer_launch(options.get("dynamic_graphs", False))
+        device = torch.device("cuda:0")
+        checkpoint = fresh_checkpoint(args.model, 2025)
+        report["initial_parameter_sha256"] = tensor_hash(checkpoint["model"])
+        master, base, dtype = benchmark_models(config, device)
+        master.load_state_dict(checkpoint["model"])
+        base.copy_downcast_(master, dtype)
+        for module in base.modules():
+            if hasattr(module, "fused_shift"):
+                module.fused_shift = options.get("fused_shift", False)
+        optimizer = get_optimizer(Namespace(PEAK_LR=7e-4), master)
+        # Discarded forward/backward primes JIT without performing optimizer updates.
+        prime_start = time.perf_counter()
+        first = split_frame(get_rwkv_data(DATA, rows[0]["user_id"]), rows[0], "train").iloc[:1024]
+        prime = prepare(make_samples(first, rows[0]["user_id"], 128), seed=2025).to(device)
+        prime.start = prime.start.to(dtype)
+        for _ in range(3):
+            base.zero_grad(set_to_none=True)
+            stats = base.get_loss(prime)
+            if stats is None or not torch.isfinite(stats.average_loss):
+                raise RuntimeError("Non-finite JIT primer")
+            stats.average_loss.backward()
+        torch.cuda.synchronize()
+        base.zero_grad(set_to_none=True)
+        del prime, stats, first
+        report["discarded_primer_seconds"] = time.perf_counter() - prime_start
+        report["model_setup_seconds"] = prime_start - started
+        master.load_state_dict(checkpoint["model"])
+        base.copy_downcast_(master, dtype)
+        graphs = DynamicGraphs(base, lambda: benchmark_models(config, device)[1],
+                               retain_on_miss=args.model == "expertium") if options.get("dynamic_graphs") else None
+        reduced = ReducedSyncLoss(base) if options.get("reduced_sync") else None
+        cache_paths = None
+        if options.get("sample_cache"):
+            cache_paths, report["cache_setup"] = build_sample_cache(rows, chunks * 128, output / "sample-cache")
+        torch.cuda.empty_cache()
+        torch.cuda.reset_peak_memory_stats()
+        train_started = time.perf_counter()
+        report["training_started_utc"] = datetime.now(timezone.utc).isoformat()
+        last_user = None
+        previous_compute = None
+        origin = torch.cuda.Event(enable_timing=True)
+        origin.record()
+        coverage = {}
+        with limited_gpu(0, 0, path), preparation_pool(workers) as pool, (path / "updates.jsonl").open("w", encoding="utf-8") as log:
+            source = training_batches(rows, chunks * 128, 2025, pool, options, cache_paths, workers * 2)
+            transferred = transfer_batches(source, dtype, options.get("async_transfer", False))
+            try:
+                for row, item, batch in transferred:
+                    if (output / "STOP").exists():
+                        raise InterruptedError("STOP requested; case not complete, restart it from fresh weights")
+                    user = row["user_id"]
+                    if user != last_user:
+                        watch.check()
+                        import psutil
+                        process = psutil.Process()
+                        processes = [process, *process.children(recursive=True)]
+                        rss = sum(p.memory_info().rss for p in processes if p.is_running()) / 2**20
+                        report["peak_process_tree_rss_mib"] = max(report["peak_process_tree_rss_mib"], rss)
+                        if last_user is not None:
+                            report["progress_users"] += 1
+                            report["training_elapsed_seconds"] = time.perf_counter() - train_started
+                            atomic_json(path / "result.json", report)
+                            print(f"{args.model}/{args.track}: {report['progress_users']}/{len(rows)} users, {report['updates']} updates", flush=True)
+                        last_user = user
+                    cpu_labels = item.batch.labels
+                    curve_n = int(((1 - cpu_labels[:, :, 6]) * cpu_labels[:, :, 4]).sum())
+                    instant_n = int((cpu_labels[:, :, 6] * cpu_labels[:, :, 4]).sum())
+                    if curve_n + instant_n == 0:
+                        raise RuntimeError(f"Unlabelled batch user {user}, offset {item.offset}")
+                    torch.manual_seed(item.seed)
+                    active = graphs.select(batch) if graphs else base
+                    # Graph construction creates a fresh model and consumes RNG.
+                    # Reset after admission so an eager or replayed update sees
+                    # the same declared dropout seed as its paired control.
+                    torch.manual_seed(item.seed)
+                    optimizer.zero_grad(set_to_none=True)
+                    if options.get("async_transfer"):
+                        compute_started = torch.cuda.Event(enable_timing=True)
+                        compute_started.record()
+                    active.zero_grad(set_to_none=True)
+                    active.train()
+                    active.copy_downcast_(master, dtype)
+                    capture_start = time.perf_counter()
+                    if isinstance(active, __import__("scripts.gpu_optimizations", fromlist=["GraphTrainingAdapter"]).GraphTrainingAdapter):
+                        is_capture = active.graph is None
+                        stats = active.graph_update(batch, item.seed)
+                        if is_capture:
+                            torch.cuda.synchronize()
+                            graphs.metrics["capture_seconds"] += time.perf_counter() - capture_start
+                    else:
+                        stats = reduced.get_loss(batch) if reduced else active.get_loss(batch)
+                    if stats is None or not torch.isfinite(stats.average_loss):
+                        raise RuntimeError(f"Non-finite training loss user {user}")
+                    if not graphs or active is base:
+                        stats.average_loss.backward()
+                    transfer_child_grad_to_master(master, active)
+                    norm = torch.nn.utils.clip_grad_norm_(master.parameters(), CLIP, error_if_nonfinite=True)
+                    lr = 7e-4 * min(1.0, (report["updates"] + 1) / 5)
+                    for group in optimizer.param_groups:
+                        group["lr"] = lr
+                    optimizer.step()
+                    if options.get("async_transfer"):
+                        compute_ended = torch.cuda.Event(enable_timing=True)
+                        compute_ended.record()
+                    if reduced:
+                        loss_value, norm_value = torch.stack((stats.average_loss.detach(), norm)).cpu().tolist()
+                    else:
+                        loss_value, norm_value = stats.average_loss.item(), norm.item()
+                    report["updates"] += 1
+                    report["review_presentations"] += item.reviews
+                    report["hierarchical_padded_positions"] += sum(t.numel() for group in item.batch.sub_gather for t in group)
+                    report["training_curve_labels"] += curve_n
+                    report["training_instant_labels"] += instant_n
+                    record = coverage.setdefault(str(user), {"reviews": 0, "updates": 0})
+                    if item.offset != record["reviews"]:
+                        raise RuntimeError("Review coverage gap/repeat")
+                    record["reviews"] += item.reviews
+                    record["updates"] += 1
+                    transfer_metrics = {}
+                    if options.get("async_transfer"):
+                        copy_begin = origin.elapsed_time(item.copy_started)
+                        copy_end = origin.elapsed_time(item.copy_ended)
+                        overlap = max(0.0, min(copy_end, previous_compute[1]) - max(copy_begin, previous_compute[0])) if previous_compute else 0.0
+                        previous_compute = (origin.elapsed_time(compute_started), origin.elapsed_time(compute_ended))
+                        report["gpu_copy_milliseconds"] += copy_end - copy_begin
+                        report["gpu_copy_overlap_training_milliseconds"] += overlap
+                        transfer_metrics = {"gpu_copy_ms": copy_end - copy_begin, "gpu_copy_overlap_previous_training_ms": overlap}
+                    log.write(json.dumps({"step": report["updates"], "user_id": user, "offset": item.offset,
+                                          "reviews": item.reviews, "seed": item.seed, "loss": loss_value,
+                                          "gradient_norm": norm_value, "curve_labels": curve_n,
+                                          "instant_labels": instant_n, "lr": lr,
+                                          "preparation_seconds": item.preparation_seconds,
+                                          "queue_wait_seconds": item.wait_seconds, **transfer_metrics}) + "\n")
+                    if not reduced:
+                        log.flush()
+                    # Let cache eviction release all graph-private outputs and
+                    # parameter gradients before the next eager shape allocates.
+                    if graphs:
+                        active = stats = None
+            finally:
+                transferred.close()
+                source.close()
+        torch.cuda.synchronize()
+        report["training_seconds"] = time.perf_counter() - train_started
+        report["cold_training_seconds"] = report["training_seconds"] + report.get("cache_setup", {}).get("elapsed_seconds", 0)
+        report["reviews_per_second"] = report["review_presentations"] / report["training_seconds"]
+        report["cold_reviews_per_second"] = report["review_presentations"] / report["cold_training_seconds"]
+        report["progress_users"] = len(rows)
+        report["coverage"] = coverage
+        for row in rows:
+            if coverage[str(row["user_id"])]["reviews"] != row["train_range"][1]:
+                raise RuntimeError("Incomplete user training coverage")
+        report["peak_allocated_mib"] = torch.cuda.max_memory_allocated() / 2**20
+        report["peak_reserved_mib"] = torch.cuda.max_memory_reserved() / 2**20
+        if graphs:
+            report["graphs"] = graphs.metrics
+        report["trained_parameter_sha256"] = tensor_hash(master.state_dict())
+        watch.check()
+        # Preserve weights in a new experiment location, never the existing trial.
+        torch.save(master.state_dict(), path / "master.pth")
+        active = graphs = reduced = base = optimizer = stats = batch = item = None
+        master.zero_grad(set_to_none=True)
+        gc.collect()
+        torch.cuda.empty_cache()
+        nvrtc.set_checkpoint_length(32)
+        nvrtc.set_raw_pointer_launch(False)
+        eval_started = time.perf_counter()
+        per_user = []
+        validation_hash = hashlib.sha256()
+        report["status"] = "evaluating"
+        atomic_json(path / "result.json", report)
+        for row in evaluation_rows:
+            watch.check()
+            user = row["user_id"]
+            section = split_frame(get_rwkv_data(DATA, user), row, "validation")
+            def heldout():
+                for offset in range(0, len(section), 1024):
+                    batch = prepare(make_samples(section.iloc[offset:offset + 1024], user, 128),
+                                    seed=2025 + user + row["validation_range"][0] + offset)
+                    for tensor in (batch.start, batch.labels, batch.label_review_th):
+                        validation_hash.update(tensor.numpy().tobytes())
+                    yield {"batch": batch.to(device)}
+            values = evaluate(master, heldout())
+            per_user.append({"user_id": user, **values})
+            if len(per_user) % 10 == 0:
+                print(f"{args.model}/{args.track}: evaluated {len(per_user)}/{len(evaluation_rows)} users", flush=True)
+        report["validation_seconds"] = time.perf_counter() - eval_started
+        report["validation_input_sha256"] = validation_hash.hexdigest()
+        report["per_user"] = per_user
+        report["evaluation"] = aggregate(per_user)
+        report["status"] = "complete"
+        watch.check()
+    except Exception as exc:
+        report.update(status="stopped" if isinstance(exc, InterruptedError) else "failed",
+                      error=str(exc), error_type=type(exc).__name__)
+        traceback.print_exc()
+    report["case_elapsed_seconds"] = time.perf_counter() - started
+    atomic_json(path / "result.json", report)
+    return 0 if report["status"] == "complete" else 1
