@@ -1,0 +1,228 @@
+"""CPU-only checks of R01 workflow decisions; no training or quality validation."""
+
+from argparse import ArgumentParser
+from contextlib import redirect_stdout
+from copy import deepcopy
+import hashlib
+import io
+import json
+from pathlib import Path
+import sys
+from types import SimpleNamespace
+from unittest.mock import patch
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+from scripts.experiment_provenance import process_provenance
+from scripts.gpu_r01_policy import (LOSS_METRICS, POLICY, accepted_reference, decide,
+                                    read_reference, require_active, resource_reductions, result_metadata)
+
+
+def main():
+    parser = ArgumentParser(description=__doc__)
+    parser.add_argument("--output", type=Path, required=True)
+    args = parser.parse_args()
+    output = (ROOT / args.output).resolve()
+    if not output.is_relative_to(ROOT / "artifacts") or output.exists():
+        parser.error("Use a new workspace artifact directory")
+    output.mkdir(parents=True)
+    result = {"synthetic_only": True, "provenance": process_provenance(), "checks": [], "status": "running"}
+
+    def check(name, condition):
+        if not condition:
+            raise AssertionError(name)
+        result["checks"].append(name)
+
+    def reject(name, function):
+        try:
+            function()
+        except (ValueError, RuntimeError):
+            check(name, True)
+        else:
+            raise AssertionError(name)
+
+    def loss(delta, upper=0.5):
+        return {"metrics": {key: {"relative_delta": delta, "relative_familywise_upper": upper} for key in LOSS_METRICS}}
+
+    def decision(delta=0, gain=20, **kwargs):
+        return decide(gain, {"previous": loss(delta), "original_baseline": loss(delta)},
+                      relative_limit=0.01, baseline_limit=0.02, prior_streak=2, **kwargs)
+
+    def write(path, value):
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(json.dumps(value, indent=2) + "\n", encoding="utf-8")
+
+    try:
+        check("confidence bound does not replace measured loss ceiling", decision(0.009)["passes_preliminary_quality"])
+        check("one percent measured boundary is allowed", decision(0.01)["passes_preliminary_quality"])
+        check("regression above one percent fails", not decision(0.0101)["passes_preliminary_quality"])
+        check("faster unchanged scores are accepted", decision()["accepted_main"])
+        check("faster improved scores are accepted", decision(-0.01)["accepted_main"])
+        check("faster slightly worse scores stay fastmode-only", decision(0.001)["fastmode"] and not decision(0.001)["accepted_main"])
+        check("faster excessive regression stays fastmode-only", decision(0.03)["fastmode"] and not decision(0.03)["accepted_main"])
+        check("same speed and less resource use remains pending retuning", decision(gain=0, resources_reduced=True)["resource_retuning_pending"])
+        check("resource-saving improvement without speed gain is not discarded", decision(-0.01, gain=-0.1, resources_reduced=True)["resource_retuning_pending"])
+        check("no resource evidence does not fabricate a retuning benefit", not decision(gain=0)["resource_retuning_pending"])
+        check("twenty percent resets the miss streak", decision()["no_20_percent_gain_streak"] == 0)
+        check("below twenty percent increments the miss streak", decision(gain=19.99)["no_20_percent_gain_streak"] == 3)
+        require_active("baseline", 2)
+        reject("three misses prevent another model run", lambda: require_active("baseline", 3))
+        separate = {"previous": loss(0), "original_baseline": loss(0.025)}
+        check("two percent original-baseline target remains preferred, not mandatory",
+              decide(20, separate, relative_limit=0.01, baseline_limit=0.02, prior_streak=0)["accepted_main"])
+        reject("nonfinite throughput is not accepted", lambda: decision(gain=float("nan")))
+
+        from scripts import run_gpu_r01 as runner, select_gpu_r01_next as selector
+        from scripts import report_gpu_r01_next as reporter, gpu_r01_log as ledger
+        root = output / "fixtures"
+        base = root / "artifacts/retraining/gpu-retrain-r01"
+        old = base / "iteration-0002"
+        new = base / "iteration-0003"
+        (root / "docs").mkdir(parents=True)
+        (root / "docs/GPU_RETRAIN_LOOP.md").write_text((ROOT / "docs/GPU_RETRAIN_LOOP.md").read_text())
+        cohort = {"stages": {"100": {"users": 100, "training_users": list(range(1, 81)), "heldout_users": list(range(81, 101)),
+                  "rows": [{"user_id": i, "available_reviews": 12} for i in range(1, 81)], "evaluation_rows": [],
+                  "training_reviews": 960, "validation_reviews": 40}}, "independent_final_test_users": [],
+                  "dataset_path": "synthetic", "dataset_revision": "synthetic", "sampling_seed": 20261011}
+        cohort_path = base / "cohorts-user-holdout-v1.json"
+        write(cohort_path, cohort)
+        write(old / "protocol.json", {"iteration": "0002", "models": ["baseline", "expertium"],
+                                      "cohort_sha256": hashlib.sha256(cohort_path.read_bytes()).hexdigest()})
+        comparisons = {m: {"track": "F01", "decision": "promising preliminary speed screen", "no_20_percent_gain_streak_after_this_iteration": 0}
+                       for m in ("baseline", "expertium")}
+        write(old / "comparison.json", {"comparisons": comparisons})
+        plan = {"control_tracks": {m: "F01" for m in comparisons}, "candidate_tracks": {m: "F01-F08" for m in comparisons},
+                "case_options_by_model": {m: {"F01": {"prefetch_users": True}, "F01-F08": {"prefetch_users": True, "fused_shift": True}} for m in comparisons},
+                "case_explanations": {}}
+        plan_path = base / "plan.json"
+        write(plan_path, plan)
+        for model in comparisons:
+            for track, speed in (("control", 100), ("F01", 120)):
+                case = {"model": model, "track": track, "status": "complete", "smoke_only": False,
+                        "training_started_utc": "2026-01-01T00:00:00+00:00" if track == "control" else "2026-01-01T01:00:00+00:00",
+                        "options": plan["case_options_by_model"][model]["F01"] if track == "F01" else {},
+                        "config": {"MODEL": model, "SEED": 2025, "PREFETCH_WORKERS": 4, "PREFETCH_BATCHES": 8},
+                        "training_users": 80, "evaluation_users": 20, "updates": 80, "review_presentations": 960,
+                        "initial_parameter_sha256": "initial", "trained_parameter_sha256": "final", "validation_input_sha256": "inputs",
+                        "training_curve_labels": 640, "training_instant_labels": 640, "coverage": {},
+                        "training_seconds": 960 / speed, "reviews_per_second": speed, "process_wall_seconds": 20,
+                        "per_user": [{"user_id": i, "curve_labels": 2, "instant_labels": 2, "curve_log_loss": 0.5, "instant_log_loss": 0.5} for i in range(81, 101)],
+                        "evaluation": {**{key: 0.5 for key in LOSS_METRICS}, "curve_labels": 40, "instant_labels": 40},
+                        "implementation_sha256": "old-source", "protocol_sha256": "old-protocol",
+                        "provenance": {"git_commit": "synthetic-only", "git_dirty": False, "source_archive": "artifacts/synthetic-only-source.zip"}}
+                path = old / model / track / "result.json"
+                write(path, case)
+                updates = [{"step": i, "user_id": i, "offset": 0, "reviews": 12, "seed": 2025, "loss": 0.5,
+                            "gradient_norm": 0.1, "curve_labels": 8, "instant_labels": 8, "lr": 0.001, "queue_wait_seconds": 0} for i in range(1, 81)]
+                path.with_name("updates.jsonl").write_text("".join(json.dumps(row) + "\n" for row in updates))
+            profile = {"workload": {"full_history_profile_available": False, "logged_training_reviews": 960, "logged_updates": 80,
+                                   "full_history_complete": True, "complete_training_observation": True},
+                       "phases": {"training including user transitions": {"counters": {
+                           "nvidia_utilization.gpu": {"mean": 70}, "worker_pool_cpu_percent": {"mean": 90},
+                           "ram_available_bytes": {"min": 8 * 2**30}, "observed_worker_count": {"mean": 4},
+                           "torch_cuda_peak_reserved_bytes": {"max": 4 * 2**30}}}}}
+            profile["inputs"] = [result_metadata(old / model / "F01/result.json", root)]
+            write(old / "profiles" / (model + "-F01") / "result.json", profile)
+
+        patches = [patch.object(runner, "ROOT", root), patch.object(runner, "COHORT", cohort_path),
+                   patch.object(runner, "process_provenance", lambda: {"synthetic_only": True}),
+                   patch.object(runner, "R01SourceWatch", lambda _: SimpleNamespace(implementation_sha256="new-source"))]
+        from contextlib import ExitStack
+        with ExitStack() as stack:
+            for item in patches: stack.enter_context(item)
+            with redirect_stdout(io.StringIO()): runner.prepare(new, "0003", old, plan_path)
+            protocol = json.loads((new / "protocol.json").read_text())
+            check("continuation freezes recorded references and no repeated-control budget", protocol["loop_policy"] == POLICY and "reuse recorded" in protocol["budget"])
+            reject("accepted configuration cannot be rerun in a continuation", lambda: runner.run_case(SimpleNamespace(model="baseline", track="F01", smoke=False), new))
+            for model in comparisons: comparisons[model]["no_20_percent_gain_streak_after_this_iteration"] = 3
+            write(old / "comparison.json", {"comparisons": comparisons})
+            stopped = base / "iteration-stopped"
+            reject("both stopped models prevent preparing another iteration", lambda: runner.prepare(stopped, "0004", old, plan_path))
+            check("stopped preparation writes no new protocol", not stopped.exists())
+            comparisons["expertium"]["no_20_percent_gain_streak_after_this_iteration"] = 0
+            write(old / "comparison.json", {"comparisons": comparisons})
+            remaining = base / "iteration-one-active"
+            with redirect_stdout(io.StringIO()): runner.prepare(remaining, "one-active", old, plan_path)
+            check("stopped model is excluded while the other may continue", json.loads((remaining / "protocol.json").read_text())["models"] == ["expertium"])
+            for model in comparisons: comparisons[model]["no_20_percent_gain_streak_after_this_iteration"] = 0
+            write(old / "comparison.json", {"comparisons": comparisons})
+
+        for model in comparisons:
+            with patch.object(selector, "ROOT", root), patch.object(selector, "process_provenance", lambda: {"synthetic_only": True}), \
+                 patch.object(sys, "argv", ["select", "--output", str(new), "--model", model]), redirect_stdout(io.StringIO()):
+                selector.main()
+            case = json.loads((old / model / "F01/result.json").read_text())
+            case.update(track="F01-F08", options=plan["case_options_by_model"][model]["F01-F08"],
+                        training_started_utc="2026-01-02T00:00:00+00:00", implementation_sha256="new-source",
+                        protocol_sha256=hashlib.sha256((new / "protocol.json").read_bytes()).hexdigest(),
+                        reviews_per_second=144, training_seconds=960 / 144)
+            write(new / model / "F01-F08/result.json", case)
+            (new / model / "F01-F08/updates.jsonl").write_bytes((old / model / "F01/updates.jsonl").read_bytes())
+        selection = json.loads((new / "selection.json").read_text())
+        check("selection reuses complete profiles without a fresh control or arbitrary duration floor", all(s["profile_reused"] for s in selection.values()))
+        (base / "iterations").mkdir()
+        with patch.object(reporter, "ROOT", root), patch.object(reporter, "process_provenance", lambda: {"synthetic_only": True}), \
+             patch.object(reporter, "update_run_log", lambda *_: None), patch.object(sys, "argv", ["report", "--output", str(new)]), redirect_stdout(io.StringIO()):
+            reporter.main()
+        report = json.loads((new / "comparison.json").read_text())
+        check("report completes using only candidate runs", all(c["accepted_main"] for c in report["comparisons"].values()) and not (new / "baseline/F01").exists())
+        check("report measures gains against recorded references", all(abs(c["references"]["previous"]["throughput_gain_percent"] - 20) < 1e-10 for c in report["comparisons"].values()))
+        check("accepted result metadata is retained", accepted_reference(new, "baseline", root)["path"].endswith("F01-F08/result.json"))
+        for kind in ("retune", "fastmode"):
+            target = base / ("iteration-" + kind)
+            p = deepcopy(protocol)
+            p.update(iteration=kind, models=["baseline"])
+            write(target / "protocol.json", p)
+            write(target / "selection.json", {"baseline": selection["baseline"]})
+            c = json.loads((new / "baseline/F01-F08/result.json").read_text())
+            c.update(protocol_sha256=hashlib.sha256((target / "protocol.json").read_bytes()).hexdigest(),
+                     reviews_per_second=120 if kind == "retune" else 150,
+                     training_seconds=960 / (120 if kind == "retune" else 150))
+            if kind == "fastmode":
+                for row in c["per_user"]: row.update(curve_log_loss=0.5025, instant_log_loss=0.5025)
+                c["evaluation"].update({key: 0.5025 for key in LOSS_METRICS})
+            candidate_path = target / "baseline/F01-F08/result.json"
+            write(candidate_path, c)
+            candidate_path.with_name("updates.jsonl").write_bytes((new / "baseline/F01-F08/updates.jsonl").read_bytes())
+            reduced = deepcopy(profile)
+            reduced["inputs"] = [result_metadata(candidate_path, root)]
+            counters = reduced["phases"]["training including user transitions"]["counters"]
+            counters["nvidia_utilization.gpu"]["mean"] = 40
+            counters["torch_cuda_peak_reserved_bytes"]["max"] = 2 * 2**30
+            write(target / "profiles/baseline-F01-F08/result.json", reduced)
+            check(kind + " resource reduction is read from recorded evidence", bool(resource_reductions(candidate_path, old / "baseline/F01/result.json", root)))
+            stale = deepcopy(reduced)
+            stale["inputs"][0]["sha256"] = "different-run"
+            profile_path = target / "profiles/baseline-F01-F08/result.json"
+            write(profile_path, stale)
+            check(kind + " mismatched profile identity cannot claim resource savings", not resource_reductions(candidate_path, old / "baseline/F01/result.json", root))
+            write(profile_path, reduced)
+            with patch.object(reporter, "ROOT", root), patch.object(reporter, "process_provenance", lambda: {"synthetic_only": True}), \
+                 patch.object(reporter, "update_run_log", lambda *_: None), patch.object(sys, "argv", ["report", "--output", str(target)]), redirect_stdout(io.StringIO()):
+                reporter.main()
+            cmp = json.loads((target / "comparison.json").read_text())["comparisons"]["baseline"]
+            check(kind + " report retains the main accepted reference", cmp["accepted_reference"] == p["references"]["baseline"]["previous"] and not cmp["accepted_main"])
+            check(kind + " report records the correct next action", cmp["resource_retuning_pending"] if kind == "retune" else cmp["fastmode"])
+            check(kind + " accepted-reference resolution never promotes the pending variant", accepted_reference(target, "baseline", root) == p["references"]["baseline"]["previous"])
+        with patch.object(ledger, "ROOT", root), patch.object(ledger, "BASE", base):
+            path = ledger.update_run_log()
+            rows = [s for s in path.read_text().splitlines() if s.startswith("|")]
+            check("LOG retains 25 columns", all(s.count("|") == 26 for s in rows))
+            check("LOG uses fixed original baseline for cumulative speed", "+44.00%" in path.read_text())
+        metadata = protocol["references"]["baseline"]["previous"]
+        reference_path = root / metadata["path"]
+        preserved = reference_path.read_bytes()
+        reference_path.write_bytes(preserved + b" ")
+        reject("changed historical evidence is rejected", lambda: read_reference(metadata, root))
+        reference_path.write_bytes(preserved)
+        result["status"] = "passed"
+    except Exception as exc:
+        result.update(status="failed", error=str(exc))
+        raise
+    finally:
+        (output / "result.json").write_text(json.dumps(result, indent=2, allow_nan=False) + "\n", encoding="utf-8")
+    print(json.dumps({"status": result["status"], "checks": len(result["checks"]), "synthetic_only": True}))
+
+
+if __name__ == "__main__":
+    main()

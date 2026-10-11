@@ -49,6 +49,9 @@ def build(archive, runtime):
             target = runtime / provenance['source_archive']
             target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(source, target)
+    cache = ROOT / 'artifacts/cache/cupy-cache'
+    if cache.exists():
+        shutil.copytree(cache, runtime / 'artifacts/cache/cupy-cache')
     record = {'origin_git_commit': manifest['git_commit'],
               'origin_source_archive': archive.relative_to(ROOT).as_posix(),
               'origin_source_sha256': hashlib.sha256(archive.read_bytes()).hexdigest(),

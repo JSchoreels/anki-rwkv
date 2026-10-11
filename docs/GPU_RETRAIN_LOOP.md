@@ -6,17 +6,22 @@
 
 ## Procedure
 - Do a first baseline of Alex (default) model and Expertium (light) one.
+- Reuse each model's original baseline and previous accepted run for later comparisons. Rerun a reference only for a stated comparability problem.
 - Profile an execution over 100 users.
+- Reuse applicable profiles; run focused smoke checks when changed code needs verification.
 - Compute what could be the best improvement in terms of request/second.
     - Consider first ressource usage maximization
     - When the ressources are used at ~80% of their capacity, focus more on reducing the load itself by keeping result 100% similar.
     - When 100% similar results can't be achieved, try to not have worst logloss than 1% of the previous iteration, and if possible also of 2% of the baseline.
+    - Apply those limits to measured loss changes; report uncertainty separately.
     - When that logloss accuracy can't be achieved, it's oK to log those speed improvement.
 - Implement and try this improvement.
     - If successful (faster and still accurate), commit the new code.
     - If it's accurate, but same speed, but with less ressources usage, try to see if we can't re-adjust ressources usage to re-maximize the it (for ex, if a change reduce by 50% the GPU demand)
     - If partially sucessful (faster but a bit less accurate), maintain that improvement in a separate 'fastmode' implementation. Commit also
+    - Keep fastmode separate from the main accepted configuration and its comparison reference.
 - Iterate until you can't find 20% request/s improvement after 3 iterations.
+- Stop each model before another iteration after three consecutive misses of the 20% improvement target.
 
 ## Artifacts
 - Fill the results in GPU_OPTIMIZATIONS.md and track the "Optimization tracks" there.

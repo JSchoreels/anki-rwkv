@@ -5,8 +5,11 @@ import json
 import math
 import os
 from pathlib import Path
+import sys
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+from scripts.gpu_r01_policy import read_reference
 BASE = ROOT / "artifacts/retraining/gpu-retrain-r01"
 MISSING = "—"
 LOSSES = (
@@ -22,11 +25,14 @@ DESCRIPTIONS = {
     "F04": "Overlap asynchronous GPU transfers with training.",
     "F06": "Defer internal loss/count synchronizations, consolidate metric transfers and buffer logs while retaining finite-loss and gradient checks.",
     "F16": "Raise Expertium preparation from six to eight workers with bounded queues.",
+    "F08": "Fuse time-shift gathering and eight interpolation operations on the GPU.",
+    "F14": "Prepare compact feature metadata on CPU and materialize feature encodings on GPU.",
+    "F07": "Reduce hierarchical padding while retaining review contents and ordering.",
 }
 FORMAT_NOTES = """<!-- r01-log-format:start -->
 One row records each training attempt, including failed attempts and functional smoke runs. Each value and each percentage delta has its own column. Losses are held-out binary logloss; User is the unweighted user mean and Weighted is the label-weighted mean. Percentages use `100 × (run / reference − 1)`, rounded to two decimal places; positive speed deltas are faster and positive loss deltas are worse.
 
-Previous means the preceding completed comparable full-history run of the same model. Baseline means the latest preceding comparable baseline/control run (no-prefetch control in iteration 0002, F01 incumbent in iteration 0003). The reference columns link the exact runs used. Failed, unfinished and smoke runs do not become comparison references; missing values and unavailable comparisons are `—`.
+Previous means the recorded previous accepted run of the same model. Baseline is the fixed original no-prefetch baseline for that model. Repeated controls do not replace the original baseline, and rejected or fastmode-only candidates do not become the next main reference. Missing values and unavailable comparisons are `—`.
 
 The fixed nested cohorts and 20% held-out split are recorded in [GPU_OPTIMIZATIONS.md](GPU_OPTIMIZATIONS.md#current-loop-fixed-cohorts-and-iteration-0002-protocol). Training users reached are actual counts; incomplete runs retain their planned counts in Notes. Training reviews count raw review presentations. Training seconds include loads, preparation, worker startup/shutdown, transfers, updates and logs; setup/primer, checkpoint save and evaluation are separate. Incomplete rows show partial elapsed training time and no final throughput. Full-history runs remain preliminary screens; smoke runs are infrastructure checks. Process-start provenance and source snapshots are preserved in the linked raw results and iteration records.
 <!-- r01-log-format:end -->"""
@@ -58,9 +64,11 @@ def load_runs(output):
     protocol = json.loads((output / "protocol.json").read_text(encoding="utf-8"))
     sources = [path for path in output.glob("*/*/result.json") if path.parent.parent.name in protocol["models"]]
     sources += list(output.glob("functional-smoke-*/*/*/result.json"))
-    return [{"path": path, "case": json.loads(path.read_text(encoding="utf-8")),
-             "output": output, "control": protocol.get("control_track", "control")}
-            for path in sources]
+    return [{"path": path, "case": case, "output": output,
+             "control": protocol.get("control_tracks", {}).get(case["model"], protocol.get("control_track", "control")),
+             "references": protocol.get("references", {}).get(case["model"]),
+             "explanation": protocol.get("case_explanations", {}).get(case["model"], {}).get(case["track"])}
+            for path in sources for case in [json.loads(path.read_text(encoding="utf-8"))]]
 
 
 def comparable(left, right):
@@ -82,13 +90,23 @@ def references(run, runs):
     case = run["case"]
     if case.get("smoke_only") or case.get("status") != "complete":
         return None, None
+    if run.get("references"):
+        result = []
+        for kind in ("previous", "original_baseline"):
+            reference, path = read_reference(run["references"][kind], ROOT)
+            if not comparable(case, reference):
+                raise ValueError("Logged run differs from its frozen reference exposure/configuration")
+            result.append({"path": path, "case": reference, "output": path.parents[2]})
+        return tuple(result)
     prior = [other for other in runs if other is not run
              and other["case"].get("training_started_utc", "") < case.get("training_started_utc", "")
              and other["case"].get("status") == "complete" and not other["case"].get("smoke_only")
              and comparable(case, other["case"])]
     prior.sort(key=lambda other: other["case"].get("training_started_utc", ""))
-    controls = [other for other in prior if other["case"]["track"] == other["control"]]
-    return (prior[-1] if prior else None, controls[-1] if controls else None)
+    controls = [other for other in prior if other["case"]["track"] == "control"]
+    # Initial-loop candidates compare with their recorded original control.
+    baseline = controls[0] if controls else None
+    return baseline, baseline
 
 
 def run_row(run, runs):
@@ -98,7 +116,7 @@ def run_row(run, runs):
     previous, baseline = references(run, runs)
     refs = (previous, baseline)
     ids = case.get("track", "control").split("-")
-    description = " ".join(DESCRIPTIONS.get(track, f"Track {track}; see the iteration record.") for track in ids)
+    description = run.get("explanation") or " ".join(DESCRIPTIONS.get(track, f"Track {track}; see the iteration record.") for track in ids)
     provenance = case.get("provenance", {})
     evaluation = case.get("evaluation") or {}
     if complete:
@@ -107,7 +125,7 @@ def run_row(run, runs):
         reached = case.get("progress_users")
     notes = "Infrastructure check; excluded from comparisons." if smoke else ""
     if not smoke and case.get("track") == run["control"]:
-        notes += " Baseline/control for this iteration."
+        notes += " Original baseline." if case.get("track") == "control" else " Historical repeat of the accepted configuration."
     if not complete:
         notes += f" Partial attempt; {case.get('training_users', MISSING)} training users planned; {case.get('evaluation_users', MISSING)} held-out users planned."
     if path.parent.name != case.get("track"):
@@ -117,14 +135,13 @@ def run_row(run, runs):
               {"baseline": "Alex (default)", "expertium": "Expertium (light)"}.get(case.get("model"), case.get("model", MISSING)),
               "Baseline" if ids == ["control"] else ", ".join(ids), description,
               number(reached, ",.0f"),
-              number(case.get("review_presentations"), ",.0f"), number(case.get("updates"), ",.0f"),
+              number(case.get("review_presentations"), ",.0f"),
               number(case.get("training_seconds") if complete else case.get("training_elapsed_seconds"), ".3f"),
               number(case.get("reviews_per_second") if complete else None, ",.0f")]
     values += [percent(case.get("reviews_per_second"), ref["case"].get("reviews_per_second")) if ref else MISSING for ref in refs]
     for _, metric in LOSSES:
         values.append(number(evaluation.get(metric), ".9f"))
         values += [percent(evaluation.get(metric), ref["case"].get("evaluation", {}).get(metric)) if ref else MISSING for ref in refs]
-    values += [link(ref["path"], ref["output"].name + ": " + ref["case"]["track"]) if ref else MISSING for ref in refs]
     values += [link(path, "result"), notes.strip() or MISSING]
     return table_row(values)
 
@@ -133,11 +150,11 @@ def render_block(output, runs):
     iteration = output.name.removeprefix("iteration-")
     # Column additions require explicit user confirmation (AGENT.md).
     headers = ["Training start (UTC)", "Trial commit", "Model", "Improvement IDs", "What was tried",
-               "Training users reached", "Training reviews", "Updates", "Training seconds", "Reviews/s",
+               "Training users reached", "Training reviews", "Training seconds", "Reviews/s",
                "Speed Δ vs previous", "Speed Δ vs baseline"]
     for label, _ in LOSSES:
         headers += [label, label + " Δ vs previous", label + " Δ vs baseline"]
-    headers += ["Previous reference", "Baseline reference", "Raw result", "Notes"]
+    headers += ["Raw result", "Notes"]
     record = output / "summary.md"
     if not record.exists():
         record = output / "protocol.json"

@@ -24,7 +24,10 @@ def main():
             raise RuntimeError(f'GPU experiment is already active: {path}')
     lock.write_text(json.dumps({'pid': os.getpid(), 'isolated_runtime': args.runtime.as_posix()}), encoding='utf-8')
     try:
-        return subprocess.run([sys.executable, str(runtime / 'scripts/run_gpu_r01.py'), *forwarded], cwd=runtime).returncode
+        temporary = runtime / 'artifacts/tmp'
+        temporary.mkdir(parents=True, exist_ok=True)
+        environment = dict(os.environ, TEMP=str(temporary), TMP=str(temporary))
+        return subprocess.run([sys.executable, str(runtime / 'scripts/run_gpu_r01.py'), *forwarded], cwd=runtime, env=environment).returncode
     finally:
         if lock.exists() and json.loads(lock.read_text()).get('pid') == os.getpid():
             lock.unlink()
