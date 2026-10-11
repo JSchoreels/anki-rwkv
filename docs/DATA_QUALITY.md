@@ -324,7 +324,12 @@ this is part of its implementation rather than a discarded timing cost.
 Archived R05–R08 trial implementation commit:
 [a19266cfff7d83efb45750691cce2b50bd6b337c](https://github.com/JSchoreels/anki-rwkv/commit/a19266cfff7d83efb45750691cce2b50bd6b337c).
 This is separate from their measured process HEADs and dirty source snapshots.
-R09 is currently uncommitted.
+Archived R09/R10 trial implementation commit:
+[25179f4bce9efa7b61735da626f6fd86571191f5](https://github.com/JSchoreels/anki-rwkv/commit/25179f4bce9efa7b61735da626f6fd86571191f5).
+Their 1,000-user measurements started at full HEAD
+`a19266cfff7d83efb45750691cce2b50bd6b337c` with a dirty workspace; the reports
+preserve exact per-process source archives and immutable implementation hashes.
+The later archive commit does not replace those measured revisions.
 
 R10 (functional checks passed, slower on 1,000 users): use a single-threaded native Arrow hash join on all four exact
 event fields to locate global anchors in each history. Anchors and canonical
