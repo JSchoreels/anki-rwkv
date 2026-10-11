@@ -11,7 +11,7 @@ steps. GPU and training optimization tracks belong in
 |---|---|---|---|---|
 | DQ01 | Audit repeated review patterns | Pending; feasibility inspection only | Raw reviews contain chronological card order, day offsets, ratings, learning states, answer durations and per-card elapsed times. No detector or thresholds have been tested. | Rank repeated long card sequences and ordering of shared cards across days, with rating/duration evidence. Inspect examples before choosing anomaly thresholds; report supporting review ranges. |
 | DQ02 | Exact history containment, uninterrupted common blocks, and user graph | Implemented; functional checks and full 10,000-user audit complete | [Detector](../scripts/review_relations.py), [checks](data-quality/checks.json), [full-cohort measurements](data-quality/benchmarks/optimized-full-cold.json), and [D3 results](data-quality/index.html). 727,738,650 events; two equal-history groups, 18 strict containment edges and 14,880 common-block edges. | Inspect related components before proposing any filtering. Training impact remains unmeasured. |
-| DQ03 | Improve exact relation detector speed | Three rounds retained; R09 full gain marginal, R10/R11 full trials pending | [Matched measurements](data-quality/performance.json): 1,000-user cache-hit median fell from 31.27 to 12.42 seconds (2.52×); retained full-cohort run 417.67 seconds, 656.5 MiB sampled peak process RSS. [Continuation](data-quality/performance-continuation.json): R09 is 14.3–14.6% faster on 1,000 users and nominally 10.02% faster in one full pair. Exact outputs and complete candidate flags agree. | Retain round 3 pending stronger evidence. Test full-cohort native anchor lookup, improved verification, and a following R09 control. |
+| DQ03 | Improve exact relation detector speed | Three rounds retained; R10/R11 full trials complete, following control running | [Matched measurements](data-quality/performance.json): 1,000-user cache-hit median fell from 31.27 to 12.42 seconds (2.52×); retained full-cohort run 417.67 seconds, 656.5 MiB sampled peak process RSS. [Continuation](data-quality/performance-continuation.json): R09 full 446.61 seconds; R10 425.51; R11 471.68. Exact outputs and candidate flags agree; concurrent CPU load affects comparisons. | Retain round 3 pending stronger evidence. Finish the following control, test adaptive lookup and bounded two-worker indexing/verification. |
 | DQ04 | Freeze benchmark dataset identity during active-folder replacement | Resolved for GPU batch F01–F08; no filtering | The first short runner check stopped before updates with `review_time not found` after the timestamped export replaced the active folder. [Failed check](../artifacts/gpu-batch1-smoke/baseline/control/result.json), [replacement record](../artifacts/dataset-inspection/anki-revlogs-10k-id/replacement.json). The original export and count artifact share revision `75299740cff05894ef42d7ad990666691efdd2da`. | Pin the 500-user GPU batch to `data/anki-revlogs-10k-original-20261011` and record that path/revision. Timestamp-export training compatibility remains a separate, untested change. |
 
 DQ01 was originally recorded as F12 in `GPU_OPTIMIZATIONS.md` and moved here
@@ -350,7 +350,7 @@ Their 1,000-user measurements started at full HEAD
 preserve exact per-process source archives and immutable implementation hashes.
 The later archive commit does not replace those measured revisions.
 
-R10 (functional checks passed, slower on 1,000 users): use a single-threaded native Arrow hash join on all four exact
+R10 (exact full-cohort outputs confirmed, incremental speed below 10%): use a single-threaded native Arrow hash join on all four exact
 event fields to locate global anchors in each history. Anchors and canonical
 histories are distinct full tuples, so there is no timestamp-tie cross product.
 Preserve the three-anchor intersections and complete verification. Its benefit
@@ -359,8 +359,17 @@ timestamp join. The 1,000-user median was 17.00 seconds versus R09's 15.59,
 with identical outputs. Sampled peak process RSS reached 343.6 MiB versus
 254.2 MiB for R09. It is not retained; full-cohort anchor lookup remains a
 possible separate diagnostic, without an established end-to-end gain.
+The full trial completed in **425.51 seconds (7 minutes 6 seconds)** with
+identical complete candidate flags and exact outputs. Its subset-membership
+stage took 63.85 seconds versus R09's 98.80, but whole-audit time was only
+4.72% lower than R09's preceding full trial. Sampled peak process RSS was
+451.7 MiB. Four unrelated CPU workers started at 14:48:44 local time,
+about 14 seconds into this trial, and remained active when it ended; disclose
+that load difference before interpreting either the incremental result or
+the 14.27% reduction versus the earlier round-3 control. It is not promoted
+yet. R11 and the following R09 control remain in the sequential queue.
 
-R11 (functional checks passed, full timing pending): combine R09's shared hash scan with R07's timestamp-bound
+R11 (exact full-cohort outputs confirmed, not retained): combine R09's shared hash scan with R07's timestamp-bound
 restriction and reusable timestamp column for pair verification. The isolated
 R07 diagnostic improves large real candidate pairs, but the earlier 1,000-user
 end-to-end screen did not exceed 10%. Measure the combination against R09 on
@@ -369,10 +378,35 @@ The combination passes the eight independent functional checks, including
 random-cohort candidate recall and forced hash collisions. Its preserved
 implementation SHA-256 is
 `c7611386a787b7da47cbb13b780c80a5eca3cefb961ab40f2add36f1487b3ad6`.
+The full trial took **471.68 seconds**, with unchanged complete candidate
+flags and exact outputs. Exact verification was 117.30 seconds versus R09's
+117.83 (about 0.5% less), despite the promising pair diagnostic. The small
+sample did not predict the full workload. Preparation was 82.50 seconds,
+common blocks 112.01, subset candidates 102.07 and graph generation 0.82,
+plus other audit overhead. Four unrelated CPU workers remained active.
+The following R09 control is now running; R11 is not retained.
 Archived R11 trial implementation commit:
 [ebdfc083d9518ae3db750693ab58dcd2beecf34a](https://github.com/JSchoreels/anki-rwkv/commit/ebdfc083d9518ae3db750693ab58dcd2beecf34a).
 The test report and later full benchmark retain their own measured process
 HEADs, dirty-workspace source snapshots and implementation hashes.
+
+R12 (implemented, checks/timing pending): use native full-tuple anchor lookup
+only when there are at least 12,000 global anchors. Below that, retain direct
+exact lookup to avoid the native join's observed small-cohort overhead. This
+crossover is a heuristic, not a measured optimum. The initially proposed
+combination with R11 verification is deferred after R11's full trial showed
+no material verification gain. Its untested prototype is preserved separately;
+R12's current source retains the original pair verifier.
+
+R13 (pending): process two histories at a time during hash/minimizer creation
+and two candidate pairs at a time during verification, using bounded ordered
+thread queues. Keep owner-ordered shard writes and sorted relation output in
+the main thread; workers read immutable arrays and do not access SQLite.
+Measure the memory increase and complete elapsed time. Never overlap separate
+benchmark processes, and preserve complete candidate flags and output digests.
+For its benchmark, distinguish summed concurrent function-call durations from
+phase elapsed time; use synchronized counters and an ordered-map phase timer.
+Complete end-to-end time remains the acceptance metric.
 
 The retained implementation audited **all 10,000 users and 727,738,650 reviews
 in 417.67 seconds (6 minutes 58 seconds)**, including graph generation, from an

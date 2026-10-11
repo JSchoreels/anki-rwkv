@@ -1,5 +1,5 @@
 {
-  "status": "round10_11_full_pending",
+  "status": "following_control_running",
   "retained_variant": "round3-sequential",
   "full_comparison_confounded": true,
   "cases": {
@@ -46,11 +46,20 @@
     "r09-sharedscan-full": {
       "median_seconds": 446.61098109999875,
       "report": "benchmarks/r09-sharedscan-full.json"
+    },
+    "r10-native-anchors-full": {
+      "median_seconds": 425.51076719999946,
+      "report": "benchmarks/r10-native-anchors-full.json"
+    },
+    "r11-sharedscan-bounds-full": {
+      "median_seconds": 471.67720650000047,
+      "report": "benchmarks/r11-sharedscan-bounds-full.json"
     }
   },
   "pair_diagnostic": "benchmarks/pair-variant-probe.json",
-  "conclusion": "Round 9 full elapsed reduction is 10.02% in one control/trial pair, marginal and accompanied by preparation drift. Complete candidate flags and exact outputs match. Round 3 remains retained; full native-anchor and improved-verification trials plus a following R09 control are pending.",
+  "conclusion": "R11 full verification did not materially improve: 117.30 vs 117.83 seconds. Full elapsed was 471.68, exact outputs matched, four unrelated CPU workers remained active. Following R09 control is running; R12 adaptive lookup and R13 bounded parallel work are pending. Round 3 remains retained.",
   "round9_1000_elapsed_reduction_fraction": 0.14333674321803558,
   "round9_full_elapsed_reduction_fraction": 0.1002276089549069,
-  "round9_full_gain_provisional": true
+  "round9_full_gain_provisional": true,
+  "round10_full_has_competing_cpu_workers": true
 }
