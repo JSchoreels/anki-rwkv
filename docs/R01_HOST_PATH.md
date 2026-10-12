@@ -10,7 +10,8 @@ Read this instead of re-reading the model and training code when picking R01 can
 ## Model structure (`expertium/architecture.py`, `expertium/model/`)
 
 - `SrsRWKV.forward_batch` runs five RWKV7 streams in sequence (card 1 layer, deck 4, note 3, preset 3, global 3 = 14 layers), d_model 32 (one head width). Each stream runs once per split (`sub_gather` lengths), so a large update has about 31 layer instances; each instance is a time mixer (about 60 small ops: LayerNorm, shift gather, 8-way lerp, 4 linears, LoRAs, sigmoid/softplus/exp, normalize, WKV recurrence, GroupNorm, bonus) and a channel mixer.
-- All modules are TorchScript; R01 disables graph-executor optimization, so graph edits do not change fusion or numerics.
+- All modules are TorchScript; R01 disables graph-executor optimization, so graph edits do not change fusion or numerics. Module flags set from Python must be real `bool` values (a TorchScript attribute rejects strings or other types).
+- Data flow per update: `bulk_to_device` (`scripts/gpu_r01_update.py`) copies each batch into fresh device storage and rebuilds typed views; nothing writes those tensors afterwards. `forward_batch` (`expertium/model/srs_model.py`) makes one `time_shift_select.view(-1, sub_len)` per split and passes it to every layer (time and channel mixer) of that stream; row selection uses `clamp(split_gather, min=0)`, so padding maps to row 0 (the long F27/F35 destination).
 - Per large update (0022–0024 profiles): about 12,600 kernel launches, 40,000 ATen dispatches, 4,100 `fill_`, 1,300 `mm`; host stages backward ≈130–175 ms, forward and loss ≈31–52 ms, clipping/child-to-master/optimizer ≈10 ms each. Device time is dominated by the recurrence backward (≈84 ms) and forward (≈13 ms).
 - Mean update is 45,838 reviews (1,274–65,536); launch count is nearly size-independent, so small updates are host-bound and large ones GPU-bound.
 
@@ -19,6 +20,8 @@ Read this instead of re-reading the model and training code when picking R01 can
 - F33 (`deferred_reads`) reads loss/norm/finite flags one update late.
 - Expertium `_get_loss` has two NaN checks and four label-count `.item()` calls; F37 (`sync_free_loss`) removes them (exact, -1.75% in 0026, opt-in).
 - `profile_r01_dispatch.py` honours `deferred_reads` (and the older name `deferred_checks`); profiles made before this fix ran without deferred reads unless `--extra-options '{"deferred_checks": true}'` was given.
+
+- `scripts/check_r01_exact_options.py`: E27 vs E30 options 5/5 batches bitwise equal; `{}` vs `{"nondeterministic": true}` was also 5/5 equal on these batches (one run, so not a proof that deterministic mode is free); `--self-test` (one flipped weight bit) fails 0/5 as it should.
 
 ## Custom exact kernels (all bitwise-checked against PyTorch 2.9.1 / NVRTC 13.4 / sm_120)
 

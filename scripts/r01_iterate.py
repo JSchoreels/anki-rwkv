@@ -14,6 +14,8 @@ import subprocess
 import sys
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+from scripts.r01_metrics import case_metrics, drift_line  # noqa: E402
 R = Path("artifacts/retraining/gpu-retrain-r01")
 STEPS = ("plan", "prepare", "select", "smoke", "full", "profile", "report")
 UPDATE_KEYS = ("step", "user_id", "offset", "reviews", "seed", "loss", "gradient_norm", "curve_labels", "instant_labels", "lr")
@@ -149,11 +151,15 @@ def main():
         result = json.loads((ROOT / out / case / "result.json").read_text())
         say("full", f"status {result['status']}; training {result.get('training_seconds', float('nan')):.3f} s; "
                     f"{result.get('reviews_per_second', float('nan')):,.0f} reviews/s; process wall {result.get('process_wall_seconds', float('nan')):.3f} s")
+        say("drift", drift_line(case_metrics(ROOT / out / case), case_metrics(reference_dir)))
 
     if "profile" in steps:
         run("profile", ["scripts/profile_gpu_resources.py", "--case", str(out / case), "--protocol", str(out / "protocol.json"),
                         "--output", str(out / "profiles" / f"{args.model}-{args.candidate}")], f"{out}-profile-console.log")
         say("profile", f"{out}/profiles/{args.model}-{args.candidate}/profile.md")
+        new, old = case_metrics(ROOT / out / case), case_metrics(reference_dir)
+        say("profile", f"training worker CPU {new.get('worker_cpu_percent') or float('nan'):.1f}% ({old.get('worker_cpu_percent') or float('nan'):.1f}%); "
+                       f"GPU {new.get('gpu_percent') or float('nan'):.1f}% ({old.get('gpu_percent') or float('nan'):.1f}%) [new (reference)]")
 
     if "report" in steps:
         log = f"{out}-report-console.log"
