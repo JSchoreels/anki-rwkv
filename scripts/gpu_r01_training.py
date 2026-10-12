@@ -201,6 +201,8 @@ def run_case(args):
     report = {"model": args.model, "track": args.track, "options": options, "config": config,
               "torch": str(torch.__version__), "cuda": torch.version.cuda,
               "gpu": torch.cuda.get_device_name(0), "training_dropout": "enabled",
+              # Includes this process's CUDA context; the rest is other processes' VRAM.
+              "device_used_at_start_mib": (lambda free, total: (total - free) / 2**20)(*torch.cuda.mem_get_info()),
               "master_dtype": "float32", "float32_matmul_precision": torch.get_float32_matmul_precision(),
               "cuda_matmul_allow_tf32": torch.backends.cuda.matmul.allow_tf32,
               "rss_sampling": "process tree at user transitions; sampled maximum, not continuous peak",
@@ -378,6 +380,11 @@ def run_case(args):
                     report["gpu_copy_overlap_training_milliseconds"] += overlap
                     transfer_metrics = {"gpu_copy_ms": copy_end - copy_begin, "gpu_copy_overlap_previous_training_ms": overlap}
                 parts = update["parts"]
+                # The values above were read after this update's end event, so both events have completed.
+                timing_start, timing_end, host_started, host_dispatch = update["timing"]
+                transfer_metrics.update(host_started_s=host_started, host_dispatch_s=host_dispatch,
+                                        gpu_started_ms=origin.elapsed_time(timing_start),
+                                        gpu_ms=timing_start.elapsed_time(timing_end))
                 log.write(json.dumps({"step": update["step"], "user_id": update["user"], "offset": item.offset,
                                       "reviews": item.reviews, "seed": item.seed, "loss": loss_value,
                                       "gradient_norm": norm_value, "curve_labels": update["curve_n"],
@@ -391,6 +398,10 @@ def run_case(args):
 
             try:
                 for row, item, batch in transferred:
+                    # Per-update timing (accounting only): host start and device span, read with the update's values.
+                    update_started = time.perf_counter()
+                    timing_start = torch.cuda.Event(enable_timing=True)
+                    timing_start.record()
                     cache_info = getattr(item, "cache_info", None)
                     if cache_info:
                         counters = report["cache_stats"]
@@ -481,9 +492,13 @@ def run_case(args):
                             raise RuntimeError("Review coverage gap/repeat")
                         record["reviews"] += part_reviews
                         record["updates"] += 1
+                    timing_end = torch.cuda.Event(enable_timing=True)
+                    timing_end.record()
                     update = {"step": report["updates"], "user": user, "item": item, "curve_n": curve_n,
                               "instant_n": instant_n, "lr": lr, "parts": parts,
-                              "compute": (compute_started, compute_ended) if options.get("async_transfer") else None}
+                              "compute": (compute_started, compute_ended) if options.get("async_transfer") else None,
+                              "timing": (timing_start, timing_end, update_started - train_started,
+                                         time.perf_counter() - update_started)}
                     if deferred:
                         # F33: queue a pinned copy of loss/norm and read it once the next update is queued.
                         values = torch.stack((stats.average_loss.detach().float(), norm.detach().float()))
@@ -529,6 +544,9 @@ def run_case(args):
                 raise RuntimeError("Incomplete user training coverage")
         report["peak_allocated_mib"] = torch.cuda.max_memory_allocated() / 2**20
         report["peak_reserved_mib"] = torch.cuda.max_memory_reserved() / 2**20
+        allocator = torch.cuda.memory_stats()
+        report["allocator_stats"] = {key: allocator.get(key) for key in
+                                     ("num_alloc_retries", "num_ooms", "num_device_alloc", "num_device_free")}
         if graphs:
             report["graphs"] = graphs.metrics
         report["trained_parameter_sha256"] = tensor_hash(master.state_dict())

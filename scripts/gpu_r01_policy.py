@@ -312,6 +312,19 @@ def round_budget_fields(iteration, previous=None, *, authorization=None, budget=
             "round_authorization": previous["round_authorization"]}
 
 
+def round_loss_limit(previous=None, *, new_round=False, requested=None):
+    """A round freezes its relative loss ceiling at start; continuations inherit it unchanged."""
+    if requested is not None:
+        if not new_round:
+            raise ValueError("--loss-ceiling is frozen at round start; pass it with --round-authorization")
+        if type(requested) is not float or not math.isfinite(requested) or not 0 <= requested < 1:
+            raise ValueError("--loss-ceiling must be a fraction in [0, 1), for example 0.001 for 0.1%")
+        return requested
+    if not new_round and previous and "round_relative_loss_limit" in previous:
+        return previous["round_relative_loss_limit"]
+    return None
+
+
 def require_active(model, no_gain_streak, protocol=None):
     fixed = fixed_round_budget(protocol or {})
     if fixed is not None:
@@ -340,8 +353,15 @@ def point_losses_pass(metrics, relative_limit):
 
 def decide(gain_percent, losses, *, relative_limit, baseline_limit, prior_streak, resources_reduced=False,
            speed_tolerance_percent=0.0, target_percent=20.0, exact_parity=False, exact_target_percent=None,
-           exact_promotion_rule="fixed_target", timing_noise_available=True):
-    """Use the frozen promotion rule; keep historical fixed-target decisions intact."""
+           exact_promotion_rule="fixed_target", timing_noise_available=True, loss_tolerance=False):
+    """Use the frozen promotion rule; keep historical fixed-target decisions intact.
+
+    loss_tolerance (a human-set round ceiling, 2026-10-12): measured regressions within the ceiling,
+    against both the previous accepted run and the round's starting reference, may be promoted
+    instead of becoming fastmode. Without it, any regression of a faster candidate stays fastmode.
+    """
+    if type(loss_tolerance) is not bool:
+        raise ValueError("Loss tolerance must be a frozen boolean")
     if exact_promotion_rule not in ("fixed_target", "timing_noise") or type(timing_noise_available) is not bool:
         raise ValueError("Valid frozen exact-promotion rule and timing-noise availability required")
     if type(gain_percent) not in (int, float) or not math.isfinite(gain_percent):
@@ -350,6 +370,10 @@ def decide(gain_percent, losses, *, relative_limit, baseline_limit, prior_streak
         raise ValueError("Finite non-negative speed tolerance required")
     metrics = losses["previous"]["metrics"]
     accurate = point_losses_pass(metrics, relative_limit)
+    if loss_tolerance:
+        if "round_start" not in losses:
+            raise ValueError("A tolerated round ceiling needs the round's starting reference to bound cumulative drift")
+        accurate = accurate and point_losses_pass(losses["round_start"]["metrics"], relative_limit)
     baseline_preferred = point_losses_pass(losses["original_baseline"]["metrics"], baseline_limit)
     worse = any(value["relative_delta"] > 0 for value in metrics.values())
     exact_noise = exact_parity and exact_promotion_rule == "timing_noise"
@@ -366,10 +390,13 @@ def decide(gain_percent, losses, *, relative_limit, baseline_limit, prior_streak
     faster = (timing_noise_available and gain_percent > speed_tolerance_percent if exact_noise else
               gain_percent >= target_percent if exact_gate else gain_percent > speed_tolerance_percent)
     slower = gain_percent < -speed_tolerance_percent
-    fastmode = faster and (worse or not accurate)
+    fastmode = faster and (not accurate if loss_tolerance else (worse or not accurate))
     missing_noise = exact_noise and not timing_noise_available
     retune = not missing_noise and not faster and not slower and accurate and not worse and resources_reduced
     accepted = faster and accurate and not fastmode
+    # Human request 2026-10-12: keep positive gains below the noise band visible so several can be stacked.
+    stack_candidate = (not accepted and not fastmode and not missing_noise and accurate and gain_percent > 0
+                       and (exact_parity or loss_tolerance or not worse))
     decision = ("pending measured timing-noise evidence" if missing_noise else
                 "retain separate opt-in fastmode" if fastmode else
                 "retain main improvement; preliminary only" if accepted else
@@ -380,6 +407,7 @@ def decide(gain_percent, losses, *, relative_limit, baseline_limit, prior_streak
             "speed_tolerance_percent": speed_tolerance_percent, "passes_preliminary_quality": accurate,
             "baseline_preferred_limit_met": baseline_preferred,
             "fastmode": fastmode, "accepted_main": accepted,
+            "stack_candidate": stack_candidate, "loss_tolerance_within_limit": loss_tolerance,
             "resource_retuning_pending": retune, "decision": decision,
             "exact_speed_gate_applied": exact_gate,
             "exact_promotion_rule": exact_promotion_rule if exact_parity else "timing_noise_with_quality_checks",

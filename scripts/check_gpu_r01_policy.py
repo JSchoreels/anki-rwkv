@@ -18,7 +18,7 @@ import shutil
 from scripts.gpu_r01_policy import (LOSS_METRICS, POLICY, accepted_reference, decide, material_reduction,
                                     read_reference, require_active, resource_reductions, result_metadata,
                                     check_inputs, reusable_check, speed_noise_band, same_exposure, declared_differences,
-                                    round_budget_fields)
+                                    round_budget_fields, round_loss_limit)
 
 
 def main():
@@ -111,6 +111,34 @@ def main():
         check("unknown noise is not silently treated as a measured zero band", not missing["accepted_main"] and missing["decision"] == "pending measured timing-noise evidence")
         reject("new exact rule rejects changed losses", lambda: decision(0.001, gain=10, exact_parity=True, exact_promotion_rule="timing_noise"))
         reject("invalid exact promotion rule is rejected", lambda: decision(exact_promotion_rule="unknown"))
+        # 2026-10-12 human decisions: a frozen round loss ceiling (0.1% to start) and recorded stack candidates.
+        def tolerant(delta=0.0, start=None, gain=20, **kwargs):
+            values = {"previous": loss(delta), "original_baseline": loss(delta), "round_start": loss(delta if start is None else start)}
+            return decide(gain, values, relative_limit=0.001, baseline_limit=0.02, prior_streak=0,
+                          loss_tolerance=True, speed_tolerance_percent=1.0, **kwargs)
+        check("round ceiling promotes a faster regression within it", tolerant(0.0009)["accepted_main"] and not tolerant(0.0009)["fastmode"])
+        check("round ceiling includes its boundary", tolerant(0.001)["accepted_main"])
+        check("regression beyond the round ceiling stays fastmode", tolerant(0.0011)["fastmode"] and not tolerant(0.0011)["accepted_main"])
+        check("cumulative drift since round start is bounded by the same ceiling",
+              tolerant(0.0005, start=0.0015)["fastmode"] and not tolerant(0.0005, start=0.0015)["accepted_main"])
+        reject("tolerated ceiling requires the round-start reference",
+               lambda: decide(20, {"previous": loss(0), "original_baseline": loss(0)}, relative_limit=0.001,
+                              baseline_limit=0.02, prior_streak=0, loss_tolerance=True))
+        reject("tolerance flag must be boolean", lambda: decision(loss_tolerance=1))
+        check("without a round ceiling any regression stays fastmode", decision(0.0005)["fastmode"])
+        stack = decision(gain=3.0, exact_parity=True, exact_promotion_rule="timing_noise", speed_tolerance_percent=7.045)
+        check("exact gain below noise is a stack candidate", stack["stack_candidate"] and not stack["accepted_main"])
+        check("promoted gain is not also a stack candidate", not decision(gain=8.0, exact_parity=True, exact_promotion_rule="timing_noise", speed_tolerance_percent=7.045)["stack_candidate"])
+        check("slower exact result is not a stack candidate", not decision(gain=-0.3, exact_parity=True, exact_promotion_rule="timing_noise", speed_tolerance_percent=7.045)["stack_candidate"])
+        check("unknown noise is not a stack candidate", not decision(gain=3.0, exact_parity=True, exact_promotion_rule="timing_noise", timing_noise_available=False)["stack_candidate"])
+        check("non-exact regression without a round ceiling is not a stack candidate", not decision(0.0005, gain=3.0, speed_tolerance_percent=7.045)["stack_candidate"])
+        check("non-exact regression within a round ceiling can be a stack candidate", tolerant(0.0005, gain=0.5)["stack_candidate"])
+        check("round ceiling is frozen at round start", round_loss_limit(new_round=True, requested=0.001) == 0.001)
+        check("continuation inherits the frozen ceiling", round_loss_limit({"round_relative_loss_limit": 0.001}) == 0.001)
+        check("a new round without a ceiling does not inherit one", round_loss_limit({"round_relative_loss_limit": 0.001}, new_round=True) is None)
+        reject("ceiling cannot change mid-round", lambda: round_loss_limit({"round_relative_loss_limit": 0.001}, requested=0.002))
+        reject("ceiling must be a fraction below one", lambda: round_loss_limit(new_round=True, requested=1.5))
+        reject("ceiling must be finite", lambda: round_loss_limit(new_round=True, requested=float("nan")))
         accepted_case = {"options": {}, "updates": 276, "review_presentations": 960, "training_users": 80,
                          "coverage": {"1": {"reviews": 900, "updates": 2}, "2": {"reviews": 60, "updates": 1}}}
         larger = {**accepted_case, "options": {"batch_chunks": 512}, "updates": 138,

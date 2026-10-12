@@ -77,6 +77,7 @@ def main():
     parser.add_argument("--check-reason", help="Changed behaviour the smoke verifies")
     parser.add_argument("--round-authorization", help="Quoted human request; only at the start of a newly authorized round")
     parser.add_argument("--round-iterations", type=int, help="Explicit human iteration count; complete this count despite misses")
+    parser.add_argument("--loss-ceiling", type=float, help="Round relative loss ceiling fraction (0.001 = 0.1%%); only with --round-authorization")
     parser.add_argument("--agent", default="claude")
     parser.add_argument("--from-step", choices=STEPS, default="plan")
     parser.add_argument("--allow-smoke-mismatch", action="store_true", help="For candidates without exact parity")
@@ -84,6 +85,8 @@ def main():
     parser.add_argument("--check", type=Path, action="append", default=[], help="Successful source-compatible prerequisite; review runtime compatibility too")
     parser.add_argument("--heartbeat-seconds", type=int, default=60, help="30–60 seconds; avoid short polling")
     args = parser.parse_args()
+    if args.loss_ceiling is not None and not args.round_authorization:
+        parser.error("--loss-ceiling is frozen at round start; pass it with --round-authorization")
     if args.round_iterations is not None and (args.round_iterations < 1 or not args.round_authorization):
         parser.error("--round-iterations requires a positive count and new --round-authorization")
     if not re.fullmatch(r"[A-Za-z][A-Za-z0-9_-]*", args.agent):
@@ -160,6 +163,8 @@ def main():
             command += ["--round-authorization", args.round_authorization]
         if args.round_iterations is not None:
             command += ["--round-iterations", str(args.round_iterations)]
+        if args.loss_ceiling is not None:
+            command += ["--loss-ceiling", repr(args.loss_ceiling)]
         run("prepare", command, f"{out}-prepare-console.log")
         say("prepare", f"protocol frozen in {out}/protocol.json")
 

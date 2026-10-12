@@ -164,7 +164,8 @@ def main():
                              exact_parity=result["parity"]["exact_recorded_parity"],
                              exact_target_percent=100 * settings["exact_target_throughput_gain"] if "exact_target_throughput_gain" in settings else None,
                              exact_promotion_rule=settings.get("exact_promotion_rule", "fixed_target"),
-                             timing_noise_available=band.get("available", False)))
+                             timing_noise_available=band.get("available", False),
+                             loss_tolerance=settings.get("regressions_within_limit_promotable", False)))
         result["speed_noise_band"] = band
         result["resource_reductions"] = reductions
         result["reused_candidate"] = reused_candidate
@@ -247,6 +248,9 @@ def main():
             metrics = [result["references"][kind]["losses"]["metrics"][key] for kind in ("previous", "original_baseline")]
             lines.append(f"| {key} | {metrics[0]['candidate']:.9f} | " + " / ".join(f"{m['relative_delta_percent']:+.2f}%" for m in metrics) + " | " + " / ".join(f"{100*m['relative_familywise_upper']:+.2f}%" for m in metrics) + " |")
         lines.append("")
+        if result.get("stack_candidate"):
+            lines += [f"Stack candidate: **positive {result['references']['previous']['throughput_gain_percent']:+.2f}% below the promotion rule**; "
+                      "keep the option for later stacking with other small gains (2026-10-12 human request).", ""]
         if result["resource_retuning_pending"]:
             lines += [result["retuning_next_step"], ""]
     checks = output / "prefetch-checks-v1/result.json"

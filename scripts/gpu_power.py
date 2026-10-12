@@ -47,12 +47,32 @@ def limited_gpu(index, watts, output):
     started = time.monotonic()
     info.update(requested_watts=watts, original_watts=original, restored=False)
 
+    base_fields = ["power.draw", "power.limit", "temperature.gpu", "utilization.gpu", "memory.used"]
+    # Clocks, P-state and clock-event reasons separate a slow GPU state from slower code.
+    state_fields = ["clocks.sm", "clocks.mem", "pstate", "clocks_event_reasons.active"]
+    fields = base_fields + state_fields
+
+    def parse(name, value):
+        if name == "pstate":
+            return int(value.lstrip("P"))
+        if name == "clocks_event_reasons.active":
+            return int(value, 16)
+        return float(value)
+
     def monitor():
+        nonlocal fields
         with (output / "gpu_power.jsonl").open("a", encoding="utf-8") as log:
             while not stop.is_set():
                 try:
-                    reading = query_gpu(index, ["power.draw", "power.limit", "temperature.gpu", "utilization.gpu", "memory.used"])
-                    reading = {name: float(value) for name, value in reading.items()}
+                    try:
+                        reading = query_gpu(index, fields)
+                    except (RuntimeError, subprocess.CalledProcessError):
+                        if fields == base_fields:
+                            raise
+                        errors.append(f"GPU state fields unavailable; monitoring {', '.join(base_fields)} only")
+                        fields = base_fields
+                        reading = query_gpu(index, fields)
+                    reading = {name: parse(name, value) for name, value in reading.items()}
                     reading["elapsed_seconds"] = time.monotonic() - started
                     readings.append(reading["power.draw"])
                     log.write(json.dumps(reading) + "\n")

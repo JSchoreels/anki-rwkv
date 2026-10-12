@@ -57,7 +57,8 @@ class R01SourceWatch(shared.SourceWatch):
         self.check()
 
 
-def prepare(output, iteration="0002", previous=None, plan=None, resume_prepared=False, round_authorization=None, round_iterations=None):
+def prepare(output, iteration="0002", previous=None, plan=None, resume_prepared=False, round_authorization=None, round_iterations=None,
+            loss_ceiling=None):
     import numpy as np
     # A new round needs the human request quoted in the protocol; stops before it stay recorded.
     new_round = resume_prepared or bool((round_authorization or "").strip())
@@ -218,6 +219,24 @@ def prepare(output, iteration="0002", previous=None, plan=None, resume_prepared=
             protocol["budget"] = (f"Explicit human count: iteration {fixed_fields['round_iteration_index']} of "
                                   f"{fixed_fields['round_iteration_budget']}; complete the count despite consecutive misses; "
                                   "reuse accepted references; fixed cohort; no broader validation")
+        from scripts.gpu_r01_policy import round_loss_limit
+        round_start = new_round and not resume_prepared
+        loss_limit = round_loss_limit(old_protocol, new_round=round_start, requested=loss_ceiling)
+        if loss_limit is not None:
+            # Regressions within the ceiling may be promoted, bounded against the round's first reference too,
+            # so successive small regressions cannot accumulate beyond the ceiling within one round.
+            protocol["acceptance"]["regressions_within_limit_promotable"] = True
+            for model in protocol["models"]:
+                inherited = None if round_start else old_protocol.get("references", {}).get(model, {}).get("round_start")
+                if not round_start and inherited is None:
+                    raise ValueError("Round ceiling continuation lacks its frozen round-start reference")
+                protocol["references"][model]["round_start"] = inherited or protocol["references"][model]["previous"]
+            # Human-set ceiling for this round (2026-10-12: start at 0.1%, raise later); applies to all four losses.
+            percent = f"{100 * loss_limit:g}%"
+            protocol["round_relative_loss_limit"] = loss_limit
+            protocol["acceptance"]["relative_loss_limit"] = loss_limit
+            protocol["acceptance"]["quality_gate"] = f"measured relative loss regression <={percent} (round ceiling); confidence intervals reported separately; original baseline <=2% preferred"
+            protocol["acceptance"]["comparisons"] = f"measured regression vs previous accepted run <={percent} (round ceiling); original baseline <=2% preferred; uncertainty reported separately"
         previous_target = old_protocol.get("acceptance", {}).get("target_throughput_gain", 0.20)
         if previous_target != TARGET_THROUGHPUT_GAIN and not new_round:
             from scripts.gpu_r01_policy import recount_streak
@@ -415,6 +434,7 @@ def main():
     parser.add_argument("--resume-prepared", action="store_true", help="Record explicit user resumption for prepared F02/F19 work")
     parser.add_argument("--round-authorization", help="Quoted human request that starts a new round after recorded stops")
     parser.add_argument("--round-iterations", type=int, help="Explicit human iteration count; overrides consecutive-miss stopping for this round")
+    parser.add_argument("--loss-ceiling", type=float, help="Round relative loss ceiling as a fraction (0.001 = 0.1%%); frozen at round start, inherited by later iterations")
     parser.add_argument("--case", action="store_true")
     parser.add_argument("--model", choices=("baseline", "expertium"))
     parser.add_argument("--track", default="control")
@@ -426,7 +446,8 @@ def main():
     if not output.is_relative_to(ROOT / "artifacts"):
         parser.error("Output must remain under workspace artifacts")
     if args.prepare:
-        return prepare(output, args.iteration, args.previous, args.plan, args.resume_prepared, args.round_authorization, args.round_iterations)
+        return prepare(output, args.iteration, args.previous, args.plan, args.resume_prepared, args.round_authorization, args.round_iterations,
+                       args.loss_ceiling)
     if args.case and args.model:
         return run_case(args, output)
     parser.error("Choose --prepare or --case --model")
