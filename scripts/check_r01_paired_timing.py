@@ -8,7 +8,7 @@ import sys
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 from scripts.experiment_provenance import process_provenance
-from scripts.r01_paired_timing import compare, load_run
+from scripts.r01_paired_timing import compare, load_run, trimmed_gain
 
 
 def write_case(directory, sizes, base, scale, spike=None, loss=0.5, timing=True):
@@ -73,6 +73,8 @@ def main():
         check("runs without per-update timing are refused", True)
     else:
         check("runs without per-update timing are refused", False)
+    check("trimmed estimator removes a single spike", abs(trimmed_gain(a2["wall"], b1["wall"], 5)["gain_percent"] - 5) < 1e-6 and trimmed_gain(a2["wall"], b1["wall"], 5)["dropped_updates"] == 1)
+    check("trimmed estimator keeps a uniform shift", abs(trimmed_gain(a1["wall"], b1["wall"], 3)["gain_percent"] - 5) < 1e-6 and trimmed_gain(a1["wall"], b1["wall"], 3)["dropped_updates"] == 0)
     result = {"status": "passed", "checks": checks, "synthetic_only": True, "provenance": process_provenance()}
     (output / "result.json").write_text(json.dumps(result, indent=1) + "\n", encoding="utf-8")
     print(json.dumps({"status": "passed", "checks": len(checks), "synthetic_only": True}))

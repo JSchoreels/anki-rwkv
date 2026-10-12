@@ -3,9 +3,12 @@
 Works on log reviews/s. With one arm (A/A calibration) it estimates run-to-run noise: the SD of
 log rates and of differences between consecutive runs, and how many interleaved blocks would
 detect a given gain. With two arms it pairs the k-th reference run with the k-th candidate run in
-launch order (R C R C ... blocks) and reports the mean block effect with a t interval. Promotion
-rule proposed for the round: lower bound above zero promotes; positive estimate with an interval
-including zero is a stack candidate; otherwise reject.
+launch order (R C R C ... blocks). When both runs of every block have per-update timing, the block
+effect is the trimmed time-weighted per-update gain (5 MAD), whose identical-run SD was 1.01% on
+the 0047 calibration against 3.74% for total time; otherwise it is the log ratio of total rates.
+The interval uses max(calibrated SD, observed block SD) with normal quantiles. Proposed rule: a
+one-sided 95% lower bound above zero promotes; a positive mean otherwise is a stack candidate;
+otherwise reject.
 
   r01_replicate_stats.py --runs DIR [DIR ...] [--reference-track T] [--output JSON]
 """
@@ -20,7 +23,7 @@ from scipy import stats
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
-from scripts.r01_paired_timing import compare, load_run
+from scripts.r01_paired_timing import compare, load_run, trimmed_gain
 
 
 def run_record(case):
@@ -52,7 +55,7 @@ def percent(log_value):
     return None if log_value is None else 100 * (math.exp(log_value) - 1)
 
 
-def analyse(cases, reference_track=None):
+def analyse(cases, reference_track=None, calibrated_sd_percent=None, mad_limit=5.0):
     runs = sorted((run_record(case) for case in cases), key=lambda run: run["started"] or "")
     reference_track = reference_track or runs[0]["track"]
     arms = {"reference": [r for r in runs if r["track"] == reference_track],
@@ -79,16 +82,38 @@ def analyse(cases, reference_track=None):
             # Run-to-run SD of a difference between two runs; sqrt(2) x the single-run SD when runs are independent.
             sd_difference = math.sqrt(2) * statistics.stdev(logs)
             entry["blocks_needed_one_sided_5pct_power_80"] = {f"{g}%": blocks_needed(sd_difference, g) for g in (1, 2, 3, 5)}
+            if len(timed) >= 2:
+                loaded = [load_run(r["case"]) for r in timed]
+                trimmed = [trimmed_gain(x["wall"], y["wall"], mad_limit)["gain_percent"]
+                           for i, x in enumerate(loaded) for y in loaded[i + 1:]]
+                pair_sd = statistics.pstdev(trimmed)
+                entry[f"trimmed_{mad_limit:g}mad_pair_sd_percent"] = pair_sd
+                entry["blocks_needed_trimmed_one_sided_5pct_power_80"] = {
+                    f"{g}%": blocks_needed(math.log(1 + pair_sd / 100), g) for g in (0.5, 1, 2, 3)}
         out["arms"][name] = entry
     if arms["candidate"]:
-        effects = [math.log(c["rate"] / r["rate"]) for r, c in zip(arms["reference"], arms["candidate"])]
+        pairs = list(zip(arms["reference"], arms["candidate"]))
+        per_update = all(r["timed"] and c["timed"] for r, c in pairs)
+        if per_update:
+            effects = [math.log(1 + trimmed_gain(load_run(r["case"])["wall"], load_run(c["case"])["wall"], mad_limit)["gain_percent"] / 100)
+                       for r, c in pairs]
+        else:
+            effects = [math.log(c["rate"] / r["rate"]) for r, c in pairs]
         mean, low, high = interval(effects)
-        decision = ("needs at least two blocks" if low is None else "promote" if low > 0 else
-                    "stack candidate" if mean > 0 else "reject")
-        out["blocks"] = {"n": len(effects), "effects_percent": [percent(e) for e in effects],
-                         "mean_gain_percent": percent(mean), "ci95_percent": [percent(low), percent(high)],
-                         "proposed_decision": decision,
-                         "exact_parity_across_arms": len({r["trained"] for r in runs}) == 1}
+        block = {"n": len(effects), "estimator": f"trimmed {mad_limit:g} MAD per-update" if per_update else "total rate",
+                 "effects_percent": [percent(e) for e in effects], "mean_gain_percent": percent(mean),
+                 "t_ci95_percent": [percent(low), percent(high)],
+                 "exact_parity_across_arms": len({r["trained"] for r in runs}) == 1}
+        observed = statistics.stdev(effects) if len(effects) >= 2 else 0.0
+        if calibrated_sd_percent is not None:
+            sd = max(math.log(1 + calibrated_sd_percent / 100), observed)
+            lower = mean - stats.norm.ppf(0.95) * sd / math.sqrt(len(effects))
+            block.update(sd_used_percent=percent(sd), one_sided_95_lower_percent=percent(lower),
+                         proposed_decision="promote" if lower > 0 else "stack candidate" if mean > 0 else "reject")
+        else:
+            block["proposed_decision"] = ("needs at least two blocks" if low is None else "promote" if low > 0 else
+                                          "stack candidate" if mean > 0 else "reject")
+        out["blocks"] = block
     return out
 
 
@@ -96,9 +121,11 @@ def main():
     parser = ArgumentParser(description=__doc__)
     parser.add_argument("--runs", nargs="+", required=True, help="Case directories (each holding result.json)")
     parser.add_argument("--reference-track")
+    parser.add_argument("--calibrated-sd", type=float, help="Calibrated per-block SD in percent (0047: 1.01 for 5 MAD)")
+    parser.add_argument("--mad-limit", type=float, default=5.0)
     parser.add_argument("--output", type=Path)
     args = parser.parse_args()
-    out = analyse([ROOT / case for case in args.runs], args.reference_track)
+    out = analyse([ROOT / case for case in args.runs], args.reference_track, args.calibrated_sd, args.mad_limit)
     if args.output:
         target = (ROOT / args.output).resolve()
         if not target.is_relative_to(ROOT / "artifacts"):
@@ -110,7 +137,7 @@ def main():
                                 if not isinstance(v, list)}, default=str)[:600])
     if "blocks" in out:
         b = out["blocks"]
-        print(f"blocks {b['n']}: mean {b['mean_gain_percent']:+.2f}% CI {b['ci95_percent']} -> {b['proposed_decision']}")
+        print(f"blocks {b['n']} ({b['estimator']}): mean {b['mean_gain_percent']:+.2f}%, lower {b.get('one_sided_95_lower_percent')}, t CI {b['t_ci95_percent']} -> {b['proposed_decision']}")
 
 
 if __name__ == "__main__":

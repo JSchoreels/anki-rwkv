@@ -12,6 +12,7 @@ and end events.
 """
 from argparse import ArgumentParser
 import json
+import math
 from pathlib import Path
 import random
 import statistics
@@ -55,6 +56,23 @@ def machine_state(case, result):
     return state
 
 
+def trimmed_gain(a, b, mad_limit=5.0):
+    """Time-weighted B-vs-A gain over updates whose log ratio lies within mad_limit robust SDs of the median.
+
+    Drops transient updates (start-up spikes, background interruptions) but keeps a broad shift, so it
+    estimates the total-time effect. On the 0047 calibration, 15 identical-run pairs gave SD 1.01% at
+    5 MAD and 0.57% at 3 MAD, against 3.74% for total time.
+    """
+    logs = [math.log(y / x) for x, y in zip(a, b)]
+    middle = statistics.median(logs)
+    # The floor (0.01% in log ratio) only matters for synthetic, perfectly uniform shifts whose spread is
+    # floating-point noise; measured per-update spreads are around 0.5-1%.
+    scale = max(1.4826 * statistics.median(abs(value - middle) for value in logs), 1e-4)
+    keep = [k for k, value in enumerate(logs) if abs(value - middle) <= mad_limit * scale]
+    return {"gain_percent": 100 * (sum(a[k] for k in keep) / sum(b[k] for k in keep) - 1),
+            "dropped_updates": len(logs) - len(keep), "mad_limit": mad_limit}
+
+
 def best_of(runs, field):
     """Per-update minimum across runs of one side."""
     return [min(values) for values in zip(*(run[field] for run in runs))]
@@ -91,7 +109,9 @@ def compare(a_runs, b_runs, resamples=10000, seed=20261012, segments=8):
                       "gain_percent": 100 * (sum(a) / sum(b) - 1),
                       "median_update_gain_percent": 100 * (1 / statistics.median(ratios) - 1),
                       "gain_ci95_percent": [100 * (1 / boot[int(0.975 * resamples)] - 1), 100 * (1 / boot[int(0.025 * resamples)] - 1)],
-                      "segment_gain_percent": [100 * (1 / r - 1) for r in seg]}
+                      "segment_gain_percent": [100 * (1 / r - 1) for r in seg],
+                      "trimmed_5mad_gain_percent": trimmed_gain(a, b, 5)["gain_percent"],
+                      "trimmed_3mad_gain_percent": trimmed_gain(a, b, 3)["gain_percent"]}
     out["lead_in_seconds"] = {"a": [r["lead_in"] for r in a_runs], "b": [r["lead_in"] for r in b_runs]}
     out["machine_state"] = {run["case"].as_posix(): run["state"] for run in a_runs + b_runs}
     out["note"] = ("CI resamples updates within these runs; it does not cover a whole-run machine-state shift, "
