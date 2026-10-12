@@ -99,6 +99,18 @@ def main():
         check("exact gate rejects a smaller gain", not decision(gain=1.99, exact_parity=True, exact_target_percent=2)["accepted_main"])
         check("score-only or nonexact changes keep the original gate", not decision(gain=3.69, target_percent=5, speed_tolerance_percent=5.68, exact_target_percent=2)["accepted_main"])
         reject("changed measured scores cannot claim exact parity", lambda: decision(0.001, gain=3.69, exact_parity=True, exact_target_percent=2))
+        noise_options = {"exact_parity": True, "exact_promotion_rule": "timing_noise", "speed_tolerance_percent": 1.0,
+                         "target_percent": 5, "exact_target_percent": 2}
+        above_noise = decision(gain=1.5, **noise_options)
+        check("new exact rule promotes below two/five percent above measured noise", above_noise["accepted_main"] and above_noise["no_20_percent_gain_streak"] == 0)
+        check("new exact rule does not apply the historical fixed gate", not above_noise["exact_speed_gate_applied"] and above_noise["timing_noise_gate_applied"])
+        check("new exact rule requires strictly exceeding noise", not decision(gain=1.0, **noise_options)["accepted_main"])
+        within_noise = decision(gain=3.69, exact_parity=True, exact_promotion_rule="timing_noise", speed_tolerance_percent=5.68)
+        check("new exact rule rejects gain inside noise despite exceeding two percent", not within_noise["accepted_main"] and within_noise["no_20_percent_gain_streak"] == 3)
+        missing = decision(gain=10, exact_parity=True, exact_promotion_rule="timing_noise", timing_noise_available=False)
+        check("unknown noise is not silently treated as a measured zero band", not missing["accepted_main"] and missing["decision"] == "pending measured timing-noise evidence")
+        reject("new exact rule rejects changed losses", lambda: decision(0.001, gain=10, exact_parity=True, exact_promotion_rule="timing_noise"))
+        reject("invalid exact promotion rule is rejected", lambda: decision(exact_promotion_rule="unknown"))
         accepted_case = {"options": {}, "updates": 276, "review_presentations": 960, "training_users": 80,
                          "coverage": {"1": {"reviews": 900, "updates": 2}, "2": {"reviews": 60, "updates": 1}}}
         larger = {**accepted_case, "options": {"batch_chunks": 512}, "updates": 138,
@@ -231,6 +243,7 @@ def main():
             with redirect_stdout(io.StringIO()):
                 runner.prepare(counted, "0005", old, plan_path, round_authorization="Human requested nine iterations", round_iterations=9)
             counted_protocol = json.loads((counted / "protocol.json").read_text())
+            check("new protocols freeze measured-noise exact rule", counted_protocol["acceptance"]["exact_promotion_rule"] == "timing_noise" and "exact_target_throughput_gain" not in counted_protocol["acceptance"])
             check("preparation freezes explicit human count", counted_protocol["round_iteration_budget"] == 9 and counted_protocol["round_iteration_index"] == 1)
             counted_protocol["round_iteration_index"] = 3
             write(counted / "protocol.json", counted_protocol)
@@ -255,6 +268,11 @@ def main():
             for model in comparisons: comparisons[model]["no_20_percent_gain_streak_after_this_iteration"] = 0
             write(old / "comparison.json", {"comparisons": comparisons})
 
+        # The remaining report fixtures exercise historical fixed-target decisions.
+        # Fresh protocols and measured-noise decision boundaries are checked above.
+        protocol["acceptance"]["exact_promotion_rule"] = "fixed_target"
+        protocol["acceptance"]["exact_target_throughput_gain"] = 0.02
+        write(new / "protocol.json", protocol)
         for model in comparisons:
             with patch.object(selector, "ROOT", root), patch.object(selector, "process_provenance", lambda: {"synthetic_only": True}), \
                  patch.object(sys, "argv", ["select", "--output", str(new), "--model", model]), redirect_stdout(io.StringIO()):

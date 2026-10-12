@@ -339,8 +339,11 @@ def point_losses_pass(metrics, relative_limit):
 
 
 def decide(gain_percent, losses, *, relative_limit, baseline_limit, prior_streak, resources_reduced=False,
-           speed_tolerance_percent=0.0, target_percent=20.0, exact_parity=False, exact_target_percent=None):
-    """Honor the optional measured exact-parity gate; preserve legacy timing rules."""
+           speed_tolerance_percent=0.0, target_percent=20.0, exact_parity=False, exact_target_percent=None,
+           exact_promotion_rule="fixed_target", timing_noise_available=True):
+    """Use the frozen promotion rule; keep historical fixed-target decisions intact."""
+    if exact_promotion_rule not in ("fixed_target", "timing_noise") or type(timing_noise_available) is not bool:
+        raise ValueError("Valid frozen exact-promotion rule and timing-noise availability required")
     if type(gain_percent) not in (int, float) or not math.isfinite(gain_percent):
         raise ValueError("Finite measured throughput gain required")
     if type(speed_tolerance_percent) not in (int, float) or not 0 <= speed_tolerance_percent < 100:
@@ -349,33 +352,42 @@ def decide(gain_percent, losses, *, relative_limit, baseline_limit, prior_streak
     accurate = point_losses_pass(metrics, relative_limit)
     baseline_preferred = point_losses_pass(losses["original_baseline"]["metrics"], baseline_limit)
     worse = any(value["relative_delta"] > 0 for value in metrics.values())
-    exact_gate = exact_parity and exact_target_percent is not None
+    exact_noise = exact_parity and exact_promotion_rule == "timing_noise"
+    exact_gate = exact_parity and exact_target_percent is not None and not exact_noise
+    if (exact_gate or exact_noise) and any(value["relative_delta"] != 0 for value in metrics.values()):
+        raise ValueError("Exact parity cannot accompany changed measured scores")
     if exact_gate:
         if (type(exact_target_percent) not in (int, float) or not math.isfinite(exact_target_percent)
                 or not 0 < exact_target_percent < 100):
             raise ValueError("Finite positive exact-parity throughput target required")
-        if any(value["relative_delta"] != 0 for value in metrics.values()):
-            raise ValueError("Exact parity cannot accompany changed measured scores")
         target_percent = exact_target_percent
-    faster = gain_percent >= target_percent if exact_gate else gain_percent > speed_tolerance_percent
+    if exact_noise:
+        target_percent = speed_tolerance_percent
+    faster = (timing_noise_available and gain_percent > speed_tolerance_percent if exact_noise else
+              gain_percent >= target_percent if exact_gate else gain_percent > speed_tolerance_percent)
     slower = gain_percent < -speed_tolerance_percent
     fastmode = faster and (worse or not accurate)
-    retune = not faster and not slower and accurate and not worse and resources_reduced
+    missing_noise = exact_noise and not timing_noise_available
+    retune = not missing_noise and not faster and not slower and accurate and not worse and resources_reduced
     accepted = faster and accurate and not fastmode
-    decision = ("retain separate opt-in fastmode" if fastmode else
+    decision = ("pending measured timing-noise evidence" if missing_noise else
+                "retain separate opt-in fastmode" if fastmode else
                 "retain main improvement; preliminary only" if accepted else
                 "investigate retuning freed resources" if retune else
                 "retain previous accepted run; speed target missed")
-    return {"faster": faster, "speed_change": "faster" if faster else "slower" if slower else "same within recorded repeat spread",
+    met_target = faster if exact_noise else gain_percent >= target_percent
+    return {"faster": faster, "speed_change": "timing noise unavailable" if missing_noise else "faster" if faster else "slower" if slower else "same within recorded repeat spread",
             "speed_tolerance_percent": speed_tolerance_percent, "passes_preliminary_quality": accurate,
             "baseline_preferred_limit_met": baseline_preferred,
             "fastmode": fastmode, "accepted_main": accepted,
             "resource_retuning_pending": retune, "decision": decision,
             "exact_speed_gate_applied": exact_gate,
+            "exact_promotion_rule": exact_promotion_rule if exact_parity else "timing_noise_with_quality_checks",
+            "timing_noise_gate_applied": exact_noise,
             # Field names predate the configurable target; the protocol's target applies.
             "throughput_target_percent": target_percent,
-            "meets_20_percent_target": gain_percent >= target_percent,
-            "no_20_percent_gain_streak": 0 if gain_percent >= target_percent else prior_streak + 1}
+            "meets_20_percent_target": met_target,
+            "no_20_percent_gain_streak": 0 if met_target else prior_streak + 1}
 
 
 def recount_streak(root, model, round_start, through, target_percent):

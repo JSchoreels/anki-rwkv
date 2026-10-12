@@ -19,7 +19,6 @@ from scripts import run_gpu_batch1 as shared
 BASE = ROOT / "artifacts/retraining/gpu-retrain-r01"
 # GPU_RETRAIN_LOOP.md speed target (human request 2026-10-12: 20% -> 5%).
 TARGET_THROUGHPUT_GAIN = 0.05
-EXACT_TARGET_THROUGHPUT_GAIN = 0.02
 COHORT = BASE / "cohorts-user-holdout-v1.json"
 OPTIONS = {"control": {}, "F01": {"prefetch_users": True},
            "F03": {"worker_local": True, "packed_ipc": True},
@@ -165,7 +164,7 @@ def prepare(output, iteration="0002", previous=None, plan=None, resume_prepared=
                 "budget": "two fresh baselines plus one profile-selected candidate per architecture; one training seed; no larger stages in this iteration",
                 "eligible_tracks": {key: value for key, value in OPTIONS.items() if key != "control"},
                 "acceptance": {"relative_loss_limit": 0.01, "baseline_loss_limit": 0.02, "target_throughput_gain": TARGET_THROUGHPUT_GAIN,
-                               "exact_target_throughput_gain": EXACT_TARGET_THROUGHPUT_GAIN,
+                               "exact_promotion_rule": "timing_noise",
                                "metrics": "Curve/Instant binary logloss, label-weighted and user-averaged, each separately",
                                "parity": "compare update metadata/loss/norm, initial/final weight hashes and held-out input hashes; exact final weights and scores preferred",
                                "resamples": 10000, "bootstrap_seed": 20261012, "family_tests": 8, "alpha": 0.05,

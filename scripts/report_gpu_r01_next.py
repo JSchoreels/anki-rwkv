@@ -162,7 +162,9 @@ def main():
                              speed_tolerance_percent=band["percent"],
                              target_percent=target_percent,
                              exact_parity=result["parity"]["exact_recorded_parity"],
-                             exact_target_percent=100 * settings["exact_target_throughput_gain"] if "exact_target_throughput_gain" in settings else None))
+                             exact_target_percent=100 * settings["exact_target_throughput_gain"] if "exact_target_throughput_gain" in settings else None,
+                             exact_promotion_rule=settings.get("exact_promotion_rule", "fixed_target"),
+                             timing_noise_available=band.get("available", False)))
         result["speed_noise_band"] = band
         result["resource_reductions"] = reductions
         result["reused_candidate"] = reused_candidate
@@ -182,10 +184,14 @@ def main():
     atomic_json(output / "comparison.json", report)
     stop_text = (f"complete the explicit {protocol['round_iteration_budget']}-iteration count despite consecutive misses"
                  if protocol.get("round_iteration_budget") else "stop each model after three consecutive misses of the applicable target")
+    promotion_text = ("Bitwise-equal changes are promoted only when their gain exceeds the frozen measured timing-noise band; no fixed 2% or 5% minimum applies. Missing measured noise leaves promotion pending. Non-exact changes keep the timing-noise/quality rules and nominal throughput target."
+                      if settings.get("exact_promotion_rule") == "timing_noise" else
+                      f"Target ≥{target_percent:g}% reviews/s gain versus the previous accepted run" +
+                      (f" for nonexact changes, or ≥{100 * settings['exact_target_throughput_gain']:g}% measured gain for exact recorded parity" if "exact_target_throughput_gain" in settings else ""))
     lines = [f"# R01 iteration {iteration}", "", f"Status: **complete preliminary screen**. Authorization: {protocol.get('round_authorization', protocol['authorization'])}.", "",
              f"Same fixed **{protocol['training_user_count']} training / {protocol['evaluation_users']} unseen held-out users**, **{protocol['training_reviews']:,} training / {protocol['validation_reviews']:,} evaluation reviews**, seed 2025, one epoch, BF16 compute/FP32 master. Chunks contain 128 reviews; prefetch is bounded at twice the worker count. Review exposure stays fixed; declared batch-size or cross-user packing changes may alter update membership, counts, batch seeds, dropout and the learning-rate trajectory. Exact worker/chunk settings and explanations are preserved in the protocol and raw results.", "",
              "[Frozen protocol](protocol.json), [selection from recorded profiles](selection.json), [loop definition](loop-definition.md), [raw comparison](comparison.json). References retain their original process provenance. Timing includes complete training loads, worker startup/shutdown, preparation, transfers, updates and logs. Setup/primer, save and evaluation are separate; process wall includes them.", "",
-             f"Acceptance: measured relative regression ≤1% for all four binary losses against the previous accepted run; ≤2% versus the fixed original baseline is preferred. Confidence bounds are reported separately. Faster but less accurate variants remain separate opt-in fastmode. Accurate resource-saving candidates without a speed gain remain pending retuning. Target ≥{target_percent:g}% reviews/s gain versus the previous accepted run" + (f" for nonexact changes, or ≥{100 * settings['exact_target_throughput_gain']:g}% measured gain for exact recorded parity" if "exact_target_throughput_gain" in settings else "") + f"; {stop_text}. This remains a preliminary screen; broader validation is pending.", "",
+             f"Acceptance: measured relative regression ≤1% for all four binary losses against the previous accepted run; ≤2% versus the fixed original baseline is preferred. Confidence bounds are reported separately. Faster but less accurate variants remain separate opt-in fastmode. Accurate resource-saving candidates without a speed gain remain pending retuning. {promotion_text}" + f"; {stop_text}. This remains a preliminary screen; broader validation is pending.", "",
              "## Full-history measurements", "", "| Model / IDs | Training s | Reviews/s | Gain vs previous / original baseline | Process wall s | Weighted Curve / Instant | User-average Curve / Instant |",
              "|---|---:|---:|---|---:|---|---|"]
     effective_line = f"Effective rules: [loop definition]({link(ROOT / definition['path'], output)})."
@@ -231,7 +237,11 @@ def main():
             timing = (f"The recorded ±{result['speed_noise_band']['percent']:.2f}% repeat spread remains descriptive under the authorized exact-parity gate; the measured gain does not establish repeatability." if result.get("exact_speed_gate_applied") else
                       f"Gains within ±{result['speed_noise_band']['percent']:.2f}% (largest recorded spread between repeats of an identical configuration) count as the same speed. Retuning requires a material resource reduction.")
             lines += [f"Speed change: **{result['speed_change']}** under the applicable rule. {timing}", ""]
-        lines += [f"Decision: **{result['decision']}**. Exact recorded parity versus previous accepted run: **{result['parity']['exact_recorded_parity']}**; logged update mismatches: **{result['parity']['update_mismatch_count']}**. Consecutive iterations without a {result['throughput_target_percent']:g}% gain: **{result['no_20_percent_gain_streak']}**. Three-miss threshold reached: **{result['no_20_percent_gain_streak'] >= 3}**. Round stopping rule: {stop_text}.", "",
+        miss_text = (f"Consecutive iterations without exceeding the measured {result['throughput_target_percent']:g}% timing-noise band"
+                     if result.get("timing_noise_gate_applied") and result["speed_noise_band"].get("available") else
+                     "Measured timing noise is unavailable; promotion is pending" if result.get("timing_noise_gate_applied") else
+                     f"Consecutive iterations without a {result['throughput_target_percent']:g}% gain")
+        lines += [f"Decision: **{result['decision']}**. Exact recorded parity versus previous accepted run: **{result['parity']['exact_recorded_parity']}**; logged update mismatches: **{result['parity']['update_mismatch_count']}**. {miss_text}: **{result['no_20_percent_gain_streak']}**. Three-miss threshold reached: **{result['no_20_percent_gain_streak'] >= 3}**. Round stopping rule: {stop_text}.", "",
                   "| Binary loss | Candidate | Δ vs previous / original | Familywise upper vs previous / original |", "|---|---:|---|---|"]
         for key in METRICS:
             metrics = [result["references"][kind]["losses"]["metrics"][key] for kind in ("previous", "original_baseline")]
