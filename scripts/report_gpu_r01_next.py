@@ -44,7 +44,8 @@ def describe(track):
              "F36": "dispatch thread on its own physical core", "F37": "loss without host synchronization", "F35": "exact row-selection backward and recurrence layout tuning", "F38": "shared shift-backward orders and stream-argument kernel launches", "F39": "six preparation workers", "F40": "five preparation workers",
              "E27": "accepted iteration-0027 Expertium configuration: E24, F39",
              "E30": "accepted iteration-0030 Expertium configuration: E27, F35, F38",
-             "F42": "batch-wide column extraction for exact sample preparation",
+              "F42": "batch-wide column extraction for exact sample preparation",
+              "F43": "four preparation workers after columnar samples",
              "E31": "accepted iteration-0031 Expertium configuration: E30, F37",
              "E33": "accepted iteration-0033 Expertium configuration: E31, F42"}
     return ", ".join(f"{part} ({names.get(part, 'see track record')})" for part in track.split("-"))
