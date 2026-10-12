@@ -544,3 +544,11 @@ Implementation commit after experiments: `a8da8767391a005d21c344cd3898905f94de61
 Implementation commit after experiments: `a8da8767391a005d21c344cd3898905f94de61a1`. Tested revision remains `206c75fab46613f982f832cd9e87abb93169db50` with per-process source snapshots in the linked raw results and iteration record; [commit record](../artifacts/retraining/gpu-retrain-r01/iteration-0039/implementation-commit.json).
 
 <!-- r01-0039:end -->
+
+<!-- r01-rp01-desktop-repeat:start -->
+
+2026-10-12, R01-RP01: one human-authorized repeat of historical 0033/E33 during active desktop use, recorded separately in iteration-0040. [Report](../artifacts/retraining/gpu-retrain-r01/iteration-0040/summary.md), [raw comparison](../artifacts/retraining/gpu-retrain-r01/iteration-0040/repeat-comparison.json), [result](../artifacts/retraining/gpu-retrain-r01/iteration-0040/expertium/E30-F37-F42/result.json). Preserved runtime experiment revision `999baf9f085949e05e4c00628a5f82e197240922` and its dirty source snapshot match original 0033; this is not the current workspace training revision. Throughput 170,718→182,745 reviews/s (+7.05%), training 44.840→41.889 s (−6.58%), complete process 96.242→93.626 s (−2.72%). All 167 logged updates/losses/gradient norms, initial/final parameter hashes, held-out input hash and four held-out metrics match; full gradient tensor hashes were unavailable in both runs. Curve weighted/user losses 0.3874726840790628 / 0.37038797217215763; Instant weighted/user losses 0.3984285960019747 / 0.3825924635443113; all deltas 0%. Sampled background CPU residual proxy rose 12.62→14.34%; short resource intervals do not establish causality. Timing distribution and isolated desktop-load effect remain pending, with no additional run authorized. Accepted 0033 and the three-miss optimization stop remain unchanged; Alex stays paused.
+
+Evidence/checkpoint/helper records commit after the experiment: `a86d1c3eaac305eb81fc301b72baf04ffc6a9e58`. No training implementation changed; this records revision is separate from the historical tested process revision above.
+
+<!-- r01-rp01-desktop-repeat:end -->
