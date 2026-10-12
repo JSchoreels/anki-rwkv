@@ -101,6 +101,8 @@ optimization tracks, including ideas that have not been implemented or tested.
 
 ## R01 iteration quick reference
 
+An explicit human iteration count takes precedence over the three-consecutive-miss stop: complete the requested count, while retaining all acceptance, exactness and quality gates. Start such a round with `--round-authorization "<quoted request>" --round-iterations N` on `r01_iterate.py` (or `run_gpu_r01.py --prepare`); subsequent protocols inherit the count and progress. Never substitute the default three-miss stop for that count, infer a new budget from a handoff, or exceed the count. Uncounted rounds retain the three-miss stop.
+
 Run from the repository root with `.venv/Scripts/python.exe`; `R=artifacts/retraining/gpu-retrain-r01`.
 
 Shortcut: `scripts/r01_iterate.py --iteration NNNN --previous PPPP --candidate <track> --set key=<json> --explanation "..." --evidence "..." --check-reason "..." --preflight artifacts/diagnostics/<round>/preflight.json` runs steps 1–6 below (control = previous accepted reference), compares the smoke bitwise, records background load and prints compact step/60-second progress lines. Optional repeated `--check <result.json>` arguments bind reusable evidence when creating the plan. Run it as one background job and resume failures with `--from-step`; prior console logs are preserved as numbered attempts. Pure profile/report resumes need no runtime probe. `scripts/report_gpu_r01_next.py --brief` prints one decision line. Fixed-window dispatch profiles are too noisy for effects under about 10%; pick small candidates on structure and let the full run measure them.

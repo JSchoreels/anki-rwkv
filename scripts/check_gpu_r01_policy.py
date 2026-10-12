@@ -17,7 +17,8 @@ from scripts.experiment_provenance import process_provenance
 import shutil
 from scripts.gpu_r01_policy import (LOSS_METRICS, POLICY, accepted_reference, decide, material_reduction,
                                     read_reference, require_active, resource_reductions, result_metadata,
-                                    check_inputs, reusable_check, speed_noise_band, same_exposure, declared_differences)
+                                    check_inputs, reusable_check, speed_noise_band, same_exposure, declared_differences,
+                                    round_budget_fields)
 
 
 def main():
@@ -118,6 +119,18 @@ def main():
         check("below twenty percent increments the miss streak", decision(gain=19.99)["no_20_percent_gain_streak"] == 3)
         require_active("baseline", 2)
         reject("three misses prevent another model run", lambda: require_active("baseline", 3))
+        fixed = {"iteration": "0046", **round_budget_fields("0046", authorization="Human requested nine iterations", budget=9)}
+        for index in range(1, 10):
+            fixed["iteration"] = f"{45 + index:04d}"
+            require_active("expertium", index + 3, fixed)
+            check(f"explicit count permits iteration {index} despite misses", fixed["round_iteration_index"] == index)
+            fields = round_budget_fields(f"{46 + index:04d}", fixed)
+            fixed = {"iteration": f"{46 + index:04d}", **fields}
+        reject("explicit count blocks a tenth iteration", lambda: require_active("expertium", 0, fixed))
+        reject("count needs fresh authorization", lambda: round_budget_fields("0046", budget=9))
+        reject("zero count is invalid", lambda: round_budget_fields("0046", authorization="Human", budget=0))
+        reject("count without boundary cannot bypass stop", lambda: require_active("expertium", 3, {"round_iteration_budget": 9, "round_iteration_index": 1}))
+        check("new uncounted authorization does not inherit count", round_budget_fields("0056", fixed, authorization="Human new round") == {})
         separate = {"previous": loss(0), "original_baseline": loss(0.025)}
         check("two percent original-baseline target remains preferred, not mandatory",
               decide(20, separate, relative_limit=0.01, baseline_limit=0.02, prior_streak=0)["accepted_main"])
@@ -214,6 +227,26 @@ def main():
                   and resumed_protocol["prior_no_20_percent_gain_streak"] == {"baseline": 0, "expertium": 0}
                   and resumed_protocol["historical_no_gain_streak"] == {"baseline": 3, "expertium": 3})
             shutil.rmtree(resumed)
+            counted = base / "iteration-counted"
+            with redirect_stdout(io.StringIO()):
+                runner.prepare(counted, "0005", old, plan_path, round_authorization="Human requested nine iterations", round_iterations=9)
+            counted_protocol = json.loads((counted / "protocol.json").read_text())
+            check("preparation freezes explicit human count", counted_protocol["round_iteration_budget"] == 9 and counted_protocol["round_iteration_index"] == 1)
+            counted_protocol["round_iteration_index"] = 3
+            write(counted / "protocol.json", counted_protocol)
+            write(counted / "comparison.json", {"comparisons": comparisons})
+            continued = base / "iteration-counted-next"
+            with redirect_stdout(io.StringIO()):
+                runner.prepare(continued, "0006", counted, plan_path)
+            continued_protocol = json.loads((continued / "protocol.json").read_text())
+            check("preparation carries count past three misses", continued_protocol["round_iteration_index"] == 4 and continued_protocol["round_iteration_budget"] == 9)
+            counted_protocol["round_iteration_index"] = 9
+            write(counted / "protocol.json", counted_protocol)
+            exhausted = base / "iteration-count-exhausted"
+            reject("preparation refuses exhausted explicit count", lambda: runner.prepare(exhausted, "0006", counted, plan_path))
+            check("exhausted count writes no protocol", not exhausted.exists())
+            shutil.rmtree(counted)
+            shutil.rmtree(continued)
             comparisons["expertium"]["no_20_percent_gain_streak_after_this_iteration"] = 0
             write(old / "comparison.json", {"comparisons": comparisons})
             remaining = base / "iteration-one-active"

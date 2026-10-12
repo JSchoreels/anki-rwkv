@@ -51,7 +51,7 @@ def main():
     args = parser.parse_args()
     output = (ROOT / args.output).resolve()
     protocol = json.loads((output / "protocol.json").read_text())
-    require_active(args.model, protocol.get("prior_no_20_percent_gain_streak", {}).get(args.model, 0))
+    require_active(args.model, protocol.get("prior_no_20_percent_gain_streak", {}).get(args.model, 0), protocol)
     control = protocol.get("control_tracks", {}).get(args.model, protocol.get("control_track", "F01"))
     amendment_path = output / "reference-reuse-amendment.json"
     amendment = json.loads(amendment_path.read_text()) if amendment_path.exists() else {}

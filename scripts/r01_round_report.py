@@ -78,9 +78,14 @@ def round_documents(root, base, entries, commit, agent, summary, *, next_steps=(
     accepted_metrics = case_metrics(accepted_path.parent)
     baseline = read_json(root / last["comparison"]["references"]["original_baseline"]["path"])
     authorizations = list(dict.fromkeys(item["protocol"].get("round_authorization", item["protocol"].get("authorization", "not recorded")) for item in entries))
+    from scripts.gpu_r01_policy import fixed_round_budget
+    fixed = fixed_round_budget(last["protocol"])
+    remaining = max(0, fixed[0] - fixed[1]) if fixed else 0
+    closure = (f"Explicit count: {fixed[1]} of {fixed[0]} iterations completed; {remaining} remain authorized. Consecutive misses do not end this counted round."
+               if remaining else "The selected iteration budget is complete; another round requires a new human request.")
     lines = [f"# {agent.capitalize()} R01 round: iterations {first['iteration']}–{last['iteration']}", "",
              f"The accepted preliminary {last['result'].get('model', accepted_path.parent.parent.name)} reference is **{accepted_iteration}: {accepted_metrics['reviews_per_second']:,.0f} reviews/s**, {gain(accepted_metrics['reviews_per_second'], reference['reviews_per_second']):+.2f}% versus the round’s starting accepted reference and {gain(accepted_metrics['reviews_per_second'], baseline['reviews_per_second']):+.2f}% versus the fixed original baseline. Implementation commit `{commit}` was made after the experiments.", "",
-             "Authorization: " + " | ".join(authorizations) + ". The selected iteration budget is complete; another round requires a new human request.", "",
+             "Authorization: " + " | ".join(authorizations) + ". " + closure, "",
              "## Full-history results", "",
              "Training seconds and raw review presentations/s include user transitions; complete process seconds also include setup, discarded primer, checkpoint saving and evaluation. Gains below use each candidate’s own recorded previous accepted reference, which can differ between rows. One full timing per candidate does not establish repeatability; broader validation remains pending.", "",
              "| Iteration | Bundle | Training seconds | Reviews/s | Gain vs prior accepted | Complete process seconds | Queue wait s | Summed worker preparation s | Decision |",
@@ -131,6 +136,12 @@ def round_documents(root, base, entries, commit, agent, summary, *, next_steps=(
                "host_path": "docs/R01_HOST_PATH.md", "ledger": "docs/GPU_OPTIMIZATIONS.md",
                "summary": summary.relative_to(root).as_posix(), "next_steps": list(next_steps),
                "acceptance": "Use current LOOP gates and source/runtime-compatible recorded checks; no broader validation authorized"}
+    if fixed:
+        handoff.update(round_iteration_budget=fixed[0], completed_candidate_iterations=fixed[1],
+                       remaining_authorized_iterations=remaining, round_start_iteration=last["protocol"]["round_start_iteration"],
+                       round_authorization=last["protocol"]["round_authorization"], new_authorization_required=not remaining)
+        if remaining:
+            handoff["status"] = "partial counted round; remaining iterations already authorized"
     return "\n".join(lines), handoff
 
 

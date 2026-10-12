@@ -24,7 +24,8 @@
     - Keep fastmode separate from the main accepted configuration and its comparison reference.
 - Use a measured 2% reviews/s improvement gate for adaptations with exact recorded parity: every logged update and gradient norm, final weights, held-out inputs and all four scores match the previous accepted run. Report the existing timing spread separately; it does not veto this human-authorized measured gate. This does not establish timing repeatability.
 - Keep the 5% improvement target and existing timing-spread rule for changes without exact recorded parity; keep the measured quality ceilings unchanged.
-- Stop each model before another iteration after three consecutive misses of the applicable improvement target (2% for exact adaptations, 5% otherwise).
+- When the human specifies an iteration count, complete that count even after consecutive speed misses. Record the count and progress in the frozen protocol; stop at the requested count and require fresh authorization for more iterations. Keep the exact 2% / non-exact 5% acceptance gates unchanged.
+- When no explicit count is requested, stop each model before another iteration after three consecutive misses of the applicable improvement target (2% for exact adaptations, 5% otherwise).
 
 ## Artifacts
 - Fill the results in GPU_OPTIMIZATIONS.md and track the "Optimization tracks" there.

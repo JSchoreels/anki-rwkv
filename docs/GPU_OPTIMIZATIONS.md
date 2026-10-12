@@ -166,6 +166,10 @@ Run budget: two fresh model baselines, resource profiles, then one profile-selec
 
 Outcome: the isolated **F01** path matches all **507 Alex / 276 Expertium** logged updates, initial/final weight hashes, held-out input hashes, review/label coverage and four binary loss scores. GPU activity rose **55.4% → 74.1%** for Alex and **23.9% → 46.4%** for Expertium; worker-pool utilization rose **50.3% → 67.5%** and **47.8% → 96.7%** respectively. The current bottleneck therefore differs by architecture: Alex is near the GPU-activity target; Expertium's preparation workers are saturated. Existing F03/F06/F14 tracks remain candidates for a separately requested later iteration, with no new run launched. Both 20%-gain streaks reset to zero; one iteration does not reach the three-iteration no-gain stop rule. No fastmode split is needed because this run preserved recorded outputs exactly. The failed Windows progress-write attempt, fresh restart, checks and full provenance are retained in the [iteration record](../artifacts/retraining/gpu-retrain-r01/iteration-0002/summary.md) and [run log](GPU_OPTIMIZATIONS_LOG.md).
 
+### R01-T01: explicit-count round guards
+
+2026-10-12 human clarification: an explicit requested iteration count takes precedence over consecutive speed misses. `--round-iterations N` freezes budget/progress under the quoted authorization; preparation, selection and launch guards continue through misses and refuse N+1. Partial handoffs retain remaining authorization. Uncounted rounds keep the three-miss stop; acceptance/loss gates remain unchanged. [CPU evidence](../artifacts/diagnostics/r01-explicit-count-policy-v1/summary.md): 116 policy checks and 33 helper tests passed. GPU timing and throughput effects are unmeasured (—); no training or broader validation ran. Implementation commit pending.
+
 ## Validation and provenance
 
 - Broader validation requires an explicit user request and at least 500 distinct evaluation users sampled from IDs 1–5000.

@@ -225,6 +225,20 @@ class Helpers(unittest.TestCase):
         self.assertIn("— (not recorded)", text)
         self.assertNotIn("| nan |", text)
 
+    def test_counted_handoff_keeps_remaining_authorization(self):
+        entries = self.fixture()
+        entries[-1]["protocol"].update(iteration=entries[-1]["iteration"], round_start_iteration="0002",
+                                       round_authorization="Human requested nine iterations",
+                                       round_iteration_budget=9, round_iteration_index=3)
+        text, handoff = round_documents(self.root, close.R, entries, "3" * 40, "unit", self.root / close.R / "unit-summary.md")
+        self.assertIn("3 of 9 iterations completed; 6 remain authorized", text)
+        self.assertFalse(handoff["new_authorization_required"])
+        self.assertEqual(handoff["remaining_authorized_iterations"], 6)
+        entries[-1]["protocol"]["round_iteration_budget"] = 3
+        text, handoff = round_documents(self.root, close.R, entries, "3" * 40, "unit", self.root / close.R / "unit-summary.md")
+        self.assertIn("budget is complete", text)
+        self.assertTrue(handoff["new_authorization_required"])
+
     def test_update_mismatch_is_not_mislabeled_exact(self):
         self.fixture()
         p = self.root / close.R / "iteration-0003/comparison.json"

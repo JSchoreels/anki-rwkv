@@ -150,9 +150,9 @@ def launch_plan(root, output, args):
         return {"action": "reuse", "result": result_metadata(path, root), "effective_loop": definition,
                 "scope": "full-history" if not case.get("smoke_only") else "focused smoke"}
     prior = amendment.get("prior_no_20_percent_gain_streak", protocol.get("prior_no_20_percent_gain_streak", {}))
-    require_active(model, prior.get(model, 0))
+    require_active(model, prior.get(model, 0), protocol)
     # Older protocols must not evade a stop recorded by a later completed iteration.
-    require_active(model, latest_streak(root, model, prior.get(model, 0), round_boundary(protocol)))
+    require_active(model, latest_streak(root, model, prior.get(model, 0), round_boundary(protocol)), protocol)
     if track == control and model in protocol.get("references", {}) and not repeat_reason:
         raise ValueError("Reuse the recorded accepted run; repeating a reference requires --repeat-reason")
     if smoke and not check_reason:
@@ -283,7 +283,42 @@ def streak(comparison):
     return comparison.get("no_20_percent_gain_streak", comparison.get("no_20_percent_gain_streak_after_this_iteration", 0))
 
 
-def require_active(model, no_gain_streak):
+def fixed_round_budget(protocol):
+    """An explicit human count overrides misses, but never authorizes extra trials."""
+    budget = protocol.get("round_iteration_budget")
+    index = protocol.get("round_iteration_index")
+    if budget is None and index is None:
+        return None
+    if (type(budget) is not int or budget < 1 or type(index) is not int or index < 1
+            or not round_boundary(protocol)):
+        raise ValueError("Fixed-count round requires positive budget/index and recorded human authorization")
+    return budget, index
+
+
+def round_budget_fields(iteration, previous=None, *, authorization=None, budget=None):
+    if budget is not None:
+        if type(budget) is not int or budget < 1 or not (authorization or "").strip():
+            raise ValueError("--round-iterations requires a positive count and new --round-authorization")
+        return {"round_iteration_budget": budget, "round_iteration_index": 1,
+                "round_start_iteration": iteration, "round_authorization": authorization.strip()}
+    if authorization:
+        return {}  # A newly authorized uncounted round does not inherit an old count.
+    fixed = fixed_round_budget(previous or {})
+    if fixed is None:
+        return {}
+    count, index = fixed
+    return {"round_iteration_budget": count, "round_iteration_index": index + 1,
+            "round_start_iteration": previous["round_start_iteration"],
+            "round_authorization": previous["round_authorization"]}
+
+
+def require_active(model, no_gain_streak, protocol=None):
+    fixed = fixed_round_budget(protocol or {})
+    if fixed is not None:
+        budget, index = fixed
+        if index > budget:
+            raise RuntimeError(f"{model}: explicit {budget}-iteration round is exhausted; new authorization required")
+        return
     if no_gain_streak >= 3:
         raise RuntimeError(f"{model}: stop after {no_gain_streak} consecutive misses of the applicable throughput target")
 

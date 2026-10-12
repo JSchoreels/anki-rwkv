@@ -13,7 +13,7 @@ from zipfile import ZipFile
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 from scripts.experiment_provenance import process_provenance
-from scripts.gpu_r01_policy import POLICY, accepted_reference, read_reference, require_active, streak
+from scripts.gpu_r01_policy import POLICY, accepted_reference, read_reference, require_active, streak, round_budget_fields
 from scripts import run_gpu_batch1 as shared
 
 BASE = ROOT / "artifacts/retraining/gpu-retrain-r01"
@@ -58,7 +58,7 @@ class R01SourceWatch(shared.SourceWatch):
         self.check()
 
 
-def prepare(output, iteration="0002", previous=None, plan=None, resume_prepared=False, round_authorization=None):
+def prepare(output, iteration="0002", previous=None, plan=None, resume_prepared=False, round_authorization=None, round_iterations=None):
     import numpy as np
     # A new round needs the human request quoted in the protocol; stops before it stay recorded.
     new_round = resume_prepared or bool((round_authorization or "").strip())
@@ -68,6 +68,7 @@ def prepare(output, iteration="0002", previous=None, plan=None, resume_prepared=
         raise FileExistsError("Preserve the frozen iteration; use a new output for a new round")
     previous_comparison = None
     previous_outputs = {}
+    fixed_fields = round_budget_fields(iteration, authorization=round_authorization, budget=round_iterations)
     models = ["baseline", "expertium"]
     if previous is None:
         from scripts.gpu_r01_policy import recorded_cases
@@ -75,6 +76,11 @@ def prepare(output, iteration="0002", previous=None, plan=None, resume_prepared=
             raise ValueError("Recorded baselines already exist; continue with --previous instead of starting another baseline round")
     if previous is not None:
         previous = (ROOT / previous).resolve()
+        old_protocol = json.loads((previous / "protocol.json").read_text())
+        if not new_round:
+            fixed_fields = round_budget_fields(iteration, old_protocol)
+        if fixed_fields:
+            require_active("round", 0, {"iteration": iteration, **fixed_fields})
         previous_comparison = json.loads((previous / "comparison.json").read_text())
         previous_outputs = {model: previous for model in previous_comparison["comparisons"]}
         if new_round:
@@ -89,7 +95,7 @@ def prepare(output, iteration="0002", previous=None, plan=None, resume_prepared=
                             previous_comparison["comparisons"][model] = item
                             break
         models = [model for model in models if model in previous_comparison["comparisons"]
-                  and (new_round or streak(previous_comparison["comparisons"][model]) < 3)]
+                  and (new_round or fixed_fields or streak(previous_comparison["comparisons"][model]) < 3)]
         if not models:
             raise RuntimeError("R01 stopped: both models reached three consecutive iterations without a 20% gain")
     provenance = process_provenance()
@@ -208,6 +214,11 @@ def prepare(output, iteration="0002", previous=None, plan=None, resume_prepared=
         elif old_protocol.get("round_start_iteration"):
             protocol["round_start_iteration"] = old_protocol["round_start_iteration"]
             protocol["round_authorization"] = old_protocol["round_authorization"]
+        if fixed_fields:
+            protocol.update(fixed_fields)
+            protocol["budget"] = (f"Explicit human count: iteration {fixed_fields['round_iteration_index']} of "
+                                  f"{fixed_fields['round_iteration_budget']}; complete the count despite consecutive misses; "
+                                  "reuse accepted references; fixed cohort; no broader validation")
         previous_target = old_protocol.get("acceptance", {}).get("target_throughput_gain", 0.20)
         if previous_target != TARGET_THROUGHPUT_GAIN and not new_round:
             from scripts.gpu_r01_policy import recount_streak
@@ -303,7 +314,7 @@ def run_case(args, output):
     protocol = json.loads((output / "protocol.json").read_text())
     if hashlib.sha256((output / "protocol.json").read_bytes()).hexdigest() != ticket["protocol_sha256"]:
         raise ValueError("Frozen protocol differs from the live launch ticket")
-    require_active(args.model, protocol.get("prior_no_20_percent_gain_streak", {}).get(args.model, 0))
+    require_active(args.model, protocol.get("prior_no_20_percent_gain_streak", {}).get(args.model, 0), protocol)
     if args.model not in protocol["models"]:
         raise ValueError("Model is outside the active iteration")
     control_track = protocol.get("control_tracks", {}).get(args.model, protocol.get("control_track", "control"))
@@ -404,6 +415,7 @@ def main():
     parser.add_argument("--plan", type=Path)
     parser.add_argument("--resume-prepared", action="store_true", help="Record explicit user resumption for prepared F02/F19 work")
     parser.add_argument("--round-authorization", help="Quoted human request that starts a new round after recorded stops")
+    parser.add_argument("--round-iterations", type=int, help="Explicit human iteration count; overrides consecutive-miss stopping for this round")
     parser.add_argument("--case", action="store_true")
     parser.add_argument("--model", choices=("baseline", "expertium"))
     parser.add_argument("--track", default="control")
@@ -415,7 +427,7 @@ def main():
     if not output.is_relative_to(ROOT / "artifacts"):
         parser.error("Output must remain under workspace artifacts")
     if args.prepare:
-        return prepare(output, args.iteration, args.previous, args.plan, args.resume_prepared, args.round_authorization)
+        return prepare(output, args.iteration, args.previous, args.plan, args.resume_prepared, args.round_authorization, args.round_iterations)
     if args.case and args.model:
         return run_case(args, output)
     parser.error("Choose --prepare or --case --model")
