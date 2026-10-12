@@ -79,3 +79,9 @@ Follow AGENT.md for the shared preflight, focused-check wrapper and complete rou
 ## Explicit-count policy clarification (2026-10-12)
 
 The human clarified after closing 0041–0045 that requested iteration counts must be completed without stopping early for speed misses. Future counted rounds freeze `round_iteration_budget` and `round_iteration_index` through `--round-iterations N`; prepare, selection and launch guards honor that count and refuse N+1 without fresh authorization. Acceptance gates and miss reporting remain unchanged. Uncounted rounds retain the three-miss stop. Historical 0041–0045 protocols/results remain unchanged; this clarification does not launch a continuation.
+
+## 0041–0045 review notes (analysis only, 2026-10-12)
+
+- VRAM headroom is small. Accepted runs use about 14.2–14.9 GB of the 16 GB card in nvidia-smi `memory.used` (own reserved 12.2 GB plus 0.7–3.0 GB from other processes). F49 (15,460 MiB reserved) and F17's 640-chunk 0019 (14.13 GiB) both collapsed. F49 showed 100% utilization at half the power of 0042, so the GPU was stalled. Check `peak_reserved_mib`, `memory.used` and power before attributing a large slowdown to the mechanism under test. [Telemetry](../artifacts/diagnostics/r01-round-0041-0045-review/summary.md).
+- Process time: training is 44% of the 0042 case (38.8 of 88.5 s). Evaluation (29.6 s) spawns a second six-worker pool after the training pool closes (`preparation_pool(workers)` in `scripts/gpu_r01_training.py`). The primer (15.3 s) is the setup critical path, and `pool_prestart_seconds` is read after it, so that field mirrors primer time. Training reseeds each update, so primer RNG use does not reach training. Proposals: F59–F61.
+- The recurrence backward issues its global loads at the top of every step behind barriers, in both the recompute and backward loops (F58). At 3 blocks/SM on 84 SMs, a 512-row backward runs 3 waves for 2.03 waves of work (F55).
