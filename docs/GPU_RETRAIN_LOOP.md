@@ -9,6 +9,8 @@
 - Reuse each model's original baseline and previous accepted run for later comparisons. Rerun a reference only for a stated comparability problem.
 - Profile an execution over 100 users.
 - Reuse applicable profiles; run focused smoke checks when changed code needs verification.
+- Before each launch, reconcile the current LOOP with the frozen protocol or its amendment. Reuse matching results and checks; repeat only for a stated incompatibility or repaired failure, and give each new smoke a specific changed behaviour to check.
+- Launch through the current workspace controller, using isolated source from the first trial.
 - Compute what could be the best improvement in terms of request/second.
     - Consider first ressource usage maximization
     - When the ressources are used at ~80% of their capacity, focus more on reducing the load itself by keeping result 100% similar.
