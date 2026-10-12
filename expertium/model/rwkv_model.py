@@ -6,6 +6,7 @@ import torch
 from expertium.model.rwkv_ops import RWKV7_WKV, reference_rwkv7, quant_aware_rwkv7
 from rwkv.model.fused_shift import FusedShiftLerp
 from rwkv.model.exact_index import ExactShiftGather
+from rwkv.model.exact_group_norm import ExactGroupNorm
 
 """
 IMPORTANT: the CUDA implementation in this repository only supports head dimensions of 32. d_model // n_heads == 32.
@@ -225,6 +226,7 @@ class RWKV7TimeMixer(ModuleType):
         super().__init__()
         self.fused_shift = False
         self.exact_shift = False
+        self.exact_group_norm = False  # F32: multi-SM GroupNorm weight/bias backward, bitwise equal
         assert config.d_model % config.n_heads == 0
         self.layer_id = layer_id
         C = config.d_model
@@ -398,7 +400,12 @@ class RWKV7TimeMixer(ModuleType):
                 r_BTHK, k_BTHK, v_BTHK, w_BTHK, a_BTHK, k_deformed_BTHK, skip_BT
             )
 
-        out_BTC = self.out_group_norm(out_BTHK.view(B * T, C)).view(B, T, C)
+        if self.exact_group_norm and out_BTHK.is_cuda and C == 32:
+            out_BTC = ExactGroupNorm.apply(out_BTHK.view(B * T, C), self.out_group_norm.weight,
+                                           self.out_group_norm.bias, self.out_group_norm.num_groups,
+                                           self.out_group_norm.eps).view(B, T, C)
+        else:
+            out_BTC = self.out_group_norm(out_BTHK.view(B * T, C)).view(B, T, C)
         bonus_BTC = (
             (r_BTHK * self.bonus * k_BTHK).sum(dim=-1, keepdim=True) * v_BTHK
         ).view(B, T, C)

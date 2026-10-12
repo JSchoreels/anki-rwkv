@@ -9,6 +9,7 @@ from datetime import datetime, timezone
 import gc
 import hashlib
 import json
+import math
 import os
 from pathlib import Path
 import sys
@@ -198,6 +199,9 @@ def run_case(args):
             if hasattr(module, "exact_index"):
                 # F27: sort-free hierarchy row-selection backward, also bitwise equal.
                 module.exact_index = options.get("exact_index", False)
+            if hasattr(module, "exact_group_norm"):
+                # F32: GroupNorm weight/bias gradients spread across SMs, bitwise equal.
+                module.exact_group_norm = options.get("exact_group_norm", False)
         optimizer = get_optimizer(Namespace(PEAK_LR=7e-4), master)
         warm_pool = None
         if options.get("prestart_pool"):
@@ -273,6 +277,40 @@ def run_case(args):
             source = training_batches(rows, chunks * 128, training_seed, pool, options, cache_paths, workers * 2)
             transferred = transfer_batches(source, dtype, options.get("async_transfer", False),
                                            **({"bulk": True} if options.get("bulk_transfer") else {}))
+            deferred = options.get("deferred_reads", False)
+            pending = None
+
+            def finish(update):
+                nonlocal loss_value, previous_compute
+                item = update["item"]
+                if "host" in update:
+                    update["ready"].synchronize()
+                    loss_value, norm_value = update["host"].tolist()
+                    if not (math.isfinite(loss_value) and math.isfinite(norm_value)):
+                        raise RuntimeError(f"Non-finite training loss or gradient at update {update['step']}, user {update['user']}")
+                else:
+                    loss_value, norm_value = update["values"]
+                transfer_metrics = {}
+                if update["compute"] is not None:
+                    copy_begin = origin.elapsed_time(item.copy_started)
+                    copy_end = origin.elapsed_time(item.copy_ended)
+                    overlap = max(0.0, min(copy_end, previous_compute[1]) - max(copy_begin, previous_compute[0])) if previous_compute else 0.0
+                    previous_compute = tuple(origin.elapsed_time(event) for event in update["compute"])
+                    report["gpu_copy_milliseconds"] += copy_end - copy_begin
+                    report["gpu_copy_overlap_training_milliseconds"] += overlap
+                    transfer_metrics = {"gpu_copy_ms": copy_end - copy_begin, "gpu_copy_overlap_previous_training_ms": overlap}
+                parts = update["parts"]
+                log.write(json.dumps({"step": update["step"], "user_id": update["user"], "offset": item.offset,
+                                      "reviews": item.reviews, "seed": item.seed, "loss": loss_value,
+                                      "gradient_norm": norm_value, "curve_labels": update["curve_n"],
+                                      "instant_labels": update["instant_n"], "lr": update["lr"],
+                                      "preparation_seconds": item.preparation_seconds,
+                                      "queue_wait_seconds": item.wait_seconds, **transfer_metrics,
+                                      **({"parts": parts} if len(parts) > 1 else {})}) + "\n")
+                if not reduced:
+                    log.flush()
+                progress.training(report["progress_users"], report["review_presentations"], report["updates"], loss_value)
+
             try:
                 for row, item, batch in transferred:
                     cache_info = getattr(item, "cache_info", None)
@@ -331,7 +369,7 @@ def run_case(args):
                             graphs.metrics["capture_seconds"] += time.perf_counter() - capture_start
                     else:
                         stats = reduced.get_loss(batch) if reduced else active.get_loss(batch)
-                    if stats is None or not torch.isfinite(stats.average_loss):
+                    if stats is None or (not deferred and not torch.isfinite(stats.average_loss)):
                         raise RuntimeError(f"Non-finite training loss user {user}")
                     if not graphs or active is base:
                         stats.average_loss.backward()
@@ -339,7 +377,8 @@ def run_case(args):
                         grouped.transfer_grads()
                     else:
                         transfer_child_grad_to_master(master, active)
-                    norm = torch.nn.utils.clip_grad_norm_(master.parameters(), CLIP, error_if_nonfinite=True)
+                    # F33 checks the same finite loss/norm after the next update is queued.
+                    norm = torch.nn.utils.clip_grad_norm_(master.parameters(), CLIP, error_if_nonfinite=not deferred)
                     lr = 7e-4 * min(1.0, (report["updates"] + 1) / 5)
                     for group in optimizer.param_groups:
                         group["lr"] = lr
@@ -347,10 +386,6 @@ def run_case(args):
                     if options.get("async_transfer"):
                         compute_ended = torch.cuda.Event(enable_timing=True)
                         compute_ended.record()
-                    if reduced:
-                        loss_value, norm_value = torch.stack((stats.average_loss.detach(), norm)).cpu().tolist()
-                    else:
-                        loss_value, norm_value = stats.average_loss.item(), norm.item()
                     report["updates"] += 1
                     report["review_presentations"] += item.reviews
                     report["hierarchical_padded_positions"] += sum(t.numel() for group in item.batch.sub_gather for t in group)
@@ -362,29 +397,32 @@ def run_case(args):
                             raise RuntimeError("Review coverage gap/repeat")
                         record["reviews"] += part_reviews
                         record["updates"] += 1
-                    transfer_metrics = {}
-                    if options.get("async_transfer"):
-                        copy_begin = origin.elapsed_time(item.copy_started)
-                        copy_end = origin.elapsed_time(item.copy_ended)
-                        overlap = max(0.0, min(copy_end, previous_compute[1]) - max(copy_begin, previous_compute[0])) if previous_compute else 0.0
-                        previous_compute = (origin.elapsed_time(compute_started), origin.elapsed_time(compute_ended))
-                        report["gpu_copy_milliseconds"] += copy_end - copy_begin
-                        report["gpu_copy_overlap_training_milliseconds"] += overlap
-                        transfer_metrics = {"gpu_copy_ms": copy_end - copy_begin, "gpu_copy_overlap_previous_training_ms": overlap}
-                    log.write(json.dumps({"step": report["updates"], "user_id": user, "offset": item.offset,
-                                          "reviews": item.reviews, "seed": item.seed, "loss": loss_value,
-                                          "gradient_norm": norm_value, "curve_labels": curve_n,
-                                          "instant_labels": instant_n, "lr": lr,
-                                          "preparation_seconds": item.preparation_seconds,
-                                          "queue_wait_seconds": item.wait_seconds, **transfer_metrics,
-                                          **({"parts": parts} if len(parts) > 1 else {})}) + "\n")
-                    if not reduced:
-                        log.flush()
-                    progress.training(report["progress_users"], report["review_presentations"], report["updates"], loss_value)
+                    update = {"step": report["updates"], "user": user, "item": item, "curve_n": curve_n,
+                              "instant_n": instant_n, "lr": lr, "parts": parts,
+                              "compute": (compute_started, compute_ended) if options.get("async_transfer") else None}
+                    if deferred:
+                        # F33: queue a pinned copy of loss/norm and read it once the next update is queued.
+                        values = torch.stack((stats.average_loss.detach().float(), norm.detach().float()))
+                        update["host"] = torch.empty(2, dtype=torch.float32, pin_memory=True)
+                        update["host"].copy_(values, non_blocking=True)
+                        update["ready"] = torch.cuda.Event()
+                        update["ready"].record()
+                        if pending is not None:
+                            finish(pending)
+                        pending = update
+                    else:
+                        if reduced:
+                            update["values"] = torch.stack((stats.average_loss.detach(), norm)).cpu().tolist()
+                        else:
+                            update["values"] = stats.average_loss.item(), norm.item()
+                        finish(update)
                     # Let cache eviction release all graph-private outputs and
                     # parameter gradients before the next eager shape allocates.
                     if graphs:
                         active = stats = None
+                if pending is not None:
+                    finish(pending)
+                    pending = None
             finally:
                 transferred.close()
                 source.close()

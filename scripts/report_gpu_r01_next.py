@@ -38,7 +38,8 @@ def describe(track):
              "F28": "worker pool started during setup", "F29": "cross-user batch packing", "F30": "exact NumPy sample construction",
              "F26": "sort-free exact shift backward", "F27": "sort-free exact row-selection backward",
              "E20": "accepted iteration-0020 Expertium configuration: E13, F30, F28",
-             "F31": "exact row-tiled recurrence kernels"}
+             "F31": "exact row-tiled recurrence kernels", "E22": "accepted iteration-0022 Expertium configuration: E20, F31",
+             "F32": "exact multi-SM GroupNorm weight/bias backward", "F33": "host reads deferred by one update"}
     return ", ".join(f"{part} ({names.get(part, 'see track record')})" for part in track.split("-"))
 
 

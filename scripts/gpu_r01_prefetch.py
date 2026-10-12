@@ -10,7 +10,7 @@ def training_batches(rows, span, seed, pool, options, cache_paths=None, depth=8)
     if (options.get("prefetch_users") is not True
             or set(options) - {"prefetch_users", "reduced_sync", "preparation_workers", "fused_shift", "padding_factor", "async_transfer", "packed_ipc", "gpu_packed_features", "preprocessing_cache", "batched_id_encodings", "preprocessing_cache_bytes", "preprocessing_cache_mode",
                                          "split_excess", "batch_chunks", "gpu_memory_fraction", "grouped_sync", "main_threads",
-                                         "bulk_transfer", "parallel_evaluation", "jit_optimize", "nondeterministic", "exact_shift", "exact_index", "training_seed", "pack_users", "prestart_pool", "fast_samples", "row_tiles_exact"}
+                                         "bulk_transfer", "parallel_evaluation", "jit_optimize", "nondeterministic", "exact_shift", "exact_index", "training_seed", "pack_users", "prestart_pool", "fast_samples", "row_tiles_exact", "exact_group_norm", "deferred_reads"}
             or bool(options.get("preprocessing_cache")) != (cache_paths is not None) or depth < 1):
         raise ValueError("Unsupported R01 ordered-prefetch preparation options")
 

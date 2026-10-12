@@ -84,6 +84,8 @@ def main():
             module.exact_shift = options.get("exact_shift", False)
         if hasattr(module, "exact_index"):
             module.exact_index = options.get("exact_index", False)
+        if hasattr(module, "exact_group_norm"):
+            module.exact_group_norm = options.get("exact_group_norm", False)
     optimizer = get_optimizer(Namespace(PEAK_LR=7e-4), master)
     grouped = MasterChildSync(master, base)
     torch.set_num_threads(options.get("main_threads", 4))
@@ -109,14 +111,19 @@ def main():
         timed("zero grads/train mode", lambda: (optimizer.zero_grad(set_to_none=True), base.zero_grad(set_to_none=True), base.train()))
         timed("master to child downcast", grouped.downcast)
         stats = timed("forward and loss", lambda: base.get_loss(batch))
-        timed("finite-loss check", lambda: bool(torch.isfinite(stats.average_loss)))
+        deferred = options.get("deferred_checks", False)
+        if not deferred:
+            timed("finite-loss check", lambda: bool(torch.isfinite(stats.average_loss)))
         timed("backward", stats.average_loss.backward)
         timed("child to master gradients", grouped.transfer_grads)
-        norm = timed("gradient clipping", lambda: torch.nn.utils.clip_grad_norm_(master.parameters(), CLIP, error_if_nonfinite=True))
+        norm = timed("gradient clipping", lambda: torch.nn.utils.clip_grad_norm_(master.parameters(), CLIP, error_if_nonfinite=not deferred))
         updates += 1
         for group in optimizer.param_groups:
             group["lr"] = 7e-4 * min(1.0, updates / 5)
         timed("optimizer step", optimizer.step)
+        if deferred:
+            # F33: one host read after the update carries loss, norm and both finite checks.
+            return timed("host loss/norm reads", lambda: torch.stack((stats.average_loss.detach().float(), norm.float())).tolist())
         return timed("host loss/norm reads", lambda: (stats.average_loss.item(), norm.item()))
 
     result = {"options": options, "provenance": provenance, "batches_per_pass": len(prepared), "reviews_per_pass": reviews,
