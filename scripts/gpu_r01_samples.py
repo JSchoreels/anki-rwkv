@@ -26,12 +26,20 @@ REJECT = ["rating", "duration", "scaled_duration", "state", "scaled_state", "y",
 LABELS = ["label_elapsed_seconds", "label_elapsed_days", "label_y", "label_rating", "has_label", "label_is_equalize", "is_query"]
 
 
-def _matrix(columns):
+def _matrix(columns, direct=False):
     """Float64 columns: bool, integer and float values round to float32 exactly as DataFrame.to_numpy() does."""
+    if direct:
+        # F45: the same float64 conversions directly into the final matrix,
+        # without one temporary array per column followed by column_stack.
+        result = np.empty((len(columns[0]), len(columns)), dtype=np.float64)
+        for index, column in enumerate(columns):
+            result[:, index] = column
+        return result
     return np.column_stack([column.astype(np.float64) for column in columns])
 
 
-def create_sample_fast(user_id, section_df, equalize_review_ths, dtype, device, column_arrays=None):
+def create_sample_fast(user_id, section_df, equalize_review_ths, dtype, device, column_arrays=None,
+                       segment_features_precomputed=False, direct_matrix=False):
     if column_arrays is None:
         frame = add_segment_features(section_df.copy()).reset_index(drop=True)
         data = {name: frame[name].to_numpy() for name in frame.columns}
@@ -41,11 +49,12 @@ def create_sample_fast(user_id, section_df, equalize_review_ths, dtype, device, 
         # without constructing and copying a DataFrame for each 128-review chunk.
         import pandas as pd
         data = dict(column_arrays)
-        days = pd.Series(data["day_offset"], copy=False)
-        days = days - days.min()
-        data["day_offset"] = days.to_numpy()
-        data["day_offset_first"] = days.groupby(data["card_id"]).transform("first").to_numpy()
-        data["day_of_week"] = (((days % 7) - 3) / 3).to_numpy()
+        if not segment_features_precomputed:
+            days = pd.Series(data["day_offset"], copy=False)
+            days = days - days.min()
+            data["day_offset"] = days.to_numpy()
+            data["day_offset_first"] = days.groupby(data["card_id"]).transform("first").to_numpy()
+            data["day_of_week"] = (((days % 7) - 3) / 3).to_numpy()
     data["skip"] = np.zeros(len(section_df), dtype=bool)
     if set(data) != set(KEEP) | set(REJECT) or len(data) != len(KEEP) + len(REJECT):
         raise ValueError("Sample columns differ from the add_queries keep/reject lists")
@@ -100,8 +109,8 @@ def create_sample_fast(user_id, section_df, equalize_review_ths, dtype, device, 
     return RWKVSample(
         user_id=user_id, start_th=int(data["review_th"].min()), end_th=int(data["review_th"].max()), length=length,
         modules=modules, ids=ids,
-        card_features=torch.tensor(_matrix([data[c] for c in CARD_FEATURE_COLUMNS]), dtype=dtype, device=device, requires_grad=False),
-        global_labels=torch.tensor(_matrix([data[c] for c in LABELS]), dtype=dtype, device=device, requires_grad=False),
+        card_features=torch.tensor(_matrix([data[c] for c in CARD_FEATURE_COLUMNS], direct_matrix), dtype=dtype, device=device, requires_grad=False),
+        global_labels=torch.tensor(_matrix([data[c] for c in LABELS], direct_matrix), dtype=dtype, device=device, requires_grad=False),
         review_ths=torch.tensor(data["review_th"], dtype=torch.int32, device=device, requires_grad=False),
         label_review_ths=torch.tensor(data["label_review_th"], dtype=torch.int32, device=device, requires_grad=False),
         day_offsets=torch.tensor(data["day_offset"], dtype=torch.int32, device=device, requires_grad=False),
@@ -112,18 +121,31 @@ def create_sample_fast(user_id, section_df, equalize_review_ths, dtype, device, 
 def samples_for(section, user, options, chunk=128):
     """F30 when the frozen options select it; otherwise the original per-chunk construction."""
     if options.get("fast_samples"):
-        return make_samples_fast(section, user, chunk, columnar=options.get("columnar_samples", False))
+        return make_samples_fast(section, user, chunk, columnar=options.get("columnar_samples", False),
+                                 batch_segment_features=options.get("batch_segment_features", False),
+                                 direct_matrix=options.get("direct_sample_matrix", False))
     if options.get("columnar_samples"):
         raise ValueError("F42 columnar sample construction requires fast_samples")
     from scripts.gpu_batch1 import make_samples
     return make_samples(section, user, chunk)
 
 
-def make_samples_fast(section, user, chunk, *, columnar=False):
+def make_samples_fast(section, user, chunk, *, columnar=False, batch_segment_features=False, direct_matrix=False):
+    if batch_segment_features and not columnar:
+        raise ValueError("F44 requires columnar samples")
     if columnar:
         columns = {name: section[name].to_numpy() for name in section.columns}
+        if batch_segment_features and len(section):
+            import pandas as pd
+            chunks = np.arange(len(section)) // chunk
+            days = pd.Series(columns["day_offset"], copy=False)
+            days = days - days.groupby(chunks).transform("min")
+            columns["day_offset"] = days.to_numpy()
+            columns["day_offset_first"] = days.groupby([chunks, columns["card_id"]]).transform("first").to_numpy()
+            columns["day_of_week"] = (((days % 7) - 3) / 3).to_numpy()
         return [create_sample_fast(user, section.iloc[i:i + chunk], [], torch.float32, torch.device("cpu"),
-                                   column_arrays={name: values[i:i + chunk] for name, values in columns.items()})
+                                   column_arrays={name: values[i:i + chunk] for name, values in columns.items()},
+                                   segment_features_precomputed=batch_segment_features, direct_matrix=direct_matrix)
                 for i in range(0, len(section), chunk)]
-    return [create_sample_fast(user, section.iloc[i:i + chunk], [], torch.float32, torch.device("cpu"))
+    return [create_sample_fast(user, section.iloc[i:i + chunk], [], torch.float32, torch.device("cpu"), direct_matrix=direct_matrix)
             for i in range(0, len(section), chunk)]

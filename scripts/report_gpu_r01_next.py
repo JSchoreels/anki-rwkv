@@ -46,6 +46,9 @@ def describe(track):
              "E30": "accepted iteration-0030 Expertium configuration: E27, F35, F38",
               "F42": "batch-wide column extraction for exact sample preparation",
               "F43": "four preparation workers after columnar samples",
+               "F44": "batch-wide chunk-local segment transforms",
+               "F45": "direct float64 sample matrix construction",
+               "F46": "load-pipelined exact shift backward",
              "E31": "accepted iteration-0031 Expertium configuration: E30, F37",
              "E33": "accepted iteration-0033 Expertium configuration: E31, F42"}
     return ", ".join(f"{part} ({names.get(part, 'see track record')})" for part in track.split("-"))

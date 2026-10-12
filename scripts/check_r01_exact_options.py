@@ -24,7 +24,7 @@ import sys
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 APPLIED = {"exact_shift", "exact_index", "exact_group_norm", "fused_shift", "row_tiles_exact", "shared_shift_orders",
-           "stream_launches", "prefetch_rows", "sync_free_loss", "jit_optimize", "nondeterministic"}
+           "stream_launches", "prefetch_rows", "prefetch_shift", "sync_free_loss", "jit_optimize", "nondeterministic"}
 
 
 def load_options(value, track):
@@ -121,9 +121,11 @@ def main():
             nvrtc.set_stream_launch(options.get("stream_launches", False))
             exact_index.set_shared_orders(options.get("shared_shift_orders", False))
             exact_index.set_prefetch_rows(options.get("prefetch_rows", False))
+            exact_index.set_prefetch_shift(options.get("prefetch_shift", False))
             stack.callback(nvrtc.set_stream_launch, False)
             stack.callback(exact_index.set_shared_orders, False)
             stack.callback(exact_index.set_prefetch_rows, False)
+            stack.callback(exact_index.set_prefetch_shift, False)
             stats = model.get_loss(batch)
             stats.average_loss.backward()
         torch.cuda.synchronize()

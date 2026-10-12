@@ -225,6 +225,7 @@ def run_case(args):
         exact_index.set_shared_orders(options.get("shared_shift_orders", False))
         # F35: row-selection backward with pipelined loads; same sequential sums, bitwise equal.
         exact_index.set_prefetch_rows(options.get("prefetch_rows", False))
+        exact_index.set_prefetch_shift(options.get("prefetch_shift", False))
         if options.get("row_tiles_exact"):
             # F31: pinned-arithmetic row-tiled recurrence for training only, at the
             # accepted tile 32; the primer compiles it and evaluation restores production.
@@ -528,6 +529,7 @@ def run_case(args):
         nvrtc.set_stream_launch(False)
         exact_index.set_shared_orders(False)
         exact_index.set_prefetch_rows(False)
+        exact_index.set_prefetch_shift(False)
         eval_started = time.perf_counter()
         per_user = []
         validation_hash = hashlib.sha256()

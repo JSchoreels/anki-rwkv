@@ -20,6 +20,13 @@ _KERNELS = {}
 _shared_orders = False
 _orders = {}
 _prefetch_rows = False
+_prefetch_shift = False
+
+
+def set_prefetch_shift(enabled=False):
+    """F46: pipeline shift source loads without changing lane accumulation order."""
+    global _prefetch_shift
+    _prefetch_shift = bool(enabled)
 
 
 def set_prefetch_rows(enabled=False):
@@ -134,6 +141,30 @@ extern "C" __global__ void rows_backward_prefetch(const F* grad, const long long
     out[i] = write(0.0f + gradient);
 }}
 """
+        # Clone the accepted kernel's arithmetic; only the pass-load schedule differs.
+        shift_code = code[code.index('extern "C" __global__ void shift_backward'):code.index('extern "C" __global__ void rows_backward')]
+        shift_code = shift_code.replace("void shift_backward(", "void shift_backward_prefetch(")
+        shift_code = shift_code.replace(
+            """    for (long long p = 0; p < passes; p++)
+        for (int l = 0; l < 32; l++)
+            lane[l] += read(grad[order[start + p * 32 + l] * C + c]);""",
+            """    long long source[32];
+    float value[32];
+    if (passes > 0) {
+        #pragma unroll
+        for (int l = 0; l < 32; l++) source[l] = order[start + l];
+    }
+    for (long long p = 0; p < passes; p++) {
+        #pragma unroll
+        for (int l = 0; l < 32; l++) value[l] = read(grad[source[l] * C + c]);
+        if (p + 1 < passes) {
+            #pragma unroll
+            for (int l = 0; l < 32; l++) source[l] = order[start + (p + 1) * 32 + l];
+        }
+        #pragma unroll
+        for (int l = 0; l < 32; l++) lane[l] += value[l];
+    }""")
+        code += shift_code
         nvrtc.module(torch.device("cuda", torch.cuda.current_device()), dtype)
         options = ["--std=c++17"]
         if dtype == torch.bfloat16:
@@ -148,7 +179,7 @@ extern "C" __global__ void rows_backward_prefetch(const F* grad, const long long
             cccl = next(p for p in candidates if (p / "nv/target").exists())
             options += [f"--include-path={runtime}", f"--include-path={cccl}"]
         raw = nvrtc._cupy.RawModule(code=code, options=tuple(options))
-        _KERNELS[dtype] = {name: raw.get_function(name) for name in ("shift_backward", "rows_backward", "rows_backward_prefetch")}
+        _KERNELS[dtype] = {name: raw.get_function(name) for name in ("shift_backward", "shift_backward_prefetch", "rows_backward", "rows_backward_prefetch")}
     return _KERNELS[dtype]
 
 
@@ -160,7 +191,8 @@ def shift_backward(grad, select):
     order, starts = shift_order(select)
     out = torch.empty_like(grad)
     args = tuple(np.uint64(v.data_ptr()) for v in (grad, order, starts, out)) + (np.int64(B * T), np.int32(C))
-    nvrtc.raw_launch(kernel(grad.dtype)["shift_backward"], grad.device, ((B * T * C + 255) // 256,), (256,), args)
+    name = "shift_backward_prefetch" if _prefetch_shift and grad.dtype == torch.bfloat16 else "shift_backward"
+    nvrtc.raw_launch(kernel(grad.dtype)[name], grad.device, ((B * T * C + 255) // 256,), (256,), args)
     return out
 
 
