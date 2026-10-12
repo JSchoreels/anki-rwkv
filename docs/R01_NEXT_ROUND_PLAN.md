@@ -65,3 +65,14 @@ Twin A/B timing on real batches (P3b) stays useful for attribution inside promot
 - **Attribution.** Use twin A/B timing (P3b) on real batches for components inside a promoted stack. Do not spend iterations on single-component runs.
 - **Read each run before the decision.** Run `scripts/r01_paired_timing.py` against the instrumented reference and record the state flags in the iteration summary.
 - **Out of this round:** F47 (feeding ceiling about 1%), F53 alone, F56, F22 fastmode, F61, F64, Alex, and broader validation.
+
+## For the agent running the round
+
+- **Start.** Quote the human's request: `scripts/r01_iterate.py --iteration 0048 --previous 0045 --round-authorization "<quoted request>" --round-iterations 10 --loss-ceiling 0.001 …`. Use `--previous 0045`: iterations 0046 and 0047 are uncounted diagnostics without `comparison.json`, as 0040 was. The accepted reference stays 0042 (E33-F48-F50), and the round-start reference for the loss ceiling is frozen to it.
+- **Per iteration.** Plan, prepare, select, smoke and one candidate full run (parity, losses, profile) as in AGENT.md. Then step 5b: `scripts/r01_replicates.py run --output artifacts/retraining/gpu-retrain-r01/iteration-NNNN --sequence <control>,<candidate>,<control>,<candidate> --reason "<why>"` as one ordinary background job. Then the report. If the report says to run blocks to the next look, run two more blocks and rerun it.
+- **Known pitfalls.**
+  - The isolated runtime copies the iteration folder when it is first built, so never write live logs or records inside the folder while runs are pending; `r01_replicates.py` and `r01_iterate.py` already write beside it.
+  - A detached runner process disappeared during calibration, so use ordinary background jobs.
+  - Replicates wait for system CPU at most 10% and refuse after `--max-wait-minutes`; a game (AOW4.exe) was the cause before.
+- **First use.** The report's replicate-block path (`report_gpu_r01_next.py` with `replicated_blocks`) is CPU-checked but untested on a real iteration. If it fails on 0048, repair it, rerun the report, and record the repair; a repaired report does not consume an iteration.
+- **Candidate preparation.** P3 (recurrence microbenchmarks), P4 (F49 memory) and P5 (F62 bitwise feasibility) belong to their slots' candidate preparation. P2 (CPU gate inside `r01_iterate.py`) matters less now, because only gated replicate blocks decide speed.

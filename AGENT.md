@@ -1,4 +1,4 @@
-**R01 speed-loop agents, start here:** read [Token efficiency](#token-efficiency) and [R01 iteration quick reference](#r01-iteration-quick-reference) below, then [docs/R01_HOST_PATH.md](docs/R01_HOST_PATH.md) and the latest round summary linked from `artifacts/retraining/gpu-retrain-r01/README.md`. The rest of this file still applies; skim it once and reread only the section you are about to act on. Data quality and broader validation do not arise in R01 speed iterations unless the human asks for them.
+**R01 speed-loop agents, start here:** read [Token efficiency](#token-efficiency) and [R01 iteration quick reference](#r01-iteration-quick-reference) below, then [docs/R01_HOST_PATH.md](docs/R01_HOST_PATH.md), the current round order, decisions and promotion gate in [docs/R01_NEXT_ROUND_PLAN.md](docs/R01_NEXT_ROUND_PLAN.md), and the latest round summary linked from `artifacts/retraining/gpu-retrain-r01/README.md`. The rest of this file still applies; skim it once and reread only the section you are about to act on. Data quality and broader validation do not arise in R01 speed iterations unless the human asks for them.
 
 # Optimization records
 
