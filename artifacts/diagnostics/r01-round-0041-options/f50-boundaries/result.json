@@ -1,0 +1,1436 @@
+{
+  "status": "passed",
+  "provenance": {
+    "captured_utc": "2026-10-12T19:21:49.925977+00:00",
+    "git_commit": "722f0427032a542ae0f6b4dd553c791fa1cd2f93",
+    "git_dirty": true,
+    "git_status_porcelain_z": " M docs/GPU_OPTIMIZATIONS.md\u0000 M docs/GPU_OPTIMIZATIONS_LOG.md\u0000 M docs/R01_HOST_PATH.md\u0000 M expertium/model/srs_model.py\u0000 M rwkv/model/exact_index.py\u0000 M scripts/check_r01_exact_options.py\u0000 M scripts/gpu_r01_prefetch.py\u0000 M scripts/gpu_r01_training.py\u0000 M scripts/report_gpu_r01_next.py\u0000 M scripts/run_gpu_r01.py\u0000?? scripts/check_r01_padding_sources.py\u0000",
+    "source_tree_sha256": "ffb815c305314edd40550b6b33d13099d1dec260e1def4add77f6216b63bb18c",
+    "source_archive": "artifacts/sources/experiment-sources/ffb815c305314edd40550b6b33d13099d1dec260e1def4add77f6216b63bb18c/source.zip",
+    "source_paths": [
+      "rwkv",
+      "expertium",
+      "scripts",
+      "configs",
+      "pyproject.toml",
+      "uv.lock",
+      "justfile",
+      "upstream.json"
+    ]
+  },
+  "torch": "2.9.1+cu128",
+  "summary": {
+    "cases": 176,
+    "all_bitwise_equal": true
+  },
+  "cases": [
+    {
+      "dtype": "torch.bfloat16",
+      "count": 0,
+      "layout": "prefix",
+      "prefetch": false,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "count": 0,
+      "layout": "prefix",
+      "prefetch": true,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "count": 0,
+      "layout": "suffix",
+      "prefetch": false,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "count": 0,
+      "layout": "suffix",
+      "prefetch": true,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "count": 0,
+      "layout": "interleaved",
+      "prefetch": false,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "count": 0,
+      "layout": "interleaved",
+      "prefetch": true,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "count": 0,
+      "layout": "all",
+      "prefetch": false,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "count": 0,
+      "layout": "all",
+      "prefetch": true,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "count": 1,
+      "layout": "prefix",
+      "prefetch": false,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "count": 1,
+      "layout": "prefix",
+      "prefetch": true,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "count": 1,
+      "layout": "suffix",
+      "prefetch": false,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "count": 1,
+      "layout": "suffix",
+      "prefetch": true,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "count": 1,
+      "layout": "interleaved",
+      "prefetch": false,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "count": 1,
+      "layout": "interleaved",
+      "prefetch": true,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "count": 1,
+      "layout": "all",
+      "prefetch": false,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "count": 1,
+      "layout": "all",
+      "prefetch": true,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "count": 31,
+      "layout": "prefix",
+      "prefetch": false,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "count": 31,
+      "layout": "prefix",
+      "prefetch": true,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "count": 31,
+      "layout": "suffix",
+      "prefetch": false,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "count": 31,
+      "layout": "suffix",
+      "prefetch": true,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "count": 31,
+      "layout": "interleaved",
+      "prefetch": false,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "count": 31,
+      "layout": "interleaved",
+      "prefetch": true,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "count": 31,
+      "layout": "all",
+      "prefetch": false,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "count": 31,
+      "layout": "all",
+      "prefetch": true,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "count": 32,
+      "layout": "prefix",
+      "prefetch": false,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "count": 32,
+      "layout": "prefix",
+      "prefetch": true,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "count": 32,
+      "layout": "suffix",
+      "prefetch": false,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "count": 32,
+      "layout": "suffix",
+      "prefetch": true,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "count": 32,
+      "layout": "interleaved",
+      "prefetch": false,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "count": 32,
+      "layout": "interleaved",
+      "prefetch": true,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "count": 32,
+      "layout": "all",
+      "prefetch": false,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "count": 32,
+      "layout": "all",
+      "prefetch": true,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "count": 63,
+      "layout": "prefix",
+      "prefetch": false,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "count": 63,
+      "layout": "prefix",
+      "prefetch": true,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "count": 63,
+      "layout": "suffix",
+      "prefetch": false,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "count": 63,
+      "layout": "suffix",
+      "prefetch": true,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "count": 63,
+      "layout": "interleaved",
+      "prefetch": false,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "count": 63,
+      "layout": "interleaved",
+      "prefetch": true,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "count": 63,
+      "layout": "all",
+      "prefetch": false,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "count": 63,
+      "layout": "all",
+      "prefetch": true,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "count": 64,
+      "layout": "prefix",
+      "prefetch": false,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "count": 64,
+      "layout": "prefix",
+      "prefetch": true,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "count": 64,
+      "layout": "suffix",
+      "prefetch": false,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "count": 64,
+      "layout": "suffix",
+      "prefetch": true,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "count": 64,
+      "layout": "interleaved",
+      "prefetch": false,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "count": 64,
+      "layout": "interleaved",
+      "prefetch": true,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "count": 64,
+      "layout": "all",
+      "prefetch": false,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "count": 64,
+      "layout": "all",
+      "prefetch": true,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "count": 65,
+      "layout": "prefix",
+      "prefetch": false,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "count": 65,
+      "layout": "prefix",
+      "prefetch": true,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "count": 65,
+      "layout": "suffix",
+      "prefetch": false,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "count": 65,
+      "layout": "suffix",
+      "prefetch": true,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "count": 65,
+      "layout": "interleaved",
+      "prefetch": false,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "count": 65,
+      "layout": "interleaved",
+      "prefetch": true,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "count": 65,
+      "layout": "all",
+      "prefetch": false,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "count": 65,
+      "layout": "all",
+      "prefetch": true,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "count": 127,
+      "layout": "prefix",
+      "prefetch": false,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "count": 127,
+      "layout": "prefix",
+      "prefetch": true,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "count": 127,
+      "layout": "suffix",
+      "prefetch": false,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "count": 127,
+      "layout": "suffix",
+      "prefetch": true,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "count": 127,
+      "layout": "interleaved",
+      "prefetch": false,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "count": 127,
+      "layout": "interleaved",
+      "prefetch": true,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "count": 127,
+      "layout": "all",
+      "prefetch": false,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "count": 127,
+      "layout": "all",
+      "prefetch": true,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "count": 128,
+      "layout": "prefix",
+      "prefetch": false,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "count": 128,
+      "layout": "prefix",
+      "prefetch": true,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "count": 128,
+      "layout": "suffix",
+      "prefetch": false,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "count": 128,
+      "layout": "suffix",
+      "prefetch": true,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "count": 128,
+      "layout": "interleaved",
+      "prefetch": false,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "count": 128,
+      "layout": "interleaved",
+      "prefetch": true,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "count": 128,
+      "layout": "all",
+      "prefetch": false,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "count": 128,
+      "layout": "all",
+      "prefetch": true,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "count": 129,
+      "layout": "prefix",
+      "prefetch": false,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "count": 129,
+      "layout": "prefix",
+      "prefetch": true,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "count": 129,
+      "layout": "suffix",
+      "prefetch": false,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "count": 129,
+      "layout": "suffix",
+      "prefetch": true,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "count": 129,
+      "layout": "interleaved",
+      "prefetch": false,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "count": 129,
+      "layout": "interleaved",
+      "prefetch": true,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "count": 129,
+      "layout": "all",
+      "prefetch": false,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "count": 129,
+      "layout": "all",
+      "prefetch": true,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "count": 513,
+      "layout": "prefix",
+      "prefetch": false,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "count": 513,
+      "layout": "prefix",
+      "prefetch": true,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "count": 513,
+      "layout": "suffix",
+      "prefetch": false,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "count": 513,
+      "layout": "suffix",
+      "prefetch": true,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "count": 513,
+      "layout": "interleaved",
+      "prefetch": false,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "count": 513,
+      "layout": "interleaved",
+      "prefetch": true,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "count": 513,
+      "layout": "all",
+      "prefetch": false,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "count": 513,
+      "layout": "all",
+      "prefetch": true,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "count": 0,
+      "layout": "prefix",
+      "prefetch": false,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "count": 0,
+      "layout": "prefix",
+      "prefetch": true,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "count": 0,
+      "layout": "suffix",
+      "prefetch": false,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "count": 0,
+      "layout": "suffix",
+      "prefetch": true,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "count": 0,
+      "layout": "interleaved",
+      "prefetch": false,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "count": 0,
+      "layout": "interleaved",
+      "prefetch": true,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "count": 0,
+      "layout": "all",
+      "prefetch": false,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "count": 0,
+      "layout": "all",
+      "prefetch": true,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "count": 1,
+      "layout": "prefix",
+      "prefetch": false,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "count": 1,
+      "layout": "prefix",
+      "prefetch": true,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "count": 1,
+      "layout": "suffix",
+      "prefetch": false,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "count": 1,
+      "layout": "suffix",
+      "prefetch": true,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "count": 1,
+      "layout": "interleaved",
+      "prefetch": false,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "count": 1,
+      "layout": "interleaved",
+      "prefetch": true,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "count": 1,
+      "layout": "all",
+      "prefetch": false,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "count": 1,
+      "layout": "all",
+      "prefetch": true,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "count": 31,
+      "layout": "prefix",
+      "prefetch": false,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "count": 31,
+      "layout": "prefix",
+      "prefetch": true,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "count": 31,
+      "layout": "suffix",
+      "prefetch": false,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "count": 31,
+      "layout": "suffix",
+      "prefetch": true,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "count": 31,
+      "layout": "interleaved",
+      "prefetch": false,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "count": 31,
+      "layout": "interleaved",
+      "prefetch": true,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "count": 31,
+      "layout": "all",
+      "prefetch": false,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "count": 31,
+      "layout": "all",
+      "prefetch": true,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "count": 32,
+      "layout": "prefix",
+      "prefetch": false,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "count": 32,
+      "layout": "prefix",
+      "prefetch": true,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "count": 32,
+      "layout": "suffix",
+      "prefetch": false,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "count": 32,
+      "layout": "suffix",
+      "prefetch": true,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "count": 32,
+      "layout": "interleaved",
+      "prefetch": false,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "count": 32,
+      "layout": "interleaved",
+      "prefetch": true,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "count": 32,
+      "layout": "all",
+      "prefetch": false,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "count": 32,
+      "layout": "all",
+      "prefetch": true,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "count": 63,
+      "layout": "prefix",
+      "prefetch": false,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "count": 63,
+      "layout": "prefix",
+      "prefetch": true,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "count": 63,
+      "layout": "suffix",
+      "prefetch": false,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "count": 63,
+      "layout": "suffix",
+      "prefetch": true,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "count": 63,
+      "layout": "interleaved",
+      "prefetch": false,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "count": 63,
+      "layout": "interleaved",
+      "prefetch": true,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "count": 63,
+      "layout": "all",
+      "prefetch": false,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "count": 63,
+      "layout": "all",
+      "prefetch": true,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "count": 64,
+      "layout": "prefix",
+      "prefetch": false,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "count": 64,
+      "layout": "prefix",
+      "prefetch": true,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "count": 64,
+      "layout": "suffix",
+      "prefetch": false,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "count": 64,
+      "layout": "suffix",
+      "prefetch": true,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "count": 64,
+      "layout": "interleaved",
+      "prefetch": false,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "count": 64,
+      "layout": "interleaved",
+      "prefetch": true,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "count": 64,
+      "layout": "all",
+      "prefetch": false,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "count": 64,
+      "layout": "all",
+      "prefetch": true,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "count": 65,
+      "layout": "prefix",
+      "prefetch": false,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "count": 65,
+      "layout": "prefix",
+      "prefetch": true,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "count": 65,
+      "layout": "suffix",
+      "prefetch": false,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "count": 65,
+      "layout": "suffix",
+      "prefetch": true,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "count": 65,
+      "layout": "interleaved",
+      "prefetch": false,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "count": 65,
+      "layout": "interleaved",
+      "prefetch": true,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "count": 65,
+      "layout": "all",
+      "prefetch": false,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "count": 65,
+      "layout": "all",
+      "prefetch": true,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "count": 127,
+      "layout": "prefix",
+      "prefetch": false,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "count": 127,
+      "layout": "prefix",
+      "prefetch": true,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "count": 127,
+      "layout": "suffix",
+      "prefetch": false,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "count": 127,
+      "layout": "suffix",
+      "prefetch": true,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "count": 127,
+      "layout": "interleaved",
+      "prefetch": false,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "count": 127,
+      "layout": "interleaved",
+      "prefetch": true,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "count": 127,
+      "layout": "all",
+      "prefetch": false,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "count": 127,
+      "layout": "all",
+      "prefetch": true,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "count": 128,
+      "layout": "prefix",
+      "prefetch": false,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "count": 128,
+      "layout": "prefix",
+      "prefetch": true,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "count": 128,
+      "layout": "suffix",
+      "prefetch": false,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "count": 128,
+      "layout": "suffix",
+      "prefetch": true,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "count": 128,
+      "layout": "interleaved",
+      "prefetch": false,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "count": 128,
+      "layout": "interleaved",
+      "prefetch": true,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "count": 128,
+      "layout": "all",
+      "prefetch": false,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "count": 128,
+      "layout": "all",
+      "prefetch": true,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "count": 129,
+      "layout": "prefix",
+      "prefetch": false,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "count": 129,
+      "layout": "prefix",
+      "prefetch": true,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "count": 129,
+      "layout": "suffix",
+      "prefetch": false,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "count": 129,
+      "layout": "suffix",
+      "prefetch": true,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "count": 129,
+      "layout": "interleaved",
+      "prefetch": false,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "count": 129,
+      "layout": "interleaved",
+      "prefetch": true,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "count": 129,
+      "layout": "all",
+      "prefetch": false,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "count": 129,
+      "layout": "all",
+      "prefetch": true,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "count": 513,
+      "layout": "prefix",
+      "prefetch": false,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "count": 513,
+      "layout": "prefix",
+      "prefetch": true,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "count": 513,
+      "layout": "suffix",
+      "prefetch": false,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "count": 513,
+      "layout": "suffix",
+      "prefetch": true,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "count": 513,
+      "layout": "interleaved",
+      "prefetch": false,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "count": 513,
+      "layout": "interleaved",
+      "prefetch": true,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "count": 513,
+      "layout": "all",
+      "prefetch": false,
+      "backward_equal": true,
+      "forward_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "count": 513,
+      "layout": "all",
+      "prefetch": true,
+      "backward_equal": true,
+      "forward_equal": true
+    }
+  ]
+}

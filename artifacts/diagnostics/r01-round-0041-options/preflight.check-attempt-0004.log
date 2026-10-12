@@ -1,0 +1,42 @@
+[prepare] 1/5 real batches
+[prepare] 2/5 real batches
+[prepare] 3/5 real batches
+[prepare] 4/5 real batches
+[prepare] 5/5 real batches
+{"status": "failed", "summary": null, "not_exercised_b": ["async_transfer", "batch_chunks", "batched_id_encodings", "bulk_transfer", "columnar_samples", "deferred_reads"], "error": "RuntimeError: \nBecause we emit iteration over modulelists or tuples as unrolled loops, we do not support break or continue inside the body of these loops:\n  File \"C:\\Users\\jonat\\workspace\\anki-rwkv\\expertium\\model\\srs_model.py\", line 282\n            if self.concurrent_splits and x.is_cuda:\n                x = self.forward_split_streams(x, i, module_splits, sub_lens, time_shift_selects, skips)\n                continue\n                ~~~~~~~~ <--- HERE\n            y = []\n            for split_gather, sub_len, time_shift_select, skip in zip(\n'SrsRWKV.forward_batch' is being compiled since it was called from 'SrsRWKV._get_loss'\n  File \"C:\\Users\\jonat\\workspace\\anki-rwkv\\expertium\\model\\srs_model.py\", line 342\n            batch_time_shift_selects,\n            batch_skips,\n            batch_num_data,\n            ~~~~~~~~~~~~~~ <--- HERE\n        )\n        if not self.sync_free_loss and torch.isnan(out_ahead_logits).any():\n"}
+Traceback (most recent call last):
+  File "C:\Users\jonat\workspace\anki-rwkv\scripts\check_r01_exact_options.py", line 186, in <module>
+    main()
+  File "C:\Users\jonat\workspace\anki-rwkv\scripts\check_r01_exact_options.py", line 160, in main
+    checkpoint = fresh_checkpoint("expertium", 2025)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\jonat\workspace\anki-rwkv\scripts\benchmark_gpu_trial.py", line 42, in fresh_checkpoint
+    master = model_class(architecture).float()
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\jonat\workspace\anki-rwkv\.venv\Lib\site-packages\torch\jit\_script.py", line 322, in init_then_script
+    torch.jit._recursive.create_script_module(
+  File "C:\Users\jonat\workspace\anki-rwkv\.venv\Lib\site-packages\torch\jit\_recursive.py", line 557, in create_script_module
+    return create_script_module_impl(nn_module, concrete_type, stubs_fn)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\jonat\workspace\anki-rwkv\.venv\Lib\site-packages\torch\jit\_recursive.py", line 630, in create_script_module_impl
+    create_methods_and_properties_from_stubs(
+  File "C:\Users\jonat\workspace\anki-rwkv\.venv\Lib\site-packages\torch\jit\_recursive.py", line 466, in create_methods_and_properties_from_stubs
+    concrete_type._create_methods_and_properties(
+RuntimeError: 
+Because we emit iteration over modulelists or tuples as unrolled loops, we do not support break or continue inside the body of these loops:
+  File "C:\Users\jonat\workspace\anki-rwkv\expertium\model\srs_model.py", line 282
+            if self.concurrent_splits and x.is_cuda:
+                x = self.forward_split_streams(x, i, module_splits, sub_lens, time_shift_selects, skips)
+                continue
+                ~~~~~~~~ <--- HERE
+            y = []
+            for split_gather, sub_len, time_shift_select, skip in zip(
+'SrsRWKV.forward_batch' is being compiled since it was called from 'SrsRWKV._get_loss'
+  File "C:\Users\jonat\workspace\anki-rwkv\expertium\model\srs_model.py", line 342
+            batch_time_shift_selects,
+            batch_skips,
+            batch_num_data,
+            ~~~~~~~~~~~~~~ <--- HERE
+        )
+        if not self.sync_free_loss and torch.isnan(out_ahead_logits).any():
+

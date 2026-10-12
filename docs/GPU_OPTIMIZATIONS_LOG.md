@@ -552,3 +552,73 @@ Implementation commit after experiments: `a8da8767391a005d21c344cd3898905f94de61
 Evidence/checkpoint/helper records commit after the experiment: `a86d1c3eaac305eb81fc301b72baf04ffc6a9e58`. No training implementation changed; this records revision is separate from the historical tested process revision above.
 
 <!-- r01-rp01-desktop-repeat:end -->
+
+<!-- r01-0041:start -->
+## R01 iteration 0041
+
+[Iteration record](../artifacts/retraining/gpu-retrain-r01/iteration-0041/summary.md)
+
+| Training start (UTC) | Trial commit | Model | Improvement IDs | What was tried | Training users reached | Training reviews | Training seconds | Reviews/s | Speed Δ vs previous | Speed Δ vs baseline | Instant User | Instant User Δ vs previous | Instant User Δ vs baseline | Instant Weighted | Instant Weighted Δ vs previous | Instant Weighted Δ vs baseline | Curve User | Curve User Δ vs previous | Curve User Δ vs baseline | Curve Weighted | Curve Weighted Δ vs previous | Curve Weighted Δ vs baseline | Raw result | Notes |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 2026-10-12T19:18:41.265838+00:00 | `b65bb85aa82869be3b8b72e892c3f5bcf0ce6dcb` | Expertium (light) | E33, F48 | Disable only deterministic uninitialized-memory fill, keeping deterministic algorithms and the complete E33 training exposure and schedule. | 2 | 1,024 | 0.826 | 1,239 | — | — | 0.433909490 | — | — | 0.421975411 | — | — | 0.423755109 | — | — | 0.416540190 | — | — | [result](../artifacts/retraining/gpu-retrain-r01/iteration-0041/functional-smoke-v1/expertium/E33-F48/result.json) | Infrastructure check; excluded from comparisons. Declared schedule change: 512-chunk batches, 2 updates. |
+| 2026-10-12T19:19:10.525346+00:00 | `b65bb85aa82869be3b8b72e892c3f5bcf0ce6dcb` | Expertium (light) | E33, F48 | Disable only deterministic uninitialized-memory fill, keeping deterministic algorithms and the complete E33 training exposure and schedule. | 80 | 7,654,975 | 58.617 | 130,593 | -23.50% | +335.23% | 0.382592464 | +0.00% | -0.99% | 0.398428596 | +0.00% | -0.76% | 0.370387972 | +0.00% | -4.48% | 0.387472684 | +0.00% | -3.25% | [result](../artifacts/retraining/gpu-retrain-r01/iteration-0041/expertium/E33-F48/result.json) | Declared schedule change: 512-chunk batches, 167 updates. |
+
+Implementation commit after experiments: `66e0bf6e7c70b4580b9078fc8fe9747744ba400b`. Tested revision remains `b65bb85aa82869be3b8b72e892c3f5bcf0ce6dcb` with per-process source snapshots in the linked raw results and iteration record; [commit record](../artifacts/retraining/gpu-retrain-r01/iteration-0041/implementation-commit.json).
+
+<!-- r01-0041:end -->
+
+<!-- r01-0042:start -->
+## R01 iteration 0042
+
+[Iteration record](../artifacts/retraining/gpu-retrain-r01/iteration-0042/summary.md)
+
+| Training start (UTC) | Trial commit | Model | Improvement IDs | What was tried | Training users reached | Training reviews | Training seconds | Reviews/s | Speed Δ vs previous | Speed Δ vs baseline | Instant User | Instant User Δ vs previous | Instant User Δ vs baseline | Instant Weighted | Instant Weighted Δ vs previous | Instant Weighted Δ vs baseline | Curve User | Curve User Δ vs previous | Curve User Δ vs baseline | Curve Weighted | Curve Weighted Δ vs previous | Curve Weighted Δ vs baseline | Raw result | Notes |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 2026-10-12T19:23:00.853623+00:00 | `32ad65319fbabc00871ab6a797177f227d5e5fa6` | Expertium (light) | E33, F48, F50 | Combine F48 with an exact row-selection backward that excludes zero hierarchy padding sources while preserving sequential real-source order and the unchanged clamped forward. | 2 | 1,024 | 0.710 | 1,442 | — | — | 0.433909490 | — | — | 0.421975411 | — | — | 0.423755109 | — | — | 0.416540190 | — | — | [result](../artifacts/retraining/gpu-retrain-r01/iteration-0042/functional-smoke-v1/expertium/E33-F48-F50/result.json) | Infrastructure check; excluded from comparisons. Declared schedule change: 512-chunk batches, 2 updates. |
+| 2026-10-12T19:23:29.228461+00:00 | `32ad65319fbabc00871ab6a797177f227d5e5fa6` | Expertium (light) | E33, F48, F50 | Combine F48 with an exact row-selection backward that excludes zero hierarchy padding sources while preserving sequential real-source order and the unchanged clamped forward. | 80 | 7,654,975 | 38.759 | 197,499 | +15.69% | +558.22% | 0.382592464 | +0.00% | -0.99% | 0.398428596 | +0.00% | -0.76% | 0.370387972 | +0.00% | -4.48% | 0.387472684 | +0.00% | -3.25% | [result](../artifacts/retraining/gpu-retrain-r01/iteration-0042/expertium/E33-F48-F50/result.json) | Declared schedule change: 512-chunk batches, 167 updates. |
+
+Implementation commit after experiments: `66e0bf6e7c70b4580b9078fc8fe9747744ba400b`. Tested revision remains `32ad65319fbabc00871ab6a797177f227d5e5fa6` with per-process source snapshots in the linked raw results and iteration record; [commit record](../artifacts/retraining/gpu-retrain-r01/iteration-0042/implementation-commit.json).
+
+<!-- r01-0042:end -->
+
+<!-- r01-0043:start -->
+## R01 iteration 0043
+
+[Iteration record](../artifacts/retraining/gpu-retrain-r01/iteration-0043/summary.md)
+
+| Training start (UTC) | Trial commit | Model | Improvement IDs | What was tried | Training users reached | Training reviews | Training seconds | Reviews/s | Speed Δ vs previous | Speed Δ vs baseline | Instant User | Instant User Δ vs previous | Instant User Δ vs baseline | Instant Weighted | Instant Weighted Δ vs previous | Instant Weighted Δ vs baseline | Curve User | Curve User Δ vs previous | Curve User Δ vs baseline | Curve Weighted | Curve Weighted Δ vs previous | Curve Weighted Δ vs baseline | Raw result | Notes |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 2026-10-12T19:27:27.602255+00:00 | `e3f9034c53026cce75dd29424c036cc5ee1d6924` | Expertium (light) | E33, F48, F50, F49 | Run independent hierarchy splits on CUDA streams with unchanged host issue order, parent waits, recorded input/output lifetimes and a backward join before gradient transfer. | 2 | 1,024 | 0.860 | 1,191 | — | — | 0.433909490 | — | — | 0.421975411 | — | — | 0.423755109 | — | — | 0.416540190 | — | — | [result](../artifacts/retraining/gpu-retrain-r01/iteration-0043/functional-smoke-v1/expertium/E33-F48-F50-F49/result.json) | Infrastructure check; excluded from comparisons. Declared schedule change: 512-chunk batches, 2 updates. |
+| 2026-10-12T19:27:56.064634+00:00 | `e3f9034c53026cce75dd29424c036cc5ee1d6924` | Expertium (light) | E33, F48, F50, F49 | Run independent hierarchy splits on CUDA streams with unchanged host issue order, parent waits, recorded input/output lifetimes and a backward join before gradient transfer. | 80 | 7,654,975 | 203.178 | 37,676 | -80.92% | +25.57% | 0.382592464 | +0.00% | -0.99% | 0.398428596 | +0.00% | -0.76% | 0.370387972 | +0.00% | -4.48% | 0.387472684 | +0.00% | -3.25% | [result](../artifacts/retraining/gpu-retrain-r01/iteration-0043/expertium/E33-F48-F50-F49/result.json) | Declared schedule change: 512-chunk batches, 167 updates. |
+
+Implementation commit after experiments: `66e0bf6e7c70b4580b9078fc8fe9747744ba400b`. Tested revision remains `e3f9034c53026cce75dd29424c036cc5ee1d6924` with per-process source snapshots in the linked raw results and iteration record; [commit record](../artifacts/retraining/gpu-retrain-r01/iteration-0043/implementation-commit.json).
+
+<!-- r01-0043:end -->
+
+<!-- r01-0044:start -->
+## R01 iteration 0044
+
+[Iteration record](../artifacts/retraining/gpu-retrain-r01/iteration-0044/summary.md)
+
+| Training start (UTC) | Trial commit | Model | Improvement IDs | What was tried | Training users reached | Training reviews | Training seconds | Reviews/s | Speed Δ vs previous | Speed Δ vs baseline | Instant User | Instant User Δ vs previous | Instant User Δ vs baseline | Instant Weighted | Instant Weighted Δ vs previous | Instant Weighted Δ vs baseline | Curve User | Curve User Δ vs previous | Curve User Δ vs baseline | Curve Weighted | Curve Weighted Δ vs previous | Curve Weighted Δ vs baseline | Raw result | Notes |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 2026-10-12T19:33:53.148059+00:00 | `2c058c7fb407a8eae7b1b7908f46d7c019dcfd28` | Expertium (light) | E33, F48, F50, F53 | Build stable shift and row-scatter orders in preparation workers, ship immutable int64 metadata in the existing packed/bulk transfer, and install it at update entry; keep all samples and RNG unchanged. | 2 | 1,024 | 0.859 | 1,192 | — | — | 0.433909490 | — | — | 0.421975411 | — | — | 0.423755109 | — | — | 0.416540190 | — | — | [result](../artifacts/retraining/gpu-retrain-r01/iteration-0044/functional-smoke-v1/expertium/E33-F48-F50-F53/result.json) | Infrastructure check; excluded from comparisons. Declared schedule change: 512-chunk batches, 2 updates. |
+| 2026-10-12T19:34:21.743409+00:00 | `2c058c7fb407a8eae7b1b7908f46d7c019dcfd28` | Expertium (light) | E33, F48, F50, F53 | Build stable shift and row-scatter orders in preparation workers, ship immutable int64 metadata in the existing packed/bulk transfer, and install it at update entry; keep all samples and RNG unchanged. | 80 | 7,654,975 | 40.705 | 188,060 | -4.78% | +526.76% | 0.382592464 | +0.00% | -0.99% | 0.398428596 | +0.00% | -0.76% | 0.370387972 | +0.00% | -4.48% | 0.387472684 | +0.00% | -3.25% | [result](../artifacts/retraining/gpu-retrain-r01/iteration-0044/expertium/E33-F48-F50-F53/result.json) | Declared schedule change: 512-chunk batches, 167 updates. |
+
+Implementation commit after experiments: `66e0bf6e7c70b4580b9078fc8fe9747744ba400b`. Tested revision remains `2c058c7fb407a8eae7b1b7908f46d7c019dcfd28` with per-process source snapshots in the linked raw results and iteration record; [commit record](../artifacts/retraining/gpu-retrain-r01/iteration-0044/implementation-commit.json).
+
+<!-- r01-0044:end -->
+
+<!-- r01-0045:start -->
+## R01 iteration 0045
+
+[Iteration record](../artifacts/retraining/gpu-retrain-r01/iteration-0045/summary.md)
+
+| Training start (UTC) | Trial commit | Model | Improvement IDs | What was tried | Training users reached | Training reviews | Training seconds | Reviews/s | Speed Δ vs previous | Speed Δ vs baseline | Instant User | Instant User Δ vs previous | Instant User Δ vs baseline | Instant Weighted | Instant Weighted Δ vs previous | Instant Weighted Δ vs baseline | Curve User | Curve User Δ vs previous | Curve User Δ vs baseline | Curve Weighted | Curve Weighted Δ vs previous | Curve Weighted Δ vs baseline | Raw result | Notes |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 2026-10-12T19:37:50.209963+00:00 | `cfb4940bee8edb0bae4c7ecf6cbbcf959854fcb7` | Expertium (light) | E33, F48, F50, F54 | Eliminate the recurrence backward previous-state float buffer by retrieving the last unskipped state from the unchanged chunk buffer or checkpoint; keep all pinned float operations and checkpoint/update schedule. | 2 | 1,024 | 0.723 | 1,417 | — | — | 0.433909490 | — | — | 0.421975411 | — | — | 0.423755109 | — | — | 0.416540190 | — | — | [result](../artifacts/retraining/gpu-retrain-r01/iteration-0045/functional-smoke-v1/expertium/E33-F48-F50-F54/result.json) | Infrastructure check; excluded from comparisons. Declared schedule change: 512-chunk batches, 2 updates. |
+| 2026-10-12T19:38:18.531492+00:00 | `cfb4940bee8edb0bae4c7ecf6cbbcf959854fcb7` | Expertium (light) | E33, F48, F50, F54 | Eliminate the recurrence backward previous-state float buffer by retrieving the last unskipped state from the unchanged chunk buffer or checkpoint; keep all pinned float operations and checkpoint/update schedule. | 80 | 7,654,975 | 38.894 | 196,818 | -0.34% | +555.95% | 0.382592464 | +0.00% | -0.99% | 0.398428596 | +0.00% | -0.76% | 0.370387972 | +0.00% | -4.48% | 0.387472684 | +0.00% | -3.25% | [result](../artifacts/retraining/gpu-retrain-r01/iteration-0045/expertium/E33-F48-F50-F54/result.json) | Declared schedule change: 512-chunk batches, 167 updates. |
+
+Implementation commit after experiments: `66e0bf6e7c70b4580b9078fc8fe9747744ba400b`. Tested revision remains `cfb4940bee8edb0bae4c7ecf6cbbcf959854fcb7` with per-process source snapshots in the linked raw results and iteration record; [commit record](../artifacts/retraining/gpu-retrain-r01/iteration-0045/implementation-commit.json).
+
+<!-- r01-0045:end -->

@@ -1,0 +1,872 @@
+{
+ "options": {
+  "prefetch_users": true,
+  "preparation_workers": 6,
+  "gpu_packed_features": true,
+  "packed_ipc": true,
+  "async_transfer": true,
+  "batched_id_encodings": true,
+  "grouped_sync": true,
+  "main_threads": 1,
+  "bulk_transfer": true,
+  "parallel_evaluation": true,
+  "exact_shift": true,
+  "exact_index": true,
+  "batch_chunks": 512,
+  "gpu_memory_fraction": 0.95,
+  "fast_samples": true,
+  "prestart_pool": true,
+  "row_tiles_exact": 4,
+  "exact_group_norm": true,
+  "deferred_reads": true,
+  "shared_shift_orders": true,
+  "stream_launches": true,
+  "prefetch_rows": true,
+  "sync_free_loss": true,
+  "columnar_samples": true
+ },
+ "batches": [
+  {
+   "user": 2723,
+   "reviews": 512,
+   "eager_ms_per_update": 308.1105333355178,
+   "launch_totals": {
+    "cudaMemsetAsync": 551,
+    "cuLaunchKernel": 2106,
+    "cudaLaunchKernel": 11545,
+    "aten::fill_": 2969,
+    "aten::zero_": 6
+   },
+   "fill_memset_sources": [
+    [
+     "aten::fill_ <- aten::empty < aten::native_layer_norm_backward < NativeLayerNormBackward0 || aten::native_layer_norm_backward",
+     323
+    ],
+    [
+     "aten::fill_ <- aten::empty < aten::native_layer_norm < aten::layer_norm || aten::native_layer_norm",
+     273
+    ],
+    [
+     "aten::fill_ <- aten::empty_strided < aten::empty_like < aten::native_dropout || aten::empty_strided",
+     268
+    ],
+    [
+     "aten::fill_ <- aten::empty_strided < aten::empty_like < rwkv::rwkv7_wkv_backward_bfloat16 || aten::empty_strided",
+     264
+    ],
+    [
+     "aten::fill_ <- aten::empty < aten::native_group_norm_backward < ExactGroupNormBackward || aten::native_group_norm_backward",
+     226
+    ],
+    [
+     "aten::fill_ <- aten::empty < aten::empty_like < aten::native_dropout_backward || aten::empty_like",
+     134
+    ],
+    [
+     "aten::fill_ <- aten::empty < aten::native_group_norm < ExactGroupNorm || aten::native_group_norm",
+     132
+    ],
+    [
+     "cudaMemsetAsync <- aten::sort < ExactIndexSelectBackward < autograd::engine::evaluate_function: ExactIndexSelectBackward || aten::sort",
+     130
+    ],
+    [
+     "aten::fill_ <- aten::empty < ExactGroupNormBackward < autograd::engine::evaluate_function: ExactGroupNormBackward || ExactGroupNormBackward",
+     123
+    ],
+    [
+     "cudaMemsetAsync <- aten::addmm < aten::linear < forward || aten::addmm",
+     121
+    ],
+    [
+     "cudaMemsetAsync <- aten::sum < autograd::engine::evaluate_function: AddmmBackward0 || aten::sum",
+     115
+    ],
+    [
+     "aten::fill_ <- aten::empty_strided < aten::empty_like < LerpBackward1 || aten::empty_strided",
+     115
+    ],
+    [
+     "aten::fill_ <- LerpBackward1 < autograd::engine::evaluate_function: LerpBackward1 || LerpBackward1",
+     115
+    ],
+    [
+     "aten::fill_ <- aten::empty_strided < aten::_to_copy < aten::to || aten::empty_strided",
+     107
+    ],
+    [
+     "aten::fill_ <- aten::empty_strided < aten::empty_like < ExactShiftGatherBackward || aten::empty_strided",
+     88
+    ],
+    [
+     "aten::fill_ <- aten::empty < aten::scalar_tensor < ClampMinBackward0 || aten::scalar_tensor",
+     88
+    ],
+    [
+     "aten::fill_ <- aten::scalar_tensor < ClampMinBackward0 < autograd::engine::evaluate_function: ClampMinBackward0 || aten::scalar_tensor",
+     88
+    ],
+    [
+     "aten::fill_ <- aten::empty < aten::where < ClampMinBackward0 || aten::where",
+     88
+    ],
+    [
+     "aten::fill_ <- aten::empty < aten::resize_ < aten::where || aten::resize_",
+     88
+    ],
+    [
+     "aten::fill_ <- aten::resize_ < aten::where < ClampMinBackward0 || aten::resize_",
+     88
+    ],
+    [
+     "cudaMemsetAsync <- aten::sum < autograd::engine::evaluate_function: LerpBackward1 || aten::sum",
+     66
+    ],
+    [
+     "cudaMemsetAsync <- aten::sum < aten::native_layer_norm_backward < NativeLayerNormBackward0 || aten::sum",
+     46
+    ],
+    [
+     "aten::fill_ <- aten::empty_strided < aten::empty_like < rwkv::rwkv7_wkv_forward_bfloat16 || aten::empty_strided",
+     44
+    ],
+    [
+     "aten::fill_ <- aten::empty < rwkv::rwkv7_wkv_forward_bfloat16 < RWKV7_WKV || rwkv::rwkv7_wkv_forward_bfloat16",
+     44
+    ],
+    [
+     "cudaMemsetAsync <- aten::sum < autograd::engine::evaluate_function: MulBackward0 || aten::sum",
+     33
+    ]
+   ],
+   "device_kernel_ms": 237.00729300000157,
+   "wkv_kernels_ms": [
+    0.3075,
+    0.118,
+    0.1249,
+    0.0365,
+    0.0599,
+    0.0057,
+    0.0055,
+    0.0055,
+    0.0055,
+    0.2013,
+    0.2016,
+    0.2017,
+    0.2017,
+    1.0048,
+    0.9918,
+    1.138,
+    0.7912,
+    0.2697,
+    0.4477,
+    0.2699,
+    0.1237,
+    0.123,
+    0.1228,
+    0.1904,
+    0.1905,
+    0.1901,
+    0.0293,
+    0.0293,
+    0.0294,
+    0.0594,
+    0.0594,
+    0.0597,
+    0.0023,
+    0.0022,
+    0.0021,
+    0.0744,
+    0.0744,
+    0.0738,
+    1.7301,
+    1.9732,
+    1.1473,
+    1.0369,
+    0.7133,
+    1.0258,
+    5.4391,
+    5.6217,
+    5.5038,
+    8.8831,
+    7.9725,
+    7.8515,
+    0.6942,
+    0.5344,
+    0.6844,
+    0.0062,
+    0.0061,
+    0.006,
+    0.2225,
+    0.2233,
+    0.2223,
+    0.2267,
+    0.2211,
+    0.2206,
+    1.7627,
+    1.7332,
+    1.7491,
+    1.3969,
+    0.859,
+    0.8602,
+    1.688,
+    1.682,
+    1.6828,
+    6.8464,
+    8.8654,
+    7.5371,
+    6.4165,
+    2.1709,
+    2.0106,
+    1.4074,
+    1.4048,
+    0.0303,
+    0.0291,
+    0.0292,
+    0.0296,
+    0.2221,
+    0.4377,
+    0.8933,
+    0.8239,
+    1.9145
+   ],
+   "wkv_kernel_names": [
+    "_ZN10rwkv_exact14forward_kernelILi32ELi4",
+    "_ZN10rwkv_exact15backward_kernelILi32ELi"
+   ],
+   "row_select_calls": [
+    {
+     "rows": 131072,
+     "sources": 72354,
+     "padded_sources": 1274,
+     "padded_grad_nonzero": 0,
+     "padded_grad_nonfinite": 0,
+     "padded_grad_negzero": 0,
+     "ms_clamped": 0.348,
+     "ms_skip_padding": 0.3485,
+     "bitwise_equal": true
+    },
+    {
+     "rows": 131072,
+     "sources": 31056,
+     "padded_sources": 2085,
+     "padded_grad_nonzero": 0,
+     "padded_grad_nonfinite": 0,
+     "padded_grad_negzero": 0,
+     "ms_clamped": 0.3371,
+     "ms_skip_padding": 0.3061,
+     "bitwise_equal": true
+    },
+    {
+     "rows": 131072,
+     "sources": 33590,
+     "padded_sources": 12036,
+     "padded_grad_nonzero": 0,
+     "padded_grad_nonfinite": 0,
+     "padded_grad_negzero": 0,
+     "ms_clamped": 0.3452,
+     "ms_skip_padding": 0.2782,
+     "bitwise_equal": true
+    },
+    {
+     "rows": 131072,
+     "sources": 8268,
+     "padded_sources": 3883,
+     "padded_grad_nonzero": 0,
+     "padded_grad_nonfinite": 0,
+     "padded_grad_negzero": 0,
+     "ms_clamped": 0.2451,
+     "ms_skip_padding": 0.2444,
+     "bitwise_equal": true
+    },
+    {
+     "rows": 131072,
+     "sources": 492,
+     "padded_sources": 218,
+     "padded_grad_nonzero": 0,
+     "padded_grad_nonfinite": 0,
+     "padded_grad_negzero": 0,
+     "ms_clamped": 0.1614,
+     "ms_skip_padding": 0.2374,
+     "bitwise_equal": true
+    },
+    {
+     "rows": 145760,
+     "sources": 714,
+     "padded_sources": 290,
+     "padded_grad_nonzero": 0,
+     "padded_grad_nonfinite": 0,
+     "padded_grad_negzero": 0,
+     "ms_clamped": 0.1959,
+     "ms_skip_padding": 0.1607,
+     "bitwise_equal": true
+    },
+    {
+     "rows": 145760,
+     "sources": 47260,
+     "padded_sources": 22296,
+     "padded_grad_nonzero": 0,
+     "padded_grad_nonfinite": 0,
+     "padded_grad_negzero": 0,
+     "ms_clamped": 0.5226,
+     "ms_skip_padding": 0.2613,
+     "bitwise_equal": true
+    },
+    {
+     "rows": 145760,
+     "sources": 189952,
+     "padded_sources": 89076,
+     "padded_grad_nonzero": 0,
+     "padded_grad_nonfinite": 0,
+     "padded_grad_negzero": 0,
+     "ms_clamped": 1.4715,
+     "ms_skip_padding": 0.351,
+     "bitwise_equal": true
+    },
+    {
+     "rows": 237926,
+     "sources": 63366,
+     "padded_sources": 596,
+     "padded_grad_nonzero": 0,
+     "padded_grad_nonfinite": 0,
+     "padded_grad_negzero": 0,
+     "ms_clamped": 0.4296,
+     "ms_skip_padding": 0.4129,
+     "bitwise_equal": true
+    },
+    {
+     "rows": 237926,
+     "sources": 32312,
+     "padded_sources": 1002,
+     "padded_grad_nonzero": 0,
+     "padded_grad_nonfinite": 0,
+     "padded_grad_negzero": 0,
+     "ms_clamped": 0.423,
+     "ms_skip_padding": 0.3866,
+     "bitwise_equal": true
+    },
+    {
+     "rows": 237926,
+     "sources": 50880,
+     "padded_sources": 22074,
+     "padded_grad_nonzero": 0,
+     "padded_grad_nonfinite": 0,
+     "padded_grad_negzero": 0,
+     "ms_clamped": 0.6176,
+     "ms_skip_padding": 0.4196,
+     "bitwise_equal": true
+    },
+    {
+     "rows": 237926,
+     "sources": 5460,
+     "padded_sources": 2359,
+     "padded_grad_nonzero": 0,
+     "padded_grad_nonfinite": 0,
+     "padded_grad_negzero": 0,
+     "ms_clamped": 0.2777,
+     "ms_skip_padding": 0.4089,
+     "bitwise_equal": true
+    },
+    {
+     "rows": 237926,
+     "sources": 492,
+     "padded_sources": 215,
+     "padded_grad_nonzero": 0,
+     "padded_grad_nonfinite": 0,
+     "padded_grad_negzero": 0,
+     "ms_clamped": 0.2244,
+     "ms_skip_padding": 0.2203,
+     "bitwise_equal": true
+    },
+    {
+     "rows": 152510,
+     "sources": 16,
+     "padded_sources": 1,
+     "padded_grad_nonzero": 0,
+     "padded_grad_nonfinite": 0,
+     "padded_grad_negzero": 0,
+     "ms_clamped": 0.1466,
+     "ms_skip_padding": 0.1902,
+     "bitwise_equal": true
+    },
+    {
+     "rows": 152510,
+     "sources": 15660,
+     "padded_sources": 7291,
+     "padded_grad_nonzero": 0,
+     "padded_grad_nonfinite": 0,
+     "padded_grad_negzero": 0,
+     "ms_clamped": 0.2787,
+     "ms_skip_padding": 0.2943,
+     "bitwise_equal": true
+    },
+    {
+     "rows": 152510,
+     "sources": 222464,
+     "padded_sources": 104584,
+     "padded_grad_nonzero": 0,
+     "padded_grad_nonfinite": 0,
+     "padded_grad_negzero": 0,
+     "ms_clamped": 1.9995,
+     "ms_skip_padding": 0.3705,
+     "bitwise_equal": true
+    },
+    {
+     "rows": 238140,
+     "sources": 131072,
+     "padded_sources": 4808,
+     "padded_grad_nonzero": 0,
+     "padded_grad_nonfinite": 0,
+     "padded_grad_negzero": 0,
+     "ms_clamped": 0.4407,
+     "ms_skip_padding": 0.4989,
+     "bitwise_equal": true
+    }
+   ],
+   "row_select_ms_clamped": 8.465,
+   "row_select_ms_skip_padding": 5.39,
+   "split_shapes": [
+    [
+     [
+      2,
+      36177
+     ],
+     [
+      4,
+      7764
+     ],
+     [
+      10,
+      3359
+     ],
+     [
+      26,
+      318
+     ],
+     [
+      82,
+      6
+     ]
+    ],
+    [
+     [
+      6,
+      119
+     ],
+     [
+      68,
+      695
+     ],
+     [
+      256,
+      742
+     ]
+    ],
+    [
+     [
+      2,
+      31683
+     ],
+     [
+      4,
+      8078
+     ],
+     [
+      12,
+      4240
+     ],
+     [
+      28,
+      195
+     ],
+     [
+      82,
+      6
+     ]
+    ],
+    [
+     [
+      2,
+      8
+     ],
+     [
+      54,
+      290
+     ],
+     [
+      256,
+      869
+     ]
+    ],
+    [
+     [
+      256,
+      512
+     ]
+    ]
+   ]
+  },
+  {
+   "user": 609,
+   "reviews": 147,
+   "eager_ms_per_update": 124.41953333715598,
+   "launch_totals": {
+    "cudaMemsetAsync": 287,
+    "cuLaunchKernel": 1420,
+    "cudaLaunchKernel": 7852,
+    "aten::fill_": 2028,
+    "aten::zero_": 6
+   },
+   "fill_memset_sources": [
+    [
+     "aten::fill_ <- aten::empty < aten::native_layer_norm < aten::layer_norm || aten::native_layer_norm",
+     189
+    ],
+    [
+     "aten::fill_ <- aten::empty < aten::native_layer_norm_backward < NativeLayerNormBackward0 || aten::native_layer_norm_backward",
+     189
+    ],
+    [
+     "aten::fill_ <- aten::empty_strided < aten::empty_like < aten::native_dropout || aten::empty_strided",
+     184
+    ],
+    [
+     "aten::fill_ <- aten::empty_strided < aten::empty_like < rwkv::rwkv7_wkv_backward_bfloat16 || aten::empty_strided",
+     180
+    ],
+    [
+     "aten::fill_ <- aten::empty < aten::native_group_norm_backward < ExactGroupNormBackward || aten::native_group_norm_backward",
+     150
+    ],
+    [
+     "aten::fill_ <- aten::empty < aten::empty_like < aten::native_dropout_backward || aten::empty_like",
+     92
+    ],
+    [
+     "aten::fill_ <- aten::empty < aten::native_group_norm < ExactGroupNorm || aten::native_group_norm",
+     90
+    ],
+    [
+     "aten::fill_ <- aten::empty < ExactGroupNormBackward < autograd::engine::evaluate_function: ExactGroupNormBackward || ExactGroupNormBackward",
+     90
+    ],
+    [
+     "cudaMemsetAsync <- aten::addmm < aten::linear < forward || aten::addmm",
+     85
+    ],
+    [
+     "aten::fill_ <- aten::empty_strided < aten::_to_copy < aten::to || aten::empty_strided",
+     79
+    ],
+    [
+     "aten::fill_ <- aten::empty_strided < aten::empty_like < LerpBackward1 || aten::empty_strided",
+     79
+    ],
+    [
+     "aten::fill_ <- LerpBackward1 < autograd::engine::evaluate_function: LerpBackward1 || LerpBackward1",
+     79
+    ],
+    [
+     "cudaMemsetAsync <- aten::sort < ExactIndexSelectBackward < autograd::engine::evaluate_function: ExactIndexSelectBackward || aten::sort",
+     70
+    ],
+    [
+     "aten::fill_ <- aten::empty_strided < aten::empty_like < ExactShiftGatherBackward || aten::empty_strided",
+     60
+    ],
+    [
+     "aten::fill_ <- aten::empty < aten::scalar_tensor < ClampMinBackward0 || aten::scalar_tensor",
+     60
+    ],
+    [
+     "aten::fill_ <- aten::scalar_tensor < ClampMinBackward0 < autograd::engine::evaluate_function: ClampMinBackward0 || aten::scalar_tensor",
+     60
+    ],
+    [
+     "aten::fill_ <- aten::empty < aten::where < ClampMinBackward0 || aten::where",
+     60
+    ],
+    [
+     "aten::fill_ <- aten::empty < aten::resize_ < aten::where || aten::resize_",
+     60
+    ],
+    [
+     "aten::fill_ <- aten::resize_ < aten::where < ClampMinBackward0 || aten::resize_",
+     60
+    ],
+    [
+     "cudaMemsetAsync <- aten::sum < autograd::engine::evaluate_function: AddmmBackward0 || aten::sum",
+     56
+    ],
+    [
+     "cudaMemsetAsync <- aten::sum < autograd::engine::evaluate_function: LerpBackward1 || aten::sum",
+     48
+    ],
+    [
+     "aten::fill_ <- aten::empty_strided < aten::empty_like < rwkv::rwkv7_wkv_forward_bfloat16 || aten::empty_strided",
+     30
+    ],
+    [
+     "aten::fill_ <- aten::empty < rwkv::rwkv7_wkv_forward_bfloat16 < RWKV7_WKV || rwkv::rwkv7_wkv_forward_bfloat16",
+     30
+    ],
+    [
+     "aten::fill_ <- aten::empty < aten::resize_ < aten::arange || aten::resize_",
+     21
+    ],
+    [
+     "aten::fill_ <- aten::resize_ < aten::arange < aten::arange || aten::resize_",
+     21
+    ]
+   ],
+   "device_kernel_ms": 65.51602599999953,
+   "wkv_kernels_ms": [
+    0.1068,
+    0.0464,
+    0.0111,
+    0.0127,
+    0.0126,
+    0.0126,
+    0.0127,
+    0.0103,
+    0.0101,
+    0.0101,
+    0.0101,
+    0.2655,
+    0.4484,
+    0.2673,
+    0.4418,
+    0.1028,
+    0.1029,
+    0.1018,
+    0.0467,
+    0.0463,
+    0.0465,
+    0.0111,
+    0.0108,
+    0.0109,
+    0.4033,
+    0.2407,
+    0.2396,
+    0.2397,
+    0.2399,
+    0.4041,
+    1.2535,
+    1.6097,
+    1.5691,
+    2.2949,
+    1.4112,
+    2.3198,
+    0.0635,
+    0.0623,
+    0.062,
+    0.3229,
+    0.3235,
+    0.3233,
+    0.6805,
+    0.6801,
+    0.6803,
+    2.0171,
+    2.9828,
+    1.8179,
+    2.0563,
+    0.0595,
+    0.0588,
+    0.0584,
+    0.0582,
+    0.0822,
+    0.0821,
+    0.0821,
+    0.0821,
+    0.0632,
+    0.3234,
+    0.6804
+   ],
+   "wkv_kernel_names": [
+    "_ZN10rwkv_exact14forward_kernelILi32ELi4",
+    "_ZN10rwkv_exact15backward_kernelILi32ELi"
+   ],
+   "row_select_calls": [
+    {
+     "rows": 37632,
+     "sources": 25612,
+     "padded_sources": 297,
+     "padded_grad_nonzero": 0,
+     "padded_grad_nonfinite": 0,
+     "padded_grad_negzero": 0,
+     "ms_clamped": 0.1985,
+     "ms_skip_padding": 0.2043,
+     "bitwise_equal": true
+    },
+    {
+     "rows": 37632,
+     "sources": 12055,
+     "padded_sources": 2693,
+     "padded_grad_nonzero": 0,
+     "padded_grad_nonfinite": 0,
+     "padded_grad_negzero": 0,
+     "ms_clamped": 0.2917,
+     "ms_skip_padding": 0.1595,
+     "bitwise_equal": true
+    },
+    {
+     "rows": 37632,
+     "sources": 1352,
+     "padded_sources": 604,
+     "padded_grad_nonzero": 0,
+     "padded_grad_nonfinite": 0,
+     "padded_grad_negzero": 0,
+     "ms_clamped": 0.0916,
+     "ms_skip_padding": 0.1405,
+     "bitwise_equal": true
+    },
+    {
+     "rows": 39019,
+     "sources": 2940,
+     "padded_sources": 1136,
+     "padded_grad_nonzero": 0,
+     "padded_grad_nonfinite": 0,
+     "padded_grad_negzero": 0,
+     "ms_clamped": 0.0892,
+     "ms_skip_padding": 0.2002,
+     "bitwise_equal": true
+    },
+    {
+     "rows": 39019,
+     "sources": 1788,
+     "padded_sources": 562,
+     "padded_grad_nonzero": 0,
+     "padded_grad_nonfinite": 0,
+     "padded_grad_negzero": 0,
+     "ms_clamped": 0.1098,
+     "ms_skip_padding": 0.1336,
+     "bitwise_equal": true
+    },
+    {
+     "rows": 39019,
+     "sources": 58716,
+     "padded_sources": 26321,
+     "padded_grad_nonzero": 0,
+     "padded_grad_nonfinite": 0,
+     "padded_grad_negzero": 0,
+     "ms_clamped": 0.5191,
+     "ms_skip_padding": 0.2513,
+     "bitwise_equal": true
+    },
+    {
+     "rows": 63444,
+     "sources": 25610,
+     "padded_sources": 295,
+     "padded_grad_nonzero": 0,
+     "padded_grad_nonfinite": 0,
+     "padded_grad_negzero": 0,
+     "ms_clamped": 0.2874,
+     "ms_skip_padding": 0.2256,
+     "bitwise_equal": true
+    },
+    {
+     "rows": 63444,
+     "sources": 12055,
+     "padded_sources": 2693,
+     "padded_grad_nonzero": 0,
+     "padded_grad_nonfinite": 0,
+     "padded_grad_negzero": 0,
+     "ms_clamped": 0.2083,
+     "ms_skip_padding": 0.1845,
+     "bitwise_equal": true
+    },
+    {
+     "rows": 63444,
+     "sources": 1352,
+     "padded_sources": 604,
+     "padded_grad_nonzero": 0,
+     "padded_grad_nonfinite": 0,
+     "padded_grad_negzero": 0,
+     "ms_clamped": 0.1124,
+     "ms_skip_padding": 0.1195,
+     "bitwise_equal": true
+    },
+    {
+     "rows": 39017,
+     "sources": 39168,
+     "padded_sources": 3743,
+     "padded_grad_nonzero": 0,
+     "padded_grad_nonfinite": 0,
+     "padded_grad_negzero": 0,
+     "ms_clamped": 0.2692,
+     "ms_skip_padding": 0.1875,
+     "bitwise_equal": true
+    },
+    {
+     "rows": 39168,
+     "sources": 37632,
+     "padded_sources": 2207,
+     "padded_grad_nonzero": 0,
+     "padded_grad_nonfinite": 0,
+     "padded_grad_negzero": 0,
+     "ms_clamped": 0.1779,
+     "ms_skip_padding": 0.2764,
+     "bitwise_equal": true
+    }
+   ],
+   "row_select_ms_clamped": 2.355,
+   "row_select_ms_skip_padding": 2.083,
+   "split_shapes": [
+    [
+     [
+      2,
+      12806
+     ],
+     [
+      5,
+      2411
+     ],
+     [
+      13,
+      104
+     ]
+    ],
+    [
+     [
+      4,
+      735
+     ],
+     [
+      12,
+      149
+     ],
+     [
+      252,
+      233
+     ]
+    ],
+    [
+     [
+      2,
+      12805
+     ],
+     [
+      5,
+      2411
+     ],
+     [
+      13,
+      104
+     ]
+    ],
+    [
+     [
+      256,
+      153
+     ]
+    ],
+    [
+     [
+      256,
+      147
+     ]
+    ]
+   ]
+  }
+ ]
+}

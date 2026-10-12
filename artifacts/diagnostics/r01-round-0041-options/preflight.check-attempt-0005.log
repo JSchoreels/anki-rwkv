@@ -1,0 +1,49 @@
+[prepare] 1/5 real batches
+[prepare] 2/5 real batches
+[prepare] 3/5 real batches
+[prepare] 4/5 real batches
+[prepare] 5/5 real batches
+{"status": "failed", "summary": null, "not_exercised_b": ["async_transfer", "batch_chunks", "batched_id_encodings", "bulk_transfer", "columnar_samples", "deferred_reads"], "error": "RuntimeError: The following operation failed in the TorchScript interpreter.\nTraceback of TorchScript (most recent call last):\n  File \"C:\\Users\\jonat\\workspace\\anki-rwkv\\expertium\\model\\srs_model.py\", line 336, in _get_loss\n        batch_label_review_th: torch.Tensor,\n    ):\n        out_ahead_logits, out_w, out_w_log_p, out_p_logits = self.forward_batch(\n                                                             ~~~~~~~~~~~~~~~~~~ <--- HERE\n            batch_start,\n            batch_sub_gather,\n  File \"C:\\Users\\jonat\\workspace\\anki-rwkv\\expertium\\model\\srs_model.py\", line 281, in forward_batch\n            skips = batch_skips[i]\n            if self.concurrent_splits and x.is_cuda:\n                x = self.forward_split_streams(x, i, module_splits, sub_lens, time_shift_selects, skips)\n                    ~~~~~~~~~~~~~~~~~~~~~~~~~~ <--- HERE\n            else:\n                y = []\nRuntimeError: NotImplementedError: '__getitem__' is not implemented for __torch__.torch.nn.modules.container.___torch_mangle_21.ModuleList\n\nAt:\n  C:\\Users\\jonat\\workspace\\anki-rwkv\\expertium\\model\\srs_model.py(234): forward_split_streams\n  C:\\Users\\jonat\\workspace\\anki-rwkv\\.venv\\Lib\\site-packages\\torch\\jit\\_recursive.py(1056): lazy_binding_method\n  C:\\Users\\jonat\\workspace\\anki-rwkv\\expertium\\model\\srs_model.py(490): get_loss\n  C:\\Users\\jonat\\workspace\\anki-rwkv\\scripts\\check_r01_exact_options.py(154): run\n  C:\\Users\\jonat\\workspace\\anki-rwkv\\scripts\\check_r01_exact_options.py(162): <genexpr>\n  C:\\Users\\jonat\\workspace\\anki-rwkv\\scripts\\check_r01_exact_options.py(162): main\n  C:\\Users\\jonat\\workspace\\anki-rwkv\\scripts\\check_r01_exact_options.py(186): <module>\n\n"}
+Traceback (most recent call last):
+  File "C:\Users\jonat\workspace\anki-rwkv\scripts\check_r01_exact_options.py", line 186, in <module>
+    main()
+  File "C:\Users\jonat\workspace\anki-rwkv\scripts\check_r01_exact_options.py", line 162, in main
+    (loss_a, grads_a), (loss_b, grads_b) = (run(variants[name], item, batch, checkpoint) for name in ("a", "b"))
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\jonat\workspace\anki-rwkv\scripts\check_r01_exact_options.py", line 162, in <genexpr>
+    (loss_a, grads_a), (loss_b, grads_b) = (run(variants[name], item, batch, checkpoint) for name in ("a", "b"))
+                                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\jonat\workspace\anki-rwkv\scripts\check_r01_exact_options.py", line 154, in run
+    stats = model.get_loss(batch)
+            ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\jonat\workspace\anki-rwkv\expertium\model\srs_model.py", line 490, in get_loss
+    return self._get_loss(
+           ^^^^^^^^^^^^^^^
+RuntimeError: The following operation failed in the TorchScript interpreter.
+Traceback of TorchScript (most recent call last):
+  File "C:\Users\jonat\workspace\anki-rwkv\expertium\model\srs_model.py", line 336, in _get_loss
+        batch_label_review_th: torch.Tensor,
+    ):
+        out_ahead_logits, out_w, out_w_log_p, out_p_logits = self.forward_batch(
+                                                             ~~~~~~~~~~~~~~~~~~ <--- HERE
+            batch_start,
+            batch_sub_gather,
+  File "C:\Users\jonat\workspace\anki-rwkv\expertium\model\srs_model.py", line 281, in forward_batch
+            skips = batch_skips[i]
+            if self.concurrent_splits and x.is_cuda:
+                x = self.forward_split_streams(x, i, module_splits, sub_lens, time_shift_selects, skips)
+                    ~~~~~~~~~~~~~~~~~~~~~~~~~~ <--- HERE
+            else:
+                y = []
+RuntimeError: NotImplementedError: '__getitem__' is not implemented for __torch__.torch.nn.modules.container.___torch_mangle_21.ModuleList
+
+At:
+  C:\Users\jonat\workspace\anki-rwkv\expertium\model\srs_model.py(234): forward_split_streams
+  C:\Users\jonat\workspace\anki-rwkv\.venv\Lib\site-packages\torch\jit\_recursive.py(1056): lazy_binding_method
+  C:\Users\jonat\workspace\anki-rwkv\expertium\model\srs_model.py(490): get_loss
+  C:\Users\jonat\workspace\anki-rwkv\scripts\check_r01_exact_options.py(154): run
+  C:\Users\jonat\workspace\anki-rwkv\scripts\check_r01_exact_options.py(162): <genexpr>
+  C:\Users\jonat\workspace\anki-rwkv\scripts\check_r01_exact_options.py(162): main
+  C:\Users\jonat\workspace\anki-rwkv\scripts\check_r01_exact_options.py(186): <module>
+
+

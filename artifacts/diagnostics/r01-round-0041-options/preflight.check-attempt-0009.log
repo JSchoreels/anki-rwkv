@@ -1,0 +1,12 @@
+Traceback (most recent call last):
+  File "C:\Users\jonat\workspace\anki-rwkv\scripts\check_r01_compact_previous.py", line 66, in <module>
+    main()
+  File "C:\Users\jonat\workspace\anki-rwkv\scripts\check_r01_compact_previous.py", line 47, in main
+    a, c = run(inputs, skip, grad, False), run(inputs, skip, grad, True)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\jonat\workspace\anki-rwkv\scripts\check_r01_compact_previous.py", line 34, in run
+    out, states = getattr(torch.ops.rwkv, "rwkv7_wkv_forward_" + suffix)(*inputs, skip)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\jonat\workspace\anki-rwkv\.venv\Lib\site-packages\torch\_ops.py", line 1365, in __getattr__
+    raise AttributeError(
+AttributeError: '_OpNamespace' 'rwkv' object has no attribute 'rwkv7_wkv_forward_float32'. Did you mean: 'rwkv7_wkv_forward_bfloat16'?

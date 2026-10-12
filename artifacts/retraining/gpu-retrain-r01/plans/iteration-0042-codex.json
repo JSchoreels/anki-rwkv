@@ -1,0 +1,89 @@
+{
+  "models": [
+    "expertium"
+  ],
+  "model_scope_reason": "Continuation of the Expertium-only R01 work; Alex remains paused by earlier human request.",
+  "control_tracks": {
+    "expertium": "E30-F37-F42"
+  },
+  "candidate_tracks": {
+    "expertium": "E33-F48-F50"
+  },
+  "case_options_by_model": {
+    "expertium": {
+      "E30-F37-F42": {
+        "prefetch_users": true,
+        "preparation_workers": 6,
+        "gpu_packed_features": true,
+        "packed_ipc": true,
+        "async_transfer": true,
+        "batched_id_encodings": true,
+        "grouped_sync": true,
+        "main_threads": 1,
+        "bulk_transfer": true,
+        "parallel_evaluation": true,
+        "exact_shift": true,
+        "exact_index": true,
+        "batch_chunks": 512,
+        "gpu_memory_fraction": 0.95,
+        "fast_samples": true,
+        "prestart_pool": true,
+        "row_tiles_exact": 4,
+        "exact_group_norm": true,
+        "deferred_reads": true,
+        "shared_shift_orders": true,
+        "stream_launches": true,
+        "prefetch_rows": true,
+        "sync_free_loss": true,
+        "columnar_samples": true
+      },
+      "E33-F48-F50": {
+        "prefetch_users": true,
+        "preparation_workers": 6,
+        "gpu_packed_features": true,
+        "packed_ipc": true,
+        "async_transfer": true,
+        "batched_id_encodings": true,
+        "grouped_sync": true,
+        "main_threads": 1,
+        "bulk_transfer": true,
+        "parallel_evaluation": true,
+        "exact_shift": true,
+        "exact_index": true,
+        "batch_chunks": 512,
+        "gpu_memory_fraction": 0.95,
+        "fast_samples": true,
+        "prestart_pool": true,
+        "row_tiles_exact": 4,
+        "exact_group_norm": true,
+        "deferred_reads": true,
+        "shared_shift_orders": true,
+        "stream_launches": true,
+        "prefetch_rows": true,
+        "sync_free_loss": true,
+        "columnar_samples": true,
+        "skip_uninitialized_fill": true,
+        "skip_padding_sources": true
+      }
+    }
+  },
+  "case_explanations": {
+    "expertium": {
+      "E30-F37-F42": "Extract unchanged sample columns once per batch and use pandas Series for segment-local offsets, groupby-first and weekday features, avoiding per-chunk DataFrame construction. Keep the accepted four-row recurrence and E30+F37 arithmetic and scheduling.",
+      "E33-F48-F50": "Combine F48 with an exact row-selection backward that excludes zero hierarchy padding sources while preserving sequential real-source order and the unchanged clamped forward."
+    }
+  },
+  "selection_evidence": "176 synthetic BF16/FP32 signed-zero/cancellation/boundary cases passed; five real E33 batches matched all gradients, with actual padding gradients audited. Full F48 was exact but slower amid host-state drift.",
+  "prerequisite_checks": [
+    {
+      "path": "artifacts/diagnostics/r01-round-0041-options/f50-boundaries/result.json",
+      "sha256": "ca70d69f4a99215c2acb9f70fcc7739feb8372b0d93c2d838dffa8760f6da0bb",
+      "status": "passed, source compatible; runtime compatibility must also be reviewed"
+    },
+    {
+      "path": "artifacts/diagnostics/r01-round-0041-options/f48-f50-exact/result.json",
+      "sha256": "f04b7a9e0d9c74ecbd818cfafb722ef95f1fe8bd35842cfba66dcc4ef6ffd93b",
+      "status": "passed, source compatible; runtime compatibility must also be reviewed"
+    }
+  ]
+}
