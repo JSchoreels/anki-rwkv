@@ -1,0 +1,16 @@
+Traceback (most recent call last):
+  File "C:\Users\jonat\workspace\anki-rwkv\scripts\check_gpu_r01_policy.py", line 534, in <module>
+    main()
+  File "C:\Users\jonat\workspace\anki-rwkv\scripts\check_gpu_r01_policy.py", line 514, in main
+    check("fresh case isolates automatically before launching", launcher.launch_case(request, fresh, root=guard_root) == 0)
+                                                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\jonat\workspace\anki-rwkv\scripts\run_isolated_gpu_r01.py", line 44, in launch_case
+    isolate_gpu_r01.build(archive, runtime, protocol["iteration"])
+  File "C:\Users\jonat\workspace\anki-rwkv\scripts\isolate_gpu_r01.py", line 56, in build
+    shutil.copytree(source, target, ignore=shutil.ignore_patterns('*.pth', '*.safetensors', '__pycache__'))
+  File "C:\Users\jonat\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\shutil.py", line 600, in copytree
+    return _copytree(entries=entries, src=src, dst=dst, symlinks=symlinks,
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\jonat\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\shutil.py", line 554, in _copytree
+    raise Error(errors)
+shutil.Error: [('C:\\Users\\jonat\\workspace\\anki-rwkv\\artifacts\\diagnostics\\r01-exact-noise-policy-v1\\policy-repaired\\launch-fixtures\\artifacts\\retraining\\gpu-retrain-r01\\iteration-0010\\baseline\\control\\updates.jsonl', 'C:\\Users\\jonat\\workspace\\anki-rwkv\\artifacts\\diagnostics\\r01-exact-noise-policy-v1\\policy-repaired\\launch-fixtures\\artifacts\\retraining\\gpu-retrain-r01\\runtime-0012-7afa752a367a\\artifacts\\retraining\\gpu-retrain-r01\\iteration-0010\\baseline\\control\\updates.jsonl', '[WinError 3] The system cannot find the path specified'), ('C:\\Users\\jonat\\workspace\\anki-rwkv\\artifacts\\diagnostics\\r01-exact-noise-policy-v1\\policy-repaired\\launch-fixtures\\artifacts\\retraining\\gpu-retrain-r01\\iteration-0010\\baseline\\F01-F08\\updates.jsonl', 'C:\\Users\\jonat\\workspace\\anki-rwkv\\artifacts\\diagnostics\\r01-exact-noise-policy-v1\\policy-repaired\\launch-fixtures\\artifacts\\retraining\\gpu-retrain-r01\\runtime-0012-7afa752a367a\\artifacts\\retraining\\gpu-retrain-r01\\iteration-0010\\baseline\\F01-F08\\updates.jsonl', '[WinError 3] The system cannot find the path specified'), ('C:\\Users\\jonat\\workspace\\anki-rwkv\\artifacts\\diagnostics\\r01-exact-noise-policy-v1\\policy-repaired\\launch-fixtures\\artifacts\\retraining\\gpu-retrain-r01\\iteration-0010\\profiles\\baseline-F01', 'C:\\Users\\jonat\\workspace\\anki-rwkv\\artifacts\\diagnostics\\r01-exact-noise-policy-v1\\policy-repaired\\launch-fixtures\\artifacts\\retraining\\gpu-retrain-r01\\runtime-0012-7afa752a367a\\artifacts\\retraining\\gpu-retrain-r01\\iteration-0010\\profiles\\baseline-F01', "[WinError 206] The filename or extension is too long: 'C:\\\\Users\\\\jonat\\\\workspace\\\\anki-rwkv\\\\artifacts\\\\diagnostics\\\\r01-exact-noise-policy-v1\\\\policy-repaired\\\\launch-fixtures\\\\artifacts\\\\retraining\\\\gpu-retrain-r01\\\\runtime-0012-7afa752a367a\\\\artifacts\\\\retraining\\\\gpu-retrain-r01\\\\iteration-0010\\\\profiles\\\\baseline-F01'")]

@@ -1,0 +1,11 @@
+--- a/docs/GPU_OPTIMIZATIONS.md
++++ b/docs/GPU_OPTIMIZATIONS.md
+@@ -170,7 +170,7 @@
+ 
+ 2026-10-12 human clarification: an explicit requested iteration count takes precedence over consecutive speed misses. `--round-iterations N` freezes budget/progress under the quoted authorization; preparation, selection and launch guards continue through misses and refuse N+1. Partial handoffs retain remaining authorization. Uncounted rounds keep the three-miss stop; acceptance/loss gates remain unchanged. [CPU evidence](../artifacts/diagnostics/r01-explicit-count-policy-v1/summary.md): 116 policy checks and 33 helper tests passed. GPU timing and throughput effects are unmeasured (—); no training or broader validation ran. Implementation commit `7795eb04ccf1869fb4df7d0b5f7e2d0465fd992f` was made after the CPU checks; recorded check source snapshots retain their original provenance.
+ 
+-R01-T01 loop-document review (2026-10-12): clarified authorized model/cohort scope, four loss limits, accepted references, explicit-count progress and provenance without adding log columns. A [CPU policy probe](../artifacts/diagnostics/r01-loop-document-review-v1/summary.md) found that non-exact +4.9% can be promoted above a 1.97% timing band while still missing the 5% target. Whether 5% must be a hard promotion minimum is unresolved; implementation unchanged, historical records preserved. Training effects unmeasured (—). Next step: resolve that distinction, then align the future protocol/decision rule.
++R01-T01 promotion clarification (2026-10-12): the human confirmed that the original 5% target was a timing-noise proxy, not an extra hard promotion floor, and selected measured timing noise in place of the fixed 2% rule for bitwise-equal results. Future protocols freeze `exact_promotion_rule=timing_noise`; gain must strictly exceed recorded measured noise, with no fixed 2%/5% floor. Missing noise leaves promotion pending. Historical fixed-target protocols/results remain unchanged; the earlier [4.9% policy probe](../artifacts/diagnostics/r01-loop-document-review-v1/summary.md) is expected behavior, not a bug. [CPU checks](../artifacts/diagnostics/r01-exact-noise-policy-v1/summary.md): 124 policy checks and 33 helper tests passed; original failure logs preserved. Training effects unmeasured (—); implementation commit pending.
+ 
+ ## Validation and provenance
+ 

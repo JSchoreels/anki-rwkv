@@ -1,0 +1,9 @@
+# Bitwise-equal promotion uses measured timing noise
+
+Human clarification (2026-10-12): the original 5% target was a timing-noise proxy rather than an extra minimum. The human selected measured timing noise to replace the fixed 2% exact promotion gate. No new optimization round or training was authorized or launched.
+
+New protocols freeze `exact_promotion_rule=timing_noise`. Exact recorded parity plus a gain strictly above the frozen measured band is promotable; no fixed 2%/5% minimum applies. Equality/inside-noise gains are not promoted; unknown noise is not a measured zero and leaves promotion pending. Exact miss counting follows this same strict noise comparison. Non-exact timing/quality rules and nominal miss-count target remain unchanged; explicit iteration counts still override consecutive-miss stopping. Historical fixed-target protocols and decisions retain their original behavior.
+
+[124 CPU policy checks](../r01-en1/result.json) passed, including promotion at 1.5% above 1% noise, rejection at the boundary or within noise, missing-noise handling, new protocol freezing and historical 2% compatibility. [33 helper tests](../r01-enh1/result.json) passed. One preflight was reused. The first check exposed report fixtures lacking measured noise; those fixtures are now explicitly historical fixed-target cases. The second retry hit Windows MAX_PATH; unchanged source passed under a shorter output path. All attempt logs remain preserved. No GPU work ran; performance effects are unmeasured.
+
+The earlier claim that sub-5% promotion was a code inconsistency and the recommendation for a hard 5% minimum were withdrawn. [Original probe](../r01-loop-document-review-v1/probe.json) stays unchanged as historical evidence. Unrelated F49/F55/F58–F63 analysis edits in GPU_OPTIMIZATIONS.md and R01_HOST_PATH.md are preserved outside this policy change.
