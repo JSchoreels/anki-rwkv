@@ -170,12 +170,19 @@ def run_case(args):
               "hierarchical_padded_positions": 0, "peak_process_tree_rss_mib": 0.0,
               "gpu_copy_milliseconds": 0.0, "gpu_copy_overlap_training_milliseconds": 0.0}
     atomic_json(path / "result.json", report)
+    kernel_stack = ExitStack()
     try:
         torch.set_num_threads(4)
         torch.cuda.set_per_process_memory_fraction(memory_fraction, 0)
         nvrtc.register()
         nvrtc.set_checkpoint_length(32)
         nvrtc.set_raw_pointer_launch(options.get("dynamic_graphs", False))
+        if options.get("row_tiles_exact"):
+            # F31: pinned-arithmetic row-tiled recurrence for training only, at the
+            # accepted tile 32; the primer compiles it and evaluation restores production.
+            from scripts.gpu_row_tiles import row_tiled_backend
+            report["recurrence_kernel"] = kernel_stack.enter_context(
+                row_tiled_backend(rows=options["row_tiles_exact"], tile=32, exact=True))
         device = torch.device("cuda:0")
         checkpoint = fresh_checkpoint(args.model, training_seed)
         report["initial_parameter_sha256"] = tensor_hash(checkpoint["model"])
@@ -383,6 +390,7 @@ def run_case(args):
                 source.close()
         torch.cuda.synchronize()
         report["training_seconds"] = time.perf_counter() - train_started
+        kernel_stack.close()
         progress.training(len(rows), report["review_presentations"], report["updates"], loss_value)
         progress.end()
         if options.get("main_threads"):
@@ -449,6 +457,8 @@ def run_case(args):
         report.update(status="stopped" if isinstance(exc, InterruptedError) else "failed",
                       error=str(exc), error_type=type(exc).__name__)
         traceback.print_exc()
+    finally:
+        kernel_stack.close()
     report["case_elapsed_seconds"] = time.perf_counter() - started
     atomic_json(path / "result.json", report)
     return 0 if report["status"] == "complete" else 1

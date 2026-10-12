@@ -12,11 +12,13 @@ ROOT = Path(__file__).resolve().parents[1]
 _modules = {}
 
 
-def source_options(dtype):
+def source_options(dtype, exact=False):
     if dtype not in (torch.float32, torch.bfloat16):
         raise ValueError("Row-tiled recurrence supports float32 or BF16")
     prefix = nvrtc.kernel_source(dtype).split("namespace rwkv {")[0]
-    source = prefix + (ROOT / "scripts/kernels/rwkv_row_tiles.cu").read_text()
+    # F31 pins every float operation to the production instruction sequence.
+    kernel = "rwkv_row_tiles_exact.cu" if exact else "rwkv_row_tiles.cu"
+    source = prefix + (ROOT / "scripts/kernels" / kernel).read_text()
     options = ["--std=c++17"]
     if dtype == torch.bfloat16:
         runtime = Path(sysconfig.get_paths()["purelib"]) / "nvidia/cuda_runtime/include"
@@ -33,15 +35,16 @@ def source_options(dtype):
     return source, tuple(options)
 
 
-def compile_module(device, dtype, rows, tile):
+def compile_module(device, dtype, rows, tile, exact=False):
     if rows not in (1, 2, 4) or tile not in (8, 16, 32):
         raise ValueError("Rows must be 1, 2 or 4; checkpoint tile must be 8, 16 or 32")
     index = device.index if device.index is not None else torch.cuda.current_device()
-    key = index, dtype, rows, tile
+    key = index, dtype, rows, tile, exact
     if key not in _modules:
-        source, options = source_options(dtype)
+        source, options = source_options(dtype, exact)
         scalar = "float" if dtype == torch.float32 else "__nv_bfloat16"
-        names = tuple(f"rwkv_future::{name}_kernel<{tile}, {rows}, {scalar}>" for name in ("forward", "backward"))
+        namespace = "rwkv_exact" if exact else "rwkv_future"
+        names = tuple(f"{namespace}::{name}_kernel<{tile}, {rows}, {scalar}>" for name in ("forward", "backward"))
         with nvrtc._cupy.cuda.Device(index):
             raw = nvrtc._cupy.RawModule(code=source, options=options, name_expressions=names)
             _modules[key] = tuple(raw.get_function(name) for name in names)
@@ -49,7 +52,7 @@ def compile_module(device, dtype, rows, tile):
 
 
 @contextmanager
-def row_tiled_backend(rows=4, tile=8):
+def row_tiled_backend(rows=4, tile=8, exact=False):
     """Hold this context through every associated forward AND backward call."""
     if rows not in (1, 2, 4) or tile not in (8, 16, 32):
         raise ValueError("Invalid row/tile configuration")
@@ -58,7 +61,7 @@ def row_tiled_backend(rows=4, tile=8):
     original_tile = nvrtc._checkpoint_length
 
     def module(device, dtype):
-        return compile_module(device, dtype, rows, tile)
+        return compile_module(device, dtype, rows, tile, exact)
 
     def launch(kernel, device, shape, args):
         import numpy as np

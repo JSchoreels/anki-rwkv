@@ -36,7 +36,9 @@ def describe(track):
              "E11": "exact-parity part of the iteration-0011 Expertium candidate: F19, F23, F25, F20, F21",
              "E13": "accepted iteration-0013 Expertium configuration: E06, E11, F26, F27, F17",
              "F28": "worker pool started during setup", "F29": "cross-user batch packing", "F30": "exact NumPy sample construction",
-             "F26": "sort-free exact shift backward", "F27": "sort-free exact row-selection backward"}
+             "F26": "sort-free exact shift backward", "F27": "sort-free exact row-selection backward",
+             "E20": "accepted iteration-0020 Expertium configuration: E13, F30, F28",
+             "F31": "exact row-tiled recurrence kernels"}
     return ", ".join(f"{part} ({names.get(part, 'see track record')})" for part in track.split("-"))
 
 

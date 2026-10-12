@@ -27,6 +27,7 @@ def main():
     parser.add_argument("--options", type=Path, required=True, help="JSON options of the accepted case (selection.json entry)")
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--passes", type=int, default=3)
+    parser.add_argument("--extra-options", help="JSON options merged over the selection entry")
     args = parser.parse_args()
     output = (ROOT / args.output).resolve()
     if not output.is_relative_to(ROOT / "artifacts"):
@@ -35,6 +36,8 @@ def main():
         raise FileExistsError("Preserve the existing profile")
     options = json.loads((ROOT / args.options).read_text(encoding="utf-8"))
     options = options.get("expertium", options).get("options", options)
+    if args.extra_options:
+        options = {**options, **json.loads(args.extra_options)}
     from scripts.benchmark_r01_components import windows
     data_path, selected = windows("expertium")
     os.environ["GPU_BATCH1_DATA_PATH"] = str(ROOT / data_path)
@@ -53,6 +56,12 @@ def main():
     from scripts.gpu_b01 import prepare_job, map_batch, materialize
     from scripts.gpu_r01_update import MasterChildSync
 
+    if options.get("row_tiles_exact"):
+        # F31: hold the pinned row-tiled recurrence for the whole profiled process.
+        from contextlib import ExitStack
+        from scripts.gpu_row_tiles import row_tiled_backend
+        kernels = ExitStack()
+        kernels.enter_context(row_tiled_backend(rows=options["row_tiles_exact"], tile=32, exact=True))
     span = options["batch_chunks"] * 128
     torch.set_num_threads(4)
     torch.cuda.set_per_process_memory_fraction(options["gpu_memory_fraction"], 0)

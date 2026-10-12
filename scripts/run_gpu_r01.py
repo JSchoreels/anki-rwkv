@@ -47,6 +47,10 @@ class R01SourceWatch(shared.SourceWatch):
             self.hashes[name] = manifest[name]
         for name in ("scripts/gpu_r01_packing.py", "scripts/gpu_r01_samples.py"):
             self.hashes[name] = manifest[name]
+        # F31 kernels exist from iteration 0021; older archives keep their original watch set.
+        for name in ("scripts/gpu_row_tiles.py", "scripts/kernels/rwkv_row_tiles_exact.cu"):
+            if name in manifest:
+                self.hashes[name] = manifest[name]
         self.implementation_sha256 = hashlib.sha256(json.dumps(self.hashes, sort_keys=True).encode()).hexdigest()
         self.check()
 

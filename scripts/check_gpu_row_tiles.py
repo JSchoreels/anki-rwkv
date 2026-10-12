@@ -51,6 +51,7 @@ def main():
     parser.add_argument("--options", type=Path, required=True, help="Accepted case selection.json")
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--rows", default="1,2,4")
+    parser.add_argument("--exact", action="store_true", help="F31 pinned-arithmetic kernels instead of the F09 prototype")
     args = parser.parse_args()
     output = (ROOT / args.output).resolve()
     if not output.is_relative_to(ROOT / "artifacts"):
@@ -76,7 +77,7 @@ def main():
     nvrtc.set_checkpoint_length(32)
     nvrtc.set_raw_pointer_launch(False)
     device = torch.device("cuda:0")
-    result = {"provenance": provenance, "options": options, "checkpoint_tile": 32, "rows_per_thread": rows_list,
+    result = {"provenance": provenance, "options": options, "checkpoint_tile": 32, "rows_per_thread": rows_list, "kernel": "F31 pinned" if args.exact else "F09 prototype",
               "scope": "bitwise parity of F09 row layouts against the production NVRTC recurrence; no training", "synthetic": [], "model": []}
 
     def run_op(inputs, skip, grad):
@@ -96,7 +97,7 @@ def main():
         inputs, skip, grad = synthetic(torch, b, t, skip_mode, generator)
         reference = run_op(inputs, skip, grad)
         for rows in rows_list:
-            with row_tiled_backend(rows=rows, tile=32):
+            with row_tiled_backend(rows=rows, tile=32, exact=args.exact):
                 candidate = run_op(inputs, skip, grad)
             equal, difference = compare(torch, reference, candidate)
             result["synthetic"].append({"batch": b, "timesteps": t, "skip": skip_mode, "rows_per_thread": rows,
@@ -138,7 +139,7 @@ def main():
     for user, offset, seed, reviews, batch in batches:
         reference_loss, reference_grads = gradients(batch, seed)
         for rows in rows_list:
-            with row_tiled_backend(rows=rows, tile=32):
+            with row_tiled_backend(rows=rows, tile=32, exact=args.exact):
                 loss, grads = gradients(batch, seed)
             pairs = [(x, y) for x, y in zip(reference_grads, grads) if x is not None or y is not None]
             missing = sum((x is None) != (y is None) for x, y in pairs)
