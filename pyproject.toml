@@ -17,6 +17,12 @@ dependencies = [
     "psutil",
 ]
 
+[project.optional-dependencies]
+nvrtc = [
+    "cupy-cuda12x==14.2.0; sys_platform == 'win32' or sys_platform == 'linux'",
+    "nvidia-cuda-runtime-cu12==12.8.90; sys_platform == 'win32' or sys_platform == 'linux'",
+]
+
 [build-system]
 requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"

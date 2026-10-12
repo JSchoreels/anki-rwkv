@@ -18,16 +18,21 @@ def main():
     torch.set_num_threads(1)
     print("Checking source, configs, provenance, and pipeline imports...", flush=True)
     for path in [*ROOT.glob("*.py"), *ROOT.glob("rwkv/**/*.py"), *ROOT.glob("features/**/*.py"), *ROOT.glob("scripts/*.py"), *ROOT.glob("expertium/**/*.py")]:
-        ast.parse(path.read_text(), filename=str(path))
+        ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
     for path in ROOT.glob("configs/*.toml"):
-        tomllib.loads(path.read_text())
-    provenance = json.loads((ROOT / "upstream.json").read_text())
+        tomllib.loads(path.read_text(encoding="utf-8"))
+    provenance = json.loads((ROOT / "upstream.json").read_text(encoding="utf-8"))
+    assert set(provenance["adapted_sha256"]) == set(provenance["adapted"])
     for name, expected in provenance["files"].items():
-        if name not in provenance["adapted"]:
-            assert hashlib.sha256((ROOT / name).read_bytes()).hexdigest() == expected, name
-    smaller_provenance = json.loads((ROOT / "expertium/upstream.json").read_text())
+        if name in provenance["adapted"]:
+            expected = provenance["adapted_sha256"][name]
+        # Git's Windows checkout can convert upstream LF line endings to CRLF.
+        source = (ROOT / name).read_bytes().replace(b"\r\n", b"\n")
+        assert hashlib.sha256(source).hexdigest() == expected, name
+    smaller_provenance = json.loads((ROOT / "expertium/upstream.json").read_text(encoding="utf-8"))
     for name, record in smaller_provenance["files"].items():
-        assert hashlib.sha256((ROOT / name).read_bytes()).hexdigest() == record["adapted_sha256"], name
+        source = (ROOT / name).read_bytes().replace(b"\r\n", b"\n")
+        assert hashlib.sha256(source).hexdigest() == record["adapted_sha256"], name
     for name in ["rwkv.train_rwkv", "rwkv.data_processing", "rwkv.get_result", "rwkv.run_as_rnn", "features"]:
         importlib.import_module(name)
 
@@ -87,7 +92,7 @@ def main():
             actual = read_user_metadata(table, user).drop(columns="user_id")
             pd.testing.assert_frame_equal(actual, expected)
         from scripts.compare import cache_key
-        config = tomllib.loads((ROOT / "configs/compare-cuda.toml").read_text())
+        config = tomllib.loads((ROOT / "configs/compare-cuda.toml").read_text(encoding="utf-8"))
         config.update(DATA_PATH=temporary, USER_START=1, USER_END=2)
         key = cache_key(config)
         assert cache_key({**config, "SEED": config["SEED"] + 1}) != key
@@ -96,7 +101,7 @@ def main():
         check_training(torch.device("cpu"), dtype)
     print("Expertium provenance, 192,800 parameters, strict recurrent load, and 3 CPU steps passed.")
     print(f"Source, TOML, provenance, imports, AdamW setup, and 3 CPU recurrent steps passed ({parameters:,} parameters).")
-    print(f"CUDA available: {torch.cuda.is_available()}; CPU reference training is available; accelerated training requires the CUDA extension.")
+    print(f"CUDA available: {torch.cuda.is_available()}; CPU reference training is available; accelerated training uses native CUDA or the optional NVRTC backend.")
 
 
 if __name__ == "__main__":

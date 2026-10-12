@@ -46,10 +46,22 @@
     "features/__init__.py",
     "features/factory.py",
     "utils.py",
-    "rwkv/data_processing.py"
+    "rwkv/data_processing.py",
+    "rwkv/model/rwkv_model.py",
+    "rwkv/prepare_batch.py"
   ],
   "baseline_reason": "RWKV revision before runtime tensor-shape annotation changes; preserves conventional PyTorch imports.",
   "adaptations": {
-    "rwkv/data_processing.py": "Read existing cards/decks user partitions directly; preserve filtered-root reads for absent partitions. Feature engineering is unchanged."
+    "rwkv/data_processing.py": "Read existing cards/decks user partitions directly; preserve filtered-root reads for absent partitions. Use group indices instead of copying per-group DataFrames when preparing module locations, preserving group order and exact feature tensors.",
+    "rwkv/model/rwkv_model.py": "Add an explicit option to use the existing reference recurrence on CUDA and an opt-in fused shift/lerp path. Both are disabled by default; the default architecture and upstream CUDA kernels are unchanged.",
+    "rwkv/prepare_batch.py": "Expose padding_factor and allowed_excess_in_one_step as optional preparation arguments; retain the original 0.9 and 20000 defaults."
+  },
+  "adapted_sha256": {
+    "features/__init__.py": "8dceaec3b13a4da6f12cd6de4d0d6cad71c17d382af2a68809d7f6aa0d05fce6",
+    "features/factory.py": "7cf2f7b695dbc2ff9bb9361c6c05d061108c5870476cdec6f33a8fa9c0fd2512",
+    "utils.py": "ab5c4fb4a486eb484503304b08ba25a63bfdf32cd93ed5933534c1fc1c0c0205",
+    "rwkv/data_processing.py": "3118bde180fdbbbd77883f3ca9e77ab5ecf7f007aa8282d05cd209ca2b8b68cb",
+    "rwkv/model/rwkv_model.py": "26fe4ebd8bfb3f38d63ababacdb548f670a7343141ba4b61e4e452cbc13b9611",
+    "rwkv/prepare_batch.py": "f17fa5766bdd6de7450386b2b288b757db5f8987a11a436d770c473aa9bfd9cf"
   }
 }

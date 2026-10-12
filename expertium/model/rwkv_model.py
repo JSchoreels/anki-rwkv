@@ -4,6 +4,7 @@ import os
 import torch
 
 from expertium.model.rwkv_ops import RWKV7_WKV, reference_rwkv7, quant_aware_rwkv7
+from rwkv.model.fused_shift import FusedShiftLerp
 from rwkv.model.exact_index import ExactShiftGather
 
 """
@@ -222,6 +223,7 @@ class LoraMLP(ModuleType):
 class RWKV7TimeMixer(ModuleType):
     def __init__(self, config: RWKV7Config, layer_id):
         super().__init__()
+        self.fused_shift = False
         self.exact_shift = False
         assert config.d_model % config.n_heads == 0
         self.layer_id = layer_id
@@ -333,18 +335,19 @@ class RWKV7TimeMixer(ModuleType):
         H, K = self.H, self.K
 
         x_BTC = self.layer_norm(in_BTC)
-        if self.exact_shift and x_BTC.is_cuda:
-            x_shift_BTC = ExactShiftGather.apply(x_BTC, time_shift_select_BT)
+        if self.fused_shift and x_BTC.is_cuda:
+            rkvdag_8BTC = FusedShiftLerp.apply(x_BTC, time_shift_select_BT, self.rkvdag_lerp)
         else:
-            x_shift_BTC = torch.gather(
-                x_BTC,
-                dim=1,
-                index=time_shift_select_BT.unsqueeze(-1).expand(-1, -1, self.d_model),
+            if self.exact_shift and x_BTC.is_cuda:
+                x_shift_BTC = ExactShiftGather.apply(x_BTC, time_shift_select_BT)
+            else:
+                x_shift_BTC = torch.gather(
+                    x_BTC, dim=1,
+                    index=time_shift_select_BT.unsqueeze(-1).expand(-1, -1, self.d_model),
+                )
+            rkvdag_8BTC = torch.lerp(
+                x_BTC.unsqueeze(0), x_shift_BTC.unsqueeze(0), self.rkvdag_lerp
             )
-
-        rkvdag_8BTC = torch.lerp(
-            x_BTC.unsqueeze(0), x_shift_BTC.unsqueeze(0), self.rkvdag_lerp
-        )
         r_BTC, k_BTC, v_BTC, d_BTC, a_BTC, g_BTC, k_scale_BTC, v_scale_BTC = (
             rkvdag_8BTC.unbind(dim=0)
         )

@@ -12,6 +12,7 @@ import tomllib
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
+from scripts.experiment_provenance import process_provenance
 
 import torch
 import torch.nn.functional as F
@@ -311,6 +312,7 @@ def main():
     parser = ArgumentParser(description=__doc__)
     parser.add_argument("--config", default="configs/compare-cpu.toml")
     args = parser.parse_args()
+    provenance = process_provenance()
     with open(args.config, "rb") as source:
         config = tomllib.load(source)
     config.setdefault("DEVICE", "cpu")
@@ -348,6 +350,7 @@ def main():
         for key in ["curve_labels", "instant_labels"]:
             assert baseline[phase][key] == small[phase][key]
     summary = {"status": "complete", "config": config, "torch": str(torch.__version__),
+               "provenance": provenance,
                "device": str(device), "device_name": torch.cuda.get_device_name(device) if device.type == "cuda" else "cpu",
                "cuda_runtime": torch.version.cuda, "dtype": config["DTYPE"], "cache_hit": cache_hit,
                "batch_transfer_seconds": transfer_seconds, "coverage": coverage, "batch_sha256": fingerprint,

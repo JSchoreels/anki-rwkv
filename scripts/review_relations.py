@@ -584,8 +584,8 @@ def run(args):
 def main():
     parser = ArgumentParser(description=__doc__)
     parser.add_argument("--data", type=Path, default=ROOT / "data/anki-revlogs-10k")
-    parser.add_argument("--output", type=Path, default=ROOT / "artifacts/data-quality" / f"relations-{datetime.now(timezone.utc):%Y%m%dT%H%M%S}-{uuid4().hex[:6]}")
-    parser.add_argument("--cache", type=Path, default=ROOT / "artifacts/data-quality/history-cache")
+    parser.add_argument("--output", type=Path, default=ROOT / "artifacts/data/data-quality" / f"relations-{datetime.now(timezone.utc):%Y%m%dT%H%M%S}-{uuid4().hex[:6]}")
+    parser.add_argument("--cache", type=Path, default=ROOT / "artifacts/data/data-quality/history-cache")
     parser.add_argument("--users", help="Comma-separated user IDs; otherwise freeze all currently available partitions")
     parser.add_argument("--limit-users", type=int, help="Bound the audit to the first N selected IDs")
     parser.add_argument("--time-kind", choices=["show", "answer"], default="show", help="Meaning of review_time; explicit revlog_id/id columns are always answer IDs")

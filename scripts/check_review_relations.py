@@ -88,7 +88,7 @@ def expected_graph(histories, minimum):
 
 class ReviewRelationChecks(unittest.TestCase):
     def setUp(self):
-        temp_root = ROOT / "artifacts/check-temp"
+        temp_root = ROOT / "artifacts/diagnostics/check-temp"
         temp_root.mkdir(parents=True, exist_ok=True)
         self.temporary = TemporaryDirectory(prefix="review-relations-", dir=temp_root)
         self.root = Path(self.temporary.name).resolve()
@@ -263,7 +263,7 @@ def main():
     result = unittest.TextTestRunner(verbosity=2).run(suite)
     if not result.wasSuccessful():
         raise SystemExit(1)
-    demo = ROOT / "artifacts/data-quality/relations-demo"
+    demo = ROOT / "artifacts/data/data-quality/relations-demo"
     if (demo / "relations.sqlite").exists():
         from uuid import uuid4
         demo = demo.with_name("relations-demo-" + uuid4().hex[:6])
@@ -276,7 +276,7 @@ def main():
     report = {"status": "passed", "test_methods": result.testsRun, "random_pair_cases": 100,
               "random_cohort_users": 27, "forced_hash_collisions_checked": True,
               "provenance": provenance, "demo": str(demo.relative_to(ROOT))}
-    (ROOT / "artifacts/data-quality/relation-checks.json").write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
+    (ROOT / "artifacts/data/data-quality/relation-checks.json").write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
     print(f"Checks passed. Synthetic graph: {demo / 'graph.html'}")
 
 

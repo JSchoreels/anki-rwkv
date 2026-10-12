@@ -37,6 +37,7 @@ optimization tracks, including ideas that have not been implemented or tested.
 - Preserve existing training checkpoints and unrelated workspace changes. Other
   chats can be working in this same checkout; inspect active runs before launching
   GPU benchmarks so timing is not distorted by competing jobs.
+- Launch R01 cases through the current workspace's `scripts/run_gpu_r01.py` or `scripts/run_isolated_gpu_r01.py`; these apply live LOOP guards and isolate source before training. Do not directly launch archived runtime runners, which can retain obsolete rules. Reuse compatible recorded results and checks; provide a concrete repeat reason and a changed-behaviour purpose for any new smoke.
 
 ## Human-readable documentation
 

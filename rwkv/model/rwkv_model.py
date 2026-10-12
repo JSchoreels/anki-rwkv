@@ -3,6 +3,7 @@ import math
 import torch
 
 from rwkv.model.rwkv_ops import RWKV7_WKV, reference_rwkv7
+from rwkv.model.fused_shift import FusedShiftLerp
 
 """
 IMPORTANT: the CUDA implementation in this repository only supports head dimensions of 32. d_model // n_heads == 32.
@@ -46,6 +47,8 @@ class RWKV7Config:
 
     dropout: float
     dropout_layer: float
+    # Explicit opt-in for training on CUDA without the compiled extension.
+    use_reference_wkv: bool = False
 
 
 class RWKV7(ModuleType):
@@ -203,6 +206,8 @@ class LoraMLP(ModuleType):
 class RWKV7TimeMixer(ModuleType):
     def __init__(self, config: RWKV7Config, layer_id):
         super().__init__()
+        self.use_reference_wkv = config.use_reference_wkv
+        self.fused_shift = False
         assert config.d_model % config.n_heads == 0
         self.layer_id = layer_id
         C = config.d_model
@@ -310,15 +315,16 @@ class RWKV7TimeMixer(ModuleType):
         H, K = self.H, self.K
 
         x_BTC = self.layer_norm(in_BTC)
-        x_shift_BTC = torch.gather(
-            x_BTC,
-            dim=1,
-            index=time_shift_select_BT.unsqueeze(-1).expand(-1, -1, self.d_model),
-        )
-
-        rkvdag_8BTC = torch.lerp(
-            x_BTC.unsqueeze(0), x_shift_BTC.unsqueeze(0), self.rkvdag_lerp
-        )
+        if self.fused_shift and x_BTC.is_cuda:
+            rkvdag_8BTC = FusedShiftLerp.apply(x_BTC, time_shift_select_BT, self.rkvdag_lerp)
+        else:
+            x_shift_BTC = torch.gather(
+                x_BTC, dim=1,
+                index=time_shift_select_BT.unsqueeze(-1).expand(-1, -1, self.d_model),
+            )
+            rkvdag_8BTC = torch.lerp(
+                x_BTC.unsqueeze(0), x_shift_BTC.unsqueeze(0), self.rkvdag_lerp
+            )
         r_BTC, k_BTC, v_BTC, d_BTC, a_BTC, g_BTC, k_scale_BTC, v_scale_BTC = (
             rkvdag_8BTC.unbind(dim=0)
         )
@@ -352,7 +358,7 @@ class RWKV7TimeMixer(ModuleType):
         k_deformed_BTHK = k_BTHK
         k_BTHK = k_BTHK * a_BTHK
 
-        if r_BTHK.is_cuda:
+        if r_BTHK.is_cuda and not self.use_reference_wkv:
             out_BTHK = RWKV7_WKV.apply(
                 r_BTHK, k_BTHK, v_BTHK, w_BTHK, a_BTHK, k_deformed_BTHK, skip_BT
             )

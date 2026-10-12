@@ -454,6 +454,15 @@ def add_queries(section_df, equalize_review_ths):
     return section_df
 
 
+def _module_group_locations(section_df, submodule):
+    """Group row indices without copying every feature column for each entity."""
+    indices = section_df.groupby(submodule, observed=True).indices
+    row_locations = section_df["index"].to_numpy()
+    # Preserve the original set iteration order: this fixes all downstream
+    # permutations and seeded encodings as well as the training input values.
+    return [row_locations[indices[name]] for name in set(section_df[submodule].values)]
+
+
 def create_sample(
     user_id, section_df, equalize_review_ths, dtype, device
 ) -> RWKVSample:
@@ -476,19 +485,15 @@ def create_sample(
         )
 
     for submodule in RWKV_SUBMODULES:
-        section_df_groupby = section_df.groupby(submodule, observed=True)
-        names = list(set(section_df[submodule].values))
-        submodule_dfs = {name: section_df_groupby.get_group(name) for name in names}
-
         # Need to get subgroups by length and gather them
         # keep track of their locations within section_df
         map_len_to_locs_list = {}
 
-        for submodule_i, group_df in submodule_dfs.items():
-            key = len(group_df)
+        for group_locs in _module_group_locations(section_df, submodule):
+            key = len(group_locs)
             if key not in map_len_to_locs_list:
                 map_len_to_locs_list[key] = []
-            map_len_to_locs_list[key].append(group_df["index"].values)
+            map_len_to_locs_list[key].append(group_locs)
 
         # create inverse map based on the flattened concat
         locs = []

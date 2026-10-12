@@ -14,7 +14,7 @@ from scripts.experiment_provenance import capture_source, provenance_rows
 
 
 def main():
-    temporary_root = ROOT / "artifacts/check-temp"
+    temporary_root = ROOT / "artifacts/diagnostics/check-temp"
     temporary_root.mkdir(parents=True, exist_ok=True)
     with TemporaryDirectory(dir=temporary_root) as folder:
         repo = Path(folder)

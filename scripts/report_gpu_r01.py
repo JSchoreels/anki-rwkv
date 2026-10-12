@@ -11,6 +11,7 @@ sys.path.insert(0, str(ROOT))
 from scripts.experiment_provenance import process_provenance
 from scripts.gpu_r01_statistics import METRICS, paired_relative_losses
 from scripts.gpu_r01_log import update_run_log
+from scripts.gpu_r01_policy import decide, resource_reductions, result_metadata
 from scripts.run_gpu_batch1 import atomic_json
 
 
@@ -51,9 +52,16 @@ def main():
                               "throughput_gain_percent": gain, "training_time_delta_percent": delta(candidate["training_seconds"], reference["training_seconds"]),
                               "process_wall_delta_percent": delta(candidate["process_wall_seconds"], reference["process_wall_seconds"]),
                               "meets_20_percent_speed_target": gain >= 20,
-                              "no_20_percent_gain_streak_after_this_iteration": 0 if gain >= 20 else 1,
-                              "decision": ("promising preliminary speed screen; broader validation pending" if gain >= 20 and losses["all_four_strict_upper_bounds_below_limit"] else
-                                           "speed target missed" if gain < 20 else "quality screen failed; retain baseline")}
+                              "no_20_percent_gain_streak_after_this_iteration": 0 if gain >= 20 else 1}
+        reductions = resource_reductions(output / model / selected / "result.json", output / model / "control/result.json", ROOT)
+        comparisons[model].update(decide(gain, {"previous": losses, "original_baseline": losses},
+                                         relative_limit=0.01, baseline_limit=0.02, prior_streak=0,
+                                         resources_reduced=bool(reductions)))
+        comparisons[model]["resource_reductions"] = reductions
+        comparisons[model]["incumbent_after_iteration"] = selected if comparisons[model]["accepted_main"] else "control"
+        comparisons[model]["accepted_reference"] = result_metadata(output / model / comparisons[model]["incumbent_after_iteration"] / "result.json", ROOT)
+        if comparisons[model]["resource_retuning_pending"]:
+            comparisons[model]["retuning_candidate"] = result_metadata(output / model / selected / "result.json", ROOT)
     report = {"status": "complete preliminary iteration" if len(comparisons) == 2 else "in progress",
               "iteration": "0002", "generated_utc": datetime.now(timezone.utc).isoformat(),
               "analysis_provenance": process_provenance(), "protocol": "protocol.json", "comparisons": comparisons,
@@ -64,7 +72,7 @@ def main():
              "This round follows the current user-holdout procedure. It is separate from iteration 0001's unfinished B01 prerequisite. Historical attempts remain preserved.", "",
              f"Fixed cohort: **80 training users / 20 disjoint held-out users**; **{protocol['training_reviews']:,} full-history training reviews / {protocol['validation_reviews']:,} held-out reviews**. Evaluation concerns unseen users, using 128-review chunks and the original feature/loss path. No evaluation user receives gradient updates.", "",
              "Seed 2025; one epoch; BF16 compute/FP32 master; Default 128 chunks/4 workers, Expertium 256 chunks/6 workers; LR 7e-4, five-update warmup, clip 0.5. Optimized JIT executor disabled; deterministic Torch algorithms; CUBLAS workspace :4096:8; WKV tile32. Candidates preserve exposure, batching and update schedule within each architecture.", "",
-             "Budget: two fresh architecture baselines, resource profiles, then one selected execution candidate per architecture. Strict <1% relative regression on all four binary losses against the previous run and the baseline; these are the same matched control in this first round. Target ≥20% raw reviews/s gain. Paired-user bootstrap: 10,000 resamples, seed 20261012, alpha 0.05, family size8. The 20-user screen cannot satisfy the repository's 500-evaluation-user validation gate.", "",
+             "Initial-round budget: one original baseline per architecture, resource profiles, then one selected candidate per architecture. Measured regression ≤1% on all four binary losses against the previous accepted run; ≤2% versus the original baseline is preferred. These references coincide in the initial round. Confidence bounds are reported separately. Target ≥20% raw reviews/s gain. The 20-user screen cannot satisfy the repository's broader validation gate.", "",
              "[Frozen protocol and exact run budgets](protocol.json), [persistent nested cohorts](../cohorts-user-holdout-v1.json), [raw comparisons and parity checks](comparison.json).", "",
              "## Measurements", "", "| Model / case | Training s | Raw reviews/s | Gain vs previous / baseline | Process wall s | Weighted Curve / Instant | User-average Curve / Instant |", "|---|---:|---:|---:|---:|---|---|"]
     for model in protocol["models"]:
@@ -104,8 +112,10 @@ def main():
         lines.append(f"{model}/{value['track']}: **{value['decision']}**. Final parameter/input/coverage/score hashes and all logged update fields {'match exactly' if exact else 'do not all match'}; {value['update_mismatch_count']} logged update differences. Training time {value['training_time_delta_percent']:+.2f}%, process wall {value['process_wall_delta_percent']:+.2f}%. Exact parity here concerns this run's recorded tensors and metrics, not independent statistical validation.")
         lines += ["", "| Binary loss | Candidate | Delta vs previous / baseline | Relative one-sided familywise upper | <1% bound |", "|---|---:|---:|---:|---|"]
         for key, metric in value["losses"]["metrics"].items():
-            lines.append(f"| {key} | {metric['candidate']:.9f} | {metric['relative_delta_percent']:+.6f}% / same | {100 * metric['relative_familywise_upper']:+.6f}% | {metric['strict_upper_below_limit']} |")
+            lines.append(f"| {key} | {metric['candidate']:.9f} | {metric['relative_delta_percent']:+.2f}% / same | {100 * metric['relative_familywise_upper']:+.2f}% | {metric['strict_upper_below_limit']} |")
         lines.append("")
+        if value.get("resource_retuning_pending"):
+            lines += ["Resource use fell without a speed gain. Preserve this candidate for investigating retuning of freed capacity before rejection.", ""]
     if implementation:
         lines += [f"Successful F01/R01 code was committed after these experiments as `{implementation['git_commit']}`. The tested process-start revision remains `{implementation['experiment_git_commit']}` with dirty source snapshots; the later implementation commit is not represented as the experiment revision. [Commit record](implementation-commit.json).", ""]
     else:

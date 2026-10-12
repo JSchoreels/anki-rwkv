@@ -35,12 +35,12 @@ def synthetic_batch(device, dtype):
         label_review_th=torch.arange(1, length + 1, device=device).repeat(batch_size, 1))
 
 
-def check_recurrence(device, dtype, heads):
+def check_recurrence(device, dtype, heads, length=35):
     torch.manual_seed(2025)
-    shape = (2, 35, heads, 32)  # crosses the 32-step state checkpoint boundary
+    shape = (2, length, heads, 32)  # crosses the 32-step state checkpoint boundary
     cpu_inputs = [(torch.randn(shape) * 0.05).to(dtype) for _ in range(6)]
     cpu_inputs[3] = torch.full(shape, 0.9, dtype=torch.float32)
-    skip = torch.zeros(2, 35, dtype=torch.bool)
+    skip = torch.zeros(2, length, dtype=torch.bool)
     skip[:, 3::7] = True
     expected_inputs = [value.clone().requires_grad_() for value in cpu_inputs]
     expected = reference_rwkv7(*expected_inputs, skip)

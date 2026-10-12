@@ -2,7 +2,7 @@
   "repository": "https://github.com/Expertium/rwkv-anki-autoresearch",
   "commit": "39666c69e3fae73f60ff5c35cd6d175f9cf5cbe7",
   "variant": "iter36 fp32, d=32, H=1, [1,4,3,3,3], 64 curves/points",
-  "adaptation": "Only model/architecture import namespaces changed; common dataset/config modules reused. QAT disabled; no pretrained weights.",
+  "adaptation": "Model/architecture import namespaces changed; common dataset/config modules reused. Add opt-in exact row selection, exact shift gathering and fused shift/lerp paths, all disabled by default. QAT disabled; no pretrained weights.",
   "files": {
     "expertium/architecture.py": {
       "source": "rwkv/architecture.py",
@@ -12,12 +12,14 @@
     "expertium/model/srs_model.py": {
       "source": "rwkv/model/srs_model.py",
       "original_sha256": "1022957b01a9edf1dfca952ed939c063a400ea82e80ef7e85fe73a6abdcb0f8c",
-      "adapted_sha256": "7595a81a8958f206e18f42cf200872871db3712f2fd88b875d3077f0ccffcae6"
+      "adapted_sha256": "187577dfb72300b4ce47dc6537aad7fd1ceef43b34b974ed5965cc81716b9cde",
+      "adaptation": "Import namespace adaptation plus optional ExactIndexSelect row-selection backward; exact_index defaults to false."
     },
     "expertium/model/rwkv_model.py": {
       "source": "rwkv/model/rwkv_model.py",
       "original_sha256": "3db2cde588b05b0888271ec37b00893a12e55fd87c31079fae4dcf9d5934c7f7",
-      "adapted_sha256": "fe3501e3c78e845b95e73e1cff285f76a2daae78065fd181b5b649ae549aab0c"
+      "adapted_sha256": "e40d8190eda6d704caa27c66bdf937609841c73b10cec240524489a063f614fd",
+      "adaptation": "Import namespace adaptation plus optional ExactShiftGather and FusedShiftLerp paths; exact_shift and fused_shift default to false."
     },
     "expertium/model/rwkv_ops.py": {
       "source": "rwkv/model/rwkv_ops.py",

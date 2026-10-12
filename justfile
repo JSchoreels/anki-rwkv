@@ -60,3 +60,34 @@ check-cuda:
 
 compare-cuda:
     uv run --no-sync python scripts/compare.py --config configs/compare-cuda.toml
+
+# Exact preparation parity, ordered prefetch, BF16 kernels, and interrupted resume.
+check-gpu-perf:
+    uv run --locked --extra nvrtc python scripts/check_gpu_perf.py
+
+# End-to-end throughput on a common real-history window; keeps training checkpoints intact.
+benchmark-gpu:
+    uv run --locked --extra nvrtc python scripts/benchmark_gpu_trial.py
+
+# Identical-input throughput comparison, followed by independent Expertium tuning.
+compare-gpu-throughput:
+    uv run --locked --extra nvrtc python scripts/compare_gpu_throughput.py
+
+# Fixed-batch preparation, recurrence tiles, launch/copy fusion, graphs, and AdamW.
+benchmark-gpu-optimizations:
+    uv run --locked --extra nvrtc python scripts/run_gpu_optimizations.py
+
+check-gpu-optimizations:
+    uv run --locked --extra nvrtc python scripts/check_gpu_optimizations.py
+
+# Paired curve/instant log-loss screen on a chronological user-17 holdout.
+check-gpu-logloss:
+    uv run --locked --extra nvrtc python scripts/check_gpu_logloss.py --in-process
+
+# Refresh paired held-out log loss, measured seconds and reviews/s; retain pending ideas.
+report-gpu-tradeoffs:
+    uv run --no-sync python scripts/report_training_tradeoffs.py
+
+# Full-history GPU trial with checkpoint resume support.
+train-gpu-trial:
+    uv run --locked --extra nvrtc python scripts/train_gpu_trial.py --config configs/train-gpu-trial.toml
