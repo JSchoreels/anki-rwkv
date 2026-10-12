@@ -58,6 +58,7 @@ def main():
     os.environ["GPU_BATCH1_DATA_PATH"] = str(ROOT / cohort["dataset_path"])
     os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":4096:8"
     import torch
+    torch.set_num_threads(int(variants["a"].get("main_threads", 1)))
     from rwkv.data_processing import get_rwkv_data
     from rwkv.model import exact_index, nvrtc
     from scripts.benchmark_gpu_trial import benchmark_models, fresh_checkpoint
@@ -68,6 +69,14 @@ def main():
     nvrtc.register()
     nvrtc.set_checkpoint_length(32)
     preparation = {"prefetch_users": True, "preparation_workers": 8, "gpu_packed_features": True, "packed_ipc": True}
+    # Use the accepted byte-exact CPU path when checking an accepted R01 bundle.
+    # Preparation is common to both variants; changed worker options still need
+    # a separate CPU batch-byte comparison, as disclosed by not_exercised.
+    for key in ("fast_samples", "batched_id_encodings", "columnar_samples"):
+        if key in variants["a"]:
+            preparation[key] = variants["a"][key]
+    if preparation.get("batched_id_encodings"):
+        from scripts.gpu_preprocessing_stage import prepare_job
     rows = sorted(cohort["stages"]["100"]["rows"], key=lambda row: row["available_reviews"])
     picks = [(rows[-1], 0, 32768), (rows[-3], 32768, 65536), (rows[len(rows) // 2], 0, 32768), (rows[0], 0, 32768), (rows[10], 0, 32768)]
     jobs = []
@@ -75,6 +84,7 @@ def main():
         frame = split_frame(get_rwkv_data(Path(os.environ["GPU_BATCH1_DATA_PATH"]), row["user_id"]), row, "train")
         end = min(end, len(frame))
         jobs.append((row, prepare_job(row, offset, end, 2025 + row["user_id"] + offset, preparation, frame.iloc[offset:end])))
+        print(f"[prepare] {len(jobs)}/{len(picks)} real batches", flush=True)
     batches = [(row, item, batch) for (row, _), (_, item, batch) in zip(jobs, transfer_batches(iter(jobs), torch.bfloat16, False))]
     result = {"provenance": process_provenance(), "torch": torch.__version__, "options": variants, "self_test": args.self_test,
               "not_exercised": {name: sorted(set(options) - APPLIED) for name, options in variants.items()},
@@ -127,6 +137,7 @@ def main():
                                       "loss_bitwise_equal": same(loss_a, loss_b), "same_gradient_set": sorted(grads_b) == names,
                                       "parameters": len(names), "differing_gradients": differing[:10],
                                       "differing_gradient_count": len(differing)})
+            print(f"[compare] {len(result['batches'])}/{len(batches)} batches; differing gradients {len(differing)}", flush=True)
         batches_equal = sum(b["loss_bitwise_equal"] and b["same_gradient_set"] and not b["differing_gradient_count"] for b in result["batches"])
         result["summary"] = {"batches": len(result["batches"]), "batches_bitwise_equal": batches_equal}
         result["status"] = "passed" if batches_equal == len(result["batches"]) > 0 else "failed"

@@ -36,8 +36,8 @@ def source_options(dtype, exact=False):
 
 
 def compile_module(device, dtype, rows, tile, exact=False):
-    if rows not in (1, 2, 4) or tile not in (8, 16, 32):
-        raise ValueError("Rows must be 1, 2 or 4; checkpoint tile must be 8, 16 or 32")
+    if rows not in (1, 2, 4, 8) or tile not in (8, 16, 32):
+        raise ValueError("Rows must be 1, 2, 4 or 8; checkpoint tile must be 8, 16 or 32")
     index = device.index if device.index is not None else torch.cuda.current_device()
     key = index, dtype, rows, tile, exact
     if key not in _modules:
@@ -54,7 +54,7 @@ def compile_module(device, dtype, rows, tile, exact=False):
 @contextmanager
 def row_tiled_backend(rows=4, tile=8, exact=False):
     """Hold this context through every associated forward AND backward call."""
-    if rows not in (1, 2, 4) or tile not in (8, 16, 32):
+    if rows not in (1, 2, 4, 8) or tile not in (8, 16, 32):
         raise ValueError("Invalid row/tile configuration")
     nvrtc.register()
     original_module, original_launch = nvrtc.module, nvrtc.launch

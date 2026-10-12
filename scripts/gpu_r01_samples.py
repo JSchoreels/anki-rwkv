@@ -31,10 +31,22 @@ def _matrix(columns):
     return np.column_stack([column.astype(np.float64) for column in columns])
 
 
-def create_sample_fast(user_id, section_df, equalize_review_ths, dtype, device):
-    frame = add_segment_features(section_df.copy()).reset_index(drop=True)
-    data = {name: frame[name].to_numpy() for name in frame.columns}
-    data["skip"] = np.zeros(len(frame), dtype=bool)
+def create_sample_fast(user_id, section_df, equalize_review_ths, dtype, device, column_arrays=None):
+    if column_arrays is None:
+        frame = add_segment_features(section_df.copy()).reset_index(drop=True)
+        data = {name: frame[name].to_numpy() for name in frame.columns}
+    else:
+        # F42: extract unchanged columns once per batch, preserving their dtypes.
+        # Keep the original pandas arithmetic/groupby for segment-local features,
+        # without constructing and copying a DataFrame for each 128-review chunk.
+        import pandas as pd
+        data = dict(column_arrays)
+        days = pd.Series(data["day_offset"], copy=False)
+        days = days - days.min()
+        data["day_offset"] = days.to_numpy()
+        data["day_offset_first"] = days.groupby(data["card_id"]).transform("first").to_numpy()
+        data["day_of_week"] = (((days % 7) - 3) / 3).to_numpy()
+    data["skip"] = np.zeros(len(section_df), dtype=bool)
     if set(data) != set(KEEP) | set(REJECT) or len(data) != len(KEEP) + len(REJECT):
         raise ValueError("Sample columns differ from the add_queries keep/reject lists")
     queries = np.flatnonzero(data["is_first_review"] == False)  # noqa: E712 - same comparison as add_queries
@@ -100,11 +112,18 @@ def create_sample_fast(user_id, section_df, equalize_review_ths, dtype, device):
 def samples_for(section, user, options, chunk=128):
     """F30 when the frozen options select it; otherwise the original per-chunk construction."""
     if options.get("fast_samples"):
-        return make_samples_fast(section, user, chunk)
+        return make_samples_fast(section, user, chunk, columnar=options.get("columnar_samples", False))
+    if options.get("columnar_samples"):
+        raise ValueError("F42 columnar sample construction requires fast_samples")
     from scripts.gpu_batch1 import make_samples
     return make_samples(section, user, chunk)
 
 
-def make_samples_fast(section, user, chunk):
+def make_samples_fast(section, user, chunk, *, columnar=False):
+    if columnar:
+        columns = {name: section[name].to_numpy() for name in section.columns}
+        return [create_sample_fast(user, section.iloc[i:i + chunk], [], torch.float32, torch.device("cpu"),
+                                   column_arrays={name: values[i:i + chunk] for name, values in columns.items()})
+                for i in range(0, len(section), chunk)]
     return [create_sample_fast(user, section.iloc[i:i + chunk], [], torch.float32, torch.device("cpu"))
             for i in range(0, len(section), chunk)]

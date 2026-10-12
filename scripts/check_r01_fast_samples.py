@@ -28,6 +28,7 @@ def main():
     parser = ArgumentParser(description=__doc__)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--reviews-per-user", type=int, default=4096)
+    parser.add_argument("--columnar", action="store_true", help="Compare F42 columnar samples against the accepted F30 path")
     args = parser.parse_args()
     output = (ROOT / args.output).resolve()
     if not output.is_relative_to(ROOT / "artifacts") or output.exists():
@@ -41,7 +42,8 @@ def main():
     from scripts.gpu_batch1 import make_samples, split_frame
     from scripts.gpu_r01_samples import make_samples_fast
     result = {"provenance": process_provenance(), "status": "running", "users": [], "mismatches": [],
-              "scope": f"all 100-cohort training users, first {args.reviews_per_user} training reviews each, 128-review chunks; every RWKVSample field compared bitwise; one CPU thread"}
+              "scope": f"all 100-cohort training users, first {args.reviews_per_user} training reviews each, 128-review chunks; every RWKVSample field compared bitwise; one CPU thread",
+              "candidate": "F42 columnar" if args.columnar else "F30 NumPy"}
     original_seconds = fast_seconds = 0.0
     chunks = 0
     try:
@@ -49,10 +51,10 @@ def main():
             frame = split_frame(get_rwkv_data(Path(os.environ["GPU_BATCH1_DATA_PATH"]), row["user_id"]), row, "train")
             section = frame.iloc[:args.reviews_per_user]
             started = time.perf_counter()
-            reference = make_samples(section, row["user_id"], 128)
+            reference = (make_samples_fast if args.columnar else make_samples)(section, row["user_id"], 128)
             original_seconds += time.perf_counter() - started
             started = time.perf_counter()
-            candidate = make_samples_fast(section, row["user_id"], 128)
+            candidate = make_samples_fast(section, row["user_id"], 128, columnar=args.columnar)
             fast_seconds += time.perf_counter() - started
             chunks += len(reference)
             for index, (a, b) in enumerate(zip(reference, candidate)):
