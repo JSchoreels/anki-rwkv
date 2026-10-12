@@ -54,6 +54,8 @@ def main():
     if not output.is_relative_to(ROOT / "artifacts") or output.exists():
         parser.error("Use a new workspace artifact directory")
     variants = {"a": load_options(args.a, args.a_track), "b": load_options(args.b, args.b_track)}
+    from scripts.r01_workflow import configure_runtime
+    configure_runtime(ROOT, int(variants["a"].get("main_threads", 1)))
     cohort = json.loads((ROOT / "artifacts/retraining/gpu-retrain-r01/cohorts-user-holdout-v1.json").read_text(encoding="utf-8"))
     os.environ["GPU_BATCH1_DATA_PATH"] = str(ROOT / cohort["dataset_path"])
     os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":4096:8"

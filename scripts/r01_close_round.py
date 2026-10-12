@@ -1,26 +1,20 @@
-"""Close an R01 round after the implementation commit, printing only status lines.
+"""Close an R01 round with complete summaries and compact handoffs.
 
-For each iteration: write implementation-commit.json (kept if present unless
---overwrite), rerun scripts/report_gpu_r01_next.py --brief and print its line.
-Then write a draft round summary with the filled results table (only if the
-summary does not exist yet; narrative sections stay as TODO lines) and, with
---ledger-change, append the implementation-commit row to docs/GPU_OPTIMIZATIONS.md.
-
-Example:
-  scripts/r01_close_round.py --iterations 0028-0030 --commit HEAD --ledger-change "Shared shift orders ..." --ledger-tracks "F35, F38"
+--preview renders into a new artifacts directory without changing cases, run
+logs or the ledger. Existing implementation records and edited summaries are
+preserved by default. No training or new quality evaluation is launched.
 """
-
 from argparse import ArgumentParser
 from datetime import datetime, timezone
-import json
 from pathlib import Path
+import re
 import subprocess
 import sys
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
-from scripts.r01_metrics import case_metrics  # noqa: E402
-from scripts.report_gpu_r01_next import describe  # noqa: E402
+from scripts.r01_round_report import entry, safe_cell, write_documents
+from scripts.r01_workflow import configure_runtime, read_json, run_logged, tail, write_json, write_text, StepFailure
 
 R = Path("artifacts/retraining/gpu-retrain-r01")
 LEDGER = ROOT / "docs/GPU_OPTIMIZATIONS.md"
@@ -28,104 +22,111 @@ LEDGER = ROOT / "docs/GPU_OPTIMIZATIONS.md"
 
 def iteration_numbers(text):
     if "-" in text:
-        first, last = text.split("-")
-        return [f"{number:04d}" for number in range(int(first), int(last) + 1)]
-    return [f"{int(number):04d}" for number in text.split(",")]
+        first, last = map(int, text.split("-"))
+        values = list(range(first, last + 1))
+    else:
+        values = list(map(int, text.split(",")))
+    if not values or min(values) < 1 or len(values) != len(set(values)):
+        raise ValueError("Use an ascending range or distinct positive iteration numbers")
+    return [f"{number:04d}" for number in sorted(values)]
 
 
-def entry(iteration, model):
-    comparison = json.loads((ROOT / R / f"iteration-{iteration}" / "comparison.json").read_text(encoding="utf-8"))
-    item = comparison["comparisons"][model]
-    exact = all(item["parity"]["fields"].values())
-    case = ROOT / R / f"iteration-{iteration}" / model / item["track"]
-    previous = ROOT / Path(item["references"]["previous"]["path"]).parent
-    isolation = json.loads((ROOT / R / f"iteration-{iteration}" / "source-isolation.json").read_text(encoding="utf-8"))
-    return {"iteration": iteration, "track": item["track"], "exact": exact, "accepted": item["accepted_main"],
-            "decision": item["decision"], "gain": item["references"]["previous"]["throughput_gain_percent"],
-            "case": case, "previous": previous, "origin": isolation["origin_git_commit"], "metrics": case_metrics(case)}
+def record_commit(item, commit, directory, overwrite=False):
+    path = Path(directory) / "implementation-commit.json"
+    if path.exists():
+        previous = read_json(path)
+        if not re.fullmatch(r"(?:[0-9a-f]{40}|[0-9a-f]{64})", previous["git_commit"]):
+            raise ValueError("Existing implementation record has an invalid commit ID")
+        if not overwrite:
+            if previous["git_commit"] != commit:
+                raise ValueError("Implementation record has another commit; keep it or explicitly --overwrite")
+            return False
+        archive = path.with_name(f"implementation-commit-before-{previous['git_commit']}.json")
+        if archive.exists() and archive.read_bytes() != path.read_bytes():
+            raise ValueError("Previous record archive differs; preserve it")
+        if not archive.exists():
+            archive.write_bytes(path.read_bytes())
+    role = "accepted" if item["accepted"] else ("exact, not accepted" if item["exact"] else "not exact, not accepted")
+    write_json(path, {"git_commit": commit, "recorded_utc": datetime.now(timezone.utc).isoformat(),
+                     "timing": "implementation commit after completed experiments; not the revision tested by any full run",
+                     "tracks": item["track"], "source_archive": item["metrics"]["source_archive"],
+                     "evidence": (R / f"iteration-{item['iteration']}/summary.md").as_posix(),
+                     "scope": f"{item['track']} ({role}); {item['explanation']}; origin {item['origin']}",
+                     "experiment_git_commit": item["metrics"]["experiment_git_commit"]})
+    return True
+
+
+def append_ledger(path, root, summary, entries, commit, change, tracks):
+    lines = Path(path).read_text(encoding="utf-8").splitlines()
+    start = lines.index("## Implementation commits")
+    end = next((i for i in range(start + 1, len(lines)) if lines[i].startswith("## ")), len(lines))
+    if any(commit in line for line in lines[start:end]):
+        print("[ledger] implementation row already present")
+        return
+    index = max(i for i in range(start, end) if lines[i].startswith("|")) + 1
+    accepted = [item for item in entries if item["accepted"]]
+    status = ("Accepted " + ", ".join(item["iteration"] for item in accepted) if accepted else "Not accepted") + "; preliminary only"
+    records = ", ".join(f"[{item['iteration']}](../{R.as_posix()}/iteration-{item['iteration']}/implementation-commit.json)" for item in entries)
+    experiments = "; ".join(f"{item['iteration']} `{item['metrics']['experiment_git_commit']}` (origin `{item['origin']}`)" for item in entries)
+    lines.insert(index, f"| {safe_cell(change)} | {safe_cell(tracks or ', '.join(item['track'] for item in entries))}; [round summary](../{summary.relative_to(root).as_posix()}), commit records for {records} | `{commit}` | {experiments} | {status} |")
+    write_text(path, "\n".join(lines) + "\n")
+    print("[ledger] implementation row appended")
 
 
 def main():
     parser = ArgumentParser(description=__doc__)
-    parser.add_argument("--iterations", required=True, help="Range like 0028-0030 or a comma list")
-    parser.add_argument("--commit", default="HEAD", help="Implementation commit (resolved with git rev-parse)")
-    parser.add_argument("--model", default="expertium")
+    parser.add_argument("--iterations", required=True)
+    parser.add_argument("--commit", default="HEAD")
+    parser.add_argument("--model", default="expertium", choices=("expertium", "baseline"))
     parser.add_argument("--agent", default="claude")
-    parser.add_argument("--overwrite", action="store_true", help="Rewrite existing implementation-commit.json files")
-    parser.add_argument("--ledger-change", help="Change/bundle text for a new implementation-commits ledger row")
-    parser.add_argument("--ledger-tracks", help="Related track IDs for that row, e.g. 'F35, F38'")
+    parser.add_argument("--overwrite", action="store_true", help="Replace commit records, preserving earlier records")
+    parser.add_argument("--refresh-summary", action="store_true", help="Explicitly regenerate an existing summary/handoff")
+    parser.add_argument("--preview", type=Path, help="New artifacts directory; leave all recorded cases untouched")
+    parser.add_argument("--next-step", action="append", default=[])
+    parser.add_argument("--heartbeat-seconds", type=int, default=60)
+    parser.add_argument("--ledger-change")
+    parser.add_argument("--ledger-tracks")
     args = parser.parse_args()
-    commit = subprocess.run(["git", "rev-parse", args.commit], cwd=ROOT, capture_output=True, text=True, check=True).stdout.strip()
-    iterations = iteration_numbers(args.iterations)
-    entries = [entry(iteration, args.model) for iteration in iterations]
-
-    for item in entries:
-        directory = ROOT / R / f"iteration-{item['iteration']}"
-        record_path = directory / "implementation-commit.json"
-        write = args.overwrite or not record_path.exists()
-        if write:
-            role = "accepted" if item["accepted"] else ("exact, not accepted" if item["exact"] else "not exact, not accepted")
-            record = {"git_commit": commit, "recorded_utc": datetime.now(timezone.utc).isoformat(),
-                      "timing": "implementation commit after completed experiments; not the revision tested by any full run",
-                      "tracks": item["track"], "source_archive": item["metrics"]["source_archive"],
-                      "evidence": str((R / f"iteration-{item['iteration']}" / "summary.md").as_posix()),
-                      "scope": f"{item['track']} ({describe(item['track'])}; {role}); the tested isolated runtime is a dirty snapshot over origin {item['origin'][:7]}",
-                      "experiment_git_commit": item["metrics"]["experiment_git_commit"]}
-            record_path.write_text(json.dumps(record, indent=2) + "\n", encoding="utf-8")
-        report = subprocess.run([sys.executable, "scripts/report_gpu_r01_next.py", "--output", str(R / f"iteration-{item['iteration']}"), "--brief"],
-                                cwd=ROOT, capture_output=True, text=True)
-        lines = report.stdout.strip().splitlines()
-        print(f"[{item['iteration']}] record {'written' if write else 'kept'}; "
-              + (lines[-1] if report.returncode == 0 and lines else f"REPORT FAILED: {report.stderr.strip()[-300:]}"))
-
-    first, last = iterations[0], iterations[-1]
-    reference = case_metrics(entries[0]["previous"])
-    reference_iteration = entries[0]["previous"].parents[1].name.split("-")[-1]
-    summary = ROOT / R / f"{args.agent}-round-{first}-{last}-summary.md"
-    accepted = [item for item in entries if item["accepted"]]
-    if not summary.exists():
-        def cells(metrics):
-            return (f"{metrics['training_seconds']:.3f} | {metrics['reviews_per_second']:,.0f}", f"{metrics['process_wall_seconds']:.3f}",
-                    f"{metrics.get('queue_wait_seconds', float('nan')):.2f}", f"{metrics.get('preparation_seconds', float('nan')):.1f}")
-        speed, wall, wait, prep = cells(reference)
-        rows = [f"| [{reference_iteration}](iteration-{reference_iteration}/summary.md) | {entries[0]['previous'].name} | {speed} | — | {wall} | {wait} | {prep} | Previous reference |"]
-        for item in entries:
-            speed, wall, wait, prep = cells(item["metrics"])
-            decision = "Accepted" if item["accepted"] else ("Exact; speed target missed" if item["exact"] else item["decision"])
-            rows.append(f"| [{item['iteration']}](iteration-{item['iteration']}/summary.md) | {item['track']} | {speed} | {item['gain']:+.2f}% | {wall} | {wait} | {prep} | {decision} |")
-        headline = (f"The accepted preliminary reference is now **{accepted[-1]['iteration']}** ({accepted[-1]['track']})." if accepted
-                    else f"No iteration was accepted; the reference stays {reference_iteration}.")
-        summary.write_text("\n".join([
-            f"# {args.agent.capitalize()} continuation: iterations {first}–{last}", "",
-            f"{headline} TODO: gain versus the round's reference and the original baseline, parity statement, authorization quote, implementation commit `{commit[:7]}`.", "",
-            "## Full-history results", "",
-            "TODO: cohort, seed, precision, chunks and updates line (copy from the previous round summary).", "",
-            "| Iteration | Bundle | Training seconds | Reviews/s | Gain vs reference | Complete process seconds | Queue wait s | Summed worker preparation s | Decision |",
-            "|---|---|---:|---:|---:|---:|---:|---:|---|", *rows, "",
-            *[f"**{item['iteration']}, {describe(item['track'])}.** TODO: hypothesis, change and measured outcome in 2–4 sentences.\n" for item in entries],
-            "## Checks and caveats", "", "- TODO: bitwise checks, background load, machine-state drift.", "",
-            "## Next ideas (ledger)", "", "TODO", ""]), encoding="utf-8")
-        print(f"[summary] draft written: {summary.relative_to(ROOT)}")
-    else:
-        print(f"[summary] kept existing {summary.relative_to(ROOT)}")
-
-    if args.ledger_change:
-        records = ", ".join(f"[{item['iteration']}](../{R.as_posix()}/iteration-{item['iteration']}/implementation-commit.json)" for item in entries)
-        experiments = "; ".join(f"{item['iteration']} `{item['metrics']['experiment_git_commit']}`" for item in entries)
-        status = (f"Accepted {', '.join(item['iteration'] for item in accepted)} under the {'exact 2%' if all(item['exact'] for item in accepted) else 'applicable'} gate"
-                  if accepted else "Not accepted") + "; preliminary only"
-        row = (f"| {args.ledger_change} | {args.ledger_tracks or ', '.join(item['track'] for item in entries)}; "
-               f"[round summary](../{summary.relative_to(ROOT).as_posix()}), commit records for {records} | `{commit}` | "
-               f"{experiments} (dirty isolated snapshots over `{entries[0]['origin'][:7]}`) | {status} |")
-        lines = LEDGER.read_text(encoding="utf-8").split("\n")
-        start = lines.index("## Implementation commits")
-        end = max(index for index in range(start, len(lines)) if lines[index].startswith("|"))
-        if any(commit in line for line in lines[start:end + 1]):
-            print("[ledger] row with this commit already present; unchanged")
+    try:
+        if not re.fullmatch(r"[A-Za-z][A-Za-z0-9_-]*", args.agent):
+            raise ValueError("Use an agent name without path separators")
+        iterations = iteration_numbers(args.iterations)
+        commit = subprocess.run(["git", "rev-parse", "--verify", args.commit + "^{commit}"], cwd=ROOT,
+                                capture_output=True, text=True, check=True).stdout.strip()
+        entries = [entry(ROOT, R, iteration, args.model) for iteration in iterations]
+        configure_runtime(ROOT, 1)
+        destination = ROOT / R
+        if args.preview:
+            destination = (ROOT / args.preview).resolve()
+            if not destination.is_relative_to(ROOT / "artifacts") or destination.exists():
+                raise ValueError("Preview requires a new directory under artifacts")
+            destination.mkdir(parents=True)
         else:
-            lines.insert(end + 1, row)
-            LEDGER.write_text("\n".join(lines), encoding="utf-8")
-            print("[ledger] implementation-commit row appended")
+            for item in entries:
+                path = item["case"].parents[1] / "implementation-commit.json"
+                if path.exists() and not args.overwrite and read_json(path)["git_commit"] != commit:
+                    raise ValueError("Existing implementation commit differs; use its revision or explicitly --overwrite")
+            for i, item in enumerate(entries):
+                directory = item["case"].parents[1]
+                written = record_commit(item, commit, directory, args.overwrite)
+                log = run_logged("report", [sys.executable, "scripts/report_gpu_r01_next.py", "--output", str(R / directory.name), "--brief"],
+                                 directory / "close-report-console.log", root=ROOT, heartbeat_seconds=args.heartbeat_seconds)
+                entries[i] = entry(ROOT, R, item["iteration"], args.model)
+                if written:
+                    path = directory / "implementation-commit.json"
+                    record = read_json(path)
+                    record["scope"] = f"{entries[i]['track']}; {entries[i]['decision']}; origin {entries[i]['origin']}"
+                    write_json(path, record)
+                print(f"[{item['iteration']}] record {'written' if written else 'kept'}; {tail(log, lines=1, chars=600)}", flush=True)
+        summary = destination / f"{args.agent}-round-{iterations[0]}-{iterations[-1]}-summary.md"
+        write_documents(ROOT, R, entries, commit, args.agent, summary, next_steps=args.next_step,
+                        refresh=args.refresh_summary, update_index=not args.preview)
+        if args.ledger_change and not args.preview:
+            append_ledger(LEDGER, ROOT, summary, entries, commit, args.ledger_change, args.ledger_tracks)
+        print(f"[done] {'preview' if args.preview else 'closed'} {len(entries)} iterations; no training launched", flush=True)
+    except (ValueError, StepFailure, subprocess.CalledProcessError) as error:
+        print(f"[stop] {error}", flush=True)
+        raise SystemExit(1)
 
 
 if __name__ == "__main__":
