@@ -43,7 +43,7 @@ def capture_source(root=ROOT):
     identity = {"git_commit": commit, "source_paths": list(SOURCE_PATHS), "files": manifest}
     encoded = json.dumps(identity, sort_keys=True).encode("utf-8")
     fingerprint = hashlib.sha256(encoded).hexdigest()
-    folder = root / "artifacts/experiment-sources" / fingerprint
+    folder = root / "artifacts/sources/experiment-sources" / fingerprint
     folder.mkdir(parents=True, exist_ok=True)
     archive = folder / "source.zip"
     if not archive.exists():

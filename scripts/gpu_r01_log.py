@@ -28,6 +28,8 @@ DESCRIPTIONS = {
     "F08": "Fuse time-shift gathering and eight interpolation operations on the GPU.",
     "F14": "Prepare compact feature metadata on CPU and materialize feature encodings on GPU.",
     "F07": "Reduce hierarchical padding while retaining review contents and ordering.",
+    "F02": "Reuse deterministic samples and hierarchy templates; regenerate seeded encodings and report cold/build/warm cache costs.",
+    "F19": "Batch CPU ID-encoding draws while preserving ID order, calendar interleaving, values and CPU RNG state.",
 }
 FORMAT_NOTES = """<!-- r01-log-format:start -->
 One row records each training attempt, including failed attempts and functional smoke runs. Each value and each percentage delta has its own column. Losses are held-out binary logloss; User is the unweighted user mean and Weighted is the label-weighted mean. Percentages use `100 × (run / reference − 1)`, rounded to two decimal places; positive speed deltas are faster and positive loss deltas are worse.

@@ -3,20 +3,23 @@
 from argparse import ArgumentParser
 import hashlib
 import json
+import os
 from pathlib import Path
 import shutil
+import subprocess
 from zipfile import ZipFile
 
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def build(archive, runtime):
+def build(archive, runtime, iteration=None):
     archive, runtime = (ROOT / archive).resolve(), (ROOT / runtime).resolve()
     if not runtime.is_relative_to(ROOT / 'artifacts') or runtime.exists():
         raise ValueError('Use a new runtime directory under workspace artifacts')
     runtime.mkdir(parents=True)
     with ZipFile(archive) as snapshot:
         manifest = json.loads(snapshot.read('source-manifest.json'))
+        shared_data_supported = 'scripts/gpu_r01_training.py' in manifest['files'] and b'GPU_R01_SHARED_DATA_PATH' in snapshot.read('scripts/gpu_r01_training.py')
         for name, digest in manifest['files'].items():
             target = runtime / name
             if not target.resolve().is_relative_to(runtime):
@@ -33,7 +36,18 @@ def build(archive, runtime):
         shutil.copy2(ROOT / name, target)
     base = ROOT / 'artifacts/retraining/gpu-retrain-r01'
     names = ['cohorts-user-holdout-v1.json', 'iterations']
-    names.extend(path.name for path in sorted(base.glob('iteration-*')) if path.is_dir())
+    if iteration is None:
+        names.extend(path.name for path in sorted(base.glob('iteration-*')) if path.is_dir())
+    else:
+        selected = base / f'iteration-{iteration}'
+        protocol = json.loads((selected / 'protocol.json').read_text(encoding='utf-8'))
+        needed = {selected.name}
+        for references in protocol.get('references', {}).values():
+            for metadata in references.values():
+                needed.add((ROOT / metadata['path']).parents[2].name)
+        for metadata in protocol.get('retuning_candidates', {}).values():
+            needed.add((ROOT / metadata['path']).parents[2].name)
+        names.extend(sorted(needed))
     for name in names:
         source = base / name
         target = runtime / source.relative_to(ROOT)
@@ -55,12 +69,29 @@ def build(archive, runtime):
     cache = ROOT / 'artifacts/cache/cupy-cache'
     if cache.exists():
         shutil.copytree(cache, runtime / 'artifacts/cache/cupy-cache')
+    data = ROOT / 'data'
+    if data.exists() and not shared_data_supported:
+        if os.name == 'nt':
+            import _winapi
+            try:
+                _winapi.CreateJunction(str(data), str(runtime / 'data'))
+            except OSError as error:
+                raise RuntimeError('Legacy frozen code needs an existing dataset junction; use its recorded runtime. New protocols use shared data without a junction.') from error
+        else:
+            (runtime / 'data').symlink_to(data, target_is_directory=True)
+    def git(*args):
+        return subprocess.run(['git', '-C', str(runtime), *args], check=True, capture_output=True).stdout.decode().strip()
+    git('init', '--quiet')
+    git('-c', 'core.autocrlf=false', 'add', '--', '.')
+    git('-c', 'user.name=Codex', '-c', 'user.email=codex@openai.com', 'commit', '--quiet', '-m', 'Freeze recorded R01 experiment source')
     record = {'origin_git_commit': manifest['git_commit'],
               'origin_source_archive': archive.relative_to(ROOT).as_posix(),
               'origin_source_sha256': hashlib.sha256(archive.read_bytes()).hexdigest(),
               'source_file_count': len(manifest['files']),
+              'isolated_git_commit': git('rev-parse', 'HEAD'),
+              'shared_dataset_root': str(data) if shared_data_supported else None,
               'runtime': runtime.relative_to(ROOT).as_posix(),
-              'purpose': 'Immutable experiment source; independent local Git identity; dataset read through a junction; exported results retain process provenance unchanged.'}
+              'purpose': 'Immutable experiment source; independent local Git identity; shared dataset without copying; exported results retain process provenance unchanged.'}
     (runtime / 'isolation.json').write_text(json.dumps(record, indent=2) + '\n', encoding='utf-8')
     print(json.dumps(record))
 
@@ -101,11 +132,12 @@ def main():
     parser.add_argument('--runtime', type=Path, required=True)
     parser.add_argument('--archive', type=Path)
     parser.add_argument('--export', dest='iteration')
+    parser.add_argument('--iteration', dest='build_iteration', help='Copy only this iteration and its recorded references')
     args = parser.parse_args()
     if args.iteration:
         export(args.runtime, args.iteration)
     elif args.archive:
-        build(args.archive, args.runtime)
+        build(args.archive, args.runtime, args.build_iteration)
     else:
         parser.error('Use --archive or --export ITERATION')
 

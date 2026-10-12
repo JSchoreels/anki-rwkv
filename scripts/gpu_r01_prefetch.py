@@ -8,20 +8,26 @@ from scripts.gpu_batch1 import frame_stream, prepare_job, split_frame
 
 def training_batches(rows, span, seed, pool, options, cache_paths=None, depth=8):
     if (options.get("prefetch_users") is not True
-            or set(options) - {"prefetch_users", "reduced_sync", "preparation_workers", "fused_shift", "padding_factor", "async_transfer", "packed_ipc", "gpu_packed_features"}
-            or cache_paths is not None or depth < 1):
+            or set(options) - {"prefetch_users", "reduced_sync", "preparation_workers", "fused_shift", "padding_factor", "async_transfer", "packed_ipc", "gpu_packed_features", "preprocessing_cache", "batched_id_encodings", "preprocessing_cache_bytes", "preprocessing_cache_mode"}
+            or bool(options.get("preprocessing_cache")) != (cache_paths is not None) or depth < 1):
         raise ValueError("Unsupported R01 ordered-prefetch preparation options")
 
     def jobs():
-        for row, frame in frame_stream(rows, prefetch=True):
-            section = split_frame(frame, row, "train")
+        descriptors_only = cache_paths is not None and options.get("preprocessing_cache_mode") != "cold_build"
+        source = ((row, None) for row in rows) if descriptors_only else frame_stream(rows, prefetch=True)
+        for row, frame in source:
+            section = split_frame(frame, row, "train") if frame is not None else None
             length = row["train_range"][1] - row["train_range"][0]
             for offset in range(0, length, span):
                 end = min(length, offset + span)
                 yield row, (row, offset, end, seed + row["user_id"] + offset,
-                            options, section.iloc[offset:end], None)
+                            options, section.iloc[offset:end] if section is not None else None,
+                            cache_paths[row["user_id"], offset] if cache_paths is not None else None)
 
     iterator = iter(jobs())
+    preparation = prepare_job
+    if options.get("preprocessing_cache") or options.get("batched_id_encodings"):
+        from scripts.gpu_preprocessing_stage import prepare_job as preparation
     pending = deque()
     try:
         for _ in range(depth):
@@ -29,7 +35,7 @@ def training_batches(rows, span, seed, pool, options, cache_paths=None, depth=8)
             if entry is None:
                 break
             row, args = entry
-            pending.append((row, pool.submit(prepare_job, *args)))
+            pending.append((row, pool.submit(preparation, *args)))
         while pending:
             row, future = pending.popleft()
             started = time.perf_counter()
@@ -38,7 +44,7 @@ def training_batches(rows, span, seed, pool, options, cache_paths=None, depth=8)
             entry = next(iterator, None)
             if entry is not None:
                 next_row, args = entry
-                pending.append((next_row, pool.submit(prepare_job, *args)))
+                pending.append((next_row, pool.submit(preparation, *args)))
             yield row, item
     finally:
         for _, future in pending:

@@ -14,7 +14,7 @@ from scripts.experiment_provenance import process_provenance
 from scripts.gpu_r01_statistics import METRICS, paired_relative_losses
 from scripts.gpu_r01_log import update_run_log
 from scripts.gpu_r01_training import atomic_json
-from scripts.gpu_r01_policy import POLICY, decide, read_reference, resource_reductions, result_metadata
+from scripts.gpu_r01_policy import POLICY, decide, material_reduction, read_reference, resource_reductions, result_metadata, effective_loop, resolve_case, latest_streak
 
 
 def delta(value, reference):
@@ -28,7 +28,8 @@ def link(path, base):
 def describe(track):
     names = {"control": "baseline", "F01": "ordered user prefetch", "F03": "packed worker communication",
              "F04": "overlapping GPU transfers", "F06": "reduced synchronization", "F07": "reduced padding",
-             "F08": "fused shift operations", "F14": "GPU feature encodings", "F16": "more preparation workers"}
+             "F08": "fused shift operations", "F14": "GPU feature encodings", "F16": "more preparation workers",
+             "F02": "preprocessing cache", "F19": "batched ID-encoding draws"}
     return ", ".join(f"{part} ({names.get(part, 'see track record')})" for part in track.split("-"))
 
 
@@ -58,6 +59,7 @@ def main():
     settings = protocol["acceptance"]
     amendment_path = output / "reference-reuse-amendment.json"
     amendment = json.loads(amendment_path.read_text()) if amendment_path.exists() else {}
+    _, _, definition = effective_loop(output, ROOT)
     cases, comparisons, references = {}, {}, {}
     sources = sorted(path for path in output.glob("*/*/result.json") if path.parent.parent.name in protocol["models"])
     for model in protocol["models"]:
@@ -67,21 +69,25 @@ def main():
             reference, path = read_reference(metadata, ROOT)
             references[model][kind] = (reference, path.parent)
         control_track = protocol.get("control_tracks", {}).get(model, protocol.get("control_track", "control"))
+        if not (output / model / control_track / "result.json").exists() and "previous" in protocol["references"][model]:
+            reused = True
         if reused:
             control, control_path = references[model]["previous"]
         else:
             control_path = output / model / control_track
             control = json.loads((control_path / "result.json").read_text())
         track = selection[model]["track"]
-        candidate_path = output / model / track
-        candidate = json.loads((candidate_path / "result.json").read_text())
+        candidate, candidate_result, reused_candidate = resolve_case(output, model, track, ROOT)
+        candidate_path = candidate_result.parent
+        if reused_candidate and candidate_result not in sources:
+            sources.append(candidate_result)
         if control["status"] != "complete" or candidate["status"] != "complete":
             raise ValueError("Both complete matched runs are required")
-        if not reused and (control["implementation_sha256"] != candidate["implementation_sha256"]
+        if not reused and not reused_candidate and (control["implementation_sha256"] != candidate["implementation_sha256"]
                 or control["protocol_sha256"] != candidate["protocol_sha256"]):
             raise ValueError("Matched runs have different implementations/protocols")
-        if reused and (candidate["implementation_sha256"] != protocol["implementation_sha256"]
-                       or candidate["protocol_sha256"] != hashlib.sha256((output / "protocol.json").read_bytes()).hexdigest()):
+        if (reused or reused_candidate) and (candidate["implementation_sha256"] != protocol["implementation_sha256"]
+                       or (not reused_candidate and candidate["protocol_sha256"] != hashlib.sha256((output / "protocol.json").read_bytes()).hexdigest())):
             raise ValueError("Candidate differs from the frozen protocol/source")
         options = protocol.get("case_options_by_model", {}).get(model, protocol.get("case_options"))
         for key in ("options",):
@@ -114,10 +120,18 @@ def main():
                                           "losses": losses}
         gain = result["references"]["previous"]["throughput_gain_percent"]
         reductions = resource_reductions(candidate_path / "result.json", control_path / "result.json", ROOT)
+        # Protocols frozen before the band existed keep their original zero tolerance.
+        band = settings.get("speed_noise_band", {}).get(model, {"percent": 0.0, "available": False})
         result.update(decide(gain, {kind: item["losses"] for kind, item in result["references"].items()},
                              relative_limit=settings["relative_loss_limit"], baseline_limit=settings["baseline_loss_limit"],
-                             prior_streak=amendment.get("prior_no_20_percent_gain_streak", protocol["prior_no_20_percent_gain_streak"])[model], resources_reduced=bool(reductions)))
+                             prior_streak=amendment.get("prior_no_20_percent_gain_streak", protocol["prior_no_20_percent_gain_streak"])[model],
+                             resources_reduced=material_reduction(reductions) if "speed_noise_band" in settings else bool(reductions),
+                             speed_tolerance_percent=band["percent"]))
+        result["speed_noise_band"] = band
         result["resource_reductions"] = reductions
+        result["reused_candidate"] = reused_candidate
+        if reused_candidate:
+            result["no_20_percent_gain_streak"] = latest_streak(ROOT, model, amendment.get("prior_no_20_percent_gain_streak", protocol["prior_no_20_percent_gain_streak"])[model], protocol.get("round_start_iteration"))
         result["incumbent_after_iteration"] = track if result["accepted_main"] else control_track
         result["accepted_reference"] = result_metadata(candidate_path / "result.json", ROOT) if result["accepted_main"] else protocol["references"][model]["previous"]
         if result["resource_retuning_pending"]:
@@ -130,12 +144,16 @@ def main():
               "loop_policy": POLICY,
               "limitations": "20 distinct held-out users; one training seed and one timing/configuration; no broader validation or timing-repeatability claim"}
     atomic_json(output / "comparison.json", report)
-    lines = [f"# R01 iteration {iteration}", "", "Status: **complete preliminary screen**. One new iteration requested on 2026-10-11.", "",
+    lines = [f"# R01 iteration {iteration}", "", f"Status: **complete preliminary screen**. Authorization: {protocol.get('round_authorization', protocol['authorization'])}.", "",
              f"Same fixed **80 training / 20 unseen held-out users**, **{protocol['training_reviews']:,} training / {protocol['validation_reviews']:,} evaluation reviews**, seed 2025, one epoch, BF16 compute/FP32 master. Chunks contain 128 reviews; prefetch is bounded at twice the worker count. Exposure, update order, per-update seeds, optimizer and learning-rate schedule remain fixed. Exact worker/chunk settings for each case are preserved in its raw config.", "",
              "[Frozen protocol](protocol.json), [selection from recorded profiles](selection.json), [loop definition](loop-definition.md), [raw comparison](comparison.json). References retain their original process provenance. Timing includes complete training loads, worker startup/shutdown, preparation, transfers, updates and logs. Setup/primer, save and evaluation are separate; process wall includes them.", "",
              "Acceptance: measured relative regression ≤1% for all four binary losses against the previous accepted run; ≤2% versus the fixed original baseline is preferred. Confidence bounds are reported separately. Faster but less accurate variants remain separate opt-in fastmode. Accurate resource-saving candidates without a speed gain remain pending retuning. Target ≥20% reviews/s gain versus the previous accepted run; stop each model after three consecutive misses. This remains a preliminary screen; broader validation is pending.", "",
              "## Full-history measurements", "", "| Model / IDs | Training s | Reviews/s | Gain vs previous / original baseline | Process wall s | Weighted Curve / Instant | User-average Curve / Instant |",
              "|---|---:|---:|---|---:|---|---|"]
+    effective_line = f"Effective rules: [loop definition]({link(ROOT / definition['path'], output)})."
+    if definition["amendment"]:
+        effective_line += f" [Protocol amendment]({link(ROOT / definition['amendment'], output)}) records the transition; the original protocol remains preserved."
+    lines[6:6] = [effective_line, ""]
     for model, runs in cases.items():
         for track, case in runs.items():
             e = case["evaluation"]
@@ -145,8 +163,15 @@ def main():
     lines += ["", "## Resource evidence and decisions", ""]
     for model, result in comparisons.items():
         lines += [f"{model}: {selection[model]['reason']}", ""]
+        if result["reused_candidate"]:
+            lines += ["Candidate measurements were reused from the linked original result; no new training attempt or stop-count increment.", ""]
         for track in cases[model]:
             case = cases[model][track]
+            if case.get("cache_stats"):
+                cache = case["cache_stats"]
+                setup = case["cache_setup"]
+                mode = case["options"].get("preprocessing_cache_mode", "cold_or_warm")
+                lines += [f"F02 (preprocessing cache), mode `{mode}`: **{cache['hits']} hits / {cache['misses']} misses**, **{cache['not_persisted']} unpersisted batches**. Summed worker elapsed costs: build **{cache['build_seconds']:.3f} s**, read **{cache['read_seconds']:.3f} s**, write **{cache['write_seconds']:.3f} s**; reads/writes include lock waits and bookkeeping, and these concurrent costs are not wall-time savings. Content fingerprint setup **{setup['identity_seconds']:.3f} s** is outside training and inside process wall. Disk budget **{setup['max_bytes']/2**30:.2f} GiB** per model; existing bytes at start **{setup['disk_bytes_before']/2**30:.2f} GiB**. Cold construction remains included in the measured training time; warm reuse must be interpreted separately.", ""]
             if case.get('gpu_copy_milliseconds', 0):
                 lines += [f"{describe(track)}: measured GPU input-stage time **{case['gpu_copy_milliseconds']/1000:.3f} s**, with **{case['gpu_copy_overlap_training_milliseconds']/1000:.3f} s** overlapping the preceding training batch. The input-stage event covers copying and GPU feature materialization; this is separate device timing, not a wall-time saving estimate.", ""]
             profile = output / "profiles" / f"{model}-{track}" / "result.json"
@@ -154,6 +179,8 @@ def main():
                 p = json.loads(profile.read_text())
                 c = p["phases"]["training including user transitions"]["counters"]
                 lines += [f"{describe(track)}: GPU activity **{c['nvidia_utilization.gpu']['mean']:.1f}%**, worker-pool CPU **{c['worker_pool_cpu_percent']['mean']:.1f}%**, peak reserved VRAM **{c['torch_cuda_peak_reserved_bytes']['max']/2**30:.2f} GiB**, minimum available system RAM **{c['ram_available_bytes']['min']/2**30:.2f} GiB**. [Resource profile]({link(profile.with_name('profile.md'), output)}). Full-history sampling-window sufficiency: `{p['workload']['full_history_profile_available']}`; GPU activity is not occupancy.", ""]
+        if result["speed_noise_band"].get("available"):
+            lines += [f"Speed change: **{result['speed_change']}**; gains within ±{result['speed_noise_band']['percent']:.2f}% (largest recorded spread between repeats of an identical configuration) count as the same speed. Retuning requires a material resource reduction.", ""]
         lines += [f"Decision: **{result['decision']}**. Exact recorded parity versus previous accepted run: **{result['parity']['exact_recorded_parity']}**; logged update mismatches: **{result['parity']['update_mismatch_count']}**. Consecutive iterations without a 20% gain: **{result['no_20_percent_gain_streak']}**. Three-iteration stop threshold reached: **{result['no_20_percent_gain_streak'] >= 3}**.", "",
                   "| Binary loss | Candidate | Δ vs previous / original | Familywise upper vs previous / original |", "|---|---:|---|---|"]
         for key in METRICS:
@@ -174,7 +201,7 @@ def main():
         log = path.with_name('updates.jsonl')
         updates = f"[updates]({link(log, output)})" if log.exists() else "no training updates"
         lines.append(f"- [{case['model']}: {describe(case['track'])}{' smoke' if case['smoke_only'] else ''}]({link(path,output)}): {case['status']}; training start UTC {case.get('training_started_utc','—')}; commit `{p['git_commit']}`, dirty `{p['git_dirty']}`; [source snapshot]({link(ROOT/p['source_archive'], output)}), {updates}, {saved}.")
-    lines += ["", f"Implementation commit: `{implementation['git_commit']}` (after experiments)." if implementation else "Implementation commit pending the completed speed/quality decision.", "", report["limitations"] + ". This iteration is complete. The latest user request authorizes five completed current-loop iterations in total, with the loop reread between runs; no broader validation is authorized.", ""]
+    lines += ["", f"Implementation commit: `{implementation['git_commit']}` (after experiments)." if implementation else "Implementation commit pending the completed speed/quality decision.", "", report["limitations"] + ". This iteration is complete. Recorded scope: " + protocol["budget"] + "; no broader validation is authorized.", ""]
     update = output / "authorization-update-001.json"
     if update.exists():
         lines += ["[Updated continuation authorization](authorization-update-001.json), [revised loop definition](loop-definition-update-001.md). The revised definition separates run-log columns, rounds percentages to two decimals, commits opt-in fastmode too, and asks whether freed resources can be used to increase throughput.", ""]

@@ -60,7 +60,7 @@ def run_case(args):
         return 1
     output = ROOT / args.output
     protocol = json.loads((output / "protocol.json").read_text())
-    os.environ["GPU_BATCH1_DATA_PATH"] = protocol["dataset_path"]
+    os.environ["GPU_BATCH1_DATA_PATH"] = os.environ.get("GPU_R01_SHARED_DATA_PATH", protocol["dataset_path"])
     import torch
     from rwkv.model import nvrtc
     from rwkv.train_rwkv import CLIP, get_optimizer, transfer_child_grad_to_master
@@ -146,6 +146,13 @@ def run_case(args):
         cache_paths = None
         if options.get("sample_cache"):
             cache_paths, report["cache_setup"] = build_sample_cache(rows, chunks * 128, output / "sample-cache")
+        if options.get("preprocessing_cache"):
+            from scripts.gpu_preprocessing_cache import plan_cache
+            cache_paths, report["cache_setup"] = plan_cache(
+                rows, chunks * 128, Path(os.environ.get("GPU_R01_SHARED_CACHE_PATH", str(ROOT / "artifacts/cache/r01-preprocessing-v1"))) / args.model,
+                DATA, protocol["dataset_revision"], options.get("preprocessing_cache_bytes", 512 * 1024**2))
+            report["cache_stats"] = {"hits": 0, "misses": 0, "not_persisted": 0,
+                                     "read_seconds": 0.0, "build_seconds": 0.0, "write_seconds": 0.0}
         torch.cuda.empty_cache()
         torch.cuda.reset_peak_memory_stats()
         train_started = time.perf_counter()
@@ -160,6 +167,13 @@ def run_case(args):
             transferred = transfer_batches(source, dtype, options.get("async_transfer", False))
             try:
                 for row, item, batch in transferred:
+                    cache_info = getattr(item, "cache_info", None)
+                    if cache_info:
+                        counters = report["cache_stats"]
+                        counters["hits" if cache_info["hit"] else "misses"] += 1
+                        counters["not_persisted"] += int(not cache_info["persisted"])
+                        for field in ("read_seconds", "build_seconds", "write_seconds"):
+                            counters[field] += cache_info[field]
                     if (output / "STOP").exists():
                         raise InterruptedError("STOP requested; case not complete, restart it from fresh weights")
                     user = row["user_id"]

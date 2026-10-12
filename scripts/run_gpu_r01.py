@@ -27,29 +27,55 @@ OPTIONS = {"control": {}, "F01": {"prefetch_users": True},
            "F01-F16-F14-F03": {"prefetch_users": True, "preparation_workers": 8, "gpu_packed_features": True, "packed_ipc": True},
            "F01-F16-F14-F03-F04": {"prefetch_users": True, "preparation_workers": 8, "gpu_packed_features": True, "packed_ipc": True, "async_transfer": True}}
 
+# Opt-in CPU preparation extensions; retained configurations are unchanged.
+for _reference in ("F01", "F01-F16-F14-F03-F04"):
+    for _suffix, _extensions in (("F02", {"preprocessing_cache": True}),
+                                  ("F19", {"batched_id_encodings": True}),
+                                  ("F02-F19", {"preprocessing_cache": True, "batched_id_encodings": True})):
+        OPTIONS[_reference + "-" + _suffix] = {**OPTIONS[_reference], **_extensions}
+
 
 class R01SourceWatch(shared.SourceWatch):
     def __init__(self, provenance):
         super().__init__(provenance)
         with ZipFile(ROOT / provenance["source_archive"]) as archive:
             manifest = json.loads(archive.read("source-manifest.json"))["files"]
-        for name in ("scripts/run_gpu_r01.py", "scripts/gpu_r01_training.py", "scripts/gpu_r01_prefetch.py", "scripts/gpu_r01_sync.py", "scripts/gpu_r01_staging.py", "scripts/gpu_b01.py", "scripts/gpu_resource_monitor.py", "scripts/gpu_r01_policy.py"):
+        for name in ("scripts/run_gpu_r01.py", "scripts/gpu_r01_training.py", "scripts/gpu_r01_prefetch.py", "scripts/gpu_r01_sync.py", "scripts/gpu_r01_staging.py", "scripts/gpu_b01.py", "scripts/gpu_resource_monitor.py", "scripts/gpu_r01_policy.py", "scripts/gpu_preprocessing_cache.py", "scripts/gpu_preprocessing_stage.py", "scripts/gpu_id_encodings.py"):
             self.hashes[name] = manifest[name]
         self.implementation_sha256 = hashlib.sha256(json.dumps(self.hashes, sort_keys=True).encode()).hexdigest()
         self.check()
 
 
-def prepare(output, iteration="0002", previous=None, plan=None):
+def prepare(output, iteration="0002", previous=None, plan=None, resume_prepared=False):
     import numpy as np
+    if resume_prepared and previous is None:
+        raise ValueError("Resuming prepared work requires preserved previous results")
     if (output / "protocol.json").exists():
         raise FileExistsError("Preserve the frozen iteration; use a new output for a new round")
     previous_comparison = None
+    previous_outputs = {}
     models = ["baseline", "expertium"]
+    if previous is None:
+        from scripts.gpu_r01_policy import recorded_cases
+        if any(case.get("status") == "complete" and not case.get("smoke_only") for _, case, _ in recorded_cases(ROOT)):
+            raise ValueError("Recorded baselines already exist; continue with --previous instead of starting another baseline round")
     if previous is not None:
         previous = (ROOT / previous).resolve()
         previous_comparison = json.loads((previous / "comparison.json").read_text())
+        previous_outputs = {model: previous for model in previous_comparison["comparisons"]}
+        if resume_prepared:
+            for model in ("baseline", "expertium"):
+                if model not in previous_comparison["comparisons"]:
+                    for candidate in sorted(BASE.glob("iteration-*/comparison.json"), reverse=True):
+                        if candidate.parent.name > previous.name:
+                            continue
+                        item = json.loads(candidate.read_text())["comparisons"].get(model)
+                        if item:
+                            previous_outputs[model] = candidate.parent
+                            previous_comparison["comparisons"][model] = item
+                            break
         models = [model for model in models if model in previous_comparison["comparisons"]
-                  and streak(previous_comparison["comparisons"][model]) < 3]
+                  and (resume_prepared or streak(previous_comparison["comparisons"][model]) < 3)]
         if not models:
             raise RuntimeError("R01 stopped: both models reached three consecutive iterations without a 20% gain")
     provenance = process_provenance()
@@ -133,13 +159,15 @@ def prepare(output, iteration="0002", previous=None, plan=None):
             raise ValueError("Continuation must reuse the exact frozen cohort")
         references, controls = {}, {}
         for model in protocol["models"]:
-            accepted = accepted_reference(previous, model, ROOT)
+            model_previous = previous_outputs[model]
+            model_old_protocol = json.loads((model_previous / "protocol.json").read_text())
+            accepted = accepted_reference(model_previous, model, ROOT)
             incumbent, _ = read_reference(accepted, ROOT)
             controls[model] = incumbent["track"]
-            baseline = old_protocol.get("references", {}).get(model, {}).get("original_baseline")
+            baseline = model_old_protocol.get("references", {}).get(model, {}).get("original_baseline")
             if baseline is None:
                 from scripts.gpu_r01_policy import result_metadata
-                baseline = result_metadata(previous / model / "control/result.json", ROOT)
+                baseline = result_metadata(model_previous / model / "control/result.json", ROOT)
             read_reference(baseline, ROOT)
             references[model] = {"previous": accepted, "original_baseline": baseline}
         protocol.update(control_tracks=controls,
@@ -149,6 +177,16 @@ def prepare(output, iteration="0002", previous=None, plan=None):
         protocol["acceptance"]["family_tests"] = len(models) * 4 * 2
         protocol["acceptance"]["comparisons"] = "measured regression vs previous accepted run <=1%; original baseline <=2% preferred; uncertainty reported separately"
         protocol["prior_no_20_percent_gain_streak"] = {model: previous_comparison["comparisons"][model].get("no_20_percent_gain_streak", previous_comparison["comparisons"][model].get("no_20_percent_gain_streak_after_this_iteration", 0)) for model in protocol["models"]}
+        if resume_prepared:
+            protocol.update(round_start_iteration=iteration,
+                            round_authorization="2026-10-12 human request: Ok I closed the game, you can do the next iterations with the prepared changes",
+                            historical_no_gain_streak=dict(protocol["prior_no_20_percent_gain_streak"]))
+            protocol["prior_no_20_percent_gain_streak"] = {model: 0 for model in models}
+            protocol["authorization"] = protocol["round_authorization"]
+            protocol["budget"] = "Prepared F19 encoding and F02 preprocessing-cache iterations; fixed 100-user cohort, no broader validation; three-miss stop applies within this explicitly resumed round"
+        elif old_protocol.get("round_start_iteration"):
+            protocol["round_start_iteration"] = old_protocol["round_start_iteration"]
+            protocol["round_authorization"] = old_protocol["round_authorization"]
         protocol["resource_retuning_pending"] = {model: previous_comparison["comparisons"][model].get("resource_retuning_pending", False) for model in models}
         protocol["retuning_candidates"] = {model: previous_comparison["comparisons"][model]["retuning_candidate"]
                                           for model in models if protocol["resource_retuning_pending"][model]}
@@ -171,6 +209,9 @@ def prepare(output, iteration="0002", previous=None, plan=None):
                     raise ValueError("Retuning disposition requires recorded resource evidence")
                 protocol["retuning_candidates"].pop(model)
         for model in models:
+            if resume_prepared and not any(proposed["case_options_by_model"][model][proposed["candidate_tracks"][model]].get(key)
+                                           for key in ("preprocessing_cache", "batched_id_encodings")):
+                raise ValueError("Prepared-round resumption is limited to F02 cache/F19 encoding candidates")
             if proposed["control_tracks"][model] != controls[model]:
                 raise ValueError("Plan must retain the previous accepted run")
             if proposed["candidate_tracks"][model] == controls[model]:
@@ -185,7 +226,11 @@ def prepare(output, iteration="0002", previous=None, plan=None):
                         case_explanations=proposed.get("case_explanations", {}),
                         eligible_tracks={m: proposed["candidate_tracks"][m] for m in models},
                         check_policy="reuse applicable profiles; focused smoke checks for changed code, no mandatory paired repeats")
+    # Predeclare which gains count as faster rather than run-to-run variation.
+    from scripts.gpu_r01_policy import speed_noise_band
+    protocol["acceptance"]["speed_noise_band"] = {model: speed_noise_band(ROOT, model) for model in protocol["models"]}
     protocol["loop_sha256"] = hashlib.sha256((ROOT / "docs/GPU_RETRAIN_LOOP.md").read_bytes()).hexdigest()
+    (output / "loop-definition.md").write_bytes((ROOT / "docs/GPU_RETRAIN_LOOP.md").read_bytes())
     shared.atomic_json(output / "protocol.json", protocol)
     print(json.dumps({"protocol": str(output / "protocol.json"), "train_users": 80, "heldout_users": 20,
                       "training_reviews": stage["training_reviews"], "heldout_reviews": stage["validation_reviews"],
@@ -194,14 +239,33 @@ def prepare(output, iteration="0002", previous=None, plan=None):
 
 def run_case(args, output):
     import psutil
+    if not (ROOT / "isolation.json").exists():
+        from scripts.run_isolated_gpu_r01 import launch_case
+        return launch_case(args, output, root=ROOT)
+    ticket_path = os.environ.get("GPU_R01_LAUNCH_TICKET")
+    controller = os.environ.get("GPU_R01_CONTROLLER_ROOT")
+    if not ticket_path or not controller:
+        raise ValueError("Start frozen R01 code through the current workspace launcher")
+    ticket_path = Path(ticket_path).resolve()
+    controller = Path(controller).resolve()
+    if not ticket_path.is_relative_to(controller / "artifacts"):
+        raise ValueError("Launch ticket must remain under controller artifacts")
+    ticket = json.loads(ticket_path.read_text(encoding="utf-8"))
+    if (ticket["model"], ticket["track"], ticket["smoke"], ticket["output"], ticket["runtime"]) != (
+            args.model, args.track, args.smoke, output.relative_to(ROOT).as_posix(), ROOT.relative_to(controller).as_posix()):
+        raise ValueError("Launch ticket differs from this request")
+    from scripts.gpu_r01_policy import effective_loop
+    effective_loop(controller / ticket["output"], controller, current=True)
     protocol = json.loads((output / "protocol.json").read_text())
+    if hashlib.sha256((output / "protocol.json").read_bytes()).hexdigest() != ticket["protocol_sha256"]:
+        raise ValueError("Frozen protocol differs from the live launch ticket")
     require_active(args.model, protocol.get("prior_no_20_percent_gain_streak", {}).get(args.model, 0))
     if args.model not in protocol["models"]:
         raise ValueError("Model is outside the active iteration")
     control_track = protocol.get("control_tracks", {}).get(args.model, protocol.get("control_track", "control"))
-    if protocol.get("loop_policy") == POLICY and "references" in protocol and args.track == control_track:
+    if "references" in protocol and args.track == control_track and not ticket.get("repeat_reason"):
         raise ValueError("Reuse the recorded accepted run; a control rerun needs a separate justified protocol")
-    os.environ["GPU_BATCH1_DATA_PATH"] = protocol["dataset_path"]
+    os.environ["GPU_BATCH1_DATA_PATH"] = os.environ.get("GPU_R01_SHARED_DATA_PATH", protocol["dataset_path"])
     os.environ["CUBLAS_WORKSPACE_CONFIG"] = protocol["execution_mode"]["CUBLAS_WORKSPACE_CONFIG"]
     os.environ["CUPY_CACHE_DIR"] = str(ROOT / "artifacts/cache/cupy-cache")
     provenance = process_provenance()
@@ -286,16 +350,19 @@ def main():
     parser.add_argument("--iteration", default="0002")
     parser.add_argument("--previous", type=Path)
     parser.add_argument("--plan", type=Path)
+    parser.add_argument("--resume-prepared", action="store_true", help="Record explicit user resumption for prepared F02/F19 work")
     parser.add_argument("--case", action="store_true")
     parser.add_argument("--model", choices=("baseline", "expertium"))
     parser.add_argument("--track", default="control")
     parser.add_argument("--smoke", action="store_true")
+    parser.add_argument("--repeat-reason", help="Concrete incompatibility or repaired failure requiring a repeat")
+    parser.add_argument("--check-reason", help="Changed behaviour this focused smoke verifies")
     args = parser.parse_args()
     output = (ROOT / args.output).resolve()
     if not output.is_relative_to(ROOT / "artifacts"):
         parser.error("Output must remain under workspace artifacts")
     if args.prepare:
-        return prepare(output, args.iteration, args.previous, args.plan)
+        return prepare(output, args.iteration, args.previous, args.plan, args.resume_prepared)
     if args.case and args.model:
         return run_case(args, output)
     parser.error("Choose --prepare or --case --model")

@@ -14,19 +14,33 @@ from unittest.mock import patch
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 from scripts.experiment_provenance import process_provenance
-from scripts.gpu_r01_policy import (LOSS_METRICS, POLICY, accepted_reference, decide,
-                                    read_reference, require_active, resource_reductions, result_metadata)
+import shutil
+from scripts.gpu_r01_policy import (LOSS_METRICS, POLICY, accepted_reference, decide, material_reduction,
+                                    read_reference, require_active, resource_reductions, result_metadata,
+                                    check_inputs, reusable_check, speed_noise_band)
 
 
 def main():
     parser = ArgumentParser(description=__doc__)
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--repeat-reason", help="Concrete reason to repeat unchanged workflow checks")
     args = parser.parse_args()
     output = (ROOT / args.output).resolve()
-    if not output.is_relative_to(ROOT / "artifacts") or output.exists():
+    if not output.is_relative_to(ROOT / "artifacts"):
         parser.error("Use a new workspace artifact directory")
+    inputs = check_inputs(ROOT, ("scripts/check_gpu_r01_policy.py", "scripts/gpu_r01_policy.py",
+                                "scripts/run_gpu_r01.py", "scripts/run_isolated_gpu_r01.py", "scripts/isolate_gpu_r01.py",
+                                "scripts/select_gpu_r01_next.py", "scripts/report_gpu_r01_next.py", "scripts/gpu_r01_log.py",
+                                "scripts/profile_gpu_resources.py", "scripts/gpu_r01_training.py"))
+    previous = reusable_check(ROOT, "R01 workflow", inputs)
+    if previous and not (args.repeat_reason or "").strip():
+        print(json.dumps({"action": "reuse checks", "result": previous.relative_to(ROOT).as_posix()}))
+        return
+    if output.exists():
+        parser.error("Preserve the previous checks; use a new workspace artifact directory")
     output.mkdir(parents=True)
-    result = {"synthetic_only": True, "provenance": process_provenance(), "checks": [], "status": "running"}
+    result = {"synthetic_only": True, "provenance": process_provenance(), "checks": [], "status": "running",
+              "check_suite": "R01 workflow", "check_inputs": inputs, "repeat_reason": args.repeat_reason}
 
     def check(name, condition):
         if not condition:
@@ -61,8 +75,18 @@ def main():
         check("faster slightly worse scores stay fastmode-only", decision(0.001)["fastmode"] and not decision(0.001)["accepted_main"])
         check("faster excessive regression stays fastmode-only", decision(0.03)["fastmode"] and not decision(0.03)["accepted_main"])
         check("same speed and less resource use remains pending retuning", decision(gain=0, resources_reduced=True)["resource_retuning_pending"])
-        check("resource-saving improvement without speed gain is not discarded", decision(-0.01, gain=-0.1, resources_reduced=True)["resource_retuning_pending"])
+        check("resource-saving improvement without speed gain is not discarded", decision(-0.01, gain=-0.1, resources_reduced=True, speed_tolerance_percent=2)["resource_retuning_pending"])
         check("no resource evidence does not fabricate a retuning benefit", not decision(gain=0)["resource_retuning_pending"])
+        within = decision(gain=3.11, speed_tolerance_percent=5.68)
+        check("gain inside the recorded repeat spread is the same speed, not a promotion",
+              within["speed_change"].startswith("same") and not within["accepted_main"] and not within["fastmode"])
+        check("same speed with a material resource saving is sent to retuning",
+              decision(gain=0.07, resources_reduced=True, speed_tolerance_percent=5.68)["resource_retuning_pending"])
+        check("a slowdown beyond the repeat spread cannot be sent to retuning",
+              not decision(gain=-6.48, resources_reduced=True, speed_tolerance_percent=1.97)["resource_retuning_pending"])
+        check("a gain beyond the repeat spread is accepted", decision(gain=26.63, speed_tolerance_percent=5.68)["accepted_main"])
+        check("the 20% target still uses the measured gain", decision(gain=19.99, speed_tolerance_percent=5.68)["no_20_percent_gain_streak"] == 3)
+        reject("negative speed tolerance is rejected", lambda: decision(speed_tolerance_percent=-1))
         check("twenty percent resets the miss streak", decision()["no_20_percent_gain_streak"] == 0)
         check("below twenty percent increments the miss streak", decision(gain=19.99)["no_20_percent_gain_streak"] == 3)
         require_active("baseline", 2)
@@ -133,6 +157,20 @@ def main():
             with redirect_stdout(io.StringIO()): runner.prepare(new, "0003", old, plan_path)
             protocol = json.loads((new / "protocol.json").read_text())
             check("continuation freezes recorded references and no repeated-control budget", protocol["loop_policy"] == POLICY and "reuse recorded" in protocol["budget"])
+            frozen_band = protocol["acceptance"]["speed_noise_band"]["baseline"]
+            check("protocol predeclares an unavailable speed band without repeats", frozen_band["percent"] == 0.0 and frozen_band["available"] is False)
+            repeat = base / "iteration-repeat"
+            write(repeat / "protocol.json", json.loads((old / "protocol.json").read_text()))
+            repeated = json.loads((old / "baseline/F01/result.json").read_text())
+            repeated.update(reviews_per_second=126, training_seconds=960 / 126,
+                            protocol_sha256=hashlib.sha256((repeat / "protocol.json").read_bytes()).hexdigest())
+            write(repeat / "baseline/F01/result.json", repeated)
+            band = speed_noise_band(root, "baseline")
+            check("identical repeats define the speed band from their measured spread", band["available"] and abs(band["percent"] - 5) < 1e-9 and len(band["sources"]) == 2)
+            repeated["trained_parameter_sha256"] = "different-weights"
+            write(repeat / "baseline/F01/result.json", repeated)
+            check("runs with different trained weights are not treated as repeats", not speed_noise_band(root, "baseline")["available"])
+            shutil.rmtree(repeat)
             reject("accepted configuration cannot be rerun in a continuation", lambda: runner.run_case(SimpleNamespace(model="baseline", track="F01", smoke=False), new))
             for model in comparisons: comparisons[model]["no_20_percent_gain_streak_after_this_iteration"] = 3
             write(old / "comparison.json", {"comparisons": comparisons})
@@ -160,6 +198,25 @@ def main():
             (new / model / "F01-F08/updates.jsonl").write_bytes((old / model / "F01/updates.jsonl").read_bytes())
         selection = json.loads((new / "selection.json").read_text())
         check("selection reuses complete profiles without a fresh control or arbitrary duration floor", all(s["profile_reused"] for s in selection.values()))
+        check("non-feeding candidate records its ceiling without needing a justification",
+              all(not s["target_reachability"]["feeding_only_candidate"] and s["target_reachability"]["justification"] is None for s in selection.values()))
+        ceiling_output = base / "iteration-ceiling"
+        ceiling_protocol = deepcopy(protocol)
+        ceiling_protocol.update(iteration="ceiling", models=["expertium"], candidate_tracks={"expertium": "F01-F19"},
+                                case_options_by_model={"expertium": {"F01": {"prefetch_users": True},
+                                                                     "F01-F19": {"prefetch_users": True, "batched_id_encodings": True}}})
+        write(ceiling_output / "protocol.json", ceiling_protocol)
+
+        def select_ceiling(*extra):
+            with patch.object(selector, "ROOT", root), patch.object(selector, "process_provenance", lambda: {"synthetic_only": True}), \
+                 patch.object(sys, "argv", ["select", "--output", str(ceiling_output), "--model", "expertium", *extra]), redirect_stdout(io.StringIO()):
+                selector.main()
+        reject("feeding-only candidate below the target ceiling needs a justification", select_ceiling)
+        select_ceiling("--ceiling-justification", "CPU is near physical-core saturation; less worker CPU may relieve the main process")
+        reachability = json.loads((ceiling_output / "selection.json").read_text())["expertium"]["target_reachability"]
+        check("justified below-ceiling feeding candidate records the shortfall and its reason",
+              reachability["feeding_only_candidate"] and not reachability["ceiling_reaches_target"] and reachability["justification"])
+        shutil.rmtree(ceiling_output)
         (base / "iterations").mkdir()
         with patch.object(reporter, "ROOT", root), patch.object(reporter, "process_provenance", lambda: {"synthetic_only": True}), \
              patch.object(reporter, "update_run_log", lambda *_: None), patch.object(sys, "argv", ["report", "--output", str(new)]), redirect_stdout(io.StringIO()):
@@ -191,6 +248,14 @@ def main():
             counters["torch_cuda_peak_reserved_bytes"]["max"] = 2 * 2**30
             write(target / "profiles/baseline-F01-F08/result.json", reduced)
             check(kind + " resource reduction is read from recorded evidence", bool(resource_reductions(candidate_path, old / "baseline/F01/result.json", root)))
+            check(kind + " large recorded saving is material", material_reduction(resource_reductions(candidate_path, old / "baseline/F01/result.json", root)))
+            small = deepcopy(reduced)
+            small["phases"]["training including user transitions"]["counters"].update(
+                {"nvidia_utilization.gpu": {"mean": 69}, "torch_cuda_peak_reserved_bytes": {"max": 4 * 2**30 - 1}})
+            write(target / "profiles/baseline-F01-F08/result.json", small)
+            small_reductions = resource_reductions(candidate_path, old / "baseline/F01/result.json", root)
+            check(kind + " marginal saving is recorded but not material", bool(small_reductions) and not material_reduction(small_reductions))
+            write(target / "profiles/baseline-F01-F08/result.json", reduced)
             stale = deepcopy(reduced)
             stale["inputs"][0]["sha256"] = "different-run"
             profile_path = target / "profiles/baseline-F01-F08/result.json"
@@ -215,6 +280,157 @@ def main():
         reference_path.write_bytes(preserved + b" ")
         reject("changed historical evidence is rejected", lambda: read_reference(metadata, root))
         reference_path.write_bytes(preserved)
+        # Separate synthetic workspace exercises the live controller, including legacy protocols.
+        from scripts import run_isolated_gpu_r01 as launcher, isolate_gpu_r01 as isolation
+        from scripts.gpu_r01_policy import launch_plan, reusable_profile
+        from zipfile import ZipFile
+        guard_root = output / "launch-fixtures"
+        guard_base = guard_root / "artifacts/retraining/gpu-retrain-r01"
+        history = guard_base / "iteration-0010"
+        target = guard_base / "iteration-0011"
+        (guard_root / "docs").mkdir(parents=True)
+        live_loop = guard_root / "docs/GPU_RETRAIN_LOOP.md"
+        live_loop.write_bytes((ROOT / "docs/GPU_RETRAIN_LOOP.md").read_bytes())
+        (guard_root / "docs/GPU_OPTIMIZATIONS_LOG.md").write_text("# Synthetic test ledger\n")
+        (guard_root / ".gitignore").write_text("artifacts/\ndata/\n")
+        (guard_root / "AGENT.md").write_text("Synthetic test fixture only.\n")
+        (guard_root / "data").mkdir()
+        write(guard_base / "cohorts-user-holdout-v1.json", cohort)
+        gp = deepcopy(protocol)
+        gp.update(models=["baseline"], iteration="0010", loop_policy=None, references={},
+                  implementation_sha256="new-source", prior_no_20_percent_gain_streak={"baseline": 2})
+        write(history / "protocol.json", gp)
+        (history / "loop-definition.md").write_bytes(live_loop.read_bytes())
+        template = json.loads((new / "baseline/F01-F08/result.json").read_text())
+        template["config"] = {"MODEL": "baseline", "SEED": 2025, "BATCH_CHUNKS": 128, "CHUNK_REVIEWS": 128,
+                              "PREFETCH_WORKERS": 4, "PREFETCH_BATCHES": 8, "CPU_THREADS": 4, "EPOCHS": 1,
+                              "DATA_PATH": "synthetic", "DATASET_REVISION": "synthetic", "DTYPE": "bfloat16",
+                              "WKV_BACKEND": "nvrtc", "GPU_MEMORY_FRACTION": 0.72, "PEAK_LR": 7e-4, "WARMUP_STEPS": 5}
+        template["protocol_sha256"] = hashlib.sha256((history / "protocol.json").read_bytes()).hexdigest()
+        for track, speed, options in (("control", 100, {}), ("F01", 120, {"prefetch_users": True}),
+                                      ("F01-F08", 144, plan["case_options_by_model"]["baseline"]["F01-F08"])):
+            c = deepcopy(template)
+            c.update(track=track, options=options, reviews_per_second=speed, training_seconds=960 / speed)
+            write(history / "baseline" / track / "result.json", c)
+            (history / "baseline" / track / "updates.jsonl").write_bytes((new / "baseline/F01-F08/updates.jsonl").read_bytes())
+        gp.update(iteration="0011", references={"baseline": {
+            "previous": result_metadata(history / "baseline/F01/result.json", guard_root),
+            "original_baseline": result_metadata(history / "baseline/control/result.json", guard_root)}})
+        write(target / "protocol.json", gp)
+        (target / "loop-definition.md").write_bytes(live_loop.read_bytes())
+        write(target / "selection.json", {"baseline": selection["baseline"]})
+        request = SimpleNamespace(model="baseline", track="F01-F08", smoke=False, repeat_reason=None, check_reason=None)
+        check("legacy protocol reuses matching completed candidate", launch_plan(guard_root, target, request)["action"] == "reuse")
+        with patch.object(launcher, "subprocess", SimpleNamespace(run=lambda *a, **k: (_ for _ in ()).throw(AssertionError("GPU subprocess started")))), redirect_stdout(io.StringIO()):
+            check("matching result bypasses isolation and subprocess execution", launcher.launch_case(request, target, root=guard_root) == 0)
+        check("reuse record links original evidence without copying a fake run", not (target / "baseline/F01-F08/result.json").exists())
+        request.smoke = True
+        check("completed full-history case makes another smoke unnecessary", launch_plan(guard_root, target, request)["action"] == "reuse")
+        request.smoke = False
+        request.repeat_reason = "Repeat requested to investigate changed timing conditions"
+        check("explicit repeat has its reason recorded", launch_plan(guard_root, target, request)["repeat_reason"] == request.repeat_reason)
+        request.repeat_reason = None
+        # Reusing a result must not manufacture another iteration or increment its stop count.
+        (guard_base / "iterations").mkdir()
+        with patch.object(reporter, "ROOT", guard_root), patch.object(reporter, "process_provenance", lambda: {"synthetic_only": True}), \
+             patch.object(reporter, "update_run_log", lambda *_: None), patch.object(sys, "argv", ["report", "--output", str(target)]), redirect_stdout(io.StringIO()):
+            reporter.main()
+        reused_comparison = json.loads((target / "comparison.json").read_text())["comparisons"]["baseline"]
+        check("reused measurements preserve the no-gain streak", reused_comparison["reused_candidate"] and reused_comparison["no_20_percent_gain_streak"] == 2)
+        check("report links the effective definition", "Effective rules:" in (target / "summary.md").read_text())
+        original_loop = live_loop.read_bytes()
+        live_loop.write_bytes(original_loop + b"\nChanged instruction in synthetic fixture.\n")
+        reject("live loop changes block legacy and frozen launches", lambda: launcher.launch_case(request, target, root=guard_root, runtime=Path("artifacts/legacy-runtime")))
+        converted = original_loop.replace(b"\r\n", b"\n") if b"\r\n" in original_loop else original_loop.replace(b"\n", b"\r\n")
+        live_loop.write_bytes(converted)
+        check("line-ending conversion alone does not block launches", converted != original_loop and launch_plan(guard_root, target, request)["action"] == "reuse")
+        live_loop.write_bytes(original_loop)
+        changed = deepcopy(gp)
+        changed.update(iteration="0012", candidate_tracks={"baseline": "F01-F07"}, implementation_sha256="changed-source")
+        changed["case_options_by_model"]["baseline"] = {"F01": {"prefetch_users": True},
+                                                       "F01-F07": {"prefetch_users": True, "padding_factor": 0.3}}
+        fresh = guard_base / "iteration-0012"
+        write(fresh / "protocol.json", changed)
+        (fresh / "loop-definition.md").write_bytes(original_loop)
+        write(fresh / "selection.json", {"baseline": {"track": "F01-F07"}})
+        request.track = "F01-F07"
+        request.smoke = True
+        reject("new smoke requires a purpose tied to changed behaviour", lambda: launch_plan(guard_root, fresh, request))
+        request.check_reason = "Verify changed padding retains complete review coverage"
+        check("focused smoke records its purpose", launch_plan(guard_root, fresh, request)["check_reason"] == request.check_reason)
+        request.track = "F01"
+        # A differing execution mode prevents reuse and requires an explicit reference-repeat reason.
+        changed["execution_mode"]["wkv_tile"] = 64
+        write(fresh / "protocol.json", changed)
+        reject("old protocol tag cannot bypass reference-repeat guard", lambda: launch_plan(guard_root, fresh, request))
+        changed["execution_mode"]["wkv_tile"] = 32
+        write(fresh / "protocol.json", changed)
+        request.track, request.smoke = "F01-F07", False
+        write(fresh / "comparison.json", {"comparisons": {"baseline": {"no_20_percent_gain_streak": 3}}})
+        reject("later stop record blocks an older frozen runner", lambda: launcher.launch_case(request, fresh, root=guard_root, runtime=Path("artifacts/legacy-runtime")))
+        reused_report = guard_base / "iteration-0013/comparison.json"
+        write(reused_report, {"comparisons": {"baseline": {"reused_candidate": True, "no_20_percent_gain_streak": 0}}})
+        reject("a reused report cannot reset a later recorded stop", lambda: launch_plan(guard_root, fresh, request))
+        reused_report.unlink()
+        write(fresh / "comparison.json", {"comparisons": {"baseline": {"no_20_percent_gain_streak": 2}}})
+        failed_case = deepcopy(template)
+        failed_case.update(status="failed", track="F01-F07", implementation_sha256="previous-broken-source",
+                           options=changed["case_options_by_model"]["baseline"]["F01-F07"], review_presentations=100)
+        write(history / "baseline/F01-F07/result.json", failed_case)
+        reject("a repaired source still requires a reason to retry its failed case", lambda: launch_plan(guard_root, fresh, request))
+        request.repeat_reason = "Repair the failed padding implementation while preserving review coverage"
+        check("a repaired failure permits a recorded retry", launch_plan(guard_root, fresh, request)["repeat_reason"] == request.repeat_reason)
+        # Check and profile caches are keyed by their actual evidence.
+        check_fixture = guard_root / "artifacts/diagnostics/passed-check/result.json"
+        write(check_fixture, {"status": "passed", "check_suite": "example", "check_inputs": {"source": "same"}})
+        check("unchanged checks are reused", reusable_check(guard_root, "example", {"source": "same"}) == check_fixture)
+        check("changed check inputs require new checks", reusable_check(guard_root, "example", {"source": "changed"}) is None)
+        pr = deepcopy(profile)
+        pr["inputs"] = [result_metadata(history / "baseline/F01/result.json", guard_root)]
+        pr["workload"]["minimum_observation_seconds"] = 120
+        profile_fixture = history / "profiles/baseline-F01/result.json"
+        write(profile_fixture, pr)
+        check("existing profile is found across iteration folders", reusable_profile(history / "baseline/F01/result.json", guard_root, 120) == profile_fixture)
+        pr["workload"].update(minimum_observation_seconds=60, training_observed_seconds=150, full_history_profile_available=True)
+        write(profile_fixture, pr)
+        check("adequate complete profile survives a changed duration setting", reusable_profile(history / "baseline/F01/result.json", guard_root, 120) == profile_fixture)
+        check("profile below the requested observation duration is not reused", reusable_profile(history / "baseline/F01/result.json", guard_root, 180) is None)
+        ref = history / "baseline/F01/result.json"
+        ref_bytes = ref.read_bytes()
+        ref.write_bytes(ref_bytes + b" ")
+        check("changed raw evidence invalidates profile reuse", reusable_profile(ref, guard_root, 120) is None)
+        ref.write_bytes(ref_bytes)
+        # Actual source extraction, Git initialization, isolated environment and export; GPU subprocess is mocked.
+        archive = guard_root / "artifacts/sources/test/source.zip"
+        archive.parent.mkdir(parents=True)
+        frozen_script = b"# Synthetic worker, never executed on GPU.\n"
+        with ZipFile(archive, "w") as z:
+            z.writestr("scripts/run_gpu_r01.py", frozen_script)
+            z.writestr("scripts/gpu_r01_training.py", b"# GPU_R01_SHARED_DATA_PATH supported in synthetic fixture.\n")
+            z.writestr("source-manifest.json", json.dumps({"git_commit": "synthetic-only", "files": {
+                "scripts/run_gpu_r01.py": hashlib.sha256(frozen_script).hexdigest(),
+                "scripts/gpu_r01_training.py": hashlib.sha256(b"# GPU_R01_SHARED_DATA_PATH supported in synthetic fixture.\n").hexdigest()}}))
+        changed["preparation_provenance"] = {"source_archive": archive.relative_to(guard_root).as_posix()}
+        write(fresh / "protocol.json", changed)
+        launched = []
+        def fake_child(command, *, cwd, env):
+            launched.append((command, cwd, env))
+            c = deepcopy(template)
+            c.update(track="F01-F07", options=changed["case_options_by_model"]["baseline"]["F01-F07"],
+                     implementation_sha256="changed-source", protocol_sha256=hashlib.sha256((fresh / "protocol.json").read_bytes()).hexdigest())
+            write(cwd / fresh.relative_to(guard_root) / "baseline/F01-F07/result.json", c)
+            return SimpleNamespace(returncode=0)
+        with patch.object(isolation, "ROOT", guard_root), patch.object(launcher, "subprocess", SimpleNamespace(run=fake_child)), redirect_stdout(io.StringIO()):
+            check("fresh case isolates automatically before launching", launcher.launch_case(request, fresh, root=guard_root) == 0)
+        command, runtime, environment = launched[0]
+        check("isolated code retains its frozen source", (runtime / "scripts/run_gpu_r01.py").read_bytes() == frozen_script)
+        check("isolated runtime has independent Git provenance", (runtime / ".git").is_dir() and json.loads((runtime / "isolation.json").read_text())["isolated_git_commit"])
+        check("isolated runtime shares data without copying it or requiring a junction", environment["GPU_R01_SHARED_DATA_PATH"] == str(guard_root / changed["dataset_path"]) and not (runtime / "data").exists())
+        check("temporary files stay within runtime", Path(environment["TEMP"]).is_relative_to(runtime) and environment["TEMP"] == environment["TMP"])
+        check("live controller issues a matching launch ticket", json.loads(Path(environment["GPU_R01_LAUNCH_TICKET"]).read_text())["track"] == request.track)
+        check("results are exported without an active leftover lock", (fresh / "baseline/F01-F07/result.json").exists() and not (guard_root / "artifacts/gpu-r01.lock").exists())
+        with patch.object(runner, "ROOT", runtime), patch.dict("os.environ", {}, clear=True):
+            reject("direct frozen-worker invocation requires current controller", lambda: runner.run_case(request, runtime / fresh.relative_to(guard_root)))
         result["status"] = "passed"
     except Exception as exc:
         result.update(status="failed", error=str(exc))

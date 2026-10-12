@@ -10,15 +10,25 @@ sys.path.insert(0, str(ROOT))
 from scripts import gpu_r01_prefetch as prefetch
 from scripts.experiment_provenance import process_provenance
 from scripts.run_gpu_batch1 import atomic_json
+from scripts.gpu_r01_policy import check_inputs, reusable_check
 
 
 def main():
     parser = ArgumentParser(description=__doc__)
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--repeat-reason", help="Concrete reason to repeat unchanged scheduling checks")
     args = parser.parse_args()
     output = (ROOT / args.output).resolve()
-    if not output.is_relative_to(ROOT / "artifacts") or output.exists():
+    if not output.is_relative_to(ROOT / "artifacts"):
         parser.error("Use a fresh artifact directory")
+    inputs = check_inputs(ROOT, ("scripts/check_gpu_r01_prefetch.py", "scripts/gpu_r01_prefetch.py",
+                                 "scripts/gpu_batch1.py", "scripts/trial_batches.py"))
+    previous = reusable_check(ROOT, "R01 ordered prefetch", inputs)
+    if previous and not (args.repeat_reason or "").strip():
+        print(f"Reuse passed ordered-prefetch checks: {previous.relative_to(ROOT).as_posix()}")
+        return
+    if output.exists():
+        parser.error("Preserve the previous checks; use a fresh artifact directory")
     import pandas as pd
     rows = [{"user_id": user, "available_reviews": length, "train_range": [0, length]}
             for user, length in ((4, 512), (17, 257), (29, 128))]
@@ -76,6 +86,7 @@ def main():
         raise AssertionError("Unexpected options accepted")
     output.mkdir(parents=True)
     atomic_json(output / "result.json", {"status": "passed", "checks": checks, "provenance": process_provenance(),
+                                         "check_suite": "R01 ordered prefetch", "check_inputs": inputs, "repeat_reason": args.repeat_reason,
                                          "scope": "CPU scheduling contracts; full-run numerical parity is measured separately"})
     print(f"Passed {len(checks)} R01 F01 contract checks")
 
