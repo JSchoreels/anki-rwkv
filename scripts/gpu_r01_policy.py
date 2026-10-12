@@ -17,10 +17,11 @@ MATERIAL_REDUCTIONS = {"nvidia_utilization.gpu": ("points", 5.0),
 # Options that openly change configuration or update schedule. Review exposure, users,
 # initial weights and held-out inputs must still match; only these fields may differ.
 DECLARED_CHANGES = {"batch_chunks": ({"BATCH_CHUNKS"}, {"updates", "coverage"}),
+                    "pack_users": (set(), {"updates", "coverage"}),
                     "training_seed": ({"SEED"}, {"initial_parameter_sha256"}),
                     "gpu_memory_fraction": ({"GPU_MEMORY_FRACTION"}, set())}
 # Track components by the bottleneck they target, for ceiling checks during selection.
-FEEDING_TRACKS = {"F01", "F02", "F03", "F04", "F14", "F16", "F18", "F19", "F20"}
+FEEDING_TRACKS = {"F01", "F02", "F03", "F04", "F14", "F16", "F18", "F19", "F20", "F28", "F30"}
 
 
 def round_boundary(protocol):
@@ -109,9 +110,9 @@ def matching_case(case, recorded_protocol, protocol, model, options, *, smoke, s
                        "PEAK_LR": training["peak_lr"], "WARMUP_STEPS": training["warmup_updates"]}
     if any(case.get("config", {}).get(key) != value for key, value in expected_config.items()):
         return False
-    updates = (protocol["planned_updates"][model] if "batch_chunks" not in options
-               else planned_updates(protocol["rows"], chunks, training["chunk_reviews"]))
-    if case.get("status") == "complete" and case.get("updates") != (2 if smoke else updates):
+    updates = (protocol["planned_updates"][model] if "batch_chunks" not in options and not options.get("pack_users")
+               else planned_updates(protocol["rows"], chunks, training["chunk_reviews"], pack_users=options.get("pack_users", False)))
+    if case.get("status") == "complete" and case.get("updates") != ((1 if options.get("pack_users") else 2) if smoke else updates):
         return False
     return case.get("training_users") == (2 if smoke else len(protocol["training_users"])) \
         and case.get("evaluation_users") == (2 if smoke else len(protocol["heldout_users"]))
@@ -284,7 +285,7 @@ def streak(comparison):
 
 def require_active(model, no_gain_streak):
     if no_gain_streak >= 3:
-        raise RuntimeError(f"{model}: stop after {no_gain_streak} consecutive iterations without a 20% gain")
+        raise RuntimeError(f"{model}: stop after {no_gain_streak} consecutive misses of the applicable throughput target")
 
 
 def point_losses_pass(metrics, relative_limit):
@@ -303,8 +304,8 @@ def point_losses_pass(metrics, relative_limit):
 
 
 def decide(gain_percent, losses, *, relative_limit, baseline_limit, prior_streak, resources_reduced=False,
-           speed_tolerance_percent=0.0, target_percent=20.0):
-    """Gains within the recorded repeat spread count as the same speed, not as faster."""
+           speed_tolerance_percent=0.0, target_percent=20.0, exact_parity=False, exact_target_percent=None):
+    """Honor the optional measured exact-parity gate; preserve legacy timing rules."""
     if type(gain_percent) not in (int, float) or not math.isfinite(gain_percent):
         raise ValueError("Finite measured throughput gain required")
     if type(speed_tolerance_percent) not in (int, float) or not 0 <= speed_tolerance_percent < 100:
@@ -313,7 +314,15 @@ def decide(gain_percent, losses, *, relative_limit, baseline_limit, prior_streak
     accurate = point_losses_pass(metrics, relative_limit)
     baseline_preferred = point_losses_pass(losses["original_baseline"]["metrics"], baseline_limit)
     worse = any(value["relative_delta"] > 0 for value in metrics.values())
-    faster = gain_percent > speed_tolerance_percent
+    exact_gate = exact_parity and exact_target_percent is not None
+    if exact_gate:
+        if (type(exact_target_percent) not in (int, float) or not math.isfinite(exact_target_percent)
+                or not 0 < exact_target_percent < 100):
+            raise ValueError("Finite positive exact-parity throughput target required")
+        if any(value["relative_delta"] != 0 for value in metrics.values()):
+            raise ValueError("Exact parity cannot accompany changed measured scores")
+        target_percent = exact_target_percent
+    faster = gain_percent >= target_percent if exact_gate else gain_percent > speed_tolerance_percent
     slower = gain_percent < -speed_tolerance_percent
     fastmode = faster and (worse or not accurate)
     retune = not faster and not slower and accurate and not worse and resources_reduced
@@ -327,6 +336,7 @@ def decide(gain_percent, losses, *, relative_limit, baseline_limit, prior_streak
             "baseline_preferred_limit_met": baseline_preferred,
             "fastmode": fastmode, "accepted_main": accepted,
             "resource_retuning_pending": retune, "decision": decision,
+            "exact_speed_gate_applied": exact_gate,
             # Field names predate the configurable target; the protocol's target applies.
             "throughput_target_percent": target_percent,
             "meets_20_percent_target": gain_percent >= target_percent,
@@ -345,7 +355,8 @@ def recount_streak(root, model, round_start, through, target_percent):
             continue
         gain = comparison.get("references", {}).get("previous", {}).get("throughput_gain_percent")
         # Older comparison formats lack the gain; keep their recorded count.
-        count = streak(comparison) if gain is None else 0 if gain >= target_percent else count + 1
+        threshold = comparison.get("throughput_target_percent", target_percent) if comparison.get("exact_speed_gate_applied") else target_percent
+        count = streak(comparison) if gain is None else 0 if gain >= threshold else count + 1
     return count
 
 
@@ -423,7 +434,10 @@ def same_exposure(left, right, keys):
     return None
 
 
-def planned_updates(rows, chunks, chunk_reviews=128):
+def planned_updates(rows, chunks, chunk_reviews=128, *, pack_users=False):
+    if pack_users:
+        total_chunks = sum((row["available_reviews"] + chunk_reviews - 1) // chunk_reviews for row in rows)
+        return (total_chunks + chunks - 1) // chunks
     span = chunks * chunk_reviews
     return sum((row["available_reviews"] + span - 1) // span for row in rows)
 

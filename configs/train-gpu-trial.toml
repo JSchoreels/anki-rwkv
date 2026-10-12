@@ -1,0 +1,27 @@
+# One pass over complete review histories for users 1-100.
+DATA_PATH = "data/anki-revlogs-10k"
+USER_START = 1
+USER_END = 100
+REVIEWS_PER_USER = 0
+CHUNK_REVIEWS = 128
+# 16,384 reviews per update; leave headroom for varied full-history shapes.
+BATCH_CHUNKS = 128
+DTYPE = "bfloat16"
+PREFETCH_WORKERS = 4
+PREFETCH_BATCHES = 8
+# Keep the allocation cache within physical VRAM while Windows runs other apps.
+GPU_MEMORY_FRACTION = 0.95
+EPOCHS = 1
+CPU_THREADS = 4
+SEED = 2025
+PEAK_LR = 7e-4
+WARMUP_STEPS = 100
+DEVICE = "cuda:0"
+# "nvrtc" uses upstream float32/BF16 kernels without MSVC; install the nvrtc extra.
+# Use "cuda" after compiling RWKV_CUDA; "reference" needs only PyTorch.
+WKV_BACKEND = "nvrtc"
+# Zero means monitor only; manage the cap separately with MSI Afterburner.
+POWER_LIMIT_WATTS = 0
+CHECKPOINT_EVERY_STEPS = 100
+OUTPUT_DIR = "artifacts/benchmarks/gpu-trial"
+CHECKPOINT_DIR = "checkpoints/gpu-trial"

@@ -31,7 +31,8 @@ def main():
     inputs = check_inputs(ROOT, ("scripts/check_gpu_r01_policy.py", "scripts/gpu_r01_policy.py",
                                 "scripts/run_gpu_r01.py", "scripts/run_isolated_gpu_r01.py", "scripts/isolate_gpu_r01.py",
                                 "scripts/select_gpu_r01_next.py", "scripts/report_gpu_r01_next.py", "scripts/gpu_r01_log.py",
-                                "scripts/profile_gpu_resources.py", "scripts/gpu_r01_training.py"))
+                                "scripts/profile_gpu_resources.py", "scripts/gpu_r01_training.py",
+                                "scripts/gpu_r01_packing.py", "scripts/gpu_r01_samples.py"))
     previous = reusable_check(ROOT, "R01 workflow", inputs)
     if previous and not (args.repeat_reason or "").strip():
         print(json.dumps({"action": "reuse checks", "result": previous.relative_to(ROOT).as_posix()}))
@@ -91,12 +92,22 @@ def main():
         check("the same gain meets a 5% target and resets the miss count",
               decision(gain=17.4, target_percent=5.0)["no_20_percent_gain_streak"] == 0 and decision(gain=17.4, target_percent=5.0)["throughput_target_percent"] == 5.0)
         check("a gain below 5% still counts as a miss under the 5% target", decision(gain=4.9, target_percent=5.0)["no_20_percent_gain_streak"] == 3)
+        exact = decision(gain=3.69, target_percent=5, speed_tolerance_percent=5.68, exact_parity=True, exact_target_percent=2)
+        check("authorized exact-parity gate accepts measured gain inside timing spread", exact["accepted_main"] and exact["no_20_percent_gain_streak"] == 0 and exact["throughput_target_percent"] == 2)
+        check("exact gate includes its two-percent boundary", decision(gain=2, exact_parity=True, exact_target_percent=2)["accepted_main"])
+        check("exact gate rejects a smaller gain", not decision(gain=1.99, exact_parity=True, exact_target_percent=2)["accepted_main"])
+        check("score-only or nonexact changes keep the original gate", not decision(gain=3.69, target_percent=5, speed_tolerance_percent=5.68, exact_target_percent=2)["accepted_main"])
+        reject("changed measured scores cannot claim exact parity", lambda: decision(0.001, gain=3.69, exact_parity=True, exact_target_percent=2))
         accepted_case = {"options": {}, "updates": 276, "review_presentations": 960, "training_users": 80,
                          "coverage": {"1": {"reviews": 900, "updates": 2}, "2": {"reviews": 60, "updates": 1}}}
         larger = {**accepted_case, "options": {"batch_chunks": 512}, "updates": 138,
                   "coverage": {"1": {"reviews": 900, "updates": 1}, "2": {"reviews": 60, "updates": 1}}}
         exposure_keys = ("training_users", "updates", "review_presentations", "coverage")
         check("declared larger batches may change only update counts", same_exposure(larger, accepted_case, exposure_keys) is None)
+        packed = {**larger, "options": {"pack_users": True}}
+        check("cross-user packing independently declares changed updates", same_exposure(packed, accepted_case, exposure_keys) is None)
+        from scripts.gpu_r01_policy import planned_updates
+        check("packed update plan keeps partial user chunks separate", planned_updates([{"available_reviews": 129}, {"available_reviews": 127}], 2, pack_users=True) == 2)
         check("declared larger batches still require identical per-user reviews",
               same_exposure({**larger, "coverage": {"1": {"reviews": 899, "updates": 1}, "2": {"reviews": 61, "updates": 1}}},
                             accepted_case, exposure_keys) == "coverage")
@@ -325,6 +336,8 @@ def main():
         gp = deepcopy(protocol)
         gp.update(models=["baseline"], iteration="0010", loop_policy=None, references={},
                   implementation_sha256="new-source", prior_no_20_percent_gain_streak={"baseline": 2})
+        # Historical protocols keep their 72% limit after the future default changes.
+        gp["training"]["gpu_memory_fraction"] = 0.72
         write(history / "protocol.json", gp)
         (history / "loop-definition.md").write_bytes(live_loop.read_bytes())
         template = json.loads((new / "baseline/F01-F08/result.json").read_text())

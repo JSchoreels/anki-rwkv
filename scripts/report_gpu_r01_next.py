@@ -44,7 +44,9 @@ def parity(left, right, left_path, right_path):
     keys = ("step", "user_id", "offset", "reviews", "seed", "loss", "gradient_norm", "curve_labels", "instant_labels", "lr")
     logs = [[json.loads(line) for line in (path / "updates.jsonl").read_text().splitlines()]
             for path in (left_path, right_path)]
-    mismatches = [i + 1 for i, (a, b) in enumerate(zip(*logs)) if any(a[key] != b[key] for key in keys)]
+    mismatches = [i + 1 for i, (a, b) in enumerate(zip(*logs)) if any(a[key] != b[key] for key in keys)
+                  or a.get("parts", [[a["user_id"], a["offset"], a["reviews"]]])
+                  != b.get("parts", [[b["user_id"], b["offset"], b["reviews"]]])]
     fields = ("initial_parameter_sha256", "trained_parameter_sha256", "validation_input_sha256", "updates",
               "review_presentations", "training_curve_labels", "training_instant_labels", "coverage", "evaluation")
     checks = {key: left[key] == right[key] for key in fields}
@@ -64,8 +66,11 @@ def main():
     implementation_path = output / "implementation-commit.json"
     implementation = json.loads(implementation_path.read_text()) if implementation_path.exists() else None
     settings = protocol["acceptance"]
+    target_percent = 100 * settings.get("target_throughput_gain", 0.20)
     amendment_path = output / "reference-reuse-amendment.json"
     amendment = json.loads(amendment_path.read_text()) if amendment_path.exists() else {}
+    settings = {**settings, **amendment.get("acceptance_overrides", {})}
+    target_percent = 100 * settings.get("target_throughput_gain", 0.20)
     _, _, definition = effective_loop(output, ROOT)
     cases, comparisons, references = {}, {}, {}
     sources = sorted(path for path in output.glob("*/*/result.json") if path.parent.parent.name in protocol["models"])
@@ -135,7 +140,9 @@ def main():
                              prior_streak=amendment.get("prior_no_20_percent_gain_streak", protocol["prior_no_20_percent_gain_streak"])[model],
                              resources_reduced=material_reduction(reductions) if "speed_noise_band" in settings else bool(reductions),
                              speed_tolerance_percent=band["percent"],
-                             target_percent=100 * settings.get("target_throughput_gain", 0.20)))
+                             target_percent=target_percent,
+                             exact_parity=result["parity"]["exact_recorded_parity"],
+                             exact_target_percent=100 * settings["exact_target_throughput_gain"] if "exact_target_throughput_gain" in settings else None))
         result["speed_noise_band"] = band
         result["resource_reductions"] = reductions
         result["reused_candidate"] = reused_candidate
@@ -154,12 +161,14 @@ def main():
               "limitations": "20 distinct held-out users; one training seed and one timing/configuration; no broader validation or timing-repeatability claim"}
     atomic_json(output / "comparison.json", report)
     lines = [f"# R01 iteration {iteration}", "", f"Status: **complete preliminary screen**. Authorization: {protocol.get('round_authorization', protocol['authorization'])}.", "",
-             f"Same fixed **80 training / 20 unseen held-out users**, **{protocol['training_reviews']:,} training / {protocol['validation_reviews']:,} evaluation reviews**, seed 2025, one epoch, BF16 compute/FP32 master. Chunks contain 128 reviews; prefetch is bounded at twice the worker count. Exposure, update order, per-update seeds, optimizer and learning-rate schedule remain fixed. Exact worker/chunk settings for each case are preserved in its raw config.", "",
+             f"Same fixed **{protocol['training_user_count']} training / {protocol['evaluation_users']} unseen held-out users**, **{protocol['training_reviews']:,} training / {protocol['validation_reviews']:,} evaluation reviews**, seed 2025, one epoch, BF16 compute/FP32 master. Chunks contain 128 reviews; prefetch is bounded at twice the worker count. Review exposure stays fixed; declared batch-size or cross-user packing changes may alter update membership, counts, batch seeds, dropout and the learning-rate trajectory. Exact worker/chunk settings and explanations are preserved in the protocol and raw results.", "",
              "[Frozen protocol](protocol.json), [selection from recorded profiles](selection.json), [loop definition](loop-definition.md), [raw comparison](comparison.json). References retain their original process provenance. Timing includes complete training loads, worker startup/shutdown, preparation, transfers, updates and logs. Setup/primer, save and evaluation are separate; process wall includes them.", "",
-             "Acceptance: measured relative regression ≤1% for all four binary losses against the previous accepted run; ≤2% versus the fixed original baseline is preferred. Confidence bounds are reported separately. Faster but less accurate variants remain separate opt-in fastmode. Accurate resource-saving candidates without a speed gain remain pending retuning. Target ≥20% reviews/s gain versus the previous accepted run; stop each model after three consecutive misses. This remains a preliminary screen; broader validation is pending.", "",
+             f"Acceptance: measured relative regression ≤1% for all four binary losses against the previous accepted run; ≤2% versus the fixed original baseline is preferred. Confidence bounds are reported separately. Faster but less accurate variants remain separate opt-in fastmode. Accurate resource-saving candidates without a speed gain remain pending retuning. Target ≥{target_percent:g}% reviews/s gain versus the previous accepted run" + (f" for nonexact changes, or ≥{100 * settings['exact_target_throughput_gain']:g}% measured gain for exact recorded parity" if "exact_target_throughput_gain" in settings else "") + "; stop each model after three consecutive misses of the applicable target. This remains a preliminary screen; broader validation is pending.", "",
              "## Full-history measurements", "", "| Model / IDs | Training s | Reviews/s | Gain vs previous / original baseline | Process wall s | Weighted Curve / Instant | User-average Curve / Instant |",
              "|---|---:|---:|---|---:|---|---|"]
     effective_line = f"Effective rules: [loop definition]({link(ROOT / definition['path'], output)})."
+    if "exact_target_throughput_gain" in settings:
+        effective_line += f" Exact recorded parity uses the human-authorized **{100 * settings['exact_target_throughput_gain']:g}% measured throughput gate**, with timing spread reported separately; other changes retain the **{target_percent:g}% target** and original timing rule."
     if definition["amendment"]:
         effective_line += f" [Protocol amendment]({link(ROOT / definition['amendment'], output)}) records the transition; the original protocol remains preserved."
     lines[6:6] = [effective_line, ""]
@@ -176,6 +185,10 @@ def main():
             lines += ["Candidate measurements were reused from the linked original result; no new training attempt or stop-count increment.", ""]
         for track in cases[model]:
             case = cases[model][track]
+            if case["options"].get("prestart_pool"):
+                readiness = (f"**{case['prestarted_workers']} distinct workers** acknowledged initializer imports before training" if case.get("prestarted_worker_pids") else
+                             f"**{case.get('prestarted_workers', '—')} distinct worker PIDs** returned warmup jobs; this does not establish that every configured worker finished imports")
+                lines += [f"F28 starts worker imports during setup: {readiness}. Setup-to-ready elapsed **{case.get('pool_prestart_seconds', 0):.3f} s**, final ready wait **{case.get('pool_ready_wait_seconds', 0):.6f} s**. These costs are outside the training timer and inside the reported process wall; shutdown remains inside training.", ""]
             if case.get("cache_stats"):
                 cache = case["cache_stats"]
                 setup = case["cache_setup"]
@@ -186,11 +199,17 @@ def main():
             profile = output / "profiles" / f"{model}-{track}" / "result.json"
             if profile.exists():
                 p = json.loads(profile.read_text())
+                if "phases" not in p:
+                    profile = next((path for path in sorted((output / "profiles").glob(f"{model}-{track}-*/result.json"), reverse=True)
+                                    if "phases" in json.loads(path.read_text())), profile)
+                    p = json.loads(profile.read_text())
                 c = p["phases"]["training including user transitions"]["counters"]
                 lines += [f"{describe(track)}: GPU activity **{c['nvidia_utilization.gpu']['mean']:.1f}%**, worker-pool CPU **{c['worker_pool_cpu_percent']['mean']:.1f}%**, peak reserved VRAM **{c['torch_cuda_peak_reserved_bytes']['max']/2**30:.2f} GiB**, minimum available system RAM **{c['ram_available_bytes']['min']/2**30:.2f} GiB**. [Resource profile]({link(profile.with_name('profile.md'), output)}). Full-history sampling-window sufficiency: `{p['workload']['full_history_profile_available']}`; GPU activity is not occupancy.", ""]
         if result["speed_noise_band"].get("available"):
-            lines += [f"Speed change: **{result['speed_change']}**; gains within ±{result['speed_noise_band']['percent']:.2f}% (largest recorded spread between repeats of an identical configuration) count as the same speed. Retuning requires a material resource reduction.", ""]
-        lines += [f"Decision: **{result['decision']}**. Exact recorded parity versus previous accepted run: **{result['parity']['exact_recorded_parity']}**; logged update mismatches: **{result['parity']['update_mismatch_count']}**. Consecutive iterations without a 20% gain: **{result['no_20_percent_gain_streak']}**. Three-iteration stop threshold reached: **{result['no_20_percent_gain_streak'] >= 3}**.", "",
+            timing = (f"The recorded ±{result['speed_noise_band']['percent']:.2f}% repeat spread remains descriptive under the authorized exact-parity gate; the measured gain does not establish repeatability." if result.get("exact_speed_gate_applied") else
+                      f"Gains within ±{result['speed_noise_band']['percent']:.2f}% (largest recorded spread between repeats of an identical configuration) count as the same speed. Retuning requires a material resource reduction.")
+            lines += [f"Speed change: **{result['speed_change']}** under the applicable rule. {timing}", ""]
+        lines += [f"Decision: **{result['decision']}**. Exact recorded parity versus previous accepted run: **{result['parity']['exact_recorded_parity']}**; logged update mismatches: **{result['parity']['update_mismatch_count']}**. Consecutive iterations without a {result['throughput_target_percent']:g}% gain: **{result['no_20_percent_gain_streak']}**. Three-iteration stop threshold reached: **{result['no_20_percent_gain_streak'] >= 3}**.", "",
                   "| Binary loss | Candidate | Δ vs previous / original | Familywise upper vs previous / original |", "|---|---:|---|---|"]
         for key in METRICS:
             metrics = [result["references"][kind]["losses"]["metrics"][key] for kind in ("previous", "original_baseline")]

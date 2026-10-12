@@ -143,7 +143,7 @@ def run_case(args):
     chunks = options.get("batch_chunks", chunks)
     if type(chunks) is not int or not 1 <= chunks <= 2048:
         raise ValueError("Batch chunks must be an integer between 1 and 2048")
-    memory_fraction = options.get("gpu_memory_fraction", 0.72)
+    memory_fraction = options.get("gpu_memory_fraction", protocol["training"].get("gpu_memory_fraction", 0.95))
     if not 0.1 <= memory_fraction <= 0.95:
         raise ValueError("GPU memory fraction must stay between 0.1 and 0.95")
     workers = options.get("preparation_workers", workers)
@@ -195,9 +195,10 @@ def run_case(args):
         warm_pool = None
         if options.get("prestart_pool"):
             # F28: spawn and import the preparation workers while the GPU primer runs.
-            from scripts.gpu_r01_packing import worker_warmup
+            from scripts.gpu_r01_packing import worker_warmup, warm_preparation_pool
             pool_stack = ExitStack()
-            warm_pool = pool_stack.enter_context(preparation_pool(workers))
+            ready_directory = path / "worker-ready" / uuid4().hex
+            warm_pool = pool_stack.enter_context(warm_preparation_pool(workers, ready_directory))
             pool_started = time.perf_counter()
             warm_futures = [warm_pool.submit(worker_warmup) for _ in range(workers)]
         # Discarded forward/backward primes JIT without performing optimizer updates.
@@ -247,7 +248,10 @@ def run_case(args):
         loss_value = float("nan")
         if warm_pool is not None:
             waited = time.perf_counter()
-            report["prestarted_workers"] = len({future.result() for future in warm_futures})
+            from scripts.gpu_r01_packing import wait_ready_workers
+            report["warmup_job_workers"] = len({future.result() for future in warm_futures})
+            report["prestarted_worker_pids"] = wait_ready_workers(ready_directory, workers)
+            report["prestarted_workers"] = len(report["prestarted_worker_pids"])
             report["pool_ready_wait_seconds"] = time.perf_counter() - waited
             report["pool_prestart_seconds"] = time.perf_counter() - pool_started
         train_started = time.perf_counter()

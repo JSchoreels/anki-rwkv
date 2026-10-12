@@ -19,6 +19,7 @@ from scripts import run_gpu_batch1 as shared
 BASE = ROOT / "artifacts/retraining/gpu-retrain-r01"
 # GPU_RETRAIN_LOOP.md speed target (human request 2026-10-12: 20% -> 5%).
 TARGET_THROUGHPUT_GAIN = 0.05
+EXACT_TARGET_THROUGHPUT_GAIN = 0.02
 COHORT = BASE / "cohorts-user-holdout-v1.json"
 OPTIONS = {"control": {}, "F01": {"prefetch_users": True},
            "F03": {"worker_local": True, "packed_ipc": True},
@@ -43,6 +44,8 @@ class R01SourceWatch(shared.SourceWatch):
         with ZipFile(ROOT / provenance["source_archive"]) as archive:
             manifest = json.loads(archive.read("source-manifest.json"))["files"]
         for name in ("scripts/run_gpu_r01.py", "scripts/gpu_r01_training.py", "scripts/gpu_r01_prefetch.py", "scripts/gpu_r01_sync.py", "scripts/gpu_r01_staging.py", "scripts/gpu_b01.py", "scripts/gpu_resource_monitor.py", "scripts/gpu_r01_policy.py", "scripts/gpu_preprocessing_cache.py", "scripts/gpu_preprocessing_stage.py", "scripts/gpu_id_encodings.py", "scripts/gpu_r01_update.py", "scripts/gpu_packed_encodings.py", "scripts/gpu_optimizations.py", "scripts/gpu_batch1.py", "rwkv/prepare_batch.py"):
+            self.hashes[name] = manifest[name]
+        for name in ("scripts/gpu_r01_packing.py", "scripts/gpu_r01_samples.py"):
             self.hashes[name] = manifest[name]
         self.implementation_sha256 = hashlib.sha256(json.dumps(self.hashes, sort_keys=True).encode()).hexdigest()
         self.check()
@@ -140,7 +143,7 @@ def prepare(output, iteration="0002", previous=None, plan=None, resume_prepared=
                 "training": {"epochs": 1, "chunk_reviews": 128, "baseline_chunks_workers": [128, 4],
                              "expertium_chunks_workers": [256, 6], "dtype": "BF16", "master_dtype": "FP32",
                              "peak_lr": 7e-4, "warmup_updates": 5, "clip": 0.5, "cpu_threads": 4,
-                             "prefetch_depth": "2 times preparation workers", "gpu_memory_fraction": 0.72,
+                             "prefetch_depth": "2 times preparation workers", "gpu_memory_fraction": 0.95,
                              "initialization": "fresh seed-paired weights and AdamW; no checkpoint reuse"},
                 "execution_mode": {"torch_graph_executor_optimize": False, "deterministic_algorithms": True,
                                    "CUBLAS_WORKSPACE_CONFIG": ":4096:8", "wkv_tile": 32},
@@ -149,6 +152,7 @@ def prepare(output, iteration="0002", previous=None, plan=None, resume_prepared=
                 "budget": "two fresh baselines plus one profile-selected candidate per architecture; one training seed; no larger stages in this iteration",
                 "eligible_tracks": {key: value for key, value in OPTIONS.items() if key != "control"},
                 "acceptance": {"relative_loss_limit": 0.01, "baseline_loss_limit": 0.02, "target_throughput_gain": TARGET_THROUGHPUT_GAIN,
+                               "exact_target_throughput_gain": EXACT_TARGET_THROUGHPUT_GAIN,
                                "metrics": "Curve/Instant binary logloss, label-weighted and user-averaged, each separately",
                                "parity": "compare update metadata/loss/norm, initial/final weight hashes and held-out input hashes; exact final weights and scores preferred",
                                "resamples": 10000, "bootstrap_seed": 20261012, "family_tests": 8, "alpha": 0.05,
@@ -254,6 +258,12 @@ def prepare(output, iteration="0002", previous=None, plan=None, resume_prepared=
                         eligible_tracks={m: proposed["candidate_tracks"][m] for m in models},
                         check_policy="reuse applicable profiles; focused smoke checks for changed code, no mandatory paired repeats")
     # Predeclare which gains count as faster rather than run-to-run variation.
+    from scripts.gpu_r01_policy import planned_updates
+    protocol["planned_updates"] = {model: planned_updates(
+        protocol["rows"], protocol["case_options_by_model"][model][protocol["candidate_tracks"][model]].get(
+            "batch_chunks", protocol["training"][model + "_chunks_workers"][0]), protocol["training"]["chunk_reviews"],
+        pack_users=protocol["case_options_by_model"][model][protocol["candidate_tracks"][model]].get("pack_users", False))
+        for model in protocol["models"]} if "candidate_tracks" in protocol else protocol["planned_updates"]
     from scripts.gpu_r01_policy import speed_noise_band
     protocol["acceptance"]["speed_noise_band"] = {model: speed_noise_band(ROOT, model) for model in protocol["models"]}
     protocol["loop_sha256"] = hashlib.sha256((ROOT / "docs/GPU_RETRAIN_LOOP.md").read_bytes()).hexdigest()

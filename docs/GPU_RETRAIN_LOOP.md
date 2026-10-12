@@ -22,8 +22,9 @@
     - If it's accurate, but same speed, but with less ressources usage, try to see if we can't re-adjust ressources usage to re-maximize the it (for ex, if a change reduce by 50% the GPU demand)
     - If partially sucessful (faster but a bit less accurate), maintain that improvement in a separate 'fastmode' implementation. Commit also
     - Keep fastmode separate from the main accepted configuration and its comparison reference.
-- Iterate until you can't find 5% request/s improvement after 3 iterations.
-- Stop each model before another iteration after three consecutive misses of the 5% improvement target.
+- Use a measured 2% reviews/s improvement gate for adaptations with exact recorded parity: every logged update and gradient norm, final weights, held-out inputs and all four scores match the previous accepted run. Report the existing timing spread separately; it does not veto this human-authorized measured gate. This does not establish timing repeatability.
+- Keep the 5% improvement target and existing timing-spread rule for changes without exact recorded parity; keep the measured quality ceilings unchanged.
+- Stop each model before another iteration after three consecutive misses of the applicable improvement target (2% for exact adaptations, 5% otherwise).
 
 ## Artifacts
 - Fill the results in GPU_OPTIMIZATIONS.md and track the "Optimization tracks" there.

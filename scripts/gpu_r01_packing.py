@@ -7,6 +7,10 @@ seeds; quality is judged with the measured loss ceilings, not parity.
 """
 
 import time
+from contextlib import contextmanager
+from concurrent.futures import ProcessPoolExecutor
+import multiprocessing
+from pathlib import Path
 
 from scripts.trial_batches import TrialBatch
 
@@ -62,3 +66,35 @@ def worker_warmup():
     import scripts.gpu_packed_encodings  # noqa: F401
     import rwkv.prepare_batch  # noqa: F401
     return os.getpid()
+
+
+def worker_warmup_ready(ready_directory):
+    """Run once in every spawned worker, before it can accept preparation jobs."""
+    from scripts.trial_batches import worker_init
+    worker_init()
+    pid = worker_warmup()
+    (Path(ready_directory) / f"{pid}.ready").write_text(str(pid), encoding="ascii")
+
+
+@contextmanager
+def warm_preparation_pool(workers, ready_directory):
+    ready_directory = Path(ready_directory)
+    ready_directory.mkdir(parents=True, exist_ok=False)
+    pool = ProcessPoolExecutor(max_workers=workers, mp_context=multiprocessing.get_context("spawn"),
+                               initializer=worker_warmup_ready, initargs=(str(ready_directory),))
+    try:
+        yield pool
+    finally:
+        pool.shutdown(wait=True, cancel_futures=True)
+
+
+def wait_ready_workers(ready_directory, workers, timeout=120):
+    """Count initializer acknowledgements, rather than repeat jobs on one worker."""
+    deadline = time.perf_counter() + timeout
+    while True:
+        pids = sorted(int(path.stem) for path in Path(ready_directory).glob("*.ready"))
+        if len(pids) == workers:
+            return pids
+        if len(pids) > workers or time.perf_counter() >= deadline:
+            raise RuntimeError(f"Preparation pool readiness: {len(pids)}/{workers} workers")
+        time.sleep(0.01)
