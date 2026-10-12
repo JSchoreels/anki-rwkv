@@ -355,9 +355,60 @@ def point_losses_pass(metrics, relative_limit):
     return True
 
 
+# Replicate-block promotion (human approval 2026-10-13). Interim looks after 2, 4 and 6 blocks use one
+# Pocock boundary so a neutral change is promoted with overall one-sided probability 0.05 under the
+# calibrated block SD (2M-run simulation, seed 20261013; a fixed 1.645 at each look would give 10.1%).
+BLOCK_LOOKS = (2, 4, 6)
+BLOCK_BOUNDARY_Z = 1.9927
+BLOCK_CALIBRATED_SD_PERCENT = 1.01  # 5-MAD trimmed per-update estimator, 15 identical-run pairs in iteration 0047
+BLOCK_MAX = 8  # flagged blocks may be replaced up to this total
+
+
+def block_decision(effects_percent, calibrated_sd_percent=BLOCK_CALIBRATED_SD_PERCENT, looks=BLOCK_LOOKS,
+                   boundary_z=BLOCK_BOUNDARY_Z, max_blocks=BLOCK_MAX):
+    """Promote / extend / stack / reject from per-block candidate-vs-reference gains in percent."""
+    n = len(effects_percent)
+    if any(type(e) not in (int, float) or not math.isfinite(e) or e <= -100 for e in effects_percent):
+        raise ValueError("Finite block gains above -100% required")
+    if not 0 < calibrated_sd_percent < 100 or not boundary_z > 0 or list(looks) != sorted(looks) or n > max_blocks:
+        raise ValueError("Valid frozen block parameters required")
+    if n < looks[0]:
+        return {"n": n, "decision": "run more blocks", "next_look": looks[0], "final": False}
+    logs = [math.log(1 + e / 100) for e in effects_percent]
+    mean = statistics.fmean(logs)
+    observed = statistics.stdev(logs) if n >= 2 else 0.0
+    sd = max(math.log(1 + calibrated_sd_percent / 100), observed)
+    lower = mean - boundary_z * sd / math.sqrt(n)
+    later = [look for look in looks if look > n]
+    decision = ("promote" if lower > 0 else "reject" if mean <= 0 else
+                "extend" if later else "stack candidate")
+    as_percent = lambda value: 100 * (math.exp(value) - 1)
+    return {"n": n, "effects_percent": list(effects_percent), "mean_percent": as_percent(mean),
+            "sd_used_percent": as_percent(sd), "observed_sd_percent": as_percent(observed),
+            "lower_bound_percent": as_percent(lower), "boundary_z": boundary_z, "decision": decision,
+            "next_look": later[0] if decision == "extend" else None, "final": decision != "extend"}
+
+
+def replicate_blocks(output, model, control_track, candidate_track):
+    """Pair each candidate replicate with the reference replicate launched just before it (R C R C ...)."""
+    folders = sorted((Path(output) / "replicates").glob("r*"), key=lambda path: int(path.name[1:]) if path.name[1:].isdigit() else -1)
+    blocks, waiting = [], None
+    for folder in folders:
+        for track in (control_track, candidate_track):
+            case = folder / model / track
+            if not (case / "result.json").exists():
+                continue
+            if track == control_track:
+                waiting = case
+            elif waiting is not None:
+                blocks.append((waiting, case))
+                waiting = None
+    return blocks
+
+
 def decide(gain_percent, losses, *, relative_limit, baseline_limit, prior_streak, resources_reduced=False,
            speed_tolerance_percent=0.0, target_percent=20.0, exact_parity=False, exact_target_percent=None,
-           exact_promotion_rule="fixed_target", timing_noise_available=True, loss_tolerance=False):
+           exact_promotion_rule="fixed_target", timing_noise_available=True, loss_tolerance=False, blocks=None):
     """Use the frozen promotion rule; keep historical fixed-target decisions intact.
 
     loss_tolerance (a human-set round ceiling, 2026-10-12): measured regressions within the ceiling,
@@ -366,7 +417,8 @@ def decide(gain_percent, losses, *, relative_limit, baseline_limit, prior_streak
     """
     if type(loss_tolerance) is not bool:
         raise ValueError("Loss tolerance must be a frozen boolean")
-    if exact_promotion_rule not in ("fixed_target", "timing_noise") or type(timing_noise_available) is not bool:
+    if (exact_promotion_rule not in ("fixed_target", "timing_noise", "replicated_blocks")
+            or type(timing_noise_available) is not bool):
         raise ValueError("Valid frozen exact-promotion rule and timing-noise availability required")
     if type(gain_percent) not in (int, float) or not math.isfinite(gain_percent):
         raise ValueError("Finite measured throughput gain required")
@@ -380,9 +432,12 @@ def decide(gain_percent, losses, *, relative_limit, baseline_limit, prior_streak
         accurate = accurate and point_losses_pass(losses["round_start"]["metrics"], relative_limit)
     baseline_preferred = point_losses_pass(losses["original_baseline"]["metrics"], baseline_limit)
     worse = any(value["relative_delta"] > 0 for value in metrics.values())
+    replicated = exact_promotion_rule == "replicated_blocks"
+    if replicated and (blocks is None or "decision" not in blocks):
+        raise ValueError("The replicated-block rule needs a block decision")
     exact_noise = exact_parity and exact_promotion_rule == "timing_noise"
-    exact_gate = exact_parity and exact_target_percent is not None and not exact_noise
-    if (exact_gate or exact_noise) and any(value["relative_delta"] != 0 for value in metrics.values()):
+    exact_gate = exact_parity and exact_target_percent is not None and not exact_noise and not replicated
+    if (exact_gate or exact_noise or (replicated and exact_parity)) and any(value["relative_delta"] != 0 for value in metrics.values()):
         raise ValueError("Exact parity cannot accompany changed measured scores")
     if exact_gate:
         if (type(exact_target_percent) not in (int, float) or not math.isfinite(exact_target_percent)
@@ -391,22 +446,27 @@ def decide(gain_percent, losses, *, relative_limit, baseline_limit, prior_streak
         target_percent = exact_target_percent
     if exact_noise:
         target_percent = speed_tolerance_percent
-    faster = (timing_noise_available and gain_percent > speed_tolerance_percent if exact_noise else
+    # Replicate blocks decide speed for every candidate; non-exact ones still need the loss checks below.
+    pending_blocks = replicated and not blocks["final"]
+    faster = (blocks["decision"] == "promote" if replicated else
+              timing_noise_available and gain_percent > speed_tolerance_percent if exact_noise else
               gain_percent >= target_percent if exact_gate else gain_percent > speed_tolerance_percent)
-    slower = gain_percent < -speed_tolerance_percent
+    slower = (blocks.get("mean_percent", 0) < 0 if replicated else gain_percent < -speed_tolerance_percent)
     fastmode = faster and (not accurate if loss_tolerance else (worse or not accurate))
     missing_noise = exact_noise and not timing_noise_available
-    retune = not missing_noise and not faster and not slower and accurate and not worse and resources_reduced
+    retune = not missing_noise and not pending_blocks and not faster and not slower and accurate and not worse and resources_reduced
     accepted = faster and accurate and not fastmode
     # Human request 2026-10-12: keep positive gains below the noise band visible so several can be stacked.
-    stack_candidate = (not accepted and not fastmode and not missing_noise and accurate and gain_percent > 0
-                       and (exact_parity or loss_tolerance or not worse))
+    measured_gain = blocks.get("mean_percent", 0) if replicated else gain_percent
+    stack_candidate = (not accepted and not fastmode and not missing_noise and not pending_blocks and accurate
+                       and measured_gain > 0 and (exact_parity or loss_tolerance or not worse))
     decision = ("pending measured timing-noise evidence" if missing_noise else
+                f"run replicate blocks to the next look ({blocks.get('next_look')})" if pending_blocks else
                 "retain separate opt-in fastmode" if fastmode else
                 "retain main improvement; preliminary only" if accepted else
                 "investigate retuning freed resources" if retune else
                 "retain previous accepted run; speed target missed")
-    met_target = faster if exact_noise else gain_percent >= target_percent
+    met_target = faster if (exact_noise or replicated) else gain_percent >= target_percent
     return {"faster": faster, "speed_change": "timing noise unavailable" if missing_noise else "faster" if faster else "slower" if slower else "same within recorded repeat spread",
             "speed_tolerance_percent": speed_tolerance_percent, "passes_preliminary_quality": accurate,
             "baseline_preferred_limit_met": baseline_preferred,
@@ -414,8 +474,9 @@ def decide(gain_percent, losses, *, relative_limit, baseline_limit, prior_streak
             "stack_candidate": stack_candidate, "loss_tolerance_within_limit": loss_tolerance,
             "resource_retuning_pending": retune, "decision": decision,
             "exact_speed_gate_applied": exact_gate,
-            "exact_promotion_rule": exact_promotion_rule if exact_parity else "timing_noise_with_quality_checks",
+            "exact_promotion_rule": exact_promotion_rule if (exact_parity or replicated) else "timing_noise_with_quality_checks",
             "timing_noise_gate_applied": exact_noise,
+            "replicated_blocks": blocks if replicated else None, "decision_pending": pending_blocks or missing_noise,
             # Field names predate the configurable target; the protocol's target applies.
             "throughput_target_percent": target_percent,
             "meets_20_percent_target": met_target,

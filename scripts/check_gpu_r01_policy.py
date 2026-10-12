@@ -18,7 +18,7 @@ import shutil
 from scripts.gpu_r01_policy import (LOSS_METRICS, POLICY, accepted_reference, decide, material_reduction,
                                     read_reference, require_active, resource_reductions, result_metadata,
                                     check_inputs, reusable_check, speed_noise_band, pairwise_spreads, same_exposure, declared_differences,
-                                    round_budget_fields, round_loss_limit)
+                                    round_budget_fields, round_loss_limit, block_decision, replicate_blocks)
 
 
 def main():
@@ -139,6 +139,33 @@ def main():
         reject("ceiling cannot change mid-round", lambda: round_loss_limit({"round_relative_loss_limit": 0.001}, requested=0.002))
         reject("ceiling must be a fraction below one", lambda: round_loss_limit(new_round=True, requested=1.5))
         reject("ceiling must be finite", lambda: round_loss_limit(new_round=True, requested=float("nan")))
+        # Human approval 2026-10-13: replicate blocks with a Pocock boundary at 2/4/6 blocks.
+        check("fewer than two blocks asks for more", block_decision([1.0])["decision"] == "run more blocks")
+        check("two clear blocks promote", block_decision([2.4, 2.1])["decision"] == "promote")
+        check("a small positive mean at two blocks extends to four", block_decision([0.8, 0.6])["decision"] == "extend" and block_decision([0.8, 0.6])["next_look"] == 4)
+        check("a non-positive mean is rejected at once", block_decision([0.3, -0.5])["decision"] == "reject")
+        check("a positive mean still unproven at six blocks becomes a stack candidate", block_decision([0.4, 0.2, 0.5, 0.1, 0.3, 0.2])["decision"] == "stack candidate")
+        check("the observed block SD widens the bound when larger than the calibration", block_decision([6.0, -1.0])["decision"] != "promote")
+        check("the boundary is the frozen Pocock value", abs(block_decision([2.0, 2.0])["boundary_z"] - 1.9927) < 1e-12)
+        reject("more blocks than the cap are refused", lambda: block_decision([1.0] * 9))
+        def blocked(decision_blocks, delta=0.0, exact=True):
+            return decide(0.0, {"previous": loss(delta), "original_baseline": loss(delta)}, relative_limit=0.01, baseline_limit=0.02,
+                          prior_streak=0, exact_parity=exact, exact_promotion_rule="replicated_blocks", blocks=decision_blocks)
+        promoted = blocked(block_decision([2.4, 2.1]))
+        check("replicated rule promotes from blocks, not from the total gain", promoted["accepted_main"] and promoted["no_20_percent_gain_streak"] == 0)
+        pending = blocked(block_decision([0.8, 0.6]))
+        check("an extending block decision leaves the iteration pending", pending["decision_pending"] and not pending["accepted_main"] and not pending["stack_candidate"])
+        stacked = blocked(block_decision([0.4, 0.2, 0.5, 0.1, 0.3, 0.2]))
+        check("a final positive unproven block result is a stack candidate", stacked["stack_candidate"] and not stacked["accepted_main"])
+        check("non-exact promotion from blocks still needs no regression without a ceiling", blocked(block_decision([2.4, 2.1]), delta=0.0005, exact=False)["fastmode"])
+        reject("replicated rule without a block decision is refused", lambda: decide(1.0, {"previous": loss(0), "original_baseline": loss(0)}, relative_limit=0.01,
+                                                                                      baseline_limit=0.02, prior_streak=0, exact_promotion_rule="replicated_blocks"))
+        pairing = output / "pairing-fixture"
+        for name, track in (("r1", "R"), ("r2", "C"), ("r3", "C"), ("r4", "R"), ("r5", "R"), ("r6", "C")):
+            write(pairing / "replicates" / name / "expertium" / track / "result.json", {"track": track})
+        pairs = [(a.parts[-3], b.parts[-3]) for a, b in replicate_blocks(pairing, "expertium", "R", "C")]
+        check("blocks pair each candidate with the reference just before it", pairs == [("r1", "r2"), ("r5", "r6")])
+        shutil.rmtree(pairing)
         # Human decision 2026-10-12 (option C): the band is the median spread over all repeat pairs.
         import statistics
         recorded = [[55810, 58982], [73577, 74619], [170718, 182745], [197499, 161687]]
@@ -279,8 +306,20 @@ def main():
             with redirect_stdout(io.StringIO()):
                 runner.prepare(counted, "0005", old, plan_path, round_authorization="Human requested nine iterations", round_iterations=9)
             counted_protocol = json.loads((counted / "protocol.json").read_text())
-            check("new protocols freeze measured-noise exact rule", counted_protocol["acceptance"]["exact_promotion_rule"] == "timing_noise" and "exact_target_throughput_gain" not in counted_protocol["acceptance"])
+            blocks_frozen = counted_protocol["acceptance"].get("replicated_blocks", {})
+            check("new protocols freeze the replicate-block rule (human approval 2026-10-13)",
+                  counted_protocol["acceptance"]["exact_promotion_rule"] == "replicated_blocks" and "exact_target_throughput_gain" not in counted_protocol["acceptance"]
+                  and blocks_frozen.get("looks") == [2, 4, 6] and blocks_frozen.get("boundary_z") == 1.9927 and blocks_frozen.get("calibrated_sd_percent") == 1.01)
             check("preparation freezes explicit human count", counted_protocol["round_iteration_budget"] == 9 and counted_protocol["round_iteration_index"] == 1)
+            ceiling = base / "iteration-ceiling"
+            with redirect_stdout(io.StringIO()):
+                runner.prepare(ceiling, "0005", old, plan_path, round_authorization="Human: start at 0.1%", round_iterations=10, loss_ceiling=0.001)
+            ceiling_protocol = json.loads((ceiling / "protocol.json").read_text())
+            check("preparation freezes the round loss ceiling and its round-start reference",
+                  ceiling_protocol["round_relative_loss_limit"] == 0.001 and ceiling_protocol["acceptance"]["relative_loss_limit"] == 0.001
+                  and ceiling_protocol["acceptance"]["regressions_within_limit_promotable"] is True
+                  and all(refs["round_start"] == refs["previous"] for refs in ceiling_protocol["references"].values()))
+            shutil.rmtree(ceiling)
             counted_protocol["round_iteration_index"] = 3
             write(counted / "protocol.json", counted_protocol)
             write(counted / "comparison.json", {"comparisons": comparisons})

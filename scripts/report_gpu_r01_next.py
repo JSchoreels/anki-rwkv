@@ -155,6 +155,20 @@ def main():
         reductions = resource_reductions(candidate_path / "result.json", control_path / "result.json", ROOT)
         # Protocols frozen before the band existed keep their original zero tolerance.
         band = settings.get("speed_noise_band", {}).get(model, {"percent": 0.0, "available": False})
+        block_result = None
+        if settings.get("exact_promotion_rule") == "replicated_blocks":
+            # Human approval 2026-10-13: interleaved reference/candidate replicates decide speed.
+            from scripts.gpu_r01_policy import block_decision, replicate_blocks
+            from scripts.r01_paired_timing import load_run, trimmed_gain
+            params = settings["replicated_blocks"]
+            pairs = replicate_blocks(output, model, control_track, track)
+            effects = [trimmed_gain(load_run(r)["wall"], load_run(c)["wall"], params["mad_limit"])["gain_percent"] for r, c in pairs]
+            block_result = block_decision(effects, params["calibrated_sd_percent"], tuple(params["looks"]),
+                                          params["boundary_z"], params["max_blocks"])
+            trained = lambda case: json.loads((case / "result.json").read_text())["trained_parameter_sha256"]
+            block_result.update(pairs=[[r.relative_to(ROOT).as_posix(), c.relative_to(ROOT).as_posix()] for r, c in pairs],
+                                reference_replicates_exact=all(trained(r) == control["trained_parameter_sha256"] for r, _ in pairs),
+                                candidate_replicates_exact=all(trained(c) == candidate["trained_parameter_sha256"] for _, c in pairs))
         result.update(decide(gain, {kind: item["losses"] for kind, item in result["references"].items()},
                              relative_limit=settings["relative_loss_limit"], baseline_limit=settings["baseline_loss_limit"],
                              prior_streak=amendment.get("prior_no_20_percent_gain_streak", protocol["prior_no_20_percent_gain_streak"])[model],
@@ -165,7 +179,8 @@ def main():
                              exact_target_percent=100 * settings["exact_target_throughput_gain"] if "exact_target_throughput_gain" in settings else None,
                              exact_promotion_rule=settings.get("exact_promotion_rule", "fixed_target"),
                              timing_noise_available=band.get("available", False),
-                             loss_tolerance=settings.get("regressions_within_limit_promotable", False)))
+                             loss_tolerance=settings.get("regressions_within_limit_promotable", False),
+                             blocks=block_result))
         result["speed_noise_band"] = band
         result["resource_reductions"] = reductions
         result["reused_candidate"] = reused_candidate
@@ -248,6 +263,13 @@ def main():
             metrics = [result["references"][kind]["losses"]["metrics"][key] for kind in ("previous", "original_baseline")]
             lines.append(f"| {key} | {metrics[0]['candidate']:.9f} | " + " / ".join(f"{m['relative_delta_percent']:+.2f}%" for m in metrics) + " | " + " / ".join(f"{100*m['relative_familywise_upper']:+.2f}%" for m in metrics) + " |")
         lines.append("")
+        if result.get("replicated_blocks"):
+            b = result["replicated_blocks"]
+            lines += [f"Replicate blocks: **{b['n']}** reference/candidate pairs; trimmed per-update gain "
+                      + (f"mean **{b['mean_percent']:+.2f}%**, lower bound **{b['lower_bound_percent']:+.2f}%** at z = {b['boundary_z']:g} "
+                         f"(block SD used {b['sd_used_percent']:.2f}%); " if "mean_percent" in b else "")
+                      + f"block decision **{b['decision']}**. Replicates exact: reference {b.get('reference_replicates_exact')}, "
+                        f"candidate {b.get('candidate_replicates_exact')}.", ""]
         if result.get("stack_candidate"):
             lines += [f"Stack candidate: **positive {result['references']['previous']['throughput_gain_percent']:+.2f}% below the promotion rule**; "
                       "keep the option for later stacking with other small gains (2026-10-12 human request).", ""]

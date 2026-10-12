@@ -98,8 +98,9 @@ def run(args):
             raise
         folder = replicates / f"r{offset}"
         folder.mkdir(parents=True)
-        for name in ("protocol.json", "loop-definition.md"):
-            (folder / name).write_bytes((output / name).read_bytes())
+        for name in ("protocol.json", "loop-definition.md", "selection.json", "reference-reuse-amendment.json"):
+            if (output / name).exists():  # selection.json lets the launch guard accept the selected candidate
+                (folder / name).write_bytes((output / name).read_bytes())
         state = {"background": quiet, "gpu_state": gpu_state(), "recorded_utc": datetime.now(timezone.utc).isoformat()}
         write_json(folder / "background-load.json", {"total_cpu_percent": quiet["total_cpu_percent"], **state})
         launch = SimpleArgs(track, args.reason)

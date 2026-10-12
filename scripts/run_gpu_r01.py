@@ -165,7 +165,12 @@ def prepare(output, iteration="0002", previous=None, plan=None, resume_prepared=
                 "budget": "two fresh baselines plus one profile-selected candidate per architecture; one training seed; no larger stages in this iteration",
                 "eligible_tracks": {key: value for key, value in OPTIONS.items() if key != "control"},
                 "acceptance": {"relative_loss_limit": 0.01, "baseline_loss_limit": 0.02, "target_throughput_gain": TARGET_THROUGHPUT_GAIN,
-                               "exact_promotion_rule": "timing_noise",
+                               "exact_promotion_rule": "replicated_blocks",
+                               # Human approval 2026-10-13; calibration in iteration 0047.
+                               "replicated_blocks": {"estimator": "trimmed time-weighted per-update wall gain", "mad_limit": 5.0,
+                                                     "calibrated_sd_percent": 1.01, "calibration": "iteration-0047",
+                                                     "looks": [2, 4, 6], "boundary_z": 1.9927, "one_sided_alpha": 0.05,
+                                                     "max_blocks": 8, "extend_only_when_mean_positive": True},
                                "metrics": "Curve/Instant binary logloss, label-weighted and user-averaged, each separately",
                                "parity": "compare update metadata/loss/norm, initial/final weight hashes and held-out input hashes; exact final weights and scores preferred",
                                "resamples": 10000, "bootstrap_seed": 20261012, "family_tests": 8, "alpha": 0.05,
