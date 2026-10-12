@@ -83,7 +83,9 @@ def run(args):
         raise ValueError(f"Tracks outside the frozen protocol: {unknown}")
     replicates = output / "replicates"
     existing = sorted(int(p.name[1:]) for p in replicates.glob("r*") if p.name[1:].isdigit()) if replicates.exists() else []
-    log_path = output / "replicates.json"
+    # The record stays beside the iteration folder: the isolated runtime copies that folder once,
+    # so a record updated inside it would differ from the runtime copy at the next export.
+    log_path = output.parent / f"{output.name}-replicates.json"
     record = json.loads(log_path.read_text(encoding="utf-8")) if log_path.exists() else {"runs": []}
     for offset, track in enumerate(sequence, start=(existing[-1] if existing else 0) + 1):
         try:
