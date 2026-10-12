@@ -9,7 +9,7 @@ import sys
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
-from scripts.gpu_r01_policy import read_reference
+from scripts.gpu_r01_policy import declared_differences, read_reference, same_exposure
 BASE = ROOT / "artifacts/retraining/gpu-retrain-r01"
 MISSING = "—"
 LOSSES = (
@@ -30,6 +30,16 @@ DESCRIPTIONS = {
     "F07": "Reduce hierarchical padding while retaining review contents and ordering.",
     "F02": "Reuse deterministic samples and hierarchy templates; regenerate seeded encodings and report cold/build/warm cache costs.",
     "F19": "Batch CPU ID-encoding draws while preserving ID order, calendar interleaving, values and CPU RNG state.",
+    "E06": "Retained Expertium configuration of iteration 0006 (F01, F16, F14, F03, F04); short alias that keeps Windows paths under 260 characters.",
+    "F17": "Use larger training batches; declared fewer optimizer updates over identical reviews.",
+    "F20": "Pin and copy each packed worker buffer once, then rebuild typed views on the GPU.",
+    "F21": "Prepare held-out evaluation batches in workers with identical calls, seeds and order.",
+    "F22": "Run ordinary non-deterministic CUDA kernels, as normal training does.",
+    "F23": "Group master/child parameter and gradient copies into foreach launches with identical values.",
+    "F25": "Use one intra-op CPU thread in the training process so idle threads do not compete with workers.",
+    "E11": "Exact-parity part of the iteration-0011 Expertium candidate (F19, F23, F25, F20, F21; F22 excluded); short alias for Windows path length.",
+    "F26": "Replace the deterministic sort-based time-shift gather backward with a sort-free kernel that is bitwise identical.",
+    "F27": "Replace the deterministic sort-based hierarchy row-selection backward with a sort-free kernel that is bitwise identical.",
 }
 FORMAT_NOTES = """<!-- r01-log-format:start -->
 One row records each training attempt, including failed attempts and functional smoke runs. Each value and each percentage delta has its own column. Losses are held-out binary logloss; User is the unweighted user mean and Weighted is the label-weighted mean. Percentages use `100 × (run / reference − 1)`, rounded to two decimal places; positive speed deltas are faster and positive loss deltas are worse.
@@ -79,10 +89,11 @@ def comparable(left, right):
         return False
     keys = ("training_users", "evaluation_users", "updates", "review_presentations",
             "initial_parameter_sha256", "validation_input_sha256")
-    if any(key not in left or key not in right or left[key] != right[key] for key in keys):
+    if same_exposure(left, right, keys):
         return False
+    declared, _ = declared_differences(left, right)
     configs = [{key: value for key, value in case.get("config", {}).items()
-                if key not in ("PREFETCH_WORKERS", "PREFETCH_BATCHES")} for case in (left, right)]
+                if key not in ("PREFETCH_WORKERS", "PREFETCH_BATCHES", *declared)} for case in (left, right)]
     labels = [tuple(case.get("evaluation", {}).get(task + "_labels") for task in ("curve", "instant"))
               for case in (left, right)]
     return bool(configs[0]) and configs[0] == configs[1] and labels[0] == labels[1] and all(labels[0])
@@ -132,6 +143,13 @@ def run_row(run, runs):
         notes += f" Partial attempt; {case.get('training_users', MISSING)} training users planned; {case.get('evaluation_users', MISSING)} held-out users planned."
     if path.parent.name != case.get("track"):
         notes += f" Preserved attempt: {path.parent.name}."
+    options = case.get("options", {})
+    if "batch_chunks" in options:
+        notes += f" Declared schedule change: {options['batch_chunks']}-chunk batches, {number(case.get('updates'), ',.0f')} updates."
+    mode = case.get("execution_mode", {})
+    if mode.get("torch_graph_executor_optimize") or mode.get("deterministic_algorithms") is False:
+        notes += (" Execution mode: TorchScript optimization " + ("on" if mode.get("torch_graph_executor_optimize") else "off")
+                  + ", deterministic kernels " + ("off" if mode.get("deterministic_algorithms") is False else "on") + ".")
     values = [case.get("training_started_utc", MISSING),
               f"`{provenance['git_commit']}`" if provenance.get("git_commit") else MISSING,
               {"baseline": "Alex (default)", "expertium": "Expertium (light)"}.get(case.get("model"), case.get("model", MISSING)),

@@ -4,6 +4,7 @@ import os
 import torch
 
 from expertium.model.rwkv_ops import RWKV7_WKV, reference_rwkv7, quant_aware_rwkv7
+from rwkv.model.exact_index import ExactShiftGather
 
 """
 IMPORTANT: the CUDA implementation in this repository only supports head dimensions of 32. d_model // n_heads == 32.
@@ -114,6 +115,7 @@ class RWKV7ChannelMixer(ModuleType):
     # Also the same as for RWKV-5
     def __init__(self, config: RWKV7Config, layer_id):
         super().__init__()
+        self.exact_shift = False
         assert config.d_model // config.n_heads == 32
         self.d_model = config.d_model
         with torch.no_grad():
@@ -143,11 +145,14 @@ class RWKV7ChannelMixer(ModuleType):
     @FunctionType
     def forward(self, in_BTC, time_shift_select_BT):
         x_BTC = self.layer_norm(in_BTC)
-        x_shift_BTC = torch.gather(
-            x_BTC,
-            dim=1,
-            index=time_shift_select_BT.unsqueeze(-1).expand(-1, -1, self.d_model),
-        )
+        if self.exact_shift and x_BTC.is_cuda:
+            x_shift_BTC = ExactShiftGather.apply(x_BTC, time_shift_select_BT)
+        else:
+            x_shift_BTC = torch.gather(
+                x_BTC,
+                dim=1,
+                index=time_shift_select_BT.unsqueeze(-1).expand(-1, -1, self.d_model),
+            )
         k_BTK = self.W_k(torch.lerp(x_BTC, x_shift_BTC, self.lerp_k))
         o_BTC = self.W_v(torch.square(torch.nn.functional.relu(k_BTK)))
         return in_BTC + self.dropout(o_BTC)
@@ -217,6 +222,7 @@ class LoraMLP(ModuleType):
 class RWKV7TimeMixer(ModuleType):
     def __init__(self, config: RWKV7Config, layer_id):
         super().__init__()
+        self.exact_shift = False
         assert config.d_model % config.n_heads == 0
         self.layer_id = layer_id
         C = config.d_model
@@ -327,11 +333,14 @@ class RWKV7TimeMixer(ModuleType):
         H, K = self.H, self.K
 
         x_BTC = self.layer_norm(in_BTC)
-        x_shift_BTC = torch.gather(
-            x_BTC,
-            dim=1,
-            index=time_shift_select_BT.unsqueeze(-1).expand(-1, -1, self.d_model),
-        )
+        if self.exact_shift and x_BTC.is_cuda:
+            x_shift_BTC = ExactShiftGather.apply(x_BTC, time_shift_select_BT)
+        else:
+            x_shift_BTC = torch.gather(
+                x_BTC,
+                dim=1,
+                index=time_shift_select_BT.unsqueeze(-1).expand(-1, -1, self.d_model),
+            )
 
         rkvdag_8BTC = torch.lerp(
             x_BTC.unsqueeze(0), x_shift_BTC.unsqueeze(0), self.rkvdag_lerp

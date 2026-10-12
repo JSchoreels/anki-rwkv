@@ -40,15 +40,17 @@ class R01SourceWatch(shared.SourceWatch):
         super().__init__(provenance)
         with ZipFile(ROOT / provenance["source_archive"]) as archive:
             manifest = json.loads(archive.read("source-manifest.json"))["files"]
-        for name in ("scripts/run_gpu_r01.py", "scripts/gpu_r01_training.py", "scripts/gpu_r01_prefetch.py", "scripts/gpu_r01_sync.py", "scripts/gpu_r01_staging.py", "scripts/gpu_b01.py", "scripts/gpu_resource_monitor.py", "scripts/gpu_r01_policy.py", "scripts/gpu_preprocessing_cache.py", "scripts/gpu_preprocessing_stage.py", "scripts/gpu_id_encodings.py"):
+        for name in ("scripts/run_gpu_r01.py", "scripts/gpu_r01_training.py", "scripts/gpu_r01_prefetch.py", "scripts/gpu_r01_sync.py", "scripts/gpu_r01_staging.py", "scripts/gpu_b01.py", "scripts/gpu_resource_monitor.py", "scripts/gpu_r01_policy.py", "scripts/gpu_preprocessing_cache.py", "scripts/gpu_preprocessing_stage.py", "scripts/gpu_id_encodings.py", "scripts/gpu_r01_update.py", "scripts/gpu_packed_encodings.py", "scripts/gpu_optimizations.py", "scripts/gpu_batch1.py", "rwkv/prepare_batch.py"):
             self.hashes[name] = manifest[name]
         self.implementation_sha256 = hashlib.sha256(json.dumps(self.hashes, sort_keys=True).encode()).hexdigest()
         self.check()
 
 
-def prepare(output, iteration="0002", previous=None, plan=None, resume_prepared=False):
+def prepare(output, iteration="0002", previous=None, plan=None, resume_prepared=False, round_authorization=None):
     import numpy as np
-    if resume_prepared and previous is None:
+    # A new round needs the human request quoted in the protocol; stops before it stay recorded.
+    new_round = resume_prepared or bool((round_authorization or "").strip())
+    if new_round and previous is None:
         raise ValueError("Resuming prepared work requires preserved previous results")
     if (output / "protocol.json").exists():
         raise FileExistsError("Preserve the frozen iteration; use a new output for a new round")
@@ -63,7 +65,7 @@ def prepare(output, iteration="0002", previous=None, plan=None, resume_prepared=
         previous = (ROOT / previous).resolve()
         previous_comparison = json.loads((previous / "comparison.json").read_text())
         previous_outputs = {model: previous for model in previous_comparison["comparisons"]}
-        if resume_prepared:
+        if new_round:
             for model in ("baseline", "expertium"):
                 if model not in previous_comparison["comparisons"]:
                     for candidate in sorted(BASE.glob("iteration-*/comparison.json"), reverse=True):
@@ -75,7 +77,7 @@ def prepare(output, iteration="0002", previous=None, plan=None, resume_prepared=
                             previous_comparison["comparisons"][model] = item
                             break
         models = [model for model in models if model in previous_comparison["comparisons"]
-                  and (resume_prepared or streak(previous_comparison["comparisons"][model]) < 3)]
+                  and (new_round or streak(previous_comparison["comparisons"][model]) < 3)]
         if not models:
             raise RuntimeError("R01 stopped: both models reached three consecutive iterations without a 20% gain")
     provenance = process_provenance()
@@ -177,7 +179,13 @@ def prepare(output, iteration="0002", previous=None, plan=None, resume_prepared=
         protocol["acceptance"]["family_tests"] = len(models) * 4 * 2
         protocol["acceptance"]["comparisons"] = "measured regression vs previous accepted run <=1%; original baseline <=2% preferred; uncertainty reported separately"
         protocol["prior_no_20_percent_gain_streak"] = {model: previous_comparison["comparisons"][model].get("no_20_percent_gain_streak", previous_comparison["comparisons"][model].get("no_20_percent_gain_streak_after_this_iteration", 0)) for model in protocol["models"]}
-        if resume_prepared:
+        if new_round and not resume_prepared:
+            protocol.update(round_start_iteration=iteration, round_authorization=round_authorization.strip(),
+                            historical_no_gain_streak=dict(protocol["prior_no_20_percent_gain_streak"]))
+            protocol["prior_no_20_percent_gain_streak"] = {model: 0 for model in models}
+            protocol["authorization"] = protocol["round_authorization"]
+            protocol["budget"] = "New user-authorized round; reuse recorded original baselines and accepted runs; one selected candidate per active model; fixed 100-user cohort, no broader validation; three-miss stop applies within this round"
+        elif resume_prepared:
             protocol.update(round_start_iteration=iteration,
                             round_authorization="2026-10-12 human request: Ok I closed the game, you can do the next iterations with the prepared changes",
                             historical_no_gain_streak=dict(protocol["prior_no_20_percent_gain_streak"]))
@@ -202,6 +210,14 @@ def prepare(output, iteration="0002", previous=None, plan=None, resume_prepared=
             plan_path = (ROOT / plan).resolve()
             proposed = json.loads(plan_path.read_text())
             protocol.update(plan_path=plan_path.relative_to(ROOT).as_posix(), plan_sha256=hashlib.sha256(plan_path.read_bytes()).hexdigest())
+        if "models" in proposed:
+            excluded = [model for model in models if model not in proposed["models"]]
+            if not proposed.get("model_scope_reason") and excluded:
+                raise ValueError("Excluding an active model requires the recorded human reason")
+            models[:] = [model for model in models if model in proposed["models"]]
+            protocol["models"] = list(models)
+            protocol["paused_models"] = {model: proposed["model_scope_reason"] for model in excluded}
+            protocol["acceptance"]["family_tests"] = len(models) * 4 * 2
         protocol["retuning_dispositions"] = proposed.get("retuning_dispositions", {})
         for model, review in protocol["retuning_dispositions"].items():
             if model in protocol["retuning_candidates"] and review.get("decision") == "continue from accepted reference":
@@ -298,8 +314,14 @@ def run_case(args, output):
     from scripts.gpu_resource_monitor import ResourceMonitor
     if torch.cuda.is_initialized():
         raise RuntimeError("R01 requires a fresh CUDA process")
-    torch._C._set_graph_executor_optimize(False)
-    torch.use_deterministic_algorithms(True, warn_only=False)
+    # F22 candidates may run the regime used by ordinary training: TorchScript fusion
+    # on and/or non-deterministic kernels. Bit-exact parity is then not expected.
+    case = options[args.track]
+    actual_mode = {**protocol["execution_mode"],
+                   "torch_graph_executor_optimize": bool(case.get("jit_optimize", False)),
+                   "deterministic_algorithms": not case.get("nondeterministic", False)}
+    torch._C._set_graph_executor_optimize(actual_mode["torch_graph_executor_optimize"])
+    torch.use_deterministic_algorithms(actual_mode["deterministic_algorithms"], warn_only=False)
     gpu_batch1.TRACKS = options
     gpu_r01_training.SourceWatch = R01SourceWatch
     if options[args.track].get("gpu_packed_features"):
@@ -332,7 +354,7 @@ def run_case(args, output):
                 gpu_power.limited_gpu = power
                 torch.save = save
         result = json.loads((folder / "result.json").read_text())
-        result.update(iteration=protocol["iteration"], execution_mode=protocol["execution_mode"], checkpoint_saves=saves,
+        result.update(iteration=protocol["iteration"], execution_mode=actual_mode, checkpoint_saves=saves,
                       protocol_sha256=hashlib.sha256((output / "protocol.json").read_bytes()).hexdigest(),
                       process_wall_seconds=time.time() - psutil.Process().create_time(),
                       evaluation_scope=protocol["evaluation"], quality_status="preliminary screen; broader validation pending")
@@ -351,6 +373,7 @@ def main():
     parser.add_argument("--previous", type=Path)
     parser.add_argument("--plan", type=Path)
     parser.add_argument("--resume-prepared", action="store_true", help="Record explicit user resumption for prepared F02/F19 work")
+    parser.add_argument("--round-authorization", help="Quoted human request that starts a new round after recorded stops")
     parser.add_argument("--case", action="store_true")
     parser.add_argument("--model", choices=("baseline", "expertium"))
     parser.add_argument("--track", default="control")
@@ -362,7 +385,7 @@ def main():
     if not output.is_relative_to(ROOT / "artifacts"):
         parser.error("Output must remain under workspace artifacts")
     if args.prepare:
-        return prepare(output, args.iteration, args.previous, args.plan, args.resume_prepared)
+        return prepare(output, args.iteration, args.previous, args.plan, args.resume_prepared, args.round_authorization)
     if args.case and args.model:
         return run_case(args, output)
     parser.error("Choose --prepare or --case --model")

@@ -14,7 +14,7 @@ from scripts.experiment_provenance import process_provenance
 from scripts.gpu_r01_statistics import METRICS, paired_relative_losses
 from scripts.gpu_r01_log import update_run_log
 from scripts.gpu_r01_training import atomic_json
-from scripts.gpu_r01_policy import POLICY, decide, material_reduction, read_reference, resource_reductions, result_metadata, effective_loop, resolve_case, latest_streak
+from scripts.gpu_r01_policy import POLICY, declared_differences, same_exposure, decide, material_reduction, read_reference, resource_reductions, result_metadata, effective_loop, resolve_case, latest_streak
 
 
 def delta(value, reference):
@@ -29,7 +29,12 @@ def describe(track):
     names = {"control": "baseline", "F01": "ordered user prefetch", "F03": "packed worker communication",
              "F04": "overlapping GPU transfers", "F06": "reduced synchronization", "F07": "reduced padding",
              "F08": "fused shift operations", "F14": "GPU feature encodings", "F16": "more preparation workers",
-             "F02": "preprocessing cache", "F19": "batched ID-encoding draws"}
+             "F02": "preprocessing cache", "F19": "batched ID-encoding draws", "F17": "larger training batches",
+             "F20": "bulk pinned transfers", "F21": "parallel held-out preparation", "F22": "ordinary-training execution mode",
+             "F23": "grouped master/child copies", "F24": "fewer hierarchy splits", "F25": "single-thread main process",
+             "E06": "retained iteration-0006 Expertium configuration: F01, F16, F14, F03, F04",
+             "E11": "exact-parity part of the iteration-0011 Expertium candidate: F19, F23, F25, F20, F21",
+             "F26": "sort-free exact shift backward", "F27": "sort-free exact row-selection backward"}
     return ", ".join(f"{part} ({names.get(part, 'see track record')})" for part in track.split("-"))
 
 
@@ -97,14 +102,15 @@ def main():
             for reference, _ in references[model].values():
                 config = dict(current["config"])
                 expected = dict(reference["config"])
-                for key in ("PREFETCH_WORKERS", "PREFETCH_BATCHES"):
-                    config.pop(key)
-                    expected.pop(key)
+                declared, _ = declared_differences(current, reference)
+                for key in ("PREFETCH_WORKERS", "PREFETCH_BATCHES", *declared):
+                    config.pop(key, None)
+                    expected.pop(key, None)
                 if config != expected:
                     raise ValueError("Training behavior differs from historical reference")
-                for key in ("training_users", "evaluation_users", "updates", "review_presentations", "coverage", "initial_parameter_sha256", "validation_input_sha256"):
-                    if current[key] != reference[key]:
-                        raise ValueError(f"Exposure/cohort/seed mismatch: {key}")
+                mismatch = same_exposure(current, reference, ("training_users", "evaluation_users", "updates", "review_presentations", "coverage", "initial_parameter_sha256", "validation_input_sha256"))
+                if mismatch:
+                    raise ValueError(f"Exposure/cohort/seed mismatch: {mismatch}")
         matched = references[model] if reused else {**references[model], "matched_incumbent": (control, control_path)}
         result = {"track": track, "references": {}, "parity": parity(candidate, control, candidate_path, control_path),
                   "incumbent_parity_vs_previous": parity(control, references[model]["previous"][0], control_path, references[model]["previous"][1])}

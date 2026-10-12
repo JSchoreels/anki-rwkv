@@ -5,6 +5,7 @@ import numpy as np
 from rwkv.config import RWKV_SUBMODULES
 from rwkv.data_processing import RWKVSample
 from expertium.model.rwkv_model import RWKV7
+from rwkv.model.exact_index import ExactIndexSelect
 import torch
 from typing import NamedTuple
 
@@ -108,6 +109,7 @@ def is_excluded(name):
 class SrsRWKV(ModuleType):
     def __init__(self, anki_rwkv_config: AnkiRWKVConfig):
         super().__init__()
+        self.exact_index = False  # F27: sort-free row-selection backward, bitwise equal when deterministic
 
         self.card_features_dim = 92
         self.d_model = anki_rwkv_config.d_model
@@ -230,9 +232,13 @@ class SrsRWKV(ModuleType):
             for split_gather, sub_len, time_shift_select, skip in zip(
                 module_splits, sub_lens, time_shift_selects, skips
             ):
-                module_in = torch.index_select(
-                    x, dim=0, index=torch.clamp(split_gather, min=0)
-                ).view(-1, sub_len, self.d_model)
+                split_index = torch.clamp(split_gather, min=0)
+                if self.exact_index and x.is_cuda:
+                    module_in = ExactIndexSelect.apply(x, split_index).view(-1, sub_len, self.d_model)
+                else:
+                    module_in = torch.index_select(
+                        x, dim=0, index=split_index
+                    ).view(-1, sub_len, self.d_model)
                 time_shift_select_BT = time_shift_select.view(-1, sub_len)
                 skip_BT = skip.view(-1, sub_len)
                 assert module_in.size(0) == time_shift_select_BT.size(

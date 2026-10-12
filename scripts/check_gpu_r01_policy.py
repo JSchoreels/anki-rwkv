@@ -17,7 +17,7 @@ from scripts.experiment_provenance import process_provenance
 import shutil
 from scripts.gpu_r01_policy import (LOSS_METRICS, POLICY, accepted_reference, decide, material_reduction,
                                     read_reference, require_active, resource_reductions, result_metadata,
-                                    check_inputs, reusable_check, speed_noise_band)
+                                    check_inputs, reusable_check, speed_noise_band, same_exposure, declared_differences)
 
 
 def main():
@@ -87,6 +87,18 @@ def main():
         check("a gain beyond the repeat spread is accepted", decision(gain=26.63, speed_tolerance_percent=5.68)["accepted_main"])
         check("the 20% target still uses the measured gain", decision(gain=19.99, speed_tolerance_percent=5.68)["no_20_percent_gain_streak"] == 3)
         reject("negative speed tolerance is rejected", lambda: decision(speed_tolerance_percent=-1))
+        accepted_case = {"options": {}, "updates": 276, "review_presentations": 960, "training_users": 80,
+                         "coverage": {"1": {"reviews": 900, "updates": 2}, "2": {"reviews": 60, "updates": 1}}}
+        larger = {**accepted_case, "options": {"batch_chunks": 512}, "updates": 138,
+                  "coverage": {"1": {"reviews": 900, "updates": 1}, "2": {"reviews": 60, "updates": 1}}}
+        exposure_keys = ("training_users", "updates", "review_presentations", "coverage")
+        check("declared larger batches may change only update counts", same_exposure(larger, accepted_case, exposure_keys) is None)
+        check("declared larger batches still require identical per-user reviews",
+              same_exposure({**larger, "coverage": {"1": {"reviews": 899, "updates": 1}, "2": {"reviews": 61, "updates": 1}}},
+                            accepted_case, exposure_keys) == "coverage")
+        check("undeclared update-count changes are rejected", same_exposure({**accepted_case, "updates": 138}, accepted_case, exposure_keys) == "updates")
+        check("declared options name only their configuration keys",
+              declared_differences(larger, {"options": {"gpu_memory_fraction": 0.9}})[0] == {"BATCH_CHUNKS", "GPU_MEMORY_FRACTION"})
         check("twenty percent resets the miss streak", decision()["no_20_percent_gain_streak"] == 0)
         check("below twenty percent increments the miss streak", decision(gain=19.99)["no_20_percent_gain_streak"] == 3)
         require_active("baseline", 2)
@@ -177,6 +189,16 @@ def main():
             stopped = base / "iteration-stopped"
             reject("both stopped models prevent preparing another iteration", lambda: runner.prepare(stopped, "0004", old, plan_path))
             check("stopped preparation writes no new protocol", not stopped.exists())
+            resumed = base / "iteration-0005"
+            with redirect_stdout(io.StringIO()):
+                runner.prepare(resumed, "0005", old, plan_path, round_authorization="Synthetic human request for a new round")
+            resumed_protocol = json.loads((resumed / "protocol.json").read_text())
+            check("a quoted human request starts a new round and keeps the earlier stop counts",
+                  resumed_protocol["round_start_iteration"] == "0005"
+                  and resumed_protocol["round_authorization"] == "Synthetic human request for a new round"
+                  and resumed_protocol["prior_no_20_percent_gain_streak"] == {"baseline": 0, "expertium": 0}
+                  and resumed_protocol["historical_no_gain_streak"] == {"baseline": 3, "expertium": 3})
+            shutil.rmtree(resumed)
             comparisons["expertium"]["no_20_percent_gain_streak_after_this_iteration"] = 0
             write(old / "comparison.json", {"comparisons": comparisons})
             remaining = base / "iteration-one-active"

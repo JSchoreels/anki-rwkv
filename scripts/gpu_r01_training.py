@@ -49,6 +49,51 @@ def sampled_tree_rss(process):
     return total / 2**20, skipped
 
 
+class Progress:
+    """Live one-line training/evaluation status from values the loop already holds on the host."""
+
+    def __init__(self, label, users, reviews, interval=1.0):
+        self.label, self.users, self.reviews, self.interval = label, users, reviews, interval
+        self.started = self.shown = time.perf_counter()
+        self.window = []
+        sys.stdout.write(f"{label}: {users} users, {reviews:,} reviews\n")
+        sys.stdout.flush()
+
+    def training(self, users_done, reviews_done, updates, loss):
+        now = time.perf_counter()
+        self.window = [(t, r) for t, r in self.window if now - t <= 10.0] + [(now, reviews_done)]
+        if now - self.shown < self.interval and reviews_done < self.reviews:
+            return
+        self.shown = now
+        elapsed = max(now - self.started, 1e-9)
+        first, last = self.window[0], self.window[-1]
+        recent = (last[1] - first[1]) / (last[0] - first[0]) if last[0] > first[0] else reviews_done / elapsed
+        average = reviews_done / elapsed
+        fraction = reviews_done / max(self.reviews, 1)
+        eta = (self.reviews - reviews_done) / average if average > 0 else float("inf")
+        filled = int(20 * fraction)
+        sys.stdout.write(f"\r[{'#' * filled}{'.' * (20 - filled)}] {100 * fraction:5.1f}% {users_done:>3}/{self.users} users "
+                         f"{reviews_done / 1e6:5.2f}M | {average:>7,.0f} rev/s avg {recent:>7,.0f} now | "
+                         f"{elapsed:5.0f}s ETA {eta:4.0f}s ")
+        sys.stdout.flush()
+
+    def evaluation(self, users_done, total):
+        elapsed = time.perf_counter() - self.started
+        sys.stdout.write(f"\reval {users_done:>3}/{total} held-out users | {elapsed:5.1f}s ")
+        sys.stdout.flush()
+
+    def end(self):
+        sys.stdout.write("\n")
+        sys.stdout.flush()
+
+
+def evaluation_job(section, user, seed):
+    """F21: the same held-out preparation call, run in a preparation worker."""
+    from rwkv.prepare_batch import prepare
+    from scripts.gpu_batch1 import make_samples
+    return prepare(make_samples(section, user, 128), seed=seed)
+
+
 def run_case(args):
     started = time.perf_counter()
     provenance = process_provenance()
@@ -84,6 +129,13 @@ def run_case(args):
         evaluation_rows = [dict(row, validation_range=[512, 1024]) for row in evaluation_rows[:2]]
     options = TRACKS[args.track]
     chunks, workers = (128, 4) if args.model == "baseline" else (256, 6)
+    # F17 declares a changed update schedule; the default keeps the accepted batch size.
+    chunks = options.get("batch_chunks", chunks)
+    if type(chunks) is not int or not 1 <= chunks <= 2048:
+        raise ValueError("Batch chunks must be an integer between 1 and 2048")
+    memory_fraction = options.get("gpu_memory_fraction", 0.72)
+    if not 0.1 <= memory_fraction <= 0.95:
+        raise ValueError("GPU memory fraction must stay between 0.1 and 0.95")
     workers = options.get("preparation_workers", workers)
     if type(workers) is not int or not 1 <= workers <= 8:
         raise ValueError("Preparation workers must be an integer between 1 and 8")
@@ -91,7 +143,7 @@ def run_case(args):
               "BATCH_CHUNKS": chunks, "CHUNK_REVIEWS": 128, "PREFETCH_WORKERS": workers,
               "PREFETCH_BATCHES": workers * 2, "CPU_THREADS": 4, "EPOCHS": 1,
               "DATA_PATH": protocol["dataset_path"], "DATASET_REVISION": protocol["dataset_revision"],
-              "GPU_MEMORY_FRACTION": 0.72, "PEAK_LR": 7e-4, "WARMUP_STEPS": 5}
+              "GPU_MEMORY_FRACTION": memory_fraction, "PEAK_LR": 7e-4, "WARMUP_STEPS": 5}
     report = {"model": args.model, "track": args.track, "options": options, "config": config,
               "torch": str(torch.__version__), "cuda": torch.version.cuda,
               "gpu": torch.cuda.get_device_name(0), "training_dropout": "enabled",
@@ -108,7 +160,7 @@ def run_case(args):
     atomic_json(path / "result.json", report)
     try:
         torch.set_num_threads(4)
-        torch.cuda.set_per_process_memory_fraction(0.72, 0)
+        torch.cuda.set_per_process_memory_fraction(memory_fraction, 0)
         nvrtc.register()
         nvrtc.set_checkpoint_length(32)
         nvrtc.set_raw_pointer_launch(options.get("dynamic_graphs", False))
@@ -121,6 +173,12 @@ def run_case(args):
         for module in base.modules():
             if hasattr(module, "fused_shift"):
                 module.fused_shift = options.get("fused_shift", False)
+            if hasattr(module, "exact_shift"):
+                # F26: sort-free shift-gather backward, bitwise equal to deterministic PyTorch.
+                module.exact_shift = options.get("exact_shift", False)
+            if hasattr(module, "exact_index"):
+                # F27: sort-free hierarchy row-selection backward, also bitwise equal.
+                module.exact_index = options.get("exact_index", False)
         optimizer = get_optimizer(Namespace(PEAK_LR=7e-4), master)
         # Discarded forward/backward primes JIT without performing optimizer updates.
         prime_start = time.perf_counter()
@@ -143,6 +201,12 @@ def run_case(args):
         graphs = DynamicGraphs(base, lambda: benchmark_models(config, device)[1],
                                retain_on_miss=args.model == "expertium") if options.get("dynamic_graphs") else None
         reduced = ReducedSyncLoss(base) if options.get("reduced_sync") else None
+        grouped = None
+        if options.get("grouped_sync"):
+            if graphs:
+                raise ValueError("Grouped master/child synchronization is not combined with graph replicas")
+            from scripts.gpu_r01_update import MasterChildSync
+            grouped = MasterChildSync(master, base)
         cache_paths = None
         if options.get("sample_cache"):
             cache_paths, report["cache_setup"] = build_sample_cache(rows, chunks * 128, output / "sample-cache")
@@ -155,6 +219,12 @@ def run_case(args):
                                      "read_seconds": 0.0, "build_seconds": 0.0, "write_seconds": 0.0}
         torch.cuda.empty_cache()
         torch.cuda.reset_peak_memory_stats()
+        if options.get("main_threads"):
+            # The training thread only counts labels on the CPU; idle intra-op threads compete with workers.
+            torch.set_num_threads(options["main_threads"])
+        progress = Progress(f"{args.model}/{args.track}", len(rows),
+                            sum(row["train_range"][1] - row["train_range"][0] for row in rows))
+        loss_value = float("nan")
         train_started = time.perf_counter()
         report["training_started_utc"] = datetime.now(timezone.utc).isoformat()
         last_user = None
@@ -164,7 +234,8 @@ def run_case(args):
         coverage = {}
         with limited_gpu(0, 0, path), preparation_pool(workers) as pool, (path / "updates.jsonl").open("w", encoding="utf-8") as log:
             source = training_batches(rows, chunks * 128, 2025, pool, options, cache_paths, workers * 2)
-            transferred = transfer_batches(source, dtype, options.get("async_transfer", False))
+            transferred = transfer_batches(source, dtype, options.get("async_transfer", False),
+                                           **({"bulk": True} if options.get("bulk_transfer") else {}))
             try:
                 for row, item, batch in transferred:
                     cache_info = getattr(item, "cache_info", None)
@@ -188,7 +259,6 @@ def run_case(args):
                             report["progress_users"] += 1
                             report["training_elapsed_seconds"] = time.perf_counter() - train_started
                             atomic_json(path / "result.json", report)
-                            print(f"{args.model}/{args.track}: {report['progress_users']}/{len(rows)} users, {report['updates']} updates", flush=True)
                         last_user = user
                     cpu_labels = item.batch.labels
                     curve_n = int(((1 - cpu_labels[:, :, 6]) * cpu_labels[:, :, 4]).sum())
@@ -207,7 +277,10 @@ def run_case(args):
                         compute_started.record()
                     active.zero_grad(set_to_none=True)
                     active.train()
-                    active.copy_downcast_(master, dtype)
+                    if grouped:
+                        grouped.downcast()
+                    else:
+                        active.copy_downcast_(master, dtype)
                     capture_start = time.perf_counter()
                     if isinstance(active, __import__("scripts.gpu_optimizations", fromlist=["GraphTrainingAdapter"]).GraphTrainingAdapter):
                         is_capture = active.graph is None
@@ -221,7 +294,10 @@ def run_case(args):
                         raise RuntimeError(f"Non-finite training loss user {user}")
                     if not graphs or active is base:
                         stats.average_loss.backward()
-                    transfer_child_grad_to_master(master, active)
+                    if grouped:
+                        grouped.transfer_grads()
+                    else:
+                        transfer_child_grad_to_master(master, active)
                     norm = torch.nn.utils.clip_grad_norm_(master.parameters(), CLIP, error_if_nonfinite=True)
                     lr = 7e-4 * min(1.0, (report["updates"] + 1) / 5)
                     for group in optimizer.param_groups:
@@ -261,6 +337,7 @@ def run_case(args):
                                           "queue_wait_seconds": item.wait_seconds, **transfer_metrics}) + "\n")
                     if not reduced:
                         log.flush()
+                    progress.training(report["progress_users"], report["review_presentations"], report["updates"], loss_value)
                     # Let cache eviction release all graph-private outputs and
                     # parameter gradients before the next eager shape allocates.
                     if graphs:
@@ -270,6 +347,10 @@ def run_case(args):
                 source.close()
         torch.cuda.synchronize()
         report["training_seconds"] = time.perf_counter() - train_started
+        progress.training(len(rows), report["review_presentations"], report["updates"], loss_value)
+        progress.end()
+        if options.get("main_threads"):
+            torch.set_num_threads(4)
         report["cold_training_seconds"] = report["training_seconds"] + report.get("cache_setup", {}).get("elapsed_seconds", 0)
         report["reviews_per_second"] = report["review_presentations"] / report["training_seconds"]
         report["cold_reviews_per_second"] = report["review_presentations"] / report["cold_training_seconds"]
@@ -297,21 +378,31 @@ def run_case(args):
         validation_hash = hashlib.sha256()
         report["status"] = "evaluating"
         atomic_json(path / "result.json", report)
-        for row in evaluation_rows:
-            watch.check()
-            user = row["user_id"]
-            section = split_frame(get_rwkv_data(DATA, user), row, "validation")
-            def heldout():
-                for offset in range(0, len(section), 1024):
-                    batch = prepare(make_samples(section.iloc[offset:offset + 1024], user, 128),
-                                    seed=2025 + user + row["validation_range"][0] + offset)
-                    for tensor in (batch.start, batch.labels, batch.label_review_th):
-                        validation_hash.update(tensor.numpy().tobytes())
-                    yield {"batch": batch.to(device)}
-            values = evaluate(master, heldout())
-            per_user.append({"user_id": user, **values})
-            if len(per_user) % 10 == 0:
-                print(f"{args.model}/{args.track}: evaluated {len(per_user)}/{len(evaluation_rows)} users", flush=True)
+        progress = Progress(f"{args.model}/{args.track}", len(evaluation_rows), 0)
+        with preparation_pool(workers if options.get("parallel_evaluation") else 0) as evaluation_pool:
+            for row in evaluation_rows:
+                watch.check()
+                user = row["user_id"]
+                section = split_frame(get_rwkv_data(DATA, user), row, "validation")
+                def heldout():
+                    offsets = range(0, len(section), 1024)
+                    seeds = [2025 + user + row["validation_range"][0] + offset for offset in offsets]
+                    if evaluation_pool is None:
+                        batches = (prepare(make_samples(section.iloc[offset:offset + 1024], user, 128), seed=seed)
+                                   for offset, seed in zip(offsets, seeds))
+                    else:
+                        # Futures are consumed in submission order, so hashing and evaluation order are unchanged.
+                        futures = [evaluation_pool.submit(evaluation_job, section.iloc[offset:offset + 1024], user, seed)
+                                   for offset, seed in zip(offsets, seeds)]
+                        batches = (future.result() for future in futures)
+                    for batch in batches:
+                        for tensor in (batch.start, batch.labels, batch.label_review_th):
+                            validation_hash.update(tensor.numpy().tobytes())
+                        yield {"batch": batch.to(device)}
+                values = evaluate(master, heldout())
+                per_user.append({"user_id": user, **values})
+                progress.evaluation(len(per_user), len(evaluation_rows))
+        progress.end()
         report["validation_seconds"] = time.perf_counter() - eval_started
         report["validation_input_sha256"] = validation_hash.hexdigest()
         report["per_user"] = per_user

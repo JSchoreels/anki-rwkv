@@ -48,7 +48,8 @@ class DeferredPreparedBatch(PreparedBatch):
 
 
 def prepare_fast(data_list: list[RWKVSample], target_len=None, seed=None, gpu_encodings=False,
-                 batched_id_encodings=False, layout=None) -> PreparedBatch:
+                 batched_id_encodings=False, layout=None, padding_factor=0.9,
+                 allowed_excess_in_one_step=20000) -> PreparedBatch:
     if seed is not None:
         if batched_id_encodings or layout is not None:
             # These preparation extensions operate on CPU workers only.
@@ -145,12 +146,14 @@ def prepare_fast(data_list: list[RWKVSample], target_len=None, seed=None, gpu_en
         # total used mem = x(1+f) where x is the sum of seq lens, f is the factor
         # at MAX and t, we use MAX*(1+t) memory
         # so f = MAX*(1+t)/x - 1
-        factor = 0.9
+        factor = padding_factor
         if target_len is None:
-            splits = greedy_splits(data_list, factor=factor)
+            splits = greedy_splits(data_list, factor=factor,
+                                   allowed_excess_in_one_step=allowed_excess_in_one_step)
         else:
             splits = greedy_splits(
-                data_list, factor=target_len * (1 + factor) / data_list_t_sum - 1
+                data_list, factor=target_len * (1 + factor) / data_list_t_sum - 1,
+                allowed_excess_in_one_step=allowed_excess_in_one_step,
             )
         sub_gather = []
         sub_skip_gather = []

@@ -14,6 +14,10 @@ MATERIAL_REDUCTIONS = {"nvidia_utilization.gpu": ("points", 5.0),
                        "torch_cuda_peak_reserved_bytes": ("relative", 0.10),
                        "process_tree_rss_bytes": ("relative", 0.10),
                        "worker_cpu_load_proxy": ("relative", 0.10)}
+# Options that openly change configuration or update schedule. Review exposure, users,
+# initial weights and held-out inputs must still match; only these fields may differ.
+DECLARED_CHANGES = {"batch_chunks": ({"BATCH_CHUNKS"}, {"updates", "coverage"}),
+                    "gpu_memory_fraction": ({"GPU_MEMORY_FRACTION"}, set())}
 # Track components by the bottleneck they target, for ceiling checks during selection.
 FEEDING_TRACKS = {"F01", "F02", "F03", "F04", "F14", "F16", "F18", "F19", "F20"}
 
@@ -94,16 +98,19 @@ def matching_case(case, recorded_protocol, protocol, model, options, *, smoke, s
     training = protocol["training"]
     chunks, workers = training[model + "_chunks_workers"]
     workers = options.get("preparation_workers", workers)
+    chunks = options.get("batch_chunks", chunks)
     expected_config = {"MODEL": model, "SEED": protocol["seeds"][0], "BATCH_CHUNKS": chunks,
                        "CHUNK_REVIEWS": training["chunk_reviews"], "PREFETCH_WORKERS": workers,
                        "PREFETCH_BATCHES": workers * 2, "CPU_THREADS": training["cpu_threads"],
                        "EPOCHS": training["epochs"], "DATA_PATH": protocol["dataset_path"],
                        "DATASET_REVISION": protocol["dataset_revision"], "DTYPE": "bfloat16",
-                       "WKV_BACKEND": "nvrtc", "GPU_MEMORY_FRACTION": training["gpu_memory_fraction"],
+                       "WKV_BACKEND": "nvrtc", "GPU_MEMORY_FRACTION": options.get("gpu_memory_fraction", training["gpu_memory_fraction"]),
                        "PEAK_LR": training["peak_lr"], "WARMUP_STEPS": training["warmup_updates"]}
     if any(case.get("config", {}).get(key) != value for key, value in expected_config.items()):
         return False
-    if case.get("status") == "complete" and case.get("updates") != (2 if smoke else protocol["planned_updates"][model]):
+    updates = (protocol["planned_updates"][model] if "batch_chunks" not in options
+               else planned_updates(protocol["rows"], chunks, training["chunk_reviews"]))
+    if case.get("status") == "complete" and case.get("updates") != (2 if smoke else updates):
         return False
     return case.get("training_users") == (2 if smoke else len(protocol["training_users"])) \
         and case.get("evaluation_users") == (2 if smoke else len(protocol["heldout_users"]))
@@ -370,6 +377,35 @@ def resource_reductions(candidate_path, reference_path, root):
         value["material"] = drop >= threshold if kind == "points" else drop >= threshold * value["reference"]
         value["material_threshold"] = f"{threshold:g} percentage points" if kind == "points" else f"{100 * threshold:g}% of reference"
     return reductions
+
+
+def declared_differences(*cases):
+    config, exposure = set(), set()
+    for case in cases:
+        for option, (keys, fields) in DECLARED_CHANGES.items():
+            if option in case.get("options", {}):
+                config |= keys
+                exposure |= fields
+    return config, exposure
+
+
+def same_exposure(left, right, keys):
+    """Compare exposure fields, allowing only declared update-schedule differences."""
+    _, allowed = declared_differences(left, right)
+    for key in keys:
+        if key in allowed:
+            if key == "coverage" and ({user: value["reviews"] for user, value in left["coverage"].items()}
+                                      != {user: value["reviews"] for user, value in right["coverage"].items()}):
+                return key
+            continue
+        if key not in left or key not in right or left[key] != right[key]:
+            return key
+    return None
+
+
+def planned_updates(rows, chunks, chunk_reviews=128):
+    span = chunks * chunk_reviews
+    return sum((row["available_reviews"] + span - 1) // span for row in rows)
 
 
 def material_reduction(reductions):

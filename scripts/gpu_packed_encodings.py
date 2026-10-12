@@ -25,9 +25,9 @@ class PackedPreparedBatch(PreparedBatch):
         return batch
 
 
-def prepare_gpu_packed(samples, seed, *, batched_id_encodings=False, layout=None):
+def prepare_gpu_packed(samples, seed, *, batched_id_encodings=False, layout=None, **splits):
     deferred=prepare_fast(samples,seed=seed,gpu_encodings=True,
-                          batched_id_encodings=batched_id_encodings,layout=layout)
+                          batched_id_encodings=batched_id_encodings,layout=layout,**splits)
     packed={}
     for index in range(4):
         tables,indices,offset=[],[],0
