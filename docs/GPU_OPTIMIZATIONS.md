@@ -168,7 +168,7 @@ Outcome: the isolated **F01** path matches all **507 Alex / 276 Expertium** logg
 
 ### R01-T01: explicit-count round guards
 
-2026-10-12 human clarification: an explicit requested iteration count takes precedence over consecutive speed misses. `--round-iterations N` freezes budget/progress under the quoted authorization; preparation, selection and launch guards continue through misses and refuse N+1. Partial handoffs retain remaining authorization. Uncounted rounds keep the three-miss stop; acceptance/loss gates remain unchanged. [CPU evidence](../artifacts/diagnostics/r01-explicit-count-policy-v1/summary.md): 116 policy checks and 33 helper tests passed. GPU timing and throughput effects are unmeasured (—); no training or broader validation ran. Implementation commit pending.
+2026-10-12 human clarification: an explicit requested iteration count takes precedence over consecutive speed misses. `--round-iterations N` freezes budget/progress under the quoted authorization; preparation, selection and launch guards continue through misses and refuse N+1. Partial handoffs retain remaining authorization. Uncounted rounds keep the three-miss stop; acceptance/loss gates remain unchanged. [CPU evidence](../artifacts/diagnostics/r01-explicit-count-policy-v1/summary.md): 116 policy checks and 33 helper tests passed. GPU timing and throughput effects are unmeasured (—); no training or broader validation ran. Implementation commit `7795eb04ccf1869fb4df7d0b5f7e2d0465fd992f` was made after the CPU checks; recorded check source snapshots retain their original provenance.
 
 ## Validation and provenance
 
