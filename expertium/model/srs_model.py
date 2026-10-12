@@ -110,6 +110,9 @@ class SrsRWKV(ModuleType):
     def __init__(self, anki_rwkv_config: AnkiRWKVConfig):
         super().__init__()
         self.exact_index = False  # F27: sort-free row-selection backward, bitwise equal when deterministic
+        # F37: skip the host syncs in _get_loss. Any NaN they catch also makes average_loss
+        # non-finite, which the caller must check; the label counts are returned as -1.
+        self.sync_free_loss = False
 
         self.card_features_dim = 92
         self.d_model = anki_rwkv_config.d_model
@@ -286,7 +289,7 @@ class SrsRWKV(ModuleType):
             batch_skips,
             batch_num_data,
         )
-        if torch.isnan(out_ahead_logits).any():
+        if not self.sync_free_loss and torch.isnan(out_ahead_logits).any():
             return None
 
         global_labels = batch_labels.float()
@@ -317,7 +320,7 @@ class SrsRWKV(ModuleType):
         out_p_again, out_p_1, out_p_2, out_p_3 = out_p_probs.unbind(dim=-1)
         out_p_binary = torch.clamp(1.0 - out_p_again, min=1e-5, max=1.0 - 1e-5)
 
-        if torch.isnan(curve_probs).any():
+        if not self.sync_free_loss and torch.isnan(curve_probs).any():
             raise Exception("nan")
         w_loss = torch.nn.functional.kl_div(
             input=out_w_log_p,
@@ -398,6 +401,12 @@ class SrsRWKV(ModuleType):
             p_binary_loss * immediate_equalize_mask
         ).sum() / (1e-8 + immediate_equalize_mask.sum())
 
+        ahead_n, ahead_equalize_n, imm_n, imm_binary_equalize_n = -1, -1, -1, -1
+        if not self.sync_free_loss:
+            ahead_n = int(ahead_mask.sum().detach().item())
+            ahead_equalize_n = int(ahead_equalize_mask.sum().detach().item())
+            imm_n = int(immediate_mask.sum().detach().item())
+            imm_binary_equalize_n = int(immediate_equalize_mask.sum().detach().item())
         return SrsRWKVIterStatistics(
             average_loss=loss_avg,
             p_curve=curve_probs.detach(),
@@ -406,14 +415,14 @@ class SrsRWKV(ModuleType):
             loss_tensor=loss_tensor.detach(),
             ahead_avg=ahead_avg.detach(),
             ahead_raw_avg=ahead_raw_avg.detach(),
-            ahead_n=int(ahead_mask.sum().detach().item()),
+            ahead_n=ahead_n,
             ahead_equalize_avg=ahead_equalize_avg.detach(),
             ahead_raw_equalize_avg=ahead_raw_equalize_avg.detach(),
-            ahead_equalize_n=int(ahead_equalize_mask.sum().detach().item()),
+            ahead_equalize_n=ahead_equalize_n,
             imm_avg=immediate_avg.detach(),
-            imm_n=int(immediate_mask.sum().detach().item()),
+            imm_n=imm_n,
             imm_binary_equalize_avg=immediate_binary_equalize_avg.detach(),
-            imm_binary_equalize_n=int(immediate_equalize_mask.sum().detach().item()),
+            imm_binary_equalize_n=imm_binary_equalize_n,
             w_loss_avg=w_avg.detach(),
             ahead_logits_mag_loss_avg=ahead_logits_mag_avg.detach(),
             ahead_logits_diff_loss_avg=ahead_logits_diff_avg.detach(),

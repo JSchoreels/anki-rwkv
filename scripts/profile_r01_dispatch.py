@@ -86,6 +86,7 @@ def main():
             module.exact_index = options.get("exact_index", False)
         if hasattr(module, "exact_group_norm"):
             module.exact_group_norm = options.get("exact_group_norm", False)
+    base.sync_free_loss = options.get("sync_free_loss", False)
     optimizer = get_optimizer(Namespace(PEAK_LR=7e-4), master)
     grouped = MasterChildSync(master, base)
     torch.set_num_threads(options.get("main_threads", 4))

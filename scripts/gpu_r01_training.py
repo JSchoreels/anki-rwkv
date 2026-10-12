@@ -96,6 +96,47 @@ def evaluation_job(section, user, seed):
     return prepare(make_samples(section, user, 128), seed=seed)
 
 
+def place_host_threads(worker_pids):
+    """F36: give the dispatching main thread both SMT siblings of one physical core.
+
+    The core is the one Windows ranks most preferred (highest CPU-set scheduling
+    class). Preparation workers are restricted to the other cores, so they no longer
+    share the dispatch thread's core. Placement only; arithmetic and order are unchanged."""
+    import ctypes
+    import struct
+    from ctypes import wintypes
+    import psutil
+
+    kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
+    size = wintypes.ULONG(0)
+    kernel32.GetSystemCpuSetInformation(None, 0, ctypes.byref(size), None, 0)
+    buffer = ctypes.create_string_buffer(size.value)
+    if not kernel32.GetSystemCpuSetInformation(buffer, size, ctypes.byref(size), None, 0):
+        raise OSError(ctypes.get_last_error(), "GetSystemCpuSetInformation failed")
+    cores, offset = {}, 0
+    while offset < size.value:
+        length, = struct.unpack_from("<I", buffer.raw, offset)
+        _, _, cpu, core, _, _, _, _, rank = struct.unpack_from("<IHBBBBBBB", buffer.raw, offset + 8)
+        cores.setdefault(core, {"cpus": [], "rank": rank})["cpus"].append(cpu)
+        offset += length
+    allowed = set(psutil.Process().cpu_affinity())
+    choices = [(-entry["rank"], core) for core, entry in cores.items() if set(entry["cpus"]) <= allowed]
+    if len(cores) < 2 or not choices:
+        raise RuntimeError("F36 host placement needs at least two physical cores in the process affinity")
+    core = min(choices)[1]
+    main_cpus = sorted(cores[core]["cpus"])
+    worker_cpus = sorted(allowed - set(main_cpus))
+    kernel32.GetCurrentThread.restype = wintypes.HANDLE
+    kernel32.SetThreadAffinityMask.restype = ctypes.c_size_t
+    kernel32.SetThreadAffinityMask.argtypes = (wintypes.HANDLE, ctypes.c_size_t)
+    if not kernel32.SetThreadAffinityMask(kernel32.GetCurrentThread(), sum(1 << cpu for cpu in main_cpus)):
+        raise OSError(ctypes.get_last_error(), "SetThreadAffinityMask failed")
+    for pid in worker_pids:
+        psutil.Process(pid).cpu_affinity(worker_cpus)
+    return {"main_thread_cpus": main_cpus, "worker_cpus": worker_cpus, "workers": len(worker_pids),
+            "physical_cores": len(cores), "core_scheduling_class": cores[core]["rank"]}
+
+
 @contextmanager
 def prestarted_pool(stack, pool):
     """Yield an already started preparation pool and shut it down with the training block."""
@@ -202,6 +243,11 @@ def run_case(args):
             if hasattr(module, "exact_group_norm"):
                 # F32: GroupNorm weight/bias gradients spread across SMs, bitwise equal.
                 module.exact_group_norm = options.get("exact_group_norm", False)
+        if options.get("sync_free_loss"):
+            # F37: no host syncs inside the training loss; F33's deferred finite check covers its NaN checks.
+            if not options.get("deferred_reads") or not hasattr(base, "sync_free_loss"):
+                raise ValueError("F37 sync-free loss needs F33 deferred reads and the Expertium loss")
+            base.sync_free_loss = True
         optimizer = get_optimizer(Namespace(PEAK_LR=7e-4), master)
         warm_pool = None
         if options.get("prestart_pool"):
@@ -265,6 +311,10 @@ def run_case(args):
             report["prestarted_workers"] = len(report["prestarted_worker_pids"])
             report["pool_ready_wait_seconds"] = time.perf_counter() - waited
             report["pool_prestart_seconds"] = time.perf_counter() - pool_started
+        if options.get("host_placement"):
+            if warm_pool is None:
+                raise ValueError("F36 host placement needs the prestarted worker pool")
+            report["host_placement"] = place_host_threads(report["prestarted_worker_pids"])
         train_started = time.perf_counter()
         report["training_started_utc"] = datetime.now(timezone.utc).isoformat()
         last_user = None

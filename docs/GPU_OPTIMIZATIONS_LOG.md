@@ -334,3 +334,39 @@ Implementation commit after experiments: `f9d298751e5e6de899c94d35780363a50f58b8
 Implementation commit after experiments: `b10b9f060fca648fa6d06fbbcfe9cd2c18d86753`. Tested revision remains `20804e6069084d8c5497f340a56ef98f637d2db6` with per-process source snapshots in the linked raw results and iteration record; [commit record](../artifacts/retraining/gpu-retrain-r01/iteration-0024/implementation-commit.json).
 
 <!-- r01-0024:end -->
+
+<!-- r01-0025:start -->
+## R01 iteration 0025
+
+[Iteration record](../artifacts/retraining/gpu-retrain-r01/iteration-0025/summary.md)
+
+| Training start (UTC) | Trial commit | Model | Improvement IDs | What was tried | Training users reached | Training reviews | Training seconds | Reviews/s | Speed Δ vs previous | Speed Δ vs baseline | Instant User | Instant User Δ vs previous | Instant User Δ vs baseline | Instant Weighted | Instant Weighted Δ vs previous | Instant Weighted Δ vs baseline | Curve User | Curve User Δ vs previous | Curve User Δ vs baseline | Curve Weighted | Curve Weighted Δ vs previous | Curve Weighted Δ vs baseline | Raw result | Notes |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 2026-10-12T14:37:45.101781+00:00 | `901a5479e308c3ce8c59f39f7c0b53d88db69f43` | Expertium (light) | E24, F36 | Give the host-bound dispatch thread its own physical core: pin the training main thread to both SMT siblings of the core Windows ranks most preferred and restrict the eight preparation workers to the other seven cores. Placement only; same arithmetic, reviews, batches, seeds and 167 updates as 0024. | 2 | 1,024 | 1.483 | 690 | — | — | 0.433909490 | — | — | 0.421975411 | — | — | 0.423755109 | — | — | 0.416540190 | — | — | [result](../artifacts/retraining/gpu-retrain-r01/iteration-0025/functional-smoke-v1/expertium/E24-F36/result.json) | Infrastructure check; excluded from comparisons. Declared schedule change: 512-chunk batches, 2 updates. |
+| 2026-10-12T14:38:30.701981+00:00 | `901a5479e308c3ce8c59f39f7c0b53d88db69f43` | Expertium (light) | E24, F36 | Give the host-bound dispatch thread its own physical core: pin the training main thread to both SMT siblings of the core Windows ranks most preferred and restrict the eight preparation workers to the other seven cores. Placement only; same arithmetic, reviews, batches, seeds and 167 updates as 0024. | 80 | 7,654,975 | 60.095 | 127,382 | -7.22% | +324.53% | 0.382592464 | +0.00% | -0.99% | 0.398428596 | +0.00% | -0.76% | 0.370387972 | +0.00% | -4.48% | 0.387472684 | +0.00% | -3.25% | [result](../artifacts/retraining/gpu-retrain-r01/iteration-0025/expertium/E24-F36/result.json) | Declared schedule change: 512-chunk batches, 167 updates. |
+
+<!-- r01-0025:end -->
+
+<!-- r01-0026:start -->
+## R01 iteration 0026
+
+[Iteration record](../artifacts/retraining/gpu-retrain-r01/iteration-0026/summary.md)
+
+| Training start (UTC) | Trial commit | Model | Improvement IDs | What was tried | Training users reached | Training reviews | Training seconds | Reviews/s | Speed Δ vs previous | Speed Δ vs baseline | Instant User | Instant User Δ vs previous | Instant User Δ vs baseline | Instant Weighted | Instant Weighted Δ vs previous | Instant Weighted Δ vs baseline | Curve User | Curve User Δ vs previous | Curve User Δ vs baseline | Curve Weighted | Curve Weighted Δ vs previous | Curve Weighted Δ vs baseline | Raw result | Notes |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 2026-10-12T14:49:58.151167+00:00 | `77c1bf0acc465138a688dc5904df415a3d4df887` | Expertium (light) | E24, F37 | Remove the six host synchronizations inside the Expertium training loss: two NaN checks right after the forward and four label-count reads R01 never uses. Any NaN they catch also makes the loss non-finite, which F33's deferred check still rejects one update later; same arithmetic, reviews, batches, seeds and 167 updates as 0024. | 2 | 1,024 | 1.288 | 795 | — | — | 0.433909490 | — | — | 0.421975411 | — | — | 0.423755109 | — | — | 0.416540190 | — | — | [result](../artifacts/retraining/gpu-retrain-r01/iteration-0026/functional-smoke-v1/expertium/E24-F37/result.json) | Infrastructure check; excluded from comparisons. Declared schedule change: 512-chunk batches, 2 updates. |
+| 2026-10-12T14:50:29.938815+00:00 | `77c1bf0acc465138a688dc5904df415a3d4df887` | Expertium (light) | E24, F37 | Remove the six host synchronizations inside the Expertium training loss: two NaN checks right after the forward and four label-count reads R01 never uses. Any NaN they catch also makes the loss non-finite, which F33's deferred check still rejects one update later; same arithmetic, reviews, batches, seeds and 167 updates as 0024. | 80 | 7,654,975 | 56.749 | 134,891 | -1.75% | +349.56% | 0.382592464 | +0.00% | -0.99% | 0.398428596 | +0.00% | -0.76% | 0.370387972 | +0.00% | -4.48% | 0.387472684 | +0.00% | -3.25% | [result](../artifacts/retraining/gpu-retrain-r01/iteration-0026/expertium/E24-F37/result.json) | Declared schedule change: 512-chunk batches, 167 updates. |
+
+<!-- r01-0026:end -->
+
+<!-- r01-0027:start -->
+## R01 iteration 0027
+
+[Iteration record](../artifacts/retraining/gpu-retrain-r01/iteration-0027/summary.md)
+
+| Training start (UTC) | Trial commit | Model | Improvement IDs | What was tried | Training users reached | Training reviews | Training seconds | Reviews/s | Speed Δ vs previous | Speed Δ vs baseline | Instant User | Instant User Δ vs previous | Instant User Δ vs baseline | Instant Weighted | Instant Weighted Δ vs previous | Instant Weighted Δ vs baseline | Curve User | Curve User Δ vs previous | Curve User Δ vs baseline | Curve Weighted | Curve Weighted Δ vs previous | Curve Weighted Δ vs baseline | Raw result | Notes |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 2026-10-12T14:53:01.700420+00:00 | `eaa8ab988e739bac88f436ab4ae4508caeafa9bc` | Expertium (light) | E24, F39 | Use six instead of eight preparation workers (prefetch depth 12 instead of 16) so fewer CPU-heavy workers compete with the host-bound dispatch thread. Workers build the same seeded batches in the same order; same arithmetic, reviews, batches, seeds and 167 updates as 0024. | 2 | 1,024 | 2.574 | 398 | — | — | 0.433909490 | — | — | 0.421975411 | — | — | 0.423755109 | — | — | 0.416540190 | — | — | [result](../artifacts/retraining/gpu-retrain-r01/iteration-0027/functional-smoke-v1/expertium/E24-F39/result.json) | Infrastructure check; excluded from comparisons. Declared schedule change: 512-chunk batches, 2 updates. |
+| 2026-10-12T14:53:31.863683+00:00 | `eaa8ab988e739bac88f436ab4ae4508caeafa9bc` | Expertium (light) | E24, F39 | Use six instead of eight preparation workers (prefetch depth 12 instead of 16) so fewer CPU-heavy workers compete with the host-bound dispatch thread. Workers build the same seeded batches in the same order; same arithmetic, reviews, batches, seeds and 167 updates as 0024. | 80 | 7,654,975 | 54.638 | 140,104 | +2.05% | +366.93% | 0.382592464 | +0.00% | -0.99% | 0.398428596 | +0.00% | -0.76% | 0.370387972 | +0.00% | -4.48% | 0.387472684 | +0.00% | -3.25% | [result](../artifacts/retraining/gpu-retrain-r01/iteration-0027/expertium/E24-F39/result.json) | Declared schedule change: 512-chunk batches, 167 updates. |
+
+<!-- r01-0027:end -->
