@@ -86,11 +86,18 @@ def run(args):
     log_path = output / "replicates.json"
     record = json.loads(log_path.read_text(encoding="utf-8")) if log_path.exists() else {"runs": []}
     for offset, track in enumerate(sequence, start=(existing[-1] if existing else 0) + 1):
+        try:
+            quiet = wait_for_quiet(args.max_background_cpu, args.max_wait_minutes * 60)
+        except RuntimeError as refusal:
+            # Record the refusal; nothing was launched, so no replicate folder exists for it.
+            record.setdefault("refusals", []).append({"track": track, "reason": str(refusal),
+                                                      "recorded_utc": datetime.now(timezone.utc).isoformat()})
+            write_json(log_path, record)
+            raise
         folder = replicates / f"r{offset}"
         folder.mkdir(parents=True)
         for name in ("protocol.json", "loop-definition.md"):
             (folder / name).write_bytes((output / name).read_bytes())
-        quiet = wait_for_quiet(args.max_background_cpu, args.max_wait_minutes * 60)
         state = {"background": quiet, "gpu_state": gpu_state(), "recorded_utc": datetime.now(timezone.utc).isoformat()}
         write_json(folder / "background-load.json", {"total_cpu_percent": quiet["total_cpu_percent"], **state})
         launch = SimpleArgs(track, args.reason)
