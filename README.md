@@ -6,11 +6,36 @@ Training and compression research for the RWKV spaced-repetition model used in A
 
 The starting point is the original 2,762,884-parameter architecture. Expertium's historical 192,800-parameter iter36 architecture is included separately for matched CPU and CUDA trials. The default baseline remains unchanged; compressed-state deployment is documented as research and is not enabled in these trials.
 
+## Start here
+
+- [Documentation guide](docs/README.md): choose the overview or procedure you need.
+- [Artifact guide](artifacts/README.md): current results and short folder guides.
+
+## Local GPU results — 2026-10-11
+
+GPU training is working on the Windows **RTX 5080**. These runs perform forward passes, loss computation, backpropagation, gradient clipping, and AdamW weight updates; the speed figures measure **training**, not inference. The default model completed one pass over the **complete histories of users 1–100: 5,226,500 reviews and 1,029 optimizer updates**. Coverage, finite losses/gradients, and CPU recurrent checkpoint loading were verified.
+
+The separate throughput comparison measured:
+
+| Model | Parameters | Chunks / CPU workers | Reviews/s |
+| --- | ---: | --- | ---: |
+| Default | 2,762,884 | 128 / 4 | **41,240** |
+| Expertium iter36, matched settings | 192,800 | 128 / 4 | **59,710** |
+| Expertium iter36, tuned | 192,800 | 256 / 6 | **76,002** |
+
+All three use BF16 computation with float32 master weights and AdamW state. Each chunk contains 128 raw reviews. Rates include CPU preparation waits, transfers, and training on a repeated history window; file loading and cold setup are excluded. Expertium was **45% faster at matched settings** and **84% faster after tuning**. These rates are separate from the resumed 100-user run, whose settings changed during tuning.
+
+The full-history default is **128 chunks, four preparation workers, and a 0.95 Torch GPU memory budget**. R01 trials record their own allocation limits; preserved historical runs keep the limits they used. The runner leaves the **400 W cap unchanged**; power can be managed separately in MSI Afterburner. CPU preparation is now the main throughput bottleneck for Expertium. Its full 100-user training and a matched full-history accuracy comparison remain future work; the completed Expertium GPU runs measure throughput.
+
+See [the GPU report and run guide](docs/GPU_TRAINING.md) for all measurements, utilization, batch-size decisions, verification, and reproduction. The [20-user CPU accuracy comparison](docs/COMPARISON.md) is a separate, bounded experiment.
+
+Later experiments at fixed batch sizes reached **47,728 reviews/s for the default model** with CUDA Graphs and fused casts/copies, and **87,153 reviews/s for Expertium** with packed GPU feature encodings and CUDA Graphs. These are **12.6% and 28.7%** above their respective control averages. Smaller RWKV checkpoint tiles and fused AdamW showed little complete-pipeline benefit. [The optimization report](docs/GPU_OPTIMIZATIONS.md) records all four approaches, controls, gradient checks, and reproduction commands. Graph measurements use a repeated shape; applying them throughout full histories requires a bounded graph cache or shape buckets.
+
 ## Sources and provenance
 
 The imported baseline is pinned to srs-benchmark commit [`3effecc37c9584e8323ee9c09c9476df84d87589`](https://github.com/open-spaced-repetition/srs-benchmark/tree/3effecc37c9584e8323ee9c09c9476df84d87589). This revision precedes upstream's runtime tensor-shape annotation changes and uses conventional PyTorch imports. [`upstream.json`](upstream.json) records the source commit, original file hashes, and adapted helpers. The RWKV algorithms and CUDA sources are unchanged.
 
-Local baseline adaptations are limited to FSRS feature selection for benchmark-label alignment, extraction of three required utility functions, packaging, verification, project-specific configuration files, and direct per-user metadata partition reads. The separate `expertium/` package pins an upstream historical model and changes only its model/architecture import namespaces; `expertium/upstream.json` records both original and adapted hashes. The broader FSRS/LSTM/DASH benchmark suite is excluded.
+Local baseline adaptations include FSRS feature selection for benchmark-label alignment, extraction of three required utility functions, packaging, verification, project-specific configuration files, direct per-user metadata partition reads, group-index preparation without per-group DataFrame copies, configurable preparation padding with the original defaults, and opt-in reference recurrence and fused shift paths on CUDA. The separate `expertium/` package pins an upstream historical model with adapted import namespaces and opt-in exact row/shift selection and fused shift paths; `expertium/upstream.json` records both original and adapted hashes. The broader FSRS/LSTM/DASH benchmark suite is excluded.
 
 Upstream code licensing and checkpoint redistribution terms are discussed in [srs-benchmark issue #353](https://github.com/open-spaced-repetition/srs-benchmark/issues/353). Imported code retains upstream notices and is not assigned a new license here. Dataset terms are available on the dataset's own Hugging Face page.
 
@@ -33,13 +58,17 @@ These settings are a documented starting point, not a guarantee of reproducing t
 
 Use [open-spaced-repetition/anki-revlogs-10k on Hugging Face](https://huggingface.co/datasets/open-spaced-repetition/anki-revlogs-10k). The benchmark describes approximately 727 million reviews from 10,000 Anki users.
 
-The dataset is not committed. Obtain it separately and place its directory layout under `data/anki-revlogs-10k/`, or change `DATA_PATH` in the preprocessing, label, and inference configurations. On the current workspace, that directory is a Git-ignored symbolic link to the existing sibling `../../anki-revlogs-10k` dataset, so no duplicate copy is needed. Preserve its partitioned `revlogs/user_id=...` directories and accompanying tables. Data, LMDB databases, checkpoints, and generated evaluation results are Git-ignored.
+The dataset is not committed. Obtain it separately and place its directory layout under `data/anki-revlogs-10k/`, or change `DATA_PATH` in the relevant configurations. A symbolic link to an existing dataset is also supported. The recorded Windows GPU trial used users 1–100 from the original dataset; [the GPU guide](docs/GPU_TRAINING.md#download-the-selected-users) gives the PowerShell commands and source-selection options. Preserve the partitioned `revlogs/user_id=...` directories and accompanying tables. Data, LMDB databases, checkpoints, and generated evaluation results are Git-ignored.
 
-Full preprocessing needs roughly 400 GB of storage, plus the dataset and checkpoints. Begin with a smaller user range if needed; update label, preprocessing, training, validation, and evaluation ranges consistently, and reduce the LMDB map sizes. Upstream training needs at least five batch groups because of its prefetch queue.
+On 2026-10-11, this workspace's full local copy and its NAS mirror were replaced with the [timestamp variant](https://huggingface.co/datasets/open-spaced-repetition/anki-revlogs-10k-id) at revision `93a7e8242690022d75943f67943901f81c556b0e`. The active local path remains `data/anki-revlogs-10k/`. It contains 727,738,650 reviews across all 10,000 users, preserves raw Anki entity IDs, and adds epoch-millisecond `review_time`; recover the original revlog ID with `review_time + duration`. The original copies are sibling folders named `anki-revlogs-10k-original-20261011`. [Replacement and integrity records](artifacts/data/dataset-inspection/anki-revlogs-10k-id/replacement.json) identify both paths and verification counts; [data-quality notes](docs/DATA_QUALITY.md#verified-timestamp-semantics) describe the timestamp semantics.
+
+The original full training/evaluation workflow uses preprocessed LMDB databases. The checked-in train/test configurations set **205 GB and 195 GB map limits**, plus a label database; these are capacity limits, not a fixed minimum amount of written data. Begin with smaller user ranges and adjust paths/map sizes consistently if using that workflow. The **GPU trial reads Parquet directly and prepares batches in RAM**, so it can train without building these large LMDBs. [The GPU guide](docs/GPU_TRAINING.md#training-without-large-lmdbs) explains the distinction. Upstream LMDB training needs at least five batch groups because of its prefetch queue.
+
+For dataset duplicate and overlap audits, use `just review-relations --data data/anki-revlogs-10k`. It detects exact history containment and uninterrupted matching blocks, then writes an offline D3 graph with review-range evidence. See [data quality methods and usage](docs/DATA_QUALITY.md#run-the-detector); `just check-review-relations` checks candidate recall and exact matching against independent references. The full 10,000-user audit took **6 minutes 58 seconds**, with a **2.52×** speedup on matched 1,000-user cache-hit trials. The [live D3 results](https://jschoreels.github.io/anki-rwkv/docs/data-quality/) contain all computed relationships and counts; detailed review evidence stays local.
 
 ## Setup and verification
 
-Use Python 3.12, [uv](https://docs.astral.sh/uv/), and [just](https://github.com/casey/just). Accelerated training and parallel evaluation use an NVIDIA CUDA GPU and a compatible installed CUDA toolkit. The imported model also includes a differentiable PyTorch reference recurrence for CPU training. The dependency configuration selects PyTorch 2.9.1 with CUDA 12.8 on Linux/Windows. macOS can run installation checks, recurrent CPU inference, and float32 reference training. The default large training configurations select CUDA; the CPU trial below uses smaller history chunks.
+Use Python 3.12, [uv](https://docs.astral.sh/uv/), and [just](https://github.com/casey/just). The dependency configuration selects PyTorch 2.9.1 with CUDA 12.8 on Linux/Windows, including support for RTX 50-series GPUs. The native CUDA extension uses an installed toolkit and host C++ compiler. The tested Windows GPU trial instead uses NVRTC runtime compilation, which needs no host compiler; BF16 requires CUDA CCCL headers. Follow [the Windows GPU setup](docs/GPU_TRAINING.md#windows-gpu-setup) for that path. macOS supports installation checks, recurrent CPU inference, and float32 reference training.
 
 ```sh
 git clone https://github.com/JSchoreels/anki-rwkv.git
@@ -50,7 +79,7 @@ just check
 
 `just check` parses source and TOML, checks imported-file hashes, imports the pipeline, checks both architecture sizes and recurrent loading, and exercises CPU inference and synthetic training updates in float32 and BF16 with float32 master weights. It uses synthetic features and needs no dataset or pretrained checkpoint. It does not establish training accuracy or parity with the benchmark.
 
-On the CUDA training machine, compile the native extension after installing the CUDA toolkit:
+For the native CUDA extension, compile after installing a compatible CUDA toolkit and host C++ compiler:
 
 ```sh
 just build-cuda
@@ -98,11 +127,32 @@ Local result: both made 77 updates across all 20 users. Expertium uses **14.3× 
 
 The original smoke-trial checkpoint is preserved. This comparison reruns the baseline because the smoke trial allowed next-review labels outside its 128-review training selection and did not reserve temporal validation. Results, methodology, and limitations are recorded in [the comparison report](docs/COMPARISON.md). Model checkpoints and detailed JSON metrics are saved under the Git-ignored `checkpoints/comparison-20-users/` and `artifacts/comparison-20-users/` directories. Each invocation replaces those comparison outputs.
 
-## RTX 5080: matched CUDA comparison
+## Run GPU training on the first 100 users
 
-The RTX 5080 is a Blackwell GPU with compute capability 12.0. The project selects the official PyTorch 2.9.1 **cu128** build on Linux/Windows; install the **CUDA 12.8 toolkit**, a compatible NVIDIA driver, and a supported host C++ compiler to build the native recurrence. CUDA 12.8 adds native SM_120 compiler support. See [NVIDIA GPU capabilities](https://developer.nvidia.com/cuda/gpus), [CUDA 12.8 release notes](https://docs.nvidia.com/cuda/archive/12.8.0/cuda-toolkit-release-notes/index.html), and [PyTorch installation builds](https://pytorch.org/get-started/previous-versions/).
+The completed GPU run used the **default model**, not Expertium. [`configs/train-gpu-trial.toml`](configs/train-gpu-trial.toml) selects complete histories for users 1–100, one epoch, 128 independent 128-review chunks per batch, BF16 computation, float32 master weights/AdamW state, four CPU workers, and a 0.72 Torch memory budget. `POWER_LIMIT_WATTS = 0` monitors power without changing the cap.
 
-From a Linux shell or Windows WSL2 Linux environment with NVIDIA GPU support, run:
+Follow [the Windows GPU guide](docs/GPU_TRAINING.md#windows-gpu-setup) for CUDA headers, dataset authentication/download, and verification. From PowerShell:
+
+```powershell
+uv sync --locked --extra nvrtc
+.\scripts\run_gpu_trial.ps1 -Check -Worker
+.\.venv\Scripts\python.exe scripts/check_gpu_perf.py
+.\scripts\run_gpu_trial.ps1
+```
+
+The training launcher runs in a hidden process with logs under `artifacts/benchmarks/gpu-trial/` and checkpoints under `checkpoints/gpu-trial/`. It refuses to overwrite an existing checkpoint. This workspace already has the completed run; use separate configured output/checkpoint directories for a new experiment. [The run guide](docs/GPU_TRAINING.md#verify-and-launch) explains foreground runs and clean stop/resume.
+
+For the **training-speed comparison**, run `just compare-gpu-throughput`, or `.\.venv\Scripts\python.exe scripts/compare_gpu_throughput.py` in PowerShell. It performs fresh forward/backward/AdamW updates for both models on the same repeated history window, then tunes Expertium's batching. It preserves the real training checkpoint. [The report](docs/GPU_TRAINING.md#main-result-reviews-per-second) defines the timing and records all six scenarios.
+
+## Bounded CUDA accuracy comparison
+
+[`configs/compare-cuda.toml`](configs/compare-cuda.toml) defines a separate short accuracy experiment: users 1–20, reviews 1–128 for training and 129–256 for temporal validation, eight independent 32-review chunks per batch, BF16 computation, and float32 master weights/AdamW state. The two models share inputs and labels; targets crossing split boundaries are masked. Its ten updates per epoch differ from the historical CPU comparison's 77 updates, so batching changes the optimization trajectory.
+
+This bounded CUDA accuracy protocol has not been run on the desktop in this track. The completed RTX 5080 measurements above come from the full-history default trainer and the separate throughput runner. The historical CPU accuracy results and grouped CPU smoke checks remain documented in [the CPU comparison report](docs/COMPARISON.md).
+
+The bounded CUDA runner uses the **native extension**, requiring a compatible NVIDIA driver, CUDA toolkit, and host C++ compiler. For the RTX 5080, the project selects PyTorch 2.9.1 **cu128**, and CUDA 12.8 supports SM_120. See [NVIDIA GPU capabilities](https://developer.nvidia.com/cuda/gpus), [CUDA 12.8 release notes](https://docs.nvidia.com/cuda/archive/12.8.0/cuda-toolkit-release-notes/index.html), and [PyTorch installation builds](https://pytorch.org/get-started/previous-versions/).
+
+In Linux or Windows WSL2 with GPU support:
 
 ```sh
 just setup
@@ -112,19 +162,9 @@ just check-cuda
 just compare-cuda
 ```
 
-The recipes use POSIX shell syntax. Native Windows builds additionally need a configured MSVC development environment and a compatible shell; the commands above assume Linux/WSL2. Put the dataset under `data/anki-revlogs-10k/` on the desktop as described above; the Mac's local symbolic link is not part of the clone. The full CUDA toolkit is needed because a PyTorch wheel provides its runtime, but not the `nvcc` compiler used by this extension. `build-cuda` installs the already-declared setuptools/wheel build tools, then compiles the extension for the visible GPU. The CUDA commands use the installed environment without re-syncing it; rerun `setup` and `build-cuda` together after dependency changes.
+The recipes assume a POSIX-compatible shell. Native Windows extension builds also need a configured MSVC development environment. `check-cuda` checks recurrence outputs/gradients for one/four heads in float32/BF16 and performs finite training updates for both architectures; it stops if the GPU or extension is missing. These commands use the installed environment without re-syncing away the native extension. Rebuild after dependency changes.
 
-`just check-cuda` requires CUDA and the compiled extension. It compares recurrence outputs and gradients against the CPU reference for both one-head and four-head shapes, in float32 and BF16, with skipped query rows and a sequence crossing the 32-step state-checkpoint boundary. It also performs two finite training updates in both architectures for each precision. A missing GPU or extension stops with an actionable error; CUDA runs do not fall back to CPU.
-
-[`configs/compare-cuda.toml`](configs/compare-cuda.toml) uses the same users **1–20** and train/validation review ranges as the CPU comparison, **eight independent 32-review chunks per batch**, BF16 model computation with selected sensitive weights kept in float32, and **float32 master weights and AdamW state**. The runner copies master weights into the mixed-precision model before each update and transfers its gradients back before clipping and optimization. Saved checkpoints contain float32 master weights and are reloaded into CPU recurrent inference for verification.
-
-Eight chunks give **10 optimizer steps per epoch**, versus 77 labelled single-chunk steps in the historical CPU comparison. Every selected chunk participates in a labelled group, including the three individually unlabelled chunks; losses still use only supervised labels. Batching changes encodings, dropout draws, and update frequency, so the CUDA result is a new matched experiment between models, not a numerical reproduction of the CPU result. The five-update learning-rate warmup and `7e-4` peak remain short-trial starting settings. Increase `EPOCHS` for more updates, and adjust `BATCH_CHUNKS` based on measured throughput and memory. `DTYPE = "float32"` allows a CUDA precision comparison. This trial still uses only the bounded prefix, not the complete 913,958 reviews of these users.
-
-The CPU regression run preserved the original input fingerprint and reproduced both models' validation losses exactly. Direct partition reads reduced its measured preparation from **38.38 s to 3.70 s** on this Mac; GPU throughput remains to be measured on the desktop.
-
-Both models share the same prepared batches. Metadata loading reads existing user partitions directly, avoiding repeated discovery of 10,000 users' directories. `CACHE_PATH` saves prepared CPU inputs and automatically rebuilds them when selection, batching, seed, preparation source, PyTorch version, dataset path, or selected Parquet file sizes/mtimes change. Leave it empty to disable caching. Data transfers happen once before both model runs; optimizer timings synchronize CUDA before/after each step and include mixed-precision weight/gradient copies. Summary JSON also reports preparation/cache time, transfer time, complete training-loop time, GPU name, precision, CUDA runtime, and peak allocated CUDA memory. This is a short-run wall-clock measurement, not a steady-state throughput guarantee.
-
-Outputs are Git-ignored under `artifacts/comparison-cuda-20-users/` and `checkpoints/comparison-cuda-20-users/`, separate from the CPU results. Each invocation starts fresh and replaces metrics/checkpoints, while valid prepared inputs are reused. GPU compilation, correctness, and performance must be checked on the desktop; this Mac has no NVIDIA CUDA device.
+The bounded runner caches prepared inputs with automatic invalidation for selection, batching, seed, source, PyTorch version, dataset path, and selected file sizes/timestamps. Outputs are separate under `artifacts/comparison-cuda-20-users/` and `checkpoints/comparison-cuda-20-users/`. Each invocation starts from fresh weights and replaces those comparison outputs. Its cache/accuracy protocol is separate from the streaming 100-user trainer and GPU throughput measurements.
 
 ## Preprocess, train, and evaluate
 
@@ -179,16 +219,14 @@ Model-weight size and recurrent-state size are separate measurements. For large 
 
 Further background: [RWKV-Lite](https://arxiv.org/abs/2412.10856) and [RWKVQuant](https://arxiv.org/abs/2505.03803). These papers concern other RWKV model sizes and tasks; their results are not measurements of this Anki model.
 
-For dataset duplicate and overlap audits, use `just review-relations --data data/anki-revlogs-10k`. It detects exact history containment and uninterrupted matching blocks, then writes an offline D3 graph with review-range evidence. See [data quality methods and usage](docs/DATA_QUALITY.md#run-the-detector); `just check-review-relations` checks candidate recall and exact matching against independent references. The full 10,000-user audit took **6 minutes 58 seconds**, with a **2.52×** speedup on matched 1,000-user cache-hit trials. The [live D3 results](https://jschoreels.github.io/anki-rwkv/docs/data-quality/) contain all computed relationships and counts; detailed review evidence stays local.
-
 ## Repository layout
 
 ```text
 rwkv/           Upstream model, training, preprocessing, evaluation, and CUDA kernel
 features/       Minimal FSRS features needed to align benchmark labels
 configs/        Dataset paths, preprocessing, two training phases, and evaluation
-expertium/      Pinned historical 192,800-parameter model and source provenance
-scripts/        Verification, first-20-user trial, and matched CPU/CUDA comparison
+expertium/      Separate historical iter36 architecture and provenance
+scripts/        Verification, dataset download, CPU/CUDA trials, and matched comparisons
 upstream.json   Exact imported revision and source hashes
 pyproject.toml  Training dependencies and optional native build metadata
 uv.lock         Resolved dependency versions

@@ -12,7 +12,7 @@ steps. GPU and training optimization tracks belong in
 | DQ01 | Audit repeated review patterns | Pending; feasibility inspection only | Raw reviews contain chronological card order, day offsets, ratings, learning states, answer durations and per-card elapsed times. No detector or thresholds have been tested. | Rank repeated long card sequences and ordering of shared cards across days, with rating/duration evidence. Inspect examples before choosing anomaly thresholds; report supporting review ranges. |
 | DQ02 | Exact history containment, uninterrupted common blocks, and user graph | Implemented; functional checks and full 10,000-user audit complete | [Detector](../scripts/review_relations.py), [checks](data-quality/checks.json), [full-cohort measurements](data-quality/benchmarks/optimized-full-cold.json), and [D3 results](data-quality/index.html). 727,738,650 events; two equal-history groups, 18 strict containment edges and 14,880 common-block edges. | Inspect related components before proposing any filtering. Training impact remains unmeasured. |
 | DQ03 | Improve exact relation detector speed | R14 retained; stopped below updated 20% threshold | [Matched measurements](data-quality/performance.json): final full trial **270.77 seconds**, **4.88%** below the faster R13 control (308.58 / 284.65 seconds); 413.1 MiB sampled peak process RSS. Complete candidates and exact outputs agree. Controls varied by 7.75%, limiting precision of the speedup estimate. Earlier rounds and inconclusive trials remain in [continuation records](data-quality/performance-continuation.json). | Keep bounded two-worker preparation and the final viewer. No further rounds under the user's updated 20% stopping rule; preserve R15 as unmeasured. |
-| DQ04 | Freeze benchmark dataset identity during active-folder replacement | Resolved for GPU batch F01–F08; no filtering | The first short runner check stopped before updates with `review_time not found` after the timestamped export replaced the active folder. [Failed check](../artifacts/gpu-batch1-smoke/baseline/control/result.json), [replacement record](../artifacts/dataset-inspection/anki-revlogs-10k-id/replacement.json). The original export and count artifact share revision `75299740cff05894ef42d7ad990666691efdd2da`. | Pin the 500-user GPU batch to `data/anki-revlogs-10k-original-20261011` and record that path/revision. Timestamp-export training compatibility remains a separate, untested change. |
+| DQ04 | Freeze benchmark dataset identity during active-folder replacement | Resolved for GPU batch F01–F08; no filtering | The first short runner check stopped before updates with `review_time not found` after the timestamped export replaced the active folder. [Failed check](../artifacts/diagnostics/gpu-batch1-smoke/baseline/control/result.json), [replacement record](../artifacts/data/dataset-inspection/anki-revlogs-10k-id/replacement.json). The original export and count artifact share revision `75299740cff05894ef42d7ad990666691efdd2da`. | Pin the 500-user GPU batch to `data/anki-revlogs-10k-original-20261011` and record that path/revision. Timestamp-export training compatibility remains a separate, untested change. |
 | DQ05 | Explain the large high-coverage common-block cluster | Investigated; user decision: retain users and inherited reviews | [Findings](data-quality/cluster-95.html): 43 users / 40 groups / 447 links; 13,784 inherited events, 11,804 present in all users. Common deck hierarchy and 200,511 distinct personal reviews support copied history followed by separate activity. All 4,493 missing old review rows occur on cards with later learning restarts, consistent with the export's last-sequence filter. | Keep all currently exported histories, including inherited reviews. Lineage flags remain descriptive. The original package is unidentified; any future exclusion/deduplication needs a new decision and any claimed training benefit remains unmeasured. |
 
 DQ01 was originally recorded as F12 in `GPU_OPTIMIZATIONS.md` and moved here
@@ -30,7 +30,7 @@ connectivity does not imply 95% coverage for every pair or for both endpoints.
 The public [aggregate investigation](data-quality/cluster-95.html) and
 [JSON findings](data-quality/cluster-95-summary.json) describe the evidence.
 Private event ranges, timestamps, card/deck IDs and metadata checksums remain
-in [the local investigation](../artifacts/data-quality/cluster-95-either/investigation.json).
+in [the local investigation](../artifacts/data/data-quality/cluster-95-either/investigation.json).
 Reusable scripts are [component inspection](../scripts/inspect_review_clusters.py),
 [event/metadata investigation](../scripts/investigate_review_cluster.py), and
 [aggregate publishing](../scripts/publish_review_cluster.py).
@@ -83,7 +83,7 @@ validation phase in `AGENT.md`.
 
 ### A shared prefix is different from exact containment
 
-The follow-up [prefix investigation](../artifacts/data-quality/cluster-95-either/prefix-investigation.json)
+The follow-up [prefix investigation](../artifacts/data/data-quality/cluster-95-either/prefix-investigation.json)
 rechecks the 43 sources and shows that **all 43 exported histories begin with
 the same 1,672 consecutive reference events**. None has a non-reference review timestamp
 before that event. This does not establish when each person's collection
@@ -168,32 +168,12 @@ matched quality/time comparison under the validation requirements in
 
 ### Verified timestamp semantics
 
-The active dataset is `data/anki-revlogs-10k`, from
-`open-spaced-repetition/anki-revlogs-10k-id`. Its README records builder commit
-`e29946556796443283bf9c8e9d21f4502cb2e9c1` with
-`--raw-ids --show-time --emit-review-time`. The complete download is pinned to
-revision `93a7e8242690022d75943f67943901f81c556b0e`: 29,937 source files,
-21,363,150,385 bytes and 727,738,650 reviews across all 10,000 users. Integrity
-checks covered all source sizes, all 29,934 Parquet SHA-256 hashes, all Parquet
-schemas and footer row counts. Cards metadata is absent for 66 users, as in the
-source inventory; all users have reviews and decks metadata.
-[Verification](../artifacts/dataset-inspection/anki-revlogs-10k-id/download_verification.json),
-[per-file sizes and checksums](../artifacts/dataset-inspection/anki-revlogs-10k-id/remote_files.json).
-Both the local copy and `\\syno-marauder\torrent\anki-revlogs-10k` were replaced
-on 2026-10-11 after full verification. The NAS read-back checked every source
-file and the download manifest against SHA-256; the original datasets are
-preserved as sibling `anki-revlogs-10k-original-20261011` folders.
-[Replacement record](../artifacts/dataset-inspection/anki-revlogs-10k-id/replacement.json),
-[NAS verification](../artifacts/dataset-inspection/anki-revlogs-10k-id/nas_verification.json),
-[five-user CPU loader smoke check](../artifacts/dataset-inspection/anki-revlogs-10k-id/loader_compatibility_full_download.json).
-The full manifest was unavailable during the earlier five-user probe. Complete
-file integrity does not establish the full dataset's duplicate rate or model
-quality.
+The active dataset is `data/anki-revlogs-10k`, from `open-spaced-repetition/anki-revlogs-10k-id`. Its README records builder commit `e29946556796443283bf9c8e9d21f4502cb2e9c1` with `--raw-ids --show-time --emit-review-time`. The complete download is pinned to revision `93a7e8242690022d75943f67943901f81c556b0e`: 29,937 source files, 21,363,150,385 bytes and 727,738,650 reviews across all 10,000 users. Integrity checks covered all source sizes, all 29,934 Parquet SHA-256 hashes, all Parquet schemas and footer row counts. Cards metadata is absent for 66 users, as in the source inventory; all users have reviews and decks metadata. [Verification](../artifacts/data/dataset-inspection/anki-revlogs-10k-id/download_verification.json), [per-file sizes and checksums](../artifacts/data/dataset-inspection/anki-revlogs-10k-id/remote_files.json). Both the local copy and its NAS mirror were replaced on 2026-10-11 after full verification. The NAS read-back checked every source file and the download manifest against SHA-256; the original datasets are preserved as sibling `anki-revlogs-10k-original-20261011` folders. [Replacement record](../artifacts/data/dataset-inspection/anki-revlogs-10k-id/replacement.json), [NAS verification](../artifacts/data/dataset-inspection/anki-revlogs-10k-id/nas_verification.json), [five-user CPU loader smoke check](../artifacts/data/dataset-inspection/anki-revlogs-10k-id/loader_compatibility_full_download.json). The full manifest was unavailable during the earlier five-user probe. Complete file integrity does not establish the full dataset's duplicate rate or model quality.
 
 The verified timestamp variant was subsequently promoted to the active
 `data/anki-revlogs-10k` directory (also on the NAS), with the original dataset
 preserved in a dated backup. The performance work below uses that active local
-path. [Replacement record](../artifacts/dataset-inspection/anki-revlogs-10k-id/replacement.json).
+path. [Replacement record](../artifacts/data/dataset-inspection/anki-revlogs-10k-id/replacement.json).
 
 Anki normally assigns the revlog ID from the answer timestamp in epoch
 milliseconds. IDs are unique within a collection, not globally across users;
@@ -360,7 +340,7 @@ cache invalidation. Extra cases check repeated timestamps, signed-int64 bounds,
 and the candidate hash calculation against an independent integer reference.
 Forcing all candidate hashes to collide still produces the
 same exact graph. The checks also exercise the offline graph and explicit
-viewer truncation. [Raw check results](../artifacts/data-quality/relation-checks.json).
+viewer truncation. [Raw check results](../artifacts/data/data-quality/relation-checks.json).
 
 The first real audit selected users **1–100**, with **5,226,500** distinct review
 events, no redundant event rows, and no cache hits. It examined **one candidate
@@ -389,13 +369,13 @@ about 23.29 GB before deduplication, plus temporary indexes and results.
 The original 100-user process recorded Git HEAD
 `020e2fac1e62fe8e69c2d8daa36a81c881919a95`, a dirty working tree, and preserved
 source snapshot `b63d6348c6cba56f61a0d8aa3a8045e4f937e6bc43451b86bd4bf6c763f92fb5`.
-[Summary](../artifacts/data-quality/relations-100-users/summary.json),
-[exact relation/block evidence](../artifacts/data-quality/relations-100-users/relations.jsonl),
-[interactive graph](../artifacts/data-quality/relations-100-users/graph.html).
-An [independent Python-tuple check](../artifacts/data-quality/relations-100-users/verify_source_pair.py)
+[Summary](../artifacts/data/data-quality/relations-100-users/summary.json),
+[exact relation/block evidence](../artifacts/data/data-quality/relations-100-users/relations.jsonl),
+[interactive graph](../artifacts/data/data-quality/relations-100-users/graph.html).
+An [independent Python-tuple check](../artifacts/data/data-quality/relations-100-users/verify_source_pair.py)
 also recovered the pair's keys directly from the original Parquet files and
 verified all nine maximal blocks, shared count, longest length, and endpoint
-timestamps. Its [raw result](../artifacts/data-quality/relations-100-users/source_verification.json)
+timestamps. Its [raw result](../artifacts/data/data-quality/relations-100-users/source_verification.json)
 records the separate verification and updated viewer-render provenance.
 
 ### DQ03: measured optimization rounds
@@ -729,8 +709,8 @@ GitHub Pages is enabled; subsequent result commits update this view after deploy
 [immutable detector implementations](data-quality/implementations), and
 [functional check report](data-quality/checks.json) are committed research
 results. Raw logs, complete review-range evidence, and complete workspace source
-archives remain under ignored `artifacts/data-quality/relations-performance`
-and `artifacts/experiment-sources` in this workspace. The initial measured processes
+archives remain under ignored `artifacts/data/data-quality/relations-performance`
+and `artifacts/sources/experiment-sources` in this workspace. The initial measured processes
 recorded full Git HEAD **020e2fac1e62fe8e69c2d8daa36a81c881919a95** and a dirty
 working tree; this later implementation commit is separate from that tested
 revision. The retained detector SHA-256 is
@@ -754,10 +734,10 @@ To reproduce the measurements or publish a later completed audit:
 .\.venv\Scripts\python.exe scripts/benchmark_review_relations.py --label round3-repeat --repeats 3 --limit-users 1000
 
 # A full audit with a fresh canonical cache (do not reuse an existing path).
-.\.venv\Scripts\python.exe scripts/benchmark_review_relations.py --label full-repeat --limit-users 10000 --cache artifacts/data-quality/fresh-full-cache
+.\.venv\Scripts\python.exe scripts/benchmark_review_relations.py --label full-repeat --limit-users 10000 --cache artifacts/data/data-quality/fresh-full-cache
 
 # Aggregate research-results viewer for publication; exact evidence stays local.
-.\.venv\Scripts\python.exe scripts/publish_review_relations.py --audit artifacts/data-quality/relations-performance/optimized-full-cold-1379b1/repeat-01 --benchmark artifacts/data-quality/relations-performance/optimized-full-cold-1379b1/benchmark.json
+.\.venv\Scripts\python.exe scripts/publish_review_relations.py --audit artifacts/data/data-quality/relations-performance/optimized-full-cold-1379b1/repeat-01 --benchmark artifacts/data/data-quality/relations-performance/optimized-full-cold-1379b1/benchmark.json
 ```
 
 ### Partial overlap and edited histories
@@ -794,7 +774,7 @@ anchor verification agrees with brute-force containment. This is a prototype
 check; the implementation and subsequent functional checks above supersede its
 prototype algorithm. It was not a model-quality comparison.
 
-[Probe source](../artifacts/data-quality/timestamp-overlap-probe/probe.py) and
-[raw results](../artifacts/data-quality/timestamp-overlap-probe/results.json)
+[Probe source](../artifacts/data/data-quality/timestamp-overlap-probe/probe.py) and
+[raw results](../artifacts/data/data-quality/timestamp-overlap-probe/results.json)
 retain input checksums, source provenance and every pair's counts. No training
 data was modified or excluded.
