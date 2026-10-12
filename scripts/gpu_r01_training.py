@@ -231,7 +231,8 @@ def run_case(args):
             # accepted tile 32; the primer compiles it and evaluation restores production.
             from scripts.gpu_row_tiles import row_tiled_backend
             report["recurrence_kernel"] = kernel_stack.enter_context(
-                row_tiled_backend(rows=options["row_tiles_exact"], tile=32, exact=True))
+                row_tiled_backend(rows=options["row_tiles_exact"], tile=32, exact=True,
+                                  compact_previous=bool(options.get("compact_previous_state", False))))
         device = torch.device("cuda:0")
         checkpoint = fresh_checkpoint(args.model, training_seed)
         report["initial_parameter_sha256"] = tensor_hash(checkpoint["model"])
@@ -255,6 +256,14 @@ def run_case(args):
             if not options.get("deferred_reads") or not hasattr(base, "sync_free_loss"):
                 raise ValueError("F37 sync-free loss needs F33 deferred reads and the Expertium loss")
             base.sync_free_loss = True
+        if options.get("skip_padding_sources"):
+            if not options.get("exact_index") or not hasattr(base, "skip_padding_sources"):
+                raise ValueError("F50 requires Expertium exact row selection")
+            base.skip_padding_sources = True
+        if options.get("concurrent_splits"):
+            if not hasattr(base, "concurrent_splits"):
+                raise ValueError("F49 requires Expertium")
+            base.concurrent_splits = True
         optimizer = get_optimizer(Namespace(PEAK_LR=7e-4), master)
         warm_pool = None
         if options.get("prestart_pool"):
@@ -415,6 +424,9 @@ def run_case(args):
                         raise RuntimeError(f"Unlabelled batch user {user}, offset {item.offset}")
                     torch.manual_seed(item.seed)
                     active = graphs.select(batch) if graphs else base
+                    if options.get("worker_scatter_orders"):
+                        from scripts.gpu_scatter_orders import install_orders
+                        install_orders(batch)
                     # Graph construction creates a fresh model and consumes RNG.
                     # Reset after admission so an eager or replayed update sees
                     # the same declared dropout seed as its paired control.
@@ -442,6 +454,9 @@ def run_case(args):
                         raise RuntimeError(f"Non-finite training loss user {user}")
                     if not graphs or active is base:
                         stats.average_loss.backward()
+                    if options.get("concurrent_splits"):
+                        from expertium.model.srs_model import wait_split_streams
+                        wait_split_streams()
                     if grouped:
                         grouped.transfer_grads()
                     else:

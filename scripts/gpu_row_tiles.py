@@ -12,7 +12,7 @@ ROOT = Path(__file__).resolve().parents[1]
 _modules = {}
 
 
-def source_options(dtype, exact=False):
+def source_options(dtype, exact=False, compact_previous=False):
     if dtype not in (torch.float32, torch.bfloat16):
         raise ValueError("Row-tiled recurrence supports float32 or BF16")
     prefix = nvrtc.kernel_source(dtype).split("namespace rwkv {")[0]
@@ -32,16 +32,20 @@ def source_options(dtype, exact=False):
         if cccl is None:
             raise RuntimeError("BF16 NVRTC requires CCCL headers (nv/target)")
         options.append(f"--include-path={cccl}")
+    if compact_previous:
+        if not exact:
+            raise ValueError("F54 compact previous state requires the exact kernel")
+        options.append("-DCOMPACT_PREVIOUS_STATE=1")
     return source, tuple(options)
 
 
-def compile_module(device, dtype, rows, tile, exact=False):
+def compile_module(device, dtype, rows, tile, exact=False, compact_previous=False):
     if rows not in (1, 2, 4, 8) or tile not in (8, 16, 32):
         raise ValueError("Rows must be 1, 2, 4 or 8; checkpoint tile must be 8, 16 or 32")
     index = device.index if device.index is not None else torch.cuda.current_device()
-    key = index, dtype, rows, tile, exact
+    key = index, dtype, rows, tile, exact, compact_previous
     if key not in _modules:
-        source, options = source_options(dtype, exact)
+        source, options = source_options(dtype, exact, compact_previous)
         scalar = "float" if dtype == torch.float32 else "__nv_bfloat16"
         namespace = "rwkv_exact" if exact else "rwkv_future"
         names = tuple(f"{namespace}::{name}_kernel<{tile}, {rows}, {scalar}>" for name in ("forward", "backward"))
@@ -52,7 +56,7 @@ def compile_module(device, dtype, rows, tile, exact=False):
 
 
 @contextmanager
-def row_tiled_backend(rows=4, tile=8, exact=False):
+def row_tiled_backend(rows=4, tile=8, exact=False, compact_previous=False):
     """Hold this context through every associated forward AND backward call."""
     if rows not in (1, 2, 4, 8) or tile not in (8, 16, 32):
         raise ValueError("Invalid row/tile configuration")
@@ -61,7 +65,7 @@ def row_tiled_backend(rows=4, tile=8, exact=False):
     original_tile = nvrtc._checkpoint_length
 
     def module(device, dtype):
-        return compile_module(device, dtype, rows, tile, exact)
+        return compile_module(device, dtype, rows, tile, exact, compact_previous)
 
     def launch(kernel, device, shape, args):
         import numpy as np
@@ -72,7 +76,8 @@ def row_tiled_backend(rows=4, tile=8, exact=False):
     nvrtc.set_checkpoint_length(tile)
     nvrtc.module, nvrtc.launch = module, launch
     try:
-        yield {"rows_per_thread": rows, "checkpoint_tile": tile, "threads_per_block": 1024 // rows}
+        yield {"rows_per_thread": rows, "checkpoint_tile": tile, "threads_per_block": 1024 // rows,
+               "compact_previous_state": compact_previous}
     finally:
         try:
             torch.cuda.synchronize()

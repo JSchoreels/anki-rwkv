@@ -5,7 +5,7 @@ import numpy as np
 from rwkv.config import RWKV_SUBMODULES
 from rwkv.data_processing import RWKVSample
 from expertium.model.rwkv_model import RWKV7
-from rwkv.model.exact_index import ExactIndexSelect
+from rwkv.model.exact_index import ExactIndexSelect, ExactPaddedIndexSelect
 import torch
 from typing import NamedTuple
 
@@ -13,6 +13,16 @@ from expertium.architecture import AnkiRWKVConfig
 
 
 import os
+
+_split_streams = {}
+
+
+def wait_split_streams():
+    """F49: join split backward work before reading or clearing parameter gradients."""
+    parent = torch.cuda.current_stream()
+    for (device, _), stream in _split_streams.items():
+        if device == parent.device.index:
+            parent.wait_stream(stream)
 
 
 def __nop(ob):
@@ -110,6 +120,8 @@ class SrsRWKV(ModuleType):
     def __init__(self, anki_rwkv_config: AnkiRWKVConfig):
         super().__init__()
         self.exact_index = False  # F27: sort-free row-selection backward, bitwise equal when deterministic
+        self.skip_padding_sources = False  # F50: hierarchy padding contributes zero gradients.
+        self.concurrent_splits = False  # F49: opt-in independent split streams.
         # F37: skip the host syncs in _get_loss. Any NaN they catch also makes average_loss
         # non-finite, which the caller must check; the label counts are returned as -1.
         self.sync_free_loss = False
@@ -213,6 +225,40 @@ class SrsRWKV(ModuleType):
         )
         return res.squeeze(-1)
 
+    @torch.jit.ignore
+    def forward_split_streams(self, x: torch.Tensor, module_index: int,
+                              gathers: list[torch.Tensor], lengths: list[int],
+                              shifts: list[torch.Tensor], skips: list[torch.Tensor]) -> torch.Tensor:
+        parent = torch.cuda.current_stream(x.device)
+        outputs = []
+        submodule = getattr(self.rwkv_modules, str(module_index))
+        used = []
+        # Host issue order is unchanged, including Philox offset reservation.
+        for number, (gather, length, shift, skip) in enumerate(zip(gathers, lengths, shifts, skips)):
+            key = (x.device.index, number)
+            stream = _split_streams.get(key)
+            if stream is None:
+                stream = _split_streams[key] = torch.cuda.Stream(device=x.device)
+            stream.wait_stream(parent)
+            used.append(stream)
+            with torch.cuda.stream(stream):
+                for tensor in (x, gather, shift, skip):
+                    tensor.record_stream(stream)
+                if self.exact_index:
+                    if self.skip_padding_sources:
+                        module_in = ExactPaddedIndexSelect.apply(x, gather)
+                    else:
+                        module_in = ExactIndexSelect.apply(x, gather.clamp(min=0))
+                else:
+                    module_in = x.index_select(0, gather.clamp(min=0))
+                result = submodule.forward(module_in.view(-1, length, self.d_model),
+                                   time_shift_select_BT=shift.view(-1, length), skip_BT=skip.view(-1, length))
+                outputs.append(result.view(-1, self.d_model))
+        for stream, result in zip(used, outputs):
+            parent.wait_stream(stream)
+            result.record_stream(parent)
+        return torch.cat(outputs)
+
     @FunctionType
     def forward_batch(
         self,
@@ -231,30 +277,36 @@ class SrsRWKV(ModuleType):
             sub_lens = batch_sub_gather_lens[i]
             time_shift_selects = batch_time_shift_selects[i]
             skips = batch_skips[i]
-            y = []
-            for split_gather, sub_len, time_shift_select, skip in zip(
-                module_splits, sub_lens, time_shift_selects, skips
-            ):
-                split_index = torch.clamp(split_gather, min=0)
-                if self.exact_index and x.is_cuda:
-                    module_in = ExactIndexSelect.apply(x, split_index).view(-1, sub_len, self.d_model)
-                else:
-                    module_in = torch.index_select(
-                        x, dim=0, index=split_index
-                    ).view(-1, sub_len, self.d_model)
-                time_shift_select_BT = time_shift_select.view(-1, sub_len)
-                skip_BT = skip.view(-1, sub_len)
-                assert module_in.size(0) == time_shift_select_BT.size(
-                    0
-                ) and module_in.size(0) == skip_BT.size(0)
-                module_out = submodule(
-                    module_in,
-                    time_shift_select_BT=time_shift_select_BT,
-                    skip_BT=skip_BT,
-                )
-                y.append(module_out.view(-1, self.d_model))
+            if self.concurrent_splits and x.is_cuda:
+                x = self.forward_split_streams(x, i, module_splits, sub_lens, time_shift_selects, skips)
+            else:
+                y = []
+                for split_gather, sub_len, time_shift_select, skip in zip(
+                    module_splits, sub_lens, time_shift_selects, skips
+                ):
+                    split_index = torch.clamp(split_gather, min=0)
+                    if self.exact_index and x.is_cuda:
+                        if self.skip_padding_sources:
+                            module_in = ExactPaddedIndexSelect.apply(x, split_gather).view(-1, sub_len, self.d_model)
+                        else:
+                            module_in = ExactIndexSelect.apply(x, split_index).view(-1, sub_len, self.d_model)
+                    else:
+                        module_in = torch.index_select(
+                            x, dim=0, index=split_index
+                        ).view(-1, sub_len, self.d_model)
+                    time_shift_select_BT = time_shift_select.view(-1, sub_len)
+                    skip_BT = skip.view(-1, sub_len)
+                    assert module_in.size(0) == time_shift_select_BT.size(
+                        0
+                    ) and module_in.size(0) == skip_BT.size(0)
+                    module_out = submodule(
+                        module_in,
+                        time_shift_select_BT=time_shift_select_BT,
+                        skip_BT=skip_BT,
+                    )
+                    y.append(module_out.view(-1, self.d_model))
 
-            x = torch.cat(y)
+                x = torch.cat(y)
 
         x = x.view(batch_num_data, -1, self.d_model)
         return self.head_and_out(x)

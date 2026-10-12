@@ -19,6 +19,7 @@ import torch
 _KERNELS = {}
 _shared_orders = False
 _orders = {}
+_row_orders = {}
 _prefetch_rows = False
 _prefetch_shift = False
 
@@ -40,6 +41,7 @@ def set_shared_orders(enabled=False):
     global _shared_orders
     _shared_orders = bool(enabled)
     _orders.clear()
+    _row_orders.clear()
 
 
 def shift_order(select):
@@ -215,8 +217,14 @@ def rows_backward(grad, index, rows):
     from rwkv.model import nvrtc
     grad, index = grad.contiguous(), index.contiguous().long()
     C = grad.shape[1]
-    sorted_rows, order = torch.sort(index, stable=True)
-    starts = torch.searchsorted(sorted_rows, torch.arange(rows + 1, device=index.device))
+    cached = _row_orders.get((index.data_ptr(), index.numel(), index._version, index.device))
+    if cached is None:
+        sorted_rows, order = torch.sort(index, stable=True)
+        starts = torch.searchsorted(sorted_rows, torch.arange(rows + 1, device=index.device))
+    else:
+        _, order, starts = cached
+        if starts.numel() != rows + 1:
+            raise ValueError("F53 row-order destination count mismatch")
     out = torch.empty((rows, C), device=grad.device, dtype=grad.dtype)
     args = tuple(np.uint64(v.data_ptr()) for v in (grad, order, starts, out)) + (np.int64(rows), np.int32(C))
     # FP32 measured slower with prefetching (worst real case 2.3 to 3.1 ms); R01 trains in BF16.
@@ -238,3 +246,18 @@ class ExactIndexSelect(torch.autograd.Function):
     def backward(ctx, grad):
         (index,) = ctx.saved_tensors
         return rows_backward(grad, index, ctx.rows), None
+
+
+class ExactPaddedIndexSelect(ExactIndexSelect):
+    """F50: forward maps padding to row zero; backward omits proven zero sources.
+
+    Only hierarchy padding whose downstream gradient is zero may use this path.
+    Stable sorting retains every real source's sequential accumulation order.
+    """
+    @staticmethod
+    def forward(ctx, x, index):
+        if not x.is_cuda or x.dim() != 2 or x.shape[1] > 32 or x.dtype not in (torch.float32, torch.bfloat16):
+            raise ValueError("Exact padded row selection requires CUDA float32/BF16 rows of width <= 32")
+        ctx.save_for_backward(index)
+        ctx.rows = x.shape[0]
+        return torch.index_select(x, 0, index.clamp(min=0))

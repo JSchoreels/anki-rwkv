@@ -64,6 +64,11 @@ def prepare_job(row, offset, end, seed, options, section=None, cache_path=None):
         batch = prepare_gpu_packed(samples, seed, batched_id_encodings=batched, layout=layout)
     else:
         batch = prepare_fast(samples, seed=seed, batched_id_encodings=batched, layout=layout)
+    if options.get("worker_scatter_orders"):
+        if not options.get("gpu_packed_features") or not options.get("skip_padding_sources") or not options.get("shared_shift_orders"):
+            raise ValueError("F53 requires packed features, F50 padding and shared shift orders")
+        from scripts.gpu_scatter_orders import prepare_orders
+        prepare_orders(batch)
     if options.get("packed_ipc"):
         batch = pack_batch(batch)
     item = TrialBatch(batch, offset, end - offset, len(samples), seed, time.perf_counter() - started)

@@ -47,6 +47,8 @@ class R01SourceWatch(shared.SourceWatch):
             self.hashes[name] = manifest[name]
         for name in ("scripts/gpu_r01_packing.py", "scripts/gpu_r01_samples.py"):
             self.hashes[name] = manifest[name]
+        if "scripts/gpu_scatter_orders.py" in manifest:
+            self.hashes["scripts/gpu_scatter_orders.py"] = manifest["scripts/gpu_scatter_orders.py"]
         # F31 kernels exist from iteration 0021; older archives keep their original watch set.
         for name in ("scripts/gpu_row_tiles.py", "scripts/kernels/rwkv_row_tiles_exact.cu", "rwkv/model/exact_group_norm.py",
                      "rwkv/model/exact_index.py", "rwkv/model/nvrtc.py"):
@@ -345,9 +347,11 @@ def run_case(args, output):
     case = options[args.track]
     actual_mode = {**protocol["execution_mode"],
                    "torch_graph_executor_optimize": bool(case.get("jit_optimize", False)),
-                   "deterministic_algorithms": not case.get("nondeterministic", False)}
+                   "deterministic_algorithms": not case.get("nondeterministic", False),
+                   "fill_uninitialized_memory": not case.get("skip_uninitialized_fill", False)}
     torch._C._set_graph_executor_optimize(actual_mode["torch_graph_executor_optimize"])
     torch.use_deterministic_algorithms(actual_mode["deterministic_algorithms"], warn_only=False)
+    torch.utils.deterministic.fill_uninitialized_memory = actual_mode["fill_uninitialized_memory"]
     gpu_batch1.TRACKS = options
     gpu_r01_training.SourceWatch = R01SourceWatch
     if options[args.track].get("gpu_packed_features"):

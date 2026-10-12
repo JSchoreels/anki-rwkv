@@ -49,6 +49,11 @@ def describe(track):
                "F44": "batch-wide chunk-local segment transforms",
                "F45": "direct float64 sample matrix construction",
                "F46": "load-pipelined exact shift backward",
+                "F48": "deterministic algorithms without uninitialized-memory fill",
+                "F50": "skip zero hierarchy padding sources in exact row backward",
+                "F49": "independent hierarchy split CUDA streams",
+                "F53": "worker-precomputed stable scatter orders",
+                "F54": "compact exact recurrence previous-state storage",
              "E31": "accepted iteration-0031 Expertium configuration: E30, F37",
              "E33": "accepted iteration-0033 Expertium configuration: E31, F42"}
     return ", ".join(f"{part} ({names.get(part, 'see track record')})" for part in track.split("-"))

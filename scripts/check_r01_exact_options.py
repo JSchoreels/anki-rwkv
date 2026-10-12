@@ -24,7 +24,7 @@ import sys
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 APPLIED = {"exact_shift", "exact_index", "exact_group_norm", "fused_shift", "row_tiles_exact", "shared_shift_orders",
-           "stream_launches", "prefetch_rows", "prefetch_shift", "sync_free_loss", "jit_optimize", "nondeterministic"}
+           "stream_launches", "prefetch_rows", "prefetch_shift", "sync_free_loss", "jit_optimize", "nondeterministic", "skip_uninitialized_fill", "skip_padding_sources", "concurrent_splits", "worker_scatter_orders", "compact_previous_state"}
 
 
 def load_options(value, track):
@@ -77,6 +77,8 @@ def main():
     for key in ("fast_samples", "batched_id_encodings", "columnar_samples"):
         if key in variants["a"]:
             preparation[key] = variants["a"][key]
+    if any(o.get("worker_scatter_orders") for o in variants.values()):
+        preparation.update(worker_scatter_orders=True, skip_padding_sources=True, shared_shift_orders=True)
     if preparation.get("batched_id_encodings"):
         from scripts.gpu_preprocessing_stage import prepare_job
     rows = sorted(cohort["stages"]["100"]["rows"], key=lambda row: row["available_reviews"])
@@ -92,6 +94,24 @@ def main():
               "not_exercised": {name: sorted(set(options) - APPLIED) for name, options in variants.items()},
               "scope": "five real Expertium batches; BF16 forward/backward from the fresh seed-2025 checkpoint; loss and every parameter gradient",
               "batches": [], "status": "running"}
+    if any(o.get("skip_padding_sources") for o in variants.values()):
+        original_rows_backward = exact_index.rows_backward
+        result["padding_sources"] = {"calls": 0, "sources": 0, "nonzero": 0, "negative_zero": 0, "nonfinite": 0}
+
+        def audited_rows_backward(grad, index, rows):
+            padded = grad[index < 0]
+            if padded.numel():
+                audit = result["padding_sources"]
+                audit["calls"] += 1
+                audit["sources"] += padded.shape[0]
+                audit["nonzero"] += int(torch.count_nonzero(padded).item())
+                audit["negative_zero"] += int(torch.count_nonzero(torch.signbit(padded) & (padded == 0)).item())
+                audit["nonfinite"] += int(torch.count_nonzero(~torch.isfinite(padded)).item())
+                if audit["nonzero"] or audit["nonfinite"]:
+                    raise RuntimeError("F50 padding gradient contract failed")
+            return original_rows_backward(grad, index, rows)
+
+        exact_index.rows_backward = audited_rows_backward
 
     def same(a, b):
         bits = {torch.bfloat16: torch.int16, torch.float32: torch.int32}[a.dtype]
@@ -100,6 +120,7 @@ def main():
     def run(options, item, batch, checkpoint):
         torch._C._set_graph_executor_optimize(bool(options.get("jit_optimize", False)))
         torch.use_deterministic_algorithms(not options.get("nondeterministic", False), warn_only=False)
+        torch.utils.deterministic.fill_uninitialized_memory = not options.get("skip_uninitialized_fill", False)
         master, model, dtype = benchmark_models({"MODEL": "expertium", "DTYPE": "bfloat16", "SEED": 2025, "WKV_BACKEND": "nvrtc"},
                                                 torch.device("cuda:0"))
         master.load_state_dict(checkpoint["model"])
@@ -113,13 +134,23 @@ def main():
                     setattr(module, flag, bool(options.get(flag, False)))
         if options.get("sync_free_loss"):
             model.sync_free_loss = True
+        if options.get("skip_padding_sources"):
+            if not options.get("exact_index"):
+                raise ValueError("F50 requires exact_index")
+            model.skip_padding_sources = True
+        if options.get("concurrent_splits"):
+            model.concurrent_splits = True
         model.train()
         torch.manual_seed(item.seed)
         with ExitStack() as stack:
             if options.get("row_tiles_exact"):
-                stack.enter_context(row_tiled_backend(rows=options["row_tiles_exact"], tile=32, exact=True))
+                stack.enter_context(row_tiled_backend(rows=options["row_tiles_exact"], tile=32, exact=True,
+                                                     compact_previous=bool(options.get("compact_previous_state", False))))
             nvrtc.set_stream_launch(options.get("stream_launches", False))
             exact_index.set_shared_orders(options.get("shared_shift_orders", False))
+            if options.get("worker_scatter_orders"):
+                from scripts.gpu_scatter_orders import install_orders
+                install_orders(batch)
             exact_index.set_prefetch_rows(options.get("prefetch_rows", False))
             exact_index.set_prefetch_shift(options.get("prefetch_shift", False))
             stack.callback(nvrtc.set_stream_launch, False)
@@ -150,6 +181,7 @@ def main():
         raise
     finally:
         torch.use_deterministic_algorithms(True)
+        torch.utils.deterministic.fill_uninitialized_memory = True
         output.mkdir(parents=True)
         (output / "result.json").write_text(json.dumps(result, indent=2) + "\n", encoding="utf-8")
         print(json.dumps({"status": result["status"], "summary": result.get("summary"), "not_exercised_b": result["not_exercised"]["b"][:6],

@@ -5,6 +5,9 @@
 // contracted, so each expression below reproduces the production instruction
 // sequence for sm_120 (NVRTC 13.4): products, FFMA operands and shuffle-tree order.
 namespace rwkv_exact {
+#ifndef COMPACT_PREVIOUS_STATE
+#define COMPACT_PREVIOUS_STATE 0
+#endif
 __device__ inline float warp_sum(float value) {
     for (int offset = 16; offset > 0; offset /= 2)
         value = __fadd_rn(value, __shfl_down_sync(FULL_MASK, value, offset));
@@ -57,7 +60,14 @@ __global__ void backward_kernel(int B, int T, int H, const F* r, const F* k,
     __shared__ float Kd[32], A[32];
     const int b = blockIdx.x, h = blockIdx.y, y = threadIdx.x;
     const int WARPS = 32 / ROWS;
-    float chunk[ROWS][TILE], previous_chunk[ROWS][TILE];
+    float chunk[ROWS][TILE];
+#if COMPACT_PREVIOUS_STATE
+    // F54: previous state is the last committed chunk value or the checkpoint.
+    // Skipped outputs are still stored, but never become the next state.
+    __shared__ int previous_slot[TILE];
+#else
+    float previous_chunk[ROWS][TILE];
+#endif
     float carry[ROWS];
     #pragma unroll
     for (int q = 0; q < ROWS; ++q) carry[q] = 0.0f;
@@ -66,6 +76,7 @@ __global__ void backward_kernel(int B, int T, int H, const F* r, const F* k,
         dkd[get_index3(b, 0, h, y, T, H, 32)] = to_F<F>(0.0f);
     }
     for (int l = L - 1; l >= 0; --l) {
+        int last_slot = -1;
         float state[ROWS];
         #pragma unroll
         for (int q = 0; q < ROWS; ++q) {
@@ -78,17 +89,27 @@ __global__ void backward_kernel(int B, int T, int H, const F* r, const F* k,
             const float ky = to_float<F>(k[iy]), wy = w[iy];
             const float ay = to_float<F>(a[iy]), kdy = to_float<F>(kd[iy]);
             const bool skipped = skip[get_index1(b, t, T)];
+#if COMPACT_PREVIOUS_STATE
+            if (threadIdx.x == 0 && threadIdx.y == 0) previous_slot[c] = last_slot;
+            if (!skipped) last_slot = c;
+#endif
             #pragma unroll
             for (int q = 0; q < ROWS; ++q) {
                 const int x = threadIdx.y + q * WARPS;
-                previous_chunk[q][c] = state[q];
+                const float before = state[q];
+#if !COMPACT_PREVIOUS_STATE
+                previous_chunk[q][c] = before;
+#endif
                 float dot = warp_sum(__fmul_rn(state[q], kdy));
                 dot = __shfl_sync(FULL_MASK, dot, 0);
                 state[q] = advance(state[q], dot, wy, ay, kdy, to_float<F>(v[get_index3(b, t, h, x, T, H, 32)]), ky);
                 chunk[q][c] = state[q];
-                if (skipped) state[q] = previous_chunk[q][c];
+                if (skipped) state[q] = before;
             }
         }
+#if COMPACT_PREVIOUS_STATE
+        __syncthreads();
+#endif
         for (int t = nvrtc_min(T - 1, (l + 1) * TILE - 1); t >= l * TILE; --t) {
             const int c = t - l * TILE;
             const int64_t iy = get_index3(b, t, h, y, T, H, 32);
@@ -108,7 +129,12 @@ __global__ void backward_kernel(int B, int T, int H, const F* r, const F* k,
                 ds_rows[q] = ds;
                 remove[q] = __fmul_rn(kdy, __fmul_rn(ay, ds));
                 S[x * 33 + y] = chunk[q][c];
+#if COMPACT_PREVIOUS_STATE
+                const int prior = previous_slot[c];
+                P[x * 33 + y] = prior < 0 ? checkpoints[get_index4(b, l, h, x, y, L, H, 32, 32)] : chunk[q][prior];
+#else
                 P[x * 33 + y] = previous_chunk[q][c];
+#endif
                 D[x * 33 + y] = ds;
             }
             __syncthreads();

@@ -23,6 +23,8 @@ def batch_tensors(batch):
     values = base_tensors(batch)
     if isinstance(batch, PackedPreparedBatch):
         values += list(batch.packed.values())
+    elif hasattr(batch, "scatter_orders"):
+        values += list(batch.scatter_orders.values())
     return values
 
 
@@ -67,9 +69,13 @@ def materialize(batch, dtype):
     start.masked_fill_(packed["padded"][:, None], 0)
     # Return a normal PreparedBatch so later graph keys describe the expanded
     # model inputs and never silently retain unconsumed packed metadata.
-    return PreparedBatch(start=start.to(dtype), labels=batch.labels, label_review_th=batch.label_review_th,
+    prepared = PreparedBatch(start=start.to(dtype), labels=batch.labels, label_review_th=batch.label_review_th,
                          sub_gather=batch.sub_gather, sub_gather_lens=batch.sub_gather_lens,
                          time_shift_selects=batch.time_shift_selects, skips=batch.skips, num_data=batch.num_data)
+    scatter = {name: value for name, value in packed.items() if name.startswith("scatter_")}
+    if scatter:
+        prepared.scatter_orders = scatter
+    return prepared
 
 
 def split_settings(options):
@@ -186,7 +192,7 @@ def transfer_batches(source, dtype, asynchronous=False, bulk=False):
             row, item, batch, ready, pinned = current
             consumer = torch.cuda.current_stream()
             consumer.wait_event(ready)
-            for tensor in base_tensors(batch):
+            for tensor in batch_tensors(batch):
                 tensor.record_stream(consumer)
             following = copy(pending.result())
             pending = stage.submit(pin_next) if following is not None else None
