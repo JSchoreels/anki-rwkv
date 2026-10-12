@@ -82,3 +82,25 @@ optimization tracks, including ideas that have not been implemented or tested.
   independent final test cohort. Explain whether a result concerns unseen users
   or later reviews of known users. Report both label-weighted and user-averaged
   Curve/Instant losses, uncertainty at the user level, and end-to-end timing.
+
+## Token efficiency
+
+- Keep tool output small. Filter shell output with `tail`, `grep`, `head -c` or JSON field selection; never print full process lists, `resources.jsonl`, `updates.jsonl`, raw profiler dumps, PTX/SASS or whole `result.json` files into the conversation. Write large analyses to a file under `artifacts/` and read back only the summary lines.
+- Read large files by section (`Read` with offset/limit, or `grep -n` first). `docs/GPU_OPTIMIZATIONS.md`, `docs/GPU_OPTIMIZATIONS_LOG.md`, `scripts/gpu_r01_training.py` and iteration reports are too large to reread whole each step.
+- Delegate log reading, telemetry summaries, file searches and similar mechanical lookups to Haiku subagents (Agent tool with `model: "haiku"`, Explore type for searches), with a brief that names the files and the exact numbers or answer to return. Keep design, kernel/exactness reasoning and decisions in the main agent.
+- Wait for long runs with a single `run_in_background` command or an `until …; do sleep 5; done` loop, then read only the final status line, rather than polling repeatedly.
+- Prefer starting a fresh session per iteration or two over one very long session; hand over through the round summary and this file instead of rediscovering context.
+
+## R01 iteration quick reference
+
+Run from the repository root with `.venv/Scripts/python.exe`; `R=artifacts/retraining/gpu-retrain-r01`.
+
+1. Write a plan in `$R/plans/iteration-NNNN-<agent>.json`: control track = previous accepted track with its exact options, one candidate track and options, and a 1–3 sentence case explanation (it becomes the run-log "What was tried" cell; put evidence in `selection_evidence`).
+2. `scripts/run_gpu_r01.py --prepare --output $R/iteration-NNNN --iteration NNNN --previous $R/iteration-PPPP --plan <plan>`; add `--round-authorization "<quoted human request>"` only at the start of a newly authorized round.
+3. `scripts/select_gpu_r01_next.py --model expertium --output $R/iteration-NNNN`.
+4. Smoke: `scripts/run_gpu_r01.py --case --output $R/iteration-NNNN --model expertium --track <track> --smoke --check-reason "<changed behaviour>"`, then compare its `updates.jsonl` and hashes with the previous accepted smoke.
+5. Full run: the same command without `--smoke` (about 2.5 minutes), redirected to `$R/iteration-NNNN-expertium-console.log`.
+6. `scripts/profile_gpu_resources.py --case $R/iteration-NNNN/expertium/<track> --protocol $R/iteration-NNNN/protocol.json --output $R/iteration-NNNN/profiles/expertium-<track>`, then `scripts/report_gpu_r01_next.py --output $R/iteration-NNNN` (writes `summary.md`, `comparison.json` and the run-log rows).
+7. Commit accepted code with `git -c user.name=<agent> -c user.email=<agent noreply>` (no global identity is configured), write `implementation-commit.json`, rerun the report and add the implementation-commit row to the ledger.
+
+Pitfalls: new option keys must be added to the allowlist in `scripts/gpu_r01_prefetch.py` before freezing a protocol (the protocol freezes the source hash, so a missed key costs an iteration); new source files used by training belong in the `R01SourceWatch` list in `scripts/run_gpu_r01.py`; new track IDs need names in `describe()` in `scripts/report_gpu_r01_next.py`. Exact-parity kernels depend on the NVRTC/PyTorch build: rerun `scripts/check_gpu_row_tiles.py --exact` and `scripts/check_gpu_exact_group_norm.py` after toolkit, driver or PyTorch changes. Close other GPU/CPU-heavy apps before timing runs; background load shifts throughput by several percent.
