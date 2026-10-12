@@ -76,7 +76,9 @@ def recorded_cases(root):
         protocol = json.loads((output / "protocol.json").read_text(encoding="utf-8"))
         protocol = {**protocol, "_file_sha256": hashlib.sha256((output / "protocol.json").read_bytes()).hexdigest()}
         for model in ("baseline", "expertium"):
+            # Uncounted timing replicates (R01-M01) are recorded runs too; they feed reuse and the noise band.
             paths = [*output.glob(f"{model}/*/result.json"),
+                     *output.glob(f"replicates/*/{model}/*/result.json"),
                      *output.glob(f"functional-smoke-*/{model}/*/result.json")]
             for path in paths:
                 case = json.loads(path.read_text(encoding="utf-8"))
