@@ -1,6 +1,6 @@
 # R01 Expertium update path: where host and GPU time go
 
-Read this instead of re-reading the model and training code when picking R01 candidates. State as of the accepted 0027 reference (E27: E24 + six preparation workers, 140,104 reviews/s). Re-verify any line you rely on if the files named below changed since commit `55c3de3`.
+Read this instead of re-reading the model and training code when picking R01 candidates. State as of the accepted 0030 reference (E30: E27 + F35 + F38, 143,293 reviews/s; E27 = E24 + six preparation workers). Re-verify any line you rely on if the files named below changed since the 0028–0030 round commit.
 
 ## Machine
 
@@ -22,12 +22,14 @@ Read this instead of re-reading the model and training code when picking R01 can
 
 ## Custom exact kernels (all bitwise-checked against PyTorch 2.9.1 / NVRTC 13.4 / sm_120)
 
-- F26/F27 `rwkv/model/exact_index.py`: shift-gather and row-select backward; each shift backward re-sorts the same split's indices (≈63 sort pipelines per update; F38 idea).
+- F26/F27 `rwkv/model/exact_index.py`: shift-gather and row-select backward. F38 (`shared_shift_orders`) caches each split's sort order and starts across its layers; F35 (`prefetch_rows`, BF16 only) pipelines index/value loads in the row-select backward, whose clamped padding row has up to 47,595 sequentially summed sources. FP32 is slower with that prefetching.
 - F31 `scripts/gpu_row_tiles.py` + `scripts/kernels/rwkv_row_tiles_exact.cu`: 4-row recurrence.
 - F32 `rwkv/model/exact_group_norm.py`: GroupNorm weight/bias backward.
-- CuPy launches inside `Device`/`ExternalStream` contexts cost ≈20 µs each vs ≈3.7 µs with a cached `stream=` argument (about 170 per update).
+- Custom kernels launch through `nvrtc.raw_launch`; with F38 `stream_launches` it passes a cached CuPy `ExternalStream` (4.8 µs per launch) instead of per-call `Device`/`ExternalStream` contexts (16.3 µs). `scripts/check_gpu_exact_index.py --f38 --f35` rechecks all of these against deterministic PyTorch on real batches.
 
 ## CPU side
 
 - Preparation workers (spawned pool, ordered prefetch, depth = 2 × workers) build identical seeded batches regardless of count. Six workers (0027) summed 187 s of preparation with 1.04 s total queue wait; eight summed 229 s.
-- Pinning the main thread to its own core (F36 `host_placement`) was slower (-7.22%).
+- Pinning the main thread to its own core (F36 `host_placement`) was slower (-7.22%). Five workers (F40, 0029) starved the queue (6.7 s waits): six is the minimum.
+- Identical worker work varied 187 s (0027), 236 s (0028), 234 s (0029), 208 s (0030) with machine state at similar 9–10% background load; compare summed `preparation_seconds` and validation seconds across runs to spot a slow machine state before reading a speed delta.
+- Python GC inside the training loop costs about 0.17 s per run (`training_gc` in `result.json`); not worth optimizing. Profiler windows trigger their own full collections (4.16 M tracked objects, ~200 ms each), so do not measure GC there.

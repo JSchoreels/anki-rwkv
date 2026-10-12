@@ -100,11 +100,10 @@ def gamma_beta_backward(grad, x, mean, rstd, groups):
     dgamma = torch.empty(32, device=x.device, dtype=x.dtype)
     dbeta = torch.empty(32, device=x.device, dtype=x.dtype)
     functions = kernel(x.dtype)
-    cupy = nvrtc._cupy
-    with cupy.cuda.Device(x.device.index), cupy.cuda.ExternalStream(torch.cuda.current_stream(x.device).cuda_stream):
-        pointers = tuple(np.uint64(v.data_ptr()) for v in (grad, x, mean, rstd, partial))
-        functions["gamma_beta_chains"]((32, 2), (32,), pointers + (np.int64(N), np.int32(groups)))
-        functions["gamma_beta_tree"]((2,), (32,), tuple(np.uint64(v.data_ptr()) for v in (partial, dgamma, dbeta)))
+    pointers = tuple(np.uint64(v.data_ptr()) for v in (grad, x, mean, rstd, partial))
+    nvrtc.raw_launch(functions["gamma_beta_chains"], x.device, (32, 2), (32,), pointers + (np.int64(N), np.int32(groups)))
+    nvrtc.raw_launch(functions["gamma_beta_tree"], x.device, (2,), (32,),
+                     tuple(np.uint64(v.data_ptr()) for v in (partial, dgamma, dbeta)))
     return dgamma, dbeta
 
 

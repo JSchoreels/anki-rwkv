@@ -41,8 +41,9 @@ def describe(track):
              "F31": "exact row-tiled recurrence kernels", "E22": "accepted iteration-0022 Expertium configuration: E20, F31",
              "F32": "exact multi-SM GroupNorm weight/bias backward", "F33": "host reads deferred by one update",
              "E24": "accepted iteration-0024 Expertium configuration: E22, F32, F33",
-             "F36": "dispatch thread on its own physical core", "F37": "loss without host synchronization", "F39": "six preparation workers",
-             "E27": "accepted iteration-0027 Expertium configuration: E24, F39"}
+             "F36": "dispatch thread on its own physical core", "F37": "loss without host synchronization", "F35": "prefetching exact row-selection backward", "F38": "shared shift-backward orders and stream-argument kernel launches", "F39": "six preparation workers", "F40": "five preparation workers",
+             "E27": "accepted iteration-0027 Expertium configuration: E24, F39",
+             "E30": "accepted iteration-0030 Expertium configuration: E27, F35, F38"}
     return ", ".join(f"{part} ({names.get(part, 'see track record')})" for part in track.split("-"))
 
 

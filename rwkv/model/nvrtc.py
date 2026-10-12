@@ -16,6 +16,35 @@ _dll_handles = []
 _cupy = None
 _checkpoint_length = 32
 _raw_pointer_launch = False
+_stream_launch = False
+_streams = {}
+_functions = {}
+
+
+def set_stream_launch(enabled=False):
+    """F38: launch raw kernels with a cached stream argument instead of per-call CuPy contexts."""
+    global _stream_launch
+    _stream_launch = bool(enabled)
+
+
+def raw_launch(kernel, device, grid, block, args):
+    """Enqueue a CuPy RawKernel on Torch's current stream of `device`."""
+    index = device.index if device.index is not None else torch.cuda.current_device()
+    if _stream_launch and index == torch.cuda.current_device():
+        # Same kernel, arguments and stream; only the per-call Device/ExternalStream
+        # context setup (about 12 us of host time) is skipped.
+        pointer = torch.cuda.current_stream(device).cuda_stream
+        stream = _streams.get((index, pointer))
+        if stream is None:
+            stream = _streams[(index, pointer)] = _cupy.cuda.ExternalStream(pointer, index)
+        function = _functions.get((id(kernel), index))
+        if function is None:
+            with _cupy.cuda.Device(index):
+                function = _functions[(id(kernel), index)] = (kernel, kernel.kernel)
+        function[1](grid, block, args, 0, stream)
+        return
+    with _cupy.cuda.Device(index), _cupy.cuda.ExternalStream(torch.cuda.current_stream(device).cuda_stream):
+        kernel(grid, block, args)
 
 
 def set_raw_pointer_launch(enabled=False):

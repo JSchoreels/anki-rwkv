@@ -5,6 +5,7 @@ indices, then whole-model parameter gradients on real batches.
 """
 
 from argparse import ArgumentParser
+from contextlib import ExitStack
 import json
 import os
 from pathlib import Path
@@ -17,6 +18,10 @@ sys.path.insert(0, str(ROOT))
 def main():
     parser = ArgumentParser(description=__doc__)
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--f38", action="store_true",
+                        help="Also check F38 shared shift orders and stream launches, and the whole E27 kernel path")
+    parser.add_argument("--f35", action="store_true",
+                        help="Also check and time F35 prefetching row-selection backward (adds it to the --f38 model path)")
     args = parser.parse_args()
     output = (ROOT / args.output).resolve()
     if not output.is_relative_to(ROOT / "artifacts") or output.exists():
@@ -29,6 +34,7 @@ def main():
     torch.use_deterministic_algorithms(True, warn_only=False)
     from rwkv.data_processing import get_rwkv_data
     from rwkv.model import nvrtc
+    from rwkv.model import exact_index
     from rwkv.model.exact_index import rows_backward, shift_backward
     from scripts.benchmark_gpu_trial import benchmark_models, fresh_checkpoint
     from scripts.experiment_provenance import process_provenance
@@ -68,14 +74,43 @@ def main():
                     shift = select.view(-1, length).long()
                     for dtype in (torch.bfloat16, torch.float32):
                         x = torch.randn((max(rows_in, int(index.max()) + 1) + 3, 32), device="cuda", dtype=dtype, generator=generator).requires_grad_()
-                        grad = noisy((index.numel(), 32), dtype)
-                        torch.index_select(x, 0, index).backward(grad)
-                        rows_equal = same(x.grad, rows_backward(grad, index, x.shape[0]))
+                        rows_grad = noisy((index.numel(), 32), dtype)
+                        torch.index_select(x, 0, index).backward(rows_grad)
+                        rows_equal = same(x.grad, rows_backward(rows_grad, index, x.shape[0]))
                         y = torch.randn((*shift.shape, 32), device="cuda", dtype=dtype, generator=generator).requires_grad_()
                         grad = noisy(y.shape, dtype)
                         torch.gather(y, 1, shift.unsqueeze(-1).expand(-1, -1, 32)).backward(grad)
                         shift_equal = same(y.grad, shift_backward(grad, shift))
-                        result["operations"].append({"user_id": row["user_id"], "module": module, "dtype": str(dtype),
+                        f38 = {}
+                        if args.f38:
+                            # Cache miss, then a hit on the same split indices, both with stream launches.
+                            nvrtc.set_stream_launch(True)
+                            exact_index.set_shared_orders(True)
+                            first = shift_backward(grad, shift)
+                            entries = len(exact_index._orders)
+                            second = shift_backward(grad, shift)
+                            f38 = {"f38_shift_bitwise_equal": same(y.grad, first) and same(y.grad, second),
+                                   "f38_cache_hit": len(exact_index._orders) == entries,
+                                   "f38_rows_bitwise_equal": same(x.grad, rows_backward(rows_grad, index, x.shape[0]))}
+                            nvrtc.set_stream_launch(False)
+                            exact_index.set_shared_orders(False)
+                        if args.f35:
+                            def timed_rows(enabled, repeats=20):
+                                exact_index.set_prefetch_rows(enabled)
+                                rows_backward(rows_grad, index, x.shape[0])
+                                begin, end = torch.cuda.Event(enable_timing=True), torch.cuda.Event(enable_timing=True)
+                                begin.record()
+                                for _ in range(repeats):
+                                    value = rows_backward(rows_grad, index, x.shape[0])
+                                end.record()
+                                torch.cuda.synchronize()
+                                exact_index.set_prefetch_rows(False)
+                                return value, begin.elapsed_time(end) / repeats
+                            prefetched, prefetch_ms = timed_rows(True)
+                            _, sequential_ms = timed_rows(False)
+                            f38.update(f35_rows_bitwise_equal=same(x.grad, prefetched),
+                                       f35_sequential_ms=sequential_ms, f35_prefetch_ms=prefetch_ms)
+                        result["operations"].append({**f38, "user_id": row["user_id"], "module": module, "dtype": str(dtype),
                                                      "rows": int(x.shape[0]), "selected": int(index.numel()),
                                                      "max_row_sources": int(torch.bincount(index.cpu()).max()),
                                                      "rows_bitwise_equal": rows_equal, "shift_bitwise_equal": shift_equal})
@@ -83,23 +118,40 @@ def main():
         checkpoint = fresh_checkpoint("expertium", 2025)
         for row, item, batch in batches:
             grads = {}
-            for exact in (False, True):
+            for exact in (False, True) + (("f38",) if args.f38 else ()):
                 master, model, dtype = benchmark_models({"MODEL": "expertium", "DTYPE": "bfloat16", "SEED": 2025, "WKV_BACKEND": "nvrtc"}, device)
                 master.load_state_dict(checkpoint["model"])
                 model.copy_downcast_(master, dtype)
                 for module in model.modules():
                     if hasattr(module, "exact_shift"):
-                        module.exact_shift = exact
+                        module.exact_shift = bool(exact)
                     if hasattr(module, "exact_index"):
-                        module.exact_index = exact
+                        module.exact_index = bool(exact)
+                    if hasattr(module, "exact_group_norm"):
+                        module.exact_group_norm = exact == "f38"
                 model.train()
                 torch.manual_seed(item.seed)
-                stats = model.get_loss(batch)
-                stats.average_loss.backward()
+                with ExitStack() as stack:
+                    if exact == "f38":
+                        # The whole E27 kernel path (F26/F27, F31 row tiles, F32 GroupNorm) plus F38.
+                        from scripts.gpu_row_tiles import row_tiled_backend
+                        stack.enter_context(row_tiled_backend(rows=4, tile=32, exact=True))
+                        nvrtc.set_stream_launch(True)
+                        exact_index.set_shared_orders(True)
+                        exact_index.set_prefetch_rows(args.f35)
+                        stack.callback(exact_index.set_prefetch_rows, False)
+                        stack.callback(nvrtc.set_stream_launch, False)
+                        stack.callback(exact_index.set_shared_orders, False)
+                    stats = model.get_loss(batch)
+                    stats.average_loss.backward()
                 grads[exact] = {name: p.grad.detach().clone() for name, p in model.named_parameters() if p.grad is not None}
                 grads[str(exact) + "_loss"] = stats.average_loss.detach().clone()
             names = sorted(grads[False])
-            result["models"].append({"user_id": row["user_id"], "offset": item.offset, "parameters_with_gradients": len(names),
+            f38 = {}
+            if args.f38:
+                f38 = {"f38_loss_bitwise_equal": same(grads["False_loss"], grads["f38_loss"]),
+                       "f38_gradients_bitwise_equal": sorted(grads["f38"]) == names and all(same(grads[False][n], grads["f38"][n]) for n in names)}
+            result["models"].append({**f38, "user_id": row["user_id"], "offset": item.offset, "parameters_with_gradients": len(names),
                                      "same_gradient_set": sorted(grads[True]) == names,
                                      "loss_bitwise_equal": same(grads["False_loss"], grads["True_loss"]),
                                      "all_gradients_bitwise_equal": sorted(grads[True]) == names and all(same(grads[False][n], grads[True][n]) for n in names)})
@@ -108,7 +160,19 @@ def main():
                              "shift_equal": sum(o["shift_bitwise_equal"] for o in ops),
                              "max_row_sources": max(o["max_row_sources"] for o in ops),
                              "model_batches": len(models), "model_gradients_equal": sum(m["all_gradients_bitwise_equal"] for m in models)}
-        result["status"] = "passed" if (ops and models and all(o["rows_bitwise_equal"] and o["shift_bitwise_equal"] for o in ops)
+        if args.f38:
+            result["summary"].update(f38_shift_equal=sum(o["f38_shift_bitwise_equal"] for o in ops),
+                                     f38_cache_hits=sum(o["f38_cache_hit"] for o in ops),
+                                     f38_rows_equal=sum(o["f38_rows_bitwise_equal"] for o in ops),
+                                     f38_model_gradients_equal=sum(m["f38_gradients_bitwise_equal"] and m["f38_loss_bitwise_equal"] for m in models))
+        if args.f35:
+            result["summary"].update(f35_rows_equal=sum(o["f35_rows_bitwise_equal"] for o in ops),
+                                     f35_sequential_ms=sum(o["f35_sequential_ms"] for o in ops),
+                                     f35_prefetch_ms=sum(o["f35_prefetch_ms"] for o in ops))
+        f38_passed = not args.f38 or (all(o["f38_shift_bitwise_equal"] and o["f38_cache_hit"] and o["f38_rows_bitwise_equal"] for o in ops)
+                                      and all(m["f38_gradients_bitwise_equal"] and m["f38_loss_bitwise_equal"] for m in models))
+        f38_passed = f38_passed and (not args.f35 or all(o["f35_rows_bitwise_equal"] for o in ops))
+        result["status"] = "passed" if (ops and models and f38_passed and all(o["rows_bitwise_equal"] and o["shift_bitwise_equal"] for o in ops)
                                         and all(m["all_gradients_bitwise_equal"] and m["loss_bitwise_equal"] for m in models)) else "failed"
     except Exception as error:
         result.update(status="failed", error=f"{type(error).__name__}: {error}")

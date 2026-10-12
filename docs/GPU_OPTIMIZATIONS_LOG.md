@@ -376,3 +376,39 @@ Implementation commit after experiments: `55c3de3ebfe37b6dc75a432efc2305fe551df8
 Implementation commit after experiments: `55c3de3ebfe37b6dc75a432efc2305fe551df86e`. Tested revision remains `eaa8ab988e739bac88f436ab4ae4508caeafa9bc` with per-process source snapshots in the linked raw results and iteration record; [commit record](../artifacts/retraining/gpu-retrain-r01/iteration-0027/implementation-commit.json).
 
 <!-- r01-0027:end -->
+
+<!-- r01-0028:start -->
+## R01 iteration 0028
+
+[Iteration record](../artifacts/retraining/gpu-retrain-r01/iteration-0028/summary.md)
+
+| Training start (UTC) | Trial commit | Model | Improvement IDs | What was tried | Training users reached | Training reviews | Training seconds | Reviews/s | Speed Δ vs previous | Speed Δ vs baseline | Instant User | Instant User Δ vs previous | Instant User Δ vs baseline | Instant Weighted | Instant Weighted Δ vs previous | Instant Weighted Δ vs baseline | Curve User | Curve User Δ vs previous | Curve User Δ vs baseline | Curve Weighted | Curve Weighted Δ vs previous | Curve Weighted Δ vs baseline | Raw result | Notes |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 2026-10-12T15:08:14.773450+00:00 | `18967124aeed94050527159079d0b3dc554370c5` | Expertium (light) | E27, F38 | Reuse each split's shift-backward sort order across all its layers and mixers instead of re-sorting the same indices about 63 times per update, and launch the custom CuPy kernels with a cached stream argument instead of per-call Device/ExternalStream contexts. Same kernels, arguments, order and arithmetic as 0027. | 2 | 1,024 | 2.804 | 365 | — | — | 0.433909490 | — | — | 0.421975411 | — | — | 0.423755109 | — | — | 0.416540190 | — | — | [result](../artifacts/retraining/gpu-retrain-r01/iteration-0028/functional-smoke-v1/expertium/E27-F38/result.json) | Infrastructure check; excluded from comparisons. Declared schedule change: 512-chunk batches, 2 updates. |
+| 2026-10-12T15:08:43.115515+00:00 | `18967124aeed94050527159079d0b3dc554370c5` | Expertium (light) | E27, F38 | Reuse each split's shift-backward sort order across all its layers and mixers instead of re-sorting the same indices about 63 times per update, and launch the custom CuPy kernels with a cached stream argument instead of per-call Device/ExternalStream contexts. Same kernels, arguments, order and arithmetic as 0027. | 80 | 7,654,975 | 54.625 | 140,138 | +0.02% | +367.04% | 0.382592464 | +0.00% | -0.99% | 0.398428596 | +0.00% | -0.76% | 0.370387972 | +0.00% | -4.48% | 0.387472684 | +0.00% | -3.25% | [result](../artifacts/retraining/gpu-retrain-r01/iteration-0028/expertium/E27-F38/result.json) | Declared schedule change: 512-chunk batches, 167 updates. |
+
+<!-- r01-0028:end -->
+
+<!-- r01-0029:start -->
+## R01 iteration 0029
+
+[Iteration record](../artifacts/retraining/gpu-retrain-r01/iteration-0029/summary.md)
+
+| Training start (UTC) | Trial commit | Model | Improvement IDs | What was tried | Training users reached | Training reviews | Training seconds | Reviews/s | Speed Δ vs previous | Speed Δ vs baseline | Instant User | Instant User Δ vs previous | Instant User Δ vs baseline | Instant Weighted | Instant Weighted Δ vs previous | Instant Weighted Δ vs baseline | Curve User | Curve User Δ vs previous | Curve User Δ vs baseline | Curve Weighted | Curve Weighted Δ vs previous | Curve Weighted Δ vs baseline | Raw result | Notes |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 2026-10-12T15:15:30.919214+00:00 | `ddc3371ec9d40f3ce94f88bf4ee08ad49d7087ce` | Expertium (light) | E27, F38, F40 | Bundle F38 (one shift-backward sort per split, stream-argument kernel launches) with five instead of six preparation workers (prefetch depth 10), so fewer CPU-heavy workers compete with the host-bound dispatch thread. Workers build the same seeded batches in the same order; same arithmetic, reviews, batches, seeds and 167 updates as 0027. | 2 | 1,024 | 0.793 | 1,292 | — | — | 0.433909490 | — | — | 0.421975411 | — | — | 0.423755109 | — | — | 0.416540190 | — | — | [result](../artifacts/retraining/gpu-retrain-r01/iteration-0029/functional-smoke-v1/expertium/E27-F38-F40/result.json) | Infrastructure check; excluded from comparisons. Declared schedule change: 512-chunk batches, 2 updates. |
+| 2026-10-12T15:15:59.081653+00:00 | `ddc3371ec9d40f3ce94f88bf4ee08ad49d7087ce` | Expertium (light) | E27, F38, F40 | Bundle F38 (one shift-backward sort per split, stream-argument kernel launches) with five instead of six preparation workers (prefetch depth 10), so fewer CPU-heavy workers compete with the host-bound dispatch thread. Workers build the same seeded batches in the same order; same arithmetic, reviews, batches, seeds and 167 updates as 0027. | 80 | 7,654,975 | 55.604 | 137,670 | -1.74% | +358.82% | 0.382592464 | +0.00% | -0.99% | 0.398428596 | +0.00% | -0.76% | 0.370387972 | +0.00% | -4.48% | 0.387472684 | +0.00% | -3.25% | [result](../artifacts/retraining/gpu-retrain-r01/iteration-0029/expertium/E27-F38-F40/result.json) | Declared schedule change: 512-chunk batches, 167 updates. |
+
+<!-- r01-0029:end -->
+
+<!-- r01-0030:start -->
+## R01 iteration 0030
+
+[Iteration record](../artifacts/retraining/gpu-retrain-r01/iteration-0030/summary.md)
+
+| Training start (UTC) | Trial commit | Model | Improvement IDs | What was tried | Training users reached | Training reviews | Training seconds | Reviews/s | Speed Δ vs previous | Speed Δ vs baseline | Instant User | Instant User Δ vs previous | Instant User Δ vs baseline | Instant Weighted | Instant Weighted Δ vs previous | Instant Weighted Δ vs baseline | Curve User | Curve User Δ vs previous | Curve User Δ vs baseline | Curve Weighted | Curve Weighted Δ vs previous | Curve Weighted Δ vs baseline | Raw result | Notes |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 2026-10-12T15:22:09.974081+00:00 | `98931c1bc1af354e261c32317c7046fc53e1cf8b` | Expertium (light) | E27, F35, F38 | Bundle F38 (one shift-backward sort per split, stream-argument kernel launches) with F35: the BF16 row-selection backward loads the next 64 source indices while adding the current 64 values, keeping F27's sequential per-destination sum in source order. Same arithmetic, reviews, batches, seeds, six workers and 167 updates as 0027. | 2 | 1,024 | 4.652 | 220 | — | — | 0.433909490 | — | — | 0.421975411 | — | — | 0.423755109 | — | — | 0.416540190 | — | — | [result](../artifacts/retraining/gpu-retrain-r01/iteration-0030/functional-smoke-v1/expertium/E27-F35-F38/result.json) | Infrastructure check; excluded from comparisons. Declared schedule change: 512-chunk batches, 2 updates. |
+| 2026-10-12T15:22:35.461253+00:00 | `98931c1bc1af354e261c32317c7046fc53e1cf8b` | Expertium (light) | E27, F35, F38 | Bundle F38 (one shift-backward sort per split, stream-argument kernel launches) with F35: the BF16 row-selection backward loads the next 64 source indices while adding the current 64 values, keeping F27's sequential per-destination sum in source order. Same arithmetic, reviews, batches, seeds, six workers and 167 updates as 0027. | 80 | 7,654,975 | 53.422 | 143,293 | +2.28% | +377.56% | 0.382592464 | +0.00% | -0.99% | 0.398428596 | +0.00% | -0.76% | 0.370387972 | +0.00% | -4.48% | 0.387472684 | +0.00% | -3.25% | [result](../artifacts/retraining/gpu-retrain-r01/iteration-0030/expertium/E27-F35-F38/result.json) | Declared schedule change: 512-chunk batches, 167 updates. |
+
+<!-- r01-0030:end -->

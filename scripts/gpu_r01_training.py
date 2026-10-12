@@ -219,6 +219,12 @@ def run_case(args):
         nvrtc.register()
         nvrtc.set_checkpoint_length(32)
         nvrtc.set_raw_pointer_launch(options.get("dynamic_graphs", False))
+        # F38: one shift-backward sort per split and stream-argument raw launches, bitwise equal.
+        from rwkv.model import exact_index
+        nvrtc.set_stream_launch(options.get("stream_launches", False))
+        exact_index.set_shared_orders(options.get("shared_shift_orders", False))
+        # F35: row-selection backward with pipelined loads; same sequential sums, bitwise equal.
+        exact_index.set_prefetch_rows(options.get("prefetch_rows", False))
         if options.get("row_tiles_exact"):
             # F31: pinned-arithmetic row-tiled recurrence for training only, at the
             # accepted tile 32; the primer compiles it and evaluation restores production.
@@ -315,6 +321,18 @@ def run_case(args):
             if warm_pool is None:
                 raise ValueError("F36 host placement needs the prestarted worker pool")
             report["host_placement"] = place_host_threads(report["prestarted_worker_pids"])
+        # Host garbage-collection time inside the training loop (accounting only).
+        gc_totals, gc_started = {0: [0, 0.0], 1: [0, 0.0], 2: [0, 0.0]}, {}
+
+        def gc_account(phase, info):
+            generation = info["generation"]
+            if phase == "start":
+                gc_started[generation] = time.perf_counter()
+            elif generation in gc_started:
+                gc_totals[generation][0] += 1
+                gc_totals[generation][1] += time.perf_counter() - gc_started.pop(generation)
+
+        gc.callbacks.append(gc_account)
         train_started = time.perf_counter()
         report["training_started_utc"] = datetime.now(timezone.utc).isoformat()
         last_user = None
@@ -478,6 +496,8 @@ def run_case(args):
                 source.close()
         torch.cuda.synchronize()
         report["training_seconds"] = time.perf_counter() - train_started
+        gc.callbacks.remove(gc_account)
+        report["training_gc"] = {f"generation_{g}": {"collections": n, "seconds": t} for g, (n, t) in gc_totals.items()}
         kernel_stack.close()
         progress.training(len(rows), report["review_presentations"], report["updates"], loss_value)
         progress.end()
@@ -505,6 +525,9 @@ def run_case(args):
         torch.cuda.empty_cache()
         nvrtc.set_checkpoint_length(32)
         nvrtc.set_raw_pointer_launch(False)
+        nvrtc.set_stream_launch(False)
+        exact_index.set_shared_orders(False)
+        exact_index.set_prefetch_rows(False)
         eval_started = time.perf_counter()
         per_user = []
         validation_hash = hashlib.sha256()

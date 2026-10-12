@@ -67,8 +67,7 @@ def row_tiled_backend(rows=4, tile=8, exact=False):
         import numpy as np
         # Torch owns and retains storage; enqueue on its current stream.
         arguments = tuple(np.uint64(arg.data_ptr()) if isinstance(arg, torch.Tensor) else np.int32(arg) for arg in args)
-        with nvrtc._cupy.cuda.Device(device.index), nvrtc._cupy.cuda.ExternalStream(torch.cuda.current_stream(device).cuda_stream):
-            kernel((shape[0], shape[2]), (32, 32 // rows), arguments)
+        nvrtc.raw_launch(kernel, device, (shape[0], shape[2]), (32, 32 // rows), arguments)
 
     nvrtc.set_checkpoint_length(tile)
     nvrtc.module, nvrtc.launch = module, launch
