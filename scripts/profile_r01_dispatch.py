@@ -112,7 +112,8 @@ def main():
         timed("zero grads/train mode", lambda: (optimizer.zero_grad(set_to_none=True), base.zero_grad(set_to_none=True), base.train()))
         timed("master to child downcast", grouped.downcast)
         stats = timed("forward and loss", lambda: base.get_loss(batch))
-        deferred = options.get("deferred_checks", False)
+        # F33 is `deferred_reads` in training options; `deferred_checks` is the name older profiles used.
+        deferred = options.get("deferred_reads", False) or options.get("deferred_checks", False)
         if not deferred:
             timed("finite-loss check", lambda: bool(torch.isfinite(stats.average_loss)))
         timed("backward", stats.average_loss.backward)

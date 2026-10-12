@@ -41,7 +41,8 @@ def describe(track):
              "F31": "exact row-tiled recurrence kernels", "E22": "accepted iteration-0022 Expertium configuration: E20, F31",
              "F32": "exact multi-SM GroupNorm weight/bias backward", "F33": "host reads deferred by one update",
              "E24": "accepted iteration-0024 Expertium configuration: E22, F32, F33",
-             "F36": "dispatch thread on its own physical core", "F37": "loss without host synchronization", "F39": "six preparation workers"}
+             "F36": "dispatch thread on its own physical core", "F37": "loss without host synchronization", "F39": "six preparation workers",
+             "E27": "accepted iteration-0027 Expertium configuration: E24, F39"}
     return ", ".join(f"{part} ({names.get(part, 'see track record')})" for part in track.split("-"))
 
 
@@ -63,6 +64,7 @@ def parity(left, right, left_path, right_path):
 def main():
     parser = ArgumentParser(description=__doc__)
     parser.add_argument("--output", type=Path, default=Path("artifacts/retraining/gpu-retrain-r01/iteration-0003"))
+    parser.add_argument("--brief", action="store_true", help="Print one decision line per model instead of JSON")
     args = parser.parse_args()
     output = (ROOT / args.output).resolve()
     protocol = json.loads((output / "protocol.json").read_text())
@@ -242,6 +244,15 @@ def main():
     index = ROOT / f"artifacts/retraining/gpu-retrain-r01/iterations/iteration-{iteration}.md"
     index.write_text(f"# R01 iteration {iteration}\n\nComplete preliminary screen. [Full report](../iteration-{iteration}/summary.md), [protocol](../iteration-{iteration}/protocol.json), [comparison](../iteration-{iteration}/comparison.json).\n", encoding="utf-8")
     update_run_log(output)
+    if args.brief:
+        for model, c in comparisons.items():
+            case = json.loads((output / model / c["track"] / "result.json").read_text())
+            previous, baseline = c["references"]["previous"], c["references"]["original_baseline"]
+            print(f"{iteration} {model} {c['track']}: {case.get('reviews_per_second', float('nan')):,.0f} reviews/s, "
+                  f"{previous['throughput_gain_percent']:+.2f}% vs previous, {baseline['throughput_gain_percent']:+.2f}% vs baseline, "
+                  f"process wall {previous['process_wall_delta_percent']:+.2f}%; exact {c['parity']['exact_recorded_parity']}; "
+                  f"{c['decision']}; misses {c['no_20_percent_gain_streak']}")
+        return
     print(json.dumps({model: {"track": c["track"], "gain_percent": c["references"]["previous"]["throughput_gain_percent"],
                               "exact": c["parity"]["exact_recorded_parity"], "decision": c["decision"]} for model,c in comparisons.items()}))
 

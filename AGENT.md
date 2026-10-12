@@ -87,13 +87,16 @@ optimization tracks, including ideas that have not been implemented or tested.
 
 - Keep tool output small. Filter shell output with `tail`, `grep`, `head -c` or JSON field selection; never print full process lists, `resources.jsonl`, `updates.jsonl`, raw profiler dumps, PTX/SASS or whole `result.json` files into the conversation. Write large analyses to a file under `artifacts/` and read back only the summary lines.
 - Read large files by section (`Read` with offset/limit, or `grep -n` first). `docs/GPU_OPTIMIZATIONS.md`, `docs/GPU_OPTIMIZATIONS_LOG.md`, `scripts/gpu_r01_training.py` and iteration reports are too large to reread whole each step.
-- Delegate log reading, telemetry summaries, file searches and similar mechanical lookups to Haiku subagents (Agent tool with `model: "haiku"`, Explore type for searches), with a brief that names the files and the exact numbers or answer to return. Keep design, kernel/exactness reasoning and decisions in the main agent.
+- When you know which fields or numbers you need, extract them with a short filtered script (a few lines of Python over the JSON) rather than a subagent; delegate to Haiku subagents (Agent tool with `model: "haiku"`, Explore type for searches) only open-ended reading where you do not know where the answer is, with a brief that names the files and the exact answer to return. Keep design, kernel/exactness reasoning and decisions in the main agent.
+- Before reading model or training code to pick R01 candidates, read [docs/R01_HOST_PATH.md](docs/R01_HOST_PATH.md) (structure, launch/sync counts, machine and noise facts) and update it when you learn something new.
 - Wait for long runs with a single `run_in_background` command or an `until …; do sleep 5; done` loop, then read only the final status line, rather than polling repeatedly.
 - Prefer starting a fresh session per iteration or two over one very long session; hand over through the round summary and this file instead of rediscovering context.
 
 ## R01 iteration quick reference
 
 Run from the repository root with `.venv/Scripts/python.exe`; `R=artifacts/retraining/gpu-retrain-r01`.
+
+Shortcut: `scripts/r01_iterate.py --iteration NNNN --previous PPPP --candidate <track> --set key=<json> --explanation "..." --evidence "..." --check-reason "..."` runs steps 1–6 below (control = previous accepted reference), compares the smoke bitwise with the reference smoke, records background load, and prints one line per step; run it with `run_in_background` and read only its output. Resume with `--from-step`. `scripts/report_gpu_r01_next.py --brief` prints one decision line. Fixed-window dispatch profiles are too noisy for effects under about 10%; pick small candidates on structure and let the full run measure them.
 
 1. Write a plan in `$R/plans/iteration-NNNN-<agent>.json`: control track = previous accepted track with its exact options, one candidate track and options, and a 1–3 sentence case explanation (it becomes the run-log "What was tried" cell; put evidence in `selection_evidence`).
 2. `scripts/run_gpu_r01.py --prepare --output $R/iteration-NNNN --iteration NNNN --previous $R/iteration-PPPP --plan <plan>`; add `--round-authorization "<quoted human request>"` only at the start of a newly authorized round.
