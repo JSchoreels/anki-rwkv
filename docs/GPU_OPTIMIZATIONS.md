@@ -170,6 +170,8 @@ Outcome: the isolated **F01** path matches all **507 Alex / 276 Expertium** logg
 
 2026-10-12 human clarification: an explicit requested iteration count takes precedence over consecutive speed misses. `--round-iterations N` freezes budget/progress under the quoted authorization; preparation, selection and launch guards continue through misses and refuse N+1. Partial handoffs retain remaining authorization. Uncounted rounds keep the three-miss stop; acceptance/loss gates remain unchanged. [CPU evidence](../artifacts/diagnostics/r01-explicit-count-policy-v1/summary.md): 116 policy checks and 33 helper tests passed. GPU timing and throughput effects are unmeasured (—); no training or broader validation ran. Implementation commit `7795eb04ccf1869fb4df7d0b5f7e2d0465fd992f` was made after the CPU checks; recorded check source snapshots retain their original provenance.
 
+R01-T01 loop-document review (2026-10-12): clarified authorized model/cohort scope, four loss limits, accepted references, explicit-count progress and provenance without adding log columns. A [CPU policy probe](../artifacts/diagnostics/r01-loop-document-review-v1/summary.md) found that non-exact +4.9% can be promoted above a 1.97% timing band while still missing the 5% target. Whether 5% must be a hard promotion minimum is unresolved; implementation unchanged, historical records preserved. Training effects unmeasured (—). Next step: resolve that distinction, then align the future protocol/decision rule.
+
 ## Validation and provenance
 
 - Broader validation requires an explicit user request and at least 500 distinct evaluation users sampled from IDs 1–5000.

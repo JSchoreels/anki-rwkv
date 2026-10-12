@@ -1,0 +1,65 @@
+{
+  "scope": "CPU-only direct policy probe; no training or broader validation",
+  "source_git_commit": "1c87b49c3b29ca63c5ba96db39e46570e7157d1c",
+  "source_sha256": "1dba495b6c1ee1bd6ef6ce15b964f0798c8a2d7f5ac52e8e9ecdd723a01b8734",
+  "gain_percent": 4.9,
+  "losses": {
+    "previous": {
+      "metrics": {
+        "curve_log_loss_label_weighted": {
+          "relative_delta": 0.0
+        },
+        "curve_log_loss_user_average": {
+          "relative_delta": 0.0
+        },
+        "instant_log_loss_label_weighted": {
+          "relative_delta": 0.0
+        },
+        "instant_log_loss_user_average": {
+          "relative_delta": 0.0
+        }
+      }
+    },
+    "original_baseline": {
+      "metrics": {
+        "curve_log_loss_label_weighted": {
+          "relative_delta": 0.0
+        },
+        "curve_log_loss_user_average": {
+          "relative_delta": 0.0
+        },
+        "instant_log_loss_label_weighted": {
+          "relative_delta": 0.0
+        },
+        "instant_log_loss_user_average": {
+          "relative_delta": 0.0
+        }
+      }
+    }
+  },
+  "arguments": {
+    "relative_limit": 0.01,
+    "baseline_limit": 0.02,
+    "prior_streak": 2,
+    "speed_tolerance_percent": 1.97,
+    "target_percent": 5,
+    "exact_parity": false,
+    "exact_target_percent": 2
+  },
+  "observed": {
+    "faster": true,
+    "speed_change": "faster",
+    "speed_tolerance_percent": 1.97,
+    "passes_preliminary_quality": true,
+    "baseline_preferred_limit_met": true,
+    "fastmode": false,
+    "accepted_main": true,
+    "resource_retuning_pending": false,
+    "decision": "retain main improvement; preliminary only",
+    "exact_speed_gate_applied": false,
+    "throughput_target_percent": 5,
+    "meets_20_percent_target": false,
+    "no_20_percent_gain_streak": 3
+  },
+  "finding": "Non-exact promotion uses the timing-spread threshold while the 5 percent target only controls target/miss reporting. Hard-minimum promotion policy remains unresolved; code unchanged."
+}
