@@ -87,6 +87,10 @@ def main():
         check("a gain beyond the repeat spread is accepted", decision(gain=26.63, speed_tolerance_percent=5.68)["accepted_main"])
         check("the 20% target still uses the measured gain", decision(gain=19.99, speed_tolerance_percent=5.68)["no_20_percent_gain_streak"] == 3)
         reject("negative speed tolerance is rejected", lambda: decision(speed_tolerance_percent=-1))
+        check("a 17% gain misses a 20% target", decision(gain=17.4)["no_20_percent_gain_streak"] == 3)
+        check("the same gain meets a 5% target and resets the miss count",
+              decision(gain=17.4, target_percent=5.0)["no_20_percent_gain_streak"] == 0 and decision(gain=17.4, target_percent=5.0)["throughput_target_percent"] == 5.0)
+        check("a gain below 5% still counts as a miss under the 5% target", decision(gain=4.9, target_percent=5.0)["no_20_percent_gain_streak"] == 3)
         accepted_case = {"options": {}, "updates": 276, "review_presentations": 960, "training_users": 80,
                          "coverage": {"1": {"reviews": 900, "updates": 2}, "2": {"reviews": 60, "updates": 1}}}
         larger = {**accepted_case, "options": {"batch_chunks": 512}, "updates": 138,
@@ -115,7 +119,7 @@ def main():
         old = base / "iteration-0002"
         new = base / "iteration-0003"
         (root / "docs").mkdir(parents=True)
-        (root / "docs/GPU_RETRAIN_LOOP.md").write_text((ROOT / "docs/GPU_RETRAIN_LOOP.md").read_text())
+        (root / "docs/GPU_RETRAIN_LOOP.md").write_bytes((ROOT / "docs/GPU_RETRAIN_LOOP.md").read_bytes())
         cohort = {"stages": {"100": {"users": 100, "training_users": list(range(1, 81)), "heldout_users": list(range(81, 101)),
                   "rows": [{"user_id": i, "available_reviews": 12} for i in range(1, 81)], "evaluation_rows": [],
                   "training_reviews": 960, "validation_reviews": 40}}, "independent_final_test_users": [],

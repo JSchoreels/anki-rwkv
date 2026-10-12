@@ -34,6 +34,8 @@ def describe(track):
              "F23": "grouped master/child copies", "F24": "fewer hierarchy splits", "F25": "single-thread main process",
              "E06": "retained iteration-0006 Expertium configuration: F01, F16, F14, F03, F04",
              "E11": "exact-parity part of the iteration-0011 Expertium candidate: F19, F23, F25, F20, F21",
+             "E13": "accepted iteration-0013 Expertium configuration: E06, E11, F26, F27, F17",
+             "F28": "worker pool started during setup", "F29": "cross-user batch packing", "F30": "exact NumPy sample construction",
              "F26": "sort-free exact shift backward", "F27": "sort-free exact row-selection backward"}
     return ", ".join(f"{part} ({names.get(part, 'see track record')})" for part in track.split("-"))
 
@@ -132,7 +134,8 @@ def main():
                              relative_limit=settings["relative_loss_limit"], baseline_limit=settings["baseline_loss_limit"],
                              prior_streak=amendment.get("prior_no_20_percent_gain_streak", protocol["prior_no_20_percent_gain_streak"])[model],
                              resources_reduced=material_reduction(reductions) if "speed_noise_band" in settings else bool(reductions),
-                             speed_tolerance_percent=band["percent"]))
+                             speed_tolerance_percent=band["percent"],
+                             target_percent=100 * settings.get("target_throughput_gain", 0.20)))
         result["speed_noise_band"] = band
         result["resource_reductions"] = reductions
         result["reused_candidate"] = reused_candidate

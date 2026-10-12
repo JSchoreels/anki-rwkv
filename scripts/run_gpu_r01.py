@@ -17,6 +17,8 @@ from scripts.gpu_r01_policy import POLICY, accepted_reference, read_reference, r
 from scripts import run_gpu_batch1 as shared
 
 BASE = ROOT / "artifacts/retraining/gpu-retrain-r01"
+# GPU_RETRAIN_LOOP.md speed target (human request 2026-10-12: 20% -> 5%).
+TARGET_THROUGHPUT_GAIN = 0.05
 COHORT = BASE / "cohorts-user-holdout-v1.json"
 OPTIONS = {"control": {}, "F01": {"prefetch_users": True},
            "F03": {"worker_local": True, "packed_ipc": True},
@@ -146,7 +148,7 @@ def prepare(output, iteration="0002", previous=None, plan=None, resume_prepared=
                                     for model, chunks in (("baseline", 128), ("expertium", 256))},
                 "budget": "two fresh baselines plus one profile-selected candidate per architecture; one training seed; no larger stages in this iteration",
                 "eligible_tracks": {key: value for key, value in OPTIONS.items() if key != "control"},
-                "acceptance": {"relative_loss_limit": 0.01, "baseline_loss_limit": 0.02, "target_throughput_gain": 0.20,
+                "acceptance": {"relative_loss_limit": 0.01, "baseline_loss_limit": 0.02, "target_throughput_gain": TARGET_THROUGHPUT_GAIN,
                                "metrics": "Curve/Instant binary logloss, label-weighted and user-averaged, each separately",
                                "parity": "compare update metadata/loss/norm, initial/final weight hashes and held-out input hashes; exact final weights and scores preferred",
                                "resamples": 10000, "bootstrap_seed": 20261012, "family_tests": 8, "alpha": 0.05,
@@ -195,6 +197,15 @@ def prepare(output, iteration="0002", previous=None, plan=None, resume_prepared=
         elif old_protocol.get("round_start_iteration"):
             protocol["round_start_iteration"] = old_protocol["round_start_iteration"]
             protocol["round_authorization"] = old_protocol["round_authorization"]
+        previous_target = old_protocol.get("acceptance", {}).get("target_throughput_gain", 0.20)
+        if previous_target != TARGET_THROUGHPUT_GAIN and not new_round:
+            from scripts.gpu_r01_policy import recount_streak
+            protocol["target_change"] = {"previous_target_throughput_gain": previous_target,
+                                         "target_throughput_gain": TARGET_THROUGHPUT_GAIN,
+                                         "recorded_streak": dict(protocol["prior_no_20_percent_gain_streak"]),
+                                         "reason": "GPU_RETRAIN_LOOP.md target changed by human request; the current round's miss count is re-derived under the new target, recorded decisions unchanged"}
+            protocol["prior_no_20_percent_gain_streak"] = {model: recount_streak(ROOT, model, protocol.get("round_start_iteration"), old_protocol["iteration"], 100 * TARGET_THROUGHPUT_GAIN)
+                                                           for model in models}
         protocol["resource_retuning_pending"] = {model: previous_comparison["comparisons"][model].get("resource_retuning_pending", False) for model in models}
         protocol["retuning_candidates"] = {model: previous_comparison["comparisons"][model]["retuning_candidate"]
                                           for model in models if protocol["resource_retuning_pending"][model]}
@@ -290,7 +301,7 @@ def run_case(args, output):
     options = protocol.get("case_options_by_model", {}).get(args.model, protocol.get("case_options", OPTIONS))
     if args.track not in options:
         raise ValueError("Track is outside the frozen iteration budget")
-    if args.track != control_track and not args.smoke:
+    if args.track != control_track and not args.smoke and args.track not in protocol.get("study_tracks", {}).get(args.model, []):
         selection = json.loads((output / "selection.json").read_text())
         if selection[args.model]["track"] != args.track:
             raise ValueError("Candidate was not selected from baseline resource evidence")

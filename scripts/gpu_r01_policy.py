@@ -17,6 +17,7 @@ MATERIAL_REDUCTIONS = {"nvidia_utilization.gpu": ("points", 5.0),
 # Options that openly change configuration or update schedule. Review exposure, users,
 # initial weights and held-out inputs must still match; only these fields may differ.
 DECLARED_CHANGES = {"batch_chunks": ({"BATCH_CHUNKS"}, {"updates", "coverage"}),
+                    "training_seed": ({"SEED"}, {"initial_parameter_sha256"}),
                     "gpu_memory_fraction": ({"GPU_MEMORY_FRACTION"}, set())}
 # Track components by the bottleneck they target, for ceiling checks during selection.
 FEEDING_TRACKS = {"F01", "F02", "F03", "F04", "F14", "F16", "F18", "F19", "F20"}
@@ -99,7 +100,7 @@ def matching_case(case, recorded_protocol, protocol, model, options, *, smoke, s
     chunks, workers = training[model + "_chunks_workers"]
     workers = options.get("preparation_workers", workers)
     chunks = options.get("batch_chunks", chunks)
-    expected_config = {"MODEL": model, "SEED": protocol["seeds"][0], "BATCH_CHUNKS": chunks,
+    expected_config = {"MODEL": model, "SEED": options.get("training_seed", protocol["seeds"][0]), "BATCH_CHUNKS": chunks,
                        "CHUNK_REVIEWS": training["chunk_reviews"], "PREFETCH_WORKERS": workers,
                        "PREFETCH_BATCHES": workers * 2, "CPU_THREADS": training["cpu_threads"],
                        "EPOCHS": training["epochs"], "DATA_PATH": protocol["dataset_path"],
@@ -162,7 +163,8 @@ def launch_plan(root, output, args):
     folder = output / ("functional-smoke-v1" if smoke else "") / model / track
     if (folder / "result.json").exists():
         raise FileExistsError("Preserve the previous attempt; use a new attempt directory with a repeat reason")
-    if track != control and not smoke:
+    # Sensitivity studies run several predeclared tracks per model; optimization iterations select one.
+    if track != control and not smoke and track not in protocol.get("study_tracks", {}).get(model, []):
         selection = json.loads((output / "selection.json").read_text(encoding="utf-8"))
         if selection[model]["track"] != track:
             raise ValueError("Candidate was not selected from recorded profile evidence")
@@ -301,7 +303,7 @@ def point_losses_pass(metrics, relative_limit):
 
 
 def decide(gain_percent, losses, *, relative_limit, baseline_limit, prior_streak, resources_reduced=False,
-           speed_tolerance_percent=0.0):
+           speed_tolerance_percent=0.0, target_percent=20.0):
     """Gains within the recorded repeat spread count as the same speed, not as faster."""
     if type(gain_percent) not in (int, float) or not math.isfinite(gain_percent):
         raise ValueError("Finite measured throughput gain required")
@@ -325,8 +327,26 @@ def decide(gain_percent, losses, *, relative_limit, baseline_limit, prior_streak
             "baseline_preferred_limit_met": baseline_preferred,
             "fastmode": fastmode, "accepted_main": accepted,
             "resource_retuning_pending": retune, "decision": decision,
-            "meets_20_percent_target": gain_percent >= 20,
-            "no_20_percent_gain_streak": 0 if gain_percent >= 20 else prior_streak + 1}
+            # Field names predate the configurable target; the protocol's target applies.
+            "throughput_target_percent": target_percent,
+            "meets_20_percent_target": gain_percent >= target_percent,
+            "no_20_percent_gain_streak": 0 if gain_percent >= target_percent else prior_streak + 1}
+
+
+def recount_streak(root, model, round_start, through, target_percent):
+    """Re-derive a round's miss count when the LOOP target changes; recorded decisions stay unchanged."""
+    count = 0
+    for path in sorted((Path(root) / "artifacts/retraining/gpu-retrain-r01").glob("iteration-*/comparison.json")):
+        name = path.parent.name.removeprefix("iteration-")
+        if (round_start and name < round_start) or name > through:
+            continue
+        comparison = json.loads(path.read_text(encoding="utf-8")).get("comparisons", {}).get(model)
+        if comparison is None or comparison.get("reused_candidate"):
+            continue
+        gain = comparison.get("references", {}).get("previous", {}).get("throughput_gain_percent")
+        # Older comparison formats lack the gain; keep their recorded count.
+        count = streak(comparison) if gain is None else 0 if gain >= target_percent else count + 1
+    return count
 
 
 def find_profile(result_path):

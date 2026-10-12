@@ -4,6 +4,7 @@ Adapted from the preserved batch runner; its historical protocols remain intact.
 """
 
 from argparse import Namespace
+from contextlib import ExitStack, contextmanager
 from datetime import datetime, timezone
 import gc
 import hashlib
@@ -94,6 +95,15 @@ def evaluation_job(section, user, seed):
     return prepare(make_samples(section, user, 128), seed=seed)
 
 
+@contextmanager
+def prestarted_pool(stack, pool):
+    """Yield an already started preparation pool and shut it down with the training block."""
+    try:
+        yield pool
+    finally:
+        stack.close()
+
+
 def run_case(args):
     started = time.perf_counter()
     provenance = process_provenance()
@@ -139,7 +149,9 @@ def run_case(args):
     workers = options.get("preparation_workers", workers)
     if type(workers) is not int or not 1 <= workers <= 8:
         raise ValueError("Preparation workers must be an integer between 1 and 8")
-    config = {"MODEL": args.model, "DTYPE": "bfloat16", "WKV_BACKEND": "nvrtc", "SEED": 2025,
+    # Seed studies vary initialization, dropout and batch encodings; held-out inputs keep seed 2025.
+    training_seed = options.get("training_seed", 2025)
+    config = {"MODEL": args.model, "DTYPE": "bfloat16", "WKV_BACKEND": "nvrtc", "SEED": training_seed,
               "BATCH_CHUNKS": chunks, "CHUNK_REVIEWS": 128, "PREFETCH_WORKERS": workers,
               "PREFETCH_BATCHES": workers * 2, "CPU_THREADS": 4, "EPOCHS": 1,
               "DATA_PATH": protocol["dataset_path"], "DATASET_REVISION": protocol["dataset_revision"],
@@ -165,7 +177,7 @@ def run_case(args):
         nvrtc.set_checkpoint_length(32)
         nvrtc.set_raw_pointer_launch(options.get("dynamic_graphs", False))
         device = torch.device("cuda:0")
-        checkpoint = fresh_checkpoint(args.model, 2025)
+        checkpoint = fresh_checkpoint(args.model, training_seed)
         report["initial_parameter_sha256"] = tensor_hash(checkpoint["model"])
         master, base, dtype = benchmark_models(config, device)
         master.load_state_dict(checkpoint["model"])
@@ -180,6 +192,14 @@ def run_case(args):
                 # F27: sort-free hierarchy row-selection backward, also bitwise equal.
                 module.exact_index = options.get("exact_index", False)
         optimizer = get_optimizer(Namespace(PEAK_LR=7e-4), master)
+        warm_pool = None
+        if options.get("prestart_pool"):
+            # F28: spawn and import the preparation workers while the GPU primer runs.
+            from scripts.gpu_r01_packing import worker_warmup
+            pool_stack = ExitStack()
+            warm_pool = pool_stack.enter_context(preparation_pool(workers))
+            pool_started = time.perf_counter()
+            warm_futures = [warm_pool.submit(worker_warmup) for _ in range(workers)]
         # Discarded forward/backward primes JIT without performing optimizer updates.
         prime_start = time.perf_counter()
         first = split_frame(get_rwkv_data(DATA, rows[0]["user_id"]), rows[0], "train").iloc[:1024]
@@ -225,6 +245,11 @@ def run_case(args):
         progress = Progress(f"{args.model}/{args.track}", len(rows),
                             sum(row["train_range"][1] - row["train_range"][0] for row in rows))
         loss_value = float("nan")
+        if warm_pool is not None:
+            waited = time.perf_counter()
+            report["prestarted_workers"] = len({future.result() for future in warm_futures})
+            report["pool_ready_wait_seconds"] = time.perf_counter() - waited
+            report["pool_prestart_seconds"] = time.perf_counter() - pool_started
         train_started = time.perf_counter()
         report["training_started_utc"] = datetime.now(timezone.utc).isoformat()
         last_user = None
@@ -232,8 +257,9 @@ def run_case(args):
         origin = torch.cuda.Event(enable_timing=True)
         origin.record()
         coverage = {}
-        with limited_gpu(0, 0, path), preparation_pool(workers) as pool, (path / "updates.jsonl").open("w", encoding="utf-8") as log:
-            source = training_batches(rows, chunks * 128, 2025, pool, options, cache_paths, workers * 2)
+        pool_context = prestarted_pool(pool_stack, warm_pool) if warm_pool is not None else preparation_pool(workers)
+        with limited_gpu(0, 0, path), pool_context as pool, (path / "updates.jsonl").open("w", encoding="utf-8") as log:
+            source = training_batches(rows, chunks * 128, training_seed, pool, options, cache_paths, workers * 2)
             transferred = transfer_batches(source, dtype, options.get("async_transfer", False),
                                            **({"bulk": True} if options.get("bulk_transfer") else {}))
             try:
@@ -248,7 +274,11 @@ def run_case(args):
                     if (output / "STOP").exists():
                         raise InterruptedError("STOP requested; case not complete, restart it from fresh weights")
                     user = row["user_id"]
-                    if user != last_user:
+                    # F29 batches may span users; single-user batches have one part.
+                    parts = getattr(item, "parts", None) or [(user, item.offset, item.reviews)]
+                    for part_user, _, _ in parts:
+                        if part_user == last_user:
+                            continue
                         watch.check()
                         import psutil
                         process = psutil.Process()
@@ -259,7 +289,7 @@ def run_case(args):
                             report["progress_users"] += 1
                             report["training_elapsed_seconds"] = time.perf_counter() - train_started
                             atomic_json(path / "result.json", report)
-                        last_user = user
+                        last_user = part_user
                     cpu_labels = item.batch.labels
                     curve_n = int(((1 - cpu_labels[:, :, 6]) * cpu_labels[:, :, 4]).sum())
                     instant_n = int((cpu_labels[:, :, 6] * cpu_labels[:, :, 4]).sum())
@@ -315,11 +345,12 @@ def run_case(args):
                     report["hierarchical_padded_positions"] += sum(t.numel() for group in item.batch.sub_gather for t in group)
                     report["training_curve_labels"] += curve_n
                     report["training_instant_labels"] += instant_n
-                    record = coverage.setdefault(str(user), {"reviews": 0, "updates": 0})
-                    if item.offset != record["reviews"]:
-                        raise RuntimeError("Review coverage gap/repeat")
-                    record["reviews"] += item.reviews
-                    record["updates"] += 1
+                    for part_user, part_offset, part_reviews in parts:
+                        record = coverage.setdefault(str(part_user), {"reviews": 0, "updates": 0})
+                        if part_offset != record["reviews"]:
+                            raise RuntimeError("Review coverage gap/repeat")
+                        record["reviews"] += part_reviews
+                        record["updates"] += 1
                     transfer_metrics = {}
                     if options.get("async_transfer"):
                         copy_begin = origin.elapsed_time(item.copy_started)
@@ -334,7 +365,8 @@ def run_case(args):
                                           "gradient_norm": norm_value, "curve_labels": curve_n,
                                           "instant_labels": instant_n, "lr": lr,
                                           "preparation_seconds": item.preparation_seconds,
-                                          "queue_wait_seconds": item.wait_seconds, **transfer_metrics}) + "\n")
+                                          "queue_wait_seconds": item.wait_seconds, **transfer_metrics,
+                                          **({"parts": parts} if len(parts) > 1 else {})}) + "\n")
                     if not reduced:
                         log.flush()
                     progress.training(report["progress_users"], report["review_presentations"], report["updates"], loss_value)

@@ -22,8 +22,8 @@
     - If it's accurate, but same speed, but with less ressources usage, try to see if we can't re-adjust ressources usage to re-maximize the it (for ex, if a change reduce by 50% the GPU demand)
     - If partially sucessful (faster but a bit less accurate), maintain that improvement in a separate 'fastmode' implementation. Commit also
     - Keep fastmode separate from the main accepted configuration and its comparison reference.
-- Iterate until you can't find 20% request/s improvement after 3 iterations.
-- Stop each model before another iteration after three consecutive misses of the 20% improvement target.
+- Iterate until you can't find 5% request/s improvement after 3 iterations.
+- Stop each model before another iteration after three consecutive misses of the 5% improvement target.
 
 ## Artifacts
 - Fill the results in GPU_OPTIMIZATIONS.md and track the "Optimization tracks" there.

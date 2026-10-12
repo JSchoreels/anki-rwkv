@@ -10,7 +10,7 @@ def training_batches(rows, span, seed, pool, options, cache_paths=None, depth=8)
     if (options.get("prefetch_users") is not True
             or set(options) - {"prefetch_users", "reduced_sync", "preparation_workers", "fused_shift", "padding_factor", "async_transfer", "packed_ipc", "gpu_packed_features", "preprocessing_cache", "batched_id_encodings", "preprocessing_cache_bytes", "preprocessing_cache_mode",
                                          "split_excess", "batch_chunks", "gpu_memory_fraction", "grouped_sync", "main_threads",
-                                         "bulk_transfer", "parallel_evaluation", "jit_optimize", "nondeterministic", "exact_shift", "exact_index"}
+                                         "bulk_transfer", "parallel_evaluation", "jit_optimize", "nondeterministic", "exact_shift", "exact_index", "training_seed", "pack_users", "prestart_pool", "fast_samples"}
             or bool(options.get("preprocessing_cache")) != (cache_paths is not None) or depth < 1):
         raise ValueError("Unsupported R01 ordered-prefetch preparation options")
 
@@ -26,9 +26,20 @@ def training_batches(rows, span, seed, pool, options, cache_paths=None, depth=8)
                             options, section.iloc[offset:end] if section is not None else None,
                             cache_paths[row["user_id"], offset] if cache_paths is not None else None)
 
-    iterator = iter(jobs())
+    def packed_jobs():
+        from scripts.gpu_r01_packing import pack_jobs
+        frames = ((row, split_frame(frame, row, "train")) for row, frame in frame_stream(rows, prefetch=True))
+        for parts in pack_jobs(rows, frames, span // 128):
+            first_row, first_offset = parts[0][0], parts[0][1]
+            yield first_row, (parts, seed + first_row["user_id"] + first_offset, options)
+
+    if options.get("pack_users") and cache_paths is not None:
+        raise ValueError("F29 packing prepares from history slices; it does not combine with the preprocessing cache")
+    iterator = iter(packed_jobs() if options.get("pack_users") else jobs())
     preparation = prepare_job
-    if options.get("preprocessing_cache") or options.get("batched_id_encodings"):
+    if options.get("pack_users"):
+        from scripts.gpu_r01_packing import prepare_packed_job as preparation
+    elif options.get("preprocessing_cache") or options.get("batched_id_encodings"):
         from scripts.gpu_preprocessing_stage import prepare_job as preparation
     pending = deque()
     try:

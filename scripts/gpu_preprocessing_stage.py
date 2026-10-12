@@ -57,7 +57,8 @@ def prepare_job(row, offset, end, seed, options, section=None, cache_path=None):
     else:
         if cache_path is not None or section is None:
             raise ValueError("Uncached CPU extensions require the selected DataFrame")
-        samples = make_samples(section, row["user_id"], 128)
+        from scripts.gpu_r01_samples import samples_for
+        samples = samples_for(section, row["user_id"], options)
     batched = options.get("batched_id_encodings", False)
     if options.get("gpu_packed_features"):
         batch = prepare_gpu_packed(samples, seed, batched_id_encodings=batched, layout=layout)

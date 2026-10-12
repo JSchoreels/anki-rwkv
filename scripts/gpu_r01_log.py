@@ -38,6 +38,10 @@ DESCRIPTIONS = {
     "F23": "Group master/child parameter and gradient copies into foreach launches with identical values.",
     "F25": "Use one intra-op CPU thread in the training process so idle threads do not compete with workers.",
     "E11": "Exact-parity part of the iteration-0011 Expertium candidate (F19, F23, F25, F20, F21; F22 excluded); short alias for Windows path length.",
+    "E13": "Accepted iteration-0013 Expertium configuration (E06, E11, F26, F27, F17 512-chunk batches); short alias for Windows path length.",
+    "F28": "Start and import the preparation workers while the GPU primer runs, before the training timer.",
+    "F29": "Pack consecutive users into full batches, keeping user order and every review once.",
+    "F30": "Build samples with NumPy, bitwise identical to the pandas per-chunk construction.",
     "F26": "Replace the deterministic sort-based time-shift gather backward with a sort-free kernel that is bitwise identical.",
     "F27": "Replace the deterministic sort-based hierarchy row-selection backward with a sort-free kernel that is bitwise identical.",
 }
@@ -79,7 +83,8 @@ def load_runs(output):
     return [{"path": path, "case": case, "output": output,
              "control": protocol.get("control_tracks", {}).get(case["model"], protocol.get("control_track", "control")),
              "references": protocol.get("references", {}).get(case["model"]),
-             "explanation": protocol.get("case_explanations", {}).get(case["model"], {}).get(case["track"])}
+             "explanation": protocol.get("case_explanations", {}).get(case["model"], {}).get(case["track"]),
+             "study": protocol.get("study")}
             for path in sources for case in [json.loads(path.read_text(encoding="utf-8"))]]
 
 
@@ -144,6 +149,10 @@ def run_row(run, runs):
     if path.parent.name != case.get("track"):
         notes += f" Preserved attempt: {path.parent.name}."
     options = case.get("options", {})
+    if run.get("study"):
+        notes += f" Sensitivity study ({run['study']}); not an optimization iteration or validation."
+    if "training_seed" in options:
+        notes += f" Training seed {options['training_seed']}; held-out inputs keep seed 2025."
     if "batch_chunks" in options:
         notes += f" Declared schedule change: {options['batch_chunks']}-chunk batches, {number(case.get('updates'), ',.0f')} updates."
     mode = case.get("execution_mode", {})

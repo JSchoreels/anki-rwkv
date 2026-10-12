@@ -180,3 +180,15 @@ Implementation commit after experiments: `ceeffd9df71a95b977658f9ae51a85c4c7d68d
 Implementation commit after experiments: `ceeffd9df71a95b977658f9ae51a85c4c7d68de1`. Tested revision remains `76e68ff22f477a9c2be473a839724c1709e0b3ff` with per-process source snapshots in the linked raw results and iteration record; [commit record](../artifacts/retraining/gpu-retrain-r01/iteration-0012/implementation-commit.json).
 
 <!-- r01-0012:end -->
+
+<!-- r01-0013:start -->
+## R01 iteration 0013
+
+[Iteration record](../artifacts/retraining/gpu-retrain-r01/iteration-0013/summary.md)
+
+| Training start (UTC) | Trial commit | Model | Improvement IDs | What was tried | Training users reached | Training reviews | Training seconds | Reviews/s | Speed Δ vs previous | Speed Δ vs baseline | Instant User | Instant User Δ vs previous | Instant User Δ vs baseline | Instant Weighted | Instant Weighted Δ vs previous | Instant Weighted Δ vs baseline | Curve User | Curve User Δ vs previous | Curve User Δ vs baseline | Curve Weighted | Curve Weighted Δ vs previous | Curve Weighted Δ vs baseline | Raw result | Notes |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 2026-10-12T11:30:13.703234+00:00 | `ec0f4050218a1ecefb6bd6c197985a7f4bc361ce` | Expertium (light) | E06, E11, F26, F27, F17 | Keep the accepted iteration-0012 configuration; train with 512-chunk batches (65,536 reviews per update instead of 32,768) and a 0.9 GPU memory fraction (human-approved). Same reviews, order, seeds per batch start and learning-rate schedule per update; about half as many optimizer updates and different dropout realizations, so exact parity is not expected and the 1% loss ceilings apply. | 2 | 1,024 | 2.087 | 491 | — | — | 0.433909490 | — | — | 0.421975411 | — | — | 0.423755109 | — | — | 0.416540190 | — | — | [result](../artifacts/retraining/gpu-retrain-r01/iteration-0013/functional-smoke-v1/expertium/E06-E11-F26-F27-F17/result.json) | Infrastructure check; excluded from comparisons. Declared schedule change: 512-chunk batches, 2 updates. |
+| 2026-10-12T11:30:48.243292+00:00 | `ec0f4050218a1ecefb6bd6c197985a7f4bc361ce` | Expertium (light) | E06, E11, F26, F27, F17 | Keep the accepted iteration-0012 configuration; train with 512-chunk batches (65,536 reviews per update instead of 32,768) and a 0.9 GPU memory fraction (human-approved). Same reviews, order, seeds per batch start and learning-rate schedule per update; about half as many optimizer updates and different dropout realizations, so exact parity is not expected and the 1% loss ceilings apply. | 80 | 7,654,975 | 72.692 | 105,307 | +17.43% | +250.96% | 0.382592464 | -0.99% | -0.99% | 0.398428596 | -0.76% | -0.76% | 0.370387972 | -4.48% | -4.48% | 0.387472684 | -3.25% | -3.25% | [result](../artifacts/retraining/gpu-retrain-r01/iteration-0013/expertium/E06-E11-F26-F27-F17/result.json) | Declared schedule change: 512-chunk batches, 167 updates. |
+
+<!-- r01-0013:end -->
