@@ -1,0 +1,191 @@
+{
+  "model": "expertium",
+  "track": "E33-F46",
+  "options": {
+    "prefetch_users": true,
+    "preparation_workers": 6,
+    "gpu_packed_features": true,
+    "packed_ipc": true,
+    "async_transfer": true,
+    "batched_id_encodings": true,
+    "grouped_sync": true,
+    "main_threads": 1,
+    "bulk_transfer": true,
+    "parallel_evaluation": true,
+    "exact_shift": true,
+    "exact_index": true,
+    "batch_chunks": 512,
+    "gpu_memory_fraction": 0.95,
+    "fast_samples": true,
+    "prestart_pool": true,
+    "row_tiles_exact": 4,
+    "exact_group_norm": true,
+    "deferred_reads": true,
+    "shared_shift_orders": true,
+    "stream_launches": true,
+    "prefetch_rows": true,
+    "sync_free_loss": true,
+    "columnar_samples": true,
+    "prefetch_shift": true
+  },
+  "config": {
+    "MODEL": "expertium",
+    "DTYPE": "bfloat16",
+    "WKV_BACKEND": "nvrtc",
+    "SEED": 2025,
+    "BATCH_CHUNKS": 512,
+    "CHUNK_REVIEWS": 128,
+    "PREFETCH_WORKERS": 6,
+    "PREFETCH_BATCHES": 12,
+    "CPU_THREADS": 4,
+    "EPOCHS": 1,
+    "DATA_PATH": "data/anki-revlogs-10k-original-20261011",
+    "DATASET_REVISION": "75299740cff05894ef42d7ad990666691efdd2da",
+    "GPU_MEMORY_FRACTION": 0.95,
+    "PEAK_LR": 0.0007,
+    "WARMUP_STEPS": 5
+  },
+  "torch": "2.9.1+cu128",
+  "cuda": "12.8",
+  "gpu": "NVIDIA GeForce RTX 5080",
+  "training_dropout": "enabled",
+  "master_dtype": "float32",
+  "float32_matmul_precision": "highest",
+  "cuda_matmul_allow_tf32": false,
+  "rss_sampling": "process tree at user transitions; sampled maximum, not continuous peak",
+  "provenance": {
+    "captured_utc": "2026-10-12T18:33:32.733247+00:00",
+    "git_commit": "206c75fab46613f982f832cd9e87abb93169db50",
+    "git_dirty": true,
+    "git_status_porcelain_z": "?? isolation.json\u0000",
+    "source_tree_sha256": "d81407b4401a7a2978177afd90d5223f3edbdb5734e11ec6134d9ffbd89685bb",
+    "source_archive": "artifacts/sources/experiment-sources/d81407b4401a7a2978177afd90d5223f3edbdb5734e11ec6134d9ffbd89685bb/source.zip",
+    "source_paths": [
+      "rwkv",
+      "expertium",
+      "scripts",
+      "configs",
+      "pyproject.toml",
+      "uv.lock",
+      "justfile",
+      "upstream.json"
+    ]
+  },
+  "status": "complete",
+  "smoke_only": true,
+  "implementation_sha256": "e319f51f3c19013b9ccf015112eea43df3f4ea899ba2cbd908dcc4c1ddee06a1",
+  "started_utc": "2026-10-12T18:33:36.044733+00:00",
+  "training_users": 2,
+  "evaluation_users": 2,
+  "progress_users": 2,
+  "updates": 2,
+  "review_presentations": 1024,
+  "training_curve_labels": 672,
+  "training_instant_labels": 672,
+  "hierarchical_padded_positions": 11392,
+  "peak_process_tree_rss_mib": 5486.1015625,
+  "gpu_copy_milliseconds": 26.8656005859375,
+  "gpu_copy_overlap_training_milliseconds": 0.009246826171875,
+  "recurrence_kernel": {
+    "rows_per_thread": 4,
+    "checkpoint_tile": 32,
+    "threads_per_block": 256
+  },
+  "initial_parameter_sha256": "49a3841f33713c283c2880f5dc9b89ed2c0411294ee2c48cba941868751eae18",
+  "discarded_primer_seconds": 14.994760700006736,
+  "model_setup_seconds": 5.4490050000022165,
+  "warmup_job_workers": 1,
+  "prestarted_worker_pids": [
+    17908,
+    18732,
+    24492,
+    26740,
+    31076,
+    47568
+  ],
+  "prestarted_workers": 6,
+  "pool_ready_wait_seconds": 0.0004915000026812777,
+  "pool_prestart_seconds": 15.048128599999472,
+  "training_started_utc": "2026-10-12T18:33:55.189304+00:00",
+  "rss_sampling_skipped_processes": 0,
+  "training_elapsed_seconds": 0.2940387999988161,
+  "training_seconds": 0.7717755999910878,
+  "training_gc": {
+    "generation_0": {
+      "collections": 11,
+      "seconds": 0.0005004000122426078
+    },
+    "generation_1": {
+      "collections": 0,
+      "seconds": 0.0
+    },
+    "generation_2": {
+      "collections": 0,
+      "seconds": 0.0
+    }
+  },
+  "cold_training_seconds": 0.7717755999910878,
+  "reviews_per_second": 1326.8105392446,
+  "cold_reviews_per_second": 1326.8105392446,
+  "coverage": {
+    "27": {
+      "reviews": 512,
+      "updates": 1
+    },
+    "43": {
+      "reviews": 512,
+      "updates": 1
+    }
+  },
+  "peak_allocated_mib": 118.2255859375,
+  "peak_reserved_mib": 140.0,
+  "trained_parameter_sha256": "62f12cd9ed89e249d80458a90d45d6e7369f63ef4ec0cbeab6b22c176516c068",
+  "validation_seconds": 2.603167699999176,
+  "validation_input_sha256": "75058b372d3a2a879fbd6e638dbd92ceb58aafc0c8426d4ded9bd5900018545e",
+  "per_user": [
+    {
+      "user_id": 29,
+      "curve_labels": 320,
+      "instant_labels": 413,
+      "curve_log_loss": 0.5359143018722534,
+      "curve_raw_log_loss": 0.5355554819107056,
+      "instant_log_loss": 0.5454147745275613,
+      "instant_rating_cross_entropy": 1.1430027484893799
+    },
+    {
+      "user_id": 58,
+      "curve_labels": 364,
+      "instant_labels": 512,
+      "curve_log_loss": 0.3115959167480469,
+      "curve_raw_log_loss": 0.31276872754096985,
+      "instant_log_loss": 0.3224042057991028,
+      "instant_rating_cross_entropy": 1.1642208099365234
+    }
+  ],
+  "evaluation": {
+    "curve_labels": 684,
+    "curve_log_loss_label_weighted": 0.4165401904903657,
+    "curve_log_loss_user_average": 0.42375510931015015,
+    "instant_labels": 925,
+    "instant_log_loss_label_weighted": 0.42197541108002534,
+    "instant_log_loss_user_average": 0.433909490163332
+  },
+  "case_elapsed_seconds": 23.994134200009285,
+  "iteration": "0039",
+  "execution_mode": {
+    "torch_graph_executor_optimize": false,
+    "deterministic_algorithms": true,
+    "CUBLAS_WORKSPACE_CONFIG": ":4096:8",
+    "wkv_tile": 32
+  },
+  "checkpoint_saves": [
+    {
+      "elapsed_seconds": 0.028540600003907457,
+      "path": "artifacts/retraining/gpu-retrain-r01/iteration-0039/functional-smoke-v1/expertium/E33-F46/master.pth"
+    }
+  ],
+  "protocol_sha256": "34ce5cc0f3c4d6368feaa7014ee0dfcaad4bac19004158bd923b2c896ab08f8f",
+  "process_wall_seconds": 26.768709897994995,
+  "evaluation_scope": "unseen users; complete histories, chunked at 128 reviews; no gradient updates or fitting on held-out users",
+  "quality_status": "preliminary screen; broader validation pending"
+}

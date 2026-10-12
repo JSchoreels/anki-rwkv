@@ -1,0 +1,53 @@
+{
+  "status": "completed preliminary round; new authorization required",
+  "model": "expertium",
+  "iterations": [
+    "0037",
+    "0038",
+    "0039"
+  ],
+  "accepted_iteration": "0033",
+  "accepted_result": "artifacts/retraining/gpu-retrain-r01/iteration-0033/expertium/E30-F37-F42/result.json",
+  "accepted_options": {
+    "prefetch_users": true,
+    "preparation_workers": 6,
+    "gpu_packed_features": true,
+    "packed_ipc": true,
+    "async_transfer": true,
+    "batched_id_encodings": true,
+    "grouped_sync": true,
+    "main_threads": 1,
+    "bulk_transfer": true,
+    "parallel_evaluation": true,
+    "exact_shift": true,
+    "exact_index": true,
+    "batch_chunks": 512,
+    "gpu_memory_fraction": 0.95,
+    "fast_samples": true,
+    "prestart_pool": true,
+    "row_tiles_exact": 4,
+    "exact_group_norm": true,
+    "deferred_reads": true,
+    "shared_shift_orders": true,
+    "stream_launches": true,
+    "prefetch_rows": true,
+    "sync_free_loss": true,
+    "columnar_samples": true
+  },
+  "accepted_reviews_per_second": 170717.5551007906,
+  "next_iteration_hint": "0040",
+  "prior_miss_streak": 3,
+  "implementation_git_commit": "a8da8767391a005d21c344cd3898905f94de61a1",
+  "new_authorization_required": true,
+  "host_path": "docs/R01_HOST_PATH.md",
+  "ledger": "docs/GPU_OPTIMIZATIONS.md",
+  "summary": "artifacts/retraining/gpu-retrain-r01/codex-round-0037-0039-summary.md",
+  "next_steps": [
+    "New human authorization required: three exact speed misses; retain E33 at 170,718 reviews/s and keep Alex paused.",
+    "Preserve F44 diagnostic sample savings as a pending mechanism; full-run preparation and validation drift prevent attributing the speed miss. Any new retest requires a concrete comparability rationale.",
+    "Investigate F47 chunk/ID grouping and permutation amortization using bounded CPU evidence before implementation; no measured benefit yet.",
+    "F46 exact load pipelining missed full-run speed; inspect register-pressure evidence before proposing a changed kernel, preserving lane sums and warp-tree arithmetic.",
+    "Token usage comparisons remain descriptive across unlike workloads; final post-cutoff usage can be refreshed from the saved collector."
+  ],
+  "acceptance": "Use current LOOP gates and source/runtime-compatible recorded checks; no broader validation authorized"
+}

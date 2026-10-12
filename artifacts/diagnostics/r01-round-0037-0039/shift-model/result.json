@@ -1,0 +1,173 @@
+{
+  "provenance": {
+    "captured_utc": "2026-10-12T18:27:39.284596+00:00",
+    "git_commit": "1155e2a1a4b430eb6740162b1d9bd736156c3075",
+    "git_dirty": true,
+    "git_status_porcelain_z": " M docs/GPU_OPTIMIZATIONS.md\u0000 M rwkv/model/exact_index.py\u0000 M scripts/check_r01_exact_options.py\u0000 M scripts/gpu_r01_prefetch.py\u0000 M scripts/gpu_r01_samples.py\u0000 M scripts/gpu_r01_training.py\u0000 M scripts/report_gpu_r01_next.py\u0000?? scripts/check_r01_preparation_options.py\u0000?? scripts/check_r01_shift_prefetch.py\u0000",
+    "source_tree_sha256": "927bf8df9b412e0f2776f4d22b035f3722de555a7ecbf25ee2d1e68fcb5eb843",
+    "source_archive": "artifacts/sources/experiment-sources/927bf8df9b412e0f2776f4d22b035f3722de555a7ecbf25ee2d1e68fcb5eb843/source.zip",
+    "source_paths": [
+      "rwkv",
+      "expertium",
+      "scripts",
+      "configs",
+      "pyproject.toml",
+      "uv.lock",
+      "justfile",
+      "upstream.json"
+    ]
+  },
+  "torch": "2.9.1+cu128",
+  "options": {
+    "a": {
+      "prefetch_users": true,
+      "preparation_workers": 6,
+      "gpu_packed_features": true,
+      "packed_ipc": true,
+      "async_transfer": true,
+      "batched_id_encodings": true,
+      "grouped_sync": true,
+      "main_threads": 1,
+      "bulk_transfer": true,
+      "parallel_evaluation": true,
+      "exact_shift": true,
+      "exact_index": true,
+      "batch_chunks": 512,
+      "gpu_memory_fraction": 0.95,
+      "fast_samples": true,
+      "prestart_pool": true,
+      "row_tiles_exact": 4,
+      "exact_group_norm": true,
+      "deferred_reads": true,
+      "shared_shift_orders": true,
+      "stream_launches": true,
+      "prefetch_rows": true,
+      "sync_free_loss": true,
+      "columnar_samples": true
+    },
+    "b": {
+      "prefetch_users": true,
+      "preparation_workers": 6,
+      "gpu_packed_features": true,
+      "packed_ipc": true,
+      "async_transfer": true,
+      "batched_id_encodings": true,
+      "grouped_sync": true,
+      "main_threads": 1,
+      "bulk_transfer": true,
+      "parallel_evaluation": true,
+      "exact_shift": true,
+      "exact_index": true,
+      "batch_chunks": 512,
+      "gpu_memory_fraction": 0.95,
+      "fast_samples": true,
+      "prestart_pool": true,
+      "row_tiles_exact": 4,
+      "exact_group_norm": true,
+      "deferred_reads": true,
+      "shared_shift_orders": true,
+      "stream_launches": true,
+      "prefetch_rows": true,
+      "sync_free_loss": true,
+      "columnar_samples": true,
+      "prefetch_shift": true
+    }
+  },
+  "self_test": false,
+  "not_exercised": {
+    "a": [
+      "async_transfer",
+      "batch_chunks",
+      "batched_id_encodings",
+      "bulk_transfer",
+      "columnar_samples",
+      "deferred_reads",
+      "fast_samples",
+      "gpu_memory_fraction",
+      "gpu_packed_features",
+      "grouped_sync",
+      "main_threads",
+      "packed_ipc",
+      "parallel_evaluation",
+      "prefetch_users",
+      "preparation_workers",
+      "prestart_pool"
+    ],
+    "b": [
+      "async_transfer",
+      "batch_chunks",
+      "batched_id_encodings",
+      "bulk_transfer",
+      "columnar_samples",
+      "deferred_reads",
+      "fast_samples",
+      "gpu_memory_fraction",
+      "gpu_packed_features",
+      "grouped_sync",
+      "main_threads",
+      "packed_ipc",
+      "parallel_evaluation",
+      "prefetch_users",
+      "preparation_workers",
+      "prestart_pool"
+    ]
+  },
+  "scope": "five real Expertium batches; BF16 forward/backward from the fresh seed-2025 checkpoint; loss and every parameter gradient",
+  "batches": [
+    {
+      "user_id": 1495,
+      "offset": 0,
+      "reviews": 256,
+      "loss_bitwise_equal": true,
+      "same_gradient_set": true,
+      "parameters": 429,
+      "differing_gradients": [],
+      "differing_gradient_count": 0
+    },
+    {
+      "user_id": 1619,
+      "offset": 32768,
+      "reviews": 256,
+      "loss_bitwise_equal": true,
+      "same_gradient_set": true,
+      "parameters": 429,
+      "differing_gradients": [],
+      "differing_gradient_count": 0
+    },
+    {
+      "user_id": 3958,
+      "offset": 0,
+      "reviews": 229,
+      "loss_bitwise_equal": true,
+      "same_gradient_set": true,
+      "parameters": 429,
+      "differing_gradients": [],
+      "differing_gradient_count": 0
+    },
+    {
+      "user_id": 2155,
+      "offset": 0,
+      "reviews": 37,
+      "loss_bitwise_equal": true,
+      "same_gradient_set": true,
+      "parameters": 429,
+      "differing_gradients": [],
+      "differing_gradient_count": 0
+    },
+    {
+      "user_id": 906,
+      "offset": 0,
+      "reviews": 77,
+      "loss_bitwise_equal": true,
+      "same_gradient_set": true,
+      "parameters": 429,
+      "differing_gradients": [],
+      "differing_gradient_count": 0
+    }
+  ],
+  "status": "passed",
+  "summary": {
+    "batches": 5,
+    "batches_bitwise_equal": 5
+  }
+}

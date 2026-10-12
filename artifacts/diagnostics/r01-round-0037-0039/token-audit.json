@@ -1,0 +1,195 @@
+{
+  "root_thread_id": "01a1315a-af68-7270-bf6d-dfa2c2dc29f2",
+  "recorded_utc": "2026-10-12T18:38:17.252529+00:00",
+  "scope": "Latest cumulative local thread usage at audit cutoff; root, delegated work and approval reviewers itemized separately",
+  "status": "cutoff snapshot; subsequent closeout and final-answer usage excluded",
+  "threads": [
+    {
+      "thread_id": "01a1315a-af68-7270-bf6d-dfa2c2dc29f2",
+      "parent_thread_id": null,
+      "role": "root",
+      "agent_path": null,
+      "usage": {
+        "input_tokens": 3879814,
+        "cached_input_tokens": 3771008,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 21701,
+        "reasoning_output_tokens": 4305,
+        "total_tokens": 3901515,
+        "uncached_input_tokens": 108806
+      },
+      "logged_tool_calls": 50,
+      "tool_names": {
+        "exec": 48,
+        "spawn_agent": 1,
+        "wait": 1
+      },
+      "nested_tool_calls": {
+        "exec_command": 43,
+        "apply_patch": 6,
+        "write_stdin": 10
+      },
+      "shell_operations": 43,
+      "process_polls": 10,
+      "tool_wait_resumptions": 1,
+      "completed_command_execution_events": 0
+    },
+    {
+      "thread_id": "01a1315b-1497-7380-b59c-b63b1eed85ad",
+      "parent_thread_id": "01a1315a-af68-7270-bf6d-dfa2c2dc29f2",
+      "role": "work_agent",
+      "agent_path": "/root/cpu_evidence",
+      "usage": {
+        "input_tokens": 641164,
+        "cached_input_tokens": 557568,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 5946,
+        "reasoning_output_tokens": 3436,
+        "total_tokens": 647110,
+        "uncached_input_tokens": 83596
+      },
+      "logged_tool_calls": 10,
+      "tool_names": {
+        "exec": 9,
+        "send_message": 1
+      },
+      "nested_tool_calls": {
+        "exec_command": 9
+      },
+      "shell_operations": 9,
+      "process_polls": 0,
+      "tool_wait_resumptions": 0,
+      "completed_command_execution_events": 0
+    },
+    {
+      "thread_id": "01a13167-2538-7092-8db7-379ac8ed1579",
+      "parent_thread_id": "01a1315a-af68-7270-bf6d-dfa2c2dc29f2",
+      "role": "approval_reviewer",
+      "agent_path": null,
+      "usage": {
+        "input_tokens": 36796,
+        "cached_input_tokens": 23040,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 375,
+        "reasoning_output_tokens": 300,
+        "total_tokens": 37171,
+        "uncached_input_tokens": 13756
+      },
+      "logged_tool_calls": 0,
+      "tool_names": {},
+      "nested_tool_calls": {},
+      "shell_operations": 0,
+      "process_polls": 0,
+      "tool_wait_resumptions": 0,
+      "completed_command_execution_events": 0
+    }
+  ],
+  "aggregate": {
+    "usage": {
+      "input_tokens": 4557774,
+      "cached_input_tokens": 4351616,
+      "cache_write_input_tokens": 0,
+      "output_tokens": 28022,
+      "reasoning_output_tokens": 8041,
+      "total_tokens": 4585796,
+      "uncached_input_tokens": 206158
+    },
+    "logged_tool_calls": 60,
+    "shell_operations": 52,
+    "process_polls": 10,
+    "tool_wait_resumptions": 1
+  },
+  "root": {
+    "usage": {
+      "input_tokens": 3879814,
+      "cached_input_tokens": 3771008,
+      "cache_write_input_tokens": 0,
+      "output_tokens": 21701,
+      "reasoning_output_tokens": 4305,
+      "total_tokens": 3901515,
+      "uncached_input_tokens": 108806
+    },
+    "logged_tool_calls": 50,
+    "shell_operations": 43,
+    "process_polls": 10,
+    "tool_wait_resumptions": 1
+  },
+  "work_agents_aggregate": {
+    "usage": {
+      "input_tokens": 641164,
+      "cached_input_tokens": 557568,
+      "cache_write_input_tokens": 0,
+      "output_tokens": 5946,
+      "reasoning_output_tokens": 3436,
+      "total_tokens": 647110,
+      "uncached_input_tokens": 83596
+    },
+    "logged_tool_calls": 10,
+    "shell_operations": 9,
+    "process_polls": 0,
+    "tool_wait_resumptions": 0
+  },
+  "approval_reviewers_aggregate": {
+    "usage": {
+      "input_tokens": 36796,
+      "cached_input_tokens": 23040,
+      "cache_write_input_tokens": 0,
+      "output_tokens": 375,
+      "reasoning_output_tokens": 300,
+      "total_tokens": 37171,
+      "uncached_input_tokens": 13756
+    },
+    "logged_tool_calls": 0,
+    "shell_operations": 0,
+    "process_polls": 0,
+    "tool_wait_resumptions": 0
+  },
+  "baseline": "artifacts/diagnostics/r01-round-0034-0036-options/token-audit.json",
+  "limitations": [
+    "Workload differs: this round introduces two CPU implementations and a new CUDA kernel; prior round retuned options.",
+    "Observed counts do not establish causality from helpers or model choice.",
+    "Nested tool counts are regex reconstructions, not an independently verified event taxonomy.",
+    "Tool-output characters unavailable; post-cutoff usage excluded.",
+    "Only attributable descendant approval reviewers included; absence means none found in local records, not globally zero usage."
+  ],
+  "comparison": {
+    "prior_root": {
+      "parent_thread_id": null,
+      "role": "root",
+      "source": "C:\\Users\\jonat\\.codex\\sessions\\2026\\10\\12\\rollout-2026-10-12T20-01-14-01a13146-a081-7201-990f-b2dac66c8d62.jsonl",
+      "input_tokens": 2680631,
+      "cached_input_tokens": 2613376,
+      "cache_write_input_tokens": 0,
+      "output_tokens": 14374,
+      "reasoning_output_tokens": 2935,
+      "total_tokens": 2695005,
+      "uncached_input_tokens": 67255,
+      "other_output_tokens": 11439,
+      "tool_call_count": 43,
+      "tool_calls_by_name": {
+        "exec": 41,
+        "spawn_agent": 1,
+        "wait": 1
+      },
+      "process_poll_calls": 9,
+      "tool_wait_resumptions": 1,
+      "shell_operations": 38
+    },
+    "current_root": {
+      "usage": {
+        "input_tokens": 3879814,
+        "cached_input_tokens": 3771008,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 21701,
+        "reasoning_output_tokens": 4305,
+        "total_tokens": 3901515,
+        "uncached_input_tokens": 108806
+      },
+      "logged_tool_calls": 50,
+      "shell_operations": 43,
+      "process_polls": 10,
+      "tool_wait_resumptions": 1
+    },
+    "causal_savings": "inconclusive; unlike workloads and audit cutoffs"
+  }
+}

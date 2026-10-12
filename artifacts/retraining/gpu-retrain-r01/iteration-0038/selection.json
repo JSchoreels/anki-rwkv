@@ -1,0 +1,87 @@
+{
+  "expertium": {
+    "track": "E33-F45",
+    "options": {
+      "prefetch_users": true,
+      "preparation_workers": 6,
+      "gpu_packed_features": true,
+      "packed_ipc": true,
+      "async_transfer": true,
+      "batched_id_encodings": true,
+      "grouped_sync": true,
+      "main_threads": 1,
+      "bulk_transfer": true,
+      "parallel_evaluation": true,
+      "exact_shift": true,
+      "exact_index": true,
+      "batch_chunks": 512,
+      "gpu_memory_fraction": 0.95,
+      "fast_samples": true,
+      "prestart_pool": true,
+      "row_tiles_exact": 4,
+      "exact_group_norm": true,
+      "deferred_reads": true,
+      "shared_shift_orders": true,
+      "stream_launches": true,
+      "prefetch_rows": true,
+      "sync_free_loss": true,
+      "columnar_samples": true,
+      "direct_sample_matrix": true
+    },
+    "reason": "Recorded E30 (accepted iteration-0030 Expertium configuration: E27, F35, F38), F37 (loss without host synchronization), F42 (batch-wide column extraction for exact sample preparation) GPU activity is 69.09% and worker-pool CPU 42.43%. Main process CPU averaged 95% of one core; system load averaged 5.5 busy logical threads on 8 physical cores. Build each feature and label float64 matrix directly in its final array instead of converting every column into a temporary and then stacking. Preserve E33 columnar samples, six workers and all seeded arithmetic.",
+    "selected_utc": "2026-10-12T18:30:56.503980+00:00",
+    "profile": "../iteration-0033/profiles/expertium-E30-F37-F42/result.json",
+    "profile_sha256": "ad0b8bbc5917f60f164afff5ab5890e171da019c37fbafdf3c51631d6020e0e9",
+    "reference_result": "artifacts/retraining/gpu-retrain-r01/iteration-0033/expertium/E30-F37-F42/result.json",
+    "retuning_resource_saving_candidate": false,
+    "profile_reused": true,
+    "recorded_profile_sufficiency": false,
+    "measured_incumbent_reviews_per_second": 170717.5551007906,
+    "measured_future_wait_seconds_sum": 0.5897860999539262,
+    "idealized_scenarios": {
+      "unchanged_GPU_work_at80_percent_activity_reviews_per_second": 197671.14481070143,
+      "remove_all_measured_future_wait_reviews_per_second": 172992.95298970077,
+      "linear_8_vs6_worker_capacity_reviews_per_second": 227623.40680105414,
+      "interpretation": "Conditional capacity arithmetic only; not measured candidate throughput or a forecast. CPU contention, RAM/IPC/loads and unchanged work can dominate. GPU activity is not occupancy."
+    },
+    "minimum_available_RAM_GiB": 8.258193969726562,
+    "cpu_evidence": {
+      "main_process_cpu_percent_one_core_mean": 95.34883720930233,
+      "busy_logical_threads_mean": 5.451767441860465,
+      "logical_threads": 16,
+      "physical_cores": 8,
+      "near_physical_core_saturation": false,
+      "samples": 43,
+      "interpretation": "Sampled at the profiler interval; physical cores read on the selecting host, which is assumed to be the training host. SMT threads add less than a full core."
+    },
+    "target_reachability": {
+      "target_gain_percent": 5.0,
+      "added_components": [
+        "E33",
+        "F45"
+      ],
+      "feeding_only_candidate": false,
+      "remove_all_waits_ceiling_gain_percent": 1.3328435306883213,
+      "ceiling_reaches_target": false,
+      "justification": null
+    },
+    "selection_provenance": {
+      "captured_utc": "2026-10-12T18:30:56.658402+00:00",
+      "git_commit": "1155e2a1a4b430eb6740162b1d9bd736156c3075",
+      "git_dirty": true,
+      "git_status_porcelain_z": " M docs/GPU_OPTIMIZATIONS.md\u0000 M docs/GPU_OPTIMIZATIONS_LOG.md\u0000 M rwkv/model/exact_index.py\u0000 M scripts/check_r01_exact_options.py\u0000 M scripts/gpu_r01_prefetch.py\u0000 M scripts/gpu_r01_samples.py\u0000 M scripts/gpu_r01_training.py\u0000 M scripts/report_gpu_r01_next.py\u0000?? scripts/check_r01_preparation_options.py\u0000?? scripts/check_r01_shift_prefetch.py\u0000",
+      "source_tree_sha256": "927bf8df9b412e0f2776f4d22b035f3722de555a7ecbf25ee2d1e68fcb5eb843",
+      "source_archive": "artifacts/sources/experiment-sources/927bf8df9b412e0f2776f4d22b035f3722de555a7ecbf25ee2d1e68fcb5eb843/source.zip",
+      "source_paths": [
+        "rwkv",
+        "expertium",
+        "scripts",
+        "configs",
+        "pyproject.toml",
+        "uv.lock",
+        "justfile",
+        "upstream.json"
+      ]
+    }
+  }
+}

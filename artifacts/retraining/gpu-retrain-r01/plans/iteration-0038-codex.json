@@ -1,0 +1,83 @@
+{
+  "models": [
+    "expertium"
+  ],
+  "model_scope_reason": "Continuation of the Expertium-only R01 work; Alex remains paused by earlier human request.",
+  "control_tracks": {
+    "expertium": "E30-F37-F42"
+  },
+  "candidate_tracks": {
+    "expertium": "E33-F45"
+  },
+  "case_options_by_model": {
+    "expertium": {
+      "E30-F37-F42": {
+        "prefetch_users": true,
+        "preparation_workers": 6,
+        "gpu_packed_features": true,
+        "packed_ipc": true,
+        "async_transfer": true,
+        "batched_id_encodings": true,
+        "grouped_sync": true,
+        "main_threads": 1,
+        "bulk_transfer": true,
+        "parallel_evaluation": true,
+        "exact_shift": true,
+        "exact_index": true,
+        "batch_chunks": 512,
+        "gpu_memory_fraction": 0.95,
+        "fast_samples": true,
+        "prestart_pool": true,
+        "row_tiles_exact": 4,
+        "exact_group_norm": true,
+        "deferred_reads": true,
+        "shared_shift_orders": true,
+        "stream_launches": true,
+        "prefetch_rows": true,
+        "sync_free_loss": true,
+        "columnar_samples": true
+      },
+      "E33-F45": {
+        "prefetch_users": true,
+        "preparation_workers": 6,
+        "gpu_packed_features": true,
+        "packed_ipc": true,
+        "async_transfer": true,
+        "batched_id_encodings": true,
+        "grouped_sync": true,
+        "main_threads": 1,
+        "bulk_transfer": true,
+        "parallel_evaluation": true,
+        "exact_shift": true,
+        "exact_index": true,
+        "batch_chunks": 512,
+        "gpu_memory_fraction": 0.95,
+        "fast_samples": true,
+        "prestart_pool": true,
+        "row_tiles_exact": 4,
+        "exact_group_norm": true,
+        "deferred_reads": true,
+        "shared_shift_orders": true,
+        "stream_launches": true,
+        "prefetch_rows": true,
+        "sync_free_loss": true,
+        "columnar_samples": true,
+        "direct_sample_matrix": true
+      }
+    }
+  },
+  "case_explanations": {
+    "expertium": {
+      "E30-F37-F42": "Extract unchanged sample columns once per batch and use pandas Series for segment-local offsets, groupby-first and weekday features, avoiding per-chunk DataFrame construction. Keep the accepted four-row recurrence and E30+F37 arithmetic and scheduling.",
+      "E33-F45": "Build each feature and label float64 matrix directly in its final array instead of converting every column into a temporary and then stacking. Preserve E33 columnar samples, six workers and all seeded arithmetic."
+    }
+  },
+  "selection_evidence": "Code removes one float64 temporary per matrix column across up to 512 samples per batch. Five real windows matched every sample/packed byte and RNG; sample construction was 0.808 s versus E33 0.842 s in one ordered CPU diagnostic, with no training-speed claim. Output byte packing itself was too small in existing profile to target.",
+  "prerequisite_checks": [
+    {
+      "path": "artifacts/diagnostics/r01-round-0037-0039/preparation.json",
+      "sha256": "850195a50609528716e51ae9afc7ba866e26a6d871f01cf652a855c158296567",
+      "status": "passed, source compatible; runtime compatibility must also be reviewed"
+    }
+  ]
+}

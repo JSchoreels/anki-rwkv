@@ -1,0 +1,88 @@
+{
+  "models": [
+    "expertium"
+  ],
+  "model_scope_reason": "Continuation of the Expertium-only R01 work; Alex remains paused by earlier human request.",
+  "control_tracks": {
+    "expertium": "E30-F37-F42"
+  },
+  "candidate_tracks": {
+    "expertium": "E33-F46"
+  },
+  "case_options_by_model": {
+    "expertium": {
+      "E30-F37-F42": {
+        "prefetch_users": true,
+        "preparation_workers": 6,
+        "gpu_packed_features": true,
+        "packed_ipc": true,
+        "async_transfer": true,
+        "batched_id_encodings": true,
+        "grouped_sync": true,
+        "main_threads": 1,
+        "bulk_transfer": true,
+        "parallel_evaluation": true,
+        "exact_shift": true,
+        "exact_index": true,
+        "batch_chunks": 512,
+        "gpu_memory_fraction": 0.95,
+        "fast_samples": true,
+        "prestart_pool": true,
+        "row_tiles_exact": 4,
+        "exact_group_norm": true,
+        "deferred_reads": true,
+        "shared_shift_orders": true,
+        "stream_launches": true,
+        "prefetch_rows": true,
+        "sync_free_loss": true,
+        "columnar_samples": true
+      },
+      "E33-F46": {
+        "prefetch_users": true,
+        "preparation_workers": 6,
+        "gpu_packed_features": true,
+        "packed_ipc": true,
+        "async_transfer": true,
+        "batched_id_encodings": true,
+        "grouped_sync": true,
+        "main_threads": 1,
+        "bulk_transfer": true,
+        "parallel_evaluation": true,
+        "exact_shift": true,
+        "exact_index": true,
+        "batch_chunks": 512,
+        "gpu_memory_fraction": 0.95,
+        "fast_samples": true,
+        "prestart_pool": true,
+        "row_tiles_exact": 4,
+        "exact_group_norm": true,
+        "deferred_reads": true,
+        "shared_shift_orders": true,
+        "stream_launches": true,
+        "prefetch_rows": true,
+        "sync_free_loss": true,
+        "columnar_samples": true,
+        "prefetch_shift": true
+      }
+    }
+  },
+  "case_explanations": {
+    "expertium": {
+      "E30-F37-F42": "Extract unchanged sample columns once per batch and use pandas Series for segment-local offsets, groupby-first and weekday features, avoiding per-chunk DataFrame construction. Keep the accepted four-row recurrence and E30+F37 arithmetic and scheduling.",
+      "E33-F46": "Pipeline BF16 shift-backward source-index and gradient loads across 32-source passes. Preserve each lane accumulation order, warp-tree reduction, sequential tail and final rounding; all E33 host and recurrence options stay fixed."
+    }
+  },
+  "selection_evidence": "Long shift destinations retain dependent index-to-gradient loads; accepted row-backward pipelining provides a structural precedent. New kernel passed 72 synthetic warp-boundary, signed-zero and cancellation cases plus E33 loss/every-gradient checks on five real batches. Register pressure may offset load savings; no speed result assumed.",
+  "prerequisite_checks": [
+    {
+      "path": "artifacts/diagnostics/r01-round-0037-0039/shift-synthetic.json",
+      "sha256": "6e11e7375e53b3eaf56e202da20a929fc9f5ab0412c25a70f572d6695d722e13",
+      "status": "passed, source compatible; runtime compatibility must also be reviewed"
+    },
+    {
+      "path": "artifacts/diagnostics/r01-round-0037-0039/shift-model/result.json",
+      "sha256": "055ff7ab4b7606625046b4e03b646151e003331e49f20f6ad23e733fbdec7da6",
+      "status": "passed, source compatible; runtime compatibility must also be reviewed"
+    }
+  ]
+}
