@@ -5,7 +5,7 @@ Read this instead of re-reading the model and training code when picking R01 can
 ## Machine
 
 - AMD Ryzen 7 9850X3D: 8 physical cores / 16 logical (SMT siblings are logical 2k, 2k+1; Windows CPU sets rank core 6 then 10 highest), RTX 5080, Windows 11. Background desktop load is typically 7–17% total CPU.
-- Run-to-run spread is large: identical E33 runs 0033 and 0040 differ by 7.045%. Since 52d81c4, a future exact promotion must beat the frozen measured band (Expertium 7.045%, Alex `baseline` 7.779%) rather than a fixed 2%. Fixed-window dispatch profiles (`scripts/profile_r01_dispatch.py`) drifted 232→336 ms per update over four consecutive runs of the same path; do not use them to decide effects under about 10%. Use them for counts (launches, syncs, dispatches), not wall time.
+- Run-to-run spread is large: identical E33 runs 0033 and 0040 differ by 7.045%. A future exact promotion must beat the frozen measured band rather than a fixed 2%. Since the human's option C (2026-10-12) the band is the median spread over identical-configuration repeat pairs: Expertium 6.364%, Alex `baseline` 3.833%. Instrumented repeat 0046 ran 18.13% slower than 0042 in a high-background state, which shows how large one slow-state run can be. Fixed-window dispatch profiles (`scripts/profile_r01_dispatch.py`) drifted 232→336 ms per update over four consecutive runs of the same path; do not use them to decide effects under about 10%. Use them for counts (launches, syncs, dispatches), not wall time.
 
 ## Model structure (`expertium/architecture.py`, `expertium/model/`)
 
