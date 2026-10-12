@@ -1,9 +1,11 @@
 """User-approved R01 references, measured-loss decisions and stopping rules."""
 
 import hashlib
+from itertools import combinations
 import json
 import math
 import re
+import statistics
 from pathlib import Path
 
 POLICY = "reused-references-v1"
@@ -522,8 +524,17 @@ def material_reduction(reductions):
     return any(value.get("material") for value in reductions.values())
 
 
+def pairwise_spreads(groups):
+    """Percent max/min - 1 for every pair of runs within each identical-configuration group."""
+    return [100 * (max(a, b) / min(a, b) - 1) for group in groups for a, b in combinations(group, 2)]
+
+
 def speed_noise_band(root, model):
-    """Largest recorded throughput spread among repeats with identical trained weights."""
+    """Median throughput spread over all pairs of identical-configuration repeats.
+
+    Human decision 2026-10-12 (option C): the median replaces the widest group's max/min, which could
+    only grow and let one slow-state repeat set the band (0042 vs 0046 would have frozen 22.149%).
+    """
     groups = {}
     for path, case, protocol in recorded_cases(root):
         if (case.get("model") != model or case.get("status") != "complete" or case.get("smoke_only")
@@ -536,8 +547,9 @@ def speed_noise_band(root, model):
     if not repeats:
         return {"percent": 0.0, "available": False, "sources": [],
                 "rule": "no recorded repeat of an identical configuration; any positive gain counts as faster"}
-    widest = max(repeats, key=lambda group: max(rate for _, rate in group) / min(rate for _, rate in group))
-    rates = [rate for _, rate in widest]
-    return {"percent": 100 * (max(rates) / min(rates) - 1), "available": True,
-            "sources": [result_metadata(path, root) for path, _ in widest],
-            "rule": "max/min - 1 of reviews/s across complete full-history repeats with identical cohort, training settings, options, config and trained weights; widest group"}
+    spreads = pairwise_spreads([[rate for _, rate in group] for group in repeats])
+    widest = max(max(rate for _, rate in group) / min(rate for _, rate in group) for group in repeats)
+    return {"percent": statistics.median(spreads), "available": True, "estimator": "median_pairwise_spread",
+            "pairs": len(spreads), "widest_group_percent": 100 * (widest - 1),
+            "sources": [result_metadata(path, root) for group in repeats for path, _ in group],
+            "rule": "median over all pairs of complete full-history repeats with identical cohort, training settings, options, config and trained weights of max/min - 1 reviews/s (human decision 2026-10-12; replaces the widest group's max/min)"}

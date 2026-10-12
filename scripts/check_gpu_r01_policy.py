@@ -17,7 +17,7 @@ from scripts.experiment_provenance import process_provenance
 import shutil
 from scripts.gpu_r01_policy import (LOSS_METRICS, POLICY, accepted_reference, decide, material_reduction,
                                     read_reference, require_active, resource_reductions, result_metadata,
-                                    check_inputs, reusable_check, speed_noise_band, same_exposure, declared_differences,
+                                    check_inputs, reusable_check, speed_noise_band, pairwise_spreads, same_exposure, declared_differences,
                                     round_budget_fields, round_loss_limit)
 
 
@@ -139,6 +139,14 @@ def main():
         reject("ceiling cannot change mid-round", lambda: round_loss_limit({"round_relative_loss_limit": 0.001}, requested=0.002))
         reject("ceiling must be a fraction below one", lambda: round_loss_limit(new_round=True, requested=1.5))
         reject("ceiling must be finite", lambda: round_loss_limit(new_round=True, requested=float("nan")))
+        # Human decision 2026-10-12 (option C): the band is the median spread over all repeat pairs.
+        import statistics
+        recorded = [[55810, 58982], [73577, 74619], [170718, 182745], [197499, 161687]]
+        check("median pairwise band ignores one slow-state repeat group", abs(statistics.median(pairwise_spreads(recorded)) - 6.364) < 0.01)
+        check("one pair gives its own spread", abs(pairwise_spreads([[120, 126]])[0] - 5) < 1e-9)
+        alex = [[28521, 28899, 29084, 26985]]
+        check("a four-run group contributes all six pairs", len(pairwise_spreads(alex)) == 6 and abs(statistics.median(pairwise_spreads(alex)) - 3.833) < 0.01)
+        check("adding a closer repeat can lower the band", statistics.median(pairwise_spreads(recorded + [[100, 100.5], [100, 101]])) < statistics.median(pairwise_spreads(recorded)))
         accepted_case = {"options": {}, "updates": 276, "review_presentations": 960, "training_users": 80,
                          "coverage": {"1": {"reviews": 900, "updates": 2}, "2": {"reviews": 60, "updates": 1}}}
         larger = {**accepted_case, "options": {"batch_chunks": 512}, "updates": 138,
@@ -246,7 +254,7 @@ def main():
                             protocol_sha256=hashlib.sha256((repeat / "protocol.json").read_bytes()).hexdigest())
             write(repeat / "baseline/F01/result.json", repeated)
             band = speed_noise_band(root, "baseline")
-            check("identical repeats define the speed band from their measured spread", band["available"] and abs(band["percent"] - 5) < 1e-9 and len(band["sources"]) == 2)
+            check("identical repeats define the speed band from their measured spread", band["available"] and abs(band["percent"] - 5) < 1e-9 and len(band["sources"]) == 2 and band["estimator"] == "median_pairwise_spread")
             repeated["trained_parameter_sha256"] = "different-weights"
             write(repeat / "baseline/F01/result.json", repeated)
             check("runs with different trained weights are not treated as repeats", not speed_noise_band(root, "baseline")["available"])
