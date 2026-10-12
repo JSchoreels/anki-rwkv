@@ -1,0 +1,14 @@
+# Iteration 0046: instrumented repeat of accepted 0042 (diagnostic, uncounted)
+
+The human authorized one uncounted repeat of 0042 on 2026-10-12 (decision 4, "Sure") as the first run with R01-M01 per-update timing. It is not an optimization iteration and changes no accepted reference. Configuration: E33-F48-F50 with 0042's options, 80 training / 20 held-out users, seed 2025, BF16/FP32, 512 × 128-review batches, six workers, 167 updates. Source: clean commit `e3b15e8ae9ff6b2f509a979056373007f01cbc0c`, isolated as `runtime-0046-834b28b82e39`. [Launcher](../../../diagnostics/r01-instrumented-repeat-v1/repeat.py), [comparison script](../../../diagnostics/r01-instrumented-repeat-v1/compare.py), [comparison JSON](../../../diagnostics/r01-instrumented-repeat-v1/comparison.json).
+
+## Results
+
+- **Exactness.** The smoke and the full run are bitwise equal to 0042: all 167 updates (loss, norm, labels, lr), initial and trained weights, held-out inputs and all four scores. The instrumentation is accounting-only.
+- **Speed.** 161,687 reviews/s (47.344 training s), against 0042's 197,499 (38.759 s): −18.13%. Every equal-work segment is 15–26% slower, a uniform whole-run slowdown. Complete case 96.259 s vs 88.479 s; validation 30.30 vs 29.63 s; primer 14.07 vs 15.31 s.
+- **Code versus state.** Against 0045's runtime, which ran 196,818 reviews/s, the only training-path differences are two CUDA events and a timestamp per update, allocator counters, and four extra GPU-monitor fields. The slowdown is therefore attributed provisionally to machine state, not code.
+- **State signals.** Pre-launch background CPU was 22.4% (0042: 7.4%, 0045: 7.0%). Residual background CPU during training was 17.7% (13.8%, 15.8%), and experiment-tree CPU 22.4% (26.6%, 26.9%). The GPU held 2,475 MHz SM and 17,001 MHz memory clocks in P0 throughout, with no active slowdown reason (`0x400` is "Reliability"). Yet busy power was 136 W against 194 W. A slower host dispatch thread feeding the GPU fits this; a GPU clock drop does not.
+- **Memory and allocator.** Peak reserved 12,196 MiB as in 0042; no allocator retries or OOMs; 1,290 MiB of device memory in use at start, including this process's CUDA context.
+- **Consequence.** `speed_noise_band` groups 0046 with 0042 as an identical-configuration repeat. The frozen Expertium band would rise from 7.045% to 22.149% for any newly prepared protocol. 0046 is a slow-state run, so it is a poor paired reference.
+
+Limits: one run; 0042 has no per-update timing, so the comparison uses totals and 1-second console segments; no causal attribution. The smoke's export first failed because the launcher wrote its live log inside the iteration folder. The runtime's stale copies of that log are kept in `runtime-0046-834b28b82e39/stale-launcher-copies/`, and the full run's log now sits beside the folder.

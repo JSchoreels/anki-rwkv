@@ -1,0 +1,29 @@
+{
+  "step": "instrumented-smoke",
+  "command": [
+    "C:\\Users\\jonat\\workspace\\anki-rwkv\\.venv\\Scripts\\python.exe",
+    "-X",
+    "utf8",
+    "C:\\Users\\jonat\\workspace\\anki-rwkv\\scripts\\run_isolated_gpu_r01.py",
+    "--case",
+    "--output",
+    "artifacts\\retraining\\gpu-retrain-r01\\iteration-0046",
+    "--model",
+    "expertium",
+    "--track",
+    "E33-F48-F50",
+    "--repeat-reason",
+    "Human authorized one uncounted, instrumented repeat of accepted 0042 (2026-10-12, decision 4: \"Sure\") as the paired per-update timing reference for the next round; the source adds accounting-only per-update timing and GPU-state telemetry (commit e3b15e8), so historical 0042 results cannot provide per-update timing.",
+    "--smoke",
+    "--check-reason",
+    "Accounting-only R01-M01 instrumentation: per-update CUDA events/host timestamps read with deferred values, allocator counters and device memory at start must leave smoke updates, losses and norms bitwise equal to 0042."
+  ],
+  "log": "artifacts/retraining/gpu-retrain-r01/iteration-0046/instrumented-smoke-console.log",
+  "started_utc": "2026-10-12T20:18:38.374925+00:00",
+  "status": "failed; no automatic retry",
+  "attempt": 1,
+  "pid": 22876,
+  "returncode": 1,
+  "error": "StepFailure: instrumented-smoke failed (exit 1); log C:\\Users\\jonat\\workspace\\anki-rwkv\\artifacts\\retraining\\gpu-retrain-r01\\iteration-0046\\instrumented-smoke-console.log; tail:   File \"C:\\Users\\jonat\\workspace\\anki-rwkv\\scripts\\isolate_gpu_r01.py\", line 112, in export |     raise ValueError(f'Export would overwrite differing evidence: {target}') | ValueError: Export would overwrite differing evidence: C:\\Users\\jonat\\workspace\\anki-rwkv\\artifacts\\retraining\\gpu-retrain-r01\\iteration-0046\\instrumented-smoke-console.log",
+  "elapsed_seconds": 17.625
+}
