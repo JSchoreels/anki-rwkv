@@ -17,6 +17,25 @@ import os
 _split_streams = {}
 
 
+class WddmFlushPoint(torch.autograd.Function):
+    """F77b: identity whose forward and backward submit the WDDM software queue (stream query)."""
+
+    @staticmethod
+    def forward(ctx, x):
+        torch.cuda.current_stream(x.device).query()
+        return x.view_as(x)
+
+    @staticmethod
+    def backward(ctx, grad):
+        torch.cuda.current_stream(grad.device).query()
+        return grad
+
+
+@torch.jit.ignore
+def wddm_flush_point(x: torch.Tensor) -> torch.Tensor:
+    return WddmFlushPoint.apply(x)
+
+
 def wait_split_streams():
     """F49: join split backward work before reading or clearing parameter gradients."""
     parent = torch.cuda.current_stream()
@@ -123,6 +142,7 @@ class SrsRWKV(ModuleType):
         self.native_rows = False  # F65d
         self.native_rows_handle = 0
         self.skip_padding_sources = False  # F50: hierarchy padding contributes zero gradients.
+        self.wddm_flush_streams = False  # F77b: stream query at each hierarchy-stream boundary.
         self.batched_split_gather = False
         self.fused_padded_gather = False
         self.concurrent_split_limit = 0
@@ -345,6 +365,8 @@ class SrsRWKV(ModuleType):
                     y.append(module_out.view(-1, self.d_model))
 
                 x = torch.cat(y)
+            if self.wddm_flush_streams and x.requires_grad and x.is_cuda:
+                x = wddm_flush_point(x)
 
         x = x.view(batch_num_data, -1, self.d_model)
         return self.head_and_out(x)

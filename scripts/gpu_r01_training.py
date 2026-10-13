@@ -357,6 +357,11 @@ def run_case(args):
             if not options.get("deferred_reads") or not hasattr(base, "sync_free_loss"):
                 raise ValueError("F37 sync-free loss needs F33 deferred reads and the Expertium loss")
             base.sync_free_loss = True
+        if options.get("wddm_flush_streams"):
+            # F77b: identity flush points between hierarchy streams in forward and backward.
+            if not hasattr(base, "wddm_flush_streams"):
+                raise ValueError("F77b needs the Expertium stream loop")
+            base.wddm_flush_streams = True
         if options.get("skip_padding_sources"):
             if not options.get("exact_index") or not hasattr(base, "skip_padding_sources"):
                 raise ValueError("F50 requires Expertium exact row selection")
