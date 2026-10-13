@@ -2,9 +2,9 @@
 
 ## R01 GPU speedup dashboard
 
-**[Open the interactive dashboard](https://jschoreels.github.io/anki-rwkv/)** - Expertium training throughput went from **30,005 reviews/s** (original baseline) to **200,356 reviews/s** (accepted in iteration 0080), a **x6.68** speedup with bitwise-identical results.
+**[Open the interactive dashboard](https://jschoreels.github.io/anki-rwkv/campaign.html)** - Expertium training throughput went from **30,005 reviews/s** (original baseline) to **200,356 reviews/s** (accepted in iteration 0080), a **x6.68** speedup with bitwise-identical results.
 
-The dashboard plots the accepted throughput over every R01 iteration with each candidate optimisation coloured by decision, the cumulative speedup, and the replicated-block gains with lower confidence bounds. A milestone timeline explains what each major step changed (sort-free exact kernels, deferred host reads, native C++ launch path, core pinning, process QoS) and why it mattered. Regenerate the data with `scripts/build_r01_pages_data.py`; see [pages/README.md](pages/README.md).
+The dashboard plots the accepted throughput over every R01 iteration with each candidate optimisation coloured by decision, the cumulative speedup, and the replicated-block gains with lower confidence bounds. A milestone timeline explains what each major step changed (sort-free exact kernels, deferred host reads, native C++ launch path, core pinning, process QoS) and why it mattered. Regenerate the data with `scripts/build_r01_pages_data.py`; see [pages/README.md](pages/README.md). The [site home](https://jschoreels.github.io/anki-rwkv/) explains how RWKV reads a review history with interactive examples, and the [architecture page](https://jschoreels.github.io/anki-rwkv/models.html) compares the Alex and Expertium models block by block.
 
 R01 and GPU trial defaults now permit a 95% Torch GPU allocation budget. R01 uses a 2% measured speed-gain gate for exact update, weight, input and score parity, and a 5% target for other adaptations; [the ledger](docs/GPU_OPTIMIZATIONS.md) records the current accepted configuration and per-trial limits.
 

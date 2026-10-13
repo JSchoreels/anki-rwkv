@@ -3,18 +3,19 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>R01 GPU Speedup Campaign</title>
-<meta name="description" content="Interactive record of the R01 campaign that sped up RWKV spaced-repetition model training on a single GPU, with exact bitwise parity.">
+<title>anki-rwkv</title>
+<meta name="description" content="Home of anki-rwkv: interactive explanations of how the RWKV spaced-repetition model reads an Anki review history, plus links to the model architectures, the R01 GPU speed campaign and the 8k/2k training run.">
 <link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="explain.css">
 </head>
 <body>
 <header class="top">
   <div class="wrap">
     <div class="top-row">
       <div>
-        <p class="eyebrow">anki-rwkv &middot; R01 campaign &middot; <a href="train.html" style="color: inherit">8k/2k training run</a></p>
-        <h1>Making RWKV training <span id="h-speedup-title" class="accent">several times</span> faster, bit for bit</h1>
-        <p class="lede">Every iteration tests one optimisation against the last accepted configuration. A change only counts if the trained weights stay <strong>bitwise identical</strong> and throughput really improves.</p>
+        <p class="eyebrow">anki-rwkv &middot; <a href="models.html">model architectures</a> &middot; <a href="campaign.html">R01 campaign</a> &middot; <a href="train.html">8k/2k run</a></p>
+        <h1>Predicting memory with <span class="accent">RWKV</span></h1>
+        <p class="lede">RWKV is a recurrent network: it reads your Anki reviews one at a time and keeps a small, fixed-size memory for every card, note, deck, preset and you. From that memory it predicts how likely you are to remember a card after any delay. This page shows how, step by step.</p>
       </div>
       <button id="theme" class="btn" type="button" aria-label="Toggle light and dark theme">Theme</button>
     </div>
@@ -22,100 +23,106 @@
 </header>
 
 <main class="wrap">
-  <section class="cards" aria-label="Headline numbers">
-    <div class="card big">
-      <div class="k">Current accepted throughput</div>
-      <div class="v" id="c-rps">&ndash;</div>
-      <div class="s" id="c-rps-sub">reviews/s</div>
-    </div>
-    <div class="card">
-      <div class="k">Speedup vs original baseline</div>
-      <div class="v" id="c-x">&ndash;</div>
-      <div class="s" id="c-x-sub"></div>
-    </div>
-    <div class="card">
-      <div class="k">Iterations</div>
-      <div class="v" id="c-it">&ndash;</div>
-      <div class="s" id="c-it-sub"></div>
-    </div>
-    <div class="card">
-      <div class="k">Accepted improvements</div>
-      <div class="v" id="c-acc">&ndash;</div>
-      <div class="s" id="c-acc-sub"></div>
-    </div>
-  </section>
+  <nav class="hub" aria-label="Project pages">
+    <a class="card" href="models.html">
+      <h2>Model architectures</h2>
+      <p>Alex&rsquo;s default model and Expertium&rsquo;s compact model, block by block: the 92 input numbers, the five streams, where every parameter goes and how much memory each card needs.</p>
+      <div class="stat" id="hub-models">2.76M <small>vs</small> 193k <small>parameters</small></div>
+    </a>
+    <a class="card" href="campaign.html">
+      <h2>R01 speed campaign</h2>
+      <p>Every GPU optimisation tried to make training faster while keeping the trained weights bit-for-bit identical, with throughput charts and a milestone timeline.</p>
+      <div class="stat" id="hub-campaign">&ndash;</div>
+    </a>
+    <a class="card" href="train.html">
+      <h2>8k/2k training run</h2>
+      <p>Progress of the full run: training on 8,000 users, evaluating on 2,000 held-out users, epoch by epoch.</p>
+      <div class="stat" id="hub-train">&ndash;</div>
+    </a>
+  </nav>
 
-  <section class="panel">
+  <section class="panel" id="streams">
     <div class="panel-head">
-      <h2>Throughput over iterations</h2>
-      <p class="hint">Step line: accepted reference after each iteration. Dots: each candidate&rsquo;s full-run reviews/s, coloured by decision. Dashed markers are milestones; hover or tap anything for details.</p>
+      <h2>1. One history, five timelines</h2>
+      <p class="hint">A made-up user reviewing five cards over two weeks. Each square is one review, coloured by card, with the grade inside (A&nbsp;=&nbsp;Again, H&nbsp;=&nbsp;Hard, G&nbsp;=&nbsp;Good, E&nbsp;=&nbsp;Easy). Pick a stream to see which reviews it links together, then click a review.</p>
     </div>
-    <div class="legend" id="legend" role="group" aria-label="Filter decisions"></div>
-    <div class="chart tall"><canvas id="ch-rps" role="img" aria-label="Throughput over iterations"></canvas></div>
+    <div class="controls">
+      <div class="seg" id="stream-pick" role="group" aria-label="Stream"></div>
+      <label><input type="checkbox" id="show-q"> show query rows</label>
+    </div>
+    <div class="hist" id="hist"></div>
+    <div class="keys" id="card-keys"></div>
+    <div class="explain-box" id="stream-explain"></div>
   </section>
 
-  <section class="grid2">
-    <div class="panel">
-      <div class="panel-head">
-        <h2>Cumulative speedup</h2>
-        <p class="hint">Accepted reference divided by the original no-prefetch baseline.</p>
-      </div>
-      <div class="chart"><canvas id="ch-x" role="img" aria-label="Cumulative speedup versus baseline"></canvas></div>
-    </div>
-    <div class="panel">
-      <div class="panel-head">
-        <h2>Replicated-block gains</h2>
-        <p class="hint">Bars: mean per-update gain from interleaved reference/candidate blocks. Markers: one-sided lower confidence bound. Promotion needs a positive lower bound.</p>
-      </div>
-      <div class="chart"><canvas id="ch-b" role="img" aria-label="Replicated block gains with lower bounds"></canvas></div>
-    </div>
-  </section>
-
-  <section class="panel">
+  <section class="panel" id="wkv">
     <div class="panel-head">
-      <h2>Milestones</h2>
-      <p class="hint">What changed and why it mattered. Curated milestones by default; pick decisions to list every matching iteration. Colours match the chart above.</p>
+      <h2>2. The memory: a small matrix that learns while it reads</h2>
+      <p class="hint">Inside each stream, every head keeps a state matrix <strong>S</strong>. Each review writes a <em>value</em> at a <em>key</em>; a later read with that key gets the value back. This toy uses 4&times;4 instead of 32&times;32 and four slightly overlapping keys, one per card.</p>
     </div>
-    <div class="legend" id="tl-filter" role="group" aria-label="Filter timeline"></div>
-    <ol class="timeline" id="timeline"></ol>
+    <div class="wkv">
+      <div>
+        <div class="controls">
+          <button class="btn" type="button" id="wkv-step">Step</button>
+          <button class="btn" type="button" id="wkv-play">Play</button>
+          <button class="btn" type="button" id="wkv-reset">Reset</button>
+          <div class="seg" id="wkv-rule" role="group" aria-label="Update rule">
+            <button type="button" data-rule="delta" aria-pressed="true">RWKV-7 delta rule</button>
+            <button type="button" data-rule="add" aria-pressed="false">add only</button>
+          </div>
+        </div>
+        <div class="controls">
+          <label>decay w <input type="range" id="wkv-w" min="0.5" max="1" step="0.01" value="0.97"><output id="wkv-w-o"></output></label>
+          <label>in-context rate a <input type="range" id="wkv-a" min="0" max="1" step="0.05" value="1"><output id="wkv-a-o"></output></label>
+        </div>
+        <div class="seq" id="wkv-seq" aria-live="polite"></div>
+        <div class="formula" id="wkv-formula"></div>
+        <div class="explain-box" id="wkv-explain"></div>
+      </div>
+      <div>
+        <h3 style="margin-top:0">State S <span class="muted" style="font-weight:400">(rows: value dims, columns: key dims)</span></h3>
+        <div class="statem" id="wkv-state"></div>
+        <h3>Reading each card&rsquo;s key back</h3>
+        <p class="hint">Bars: what S returns for that key. Black ticks: the last value written for it. Right: the error.</p>
+        <div class="readout" id="wkv-read"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel" id="curve">
+    <div class="panel-head">
+      <h2>3. From memory to a forgetting curve</h2>
+      <p class="hint">The output head does not predict one number. It outputs weights over many basis curves, each an exponential decay <code>0.9<sup>t / s</sup></code> with its own stability <code>s</code>, and adds a learned correction. Drag the bars to set weights (they are normalised to sum to 1), or try a preset. Hover the chart to read a probability.</p>
+    </div>
+    <div class="curvebox">
+      <div>
+        <div class="presets" id="curve-presets"></div>
+        <svg id="curve-w" viewBox="0 0 360 230" role="img" aria-label="Weights of each basis curve"></svg>
+      </div>
+      <div>
+        <svg id="curve-plot" viewBox="0 0 560 300" role="img" aria-label="Predicted probability of recall over time"></svg>
+        <p class="hint" id="curve-read">&nbsp;</p>
+      </div>
+    </div>
+    <div class="explain-box">Mixing fast and slow curves gives a long tail that a single exponential cannot: a card can be partly forgotten within a day yet keep a stable core for months. The real models use 128 (Alex) or 64 (Expertium) basis curves from 0.1&nbsp;s to about 100 years, plus a <em>correction</em> head sampled at the same number of time points. A separate <em>Instant</em> head predicts the four grades for the review that is about to happen.</div>
   </section>
 
   <section class="panel prose">
-    <h2>How to read this</h2>
+    <h2>Putting it together</h2>
     <ul>
-      <li><strong>Reviews/s</strong> is training throughput on a fixed cohort of 80 users (7,654,975 review presentations), including data loading, worker start-up, transfers and updates. Model: Expertium (light). The original Alex/default model was only measured in early iterations and is not plotted.</li>
-      <li><strong>Exact parity gate.</strong> A candidate must reproduce the accepted run&rsquo;s four loss values, every update, gradient norms and final weights bit for bit. Faster-but-different variants are kept separately (&ldquo;fastmode&rdquo;) and never become the reference.</li>
-      <li><strong>Machine-state noise.</strong> Identical single runs differ by roughly 5&ndash;10% depending on GPU clocks, background load and Windows scheduling, so a single full run can go <em>down</em> even when a change helps. That is why the accepted line is not monotonic (for example, around 0072).</li>
-      <li><strong>Replicated blocks.</strong> From iteration 0048 onward, candidates are measured in interleaved reference/candidate blocks. A block records the per-update gain; the campaign promotes only when the lower confidence bound is positive, marks a <em>stack candidate</em> when the mean is promising but not proven, <em>extends</em> with more blocks when undecided, and rejects otherwise.</li>
-      <li><strong>Decisions.</strong> &ldquo;Accepted&rdquo; becomes the new reference; everything else is kept only as an optional component or discarded.</li>
+      <li><strong>Inputs.</strong> Each review becomes 92 numbers: intervals, the grade, the answer time, today&rsquo;s workload, calendar cycles and random ID tags. See the <a href="models.html">architecture page</a>.</li>
+      <li><strong>Streams.</strong> The encoded review passes through the card stream, then deck, note, preset and user streams. Each stream is a stack of RWKV-7 layers whose memory is shared only among reviews with the same ID.</li>
+      <li><strong>Two questions per review.</strong> A <em>query</em> copy with the grade hidden predicts the grade (Instant), and is not allowed to write to memory. The real review then writes to memory and predicts recall at the next review&rsquo;s delay (Curve).</li>
+      <li><strong>Training.</strong> All of this runs in parallel on the GPU over thousands of users&rsquo; histories. The <a href="campaign.html">R01 campaign</a> made that training several times faster without changing a single bit of the result.</li>
     </ul>
-    <p class="muted" id="gen"></p>
-  </section>
-
-  <section class="panel">
-    <div class="panel-head row">
-      <h2>All iterations</h2>
-      <label class="sel">Show
-        <select id="filter">
-          <option value="all">all</option>
-        </select>
-      </label>
-    </div>
-    <div class="table-wrap">
-      <table id="tbl">
-        <thead><tr><th>Iter</th><th>Track</th><th class="r">Reviews/s</th><th class="r">&times; baseline</th><th>Decision</th><th class="r">Block mean</th><th class="r">Lower bound</th></tr></thead>
-        <tbody></tbody>
-      </table>
-    </div>
   </section>
 </main>
 
 <footer class="wrap foot">
-  Data generated by <code>scripts/build_r01_pages_data.py</code> from the run log and per-iteration comparison records.
+  Source: <a href="https://github.com/JSchoreels/anki-rwkv">github.com/JSchoreels/anki-rwkv</a>. The toy examples on this page are illustrations; the real model sizes are on the <a href="models.html">architecture page</a>.
 </footer>
-
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1/dist/chartjs-plugin-annotation.min.js"></script>
-<script src="app.js"></script>
+<div class="tip" id="tip" role="tooltip"></div>
+<script src="common.js"></script>
+<script src="home.js"></script>
 </body>
 </html>

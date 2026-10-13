@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>R01 GPU Speedup Campaign</title>
+<meta name="description" content="Interactive record of the R01 campaign that sped up RWKV spaced-repetition model training on a single GPU, with exact bitwise parity.">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <div class="top-row">
+      <div>
+        <p class="eyebrow"><a href="./" style="color: inherit">anki-rwkv</a> &middot; R01 campaign &middot; <a href="models.html" style="color: inherit">model architectures</a> &middot; <a href="train.html" style="color: inherit">8k/2k training run</a></p>
+        <h1>Making RWKV training <span id="h-speedup-title" class="accent">several times</span> faster, bit for bit</h1>
+        <p class="lede">Every iteration tests one optimisation against the last accepted configuration. A change only counts if the trained weights stay <strong>bitwise identical</strong> and throughput really improves.</p>
+      </div>
+      <button id="theme" class="btn" type="button" aria-label="Toggle light and dark theme">Theme</button>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="cards" aria-label="Headline numbers">
+    <div class="card big">
+      <div class="k">Current accepted throughput</div>
+      <div class="v" id="c-rps">&ndash;</div>
+      <div class="s" id="c-rps-sub">reviews/s</div>
+    </div>
+    <div class="card">
+      <div class="k">Speedup vs original baseline</div>
+      <div class="v" id="c-x">&ndash;</div>
+      <div class="s" id="c-x-sub"></div>
+    </div>
+    <div class="card">
+      <div class="k">Iterations</div>
+      <div class="v" id="c-it">&ndash;</div>
+      <div class="s" id="c-it-sub"></div>
+    </div>
+    <div class="card">
+      <div class="k">Accepted improvements</div>
+      <div class="v" id="c-acc">&ndash;</div>
+      <div class="s" id="c-acc-sub"></div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head">
+      <h2>Throughput over iterations</h2>
+      <p class="hint">Step line: accepted reference after each iteration. Dots: each candidate&rsquo;s full-run reviews/s, coloured by decision. Dashed markers are milestones; hover or tap anything for details.</p>
+    </div>
+    <div class="legend" id="legend" role="group" aria-label="Filter decisions"></div>
+    <div class="chart tall"><canvas id="ch-rps" role="img" aria-label="Throughput over iterations"></canvas></div>
+  </section>
+
+  <section class="grid2">
+    <div class="panel">
+      <div class="panel-head">
+        <h2>Cumulative speedup</h2>
+        <p class="hint">Accepted reference divided by the original no-prefetch baseline.</p>
+      </div>
+      <div class="chart"><canvas id="ch-x" role="img" aria-label="Cumulative speedup versus baseline"></canvas></div>
+    </div>
+    <div class="panel">
+      <div class="panel-head">
+        <h2>Replicated-block gains</h2>
+        <p class="hint">Bars: mean per-update gain from interleaved reference/candidate blocks. Markers: one-sided lower confidence bound. Promotion needs a positive lower bound.</p>
+      </div>
+      <div class="chart"><canvas id="ch-b" role="img" aria-label="Replicated block gains with lower bounds"></canvas></div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head">
+      <h2>Milestones</h2>
+      <p class="hint">What changed and why it mattered. Curated milestones by default; pick decisions to list every matching iteration. Colours match the chart above.</p>
+    </div>
+    <div class="legend" id="tl-filter" role="group" aria-label="Filter timeline"></div>
+    <ol class="timeline" id="timeline"></ol>
+  </section>
+
+  <section class="panel prose">
+    <h2>How to read this</h2>
+    <ul>
+      <li><strong>Reviews/s</strong> is training throughput on a fixed cohort of 80 users (7,654,975 review presentations), including data loading, worker start-up, transfers and updates. Model: Expertium (light). The original Alex/default model was only measured in early iterations and is not plotted.</li>
+      <li><strong>Exact parity gate.</strong> A candidate must reproduce the accepted run&rsquo;s four loss values, every update, gradient norms and final weights bit for bit. Faster-but-different variants are kept separately (&ldquo;fastmode&rdquo;) and never become the reference.</li>
+      <li><strong>Machine-state noise.</strong> Identical single runs differ by roughly 5&ndash;10% depending on GPU clocks, background load and Windows scheduling, so a single full run can go <em>down</em> even when a change helps. That is why the accepted line is not monotonic (for example, around 0072).</li>
+      <li><strong>Replicated blocks.</strong> From iteration 0048 onward, candidates are measured in interleaved reference/candidate blocks. A block records the per-update gain; the campaign promotes only when the lower confidence bound is positive, marks a <em>stack candidate</em> when the mean is promising but not proven, <em>extends</em> with more blocks when undecided, and rejects otherwise.</li>
+      <li><strong>Decisions.</strong> &ldquo;Accepted&rdquo; becomes the new reference; everything else is kept only as an optional component or discarded.</li>
+    </ul>
+    <p class="muted" id="gen"></p>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head row">
+      <h2>All iterations</h2>
+      <label class="sel">Show
+        <select id="filter">
+          <option value="all">all</option>
+        </select>
+      </label>
+    </div>
+    <div class="table-wrap">
+      <table id="tbl">
+        <thead><tr><th>Iter</th><th>Track</th><th class="r">Reviews/s</th><th class="r">&times; baseline</th><th>Decision</th><th class="r">Block mean</th><th class="r">Lower bound</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
+</main>
+
+<footer class="wrap foot">
+  Data generated by <code>scripts/build_r01_pages_data.py</code> from the run log and per-iteration comparison records.
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1/dist/chartjs-plugin-annotation.min.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

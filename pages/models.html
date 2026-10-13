@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Model Architectures</title>
+<meta name="description" content="Visual comparison of the two RWKV spaced-repetition models in anki-rwkv: Alex's default 2.76M-parameter model and Expertium's 193k-parameter iter36 model, from the 92 input features to the forgetting-curve heads.">
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="explain.css">
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <div class="top-row">
+      <div>
+        <p class="eyebrow"><a href="./">anki-rwkv</a> &middot; model architectures &middot; <a href="campaign.html">R01 campaign</a> &middot; <a href="train.html">8k/2k run</a></p>
+        <h1>Two RWKV models, <span class="accent">same inputs</span>, very different budgets</h1>
+        <p class="lede">Both models read the same 92 numbers per review and pass them through the same five streams: card, deck, note, preset and user. Alex's default model is wide (128 channels, 4 heads). Expertium's iter36 model is narrow (32 channels, 1 head) and keeps only 4.25&nbsp;KiB of memory per card.</p>
+      </div>
+      <button id="theme" class="btn" type="button" aria-label="Toggle light and dark theme">Theme</button>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="cards compact" aria-label="Headline comparison">
+    <div class="card big"><div class="k">Parameters</div><div class="v" id="h-params">&ndash;</div><div class="s" id="h-params-sub"></div></div>
+    <div class="card"><div class="k">Hidden width &times; heads</div><div class="v" id="h-width">&ndash;</div><div class="s">channels &times; heads (32 channels per head)</div></div>
+    <div class="card"><div class="k">RWKV layers</div><div class="v" id="h-layers">&ndash;</div><div class="s" id="h-layers-sub"></div></div>
+    <div class="card"><div class="k">Memory per card</div><div class="v" id="h-mem">&ndash;</div><div class="s">card-stream state, fp32</div></div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head">
+      <h2>The 92 numbers each review becomes</h2>
+      <p class="hint">One square per input number, in the order the model receives them. Both models use exactly this vector. Striped squares are blanked on the <em>query</em> copy of a review, the row that has to predict the grade without seeing it. Hover a square or a group.</p>
+    </div>
+    <div class="fstrip" id="fstrip" role="img" aria-label="92 input features coloured by group"></div>
+    <div class="fgroups" id="fgroups"></div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head">
+      <h2>From review to prediction</h2>
+      <p class="hint">Data flows top to bottom. Each stream re-sorts the reviews by its own ID, so the card stream only sees one card's history while the user stream sees every review. Bars are drawn to scale: bar width is the hidden width, segments are heads, the thinner bar under each layer is its feed-forward (channel-mixer) width.</p>
+    </div>
+    <div class="pipe" id="pipe" style="--cols:2"></div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head">
+      <h2>Where the parameters go</h2>
+      <p class="hint">Each square is 4,000 parameters, coloured by component, on the same scale for both models. Hover a legend entry to highlight it.</p>
+    </div>
+    <div class="keys" id="pkeys"></div>
+    <div class="cmp">
+      <div><div class="sbar-label">Alex (default) <span id="w-alex-n"></span></div><div class="waffle" id="w-alex" style="--wcols:40"></div></div>
+      <div><div class="sbar-label">Expertium iter36 <span id="w-exp-n"></span></div><div class="waffle" id="w-exp" style="--wcols:40"></div><p class="wcap" id="w-exp-cap"></p></div>
+    </div>
+    <h3>Share of each model's own budget</h3>
+    <div id="shares"></div>
+    <div class="table-wrap"><table class="plain" id="ptable"></table></div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head row">
+      <div>
+        <h2>Inside one RWKV layer</h2>
+        <p class="hint">How a single layer splits its parameters. 100 squares = the whole layer (so the two grids are not to the same scale; the totals are). The four mixing matrices grow with width squared, so narrowing from 128 to 32 channels shrinks them 16&times;.</p>
+      </div>
+      <div class="seg" id="layer-stream" role="group" aria-label="Pick a stream"></div>
+    </div>
+    <div class="keys" id="lkeys"></div>
+    <div class="cmp">
+      <div><div class="sbar-label">Alex <span id="l-alex-n"></span></div><div class="waffle" id="l-alex" style="--wcols:10; max-width: 260px"></div></div>
+      <div><div class="sbar-label">Expertium <span id="l-exp-n"></span></div><div class="waffle" id="l-exp" style="--wcols:10; max-width: 260px"></div></div>
+    </div>
+    <ul class="hint" style="padding-left: 18px; margin-top: 12px">
+      <li><strong>R, K, V, O</strong>: receptance (what to read), key (where to write), value (what to write) and output projections of the time mixer.</li>
+      <li><strong>Decay LoRA</strong> sets how fast each channel of the memory fades; <strong>in-context rate LoRA</strong> sets how strongly a new review overwrites what the memory already holds at that key.</li>
+      <li><strong>Gate LoRA</strong> scales the output; <strong>value-residual LoRA</strong> mixes in the first layer's value so deep layers keep a direct path to the input.</li>
+      <li><strong>Channel mixer</strong> is a small squared-ReLU feed-forward network, applied after each time mixer.</li>
+    </ul>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head">
+      <h2>What has to be remembered</h2>
+      <p class="hint">At inference time every card, deck, note, preset and user carries its own recurrent state. Each small grid is one 32&times;32 state matrix (one head in one layer); per layer the model also keeps two token-shift vectors as wide as the hidden layer. Sizes are fp32.</p>
+    </div>
+    <div class="cmp">
+      <div><h3>Alex</h3><div id="mem-alex"></div></div>
+      <div><h3>Expertium</h3><div id="mem-exp"></div></div>
+    </div>
+    <h3>Hidden vector between layers</h3>
+    <p class="hint">One square per channel, coloured by head.</p>
+    <div class="sbar-label">Alex: 128 channels, 4 heads</div><div class="vec" id="vec-alex"></div>
+    <div class="sbar-label">Expertium: 32 channels, 1 head</div><div class="vec" id="vec-exp"></div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head">
+      <h2>The output heads</h2>
+      <p class="hint"><strong>Curve</strong> mixes basis forgetting curves, each with its own stability, then adds a learned correction sampled at fixed time points. <strong>Instant</strong> predicts the four grades. Each tick below is one basis curve's stability (time to fall to 90%) or one correction point, on a log time axis.</p>
+    </div>
+    <div class="sbar-label">Alex: <span id="rug-alex-n"></span></div>
+    <div class="rug" id="rug-alex-s"></div>
+    <div class="rug" id="rug-alex-p"></div>
+    <div class="sbar-label">Expertium: <span id="rug-exp-n"></span></div>
+    <div class="rug" id="rug-exp-s"></div>
+    <div class="rug" id="rug-exp-p"></div>
+    <div class="keys"><span><i style="background:var(--s1)"></i>basis-curve stability</span><span><i style="background:var(--s2)"></i>correction point</span></div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head"><h2>Side by side</h2></div>
+    <div class="table-wrap"><table class="plain" id="ctable"></table></div>
+    <p class="muted">Sources: <code>rwkv/architecture.py</code>, <code>expertium/architecture.py</code>, <code>rwkv/model/srs_model.py</code>, <code>rwkv/model/rwkv_model.py</code>, <code>rwkv/data_processing.py</code>, <code>rwkv/prepare_batch.py</code> and <code>rwkv/config.py</code>. Parameter counts are computed in the page from the configurations and match the totals in the repository README.</p>
+  </section>
+</main>
+
+<footer class="wrap foot">
+  <a href="./">How RWKV works</a> &middot; <a href="campaign.html">R01 speed campaign</a> &middot; <a href="train.html">8k/2k training run</a>
+</footer>
+<div class="tip" id="tip" role="tooltip"></div>
+<script src="common.js"></script>
+<script src="models.js"></script>
+</body>
+</html>

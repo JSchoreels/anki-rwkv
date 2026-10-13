@@ -1,7 +1,13 @@
 # R01 GitHub Pages site
 
-Static site (no build step) visualising the R01 GPU training-speed campaign. Charts use Chart.js and
-chartjs-plugin-annotation, loaded from jsDelivr at pinned versions.
+Static site (no build step). Pages:
+
+- `index.html` (+ `home.js`): hub with links to the other pages and three interactive RWKV explainers (the five streams, the delta-rule state matrix, the forgetting-curve mixture). Toy data only.
+- `models.html` (+ `models.js`): Alex (default) vs Expertium iter36 architecture: the 92 input features, the stream stacks, parameter waffles, per-layer split, recurrent state sizes and output heads. Counts are computed from configurations in `models.js` that mirror `rwkv/architecture.py` and `expertium/architecture.py`; update them there if an architecture changes.
+- `campaign.html` (+ `app.js`): the R01 GPU training-speed campaign. Charts use Chart.js and chartjs-plugin-annotation, loaded from jsDelivr at pinned versions.
+- `train.html` (+ `train.js`): 8k/2k training-run progress.
+
+`style.css` holds the shared theme tokens; `explain.css` and `common.js` are shared by the hub and the models page.
 
 ## Regenerate the data
 
@@ -22,7 +28,7 @@ list inside the script.
 cd pages && python -m http.server 8000
 ```
 
-then open http://localhost:8000/ (the page fetches `data/r01.json`, so `file://` will not work).
+then open http://localhost:8000/ (pages fetch `data/*.json`, so `file://` will not work).
 
 ## Publish
 
