@@ -132,17 +132,24 @@
     $('updated').textContent = time(d.updated_utc);
   }
 
-  fetch('data/train-8k.json', { cache: 'no-store' })
-    .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
-    .then(base => {
-      if (base.mock) {
-        $('mock-bar').hidden = false;
-        const sel = $('demo');
-        const go = () => render(demoState(base, sel.value));
-        sel.addEventListener('change', go); go();
-      } else {
-        render(base);
-      }
-    })
-    .catch(err => { $('rows').textContent = `Could not load data/train-8k.json: ${err.message}`; });
+  // The run commits a fresh progress file every half hour, so an open tab re-fetches it
+  // every few minutes and whenever it comes back into view, instead of only at page load.
+  const sel = $('demo');
+  let latest = null;
+  sel.addEventListener('change', () => { if (latest && latest.mock) render(demoState(latest, sel.value)); });
+
+  function load() {
+    fetch('data/train-8k.json', { cache: 'no-store' })
+      .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
+      .then(base => {
+        latest = base;
+        $('mock-bar').hidden = !base.mock;
+        render(base.mock ? demoState(base, sel.value) : base);
+      })
+      .catch(err => { if (!latest) $('rows').textContent = `Could not load data/train-8k.json: ${err.message}`; });
+  }
+
+  load();
+  setInterval(() => { if (!document.hidden) load(); }, 5 * 60 * 1000);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) load(); });
 })();
