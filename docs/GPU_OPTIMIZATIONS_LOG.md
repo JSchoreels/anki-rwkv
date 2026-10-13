@@ -916,3 +916,31 @@ Implementation commit after experiments: `dab8feead8d278233f1972bd24683903a239ae
 Implementation commit after experiments: `dab8feead8d278233f1972bd24683903a239aea7`. Tested revision remains `69fca82591a648c3539d8c71fbb1729b7ef00e64` with per-process source snapshots in the linked raw results and iteration record; [commit record](../artifacts/retraining/gpu-retrain-r01/iteration-0068/implementation-commit.json).
 
 <!-- r01-0068:end -->
+
+<!-- r01-0069:start -->
+## R01 iteration 0069
+
+[Iteration record](../artifacts/retraining/gpu-retrain-r01/iteration-0069/summary.md)
+
+| Training start (UTC) | Trial commit | Model | Improvement IDs | What was tried | Training users reached | Training reviews | Training seconds | Reviews/s | Speed Δ vs previous | Speed Δ vs baseline | Instant User | Instant User Δ vs previous | Instant User Δ vs baseline | Instant Weighted | Instant Weighted Δ vs previous | Instant Weighted Δ vs baseline | Curve User | Curve User Δ vs previous | Curve User Δ vs baseline | Curve Weighted | Curve Weighted Δ vs previous | Curve Weighted Δ vs baseline | Raw result | Notes |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 2026-10-13T05:36:14.464655+00:00 | `ccca98c8906717fd54f39baf9a38edb5f6936592` | Expertium (light) | E33, F48, F50, F34f | Replace reconstructed autograd lerp/gather backward with explicit original derivative operations and original reductions; skip singleton reductions to preserve signed zeros. | 2 | 1,024 | 0.848 | 1,207 | — | — | 0.433909490 | — | — | 0.421975411 | — | — | 0.423755109 | — | — | 0.416540190 | — | — | [result](../artifacts/retraining/gpu-retrain-r01/iteration-0069/functional-smoke-v1/expertium/E33-F48-F50-F34f/result.json) | Infrastructure check; excluded from comparisons. Declared schedule change: 512-chunk batches, 2 updates. |
+| 2026-10-13T05:36:46.393457+00:00 | `ccca98c8906717fd54f39baf9a38edb5f6936592` | Expertium (light) | E33, F48, F50, F34f | Replace reconstructed autograd lerp/gather backward with explicit original derivative operations and original reductions; skip singleton reductions to preserve signed zeros. | 80 | 7,654,975 | 45.460 | 168,390 | -14.74% | +461.20% | 0.382592464 | +0.00% | -0.99% | 0.398428596 | +0.00% | -0.76% | 0.370387972 | +0.00% | -4.48% | 0.387472684 | +0.00% | -3.25% | [result](../artifacts/retraining/gpu-retrain-r01/iteration-0069/expertium/E33-F48-F50-F34f/result.json) | Declared schedule change: 512-chunk batches, 167 updates. |
+
+Implementation commit after experiments: `a9ed12390b5d49edc17367726cdf3bb9ab64aa5a`. Tested revision remains `ccca98c8906717fd54f39baf9a38edb5f6936592` with per-process source snapshots in the linked raw results and iteration record; [commit record](../artifacts/retraining/gpu-retrain-r01/iteration-0069/implementation-commit.json).
+
+<!-- r01-0069:end -->
+
+<!-- r01-0070:start -->
+## R01 iteration 0070
+
+[Iteration record](../artifacts/retraining/gpu-retrain-r01/iteration-0070/summary.md)
+
+| Training start (UTC) | Trial commit | Model | Improvement IDs | What was tried | Training users reached | Training reviews | Training seconds | Reviews/s | Speed Δ vs previous | Speed Δ vs baseline | Instant User | Instant User Δ vs previous | Instant User Δ vs baseline | Instant Weighted | Instant Weighted Δ vs previous | Instant Weighted Δ vs baseline | Curve User | Curve User Δ vs previous | Curve User Δ vs baseline | Curve Weighted | Curve Weighted Δ vs previous | Curve Weighted Δ vs baseline | Raw result | Notes |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 2026-10-13T05:48:01.267318+00:00 | `fd3129c29801cd3ca43fc7790b28a9ee4d934174` | Expertium (light) | E33, F48, F50, F34g | Fuse shift gather and three lerp derivative elementwise outputs into one kernel, rounding complement/difference/products at original dtype boundaries and preserving original PyTorch reductions and deterministic scatter/add. | 2 | 1,024 | 0.754 | 1,359 | — | — | 0.433909490 | — | — | 0.421975411 | — | — | 0.423755109 | — | — | 0.416540190 | — | — | [result](../artifacts/retraining/gpu-retrain-r01/iteration-0070/functional-smoke-v1/expertium/E33-F48-F50-F34g/result.json) | Infrastructure check; excluded from comparisons. Declared schedule change: 512-chunk batches, 2 updates. |
+| 2026-10-13T05:48:33.215349+00:00 | `fd3129c29801cd3ca43fc7790b28a9ee4d934174` | Expertium (light) | E33, F48, F50, F34g | Fuse shift gather and three lerp derivative elementwise outputs into one kernel, rounding complement/difference/products at original dtype boundaries and preserving original PyTorch reductions and deterministic scatter/add. | 80 | 7,654,975 | 45.496 | 168,257 | -14.81% | +460.76% | 0.382592464 | +0.00% | -0.99% | 0.398428596 | +0.00% | -0.76% | 0.370387972 | +0.00% | -4.48% | 0.387472684 | +0.00% | -3.25% | [result](../artifacts/retraining/gpu-retrain-r01/iteration-0070/expertium/E33-F48-F50-F34g/result.json) | Declared schedule change: 512-chunk batches, 167 updates. |
+
+Implementation commit after experiments: `a9ed12390b5d49edc17367726cdf3bb9ab64aa5a`. Tested revision remains `fd3129c29801cd3ca43fc7790b28a9ee4d934174` with per-process source snapshots in the linked raw results and iteration record; [commit record](../artifacts/retraining/gpu-retrain-r01/iteration-0070/implementation-commit.json).
+
+<!-- r01-0070:end -->

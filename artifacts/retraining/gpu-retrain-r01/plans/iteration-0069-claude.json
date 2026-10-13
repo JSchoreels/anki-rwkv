@@ -1,0 +1,92 @@
+{
+  "models": [
+    "expertium"
+  ],
+  "model_scope_reason": "Continuation of the Expertium-only R01 work; Alex remains paused by earlier human request.",
+  "control_tracks": {
+    "expertium": "E33-F48-F50"
+  },
+  "candidate_tracks": {
+    "expertium": "E33-F48-F50-F34f"
+  },
+  "case_options_by_model": {
+    "expertium": {
+      "E33-F48-F50": {
+        "prefetch_users": true,
+        "preparation_workers": 6,
+        "gpu_packed_features": true,
+        "packed_ipc": true,
+        "async_transfer": true,
+        "batched_id_encodings": true,
+        "grouped_sync": true,
+        "main_threads": 1,
+        "bulk_transfer": true,
+        "parallel_evaluation": true,
+        "exact_shift": true,
+        "exact_index": true,
+        "batch_chunks": 512,
+        "gpu_memory_fraction": 0.95,
+        "fast_samples": true,
+        "prestart_pool": true,
+        "row_tiles_exact": 4,
+        "exact_group_norm": true,
+        "deferred_reads": true,
+        "shared_shift_orders": true,
+        "stream_launches": true,
+        "prefetch_rows": true,
+        "sync_free_loss": true,
+        "columnar_samples": true,
+        "skip_uninitialized_fill": true,
+        "skip_padding_sources": true
+      },
+      "E33-F48-F50-F34f": {
+        "prefetch_users": true,
+        "preparation_workers": 6,
+        "gpu_packed_features": true,
+        "packed_ipc": true,
+        "async_transfer": true,
+        "batched_id_encodings": true,
+        "grouped_sync": true,
+        "main_threads": 1,
+        "bulk_transfer": true,
+        "parallel_evaluation": true,
+        "exact_shift": true,
+        "exact_index": true,
+        "batch_chunks": 512,
+        "gpu_memory_fraction": 0.95,
+        "fast_samples": true,
+        "prestart_pool": true,
+        "row_tiles_exact": 4,
+        "exact_group_norm": true,
+        "deferred_reads": true,
+        "shared_shift_orders": true,
+        "stream_launches": true,
+        "prefetch_rows": true,
+        "sync_free_loss": true,
+        "columnar_samples": true,
+        "skip_uninitialized_fill": true,
+        "skip_padding_sources": true,
+        "explicit_shift_lerp": true
+      }
+    }
+  },
+  "case_explanations": {
+    "expertium": {
+      "E33-F48-F50": "Combine F48 with an exact row-selection backward that excludes zero hierarchy padding sources while preserving sequential real-source order and the unchanged clamped forward.",
+      "E33-F48-F50-F34f": "Replace reconstructed autograd lerp/gather backward with explicit original derivative operations and original reductions; skip singleton reductions to preserve signed zeros."
+    }
+  },
+  "selection_evidence": "16 repaired FP32/BF16 synthetic cases and five real loss/every-gradient batches exact; failed singleton prerequisite retained. Removes backward graph construction, not an identical replay of F34e.",
+  "prerequisite_checks": [
+    {
+      "path": "artifacts/diagnostics/r01-round-0069-0070/f34f-synthetic-repaired/result.json",
+      "sha256": "b2cb47201c09b7b1f1f3483014753f12ac1fe78cc06763df77835635626ce614",
+      "status": "passed, source compatible; runtime compatibility must also be reviewed"
+    },
+    {
+      "path": "artifacts/diagnostics/r01-round-0069-0070/f34f-real/result.json",
+      "sha256": "10ed629b90e09104ac94da456c90959205e28c07257737024cfa677b75b5dfe1",
+      "status": "passed, source compatible; runtime compatibility must also be reviewed"
+    }
+  ]
+}
