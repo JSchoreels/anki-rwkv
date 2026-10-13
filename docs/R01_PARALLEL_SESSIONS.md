@@ -7,7 +7,7 @@ Several agent sessions may work in this same checkout at once (no worktrees: dat
 | Session | Work | Owns (may edit freely) |
 |---|---|---|
 | `r01-turnaround` | P-F (F74): shortest possible iterations by reusing stored results (evaluation reuse, result store, merged full run), plus P-D variant cap and GPU-time accounting; measurement-design changes stay opt-in until approved | `scripts/r01_iterate.py`, `scripts/r01_replicates.py`, `scripts/r01_replicate_stats.py`, `scripts/r01_close_round.py`, `scripts/r01_paired_timing.py`, `scripts/r01_metrics.py`, `scripts/r01_preflight.py`, `scripts/r01_evaluation_reuse.py`, new `scripts/r01_result_store.py`, their `scripts/check_r01_*` tests, `artifacts/retraining/gpu-retrain-r01/result-store/`, `artifacts/diagnostics/r01-turnaround-*` |
-| `r01-harness` | P-A exploration-lane records and P-B multi-seed non-inferiority tooling; every new rule is opt-in and inactive until the human approves it | new `scripts/r01_seed_gate.py` and `scripts/r01_exploration.py`, their `scripts/check_r01_*` tests, `docs/GPU_RETRAIN_LOOP.md`, `artifacts/retraining/gpu-retrain-r01/exploration/`, `artifacts/diagnostics/r01-harness-*` |
+| `r01-harness` | P-A exploration-lane records and P-B multi-seed non-inferiority tooling; every new rule is opt-in and inactive until the human approves it | new `scripts/r01_seed_gate.py` and `scripts/r01_exploration.py`, their `scripts/check_r01_*` tests, `artifacts/retraining/gpu-retrain-r01/exploration/`, `artifacts/diagnostics/r01-harness-*` |
 | `r01-structural` (F05 part) | P-C: F05 CUDA Graphs on the R01 path, exactness checks and a ready-to-run candidate | `scripts/gpu_shape_buckets.py`, `scripts/check_gpu_shape_buckets.py`, `scripts/check_gpu_bucket_admission.py`, new `scripts/gpu_r01_graphs.py` and `scripts/check_r01_cuda_graphs.py`, `artifacts/diagnostics/r01-f05-*` |
 | `r01-structural` (F69 part) | F69: chunked (parallel-scan) WKV7 recurrence prototype, numerical-difference and microbenchmark evidence | new `rwkv/model/chunked_wkv*.py`, new `scripts/kernels/*chunked*`, new `scripts/check_r01_chunked_wkv.py` and `scripts/bench_r01_chunked_wkv.py`, `artifacts/diagnostics/r01-f69-*` |
 
@@ -19,7 +19,7 @@ Claims are atomic directories managed by `scripts/r01_claim.py`; `status` shows 
 
 | Claim | Covers |
 |---|---|
-| `training-source` | Every file in `R01SourceWatch` in `scripts/run_gpu_r01.py` (including `scripts/gpu_r01_training.py`, `scripts/gpu_r01_prefetch.py` and its option allowlist, `scripts/gpu_r01_policy.py`, `scripts/gpu_optimizations.py`, `scripts/run_gpu_r01.py` itself), `scripts/report_gpu_r01_next.py` (`describe()` names), `scripts/check_gpu_r01_policy.py` |
+| `training-source` | Every file in `R01SourceWatch` in `scripts/run_gpu_r01.py` (including `scripts/gpu_r01_training.py`, `scripts/gpu_r01_prefetch.py` and its option allowlist, `scripts/gpu_r01_policy.py`, `scripts/gpu_optimizations.py`, `scripts/run_gpu_r01.py` itself), `scripts/report_gpu_r01_next.py` (`describe()` names), `scripts/check_gpu_r01_policy.py`, and `docs/GPU_RETRAIN_LOOP.md` (the runners' live LOOP guard reads it, so any uncommitted edit there blocks launches) |
 | `gpu` | Any process that uses the GPU: checks, kernel builds and tests, microbenchmarks, smokes, timing runs |
 | `ledger` | `docs/GPU_OPTIMIZATIONS.md`, `docs/GPU_OPTIMIZATIONS_LOG.md`, `docs/R01_HOST_PATH.md`; edit only your own track rows or lines |
 | `plan` | `docs/R01_NEXT_ROUND_PLAN.md`, this file |
