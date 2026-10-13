@@ -7,6 +7,8 @@ Static site (no build step). Pages:
 - `campaign.html` (+ `app.js`): the R01 GPU training-speed campaign. Charts use Chart.js and chartjs-plugin-annotation, loaded from jsDelivr at pinned versions.
 - `train.html` (+ `train.js`): 8k/2k training-run progress.
 
+The workflow also copies `docs/data-quality/` (review-relations results written by `scripts/publish_review_relations.py`) into the site at `/docs/data-quality/`, its original URL.
+
 `style.css` holds the shared theme tokens; `explain.css` and `common.js` are shared by the hub and the models page.
 
 ## Regenerate the data
