@@ -75,7 +75,7 @@ def row_tiled_backend(rows=4, tile=8, exact=False, compact_previous=False, next_
     original_tile = nvrtc._checkpoint_length
 
     def module(device, dtype):
-        if wave_aware:
+        if wave_aware or load_pipeline in (7, 8):
             # Forward remains at the accepted layout; launch chooses backward by B.
             return tuple((device, dtype, i) for i in (0, 1))
         return compile_module(device, dtype, rows, tile, exact, compact_previous, next_step_prefetch, load_pipeline)
@@ -83,6 +83,13 @@ def row_tiled_backend(rows=4, tile=8, exact=False, compact_previous=False, next_
     def launch(kernel, device, shape, args):
         import numpy as np
         launch_rows = rows
+        if load_pipeline in (7, 8):
+            # Long histories amortize the pipeline live set; short histories have
+            # many independent rows and little sequential latency to hide.
+            index, dtype = kernel[2], kernel[1]
+            selected = shape[1] >= 32 if load_pipeline == 7 else shape[1] <= 16
+            pipeline = 5 if selected else 0
+            kernel = compile_module(device, dtype, rows, tile, exact, compact_previous, next_step_prefetch, pipeline)[index]
         if wave_aware:
             index = kernel[2]
             dtype = kernel[1]

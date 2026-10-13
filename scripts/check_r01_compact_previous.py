@@ -11,7 +11,7 @@ sys.path.insert(0, str(ROOT))
 def main():
     parser = ArgumentParser(description=__doc__)
     parser.add_argument("--output", type=Path, required=True)
-    parser.add_argument("--load-pipeline", type=int, default=0, choices=(0, 1, 2, 3, 4, 5, 6))
+    parser.add_argument("--load-pipeline", type=int, default=0, choices=(0, 1, 2, 3, 4, 5, 6, 7, 8))
     parser.add_argument("--prefetch", action="store_true")
     parser.add_argument("--wave-aware", action="store_true")
     args = parser.parse_args()
@@ -56,7 +56,7 @@ def main():
     for dtype in (torch.bfloat16, torch.float32):
         attributes[str(dtype)] = {str(compact): compile_module(device, dtype, 4, 32, True, False if args.load_pipeline else compact,
                                                                  next_step_prefetch=compact and args.prefetch,
-                                                                 load_pipeline=args.load_pipeline if compact else 0)[1].attributes
+                                                                 load_pipeline=(5 if args.load_pipeline in (7, 8) else args.load_pipeline) if compact else 0)[1].attributes
                                   for compact in (False, True)}
     passed = all(c["bitwise_equal"] for c in cases)
     result = {"status": "passed" if passed else "failed", "provenance": process_provenance(), "torch": torch.__version__,

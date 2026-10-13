@@ -66,6 +66,8 @@ def describe(track):
                 "F58d": "forward recurrence row-value pipeline",
                 "F58e": "forward recurrence scalar and row-value pipeline",
                 "F58f": "recomputation row-value-only pipeline",
+                "F58g": "long-history forward scalar and row-value pipeline",
+                "F58h": "short-history forward scalar and row-value pipeline",
                 "F55": "wave-aware recurrence backward layout",
                 "F62": "flat optimizer buffers",
                 "F54": "compact exact recurrence previous-state storage",
