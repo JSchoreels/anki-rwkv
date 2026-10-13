@@ -15,6 +15,8 @@ def main():
     p.add_argument('--output', type=Path, required=True)
     a = p.parse_args()
     a.output.mkdir(parents=True, exist_ok=False)
+    from scripts.experiment_provenance import process_provenance
+    provenance=process_provenance()
     os.environ['CUBLAS_WORKSPACE_CONFIG']=':4096:8'
     import torch
     torch.set_num_threads(1)
@@ -65,7 +67,7 @@ def main():
             'scope':'one held-out user fixed first32768reviews; fp32 accepted0042 master; same transferred inputs; existing finite checks/counts and Python accumulation order',
             'user_id':row['user_id'],'reviews':len(section),'batches':len(batches),'validation_input_sha256':digest.hexdigest(),
             'trained_parameter_sha256':tensor_hash(master.state_dict()),'checkpoint':str(checkpoint.relative_to(ROOT)),
-            'runs':records,'scalar_dtypes':scalar_dtypes,'stack_dtype':stack_dtype,'provenance':process_provenance()}
+            'runs':records,'scalar_dtypes':scalar_dtypes,'stack_dtype':stack_dtype,'provenance':provenance}
     (a.output/'result.json').write_text(json.dumps(record,indent=2)+'\n',encoding='utf-8')
     print(json.dumps({'status':record['status'],'runs':[{k:r[k] for k in ('repeat','deferred_metric_reads','seconds')} for r in records]}))
     if record['status']!='passed':raise SystemExit(1)

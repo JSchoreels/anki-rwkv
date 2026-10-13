@@ -169,14 +169,14 @@ def training_inputs(root):
     import ast
     root = Path(root)
     names = {str(path.relative_to(root).as_posix()) for folder in ("rwkv", "expertium")
-             for path in (root / folder).rglob("*") if path.is_file() and path.suffix in (".py", ".cu")}
+              for path in (root / folder).rglob("*") if path.is_file() and path.suffix in (".py", ".cu", ".cpp", ".h")}
     for filename, class_name in (("scripts/run_gpu_batch1.py", "SourceWatch"), ("scripts/run_gpu_r01.py", "R01SourceWatch")):
         tree = ast.parse((root / filename).read_text(encoding="utf-8"))
         cls = next(node for node in tree.body if isinstance(node, ast.ClassDef) and node.name == class_name)
         for node in ast.walk(cls):
             if isinstance(node, ast.Constant) and isinstance(node.value, str):
                 name = node.value
-                if Path(name).suffix in (".py", ".cu", ".toml", ".lock"):
+                if Path(name).suffix in (".py", ".cu", ".cpp", ".h", ".toml", ".lock"):
                     names.add(name if "/" in name or (root / name).is_file() else "scripts/" + name)
     return {name: hashlib.sha256((root / name).read_bytes()).hexdigest() for name in sorted(names)}
 

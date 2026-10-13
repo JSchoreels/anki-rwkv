@@ -8,6 +8,7 @@ from expertium.model.rwkv_ops import RWKV7_WKV, reference_rwkv7, quant_aware_rwk
 from rwkv.model.fused_shift import FusedShiftLerp
 from rwkv.model.exact_index import ExactShiftGather
 from rwkv.model.exact_group_norm import ExactGroupNorm
+from rwkv.model import native_launch
 
 """
 IMPORTANT: the CUDA implementation in this repository only supports head dimensions of 32. d_model // n_heads == 32.
@@ -238,6 +239,9 @@ class RWKV7TimeMixer(ModuleType):
         self.exact_channel_glue = False
         self.exact_shift = False
         self.exact_group_norm = False  # F32: multi-SM GroupNorm weight/bias backward, bitwise equal
+        self.native_wkv = False
+        self.native_forward_handle = 0
+        self.native_backward_handle = 0
         assert config.d_model % config.n_heads == 0
         self.layer_id = layer_id
         C = config.d_model
@@ -402,6 +406,10 @@ class RWKV7TimeMixer(ModuleType):
                 r_BTHK, k_BTHK, v_BTHK, w_BTHK, a_BTHK, k_deformed_BTHK, skip_BT,
                 self.state_qmax, self.state_lowrank_rank, self.state_lowrank_fqmax,
             )
+        elif self.native_wkv and r_BTHK.is_cuda:
+            out_BTHK = torch.ops.rwkv_native.wkv(r_BTHK,k_BTHK,v_BTHK,w_BTHK,a_BTHK,
+                                               k_deformed_BTHK,skip_BT,self.native_forward_handle,
+                                               self.native_backward_handle,4,32)
         elif r_BTHK.is_cuda:
             out_BTHK = RWKV7_WKV.apply(
                 r_BTHK, k_BTHK, v_BTHK, w_BTHK, a_BTHK, k_deformed_BTHK, skip_BT

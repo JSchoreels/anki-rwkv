@@ -50,7 +50,7 @@ class R01SourceWatch(shared.SourceWatch):
             self.hashes["scripts/gpu_scatter_orders.py"] = manifest["scripts/gpu_scatter_orders.py"]
         # F31 kernels exist from iteration 0021; older archives keep their original watch set.
         for name in ("scripts/gpu_r01_flat.py", "scripts/gpu_r01_group_adam.py", "rwkv/model/fused_shift.py", "scripts/gpu_row_tiles.py", "scripts/kernels/rwkv_row_tiles_exact.cu", "rwkv/model/exact_group_norm.py",
-                     "rwkv/model/exact_index.py", "rwkv/model/nvrtc.py", "rwkv/model/exact_glue.py"):
+                     "rwkv/model/exact_index.py", "rwkv/model/nvrtc.py", "rwkv/model/exact_glue.py", "rwkv/model/native_launch.py", "rwkv/model/csrc/native_launch.cpp"):
             if name in manifest:
                 self.hashes[name] = manifest[name]
         self.implementation_sha256 = hashlib.sha256(json.dumps(self.hashes, sort_keys=True).encode()).hexdigest()

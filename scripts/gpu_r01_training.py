@@ -245,6 +245,9 @@ def run_case(args):
         master, base, dtype = benchmark_models(config, device)
         master.load_state_dict(checkpoint["model"])
         base.copy_downcast_(master, dtype)
+        if options.get("native_wkv"):
+            from rwkv.model.native_launch import configure
+            report["native_extension"] = configure(base, options)
         for module in base.modules():
             if hasattr(module, "fused_shift"):
                 module.fused_shift = options.get("fused_shift", False)
