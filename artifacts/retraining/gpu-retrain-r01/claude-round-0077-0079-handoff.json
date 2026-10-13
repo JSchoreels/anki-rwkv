@@ -1,0 +1,89 @@
+{
+  "status": "partial counted round; remaining iterations already authorized",
+  "model": "expertium",
+  "iterations": [
+    "0077",
+    "0078",
+    "0079"
+  ],
+  "accepted_iteration": "0079",
+  "accepted_result": "artifacts/retraining/gpu-retrain-r01/iteration-0079/expertium/E76-F86-F65c/result.json",
+  "accepted_options": {
+    "prefetch_users": true,
+    "preparation_workers": 5,
+    "gpu_packed_features": true,
+    "packed_ipc": true,
+    "async_transfer": true,
+    "batched_id_encodings": true,
+    "grouped_sync": true,
+    "main_threads": 1,
+    "bulk_transfer": true,
+    "parallel_evaluation": true,
+    "exact_shift": true,
+    "exact_index": true,
+    "batch_chunks": 512,
+    "gpu_memory_fraction": 0.95,
+    "fast_samples": true,
+    "prestart_pool": true,
+    "row_tiles_exact": 4,
+    "exact_group_norm": true,
+    "deferred_reads": true,
+    "shared_shift_orders": true,
+    "stream_launches": true,
+    "prefetch_rows": true,
+    "sync_free_loss": true,
+    "columnar_samples": true,
+    "skip_uninitialized_fill": true,
+    "skip_padding_sources": true,
+    "native_wkv": true,
+    "host_placement": "physical",
+    "process_qos": true,
+    "native_group_norm": true
+  },
+  "accepted_reviews_per_second": 182205.8464979575,
+  "next_iteration_hint": "0080",
+  "prior_miss_streak": 0,
+  "implementation_git_commit": "187c81ad028aa78da1b18c348a1ae23b8ac61228",
+  "new_authorization_required": false,
+  "host_path": "docs/R01_HOST_PATH.md",
+  "ledger": "docs/GPU_OPTIMIZATIONS.md",
+  "summary": "artifacts/retraining/gpu-retrain-r01/claude-round-0077-0079-summary.md",
+  "next_steps": [
+    "Attribute the 0079 gain between F86 and F65c (component-removal blocks on the new reference) before treating either as independently proven",
+    "F72 main-thread budget audit (per-phase thread_time) on the 0079 reference",
+    "F77 WDDM flush-placement A/B and F88 L2 persisting window microbenchmark as exact host/GPU candidates"
+  ],
+  "acceptance": "Use current LOOP gates and source/runtime-compatible recorded checks; no broader validation authorized",
+  "round_iteration_budget": 10,
+  "completed_candidate_iterations": 8,
+  "remaining_authorized_iterations": 2,
+  "round_start_iteration": "0071",
+  "round_authorization": "Ten full R01 training cycles",
+  "gpu_time_by_iteration": {
+    "0077": {
+      "gpu_process_wall_seconds": 331.8,
+      "runs": 5,
+      "smoke_runs": 1,
+      "evaluations_reused": 3,
+      "evaluation_seconds_saved": 33.1,
+      "scope": "process wall of recorded GPU case processes; excludes waits for a quiet machine, profiles and reports"
+    },
+    "0078": {
+      "gpu_process_wall_seconds": 933.4,
+      "runs": 13,
+      "smoke_runs": 1,
+      "evaluations_reused": 10,
+      "evaluation_seconds_saved": 97.2,
+      "scope": "process wall of recorded GPU case processes; excludes waits for a quiet machine, profiles and reports"
+    },
+    "0079": {
+      "gpu_process_wall_seconds": 347.0,
+      "runs": 5,
+      "smoke_runs": 1,
+      "evaluations_reused": 3,
+      "evaluation_seconds_saved": 23.2,
+      "scope": "process wall of recorded GPU case processes; excludes waits for a quiet machine, profiles and reports"
+    }
+  },
+  "gpu_process_wall_seconds_total": 1612.2
+}

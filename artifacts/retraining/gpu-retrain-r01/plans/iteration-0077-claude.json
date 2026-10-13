@@ -1,0 +1,100 @@
+{
+  "models": [
+    "expertium"
+  ],
+  "model_scope_reason": "Continuation of the Expertium-only R01 work; Alex remains paused by earlier human request.",
+  "control_tracks": {
+    "expertium": "E72-F71-F73a"
+  },
+  "candidate_tracks": {
+    "expertium": "E72-F71-F73b"
+  },
+  "case_options_by_model": {
+    "expertium": {
+      "E72-F71-F73a": {
+        "prefetch_users": true,
+        "preparation_workers": 5,
+        "gpu_packed_features": true,
+        "packed_ipc": true,
+        "async_transfer": true,
+        "batched_id_encodings": true,
+        "grouped_sync": true,
+        "main_threads": 1,
+        "bulk_transfer": true,
+        "parallel_evaluation": true,
+        "exact_shift": true,
+        "exact_index": true,
+        "batch_chunks": 512,
+        "gpu_memory_fraction": 0.95,
+        "fast_samples": true,
+        "prestart_pool": true,
+        "row_tiles_exact": 4,
+        "exact_group_norm": true,
+        "deferred_reads": true,
+        "shared_shift_orders": true,
+        "stream_launches": true,
+        "prefetch_rows": true,
+        "sync_free_loss": true,
+        "columnar_samples": true,
+        "skip_uninitialized_fill": true,
+        "skip_padding_sources": true,
+        "native_wkv": true,
+        "host_placement": "physical"
+      },
+      "E72-F71-F73b": {
+        "prefetch_users": true,
+        "preparation_workers": 4,
+        "gpu_packed_features": true,
+        "packed_ipc": true,
+        "async_transfer": true,
+        "batched_id_encodings": true,
+        "grouped_sync": true,
+        "main_threads": 1,
+        "bulk_transfer": true,
+        "parallel_evaluation": true,
+        "exact_shift": true,
+        "exact_index": true,
+        "batch_chunks": 512,
+        "gpu_memory_fraction": 0.95,
+        "fast_samples": true,
+        "prestart_pool": true,
+        "row_tiles_exact": 4,
+        "exact_group_norm": true,
+        "deferred_reads": true,
+        "shared_shift_orders": true,
+        "stream_launches": true,
+        "prefetch_rows": true,
+        "sync_free_loss": true,
+        "columnar_samples": true,
+        "skip_uninitialized_fill": true,
+        "skip_padding_sources": true,
+        "native_wkv": true,
+        "host_placement": "physical"
+      }
+    }
+  },
+  "case_explanations": {
+    "expertium": {
+      "E72-F71-F73a": "F73a stacks five preparation workers on F71 core placement: each worker keeps its own physical core and the main process gets three dedicated cores instead of two. E72 aliases the accepted 0072 options for Windows path length. Batch bytes and RNG are identical across 6/5/4 workers.",
+      "E72-F71-F73b": "F73b drops to four preparation workers on F71 physical-core placement, giving the main process four dedicated cores instead of three. Batch bytes and RNG are identical across 6/5/4 workers."
+    }
+  },
+  "selection_evidence": "Human 2026-10-13: 'another 3 round of R01' inside the ten-cycle 0071-0080 authorization (5 remaining). 0076 promoted F73a (five pinned workers, lower bound +1.12%) with summed preparation 108-111 s over 41 s training (about 2.6 busy workers) and queue wait <=0.6 s, so four workers should still feed the main process; handoff next step 'F73b: four pinned workers on E72-F71'. Worker-count byte/RNG check passed for 6/5/4.",
+  "prerequisite_checks": [
+    {
+      "path": "artifacts/diagnostics/r01-f73-worker-counts-v1",
+      "sha256": "9b35feb7238f9eeb04fb9a800d3702263c4d3fbee6c3416c51da7d68bba7c04d",
+      "status": "passed, source compatible; runtime compatibility must also be reviewed"
+    }
+  ],
+  "turnaround": {
+    "evaluation_reuse": "exact_replica",
+    "candidate_full_run": "first_block",
+    "multi_arm_blocks": false,
+    "primer_passes": null,
+    "strong_negative_prescreen": null,
+    "variant_cap_per_track": null,
+    "gpu_budget_minutes": null,
+    "approval": null
+  }
+}

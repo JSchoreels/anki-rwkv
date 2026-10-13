@@ -1012,3 +1012,45 @@ Implementation commit after experiments: `7dfa19dbe3627971543d9c8204d4bba805ef74
 Implementation commit after experiments: `530f1655c6369cff6e25810000f380a95554265b`. Tested revision remains `f3d9dd1920b2109123b97c7315b994ef02162302` with per-process source snapshots in the linked raw results and iteration record; [commit record](../artifacts/retraining/gpu-retrain-r01/iteration-0076/implementation-commit.json).
 
 <!-- r01-0076:end -->
+
+<!-- r01-0077:start -->
+## R01 iteration 0077
+
+[Iteration record](../artifacts/retraining/gpu-retrain-r01/iteration-0077/summary.md)
+
+| Training start (UTC) | Trial commit | Model | Improvement IDs | What was tried | Training users reached | Training reviews | Training seconds | Reviews/s | Speed Δ vs previous | Speed Δ vs baseline | Instant User | Instant User Δ vs previous | Instant User Δ vs baseline | Instant Weighted | Instant Weighted Δ vs previous | Instant Weighted Δ vs baseline | Curve User | Curve User Δ vs previous | Curve User Δ vs baseline | Curve Weighted | Curve Weighted Δ vs previous | Curve Weighted Δ vs baseline | Raw result | Notes |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 2026-10-13T14:35:08.333570+00:00 | `ba1253fe612ca2bb98982f39c54f4fe70dc1ed82` | Expertium (light) | E72, F71, F73b | F73b drops to four preparation workers on F71 physical-core placement, giving the main process four dedicated cores instead of three. Batch bytes and RNG are identical across 6/5/4 workers. | 2 | 1,024 | 4.367 | 234 | — | — | 0.433909490 | — | — | 0.421975411 | — | — | 0.423755109 | — | — | 0.416540190 | — | — | [result](../artifacts/retraining/gpu-retrain-r01/iteration-0077/functional-smoke-v1/expertium/E72-F71-F73b/result.json) | Infrastructure check; excluded from comparisons. Declared schedule change: 512-chunk batches, 2 updates. |
+| 2026-10-13T14:36:55.714669+00:00 | `ba1253fe612ca2bb98982f39c54f4fe70dc1ed82` | Expertium (light) | E72, F71, F73b | F73b drops to four preparation workers on F71 physical-core placement, giving the main process four dedicated cores instead of three. Batch bytes and RNG are identical across 6/5/4 workers. | 80 | 7,654,975 | 39.559 | 193,507 | +4.57% | +544.91% | 0.382592464 | +0.00% | -0.99% | 0.398428596 | +0.00% | -0.76% | 0.370387972 | +0.00% | -4.48% | 0.387472684 | +0.00% | -3.25% | [result](../artifacts/retraining/gpu-retrain-r01/iteration-0077/expertium/E72-F71-F73b/result.json) | Declared schedule change: 512-chunk batches, 167 updates. |
+
+Implementation commit after experiments: `187c81ad028aa78da1b18c348a1ae23b8ac61228`. Tested revision remains `ba1253fe612ca2bb98982f39c54f4fe70dc1ed82` with per-process source snapshots in the linked raw results and iteration record; [commit record](../artifacts/retraining/gpu-retrain-r01/iteration-0077/implementation-commit.json).
+
+<!-- r01-0077:end -->
+
+<!-- r01-0078:start -->
+## R01 iteration 0078
+
+[Iteration record](../artifacts/retraining/gpu-retrain-r01/iteration-0078/summary.md)
+
+| Training start (UTC) | Trial commit | Model | Improvement IDs | What was tried | Training users reached | Training reviews | Training seconds | Reviews/s | Speed Δ vs previous | Speed Δ vs baseline | Instant User | Instant User Δ vs previous | Instant User Δ vs baseline | Instant Weighted | Instant Weighted Δ vs previous | Instant Weighted Δ vs baseline | Curve User | Curve User Δ vs previous | Curve User Δ vs baseline | Curve Weighted | Curve Weighted Δ vs previous | Curve Weighted Δ vs baseline | Raw result | Notes |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 2026-10-13T14:42:38.116351+00:00 | `0c937dd3328529336c0967b95633706522eaaca7` | Expertium (light) | E72, F71, F73a, F86 | F86 opts the main process and the five pinned preparation workers out of Windows power throttling (EcoQoS) and raises them to above-normal priority, recording the prior state and timer resolution. Scheduling only; arithmetic and order are unchanged. | 2 | 1,024 | 4.386 | 233 | — | — | 0.433909490 | — | — | 0.421975411 | — | — | 0.423755109 | — | — | 0.416540190 | — | — | [result](../artifacts/retraining/gpu-retrain-r01/iteration-0078/functional-smoke-v1/expertium/E72-F71-F73a-F86/result.json) | Infrastructure check; excluded from comparisons. Declared schedule change: 512-chunk batches, 2 updates. |
+| 2026-10-13T14:44:36.554767+00:00 | `0c937dd3328529336c0967b95633706522eaaca7` | Expertium (light) | E72, F71, F73a, F86 | F86 opts the main process and the five pinned preparation workers out of Windows power throttling (EcoQoS) and raises them to above-normal priority, recording the prior state and timer resolution. Scheduling only; arithmetic and order are unchanged. | 80 | 7,654,975 | 39.104 | 195,758 | +5.78% | +552.41% | 0.382592464 | +0.00% | -0.99% | 0.398428596 | +0.00% | -0.76% | 0.370387972 | +0.00% | -4.48% | 0.387472684 | +0.00% | -3.25% | [result](../artifacts/retraining/gpu-retrain-r01/iteration-0078/expertium/E72-F71-F73a-F86/result.json) | Declared schedule change: 512-chunk batches, 167 updates. |
+
+Implementation commit after experiments: `187c81ad028aa78da1b18c348a1ae23b8ac61228`. Tested revision remains `0c937dd3328529336c0967b95633706522eaaca7` with per-process source snapshots in the linked raw results and iteration record; [commit record](../artifacts/retraining/gpu-retrain-r01/iteration-0078/implementation-commit.json).
+
+<!-- r01-0078:end -->
+
+<!-- r01-0079:start -->
+## R01 iteration 0079
+
+[Iteration record](../artifacts/retraining/gpu-retrain-r01/iteration-0079/summary.md)
+
+| Training start (UTC) | Trial commit | Model | Improvement IDs | What was tried | Training users reached | Training reviews | Training seconds | Reviews/s | Speed Δ vs previous | Speed Δ vs baseline | Instant User | Instant User Δ vs previous | Instant User Δ vs baseline | Instant Weighted | Instant Weighted Δ vs previous | Instant Weighted Δ vs baseline | Curve User | Curve User Δ vs previous | Curve User Δ vs baseline | Curve Weighted | Curve Weighted Δ vs previous | Curve Weighted Δ vs baseline | Raw result | Notes |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 2026-10-13T15:04:01.210762+00:00 | `72b00c62f6997e2e546a756dc6e3572a37b9e8b3` | Expertium (light) | E76, F86, F65c | Stacks the two exact stack candidates on accepted 0076 (E76): F86 power-throttling opt-out at above-normal priority for the main process and pinned workers, and F65c native GroupNorm dispatcher/autograd with unchanged reduction kernels. E76 aliases the accepted 0076 options for Windows path length. | 2 | 1,024 | 0.698 | 1,468 | — | — | 0.433909490 | — | — | 0.421975411 | — | — | 0.423755109 | — | — | 0.416540190 | — | — | [result](../artifacts/retraining/gpu-retrain-r01/iteration-0079/functional-smoke-v1/expertium/E76-F86-F65c/result.json) | Infrastructure check; excluded from comparisons. Declared schedule change: 512-chunk batches, 2 updates. |
+| 2026-10-13T15:06:25.559811+00:00 | `72b00c62f6997e2e546a756dc6e3572a37b9e8b3` | Expertium (light) | E76, F86, F65c | Stacks the two exact stack candidates on accepted 0076 (E76): F86 power-throttling opt-out at above-normal priority for the main process and pinned workers, and F65c native GroupNorm dispatcher/autograd with unchanged reduction kernels. E76 aliases the accepted 0076 options for Windows path length. | 80 | 7,654,975 | 42.013 | 182,206 | -1.54% | +507.25% | 0.382592464 | +0.00% | -0.99% | 0.398428596 | +0.00% | -0.76% | 0.370387972 | +0.00% | -4.48% | 0.387472684 | +0.00% | -3.25% | [result](../artifacts/retraining/gpu-retrain-r01/iteration-0079/expertium/E76-F86-F65c/result.json) | Declared schedule change: 512-chunk batches, 167 updates. |
+
+Implementation commit after experiments: `187c81ad028aa78da1b18c348a1ae23b8ac61228`. Tested revision remains `72b00c62f6997e2e546a756dc6e3572a37b9e8b3` with per-process source snapshots in the linked raw results and iteration record; [commit record](../artifacts/retraining/gpu-retrain-r01/iteration-0079/implementation-commit.json).
+
+<!-- r01-0079:end -->

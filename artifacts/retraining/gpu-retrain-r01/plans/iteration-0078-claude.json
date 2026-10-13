@@ -1,0 +1,95 @@
+{
+  "models": [
+    "expertium"
+  ],
+  "model_scope_reason": "Continuation of the Expertium-only R01 work; Alex remains paused by earlier human request.",
+  "control_tracks": {
+    "expertium": "E72-F71-F73a"
+  },
+  "candidate_tracks": {
+    "expertium": "E72-F71-F73a-F86"
+  },
+  "case_options_by_model": {
+    "expertium": {
+      "E72-F71-F73a": {
+        "prefetch_users": true,
+        "preparation_workers": 5,
+        "gpu_packed_features": true,
+        "packed_ipc": true,
+        "async_transfer": true,
+        "batched_id_encodings": true,
+        "grouped_sync": true,
+        "main_threads": 1,
+        "bulk_transfer": true,
+        "parallel_evaluation": true,
+        "exact_shift": true,
+        "exact_index": true,
+        "batch_chunks": 512,
+        "gpu_memory_fraction": 0.95,
+        "fast_samples": true,
+        "prestart_pool": true,
+        "row_tiles_exact": 4,
+        "exact_group_norm": true,
+        "deferred_reads": true,
+        "shared_shift_orders": true,
+        "stream_launches": true,
+        "prefetch_rows": true,
+        "sync_free_loss": true,
+        "columnar_samples": true,
+        "skip_uninitialized_fill": true,
+        "skip_padding_sources": true,
+        "native_wkv": true,
+        "host_placement": "physical"
+      },
+      "E72-F71-F73a-F86": {
+        "prefetch_users": true,
+        "preparation_workers": 5,
+        "gpu_packed_features": true,
+        "packed_ipc": true,
+        "async_transfer": true,
+        "batched_id_encodings": true,
+        "grouped_sync": true,
+        "main_threads": 1,
+        "bulk_transfer": true,
+        "parallel_evaluation": true,
+        "exact_shift": true,
+        "exact_index": true,
+        "batch_chunks": 512,
+        "gpu_memory_fraction": 0.95,
+        "fast_samples": true,
+        "prestart_pool": true,
+        "row_tiles_exact": 4,
+        "exact_group_norm": true,
+        "deferred_reads": true,
+        "shared_shift_orders": true,
+        "stream_launches": true,
+        "prefetch_rows": true,
+        "sync_free_loss": true,
+        "columnar_samples": true,
+        "skip_uninitialized_fill": true,
+        "skip_padding_sources": true,
+        "native_wkv": true,
+        "host_placement": "physical",
+        "process_qos": true
+      }
+    }
+  },
+  "case_explanations": {
+    "expertium": {
+      "E72-F71-F73a": "F73a stacks five preparation workers on F71 core placement: each worker keeps its own physical core and the main process gets three dedicated cores instead of two. E72 aliases the accepted 0072 options for Windows path length. Batch bytes and RNG are identical across 6/5/4 workers.",
+      "E72-F71-F73a-F86": "F86 opts the main process and the five pinned preparation workers out of Windows power throttling (EcoQoS) and raises them to above-normal priority, recording the prior state and timer resolution. Scheduling only; arithmetic and order are unchanged."
+    }
+  },
+  "selection_evidence": "Human 2026-10-13 'another 3 round of R01' (ten-cycle 0071-0080 authorization). Scouting pass 2 F86: agent-launched console processes qualify as background for Windows 11 QoS; the slow state ran dispatch about 1.2x slower with unchanged GPU clocks. Scratch probe: python processes report throttling control mask 0 (system-managed), priority normal, timer 1.0 ms. 0077 F73b rejected at two blocks (-0.12%), so accepted 0076 F73a remains the control.",
+  "prerequisite_checks": [],
+  "turnaround": {
+    "evaluation_reuse": "exact_replica",
+    "candidate_full_run": "first_block",
+    "multi_arm_blocks": false,
+    "primer_passes": null,
+    "strong_negative_prescreen": null,
+    "variant_cap_per_track": null,
+    "gpu_budget_minutes": null,
+    "approval": null
+  }
+}
