@@ -1,0 +1,92 @@
+{
+  "models": [
+    "expertium"
+  ],
+  "model_scope_reason": "Continuation of the Expertium-only R01 work; Alex remains paused by earlier human request.",
+  "control_tracks": {
+    "expertium": "E33-F48-F50"
+  },
+  "candidate_tracks": {
+    "expertium": "E33-F48-F50-F58"
+  },
+  "case_options_by_model": {
+    "expertium": {
+      "E33-F48-F50": {
+        "prefetch_users": true,
+        "preparation_workers": 6,
+        "gpu_packed_features": true,
+        "packed_ipc": true,
+        "async_transfer": true,
+        "batched_id_encodings": true,
+        "grouped_sync": true,
+        "main_threads": 1,
+        "bulk_transfer": true,
+        "parallel_evaluation": true,
+        "exact_shift": true,
+        "exact_index": true,
+        "batch_chunks": 512,
+        "gpu_memory_fraction": 0.95,
+        "fast_samples": true,
+        "prestart_pool": true,
+        "row_tiles_exact": 4,
+        "exact_group_norm": true,
+        "deferred_reads": true,
+        "shared_shift_orders": true,
+        "stream_launches": true,
+        "prefetch_rows": true,
+        "sync_free_loss": true,
+        "columnar_samples": true,
+        "skip_uninitialized_fill": true,
+        "skip_padding_sources": true
+      },
+      "E33-F48-F50-F58": {
+        "prefetch_users": true,
+        "preparation_workers": 6,
+        "gpu_packed_features": true,
+        "packed_ipc": true,
+        "async_transfer": true,
+        "batched_id_encodings": true,
+        "grouped_sync": true,
+        "main_threads": 1,
+        "bulk_transfer": true,
+        "parallel_evaluation": true,
+        "exact_shift": true,
+        "exact_index": true,
+        "batch_chunks": 512,
+        "gpu_memory_fraction": 0.95,
+        "fast_samples": true,
+        "prestart_pool": true,
+        "row_tiles_exact": 4,
+        "exact_group_norm": true,
+        "deferred_reads": true,
+        "shared_shift_orders": true,
+        "stream_launches": true,
+        "prefetch_rows": true,
+        "sync_free_loss": true,
+        "columnar_samples": true,
+        "skip_uninitialized_fill": true,
+        "skip_padding_sources": true,
+        "recurrence_prefetch": true
+      }
+    }
+  },
+  "case_explanations": {
+    "expertium": {
+      "E33-F48-F50": "Combine F48 with an exact row-selection backward that excludes zero hierarchy padding sources while preserving sequential real-source order and the unchanged clamped forward.",
+      "E33-F48-F50-F58": "Prefetch next backward-step scalar inputs before current recurrence barriers; retain accepted arithmetic and four-row layout. P3 did not favor compact previous-state storage consistently, so omit F54."
+    }
+  },
+  "selection_evidence": "216 synthetic cases, nine real shapes, five real model batches bitwise equal; shape timing mixed, requiring replicated blocks.",
+  "prerequisite_checks": [
+    {
+      "path": "artifacts/diagnostics/r01-f58-synthetic/result.json",
+      "sha256": "2f6b2b8eafbe44f436bab2fcc80ab89c035523efe11760e04e4240925c7b6b2d",
+      "status": "passed, source compatible; runtime compatibility must also be reviewed"
+    },
+    {
+      "path": "artifacts/diagnostics/r01-f58-real/result.json",
+      "sha256": "a6e7a4681ecf295dcaa7756dd32a93a87fe0a9a0fdfe5e870c424cf409024077",
+      "status": "passed, source compatible; runtime compatibility must also be reviewed"
+    }
+  ]
+}

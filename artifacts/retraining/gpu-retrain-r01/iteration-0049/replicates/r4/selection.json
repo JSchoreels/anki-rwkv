@@ -1,0 +1,90 @@
+{
+  "expertium": {
+    "track": "E33-F48-F50-F58-F55",
+    "options": {
+      "prefetch_users": true,
+      "preparation_workers": 6,
+      "gpu_packed_features": true,
+      "packed_ipc": true,
+      "async_transfer": true,
+      "batched_id_encodings": true,
+      "grouped_sync": true,
+      "main_threads": 1,
+      "bulk_transfer": true,
+      "parallel_evaluation": true,
+      "exact_shift": true,
+      "exact_index": true,
+      "batch_chunks": 512,
+      "gpu_memory_fraction": 0.95,
+      "fast_samples": true,
+      "prestart_pool": true,
+      "row_tiles_exact": 4,
+      "exact_group_norm": true,
+      "deferred_reads": true,
+      "shared_shift_orders": true,
+      "stream_launches": true,
+      "prefetch_rows": true,
+      "sync_free_loss": true,
+      "columnar_samples": true,
+      "skip_uninitialized_fill": true,
+      "skip_padding_sources": true,
+      "recurrence_prefetch": true,
+      "wave_aware_backward": true
+    },
+    "reason": "Recorded E33 (accepted iteration-0033 Expertium configuration: E31, F42), F48 (deterministic algorithms without uninitialized-memory fill), F50 (skip zero hierarchy padding sources in exact row backward) GPU activity is 66.54% and worker-pool CPU 53.23%. Main process CPU averaged 105% of one core; system load averaged 6.4 busy logical threads on 8 physical cores. Stack nonnegative F58 with independent wave-aware backward rows. Keep four-row forward; use eight rows for measured long partial-wave shapes and large short histories.",
+    "selected_utc": "2026-10-13T00:02:14.187365+00:00",
+    "profile": "../iteration-0042/profiles/expertium-E33-F48-F50/result.json",
+    "profile_sha256": "29aca4b5a8bbd3e26779477e30856555f97db4822505e737067682dfdf6454b3",
+    "reference_result": "artifacts/retraining/gpu-retrain-r01/iteration-0042/expertium/E33-F48-F50/result.json",
+    "retuning_resource_saving_candidate": false,
+    "profile_reused": true,
+    "recorded_profile_sufficiency": false,
+    "measured_incumbent_reviews_per_second": 197499.48784125826,
+    "measured_future_wait_seconds_sum": 0.4723706000659149,
+    "idealized_scenarios": {
+      "unchanged_GPU_work_at80_percent_activity_reviews_per_second": 237461.60455269463,
+      "remove_all_measured_future_wait_reviews_per_second": 199936.15603745097,
+      "linear_8_vs6_worker_capacity_reviews_per_second": 263332.650455011,
+      "interpretation": "Conditional capacity arithmetic only; not measured candidate throughput or a forecast. CPU contention, RAM/IPC/loads and unchanged work can dominate. GPU activity is not occupancy."
+    },
+    "minimum_available_RAM_GiB": 7.1501617431640625,
+    "cpu_evidence": {
+      "main_process_cpu_percent_one_core_mean": 104.90810810810811,
+      "busy_logical_threads_mean": 6.360648648648649,
+      "logical_threads": 16,
+      "physical_cores": 8,
+      "near_physical_core_saturation": false,
+      "samples": 37,
+      "interpretation": "Sampled at the profiler interval; physical cores read on the selecting host, which is assumed to be the training host. SMT threads add less than a full core."
+    },
+    "target_reachability": {
+      "target_gain_percent": 5.0,
+      "added_components": [
+        "F55",
+        "F58"
+      ],
+      "feeding_only_candidate": false,
+      "remove_all_waits_ceiling_gain_percent": 1.233759248100541,
+      "ceiling_reaches_target": false,
+      "justification": null
+    },
+    "selection_provenance": {
+      "captured_utc": "2026-10-13T00:02:14.336435+00:00",
+      "git_commit": "2ee2b4eb16b41030fa93eed50fc7426db9d3788f",
+      "git_dirty": true,
+      "git_status_porcelain_z": " M docs/GPU_OPTIMIZATIONS_LOG.md\u0000 M scripts/check_r01_compact_previous.py\u0000 M scripts/check_r01_exact_options.py\u0000 M scripts/gpu_r01_prefetch.py\u0000 M scripts/gpu_r01_training.py\u0000 M scripts/gpu_row_tiles.py\u0000 M scripts/kernels/rwkv_row_tiles_exact.cu\u0000 M scripts/report_gpu_r01_next.py\u0000 M scripts/run_gpu_r01.py\u0000?? scripts/check_r01_flat_buffers.py\u0000?? scripts/check_r01_recurrence_shapes.py\u0000?? scripts/gpu_r01_flat.py\u0000",
+      "source_tree_sha256": "6d2e11977d03b4a298d2850802bf7e4c95a6fb6743a72d5b671aa1067c7b339f",
+      "source_archive": "artifacts/sources/experiment-sources/6d2e11977d03b4a298d2850802bf7e4c95a6fb6743a72d5b671aa1067c7b339f/source.zip",
+      "source_paths": [
+        "rwkv",
+        "expertium",
+        "scripts",
+        "configs",
+        "pyproject.toml",
+        "uv.lock",
+        "justfile",
+        "upstream.json"
+      ]
+    }
+  }
+}

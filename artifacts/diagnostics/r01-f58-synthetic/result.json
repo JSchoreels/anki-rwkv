@@ -1,0 +1,1594 @@
+{
+  "status": "passed",
+  "provenance": {
+    "captured_utc": "2026-10-12T23:29:30.113788+00:00",
+    "git_commit": "2ee2b4eb16b41030fa93eed50fc7426db9d3788f",
+    "git_dirty": true,
+    "git_status_porcelain_z": " M scripts/check_r01_compact_previous.py\u0000 M scripts/check_r01_exact_options.py\u0000 M scripts/gpu_r01_prefetch.py\u0000 M scripts/gpu_r01_training.py\u0000 M scripts/gpu_row_tiles.py\u0000 M scripts/kernels/rwkv_row_tiles_exact.cu\u0000 M scripts/report_gpu_r01_next.py\u0000",
+    "source_tree_sha256": "b45c8d5ac4369af29ab1901cd34b6c3e253a68c1aec09f68b11d0cc4a7bda1d3",
+    "source_archive": "artifacts/sources/experiment-sources/b45c8d5ac4369af29ab1901cd34b6c3e253a68c1aec09f68b11d0cc4a7bda1d3/source.zip",
+    "source_paths": [
+      "rwkv",
+      "expertium",
+      "scripts",
+      "configs",
+      "pyproject.toml",
+      "uv.lock",
+      "justfile",
+      "upstream.json"
+    ]
+  },
+  "torch": "2.9.1+cu128",
+  "summary": {
+    "cases": 216,
+    "all_bitwise_equal": true
+  },
+  "kernel_attributes": {
+    "torch.bfloat16": {
+      "False": {
+        "max_threads_per_block": 768,
+        "shared_size_bytes": 17152,
+        "const_size_bytes": 0,
+        "local_size_bytes": 1024,
+        "num_regs": 80,
+        "ptx_version": 120,
+        "binary_version": 120,
+        "cache_mode_ca": 0,
+        "max_dynamic_shared_size_bytes": 32000,
+        "preferred_shared_memory_carveout": -1
+      },
+      "True": {
+        "max_threads_per_block": 768,
+        "shared_size_bytes": 17280,
+        "const_size_bytes": 0,
+        "local_size_bytes": 512,
+        "num_regs": 80,
+        "ptx_version": 120,
+        "binary_version": 120,
+        "cache_mode_ca": 0,
+        "max_dynamic_shared_size_bytes": 31872,
+        "preferred_shared_memory_carveout": -1
+      }
+    },
+    "torch.float32": {
+      "False": {
+        "max_threads_per_block": 768,
+        "shared_size_bytes": 17152,
+        "const_size_bytes": 0,
+        "local_size_bytes": 1024,
+        "num_regs": 80,
+        "ptx_version": 120,
+        "binary_version": 120,
+        "cache_mode_ca": 0,
+        "max_dynamic_shared_size_bytes": 32000,
+        "preferred_shared_memory_carveout": -1
+      },
+      "True": {
+        "max_threads_per_block": 768,
+        "shared_size_bytes": 17280,
+        "const_size_bytes": 0,
+        "local_size_bytes": 512,
+        "num_regs": 80,
+        "ptx_version": 120,
+        "binary_version": 120,
+        "cache_mode_ca": 0,
+        "max_dynamic_shared_size_bytes": 31872,
+        "preferred_shared_memory_carveout": -1
+      }
+    }
+  },
+  "cases": [
+    {
+      "dtype": "torch.bfloat16",
+      "batch": 1,
+      "timesteps": 1,
+      "skip": "none",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "batch": 1,
+      "timesteps": 1,
+      "skip": "all",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "batch": 1,
+      "timesteps": 1,
+      "skip": "every-third",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "batch": 1,
+      "timesteps": 1,
+      "skip": "random",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "batch": 1,
+      "timesteps": 2,
+      "skip": "none",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "batch": 1,
+      "timesteps": 2,
+      "skip": "all",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "batch": 1,
+      "timesteps": 2,
+      "skip": "every-third",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "batch": 1,
+      "timesteps": 2,
+      "skip": "random",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "batch": 1,
+      "timesteps": 31,
+      "skip": "none",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "batch": 1,
+      "timesteps": 31,
+      "skip": "all",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "batch": 1,
+      "timesteps": 31,
+      "skip": "every-third",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "batch": 1,
+      "timesteps": 31,
+      "skip": "random",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "batch": 1,
+      "timesteps": 32,
+      "skip": "none",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "batch": 1,
+      "timesteps": 32,
+      "skip": "all",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "batch": 1,
+      "timesteps": 32,
+      "skip": "every-third",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "batch": 1,
+      "timesteps": 32,
+      "skip": "random",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "batch": 1,
+      "timesteps": 33,
+      "skip": "none",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "batch": 1,
+      "timesteps": 33,
+      "skip": "all",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "batch": 1,
+      "timesteps": 33,
+      "skip": "every-third",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "batch": 1,
+      "timesteps": 33,
+      "skip": "random",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "batch": 1,
+      "timesteps": 64,
+      "skip": "none",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "batch": 1,
+      "timesteps": 64,
+      "skip": "all",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "batch": 1,
+      "timesteps": 64,
+      "skip": "every-third",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "batch": 1,
+      "timesteps": 64,
+      "skip": "random",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "batch": 1,
+      "timesteps": 65,
+      "skip": "none",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "batch": 1,
+      "timesteps": 65,
+      "skip": "all",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "batch": 1,
+      "timesteps": 65,
+      "skip": "every-third",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "batch": 1,
+      "timesteps": 65,
+      "skip": "random",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "batch": 1,
+      "timesteps": 100,
+      "skip": "none",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "batch": 1,
+      "timesteps": 100,
+      "skip": "all",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "batch": 1,
+      "timesteps": 100,
+      "skip": "every-third",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "batch": 1,
+      "timesteps": 100,
+      "skip": "random",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "batch": 1,
+      "timesteps": 383,
+      "skip": "none",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "batch": 1,
+      "timesteps": 383,
+      "skip": "all",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "batch": 1,
+      "timesteps": 383,
+      "skip": "every-third",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "batch": 1,
+      "timesteps": 383,
+      "skip": "random",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "batch": 5,
+      "timesteps": 1,
+      "skip": "none",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "batch": 5,
+      "timesteps": 1,
+      "skip": "all",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "batch": 5,
+      "timesteps": 1,
+      "skip": "every-third",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "batch": 5,
+      "timesteps": 1,
+      "skip": "random",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "batch": 5,
+      "timesteps": 2,
+      "skip": "none",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "batch": 5,
+      "timesteps": 2,
+      "skip": "all",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "batch": 5,
+      "timesteps": 2,
+      "skip": "every-third",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "batch": 5,
+      "timesteps": 2,
+      "skip": "random",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "batch": 5,
+      "timesteps": 31,
+      "skip": "none",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "batch": 5,
+      "timesteps": 31,
+      "skip": "all",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "batch": 5,
+      "timesteps": 31,
+      "skip": "every-third",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "batch": 5,
+      "timesteps": 31,
+      "skip": "random",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "batch": 5,
+      "timesteps": 32,
+      "skip": "none",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "batch": 5,
+      "timesteps": 32,
+      "skip": "all",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "batch": 5,
+      "timesteps": 32,
+      "skip": "every-third",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "batch": 5,
+      "timesteps": 32,
+      "skip": "random",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "batch": 5,
+      "timesteps": 33,
+      "skip": "none",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "batch": 5,
+      "timesteps": 33,
+      "skip": "all",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "batch": 5,
+      "timesteps": 33,
+      "skip": "every-third",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "batch": 5,
+      "timesteps": 33,
+      "skip": "random",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "batch": 5,
+      "timesteps": 64,
+      "skip": "none",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "batch": 5,
+      "timesteps": 64,
+      "skip": "all",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "batch": 5,
+      "timesteps": 64,
+      "skip": "every-third",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "batch": 5,
+      "timesteps": 64,
+      "skip": "random",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "batch": 5,
+      "timesteps": 65,
+      "skip": "none",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "batch": 5,
+      "timesteps": 65,
+      "skip": "all",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "batch": 5,
+      "timesteps": 65,
+      "skip": "every-third",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "batch": 5,
+      "timesteps": 65,
+      "skip": "random",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "batch": 5,
+      "timesteps": 100,
+      "skip": "none",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "batch": 5,
+      "timesteps": 100,
+      "skip": "all",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "batch": 5,
+      "timesteps": 100,
+      "skip": "every-third",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "batch": 5,
+      "timesteps": 100,
+      "skip": "random",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "batch": 5,
+      "timesteps": 383,
+      "skip": "none",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "batch": 5,
+      "timesteps": 383,
+      "skip": "all",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "batch": 5,
+      "timesteps": 383,
+      "skip": "every-third",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "batch": 5,
+      "timesteps": 383,
+      "skip": "random",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "batch": 97,
+      "timesteps": 1,
+      "skip": "none",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "batch": 97,
+      "timesteps": 1,
+      "skip": "all",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "batch": 97,
+      "timesteps": 1,
+      "skip": "every-third",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "batch": 97,
+      "timesteps": 1,
+      "skip": "random",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "batch": 97,
+      "timesteps": 2,
+      "skip": "none",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "batch": 97,
+      "timesteps": 2,
+      "skip": "all",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "batch": 97,
+      "timesteps": 2,
+      "skip": "every-third",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "batch": 97,
+      "timesteps": 2,
+      "skip": "random",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "batch": 97,
+      "timesteps": 31,
+      "skip": "none",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "batch": 97,
+      "timesteps": 31,
+      "skip": "all",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "batch": 97,
+      "timesteps": 31,
+      "skip": "every-third",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "batch": 97,
+      "timesteps": 31,
+      "skip": "random",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "batch": 97,
+      "timesteps": 32,
+      "skip": "none",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "batch": 97,
+      "timesteps": 32,
+      "skip": "all",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "batch": 97,
+      "timesteps": 32,
+      "skip": "every-third",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "batch": 97,
+      "timesteps": 32,
+      "skip": "random",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "batch": 97,
+      "timesteps": 33,
+      "skip": "none",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "batch": 97,
+      "timesteps": 33,
+      "skip": "all",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "batch": 97,
+      "timesteps": 33,
+      "skip": "every-third",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "batch": 97,
+      "timesteps": 33,
+      "skip": "random",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "batch": 97,
+      "timesteps": 64,
+      "skip": "none",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "batch": 97,
+      "timesteps": 64,
+      "skip": "all",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "batch": 97,
+      "timesteps": 64,
+      "skip": "every-third",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "batch": 97,
+      "timesteps": 64,
+      "skip": "random",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "batch": 97,
+      "timesteps": 65,
+      "skip": "none",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "batch": 97,
+      "timesteps": 65,
+      "skip": "all",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "batch": 97,
+      "timesteps": 65,
+      "skip": "every-third",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "batch": 97,
+      "timesteps": 65,
+      "skip": "random",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "batch": 97,
+      "timesteps": 100,
+      "skip": "none",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "batch": 97,
+      "timesteps": 100,
+      "skip": "all",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "batch": 97,
+      "timesteps": 100,
+      "skip": "every-third",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "batch": 97,
+      "timesteps": 100,
+      "skip": "random",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "batch": 97,
+      "timesteps": 383,
+      "skip": "none",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "batch": 97,
+      "timesteps": 383,
+      "skip": "all",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "batch": 97,
+      "timesteps": 383,
+      "skip": "every-third",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.bfloat16",
+      "batch": 97,
+      "timesteps": 383,
+      "skip": "random",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "batch": 1,
+      "timesteps": 1,
+      "skip": "none",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "batch": 1,
+      "timesteps": 1,
+      "skip": "all",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "batch": 1,
+      "timesteps": 1,
+      "skip": "every-third",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "batch": 1,
+      "timesteps": 1,
+      "skip": "random",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "batch": 1,
+      "timesteps": 2,
+      "skip": "none",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "batch": 1,
+      "timesteps": 2,
+      "skip": "all",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "batch": 1,
+      "timesteps": 2,
+      "skip": "every-third",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "batch": 1,
+      "timesteps": 2,
+      "skip": "random",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "batch": 1,
+      "timesteps": 31,
+      "skip": "none",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "batch": 1,
+      "timesteps": 31,
+      "skip": "all",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "batch": 1,
+      "timesteps": 31,
+      "skip": "every-third",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "batch": 1,
+      "timesteps": 31,
+      "skip": "random",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "batch": 1,
+      "timesteps": 32,
+      "skip": "none",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "batch": 1,
+      "timesteps": 32,
+      "skip": "all",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "batch": 1,
+      "timesteps": 32,
+      "skip": "every-third",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "batch": 1,
+      "timesteps": 32,
+      "skip": "random",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "batch": 1,
+      "timesteps": 33,
+      "skip": "none",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "batch": 1,
+      "timesteps": 33,
+      "skip": "all",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "batch": 1,
+      "timesteps": 33,
+      "skip": "every-third",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "batch": 1,
+      "timesteps": 33,
+      "skip": "random",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "batch": 1,
+      "timesteps": 64,
+      "skip": "none",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "batch": 1,
+      "timesteps": 64,
+      "skip": "all",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "batch": 1,
+      "timesteps": 64,
+      "skip": "every-third",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "batch": 1,
+      "timesteps": 64,
+      "skip": "random",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "batch": 1,
+      "timesteps": 65,
+      "skip": "none",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "batch": 1,
+      "timesteps": 65,
+      "skip": "all",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "batch": 1,
+      "timesteps": 65,
+      "skip": "every-third",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "batch": 1,
+      "timesteps": 65,
+      "skip": "random",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "batch": 1,
+      "timesteps": 100,
+      "skip": "none",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "batch": 1,
+      "timesteps": 100,
+      "skip": "all",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "batch": 1,
+      "timesteps": 100,
+      "skip": "every-third",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "batch": 1,
+      "timesteps": 100,
+      "skip": "random",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "batch": 1,
+      "timesteps": 383,
+      "skip": "none",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "batch": 1,
+      "timesteps": 383,
+      "skip": "all",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "batch": 1,
+      "timesteps": 383,
+      "skip": "every-third",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "batch": 1,
+      "timesteps": 383,
+      "skip": "random",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "batch": 5,
+      "timesteps": 1,
+      "skip": "none",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "batch": 5,
+      "timesteps": 1,
+      "skip": "all",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "batch": 5,
+      "timesteps": 1,
+      "skip": "every-third",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "batch": 5,
+      "timesteps": 1,
+      "skip": "random",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "batch": 5,
+      "timesteps": 2,
+      "skip": "none",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "batch": 5,
+      "timesteps": 2,
+      "skip": "all",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "batch": 5,
+      "timesteps": 2,
+      "skip": "every-third",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "batch": 5,
+      "timesteps": 2,
+      "skip": "random",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "batch": 5,
+      "timesteps": 31,
+      "skip": "none",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "batch": 5,
+      "timesteps": 31,
+      "skip": "all",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "batch": 5,
+      "timesteps": 31,
+      "skip": "every-third",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "batch": 5,
+      "timesteps": 31,
+      "skip": "random",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "batch": 5,
+      "timesteps": 32,
+      "skip": "none",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "batch": 5,
+      "timesteps": 32,
+      "skip": "all",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "batch": 5,
+      "timesteps": 32,
+      "skip": "every-third",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "batch": 5,
+      "timesteps": 32,
+      "skip": "random",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "batch": 5,
+      "timesteps": 33,
+      "skip": "none",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "batch": 5,
+      "timesteps": 33,
+      "skip": "all",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "batch": 5,
+      "timesteps": 33,
+      "skip": "every-third",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "batch": 5,
+      "timesteps": 33,
+      "skip": "random",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "batch": 5,
+      "timesteps": 64,
+      "skip": "none",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "batch": 5,
+      "timesteps": 64,
+      "skip": "all",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "batch": 5,
+      "timesteps": 64,
+      "skip": "every-third",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "batch": 5,
+      "timesteps": 64,
+      "skip": "random",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "batch": 5,
+      "timesteps": 65,
+      "skip": "none",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "batch": 5,
+      "timesteps": 65,
+      "skip": "all",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "batch": 5,
+      "timesteps": 65,
+      "skip": "every-third",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "batch": 5,
+      "timesteps": 65,
+      "skip": "random",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "batch": 5,
+      "timesteps": 100,
+      "skip": "none",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "batch": 5,
+      "timesteps": 100,
+      "skip": "all",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "batch": 5,
+      "timesteps": 100,
+      "skip": "every-third",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "batch": 5,
+      "timesteps": 100,
+      "skip": "random",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "batch": 5,
+      "timesteps": 383,
+      "skip": "none",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "batch": 5,
+      "timesteps": 383,
+      "skip": "all",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "batch": 5,
+      "timesteps": 383,
+      "skip": "every-third",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "batch": 5,
+      "timesteps": 383,
+      "skip": "random",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "batch": 97,
+      "timesteps": 1,
+      "skip": "none",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "batch": 97,
+      "timesteps": 1,
+      "skip": "all",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "batch": 97,
+      "timesteps": 1,
+      "skip": "every-third",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "batch": 97,
+      "timesteps": 1,
+      "skip": "random",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "batch": 97,
+      "timesteps": 2,
+      "skip": "none",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "batch": 97,
+      "timesteps": 2,
+      "skip": "all",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "batch": 97,
+      "timesteps": 2,
+      "skip": "every-third",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "batch": 97,
+      "timesteps": 2,
+      "skip": "random",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "batch": 97,
+      "timesteps": 31,
+      "skip": "none",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "batch": 97,
+      "timesteps": 31,
+      "skip": "all",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "batch": 97,
+      "timesteps": 31,
+      "skip": "every-third",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "batch": 97,
+      "timesteps": 31,
+      "skip": "random",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "batch": 97,
+      "timesteps": 32,
+      "skip": "none",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "batch": 97,
+      "timesteps": 32,
+      "skip": "all",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "batch": 97,
+      "timesteps": 32,
+      "skip": "every-third",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "batch": 97,
+      "timesteps": 32,
+      "skip": "random",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "batch": 97,
+      "timesteps": 33,
+      "skip": "none",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "batch": 97,
+      "timesteps": 33,
+      "skip": "all",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "batch": 97,
+      "timesteps": 33,
+      "skip": "every-third",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "batch": 97,
+      "timesteps": 33,
+      "skip": "random",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "batch": 97,
+      "timesteps": 64,
+      "skip": "none",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "batch": 97,
+      "timesteps": 64,
+      "skip": "all",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "batch": 97,
+      "timesteps": 64,
+      "skip": "every-third",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "batch": 97,
+      "timesteps": 64,
+      "skip": "random",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "batch": 97,
+      "timesteps": 65,
+      "skip": "none",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "batch": 97,
+      "timesteps": 65,
+      "skip": "all",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "batch": 97,
+      "timesteps": 65,
+      "skip": "every-third",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "batch": 97,
+      "timesteps": 65,
+      "skip": "random",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "batch": 97,
+      "timesteps": 100,
+      "skip": "none",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "batch": 97,
+      "timesteps": 100,
+      "skip": "all",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "batch": 97,
+      "timesteps": 100,
+      "skip": "every-third",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "batch": 97,
+      "timesteps": 100,
+      "skip": "random",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "batch": 97,
+      "timesteps": 383,
+      "skip": "none",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "batch": 97,
+      "timesteps": 383,
+      "skip": "all",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "batch": 97,
+      "timesteps": 383,
+      "skip": "every-third",
+      "bitwise_equal": true
+    },
+    {
+      "dtype": "torch.float32",
+      "batch": 97,
+      "timesteps": 383,
+      "skip": "random",
+      "bitwise_equal": true
+    }
+  ]
+}

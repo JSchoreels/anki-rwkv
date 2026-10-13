@@ -1,0 +1,81 @@
+{
+  "status": "partial counted round; remaining iterations already authorized",
+  "model": "expertium",
+  "iterations": [
+    "0048",
+    "0049",
+    "0050"
+  ],
+  "accepted_iteration": "0042",
+  "accepted_result": "artifacts/retraining/gpu-retrain-r01/iteration-0042/expertium/E33-F48-F50/result.json",
+  "accepted_options": {
+    "prefetch_users": true,
+    "preparation_workers": 6,
+    "gpu_packed_features": true,
+    "packed_ipc": true,
+    "async_transfer": true,
+    "batched_id_encodings": true,
+    "grouped_sync": true,
+    "main_threads": 1,
+    "bulk_transfer": true,
+    "parallel_evaluation": true,
+    "exact_shift": true,
+    "exact_index": true,
+    "batch_chunks": 512,
+    "gpu_memory_fraction": 0.95,
+    "fast_samples": true,
+    "prestart_pool": true,
+    "row_tiles_exact": 4,
+    "exact_group_norm": true,
+    "deferred_reads": true,
+    "shared_shift_orders": true,
+    "stream_launches": true,
+    "prefetch_rows": true,
+    "sync_free_loss": true,
+    "columnar_samples": true,
+    "skip_uninitialized_fill": true,
+    "skip_padding_sources": true
+  },
+  "accepted_reviews_per_second": 197499.48784125826,
+  "next_iteration_hint": "0051",
+  "prior_miss_streak": 3,
+  "implementation_git_commit": "e8b906614639edf1e091f050c82541a9025d878c",
+  "new_authorization_required": false,
+  "host_path": "docs/R01_HOST_PATH.md",
+  "ledger": "docs/GPU_OPTIMIZATIONS.md",
+  "summary": "artifacts/retraining/gpu-retrain-r01/codex-round-0048-0050-summary.md",
+  "next_steps": [
+    "Continue campaign at --iteration 0051 --previous 0050; inherit budget 23/index 3 and 20 remaining candidates with loss ceiling 0.001. No new round authorization or budget reset; parent creates follow-on chats and final shutdown.",
+    "Accepted reference stays 0042 E33-F48-F50 with exact recorded options. F58 0048 remains the last nonnegative unproven stack candidate: add recurrence_prefetch=true when following the stack order. Omit rejected F55/F62.",
+    "Slot 4: P4 five-real-batch memory/allocator diagnostics for bounded recurrence-only F49 overlap; if no viable memory-neutral overlap, implement F34 slice 1 exact time-mixer glue. Keep GPU replicas gated to CPU at most 10 percent.",
+    "P3b twin A/B attribution remains pending. F58 recompute-loop/per-row load prefetch and F54 latency refinement remain unimplemented; F55 new shape selection needs a concrete changed mechanism before another trial.",
+    "F62 aligned flat-storage slice is exact but measured negative in stack. Whole-group single-tensor AdamW and gradient/clipping dispatch consolidation remain pending; preserve None-gradient/step and signed-zero semantics. Alex and broader validation remain paused."
+  ],
+  "acceptance": "Use current LOOP gates and source/runtime-compatible recorded checks; no broader validation authorized",
+  "round_iteration_budget": 23,
+  "completed_candidate_iterations": 3,
+  "remaining_authorized_iterations": 20,
+  "round_start_iteration": "0048",
+  "round_authorization": "I want you to follow R01 cycles, spawn each time a new GPT 6.1 Sol medium thread for 3 iterations, until you reach iteration number 70. Go up to 70 and then shutdown the computer.",
+  "next_iteration": "0051",
+  "previous_argument": "0050",
+  "loss_ceiling_fraction": 0.001,
+  "stack_candidates": [
+    {
+      "iteration": "0048",
+      "track": "E33-F48-F50-F58",
+      "option_overrides": {
+        "recurrence_prefetch": true
+      },
+      "mean_gain_percent": 0.10968623263891697,
+      "lower_bound_percent": -1.6501143406453256,
+      "decision": "positive unproven at six-block cap"
+    }
+  ],
+  "rejected_candidates": [
+    "0049 E33-F48-F50-F58-F55",
+    "0050 E33-F48-F50-F58-F62"
+  ],
+  "candidate_preparation": "artifacts/diagnostics/r01-round-0048-0050/preparation.md",
+  "slot_4": "P4 bounded F49 overlap feasibility, otherwise F34 slice 1; stack on F58 and omit rejected F55/F62"
+}

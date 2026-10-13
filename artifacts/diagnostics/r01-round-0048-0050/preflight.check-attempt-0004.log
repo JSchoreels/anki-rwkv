@@ -1,0 +1,15 @@
+Traceback (most recent call last):
+  File "C:\Users\jonat\workspace\anki-rwkv\scripts\check_r01_compact_previous.py", line 68, in <module>
+    main()
+  File "C:\Users\jonat\workspace\anki-rwkv\scripts\check_r01_compact_previous.py", line 49, in main
+    a, c = run(inputs, skip, grad, False), run(inputs, skip, grad, True)
+                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\jonat\workspace\anki-rwkv\scripts\check_r01_compact_previous.py", line 36, in run
+    out, states = nvrtc.forward(*inputs, skip)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\jonat\workspace\anki-rwkv\rwkv\model\nvrtc.py", line 156, in forward
+    launch(module(r.device, r.dtype)[0], r.device, shape, (b, t, h, *inputs, skip, out, checkpoints, states))
+  File "C:\Users\jonat\workspace\anki-rwkv\scripts\gpu_row_tiles.py", line 84, in launch
+    kernel = compile_module(device, dtype, launch_rows, tile, exact, compact_previous, next_step_prefetch)[index]
+                                    ^^^^^
+NameError: name 'dtype' is not defined. Did you mean: 'type'?

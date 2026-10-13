@@ -1,0 +1,446 @@
+{
+  "iteration": "0048",
+  "status": "complete preliminary iteration",
+  "generated_utc": "2026-10-13T00:23:44.358131+00:00",
+  "analysis_provenance": {
+    "captured_utc": "2026-10-13T00:23:44.509157+00:00",
+    "git_commit": "e8b906614639edf1e091f050c82541a9025d878c",
+    "git_dirty": true,
+    "git_status_porcelain_z": " M docs/GPU_OPTIMIZATIONS.md\u0000 M docs/GPU_OPTIMIZATIONS_LOG.md\u0000 M docs/R01_HOST_PATH.md\u0000 M docs/R01_NEXT_ROUND_PLAN.md\u0000",
+    "source_tree_sha256": "8e042b522ae19f96bb797d255baadbdba8075694d0a1089c53d44ff3a6095ecd",
+    "source_archive": "artifacts/sources/experiment-sources/8e042b522ae19f96bb797d255baadbdba8075694d0a1089c53d44ff3a6095ecd/source.zip",
+    "source_paths": [
+      "rwkv",
+      "expertium",
+      "scripts",
+      "configs",
+      "pyproject.toml",
+      "uv.lock",
+      "justfile",
+      "upstream.json"
+    ]
+  },
+  "comparisons": {
+    "expertium": {
+      "track": "E33-F48-F50-F58",
+      "references": {
+        "previous": {
+          "path": "artifacts/retraining/gpu-retrain-r01/iteration-0042/expertium/E33-F48-F50/result.json",
+          "throughput_gain_percent": -1.6818491787766732,
+          "training_time_delta_percent": 1.71061921397897,
+          "process_wall_delta_percent": -0.7284908418365155,
+          "losses": {
+            "scope": "paired-user arithmetic conditional on one training seed; not validation or promotion",
+            "paired_users": 20,
+            "resamples": 10000,
+            "bootstrap_seed": 20261012,
+            "family_tests": 8,
+            "alpha": 0.05,
+            "relative_limit": 0.001,
+            "expected_tail_resamples": 62.5,
+            "metrics": {
+              "curve_log_loss_label_weighted": {
+                "candidate": 0.3874726840790628,
+                "reference": 0.3874726840790628,
+                "absolute_delta": 0.0,
+                "relative_delta": 0.0,
+                "relative_delta_percent": 0.0,
+                "relative_ci95": [
+                  0.0,
+                  0.0
+                ],
+                "relative_familywise_upper": 0.0,
+                "strict_upper_below_limit": true
+              },
+              "curve_log_loss_user_average": {
+                "candidate": 0.37038797217215763,
+                "reference": 0.37038797217215763,
+                "absolute_delta": 0.0,
+                "relative_delta": 0.0,
+                "relative_delta_percent": 0.0,
+                "relative_ci95": [
+                  0.0,
+                  0.0
+                ],
+                "relative_familywise_upper": 0.0,
+                "strict_upper_below_limit": true
+              },
+              "instant_log_loss_label_weighted": {
+                "candidate": 0.3984285960019747,
+                "reference": 0.3984285960019747,
+                "absolute_delta": 0.0,
+                "relative_delta": 0.0,
+                "relative_delta_percent": 0.0,
+                "relative_ci95": [
+                  0.0,
+                  0.0
+                ],
+                "relative_familywise_upper": 0.0,
+                "strict_upper_below_limit": true
+              },
+              "instant_log_loss_user_average": {
+                "candidate": 0.3825924635443113,
+                "reference": 0.3825924635443113,
+                "absolute_delta": 0.0,
+                "relative_delta": 0.0,
+                "relative_delta_percent": 0.0,
+                "relative_ci95": [
+                  0.0,
+                  0.0
+                ],
+                "relative_familywise_upper": 0.0,
+                "strict_upper_below_limit": true
+              }
+            },
+            "all_four_strict_upper_bounds_below_limit": true
+          }
+        },
+        "original_baseline": {
+          "path": "artifacts/retraining/gpu-retrain-r01/iteration-0002/expertium/control/result.json",
+          "throughput_gain_percent": 547.1470916179204,
+          "training_time_delta_percent": -84.54756247918972,
+          "process_wall_delta_percent": -76.29799937611541,
+          "losses": {
+            "scope": "paired-user arithmetic conditional on one training seed; not validation or promotion",
+            "paired_users": 20,
+            "resamples": 10000,
+            "bootstrap_seed": 20261012,
+            "family_tests": 8,
+            "alpha": 0.05,
+            "relative_limit": 0.02,
+            "expected_tail_resamples": 62.5,
+            "metrics": {
+              "curve_log_loss_label_weighted": {
+                "candidate": 0.3874726840790628,
+                "reference": 0.4004734610421284,
+                "absolute_delta": -0.013000776963065563,
+                "relative_delta": -0.032463516881329424,
+                "relative_delta_percent": -3.2463516881329424,
+                "relative_ci95": [
+                  -0.07221633897845005,
+                  -0.009287682403812551
+                ],
+                "relative_familywise_upper": -0.004885295997764545,
+                "strict_upper_below_limit": true
+              },
+              "curve_log_loss_user_average": {
+                "candidate": 0.37038797217215763,
+                "reference": 0.3877724203477809,
+                "absolute_delta": -0.01738444817562329,
+                "relative_delta": -0.044831574561263854,
+                "relative_delta_percent": -4.483157456126385,
+                "relative_ci95": [
+                  -0.08593361297509922,
+                  -0.01326293527045963
+                ],
+                "relative_familywise_upper": -0.0061563283208486185,
+                "strict_upper_below_limit": true
+              },
+              "instant_log_loss_label_weighted": {
+                "candidate": 0.3984285960019747,
+                "reference": 0.40147028927147826,
+                "absolute_delta": -0.0030416932695035426,
+                "relative_delta": -0.00757638448170872,
+                "relative_delta_percent": -0.757638448170872,
+                "relative_ci95": [
+                  -0.02444920074370612,
+                  0.0034767931019659758
+                ],
+                "relative_familywise_upper": 0.005906417464431395,
+                "strict_upper_below_limit": true
+              },
+              "instant_log_loss_user_average": {
+                "candidate": 0.3825924635443113,
+                "reference": 0.3864369308513096,
+                "absolute_delta": -0.003844467306998278,
+                "relative_delta": -0.009948498707225029,
+                "relative_delta_percent": -0.9948498707225029,
+                "relative_ci95": [
+                  -0.029995331024884653,
+                  0.005252815739253403
+                ],
+                "relative_familywise_upper": 0.008608366923264159,
+                "strict_upper_below_limit": true
+              }
+            },
+            "all_four_strict_upper_bounds_below_limit": true
+          }
+        },
+        "round_start": {
+          "path": "artifacts/retraining/gpu-retrain-r01/iteration-0042/expertium/E33-F48-F50/result.json",
+          "throughput_gain_percent": -1.6818491787766732,
+          "training_time_delta_percent": 1.71061921397897,
+          "process_wall_delta_percent": -0.7284908418365155,
+          "losses": {
+            "scope": "paired-user arithmetic conditional on one training seed; not validation or promotion",
+            "paired_users": 20,
+            "resamples": 10000,
+            "bootstrap_seed": 20261012,
+            "family_tests": 8,
+            "alpha": 0.05,
+            "relative_limit": 0.001,
+            "expected_tail_resamples": 62.5,
+            "metrics": {
+              "curve_log_loss_label_weighted": {
+                "candidate": 0.3874726840790628,
+                "reference": 0.3874726840790628,
+                "absolute_delta": 0.0,
+                "relative_delta": 0.0,
+                "relative_delta_percent": 0.0,
+                "relative_ci95": [
+                  0.0,
+                  0.0
+                ],
+                "relative_familywise_upper": 0.0,
+                "strict_upper_below_limit": true
+              },
+              "curve_log_loss_user_average": {
+                "candidate": 0.37038797217215763,
+                "reference": 0.37038797217215763,
+                "absolute_delta": 0.0,
+                "relative_delta": 0.0,
+                "relative_delta_percent": 0.0,
+                "relative_ci95": [
+                  0.0,
+                  0.0
+                ],
+                "relative_familywise_upper": 0.0,
+                "strict_upper_below_limit": true
+              },
+              "instant_log_loss_label_weighted": {
+                "candidate": 0.3984285960019747,
+                "reference": 0.3984285960019747,
+                "absolute_delta": 0.0,
+                "relative_delta": 0.0,
+                "relative_delta_percent": 0.0,
+                "relative_ci95": [
+                  0.0,
+                  0.0
+                ],
+                "relative_familywise_upper": 0.0,
+                "strict_upper_below_limit": true
+              },
+              "instant_log_loss_user_average": {
+                "candidate": 0.3825924635443113,
+                "reference": 0.3825924635443113,
+                "absolute_delta": 0.0,
+                "relative_delta": 0.0,
+                "relative_delta_percent": 0.0,
+                "relative_ci95": [
+                  0.0,
+                  0.0
+                ],
+                "relative_familywise_upper": 0.0,
+                "strict_upper_below_limit": true
+              }
+            },
+            "all_four_strict_upper_bounds_below_limit": true
+          }
+        }
+      },
+      "parity": {
+        "fields": {
+          "initial_parameter_sha256": true,
+          "trained_parameter_sha256": true,
+          "validation_input_sha256": true,
+          "updates": true,
+          "review_presentations": true,
+          "training_curve_labels": true,
+          "training_instant_labels": true,
+          "coverage": true,
+          "evaluation": true
+        },
+        "equal_update_counts": true,
+        "update_mismatch_count": 0,
+        "first_update_mismatch": null,
+        "exact_recorded_parity": true
+      },
+      "incumbent_parity_vs_previous": {
+        "fields": {
+          "initial_parameter_sha256": true,
+          "trained_parameter_sha256": true,
+          "validation_input_sha256": true,
+          "updates": true,
+          "review_presentations": true,
+          "training_curve_labels": true,
+          "training_instant_labels": true,
+          "coverage": true,
+          "evaluation": true
+        },
+        "equal_update_counts": true,
+        "update_mismatch_count": 0,
+        "first_update_mismatch": null,
+        "exact_recorded_parity": true
+      },
+      "faster": false,
+      "speed_change": "same within recorded repeat spread",
+      "speed_tolerance_percent": 6.266963431328465,
+      "passes_preliminary_quality": true,
+      "baseline_preferred_limit_met": true,
+      "fastmode": false,
+      "accepted_main": false,
+      "stack_candidate": true,
+      "loss_tolerance_within_limit": true,
+      "resource_retuning_pending": false,
+      "decision": "retain previous accepted run; speed target missed",
+      "exact_speed_gate_applied": false,
+      "exact_promotion_rule": "replicated_blocks",
+      "timing_noise_gate_applied": false,
+      "replicated_blocks": {
+        "n": 6,
+        "effects_percent": [
+          -2.294910081384549,
+          4.321694063994963,
+          0.022722768124605608,
+          -0.4539625196023245,
+          -0.3826210055718926,
+          -0.43492600404614334
+        ],
+        "mean_percent": 0.10968623263891697,
+        "sd_used_percent": 2.203986889279541,
+        "observed_sd_percent": 2.203986889279541,
+        "lower_bound_percent": -1.6501143406453256,
+        "boundary_z": 1.9927,
+        "decision": "stack candidate",
+        "next_look": null,
+        "final": true,
+        "pairs": [
+          [
+            "artifacts/retraining/gpu-retrain-r01/iteration-0048/replicates/r1/expertium/E33-F48-F50",
+            "artifacts/retraining/gpu-retrain-r01/iteration-0048/replicates/r2/expertium/E33-F48-F50-F58"
+          ],
+          [
+            "artifacts/retraining/gpu-retrain-r01/iteration-0048/replicates/r3/expertium/E33-F48-F50",
+            "artifacts/retraining/gpu-retrain-r01/iteration-0048/replicates/r4/expertium/E33-F48-F50-F58"
+          ],
+          [
+            "artifacts/retraining/gpu-retrain-r01/iteration-0048/replicates/r5/expertium/E33-F48-F50",
+            "artifacts/retraining/gpu-retrain-r01/iteration-0048/replicates/r6/expertium/E33-F48-F50-F58"
+          ],
+          [
+            "artifacts/retraining/gpu-retrain-r01/iteration-0048/replicates/r7/expertium/E33-F48-F50",
+            "artifacts/retraining/gpu-retrain-r01/iteration-0048/replicates/r8/expertium/E33-F48-F50-F58"
+          ],
+          [
+            "artifacts/retraining/gpu-retrain-r01/iteration-0048/replicates/r9/expertium/E33-F48-F50",
+            "artifacts/retraining/gpu-retrain-r01/iteration-0048/replicates/r10/expertium/E33-F48-F50-F58"
+          ],
+          [
+            "artifacts/retraining/gpu-retrain-r01/iteration-0048/replicates/r11/expertium/E33-F48-F50",
+            "artifacts/retraining/gpu-retrain-r01/iteration-0048/replicates/r12/expertium/E33-F48-F50-F58"
+          ]
+        ],
+        "reference_replicates_exact": true,
+        "candidate_replicates_exact": true
+      },
+      "decision_pending": false,
+      "throughput_target_percent": 5.0,
+      "meets_20_percent_target": false,
+      "no_20_percent_gain_streak": 1,
+      "speed_noise_band": {
+        "percent": 6.266963431328465,
+        "available": true,
+        "estimator": "median_pairwise_spread",
+        "pairs": 31,
+        "widest_group_percent": 22.149143245708803,
+        "sources": [
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0002/expertium/F01/result.json",
+            "sha256": "570d533abaa75b3df77a4a7ff6ca9c864d042ade7166efed76fa851fb01a336c"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0003/expertium/F01/result.json",
+            "sha256": "556568c45c8e095f542de3a7b90cf5960705b3a717c3186a24c22f2bc6b1819b"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0006/expertium/F01-F16-F14-F03-F04/result.json",
+            "sha256": "274f833c8dcdd3479b1f0cbe9d21b1182c62d5e79468a1a85fe9139d6a9fdcd9"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0007/expertium/F01-F16-F14-F03-F04/result.json",
+            "sha256": "c354ab68e94c8cd6cb50dae982f175bf506a2aefe6679dcc783d37707dc51c88"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0033/expertium/E30-F37-F42/result.json",
+            "sha256": "e7c421f26c41f4d04c25c3bcb4d004e12478c25caf84ef39834dd74ab286446c"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0040/expertium/E30-F37-F42/result.json",
+            "sha256": "c81926c814d881b24f599cda18c8610e4ee7e9c7752d6b36156509ba63676510"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0042/expertium/E33-F48-F50/result.json",
+            "sha256": "1b9c548c19811f1e5648639810cb34db1eed09ff8d871eaab0444941b62141ad"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0046/expertium/E33-F48-F50/result.json",
+            "sha256": "56fa66567d87fd42106a1174afc1bc9f1a8b0906a67f9f65333bf3b16df1b4d5"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0047/replicates/r1/expertium/E33-F48-F50/result.json",
+            "sha256": "ed83c8a526721a831bacd14d4f32f3f67e7eb84b92235a51faeed2a425c578a6"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0047/replicates/r2/expertium/E33-F48-F50/result.json",
+            "sha256": "361739be871b23ae14987ef41892849852372e76623f4650184cddad98615157"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0047/replicates/r3/expertium/E33-F48-F50/result.json",
+            "sha256": "fa504c11eb2df99b9e93595e2385c96cb46d9ec8aa68cad6c37b6d5bd1f55677"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0047/replicates/r4/expertium/E33-F48-F50/result.json",
+            "sha256": "44cc3c400e125a65187296940866939f12faa52c80bdf7d4c973e11424d9c168"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0047/replicates/r5/expertium/E33-F48-F50/result.json",
+            "sha256": "fd106ea6c748c72bea26d4ba64bca78e961dc6a6f916132602f7a83289a3b566"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0047/replicates/r6/expertium/E33-F48-F50/result.json",
+            "sha256": "d18faccb83af53c29f6cfa83befb26987bb0c0a8dbef73ad195cf032487f664c"
+          }
+        ],
+        "rule": "median over all pairs of complete full-history repeats with identical cohort, training settings, options, config and trained weights of max/min - 1 reviews/s (human decision 2026-10-12; replaces the widest group's max/min)"
+      },
+      "resource_reductions": {
+        "nvidia_utilization.gpu": {
+          "candidate": 62.49427353528654,
+          "reference": 66.53689996352452,
+          "material": false,
+          "material_threshold": "5 percentage points"
+        },
+        "process_tree_rss_bytes": {
+          "candidate": 8943824896.0,
+          "reference": 8969048064.0,
+          "material": false,
+          "material_threshold": "10% of reference"
+        },
+        "worker_cpu_load_proxy": {
+          "candidate": 312.70644850256576,
+          "reference": 319.3581757918183,
+          "material": false,
+          "material_threshold": "10% of reference"
+        }
+      },
+      "reused_candidate": false,
+      "incumbent_after_iteration": "E33-F48-F50",
+      "accepted_reference": {
+        "path": "artifacts/retraining/gpu-retrain-r01/iteration-0042/expertium/E33-F48-F50/result.json",
+        "sha256": "1b9c548c19811f1e5648639810cb34db1eed09ff8d871eaab0444941b62141ad"
+      }
+    }
+  },
+  "implementation_commit": {
+    "git_commit": "e8b906614639edf1e091f050c82541a9025d878c",
+    "recorded_utc": "2026-10-13T00:23:44.120026+00:00",
+    "timing": "implementation commit after completed experiments; not the revision tested by any full run",
+    "tracks": "E33-F48-F50-F58",
+    "source_archive": "artifacts/sources/experiment-sources/537f8a6b311a2a67bd03a36d264dc396581dcfab549362ecad13504291923429/source.zip",
+    "evidence": "artifacts/retraining/gpu-retrain-r01/iteration-0048/summary.md",
+    "scope": "E33-F48-F50-F58 (exact, not accepted); Prefetch next backward-step scalar inputs before current recurrence barriers; retain accepted arithmetic and four-row layout. P3 did not favor compact previous-state storage consistently, so omit F54.; origin 2ee2b4eb16b41030fa93eed50fc7426db9d3788f",
+    "experiment_git_commit": "6a73d011393b4f3c8e24e3a2e7f91d4392886900"
+  },
+  "loop_policy": "reused-references-v1",
+  "limitations": "20 distinct held-out users; one training seed and one timing/configuration; no broader validation or timing-repeatability claim"
+}
