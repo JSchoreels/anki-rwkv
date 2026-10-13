@@ -6,7 +6,7 @@ import torch
 
 from expertium.model.rwkv_ops import RWKV7_WKV, reference_rwkv7, quant_aware_rwkv7
 from rwkv.model.fused_shift import FusedShiftLerp
-from rwkv.model.exact_index import ExactShiftGather
+from rwkv.model.exact_index import ExactShiftGather, shift_order
 from rwkv.model.exact_group_norm import ExactGroupNorm
 from rwkv.model import native_launch
 
@@ -35,6 +35,13 @@ else:
     ModuleType = torch.jit.ScriptModule
     FunctionType = torch.jit.script_method
 
+
+
+@torch.jit.ignore
+def native_shift_gather(x: torch.Tensor, select: torch.Tensor, handle: int) -> torch.Tensor:
+    """F65d: F38-cached order in Python, gather and exact F26 backward in the native dispatcher."""
+    order, starts = shift_order(select.contiguous())
+    return torch.ops.rwkv_native.shift_gather(x, select, order, starts, handle)
 
 @dataclass
 class RWKV7Config:
@@ -123,6 +130,8 @@ class RWKV7ChannelMixer(ModuleType):
         self.exact_gate_glue = 0
         self.exact_channel_glue = False
         self.exact_shift = False
+        self.native_shift = False  # F65d
+        self.native_shift_handle = 0
         assert config.d_model // config.n_heads == 32
         self.d_model = config.d_model
         with torch.no_grad():
@@ -152,7 +161,9 @@ class RWKV7ChannelMixer(ModuleType):
     @FunctionType
     def forward(self, in_BTC, time_shift_select_BT):
         x_BTC = self.layer_norm(in_BTC)
-        if self.exact_shift and x_BTC.is_cuda:
+        if self.native_shift and x_BTC.requires_grad and x_BTC.is_cuda:
+            x_shift_BTC = native_shift_gather(x_BTC, time_shift_select_BT, self.native_shift_handle)
+        elif self.exact_shift and x_BTC.is_cuda:
             x_shift_BTC = ExactShiftGather.apply(x_BTC, time_shift_select_BT)
         else:
             x_shift_BTC = torch.gather(
@@ -238,6 +249,8 @@ class RWKV7TimeMixer(ModuleType):
         self.exact_gate_glue = 0
         self.exact_channel_glue = False
         self.exact_shift = False
+        self.native_shift = False  # F65d
+        self.native_shift_handle = 0
         self.exact_group_norm = False  # F32: multi-SM GroupNorm weight/bias backward, bitwise equal
         self.native_wkv = False
         self.native_forward_handle = 0
@@ -358,7 +371,9 @@ class RWKV7TimeMixer(ModuleType):
         if self.fused_shift and x_BTC.is_cuda:
             rkvdag_8BTC = FusedShiftLerp.apply(x_BTC, time_shift_select_BT, self.rkvdag_lerp)
         else:
-            if self.exact_shift and x_BTC.is_cuda:
+            if self.native_shift and x_BTC.requires_grad and x_BTC.is_cuda:
+                x_shift_BTC = native_shift_gather(x_BTC, time_shift_select_BT, self.native_shift_handle)
+            elif self.exact_shift and x_BTC.is_cuda:
                 x_shift_BTC = ExactShiftGather.apply(x_BTC, time_shift_select_BT)
             else:
                 x_shift_BTC = torch.gather(

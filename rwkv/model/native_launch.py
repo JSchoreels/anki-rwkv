@@ -10,6 +10,8 @@ ROOT = Path(__file__).resolve().parents[2]
 _schemas = torch.library.Library('rwkv_native','DEF')
 _schemas.define('wkv(Tensor r, Tensor k, Tensor v, Tensor w, Tensor a, Tensor kd, Tensor skip, int forward_handle, int backward_handle, int rows, int tile) -> Tensor')
 _schemas.define('group_norm(Tensor x, Tensor weight, Tensor bias, int groups, float eps, int chains, int tree) -> Tensor')
+_schemas.define('shift_gather(Tensor x, Tensor select, Tensor order, Tensor starts, int handle) -> Tensor')
+_schemas.define('padded_rows(Tensor x, Tensor index, int handle) -> Tensor')
 _loaded = None
 
 BUILD_FLAGS = ['/nologo','/LD','/std:c++17','/O2','/MD','/EHsc','/bigobj','/D_CRT_SECURE_NO_WARNINGS','/DNOMINMAX']
@@ -45,7 +47,7 @@ def load():
     return metadata
 
 def configure(model,options):
-    if not (options.get('native_wkv') or options.get('native_group_norm')):
+    if not (options.get('native_wkv') or options.get('native_group_norm') or options.get('native_index')):
         return
     if options.get('native_wkv') and (options.get('row_tiles_exact') != 4 or options.get('recurrence_load_pipeline',0) or options.get('recurrence_prefetch') or options.get('wave_aware_backward') or options.get('compact_previous_state')):
         raise ValueError('Native WKV initially binds only accepted four-row/tile32 kernels')
@@ -71,4 +73,23 @@ def configure(model,options):
                 module.native_group_norm=True
                 module.native_group_chains_handle=handles[0]
                 module.native_group_tree_handle=handles[1]
+    if options.get('native_index'):
+        # F65d: same F26/F27 (F35 prefetch) kernels; orders still come from the F38 cache or the backward sort.
+        if not (options.get('exact_shift') and options.get('exact_index')) or options.get('worker_scatter_orders') or options.get('fused_shift'):
+            raise ValueError('Native index requires the accepted exact shift/row paths without F53 or fused shift')
+        from rwkv.model.exact_index import kernel
+        functions=kernel(torch.bfloat16)
+        shift=functions['shift_backward_prefetch' if options.get('prefetch_shift') else 'shift_backward']
+        rows=functions['rows_backward_prefetch' if options.get('prefetch_rows') else 'rows_backward']
+        handles=[int(getattr(f,'kernel',f).ptr) for f in (shift,rows)]
+        for module in model.modules():
+            if hasattr(module,'native_shift'):
+                module.native_shift=True
+                module.native_shift_handle=handles[0]
+            if hasattr(module,'native_rows'):
+                module.native_rows=True
+                module.native_rows_handle=handles[1]
+        configured=[sum(bool(getattr(m,name,False)) for m in model.modules()) for name in ('native_shift','native_rows')]
+        if not all(configured):
+            raise ValueError(f'Native index found no shift/row modules to configure: {configured}')
     return {'identity':_loaded['identity'],'binary_sha256':_loaded['binary_sha256'],'build_key':build_identity()[1]}

@@ -120,6 +120,8 @@ class SrsRWKV(ModuleType):
     def __init__(self, anki_rwkv_config: AnkiRWKVConfig):
         super().__init__()
         self.exact_index = False  # F27: sort-free row-selection backward, bitwise equal when deterministic
+        self.native_rows = False  # F65d
+        self.native_rows_handle = 0
         self.skip_padding_sources = False  # F50: hierarchy padding contributes zero gradients.
         self.batched_split_gather = False
         self.fused_padded_gather = False
@@ -317,6 +319,10 @@ class SrsRWKV(ModuleType):
                     split_index = split_gather if self.fused_padded_gather else torch.clamp(split_gather, min=0)
                     if self.fused_padded_gather and x.is_cuda:
                         module_in = FusedPaddedIndexSelect.apply(x, split_gather).view(-1, sub_len, self.d_model)
+                    elif self.native_rows and x.requires_grad and x.is_cuda:
+                        # F65d: forward clamps padding; backward sorts this index, so F50 padding sources stay omitted.
+                        module_in = torch.ops.rwkv_native.padded_rows(
+                            x, split_gather if self.skip_padding_sources else split_index, self.native_rows_handle).view(-1, sub_len, self.d_model)
                     elif self.exact_index and x.is_cuda:
                         if self.skip_padding_sources:
                             module_in = ExactPaddedIndexSelect.apply(x, split_gather).view(-1, sub_len, self.d_model)

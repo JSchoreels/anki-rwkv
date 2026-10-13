@@ -149,3 +149,81 @@ static Tensor native_group_norm(const Tensor& x,const Tensor& weight,const Tenso
 }
 TORCH_LIBRARY_IMPL(rwkv_native,CUDA,m) { m.impl("group_norm",TORCH_FN(native_group_norm)); }
 TORCH_LIBRARY_IMPL(rwkv_native,Autograd,m) { m.impl("group_norm",TORCH_FN(native_group_norm)); }
+
+// F65d: exact shift-gather and padded row-select backward on the native path, same F26/F27 kernels.
+#include <ATen/ops/gather.h>
+#include <ATen/ops/index_select.h>
+#include <ATen/ops/sort.h>
+#include <ATen/ops/searchsorted.h>
+#include <ATen/ops/arange.h>
+
+static void launch_linear(int64_t handle, int64_t elements, void** args, const Tensor& tensor) {
+    TORCH_CHECK(handle != 0, "Missing native index function handle");
+    TORCH_CHECK(elements >= 0 && (elements + 255) / 256 <= std::numeric_limits<int>::max(), "Native index grid overflow");
+    if (elements == 0) return;
+    auto stream=c10::cuda::getCurrentCUDAStream(tensor.get_device()).stream();
+    CUresult status=cuLaunchKernel(reinterpret_cast<CUfunction>(static_cast<uintptr_t>(handle)),
+        static_cast<unsigned int>((elements + 255) / 256),1,1,256,1,1,0,reinterpret_cast<CUstream>(stream),args,nullptr);
+    TORCH_CHECK(status==CUDA_SUCCESS,"Native index launch failed: ",static_cast<int>(status));
+}
+
+class NativeShiftGather : public torch::autograd::Function<NativeShiftGather> {
+public:
+    static Tensor forward(AutogradContext* ctx, Tensor x, Tensor select, Tensor order, Tensor starts, int64_t handle) {
+        TORCH_CHECK(x.is_cuda() && x.dim()==3 && select.dim()==2 && select.size(0)==x.size(0) && select.size(1)==x.size(1), "Native shift gather requires CUDA (B,T,C) input and (B,T) select");
+        TORCH_CHECK(order.scalar_type()==at::kLong && starts.scalar_type()==at::kLong && order.is_contiguous() && starts.is_contiguous()
+                    && order.numel()==select.numel() && starts.numel()==select.numel()+1, "Native shift gather order mismatch");
+        ctx->save_for_backward({order, starts});
+        ctx->saved_data["handle"]=handle;
+        return at::gather(x, 1, select.unsqueeze(-1).expand({-1, -1, x.size(2)}));
+    }
+    static variable_list backward(AutogradContext* ctx, variable_list output_gradients) {
+        auto saved=ctx->get_saved_variables();
+        Tensor order=saved[0], starts=saved[1], grad=output_gradients[0].contiguous();
+        TORCH_CHECK(grad.scalar_type()==at::kBFloat16 && grad.dim()==3, "Configured native shift handle requires BF16 gradients");
+        c10::cuda::CUDAGuard guard(grad.device());
+        for (const auto& value:{order,starts,grad}) retain_on_current_stream(value);
+        Tensor out=at::empty_like(grad);
+        int64_t rows=grad.size(0)*grad.size(1); int32_t C=static_cast<int32_t>(grad.size(2));
+        void *gp=grad.data_ptr(), *op=order.data_ptr(), *sp=starts.data_ptr(), *outp=out.data_ptr();
+        std::array<void*,6> arguments={&gp,&op,&sp,&outp,&rows,&C};
+        launch_linear(ctx->saved_data["handle"].toInt(), rows*C, arguments.data(), grad);
+        return {out, Tensor(), Tensor(), Tensor(), Tensor()};
+    }
+};
+
+class NativePaddedRows : public torch::autograd::Function<NativePaddedRows> {
+public:
+    static Tensor forward(AutogradContext* ctx, Tensor x, Tensor index, int64_t handle) {
+        TORCH_CHECK(x.is_cuda() && x.dim()==2 && x.size(1)<=32 && index.dim()==1, "Native row select requires 2-D CUDA rows of width <= 32");
+        ctx->save_for_backward({index});
+        ctx->saved_data["rows"]=x.size(0);
+        ctx->saved_data["handle"]=handle;
+        return at::index_select(x, 0, index.clamp(0));
+    }
+    static variable_list backward(AutogradContext* ctx, variable_list output_gradients) {
+        auto saved=ctx->get_saved_variables();
+        Tensor index=saved[0].contiguous().to(at::kLong), grad=output_gradients[0].contiguous();
+        TORCH_CHECK(grad.scalar_type()==at::kBFloat16 && grad.dim()==2, "Configured native row handle requires BF16 gradients");
+        c10::cuda::CUDAGuard guard(grad.device());
+        int64_t rows=ctx->saved_data["rows"].toInt(); int32_t C=static_cast<int32_t>(grad.size(1));
+        auto sorted=at::sort(index, true, -1, false);
+        Tensor order=std::get<1>(sorted);
+        Tensor starts=at::searchsorted(std::get<0>(sorted), at::arange(rows + 1, index.options()));
+        for (const auto& value:{order,starts,grad}) retain_on_current_stream(value);
+        Tensor out=at::empty({rows, grad.size(1)}, grad.options());
+        void *gp=grad.data_ptr(), *op=order.data_ptr(), *sp=starts.data_ptr(), *outp=out.data_ptr();
+        std::array<void*,6> arguments={&gp,&op,&sp,&outp,&rows,&C};
+        launch_linear(ctx->saved_data["handle"].toInt(), rows*C, arguments.data(), grad);
+        return {out, Tensor(), Tensor()};
+    }
+};
+
+static Tensor shift_gather(const Tensor& x, const Tensor& select, const Tensor& order, const Tensor& starts, int64_t handle) {
+    return NativeShiftGather::apply(x, select, order, starts, handle);
+}
+static Tensor padded_rows(const Tensor& x, const Tensor& index, int64_t handle) {
+    return NativePaddedRows::apply(x, index, handle);
+}
+TORCH_LIBRARY_IMPL(rwkv_native,CUDA,m) { m.impl("shift_gather",TORCH_FN(shift_gather)); m.impl("padded_rows",TORCH_FN(padded_rows)); }
+TORCH_LIBRARY_IMPL(rwkv_native,Autograd,m) { m.impl("shift_gather",TORCH_FN(shift_gather)); m.impl("padded_rows",TORCH_FN(padded_rows)); }
