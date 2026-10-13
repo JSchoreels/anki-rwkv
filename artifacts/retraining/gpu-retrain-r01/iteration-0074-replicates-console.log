@@ -1,0 +1,71 @@
+[replicates] background CPU 11.1% > 10.0%; waiting
+[replicates] r1 E33-F48-F50-F65b: {"action": "run", "model": "expertium", "track": "E33-F48-F50-F65b", "smoke": false, "repeat_reason": "0074 replicated-block gate for F71; order alternates per block to rule out an order effect seen a
+[replicate-r1] running 60s; log artifacts/retraining/gpu-retrain-r01/iteration-0074-replicate-r1-console.log (resource counters in sidecar)
+[replicates] r1 E33-F48-F50-F65b: 166,025 reviews/s
+[replicates] background CPU 14.6% > 10.0%; waiting
+[replicates] r2 E33-F48-F50-F65b-F71: {"action": "run", "model": "expertium", "track": "E33-F48-F50-F65b-F71", "smoke": false, "repeat_reason": "0074 replicated-block gate for F71; order alternates per block to rule out an order effect se
+[replicate-r2] running 60s; log artifacts/retraining/gpu-retrain-r01/iteration-0074-replicate-r2-console.log (resource counters in sidecar)
+[replicates] r2 E33-F48-F50-F65b-F71: 175,331 reviews/s
+[replicates] r3 E33-F48-F50-F65b-F71: {"action": "run", "model": "expertium", "track": "E33-F48-F50-F65b-F71", "smoke": false, "repeat_reason": "0074 replicated-block gate for F71; order alternates per block to rule out an order effect se
+[replicate-r3] running 60s; log artifacts/retraining/gpu-retrain-r01/iteration-0074-replicate-r3-console.log (resource counters in sidecar)
+[replicates] r3 E33-F48-F50-F65b-F71: 187,507 reviews/s
+[replicates] background CPU 10.7% > 10.0%; waiting
+[replicates] background CPU 10.6% > 10.0%; waiting
+[replicates] r4 E33-F48-F50-F65b: {"action": "run", "model": "expertium", "track": "E33-F48-F50-F65b", "smoke": false, "repeat_reason": "0074 replicated-block gate for F71; order alternates per block to rule out an order effect seen a
+[replicate-r4] running 60s; log artifacts/retraining/gpu-retrain-r01/iteration-0074-replicate-r4-console.log (resource counters in sidecar)
+[replicates] r4 E33-F48-F50-F65b: 183,968 reviews/s
+[replicates] background CPU 10.7% > 10.0%; waiting
+Traceback (most recent call last):
+  File "C:\Users\jonat\workspace\anki-rwkv\scripts\r01_replicates.py", line 146, in <module>
+    main()
+  File "C:\Users\jonat\workspace\anki-rwkv\scripts\r01_replicates.py", line 142, in main
+    {"prepare": prepare, "run": run}[args.command](args)
+  File "C:\Users\jonat\workspace\anki-rwkv\scripts\r01_replicates.py", line 107, in run
+    print(f"[replicates] r{offset} {track}: " + json.dumps(launch_plan(ROOT, folder, launch))[:200], flush=True)
+                                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\jonat\workspace\anki-rwkv\scripts\gpu_r01_policy.py", line 130, in launch_plan
+    protocol, amendment, definition = effective_loop(output, root, current=True)
+                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\jonat\workspace\anki-rwkv\scripts\gpu_r01_policy.py", line 66, in effective_loop
+    raise ValueError("LOOP changed: reconcile the protocol in a recorded amendment before another launch")
+ValueError: LOOP changed: reconcile the protocol in a recorded amendment before another launch
+[claim] waiting for training-source, held by r01-turnaround: F74 T1/T2/T5 edits: evaluation reuse in gpu_r01_training, turnaround protocol fields in prepare, first-block pairing in policy
+[replicates] r6 E33-F48-F50-F65b: {"action": "run", "model": "expertium", "track": "E33-F48-F50-F65b", "smoke": false, "repeat_reason": "0074 replicated-block gate for F71 after LOOP amendment 001; strict reference-then-candidate orde
+[replicate-r6] running 60s; log artifacts/retraining/gpu-retrain-r01/iteration-0074-replicate-r6-console.log (resource counters in sidecar)
+[replicates] r6 E33-F48-F50-F65b: 180,481 reviews/s; evaluation computed (29.0 s)
+[replicates] background CPU 17.2% > 10.0%; waiting
+[replicates] background CPU 13.0% > 10.0%; waiting
+[replicates] r7 E33-F48-F50-F65b-F71: {"action": "run", "model": "expertium", "track": "E33-F48-F50-F65b-F71", "smoke": false, "repeat_reason": "0074 replicated-block gate for F71 after LOOP amendment 001; strict reference-then-candidate 
+[replicate-r7] running 60s; log artifacts/retraining/gpu-retrain-r01/iteration-0074-replicate-r7-console.log (resource counters in sidecar)
+[replicates] r7 E33-F48-F50-F65b-F71: 186,338 reviews/s; evaluation computed (28.6 s)
+[replicates] r8 E33-F48-F50-F65b: {"action": "run", "model": "expertium", "track": "E33-F48-F50-F65b", "smoke": false, "repeat_reason": "0074 replicated-block gate for F71 after LOOP amendment 001; strict reference-then-candidate orde
+[replicate-r8] running 60s; log artifacts/retraining/gpu-retrain-r01/iteration-0074-replicate-r8-console.log (resource counters in sidecar)
+[replicates] r8 E33-F48-F50-F65b: 174,201 reviews/s; evaluation computed (31.3 s)
+[replicates] background CPU 14.2% > 10.0%; waiting
+[replicates] background CPU 13.9% > 10.0%; waiting
+[replicates] r9 E33-F48-F50-F65b-F71: {"action": "run", "model": "expertium", "track": "E33-F48-F50-F65b-F71", "smoke": false, "repeat_reason": "0074 replicated-block gate for F71 after LOOP amendment 001; strict reference-then-candidate 
+[replicate-r9] running 60s; log artifacts/retraining/gpu-retrain-r01/iteration-0074-replicate-r9-console.log (resource counters in sidecar)
+[replicates] r9 E33-F48-F50-F65b-F71: 184,856 reviews/s; evaluation computed (28.9 s)
+[replicates] background CPU 15.6% > 10.0%; waiting
+[replicates] background CPU 10.1% > 10.0%; waiting
+[replicates] r10 E33-F48-F50-F65b: {"action": "run", "model": "expertium", "track": "E33-F48-F50-F65b", "smoke": false, "repeat_reason": "0074 replicated-block gate for F71 after LOOP amendment 001; strict reference-then-candidate orde
+[replicate-r10] running 60s; log artifacts/retraining/gpu-retrain-r01/iteration-0074-replicate-r10-console.log (resource counters in sidecar)
+[replicates] r10 E33-F48-F50-F65b: 180,510 reviews/s; evaluation computed (28.6 s)
+[replicates] background CPU 13.4% > 10.0%; waiting
+[replicates] r11 E33-F48-F50-F65b-F71: {"action": "run", "model": "expertium", "track": "E33-F48-F50-F65b-F71", "smoke": false, "repeat_reason": "0074 replicated-block gate for F71 after LOOP amendment 001; strict reference-then-candidate 
+[replicate-r11] running 60s; log artifacts/retraining/gpu-retrain-r01/iteration-0074-replicate-r11-console.log (resource counters in sidecar)
+[replicates] r11 E33-F48-F50-F65b-F71: 183,045 reviews/s; evaluation computed (28.2 s)
+[replicates] r12 E33-F48-F50-F65b: {"action": "run", "model": "expertium", "track": "E33-F48-F50-F65b", "smoke": false, "repeat_reason": "0074 replicated-block gate for F71, final look at 6 blocks after decision extend at 4", "check_re
+[replicate-r12] running 60s; log artifacts/retraining/gpu-retrain-r01/iteration-0074-replicate-r12-console.log (resource counters in sidecar)
+[replicates] r12 E33-F48-F50-F65b: 188,208 reviews/s; evaluation computed (27.8 s)
+[replicates] background CPU 11.8% > 10.0%; waiting
+[replicates] r13 E33-F48-F50-F65b-F71: {"action": "run", "model": "expertium", "track": "E33-F48-F50-F65b-F71", "smoke": false, "repeat_reason": "0074 replicated-block gate for F71, final look at 6 blocks after decision extend at 4", "chec
+[replicate-r13] running 60s; log artifacts/retraining/gpu-retrain-r01/iteration-0074-replicate-r13-console.log (resource counters in sidecar)
+[replicates] r13 E33-F48-F50-F65b-F71: 178,854 reviews/s; evaluation computed (29.1 s)
+[replicates] background CPU 13.3% > 10.0%; waiting
+[replicates] r14 E33-F48-F50-F65b: {"action": "run", "model": "expertium", "track": "E33-F48-F50-F65b", "smoke": false, "repeat_reason": "0074 replicated-block gate for F71, final look at 6 blocks after decision extend at 4", "check_re
+[replicate-r14] running 60s; log artifacts/retraining/gpu-retrain-r01/iteration-0074-replicate-r14-console.log (resource counters in sidecar)
+[replicates] r14 E33-F48-F50-F65b: 188,362 reviews/s; evaluation computed (27.7 s)
+[replicates] r15 E33-F48-F50-F65b-F71: {"action": "run", "model": "expertium", "track": "E33-F48-F50-F65b-F71", "smoke": false, "repeat_reason": "0074 replicated-block gate for F71, final look at 6 blocks after decision extend at 4", "chec
+[replicate-r15] running 60s; log artifacts/retraining/gpu-retrain-r01/iteration-0074-replicate-r15-console.log (resource counters in sidecar)
+[replicates] r15 E33-F48-F50-F65b-F71: 183,601 reviews/s; evaluation computed (28.6 s)

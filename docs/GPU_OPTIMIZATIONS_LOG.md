@@ -986,3 +986,15 @@ Implementation commit after experiments: `7dfa19dbe3627971543d9c8204d4bba805ef74
 Implementation commit after experiments: `7dfa19dbe3627971543d9c8204d4bba805ef7421`. Tested revision remains `e4ebdabab770d7c6541f7947b0ad3f6f3ecaa16e` with per-process source snapshots in the linked raw results and iteration record; [commit record](../artifacts/retraining/gpu-retrain-r01/iteration-0073/implementation-commit.json).
 
 <!-- r01-0073:end -->
+
+<!-- r01-0074:start -->
+## R01 iteration 0074
+
+[Iteration record](../artifacts/retraining/gpu-retrain-r01/iteration-0074/summary.md)
+
+| Training start (UTC) | Trial commit | Model | Improvement IDs | What was tried | Training users reached | Training reviews | Training seconds | Reviews/s | Speed Δ vs previous | Speed Δ vs baseline | Instant User | Instant User Δ vs previous | Instant User Δ vs baseline | Instant Weighted | Instant Weighted Δ vs previous | Instant Weighted Δ vs baseline | Curve User | Curve User Δ vs previous | Curve User Δ vs baseline | Curve Weighted | Curve Weighted Δ vs previous | Curve Weighted Δ vs baseline | Raw result | Notes |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 2026-10-13T13:15:05.589986+00:00 | `1e95e3521920c8c5ee8be4041cef73de1740cbdc` | Expertium (light) | E33, F48, F50, F65b, F71 | F71 pins each of the six prestarted preparation workers to its own physical core and gives the main process the two best-ranked remaining cores, restoring its affinity before evaluation. Placement only; arithmetic and batch order are unchanged. | 2 | 1,024 | 2.477 | 413 | — | — | 0.433909490 | — | — | 0.421975411 | — | — | 0.423755109 | — | — | 0.416540190 | — | — | [result](../artifacts/retraining/gpu-retrain-r01/iteration-0074/functional-smoke-v1/expertium/E33-F48-F50-F65b-F71/result.json) | Infrastructure check; excluded from comparisons. Declared schedule change: 512-chunk batches, 2 updates. |
+| 2026-10-13T13:16:03.638498+00:00 | `1e95e3521920c8c5ee8be4041cef73de1740cbdc` | Expertium (light) | E33, F48, F50, F65b, F71 | F71 pins each of the six prestarted preparation workers to its own physical core and gives the main process the two best-ranked remaining cores, restoring its affinity before evaluation. Placement only; arithmetic and batch order are unchanged. | 80 | 7,654,975 | 46.243 | 165,538 | -2.59% | +451.70% | 0.382592464 | +0.00% | -0.99% | 0.398428596 | +0.00% | -0.76% | 0.370387972 | +0.00% | -4.48% | 0.387472684 | +0.00% | -3.25% | [result](../artifacts/retraining/gpu-retrain-r01/iteration-0074/expertium/E33-F48-F50-F65b-F71/result.json) | Declared schedule change: 512-chunk batches, 167 updates. |
+
+<!-- r01-0074:end -->

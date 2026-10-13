@@ -1,0 +1,89 @@
+{
+  "expertium": {
+    "track": "E33-F48-F50-F65b-F71",
+    "options": {
+      "prefetch_users": true,
+      "preparation_workers": 6,
+      "gpu_packed_features": true,
+      "packed_ipc": true,
+      "async_transfer": true,
+      "batched_id_encodings": true,
+      "grouped_sync": true,
+      "main_threads": 1,
+      "bulk_transfer": true,
+      "parallel_evaluation": true,
+      "exact_shift": true,
+      "exact_index": true,
+      "batch_chunks": 512,
+      "gpu_memory_fraction": 0.95,
+      "fast_samples": true,
+      "prestart_pool": true,
+      "row_tiles_exact": 4,
+      "exact_group_norm": true,
+      "deferred_reads": true,
+      "shared_shift_orders": true,
+      "stream_launches": true,
+      "prefetch_rows": true,
+      "sync_free_loss": true,
+      "columnar_samples": true,
+      "skip_uninitialized_fill": true,
+      "skip_padding_sources": true,
+      "native_wkv": true,
+      "host_placement": "physical"
+    },
+    "reason": "Recorded E33 (accepted iteration-0033 Expertium configuration: E31, F42), F48 (deterministic algorithms without uninitialized-memory fill), F50 (skip zero hierarchy padding sources in exact row backward), F65b (native WKV dispatcher/autograd using unchanged NVRTC kernels) GPU activity is 63.55% and worker-pool CPU 62.81%. Main process CPU averaged 110% of one core; system load averaged 6.2 busy logical threads on 8 physical cores. F71 pins each of the six prestarted preparation workers to its own physical core and gives the main process the two best-ranked remaining cores, restoring its affinity before evaluation. Placement only; arithmetic and batch order are unchanged.",
+    "selected_utc": "2026-10-13T13:14:50.332073+00:00",
+    "profile": "../iteration-0072/profiles/expertium-E33-F48-F50-F65b/result.json",
+    "profile_sha256": "e490a617143a75a8e21c6a8f6c6a9c4b743ac492e9fcb9faff9be4193dd50a9b",
+    "reference_result": "artifacts/retraining/gpu-retrain-r01/iteration-0072/expertium/E33-F48-F50-F65b/result.json",
+    "retuning_resource_saving_candidate": false,
+    "profile_reused": true,
+    "recorded_profile_sufficiency": false,
+    "measured_incumbent_reviews_per_second": 169933.52937828837,
+    "measured_future_wait_seconds_sum": 0.8381074999961129,
+    "idealized_scenarios": {
+      "unchanged_GPU_work_at80_percent_activity_reviews_per_second": 213918.62499719384,
+      "remove_all_measured_future_wait_reviews_per_second": 173155.12009926126,
+      "linear_8_vs6_worker_capacity_reviews_per_second": 226578.03917105115,
+      "interpretation": "Conditional capacity arithmetic only; not measured candidate throughput or a forecast. CPU contention, RAM/IPC/loads and unchanged work can dominate. GPU activity is not occupancy."
+    },
+    "minimum_available_RAM_GiB": 9.475440979003906,
+    "cpu_evidence": {
+      "main_process_cpu_percent_one_core_mean": 109.63488372093023,
+      "busy_logical_threads_mean": 6.239790697674418,
+      "logical_threads": 16,
+      "physical_cores": 8,
+      "near_physical_core_saturation": false,
+      "samples": 43,
+      "interpretation": "Sampled at the profiler interval; physical cores read on the selecting host, which is assumed to be the training host. SMT threads add less than a full core."
+    },
+    "target_reachability": {
+      "target_gain_percent": 5.0,
+      "added_components": [
+        "F71"
+      ],
+      "feeding_only_candidate": false,
+      "remove_all_waits_ceiling_gain_percent": 1.8957946279108517,
+      "ceiling_reaches_target": false,
+      "justification": null
+    },
+    "selection_provenance": {
+      "captured_utc": "2026-10-13T13:14:50.426042+00:00",
+      "git_commit": "530f1655c6369cff6e25810000f380a95554265b",
+      "git_dirty": false,
+      "git_status_porcelain_z": "",
+      "source_tree_sha256": "a6c520f192b4a7a14484684742996f0492f1b9755a27c7dd0d82862427984497",
+      "source_archive": "artifacts/sources/experiment-sources/a6c520f192b4a7a14484684742996f0492f1b9755a27c7dd0d82862427984497/source.zip",
+      "source_paths": [
+        "rwkv",
+        "expertium",
+        "scripts",
+        "configs",
+        "pyproject.toml",
+        "uv.lock",
+        "justfile",
+        "upstream.json"
+      ]
+    }
+  }
+}

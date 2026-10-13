@@ -1,0 +1,265 @@
+{
+  "model": "expertium",
+  "track": "E33-F48-F50-F65b-F71",
+  "options": {
+    "prefetch_users": true,
+    "preparation_workers": 6,
+    "gpu_packed_features": true,
+    "packed_ipc": true,
+    "async_transfer": true,
+    "batched_id_encodings": true,
+    "grouped_sync": true,
+    "main_threads": 1,
+    "bulk_transfer": true,
+    "parallel_evaluation": true,
+    "exact_shift": true,
+    "exact_index": true,
+    "batch_chunks": 512,
+    "gpu_memory_fraction": 0.95,
+    "fast_samples": true,
+    "prestart_pool": true,
+    "row_tiles_exact": 4,
+    "exact_group_norm": true,
+    "deferred_reads": true,
+    "shared_shift_orders": true,
+    "stream_launches": true,
+    "prefetch_rows": true,
+    "sync_free_loss": true,
+    "columnar_samples": true,
+    "skip_uninitialized_fill": true,
+    "skip_padding_sources": true,
+    "native_wkv": true,
+    "host_placement": "physical"
+  },
+  "config": {
+    "MODEL": "expertium",
+    "DTYPE": "bfloat16",
+    "WKV_BACKEND": "nvrtc",
+    "SEED": 2025,
+    "BATCH_CHUNKS": 512,
+    "CHUNK_REVIEWS": 128,
+    "PREFETCH_WORKERS": 6,
+    "PREFETCH_BATCHES": 12,
+    "CPU_THREADS": 4,
+    "EPOCHS": 1,
+    "DATA_PATH": "data/anki-revlogs-10k-original-20261011",
+    "DATASET_REVISION": "75299740cff05894ef42d7ad990666691efdd2da",
+    "GPU_MEMORY_FRACTION": 0.95,
+    "PEAK_LR": 0.0007,
+    "WARMUP_STEPS": 5
+  },
+  "torch": "2.9.1+cu128",
+  "cuda": "12.8",
+  "gpu": "NVIDIA GeForce RTX 5080",
+  "training_dropout": "enabled",
+  "device_used_at_start_mib": 1290.4375,
+  "master_dtype": "float32",
+  "float32_matmul_precision": "highest",
+  "cuda_matmul_allow_tf32": false,
+  "rss_sampling": "process tree at user transitions; sampled maximum, not continuous peak",
+  "provenance": {
+    "captured_utc": "2026-10-13T13:14:53.475430+00:00",
+    "git_commit": "1e95e3521920c8c5ee8be4041cef73de1740cbdc",
+    "git_dirty": true,
+    "git_status_porcelain_z": "?? isolation.json\u0000",
+    "source_tree_sha256": "a744227140653bd770ad0256e5d2ebbb538d1f6d3570099490bc8c292d1971d6",
+    "source_archive": "artifacts/sources/experiment-sources/a744227140653bd770ad0256e5d2ebbb538d1f6d3570099490bc8c292d1971d6/source.zip",
+    "source_paths": [
+      "rwkv",
+      "expertium",
+      "scripts",
+      "configs",
+      "pyproject.toml",
+      "uv.lock",
+      "justfile",
+      "upstream.json"
+    ]
+  },
+  "status": "complete",
+  "smoke_only": true,
+  "implementation_sha256": "05060e4a26cc9a6ddf903472d9a2c2fb0d47f333ec0c3a4451d6354014c9e6fb",
+  "started_utc": "2026-10-13T13:14:55.804773+00:00",
+  "training_users": 2,
+  "evaluation_users": 2,
+  "progress_users": 2,
+  "updates": 2,
+  "review_presentations": 1024,
+  "training_curve_labels": 672,
+  "training_instant_labels": 672,
+  "hierarchical_padded_positions": 11392,
+  "peak_process_tree_rss_mib": 5463.94140625,
+  "gpu_copy_milliseconds": 34.66242218017578,
+  "gpu_copy_overlap_training_milliseconds": 0.0045623779296875,
+  "recurrence_kernel": {
+    "rows_per_thread": 4,
+    "checkpoint_tile": 32,
+    "threads_per_block": 256,
+    "compact_previous_state": false,
+    "recurrence_prefetch": false,
+    "wave_aware_backward": false,
+    "recurrence_load_pipeline": 0
+  },
+  "initial_parameter_sha256": "49a3841f33713c283c2880f5dc9b89ed2c0411294ee2c48cba941868751eae18",
+  "native_extension": {
+    "identity": {
+      "source_sha256": "88f73bb467cde7dffd777715b3a8cf93fe48ac9c31a18365cd431314bfa00682",
+      "torch": "2.9.1+cu128",
+      "torch_cuda": "12.8",
+      "platform": "nt",
+      "flags": [
+        "/nologo",
+        "/LD",
+        "/std:c++17",
+        "/O2",
+        "/MD",
+        "/EHsc",
+        "/bigobj",
+        "/D_CRT_SECURE_NO_WARNINGS",
+        "/DNOMINMAX"
+      ],
+      "msvc_version": "14.44.35207",
+      "windows_sdk_version": "10.0.26100.0",
+      "cuda_header_version": "13.4",
+      "cuda_header_sha256": "7a79d67ca888061b1dfbe4739b51ad64f85a2f3ad874947ce09b2c635b4c7072",
+      "torch_cudart_sha256": "c2c9a9c22a9bcba90e261825968836787b331038047a26770cffb7a583c28344",
+      "libraries": [
+        "c10.lib",
+        "c10_cuda.lib",
+        "torch_cpu.lib",
+        "torch_cuda.lib",
+        "torch.lib",
+        "cuda.lib",
+        "torch_cudart.lib"
+      ]
+    },
+    "binary_sha256": "93ff0ff1f010df2f89dca1521ae8b7c2a7234b18b8e0444a7774c9167498ef38",
+    "build_key": "f0bc57e0db3487315db1a4ebe7c38100a139c3359f485a36b0ca0ec30b01e814"
+  },
+  "discarded_primer_seconds": 7.5898411000016495,
+  "model_setup_seconds": 3.1337514000006195,
+  "warmup_job_workers": 1,
+  "prestarted_worker_pids": [
+    28460,
+    35680,
+    38544,
+    39116,
+    39924,
+    39952
+  ],
+  "prestarted_workers": 6,
+  "pool_ready_wait_seconds": 0.000311100000544684,
+  "pool_prestart_seconds": 7.641369699998904,
+  "host_placement": {
+    "mode": "physical",
+    "main_process_cpus": [
+      6,
+      7,
+      10,
+      11
+    ],
+    "worker_cpus": [
+      2,
+      0,
+      4,
+      8,
+      14,
+      12
+    ],
+    "workers": 6,
+    "physical_cores": 8,
+    "main_core_scheduling_classes": [
+      6,
+      6
+    ],
+    "restored_main_process_cpus": 16
+  },
+  "training_started_utc": "2026-10-13T13:15:05.589986+00:00",
+  "rss_sampling_skipped_processes": 0,
+  "training_elapsed_seconds": 2.0752752000007604,
+  "training_seconds": 2.4773251000005985,
+  "training_gc": {
+    "generation_0": {
+      "collections": 11,
+      "seconds": 0.0005789000024378765
+    },
+    "generation_1": {
+      "collections": 1,
+      "seconds": 0.00040050000097835436
+    },
+    "generation_2": {
+      "collections": 0,
+      "seconds": 0.0
+    }
+  },
+  "cold_training_seconds": 2.4773251000005985,
+  "reviews_per_second": 413.3490594350142,
+  "cold_reviews_per_second": 413.3490594350142,
+  "coverage": {
+    "27": {
+      "reviews": 512,
+      "updates": 1
+    },
+    "43": {
+      "reviews": 512,
+      "updates": 1
+    }
+  },
+  "peak_allocated_mib": 118.17822265625,
+  "peak_reserved_mib": 140.0,
+  "allocator_stats": {
+    "num_alloc_retries": 0,
+    "num_ooms": 0,
+    "num_device_alloc": 47,
+    "num_device_free": 16
+  },
+  "trained_parameter_sha256": "62f12cd9ed89e249d80458a90d45d6e7369f63ef4ec0cbeab6b22c176516c068",
+  "validation_seconds": 2.4718651000002865,
+  "validation_input_sha256": "75058b372d3a2a879fbd6e638dbd92ceb58aafc0c8426d4ded9bd5900018545e",
+  "per_user": [
+    {
+      "user_id": 29,
+      "curve_labels": 320,
+      "instant_labels": 413,
+      "curve_log_loss": 0.5359143018722534,
+      "curve_raw_log_loss": 0.5355554819107056,
+      "instant_log_loss": 0.5454147745275613,
+      "instant_rating_cross_entropy": 1.1430027484893799
+    },
+    {
+      "user_id": 58,
+      "curve_labels": 364,
+      "instant_labels": 512,
+      "curve_log_loss": 0.3115959167480469,
+      "curve_raw_log_loss": 0.31276872754096985,
+      "instant_log_loss": 0.3224042057991028,
+      "instant_rating_cross_entropy": 1.1642208099365234
+    }
+  ],
+  "evaluation": {
+    "curve_labels": 684,
+    "curve_log_loss_label_weighted": 0.4165401904903657,
+    "curve_log_loss_user_average": 0.42375510931015015,
+    "instant_labels": 925,
+    "instant_log_loss_label_weighted": 0.42197541108002534,
+    "instant_log_loss_user_average": 0.433909490163332
+  },
+  "case_elapsed_seconds": 15.828171799999836,
+  "iteration": "0074",
+  "execution_mode": {
+    "torch_graph_executor_optimize": false,
+    "deterministic_algorithms": true,
+    "CUBLAS_WORKSPACE_CONFIG": ":4096:8",
+    "wkv_tile": 32,
+    "fill_uninitialized_memory": false
+  },
+  "checkpoint_saves": [
+    {
+      "elapsed_seconds": 0.022417700001824414,
+      "path": "artifacts/retraining/gpu-retrain-r01/iteration-0074/functional-smoke-v1/expertium/E33-F48-F50-F65b-F71/master.pth"
+    }
+  ],
+  "protocol_sha256": "f7fb7cd92cef6bce7bdbd4b0df7c9e6112a81cc9957dc35df0a6ceafd1bb4443",
+  "process_wall_seconds": 18.0792453289032,
+  "evaluation_scope": "unseen users; complete histories, chunked at 128 reviews; no gradient updates or fitting on held-out users",
+  "quality_status": "preliminary screen; broader validation pending"
+}
