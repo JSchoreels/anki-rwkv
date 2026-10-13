@@ -28,6 +28,7 @@
 - Stop at the requested count and require fresh authorization for more iterations. A partial handoff preserves the already-authorized remaining count; it does not close the budget or reset progress. Choose substantive candidates rather than repeating unchanged failures to fill the count; repair or report an actual blocker instead of claiming the count complete.
 - When no explicit count is requested, stop each model before another iteration after three consecutive misses of its applicable target: failure to exceed measured noise for bitwise-equal adaptations, or the nominal 5% target for other changes.
 - R01 results are preliminary screens. Larger cohorts or broader quality validation require a separate explicit human request; follow AGENT.md for that validation phase.
+- Proposed on 2026-10-13 and pending human approval: an uncounted exploration lane for structural prototypes, a multi-seed non-inferiority gate for non-exact candidates, F05 as an R01 speed screen, and a per-track variant cap with GPU-time budgets ([proposal](R01_NEXT_ROUND_PLAN.md#proposed-loop-changes-2026-10-13-pending-human-approval)). Until the human approves an item, the rules above apply unchanged.
 
 ## Artifacts
 - Keep GPU_OPTIMIZATIONS.md concise, with stable track IDs, decisions, pending ideas and links to detailed evidence. Preserve raw results, checkpoints, protocols and source snapshots.
