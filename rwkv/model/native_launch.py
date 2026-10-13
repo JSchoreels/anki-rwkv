@@ -9,6 +9,7 @@ import torch
 ROOT = Path(__file__).resolve().parents[2]
 _schemas = torch.library.Library('rwkv_native','DEF')
 _schemas.define('wkv(Tensor r, Tensor k, Tensor v, Tensor w, Tensor a, Tensor kd, Tensor skip, int forward_handle, int backward_handle, int rows, int tile) -> Tensor')
+_schemas.define('group_norm(Tensor x, Tensor weight, Tensor bias, int groups, float eps, int chains, int tree) -> Tensor')
 _loaded = None
 
 BUILD_FLAGS = ['/nologo','/LD','/std:c++17','/O2','/MD','/EHsc','/bigobj','/D_CRT_SECURE_NO_WARNINGS','/DNOMINMAX']
@@ -44,19 +45,30 @@ def load():
     return metadata
 
 def configure(model,options):
-    if not options.get('native_wkv'):
+    if not (options.get('native_wkv') or options.get('native_group_norm')):
         return
-    if options.get('row_tiles_exact') != 4 or options.get('recurrence_load_pipeline',0) or options.get('recurrence_prefetch') or options.get('wave_aware_backward') or options.get('compact_previous_state'):
+    if options.get('native_wkv') and (options.get('row_tiles_exact') != 4 or options.get('recurrence_load_pipeline',0) or options.get('recurrence_prefetch') or options.get('wave_aware_backward') or options.get('compact_previous_state')):
         raise ValueError('Native WKV initially binds only accepted four-row/tile32 kernels')
     load()
-    from scripts.gpu_row_tiles import compile_module
-    from rwkv.model import nvrtc
-    # The cached RawModule/RawKernel retains CUfunction ownership throughout forward/backward.
-    forward,backward=compile_module(torch.device('cuda',torch.cuda.current_device()),torch.bfloat16,4,32,True,False,False,0)
-    handles=(int(forward.kernel.ptr),int(backward.kernel.ptr))
-    for module in model.modules():
-        if hasattr(module,'native_wkv'):
-            module.native_wkv=True
-            module.native_forward_handle=handles[0]
-            module.native_backward_handle=handles[1]
+    if options.get('native_wkv'):
+        from scripts.gpu_row_tiles import compile_module
+        # The cached RawModule/RawKernel retains CUfunction ownership through backward.
+        forward,backward=compile_module(torch.device('cuda',torch.cuda.current_device()),torch.bfloat16,4,32,True,False,False,0)
+        handles=(int(forward.kernel.ptr),int(backward.kernel.ptr))
+        for module in model.modules():
+            if hasattr(module,'native_wkv'):
+                module.native_wkv=True
+                module.native_forward_handle=handles[0]
+                module.native_backward_handle=handles[1]
+    if options.get('native_group_norm'):
+        if not options.get('exact_group_norm'):
+            raise ValueError('Native GroupNorm requires the accepted exact normalization path')
+        from rwkv.model.exact_group_norm import kernel
+        functions=kernel(torch.bfloat16)
+        handles=[int(functions[name].kernel.ptr) for name in ('gamma_beta_chains','gamma_beta_tree')]
+        for module in model.modules():
+            if hasattr(module,'native_group_norm'):
+                module.native_group_norm=True
+                module.native_group_chains_handle=handles[0]
+                module.native_group_tree_handle=handles[1]
     return {'identity':_loaded['identity'],'binary_sha256':_loaded['binary_sha256'],'build_key':build_identity()[1]}

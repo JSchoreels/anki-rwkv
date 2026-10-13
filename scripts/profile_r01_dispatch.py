@@ -76,6 +76,15 @@ def main():
     nvrtc.set_checkpoint_length(32)
     nvrtc.set_stream_launch(options.get("stream_launches", False))
     nvrtc.set_driver_launch(options.get("driver_launch", False))
+    if args.timeline_only:
+        original_raw_launch = nvrtc.raw_launch
+        def annotated_launch(kernel, device, grid, block, arguments):
+            name = str(kernel.name)
+            if 'rwkv_exact' in name and 'backward_kernel' in name and int(arguments[1]) == 256:
+                with torch.cuda.nvtx.range('R01_T256_backward'):
+                    return original_raw_launch(kernel,device,grid,block,arguments)
+            return original_raw_launch(kernel,device,grid,block,arguments)
+        nvrtc.raw_launch = annotated_launch
     from rwkv.model import exact_index
     exact_index.set_shared_orders(options.get("shared_shift_orders", False))
     exact_index.set_prefetch_rows(options.get("prefetch_rows", False))

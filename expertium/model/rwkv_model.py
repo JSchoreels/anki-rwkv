@@ -242,6 +242,9 @@ class RWKV7TimeMixer(ModuleType):
         self.native_wkv = False
         self.native_forward_handle = 0
         self.native_backward_handle = 0
+        self.native_group_norm = False
+        self.native_group_chains_handle = 0
+        self.native_group_tree_handle = 0
         assert config.d_model % config.n_heads == 0
         self.layer_id = layer_id
         C = config.d_model
@@ -419,7 +422,11 @@ class RWKV7TimeMixer(ModuleType):
                 r_BTHK, k_BTHK, v_BTHK, w_BTHK, a_BTHK, k_deformed_BTHK, skip_BT
             )
 
-        if self.exact_group_norm and out_BTHK.is_cuda and C == 32:
+        if self.native_group_norm and out_BTHK.is_cuda and C == 32:
+            out_BTC = torch.ops.rwkv_native.group_norm(out_BTHK.view(B*T,C),self.out_group_norm.weight,
+                       self.out_group_norm.bias,self.out_group_norm.num_groups,self.out_group_norm.eps,
+                       self.native_group_chains_handle,self.native_group_tree_handle).view(B,T,C)
+        elif self.exact_group_norm and out_BTHK.is_cuda and C == 32:
             out_BTC = ExactGroupNorm.apply(out_BTHK.view(B * T, C), self.out_group_norm.weight,
                                            self.out_group_norm.bias, self.out_group_norm.num_groups,
                                            self.out_group_norm.eps).view(B, T, C)

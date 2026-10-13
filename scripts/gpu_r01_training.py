@@ -245,7 +245,7 @@ def run_case(args):
         master, base, dtype = benchmark_models(config, device)
         master.load_state_dict(checkpoint["model"])
         base.copy_downcast_(master, dtype)
-        if options.get("native_wkv"):
+        if options.get("native_wkv") or options.get("native_group_norm"):
             from rwkv.model.native_launch import configure
             report["native_extension"] = configure(base, options)
         for module in base.modules():

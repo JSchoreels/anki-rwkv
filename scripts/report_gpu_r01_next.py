@@ -72,6 +72,7 @@ def describe(track):
                 "F62": "flat optimizer buffers",
                 "F60": "deferred per-user evaluation metric reads",
                 "F65b": "native WKV dispatcher/autograd using unchanged NVRTC kernels",
+                "F65c": "native exact GroupNorm dispatcher/autograd using unchanged reduction kernels",
                 "F62b": "whole active-group AdamW packing",
                 "F62c": "reused whole active-group AdamW buffers",
                 "F34g": "fused rounded shift/lerp derivative elements",
