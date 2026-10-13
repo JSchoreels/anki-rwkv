@@ -2,7 +2,7 @@
 
 Spawns real wrapper processes against a private coordination root under the output directory and verifies FIFO order,
 concurrency of disjoint claims, event-driven wake-up (well under the 30 s heartbeat), stale-ticket removal, claims held
-outside the queue, reservations, give-up exit codes and cancellation.
+outside the queue, reservations, give-up exit codes, cancellation, and cancellation of a waiting wrapper (it must exit without running).
 """
 from argparse import ArgumentParser
 import json
@@ -152,6 +152,30 @@ def check_reservation_and_cancel(h, report):
     report["reservation"] = {"ticket": reserved, "ran_before_later_ticket": True, "cancel_refused_for_other_owner": True}
 
 
+def check_cancel_waiting_wrapper(h, report):
+    """Regression (2026-10-13): cancelling a ticket whose wrapper is waiting must stop it; the command must never run."""
+    h.run("L", 3, ["gpu"])
+    h.wait_for("L", "start")
+    h.run("M", 0.2, ["gpu"])
+    deadline = time.monotonic() + 10
+    while not any(name.endswith("-M.json") for name in h.tickets()) and time.monotonic() < deadline:
+        time.sleep(0.05)
+    ticket = next(name for name in h.tickets() if name.endswith("-M.json"))[:-5]
+    time.sleep(0.5)  # let M settle into its wait
+    cancelled_at = time.time()
+    output = h.command("cancel", "--ticket", ticket, "--owner", "M").stdout
+    h.wait("M", timeout=15)
+    exited = time.time() - cancelled_at
+    assert h.results["M"]["exit_code"] == 76, h.results["M"]
+    h.wait("L")
+    time.sleep(1.0)  # a surviving wrapper would start right after L ends
+    assert ("M", "start") not in h.events(), "a cancelled waiting ticket must never run its command"
+    assert not any(name.endswith("-M.json") for name in h.tickets()), "a cancelled ticket must not be recreated"
+    assert not (h.root / "claims" / "gpu").exists(), "no claim may stay held"
+    report["cancel_waiting"] = {"wrapper_exit_code": 76, "wrapper_exit_after_cancel_s": round(exited, 3),
+                                "cancel_output": output.strip().splitlines()}
+
+
 def check_give_up_and_claim_run(h, report):
     h.run("A2", 3, ["gpu"])
     h.wait_for("A2", "start")
@@ -180,7 +204,7 @@ def main():
     h = Harness(output)
     report = {"provenance": process_provenance(), "wake_limit_s": WAKE_LIMIT}
     started = time.monotonic()
-    for check in (check_fifo_and_wake, check_outside_holder, check_stale_ticket, check_reservation_and_cancel, check_give_up_and_claim_run):
+    for check in (check_fifo_and_wake, check_outside_holder, check_stale_ticket, check_reservation_and_cancel, check_cancel_waiting_wrapper, check_give_up_and_claim_run):
         print(f"[check] {check.__name__}", flush=True)
         check(h, report)
     status = h.command("status").stdout

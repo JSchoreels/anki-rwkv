@@ -31,6 +31,8 @@ STALE = QUEUE / "stale"
 HISTORY = QUEUE / "history.jsonl"
 COUNTER = QUEUE / "next-seq"
 EXIT_WAIT_EXPIRED = 75  # EX_TEMPFAIL: the ticket gave up waiting; nothing ran
+EXIT_CANCELLED = 76  # the ticket was cancelled (or otherwise removed) while waiting; nothing ran
+CANCEL_GRACE_SECONDS = 5.0  # how long `cancel` lets a waiting wrapper notice before terminating it
 STILL_ACTIVE = 259
 
 
@@ -324,6 +326,7 @@ def _outside_holders(me):
 
 
 def _try_start(me):
+    """Take the claims and mark the ticket running. False if a claim is busy; None if the ticket was cancelled."""
     held = []
     for name in sorted(me["claims"], key=NAMES.index):
         try:
@@ -335,6 +338,10 @@ def _try_start(me):
         owner = {"owner": me["owner"], "purpose": me["purpose"], "since": _iso(), "pid": os.getpid(), "ticket": me["ticket"]}
         (CLAIMS / name / "owner.json").write_text(json.dumps(owner), encoding="utf-8")
         held.append(name)
+    if not me["_path"].exists():  # cancelled between the last check and taking the claims
+        for taken in reversed(held):
+            release_claim(taken, me["owner"])
+        return None
     me.update(state="running", started=_iso(), held=held, heartbeat=_iso())
     _write_ticket(me)
     return True
@@ -368,6 +375,12 @@ def _progress(me, blockers, outside, waited, live):
     return ": ".join(parts[:2]) + ("; " + parts[2] if len(parts) > 2 else "")
 
 
+def _cancelled_exit(me, waiting_since):
+    """The ticket file is gone while this wrapper waits: it was cancelled, so leave without running the command."""
+    print(f"[queue] {me['ticket']} was cancelled after waiting {_duration(time.monotonic() - waiting_since)}; the command did not run", flush=True)
+    raise SystemExit(EXIT_CANCELLED)
+
+
 def hold(owner, purpose, claims, heartbeat=60.0, max_wait_minutes=None, ticket=None, command=None, hold_minutes=30.0):
     """Register (or attach to) a ticket and block until it holds its claims. Returns the running ticket record."""
     _ensure_dirs()
@@ -382,8 +395,13 @@ def hold(owner, purpose, claims, heartbeat=60.0, max_wait_minutes=None, ticket=N
     with _Watcher(COORDINATION) as watcher:
         while True:
             live = sweep()
+            if not me["_path"].exists():
+                _cancelled_exit(me, waiting_since)
             blockers, outside = _blockers(me, live), _outside_holders(me)
-            if not blockers and not outside and _try_start(me):
+            started = False if blockers or outside else _try_start(me)
+            if started is None:  # _try_start found the ticket removed after taking the claims
+                _cancelled_exit(me, waiting_since)
+            if started:
                 waited = time.monotonic() - waiting_since
                 me["waited_seconds"] = round(waited, 1)
                 print(f"[queue] {me['ticket']} started after {_duration(waited)}; holds {', '.join(me['held'])}", flush=True)
@@ -399,6 +417,8 @@ def hold(owner, purpose, claims, heartbeat=60.0, max_wait_minutes=None, ticket=N
                 print(f"[queue] {me['ticket']} gave up after {_duration(now - waiting_since)}: {detail}", flush=True)
                 raise SystemExit(EXIT_WAIT_EXPIRED)
             if last_beat is None or now - last_beat >= heartbeat:
+                if not me["_path"].exists():  # never recreate a cancelled ticket with a heartbeat write
+                    _cancelled_exit(me, waiting_since)
                 me["heartbeat"] = _iso()
                 _write_ticket(me)
                 last_beat = now
@@ -504,8 +524,28 @@ def cancel(ticket, owner, force=False):
     record["_path"] = path
     if record.get("state") == "running" and _alive(record.get("pid"), record.get("pid_started")):
         print(f"[queue] note: {ticket} is running under pid {record.get('pid')}; cancelling releases its claims but does not stop the command")
+    waiting_pid = None
+    if record.get("state") in ("queued", "waiting") and _alive(record.get("pid"), record.get("pid_started")):
+        waiting_pid = record.get("pid")
     _retire(record, f"cancelled by {owner}")
     print(f"[queue] cancelled {ticket}")
+    if waiting_pid:
+        # The wrapper notices the missing ticket on its next wake-up (directory-change notification) and exits with
+        # EXIT_CANCELLED. If it is still alive after the grace period (it may have been starting at this moment),
+        # terminate it; its command, if any, is bound to the wrapper's lifetime and ends with it.
+        deadline = time.monotonic() + CANCEL_GRACE_SECONDS
+        while time.monotonic() < deadline and _alive(waiting_pid, record.get("pid_started")):
+            time.sleep(0.1)
+        if _alive(waiting_pid, record.get("pid_started")):
+            import psutil
+
+            try:
+                psutil.Process(waiting_pid).terminate()
+                print(f"[queue] terminated waiting wrapper pid {waiting_pid} of {ticket}")
+            except psutil.Error as error:
+                print(f"[queue] warning: could not terminate waiting wrapper pid {waiting_pid} of {ticket}: {error}")
+        else:
+            print(f"[queue] waiting wrapper pid {waiting_pid} of {ticket} exited without running its command")
 
 
 def main():
