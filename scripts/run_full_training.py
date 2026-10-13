@@ -307,8 +307,9 @@ def pages(run, push_every):
             message = f"Pages: 8k training progress ({state['status']})\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
             subprocess.call([sys.executable, str(ROOT / "scripts/r01_claim.py"), "run", "--claim", "git", "--owner", "full-run-pages",
                              "--purpose", "commit and push training progress page", "--", "sh", "-c",
-                             "git add pages/data/train-8k.json && (git diff --cached --quiet || git -c user.name='Jonathan Schoreels' "
-                             f"-c user.email=jonathan.schoreels@jisko.be commit -q -m \"{message}\") && git push -q origin main"], cwd=ROOT)
+                             "git add pages/data/train-8k.json && (git diff --cached --quiet -- pages/data/train-8k.json || "
+                             "git -c user.name='Jonathan Schoreels' -c user.email=jonathan.schoreels@jisko.be "
+                             f"commit -q -m \"{message}\" -- pages/data/train-8k.json) && git push -q origin main"], cwd=ROOT)
         if not push_every or state["status"] in ("finished", "failed"):
             return 0
         time.sleep(push_every)
