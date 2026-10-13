@@ -54,7 +54,7 @@
     const status = { training: 'Training', evaluating: 'Evaluating', finished: 'Finished', failed: 'Stopped', waiting: 'Not started' }[d.status] || d.status;
     $('c-status').textContent = status;
     $('c-status-sub').textContent = d.status === 'training' ? `epoch ${current.epoch} of ${E}`
-      : d.status === 'evaluating' ? `held-out users ${fmt(lastEval && lastEval.users_done)} of ${fmt(d.evaluation_users)}`
+      : d.status === 'evaluating' ? `held-out users ${fmt(lastEval && lastEval.users_done)} of ${fmt((lastEval && lastEval.users_total) || d.evaluation_users)}`
       : d.status === 'finished' ? `${E} epochs, ${ev.length} evaluation${ev.length === 1 ? '' : 's'}` : '';
     $('c-progress').textContent = pct(done, total);
     $('c-progress-sub').textContent = `${fmt(done)} of ${fmt(total)} user-epochs`;
@@ -63,8 +63,10 @@
     // ETA: remaining user-epochs at the measured epoch time, plus the planned evaluation passes still to run.
     let remaining = (total - done) / n * d.estimates.epoch_seconds;
     const evalLeft = (d.evaluate_after_epochs || []).filter(e => { const r = d.epochs[e - 1]; return !(r && r.evaluation && r.evaluation.finished_utc); });
-    remaining += evalLeft.length * d.estimates.evaluation_seconds;
-    if (d.status === 'evaluating' && lastEval) remaining -= (lastEval.users_done / d.evaluation_users) * d.estimates.evaluation_seconds;
+    const evalCost = e => e === E ? d.estimates.evaluation_seconds : (d.estimates.quick_evaluation_seconds || d.estimates.evaluation_seconds);
+    remaining += evalLeft.reduce((s, e) => s + evalCost(e), 0);
+    const evalRow = d.epochs.find(r => r.evaluation && !r.evaluation.finished_utc);
+    if (d.status === 'evaluating' && evalRow) remaining -= (evalRow.evaluation.users_done / (evalRow.evaluation.users_total || d.evaluation_users)) * evalCost(evalRow.epoch);
     const finished = d.status === 'finished';
     $('c-eta').textContent = finished ? 'Done' : time(new Date(Date.parse(d.updated_utc) + remaining * 1000).toISOString());
     $('c-eta-sub').textContent = finished ? time(d.updated_utc) : `${dur(remaining)} left`;
@@ -89,19 +91,22 @@
       const x = e.evaluation;
       for (let i = 0; i < evalSlices; i++) {
         const c = document.createElement('div'); c.className = 'cell';
-        const lo = i * evalPerSlice, hi = lo + evalPerSlice, u = x ? (x.finished_utc ? d.evaluation_users : x.users_done || 0) : 0;
+        const tot = (x && x.users_total) || d.evaluation_users;
+        const lo = i * tot / evalSlices, hi = lo + tot / evalSlices, u = x ? (x.finished_utc ? tot : x.users_done || 0) : 0;
         if (u >= hi) c.classList.add('evaluated');
         else if (u > lo) { c.classList.add('active'); c.style.setProperty('--fill', (100 * (u - lo) / evalPerSlice) + '%'); }
-        c.title = x ? `Held-out users ${fmt(lo + 1)}–${fmt(hi)} ${u >= hi ? 'evaluated' : u > lo ? 'evaluating' : 'waiting'}`
+        c.title = x ? `${x.set || 'Held-out'} users ${fmt(lo + 1)}–${fmt(hi)} ${u >= hi ? 'evaluated' : u > lo ? 'evaluating' : 'waiting'}`
           : (d.evaluate_after_epochs || []).includes(e.epoch) ? 'Evaluation planned after this epoch' : 'Not evaluated after this epoch';
         evc.appendChild(c);
       }
       const m = document.createElement('div');
       if (x && x.finished_utc) {
         m.className = 'metrics';
-        m.innerHTML = `<div class="m"><b>${x.log_loss.toFixed(4)}</b><span>LogLoss</span></div>` +
-          `<div class="m"><b>${x.rmse_bins.toFixed(4)}</b><span>RMSE (bins)</span></div>` +
-          `<div class="m"><b>${x.auc.toFixed(4)}</b><span>AUC</span></div>`;
+        const num = v => v == null ? '–' : v.toFixed(4);
+        m.innerHTML = `<div class="m"><b>${num(x.log_loss)}</b><span>LogLoss</span></div>` +
+          `<div class="m"><b>${num(x.rmse_bins)}</b><span>RMSE (bins)</span></div>` +
+          `<div class="m"><b>${num(x.auc)}</b><span>AUC</span></div>` +
+          `<div class="m set"><span>${x.set || ''}${x.users ? `, ${fmt(x.users)} users` : ''}</span></div>`;
       } else {
         m.className = 'metrics none';
         m.textContent = x ? `evaluating… ${pct(x.users_done || 0, d.evaluation_users)}`
@@ -110,7 +115,8 @@
       row.append(lbl, train, evc, m);
       rows.appendChild(row);
     });
-    $('rows-hint').textContent = `${trainSlices} training slices of ${fmt(usersPerSlice)} users and ${evalSlices} held-out slices of ${fmt(evalPerSlice)} users per row. Evaluation is planned after epoch ${(d.evaluate_after_epochs || []).join(', ') || '–'}.`;
+    $('rows-hint').textContent = `${trainSlices} training slices of ${fmt(usersPerSlice)} users per row. ` + (d.metric_note ||
+      `Evaluation is planned after epoch ${(d.evaluate_after_epochs || []).join(', ') || '–'}.`);
 
     const det = [
       ['Model / configuration', d.model],

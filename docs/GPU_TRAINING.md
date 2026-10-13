@@ -201,3 +201,15 @@ Generated data, metrics, and checkpoints are Git-ignored and remain local:
 This GPU performance track is complete: CUDA training works, the default model's 100-user histories are covered, the batches were tuned, and model throughput was compared. No training or benchmarking job remains running.
 
 Further work would be a separate track: reduce CPU preparation and per-user startup overhead, train Expertium over all 100 users, or compare accuracy with matched training and disjoint evaluation. The earlier [20-user CPU comparison](COMPARISON.md) remains a small temporal-validation experiment, separate from these GPU throughput measurements.
+
+## Full multi-epoch runs (8k/2k)
+
+`scripts/run_full_training.py` runs the accepted R01 trainer (`scripts/gpu_r01_training.py`, current accepted track) over a fixed user split for several epochs, one GPU process per epoch:
+
+- `prepare --run artifacts/full-run/<name>` draws a user-disjoint split stratified by history-length decile: 8,000 training, 1,500 validation (with a fixed 300-user quick-validation subset) and a sealed 500-user final test that contains the preserved 100-user final-test cohort. It also builds the upstream benchmark label database (`rwkv/find_equalize_test_reviews.py`, FSRS-6 features, short-term reviews, seconds) for the held-out users.
+- `run --run <dir>` trains the remaining epochs. Each epoch starts from the previous epoch's master weights and AdamW state (`epoch-NN/<model>/<track>/{master,optimizer}.pth`), reshuffles the training users, and continues the update count, so the 5-update warmup happens once. A failed or stopped epoch is kept as `epoch-NN-attempt-K` and rerun from the previous checkpoint; a rerun reproduces the same weights bitwise.
+- Non-final epochs score the quick-validation subset; the final epoch scores the full validation set and the final test. The final test is reported separately and must not drive decisions.
+- Metrics: the R01 curve/instant held-out losses plus benchmark LogLoss, RMSE(bins) and AUC on the benchmark test reviews, computed with upstream `rwkv/get_result.get_stats` (`scripts/full_run_metrics.py`), review-weighted and user-averaged.
+- `pages --run <dir> --push-every 1800` writes `pages/data/train-8k.json` for `pages/train.html` and commits and pushes it every 30 minutes.
+
+These hooks are opt-in through the per-epoch protocol's `full_run` block; R01 iteration protocols do not set it, so their training and evaluation are unchanged.

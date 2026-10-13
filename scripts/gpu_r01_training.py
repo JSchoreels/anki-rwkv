@@ -333,6 +333,10 @@ def run_case(args):
                                   wave_aware=bool(options.get("wave_aware_backward", False))))
         device = torch.device("cuda:0")
         checkpoint = fresh_checkpoint(args.model, training_seed)
+        # Full runs (scripts/run_full_training.py) continue from the previous epoch; R01 protocols have no "full_run".
+        full_run = protocol.get("full_run") or {}
+        if full_run.get("init_master"):
+            checkpoint = {"model": torch.load(ROOT / full_run["init_master"], map_location="cpu", weights_only=True)}
         report["initial_parameter_sha256"] = tensor_hash(checkpoint["model"])
         master, base, dtype = benchmark_models(config, device)
         master.load_state_dict(checkpoint["model"])
@@ -388,6 +392,9 @@ def run_case(args):
                 raise ValueError("F49 requires Expertium")
             base.concurrent_splits = True
         optimizer = get_optimizer(Namespace(PEAK_LR=7e-4), master)
+        if full_run.get("init_optimizer"):
+            optimizer.load_state_dict(torch.load(ROOT / full_run["init_optimizer"], map_location=device, weights_only=True))
+        update_offset = int(full_run.get("update_offset", 0))
         if options.get("group_adam"):
             from scripts.gpu_r01_group_adam import install_group_adam
             install_group_adam(optimizer, reusable=options["group_adam"] == 2)
@@ -652,7 +659,7 @@ def run_case(args):
                         transfer_child_grad_to_master(master, active)
                     # F33 checks the same finite loss/norm after the next update is queued.
                     norm = torch.nn.utils.clip_grad_norm_(master.parameters(), CLIP, error_if_nonfinite=not deferred)
-                    lr = 7e-4 * min(1.0, (report["updates"] + 1) / 5)
+                    lr = 7e-4 * min(1.0, (report["updates"] + 1 + update_offset) / 5)
                     for group in optimizer.param_groups:
                         group["lr"] = lr
                     optimizer.step()
@@ -735,6 +742,9 @@ def run_case(args):
         watch.check()
         # Preserve weights in a new experiment location, never the existing trial.
         torch.save(master.state_dict(), path / "master.pth")
+        if full_run:
+            torch.save(optimizer.state_dict(), path / "optimizer.pth")
+            report["update_offset_end"] = update_offset + report["updates"]
         active = graphs = reduced = base = optimizer = stats = batch = item = None
         master.zero_grad(set_to_none=True)
         gc.collect()
@@ -746,6 +756,11 @@ def run_case(args):
         exact_index.set_shared_orders(False)
         exact_index.set_prefetch_rows(False)
         exact_index.set_prefetch_shift(False)
+        if full_run and not full_run.get("evaluate", True):
+            report["status"] = "complete"
+            report["case_elapsed_seconds"] = time.perf_counter() - started
+            atomic_json(path / "result.json", report)
+            return 0
         eval_started = time.perf_counter()
         per_user = []
         validation_hash = hashlib.sha256()
@@ -806,10 +821,22 @@ def run_case(args):
                     report.pop("evaluation_context")
             for row in evaluation_rows if (report.get("evaluation_reuse") or {}).get("status") != "reused" else ():
                 watch.check()
-                values = evaluate(master, ({"batch": batch.to(device)} for batch in heldout_batches(row, evaluation_pool)),
-                                  deferred_metric_reads=bool(options.get("deferred_evaluation_metrics", False)))
+                if full_run.get("benchmark_db"):
+                    # Full runs also score the upstream benchmark test reviews (LogLoss, RMSE(bins), AUC).
+                    from scripts.full_run_metrics import benchmark_metrics, evaluate_with_predictions
+                    values, predictions = evaluate_with_predictions(
+                        master, ({"batch": batch.to(device)} for batch in heldout_batches(row, evaluation_pool)))
+                    values["benchmark"] = benchmark_metrics(row["user_id"], ROOT / full_run["benchmark_db"],
+                                                            full_run.get("benchmark_db_size", 10_000_000_000), predictions)
+                    del predictions
+                else:
+                    values = evaluate(master, ({"batch": batch.to(device)} for batch in heldout_batches(row, evaluation_pool)),
+                                      deferred_metric_reads=bool(options.get("deferred_evaluation_metrics", False)))
                 per_user.append({"user_id": row["user_id"], **values})
                 progress.evaluation(len(per_user), len(evaluation_rows))
+                if full_run and len(per_user) % 20 == 0:
+                    report["evaluation_progress_users"] = len(per_user)
+                    atomic_json(path / "result.json", report)
         progress.end()
         report["validation_seconds"] = time.perf_counter() - eval_started
         report["validation_input_sha256"] = validation_hash.hexdigest()
