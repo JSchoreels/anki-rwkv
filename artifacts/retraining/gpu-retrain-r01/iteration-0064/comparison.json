@@ -1,0 +1,856 @@
+{
+  "iteration": "0064",
+  "status": "complete preliminary iteration",
+  "generated_utc": "2026-10-13T04:35:27.805369+00:00",
+  "analysis_provenance": {
+    "captured_utc": "2026-10-13T04:35:27.975612+00:00",
+    "git_commit": "ea776234cf7703b1305c1159d49603b53bf51a36",
+    "git_dirty": true,
+    "git_status_porcelain_z": " M docs/GPU_OPTIMIZATIONS.md\u0000 M docs/GPU_OPTIMIZATIONS_LOG.md\u0000",
+    "source_tree_sha256": "a69ce3051cb7c610c876be5f8eb0f011265f276e1d49f460657fa8bb2bacad66",
+    "source_archive": "artifacts/sources/experiment-sources/a69ce3051cb7c610c876be5f8eb0f011265f276e1d49f460657fa8bb2bacad66/source.zip",
+    "source_paths": [
+      "rwkv",
+      "expertium",
+      "scripts",
+      "configs",
+      "pyproject.toml",
+      "uv.lock",
+      "justfile",
+      "upstream.json"
+    ]
+  },
+  "comparisons": {
+    "expertium": {
+      "track": "E33-F48-F50-F58g",
+      "references": {
+        "previous": {
+          "path": "artifacts/retraining/gpu-retrain-r01/iteration-0042/expertium/E33-F48-F50/result.json",
+          "throughput_gain_percent": -14.338700057312481,
+          "training_time_delta_percent": 16.738830798628925,
+          "process_wall_delta_percent": 9.623987105488773,
+          "losses": {
+            "scope": "paired-user arithmetic conditional on one training seed; not validation or promotion",
+            "paired_users": 20,
+            "resamples": 10000,
+            "bootstrap_seed": 20261012,
+            "family_tests": 8,
+            "alpha": 0.05,
+            "relative_limit": 0.001,
+            "expected_tail_resamples": 62.5,
+            "metrics": {
+              "curve_log_loss_label_weighted": {
+                "candidate": 0.3874726840790628,
+                "reference": 0.3874726840790628,
+                "absolute_delta": 0.0,
+                "relative_delta": 0.0,
+                "relative_delta_percent": 0.0,
+                "relative_ci95": [
+                  0.0,
+                  0.0
+                ],
+                "relative_familywise_upper": 0.0,
+                "strict_upper_below_limit": true
+              },
+              "curve_log_loss_user_average": {
+                "candidate": 0.37038797217215763,
+                "reference": 0.37038797217215763,
+                "absolute_delta": 0.0,
+                "relative_delta": 0.0,
+                "relative_delta_percent": 0.0,
+                "relative_ci95": [
+                  0.0,
+                  0.0
+                ],
+                "relative_familywise_upper": 0.0,
+                "strict_upper_below_limit": true
+              },
+              "instant_log_loss_label_weighted": {
+                "candidate": 0.3984285960019747,
+                "reference": 0.3984285960019747,
+                "absolute_delta": 0.0,
+                "relative_delta": 0.0,
+                "relative_delta_percent": 0.0,
+                "relative_ci95": [
+                  0.0,
+                  0.0
+                ],
+                "relative_familywise_upper": 0.0,
+                "strict_upper_below_limit": true
+              },
+              "instant_log_loss_user_average": {
+                "candidate": 0.3825924635443113,
+                "reference": 0.3825924635443113,
+                "absolute_delta": 0.0,
+                "relative_delta": 0.0,
+                "relative_delta_percent": 0.0,
+                "relative_ci95": [
+                  0.0,
+                  0.0
+                ],
+                "relative_familywise_upper": 0.0,
+                "strict_upper_below_limit": true
+              }
+            },
+            "all_four_strict_upper_bounds_below_limit": true
+          }
+        },
+        "original_baseline": {
+          "path": "artifacts/retraining/gpu-retrain-r01/iteration-0002/expertium/control/result.json",
+          "throughput_gain_percent": 463.83750771433404,
+          "training_time_delta_percent": -82.26439379576277,
+          "process_wall_delta_percent": -73.82624850975843,
+          "losses": {
+            "scope": "paired-user arithmetic conditional on one training seed; not validation or promotion",
+            "paired_users": 20,
+            "resamples": 10000,
+            "bootstrap_seed": 20261012,
+            "family_tests": 8,
+            "alpha": 0.05,
+            "relative_limit": 0.02,
+            "expected_tail_resamples": 62.5,
+            "metrics": {
+              "curve_log_loss_label_weighted": {
+                "candidate": 0.3874726840790628,
+                "reference": 0.4004734610421284,
+                "absolute_delta": -0.013000776963065563,
+                "relative_delta": -0.032463516881329424,
+                "relative_delta_percent": -3.2463516881329424,
+                "relative_ci95": [
+                  -0.07221633897845005,
+                  -0.009287682403812551
+                ],
+                "relative_familywise_upper": -0.004885295997764545,
+                "strict_upper_below_limit": true
+              },
+              "curve_log_loss_user_average": {
+                "candidate": 0.37038797217215763,
+                "reference": 0.3877724203477809,
+                "absolute_delta": -0.01738444817562329,
+                "relative_delta": -0.044831574561263854,
+                "relative_delta_percent": -4.483157456126385,
+                "relative_ci95": [
+                  -0.08593361297509922,
+                  -0.01326293527045963
+                ],
+                "relative_familywise_upper": -0.0061563283208486185,
+                "strict_upper_below_limit": true
+              },
+              "instant_log_loss_label_weighted": {
+                "candidate": 0.3984285960019747,
+                "reference": 0.40147028927147826,
+                "absolute_delta": -0.0030416932695035426,
+                "relative_delta": -0.00757638448170872,
+                "relative_delta_percent": -0.757638448170872,
+                "relative_ci95": [
+                  -0.02444920074370612,
+                  0.0034767931019659758
+                ],
+                "relative_familywise_upper": 0.005906417464431395,
+                "strict_upper_below_limit": true
+              },
+              "instant_log_loss_user_average": {
+                "candidate": 0.3825924635443113,
+                "reference": 0.3864369308513096,
+                "absolute_delta": -0.003844467306998278,
+                "relative_delta": -0.009948498707225029,
+                "relative_delta_percent": -0.9948498707225029,
+                "relative_ci95": [
+                  -0.029995331024884653,
+                  0.005252815739253403
+                ],
+                "relative_familywise_upper": 0.008608366923264159,
+                "strict_upper_below_limit": true
+              }
+            },
+            "all_four_strict_upper_bounds_below_limit": true
+          }
+        },
+        "round_start": {
+          "path": "artifacts/retraining/gpu-retrain-r01/iteration-0042/expertium/E33-F48-F50/result.json",
+          "throughput_gain_percent": -14.338700057312481,
+          "training_time_delta_percent": 16.738830798628925,
+          "process_wall_delta_percent": 9.623987105488773,
+          "losses": {
+            "scope": "paired-user arithmetic conditional on one training seed; not validation or promotion",
+            "paired_users": 20,
+            "resamples": 10000,
+            "bootstrap_seed": 20261012,
+            "family_tests": 8,
+            "alpha": 0.05,
+            "relative_limit": 0.001,
+            "expected_tail_resamples": 62.5,
+            "metrics": {
+              "curve_log_loss_label_weighted": {
+                "candidate": 0.3874726840790628,
+                "reference": 0.3874726840790628,
+                "absolute_delta": 0.0,
+                "relative_delta": 0.0,
+                "relative_delta_percent": 0.0,
+                "relative_ci95": [
+                  0.0,
+                  0.0
+                ],
+                "relative_familywise_upper": 0.0,
+                "strict_upper_below_limit": true
+              },
+              "curve_log_loss_user_average": {
+                "candidate": 0.37038797217215763,
+                "reference": 0.37038797217215763,
+                "absolute_delta": 0.0,
+                "relative_delta": 0.0,
+                "relative_delta_percent": 0.0,
+                "relative_ci95": [
+                  0.0,
+                  0.0
+                ],
+                "relative_familywise_upper": 0.0,
+                "strict_upper_below_limit": true
+              },
+              "instant_log_loss_label_weighted": {
+                "candidate": 0.3984285960019747,
+                "reference": 0.3984285960019747,
+                "absolute_delta": 0.0,
+                "relative_delta": 0.0,
+                "relative_delta_percent": 0.0,
+                "relative_ci95": [
+                  0.0,
+                  0.0
+                ],
+                "relative_familywise_upper": 0.0,
+                "strict_upper_below_limit": true
+              },
+              "instant_log_loss_user_average": {
+                "candidate": 0.3825924635443113,
+                "reference": 0.3825924635443113,
+                "absolute_delta": 0.0,
+                "relative_delta": 0.0,
+                "relative_delta_percent": 0.0,
+                "relative_ci95": [
+                  0.0,
+                  0.0
+                ],
+                "relative_familywise_upper": 0.0,
+                "strict_upper_below_limit": true
+              }
+            },
+            "all_four_strict_upper_bounds_below_limit": true
+          }
+        }
+      },
+      "parity": {
+        "fields": {
+          "initial_parameter_sha256": true,
+          "trained_parameter_sha256": true,
+          "validation_input_sha256": true,
+          "updates": true,
+          "review_presentations": true,
+          "training_curve_labels": true,
+          "training_instant_labels": true,
+          "coverage": true,
+          "evaluation": true
+        },
+        "equal_update_counts": true,
+        "update_mismatch_count": 0,
+        "first_update_mismatch": null,
+        "exact_recorded_parity": true
+      },
+      "incumbent_parity_vs_previous": {
+        "fields": {
+          "initial_parameter_sha256": true,
+          "trained_parameter_sha256": true,
+          "validation_input_sha256": true,
+          "updates": true,
+          "review_presentations": true,
+          "training_curve_labels": true,
+          "training_instant_labels": true,
+          "coverage": true,
+          "evaluation": true
+        },
+        "equal_update_counts": true,
+        "update_mismatch_count": 0,
+        "first_update_mismatch": null,
+        "exact_recorded_parity": true
+      },
+      "faster": false,
+      "speed_change": "same within recorded repeat spread",
+      "speed_tolerance_percent": 0.7322347647805039,
+      "passes_preliminary_quality": true,
+      "baseline_preferred_limit_met": true,
+      "fastmode": false,
+      "accepted_main": false,
+      "stack_candidate": true,
+      "loss_tolerance_within_limit": true,
+      "resource_retuning_pending": false,
+      "decision": "retain previous accepted run; speed target missed",
+      "exact_speed_gate_applied": false,
+      "exact_promotion_rule": "replicated_blocks",
+      "timing_noise_gate_applied": false,
+      "replicated_blocks": {
+        "n": 6,
+        "effects_percent": [
+          0.39005388999306945,
+          -0.1528800011166398,
+          -0.6517105988521621,
+          0.7876379623038554,
+          0.11228214300624817,
+          -0.3770154459171726
+        ],
+        "mean_percent": 0.016917791858417353,
+        "sd_used_percent": 1.0099999999999998,
+        "observed_sd_percent": 0.5251194870602216,
+        "lower_bound_percent": -0.7974171853721401,
+        "boundary_z": 1.9927,
+        "decision": "stack candidate",
+        "next_look": null,
+        "final": true,
+        "pairs": [
+          [
+            "artifacts/retraining/gpu-retrain-r01/iteration-0064/replicates/r1/expertium/E33-F48-F50",
+            "artifacts/retraining/gpu-retrain-r01/iteration-0064/replicates/r2/expertium/E33-F48-F50-F58g"
+          ],
+          [
+            "artifacts/retraining/gpu-retrain-r01/iteration-0064/replicates/r3/expertium/E33-F48-F50",
+            "artifacts/retraining/gpu-retrain-r01/iteration-0064/replicates/r4/expertium/E33-F48-F50-F58g"
+          ],
+          [
+            "artifacts/retraining/gpu-retrain-r01/iteration-0064/replicates/r5/expertium/E33-F48-F50",
+            "artifacts/retraining/gpu-retrain-r01/iteration-0064/replicates/r6/expertium/E33-F48-F50-F58g"
+          ],
+          [
+            "artifacts/retraining/gpu-retrain-r01/iteration-0064/replicates/r7/expertium/E33-F48-F50",
+            "artifacts/retraining/gpu-retrain-r01/iteration-0064/replicates/r8/expertium/E33-F48-F50-F58g"
+          ],
+          [
+            "artifacts/retraining/gpu-retrain-r01/iteration-0064/replicates/r9/expertium/E33-F48-F50",
+            "artifacts/retraining/gpu-retrain-r01/iteration-0064/replicates/r10/expertium/E33-F48-F50-F58g"
+          ],
+          [
+            "artifacts/retraining/gpu-retrain-r01/iteration-0064/replicates/r11/expertium/E33-F48-F50",
+            "artifacts/retraining/gpu-retrain-r01/iteration-0064/replicates/r12/expertium/E33-F48-F50-F58g"
+          ]
+        ],
+        "reference_replicates_exact": true,
+        "candidate_replicates_exact": true
+      },
+      "decision_pending": false,
+      "throughput_target_percent": 5.0,
+      "meets_20_percent_target": false,
+      "no_20_percent_gain_streak": 17,
+      "speed_noise_band": {
+        "percent": 0.7322347647805039,
+        "available": true,
+        "estimator": "median_pairwise_spread",
+        "pairs": 1427,
+        "widest_group_percent": 23.377590296785677,
+        "sources": [
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0002/expertium/F01/result.json",
+            "sha256": "570d533abaa75b3df77a4a7ff6ca9c864d042ade7166efed76fa851fb01a336c"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0003/expertium/F01/result.json",
+            "sha256": "556568c45c8e095f542de3a7b90cf5960705b3a717c3186a24c22f2bc6b1819b"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0006/expertium/F01-F16-F14-F03-F04/result.json",
+            "sha256": "274f833c8dcdd3479b1f0cbe9d21b1182c62d5e79468a1a85fe9139d6a9fdcd9"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0007/expertium/F01-F16-F14-F03-F04/result.json",
+            "sha256": "c354ab68e94c8cd6cb50dae982f175bf506a2aefe6679dcc783d37707dc51c88"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0033/expertium/E30-F37-F42/result.json",
+            "sha256": "e7c421f26c41f4d04c25c3bcb4d004e12478c25caf84ef39834dd74ab286446c"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0040/expertium/E30-F37-F42/result.json",
+            "sha256": "c81926c814d881b24f599cda18c8610e4ee7e9c7752d6b36156509ba63676510"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0042/expertium/E33-F48-F50/result.json",
+            "sha256": "1b9c548c19811f1e5648639810cb34db1eed09ff8d871eaab0444941b62141ad"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0046/expertium/E33-F48-F50/result.json",
+            "sha256": "56fa66567d87fd42106a1174afc1bc9f1a8b0906a67f9f65333bf3b16df1b4d5"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0047/replicates/r1/expertium/E33-F48-F50/result.json",
+            "sha256": "ed83c8a526721a831bacd14d4f32f3f67e7eb84b92235a51faeed2a425c578a6"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0047/replicates/r2/expertium/E33-F48-F50/result.json",
+            "sha256": "361739be871b23ae14987ef41892849852372e76623f4650184cddad98615157"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0047/replicates/r3/expertium/E33-F48-F50/result.json",
+            "sha256": "fa504c11eb2df99b9e93595e2385c96cb46d9ec8aa68cad6c37b6d5bd1f55677"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0047/replicates/r4/expertium/E33-F48-F50/result.json",
+            "sha256": "44cc3c400e125a65187296940866939f12faa52c80bdf7d4c973e11424d9c168"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0047/replicates/r5/expertium/E33-F48-F50/result.json",
+            "sha256": "fd106ea6c748c72bea26d4ba64bca78e961dc6a6f916132602f7a83289a3b566"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0047/replicates/r6/expertium/E33-F48-F50/result.json",
+            "sha256": "d18faccb83af53c29f6cfa83befb26987bb0c0a8dbef73ad195cf032487f664c"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0048/replicates/r1/expertium/E33-F48-F50/result.json",
+            "sha256": "3d36e3062979e2393384f10d81dc3d8ee6fecd9ddb56508a447d94ccdc237e95"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0048/replicates/r11/expertium/E33-F48-F50/result.json",
+            "sha256": "830f0d4fbc13b035b31d5902aa3a3d52f5dcf2834999d7a4c389597bc16b7e21"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0048/replicates/r3/expertium/E33-F48-F50/result.json",
+            "sha256": "0a41374818f31f52f2353368e9b72f796625aa19e5a4e3262844f0423744cd94"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0048/replicates/r5/expertium/E33-F48-F50/result.json",
+            "sha256": "3f5b7a827315322056f49cba96fe6c564455effe84a7c6fb0d29f5344817e309"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0048/replicates/r7/expertium/E33-F48-F50/result.json",
+            "sha256": "7ea0dfa4daac14df3e6fd323c49feb4d93cf074984d07322c47fa8600a7e4623"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0048/replicates/r9/expertium/E33-F48-F50/result.json",
+            "sha256": "577df7c359f2d57859002dd74470ed974545f25b8a7b2437f5ca5862ee31dc9f"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0049/replicates/r1/expertium/E33-F48-F50/result.json",
+            "sha256": "1ac30187b9b8bce87d6ea4c0b05494719b51e20fa4b0ffdfbd745b0f38b0d1fd"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0049/replicates/r3/expertium/E33-F48-F50/result.json",
+            "sha256": "26c555e45154c7875fbb04a5fd70102029223edfc6abdc5c6c22026b8e1cbe3f"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0050/replicates/r1/expertium/E33-F48-F50/result.json",
+            "sha256": "8a2ff634c5c5295ce185fb71ed4b40e7d590d972c733ebeb04eae51621a5ff0c"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0050/replicates/r3/expertium/E33-F48-F50/result.json",
+            "sha256": "a432cccfa2efd0c4d7360342a2703cfc49f46228e4b0fbc483a9fde305c01688"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0051/replicates/r1/expertium/E33-F48-F50/result.json",
+            "sha256": "b39211882672beb54807c4006f78e23390f206a4fdde5c6e1a31a87b1de7dc4a"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0051/replicates/r3/expertium/E33-F48-F50/result.json",
+            "sha256": "de969c37bd81bc05bfc72e67b45f2778f10139d8811804f71e2330f4f267cc20"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0052/replicates/r1/expertium/E33-F48-F50/result.json",
+            "sha256": "2e40322708868ae65b472980f53523978bb1b879a756a34b5c021396f2a2577d"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0052/replicates/r3/expertium/E33-F48-F50/result.json",
+            "sha256": "6ddaa2f4d86d90dce8065a8f912e2e1c58a309b009cebeeafc57bbb7a162883d"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0053/replicates/r1/expertium/E33-F48-F50/result.json",
+            "sha256": "4e3a6a1525d4eb12cc3d04d53f022c21c428bdbf0d5babac153d5c54aa0bb2e7"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0053/replicates/r3/expertium/E33-F48-F50/result.json",
+            "sha256": "b7f9cd9b0bb9ba4a1670cbbbcfb358fb49eb12f09ec365290e6afed70047e210"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0054/replicates/r1/expertium/E33-F48-F50/result.json",
+            "sha256": "7882fa041ba7e0371307637af6f4c9f343e3b6dbb19dbf331c7f9a6f217eb266"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0054/replicates/r3/expertium/E33-F48-F50/result.json",
+            "sha256": "a49f93e65a45f26b575d98e1216a8a8619e8181cb3370c09be94579460338794"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0055/replicates/r1/expertium/E33-F48-F50/result.json",
+            "sha256": "bdd783072561166a6f00a22b2d44e5dbd6996854472842d649fd83dd06e8c2b1"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0055/replicates/r3/expertium/E33-F48-F50/result.json",
+            "sha256": "f608b1256aa7b5ffcf58a77fb950687f83d2b646333be84dfeb1c3d45b17cecd"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0056/replicates/r1/expertium/E33-F48-F50/result.json",
+            "sha256": "c91f0c7d611b1c89d0a7771d365a5bfda950b78c2841c5c455cd8284e6290d3e"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0056/replicates/r3/expertium/E33-F48-F50/result.json",
+            "sha256": "daa595333a11a7383bb54f6cf524f9187f84665e209c9f73d8d167ed9f855527"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0056/replicates/r5/expertium/E33-F48-F50/result.json",
+            "sha256": "2d236a015aab3015d020066939aa70fa7c027bb7e488044fc4ad49cd08e03628"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0056/replicates/r7/expertium/E33-F48-F50/result.json",
+            "sha256": "a1cbbfa5b1f31a4e4132ccc7aa3cdbfded9c72a0a4f5f278c732a47b195b9cc9"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0057/replicates/r1/expertium/E33-F48-F50/result.json",
+            "sha256": "04ce42019e0c03f3c5269faa152ca0f0344fe96eb46c9cc99b859b8edb520b1c"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0057/replicates/r3/expertium/E33-F48-F50/result.json",
+            "sha256": "2f305074a26417f536501ebd5e84b4d113a696160c2c1c72713d464d0fb9c999"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0057/replicates/r5/expertium/E33-F48-F50/result.json",
+            "sha256": "cf34adff5e096a9a3fce9325d6f95004bde6bd1ff8b25bfdce2e18fd36946691"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0057/replicates/r7/expertium/E33-F48-F50/result.json",
+            "sha256": "443131b103f77b63d23b2da680010a13cd91a1afc7611557fa5ac00f571613ee"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0058/replicates/r1/expertium/E33-F48-F50/result.json",
+            "sha256": "b8020c93239744611bba1dde85e4b7e2832e1bf1da07f670eccdc3df65f619bb"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0058/replicates/r3/expertium/E33-F48-F50/result.json",
+            "sha256": "1d7e77947ab0ab0822dcdea8863cae09ae37c50e5466738be8f05ee1330033d2"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0059/replicates/r1/expertium/E33-F48-F50/result.json",
+            "sha256": "3aae8b7df9ef1811d76c348351cfdc383aa83819742a4fbe83ccf9a4cd744aec"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0059/replicates/r3/expertium/E33-F48-F50/result.json",
+            "sha256": "117b93b2db3b00bd75ea0adc018723c193c99bb39c87c4aa5b6eda33c6372d66"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0060/replicates/r1/expertium/E33-F48-F50/result.json",
+            "sha256": "28c03f48a863cf04c82c353829998ec9b714b785788a4f0f37075a7730152e20"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0060/replicates/r3/expertium/E33-F48-F50/result.json",
+            "sha256": "4c75879ec4f88ce1e93150d3cff7b2eaf2d0da36c9b4a645be2389d94a1661a7"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0061/replicates/r1/expertium/E33-F48-F50/result.json",
+            "sha256": "52edbf3d884a1105ac47b812c609fa9eb602abc7871698a8754263c2b0b53b48"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0061/replicates/r11/expertium/E33-F48-F50/result.json",
+            "sha256": "623bacf4123bdb7170f65150028bb17163025bfd7be4ad02afacbfa9aa780563"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0061/replicates/r3/expertium/E33-F48-F50/result.json",
+            "sha256": "cb793fb1223159849c4af4142430886ffc2364032a24180edea0920327caec2b"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0061/replicates/r5/expertium/E33-F48-F50/result.json",
+            "sha256": "9365064d31dcb07dd8deeb163e164afd887fe1e2dcffc05869e7f43c2a0fd257"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0061/replicates/r7/expertium/E33-F48-F50/result.json",
+            "sha256": "d00366434a18ef9d428be6d5715a2fe9866a28ff9d1430384a1ccfccdbb8fa30"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0061/replicates/r9/expertium/E33-F48-F50/result.json",
+            "sha256": "69276c9c88684fe0b918c5ad6952f5461594ceea536758514e9a852ef425df6a"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0062/replicates/r1/expertium/E33-F48-F50/result.json",
+            "sha256": "3553e69f81d366b9f535909be32697218cc09c2b58b5d7e5cd7ce53e933d9e77"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0062/replicates/r3/expertium/E33-F48-F50/result.json",
+            "sha256": "0e238ec6cbc4e80d8b9e021643ed1277fb01957eab72d2bd744822d82575dd3a"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0063/replicates/r1/expertium/E33-F48-F50/result.json",
+            "sha256": "4eddc2ea166683212d493b8ec6abb2435d63d57e36a1d90d5842749f791c9770"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0063/replicates/r3/expertium/E33-F48-F50/result.json",
+            "sha256": "db17c3d8578de2679541e1e8e43cc435f119c883b10a825f13c00a402a3c70f5"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0048/expertium/E33-F48-F50-F58/result.json",
+            "sha256": "44a92f39466901a7a1223594817b57252bdab2b53bfd60630c99c45bbca0b066"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0048/replicates/r10/expertium/E33-F48-F50-F58/result.json",
+            "sha256": "47d1ae00544f0a4069fcf6ee06a550e6bc7793c7a7bc26316785cab300c76b27"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0048/replicates/r12/expertium/E33-F48-F50-F58/result.json",
+            "sha256": "478bb3cab1ae03fc09619d991e5e031809f7839b6067ea39577bbedea551dc0a"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0048/replicates/r2/expertium/E33-F48-F50-F58/result.json",
+            "sha256": "6c8dc7e84d97717d578ababff2f41fe907fac28043a8793ee266f67da976ee6e"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0048/replicates/r4/expertium/E33-F48-F50-F58/result.json",
+            "sha256": "11983eb3fe6010e776b87dc0eba05c43a9efe9f6795464440de1e2f5c9f85db9"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0048/replicates/r6/expertium/E33-F48-F50-F58/result.json",
+            "sha256": "d9b0526caf49bee78bfd8cd9e61f00bd795bd29ee3fa595accbd283f9f4733b8"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0048/replicates/r8/expertium/E33-F48-F50-F58/result.json",
+            "sha256": "1c7efb2d752604cfd804cf3f202bba34cea9276ddda9334efbd3e1789467ec67"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0049/expertium/E33-F48-F50-F58-F55/result.json",
+            "sha256": "a965f857dc673ad38b868aeac48b226551c0dd19024fa43b8b35510c8ce4aa4b"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0049/replicates/r2/expertium/E33-F48-F50-F58-F55/result.json",
+            "sha256": "8dc766e39ceab258154772c8677d0a9f28ae68b2c0f14ed621bb95f6eae2e83b"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0049/replicates/r4/expertium/E33-F48-F50-F58-F55/result.json",
+            "sha256": "63968054ff6e5e3635299b764cf1541e028c7e61c248b9f43f0b4ea1ce63734f"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0050/expertium/E33-F48-F50-F58-F62/result.json",
+            "sha256": "0d35a5bcdc9d76087c13988db4c0152ba428742f13b3c0489e0b8a03470710fe"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0050/replicates/r2/expertium/E33-F48-F50-F58-F62/result.json",
+            "sha256": "04067a61ba74cfea0919577699c02a645eb3b72de6b55be6ab8c2436cae1157b"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0050/replicates/r4/expertium/E33-F48-F50-F58-F62/result.json",
+            "sha256": "c51d1678b96b034f9bc182e2f6877c1613e77548d3a125523888539f80a3ee3f"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0051/expertium/E33-F48-F50-F58-F34a/result.json",
+            "sha256": "8e5acc8365dabd3e5d9eb2bf371faaae82a239ee04b10084763f613aa0b7d015"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0051/replicates/r2/expertium/E33-F48-F50-F58-F34a/result.json",
+            "sha256": "9d8db240ea4a187132e2d953420bfec5bbd41d633329dd10916ff01123602749"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0051/replicates/r4/expertium/E33-F48-F50-F58-F34a/result.json",
+            "sha256": "6ea7ff224178244c1ed25250f2c17946e61567370e21cc9b7f2b3a9800ae96a3"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0052/expertium/E33-F48-F50-F58-F34b/result.json",
+            "sha256": "ee12dc2a54034e55d042454e12bc4736f36f21cb46c84c80334d876672a0c93b"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0052/replicates/r2/expertium/E33-F48-F50-F58-F34b/result.json",
+            "sha256": "4d68706256f7bb3f87f0fc5d50b941e5252c7f4ca1b11e9449f0cb3e23cd1a9b"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0052/replicates/r4/expertium/E33-F48-F50-F58-F34b/result.json",
+            "sha256": "6059dfcef32e94f01886772f9d21e4fc9874f6bbe3e8513db7dad0b3a1510027"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0053/expertium/E33-F48-F50-F58-F34c/result.json",
+            "sha256": "7b70036f926486a80885ca76d08f9d76c95a3ae40e7824be09d14de9d9776022"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0053/replicates/r2/expertium/E33-F48-F50-F58-F34c/result.json",
+            "sha256": "a6faec79d7544a9187ff8f0285eaf283ddaf4d17374f26766161d7f6ccc9d406"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0053/replicates/r4/expertium/E33-F48-F50-F58-F34c/result.json",
+            "sha256": "839942f9485b2fbf5832490b93ba92e2506845f4ed84233bcd1506f27a41abbb"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0054/expertium/E33-F48-F50-F58-F34d/result.json",
+            "sha256": "9db5aa5a23b44a850d24530c90a42277d99aa150775f8ba0cd1d36636d30db0a"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0054/replicates/r2/expertium/E33-F48-F50-F58-F34d/result.json",
+            "sha256": "f99905426250acda6222eb26b629ce787faa10f609e8df0a7544308305a38575"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0054/replicates/r4/expertium/E33-F48-F50-F58-F34d/result.json",
+            "sha256": "e49827a9998988b9374b435b003f0cecdeb0648b40286f1695fa98325ad1f51f"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0055/expertium/E33-F48-F50-F58-F51a/result.json",
+            "sha256": "f6e62be3c0c6209fa3333c97e773916ecddee405e4c786b3b86d70553ba60acc"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0055/replicates/r2/expertium/E33-F48-F50-F58-F51a/result.json",
+            "sha256": "65fbcbab4125c56bebaf8bae26d284fa18bcc211c67eafc19e6ef7d1befa4b5e"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0055/replicates/r4/expertium/E33-F48-F50-F58-F51a/result.json",
+            "sha256": "5bfa80fb7c0c03802b671aff3edc54c62308d175cdab6226bdcd0cf8f4456afe"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0056/expertium/E33-F48-F50-F58-F52a/result.json",
+            "sha256": "7d654d87f4588573dbd4998e5e75c9bdf0dda119fa236153eae933330e56b487"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0056/replicates/r2/expertium/E33-F48-F50-F58-F52a/result.json",
+            "sha256": "963edb5e56fd3cad2f3e6a929d90f028e59f3124ca108b8e3c89460b0bd4e5b0"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0056/replicates/r4/expertium/E33-F48-F50-F58-F52a/result.json",
+            "sha256": "ee0a71a8b4ac170c148aacbc8360c471b102b371fa613aaee5a937b0d3a0f1ed"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0056/replicates/r6/expertium/E33-F48-F50-F58-F52a/result.json",
+            "sha256": "f032c5d001312737b6570713f55f51068c4805ae79a68994c7bf25cb167b3732"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0056/replicates/r8/expertium/E33-F48-F50-F58-F52a/result.json",
+            "sha256": "9447c4ba4026f7ee2dcfbea85792c9686dd7f0ed764c5a4740ef95c95a4442f6"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0057/expertium/E33-F48-F50-F58-F58a/result.json",
+            "sha256": "d4323ce5db674d3295df394cd15d8cd76a1b8f21da9a6c9beec05d18cf9f2a01"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0057/replicates/r2/expertium/E33-F48-F50-F58-F58a/result.json",
+            "sha256": "52c235b32ca171492878cb878bfc12082ac79aa7734bea24f7a51897cfbc58b7"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0057/replicates/r4/expertium/E33-F48-F50-F58-F58a/result.json",
+            "sha256": "3baeb52a36f706686030c87afd8b93dddfdf7a3936fb3724e8ea35192585dc89"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0057/replicates/r6/expertium/E33-F48-F50-F58-F58a/result.json",
+            "sha256": "5396f9929b408cf9222bd121467afeb511142fe0fad160c85e12b8be0794bcb2"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0057/replicates/r8/expertium/E33-F48-F50-F58-F58a/result.json",
+            "sha256": "ff1d9e9fdfe1fa430adb610a4d1444443265157c2f7d89c396d597900d453cc0"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0058/expertium/E33-F48-F50-F58-F58b/result.json",
+            "sha256": "56e890d0c0ca35f9309415eb33f8cf9dcfd158496b9e35091d63aa5de2b8c1c2"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0058/replicates/r2/expertium/E33-F48-F50-F58-F58b/result.json",
+            "sha256": "71b1de35c53cdcddde01e228900b712a79a6cd94067ffe377ba9fbd8a878899b"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0058/replicates/r4/expertium/E33-F48-F50-F58-F58b/result.json",
+            "sha256": "1f585ffd0a2c43381c6ca9560ccddb141e95ecfc4a676b4a606bf9f6bc33b30f"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0059/expertium/E33-F48-F50-F58-F58c/result.json",
+            "sha256": "c92a7c2f802c9f757b83e07a4963ee59bd8f67807624ea6e4485914e078d9aad"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0059/replicates/r2/expertium/E33-F48-F50-F58-F58c/result.json",
+            "sha256": "10d03d0948c3ca8cece4af7d2a0a86c8f992d94fc181d5c7fcb51952769aac0f"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0059/replicates/r4/expertium/E33-F48-F50-F58-F58c/result.json",
+            "sha256": "fa56ae4ab2bb18efc3501991baaa2ee51626581ca0a46afcb29c09249effd0d0"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0060/expertium/E33-F48-F50-F58d/result.json",
+            "sha256": "ccdb90643b2dd645a5eb87344bc67e895881cdb38081567aaeda41514140706e"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0060/replicates/r2/expertium/E33-F48-F50-F58d/result.json",
+            "sha256": "5c7b6441d511d86da95450407d5e5bd2e12599bf409fc9ae87dd6a1caf4cd5c2"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0060/replicates/r4/expertium/E33-F48-F50-F58d/result.json",
+            "sha256": "bca4e948dd6ab68e61dd1a0bf299b0ec51316c504521830d792d4f3204062a4c"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0061/expertium/E33-F48-F50-F58e/result.json",
+            "sha256": "314d06c36a491e573f4188caca55cb992b0e676568b486816b5d91f8feb9cf52"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0061/replicates/r10/expertium/E33-F48-F50-F58e/result.json",
+            "sha256": "7881c8998a9166e79ca08b91c1db6941b9969c63f48070e990425dc305e9781c"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0061/replicates/r12/expertium/E33-F48-F50-F58e/result.json",
+            "sha256": "4a78c48eec1fb68a18900e2aa470799b09144bb47d2367481e6f599db79cf04e"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0061/replicates/r2/expertium/E33-F48-F50-F58e/result.json",
+            "sha256": "5f3ab043fa1bc0b25bb69e3d5e36553da43690374d78562bb1e8adc059e29a0a"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0061/replicates/r4/expertium/E33-F48-F50-F58e/result.json",
+            "sha256": "45fbe0a199e1117821d03f4ae7996fe70f034f1f2b022a36aea65e40f0275e7f"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0061/replicates/r6/expertium/E33-F48-F50-F58e/result.json",
+            "sha256": "7ccac36e8161c4dc80dc5815340d0eb1a62743d8e41d0b7319bc4689a94b0b85"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0061/replicates/r8/expertium/E33-F48-F50-F58e/result.json",
+            "sha256": "fc146caadb11e7c4dc9d7640d7f316a135d0ab13e2a29466a319c1c872111de2"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0062/expertium/E33-F48-F50-F58f/result.json",
+            "sha256": "7b0b4b2f28a538cd7917e0cf40c04f3f6bf8abd1f55a73d924543a54bd25d015"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0062/replicates/r2/expertium/E33-F48-F50-F58f/result.json",
+            "sha256": "1a51592d81e54d52a750f6dc0d9a1ad6a280395612f69f4405dc652f057bba91"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0062/replicates/r4/expertium/E33-F48-F50-F58f/result.json",
+            "sha256": "d3d81f399d281cc805c93327bf194d02e7f7b4011396f6ff0114029e712c6b72"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0063/expertium/E33-F48-F50-F58-F58e/result.json",
+            "sha256": "67d9a71d3eb6b7da6ee72a5bd3219dcb117b850022b0a9f9322d36ecb6432d97"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0063/replicates/r2/expertium/E33-F48-F50-F58-F58e/result.json",
+            "sha256": "a639784b038731e30307fc349d31104f42f0608a51b4a4bf724ecc80ccb37894"
+          },
+          {
+            "path": "artifacts/retraining/gpu-retrain-r01/iteration-0063/replicates/r4/expertium/E33-F48-F50-F58-F58e/result.json",
+            "sha256": "fada63027402dd738e08ef4cf6e92bedf87e5c35173bf481a9b0e606eac7266f"
+          }
+        ],
+        "rule": "median over all pairs of complete full-history repeats with identical cohort, training settings, options, config and trained weights of max/min - 1 reviews/s (human decision 2026-10-12; replaces the widest group's max/min)"
+      },
+      "resource_reductions": {
+        "torch_cuda_peak_reserved_bytes": {
+          "candidate": 12780044288.0,
+          "reference": 12788432896.0,
+          "material": false,
+          "material_threshold": "10% of reference"
+        },
+        "process_tree_rss_bytes": {
+          "candidate": 8903155712.0,
+          "reference": 8969048064.0,
+          "material": false,
+          "material_threshold": "10% of reference"
+        }
+      },
+      "reused_candidate": false,
+      "incumbent_after_iteration": "E33-F48-F50",
+      "accepted_reference": {
+        "path": "artifacts/retraining/gpu-retrain-r01/iteration-0042/expertium/E33-F48-F50/result.json",
+        "sha256": "1b9c548c19811f1e5648639810cb34db1eed09ff8d871eaab0444941b62141ad"
+      }
+    }
+  },
+  "implementation_commit": {
+    "git_commit": "ea776234cf7703b1305c1159d49603b53bf51a36",
+    "recorded_utc": "2026-10-13T04:35:27.567444+00:00",
+    "timing": "implementation commit after completed experiments; not the revision tested by any full run",
+    "tracks": "E33-F48-F50-F58g",
+    "source_archive": "artifacts/sources/experiment-sources/194fb68e302fa63ba351259f9c80895f0374f03f7b0bc9f9cc0e392e4e1019e9/source.zip",
+    "evidence": "artifacts/retraining/gpu-retrain-r01/iteration-0064/summary.md",
+    "scope": "E33-F48-F50-F58g (exact, not accepted); Select forward scalar/value prefetch only for histories at least 32 steps, preserving baseline elsewhere; test sequential latency hiding versus live-set pressure.; origin ea776234cf7703b1305c1159d49603b53bf51a36",
+    "experiment_git_commit": "55ae4ae59b2b7adc7afef1054c2085800f8aedcb"
+  },
+  "loop_policy": "reused-references-v1",
+  "limitations": "20 distinct held-out users; one training seed and one timing/configuration; no broader validation or timing-repeatability claim"
+}

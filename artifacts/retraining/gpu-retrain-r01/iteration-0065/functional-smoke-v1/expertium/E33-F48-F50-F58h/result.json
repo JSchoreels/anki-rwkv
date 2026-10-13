@@ -1,0 +1,206 @@
+{
+  "model": "expertium",
+  "track": "E33-F48-F50-F58h",
+  "options": {
+    "prefetch_users": true,
+    "preparation_workers": 6,
+    "gpu_packed_features": true,
+    "packed_ipc": true,
+    "async_transfer": true,
+    "batched_id_encodings": true,
+    "grouped_sync": true,
+    "main_threads": 1,
+    "bulk_transfer": true,
+    "parallel_evaluation": true,
+    "exact_shift": true,
+    "exact_index": true,
+    "batch_chunks": 512,
+    "gpu_memory_fraction": 0.95,
+    "fast_samples": true,
+    "prestart_pool": true,
+    "row_tiles_exact": 4,
+    "exact_group_norm": true,
+    "deferred_reads": true,
+    "shared_shift_orders": true,
+    "stream_launches": true,
+    "prefetch_rows": true,
+    "sync_free_loss": true,
+    "columnar_samples": true,
+    "skip_uninitialized_fill": true,
+    "skip_padding_sources": true,
+    "recurrence_load_pipeline": 8,
+    "recurrence_prefetch": false
+  },
+  "config": {
+    "MODEL": "expertium",
+    "DTYPE": "bfloat16",
+    "WKV_BACKEND": "nvrtc",
+    "SEED": 2025,
+    "BATCH_CHUNKS": 512,
+    "CHUNK_REVIEWS": 128,
+    "PREFETCH_WORKERS": 6,
+    "PREFETCH_BATCHES": 12,
+    "CPU_THREADS": 4,
+    "EPOCHS": 1,
+    "DATA_PATH": "data/anki-revlogs-10k-original-20261011",
+    "DATASET_REVISION": "75299740cff05894ef42d7ad990666691efdd2da",
+    "GPU_MEMORY_FRACTION": 0.95,
+    "PEAK_LR": 0.0007,
+    "WARMUP_STEPS": 5
+  },
+  "torch": "2.9.1+cu128",
+  "cuda": "12.8",
+  "gpu": "NVIDIA GeForce RTX 5080",
+  "training_dropout": "enabled",
+  "device_used_at_start_mib": 1290.4375,
+  "master_dtype": "float32",
+  "float32_matmul_precision": "highest",
+  "cuda_matmul_allow_tf32": false,
+  "rss_sampling": "process tree at user transitions; sampled maximum, not continuous peak",
+  "provenance": {
+    "captured_utc": "2026-10-13T04:25:12.911784+00:00",
+    "git_commit": "d1125376ce231c262b9eb7f078ba79a7a592a000",
+    "git_dirty": true,
+    "git_status_porcelain_z": "?? isolation.json\u0000",
+    "source_tree_sha256": "807ea0e95471fdf903bb9c405369a2acacae409a07b427fe869c72e9c2275c9c",
+    "source_archive": "artifacts/sources/experiment-sources/807ea0e95471fdf903bb9c405369a2acacae409a07b427fe869c72e9c2275c9c/source.zip",
+    "source_paths": [
+      "rwkv",
+      "expertium",
+      "scripts",
+      "configs",
+      "pyproject.toml",
+      "uv.lock",
+      "justfile",
+      "upstream.json"
+    ]
+  },
+  "status": "complete",
+  "smoke_only": true,
+  "implementation_sha256": "9de9b7d4ee3ace1ad6e055e79c10539a1c09a54b13a37a92b2800fc39510eef5",
+  "started_utc": "2026-10-13T04:25:16.207754+00:00",
+  "training_users": 2,
+  "evaluation_users": 2,
+  "progress_users": 2,
+  "updates": 2,
+  "review_presentations": 1024,
+  "training_curve_labels": 672,
+  "training_instant_labels": 672,
+  "hierarchical_padded_positions": 11392,
+  "peak_process_tree_rss_mib": 5461.5546875,
+  "gpu_copy_milliseconds": 23.236801147460938,
+  "gpu_copy_overlap_training_milliseconds": 0.00771331787109375,
+  "recurrence_kernel": {
+    "rows_per_thread": 4,
+    "checkpoint_tile": 32,
+    "threads_per_block": 256,
+    "compact_previous_state": false,
+    "recurrence_prefetch": false,
+    "wave_aware_backward": false,
+    "recurrence_load_pipeline": 8
+  },
+  "initial_parameter_sha256": "49a3841f33713c283c2880f5dc9b89ed2c0411294ee2c48cba941868751eae18",
+  "discarded_primer_seconds": 15.260483999998542,
+  "model_setup_seconds": 4.910754700016696,
+  "warmup_job_workers": 2,
+  "prestarted_worker_pids": [
+    5884,
+    6108,
+    9452,
+    32336,
+    40800,
+    44388
+  ],
+  "prestarted_workers": 6,
+  "pool_ready_wait_seconds": 0.0005575999966822565,
+  "pool_prestart_seconds": 15.310473899997305,
+  "training_started_utc": "2026-10-13T04:25:35.094391+00:00",
+  "rss_sampling_skipped_processes": 0,
+  "training_elapsed_seconds": 0.2608514000021387,
+  "training_seconds": 0.7264861000003293,
+  "training_gc": {
+    "generation_0": {
+      "collections": 10,
+      "seconds": 0.0003477000573184341
+    },
+    "generation_1": {
+      "collections": 1,
+      "seconds": 0.00024240001221187413
+    },
+    "generation_2": {
+      "collections": 0,
+      "seconds": 0.0
+    }
+  },
+  "cold_training_seconds": 0.7264861000003293,
+  "reviews_per_second": 1409.524559381846,
+  "cold_reviews_per_second": 1409.524559381846,
+  "coverage": {
+    "27": {
+      "reviews": 512,
+      "updates": 1
+    },
+    "43": {
+      "reviews": 512,
+      "updates": 1
+    }
+  },
+  "peak_allocated_mib": 118.17822265625,
+  "peak_reserved_mib": 140.0,
+  "allocator_stats": {
+    "num_alloc_retries": 0,
+    "num_ooms": 0,
+    "num_device_alloc": 47,
+    "num_device_free": 16
+  },
+  "trained_parameter_sha256": "62f12cd9ed89e249d80458a90d45d6e7369f63ef4ec0cbeab6b22c176516c068",
+  "validation_seconds": 2.3779349999967963,
+  "validation_input_sha256": "75058b372d3a2a879fbd6e638dbd92ceb58aafc0c8426d4ded9bd5900018545e",
+  "per_user": [
+    {
+      "user_id": 29,
+      "curve_labels": 320,
+      "instant_labels": 413,
+      "curve_log_loss": 0.5359143018722534,
+      "curve_raw_log_loss": 0.5355554819107056,
+      "instant_log_loss": 0.5454147745275613,
+      "instant_rating_cross_entropy": 1.1430027484893799
+    },
+    {
+      "user_id": 58,
+      "curve_labels": 364,
+      "instant_labels": 512,
+      "curve_log_loss": 0.3115959167480469,
+      "curve_raw_log_loss": 0.31276872754096985,
+      "instant_log_loss": 0.3224042057991028,
+      "instant_rating_cross_entropy": 1.1642208099365234
+    }
+  ],
+  "evaluation": {
+    "curve_labels": 684,
+    "curve_log_loss_label_weighted": 0.4165401904903657,
+    "curve_log_loss_user_average": 0.42375510931015015,
+    "instant_labels": 925,
+    "instant_log_loss_label_weighted": 0.42197541108002534,
+    "instant_log_loss_user_average": 0.433909490163332
+  },
+  "case_elapsed_seconds": 23.436448699998436,
+  "iteration": "0065",
+  "execution_mode": {
+    "torch_graph_executor_optimize": false,
+    "deterministic_algorithms": true,
+    "CUBLAS_WORKSPACE_CONFIG": ":4096:8",
+    "wkv_tile": 32,
+    "fill_uninitialized_memory": false
+  },
+  "checkpoint_saves": [
+    {
+      "elapsed_seconds": 0.023045300011290237,
+      "path": "artifacts/retraining/gpu-retrain-r01/iteration-0065/functional-smoke-v1/expertium/E33-F48-F50-F58h/master.pth"
+    }
+  ],
+  "protocol_sha256": "62d991c0a69a3369bd2ee02eb21b6aea528c1e932c7db3ef291c641d3e4bace2",
+  "process_wall_seconds": 26.249606132507324,
+  "evaluation_scope": "unseen users; complete histories, chunked at 128 reviews; no gradient updates or fitting on held-out users",
+  "quality_status": "preliminary screen; broader validation pending"
+}

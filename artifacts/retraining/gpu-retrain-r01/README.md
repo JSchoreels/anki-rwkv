@@ -2,7 +2,7 @@
 
 R01 retraining screens, resource profiles, fixed cohorts and statistical checks.
 
-- **Open first:** [Latest codex round, 0060–0062](codex-round-0060-0062-summary.md); [compact handoff](codex-round-0060-0062-handoff.json). Previous: [Latest codex round, 0057–0059](codex-round-0057-0059-summary.md).
+- **Open first:** [Latest codex round, 0063–0065](codex-round-0063-0065-summary.md); [compact handoff](codex-round-0063-0065-handoff.json). Previous: [Latest codex round, 0060–0062](codex-round-0060-0062-summary.md).
 - **Earlier work:** Claude rounds [0025–0027](claude-round-0025-0027-summary.md), [0021–0024](claude-round-0021-0024-summary.md), [0010–0012](claude-round-summary.md); [Codex 0018–0020](codex-round-summary.md), numbered iteration reports and seed studies.
 - **Evidence:** Raw JSON/JSONL, checkpoints, frozen protocols and isolated source metadata stay in their iteration folders; runtime folders preserve execution source.
 - **Diagnostic repeat:** [Historical E33 during active desktop use](iteration-0040/summary.md): one authorized repeat, +7.05% throughput with exact recorded parity; accepted 0033 and the optimization stop remain unchanged.

@@ -1,0 +1,254 @@
+{
+  "provenance": {
+    "captured_utc": "2026-10-13T03:51:09.906976+00:00",
+    "git_commit": "7c2b00d0aa0ecddbd888db428efff65600e0f381",
+    "git_dirty": true,
+    "git_status_porcelain_z": " M docs/GPU_OPTIMIZATIONS.md\u0000 M scripts/check_r01_compact_previous.py\u0000 M scripts/gpu_row_tiles.py\u0000 M scripts/report_gpu_r01_next.py\u0000",
+    "source_tree_sha256": "d3ebbebe08bde40f0135f22429cfd308cfedcc3169bd03b4b283ccdd44ac578f",
+    "source_archive": "artifacts/sources/experiment-sources/d3ebbebe08bde40f0135f22429cfd308cfedcc3169bd03b4b283ccdd44ac578f/source.zip",
+    "source_paths": [
+      "rwkv",
+      "expertium",
+      "scripts",
+      "configs",
+      "pyproject.toml",
+      "uv.lock",
+      "justfile",
+      "upstream.json"
+    ]
+  },
+  "torch": "2.9.1+cu128",
+  "options": {
+    "a": {
+      "prefetch_users": true,
+      "preparation_workers": 6,
+      "gpu_packed_features": true,
+      "packed_ipc": true,
+      "async_transfer": true,
+      "batched_id_encodings": true,
+      "grouped_sync": true,
+      "main_threads": 1,
+      "bulk_transfer": true,
+      "parallel_evaluation": true,
+      "exact_shift": true,
+      "exact_index": true,
+      "batch_chunks": 512,
+      "gpu_memory_fraction": 0.95,
+      "fast_samples": true,
+      "prestart_pool": true,
+      "row_tiles_exact": 4,
+      "exact_group_norm": true,
+      "deferred_reads": true,
+      "shared_shift_orders": true,
+      "stream_launches": true,
+      "prefetch_rows": true,
+      "sync_free_loss": true,
+      "columnar_samples": true,
+      "skip_uninitialized_fill": true,
+      "skip_padding_sources": true
+    },
+    "b": {
+      "prefetch_users": true,
+      "preparation_workers": 6,
+      "gpu_packed_features": true,
+      "packed_ipc": true,
+      "async_transfer": true,
+      "batched_id_encodings": true,
+      "grouped_sync": true,
+      "main_threads": 1,
+      "bulk_transfer": true,
+      "parallel_evaluation": true,
+      "exact_shift": true,
+      "exact_index": true,
+      "batch_chunks": 512,
+      "gpu_memory_fraction": 0.95,
+      "fast_samples": true,
+      "prestart_pool": true,
+      "row_tiles_exact": 4,
+      "exact_group_norm": true,
+      "deferred_reads": true,
+      "shared_shift_orders": true,
+      "stream_launches": true,
+      "prefetch_rows": true,
+      "sync_free_loss": true,
+      "columnar_samples": true,
+      "skip_uninitialized_fill": true,
+      "skip_padding_sources": true,
+      "recurrence_load_pipeline": 8
+    }
+  },
+  "self_test": false,
+  "not_exercised": {
+    "a": [
+      "async_transfer",
+      "batch_chunks",
+      "batched_id_encodings",
+      "bulk_transfer",
+      "columnar_samples",
+      "deferred_reads",
+      "fast_samples",
+      "gpu_memory_fraction",
+      "gpu_packed_features",
+      "grouped_sync",
+      "main_threads",
+      "packed_ipc",
+      "parallel_evaluation",
+      "prefetch_users",
+      "preparation_workers",
+      "prestart_pool"
+    ],
+    "b": [
+      "async_transfer",
+      "batch_chunks",
+      "batched_id_encodings",
+      "bulk_transfer",
+      "columnar_samples",
+      "deferred_reads",
+      "fast_samples",
+      "gpu_memory_fraction",
+      "gpu_packed_features",
+      "grouped_sync",
+      "main_threads",
+      "packed_ipc",
+      "parallel_evaluation",
+      "prefetch_users",
+      "preparation_workers",
+      "prestart_pool"
+    ]
+  },
+  "scope": "five real Expertium batches; BF16 forward/backward from the fresh seed-2025 checkpoint; loss and every parameter gradient",
+  "batches": [
+    {
+      "user_id": 1495,
+      "offset": 0,
+      "reviews": 256,
+      "loss_bitwise_equal": true,
+      "same_gradient_set": true,
+      "parameters": 429,
+      "differing_gradients": [],
+      "memory": {
+        "a": {
+          "peak_reserved_bytes": 3730833408,
+          "peak_allocated_bytes": 3566636544,
+          "allocator_retries": 0,
+          "forward_backward_seconds": 8.618212100001983
+        },
+        "b": {
+          "peak_reserved_bytes": 3730833408,
+          "peak_allocated_bytes": 3600704512,
+          "allocator_retries": 0,
+          "forward_backward_seconds": 0.18446980000589974
+        }
+      },
+      "differing_gradient_count": 0
+    },
+    {
+      "user_id": 1619,
+      "offset": 32768,
+      "reviews": 256,
+      "loss_bitwise_equal": true,
+      "same_gradient_set": true,
+      "parameters": 429,
+      "differing_gradients": [],
+      "memory": {
+        "a": {
+          "peak_reserved_bytes": 3911188480,
+          "peak_allocated_bytes": 3665565696,
+          "allocator_retries": 0,
+          "forward_backward_seconds": 0.16130889998748899
+        },
+        "b": {
+          "peak_reserved_bytes": 3911188480,
+          "peak_allocated_bytes": 3666079232,
+          "allocator_retries": 0,
+          "forward_backward_seconds": 0.16103390001808293
+        }
+      },
+      "differing_gradient_count": 0
+    },
+    {
+      "user_id": 3958,
+      "offset": 0,
+      "reviews": 229,
+      "loss_bitwise_equal": true,
+      "same_gradient_set": true,
+      "parameters": 429,
+      "differing_gradients": [],
+      "memory": {
+        "a": {
+          "peak_reserved_bytes": 4429185024,
+          "peak_allocated_bytes": 4096454656,
+          "allocator_retries": 0,
+          "forward_backward_seconds": 0.18909609998809174
+        },
+        "b": {
+          "peak_reserved_bytes": 4429185024,
+          "peak_allocated_bytes": 4096968192,
+          "allocator_retries": 0,
+          "forward_backward_seconds": 0.18369499998516403
+        }
+      },
+      "differing_gradient_count": 0
+    },
+    {
+      "user_id": 2155,
+      "offset": 0,
+      "reviews": 37,
+      "loss_bitwise_equal": true,
+      "same_gradient_set": true,
+      "parameters": 429,
+      "differing_gradients": [],
+      "memory": {
+        "a": {
+          "peak_reserved_bytes": 773849088,
+          "peak_allocated_bytes": 732519936,
+          "allocator_retries": 0,
+          "forward_backward_seconds": 0.12064739997731522
+        },
+        "b": {
+          "peak_reserved_bytes": 773849088,
+          "peak_allocated_bytes": 733033472,
+          "allocator_retries": 0,
+          "forward_backward_seconds": 0.12912019999930635
+        }
+      },
+      "differing_gradient_count": 0
+    },
+    {
+      "user_id": 906,
+      "offset": 0,
+      "reviews": 77,
+      "loss_bitwise_equal": true,
+      "same_gradient_set": true,
+      "parameters": 429,
+      "differing_gradients": [],
+      "memory": {
+        "a": {
+          "peak_reserved_bytes": 1449132032,
+          "peak_allocated_bytes": 1322459136,
+          "allocator_retries": 0,
+          "forward_backward_seconds": 0.13278109999373555
+        },
+        "b": {
+          "peak_reserved_bytes": 1451229184,
+          "peak_allocated_bytes": 1322972672,
+          "allocator_retries": 0,
+          "forward_backward_seconds": 0.13754029999836348
+        }
+      },
+      "differing_gradient_count": 0
+    }
+  ],
+  "status": "passed",
+  "padding_sources": {
+    "calls": 114,
+    "sources": 802338,
+    "nonzero": 0,
+    "negative_zero": 0,
+    "nonfinite": 0
+  },
+  "summary": {
+    "batches": 5,
+    "batches_bitwise_equal": 5
+  }
+}
