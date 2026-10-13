@@ -488,7 +488,12 @@ def run_case(args):
             transferred = transfer_batches(source, dtype, options.get("async_transfer", False),
                                            **({"bulk": True} if options.get("bulk_transfer") else {}))
             deferred = options.get("deferred_reads", False)
-            pending = None
+            # F33b: number of queued updates whose loss/norm reads stay outstanding (1 = original F33).
+            read_depth = int(options.get("deferred_read_depth", 1))
+            if read_depth < 1 or (read_depth > 1 and not deferred):
+                raise ValueError("F33b deferred_read_depth needs F33 deferred reads and a positive depth")
+            report["deferred_read_depth"] = read_depth
+            pending = []
 
             def finish(update):
                 nonlocal loss_value, previous_compute
@@ -636,9 +641,9 @@ def run_case(args):
                         update["host"].copy_(values, non_blocking=True)
                         update["ready"] = torch.cuda.Event()
                         update["ready"].record()
-                        if pending is not None:
-                            finish(pending)
-                        pending = update
+                        pending.append(update)
+                        while len(pending) > read_depth:
+                            finish(pending.pop(0))
                     else:
                         if reduced:
                             update["values"] = torch.stack((stats.average_loss.detach(), norm)).cpu().tolist()
@@ -649,9 +654,8 @@ def run_case(args):
                     # parameter gradients before the next eager shape allocates.
                     if graphs:
                         active = stats = None
-                if pending is not None:
-                    finish(pending)
-                    pending = None
+                while pending:
+                    finish(pending.pop(0))
             finally:
                 transferred.close()
                 source.close()

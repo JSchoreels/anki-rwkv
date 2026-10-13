@@ -108,6 +108,9 @@ def main():
             module.exact_index = options.get("exact_index", False)
         if hasattr(module, "exact_group_norm"):
             module.exact_group_norm = options.get("exact_group_norm", False)
+    if any(options.get(name) for name in ("native_wkv", "native_group_norm", "native_index", "native_glue")):
+        from rwkv.model.native_launch import configure
+        configure(base, options)
     base.sync_free_loss = options.get("sync_free_loss", False)
     base.skip_padding_sources = bool(options.get("skip_padding_sources", False))
     optimizer = get_optimizer(Namespace(PEAK_LR=7e-4), master)
