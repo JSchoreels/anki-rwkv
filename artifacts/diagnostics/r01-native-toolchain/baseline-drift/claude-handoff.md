@@ -1,5 +1,7 @@
 # Handoff: unresolved historical R01 throughput gap
 
+**Outcome (Claude, 2026-10-13):** resolved as a machine scheduling state; see [live/summary.md](live/summary.md). 0072 stands as recorded.
+
 The human asked to stop after finishing the active iteration 0073 and let Claude investigate the historical best. Complete only 0073's already active replicated gate; do not start 0074–0080, a new agent, administrator prompts, profiling launches or broader validation. Three of ten authorized full cycles will then be completed, with seven unconsumed. The exact closure decision and accepted configuration are in the 0071–0073 round summary. The native WKV 0072 improvement is +1.81426% in current matched blocks, with a +0.38273% lower bound, bitwise-identical final parameters and all four held-out losses; this does not establish recovery of the historical best.
 
 ## What is established

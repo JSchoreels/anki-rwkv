@@ -1,5 +1,7 @@
 # Historical best configuration versus today's control
 
+**Resolved 2026-10-13 ([live diagnostic](live/summary.md)):** the gap is a host-CPU scheduling state, not code or instrumentation. Identical 0048 source and protocol ran 199,486 (r1) and then 162,567 reviews/s (r3) two minutes apart; from r3 on, workers were packed two per physical core and main-thread dispatch was 23% slower. Current HEAD reproduces 189,706 reviews/s with the same options and bitwise-identical parameters when the machine is in the spread state. 0072 needs no re-recording. The "unresolved" statements below are superseded.
+
 The human asked whether today's roughly 166k reviews/s control was a weaker configuration than the historical roughly 190–197k run. The saved records establish that it is the same configuration: options and config dictionaries are identical, both process 7,654,975 reviews in 167 updates over 80 training and 20 evaluation users, and initial/final parameter hashes and held-out input hashes match exactly. Torch 2.9.1+cu128 and RTX 5080 identifiers also match. [Reproducible audit](analyze.py) and [raw comparison/provenance](comparison.json) retain the evidence; no new GPU run was launched for this audit.
 
 | Recorded quantity | Historical 0042 | Current 0072 control r1 |
