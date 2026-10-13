@@ -110,6 +110,7 @@
     <div class="rug" id="rug-exp-s"></div>
     <div class="rug" id="rug-exp-p"></div>
     <div class="keys"><span><i style="background:var(--s1)"></i>basis-curve stability</span><span><i style="background:var(--s2)"></i>correction point</span></div>
+    <p class="explain-box">The correction applies to the iter36 snapshot trained here (upstream commit <code>39666c6</code>). Expertium&rsquo;s later versions can switch it off with <code>RWKV_NO_AHEAD_RESIDUAL=1</code>, and his GRU head always does. The curve is then only the basis-curve mix, so predicted recall can only fall over time. The correction head&rsquo;s <span id="ahead-n"></span> parameters still exist but get no gradient.</p>
   </section>
 
   <section class="panel">
