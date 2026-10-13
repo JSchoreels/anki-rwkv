@@ -24,7 +24,7 @@ import sys
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 APPLIED = {"exact_shift", "exact_index", "exact_group_norm", "fused_shift", "row_tiles_exact", "shared_shift_orders",
-           "stream_launches", "prefetch_rows", "prefetch_shift", "sync_free_loss", "jit_optimize", "nondeterministic", "skip_uninitialized_fill", "skip_padding_sources", "concurrent_splits", "worker_scatter_orders", "compact_previous_state"}
+           "stream_launches", "prefetch_rows", "prefetch_shift", "sync_free_loss", "jit_optimize", "nondeterministic", "skip_uninitialized_fill", "skip_padding_sources", "concurrent_splits", "worker_scatter_orders", "recurrence_prefetch", "wave_aware_backward", "flat_buffers", "compact_previous_state"}
 
 
 def load_options(value, track):
@@ -125,6 +125,12 @@ def main():
                                                 torch.device("cuda:0"))
         master.load_state_dict(checkpoint["model"])
         model.copy_downcast_(master, dtype)
+        if options.get("flat_buffers"):
+            from argparse import Namespace
+            from rwkv.train_rwkv import get_optimizer
+            from scripts.gpu_r01_flat import FlatMasterChildSync
+            flat = FlatMasterChildSync(master, model, get_optimizer(Namespace(PEAK_LR=7e-4), master))
+            flat.downcast()
         if options is variants["b"] and args.self_test:
             with torch.no_grad():
                 next(p for p in model.parameters() if p.dtype == torch.bfloat16).view(-1).view(torch.int16)[0] ^= 1
@@ -145,7 +151,9 @@ def main():
         with ExitStack() as stack:
             if options.get("row_tiles_exact"):
                 stack.enter_context(row_tiled_backend(rows=options["row_tiles_exact"], tile=32, exact=True,
-                                                     compact_previous=bool(options.get("compact_previous_state", False))))
+                                                     compact_previous=bool(options.get("compact_previous_state", False)),
+                                  next_step_prefetch=bool(options.get("recurrence_prefetch", False)),
+                                  wave_aware=bool(options.get("wave_aware_backward", False))))
             nvrtc.set_stream_launch(options.get("stream_launches", False))
             exact_index.set_shared_orders(options.get("shared_shift_orders", False))
             if options.get("worker_scatter_orders"):

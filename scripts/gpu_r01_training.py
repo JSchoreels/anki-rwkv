@@ -234,7 +234,9 @@ def run_case(args):
             from scripts.gpu_row_tiles import row_tiled_backend
             report["recurrence_kernel"] = kernel_stack.enter_context(
                 row_tiled_backend(rows=options["row_tiles_exact"], tile=32, exact=True,
-                                  compact_previous=bool(options.get("compact_previous_state", False))))
+                                  compact_previous=bool(options.get("compact_previous_state", False)),
+                                  next_step_prefetch=bool(options.get("recurrence_prefetch", False)),
+                                  wave_aware=bool(options.get("wave_aware_backward", False))))
         device = torch.device("cuda:0")
         checkpoint = fresh_checkpoint(args.model, training_seed)
         report["initial_parameter_sha256"] = tensor_hash(checkpoint["model"])
@@ -302,7 +304,11 @@ def run_case(args):
             if graphs:
                 raise ValueError("Grouped master/child synchronization is not combined with graph replicas")
             from scripts.gpu_r01_update import MasterChildSync
-            grouped = MasterChildSync(master, base)
+            if options.get("flat_buffers"):
+                from scripts.gpu_r01_flat import FlatMasterChildSync
+                grouped = FlatMasterChildSync(master, base, optimizer)
+            else:
+                grouped = MasterChildSync(master, base)
         cache_paths = None
         if options.get("sample_cache"):
             cache_paths, report["cache_setup"] = build_sample_cache(rows, chunks * 128, output / "sample-cache")

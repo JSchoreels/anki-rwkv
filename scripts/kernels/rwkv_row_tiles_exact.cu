@@ -110,14 +110,33 @@ __global__ void backward_kernel(int B, int T, int H, const F* r, const F* k,
 #if COMPACT_PREVIOUS_STATE
         __syncthreads();
 #endif
-        for (int t = nvrtc_min(T - 1, (l + 1) * TILE - 1); t >= l * TILE; --t) {
+        const int top = nvrtc_min(T - 1, (l + 1) * TILE - 1);
+#if NEXT_STEP_PREFETCH
+        int64_t py = get_index3(b, top, h, y, T, H, 32);
+        float pr = to_float<F>(r[py]), pk = to_float<F>(k[py]), pv = to_float<F>(v[py]);
+        float pw = w[py], pa = to_float<F>(a[py]), pd = to_float<F>(kd[py]), pg = to_float<F>(grad[py]);
+        bool ps = skip[get_index1(b, top, T)];
+#endif
+        for (int t = top; t >= l * TILE; --t) {
             const int c = t - l * TILE;
             const int64_t iy = get_index3(b, t, h, y, T, H, 32);
+#if NEXT_STEP_PREFETCH
+            const float ry = pr, ky = pk, vy = pv, wy = pw, ay = pa, kdy = pd, gy = pg;
+            const bool skipped = ps;
+            // Issue next-step scalar loads before the current step's three barriers.
+            if (t > l * TILE) {
+                py = get_index3(b, t - 1, h, y, T, H, 32);
+                pr = to_float<F>(r[py]); pk = to_float<F>(k[py]); pv = to_float<F>(v[py]);
+                pw = w[py]; pa = to_float<F>(a[py]); pd = to_float<F>(kd[py]); pg = to_float<F>(grad[py]);
+                ps = skip[get_index1(b, t - 1, T)];
+            }
+#else
             const float ry = to_float<F>(r[iy]), ky = to_float<F>(k[iy]);
             const float vy = to_float<F>(v[iy]), wy = w[iy];
             const float ay = to_float<F>(a[iy]), kdy = to_float<F>(kd[iy]);
             const float gy = to_float<F>(grad[iy]);
             const bool skipped = skip[get_index1(b, t, T)];
+#endif
             float ds_rows[ROWS], remove[ROWS], product[ROWS];
             if (threadIdx.y == 0) { Kd[y] = kdy; A[y] = ay; }
             #pragma unroll

@@ -53,6 +53,9 @@ def describe(track):
                 "F50": "skip zero hierarchy padding sources in exact row backward",
                 "F49": "independent hierarchy split CUDA streams",
                 "F53": "worker-precomputed stable scatter orders",
+                "F58": "recurrence next-step scalar prefetch",
+                "F55": "wave-aware recurrence backward layout",
+                "F62": "flat optimizer buffers",
                 "F54": "compact exact recurrence previous-state storage",
              "E31": "accepted iteration-0031 Expertium configuration: E30, F37",
              "E33": "accepted iteration-0033 Expertium configuration: E31, F42"}

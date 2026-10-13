@@ -11,6 +11,8 @@ sys.path.insert(0, str(ROOT))
 def main():
     parser = ArgumentParser(description=__doc__)
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--prefetch", action="store_true")
+    parser.add_argument("--wave-aware", action="store_true")
     args = parser.parse_args()
     output = ROOT / args.output
     if output.exists() or not output.resolve().is_relative_to(ROOT / "artifacts"):
@@ -29,13 +31,14 @@ def main():
     cases = []
 
     def run(inputs, skip, grad, compact):
-        with row_tiled_backend(rows=4, tile=32, exact=True, compact_previous=compact):
+        with row_tiled_backend(rows=4, tile=32, exact=True, compact_previous=False if args.prefetch or args.wave_aware else compact,
+                               next_step_prefetch=compact and args.prefetch, wave_aware=compact and args.wave_aware):
             out, states = nvrtc.forward(*inputs, skip)
             gradients = nvrtc.backward(*inputs, skip, states, grad)
         return (out, states, *gradients)
 
     for dtype in (torch.bfloat16, torch.float32):
-        for b in (1, 5, 97):
+        for b in ((1, 5, 512) if args.wave_aware else (1, 5, 97)):
             for t in (1, 2, 31, 32, 33, 64, 65, 100, 383):
                 for mode in ("none", "all", "every-third", "random"):
                     generator.manual_seed(20261012 + len(cases))
