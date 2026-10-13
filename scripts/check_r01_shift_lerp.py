@@ -6,7 +6,7 @@ sys.path.insert(0, str(ROOT))
 from scripts.r01_workflow import configure_runtime
 configure_runtime(ROOT, 1)
 import torch
-from rwkv.model.fused_shift import ExactShiftLerp
+from rwkv.model.fused_shift import ExactShiftLerp, ExplicitShiftLerp, PartialShiftLerp
 from scripts.experiment_provenance import process_provenance
 
 
@@ -14,6 +14,8 @@ def main():
     from argparse import ArgumentParser
     parser = ArgumentParser()
     parser.add_argument('--output', type=Path, required=True)
+    parser.add_argument('--partials', action='store_true')
+    parser.add_argument('--explicit', action='store_true')
     args = parser.parse_args()
     torch.use_deterministic_algorithms(True)
     torch.manual_seed(2025)
@@ -33,7 +35,7 @@ def main():
                 y = torch.lerp(a.unsqueeze(0),shifted.unsqueeze(0),b)
                 ga = torch.autograd.grad(y,(a,b),dy)
                 c,d = x.clone().requires_grad_(),w.clone().requires_grad_()
-                z = ExactShiftLerp.apply(c,select,d)
+                z = (PartialShiftLerp if args.partials else ExplicitShiftLerp if args.explicit else ExactShiftLerp).apply(c,select,d)
                 gb = torch.autograd.grad(z,(c,d),dy)
                 same = lambda u,v: torch.equal(u.contiguous().view(torch.uint8),v.contiguous().view(torch.uint8))
                 records.append(dict(dtype=str(dtype),B=B,T=T,edge=edge,forward=same(y,z),gradients=[same(u,v) for u,v in zip(ga,gb)]))

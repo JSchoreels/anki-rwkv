@@ -6,10 +6,11 @@ import torch
 _KERNELS = {}
 
 
-def kernel(dtype):
+def kernel(dtype, backward=False):
     from rwkv.model import nvrtc
     nvrtc.register()
-    if dtype not in _KERNELS:
+    key = (dtype, backward)
+    if key not in _KERNELS:
         scalar = "float" if dtype == torch.float32 else "__nv_bfloat16"
         prefix = "" if dtype == torch.float32 else "#include <cuda_bf16.h>\n"
         read = "x" if dtype == torch.float32 else "__bfloat162float(x)"
@@ -30,6 +31,24 @@ extern "C" __global__ void shift_lerp(const F* x, const long long* select,
     out[i] = write(fabsf(weight) < 0.5f ? a+weight*d : z-d*(1-weight));
 }}
 """
+        if backward:
+            code += """
+extern "C" __global__ void lerp_partials(const F* x, const long long* select,
+    const F* w, const F* grad, F* out, int B, int T, int C) {
+    int i = blockIdx.x * blockDim.x + threadIdx.x;
+    int n = B*T*C;
+    if (i >= 8*n) return;
+    int j = i % n, c = j % C, bt = j/C, b = bt/T;
+    float a = read(x[j]), z = read(x[(b*T+select[bt])*C+c]);
+    float weight = read(w[(i/n)*C+c]), g = read(grad[i]);
+    // Round at each original tensor-operation boundary before multiplication.
+    float complement = read(write(__fsub_rn(1.0f, weight)));
+    float delta = read(write(__fsub_rn(z, a)));
+    out[i] = write(__fmul_rn(g, complement));
+    out[8*n+i] = write(__fmul_rn(g, weight));
+    out[16*n+i] = write(__fmul_rn(g, delta));
+}
+"""
         # Reuse the runtime's tested BF16 header and CUDA toolkit discovery.
         nvrtc.module(torch.device("cuda", torch.cuda.current_device()), dtype)
         options = ["--std=c++17"]
@@ -44,8 +63,8 @@ extern "C" __global__ void shift_lerp(const F* x, const long long* select,
             candidates += [p / "include" for p in sorted(installed.glob("v*"), reverse=True)]
             cccl = next(p for p in candidates if (p / "nv/target").exists())
             options += [f"--include-path={runtime}", f"--include-path={cccl}"]
-        _KERNELS[dtype] = nvrtc._cupy.RawKernel(code, "shift_lerp", options=tuple(options))
-    return _KERNELS[dtype]
+        _KERNELS[key] = nvrtc._cupy.RawKernel(code, "lerp_partials" if backward else "shift_lerp", options=tuple(options))
+    return _KERNELS[key]
 
 
 class FusedShiftLerp(torch.autograd.Function):
@@ -100,3 +119,42 @@ class ExactShiftLerp(torch.autograd.Function):
             output = torch.lerp(x.unsqueeze(0), shifted.unsqueeze(0), weight)
             dx, dw = torch.autograd.grad(output, (x, weight), grad)
         return dx, None, dw
+
+
+class ExplicitShiftLerp(ExactShiftLerp):
+    """F34f: original derivative operations/reductions without graph rebuilding."""
+    @staticmethod
+    def backward(ctx, grad):
+        x, select, weight = ctx.saved_tensors
+        indices = select.unsqueeze(-1).expand_as(x)
+        shifted = torch.gather(x, 1, indices)
+        dx = (grad * (1 - weight)).sum(0)
+        ds = (grad * weight).sum(0)
+        dw = grad * (shifted - x).unsqueeze(0)
+        reduce_dims = tuple(i for i in (1, 2) if dw.shape[i] != 1)
+        if reduce_dims:
+            dw = dw.sum(reduce_dims, keepdim=True)
+        shifted_dx = torch.zeros_like(x).scatter_add_(1, indices, ds)
+        return dx + shifted_dx, None, dw
+
+
+class PartialShiftLerp(ExactShiftLerp):
+    """F34g: fuse rounded derivative elements, retain original reduction kernels."""
+    @staticmethod
+    def backward(ctx, grad):
+        from rwkv.model import nvrtc
+        x, select, weight = ctx.saved_tensors
+        grad = grad.contiguous()
+        B, T, C = x.shape
+        partials = torch.empty((3, 8, B, T, C), device=x.device, dtype=x.dtype)
+        args = tuple(np.uint64(v.data_ptr()) for v in (x, select, weight, grad, partials)) + tuple(np.int32(v) for v in (B, T, C))
+        nvrtc.raw_launch(kernel(x.dtype, True), x.device, ((grad.numel()+255)//256,), (256,), args)
+        dx = partials[0].sum(0)
+        ds = partials[1].sum(0)
+        dw = partials[2]
+        reduce_dims = tuple(i for i in (1, 2) if dw.shape[i] != 1)
+        if reduce_dims:
+            dw = dw.sum(reduce_dims, keepdim=True)
+        indices = select.unsqueeze(-1).expand_as(x)
+        shifted_dx = torch.zeros_like(x).scatter_add_(1, indices, ds)
+        return dx + shifted_dx, None, dw

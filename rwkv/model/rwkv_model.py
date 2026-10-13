@@ -3,7 +3,7 @@ import math
 import torch
 
 from rwkv.model.rwkv_ops import RWKV7_WKV, reference_rwkv7
-from rwkv.model.fused_shift import FusedShiftLerp, ExactShiftLerp
+from rwkv.model.fused_shift import FusedShiftLerp, ExactShiftLerp, ExplicitShiftLerp, PartialShiftLerp
 
 """
 IMPORTANT: the CUDA implementation in this repository only supports head dimensions of 32. d_model // n_heads == 32.
@@ -209,6 +209,8 @@ class RWKV7TimeMixer(ModuleType):
         self.use_reference_wkv = config.use_reference_wkv
         self.fused_shift = False
         self.exact_shift_lerp = False
+        self.explicit_shift_lerp = False
+        self.partial_shift_lerp = False
         assert config.d_model % config.n_heads == 0
         self.layer_id = layer_id
         C = config.d_model
@@ -316,7 +318,11 @@ class RWKV7TimeMixer(ModuleType):
         H, K = self.H, self.K
 
         x_BTC = self.layer_norm(in_BTC)
-        if self.exact_shift_lerp and x_BTC.is_cuda:
+        if self.partial_shift_lerp and x_BTC.is_cuda:
+            rkvdag_8BTC = PartialShiftLerp.apply(x_BTC, time_shift_select_BT, self.rkvdag_lerp)
+        elif self.explicit_shift_lerp and x_BTC.is_cuda:
+            rkvdag_8BTC = ExplicitShiftLerp.apply(x_BTC, time_shift_select_BT, self.rkvdag_lerp)
+        elif self.exact_shift_lerp and x_BTC.is_cuda:
             rkvdag_8BTC = ExactShiftLerp.apply(x_BTC, time_shift_select_BT, self.rkvdag_lerp)
         elif self.fused_shift and x_BTC.is_cuda:
             rkvdag_8BTC = FusedShiftLerp.apply(x_BTC, time_shift_select_BT, self.rkvdag_lerp)

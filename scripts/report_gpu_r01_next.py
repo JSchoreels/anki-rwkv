@@ -72,6 +72,8 @@ def describe(track):
                 "F62": "flat optimizer buffers",
                 "F62b": "whole active-group AdamW packing",
                 "F62c": "reused whole active-group AdamW buffers",
+                "F34g": "fused rounded shift/lerp derivative elements",
+                "F34f": "explicit exact shift/lerp backward",
                 "F34e": "exact eight-way shift/lerp forward",
                 "F54": "compact exact recurrence previous-state storage",
              "E31": "accepted iteration-0031 Expertium configuration: E30, F37",

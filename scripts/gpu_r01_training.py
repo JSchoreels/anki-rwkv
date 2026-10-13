@@ -266,6 +266,10 @@ def run_case(args):
                 raise ValueError("F50 requires Expertium exact row selection")
             base.skip_padding_sources = True
         for module in base.modules():
+            if hasattr(module, "partial_shift_lerp"):
+                module.partial_shift_lerp = bool(options.get("partial_shift_lerp", False))
+            if hasattr(module, "explicit_shift_lerp"):
+                module.explicit_shift_lerp = bool(options.get("explicit_shift_lerp", False))
             if hasattr(module, "exact_shift_lerp"):
                 module.exact_shift_lerp = bool(options.get("exact_shift_lerp", False))
             if hasattr(module, "exact_bonus_products"):
