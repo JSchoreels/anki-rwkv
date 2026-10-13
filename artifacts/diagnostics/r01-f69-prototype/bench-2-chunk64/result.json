@@ -1,0 +1,412 @@
+{
+ "provenance": {
+  "captured_utc": "2026-10-13T14:18:33.446729+00:00",
+  "git_commit": "3c339734c0671cba83d469d22970047ab8d6ed6c",
+  "git_dirty": true,
+  "git_status_porcelain_z": " M docs/GPU_OPTIMIZATIONS_LOG.md\u0000 M scripts/gpu_shape_buckets.py\u0000?? rwkv/model/chunked_wkv.py\u0000?? scripts/bench_r01_chunked_wkv.py\u0000?? scripts/check_r01_chunked_wkv.py\u0000?? scripts/gpu_r01_graphs.py\u0000",
+  "source_tree_sha256": "3fb55b8d104fecd2c3cd79f4ee5c2d5a4611257c1e3f777f65726f463a20af80",
+  "source_archive": "artifacts/sources/experiment-sources/3fb55b8d104fecd2c3cd79f4ee5c2d5a4611257c1e3f777f65726f463a20af80/source.zip",
+  "source_paths": [
+   "rwkv",
+   "expertium",
+   "scripts",
+   "configs",
+   "pyproject.toml",
+   "uv.lock",
+   "justfile",
+   "upstream.json"
+  ]
+ },
+ "torch": "2.9.1+cu128",
+ "native_build": {
+  "status": "built",
+  "identity": {
+   "source_sha256": "88f73bb467cde7dffd777715b3a8cf93fe48ac9c31a18365cd431314bfa00682",
+   "torch": "2.9.1+cu128",
+   "torch_cuda": "12.8",
+   "platform": "nt",
+   "flags": [
+    "/nologo",
+    "/LD",
+    "/std:c++17",
+    "/O2",
+    "/MD",
+    "/EHsc",
+    "/bigobj",
+    "/D_CRT_SECURE_NO_WARNINGS",
+    "/DNOMINMAX"
+   ],
+   "msvc_version": "14.44.35207",
+   "windows_sdk_version": "10.0.26100.0",
+   "cuda_header_version": "13.4",
+   "cuda_header_sha256": "7a79d67ca888061b1dfbe4739b51ad64f85a2f3ad874947ce09b2c635b4c7072",
+   "torch_cudart_sha256": "c2c9a9c22a9bcba90e261825968836787b331038047a26770cffb7a583c28344",
+   "libraries": [
+    "c10.lib",
+    "c10_cuda.lib",
+    "torch_cpu.lib",
+    "torch_cuda.lib",
+    "torch.lib",
+    "cuda.lib",
+    "torch_cudart.lib"
+   ]
+  },
+  "build_key": "f0bc57e0db3487315db1a4ebe7c38100a139c3359f485a36b0ca0ec30b01e814",
+  "command": [
+   "C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\VC\\Tools\\MSVC\\14.44.35207\\bin\\Hostx64\\x64\\cl.exe",
+   "/nologo",
+   "/LD",
+   "/std:c++17",
+   "/O2",
+   "/MD",
+   "/EHsc",
+   "/bigobj",
+   "/D_CRT_SECURE_NO_WARNINGS",
+   "/DNOMINMAX",
+   "/IC:\\Users\\jonat\\workspace\\anki-rwkv\\.venv\\Lib\\site-packages\\torch\\include",
+   "/IC:\\Users\\jonat\\workspace\\anki-rwkv\\.venv\\Lib\\site-packages\\torch\\include\\torch\\csrc\\api\\include",
+   "/IC:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v13.4\\include",
+   "C:\\Users\\jonat\\workspace\\anki-rwkv\\rwkv\\model\\csrc\\native_launch.cpp",
+   "/FoC:\\Users\\jonat\\workspace\\anki-rwkv\\artifacts\\cache\\r01-native\\f0bc57e0db3487315db1a4ebe7c38100a139c3359f485a36b0ca0ec30b01e814\\native_launch.obj",
+   "/link",
+   "/OUT:C:\\Users\\jonat\\workspace\\anki-rwkv\\artifacts\\cache\\r01-native\\f0bc57e0db3487315db1a4ebe7c38100a139c3359f485a36b0ca0ec30b01e814\\native_launch.dll",
+   "/LIBPATH:C:\\Users\\jonat\\workspace\\anki-rwkv\\.venv\\Lib\\site-packages\\torch\\lib",
+   "/LIBPATH:C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v13.4\\lib\\x64",
+   "c10.lib",
+   "c10_cuda.lib",
+   "torch_cpu.lib",
+   "torch_cuda.lib",
+   "torch.lib",
+   "cuda.lib",
+   "C:\\Users\\jonat\\workspace\\anki-rwkv\\artifacts\\cache\\r01-native\\f0bc57e0db3487315db1a4ebe7c38100a139c3359f485a36b0ca0ec30b01e814\\torch_cudart.lib"
+  ],
+  "vcvars": "C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\VC\\Auxiliary\\Build\\vcvars64.bat",
+  "VCToolsVersion": "14.44.35207",
+  "WindowsSDKVersion": "10.0.26100.0\\",
+  "binary_sha256": "93ff0ff1f010df2f89dca1521ae8b7c2a7234b18b8e0444a7774c9167498ef38"
+ },
+ "warmup": 5,
+ "repeats": 30,
+ "shapes": [
+  {
+   "B": 742,
+   "T": 256,
+   "variants": {
+    "native": {
+     "fwd_ms": {
+      "median": 0.977647989988327,
+      "min": 0.9531840085983276,
+      "max": 1.2065279483795166,
+      "iqr": 0.14672797918319702,
+      "n": 30
+     },
+     "bwd_ms": {
+      "median": 6.860368013381958,
+      "min": 6.75267219543457,
+      "max": 9.326399803161621,
+      "iqr": 0.177839994430542,
+      "n": 30
+     },
+     "fwd_bwd_median_ms": 7.923520058393478,
+     "host_fwd_ms": {
+      "median": 0.04329999865149148,
+      "min": 0.02719999974942766,
+      "max": 0.05819999933009967,
+      "iqr": 0.0013000026228837669,
+      "n": 30
+     },
+     "host_bwd_ms": {
+      "median": 0.11174999963259324,
+      "min": 0.07379999806289561,
+      "max": 0.18149999959859997,
+      "iqr": 0.005999995664751623,
+      "n": 30
+     },
+     "peak_allocated_mib": 396.18115234375,
+     "fwd_bwd_vs_native": 1.0
+    },
+    "chunked32": {
+     "fwd_ms": {
+      "median": 3.6093759536743164,
+      "min": 3.394752025604248,
+      "max": 3.672960042953491,
+      "iqr": 0.18199187517166138,
+      "n": 30
+     },
+     "bwd_ms": {
+      "median": 8.391472339630127,
+      "min": 8.258399963378906,
+      "max": 8.496159553527832,
+      "iqr": 0.08608007431030273,
+      "n": 30
+     },
+     "fwd_bwd_median_ms": 12.002624273300171,
+     "host_fwd_ms": {
+      "median": 0.9175500017590821,
+      "min": 0.8936999984143768,
+      "max": 0.991600001725601,
+      "iqr": 0.024500000108673703,
+      "n": 30
+     },
+     "host_bwd_ms": {
+      "median": 1.6295499990519602,
+      "min": 1.5663999984099064,
+      "max": 2.234299998235656,
+      "iqr": 0.11229999745410169,
+      "n": 30
+     },
+     "peak_allocated_mib": 1293.76171875,
+     "fwd_bwd_vs_native": 1.5148096029094607
+    },
+    "chunked64": {
+     "fwd_ms": {
+      "median": 4.060384035110474,
+      "min": 3.8707520961761475,
+      "max": 5.626016139984131,
+      "iqr": 0.10135209560394287,
+      "n": 30
+     },
+     "bwd_ms": {
+      "median": 8.50822401046753,
+      "min": 8.24022388458252,
+      "max": 8.617280006408691,
+      "iqr": 0.09451961517333984,
+      "n": 30
+     },
+     "fwd_bwd_median_ms": 12.583375930786133,
+     "host_fwd_ms": {
+      "median": 0.8372499996767147,
+      "min": 0.8091999989119358,
+      "max": 1.1262999978498556,
+      "iqr": 0.04017499850306194,
+      "n": 30
+     },
+     "host_bwd_ms": {
+      "median": 1.3672500008397037,
+      "min": 1.325699999142671,
+      "max": 1.7580999992787838,
+      "iqr": 0.08997500026453054,
+      "n": 30
+     },
+     "peak_allocated_mib": 1333.2890625,
+     "fwd_bwd_vs_native": 1.5881042564480434
+    }
+   }
+  },
+  {
+   "B": 869,
+   "T": 256,
+   "variants": {
+    "native": {
+     "fwd_ms": {
+      "median": 1.1825599670410156,
+      "min": 1.165120005607605,
+      "max": 1.400607943534851,
+      "iqr": 0.061128050088882446,
+      "n": 30
+     },
+     "bwd_ms": {
+      "median": 8.279808044433594,
+      "min": 8.091039657592773,
+      "max": 8.416000366210938,
+      "iqr": 0.11863994598388672,
+      "n": 30
+     },
+     "fwd_bwd_median_ms": 9.462287783622742,
+     "host_fwd_ms": {
+      "median": 0.046299999667098746,
+      "min": 0.03130000186502002,
+      "max": 0.05709999823011458,
+      "iqr": 0.001025001438392792,
+      "n": 30
+     },
+     "host_bwd_ms": {
+      "median": 0.11405000077502336,
+      "min": 0.09819999831961468,
+      "max": 0.18080000154441223,
+      "iqr": 0.004925000212097075,
+      "n": 30
+     },
+     "peak_allocated_mib": 512.29052734375,
+     "fwd_bwd_vs_native": 1.0
+    },
+    "chunked32": {
+     "fwd_ms": {
+      "median": 4.225232124328613,
+      "min": 4.01961612701416,
+      "max": 6.485599994659424,
+      "iqr": 0.05606377124786377,
+      "n": 30
+     },
+     "bwd_ms": {
+      "median": 10.040143966674805,
+      "min": 9.849344253540039,
+      "max": 13.98300838470459,
+      "iqr": 0.17209649085998535,
+      "n": 30
+     },
+     "fwd_bwd_median_ms": 14.28006386756897,
+     "host_fwd_ms": {
+      "median": 0.9214000001520617,
+      "min": 0.893000000360189,
+      "max": 1.0545000004640315,
+      "iqr": 0.028075000045646448,
+      "n": 30
+     },
+     "host_bwd_ms": {
+      "median": 1.5784499992150813,
+      "min": 1.5290999981516507,
+      "max": 2.1772000000055414,
+      "iqr": 0.07540000024164328,
+      "n": 30
+     },
+     "peak_allocated_mib": 1485.09765625,
+     "fwd_bwd_vs_native": 1.5091555228625364
+    },
+    "chunked64": {
+     "fwd_ms": {
+      "median": 4.824928045272827,
+      "min": 4.733344078063965,
+      "max": 4.981472015380859,
+      "iqr": 0.05218386650085449,
+      "n": 30
+     },
+     "bwd_ms": {
+      "median": 10.121392250061035,
+      "min": 10.027327537536621,
+      "max": 10.343487739562988,
+      "iqr": 0.15950465202331543,
+      "n": 30
+     },
+     "fwd_bwd_median_ms": 14.953840017318726,
+     "host_fwd_ms": {
+      "median": 0.8308500018756604,
+      "min": 0.8042999979807064,
+      "max": 0.9766000002855435,
+      "iqr": 0.02170000061596511,
+      "n": 30
+     },
+     "host_bwd_ms": {
+      "median": 1.3474000006681308,
+      "min": 1.3124999968567863,
+      "max": 1.4650999983132351,
+      "iqr": 0.0636750019111787,
+      "n": 30
+     },
+     "peak_allocated_mib": 1532.98486328125,
+     "fwd_bwd_vs_native": 1.5803619969370115
+    }
+   }
+  },
+  {
+   "B": 512,
+   "T": 256,
+   "variants": {
+    "native": {
+     "fwd_ms": {
+      "median": 0.7843360006809235,
+      "min": 0.7752640247344971,
+      "max": 0.996288001537323,
+      "iqr": 0.053751975297927856,
+      "n": 30
+     },
+     "bwd_ms": {
+      "median": 5.105920076370239,
+      "min": 4.918015956878662,
+      "max": 5.269248008728027,
+      "iqr": 0.03195178508758545,
+      "n": 30
+     },
+     "fwd_bwd_median_ms": 5.898543834686279,
+     "host_fwd_ms": {
+      "median": 0.04585000169754494,
+      "min": 0.027000001864507794,
+      "max": 0.06349999966914766,
+      "iqr": 0.003250000190746505,
+      "n": 30
+     },
+     "host_bwd_ms": {
+      "median": 0.11115000052086543,
+      "min": 0.07199999890872277,
+      "max": 0.14850000297883525,
+      "iqr": 0.0052500008678180166,
+      "n": 30
+     },
+     "peak_allocated_mib": 412.640625,
+     "fwd_bwd_vs_native": 1.0
+    },
+    "chunked32": {
+     "fwd_ms": {
+      "median": 2.3392319679260254,
+      "min": 2.196000099182129,
+      "max": 2.460927963256836,
+      "iqr": 0.17258405685424805,
+      "n": 30
+     },
+     "bwd_ms": {
+      "median": 5.241375923156738,
+      "min": 5.118495941162109,
+      "max": 6.299520015716553,
+      "iqr": 0.09768784046173096,
+      "n": 30
+     },
+     "fwd_bwd_median_ms": 7.603296160697937,
+     "host_fwd_ms": {
+      "median": 0.9243999993486796,
+      "min": 0.8756999995966908,
+      "max": 1.072099999873899,
+      "iqr": 0.06007499723637011,
+      "n": 30
+     },
+     "host_bwd_ms": {
+      "median": 1.6386000006605173,
+      "min": 1.5622999999322928,
+      "max": 1.9587000024330337,
+      "iqr": 0.12347500069154194,
+      "n": 30
+     },
+     "peak_allocated_mib": 885.5244140625,
+     "fwd_bwd_vs_native": 1.289012402686048
+    },
+    "chunked64": {
+     "fwd_ms": {
+      "median": 2.617311954498291,
+      "min": 2.4999680519104004,
+      "max": 2.7489280700683594,
+      "iqr": 0.1805199384689331,
+      "n": 30
+     },
+     "bwd_ms": {
+      "median": 5.398335933685303,
+      "min": 5.298495769500732,
+      "max": 5.546048164367676,
+      "iqr": 0.10169589519500732,
+      "n": 30
+     },
+     "fwd_bwd_median_ms": 8.037856101989746,
+     "host_fwd_ms": {
+      "median": 0.8247999994637212,
+      "min": 0.7913000008556992,
+      "max": 1.0808000006363727,
+      "iqr": 0.029474998882506043,
+      "n": 30
+     },
+     "host_bwd_ms": {
+      "median": 1.3554499983001733,
+      "min": 1.308499999140622,
+      "max": 2.014699999563163,
+      "iqr": 0.10847500016097911,
+      "n": 30
+     },
+     "peak_allocated_mib": 917.2890625,
+     "fwd_bwd_vs_native": 1.3626848129403193
+    }
+   }
+  }
+ ],
+ "sum_fwd_bwd_median_ms_over_shapes": {
+  "native": 23.2843516767025,
+  "chunked32": 33.88598430156708,
+  "chunked64": 35.575072050094604
+ }
+}

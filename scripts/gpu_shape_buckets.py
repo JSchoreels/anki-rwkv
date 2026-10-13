@@ -14,7 +14,7 @@ from rwkv.model.srs_model import PreparedBatch
 
 
 def power_two(value):
-    return 1 << max(0, (value - 1).bit_length())
+    return 1 << max(0, (int(value) - 1).bit_length())
 
 
 @dataclass(frozen=True)
