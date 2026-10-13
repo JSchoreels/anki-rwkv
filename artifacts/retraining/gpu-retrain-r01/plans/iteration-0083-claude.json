@@ -1,0 +1,114 @@
+{
+  "models": [
+    "expertium"
+  ],
+  "model_scope_reason": "Continuation of the Expertium-only R01 work; Alex remains paused by earlier human request.",
+  "control_tracks": {
+    "expertium": "E79-F65d"
+  },
+  "candidate_tracks": {
+    "expertium": "E80-F33b-F57-F90"
+  },
+  "case_options_by_model": {
+    "expertium": {
+      "E79-F65d": {
+        "prefetch_users": true,
+        "preparation_workers": 5,
+        "gpu_packed_features": true,
+        "packed_ipc": true,
+        "async_transfer": true,
+        "batched_id_encodings": true,
+        "grouped_sync": true,
+        "main_threads": 1,
+        "bulk_transfer": true,
+        "parallel_evaluation": true,
+        "exact_shift": true,
+        "exact_index": true,
+        "batch_chunks": 512,
+        "gpu_memory_fraction": 0.95,
+        "fast_samples": true,
+        "prestart_pool": true,
+        "row_tiles_exact": 4,
+        "exact_group_norm": true,
+        "deferred_reads": true,
+        "shared_shift_orders": true,
+        "stream_launches": true,
+        "prefetch_rows": true,
+        "sync_free_loss": true,
+        "columnar_samples": true,
+        "skip_uninitialized_fill": true,
+        "skip_padding_sources": true,
+        "native_wkv": true,
+        "host_placement": "physical",
+        "process_qos": true,
+        "native_group_norm": true,
+        "native_index": true
+      },
+      "E80-F33b-F57-F90": {
+        "prefetch_users": true,
+        "preparation_workers": 5,
+        "gpu_packed_features": true,
+        "packed_ipc": true,
+        "async_transfer": true,
+        "batched_id_encodings": true,
+        "grouped_sync": true,
+        "main_threads": 1,
+        "bulk_transfer": true,
+        "parallel_evaluation": true,
+        "exact_shift": true,
+        "exact_index": true,
+        "batch_chunks": 512,
+        "gpu_memory_fraction": 0.95,
+        "fast_samples": true,
+        "prestart_pool": true,
+        "row_tiles_exact": 4,
+        "exact_group_norm": true,
+        "deferred_reads": true,
+        "shared_shift_orders": true,
+        "stream_launches": true,
+        "prefetch_rows": true,
+        "sync_free_loss": true,
+        "columnar_samples": true,
+        "skip_uninitialized_fill": true,
+        "skip_padding_sources": true,
+        "native_wkv": true,
+        "host_placement": "physical",
+        "process_qos": true,
+        "native_group_norm": true,
+        "native_index": true,
+        "deferred_read_depth": 2,
+        "bookkeeping_stride": 8,
+        "wkv_tile": 16
+      }
+    }
+  },
+  "case_explanations": {
+    "expertium": {
+      "E79-F65d": "F65d moves the exact shift-gather (F26, two per layer instance) and padded row-select (F27/F50, one per split) autograd from Python Functions to the native dispatcher, removing Python backward nodes while launching the same kernels. E79 aliases the accepted 0079 options for Windows path length.",
+      "E80-F33b-F57-F90": "Stacks three small exact changes on accepted 0080 (E80): F33b two outstanding loss/norm reads (0082 stack candidate, +0.55%), F57 RSS sampling and progress JSON every eight users instead of every user, and F90 native WKV checkpoint tile 16 (fewer registers per recompute tile). E80 aliases the accepted 0080 options."
+    }
+  },
+  "selection_evidence": "Human 2026-10-13 'Go for 9 iterations of R01 !'. 0082 F33b ended as stack candidate at six blocks (mean +0.55%, lower -0.27%). F57: per-user bookkeeping measured at about 5.3 ms per user (~0.4 s per run) on the host-bound main thread. F90: WKV forward+backward 1-3% faster at tile 16 on GPU-saturating shapes with bitwise-equal outputs and gradients (wkv-tile16-synthetic-v2), five real batches bitwise. Precedent: 0076 and 0079 promoted stacks of stack candidates.",
+  "prerequisite_checks": [
+    {
+      "path": "artifacts/diagnostics/r01-round-0080-0088/wkv-tile16-synthetic-v2/result.json",
+      "sha256": "6a08426c892a0ec25061647cc6594acaf300ca4d005bdd0a36febe28a1f9bd9e",
+      "status": "passed, source compatible; runtime compatibility must also be reviewed"
+    },
+    {
+      "path": "artifacts/diagnostics/r01-round-0080-0088/stack83-real-exact/result.json",
+      "sha256": "6db21bedbb7981922c24379bab39c58bb23ca5a02ac57e6bbf00078f5db0fa12",
+      "status": "passed, source compatible; runtime compatibility must also be reviewed"
+    }
+  ],
+  "turnaround": {
+    "evaluation_reuse": "exact_replica",
+    "candidate_full_run": "first_block",
+    "multi_arm_blocks": false,
+    "primer_passes": null,
+    "strong_negative_prescreen": null,
+    "variant_cap_per_track": null,
+    "gpu_budget_minutes": null,
+    "approval": null
+  }
+}

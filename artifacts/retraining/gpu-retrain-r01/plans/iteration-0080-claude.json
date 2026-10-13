@@ -1,0 +1,110 @@
+{
+  "models": [
+    "expertium"
+  ],
+  "model_scope_reason": "Continuation of the Expertium-only R01 work; Alex remains paused by earlier human request.",
+  "control_tracks": {
+    "expertium": "E76-F86-F65c"
+  },
+  "candidate_tracks": {
+    "expertium": "E79-F65d"
+  },
+  "case_options_by_model": {
+    "expertium": {
+      "E76-F86-F65c": {
+        "prefetch_users": true,
+        "preparation_workers": 5,
+        "gpu_packed_features": true,
+        "packed_ipc": true,
+        "async_transfer": true,
+        "batched_id_encodings": true,
+        "grouped_sync": true,
+        "main_threads": 1,
+        "bulk_transfer": true,
+        "parallel_evaluation": true,
+        "exact_shift": true,
+        "exact_index": true,
+        "batch_chunks": 512,
+        "gpu_memory_fraction": 0.95,
+        "fast_samples": true,
+        "prestart_pool": true,
+        "row_tiles_exact": 4,
+        "exact_group_norm": true,
+        "deferred_reads": true,
+        "shared_shift_orders": true,
+        "stream_launches": true,
+        "prefetch_rows": true,
+        "sync_free_loss": true,
+        "columnar_samples": true,
+        "skip_uninitialized_fill": true,
+        "skip_padding_sources": true,
+        "native_wkv": true,
+        "host_placement": "physical",
+        "process_qos": true,
+        "native_group_norm": true
+      },
+      "E79-F65d": {
+        "prefetch_users": true,
+        "preparation_workers": 5,
+        "gpu_packed_features": true,
+        "packed_ipc": true,
+        "async_transfer": true,
+        "batched_id_encodings": true,
+        "grouped_sync": true,
+        "main_threads": 1,
+        "bulk_transfer": true,
+        "parallel_evaluation": true,
+        "exact_shift": true,
+        "exact_index": true,
+        "batch_chunks": 512,
+        "gpu_memory_fraction": 0.95,
+        "fast_samples": true,
+        "prestart_pool": true,
+        "row_tiles_exact": 4,
+        "exact_group_norm": true,
+        "deferred_reads": true,
+        "shared_shift_orders": true,
+        "stream_launches": true,
+        "prefetch_rows": true,
+        "sync_free_loss": true,
+        "columnar_samples": true,
+        "skip_uninitialized_fill": true,
+        "skip_padding_sources": true,
+        "native_wkv": true,
+        "host_placement": "physical",
+        "process_qos": true,
+        "native_group_norm": true,
+        "native_index": true
+      }
+    }
+  },
+  "case_explanations": {
+    "expertium": {
+      "E76-F86-F65c": "Stacks the two exact stack candidates on accepted 0076 (E76): F86 power-throttling opt-out at above-normal priority for the main process and pinned workers, and F65c native GroupNorm dispatcher/autograd with unchanged reduction kernels. E76 aliases the accepted 0076 options for Windows path length.",
+      "E79-F65d": "F65d moves the exact shift-gather (F26, two per layer instance) and padded row-select (F27/F50, one per split) autograd from Python Functions to the native dispatcher, removing Python backward nodes while launching the same kernels. E79 aliases the accepted 0079 options for Windows path length."
+    }
+  },
+  "selection_evidence": "Human 2026-10-13 'Go for 9 iterations of R01 !' (new nine-iteration round). Main process runs at ~101% of one core with GPU activity ~66%, so per-call host overhead dominates; native WKV (0072) and native GroupNorm (stacked in 0079, +6.16%) are the same transport pattern. F65d synthetic 13/13 and five real batches bitwise equal against accepted 0079 options.",
+  "prerequisite_checks": [
+    {
+      "path": "artifacts/diagnostics/r01-round-0080-0088/native-index-synthetic-v2/result.json",
+      "sha256": "34e965ab8906bac033a9416ff3a5358ab72f10d464042e282429757049ca0a51",
+      "status": "passed, source compatible; runtime compatibility must also be reviewed"
+    },
+    {
+      "path": "artifacts/diagnostics/r01-round-0080-0088/native-index-real-exact-v3/result.json",
+      "sha256": "d2141f187045eb5f6631fd8b3a431f70de43c424bd3f7449f474b0ec740fafd6",
+      "status": "passed, source compatible; runtime compatibility must also be reviewed"
+    }
+  ],
+  "turnaround": {
+    "evaluation_reuse": "exact_replica",
+    "candidate_full_run": "first_block",
+    "multi_arm_blocks": false,
+    "primer_passes": null,
+    "strong_negative_prescreen": null,
+    "variant_cap_per_track": null,
+    "gpu_budget_minutes": null,
+    "approval": null
+  }
+}

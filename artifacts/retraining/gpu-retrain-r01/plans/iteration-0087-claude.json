@@ -1,0 +1,107 @@
+{
+  "models": [
+    "expertium"
+  ],
+  "model_scope_reason": "Continuation of the Expertium-only R01 work; Alex remains paused by earlier human request.",
+  "control_tracks": {
+    "expertium": "E80-F33b-F57-F90"
+  },
+  "candidate_tracks": {
+    "expertium": "E83-F77a"
+  },
+  "case_options_by_model": {
+    "expertium": {
+      "E80-F33b-F57-F90": {
+        "prefetch_users": true,
+        "preparation_workers": 5,
+        "gpu_packed_features": true,
+        "packed_ipc": true,
+        "async_transfer": true,
+        "batched_id_encodings": true,
+        "grouped_sync": true,
+        "main_threads": 1,
+        "bulk_transfer": true,
+        "parallel_evaluation": true,
+        "exact_shift": true,
+        "exact_index": true,
+        "batch_chunks": 512,
+        "gpu_memory_fraction": 0.95,
+        "fast_samples": true,
+        "prestart_pool": true,
+        "row_tiles_exact": 4,
+        "exact_group_norm": true,
+        "deferred_reads": true,
+        "shared_shift_orders": true,
+        "stream_launches": true,
+        "prefetch_rows": true,
+        "sync_free_loss": true,
+        "columnar_samples": true,
+        "skip_uninitialized_fill": true,
+        "skip_padding_sources": true,
+        "native_wkv": true,
+        "host_placement": "physical",
+        "process_qos": true,
+        "native_group_norm": true,
+        "native_index": true,
+        "deferred_read_depth": 2,
+        "bookkeeping_stride": 8,
+        "wkv_tile": 16
+      },
+      "E83-F77a": {
+        "prefetch_users": true,
+        "preparation_workers": 5,
+        "gpu_packed_features": true,
+        "packed_ipc": true,
+        "async_transfer": true,
+        "batched_id_encodings": true,
+        "grouped_sync": true,
+        "main_threads": 1,
+        "bulk_transfer": true,
+        "parallel_evaluation": true,
+        "exact_shift": true,
+        "exact_index": true,
+        "batch_chunks": 512,
+        "gpu_memory_fraction": 0.95,
+        "fast_samples": true,
+        "prestart_pool": true,
+        "row_tiles_exact": 4,
+        "exact_group_norm": true,
+        "deferred_reads": true,
+        "shared_shift_orders": true,
+        "stream_launches": true,
+        "prefetch_rows": true,
+        "sync_free_loss": true,
+        "columnar_samples": true,
+        "skip_uninitialized_fill": true,
+        "skip_padding_sources": true,
+        "native_wkv": true,
+        "host_placement": "physical",
+        "process_qos": true,
+        "native_group_norm": true,
+        "native_index": true,
+        "deferred_read_depth": 2,
+        "bookkeeping_stride": 8,
+        "wkv_tile": 16,
+        "wddm_flush": true
+      }
+    }
+  },
+  "case_explanations": {
+    "expertium": {
+      "E80-F33b-F57-F90": "Stacks three small exact changes on accepted 0080 (E80): F33b two outstanding loss/norm reads (0082 stack candidate, +0.55%), F57 RSS sampling and progress JSON every eight users instead of every user, and F90 native WKV checkpoint tile 16 (fewer registers per recompute tile). E80 aliases the accepted 0080 options.",
+      "E83-F77a": "Flush the WDDM software command queue with a stream query after the forward and after the backward on the accepted 0083 stack."
+    }
+  },
+  "selection_evidence": "Small updates have a flat ~170-190 ms GPU span and the dispatch profile shows backward host time including WDDM command-buffer blocking; WDDM batches launches until a query/sync, so earlier submission may overlap GPU work with host recording (ledger F77); exact by construction.",
+  "prerequisite_checks": [],
+  "turnaround": {
+    "evaluation_reuse": "exact_replica",
+    "candidate_full_run": "first_block",
+    "multi_arm_blocks": false,
+    "primer_passes": null,
+    "strong_negative_prescreen": null,
+    "variant_cap_per_track": null,
+    "gpu_budget_minutes": null,
+    "approval": null
+  }
+}

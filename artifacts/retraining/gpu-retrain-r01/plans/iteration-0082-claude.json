@@ -1,0 +1,101 @@
+{
+  "models": [
+    "expertium"
+  ],
+  "model_scope_reason": "Continuation of the Expertium-only R01 work; Alex remains paused by earlier human request.",
+  "control_tracks": {
+    "expertium": "E79-F65d"
+  },
+  "candidate_tracks": {
+    "expertium": "E80-F33b"
+  },
+  "case_options_by_model": {
+    "expertium": {
+      "E79-F65d": {
+        "prefetch_users": true,
+        "preparation_workers": 5,
+        "gpu_packed_features": true,
+        "packed_ipc": true,
+        "async_transfer": true,
+        "batched_id_encodings": true,
+        "grouped_sync": true,
+        "main_threads": 1,
+        "bulk_transfer": true,
+        "parallel_evaluation": true,
+        "exact_shift": true,
+        "exact_index": true,
+        "batch_chunks": 512,
+        "gpu_memory_fraction": 0.95,
+        "fast_samples": true,
+        "prestart_pool": true,
+        "row_tiles_exact": 4,
+        "exact_group_norm": true,
+        "deferred_reads": true,
+        "shared_shift_orders": true,
+        "stream_launches": true,
+        "prefetch_rows": true,
+        "sync_free_loss": true,
+        "columnar_samples": true,
+        "skip_uninitialized_fill": true,
+        "skip_padding_sources": true,
+        "native_wkv": true,
+        "host_placement": "physical",
+        "process_qos": true,
+        "native_group_norm": true,
+        "native_index": true
+      },
+      "E80-F33b": {
+        "prefetch_users": true,
+        "preparation_workers": 5,
+        "gpu_packed_features": true,
+        "packed_ipc": true,
+        "async_transfer": true,
+        "batched_id_encodings": true,
+        "grouped_sync": true,
+        "main_threads": 1,
+        "bulk_transfer": true,
+        "parallel_evaluation": true,
+        "exact_shift": true,
+        "exact_index": true,
+        "batch_chunks": 512,
+        "gpu_memory_fraction": 0.95,
+        "fast_samples": true,
+        "prestart_pool": true,
+        "row_tiles_exact": 4,
+        "exact_group_norm": true,
+        "deferred_reads": true,
+        "shared_shift_orders": true,
+        "stream_launches": true,
+        "prefetch_rows": true,
+        "sync_free_loss": true,
+        "columnar_samples": true,
+        "skip_uninitialized_fill": true,
+        "skip_padding_sources": true,
+        "native_wkv": true,
+        "host_placement": "physical",
+        "process_qos": true,
+        "native_group_norm": true,
+        "native_index": true,
+        "deferred_read_depth": 2
+      }
+    }
+  },
+  "case_explanations": {
+    "expertium": {
+      "E79-F65d": "F65d moves the exact shift-gather (F26, two per layer instance) and padded row-select (F27/F50, one per split) autograd from Python Functions to the native dispatcher, removing Python backward nodes while launching the same kernels. E79 aliases the accepted 0079 options for Windows path length.",
+      "E80-F33b": "F33b keeps two queued updates' loss/norm reads outstanding instead of one, so the host can enqueue the next update while a large GPU-bound update is still running rather than blocking on the previous one. E80 aliases the accepted 0080 options."
+    }
+  },
+  "selection_evidence": "Human 2026-10-13 'Go for 9 iterations of R01 !'. Dispatch profile of accepted 0080 options (artifacts/diagnostics/r01-round-0080-0088/dispatch-e80.json): of 225 ms per profiled update, the deferred read (tolist) waits 43 ms and WDDM Command Buffer Full 38 ms, while GPU activity in the 0080 full run is 74.5%: CPU-bound small and GPU-bound large updates alternate, and depth one forces the host to wait. No GPU arithmetic changes, so no kernel check is needed.",
+  "prerequisite_checks": [],
+  "turnaround": {
+    "evaluation_reuse": "exact_replica",
+    "candidate_full_run": "first_block",
+    "multi_arm_blocks": false,
+    "primer_passes": null,
+    "strong_negative_prescreen": null,
+    "variant_cap_per_track": null,
+    "gpu_budget_minutes": null,
+    "approval": null
+  }
+}

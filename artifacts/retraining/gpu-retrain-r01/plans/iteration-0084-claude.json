@@ -1,0 +1,112 @@
+{
+  "models": [
+    "expertium"
+  ],
+  "model_scope_reason": "Continuation of the Expertium-only R01 work; Alex remains paused by earlier human request.",
+  "control_tracks": {
+    "expertium": "E80-F33b-F57-F90"
+  },
+  "candidate_tracks": {
+    "expertium": "E83-F90b"
+  },
+  "case_options_by_model": {
+    "expertium": {
+      "E80-F33b-F57-F90": {
+        "prefetch_users": true,
+        "preparation_workers": 5,
+        "gpu_packed_features": true,
+        "packed_ipc": true,
+        "async_transfer": true,
+        "batched_id_encodings": true,
+        "grouped_sync": true,
+        "main_threads": 1,
+        "bulk_transfer": true,
+        "parallel_evaluation": true,
+        "exact_shift": true,
+        "exact_index": true,
+        "batch_chunks": 512,
+        "gpu_memory_fraction": 0.95,
+        "fast_samples": true,
+        "prestart_pool": true,
+        "row_tiles_exact": 4,
+        "exact_group_norm": true,
+        "deferred_reads": true,
+        "shared_shift_orders": true,
+        "stream_launches": true,
+        "prefetch_rows": true,
+        "sync_free_loss": true,
+        "columnar_samples": true,
+        "skip_uninitialized_fill": true,
+        "skip_padding_sources": true,
+        "native_wkv": true,
+        "host_placement": "physical",
+        "process_qos": true,
+        "native_group_norm": true,
+        "native_index": true,
+        "deferred_read_depth": 2,
+        "bookkeeping_stride": 8,
+        "wkv_tile": 16
+      },
+      "E83-F90b": {
+        "prefetch_users": true,
+        "preparation_workers": 5,
+        "gpu_packed_features": true,
+        "packed_ipc": true,
+        "async_transfer": true,
+        "batched_id_encodings": true,
+        "grouped_sync": true,
+        "main_threads": 1,
+        "bulk_transfer": true,
+        "parallel_evaluation": true,
+        "exact_shift": true,
+        "exact_index": true,
+        "batch_chunks": 512,
+        "gpu_memory_fraction": 0.95,
+        "fast_samples": true,
+        "prestart_pool": true,
+        "row_tiles_exact": 4,
+        "exact_group_norm": true,
+        "deferred_reads": true,
+        "shared_shift_orders": true,
+        "stream_launches": true,
+        "prefetch_rows": true,
+        "sync_free_loss": true,
+        "columnar_samples": true,
+        "skip_uninitialized_fill": true,
+        "skip_padding_sources": true,
+        "native_wkv": true,
+        "host_placement": "physical",
+        "process_qos": true,
+        "native_group_norm": true,
+        "native_index": true,
+        "deferred_read_depth": 2,
+        "bookkeeping_stride": 8,
+        "wkv_tile": 8
+      }
+    }
+  },
+  "case_explanations": {
+    "expertium": {
+      "E80-F33b-F57-F90": "Stacks three small exact changes on accepted 0080 (E80): F33b two outstanding loss/norm reads (0082 stack candidate, +0.55%), F57 RSS sampling and progress JSON every eight users instead of every user, and F90 native WKV checkpoint tile 16 (fewer registers per recompute tile). E80 aliases the accepted 0080 options.",
+      "E83-F90b": "Native exact WKV checkpoint tile 8 instead of 16 on the accepted 0083 stack: the backward recomputes from four times the tile-32 checkpoints with smaller per-thread chunk arrays."
+    }
+  },
+  "selection_evidence": "Tile 16 (F90) was part of the promoted 0083 stack; WKV backward is ~76 ms device per profiled update (largest GPU item, GPU-bound large updates); tiles 8/16/32 bitwise equal earlier (F54/F55) and 5/5 real batches bitwise equal now (artifacts/diagnostics/r01-round-0080-0088/exact-e83-f90b).",
+  "prerequisite_checks": [
+    {
+      "path": "artifacts/diagnostics/r01-round-0080-0088/exact-e83-f90b/result.json",
+      "sha256": "b5e3096c905794fb8bedc730ea1831624b0fdb64e9ad63c277bdfd48bd172bb7",
+      "status": "passed, source compatible; runtime compatibility must also be reviewed"
+    }
+  ],
+  "turnaround": {
+    "evaluation_reuse": "exact_replica",
+    "candidate_full_run": "first_block",
+    "multi_arm_blocks": false,
+    "primer_passes": null,
+    "strong_negative_prescreen": null,
+    "variant_cap_per_track": null,
+    "gpu_budget_minutes": null,
+    "approval": null
+  }
+}

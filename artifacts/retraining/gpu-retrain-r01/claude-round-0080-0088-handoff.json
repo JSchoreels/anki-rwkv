@@ -1,0 +1,147 @@
+{
+  "status": "completed preliminary round; new authorization required",
+  "model": "expertium",
+  "iterations": [
+    "0080",
+    "0081",
+    "0082",
+    "0083",
+    "0084",
+    "0085",
+    "0086",
+    "0087",
+    "0088"
+  ],
+  "accepted_iteration": "0083",
+  "accepted_result": "artifacts/retraining/gpu-retrain-r01/iteration-0083/expertium/E80-F33b-F57-F90/result.json",
+  "accepted_options": {
+    "prefetch_users": true,
+    "preparation_workers": 5,
+    "gpu_packed_features": true,
+    "packed_ipc": true,
+    "async_transfer": true,
+    "batched_id_encodings": true,
+    "grouped_sync": true,
+    "main_threads": 1,
+    "bulk_transfer": true,
+    "parallel_evaluation": true,
+    "exact_shift": true,
+    "exact_index": true,
+    "batch_chunks": 512,
+    "gpu_memory_fraction": 0.95,
+    "fast_samples": true,
+    "prestart_pool": true,
+    "row_tiles_exact": 4,
+    "exact_group_norm": true,
+    "deferred_reads": true,
+    "shared_shift_orders": true,
+    "stream_launches": true,
+    "prefetch_rows": true,
+    "sync_free_loss": true,
+    "columnar_samples": true,
+    "skip_uninitialized_fill": true,
+    "skip_padding_sources": true,
+    "native_wkv": true,
+    "host_placement": "physical",
+    "process_qos": true,
+    "native_group_norm": true,
+    "native_index": true,
+    "deferred_read_depth": 2,
+    "bookkeeping_stride": 8,
+    "wkv_tile": 16
+  },
+  "accepted_reviews_per_second": 187534.56079704943,
+  "next_iteration_hint": "0089",
+  "prior_miss_streak": 5,
+  "implementation_git_commit": "7fced6223659f08303718bd8e14055f3f4c956a4",
+  "new_authorization_required": true,
+  "host_path": "docs/R01_HOST_PATH.md",
+  "ledger": "docs/GPU_OPTIMIZATIONS.md",
+  "summary": "artifacts/retraining/gpu-retrain-r01/claude-round-0080-0088-summary.md",
+  "next_steps": [
+    "F90c: native WKV with 2 rows per thread at tile 16 (exact template, untested with tile 16)",
+    "Stack F77a with F65e native glue",
+    "Main-thread module walks per update (train()/zero_grad ~2.2 ms) as an exact F72 slice"
+  ],
+  "acceptance": "Use current LOOP gates and source/runtime-compatible recorded checks; no broader validation authorized",
+  "round_iteration_budget": 9,
+  "completed_candidate_iterations": 9,
+  "remaining_authorized_iterations": 0,
+  "round_start_iteration": "0080",
+  "round_authorization": "Go for 9 iterations of R01 !",
+  "gpu_time_by_iteration": {
+    "0080": {
+      "gpu_process_wall_seconds": 346.5,
+      "runs": 5,
+      "smoke_runs": 1,
+      "evaluations_reused": 2,
+      "evaluation_seconds_saved": 14.3,
+      "scope": "process wall of recorded GPU case processes; excludes waits for a quiet machine, profiles and reports"
+    },
+    "0081": {
+      "gpu_process_wall_seconds": 868.6,
+      "runs": 13,
+      "smoke_runs": 1,
+      "evaluations_reused": 10,
+      "evaluation_seconds_saved": 87.0,
+      "scope": "process wall of recorded GPU case processes; excludes waits for a quiet machine, profiles and reports"
+    },
+    "0082": {
+      "gpu_process_wall_seconds": 883.5,
+      "runs": 13,
+      "smoke_runs": 1,
+      "evaluations_reused": 10,
+      "evaluation_seconds_saved": 100.9,
+      "scope": "process wall of recorded GPU case processes; excludes waits for a quiet machine, profiles and reports"
+    },
+    "0083": {
+      "gpu_process_wall_seconds": 327.8,
+      "runs": 5,
+      "smoke_runs": 1,
+      "evaluations_reused": 2,
+      "evaluation_seconds_saved": 16.6,
+      "scope": "process wall of recorded GPU case processes; excludes waits for a quiet machine, profiles and reports"
+    },
+    "0084": {
+      "gpu_process_wall_seconds": 380.0,
+      "runs": 5,
+      "smoke_runs": 1,
+      "evaluations_reused": 2,
+      "evaluation_seconds_saved": 15.3,
+      "scope": "process wall of recorded GPU case processes; excludes waits for a quiet machine, profiles and reports"
+    },
+    "0085": {
+      "gpu_process_wall_seconds": 317.4,
+      "runs": 5,
+      "smoke_runs": 1,
+      "evaluations_reused": 3,
+      "evaluation_seconds_saved": 24.8,
+      "scope": "process wall of recorded GPU case processes; excludes waits for a quiet machine, profiles and reports"
+    },
+    "0086": {
+      "gpu_process_wall_seconds": 316.9,
+      "runs": 5,
+      "smoke_runs": 1,
+      "evaluations_reused": 3,
+      "evaluation_seconds_saved": 24.0,
+      "scope": "process wall of recorded GPU case processes; excludes waits for a quiet machine, profiles and reports"
+    },
+    "0087": {
+      "gpu_process_wall_seconds": 876.2,
+      "runs": 13,
+      "smoke_runs": 1,
+      "evaluations_reused": 10,
+      "evaluation_seconds_saved": 81.7,
+      "scope": "process wall of recorded GPU case processes; excludes waits for a quiet machine, profiles and reports"
+    },
+    "0088": {
+      "gpu_process_wall_seconds": 859.2,
+      "runs": 13,
+      "smoke_runs": 1,
+      "evaluations_reused": 10,
+      "evaluation_seconds_saved": 97.1,
+      "scope": "process wall of recorded GPU case processes; excludes waits for a quiet machine, profiles and reports"
+    }
+  },
+  "gpu_process_wall_seconds_total": 5176.1
+}

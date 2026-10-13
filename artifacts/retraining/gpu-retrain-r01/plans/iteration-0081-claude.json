@@ -1,0 +1,112 @@
+{
+  "models": [
+    "expertium"
+  ],
+  "model_scope_reason": "Continuation of the Expertium-only R01 work; Alex remains paused by earlier human request.",
+  "control_tracks": {
+    "expertium": "E79-F65d"
+  },
+  "candidate_tracks": {
+    "expertium": "E80-F65e"
+  },
+  "case_options_by_model": {
+    "expertium": {
+      "E79-F65d": {
+        "prefetch_users": true,
+        "preparation_workers": 5,
+        "gpu_packed_features": true,
+        "packed_ipc": true,
+        "async_transfer": true,
+        "batched_id_encodings": true,
+        "grouped_sync": true,
+        "main_threads": 1,
+        "bulk_transfer": true,
+        "parallel_evaluation": true,
+        "exact_shift": true,
+        "exact_index": true,
+        "batch_chunks": 512,
+        "gpu_memory_fraction": 0.95,
+        "fast_samples": true,
+        "prestart_pool": true,
+        "row_tiles_exact": 4,
+        "exact_group_norm": true,
+        "deferred_reads": true,
+        "shared_shift_orders": true,
+        "stream_launches": true,
+        "prefetch_rows": true,
+        "sync_free_loss": true,
+        "columnar_samples": true,
+        "skip_uninitialized_fill": true,
+        "skip_padding_sources": true,
+        "native_wkv": true,
+        "host_placement": "physical",
+        "process_qos": true,
+        "native_group_norm": true,
+        "native_index": true
+      },
+      "E80-F65e": {
+        "prefetch_users": true,
+        "preparation_workers": 5,
+        "gpu_packed_features": true,
+        "packed_ipc": true,
+        "async_transfer": true,
+        "batched_id_encodings": true,
+        "grouped_sync": true,
+        "main_threads": 1,
+        "bulk_transfer": true,
+        "parallel_evaluation": true,
+        "exact_shift": true,
+        "exact_index": true,
+        "batch_chunks": 512,
+        "gpu_memory_fraction": 0.95,
+        "fast_samples": true,
+        "prestart_pool": true,
+        "row_tiles_exact": 4,
+        "exact_group_norm": true,
+        "deferred_reads": true,
+        "shared_shift_orders": true,
+        "stream_launches": true,
+        "prefetch_rows": true,
+        "sync_free_loss": true,
+        "columnar_samples": true,
+        "skip_uninitialized_fill": true,
+        "skip_padding_sources": true,
+        "native_wkv": true,
+        "host_placement": "physical",
+        "process_qos": true,
+        "native_group_norm": true,
+        "native_index": true,
+        "native_glue": true
+      }
+    }
+  },
+  "case_explanations": {
+    "expertium": {
+      "E79-F65d": "F65d moves the exact shift-gather (F26, two per layer instance) and padded row-select (F27/F50, one per split) autograd from Python Functions to the native dispatcher, removing Python backward nodes while launching the same kernels. E79 aliases the accepted 0079 options for Windows path length.",
+      "E80-F65e": "F65e replaces three unfused pointwise chains per layer instance (time-mixer bonus products r*bonus*k and gate g*(out+bonus), channel-mixer relu squared) with native single-launch ops whose backward is native too, using the exact F34 kernels whose Python wrappers previously cost more than they saved. E80 aliases the accepted 0080 options."
+    }
+  },
+  "selection_evidence": "Human 2026-10-13 'Go for 9 iterations of R01 !'. 0080 F65d promoted at +2.13% (lower +0.59%) by removing Python autograd nodes, confirming per-call host overhead is the bottleneck. F34 gate/channel/bonus glue was exact but rejected in 0051-0054 with Python Function wrappers. F65e synthetic 30/30 and five real batches bitwise equal against accepted 0080 options.",
+  "prerequisite_checks": [
+    {
+      "path": "artifacts/diagnostics/r01-round-0080-0088/native-glue-synthetic/result.json",
+      "sha256": "b98f89f5ad1f77dcfa2103fe953f5018cccad12b2d67726ad12faceef9565dce",
+      "status": "passed, source compatible; runtime compatibility must also be reviewed"
+    },
+    {
+      "path": "artifacts/diagnostics/r01-round-0080-0088/native-glue-real-exact/result.json",
+      "sha256": "9dc3557668b57047f1f297f6daa4921da84d9dea5ef8c9c8dd057b8cfbf3e430",
+      "status": "passed, source compatible; runtime compatibility must also be reviewed"
+    }
+  ],
+  "turnaround": {
+    "evaluation_reuse": "exact_replica",
+    "candidate_full_run": "first_block",
+    "multi_arm_blocks": false,
+    "primer_passes": null,
+    "strong_negative_prescreen": null,
+    "variant_cap_per_track": null,
+    "gpu_budget_minutes": null,
+    "approval": null
+  }
+}

@@ -1,0 +1,654 @@
+{
+  "options": {
+    "prefetch_users": true,
+    "preparation_workers": 5,
+    "gpu_packed_features": true,
+    "packed_ipc": true,
+    "async_transfer": true,
+    "batched_id_encodings": true,
+    "grouped_sync": true,
+    "main_threads": 1,
+    "bulk_transfer": true,
+    "parallel_evaluation": true,
+    "exact_shift": true,
+    "exact_index": true,
+    "batch_chunks": 512,
+    "gpu_memory_fraction": 0.95,
+    "fast_samples": true,
+    "prestart_pool": true,
+    "row_tiles_exact": 4,
+    "exact_group_norm": true,
+    "deferred_reads": true,
+    "shared_shift_orders": true,
+    "stream_launches": true,
+    "prefetch_rows": true,
+    "sync_free_loss": true,
+    "columnar_samples": true,
+    "skip_uninitialized_fill": true,
+    "skip_padding_sources": true,
+    "native_wkv": true,
+    "host_placement": "physical",
+    "process_qos": true,
+    "native_group_norm": true,
+    "native_index": true,
+    "deferred_read_depth": 2,
+    "bookkeeping_stride": 8,
+    "wkv_tile": 16
+  },
+  "provenance": {
+    "captured_utc": "2026-10-13T16:33:59.275693+00:00",
+    "git_commit": "17ec8db29f2f9eaaed54137182efc86181aaa5e1",
+    "git_dirty": true,
+    "git_status_porcelain_z": " M docs/GPU_OPTIMIZATIONS_LOG.md\u0000",
+    "source_tree_sha256": "03cbd1a759d5f4ada41e927afff30180141d2799b1a86bd3fed41d903d1bcbc8",
+    "source_archive": "artifacts/sources/experiment-sources/03cbd1a759d5f4ada41e927afff30180141d2799b1a86bd3fed41d903d1bcbc8/source.zip",
+    "source_paths": [
+      "rwkv",
+      "expertium",
+      "scripts",
+      "configs",
+      "pyproject.toml",
+      "uv.lock",
+      "justfile",
+      "upstream.json"
+    ]
+  },
+  "batches_per_pass": 6,
+  "reviews_per_pass": 356958,
+  "windows": [
+    {
+      "user_id": 1495,
+      "reviews": 196608
+    },
+    {
+      "user_id": 3119,
+      "reviews": 65536
+    },
+    {
+      "user_id": 697,
+      "reviews": 65536
+    },
+    {
+      "user_id": 3958,
+      "reviews": 29278
+    }
+  ],
+  "scope": "accepted update path on fixed windows; host transfers synchronous here (asynchronous in training); first pass warms JIT and is excluded",
+  "passes": [],
+  "timed_updates": 18,
+  "wall_ms_per_update": 222.27588333326923,
+  "reviews_per_second": 267653.8682822338,
+  "host_stage_ms_per_update": {
+    "backward": 134.5115111111631,
+    "host loss/norm reads": 45.68316666639779,
+    "forward and loss": 25.21631666705717,
+    "transfer and GPU feature expansion": 5.262199999884211,
+    "optimizer step": 4.552488888900068,
+    "zero grads/train mode": 2.2444000003613636,
+    "gradient clipping": 2.1543555552246594,
+    "child to master gradients": 1.2210944447967147,
+    "host label counts": 0.2909722229055155,
+    "master to child downcast": 0.18613888844103915
+  },
+  "profiler_top_self_cpu": [
+    {
+      "name": "cudaLaunchKernel",
+      "calls_per_update": 6763.0,
+      "self_cpu_ms_per_update": 44.74639999999891,
+      "device_ms_per_update": 0.0
+    },
+    {
+      "name": "cudaMemcpyAsync",
+      "calls_per_update": 125.0,
+      "self_cpu_ms_per_update": 37.72556666666646,
+      "device_ms_per_update": 0.0
+    },
+    {
+      "name": "Command Buffer Full",
+      "calls_per_update": 11.166666666666666,
+      "self_cpu_ms_per_update": 34.355516666666624,
+      "device_ms_per_update": 0.0023093333332799373
+    },
+    {
+      "name": "aten::mm",
+      "calls_per_update": 1301.0,
+      "self_cpu_ms_per_update": 18.117433333333704,
+      "device_ms_per_update": 10.694066166664625
+    },
+    {
+      "name": "cuLaunchKernel",
+      "calls_per_update": 1521.3333333333333,
+      "self_cpu_ms_per_update": 11.806733333333497,
+      "device_ms_per_update": 0.0
+    },
+    {
+      "name": "aten::mul",
+      "calls_per_update": 1232.3333333333333,
+      "self_cpu_ms_per_update": 5.3136333333331205,
+      "device_ms_per_update": 15.35262433333507
+    },
+    {
+      "name": "forward",
+      "calls_per_update": 843.6666666666666,
+      "self_cpu_ms_per_update": 4.584700000001845,
+      "device_ms_per_update": 0.0
+    },
+    {
+      "name": "aten::sum",
+      "calls_per_update": 579.6666666666666,
+      "self_cpu_ms_per_update": 3.6934166666674995,
+      "device_ms_per_update": 9.588791833333763
+    },
+    {
+      "name": "aten::t",
+      "calls_per_update": 2424.0,
+      "self_cpu_ms_per_update": 3.099083333333264,
+      "device_ms_per_update": 0.0
+    },
+    {
+      "name": "aten::empty_strided",
+      "calls_per_update": 1572.6666666666667,
+      "self_cpu_ms_per_update": 3.037966666666753,
+      "device_ms_per_update": 0.0
+    },
+    {
+      "name": "aten::addmm",
+      "calls_per_update": 153.0,
+      "self_cpu_ms_per_update": 3.014666666666939,
+      "device_ms_per_update": 1.2922001666667688
+    },
+    {
+      "name": "aten::view",
+      "calls_per_update": 2949.6666666666665,
+      "self_cpu_ms_per_update": 2.621233333334621,
+      "device_ms_per_update": 0.0
+    },
+    {
+      "name": "Optimizer.step#AdamW.step",
+      "calls_per_update": 1.0,
+      "self_cpu_ms_per_update": 2.2984499999997934,
+      "device_ms_per_update": 0.0
+    },
+    {
+      "name": "aten::add_",
+      "calls_per_update": 1153.6666666666667,
+      "self_cpu_ms_per_update": 2.2690500000001883,
+      "device_ms_per_update": 2.956694666666253
+    },
+    {
+      "name": "aten::empty",
+      "calls_per_update": 1192.0,
+      "self_cpu_ms_per_update": 2.2544666666653455,
+      "device_ms_per_update": 0.0
+    },
+    {
+      "name": "aten::transpose",
+      "calls_per_update": 2424.0,
+      "self_cpu_ms_per_update": 2.213400000002131,
+      "device_ms_per_update": 0.0
+    },
+    {
+      "name": "cudaStreamSynchronize",
+      "calls_per_update": 56.0,
+      "self_cpu_ms_per_update": 2.1609166666668496,
+      "device_ms_per_update": 0.0
+    },
+    {
+      "name": "autograd::engine::evaluate_function: ViewBackward0",
+      "calls_per_update": 913.0,
+      "self_cpu_ms_per_update": 1.8752333333331481,
+      "device_ms_per_update": 0.0
+    },
+    {
+      "name": "aten::add",
+      "calls_per_update": 347.0,
+      "self_cpu_ms_per_update": 1.7831500000001155,
+      "device_ms_per_update": 1.003919666666494
+    },
+    {
+      "name": "aten::as_strided",
+      "calls_per_update": 4055.0,
+      "self_cpu_ms_per_update": 1.649083333332334,
+      "device_ms_per_update": 0.0
+    },
+    {
+      "name": "cudaMemsetAsync",
+      "calls_per_update": 553.0,
+      "self_cpu_ms_per_update": 1.6074666666663708,
+      "device_ms_per_update": 0.0
+    },
+    {
+      "name": "MmBackward0",
+      "calls_per_update": 332.0,
+      "self_cpu_ms_per_update": 1.4922499999974705,
+      "device_ms_per_update": 0.0
+    },
+    {
+      "name": "aten::div",
+      "calls_per_update": 342.3333333333333,
+      "self_cpu_ms_per_update": 1.4693333333327934,
+      "device_ms_per_update": 2.5499891666671357
+    },
+    {
+      "name": "aten::reshape",
+      "calls_per_update": 1748.6666666666667,
+      "self_cpu_ms_per_update": 1.4461166666657694,
+      "device_ms_per_update": 0.0
+    },
+    {
+      "name": "autograd::engine::evaluate_function: TBackward0",
+      "calls_per_update": 485.0,
+      "self_cpu_ms_per_update": 1.4087333333329528,
+      "device_ms_per_update": 0.0
+    },
+    {
+      "name": "autograd::engine::evaluate_function: MmBackward0",
+      "calls_per_update": 332.0,
+      "self_cpu_ms_per_update": 1.1956166666663581,
+      "device_ms_per_update": 0.0
+    },
+    {
+      "name": "aten::empty_like",
+      "calls_per_update": 1113.0,
+      "self_cpu_ms_per_update": 1.1911666666676317,
+      "device_ms_per_update": 0.0
+    },
+    {
+      "name": "autograd::engine::evaluate_function: MulBackward0",
+      "calls_per_update": 228.33333333333334,
+      "self_cpu_ms_per_update": 1.101083333334169,
+      "device_ms_per_update": 0.0
+    },
+    {
+      "name": "aten::neg",
+      "calls_per_update": 258.6666666666667,
+      "self_cpu_ms_per_update": 1.0885333333328793,
+      "device_ms_per_update": 1.0214725000005183
+    },
+    {
+      "name": "autograd::engine::evaluate_function: AddmmBackward0",
+      "calls_per_update": 153.0,
+      "self_cpu_ms_per_update": 1.0696833333327376,
+      "device_ms_per_update": 0.0
+    },
+    {
+      "name": "aten::linear",
+      "calls_per_update": 485.0,
+      "self_cpu_ms_per_update": 0.9918166666671611,
+      "device_ms_per_update": 0.0
+    },
+    {
+      "name": "aten::matmul",
+      "calls_per_update": 332.0,
+      "self_cpu_ms_per_update": 0.8865499999992804,
+      "device_ms_per_update": 0.0
+    },
+    {
+      "name": "aten::sigmoid",
+      "calls_per_update": 147.0,
+      "self_cpu_ms_per_update": 0.8515666666663488,
+      "device_ms_per_update": 0.3213631666663508
+    },
+    {
+      "name": "ViewBackward0",
+      "calls_per_update": 913.0,
+      "self_cpu_ms_per_update": 0.8309166666657656,
+      "device_ms_per_update": 0.0
+    },
+    {
+      "name": "aten::unsqueeze",
+      "calls_per_update": 644.6666666666666,
+      "self_cpu_ms_per_update": 0.7704499999999942,
+      "device_ms_per_update": 0.0
+    },
+    {
+      "name": "autograd::engine::evaluate_function: LerpBackward1",
+      "calls_per_update": 81.33333333333333,
+      "self_cpu_ms_per_update": 0.7644666666668005,
+      "device_ms_per_update": 0.0
+    },
+    {
+      "name": "aten::_foreach_add_",
+      "calls_per_update": 12.0,
+      "self_cpu_ms_per_update": 0.754249999999156,
+      "device_ms_per_update": 0.01502400000001459
+    },
+    {
+      "name": "aten::native_group_norm_backward",
+      "calls_per_update": 31.333333333333332,
+      "self_cpu_ms_per_update": 0.7441833333327632,
+      "device_ms_per_update": 1.612239166666379
+    },
+    {
+      "name": "autograd::engine::evaluate_function: torch::autograd::AccumulateGrad",
+      "calls_per_update": 429.0,
+      "self_cpu_ms_per_update": 0.7382333333330086,
+      "device_ms_per_update": 0.0
+    },
+    {
+      "name": "AddmmBackward0",
+      "calls_per_update": 153.0,
+      "self_cpu_ms_per_update": 0.7274666666664876,
+      "device_ms_per_update": 0.0
+    }
+  ],
+  "profiler_top_device": [
+    {
+      "name": "struct torch::autograd::CppNode<class NativeWKV>",
+      "calls_per_update": 31.333333333333332,
+      "self_cpu_ms_per_update": 0.34836666666666377,
+      "device_ms_per_update": 75.73630849999975
+    },
+    {
+      "name": "_ZN10rwkv_exact15backward_kernelILi16ELi4E13__nv_bfloat16EEviiiPKT1_S4_S4_PKfS4_S4_PKbS4_iS6_PS2_S9_S9_PfS9_S9_",
+      "calls_per_update": 31.333333333333332,
+      "self_cpu_ms_per_update": 0.0,
+      "device_ms_per_update": 75.73630849999975
+    },
+    {
+      "name": "aten::mul",
+      "calls_per_update": 1232.3333333333333,
+      "self_cpu_ms_per_update": 5.3136333333331205,
+      "device_ms_per_update": 15.35262433333507
+    },
+    {
+      "name": "rwkv_native::wkv",
+      "calls_per_update": 31.333333333333332,
+      "self_cpu_ms_per_update": 0.49170000000006137,
+      "device_ms_per_update": 11.190073499999768
+    },
+    {
+      "name": "_ZN10rwkv_exact14forward_kernelILi16ELi4E13__nv_bfloat16EEviiiPKT1_S4_S4_PKfS4_S4_PKbPS2_iPf",
+      "calls_per_update": 31.333333333333332,
+      "self_cpu_ms_per_update": 0.0,
+      "device_ms_per_update": 11.190073499999768
+    },
+    {
+      "name": "_ZN2at6native18elementwise_kernelILi128ELi4EZNS0_22gpu_kernel_impl_nocastINS0_13BinaryFunctorIN3c108BFloat16ES5_S5_NS0_15binary_internal10MulFunctorIfEEEEEEvRNS_18TensorIteratorBaseERKT_EUliE_EEviT1_",
+      "calls_per_update": 532.6666666666666,
+      "self_cpu_ms_per_update": 0.0,
+      "device_ms_per_update": 10.776606500001412
+    },
+    {
+      "name": "aten::mm",
+      "calls_per_update": 1301.0,
+      "self_cpu_ms_per_update": 18.117433333333704,
+      "device_ms_per_update": 10.694066166664625
+    },
+    {
+      "name": "aten::sum",
+      "calls_per_update": 579.6666666666666,
+      "self_cpu_ms_per_update": 3.6934166666674995,
+      "device_ms_per_update": 9.588791833333763
+    },
+    {
+      "name": "aten::native_layer_norm_backward",
+      "calls_per_update": 65.66666666666667,
+      "self_cpu_ms_per_update": 0.6804000000013414,
+      "device_ms_per_update": 8.977370166666697
+    },
+    {
+      "name": "aten::native_layer_norm",
+      "calls_per_update": 65.66666666666667,
+      "self_cpu_ms_per_update": 0.612416666666105,
+      "device_ms_per_update": 6.793950000000095
+    },
+    {
+      "name": "_ZN2at6native53_GLOBAL__N__87a90936_20_layer_norm_kernel_cu_3ff0b71f28vectorized_layer_norm_kernelIN3c108BFloat16EfLb0EEEviT0_PKT_S8_S8_PS5_S9_PS6_",
+      "calls_per_update": 65.66666666666667,
+      "self_cpu_ms_per_update": 0.0,
+      "device_ms_per_update": 6.793950000000095
+    },
+    {
+      "name": "_ZN2at6native13reduce_kernelILi128ELi4ENS0_8ReduceOpIN3c108BFloat16ENS0_14func_wrapper_tIS4_ZNS0_11sum_functorIS4_fS4_EclERNS_14TensorIteratorEEUlffE_EEjS4_Li4ELi4EEEEEvT1_",
+      "calls_per_update": 305.0,
+      "self_cpu_ms_per_update": 0.0,
+      "device_ms_per_update": 5.838111166666813
+    },
+    {
+      "name": "_ZN2at6native53_GLOBAL__N__87a90936_20_layer_norm_kernel_cu_3ff0b71f39layer_norm_grad_input_kernel_vectorizedIN3c108BFloat16EfLb0EEEvPKT_S7_PKT0_SA_S7_PS5_i",
+      "calls_per_update": 65.66666666666667,
+      "self_cpu_ms_per_update": 0.0,
+      "device_ms_per_update": 5.675850833333519
+    },
+    {
+      "name": "_ZN2at6native29vectorized_elementwise_kernelILi4ENS0_15CUDAFunctor_addIN3c108BFloat16EEESt5arrayIPcLy3EEEEviT0_T1_",
+      "calls_per_update": 1145.3333333333333,
+      "self_cpu_ms_per_update": 0.0,
+      "device_ms_per_update": 4.425873499999487
+    },
+    {
+      "name": "struct torch::autograd::CppNode<class NativeGroupNorm>",
+      "calls_per_update": 31.333333333333332,
+      "self_cpu_ms_per_update": 0.31495000000029905,
+      "device_ms_per_update": 3.850025833333012
+    },
+    {
+      "name": "gamma_beta_chains",
+      "calls_per_update": 31.333333333333332,
+      "self_cpu_ms_per_update": 0.0,
+      "device_ms_per_update": 3.822948833333179
+    },
+    {
+      "name": "_ZN2at6native13reduce_kernelILi512ELi1ENS0_8ReduceOpIN3c108BFloat16ENS0_14func_wrapper_tIS4_ZNS0_11sum_functorIS4_fS4_EclERNS_14TensorIteratorEEUlffE_EEjS4_Li4ELi4EEEEEvT1_",
+      "calls_per_update": 250.66666666666666,
+      "self_cpu_ms_per_update": 0.0,
+      "device_ms_per_update": 3.4913056666669338
+    },
+    {
+      "name": "aten::copy_",
+      "calls_per_update": 217.33333333333334,
+      "self_cpu_ms_per_update": 0.6965833333332355,
+      "device_ms_per_update": 3.471794999999922
+    },
+    {
+      "name": "aten::add_",
+      "calls_per_update": 1153.6666666666667,
+      "self_cpu_ms_per_update": 2.2690500000001883,
+      "device_ms_per_update": 2.956694666666253
+    },
+    {
+      "name": "_ZN2at6native29vectorized_elementwise_kernelILi4ENS0_13BinaryFunctorIN3c108BFloat16ES4_S4_NS0_15binary_internal10MulFunctorIfEEEESt5arrayIPcLy3EEEEviT0_T1_",
+      "calls_per_update": 526.0,
+      "self_cpu_ms_per_update": 0.0,
+      "device_ms_per_update": 2.794439000000532
+    },
+    {
+      "name": "aten::div",
+      "calls_per_update": 342.3333333333333,
+      "self_cpu_ms_per_update": 1.4693333333327934,
+      "device_ms_per_update": 2.5499891666671357
+    },
+    {
+      "name": "_ZN2at6native53_GLOBAL__N__87a90936_20_layer_norm_kernel_cu_3ff0b71f35GammaBetaBackwardCUDAKernelTemplateIN3c108BFloat16EfLj32ELj32ELj256ELb0ELb0ELb0EEEvxxPKT_S7_PKT0_SA_PS5_SB_",
+      "calls_per_update": 30.333333333333332,
+      "self_cpu_ms_per_update": 0.0,
+      "device_ms_per_update": 2.4623264999999908
+    },
+    {
+      "name": "_ZN2at6native18elementwise_kernelILi128ELi4EZNS0_22gpu_kernel_impl_nocastINS0_13BinaryFunctorIN3c108BFloat16ES5_S5_NS0_15binary_internal10DivFunctorIS5_EEEEEEvRNS_18TensorIteratorBaseERKT_EUliE_EEviT1_",
+      "calls_per_update": 313.3333333333333,
+      "self_cpu_ms_per_update": 0.0,
+      "device_ms_per_update": 2.411506833333823
+    },
+    {
+      "name": "aten::lerp",
+      "calls_per_update": 81.33333333333333,
+      "self_cpu_ms_per_update": 0.6245999999998133,
+      "device_ms_per_update": 2.2698043333335463
+    },
+    {
+      "name": "_ZN2at6native18elementwise_kernelILi128ELi4EZNS0_22gpu_kernel_impl_nocastIZZZNS0_44_GLOBAL__N__55f24f0f_7_Lerp_cu_a4435ad0_674818lerp_tensor_kernelERNS_18TensorIteratorBaseEENKUlvE0_clEvENKUlvE2_clEvEUlN3c108BFloat16ES9_S9_E_EEvS5_RKT_EUliE_EEviT1_",
+      "calls_per_update": 62.666666666666664,
+      "self_cpu_ms_per_update": 0.0,
+      "device_ms_per_update": 2.1564800000000983
+    }
+  ],
+  "custom_op_cpu": [
+    {
+      "name": "rwkv_native::padded_rows",
+      "calls_per_update": 12.666666666666666,
+      "self_cpu_ms_per_update": 0.11981666666664266,
+      "device_ms_per_update": 0.0
+    },
+    {
+      "name": "rwkv_native::shift_gather",
+      "calls_per_update": 62.666666666666664,
+      "self_cpu_ms_per_update": 0.6163166666667287,
+      "device_ms_per_update": 0.0
+    },
+    {
+      "name": "rwkv_native::wkv",
+      "calls_per_update": 31.333333333333332,
+      "self_cpu_ms_per_update": 0.49170000000006137,
+      "device_ms_per_update": 11.190073499999768
+    },
+    {
+      "name": "rwkv_native::group_norm",
+      "calls_per_update": 31.333333333333332,
+      "self_cpu_ms_per_update": 0.2748833333333487,
+      "device_ms_per_update": 0.0
+    },
+    {
+      "name": "_ZN10rwkv_exact14forward_kernelILi16ELi4E13__nv_bfloat16EEviiiPKT1_S4_S4_PKfS4_S4_PKbPS2_iPf",
+      "calls_per_update": 31.333333333333332,
+      "self_cpu_ms_per_update": 0.0,
+      "device_ms_per_update": 11.190073499999768
+    },
+    {
+      "name": "_ZN10rwkv_exact15backward_kernelILi16ELi4E13__nv_bfloat16EEviiiPKT1_S4_S4_PKfS4_S4_PKbS4_iS6_PS2_S9_S9_PfS9_S9_",
+      "calls_per_update": 31.333333333333332,
+      "self_cpu_ms_per_update": 0.0,
+      "device_ms_per_update": 75.73630849999975
+    }
+  ],
+  "launches_per_update": 8284.333333333334,
+  "launch_cpu_ms_per_update": 56.553133333332404,
+  "aten_dispatches_per_update": 34305.333333333336,
+  "device_ms_per_update": 353.60041499999977,
+  "cprofile_tottime_top": [
+    "         232512 function calls (179196 primitive calls) in 1.371 seconds",
+    "",
+    "   Ordered by: internal time",
+    "   List reduced from 261 to 45 due to restriction <45>",
+    "",
+    "   ncalls  tottime  percall  cumtime  percall filename:lineno(function)",
+    "        6    0.800    0.133    0.800    0.133 {method 'run_backward' of 'torch._C._EngineBase' objects}",
+    "        6    0.262    0.044    0.262    0.044 {method 'tolist' of 'torch._C.TensorBase' objects}",
+    "        6    0.160    0.027    0.184    0.031 C:\\Users\\jonat\\workspace\\anki-rwkv\\expertium\\model\\srs_model.py:527(get_loss)",
+    "     2916    0.031    0.000    0.031    0.000 {method 'to' of 'torch._C.TensorBase' objects}",
+    "      376    0.009    0.000    0.009    0.000 {built-in method torch._ops.rwkv_native.shift_gather}",
+    "42084/5472    0.008    0.000    0.010    0.000 C:\\Users\\jonat\\workspace\\anki-rwkv\\.venv\\Lib\\site-packages\\torch\\nn\\modules\\module.py:2823(named_modules)",
+    "       72    0.007    0.000    0.007    0.000 {built-in method torch._foreach_add_}",
+    "     5460    0.006    0.000    0.006    0.000 C:\\Users\\jonat\\workspace\\anki-rwkv\\.venv\\Lib\\site-packages\\torch\\jit\\_script.py:212(items)",
+    "       76    0.005    0.000    0.005    0.000 {built-in method torch.sort}",
+    "     2574    0.005    0.000    0.005    0.000 {built-in method torch.empty_like}",
+    "        6    0.004    0.001    0.012    0.002 C:\\Users\\jonat\\workspace\\anki-rwkv\\scripts\\gpu_r01_update.py:30(transfer_grads)",
+    "       30    0.004    0.000    0.004    0.000 {built-in method torch._foreach_sqrt}",
+    "      376    0.004    0.000    0.012    0.000 C:\\Users\\jonat\\workspace\\anki-rwkv\\rwkv\\model\\exact_index.py:47(shift_order)",
+    "       30    0.003    0.000    0.005    0.000 C:\\Users\\jonat\\workspace\\anki-rwkv\\.venv\\Lib\\site-packages\\torch\\optim\\adam.py:138(_init_group)",
+    "       60    0.003    0.000    0.003    0.000 {built-in method torch._foreach_mul_}",
+    "       42    0.003    0.000    0.003    0.000 {built-in method torch._C._group_tensors_by_device_and_dtype}",
+    "        6    0.003    0.000    0.003    0.000 {built-in method torch._foreach_norm}",
+    "   5130/0    0.003    0.000    0.000          C:\\Users\\jonat\\workspace\\anki-rwkv\\.venv\\Lib\\site-packages\\torch\\nn\\modules\\module.py:2636(_named_members)",
+    "     5148    0.002    0.000    0.005    0.000 C:\\Users\\jonat\\workspace\\anki-rwkv\\.venv\\Lib\\site-packages\\torch\\optim\\optimizer.py:92(_get_value)",
+    "        6    0.002    0.000    0.002    0.000 C:\\Users\\jonat\\workspace\\anki-rwkv\\.venv\\Lib\\site-packages\\torch\\optim\\optimizer.py:997(zero_grad)",
+    "       24    0.002    0.000    0.002    0.000 {built-in method torch._foreach_copy_}",
+    "    13704    0.002    0.000    0.003    0.000 {method 'add' of 'set' objects}",
+    "   5172/9    0.002    0.000    0.000    0.000 C:\\Users\\jonat\\workspace\\anki-rwkv\\.venv\\Lib\\site-packages\\torch\\nn\\modules\\module.py:2706(<lambda>)",
+    "       30    0.002    0.000    0.026    0.001 C:\\Users\\jonat\\workspace\\anki-rwkv\\.venv\\Lib\\site-packages\\torch\\optim\\adam.py:544(_multi_tensor_adam)",
+    "     8190    0.002    0.000    0.002    0.000 C:\\Users\\jonat\\workspace\\anki-rwkv\\.venv\\Lib\\site-packages\\torch\\jit\\_script.py:242(items)",
+    "       30    0.001    0.000    0.001    0.000 {built-in method torch._foreach_addcdiv_}",
+    "      152    0.001    0.000    0.001    0.000 {built-in method torch.arange}",
+    "    13230    0.001    0.000    0.002    0.000 C:\\Users\\jonat\\workspace\\anki-rwkv\\.venv\\Lib\\site-packages\\torch\\_tensor.py:1183(__hash__)",
+    "    18294    0.001    0.000    0.001    0.000 {method 'append' of 'list' objects}",
+    "     5454    0.001    0.000    0.002    0.000 C:\\Users\\jonat\\workspace\\anki-rwkv\\.venv\\Lib\\site-packages\\torch\\nn\\modules\\module.py:2776(named_children)",
+    "      376    0.001    0.000    0.023    0.000 C:\\Users\\jonat\\workspace\\anki-rwkv\\expertium\\model\\rwkv_model.py:40(native_shift_gather)",
+    "     5148    0.001    0.000    0.001    0.000 {method 'item' of 'torch._C.TensorBase' objects}",
+    "       18    0.001    0.000    0.001    0.000 {built-in method torch.stack}",
+    "     2604    0.001    0.000    0.001    0.000 C:\\Users\\jonat\\workspace\\anki-rwkv\\.venv\\Lib\\site-packages\\torch\\optim\\optimizer.py:180(<genexpr>)",
+    "       30    0.001    0.000    0.029    0.001 C:\\Users\\jonat\\workspace\\anki-rwkv\\.venv\\Lib\\site-packages\\torch\\optim\\adam.py:885(adam)",
+    "       30    0.001    0.000    0.001    0.000 {built-in method torch._foreach_addcmul_}",
+    "    540/1    0.001    0.000    0.000    0.000 C:\\Users\\jonat\\workspace\\anki-rwkv\\.venv\\Lib\\site-packages\\torch\\jit\\_script.py:825(__setattr__)",
+    "     5454    0.001    0.000    0.003    0.000 C:\\Users\\jonat\\workspace\\anki-rwkv\\.venv\\Lib\\site-packages\\torch\\nn\\modules\\module.py:2767(children)",
+    "        6    0.001    0.000    0.002    0.000 C:\\Users\\jonat\\workspace\\anki-rwkv\\scripts\\profile_r01_dispatch.py:133(<lambda>)",
+    "        6    0.001    0.000    0.002    0.000 C:\\Users\\jonat\\workspace\\anki-rwkv\\scripts\\gpu_b01.py:56(materialize)",
+    "       30    0.001    0.000    0.001    0.000 {built-in method torch._foreach_lerp_}",
+    "     12/0    0.001    0.000    0.000          C:\\Users\\jonat\\workspace\\anki-rwkv\\.venv\\Lib\\site-packages\\torch\\nn\\utils\\clip_grad.py:41(_no_grad_wrapper)",
+    "    13230    0.001    0.000    0.001    0.000 {built-in method builtins.id}",
+    "        6    0.001    0.000    0.001    0.000 {built-in method builtins.eval}",
+    "        6    0.001    0.000    0.001    0.000 {built-in method torch.rsub}",
+    "",
+    ""
+  ],
+  "cprofile_cumulative_top": [
+    "         232512 function calls (179196 primitive calls) in 1.371 seconds",
+    "",
+    "   Ordered by: cumulative time",
+    "   List reduced from 261 to 60 due to restriction <60>",
+    "",
+    "   ncalls  tottime  percall  cumtime  percall filename:lineno(function)",
+    "        6    0.000    0.000    0.800    0.133 C:\\Users\\jonat\\workspace\\anki-rwkv\\.venv\\Lib\\site-packages\\torch\\_tensor.py:570(backward)",
+    "        6    0.000    0.000    0.800    0.133 C:\\Users\\jonat\\workspace\\anki-rwkv\\.venv\\Lib\\site-packages\\torch\\autograd\\__init__.py:243(backward)",
+    "        6    0.000    0.000    0.800    0.133 C:\\Users\\jonat\\workspace\\anki-rwkv\\.venv\\Lib\\site-packages\\torch\\autograd\\graph.py:832(_engine_run_backward)",
+    "        6    0.800    0.133    0.800    0.133 {method 'run_backward' of 'torch._C._EngineBase' objects}",
+    "        6    0.000    0.000    0.262    0.044 C:\\Users\\jonat\\workspace\\anki-rwkv\\scripts\\profile_r01_dispatch.py:154(<lambda>)",
+    "        6    0.262    0.044    0.262    0.044 {method 'tolist' of 'torch._C.TensorBase' objects}",
+    "        6    0.000    0.000    0.184    0.031 C:\\Users\\jonat\\workspace\\anki-rwkv\\scripts\\profile_r01_dispatch.py:140(<lambda>)",
+    "        6    0.160    0.027    0.184    0.031 C:\\Users\\jonat\\workspace\\anki-rwkv\\expertium\\model\\srs_model.py:527(get_loss)",
+    "2946/2940    0.001    0.000    0.038    0.000 {built-in method builtins.getattr}",
+    "        6    0.000    0.000    0.035    0.006 C:\\Users\\jonat\\workspace\\anki-rwkv\\.venv\\Lib\\site-packages\\torch\\optim\\optimizer.py:497(wrapper)",
+    "        6    0.000    0.000    0.035    0.006 C:\\Users\\jonat\\workspace\\anki-rwkv\\.venv\\Lib\\site-packages\\torch\\optim\\optimizer.py:62(_use_grad)",
+    "        6    0.000    0.000    0.035    0.006 C:\\Users\\jonat\\workspace\\anki-rwkv\\.venv\\Lib\\site-packages\\torch\\optim\\adam.py:213(step)",
+    "        6    0.000    0.000    0.032    0.005 C:\\Users\\jonat\\workspace\\anki-rwkv\\scripts\\profile_r01_dispatch.py:136(<lambda>)",
+    "     2916    0.031    0.000    0.031    0.000 {method 'to' of 'torch._C.TensorBase' objects}",
+    "        6    0.000    0.000    0.030    0.005 C:\\Users\\jonat\\workspace\\anki-rwkv\\scripts\\gpu_b01.py:31(map_batch)",
+    "       30    0.000    0.000    0.029    0.001 C:\\Users\\jonat\\workspace\\anki-rwkv\\.venv\\Lib\\site-packages\\torch\\optim\\optimizer.py:133(maybe_fallback)",
+    "       30    0.001    0.000    0.029    0.001 C:\\Users\\jonat\\workspace\\anki-rwkv\\.venv\\Lib\\site-packages\\torch\\optim\\adam.py:885(adam)",
+    "       30    0.002    0.000    0.026    0.001 C:\\Users\\jonat\\workspace\\anki-rwkv\\.venv\\Lib\\site-packages\\torch\\optim\\adam.py:544(_multi_tensor_adam)",
+    "      376    0.001    0.000    0.023    0.000 C:\\Users\\jonat\\workspace\\anki-rwkv\\expertium\\model\\rwkv_model.py:40(native_shift_gather)",
+    "        6    0.000    0.000    0.021    0.004 C:\\Users\\jonat\\workspace\\anki-rwkv\\scripts\\gpu_batch1.py:45(map_batch)",
+    "       54    0.000    0.000    0.016    0.000 C:\\Users\\jonat\\workspace\\anki-rwkv\\.venv\\Lib\\site-packages\\torch\\utils\\_contextlib.py:117(decorate_context)",
+    "      376    0.004    0.000    0.012    0.000 C:\\Users\\jonat\\workspace\\anki-rwkv\\rwkv\\model\\exact_index.py:47(shift_order)",
+    "        6    0.004    0.001    0.012    0.002 C:\\Users\\jonat\\workspace\\anki-rwkv\\scripts\\gpu_r01_update.py:30(transfer_grads)",
+    "42084/5472    0.008    0.000    0.010    0.000 C:\\Users\\jonat\\workspace\\anki-rwkv\\.venv\\Lib\\site-packages\\torch\\nn\\modules\\module.py:2823(named_modules)",
+    "      388    0.000    0.000    0.009    0.000 C:\\Users\\jonat\\workspace\\anki-rwkv\\.venv\\Lib\\site-packages\\torch\\_ops.py:1244(__call__)",
+    "      376    0.009    0.000    0.009    0.000 {built-in method torch._ops.rwkv_native.shift_gather}",
+    "       72    0.007    0.000    0.007    0.000 {built-in method torch._foreach_add_}",
+    "     5460    0.006    0.000    0.006    0.000 C:\\Users\\jonat\\workspace\\anki-rwkv\\.venv\\Lib\\site-packages\\torch\\jit\\_script.py:212(items)",
+    "     48/2    0.000    0.000    0.006    0.003 C:\\Users\\jonat\\workspace\\anki-rwkv\\scripts\\profile_r01_dispatch.py:123(timed)",
+    "        6    0.000    0.000    0.006    0.001 C:\\Users\\jonat\\workspace\\anki-rwkv\\.venv\\Lib\\site-packages\\torch\\nn\\utils\\clip_grad.py:49(_get_total_norm)",
+    "       76    0.005    0.000    0.005    0.000 {built-in method torch.sort}",
+    "       30    0.003    0.000    0.005    0.000 C:\\Users\\jonat\\workspace\\anki-rwkv\\.venv\\Lib\\site-packages\\torch\\optim\\adam.py:138(_init_group)",
+    "     5148    0.002    0.000    0.005    0.000 C:\\Users\\jonat\\workspace\\anki-rwkv\\.venv\\Lib\\site-packages\\torch\\optim\\optimizer.py:92(_get_value)",
+    "     2574    0.005    0.000    0.005    0.000 {built-in method torch.empty_like}",
+    "       12    0.000    0.000    0.004    0.000 C:\\Users\\jonat\\workspace\\anki-rwkv\\.venv\\Lib\\site-packages\\torch\\_compile.py:41(inner)",
+    "       12    0.000    0.000    0.004    0.000 C:\\Users\\jonat\\workspace\\anki-rwkv\\.venv\\Lib\\site-packages\\torch\\_dynamo\\eval_frame.py:1039(_fn)",
+    "       30    0.004    0.000    0.004    0.000 {built-in method torch._foreach_sqrt}",
+    "2718/2712    0.001    0.000    0.004    0.000 C:\\Users\\jonat\\workspace\\anki-rwkv\\.venv\\Lib\\site-packages\\torch\\jit\\_script.py:534(__getattr__)",
+    "     5454    0.001    0.000    0.003    0.000 C:\\Users\\jonat\\workspace\\anki-rwkv\\.venv\\Lib\\site-packages\\torch\\nn\\modules\\module.py:2767(children)",
+    "       60    0.003    0.000    0.003    0.000 {built-in method torch._foreach_mul_}",
+    "       42    0.000    0.000    0.003    0.000 C:\\Users\\jonat\\workspace\\anki-rwkv\\.venv\\Lib\\site-packages\\torch\\utils\\_foreach_utils.py:43(_group_tensors_by_device_and_dtype)",
+    "       42    0.003    0.000    0.003    0.000 {built-in method torch._C._group_tensors_by_device_and_dtype}",
+    "        6    0.003    0.000    0.003    0.000 {built-in method torch._foreach_norm}",
+    "    13704    0.002    0.000    0.003    0.000 {method 'add' of 'set' objects}",
+    "       72    0.001    0.000    0.003    0.000 {built-in method builtins.all}",
+    "        6    0.002    0.000    0.002    0.000 C:\\Users\\jonat\\workspace\\anki-rwkv\\.venv\\Lib\\site-packages\\torch\\optim\\optimizer.py:997(zero_grad)",
+    "     5454    0.001    0.000    0.002    0.000 C:\\Users\\jonat\\workspace\\anki-rwkv\\.venv\\Lib\\site-packages\\torch\\nn\\modules\\module.py:2776(named_children)",
+    "     8190    0.002    0.000    0.002    0.000 C:\\Users\\jonat\\workspace\\anki-rwkv\\.venv\\Lib\\site-packages\\torch\\jit\\_script.py:242(items)",
+    "    13230    0.001    0.000    0.002    0.000 C:\\Users\\jonat\\workspace\\anki-rwkv\\.venv\\Lib\\site-packages\\torch\\_tensor.py:1183(__hash__)",
+    "        6    0.000    0.000    0.002    0.000 C:\\Users\\jonat\\workspace\\anki-rwkv\\.venv\\Lib\\site-packages\\torch\\nn\\utils\\clip_grad.py:120(_clip_grads_with_norm_)",
+    "       24    0.002    0.000    0.002    0.000 {built-in method torch._foreach_copy_}",
+    "        6    0.001    0.000    0.002    0.000 C:\\Users\\jonat\\workspace\\anki-rwkv\\scripts\\profile_r01_dispatch.py:133(<lambda>)",
+    "       30    0.000    0.000    0.002    0.000 C:\\Users\\jonat\\workspace\\anki-rwkv\\.venv\\Lib\\site-packages\\torch\\optim\\optimizer.py:531(_group_tensors_by_device_and_dtype)",
+    "        6    0.001    0.000    0.002    0.000 C:\\Users\\jonat\\workspace\\anki-rwkv\\scripts\\gpu_b01.py:56(materialize)",
+    "       30    0.001    0.000    0.001    0.000 {built-in method torch._foreach_addcdiv_}",
+    "      152    0.001    0.000    0.001    0.000 {built-in method torch.arange}",
+    "        6    0.000    0.000    0.001    0.000 C:\\Users\\jonat\\workspace\\anki-rwkv\\.venv\\Lib\\site-packages\\torch\\_jit_internal.py:1323(_create_named_tuple)",
+    "       30    0.000    0.000    0.001    0.000 C:\\Users\\jonat\\workspace\\anki-rwkv\\.venv\\Lib\\site-packages\\torch\\optim\\optimizer.py:163(_default_to_fused_or_foreach)",
+    "        6    0.000    0.000    0.001    0.000 C:\\Users\\jonat\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\Lib\\collections\\__init__.py:355(namedtuple)",
+    "        6    0.000    0.000    0.001    0.000 C:\\Users\\jonat\\workspace\\anki-rwkv\\.venv\\Lib\\site-packages\\torch\\random.py:32(manual_seed)",
+    "",
+    ""
+  ]
+}

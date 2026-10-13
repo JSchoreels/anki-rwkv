@@ -1,0 +1,362 @@
+{
+  "model": "expertium",
+  "track": "E80-F33b-F57-F90",
+  "options": {
+    "prefetch_users": true,
+    "preparation_workers": 5,
+    "gpu_packed_features": true,
+    "packed_ipc": true,
+    "async_transfer": true,
+    "batched_id_encodings": true,
+    "grouped_sync": true,
+    "main_threads": 1,
+    "bulk_transfer": true,
+    "parallel_evaluation": true,
+    "exact_shift": true,
+    "exact_index": true,
+    "batch_chunks": 512,
+    "gpu_memory_fraction": 0.95,
+    "fast_samples": true,
+    "prestart_pool": true,
+    "row_tiles_exact": 4,
+    "exact_group_norm": true,
+    "deferred_reads": true,
+    "shared_shift_orders": true,
+    "stream_launches": true,
+    "prefetch_rows": true,
+    "sync_free_loss": true,
+    "columnar_samples": true,
+    "skip_uninitialized_fill": true,
+    "skip_padding_sources": true,
+    "native_wkv": true,
+    "host_placement": "physical",
+    "process_qos": true,
+    "native_group_norm": true,
+    "native_index": true,
+    "deferred_read_depth": 2,
+    "bookkeeping_stride": 8,
+    "wkv_tile": 16
+  },
+  "config": {
+    "MODEL": "expertium",
+    "DTYPE": "bfloat16",
+    "WKV_BACKEND": "nvrtc",
+    "SEED": 2025,
+    "BATCH_CHUNKS": 512,
+    "CHUNK_REVIEWS": 128,
+    "PREFETCH_WORKERS": 5,
+    "PREFETCH_BATCHES": 10,
+    "CPU_THREADS": 4,
+    "EPOCHS": 1,
+    "DATA_PATH": "data/anki-revlogs-10k-original-20261011",
+    "DATASET_REVISION": "75299740cff05894ef42d7ad990666691efdd2da",
+    "GPU_MEMORY_FRACTION": 0.95,
+    "PEAK_LR": 0.0007,
+    "WARMUP_STEPS": 5
+  },
+  "torch": "2.9.1+cu128",
+  "cuda": "12.8",
+  "gpu": "NVIDIA GeForce RTX 5080",
+  "training_dropout": "enabled",
+  "device_used_at_start_mib": 1290.4375,
+  "master_dtype": "float32",
+  "float32_matmul_precision": "highest",
+  "cuda_matmul_allow_tf32": false,
+  "rss_sampling": "process tree at user transitions; sampled maximum, not continuous peak",
+  "provenance": {
+    "captured_utc": "2026-10-13T16:27:37.785345+00:00",
+    "git_commit": "125d0f864e1df4c0c526f25a6b080c6472512b80",
+    "git_dirty": true,
+    "git_status_porcelain_z": "?? isolation.json\u0000",
+    "source_tree_sha256": "53dbdf56a59a017896f9bbe09a8652585f6c3ab8e024cfa6dc874db6a7eff929",
+    "source_archive": "artifacts/sources/experiment-sources/53dbdf56a59a017896f9bbe09a8652585f6c3ab8e024cfa6dc874db6a7eff929/source.zip",
+    "source_paths": [
+      "rwkv",
+      "expertium",
+      "scripts",
+      "configs",
+      "pyproject.toml",
+      "uv.lock",
+      "justfile",
+      "upstream.json"
+    ]
+  },
+  "status": "complete",
+  "smoke_only": true,
+  "implementation_sha256": "043ae504c7d22148f4a182605cc73ac419438430951b8dccb114ec2f5e94cefe",
+  "started_utc": "2026-10-13T16:27:40.081558+00:00",
+  "training_users": 2,
+  "evaluation_users": 2,
+  "progress_users": 2,
+  "updates": 2,
+  "review_presentations": 1024,
+  "training_curve_labels": 672,
+  "training_instant_labels": 672,
+  "hierarchical_padded_positions": 11392,
+  "peak_process_tree_rss_mib": 4855.99609375,
+  "gpu_copy_milliseconds": 22.833702087402344,
+  "gpu_copy_overlap_training_milliseconds": 0.0048370361328125,
+  "recurrence_kernel": {
+    "rows_per_thread": 4,
+    "checkpoint_tile": 32,
+    "threads_per_block": 256,
+    "compact_previous_state": false,
+    "recurrence_prefetch": false,
+    "wave_aware_backward": false,
+    "recurrence_load_pipeline": 0
+  },
+  "initial_parameter_sha256": "49a3841f33713c283c2880f5dc9b89ed2c0411294ee2c48cba941868751eae18",
+  "native_extension": {
+    "identity": {
+      "source_sha256": "110315ab5338acc840788b5edb18c61899a4d769504ee0015eefcb1b240dfb85",
+      "torch": "2.9.1+cu128",
+      "torch_cuda": "12.8",
+      "platform": "nt",
+      "flags": [
+        "/nologo",
+        "/LD",
+        "/std:c++17",
+        "/O2",
+        "/MD",
+        "/EHsc",
+        "/bigobj",
+        "/D_CRT_SECURE_NO_WARNINGS",
+        "/DNOMINMAX"
+      ],
+      "msvc_version": "14.44.35207",
+      "windows_sdk_version": "10.0.26100.0",
+      "cuda_header_version": "13.4",
+      "cuda_header_sha256": "7a79d67ca888061b1dfbe4739b51ad64f85a2f3ad874947ce09b2c635b4c7072",
+      "torch_cudart_sha256": "c2c9a9c22a9bcba90e261825968836787b331038047a26770cffb7a583c28344",
+      "libraries": [
+        "c10.lib",
+        "c10_cuda.lib",
+        "torch_cpu.lib",
+        "torch_cuda.lib",
+        "torch.lib",
+        "cuda.lib",
+        "torch_cudart.lib"
+      ]
+    },
+    "binary_sha256": "3c58235f9933e6cc83161e369897ef6148c5a2e320ea4b83e241888c640cfb0c",
+    "build_key": "f1b68c9d56963ef5e70c5bc5a343afbf9481ae45d2571d057644270e5f83cbe7"
+  },
+  "discarded_primer_seconds": 15.336994000001141,
+  "model_setup_seconds": 3.450928300000669,
+  "warmup_job_workers": 2,
+  "prestarted_worker_pids": [
+    18468,
+    24348,
+    25848,
+    28900,
+    37096
+  ],
+  "prestarted_workers": 5,
+  "pool_ready_wait_seconds": 0.0003077000001212582,
+  "pool_prestart_seconds": 15.3828700999984,
+  "host_placement": {
+    "mode": "physical",
+    "main_process_cpus": [
+      2,
+      3,
+      6,
+      7,
+      10,
+      11
+    ],
+    "worker_cpus": [
+      0,
+      4,
+      8,
+      14,
+      12
+    ],
+    "workers": 5,
+    "physical_cores": 8,
+    "main_core_scheduling_classes": [
+      6,
+      6,
+      5
+    ],
+    "restored_main_process_cpus": 16
+  },
+  "process_qos": {
+    "mode": "above_normal_unthrottled",
+    "processes": [
+      {
+        "pid": 40924,
+        "role": "main",
+        "previous_throttling": {
+          "control_mask": 0,
+          "state_mask": 0
+        },
+        "previous_priority_class": 32,
+        "priority_class": 32768
+      },
+      {
+        "pid": 18468,
+        "role": "worker",
+        "previous_throttling": {
+          "control_mask": 0,
+          "state_mask": 0
+        },
+        "previous_priority_class": 32,
+        "priority_class": 32768
+      },
+      {
+        "pid": 24348,
+        "role": "worker",
+        "previous_throttling": {
+          "control_mask": 0,
+          "state_mask": 0
+        },
+        "previous_priority_class": 32,
+        "priority_class": 32768
+      },
+      {
+        "pid": 25848,
+        "role": "worker",
+        "previous_throttling": {
+          "control_mask": 0,
+          "state_mask": 0
+        },
+        "previous_priority_class": 32,
+        "priority_class": 32768
+      },
+      {
+        "pid": 28900,
+        "role": "worker",
+        "previous_throttling": {
+          "control_mask": 0,
+          "state_mask": 0
+        },
+        "previous_priority_class": 32,
+        "priority_class": 32768
+      },
+      {
+        "pid": 37096,
+        "role": "worker",
+        "previous_throttling": {
+          "control_mask": 0,
+          "state_mask": 0
+        },
+        "previous_priority_class": 32,
+        "priority_class": 32768
+      }
+    ],
+    "timer_resolution_100ns": {
+      "coarsest": 156250,
+      "finest": 5000,
+      "current": 10000
+    }
+  },
+  "training_started_utc": "2026-10-13T16:27:57.931533+00:00",
+  "deferred_read_depth": 2,
+  "bookkeeping_stride": 8,
+  "rss_sampling_skipped_processes": 0,
+  "training_seconds": 0.6859401000001526,
+  "training_gc": {
+    "generation_0": {
+      "collections": 9,
+      "seconds": 0.00042219999886583537
+    },
+    "generation_1": {
+      "collections": 1,
+      "seconds": 0.000261799999861978
+    },
+    "generation_2": {
+      "collections": 0,
+      "seconds": 0.0
+    }
+  },
+  "cold_training_seconds": 0.6859401000001526,
+  "reviews_per_second": 1492.84172189346,
+  "cold_reviews_per_second": 1492.84172189346,
+  "coverage": {
+    "27": {
+      "reviews": 512,
+      "updates": 1
+    },
+    "43": {
+      "reviews": 512,
+      "updates": 1
+    }
+  },
+  "peak_allocated_mib": 119.36669921875,
+  "peak_reserved_mib": 142.0,
+  "allocator_stats": {
+    "num_alloc_retries": 0,
+    "num_ooms": 0,
+    "num_device_alloc": 52,
+    "num_device_free": 20
+  },
+  "trained_parameter_sha256": "62f12cd9ed89e249d80458a90d45d6e7369f63ef4ec0cbeab6b22c176516c068",
+  "validation_seconds": 2.299127700000099,
+  "validation_input_sha256": "75058b372d3a2a879fbd6e638dbd92ceb58aafc0c8426d4ded9bd5900018545e",
+  "evaluation_context": {
+    "driver_version": "617.14",
+    "nvrtc_version": "12.8",
+    "backend": "{\"recurrence_kernel\": {\"checkpoint_tile\": 32, \"compact_previous_state\": false, \"recurrence_load_pipeline\": 0, \"recurrence_prefetch\": false, \"rows_per_thread\": 4, \"threads_per_block\": 256, \"wave_aware_backward\": false}, \"wkv_backend\": \"nvrtc\"}",
+    "deterministic_algorithms": true,
+    "cublas_workspace_config": ":4096:8",
+    "evaluation_dtype": "bfloat16",
+    "prepared_input_sha256": "75058b372d3a2a879fbd6e638dbd92ceb58aafc0c8426d4ded9bd5900018545e",
+    "evaluation_source_sha256": "ef137d06e5c619c33f07b950459a095eb189497d297ea7943597beb696e89fb4",
+    "runtime": {
+      "torch": "2.9.1+cu128",
+      "numpy": "2.5.4",
+      "cupy": "14.2.0",
+      "nvrtc_package": "none",
+      "cuda_path": "C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v13.4",
+      "driver_version": "617.14",
+      "gpu_name": "NVIDIA GeForce RTX 5080"
+    }
+  },
+  "per_user": [
+    {
+      "user_id": 29,
+      "curve_labels": 320,
+      "instant_labels": 413,
+      "curve_log_loss": 0.5359143018722534,
+      "curve_raw_log_loss": 0.5355554819107056,
+      "instant_log_loss": 0.5454147745275613,
+      "instant_rating_cross_entropy": 1.1430027484893799
+    },
+    {
+      "user_id": 58,
+      "curve_labels": 364,
+      "instant_labels": 512,
+      "curve_log_loss": 0.3115959167480469,
+      "curve_raw_log_loss": 0.31276872754096985,
+      "instant_log_loss": 0.3224042057991028,
+      "instant_rating_cross_entropy": 1.1642208099365234
+    }
+  ],
+  "evaluation": {
+    "curve_labels": 684,
+    "curve_log_loss_label_weighted": 0.4165401904903657,
+    "curve_log_loss_user_average": 0.42375510931015015,
+    "instant_labels": 925,
+    "instant_log_loss_label_weighted": 0.42197541108002534,
+    "instant_log_loss_user_average": 0.433909490163332
+  },
+  "case_elapsed_seconds": 21.973318800002744,
+  "iteration": "0083",
+  "execution_mode": {
+    "torch_graph_executor_optimize": false,
+    "deterministic_algorithms": true,
+    "CUBLAS_WORKSPACE_CONFIG": ":4096:8",
+    "wkv_tile": 32,
+    "fill_uninitialized_memory": false
+  },
+  "checkpoint_saves": [
+    {
+      "elapsed_seconds": 0.020554800001264084,
+      "path": "artifacts/retraining/gpu-retrain-r01/iteration-0083/functional-smoke-v1/expertium/E80-F33b-F57-F90/master.pth"
+    }
+  ],
+  "protocol_sha256": "1fe2b9b5ce42ff427c68e186e16c6411c4f52d6492615e89e887e566bccaec76",
+  "process_wall_seconds": 24.367815494537354,
+  "evaluation_scope": "unseen users; complete histories, chunked at 128 reviews; no gradient updates or fitting on held-out users",
+  "quality_status": "preliminary screen; broader validation pending"
+}

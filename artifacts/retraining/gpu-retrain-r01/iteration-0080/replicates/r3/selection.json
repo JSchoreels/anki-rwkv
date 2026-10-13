@@ -1,0 +1,93 @@
+{
+  "expertium": {
+    "track": "E79-F65d",
+    "options": {
+      "prefetch_users": true,
+      "preparation_workers": 5,
+      "gpu_packed_features": true,
+      "packed_ipc": true,
+      "async_transfer": true,
+      "batched_id_encodings": true,
+      "grouped_sync": true,
+      "main_threads": 1,
+      "bulk_transfer": true,
+      "parallel_evaluation": true,
+      "exact_shift": true,
+      "exact_index": true,
+      "batch_chunks": 512,
+      "gpu_memory_fraction": 0.95,
+      "fast_samples": true,
+      "prestart_pool": true,
+      "row_tiles_exact": 4,
+      "exact_group_norm": true,
+      "deferred_reads": true,
+      "shared_shift_orders": true,
+      "stream_launches": true,
+      "prefetch_rows": true,
+      "sync_free_loss": true,
+      "columnar_samples": true,
+      "skip_uninitialized_fill": true,
+      "skip_padding_sources": true,
+      "native_wkv": true,
+      "host_placement": "physical",
+      "process_qos": true,
+      "native_group_norm": true,
+      "native_index": true
+    },
+    "reason": "Recorded E76 (accepted iteration-0076 Expertium configuration: E72, F71, F73a (alias for Windows path length)), F86 (main process and preparation workers opted out of Windows power throttling at above-normal priority), F65c (native exact GroupNorm dispatcher/autograd using unchanged reduction kernels) GPU activity is 66.38% and worker-pool CPU 50.52%. Main process CPU averaged 97% of one core; system load averaged 5.0 busy logical threads on 8 physical cores. F65d moves the exact shift-gather (F26, two per layer instance) and padded row-select (F27/F50, one per split) autograd from Python Functions to the native dispatcher, removing Python backward nodes while launching the same kernels. E79 aliases the accepted 0079 options for Windows path length.",
+    "selected_utc": "2026-10-13T15:37:53.798510+00:00",
+    "profile": "../iteration-0079/profiles/expertium-E76-F86-F65c/result.json",
+    "profile_sha256": "9e5a9c68ee70a95436de0ceaa11e3b47481a2798986d53cd154238c7e4a68f79",
+    "reference_result": "artifacts/retraining/gpu-retrain-r01/iteration-0079/expertium/E76-F86-F65c/result.json",
+    "retuning_resource_saving_candidate": false,
+    "profile_reused": true,
+    "recorded_profile_sufficiency": false,
+    "measured_incumbent_reviews_per_second": 182205.8464979575,
+    "measured_future_wait_seconds_sum": 0.2596161999863398,
+    "idealized_scenarios": {
+      "unchanged_GPU_work_at80_percent_activity_reviews_per_second": 219592.6807339507,
+      "remove_all_measured_future_wait_reviews_per_second": 183338.78062445569,
+      "linear_8_vs6_worker_capacity_reviews_per_second": 242941.12866394335,
+      "interpretation": "Conditional capacity arithmetic only; not measured candidate throughput or a forecast. CPU contention, RAM/IPC/loads and unchanged work can dominate. GPU activity is not occupancy."
+    },
+    "minimum_available_RAM_GiB": 8.197017669677734,
+    "cpu_evidence": {
+      "main_process_cpu_percent_one_core_mean": 96.6525,
+      "busy_logical_threads_mean": 4.9793,
+      "logical_threads": 16,
+      "physical_cores": 8,
+      "near_physical_core_saturation": false,
+      "samples": 40,
+      "interpretation": "Sampled at the profiler interval; physical cores read on the selecting host, which is assumed to be the training host. SMT threads add less than a full core."
+    },
+    "target_reachability": {
+      "target_gain_percent": 5.0,
+      "added_components": [
+        "E79",
+        "F65d"
+      ],
+      "feeding_only_candidate": false,
+      "remove_all_waits_ceiling_gain_percent": 0.6217880206774051,
+      "ceiling_reaches_target": false,
+      "justification": null
+    },
+    "selection_provenance": {
+      "captured_utc": "2026-10-13T15:37:53.902074+00:00",
+      "git_commit": "a2484e487212c8e5e4e50f03093b9724d27ed7d4",
+      "git_dirty": false,
+      "git_status_porcelain_z": "",
+      "source_tree_sha256": "d52246d407027087f5d0f6b7711dba82ba8fbc81f966440db36db713e3de9ddc",
+      "source_archive": "artifacts/sources/experiment-sources/d52246d407027087f5d0f6b7711dba82ba8fbc81f966440db36db713e3de9ddc/source.zip",
+      "source_paths": [
+        "rwkv",
+        "expertium",
+        "scripts",
+        "configs",
+        "pyproject.toml",
+        "uv.lock",
+        "justfile",
+        "upstream.json"
+      ]
+    }
+  }
+}

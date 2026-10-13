@@ -1,0 +1,146 @@
+{
+  "status": "passed",
+  "cases": {
+    "48x256": {
+      "ms": {
+        "32": 1.052,
+        "16": 1.041,
+        "8": 1.04
+      },
+      "bitwise_vs_32": {
+        "16": true,
+        "8": true
+      }
+    },
+    "256x128": {
+      "ms": {
+        "32": 1.769,
+        "16": 1.714,
+        "8": 1.707
+      },
+      "bitwise_vs_32": {
+        "16": true,
+        "8": true
+      }
+    },
+    "1024x32": {
+      "ms": {
+        "32": 1.45,
+        "16": 1.367,
+        "8": 1.363
+      },
+      "bitwise_vs_32": {
+        "16": true,
+        "8": true
+      }
+    },
+    "4096x8": {
+      "ms": {
+        "32": 1.277,
+        "16": 1.274,
+        "8": 1.307
+      },
+      "bitwise_vs_32": {
+        "16": true,
+        "8": true
+      }
+    },
+    "160x256": {
+      "ms": {
+        "32": 1.948,
+        "16": 1.933,
+        "8": 1.951
+      },
+      "bitwise_vs_32": {
+        "16": true,
+        "8": true
+      }
+    },
+    "512x256": {
+      "ms": {
+        "32": 6.154,
+        "16": 6.055,
+        "8": 6.424
+      },
+      "bitwise_vs_32": {
+        "16": true,
+        "8": true
+      }
+    },
+    "2048x64": {
+      "ms": {
+        "32": 5.429,
+        "16": 5.349,
+        "8": 5.335
+      },
+      "bitwise_vs_32": {
+        "16": true,
+        "8": true
+      }
+    },
+    "16384x8": {
+      "ms": {
+        "32": 5.136,
+        "16": 5.139,
+        "8": 5.206
+      },
+      "bitwise_vs_32": {
+        "16": true,
+        "8": true
+      }
+    },
+    "1024x128": {
+      "ms": {
+        "32": 5.68,
+        "16": 5.541,
+        "8": 5.552
+      },
+      "bitwise_vs_32": {
+        "16": true,
+        "8": true
+      }
+    },
+    "1x1": {
+      "ms": {
+        "32": 0.1,
+        "16": 0.123,
+        "8": 0.084
+      },
+      "bitwise_vs_32": {
+        "16": true,
+        "8": true
+      }
+    },
+    "3x33": {
+      "ms": {
+        "32": 0.145,
+        "16": 0.135,
+        "8": 0.14
+      },
+      "bitwise_vs_32": {
+        "16": true,
+        "8": true
+      }
+    }
+  },
+  "provenance": {
+    "captured_utc": "2026-10-13T16:26:53.049934+00:00",
+    "git_commit": "09bcce1da7b06c6387cf6cf3796d89716e7af96c",
+    "git_dirty": true,
+    "git_status_porcelain_z": " M docs/GPU_OPTIMIZATIONS_LOG.md\u0000 M expertium/model/rwkv_model.py\u0000 M rwkv/model/native_launch.py\u0000 M scripts/check_r01_exact_options.py\u0000 M scripts/gpu_r01_prefetch.py\u0000 M scripts/gpu_r01_training.py\u0000 M scripts/report_gpu_r01_next.py\u0000?? scripts/check_r01_wkv_tile.py\u0000",
+    "source_tree_sha256": "9644a567f99f2334d70462b00ce8e49fc2e7c0a7e899ee214b5cf98f2335f9b4",
+    "source_archive": "artifacts/sources/experiment-sources/9644a567f99f2334d70462b00ce8e49fc2e7c0a7e899ee214b5cf98f2335f9b4/source.zip",
+    "source_paths": [
+      "rwkv",
+      "expertium",
+      "scripts",
+      "configs",
+      "pyproject.toml",
+      "uv.lock",
+      "justfile",
+      "upstream.json"
+    ]
+  },
+  "torch": "2.9.1+cu128",
+  "scope": "native exact 4-row BF16 WKV forward output and all input gradients, tiles 16/8 vs 32, 10% skipped steps, default stream"
+}

@@ -1,0 +1,888 @@
+{
+  "model": "expertium",
+  "track": "E80-F33b-F57-F90",
+  "options": {
+    "prefetch_users": true,
+    "preparation_workers": 5,
+    "gpu_packed_features": true,
+    "packed_ipc": true,
+    "async_transfer": true,
+    "batched_id_encodings": true,
+    "grouped_sync": true,
+    "main_threads": 1,
+    "bulk_transfer": true,
+    "parallel_evaluation": true,
+    "exact_shift": true,
+    "exact_index": true,
+    "batch_chunks": 512,
+    "gpu_memory_fraction": 0.95,
+    "fast_samples": true,
+    "prestart_pool": true,
+    "row_tiles_exact": 4,
+    "exact_group_norm": true,
+    "deferred_reads": true,
+    "shared_shift_orders": true,
+    "stream_launches": true,
+    "prefetch_rows": true,
+    "sync_free_loss": true,
+    "columnar_samples": true,
+    "skip_uninitialized_fill": true,
+    "skip_padding_sources": true,
+    "native_wkv": true,
+    "host_placement": "physical",
+    "process_qos": true,
+    "native_group_norm": true,
+    "native_index": true,
+    "deferred_read_depth": 2,
+    "bookkeeping_stride": 8,
+    "wkv_tile": 16
+  },
+  "config": {
+    "MODEL": "expertium",
+    "DTYPE": "bfloat16",
+    "WKV_BACKEND": "nvrtc",
+    "SEED": 2025,
+    "BATCH_CHUNKS": 512,
+    "CHUNK_REVIEWS": 128,
+    "PREFETCH_WORKERS": 5,
+    "PREFETCH_BATCHES": 10,
+    "CPU_THREADS": 4,
+    "EPOCHS": 1,
+    "DATA_PATH": "data/anki-revlogs-10k-original-20261011",
+    "DATASET_REVISION": "75299740cff05894ef42d7ad990666691efdd2da",
+    "GPU_MEMORY_FRACTION": 0.95,
+    "PEAK_LR": 0.0007,
+    "WARMUP_STEPS": 5
+  },
+  "torch": "2.9.1+cu128",
+  "cuda": "12.8",
+  "gpu": "NVIDIA GeForce RTX 5080",
+  "training_dropout": "enabled",
+  "device_used_at_start_mib": 1290.4375,
+  "master_dtype": "float32",
+  "float32_matmul_precision": "highest",
+  "cuda_matmul_allow_tf32": false,
+  "rss_sampling": "process tree at user transitions; sampled maximum, not continuous peak",
+  "provenance": {
+    "captured_utc": "2026-10-13T17:01:10.147877+00:00",
+    "git_commit": "cb9eebaab4c9b639ba09892a91a85179be5da8aa",
+    "git_dirty": true,
+    "git_status_porcelain_z": "?? isolation.json\u0000",
+    "source_tree_sha256": "00779ec0c7f76f500d6d94371117bffa48b1e4d81a065b20e0bcd9f61b2501da",
+    "source_archive": "artifacts/sources/experiment-sources/00779ec0c7f76f500d6d94371117bffa48b1e4d81a065b20e0bcd9f61b2501da/source.zip",
+    "source_paths": [
+      "rwkv",
+      "expertium",
+      "scripts",
+      "configs",
+      "pyproject.toml",
+      "uv.lock",
+      "justfile",
+      "upstream.json"
+    ]
+  },
+  "status": "complete",
+  "smoke_only": false,
+  "implementation_sha256": "82bd4dc443f5ea0ccc0ada3eea2739a0f1a0744cce2250a45cb6a082bfe33ebb",
+  "started_utc": "2026-10-13T17:01:12.353893+00:00",
+  "training_users": 80,
+  "evaluation_users": 20,
+  "progress_users": 80,
+  "updates": 167,
+  "review_presentations": 7654975,
+  "training_curve_labels": 6764613,
+  "training_instant_labels": 6764613,
+  "hierarchical_padded_positions": 96020797,
+  "peak_process_tree_rss_mib": 7738.16796875,
+  "gpu_copy_milliseconds": 1113.7715759277344,
+  "gpu_copy_overlap_training_milliseconds": 8.50592041015625,
+  "recurrence_kernel": {
+    "rows_per_thread": 4,
+    "checkpoint_tile": 32,
+    "threads_per_block": 256,
+    "compact_previous_state": false,
+    "recurrence_prefetch": false,
+    "wave_aware_backward": false,
+    "recurrence_load_pipeline": 0
+  },
+  "initial_parameter_sha256": "49a3841f33713c283c2880f5dc9b89ed2c0411294ee2c48cba941868751eae18",
+  "native_extension": {
+    "identity": {
+      "source_sha256": "110315ab5338acc840788b5edb18c61899a4d769504ee0015eefcb1b240dfb85",
+      "torch": "2.9.1+cu128",
+      "torch_cuda": "12.8",
+      "platform": "nt",
+      "flags": [
+        "/nologo",
+        "/LD",
+        "/std:c++17",
+        "/O2",
+        "/MD",
+        "/EHsc",
+        "/bigobj",
+        "/D_CRT_SECURE_NO_WARNINGS",
+        "/DNOMINMAX"
+      ],
+      "msvc_version": "14.44.35207",
+      "windows_sdk_version": "10.0.26100.0",
+      "cuda_header_version": "13.4",
+      "cuda_header_sha256": "7a79d67ca888061b1dfbe4739b51ad64f85a2f3ad874947ce09b2c635b4c7072",
+      "torch_cudart_sha256": "c2c9a9c22a9bcba90e261825968836787b331038047a26770cffb7a583c28344",
+      "libraries": [
+        "c10.lib",
+        "c10_cuda.lib",
+        "torch_cpu.lib",
+        "torch_cuda.lib",
+        "torch.lib",
+        "cuda.lib",
+        "torch_cudart.lib"
+      ]
+    },
+    "binary_sha256": "3c58235f9933e6cc83161e369897ef6148c5a2e320ea4b83e241888c640cfb0c",
+    "build_key": "f1b68c9d56963ef5e70c5bc5a343afbf9481ae45d2571d057644270e5f83cbe7"
+  },
+  "discarded_primer_seconds": 3.828107599998475,
+  "model_setup_seconds": 3.3012386999980663,
+  "warmup_job_workers": 1,
+  "prestarted_worker_pids": [
+    2588,
+    3972,
+    7600,
+    12460,
+    25140
+  ],
+  "prestarted_workers": 5,
+  "pool_ready_wait_seconds": 0.0002849999946192838,
+  "pool_prestart_seconds": 3.8721514999997453,
+  "host_placement": {
+    "mode": "physical",
+    "main_process_cpus": [
+      2,
+      3,
+      6,
+      7,
+      10,
+      11
+    ],
+    "worker_cpus": [
+      0,
+      4,
+      8,
+      14,
+      12
+    ],
+    "workers": 5,
+    "physical_cores": 8,
+    "main_core_scheduling_classes": [
+      6,
+      6,
+      5
+    ],
+    "restored_main_process_cpus": 16
+  },
+  "process_qos": {
+    "mode": "above_normal_unthrottled",
+    "processes": [
+      {
+        "pid": 3612,
+        "role": "main",
+        "previous_throttling": {
+          "control_mask": 0,
+          "state_mask": 0
+        },
+        "previous_priority_class": 32,
+        "priority_class": 32768
+      },
+      {
+        "pid": 2588,
+        "role": "worker",
+        "previous_throttling": {
+          "control_mask": 0,
+          "state_mask": 0
+        },
+        "previous_priority_class": 32,
+        "priority_class": 32768
+      },
+      {
+        "pid": 3972,
+        "role": "worker",
+        "previous_throttling": {
+          "control_mask": 0,
+          "state_mask": 0
+        },
+        "previous_priority_class": 32,
+        "priority_class": 32768
+      },
+      {
+        "pid": 7600,
+        "role": "worker",
+        "previous_throttling": {
+          "control_mask": 0,
+          "state_mask": 0
+        },
+        "previous_priority_class": 32,
+        "priority_class": 32768
+      },
+      {
+        "pid": 12460,
+        "role": "worker",
+        "previous_throttling": {
+          "control_mask": 0,
+          "state_mask": 0
+        },
+        "previous_priority_class": 32,
+        "priority_class": 32768
+      },
+      {
+        "pid": 25140,
+        "role": "worker",
+        "previous_throttling": {
+          "control_mask": 0,
+          "state_mask": 0
+        },
+        "previous_priority_class": 32,
+        "priority_class": 32768
+      }
+    ],
+    "timer_resolution_100ns": {
+      "coarsest": 156250,
+      "finest": 5000,
+      "current": 10000
+    }
+  },
+  "training_started_utc": "2026-10-13T17:01:18.561036+00:00",
+  "deferred_read_depth": 2,
+  "bookkeeping_stride": 8,
+  "rss_sampling_skipped_processes": 0,
+  "training_elapsed_seconds": 34.852972300002875,
+  "training_seconds": 37.27566890000162,
+  "training_gc": {
+    "generation_0": {
+      "collections": 381,
+      "seconds": 0.030362299883563537
+    },
+    "generation_1": {
+      "collections": 35,
+      "seconds": 0.012629299970285501
+    },
+    "generation_2": {
+      "collections": 1,
+      "seconds": 0.07277579999936279
+    }
+  },
+  "cold_training_seconds": 37.27566890000162,
+  "reviews_per_second": 205361.1705945716,
+  "cold_reviews_per_second": 205361.1705945716,
+  "coverage": {
+    "27": {
+      "reviews": 10539,
+      "updates": 1
+    },
+    "43": {
+      "reviews": 44119,
+      "updates": 1
+    },
+    "114": {
+      "reviews": 92552,
+      "updates": 2
+    },
+    "146": {
+      "reviews": 6721,
+      "updates": 1
+    },
+    "156": {
+      "reviews": 5419,
+      "updates": 1
+    },
+    "195": {
+      "reviews": 15663,
+      "updates": 1
+    },
+    "220": {
+      "reviews": 67369,
+      "updates": 2
+    },
+    "226": {
+      "reviews": 15907,
+      "updates": 1
+    },
+    "275": {
+      "reviews": 18443,
+      "updates": 1
+    },
+    "349": {
+      "reviews": 42780,
+      "updates": 1
+    },
+    "466": {
+      "reviews": 30204,
+      "updates": 1
+    },
+    "478": {
+      "reviews": 27226,
+      "updates": 1
+    },
+    "504": {
+      "reviews": 27698,
+      "updates": 1
+    },
+    "602": {
+      "reviews": 26489,
+      "updates": 1
+    },
+    "609": {
+      "reviews": 18812,
+      "updates": 1
+    },
+    "672": {
+      "reviews": 16564,
+      "updates": 1
+    },
+    "697": {
+      "reviews": 231539,
+      "updates": 4
+    },
+    "817": {
+      "reviews": 17344,
+      "updates": 1
+    },
+    "848": {
+      "reviews": 33662,
+      "updates": 1
+    },
+    "861": {
+      "reviews": 10102,
+      "updates": 1
+    },
+    "895": {
+      "reviews": 71857,
+      "updates": 2
+    },
+    "906": {
+      "reviews": 9797,
+      "updates": 1
+    },
+    "946": {
+      "reviews": 67637,
+      "updates": 2
+    },
+    "1011": {
+      "reviews": 16553,
+      "updates": 1
+    },
+    "1078": {
+      "reviews": 162874,
+      "updates": 3
+    },
+    "1162": {
+      "reviews": 43403,
+      "updates": 1
+    },
+    "1164": {
+      "reviews": 36783,
+      "updates": 1
+    },
+    "1321": {
+      "reviews": 26240,
+      "updates": 1
+    },
+    "1331": {
+      "reviews": 58699,
+      "updates": 1
+    },
+    "1353": {
+      "reviews": 21922,
+      "updates": 1
+    },
+    "1383": {
+      "reviews": 8396,
+      "updates": 1
+    },
+    "1466": {
+      "reviews": 20184,
+      "updates": 1
+    },
+    "1495": {
+      "reviews": 1373376,
+      "updates": 21
+    },
+    "1530": {
+      "reviews": 203619,
+      "updates": 4
+    },
+    "1552": {
+      "reviews": 9240,
+      "updates": 1
+    },
+    "1560": {
+      "reviews": 108848,
+      "updates": 2
+    },
+    "1605": {
+      "reviews": 126474,
+      "updates": 2
+    },
+    "1609": {
+      "reviews": 56055,
+      "updates": 1
+    },
+    "1619": {
+      "reviews": 460026,
+      "updates": 8
+    },
+    "1628": {
+      "reviews": 11536,
+      "updates": 1
+    },
+    "1683": {
+      "reviews": 18266,
+      "updates": 1
+    },
+    "1758": {
+      "reviews": 18947,
+      "updates": 1
+    },
+    "1996": {
+      "reviews": 1115836,
+      "updates": 18
+    },
+    "2032": {
+      "reviews": 48184,
+      "updates": 1
+    },
+    "2073": {
+      "reviews": 424480,
+      "updates": 7
+    },
+    "2090": {
+      "reviews": 5093,
+      "updates": 1
+    },
+    "2154": {
+      "reviews": 49096,
+      "updates": 1
+    },
+    "2155": {
+      "reviews": 4684,
+      "updates": 1
+    },
+    "2433": {
+      "reviews": 14639,
+      "updates": 1
+    },
+    "2463": {
+      "reviews": 53421,
+      "updates": 1
+    },
+    "2519": {
+      "reviews": 8114,
+      "updates": 1
+    },
+    "2563": {
+      "reviews": 13718,
+      "updates": 1
+    },
+    "2723": {
+      "reviews": 347770,
+      "updates": 6
+    },
+    "2774": {
+      "reviews": 21575,
+      "updates": 1
+    },
+    "2869": {
+      "reviews": 58797,
+      "updates": 1
+    },
+    "3119": {
+      "reviews": 399114,
+      "updates": 7
+    },
+    "3123": {
+      "reviews": 136575,
+      "updates": 3
+    },
+    "3299": {
+      "reviews": 104858,
+      "updates": 2
+    },
+    "3333": {
+      "reviews": 29811,
+      "updates": 1
+    },
+    "3369": {
+      "reviews": 12950,
+      "updates": 1
+    },
+    "3379": {
+      "reviews": 58455,
+      "updates": 1
+    },
+    "3727": {
+      "reviews": 20688,
+      "updates": 1
+    },
+    "3738": {
+      "reviews": 27280,
+      "updates": 1
+    },
+    "3755": {
+      "reviews": 10757,
+      "updates": 1
+    },
+    "3793": {
+      "reviews": 20486,
+      "updates": 1
+    },
+    "3849": {
+      "reviews": 156813,
+      "updates": 3
+    },
+    "3893": {
+      "reviews": 9359,
+      "updates": 1
+    },
+    "3914": {
+      "reviews": 143121,
+      "updates": 3
+    },
+    "3930": {
+      "reviews": 37967,
+      "updates": 1
+    },
+    "3958": {
+      "reviews": 29278,
+      "updates": 1
+    },
+    "4119": {
+      "reviews": 42621,
+      "updates": 1
+    },
+    "4145": {
+      "reviews": 60768,
+      "updates": 1
+    },
+    "4197": {
+      "reviews": 48906,
+      "updates": 1
+    },
+    "4206": {
+      "reviews": 17198,
+      "updates": 1
+    },
+    "4214": {
+      "reviews": 12001,
+      "updates": 1
+    },
+    "4286": {
+      "reviews": 42501,
+      "updates": 1
+    },
+    "4338": {
+      "reviews": 8192,
+      "updates": 1
+    },
+    "4455": {
+      "reviews": 8703,
+      "updates": 1
+    },
+    "4491": {
+      "reviews": 350533,
+      "updates": 6
+    },
+    "4561": {
+      "reviews": 10749,
+      "updates": 1
+    }
+  },
+  "peak_allocated_mib": 9330.1669921875,
+  "peak_reserved_mib": 12496.0,
+  "allocator_stats": {
+    "num_alloc_retries": 0,
+    "num_ooms": 0,
+    "num_device_alloc": 649,
+    "num_device_free": 37
+  },
+  "trained_parameter_sha256": "8141e9b120b6b3c3911c5b91c77ea450ec99e14ec3ff4c8243083220da04eb8b",
+  "validation_input_sha256": "d1511d463bc3f5556289475b966c56c734e5f7b164e964c32c07b77faf6f7a53",
+  "evaluation_context": {
+    "driver_version": "617.14",
+    "nvrtc_version": "12.8",
+    "backend": "{\"recurrence_kernel\": {\"checkpoint_tile\": 32, \"compact_previous_state\": false, \"recurrence_load_pipeline\": 0, \"recurrence_prefetch\": false, \"rows_per_thread\": 4, \"threads_per_block\": 256, \"wave_aware_backward\": false}, \"wkv_backend\": \"nvrtc\"}",
+    "deterministic_algorithms": true,
+    "cublas_workspace_config": ":4096:8",
+    "evaluation_dtype": "bfloat16",
+    "prepared_input_sha256": "d1511d463bc3f5556289475b966c56c734e5f7b164e964c32c07b77faf6f7a53",
+    "evaluation_source_sha256": "a4cddd69ed7ce56f101339eee45464bddc05e16b1557816c74143bcdc9b698b1",
+    "runtime": {
+      "torch": "2.9.1+cu128",
+      "numpy": "2.5.4",
+      "cupy": "14.2.0",
+      "nvrtc_package": "none",
+      "cuda_path": "C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v13.4",
+      "driver_version": "617.14",
+      "gpu_name": "NVIDIA GeForce RTX 5080"
+    }
+  },
+  "evaluation_reuse": {
+    "status": "reused",
+    "label": "held-out scores reused from an exact replica",
+    "proof_seconds": 18.901746400006232,
+    "loss_provenance": {
+      "method": "deterministic evaluation reuse after verified final-parameter and prepared-input hashes",
+      "origin_result": "C:\\Users\\jonat\\workspace\\anki-rwkv\\artifacts\\retraining\\gpu-retrain-r01\\iteration-0084\\replicates\\r1\\expertium\\E80-F33b-F57-F90\\result.json",
+      "origin_result_sha256": "8ceee16f2a273e74665dd204879486e9b4e4e9b1e14694a9fba7802011c30385",
+      "trained_parameter_sha256": "8141e9b120b6b3c3911c5b91c77ea450ec99e14ec3ff4c8243083220da04eb8b",
+      "validation_input_sha256": "d1511d463bc3f5556289475b966c56c734e5f7b164e964c32c07b77faf6f7a53",
+      "implementation_sha256": "82bd4dc443f5ea0ccc0ada3eea2739a0f1a0744cce2250a45cb6a082bfe33ebb",
+      "evaluation_context": {
+        "driver_version": "617.14",
+        "nvrtc_version": "12.8",
+        "backend": "{\"recurrence_kernel\": {\"checkpoint_tile\": 32, \"compact_previous_state\": false, \"recurrence_load_pipeline\": 0, \"recurrence_prefetch\": false, \"rows_per_thread\": 4, \"threads_per_block\": 256, \"wave_aware_backward\": false}, \"wkv_backend\": \"nvrtc\"}",
+        "deterministic_algorithms": true,
+        "cublas_workspace_config": ":4096:8",
+        "evaluation_dtype": "bfloat16",
+        "prepared_input_sha256": "d1511d463bc3f5556289475b966c56c734e5f7b164e964c32c07b77faf6f7a53",
+        "evaluation_source_sha256": "a4cddd69ed7ce56f101339eee45464bddc05e16b1557816c74143bcdc9b698b1",
+        "runtime": {
+          "torch": "2.9.1+cu128",
+          "numpy": "2.5.4",
+          "cupy": "14.2.0",
+          "nvrtc_package": "none",
+          "cuda_path": "C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v13.4",
+          "driver_version": "617.14",
+          "gpu_name": "NVIDIA GeForce RTX 5080"
+        }
+      },
+      "origin_validation_seconds": 27.086932599999272,
+      "origin_provenance": {
+        "captured_utc": "2026-10-13T16:47:19.705849+00:00",
+        "git_commit": "85fdb0ae3c65a46e759830f145bfdf8da9fa609c",
+        "git_dirty": true,
+        "git_status_porcelain_z": "?? isolation.json\u0000",
+        "source_tree_sha256": "c31a10d18dda44f7ef29c222acfdb15985e14b9299560fbc6a848f96ca6e5646",
+        "source_archive": "artifacts/sources/experiment-sources/c31a10d18dda44f7ef29c222acfdb15985e14b9299560fbc6a848f96ca6e5646/source.zip",
+        "source_paths": [
+          "rwkv",
+          "expertium",
+          "scripts",
+          "configs",
+          "pyproject.toml",
+          "uv.lock",
+          "justfile",
+          "upstream.json"
+        ]
+      }
+    }
+  },
+  "validation_seconds": 19.252220100002887,
+  "per_user": [
+    {
+      "user_id": 29,
+      "curve_labels": 15369,
+      "instant_labels": 15369,
+      "curve_log_loss": 0.6892927626028005,
+      "curve_raw_log_loss": 0.7569528811847747,
+      "instant_log_loss": 0.7360950623610992,
+      "instant_rating_cross_entropy": 1.3505739428496126
+    },
+    {
+      "user_id": 58,
+      "curve_labels": 5528,
+      "instant_labels": 5528,
+      "curve_log_loss": 0.33397302286788366,
+      "curve_raw_log_loss": 0.32216364890606547,
+      "instant_log_loss": 0.32755755136050985,
+      "instant_rating_cross_entropy": 0.9860394071739075
+    },
+    {
+      "user_id": 202,
+      "curve_labels": 10768,
+      "instant_labels": 10768,
+      "curve_log_loss": 0.22326112132004697,
+      "curve_raw_log_loss": 0.20384703016249023,
+      "instant_log_loss": 0.20977224797054705,
+      "instant_rating_cross_entropy": 1.0823584074849182
+    },
+    {
+      "user_id": 398,
+      "curve_labels": 11357,
+      "instant_labels": 11357,
+      "curve_log_loss": 0.48211043346218946,
+      "curve_raw_log_loss": 0.5133711053885929,
+      "instant_log_loss": 0.49927481184167805,
+      "instant_rating_cross_entropy": 1.5237461299011172
+    },
+    {
+      "user_id": 401,
+      "curve_labels": 44468,
+      "instant_labels": 44468,
+      "curve_log_loss": 0.21522461832389994,
+      "curve_raw_log_loss": 0.2453624914838672,
+      "instant_log_loss": 0.2169812509478924,
+      "instant_rating_cross_entropy": 1.5067278894764105
+    },
+    {
+      "user_id": 467,
+      "curve_labels": 138535,
+      "instant_labels": 138535,
+      "curve_log_loss": 0.44583404950847844,
+      "curve_raw_log_loss": 0.4680325436350947,
+      "instant_log_loss": 0.46359259615423926,
+      "instant_rating_cross_entropy": 0.8635673680906798
+    },
+    {
+      "user_id": 750,
+      "curve_labels": 4811,
+      "instant_labels": 4811,
+      "curve_log_loss": 0.3071913270314997,
+      "curve_raw_log_loss": 0.31901726782371487,
+      "instant_log_loss": 0.3216353459854776,
+      "instant_rating_cross_entropy": 0.8156289258188578
+    },
+    {
+      "user_id": 1173,
+      "curve_labels": 19571,
+      "instant_labels": 19571,
+      "curve_log_loss": 0.7786125181875063,
+      "curve_raw_log_loss": 0.8819864852799629,
+      "instant_log_loss": 0.8551953330207362,
+      "instant_rating_cross_entropy": 1.8621727367955854
+    },
+    {
+      "user_id": 1526,
+      "curve_labels": 14989,
+      "instant_labels": 14989,
+      "curve_log_loss": 0.6153234675068321,
+      "curve_raw_log_loss": 0.6077144811164387,
+      "instant_log_loss": 0.6279354951850759,
+      "instant_rating_cross_entropy": 1.1275083893525195
+    },
+    {
+      "user_id": 1715,
+      "curve_labels": 7236,
+      "instant_labels": 7236,
+      "curve_log_loss": 0.21289704512081928,
+      "curve_raw_log_loss": 0.223620625518596,
+      "instant_log_loss": 0.21869446336399329,
+      "instant_rating_cross_entropy": 0.6867939007997249
+    },
+    {
+      "user_id": 1798,
+      "curve_labels": 165409,
+      "instant_labels": 165409,
+      "curve_log_loss": 0.41964188029871463,
+      "curve_raw_log_loss": 0.42695794344641674,
+      "instant_log_loss": 0.4220107902985932,
+      "instant_rating_cross_entropy": 1.1071643264876467
+    },
+    {
+      "user_id": 2040,
+      "curve_labels": 42980,
+      "instant_labels": 42980,
+      "curve_log_loss": 0.2542544458635245,
+      "curve_raw_log_loss": 0.2653090191894961,
+      "instant_log_loss": 0.26429324223308465,
+      "instant_rating_cross_entropy": 1.0600107233473843
+    },
+    {
+      "user_id": 2465,
+      "curve_labels": 4823,
+      "instant_labels": 4823,
+      "curve_log_loss": 0.19194410777786522,
+      "curve_raw_log_loss": 0.22425554477399795,
+      "instant_log_loss": 0.18096207554054142,
+      "instant_rating_cross_entropy": 0.7042170328988145
+    },
+    {
+      "user_id": 2754,
+      "curve_labels": 17506,
+      "instant_labels": 17506,
+      "curve_log_loss": 0.512729655519276,
+      "curve_raw_log_loss": 0.5491265108397957,
+      "instant_log_loss": 0.5430168566752281,
+      "instant_rating_cross_entropy": 1.0564774478161443
+    },
+    {
+      "user_id": 2846,
+      "curve_labels": 102618,
+      "instant_labels": 102618,
+      "curve_log_loss": 0.2581356405281347,
+      "curve_raw_log_loss": 0.26516043989540655,
+      "instant_log_loss": 0.263045894992533,
+      "instant_rating_cross_entropy": 1.0020390689447365
+    },
+    {
+      "user_id": 2981,
+      "curve_labels": 8770,
+      "instant_labels": 8770,
+      "curve_log_loss": 0.21760380732462642,
+      "curve_raw_log_loss": 0.23800931123160718,
+      "instant_log_loss": 0.21398158492085056,
+      "instant_rating_cross_entropy": 0.775567421884602
+    },
+    {
+      "user_id": 2986,
+      "curve_labels": 12830,
+      "instant_labels": 12830,
+      "curve_log_loss": 0.17761519655922103,
+      "curve_raw_log_loss": 0.20740950555190013,
+      "instant_log_loss": 0.2000771639222571,
+      "instant_rating_cross_entropy": 1.016982193724401
+    },
+    {
+      "user_id": 4160,
+      "curve_labels": 41137,
+      "instant_labels": 41137,
+      "curve_log_loss": 0.34961663576421054,
+      "curve_raw_log_loss": 0.3621501647238223,
+      "instant_log_loss": 0.36591459272854654,
+      "instant_rating_cross_entropy": 0.8248238127250203
+    },
+    {
+      "user_id": 4216,
+      "curve_labels": 12660,
+      "instant_labels": 12660,
+      "curve_log_loss": 0.22370774319033487,
+      "curve_raw_log_loss": 0.23614660135895532,
+      "instant_log_loss": 0.2160327567873408,
+      "instant_rating_cross_entropy": 1.0945439961613825
+    },
+    {
+      "user_id": 4803,
+      "curve_labels": 60585,
+      "instant_labels": 60585,
+      "curve_log_loss": 0.49878996468528897,
+      "curve_raw_log_loss": 0.49470657766839304,
+      "instant_log_loss": 0.5057801545960011,
+      "instant_rating_cross_entropy": 1.3408844673241032
+    }
+  ],
+  "evaluation": {
+    "curve_labels": 741950,
+    "curve_log_loss_label_weighted": 0.3874726840790628,
+    "curve_log_loss_user_average": 0.37038797217215763,
+    "instant_labels": 741950,
+    "instant_log_loss_label_weighted": 0.3984285960019747,
+    "instant_log_loss_user_average": 0.3825924635443113
+  },
+  "case_elapsed_seconds": 63.88004849999561,
+  "iteration": "0086",
+  "execution_mode": {
+    "torch_graph_executor_optimize": false,
+    "deterministic_algorithms": true,
+    "CUBLAS_WORKSPACE_CONFIG": ":4096:8",
+    "wkv_tile": 32,
+    "fill_uninitialized_memory": false
+  },
+  "checkpoint_saves": [
+    {
+      "elapsed_seconds": 0.020740699997986667,
+      "path": "artifacts/retraining/gpu-retrain-r01/iteration-0086/replicates/r1/expertium/E80-F33b-F57-F90/master.pth"
+    }
+  ],
+  "protocol_sha256": "c4fb310a25b1d5437d16ea8785cb62be2076f4352ac6e45394f5d098dd514032",
+  "process_wall_seconds": 65.3199234008789,
+  "evaluation_scope": "unseen users; complete histories, chunked at 128 reviews; no gradient updates or fitting on held-out users",
+  "quality_status": "preliminary screen; broader validation pending"
+}

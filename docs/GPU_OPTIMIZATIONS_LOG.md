@@ -1054,3 +1054,129 @@ Implementation commit after experiments: `187c81ad028aa78da1b18c348a1ae23b8ac612
 Implementation commit after experiments: `187c81ad028aa78da1b18c348a1ae23b8ac61228`. Tested revision remains `72b00c62f6997e2e546a756dc6e3572a37b9e8b3` with per-process source snapshots in the linked raw results and iteration record; [commit record](../artifacts/retraining/gpu-retrain-r01/iteration-0079/implementation-commit.json).
 
 <!-- r01-0079:end -->
+
+<!-- r01-0080:start -->
+## R01 iteration 0080
+
+[Iteration record](../artifacts/retraining/gpu-retrain-r01/iteration-0080/summary.md)
+
+| Training start (UTC) | Trial commit | Model | Improvement IDs | What was tried | Training users reached | Training reviews | Training seconds | Reviews/s | Speed Δ vs previous | Speed Δ vs baseline | Instant User | Instant User Δ vs previous | Instant User Δ vs baseline | Instant Weighted | Instant Weighted Δ vs previous | Instant Weighted Δ vs baseline | Curve User | Curve User Δ vs previous | Curve User Δ vs baseline | Curve Weighted | Curve Weighted Δ vs previous | Curve Weighted Δ vs baseline | Raw result | Notes |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 2026-10-13T15:38:09.543949+00:00 | `a58fd9223ba8646ac947223bed9cab70851adb97` | Expertium (light) | E79, F65d | F65d moves the exact shift-gather (F26, two per layer instance) and padded row-select (F27/F50, one per split) autograd from Python Functions to the native dispatcher, removing Python backward nodes while launching the same kernels. E79 aliases the accepted 0079 options for Windows path length. | 2 | 1,024 | 4.426 | 231 | — | — | 0.433909490 | — | — | 0.421975411 | — | — | 0.423755109 | — | — | 0.416540190 | — | — | [result](../artifacts/retraining/gpu-retrain-r01/iteration-0080/functional-smoke-v1/expertium/E79-F65d/result.json) | Infrastructure check; excluded from comparisons. Declared schedule change: 512-chunk batches, 2 updates. |
+| 2026-10-13T15:40:10.324975+00:00 | `a58fd9223ba8646ac947223bed9cab70851adb97` | Expertium (light) | E79, F65d | F65d moves the exact shift-gather (F26, two per layer instance) and padded row-select (F27/F50, one per split) autograd from Python Functions to the native dispatcher, removing Python backward nodes while launching the same kernels. E79 aliases the accepted 0079 options for Windows path length. | 80 | 7,654,975 | 38.207 | 200,356 | +9.96% | +567.74% | 0.382592464 | +0.00% | -0.99% | 0.398428596 | +0.00% | -0.76% | 0.370387972 | +0.00% | -4.48% | 0.387472684 | +0.00% | -3.25% | [result](../artifacts/retraining/gpu-retrain-r01/iteration-0080/expertium/E79-F65d/result.json) | Declared schedule change: 512-chunk batches, 167 updates. |
+
+Implementation commit after experiments: `7fced6223659f08303718bd8e14055f3f4c956a4`. Tested revision remains `a58fd9223ba8646ac947223bed9cab70851adb97` with per-process source snapshots in the linked raw results and iteration record; [commit record](../artifacts/retraining/gpu-retrain-r01/iteration-0080/implementation-commit.json).
+
+<!-- r01-0080:end -->
+
+<!-- r01-0081:start -->
+## R01 iteration 0081
+
+[Iteration record](../artifacts/retraining/gpu-retrain-r01/iteration-0081/summary.md)
+
+| Training start (UTC) | Trial commit | Model | Improvement IDs | What was tried | Training users reached | Training reviews | Training seconds | Reviews/s | Speed Δ vs previous | Speed Δ vs baseline | Instant User | Instant User Δ vs previous | Instant User Δ vs baseline | Instant Weighted | Instant Weighted Δ vs previous | Instant Weighted Δ vs baseline | Curve User | Curve User Δ vs previous | Curve User Δ vs baseline | Curve Weighted | Curve Weighted Δ vs previous | Curve Weighted Δ vs baseline | Raw result | Notes |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 2026-10-13T15:47:05.476268+00:00 | `e96f138072e27b3bf133006d9b9c6a056e5f9626` | Expertium (light) | E80, F65e | F65e replaces three unfused pointwise chains per layer instance (time-mixer bonus products r*bonus*k and gate g*(out+bonus), channel-mixer relu squared) with native single-launch ops whose backward is native too, using the exact F34 kernels whose Python wrappers previously cost more than they saved. E80 aliases the accepted 0080 options. | 2 | 1,024 | 4.261 | 240 | — | — | 0.433909490 | — | — | 0.421975411 | — | — | 0.423755109 | — | — | 0.416540190 | — | — | [result](../artifacts/retraining/gpu-retrain-r01/iteration-0081/functional-smoke-v1/expertium/E80-F65e/result.json) | Infrastructure check; excluded from comparisons. Declared schedule change: 512-chunk batches, 2 updates. |
+| 2026-10-13T15:49:34.776884+00:00 | `e96f138072e27b3bf133006d9b9c6a056e5f9626` | Expertium (light) | E80, F65e | F65e replaces three unfused pointwise chains per layer instance (time-mixer bonus products r*bonus*k and gate g*(out+bonus), channel-mixer relu squared) with native single-launch ops whose backward is native too, using the exact F34 kernels whose Python wrappers previously cost more than they saved. E80 aliases the accepted 0080 options. | 80 | 7,654,975 | 38.292 | 199,913 | -0.22% | +566.26% | 0.382592464 | +0.00% | -0.99% | 0.398428596 | +0.00% | -0.76% | 0.370387972 | +0.00% | -4.48% | 0.387472684 | +0.00% | -3.25% | [result](../artifacts/retraining/gpu-retrain-r01/iteration-0081/expertium/E80-F65e/result.json) | Declared schedule change: 512-chunk batches, 167 updates. |
+
+Implementation commit after experiments: `7fced6223659f08303718bd8e14055f3f4c956a4`. Tested revision remains `e96f138072e27b3bf133006d9b9c6a056e5f9626` with per-process source snapshots in the linked raw results and iteration record; [commit record](../artifacts/retraining/gpu-retrain-r01/iteration-0081/implementation-commit.json).
+
+<!-- r01-0081:end -->
+
+<!-- r01-0082:start -->
+## R01 iteration 0082
+
+[Iteration record](../artifacts/retraining/gpu-retrain-r01/iteration-0082/summary.md)
+
+| Training start (UTC) | Trial commit | Model | Improvement IDs | What was tried | Training users reached | Training reviews | Training seconds | Reviews/s | Speed Δ vs previous | Speed Δ vs baseline | Instant User | Instant User Δ vs previous | Instant User Δ vs baseline | Instant Weighted | Instant Weighted Δ vs previous | Instant Weighted Δ vs baseline | Curve User | Curve User Δ vs previous | Curve User Δ vs baseline | Curve Weighted | Curve Weighted Δ vs previous | Curve Weighted Δ vs baseline | Raw result | Notes |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 2026-10-13T16:08:12.811894+00:00 | `ab18ebcbbf5012a1e6d65be6449584c722da3f73` | Expertium (light) | E80, F33b | F33b keeps two queued updates' loss/norm reads outstanding instead of one, so the host can enqueue the next update while a large GPU-bound update is still running rather than blocking on the previous one. E80 aliases the accepted 0080 options. | 2 | 1,024 | 0.677 | 1,512 | — | — | 0.433909490 | — | — | 0.421975411 | — | — | 0.423755109 | — | — | 0.416540190 | — | — | [result](../artifacts/retraining/gpu-retrain-r01/iteration-0082/functional-smoke-v1/expertium/E80-F33b/result.json) | Infrastructure check; excluded from comparisons. Declared schedule change: 512-chunk batches, 2 updates. |
+| 2026-10-13T16:10:20.384573+00:00 | `ab18ebcbbf5012a1e6d65be6449584c722da3f73` | Expertium (light) | E80, F33b | F33b keeps two queued updates' loss/norm reads outstanding instead of one, so the host can enqueue the next update while a large GPU-bound update is still running rather than blocking on the previous one. E80 aliases the accepted 0080 options. | 80 | 7,654,975 | 38.860 | 196,987 | -1.68% | +556.51% | 0.382592464 | +0.00% | -0.99% | 0.398428596 | +0.00% | -0.76% | 0.370387972 | +0.00% | -4.48% | 0.387472684 | +0.00% | -3.25% | [result](../artifacts/retraining/gpu-retrain-r01/iteration-0082/expertium/E80-F33b/result.json) | Declared schedule change: 512-chunk batches, 167 updates. |
+
+Implementation commit after experiments: `7fced6223659f08303718bd8e14055f3f4c956a4`. Tested revision remains `ab18ebcbbf5012a1e6d65be6449584c722da3f73` with per-process source snapshots in the linked raw results and iteration record; [commit record](../artifacts/retraining/gpu-retrain-r01/iteration-0082/implementation-commit.json).
+
+<!-- r01-0082:end -->
+
+<!-- r01-0083:start -->
+## R01 iteration 0083
+
+[Iteration record](../artifacts/retraining/gpu-retrain-r01/iteration-0083/summary.md)
+
+| Training start (UTC) | Trial commit | Model | Improvement IDs | What was tried | Training users reached | Training reviews | Training seconds | Reviews/s | Speed Δ vs previous | Speed Δ vs baseline | Instant User | Instant User Δ vs previous | Instant User Δ vs baseline | Instant Weighted | Instant Weighted Δ vs previous | Instant Weighted Δ vs baseline | Curve User | Curve User Δ vs previous | Curve User Δ vs baseline | Curve Weighted | Curve Weighted Δ vs previous | Curve Weighted Δ vs baseline | Raw result | Notes |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 2026-10-13T16:27:57.931533+00:00 | `125d0f864e1df4c0c526f25a6b080c6472512b80` | Expertium (light) | E80, F33b, F57, F90 | Stacks three small exact changes on accepted 0080 (E80): F33b two outstanding loss/norm reads (0082 stack candidate, +0.55%), F57 RSS sampling and progress JSON every eight users instead of every user, and F90 native WKV checkpoint tile 16 (fewer registers per recompute tile). E80 aliases the accepted 0080 options. | 2 | 1,024 | 0.686 | 1,493 | — | — | 0.433909490 | — | — | 0.421975411 | — | — | 0.423755109 | — | — | 0.416540190 | — | — | [result](../artifacts/retraining/gpu-retrain-r01/iteration-0083/functional-smoke-v1/expertium/E80-F33b-F57-F90/result.json) | Infrastructure check; excluded from comparisons. Declared schedule change: 512-chunk batches, 2 updates. |
+| 2026-10-13T16:29:41.665075+00:00 | `125d0f864e1df4c0c526f25a6b080c6472512b80` | Expertium (light) | E80, F33b, F57, F90 | Stacks three small exact changes on accepted 0080 (E80): F33b two outstanding loss/norm reads (0082 stack candidate, +0.55%), F57 RSS sampling and progress JSON every eight users instead of every user, and F90 native WKV checkpoint tile 16 (fewer registers per recompute tile). E80 aliases the accepted 0080 options. | 80 | 7,654,975 | 40.819 | 187,535 | -6.40% | +525.01% | 0.382592464 | +0.00% | -0.99% | 0.398428596 | +0.00% | -0.76% | 0.370387972 | +0.00% | -4.48% | 0.387472684 | +0.00% | -3.25% | [result](../artifacts/retraining/gpu-retrain-r01/iteration-0083/expertium/E80-F33b-F57-F90/result.json) | Declared schedule change: 512-chunk batches, 167 updates. |
+
+Implementation commit after experiments: `7fced6223659f08303718bd8e14055f3f4c956a4`. Tested revision remains `125d0f864e1df4c0c526f25a6b080c6472512b80` with per-process source snapshots in the linked raw results and iteration record; [commit record](../artifacts/retraining/gpu-retrain-r01/iteration-0083/implementation-commit.json).
+
+<!-- r01-0083:end -->
+
+<!-- r01-0084:start -->
+## R01 iteration 0084
+
+[Iteration record](../artifacts/retraining/gpu-retrain-r01/iteration-0084/summary.md)
+
+| Training start (UTC) | Trial commit | Model | Improvement IDs | What was tried | Training users reached | Training reviews | Training seconds | Reviews/s | Speed Δ vs previous | Speed Δ vs baseline | Instant User | Instant User Δ vs previous | Instant User Δ vs baseline | Instant Weighted | Instant Weighted Δ vs previous | Instant Weighted Δ vs baseline | Curve User | Curve User Δ vs previous | Curve User Δ vs baseline | Curve Weighted | Curve Weighted Δ vs previous | Curve Weighted Δ vs baseline | Raw result | Notes |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 2026-10-13T16:47:00.484624+00:00 | `85fdb0ae3c65a46e759830f145bfdf8da9fa609c` | Expertium (light) | E83, F90b | Native exact WKV checkpoint tile 8 instead of 16 on the accepted 0083 stack: the backward recomputes from four times the tile-32 checkpoints with smaller per-thread chunk arrays. | 2 | 1,024 | 4.302 | 238 | — | — | 0.433909490 | — | — | 0.421975411 | — | — | 0.423755109 | — | — | 0.416540190 | — | — | [result](../artifacts/retraining/gpu-retrain-r01/iteration-0084/functional-smoke-v1/expertium/E83-F90b/result.json) | Infrastructure check; excluded from comparisons. Declared schedule change: 512-chunk batches, 2 updates. |
+| 2026-10-13T16:48:58.163210+00:00 | `85fdb0ae3c65a46e759830f145bfdf8da9fa609c` | Expertium (light) | E83, F90b | Native exact WKV checkpoint tile 8 instead of 16 on the accepted 0083 stack: the backward recomputes from four times the tile-32 checkpoints with smaller per-thread chunk arrays. | 80 | 7,654,975 | 65.290 | 117,246 | -37.48% | +290.75% | 0.382592464 | +0.00% | -0.99% | 0.398428596 | +0.00% | -0.76% | 0.370387972 | +0.00% | -4.48% | 0.387472684 | +0.00% | -3.25% | [result](../artifacts/retraining/gpu-retrain-r01/iteration-0084/expertium/E83-F90b/result.json) | Declared schedule change: 512-chunk batches, 167 updates. |
+
+Implementation commit after experiments: `7fced6223659f08303718bd8e14055f3f4c956a4`. Tested revision remains `85fdb0ae3c65a46e759830f145bfdf8da9fa609c` with per-process source snapshots in the linked raw results and iteration record; [commit record](../artifacts/retraining/gpu-retrain-r01/iteration-0084/implementation-commit.json).
+
+<!-- r01-0084:end -->
+
+<!-- r01-0085:start -->
+## R01 iteration 0085
+
+[Iteration record](../artifacts/retraining/gpu-retrain-r01/iteration-0085/summary.md)
+
+| Training start (UTC) | Trial commit | Model | Improvement IDs | What was tried | Training users reached | Training reviews | Training seconds | Reviews/s | Speed Δ vs previous | Speed Δ vs baseline | Instant User | Instant User Δ vs previous | Instant User Δ vs baseline | Instant Weighted | Instant Weighted Δ vs previous | Instant Weighted Δ vs baseline | Curve User | Curve User Δ vs previous | Curve User Δ vs baseline | Curve Weighted | Curve Weighted Δ vs previous | Curve Weighted Δ vs baseline | Raw result | Notes |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 2026-10-13T16:54:32.217839+00:00 | `da54bb00efb78c11aedf9d01f2fc56bbd60ddf56` | Expertium (light) | E83, F86b | Dispatching main process at HIGH_PRIORITY_CLASS instead of above-normal (workers stay above-normal) on the accepted 0083 stack. | 2 | 1,024 | 0.676 | 1,515 | — | — | 0.433909490 | — | — | 0.421975411 | — | — | 0.423755109 | — | — | 0.416540190 | — | — | [result](../artifacts/retraining/gpu-retrain-r01/iteration-0085/functional-smoke-v1/expertium/E83-F86b/result.json) | Infrastructure check; excluded from comparisons. Declared schedule change: 512-chunk batches, 2 updates. |
+| 2026-10-13T16:56:15.706774+00:00 | `da54bb00efb78c11aedf9d01f2fc56bbd60ddf56` | Expertium (light) | E83, F86b | Dispatching main process at HIGH_PRIORITY_CLASS instead of above-normal (workers stay above-normal) on the accepted 0083 stack. | 80 | 7,654,975 | 39.522 | 193,691 | +3.28% | +545.52% | 0.382592464 | +0.00% | -0.99% | 0.398428596 | +0.00% | -0.76% | 0.370387972 | +0.00% | -4.48% | 0.387472684 | +0.00% | -3.25% | [result](../artifacts/retraining/gpu-retrain-r01/iteration-0085/expertium/E83-F86b/result.json) | Declared schedule change: 512-chunk batches, 167 updates. |
+
+Implementation commit after experiments: `7fced6223659f08303718bd8e14055f3f4c956a4`. Tested revision remains `da54bb00efb78c11aedf9d01f2fc56bbd60ddf56` with per-process source snapshots in the linked raw results and iteration record; [commit record](../artifacts/retraining/gpu-retrain-r01/iteration-0085/implementation-commit.json).
+
+<!-- r01-0085:end -->
+
+<!-- r01-0086:start -->
+## R01 iteration 0086
+
+[Iteration record](../artifacts/retraining/gpu-retrain-r01/iteration-0086/summary.md)
+
+| Training start (UTC) | Trial commit | Model | Improvement IDs | What was tried | Training users reached | Training reviews | Training seconds | Reviews/s | Speed Δ vs previous | Speed Δ vs baseline | Instant User | Instant User Δ vs previous | Instant User Δ vs baseline | Instant Weighted | Instant Weighted Δ vs previous | Instant Weighted Δ vs baseline | Curve User | Curve User Δ vs previous | Curve User Δ vs baseline | Curve Weighted | Curve Weighted Δ vs previous | Curve Weighted Δ vs baseline | Raw result | Notes |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 2026-10-13T17:00:55.924467+00:00 | `cb9eebaab4c9b639ba09892a91a85179be5da8aa` | Expertium (light) | E83, F33c | Loss/norm/finite reads deferred by three queued updates instead of two on the accepted 0083 stack. | 2 | 1,024 | 0.680 | 1,506 | — | — | 0.433909490 | — | — | 0.421975411 | — | — | 0.423755109 | — | — | 0.416540190 | — | — | [result](../artifacts/retraining/gpu-retrain-r01/iteration-0086/functional-smoke-v1/expertium/E83-F33c/result.json) | Infrastructure check; excluded from comparisons. Declared schedule change: 512-chunk batches, 2 updates. |
+| 2026-10-13T17:02:29.378846+00:00 | `cb9eebaab4c9b639ba09892a91a85179be5da8aa` | Expertium (light) | E83, F33c | Loss/norm/finite reads deferred by three queued updates instead of two on the accepted 0083 stack. | 80 | 7,654,975 | 40.675 | 188,198 | +0.35% | +527.22% | 0.382592464 | +0.00% | -0.99% | 0.398428596 | +0.00% | -0.76% | 0.370387972 | +0.00% | -4.48% | 0.387472684 | +0.00% | -3.25% | [result](../artifacts/retraining/gpu-retrain-r01/iteration-0086/expertium/E83-F33c/result.json) | Declared schedule change: 512-chunk batches, 167 updates. |
+
+Implementation commit after experiments: `7fced6223659f08303718bd8e14055f3f4c956a4`. Tested revision remains `cb9eebaab4c9b639ba09892a91a85179be5da8aa` with per-process source snapshots in the linked raw results and iteration record; [commit record](../artifacts/retraining/gpu-retrain-r01/iteration-0086/implementation-commit.json).
+
+<!-- r01-0086:end -->
+
+<!-- r01-0087:start -->
+## R01 iteration 0087
+
+[Iteration record](../artifacts/retraining/gpu-retrain-r01/iteration-0087/summary.md)
+
+| Training start (UTC) | Trial commit | Model | Improvement IDs | What was tried | Training users reached | Training reviews | Training seconds | Reviews/s | Speed Δ vs previous | Speed Δ vs baseline | Instant User | Instant User Δ vs previous | Instant User Δ vs baseline | Instant Weighted | Instant Weighted Δ vs previous | Instant Weighted Δ vs baseline | Curve User | Curve User Δ vs previous | Curve User Δ vs baseline | Curve Weighted | Curve Weighted Δ vs previous | Curve Weighted Δ vs baseline | Raw result | Notes |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 2026-10-13T17:07:22.834846+00:00 | `fa72498bf8585aad0743222c428cd0023ba473a7` | Expertium (light) | E83, F77a | Flush the WDDM software command queue with a stream query after the forward and after the backward on the accepted 0083 stack. | 2 | 1,024 | 0.689 | 1,486 | — | — | 0.433909490 | — | — | 0.421975411 | — | — | 0.423755109 | — | — | 0.416540190 | — | — | [result](../artifacts/retraining/gpu-retrain-r01/iteration-0087/functional-smoke-v1/expertium/E83-F77a/result.json) | Infrastructure check; excluded from comparisons. Declared schedule change: 512-chunk batches, 2 updates. |
+| 2026-10-13T17:09:13.284249+00:00 | `fa72498bf8585aad0743222c428cd0023ba473a7` | Expertium (light) | E83, F77a | Flush the WDDM software command queue with a stream query after the forward and after the backward on the accepted 0083 stack. | 80 | 7,654,975 | 37.736 | 202,858 | +8.17% | +576.08% | 0.382592464 | +0.00% | -0.99% | 0.398428596 | +0.00% | -0.76% | 0.370387972 | +0.00% | -4.48% | 0.387472684 | +0.00% | -3.25% | [result](../artifacts/retraining/gpu-retrain-r01/iteration-0087/expertium/E83-F77a/result.json) | Declared schedule change: 512-chunk batches, 167 updates. |
+
+Implementation commit after experiments: `7fced6223659f08303718bd8e14055f3f4c956a4`. Tested revision remains `fa72498bf8585aad0743222c428cd0023ba473a7` with per-process source snapshots in the linked raw results and iteration record; [commit record](../artifacts/retraining/gpu-retrain-r01/iteration-0087/implementation-commit.json).
+
+<!-- r01-0087:end -->
+
+<!-- r01-0088:start -->
+## R01 iteration 0088
+
+[Iteration record](../artifacts/retraining/gpu-retrain-r01/iteration-0088/summary.md)
+
+| Training start (UTC) | Trial commit | Model | Improvement IDs | What was tried | Training users reached | Training reviews | Training seconds | Reviews/s | Speed Δ vs previous | Speed Δ vs baseline | Instant User | Instant User Δ vs previous | Instant User Δ vs baseline | Instant Weighted | Instant Weighted Δ vs previous | Instant Weighted Δ vs baseline | Curve User | Curve User Δ vs previous | Curve User Δ vs baseline | Curve Weighted | Curve Weighted Δ vs previous | Curve Weighted Δ vs baseline | Raw result | Notes |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 2026-10-13T17:25:19.593093+00:00 | `e0408ff0b7563211d8f4a60f863e144256e04c45` | Expertium (light) | E83, F77a, F77b | Stack of stack candidate F77a (stream query after forward and backward) with F77b, an identity autograd node that flushes the WDDM queue at each of the five hierarchy-stream boundaries in forward and backward. | 2 | 1,024 | 0.655 | 1,563 | — | — | 0.433909490 | — | — | 0.421975411 | — | — | 0.423755109 | — | — | 0.416540190 | — | — | [result](../artifacts/retraining/gpu-retrain-r01/iteration-0088/functional-smoke-v1/expertium/E83-F77a-F77b/result.json) | Infrastructure check; excluded from comparisons. Declared schedule change: 512-chunk batches, 2 updates. |
+| 2026-10-13T17:27:12.413424+00:00 | `e0408ff0b7563211d8f4a60f863e144256e04c45` | Expertium (light) | E83, F77a, F77b | Stack of stack candidate F77a (stream query after forward and backward) with F77b, an identity autograd node that flushes the WDDM queue at each of the five hierarchy-stream boundaries in forward and backward. | 80 | 7,654,975 | 40.089 | 190,948 | +1.82% | +536.38% | 0.382592464 | +0.00% | -0.99% | 0.398428596 | +0.00% | -0.76% | 0.370387972 | +0.00% | -4.48% | 0.387472684 | +0.00% | -3.25% | [result](../artifacts/retraining/gpu-retrain-r01/iteration-0088/expertium/E83-F77a-F77b/result.json) | Declared schedule change: 512-chunk batches, 167 updates. |
+
+Implementation commit after experiments: `7fced6223659f08303718bd8e14055f3f4c956a4`. Tested revision remains `e0408ff0b7563211d8f4a60f863e144256e04c45` with per-process source snapshots in the linked raw results and iteration record; [commit record](../artifacts/retraining/gpu-retrain-r01/iteration-0088/implementation-commit.json).
+
+<!-- r01-0088:end -->
