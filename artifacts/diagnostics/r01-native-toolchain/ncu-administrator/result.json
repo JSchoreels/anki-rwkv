@@ -1,0 +1,48 @@
+{
+  "status": "diagnostic completed",
+  "returncode": 0,
+  "command": [
+    "C:/Program Files/NVIDIA Corporation/Nsight Compute 2026.3.0/target/windows-desktop-win7-x64/ncu.exe",
+    "--kernel-name",
+    "regex:rwkv_exact.*backward_kernel",
+    "--nvtx",
+    "--nvtx-include",
+    "R01_T256_backward/",
+    "--launch-count",
+    "1",
+    "--section",
+    "WarpStateStats",
+    "--export",
+    "artifacts\\diagnostics\\r01-native-toolchain\\ncu-administrator\\recurrence",
+    "C:\\Users\\jonat\\workspace\\anki-rwkv\\.venv\\Scripts\\python.exe",
+    "-X",
+    "utf8",
+    "scripts/check_r01_dispatch_profile.py",
+    "--options",
+    "artifacts/retraining/gpu-retrain-r01/iteration-0042/selection.json",
+    "--output",
+    "artifacts\\diagnostics\\r01-native-toolchain\\ncu-administrator\\dispatch.json",
+    "--passes",
+    "1",
+    "--timeline-only"
+  ],
+  "provenance": {
+    "captured_utc": "2026-10-13T10:25:36.859556+00:00",
+    "git_commit": "7f73b6d94b9e9058670a8ef838dbf7352ecc2985",
+    "git_dirty": true,
+    "git_status_porcelain_z": " M artifacts/diagnostics/r01-round-0071-0075/handoff.json\u0000 M artifacts/diagnostics/r01-round-0071-0075/summary.md\u0000 M docs/GPU_OPTIMIZATIONS.md\u0000 M docs/R01_HOST_PATH.md\u0000 M expertium/model/rwkv_model.py\u0000 M scripts/check_r01_exact_options.py\u0000 M scripts/check_r01_nsight.py\u0000 M scripts/gpu_r01_prefetch.py\u0000 M scripts/gpu_r01_training.py\u0000 M scripts/profile_r01_dispatch.py\u0000 M scripts/r01_workflow.py\u0000 M scripts/report_gpu_r01_next.py\u0000 M scripts/run_gpu_r01.py\u0000?? rwkv/model/csrc/native_launch.cpp\u0000?? rwkv/model/native_launch.py\u0000?? scripts/check_r01_native_build.py\u0000?? scripts/check_r01_native_wkv.py\u0000",
+    "source_tree_sha256": "799dd3bf50e73a93bee142cbb64df63ad4f3a9ce54e2764149ee1ae7f3b6edc3",
+    "source_archive": "artifacts/sources/experiment-sources/799dd3bf50e73a93bee142cbb64df63ad4f3a9ce54e2764149ee1ae7f3b6edc3/source.zip",
+    "source_paths": [
+      "rwkv",
+      "expertium",
+      "scripts",
+      "configs",
+      "pyproject.toml",
+      "uv.lock",
+      "justfile",
+      "upstream.json"
+    ]
+  },
+  "permissions_changed": false
+}

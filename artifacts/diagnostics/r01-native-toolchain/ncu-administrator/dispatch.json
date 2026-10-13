@@ -1,0 +1,67 @@
+{
+  "options": {
+    "prefetch_users": true,
+    "preparation_workers": 6,
+    "gpu_packed_features": true,
+    "packed_ipc": true,
+    "async_transfer": true,
+    "batched_id_encodings": true,
+    "grouped_sync": true,
+    "main_threads": 1,
+    "bulk_transfer": true,
+    "parallel_evaluation": true,
+    "exact_shift": true,
+    "exact_index": true,
+    "batch_chunks": 512,
+    "gpu_memory_fraction": 0.95,
+    "fast_samples": true,
+    "prestart_pool": true,
+    "row_tiles_exact": 4,
+    "exact_group_norm": true,
+    "deferred_reads": true,
+    "shared_shift_orders": true,
+    "stream_launches": true,
+    "prefetch_rows": true,
+    "sync_free_loss": true,
+    "columnar_samples": true,
+    "skip_uninitialized_fill": true,
+    "skip_padding_sources": true
+  },
+  "provenance": {
+    "captured_utc": "2026-10-13T10:24:59.285080+00:00",
+    "git_commit": "7f73b6d94b9e9058670a8ef838dbf7352ecc2985",
+    "git_dirty": true,
+    "git_status_porcelain_z": " M artifacts/diagnostics/r01-round-0071-0075/handoff.json\u0000 M artifacts/diagnostics/r01-round-0071-0075/summary.md\u0000 M docs/GPU_OPTIMIZATIONS.md\u0000 M docs/R01_HOST_PATH.md\u0000 M expertium/model/rwkv_model.py\u0000 M scripts/check_r01_exact_options.py\u0000 M scripts/check_r01_nsight.py\u0000 M scripts/gpu_r01_prefetch.py\u0000 M scripts/gpu_r01_training.py\u0000 M scripts/profile_r01_dispatch.py\u0000 M scripts/r01_workflow.py\u0000 M scripts/report_gpu_r01_next.py\u0000 M scripts/run_gpu_r01.py\u0000?? rwkv/model/csrc/native_launch.cpp\u0000?? rwkv/model/native_launch.py\u0000?? scripts/check_r01_native_build.py\u0000?? scripts/check_r01_native_wkv.py\u0000",
+    "source_tree_sha256": "799dd3bf50e73a93bee142cbb64df63ad4f3a9ce54e2764149ee1ae7f3b6edc3",
+    "source_archive": "artifacts/sources/experiment-sources/799dd3bf50e73a93bee142cbb64df63ad4f3a9ce54e2764149ee1ae7f3b6edc3/source.zip",
+    "source_paths": [
+      "rwkv",
+      "expertium",
+      "scripts",
+      "configs",
+      "pyproject.toml",
+      "uv.lock",
+      "justfile",
+      "upstream.json"
+    ]
+  },
+  "batches_per_pass": 2,
+  "reviews_per_pass": 70220,
+  "windows": [
+    {
+      "user_id": 2155,
+      "reviews": 4684
+    },
+    {
+      "user_id": 1495,
+      "reviews": 65536
+    }
+  ],
+  "scope": "accepted update path on fixed windows; host transfers synchronous here (asynchronous in training); first pass warms JIT and is excluded",
+  "passes": [],
+  "status": "diagnostic completed",
+  "review_sizes": [
+    4684,
+    65536
+  ]
+}

@@ -1,0 +1,54 @@
+# Resource profile: expertium/E33-F48-F50
+
+Case status: **complete**. Scope: **complete-case telemetry**.
+
+Means/quantiles use observed within-phase sampling intervals. Phase boundaries and the final sample carry no extrapolated interval.
+
+| Phase | Samples | Observed s | GPU compute mean / p95 % | GPU memory activity mean % | Worker pool CPU mean % | Minimum available RAM GiB | Maximum summed RSS GiB | Peak reserved VRAM GiB |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| startup/primer | 20 | 19.6 | 8.6 / 10.0 | 2.7 | 12.4 | 13.23 | 4.77 | 0.14 |
+| training including user transitions | 44 | 44.6 | 60.9 / 92.0 | 16.9 | 62.3 | 9.46 | 8.41 | 11.90 |
+| checkpoint save/evaluation | 32 | 32.1 | 29.7 / 41.0 | 2.9 | 51.5 | 11.71 | 6.36 | 11.90 |
+
+Logged coverage: **80/80 training users**, **167 updates**, **7,654,975 reviews**. Held-out cohort: **20 users**.
+Complete training observation: **True**. Resource telemetry does not establish predictive quality.
+Full-history profile available: **False**; observed training window: **44.6 s**.
+
+| History decile | Logged users | Completed training histories | Reviews | Updates |
+|---|---:|---:|---:|---:|
+| 1 | 4 | 4 | 21,917 | 4 |
+| 2 | 11 | 11 | 103,948 | 11 |
+| 3 | 6 | 6 | 80,507 | 6 |
+| 4 | 14 | 14 | 262,889 | 14 |
+| 5 | 8 | 8 | 224,226 | 8 |
+| 6 | 7 | 7 | 279,717 | 7 |
+| 7 | 10 | 10 | 536,500 | 10 |
+| 8 | 4 | 4 | 299,415 | 8 |
+| 9 | 7 | 7 | 939,563 | 18 |
+| 10 | 9 | 9 | 4,906,293 | 81 |
+
+Packed updates count once in each participating history decile; decile update counts need not sum to the optimizer update total.
+
+Summed preparation across workers: 163.0 s; summed future waits: 0.9 s.
+worker preparation durations can overlap; future waits may occur on background staging threads; sums are not critical-path stall time
+
+per-core CPU is system-wide; summed process RSS can double-count shared pages; page faults include soft faults; memory activity percent is not achieved bandwidth; prefix profiles do not select or promote a candidate
+
+Unavailable/limited counters:
+
+- swap/paging: PdhAddEnglishCounterW failed. Performance counters may be disabled..
+- actual_GPU_bytes_per_second: not sampled.
+- physical_disk_IO: process I/O includes IPC/device traffic; physical disk counters not sampled.
+- Windows_swap_in_out_bytes: installed psutil Windows swap_memory returns literal zero placeholders; treat as unavailable, not measured zero.
+- precise_steady_vs_user_transition: current telemetry combines training and user transitions; exact phase timestamps not recorded.
+- kernel_occupancy: not sampled.
+
+Sampler wall: 3.389 s; sampler-thread CPU: 0.281 s. This does not estimate critical-path slowdown.
+
+Source evidence:
+
+- [artifacts/retraining/gpu-retrain-r01/iteration-0072/replicates/r1/expertium/E33-F48-F50/result.json](../../../../retraining/gpu-retrain-r01/iteration-0072/replicates/r1/expertium/E33-F48-F50/result.json): 85a135f51a4086558d9a4e458cacb3aae52a6ad4de2d10e0c35d6790a8be6103.
+- [artifacts/retraining/gpu-retrain-r01/iteration-0072/protocol.json](../../../../retraining/gpu-retrain-r01/iteration-0072/protocol.json): c79dd26fc0e401569f933a476b06c888c22383b85272614dba6920e554bda16f.
+- [artifacts/retraining/gpu-retrain-r01/iteration-0072/replicates/r1/expertium/E33-F48-F50/resources.jsonl](../../../../retraining/gpu-retrain-r01/iteration-0072/replicates/r1/expertium/E33-F48-F50/resources.jsonl): 8f0e82b446849b2cb72614f2b2ea3cee3b57a7837efcea42903c04471999b52f.
+- [artifacts/retraining/gpu-retrain-r01/iteration-0072/replicates/r1/expertium/E33-F48-F50/updates.jsonl](../../../../retraining/gpu-retrain-r01/iteration-0072/replicates/r1/expertium/E33-F48-F50/updates.jsonl): bf8619dfdb674c83aff623be617980fbb3798743957c8d82433b44336f174675.
+- [artifacts/retraining/gpu-retrain-r01/iteration-0072/replicates/r1/expertium/E33-F48-F50/resources-summary.json](../../../../retraining/gpu-retrain-r01/iteration-0072/replicates/r1/expertium/E33-F48-F50/resources-summary.json): 8375b34fca154bb427c7e12fa1a01cb50f28010b638695315d73de80ee38f7cb.

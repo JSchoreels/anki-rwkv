@@ -1,0 +1,256 @@
+{
+  "provenance": {
+    "captured_utc": "2026-10-13T11:28:58.262860+00:00",
+    "git_commit": "123acf9f04127635020d2754a7c8018647db0ad4",
+    "git_dirty": true,
+    "git_status_porcelain_z": " M artifacts/diagnostics/r01-round-0071-0075/handoff.json\u0000 M artifacts/diagnostics/r01-round-0071-0075/summary.md\u0000 M docs/GPU_OPTIMIZATIONS.md\u0000 M docs/GPU_OPTIMIZATIONS_LOG.md\u0000 M docs/R01_HOST_PATH.md\u0000 M expertium/model/rwkv_model.py\u0000 M rwkv/model/csrc/native_launch.cpp\u0000 M rwkv/model/native_launch.py\u0000 M scripts/check_r01_exact_options.py\u0000 M scripts/gpu_r01_prefetch.py\u0000 M scripts/gpu_r01_training.py\u0000 M scripts/profile_r01_dispatch.py\u0000 M scripts/report_gpu_r01_next.py\u0000?? scripts/check_r01_native_group_norm.py\u0000",
+    "source_tree_sha256": "136b518572ff01404bb0db15660f25bfec2315f194093a3333bdf868af8dbee0",
+    "source_archive": "artifacts/sources/experiment-sources/136b518572ff01404bb0db15660f25bfec2315f194093a3333bdf868af8dbee0/source.zip",
+    "source_paths": [
+      "rwkv",
+      "expertium",
+      "scripts",
+      "configs",
+      "pyproject.toml",
+      "uv.lock",
+      "justfile",
+      "upstream.json"
+    ]
+  },
+  "torch": "2.9.1+cu128",
+  "options": {
+    "a": {
+      "prefetch_users": true,
+      "preparation_workers": 6,
+      "gpu_packed_features": true,
+      "packed_ipc": true,
+      "async_transfer": true,
+      "batched_id_encodings": true,
+      "grouped_sync": true,
+      "main_threads": 1,
+      "bulk_transfer": true,
+      "parallel_evaluation": true,
+      "exact_shift": true,
+      "exact_index": true,
+      "batch_chunks": 512,
+      "gpu_memory_fraction": 0.95,
+      "fast_samples": true,
+      "prestart_pool": true,
+      "row_tiles_exact": 4,
+      "exact_group_norm": true,
+      "deferred_reads": true,
+      "shared_shift_orders": true,
+      "stream_launches": true,
+      "prefetch_rows": true,
+      "sync_free_loss": true,
+      "columnar_samples": true,
+      "skip_uninitialized_fill": true,
+      "skip_padding_sources": true,
+      "native_wkv": true
+    },
+    "b": {
+      "prefetch_users": true,
+      "preparation_workers": 6,
+      "gpu_packed_features": true,
+      "packed_ipc": true,
+      "async_transfer": true,
+      "batched_id_encodings": true,
+      "grouped_sync": true,
+      "main_threads": 1,
+      "bulk_transfer": true,
+      "parallel_evaluation": true,
+      "exact_shift": true,
+      "exact_index": true,
+      "batch_chunks": 512,
+      "gpu_memory_fraction": 0.95,
+      "fast_samples": true,
+      "prestart_pool": true,
+      "row_tiles_exact": 4,
+      "exact_group_norm": true,
+      "deferred_reads": true,
+      "shared_shift_orders": true,
+      "stream_launches": true,
+      "prefetch_rows": true,
+      "sync_free_loss": true,
+      "columnar_samples": true,
+      "skip_uninitialized_fill": true,
+      "skip_padding_sources": true,
+      "native_wkv": true,
+      "native_group_norm": true
+    }
+  },
+  "self_test": false,
+  "not_exercised": {
+    "a": [
+      "async_transfer",
+      "batch_chunks",
+      "batched_id_encodings",
+      "bulk_transfer",
+      "columnar_samples",
+      "deferred_reads",
+      "fast_samples",
+      "gpu_memory_fraction",
+      "gpu_packed_features",
+      "grouped_sync",
+      "main_threads",
+      "packed_ipc",
+      "parallel_evaluation",
+      "prefetch_users",
+      "preparation_workers",
+      "prestart_pool"
+    ],
+    "b": [
+      "async_transfer",
+      "batch_chunks",
+      "batched_id_encodings",
+      "bulk_transfer",
+      "columnar_samples",
+      "deferred_reads",
+      "fast_samples",
+      "gpu_memory_fraction",
+      "gpu_packed_features",
+      "grouped_sync",
+      "main_threads",
+      "packed_ipc",
+      "parallel_evaluation",
+      "prefetch_users",
+      "preparation_workers",
+      "prestart_pool"
+    ]
+  },
+  "scope": "five real Expertium batches; BF16 forward/backward from the fresh seed-2025 checkpoint; loss and every parameter gradient",
+  "batches": [
+    {
+      "user_id": 1495,
+      "offset": 0,
+      "reviews": 256,
+      "loss_bitwise_equal": true,
+      "same_gradient_set": true,
+      "parameters": 429,
+      "differing_gradients": [],
+      "memory": {
+        "a": {
+          "peak_reserved_bytes": 3730833408,
+          "peak_allocated_bytes": 3566636544,
+          "allocator_retries": 0,
+          "forward_backward_seconds": 8.278600400000869
+        },
+        "b": {
+          "peak_reserved_bytes": 3730833408,
+          "peak_allocated_bytes": 3600704512,
+          "allocator_retries": 0,
+          "forward_backward_seconds": 0.16133629999967525
+        }
+      },
+      "differing_gradient_count": 0
+    },
+    {
+      "user_id": 1619,
+      "offset": 32768,
+      "reviews": 256,
+      "loss_bitwise_equal": true,
+      "same_gradient_set": true,
+      "parameters": 429,
+      "differing_gradients": [],
+      "memory": {
+        "a": {
+          "peak_reserved_bytes": 3911188480,
+          "peak_allocated_bytes": 3665565696,
+          "allocator_retries": 0,
+          "forward_backward_seconds": 0.15842960000009043
+        },
+        "b": {
+          "peak_reserved_bytes": 3911188480,
+          "peak_allocated_bytes": 3666079232,
+          "allocator_retries": 0,
+          "forward_backward_seconds": 0.1568526999999449
+        }
+      },
+      "differing_gradient_count": 0
+    },
+    {
+      "user_id": 3958,
+      "offset": 0,
+      "reviews": 229,
+      "loss_bitwise_equal": true,
+      "same_gradient_set": true,
+      "parameters": 429,
+      "differing_gradients": [],
+      "memory": {
+        "a": {
+          "peak_reserved_bytes": 4429185024,
+          "peak_allocated_bytes": 4096454656,
+          "allocator_retries": 0,
+          "forward_backward_seconds": 0.18429269999978715
+        },
+        "b": {
+          "peak_reserved_bytes": 4429185024,
+          "peak_allocated_bytes": 4096968192,
+          "allocator_retries": 0,
+          "forward_backward_seconds": 0.1867528000002494
+        }
+      },
+      "differing_gradient_count": 0
+    },
+    {
+      "user_id": 2155,
+      "offset": 0,
+      "reviews": 37,
+      "loss_bitwise_equal": true,
+      "same_gradient_set": true,
+      "parameters": 429,
+      "differing_gradients": [],
+      "memory": {
+        "a": {
+          "peak_reserved_bytes": 773849088,
+          "peak_allocated_bytes": 732519936,
+          "allocator_retries": 0,
+          "forward_backward_seconds": 0.12094230000002426
+        },
+        "b": {
+          "peak_reserved_bytes": 773849088,
+          "peak_allocated_bytes": 733033472,
+          "allocator_retries": 0,
+          "forward_backward_seconds": 0.11598380000032193
+        }
+      },
+      "differing_gradient_count": 0
+    },
+    {
+      "user_id": 906,
+      "offset": 0,
+      "reviews": 77,
+      "loss_bitwise_equal": true,
+      "same_gradient_set": true,
+      "parameters": 429,
+      "differing_gradients": [],
+      "memory": {
+        "a": {
+          "peak_reserved_bytes": 1449132032,
+          "peak_allocated_bytes": 1322459136,
+          "allocator_retries": 0,
+          "forward_backward_seconds": 0.13119670000014594
+        },
+        "b": {
+          "peak_reserved_bytes": 1451229184,
+          "peak_allocated_bytes": 1322972672,
+          "allocator_retries": 0,
+          "forward_backward_seconds": 0.16228070000033767
+        }
+      },
+      "differing_gradient_count": 0
+    }
+  ],
+  "status": "passed",
+  "padding_sources": {
+    "calls": 114,
+    "sources": 802338,
+    "nonzero": 0,
+    "negative_zero": 0,
+    "nonfinite": 0
+  },
+  "summary": {
+    "batches": 5,
+    "batches_bitwise_equal": 5
+  }
+}

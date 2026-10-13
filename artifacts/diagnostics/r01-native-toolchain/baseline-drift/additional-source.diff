@@ -1,0 +1,311 @@
+--- 0042/scripts/gpu_power.py
+
++++ 0072/scripts/gpu_power.py
+
+@@ -47,12 +47,32 @@
+
+     started = time.monotonic()
+     info.update(requested_watts=watts, original_watts=original, restored=False)
+ 
++    base_fields = ["power.draw", "power.limit", "temperature.gpu", "utilization.gpu", "memory.used"]
++    # Clocks, P-state and clock-event reasons separate a slow GPU state from slower code.
++    state_fields = ["clocks.sm", "clocks.mem", "pstate", "clocks_event_reasons.active"]
++    fields = base_fields + state_fields
++
++    def parse(name, value):
++        if name == "pstate":
++            return int(value.lstrip("P"))
++        if name == "clocks_event_reasons.active":
++            return int(value, 16)
++        return float(value)
++
+     def monitor():
++        nonlocal fields
+         with (output / "gpu_power.jsonl").open("a", encoding="utf-8") as log:
+             while not stop.is_set():
+                 try:
+-                    reading = query_gpu(index, ["power.draw", "power.limit", "temperature.gpu", "utilization.gpu", "memory.used"])
+-                    reading = {name: float(value) for name, value in reading.items()}
++                    try:
++                        reading = query_gpu(index, fields)
++                    except (RuntimeError, subprocess.CalledProcessError):
++                        if fields == base_fields:
++                            raise
++                        errors.append(f"GPU state fields unavailable; monitoring {', '.join(base_fields)} only")
++                        fields = base_fields
++                        reading = query_gpu(index, fields)
++                    reading = {name: parse(name, value) for name, value in reading.items()}
+                     reading["elapsed_seconds"] = time.monotonic() - started
+                     readings.append(reading["power.draw"])
+                     log.write(json.dumps(reading) + "\n")
+--- 0042/rwkv/model/nvrtc.py
+
++++ 0072/rwkv/model/nvrtc.py
+
+@@ -19,6 +19,55 @@
+
+ _stream_launch = False
+ _streams = {}
+ _functions = {}
++_driver_launch = False
++_driver = None
++_driver_parameters = None
++
++
++def set_driver_launch(enabled=False):
++    """F65a: launch the identical CuPy function through the CUDA driver ABI."""
++    global _driver_launch
++    _driver_launch = bool(enabled)
++
++
++def driver_launch(function, grid, block, args, stream):
++    """Copy exact by-value arguments into thread-local, typed driver parameter slots."""
++    global _driver, _driver_parameters
++    import ctypes
++    import threading
++    if _driver is None:
++        _driver = ctypes.WinDLL('nvcuda.dll') if os.name == 'nt' else ctypes.CDLL('libcuda.so.1')
++        launch = _driver.cuLaunchKernel
++        launch.argtypes = [ctypes.c_void_p, *([ctypes.c_uint] * 7), ctypes.c_void_p,
++                           ctypes.POINTER(ctypes.c_void_p), ctypes.POINTER(ctypes.c_void_p)]
++        launch.restype = ctypes.c_int
++        _driver_parameters = threading.local()
++    types = {np.dtype('uint64'): ctypes.c_uint64, np.dtype('int64'): ctypes.c_int64,
++             np.dtype('int32'): ctypes.c_int32}
++    signature = tuple(arg.dtype for arg in args)
++    if any(dtype not in types for dtype in signature):
++        raise TypeError('Native launcher accepts only explicit uint64/int64/int32 argument bytes')
++    cache = getattr(_driver_parameters, 'cache', None)
++    if cache is None:
++        cache = _driver_parameters.cache = {}
++    entry = cache.get(signature)
++    if entry is None:
++        fields = [(f'a{i}', types[dtype]) for i, dtype in enumerate(signature)]
++        struct = type('KernelParameters', (ctypes.Structure,), {'_fields_': fields})
++        values = struct()
++        pointers = (ctypes.c_void_p * len(fields))(*(ctypes.addressof(values) + getattr(struct, name).offset for name, _ in fields))
++        entry = cache[signature] = values, pointers, tuple(name for name, _ in fields)
++    values, pointers, names = entry
++    for name, value in zip(names, args):
++        setattr(values, name, int(value))
++    dimensions = tuple(grid) + (1,) * (3 - len(grid)) + tuple(block) + (1,) * (3 - len(block))
++    if len(dimensions) != 6 or any(type(v) is not int or v < 1 for v in dimensions):
++        raise ValueError('Driver launch requires positive integer grid/block dimensions')
++    # cuLaunchKernel copies host argument values before returning; Torch retains tensor
++    # storage, exactly as in the CuPy path. Slots are thread-local, not shared by callers.
++    status = _driver.cuLaunchKernel(function.ptr, *dimensions, 0, stream, pointers, None)
++    if status:
++        raise RuntimeError(f'CUDA driver launch failed with status {status}')
+ 
+ 
+ def set_stream_launch(enabled=False):
+@@ -30,6 +79,14 @@
+
+ def raw_launch(kernel, device, grid, block, args):
+     """Enqueue a CuPy RawKernel on Torch's current stream of `device`."""
+     index = device.index if device.index is not None else torch.cuda.current_device()
++    if _driver_launch:
++        pointer = torch.cuda.current_stream(device).cuda_stream
++        with _cupy.cuda.Device(index):
++            function = _functions.get((id(kernel), index))
++            if function is None:
++                function = _functions[(id(kernel), index)] = (kernel, kernel.kernel)
++            driver_launch(function[1], grid, block, args, pointer)
++        return
+     if _stream_launch and index == torch.cuda.current_device():
+         # Same kernel, arguments and stream; only the per-call Device/ExternalStream
+         # context setup (about 12 us of host time) is skipped.
+--- 0042/expertium/model/rwkv_model.py
+
++++ 0072/expertium/model/rwkv_model.py
+
+@@ -1,3 +1,4 @@
+
++from rwkv.model.exact_glue import ExactGateGlue, ExactChannelGlue, ExactBonusProducts
+ from dataclasses import dataclass
+ import math
+ import os
+@@ -7,6 +8,7 @@
+
+ from rwkv.model.fused_shift import FusedShiftLerp
+ from rwkv.model.exact_index import ExactShiftGather
+ from rwkv.model.exact_group_norm import ExactGroupNorm
++from rwkv.model import native_launch
+ 
+ """
+ IMPORTANT: the CUDA implementation in this repository only supports head dimensions of 32. d_model // n_heads == 32.
+@@ -117,6 +119,9 @@
+
+     # Also the same as for RWKV-5
+     def __init__(self, config: RWKV7Config, layer_id):
+         super().__init__()
++        self.exact_bonus_products = False
++        self.exact_gate_glue = 0
++        self.exact_channel_glue = False
+         self.exact_shift = False
+         assert config.d_model // config.n_heads == 32
+         self.d_model = config.d_model
+@@ -156,7 +161,11 @@
+
+                 index=time_shift_select_BT.unsqueeze(-1).expand(-1, -1, self.d_model),
+             )
+         k_BTK = self.W_k(torch.lerp(x_BTC, x_shift_BTC, self.lerp_k))
+-        o_BTC = self.W_v(torch.square(torch.nn.functional.relu(k_BTK)))
++        if self.exact_channel_glue and k_BTK.is_cuda:
++            hidden = ExactChannelGlue.apply(k_BTK)
++        else:
++            hidden = torch.square(torch.nn.functional.relu(k_BTK))
++        o_BTC = self.W_v(hidden)
+         return in_BTC + self.dropout(o_BTC)
+ 
+ 
+@@ -225,8 +234,14 @@
+
+     def __init__(self, config: RWKV7Config, layer_id):
+         super().__init__()
+         self.fused_shift = False
++        self.exact_bonus_products = False
++        self.exact_gate_glue = 0
++        self.exact_channel_glue = False
+         self.exact_shift = False
+         self.exact_group_norm = False  # F32: multi-SM GroupNorm weight/bias backward, bitwise equal
++        self.native_wkv = False
++        self.native_forward_handle = 0
++        self.native_backward_handle = 0
+         assert config.d_model % config.n_heads == 0
+         self.layer_id = layer_id
+         C = config.d_model
+@@ -391,6 +406,10 @@
+
+                 r_BTHK, k_BTHK, v_BTHK, w_BTHK, a_BTHK, k_deformed_BTHK, skip_BT,
+                 self.state_qmax, self.state_lowrank_rank, self.state_lowrank_fqmax,
+             )
++        elif self.native_wkv and r_BTHK.is_cuda:
++            out_BTHK = torch.ops.rwkv_native.wkv(r_BTHK,k_BTHK,v_BTHK,w_BTHK,a_BTHK,
++                                               k_deformed_BTHK,skip_BT,self.native_forward_handle,
++                                               self.native_backward_handle,4,32)
+         elif r_BTHK.is_cuda:
+             out_BTHK = RWKV7_WKV.apply(
+                 r_BTHK, k_BTHK, v_BTHK, w_BTHK, a_BTHK, k_deformed_BTHK, skip_BT
+@@ -406,8 +425,14 @@
+
+                                            self.out_group_norm.eps).view(B, T, C)
+         else:
+             out_BTC = self.out_group_norm(out_BTHK.view(B * T, C)).view(B, T, C)
+-        bonus_BTC = (
+-            (r_BTHK * self.bonus * k_BTHK).sum(dim=-1, keepdim=True) * v_BTHK
+-        ).view(B, T, C)
+-        out_BTC = self.W_o(g_BTC * (out_BTC + bonus_BTC))
++        if self.exact_bonus_products and r_BTHK.is_cuda and K == 32:
++            bonus_products = ExactBonusProducts.apply(r_BTHK, self.bonus, k_BTHK)
++        else:
++            bonus_products = r_BTHK * self.bonus * k_BTHK
++        bonus_BTC = (bonus_products.sum(dim=-1, keepdim=True) * v_BTHK).view(B, T, C)
++        if self.exact_gate_glue and out_BTC.is_cuda:
++            gated = ExactGateGlue.apply(out_BTC, bonus_BTC, g_BTC, self.exact_gate_glue == 2)
++        else:
++            gated = g_BTC * (out_BTC + bonus_BTC)
++        out_BTC = self.W_o(gated)
+         return in_BTC + self.dropout(out_BTC), v0_BTC
+--- 0042/scripts/gpu_row_tiles.py
+
++++ 0072/scripts/gpu_row_tiles.py
+
+@@ -12,7 +12,7 @@
+
+ _modules = {}
+ 
+ 
+-def source_options(dtype, exact=False):
++def source_options(dtype, exact=False, compact_previous=False, next_step_prefetch=False, load_pipeline=0):
+     if dtype not in (torch.float32, torch.bfloat16):
+         raise ValueError("Row-tiled recurrence supports float32 or BF16")
+     prefix = nvrtc.kernel_source(dtype).split("namespace rwkv {")[0]
+@@ -32,16 +32,30 @@
+
+         if cccl is None:
+             raise RuntimeError("BF16 NVRTC requires CCCL headers (nv/target)")
+         options.append(f"--include-path={cccl}")
++    if compact_previous:
++        if not exact:
++            raise ValueError("F54 compact previous state requires the exact kernel")
++        options.append("-DCOMPACT_PREVIOUS_STATE=1")
++    if next_step_prefetch:
++        options.append("-DNEXT_STEP_PREFETCH=1")
++    if load_pipeline not in (0, 1, 2, 3, 4, 5, 6):
++        raise ValueError("Invalid recurrence load pipeline")
++    if load_pipeline:
++        if not exact:
++            raise ValueError("Load pipelines require exact arithmetic")
++        options.extend(((), ("-DRECOMPUTE_PREFETCH=1",), ("-DROW_GRAD_PREFETCH=1",), ("-DFORWARD_PREFETCH=1",),
++                        ("-DFORWARD_V_PREFETCH=1",), ("-DFORWARD_PREFETCH=1", "-DFORWARD_V_PREFETCH=1"),
++                        ("-DRECOMPUTE_V_PREFETCH=1",))[load_pipeline])
+     return source, tuple(options)
+ 
+ 
+-def compile_module(device, dtype, rows, tile, exact=False):
++def compile_module(device, dtype, rows, tile, exact=False, compact_previous=False, next_step_prefetch=False, load_pipeline=0):
+     if rows not in (1, 2, 4, 8) or tile not in (8, 16, 32):
+         raise ValueError("Rows must be 1, 2, 4 or 8; checkpoint tile must be 8, 16 or 32")
+     index = device.index if device.index is not None else torch.cuda.current_device()
+-    key = index, dtype, rows, tile, exact
++    key = index, dtype, rows, tile, exact, compact_previous, next_step_prefetch, load_pipeline
+     if key not in _modules:
+-        source, options = source_options(dtype, exact)
++        source, options = source_options(dtype, exact, compact_previous, next_step_prefetch, load_pipeline)
+         scalar = "float" if dtype == torch.float32 else "__nv_bfloat16"
+         namespace = "rwkv_exact" if exact else "rwkv_future"
+         names = tuple(f"{namespace}::{name}_kernel<{tile}, {rows}, {scalar}>" for name in ("forward", "backward"))
+@@ -52,7 +66,7 @@
+
+ 
+ 
+ @contextmanager
+-def row_tiled_backend(rows=4, tile=8, exact=False):
++def row_tiled_backend(rows=4, tile=8, exact=False, compact_previous=False, next_step_prefetch=False, wave_aware=False, load_pipeline=0):
+     """Hold this context through every associated forward AND backward call."""
+     if rows not in (1, 2, 4, 8) or tile not in (8, 16, 32):
+         raise ValueError("Invalid row/tile configuration")
+@@ -61,18 +75,38 @@
+
+     original_tile = nvrtc._checkpoint_length
+ 
+     def module(device, dtype):
+-        return compile_module(device, dtype, rows, tile, exact)
++        if wave_aware or load_pipeline in (7, 8):
++            # Forward remains at the accepted layout; launch chooses backward by B.
++            return tuple((device, dtype, i) for i in (0, 1))
++        return compile_module(device, dtype, rows, tile, exact, compact_previous, next_step_prefetch, load_pipeline)
+ 
+     def launch(kernel, device, shape, args):
+         import numpy as np
++        launch_rows = rows
++        if load_pipeline in (7, 8):
++            # Long histories amortize the pipeline live set; short histories have
++            # many independent rows and little sequential latency to hide.
++            index, dtype = kernel[2], kernel[1]
++            selected = shape[1] >= 32 if load_pipeline == 7 else shape[1] <= 16
++            pipeline = 5 if selected else 0
++            kernel = compile_module(device, dtype, rows, tile, exact, compact_previous, next_step_prefetch, pipeline)[index]
++        if wave_aware:
++            index = kernel[2]
++            dtype = kernel[1]
++            # Keep forward at four rows; choose eight-row backward for measured long
++            # partial-wave shapes and large short histories, retaining four elsewhere.
++            selected = (504 < shape[0] <= 1008 and shape[1] >= 128) or (shape[0] >= 1000 and shape[1] <= 16)
++            launch_rows = 8 if index == 1 and selected else rows
++            kernel = compile_module(device, dtype, launch_rows, tile, exact, compact_previous, next_step_prefetch, load_pipeline)[index]
+         # Torch owns and retains storage; enqueue on its current stream.
+         arguments = tuple(np.uint64(arg.data_ptr()) if isinstance(arg, torch.Tensor) else np.int32(arg) for arg in args)
+-        nvrtc.raw_launch(kernel, device, (shape[0], shape[2]), (32, 32 // rows), arguments)
++        nvrtc.raw_launch(kernel, device, (shape[0], shape[2]), (32, 32 // launch_rows), arguments)
+ 
+     nvrtc.set_checkpoint_length(tile)
+     nvrtc.module, nvrtc.launch = module, launch
+     try:
+-        yield {"rows_per_thread": rows, "checkpoint_tile": tile, "threads_per_block": 1024 // rows}
++        yield {"rows_per_thread": rows, "checkpoint_tile": tile, "threads_per_block": 1024 // rows,
++               "compact_previous_state": compact_previous, "recurrence_prefetch": next_step_prefetch, "wave_aware_backward": wave_aware, "recurrence_load_pipeline": load_pipeline}
+     finally:
+         try:
+             torch.cuda.synchronize()

@@ -1,0 +1,94 @@
+{
+  "models": [
+    "expertium"
+  ],
+  "model_scope_reason": "Continuation of the Expertium-only R01 work; Alex remains paused by earlier human request.",
+  "control_tracks": {
+    "expertium": "E33-F48-F50-F65b"
+  },
+  "candidate_tracks": {
+    "expertium": "E33-F48-F50-F65b-F65c"
+  },
+  "case_options_by_model": {
+    "expertium": {
+      "E33-F48-F50-F65b": {
+        "prefetch_users": true,
+        "preparation_workers": 6,
+        "gpu_packed_features": true,
+        "packed_ipc": true,
+        "async_transfer": true,
+        "batched_id_encodings": true,
+        "grouped_sync": true,
+        "main_threads": 1,
+        "bulk_transfer": true,
+        "parallel_evaluation": true,
+        "exact_shift": true,
+        "exact_index": true,
+        "batch_chunks": 512,
+        "gpu_memory_fraction": 0.95,
+        "fast_samples": true,
+        "prestart_pool": true,
+        "row_tiles_exact": 4,
+        "exact_group_norm": true,
+        "deferred_reads": true,
+        "shared_shift_orders": true,
+        "stream_launches": true,
+        "prefetch_rows": true,
+        "sync_free_loss": true,
+        "columnar_samples": true,
+        "skip_uninitialized_fill": true,
+        "skip_padding_sources": true,
+        "native_wkv": true
+      },
+      "E33-F48-F50-F65b-F65c": {
+        "prefetch_users": true,
+        "preparation_workers": 6,
+        "gpu_packed_features": true,
+        "packed_ipc": true,
+        "async_transfer": true,
+        "batched_id_encodings": true,
+        "grouped_sync": true,
+        "main_threads": 1,
+        "bulk_transfer": true,
+        "parallel_evaluation": true,
+        "exact_shift": true,
+        "exact_index": true,
+        "batch_chunks": 512,
+        "gpu_memory_fraction": 0.95,
+        "fast_samples": true,
+        "prestart_pool": true,
+        "row_tiles_exact": 4,
+        "exact_group_norm": true,
+        "deferred_reads": true,
+        "shared_shift_orders": true,
+        "stream_launches": true,
+        "prefetch_rows": true,
+        "sync_free_loss": true,
+        "columnar_samples": true,
+        "skip_uninitialized_fill": true,
+        "skip_padding_sources": true,
+        "native_wkv": true,
+        "native_group_norm": true
+      }
+    }
+  },
+  "case_explanations": {
+    "expertium": {
+      "E33-F48-F50-F65b": "Launch the unchanged accepted four-row NVRTC WKV kernels through a C++ dispatcher and C++ autograd node, replacing Python/CuPy forward/backward wrapping while preserving tensor types, checkpoint layout, current stream and argument bytes.",
+      "E33-F48-F50-F65b-F65c": "Replace accepted exact GroupNorm Python autograd and CuPy gamma/beta dispatch with C++ autograd, identical ATen forward/input gradients and retained BF16 gamma/beta kernels, preserving reduction order and current stream."
+    }
+  },
+  "selection_evidence": "Native GroupNorm synthetic 48/48 bitwise output and all-gradient cases plus five real-batch loss/every-gradient parity against accepted0072, with BF16 affine/statistics and source-bound compiled DLL.",
+  "prerequisite_checks": [
+    {
+      "path": "artifacts/diagnostics/r01-round-0071-0075/native-group-norm-synthetic-bf16/result.json",
+      "sha256": "9735b719efb52b9abd35bf3235a6623e10575942e14faf8bee18e6b047892bb1",
+      "status": "passed, source compatible; runtime compatibility must also be reviewed"
+    },
+    {
+      "path": "artifacts/diagnostics/r01-round-0071-0075/native-group-norm-real-exact/result.json",
+      "sha256": "4be699e3f4a0b26bfc67ee63bb02c965b4bf6ada439ea533f192487f2ad3d585",
+      "status": "passed, source compatible; runtime compatibility must also be reviewed"
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+Traceback (most recent call last):
+  File "C:\Users\jonat\workspace\anki-rwkv\scripts\check_r01_native_group_norm.py", line 37, in <module>
+    if __name__=='__main__':main()
+                            ^^^^^^
+  File "C:\Users\jonat\workspace\anki-rwkv\scripts\check_r01_native_group_norm.py", line 26, in main
+    out=torch.ops.rwkv_native.group_norm(*values,groups,eps,*handles) if native else ExactGroupNorm.apply(*values,groups,eps)
+                                                                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\jonat\workspace\anki-rwkv\.venv\Lib\site-packages\torch\autograd\function.py", line 581, in apply
+    return super().apply(*args, **kwargs)  # type: ignore[misc]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\jonat\workspace\anki-rwkv\rwkv\model\exact_group_norm.py", line 118, in forward
+    out, mean, rstd = torch.ops.aten.native_group_norm(x, weight, bias, N, C, 1, groups, eps)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\jonat\workspace\anki-rwkv\.venv\Lib\site-packages\torch\_ops.py", line 1255, in __call__
+    return self._op(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: expected scalar type BFloat16 but found Float
