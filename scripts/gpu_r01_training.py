@@ -148,6 +148,55 @@ def place_host_cores(worker_pids):
             "physical_cores": len(cores), "main_core_scheduling_classes": [cores[core]["rank"] for core in main_cores]}, previous
 
 
+def set_host_qos(worker_pids):
+    """F86: opt the main process and preparation workers out of Windows power throttling (EcoQoS)
+    and raise them to above-normal priority.
+
+    Windows 11 may lower the clock and priority of background console processes, which the
+    agent-launched runs are; the slow host state ran dispatch about 1.2x slower with unchanged
+    GPU clocks. Records each process's previous throttling and priority state and the system
+    timer resolution (100 ns units). Scheduling only; arithmetic and order are unchanged."""
+    import ctypes
+    from ctypes import wintypes
+    import psutil
+
+    class Throttling(ctypes.Structure):
+        _fields_ = [("version", wintypes.ULONG), ("control", wintypes.ULONG), ("state", wintypes.ULONG)]
+
+    kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
+    kernel32.OpenProcess.restype = wintypes.HANDLE
+    kernel32.OpenProcess.argtypes = (wintypes.DWORD, wintypes.BOOL, wintypes.DWORD)
+    kernel32.CloseHandle.argtypes = (wintypes.HANDLE,)
+    for name in ("GetProcessInformation", "SetProcessInformation"):
+        getattr(kernel32, name).restype = wintypes.BOOL
+        getattr(kernel32, name).argtypes = (wintypes.HANDLE, ctypes.c_int, ctypes.c_void_p, wintypes.DWORD)
+    power_throttling, set_information, query_limited = 4, 0x0200, 0x1000
+    processes = []
+    for pid in [os.getpid(), *sorted(worker_pids)]:
+        handle = kernel32.OpenProcess(set_information | query_limited, False, pid)
+        if not handle:
+            raise OSError(ctypes.get_last_error(), f"OpenProcess failed for {pid}")
+        try:
+            before = Throttling(1, 0, 0)
+            queried = kernel32.GetProcessInformation(handle, power_throttling, ctypes.byref(before), ctypes.sizeof(before))
+            # Take control of EXECUTION_SPEED and IGNORE_TIMER_RESOLUTION with both state bits clear: never throttle.
+            wanted = Throttling(1, 0x1 | 0x4, 0)
+            if not kernel32.SetProcessInformation(handle, power_throttling, ctypes.byref(wanted), ctypes.sizeof(wanted)):
+                raise OSError(ctypes.get_last_error(), f"SetProcessInformation(ProcessPowerThrottling) failed for {pid}")
+        finally:
+            kernel32.CloseHandle(handle)
+        process = psutil.Process(pid)
+        previous_priority = int(process.nice())
+        process.nice(psutil.ABOVE_NORMAL_PRIORITY_CLASS)
+        processes.append({"pid": pid, "role": "main" if pid == os.getpid() else "worker",
+                          "previous_throttling": {"control_mask": before.control, "state_mask": before.state} if queried else None,
+                          "previous_priority_class": previous_priority, "priority_class": int(process.nice())})
+    coarsest, finest, current = wintypes.ULONG(), wintypes.ULONG(), wintypes.ULONG()
+    status = ctypes.WinDLL("ntdll").NtQueryTimerResolution(ctypes.byref(coarsest), ctypes.byref(finest), ctypes.byref(current))
+    return {"mode": "above_normal_unthrottled", "processes": processes,
+            "timer_resolution_100ns": {"coarsest": coarsest.value, "finest": finest.value, "current": current.value} if status == 0 else None}
+
+
 def place_host_threads(worker_pids):
     """F36: give the dispatching main thread both SMT siblings of one physical core.
 
@@ -410,6 +459,10 @@ def run_case(args):
                 report["host_placement"], restore_affinity = place_host_cores(report["prestarted_worker_pids"])
             else:
                 report["host_placement"] = place_host_threads(report["prestarted_worker_pids"])
+        if options.get("process_qos"):
+            if warm_pool is None:
+                raise ValueError("F86 process QoS needs the prestarted worker pool")
+            report["process_qos"] = set_host_qos(report["prestarted_worker_pids"])
         # Host garbage-collection time inside the training loop (accounting only).
         gc_totals, gc_started = {0: [0, 0.0], 1: [0, 0.0], 2: [0, 0.0]}, {}
 
