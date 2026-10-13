@@ -129,6 +129,11 @@ class RWKV7ChannelMixer(ModuleType):
         self.exact_bonus_products = False
         self.exact_gate_glue = 0
         self.exact_channel_glue = False
+        self.native_glue = False  # F65e
+        self.native_gate_forward_handle = 0
+        self.native_gate_backward_handle = 0
+        self.native_bonus_forward_handle = 0
+        self.native_channel_forward_handle = 0
         self.exact_shift = False
         self.native_shift = False  # F65d
         self.native_shift_handle = 0
@@ -172,7 +177,9 @@ class RWKV7ChannelMixer(ModuleType):
                 index=time_shift_select_BT.unsqueeze(-1).expand(-1, -1, self.d_model),
             )
         k_BTK = self.W_k(torch.lerp(x_BTC, x_shift_BTC, self.lerp_k))
-        if self.exact_channel_glue and k_BTK.is_cuda:
+        if self.native_glue and k_BTK.requires_grad and k_BTK.is_cuda:
+            hidden = torch.ops.rwkv_native.channel_glue(k_BTK, self.native_channel_forward_handle)
+        elif self.exact_channel_glue and k_BTK.is_cuda:
             hidden = ExactChannelGlue.apply(k_BTK)
         else:
             hidden = torch.square(torch.nn.functional.relu(k_BTK))
@@ -248,6 +255,11 @@ class RWKV7TimeMixer(ModuleType):
         self.exact_bonus_products = False
         self.exact_gate_glue = 0
         self.exact_channel_glue = False
+        self.native_glue = False  # F65e
+        self.native_gate_forward_handle = 0
+        self.native_gate_backward_handle = 0
+        self.native_bonus_forward_handle = 0
+        self.native_channel_forward_handle = 0
         self.exact_shift = False
         self.native_shift = False  # F65d
         self.native_shift_handle = 0
@@ -447,12 +459,17 @@ class RWKV7TimeMixer(ModuleType):
                                            self.out_group_norm.eps).view(B, T, C)
         else:
             out_BTC = self.out_group_norm(out_BTHK.view(B * T, C)).view(B, T, C)
-        if self.exact_bonus_products and r_BTHK.is_cuda and K == 32:
+        if self.native_glue and r_BTHK.requires_grad and r_BTHK.is_cuda and K == 32:
+            bonus_products = torch.ops.rwkv_native.bonus_products(r_BTHK, self.bonus, k_BTHK, self.native_bonus_forward_handle)
+        elif self.exact_bonus_products and r_BTHK.is_cuda and K == 32:
             bonus_products = ExactBonusProducts.apply(r_BTHK, self.bonus, k_BTHK)
         else:
             bonus_products = r_BTHK * self.bonus * k_BTHK
         bonus_BTC = (bonus_products.sum(dim=-1, keepdim=True) * v_BTHK).view(B, T, C)
-        if self.exact_gate_glue and out_BTC.is_cuda:
+        if self.native_glue and out_BTC.requires_grad and out_BTC.is_cuda:
+            gated = torch.ops.rwkv_native.gate_glue(out_BTC, bonus_BTC, g_BTC, self.native_gate_forward_handle,
+                                                    self.native_gate_backward_handle)
+        elif self.exact_gate_glue and out_BTC.is_cuda:
             gated = ExactGateGlue.apply(out_BTC, bonus_BTC, g_BTC, self.exact_gate_glue == 2)
         else:
             gated = g_BTC * (out_BTC + bonus_BTC)

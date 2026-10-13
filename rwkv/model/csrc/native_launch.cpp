@@ -227,3 +227,103 @@ static Tensor padded_rows(const Tensor& x, const Tensor& index, int64_t handle) 
 }
 TORCH_LIBRARY_IMPL(rwkv_native,CUDA,m) { m.impl("shift_gather",TORCH_FN(shift_gather)); m.impl("padded_rows",TORCH_FN(padded_rows)); }
 TORCH_LIBRARY_IMPL(rwkv_native,Autograd,m) { m.impl("shift_gather",TORCH_FN(shift_gather)); m.impl("padded_rows",TORCH_FN(padded_rows)); }
+
+// F65e: F34 exact pointwise glue (gate, bonus products, channel relu^2) on the native path; same kernels,
+// backward arithmetic identical to the Python ExactGateGlue(fused)/ExactBonusProducts/ExactChannelGlue.
+#include <ATen/ops/threshold_backward.h>
+
+static void launch_pointwise(int64_t handle, const Tensor& tensor, void** args) {
+    TORCH_CHECK(tensor.numel() <= std::numeric_limits<int>::max(), "Native glue element overflow");
+    launch_linear(handle, tensor.numel(), args, tensor);
+}
+
+static void check_glue(const Tensor& reference, std::initializer_list<Tensor> values) {
+    TORCH_CHECK(reference.is_cuda() && reference.scalar_type()==at::kBFloat16, "Configured native glue handles require CUDA BF16");
+    for (const auto& value:values)
+        TORCH_CHECK(value.sizes()==reference.sizes() && value.scalar_type()==reference.scalar_type() && value.device()==reference.device() && value.is_contiguous(), "Native glue input mismatch");
+}
+
+class NativeGateGlue : public torch::autograd::Function<NativeGateGlue> {
+public:
+    static Tensor forward(AutogradContext* ctx, Tensor a, Tensor b, Tensor g, int64_t forward_handle, int64_t backward_handle) {
+        a=a.contiguous(); b=b.contiguous(); g=g.contiguous();
+        check_glue(a,{b,g});
+        c10::cuda::CUDAGuard guard(a.device());
+        Tensor s=at::empty_like(a), y=at::empty_like(a);
+        int32_t n=static_cast<int32_t>(a.numel());
+        void *ap=a.data_ptr(),*bp=b.data_ptr(),*gp=g.data_ptr(),*sp=s.data_ptr(),*yp=y.data_ptr();
+        std::array<void*,6> arguments={&ap,&bp,&gp,&sp,&yp,&n};
+        launch_pointwise(forward_handle,a,arguments.data());
+        ctx->save_for_backward({s,g});
+        ctx->saved_data["handle"]=backward_handle;
+        return y;
+    }
+    static variable_list backward(AutogradContext* ctx, variable_list output_gradients) {
+        auto saved=ctx->get_saved_variables();
+        Tensor s=saved[0], g=saved[1], dy=output_gradients[0].contiguous();
+        check_glue(s,{g,dy});
+        c10::cuda::CUDAGuard guard(s.device());
+        for (const auto& value:{s,g,dy}) retain_on_current_stream(value);
+        Tensor ds=at::empty_like(s), dg=at::empty_like(g);
+        int32_t n=static_cast<int32_t>(s.numel());
+        void *dyp=dy.data_ptr(),*sp=s.data_ptr(),*gp=g.data_ptr(),*dsp=ds.data_ptr(),*dgp=dg.data_ptr();
+        std::array<void*,6> arguments={&dyp,&sp,&gp,&dsp,&dgp,&n};
+        launch_pointwise(ctx->saved_data["handle"].toInt(),s,arguments.data());
+        return {ds,ds,dg,Tensor(),Tensor()};
+    }
+};
+
+class NativeBonusProducts : public torch::autograd::Function<NativeBonusProducts> {
+public:
+    static Tensor forward(AutogradContext* ctx, Tensor r, Tensor bonus, Tensor k, int64_t handle) {
+        r=r.contiguous(); bonus=bonus.contiguous(); k=k.contiguous();
+        check_glue(r,{k});
+        TORCH_CHECK(r.size(-1)==32 && bonus.numel()==32 && bonus.scalar_type()==r.scalar_type() && bonus.device()==r.device(), "Native bonus products require K=32 and a 32-element bonus");
+        c10::cuda::CUDAGuard guard(r.device());
+        Tensor rb=at::empty_like(r), y=at::empty_like(r);
+        int32_t n=static_cast<int32_t>(r.numel());
+        void *rp=r.data_ptr(),*bp=bonus.data_ptr(),*kp=k.data_ptr(),*rbp=rb.data_ptr(),*yp=y.data_ptr();
+        std::array<void*,6> arguments={&rp,&bp,&kp,&rbp,&yp,&n};
+        launch_pointwise(handle,r,arguments.data());
+        ctx->save_for_backward({r,bonus,k,rb});
+        return y;
+    }
+    static variable_list backward(AutogradContext* ctx, variable_list output_gradients) {
+        auto saved=ctx->get_saved_variables();
+        Tensor r=saved[0], bonus=saved[1], k=saved[2], rb=saved[3], dy=output_gradients[0];
+        Tensor drb=dy*k;
+        return {drb*bonus, (drb*r).sum_to_size(bonus.sizes()), dy*rb, Tensor()};
+    }
+};
+
+class NativeChannelGlue : public torch::autograd::Function<NativeChannelGlue> {
+public:
+    static Tensor forward(AutogradContext* ctx, Tensor x, int64_t handle) {
+        x=x.contiguous();
+        check_glue(x,{});
+        c10::cuda::CUDAGuard guard(x.device());
+        Tensor r=at::empty_like(x), y=at::empty_like(x);
+        int32_t n=static_cast<int32_t>(x.numel());
+        void *xp=x.data_ptr(),*rp=r.data_ptr(),*yp=y.data_ptr();
+        std::array<void*,4> arguments={&xp,&rp,&yp,&n};
+        launch_pointwise(handle,x,arguments.data());
+        ctx->save_for_backward({r});
+        return y;
+    }
+    static variable_list backward(AutogradContext* ctx, variable_list output_gradients) {
+        Tensor r=ctx->get_saved_variables()[0], dy=output_gradients[0];
+        return {at::threshold_backward(dy*(r*2), r, 0), Tensor()};
+    }
+};
+
+static Tensor gate_glue(const Tensor& a, const Tensor& b, const Tensor& g, int64_t forward_handle, int64_t backward_handle) {
+    return NativeGateGlue::apply(a,b,g,forward_handle,backward_handle);
+}
+static Tensor bonus_products(const Tensor& r, const Tensor& bonus, const Tensor& k, int64_t handle) {
+    return NativeBonusProducts::apply(r,bonus,k,handle);
+}
+static Tensor channel_glue(const Tensor& x, int64_t handle) {
+    return NativeChannelGlue::apply(x,handle);
+}
+TORCH_LIBRARY_IMPL(rwkv_native,CUDA,m) { m.impl("gate_glue",TORCH_FN(gate_glue)); m.impl("bonus_products",TORCH_FN(bonus_products)); m.impl("channel_glue",TORCH_FN(channel_glue)); }
+TORCH_LIBRARY_IMPL(rwkv_native,Autograd,m) { m.impl("gate_glue",TORCH_FN(gate_glue)); m.impl("bonus_products",TORCH_FN(bonus_products)); m.impl("channel_glue",TORCH_FN(channel_glue)); }

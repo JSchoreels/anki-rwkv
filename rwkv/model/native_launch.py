@@ -12,6 +12,9 @@ _schemas.define('wkv(Tensor r, Tensor k, Tensor v, Tensor w, Tensor a, Tensor kd
 _schemas.define('group_norm(Tensor x, Tensor weight, Tensor bias, int groups, float eps, int chains, int tree) -> Tensor')
 _schemas.define('shift_gather(Tensor x, Tensor select, Tensor order, Tensor starts, int handle) -> Tensor')
 _schemas.define('padded_rows(Tensor x, Tensor index, int handle) -> Tensor')
+_schemas.define('gate_glue(Tensor a, Tensor b, Tensor g, int forward_handle, int backward_handle) -> Tensor')
+_schemas.define('bonus_products(Tensor r, Tensor bonus, Tensor k, int handle) -> Tensor')
+_schemas.define('channel_glue(Tensor x, int handle) -> Tensor')
 _loaded = None
 
 BUILD_FLAGS = ['/nologo','/LD','/std:c++17','/O2','/MD','/EHsc','/bigobj','/D_CRT_SECURE_NO_WARNINGS','/DNOMINMAX']
@@ -47,7 +50,7 @@ def load():
     return metadata
 
 def configure(model,options):
-    if not (options.get('native_wkv') or options.get('native_group_norm') or options.get('native_index')):
+    if not (options.get('native_wkv') or options.get('native_group_norm') or options.get('native_index') or options.get('native_glue')):
         return
     if options.get('native_wkv') and (options.get('row_tiles_exact') != 4 or options.get('recurrence_load_pipeline',0) or options.get('recurrence_prefetch') or options.get('wave_aware_backward') or options.get('compact_previous_state')):
         raise ValueError('Native WKV initially binds only accepted four-row/tile32 kernels')
@@ -92,4 +95,15 @@ def configure(model,options):
         configured=[sum(bool(getattr(m,name,False)) for m in model.modules()) for name in ('native_shift','native_rows')]
         if not all(configured):
             raise ValueError(f'Native index found no shift/row modules to configure: {configured}')
+    if options.get('native_glue'):
+        # F65e: F34 exact glue kernels (fused gate backward); replaces any Python F34 glue for training.
+        from rwkv.model.exact_glue import kernel as glue_kernel
+        handles={name:int(glue_kernel(torch.bfloat16,name).kernel.ptr) for name in ('gate_forward','gate_backward','bonus_forward','channel_forward')}
+        for module in model.modules():
+            if hasattr(module,'native_glue'):
+                module.native_glue=True
+                for name,handle in handles.items():
+                    setattr(module,'native_'+name+'_handle',handle)
+        if not any(getattr(m,'native_glue',False) for m in model.modules()):
+            raise ValueError('Native glue found no mixer modules to configure')
     return {'identity':_loaded['identity'],'binary_sha256':_loaded['binary_sha256'],'build_key':build_identity()[1]}
