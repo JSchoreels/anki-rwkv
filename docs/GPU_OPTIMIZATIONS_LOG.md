@@ -1208,3 +1208,15 @@ Implementation commit after experiments: `c97cfe0e39fe69a1d36a23f028e2d978575ac0
 Implementation commit after experiments: `c97cfe0e39fe69a1d36a23f028e2d978575ac06d`. Tested revision remains `125e6ddabdf30afaf4ab687b350c7113016437ec` with per-process source snapshots in the linked raw results and iteration record; [commit record](../artifacts/retraining/gpu-retrain-r01/iteration-0090/implementation-commit.json).
 
 <!-- r01-0090:end -->
+
+<!-- r01-0091:start -->
+## R01 iteration 0091
+
+[Iteration record](../artifacts/retraining/gpu-retrain-r01/iteration-0091/summary.md)
+
+| Training start (UTC) | Trial commit | Model | Improvement IDs | What was tried | Training users reached | Training reviews | Training seconds | Reviews/s | Speed Δ vs previous | Speed Δ vs baseline | Instant User | Instant User Δ vs previous | Instant User Δ vs baseline | Instant Weighted | Instant Weighted Δ vs previous | Instant Weighted Δ vs baseline | Curve User | Curve User Δ vs previous | Curve User Δ vs baseline | Curve Weighted | Curve Weighted Δ vs previous | Curve Weighted Δ vs baseline | Raw result | Notes |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 2026-10-13T20:34:02.955212+00:00 | `07c4ccb6dd09c833240ed6099b9bdf0ae15f7279` | Expertium (light) | E90, F02 | F02 re-check on the current stack: the accepted 0090 options plus the deterministic preprocessing cache, pre-populated on CPU for all 167 training jobs, so workers read samples and layouts from disk instead of loading and building them from Parquet; seeded ID encodings are still regenerated per update. | 2 | 1,024 | 9.529 | 107 | — | — | 0.433909490 | — | — | 0.421975411 | — | — | 0.423755109 | — | — | 0.416540190 | — | — | [result](../artifacts/retraining/gpu-retrain-r01/iteration-0091/functional-smoke-v1/expertium/E90-F02/result.json) | Infrastructure check; excluded from comparisons. Declared schedule change: 512-chunk batches, 2 updates. |
+| 2026-10-13T20:42:37.867327+00:00 | `07c4ccb6dd09c833240ed6099b9bdf0ae15f7279` | Expertium (light) | E90, F02 | F02 re-check on the current stack: the accepted 0090 options plus the deterministic preprocessing cache, pre-populated on CPU for all 167 training jobs, so workers read samples and layouts from disk instead of loading and building them from Parquet; seeded ID encodings are still regenerated per update. | 80 | 7,654,975 | 32.746 | 233,768 | +21.15% | +679.09% | 0.382592464 | +0.00% | -0.99% | 0.398428596 | +0.00% | -0.76% | 0.370387972 | +0.00% | -4.48% | 0.387472684 | +0.00% | -3.25% | [result](../artifacts/retraining/gpu-retrain-r01/iteration-0091/expertium/E90-F02/result.json) | Declared schedule change: 512-chunk batches, 167 updates. |
+
+<!-- r01-0091:end -->
