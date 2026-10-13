@@ -6,11 +6,12 @@ Several agent sessions may work in this same checkout at once (no worktrees: dat
 
 | Session | Work | Owns (may edit freely) |
 |---|---|---|
-| `r01-harness` | P-A exploration-lane records, P-B multi-seed non-inferiority tooling, P-D variant cap and GPU-time accounting; every new rule is opt-in and inactive until the human approves it | `scripts/r01_iterate.py`, `scripts/r01_replicates.py`, `scripts/r01_replicate_stats.py`, `scripts/r01_close_round.py`, `scripts/r01_paired_timing.py`, `scripts/r01_metrics.py`, new `scripts/r01_seed_gate.py` and `scripts/r01_exploration.py`, their `scripts/check_r01_*` tests, `docs/GPU_RETRAIN_LOOP.md`, `artifacts/diagnostics/r01-harness-*` |
+| `r01-turnaround` | P-F (F74): shortest possible iterations by reusing stored results (evaluation reuse, result store, merged full run), plus P-D variant cap and GPU-time accounting; measurement-design changes stay opt-in until approved | `scripts/r01_iterate.py`, `scripts/r01_replicates.py`, `scripts/r01_replicate_stats.py`, `scripts/r01_close_round.py`, `scripts/r01_paired_timing.py`, `scripts/r01_metrics.py`, `scripts/r01_preflight.py`, `scripts/r01_evaluation_reuse.py`, new `scripts/r01_result_store.py`, their `scripts/check_r01_*` tests, `artifacts/retraining/gpu-retrain-r01/result-store/`, `artifacts/diagnostics/r01-turnaround-*` |
+| `r01-harness` | P-A exploration-lane records and P-B multi-seed non-inferiority tooling; every new rule is opt-in and inactive until the human approves it | new `scripts/r01_seed_gate.py` and `scripts/r01_exploration.py`, their `scripts/check_r01_*` tests, `docs/GPU_RETRAIN_LOOP.md`, `artifacts/retraining/gpu-retrain-r01/exploration/`, `artifacts/diagnostics/r01-harness-*` |
 | `r01-cuda-graphs` | P-C: F05 CUDA Graphs on the R01 path, exactness checks and a ready-to-run candidate | `scripts/gpu_shape_buckets.py`, `scripts/check_gpu_shape_buckets.py`, `scripts/check_gpu_bucket_admission.py`, new `scripts/gpu_r01_graphs.py` and `scripts/check_r01_cuda_graphs.py`, `artifacts/diagnostics/r01-f05-*` |
 | `r01-chunked-wkv` | F69: chunked (parallel-scan) WKV7 recurrence prototype, numerical-difference and microbenchmark evidence | new `rwkv/model/chunked_wkv*.py`, new `scripts/kernels/*chunked*`, new `scripts/check_r01_chunked_wkv.py` and `scripts/bench_r01_chunked_wkv.py`, `artifacts/diagnostics/r01-f69-*` |
 
-Not owned by any of these sessions (read only unless the human says otherwise): `AGENT.md`, `AGENTS.md`, the baseline-drift folder `artifacts/diagnostics/r01-native-toolchain/baseline-drift/` and ledger tracks F70/F71 (another chat's investigation), recorded iteration folders, checkpoints and `data/`. Another session's owned files are also read only; send that session a message instead of editing them.
+Not owned by any of these sessions (read only unless the human says otherwise): `AGENT.md`, `AGENTS.md`, the baseline-drift folder `artifacts/diagnostics/r01-native-toolchain/baseline-drift/` ledger tracks F70–F73 and iteration folders from 0074 on (the separate `baseline-drift-f71` chat, which follows these claims), recorded iteration folders, checkpoints and `data/`. Another session's owned files are also read only; send that session a message instead of editing them.
 
 ## Shared files need a claim
 
@@ -26,6 +27,7 @@ Claims are atomic directories managed by `scripts/r01_claim.py`; `status` shows 
 
 - Run every GPU job as `.venv/Scripts/python.exe scripts/r01_claim.py run --claim gpu --claim training-source --owner <session> --purpose "<what>" --wait-minutes 60 -- <command>`. Holding `training-source` keeps the live source stable for checks that reject source changes mid-run; the claim is released when the command exits, even on failure. Timing measured while any other GPU or heavy CPU process runs is invalid: before timing, also check `nvidia-smi` for jobs from chats that do not follow this file.
 - Edit shared files with `acquire`, make the edit, commit, then `release`. Claims are taken in a fixed order by the helper, so pass every claim you need in one call. Never break someone else's claim; only the human may use `--force`.
+- Before any GPU job, look for a recorded result you can reuse (the result store once `r01-turnaround` has built it, otherwise compatible recorded checks and runs as AGENT.md requires). Record every new result so that later work can reuse it instead of repeating it.
 - Work on your own new files while you wait. Wire new code into shared training source only once it passes its standalone checks.
 
 ## Git
