@@ -125,3 +125,62 @@ Exactness classes used below: **exact** means the candidate does not change any 
 - MPK (Mirage Persistent Kernel): inference-only, multi-GPU mega-kernel compiler; the idea is carried by F75, the tool is not applicable.
 - Task Spooler, GPU task-spooler forks, `gq`, `gpu-gate`: Linux daemons or cooperative locks for GPU queues; the same cooperative-lock approach is implemented in-repository as `scripts/r01_queue.py` (FIFO tickets, Windows change notifications instead of polling, stale-owner removal) because sessions here need claims beyond the GPU and no daemon.
 - Expertium's `rwkv-anki-autoresearch`: the CPU-inference, quantized-in-Anki goal and the iteration naming (`reference_iter31`…`iter45`) match this repository's `expertium/architecture.py` history; its README lists no new architecture or speed technique beyond what is here, but its `AGENTS.md` roadmap was not readable and is worth a look by the human.
+
+## Pass 2: 2026-10-13, system side (worker placement, data streaming, memory access)
+
+### Repository facts the ideas were judged against
+
+- Preparation has slack, the main thread does not: E33 six workers summed 110 s of preparation with 0.59 s total queue wait and 42% worker-pool CPU; F71 pinned placement brought preparation to about 113 s and dispatch to 36.5–38.6 s; training seconds ≈ summed main-thread dispatch + ~4 s ([R01_HOST_PATH.md](R01_HOST_PATH.md)).
+- Worker-to-main path today: `concurrent.futures` spawn pool, ordered prefetch depth 2 × workers, one packed blob per batch unpickled by `future.result()` on the main thread (F03), then `bulk_pin` allocates pinned memory and copies the blob into it on the main thread, then one `to(device, non_blocking=True)` per storage on the current stream (F20, `scripts/gpu_r01_update.py`).
+- Copies are not overlapped: counted iteration 0074 r1 reports `gpu_copy_milliseconds` 2,102 with `gpu_copy_overlap_training_milliseconds` 8.8 over 46.2 training seconds (4.5% serialized at update start); F04 recorded the same 0.067 s overlap in 0006.
+- Padding: the same run processed 96,020,797 hierarchical padded positions for 7,654,975 review presentations (12.5 positions per review across the five streams); F07 (padding factor), F24 (fewer splits), F51 (ragged single pass) and F52 (padding-free positions) exist and the last two were rejected at the stack level in 0055/0056.
+- Memory: peak process-tree RSS 8.4 GiB of 31 GiB; peak allocated 9.1 GiB and reserved 12.2 GiB of the RTX 5080's 16 GiB, so a device-resident dataset has at most about 4 GiB of headroom unless the batch representation shrinks.
+- Machine state not captured by the resource monitor: no sampled Python process had an explicit power-throttling policy (`ProcessPowerThrottling` control mask 0, so Windows decides), all ran at normal priority class, and the system timer resolution was 1.0 ms at sampling time (another application had raised it from the 15.625 ms default). The slow scheduling state (workers packed two per physical core, dispatch 23% slower, GPU clocks unchanged) has no recorded trigger.
+
+### New tracks
+
+#### F86 Process QoS state: power throttling, priority class and timer resolution
+
+- What: record `ProcessPowerThrottling` (EcoQoS), priority class and `NtQueryTimerResolution` for the main process and every worker in `background-load.json` and the resource monitor at run start; then opt out explicitly with `SetProcessInformation(ProcessPowerThrottling, EXECUTION_SPEED disabled)` on all of them and, if the correlation holds, request a 1 ms timer once per run (`timeBeginPeriod(1)`, released at exit).
+- Why here: Windows 11 lowers the QoS of background and minimized processes (lower priority and reduced clock through EcoQoS); the agent-launched console processes qualify as background. Lower clocks fit the measured slow state (dispatch 23% slower with unchanged GPU clocks). Timer resolution affects every wait primitive the pool and queues use (default 15.625 ms granularity) and is set by whichever application last asked for it, so it varies between runs.
+- Exactness: exact; environment only.
+- First step: read-only capture on the next runs (one record per process), compared across fast and slow states already identified in the baseline-drift diagnostics; only then the opt-out as an option.
+- Sources: [EcoQoS overview](https://www.techrepublic.com/article/ecoqos-gives-windows-11-apps-better-battery-life/), [Python workers confined to efficient scheduling on Windows 11](https://discuss.python.org/t/intel-windows-11-running-python-on-p-cores-performance-issue/31838), [Windows timer resolution discussion](https://discuss.python.org/t/higher-resolution-timers-on-windows/16153), [CPU sets](https://learn.microsoft.com/en-us/windows/win32/procthread/cpu-sets).
+
+#### F87 Device-resident compact review stream (end state of F14/F18)
+
+- What: keep the run's compact per-review source (ids, ratings, intervals, durations, hierarchy keys) on the device for the whole run and derive every per-update tensor there (F14 encodings and F18 indices/masks), so the per-update host path shrinks to a few index vectors.
+- Why here: 2.1 s of serialized copies plus the main-thread unpickle and pin memcpy per update are the measured host-side cost; one project that moved batching onto the device cut the loader's share of training time from about 85% to parity with the model. The 12.2 GiB reserved peak leaves little room, so this only works if the host-to-device bytes are dominated by derived tensors rather than source data.
+- Exactness: exact if every derived tensor is built bitwise-identically on the device and each update's views keep the 256-byte alignment that F62 showed matters for cuBLAS results.
+- First step: byte audit of one update's packed blob by tensor role (source features, encodings, gather/scatter indices, masks, padding) from the storages seen by `bulk_pin`; decide between residency and F18 on that split.
+- Sources: [gpuRDF2vec device-side batching](https://arxiv.org/abs/2508.01073), [PyTorch pinned-memory and worker guidance](https://discuss.pytorch.org/t/what-is-pin-memory-and-shared-memory/71223).
+
+#### F88 L2 persisting access-policy window for recurrence inputs
+
+- What: set `cudaStreamAttributeAccessPolicyWindow` on the training stream over the recurrence inputs the backward re-reads (k, v, w, a, b and the saved states), with a persisting hit property and `cudaLimitPersistingL2CacheSize` sized to the window; compute capability 8.0+ only, which sm_120 satisfies.
+- Why here: the WKV backward leads large-update GPU time; its per-update working set (tens of MB at 65k positions × 32 channels in BF16 across several tensors) is near the RTX 5080's 64 MB L2, so controlling what stays resident is cheap to test.
+- Exactness: exact; caching policy only.
+- First step: `cudaGetDeviceProperties` for `l2CacheSize`, `persistingL2CacheMaxSize` and `accessPolicyMaxWindowSize`; then a microbenchmark of the accepted row-tile backward with and without the window through ctypes on the raw stream handle (PyTorch exposes no wrapper).
+- Sources: [CUDA Programming Guide: L2 cache control](https://docs.nvidia.com/cuda/cuda-programming-guide/04-special-topics/l2-cache-control.html).
+
+#### F89 SMT-off timing comparison
+
+- What: disable simultaneous multithreading in the BIOS for a timing session and rerun the accepted path.
+- Why here: the slow state is literally "Windows packs workers two per physical core"; without SMT that placement cannot occur and the F71 pinning becomes unnecessary. Zen 5 reviews report Windows 11 filling both logical threads of a core before spreading, and some workloads gaining with SMT off.
+- Exactness: exact; human environment decision; the machine then has 8 logical cores for 6 workers plus the main process, so worker count (F73) is part of the comparison.
+- Sources: [Windows 11 scheduling on Ryzen 9700X (secondary report)](https://piefed.jeena.net/post/30679).
+
+### Notes for existing tracks (no new ID)
+
+- F04 transfer overlap: 0074 r1 shows the F20 bulk path issues copies on the compute stream at update start, so they wait for the previous update's kernels and the new update waits for them (overlap 8.8 ms of 2,102 ms). Issue update N+1's bulk copy on a dedicated copy stream, recorded with an event the compute stream waits on, into a second device buffer (double-buffered packed storage; packed batches are a small fraction of the 12.2 GiB reserved peak). Exact; bound about 4.5% of training seconds.
+- F72 zero-copy batch slots (row reserved to the baseline-drift session; note kept here), Windows specifics: pin only in the main process (workers have no CUDA context under spawn); CUDA IPC is unavailable on Windows, so slots must be CPU shared memory (`multiprocessing.shared_memory` or `torch` file-mapped storages); registering a mapped slot with `cudaHostRegister` must be verified on Windows (it fails under WSL2); PyTorch's pinned caching allocator rounds each allocation to a power of two, so register the slots once instead of pinning per update. With slots in place, `future.result()` carries only a slot index, the memcpy in `bulk_pin` disappears, and the F04 copy-stream prefetch reads straight from the slot.
+- F51/F52 padding-free layout: the measured 12.5 hierarchical positions per review is the ceiling for a ragged layout; the convention used by FLA's varlen kernels (`cu_seqlens` offsets, no padding rows) is the reference layout if F52 is revisited, and it removes the row-0 padding hotspot that F27/F35/F50 handle today.
+- F71 placement: `SetProcessDefaultCpuSets`/`SetProcessDefaultCpuSetMasks` (Windows 11) are the system-level alternative to per-process affinity masks and interact with priority; one logical processor per core must still be chosen by the application from `GetSystemCpuSetInformation`.
+- F66 stall-guided backward: once counters are permitted, Nsight Compute's memory-workload section is the evidence for any layout change (time-major versus row-major inputs, 16-byte vector loads, L2 hit rate), none of which should be guessed.
+
+### Surveyed and not adopted
+
+- Free-threaded Python (3.13t/3.14t/3.15t): PyTorch dropped 3.13t wheels in May 2026 and ships free-threaded wheels for 3.15t on Linux only, so a no-GIL main thread is not available on this Windows host.
+- `cudaMemcpyBatchAsync`: the F20 bulk path already issues one copy per storage, and the batched API needs CUDA 13 bindings and a 13.x driver; nothing to amortize.
+- GPUDirect Storage / DirectStorage: cuFile is Linux-only and preparation reads are not in the timed path with the F02 warm cache.
+- `timeBeginPeriod` as a standalone fix: Python 3.11+ already uses high-resolution waitable timers for `time.sleep`; pool and queue waits are blocking, not polling, so the only effect is on the scheduler quantum, which F86 records before anything is changed.
