@@ -540,6 +540,16 @@ def run_case(args):
                     log.flush()
                 progress.training(report["progress_users"], report["review_presentations"], report["updates"], loss_value)
 
+            # F72a: reset gradients through cached parameter lists and set train mode once, instead of
+            # walking the scripted module tree three times per update. Same None gradients and flags.
+            lean_reset = bool(options.get("lean_step_reset"))
+            if lean_reset:
+                if graphs:
+                    raise ValueError("F72a lean_step_reset does not support graph adapters")
+                lean_master = [p for group in optimizer.param_groups for p in group["params"]]
+                lean_child = list(base.parameters())
+                base.train()
+                report["lean_step_reset"] = {"master_parameters": len(lean_master), "child_parameters": len(lean_child)}
             bookkeeping_stride = int(options.get("bookkeeping_stride", 1))
             if bookkeeping_stride < 1:
                 raise ValueError("F57 bookkeeping_stride must be a positive integer")
@@ -595,12 +605,20 @@ def run_case(args):
                     # Reset after admission so an eager or replayed update sees
                     # the same declared dropout seed as its paired control.
                     torch.manual_seed(item.seed)
-                    optimizer.zero_grad(set_to_none=True)
+                    if lean_reset:
+                        for parameter in lean_master:
+                            parameter.grad = None
+                    else:
+                        optimizer.zero_grad(set_to_none=True)
                     if options.get("async_transfer"):
                         compute_started = torch.cuda.Event(enable_timing=True)
                         compute_started.record()
-                    active.zero_grad(set_to_none=True)
-                    active.train()
+                    if lean_reset and active is base:
+                        for parameter in lean_child:
+                            parameter.grad = None
+                    else:
+                        active.zero_grad(set_to_none=True)
+                        active.train()
                     if grouped:
                         grouped.downcast()
                     else:

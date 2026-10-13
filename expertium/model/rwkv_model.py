@@ -268,6 +268,7 @@ class RWKV7TimeMixer(ModuleType):
         self.native_forward_handle = 0
         self.native_backward_handle = 0
         self.native_tile = 32  # F90
+        self.native_wkv_rows = 4  # F90c: rows per recurrence thread (block 32 x 32/rows)
         self.native_group_norm = False
         self.native_group_chains_handle = 0
         self.native_group_tree_handle = 0
@@ -440,7 +441,7 @@ class RWKV7TimeMixer(ModuleType):
         elif self.native_wkv and r_BTHK.is_cuda:
             out_BTHK = torch.ops.rwkv_native.wkv(r_BTHK,k_BTHK,v_BTHK,w_BTHK,a_BTHK,
                                                k_deformed_BTHK,skip_BT,self.native_forward_handle,
-                                               self.native_backward_handle,4,self.native_tile)
+                                               self.native_backward_handle,self.native_wkv_rows,self.native_tile)
         elif r_BTHK.is_cuda:
             out_BTHK = RWKV7_WKV.apply(
                 r_BTHK, k_BTHK, v_BTHK, w_BTHK, a_BTHK, k_deformed_BTHK, skip_BT

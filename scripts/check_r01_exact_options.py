@@ -27,7 +27,7 @@ import statistics
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 APPLIED = {"native_wkv", "native_group_norm", "native_index", "wkv_tile", "native_glue", "partial_shift_lerp", "explicit_shift_lerp", "exact_shift_lerp", "exact_bonus_products", "batched_split_gather", "fused_padded_gather", "exact_shift", "exact_index", "exact_group_norm", "fused_shift", "row_tiles_exact", "shared_shift_orders",
-           "stream_launches", "driver_launch", "prefetch_rows", "prefetch_shift", "sync_free_loss", "jit_optimize", "nondeterministic", "skip_uninitialized_fill", "skip_padding_sources", "concurrent_splits", "concurrent_split_limit", "exact_gate_glue", "exact_channel_glue", "worker_scatter_orders", "recurrence_prefetch", "recurrence_load_pipeline", "wave_aware_backward", "flat_buffers", "compact_previous_state", "wddm_flush_streams"}
+           "stream_launches", "driver_launch", "prefetch_rows", "prefetch_shift", "sync_free_loss", "jit_optimize", "nondeterministic", "skip_uninitialized_fill", "skip_padding_sources", "concurrent_splits", "concurrent_split_limit", "exact_gate_glue", "exact_channel_glue", "worker_scatter_orders", "recurrence_prefetch", "recurrence_load_pipeline", "wave_aware_backward", "flat_buffers", "compact_previous_state", "wddm_flush_streams", "wkv_rows"}
 
 
 def load_options(value, track):

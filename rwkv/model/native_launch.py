@@ -65,7 +65,11 @@ def configure(model,options):
         # F90b: tile 8 uses the same kernels with four times the tile-32 checkpoints.
         if tile not in (8,16,32):
             raise ValueError('Native WKV checkpoint tile must be 8, 16 or 32')
-        forward,backward=compile_module(torch.device('cuda',torch.cuda.current_device()),torch.bfloat16,4,tile,True,False,False,0)
+        # F90c: same exact kernel template with 1/2/8 rows per thread (bitwise equal layouts, F54/F55).
+        rows=int(options.get('wkv_rows',4))
+        if rows not in (1,2,4,8):
+            raise ValueError('Native WKV rows must be 1, 2, 4 or 8')
+        forward,backward=compile_module(torch.device('cuda',torch.cuda.current_device()),torch.bfloat16,rows,tile,True,False,False,0)
         handles=(int(forward.kernel.ptr),int(backward.kernel.ptr))
         for module in model.modules():
             if hasattr(module,'native_wkv'):
@@ -73,6 +77,7 @@ def configure(model,options):
                 module.native_forward_handle=handles[0]
                 module.native_backward_handle=handles[1]
                 module.native_tile=tile
+                module.native_wkv_rows=rows
     if options.get('native_group_norm'):
         if not options.get('exact_group_norm'):
             raise ValueError('Native GroupNorm requires the accepted exact normalization path')
