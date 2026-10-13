@@ -611,8 +611,15 @@ def run_case(args):
                         stats = reduced.get_loss(batch) if reduced else active.get_loss(batch)
                     if stats is None or (not deferred and not torch.isfinite(stats.average_loss)):
                         raise RuntimeError(f"Non-finite training loss user {user}")
+                    wddm_flush = options.get("wddm_flush")
+                    if wddm_flush:
+                        # F77a: cudaStreamQuery submits the WDDM software queue, so the GPU starts the
+                        # forward while the host records the backward. Scheduling only; no arithmetic change.
+                        torch.cuda.current_stream().query()
                     if not graphs or active is base:
                         stats.average_loss.backward()
+                    if wddm_flush:
+                        torch.cuda.current_stream().query()
                     if options.get("concurrent_splits"):
                         from expertium.model.srs_model import wait_split_streams
                         wait_split_streams()
