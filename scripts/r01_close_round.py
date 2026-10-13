@@ -20,6 +20,27 @@ R = Path("artifacts/retraining/gpu-retrain-r01")
 LEDGER = ROOT / "docs/GPU_OPTIMIZATIONS.md"
 
 
+def iteration_gpu_time(directory):
+    """P-D/F74: wall seconds of every GPU case process recorded in one iteration (smokes, full run, replicates)."""
+    runs = []
+    for pattern in ("*/*/result.json", "functional-smoke-*/*/*/result.json", "replicates/*/*/*/result.json",
+                    "replicates/*/functional-smoke-*/*/*/result.json", "s*/functional-smoke-*/*/*/result.json"):
+        for path in Path(directory).glob(pattern):
+            if path.parts[-3] not in ("baseline", "expertium"):
+                continue
+            result = read_json(path)
+            reuse = result.get("evaluation_reuse") or {}
+            saved = None
+            if reuse.get("status") == "reused" and result.get("validation_seconds") is not None:
+                saved = reuse["loss_provenance"]["origin_validation_seconds"] - result["validation_seconds"]
+            runs.append({"wall": result.get("process_wall_seconds") or 0.0, "smoke": bool(result.get("smoke_only")),
+                         "reused": reuse.get("status") == "reused", "saved": saved})
+    return {"gpu_process_wall_seconds": round(sum(run["wall"] for run in runs), 1), "runs": len(runs),
+            "smoke_runs": sum(run["smoke"] for run in runs), "evaluations_reused": sum(run["reused"] for run in runs),
+            "evaluation_seconds_saved": round(sum(run["saved"] or 0.0 for run in runs), 1),
+            "scope": "process wall of recorded GPU case processes; excludes waits for a quiet machine, profiles and reports"}
+
+
 def iteration_numbers(text):
     if "-" in text:
         first, last = map(int, text.split("-"))
@@ -121,6 +142,15 @@ def main():
         summary = destination / f"{args.agent}-round-{iterations[0]}-{iterations[-1]}-summary.md"
         write_documents(ROOT, R, entries, commit, args.agent, summary, next_steps=args.next_step,
                         refresh=args.refresh_summary, update_index=not args.preview)
+        handoff_path = summary.with_name(summary.stem.removesuffix("-summary") + "-handoff.json")
+        if handoff_path.exists():
+            handoff = read_json(handoff_path)
+            if "gpu_time_by_iteration" not in handoff or args.refresh_summary:
+                # P-D: rounds are budgeted in GPU time as well as candidate count.
+                handoff["gpu_time_by_iteration"] = {item["iteration"]: iteration_gpu_time(item["case"].parents[1]) for item in entries}
+                handoff["gpu_process_wall_seconds_total"] = round(sum(value["gpu_process_wall_seconds"]
+                                                                      for value in handoff["gpu_time_by_iteration"].values()), 1)
+                write_json(handoff_path, handoff)
         if args.ledger_change and not args.preview:
             append_ledger(LEDGER, ROOT, summary, entries, commit, args.ledger_change, args.ledger_tracks)
         print(f"[done] {'preview' if args.preview else 'closed'} {len(entries)} iterations; no training launched", flush=True)

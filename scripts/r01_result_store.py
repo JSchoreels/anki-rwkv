@@ -236,7 +236,7 @@ def valid(root, entry):
         reasons.append("record lacks a complete runtime manifest (driver/NVRTC)")
     if entry["key"]["kind"] == "check" and value.get("execution_status") != "source unchanged":
         reasons.append("source changed during the recorded check")
-    if any(field is None for field in entry["key"].values()):
+    if any(value is None for field, value in entry["key"].items() if field != "runtime"):  # runtime: manifest reason above
         reasons.append("key field missing")
     return reasons
 
@@ -277,7 +277,8 @@ def evaluation_origin(root, protocol_path, model, track, *, iteration_dir=None, 
     """An actually evaluated full run that an exact replica may reuse (T1); the training process re-proves it."""
     def evaluated(entry):
         value = entry["value"]
-        reasons = [] if value["checkpoint"] and value["evaluation_context"] and not value["evaluation_reused"] \
+        checkpoint = (Path(root) / value["result"]).parent / "master.pth"  # checked live: files can disappear
+        reasons = [] if checkpoint.is_file() and value["evaluation_context"] and not value["evaluation_reused"] \
             and value["evaluation"] and value["smoke"] is bool(smoke) else ["origin lacks checkpoint, manifest or its own evaluation"]
         return reasons
     found, refused = lookup_case(root, protocol_path, model, track, smoke, runtime=runtime)

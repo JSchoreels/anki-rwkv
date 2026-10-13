@@ -68,7 +68,8 @@ def evaluation_origin(protocol_path, track, iteration_dir, smoke=False):
     """Controller-relative case directory of an evaluated exact-replica origin, or None (T1)."""
     from scripts.r01_result_store import evaluation_origin as lookup, record
     for path in [*iteration_dir.glob("expertium/*/result.json"), *iteration_dir.glob("replicates/*/expertium/*/result.json"),
-                 *iteration_dir.glob("replicates/*/functional-smoke-v1/expertium/*/result.json")]:
+                 *iteration_dir.glob("replicates/*/functional-smoke-v1/expertium/*/result.json"),
+                 *iteration_dir.glob("s*/functional-smoke-v1/expertium/*/result.json")]:
         try:
             record(ROOT, path)  # idempotent; keeps the index current for runs launched by older helpers
         except ValueError:
@@ -110,7 +111,13 @@ def prepare(args):
     protocol = json.loads((source / "protocol.json").read_text(encoding="utf-8"))
     provenance = process_provenance()
     if provenance.get("git_dirty") is not False:
-        raise RuntimeError("Commit first; replicates must start from a clean tree")
+        # Parallel sessions leave unrelated documents dirty; training inputs must still be committed.
+        from scripts.r01_workflow import training_inputs
+        # Untracked files (other sessions' prototypes) cannot be imported by committed code; the archive still keeps them.
+        status = subprocess.run(["git", "status", "--porcelain", "--untracked-files=no", "--", *training_inputs(ROOT)], cwd=ROOT,
+                                capture_output=True, text=True, check=True).stdout.strip()
+        if status or not args.allow_dirty_documents:
+            raise RuntimeError("Commit first; replicates must start from a clean tree" + (f" (training inputs dirty: {status[:200]})" if status else ""))
     iteration = output.name.removeprefix("iteration-")
     protocol.update(iteration=iteration, authorization=args.authorization, round_authorization=args.authorization,
                     round_start_iteration=iteration, preparation_provenance=provenance,
@@ -120,6 +127,9 @@ def prepare(args):
                                            "source_protocol": result_metadata(source / "protocol.json", ROOT)},
                     frozen_utc=datetime.now(timezone.utc).isoformat())
     protocol.pop("diagnostic_repeat", None)
+    protocol.pop("turnaround", None)
+    if args.turnaround:
+        protocol["turnaround"] = turnaround_settings(json.loads(args.turnaround))
     loop = (ROOT / "docs/GPU_RETRAIN_LOOP.md").read_bytes()
     protocol["loop_sha256"] = hashlib.sha256(loop).hexdigest()
     output.mkdir(parents=True)
@@ -138,8 +148,10 @@ def run(args):
     if unknown:
         raise ValueError(f"Tracks outside the frozen protocol: {unknown}")
     turnaround = protocol.get("turnaround") or {}
-    replicates = output / "replicates"
-    existing = sorted(int(p.name[1:]) for p in replicates.glob("r*") if p.name[1:].isdigit()) if replicates.exists() else []
+    # Smoke replicates sit at iteration/sN: nesting functional-smoke-v1 under replicates/rN inside the isolated
+    # runtime exceeds the Windows 260-character path limit (worker-ready files; F74 smoke attempt 1).
+    prefix, replicates = ("s", output) if args.smoke else ("r", output / "replicates")
+    existing = sorted(int(p.name[1:]) for p in replicates.glob(prefix + "*") if p.name[1:].isdigit()) if replicates.exists() else []
     # The record stays beside the iteration folder: the isolated runtime copies that folder once,
     # so a record updated inside it would differ from the runtime copy at the next export.
     log_path = output.parent / f"{output.name}-replicates.json"
@@ -153,7 +165,7 @@ def run(args):
                                                       "recorded_utc": datetime.now(timezone.utc).isoformat()})
             write_json(log_path, record)
             raise
-        folder = replicates / f"r{offset}"
+        folder = replicates / f"{prefix}{offset}"
         folder.mkdir(parents=True)
         for name in ("protocol.json", "loop-definition.md", "selection.json", "reference-reuse-amendment.json"):
             if (output / name).exists():  # selection.json lets the launch guard accept the selected candidate
@@ -161,22 +173,22 @@ def run(args):
         state = {"background": quiet, "gpu_state": gpu_state(), "recorded_utc": datetime.now(timezone.utc).isoformat()}
         write_json(folder / "background-load.json", {"total_cpu_percent": quiet["total_cpu_percent"], **state})
         launch = SimpleArgs(track, args.reason, smoke=args.smoke)
-        print(f"[replicates] r{offset} {track}: " + json.dumps(launch_plan(ROOT, folder, launch))[:200], flush=True)
+        print(f"[replicates] {prefix}{offset} {track}: " + json.dumps(launch_plan(ROOT, folder, launch))[:200], flush=True)
         command = [sys.executable, "-X", "utf8", str(ROOT / "scripts/run_isolated_gpu_r01.py"), "--case",
                    "--output", str(folder.relative_to(ROOT)), "--model", "expertium", "--track", track,
                    "--repeat-reason", args.reason] + (["--smoke", "--check-reason", args.reason] if args.smoke else [])
         origin = None
         if turnaround.get("evaluation_reuse") == "exact_replica" and not args.no_evaluation_reuse:
             origin, refused = evaluation_origin(output / "protocol.json", track, output, smoke=args.smoke)
-            print(f"[replicates] r{offset} {track}: evaluation origin {origin or 'none (evaluates)'}"
+            print(f"[replicates] {prefix}{offset} {track}: evaluation origin {origin or 'none (evaluates)'}"
                   + (f"; {len(refused)} stored records refused" if refused else ""), flush=True)
         # Logs stay outside the iteration folder: the isolated runtime copies it, and a live log would differ at export.
-        log = output.parent / f"{output.name}-replicate-r{offset}-console.log"
+        log = output.parent / f"{output.name}-replicate-{prefix}{offset}-console.log"
         from scripts.r01_evaluation_reuse import ORIGIN_ENVIRONMENT
         if origin:
             os.environ[ORIGIN_ENVIRONMENT] = origin
         try:
-            run_logged(f"replicate-r{offset}", command, log, root=ROOT, heartbeat_seconds=60, timeout_seconds=1200)
+            run_logged(f"replicate-{prefix}{offset}", command, log, root=ROOT, heartbeat_seconds=60, timeout_seconds=1200)
         finally:
             os.environ.pop(ORIGIN_ENVIRONMENT, None)
         result_path = folder / ("functional-smoke-v1" if args.smoke else "") / "expertium" / track / "result.json"
@@ -187,13 +199,13 @@ def run(args):
         except Exception as error:  # noqa: BLE001 - indexing never stops a timing campaign
             print(f"[replicates] result store not updated: {error}", flush=True)
         reuse = result.get("evaluation_reuse") or {}
-        record["runs"].append({"replicate": f"r{offset}", "track": track, "reviews_per_second": result["reviews_per_second"],
+        record["runs"].append({"replicate": f"{prefix}{offset}", "track": track, "reviews_per_second": result["reviews_per_second"],
                                "training_seconds": result["training_seconds"], "trained_parameter_sha256": result["trained_parameter_sha256"],
                                "smoke": args.smoke, "process_wall_seconds": result.get("process_wall_seconds"),
                                "validation_seconds": result.get("validation_seconds"),
                                "evaluation_reuse": reuse.get("status", "not requested"), "evaluation_origin": origin, **state})
         write_json(log_path, record)
-        print(f"[replicates] r{offset} {track}: {result['reviews_per_second']:,.0f} reviews/s; evaluation "
+        print(f"[replicates] {prefix}{offset} {track}: {result['reviews_per_second']:,.0f} reviews/s; evaluation "
               f"{reuse.get('status', 'computed')} ({result.get('validation_seconds', float('nan')):.1f} s)"
               + (f"; refused: {reuse.get('reasons', [])[:2]}" if reuse.get("status") == "refused" else ""), flush=True)
 
@@ -211,6 +223,9 @@ def main():
     p.add_argument("--source", type=Path, required=True)
     p.add_argument("--output", type=Path, required=True)
     p.add_argument("--authorization", required=True)
+    p.add_argument("--turnaround", help="F74 settings JSON frozen into this diagnostic protocol")
+    p.add_argument("--allow-dirty-documents", action="store_true",
+                   help="Accept uncommitted files outside the training inputs (other sessions' documents); the source archive keeps them")
     r = sub.add_parser("run")
     r.add_argument("--output", type=Path, required=True)
     r.add_argument("--sequence", required=True)

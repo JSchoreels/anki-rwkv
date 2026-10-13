@@ -39,6 +39,11 @@ def runtime_info(root, main_threads):
     return info
 
 
+def record_runtime(output):
+    """Runtime section of the preflight record that this check runs under."""
+    return read_json(output).get("runtime", {}) if Path(output).exists() else {}
+
+
 def preflight(root, output, main_threads=1):
     root, output = Path(root).resolve(), Path(output).resolve()
     if not output.is_relative_to(root / "artifacts"):
@@ -125,6 +130,15 @@ def main():
                 if not target.is_relative_to(ROOT / "artifacts"):
                     raise ValueError("Check outputs must stay under workspace artifacts")
                 result_path = target
+            # F74 T3: an identical passed check (script, arguments by content, training inputs, runtime) is reused.
+            from scripts.r01_result_store import check_key, lookup, record as store_record, runtime_from_preflight
+            store_key = check_key(ROOT, script.relative_to(ROOT).as_posix(), args.run[1:], training_inputs(ROOT),
+                                  runtime_from_preflight(record_runtime(output)))
+            found, _ = lookup(ROOT, store_key, require=lambda entry: [] if entry["value"]["status"] == "passed" else ["check failed"])
+            if found and not (args.repeat_reason or "").strip():
+                print(f"[check] reused identical passed check {found[0]['value']['result']} (result store); "
+                      "not rerun; pass --repeat-reason to repeat it", flush=True)
+                return
             before = training_inputs(ROOT)
             script_digest = hashlib.sha256(script.read_bytes()).hexdigest()
             log = run_logged("check", [sys.executable, str(script), *args.run[1:]], output.with_suffix(".check.log"),
@@ -137,7 +151,13 @@ def main():
                                {"status": "source unchanged" if unchanged else "source changed; incompatible evidence",
                                 "result_sha256": hashlib.sha256(result_path.read_bytes()).hexdigest(),
                                 "check_script": script.relative_to(ROOT).as_posix(), "check_script_sha256": script_digest,
-                                "preflight": output.relative_to(ROOT).as_posix(), "log": log.relative_to(ROOT).as_posix()})
+                                "preflight": output.relative_to(ROOT).as_posix(), "log": log.relative_to(ROOT).as_posix(),
+                                "store_key": store_key})
+                    if unchanged:
+                        try:
+                            store_record(ROOT, result_path)
+                        except Exception as error:  # noqa: BLE001 - indexing never fails a check
+                            print(f"[check] result store not updated: {error}", flush=True)
             if not unchanged:
                 sidecar = read_json(log.with_suffix(log.suffix + ".run.json"))
                 sidecar["status"] = "source changed during check; evidence is incompatible"
