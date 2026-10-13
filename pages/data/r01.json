@@ -1,5 +1,5 @@
 {
- "generated_utc": "2026-10-13T16:27:06Z",
+ "generated_utc": "2026-10-13T18:41:22Z",
  "campaign": "R01 GPU training-speed optimization",
  "cohort": "80 training users, 7,654,975 training reviews (fixed cohort), reviews/s",
  "baselines": {
@@ -20,18 +20,18 @@
  },
  "headline": {
   "model": "expertium",
-  "accepted_reviews_per_second": 200355.5625332395,
-  "accepted_iteration": 80,
-  "accepted_track": "E79-F65d",
+  "accepted_reviews_per_second": 192955.98163618692,
+  "accepted_iteration": 90,
+  "accepted_track": "E89-F65e-F77a",
   "baseline_reviews_per_second": 30005.0,
-  "speedup_x": 6.677405850132962,
-  "iterations_logged": 75,
-  "iterations_counted": 72,
-  "latest_iteration": 82,
+  "speedup_x": 6.4307942554969815,
+  "iterations_logged": 83,
+  "iterations_counted": 80,
+  "latest_iteration": 90,
   "best_single_run": {
-   "iteration": 80,
-   "track": "E79-F65d",
-   "reviews_per_second": 200355.5625332395
+   "iteration": 87,
+   "track": "E83-F77a",
+   "reviews_per_second": 202858.02261685676
   }
  },
  "decision_labels": {
@@ -2151,6 +2151,268 @@
    "accepted_track_after": "E79-F65d",
    "speed_noise_band_percent": 0.8606854923957297,
    "source": "artifacts/retraining/gpu-retrain-r01/iteration-0082/comparison.json"
+  },
+  {
+   "iteration": 83,
+   "date": "2026-10-13T16:29:41.665075+00:00",
+   "model": "expertium",
+   "track": "E80-F33b-F57-F90",
+   "label": "F33b, F57, F90",
+   "track_name": "Defer host reads by one update",
+   "description": "Stacks three small exact changes on accepted 0080 (E80): F33b two outstanding loss/norm reads (0082 stack candidate, +0.55%), F57 RSS sampling and progress JSON every eight users instead of every user, and F90 native WKV checkpoint tile 16 (fewer registers per recompute tile). E80 aliases the accepted 0080 options.",
+   "reviews_per_second": 187534.56079704943,
+   "previous_accepted_reviews_per_second": 200355.5625332395,
+   "vs_previous_accepted_percent": -6.39912442364211,
+   "vs_baseline_x": 6.250110341511395,
+   "decision": "accepted",
+   "decision_text": "retain main improvement; preliminary only",
+   "accepted": true,
+   "block": {
+    "n": 2,
+    "mean_percent": 1.947302158744879,
+    "lower_bound_percent": 0.513897415384168,
+    "effects_percent": [
+     1.7816740413335141,
+     2.1131998008377506
+    ],
+    "decision": "promote",
+    "final": true
+   },
+   "accepted_reference_after": 187534.56079704943,
+   "accepted_track_after": "E80-F33b-F57-F90",
+   "speed_noise_band_percent": 0.8644004762773827,
+   "source": "artifacts/retraining/gpu-retrain-r01/iteration-0083/comparison.json"
+  },
+  {
+   "iteration": 84,
+   "date": "2026-10-13T16:48:58.163210+00:00",
+   "model": "expertium",
+   "track": "E83-F90b",
+   "label": "F90b",
+   "track_name": "Native WKV checkpoint tile and row layout",
+   "description": "Native exact WKV checkpoint tile 8 instead of 16 on the accepted 0083 stack: the backward recomputes from four times the tile-32 checkpoints with smaller per-thread chunk arrays.",
+   "reviews_per_second": 117246.33264144044,
+   "previous_accepted_reviews_per_second": 187534.56079704943,
+   "vs_previous_accepted_percent": -37.4801465163934,
+   "vs_baseline_x": 3.9075598280766686,
+   "decision": "rejected",
+   "decision_text": "retain previous accepted run; speed target missed",
+   "accepted": false,
+   "block": {
+    "n": 2,
+    "mean_percent": -1.028586120793673,
+    "lower_bound_percent": -2.4201491254788654,
+    "effects_percent": [
+     -1.6689418401238942,
+     -0.3840602495810974
+    ],
+    "decision": "reject",
+    "final": true
+   },
+   "accepted_reference_after": 187534.56079704943,
+   "accepted_track_after": "E80-F33b-F57-F90",
+   "speed_noise_band_percent": 0.8669270585046629,
+   "source": "artifacts/retraining/gpu-retrain-r01/iteration-0084/comparison.json"
+  },
+  {
+   "iteration": 85,
+   "date": "2026-10-13T16:56:15.706774+00:00",
+   "model": "expertium",
+   "track": "E83-F86b",
+   "label": "F86b",
+   "track_name": "Process QoS state: power throttling (EcoQoS), priority class and timer resolution",
+   "description": "Dispatching main process at HIGH_PRIORITY_CLASS instead of above-normal (workers stay above-normal) on the accepted 0083 stack.",
+   "reviews_per_second": 193691.10706823677,
+   "previous_accepted_reviews_per_second": 187534.56079704943,
+   "vs_previous_accepted_percent": 3.282886229088189,
+   "vs_baseline_x": 6.45529435321569,
+   "decision": "rejected",
+   "decision_text": "retain previous accepted run; speed target missed",
+   "accepted": false,
+   "block": {
+    "n": 2,
+    "mean_percent": -0.3378368169364432,
+    "lower_bound_percent": -1.7391119307962444,
+    "effects_percent": [
+     0.08277872637045824,
+     -0.75668464917934
+    ],
+    "decision": "reject",
+    "final": true
+   },
+   "accepted_reference_after": 187534.56079704943,
+   "accepted_track_after": "E80-F33b-F57-F90",
+   "speed_noise_band_percent": 0.8670929299180896,
+   "source": "artifacts/retraining/gpu-retrain-r01/iteration-0085/comparison.json"
+  },
+  {
+   "iteration": 86,
+   "date": "2026-10-13T17:02:29.378846+00:00",
+   "model": "expertium",
+   "track": "E83-F33c",
+   "label": "F33c",
+   "track_name": "Defer host reads by one update",
+   "description": "Loss/norm/finite reads deferred by three queued updates instead of two on the accepted 0083 stack.",
+   "reviews_per_second": 188198.1269812054,
+   "previous_accepted_reviews_per_second": 187534.56079704943,
+   "vs_previous_accepted_percent": 0.35383674419036115,
+   "vs_baseline_x": 6.272225528452104,
+   "decision": "rejected",
+   "decision_text": "retain previous accepted run; speed target missed",
+   "accepted": false,
+   "block": {
+    "n": 2,
+    "mean_percent": -0.24217150114455022,
+    "lower_bound_percent": -1.6447916934372975,
+    "effects_percent": [
+     -0.12224452812937825,
+     -0.3619544733380331
+    ],
+    "decision": "reject",
+    "final": true
+   },
+   "accepted_reference_after": 187534.56079704943,
+   "accepted_track_after": "E80-F33b-F57-F90",
+   "speed_noise_band_percent": 0.8706724659748977,
+   "source": "artifacts/retraining/gpu-retrain-r01/iteration-0086/comparison.json"
+  },
+  {
+   "iteration": 87,
+   "date": "2026-10-13T17:09:13.284249+00:00",
+   "model": "expertium",
+   "track": "E83-F77a",
+   "label": "F77a",
+   "track_name": "WDDM software-queue flush policy",
+   "description": "Flush the WDDM software command queue with a stream query after the forward and after the backward on the accepted 0083 stack.",
+   "reviews_per_second": 202858.02261685676,
+   "previous_accepted_reviews_per_second": 187534.56079704943,
+   "vs_previous_accepted_percent": 8.171006855845864,
+   "vs_baseline_x": 6.760807286014223,
+   "decision": "stack_candidate",
+   "decision_text": "retain previous accepted run; speed target missed",
+   "accepted": false,
+   "block": {
+    "n": 6,
+    "mean_percent": 0.5166762622999865,
+    "lower_bound_percent": -0.30172773456877966,
+    "effects_percent": [
+     0.5692022379191863,
+     -0.20419757338934197,
+     -0.09674841151636748,
+     0.35823205534415425,
+     1.9107816936794642,
+     0.5770004167094056
+    ],
+    "decision": "stack candidate",
+    "final": true
+   },
+   "accepted_reference_after": 187534.56079704943,
+   "accepted_track_after": "E80-F33b-F57-F90",
+   "speed_noise_band_percent": 0.8712114434753504,
+   "source": "artifacts/retraining/gpu-retrain-r01/iteration-0087/comparison.json"
+  },
+  {
+   "iteration": 88,
+   "date": "2026-10-13T17:27:12.413424+00:00",
+   "model": "expertium",
+   "track": "E83-F77a-F77b",
+   "label": "F77a, F77b",
+   "track_name": "WDDM software-queue flush policy",
+   "description": "Stack of stack candidate F77a (stream query after forward and backward) with F77b, an identity autograd node that flushes the WDDM queue at each of the five hierarchy-stream boundaries in forward and backward.",
+   "reviews_per_second": 190948.3915748589,
+   "previous_accepted_reviews_per_second": 187534.56079704943,
+   "vs_previous_accepted_percent": 1.8203742090525443,
+   "vs_baseline_x": 6.363885738205595,
+   "decision": "stack_candidate",
+   "decision_text": "retain previous accepted run; speed target missed",
+   "accepted": false,
+   "block": {
+    "n": 6,
+    "mean_percent": 0.26946642111904673,
+    "lower_bound_percent": -0.5469248000630089,
+    "effects_percent": [
+     -0.055851896007208524,
+     0.08185829015359136,
+     0.31915811144196393,
+     0.021097924721047434,
+     0.10401204711611989,
+     1.1515429791064014
+    ],
+    "decision": "stack candidate",
+    "final": true
+   },
+   "accepted_reference_after": 187534.56079704943,
+   "accepted_track_after": "E80-F33b-F57-F90",
+   "speed_noise_band_percent": 0.8834023248869949,
+   "source": "artifacts/retraining/gpu-retrain-r01/iteration-0088/comparison.json"
+  },
+  {
+   "iteration": 89,
+   "date": "2026-10-13T17:50:59.452030+00:00",
+   "model": "expertium",
+   "track": "E83-F72a",
+   "label": "F72a",
+   "track_name": "Main-thread budget audit and zero-copy batch slots",
+   "description": "Reset gradients through cached master/child parameter lists and set train mode once before the loop, instead of optimizer.zero_grad, child zero_grad and train() walking the scripted module tree every update, on the accepted 0083 stack.",
+   "reviews_per_second": 201744.8522544175,
+   "previous_accepted_reviews_per_second": 187534.56079704943,
+   "vs_previous_accepted_percent": 7.577425407334104,
+   "vs_baseline_x": 6.723707790515497,
+   "decision": "accepted",
+   "decision_text": "retain main improvement; preliminary only",
+   "accepted": true,
+   "block": {
+    "n": 4,
+    "mean_percent": 1.0191456515810993,
+    "lower_bound_percent": 0.01272261109304118,
+    "effects_percent": [
+     1.0602395757691507,
+     0.9020775082631438,
+     0.8069916537966737,
+     1.3079853470767455
+    ],
+    "decision": "promote",
+    "final": true
+   },
+   "accepted_reference_after": 201744.8522544175,
+   "accepted_track_after": "E83-F72a",
+   "speed_noise_band_percent": 0.9130126358706248,
+   "source": "artifacts/retraining/gpu-retrain-r01/iteration-0089/comparison.json"
+  },
+  {
+   "iteration": 90,
+   "date": "2026-10-13T18:17:02.078781+00:00",
+   "model": "expertium",
+   "track": "E89-F65e-F77a",
+   "label": "F65e, F77a",
+   "track_name": "Native launch path for exact custom kernels",
+   "description": "Stacks two exact stack candidates from round 0080-0088 on accepted 0089 (E89 = E83 + F72a): F65e native gate/bonus/channel glue dispatcher (0081, +0.04%) and F77a WDDM stream query after forward and backward (0087, +0.52% at six blocks).",
+   "reviews_per_second": 192955.98163618692,
+   "previous_accepted_reviews_per_second": 201744.8522544175,
+   "vs_previous_accepted_percent": -4.356428687036362,
+   "vs_baseline_x": 6.4307942554969815,
+   "decision": "accepted",
+   "decision_text": "retain main improvement; preliminary only",
+   "accepted": true,
+   "block": {
+    "n": 6,
+    "mean_percent": 1.4713347158841872,
+    "lower_bound_percent": 0.22217365595307292,
+    "effects_percent": [
+     0.6543704855834553,
+     -0.3364222822984875,
+     0.5945951838250751,
+     3.8462787267363296,
+     2.759537276064461,
+     1.3685890622950225
+    ],
+    "decision": "promote",
+    "final": true
+   },
+   "accepted_reference_after": 192955.98163618692,
+   "accepted_track_after": "E89-F65e-F77a",
+   "speed_noise_band_percent": 0.9297792858900866,
+   "source": "artifacts/retraining/gpu-retrain-r01/iteration-0090/comparison.json"
   }
  ],
  "milestones": [
@@ -2366,6 +2628,54 @@
     "effects_percent": [
      2.907096649058971,
      1.3494968989111955
+    ],
+    "decision": "promote",
+    "final": true
+   }
+  },
+  {
+   "iteration": 89,
+   "title": "Lean per-update gradient reset (F72a)",
+   "kind": "host",
+   "comment": "Gradients are cleared through cached parameter lists and train mode is set once, instead of walking the scripted module tree three times every update; the arithmetic is unchanged, so results stay bitwise identical.",
+   "reviews_per_second": 201744.8522544175,
+   "gain_vs_previous_accepted_percent": 7.577425407334104,
+   "speedup_x": 6.723707790515497,
+   "date": "2026-10-13T17:50:59.452030+00:00",
+   "block": {
+    "n": 4,
+    "mean_percent": 1.0191456515810993,
+    "lower_bound_percent": 0.01272261109304118,
+    "effects_percent": [
+     1.0602395757691507,
+     0.9020775082631438,
+     0.8069916537966737,
+     1.3079853470767455
+    ],
+    "decision": "promote",
+    "final": true
+   }
+  },
+  {
+   "iteration": 90,
+   "title": "Native glue (F65e) with WDDM queue flushes (F77a)",
+   "kind": "native",
+   "comment": "Gate, bonus and channel glue now run through the native dispatcher, and the Windows GPU command queue is flushed after the forward and the backward so the GPU starts earlier; both were small on their own and were promoted together after six interleaved blocks.",
+   "reviews_per_second": 192955.98163618692,
+   "gain_vs_previous_accepted_percent": -4.356428687036362,
+   "speedup_x": 6.4307942554969815,
+   "date": "2026-10-13T18:17:02.078781+00:00",
+   "block": {
+    "n": 6,
+    "mean_percent": 1.4713347158841872,
+    "lower_bound_percent": 0.22217365595307292,
+    "effects_percent": [
+     0.6543704855834553,
+     -0.3364222822984875,
+     0.5945951838250751,
+     3.8462787267363296,
+     2.759537276064461,
+     1.3685890622950225
     ],
     "decision": "promote",
     "final": true

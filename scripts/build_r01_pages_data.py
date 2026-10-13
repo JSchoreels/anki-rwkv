@@ -292,6 +292,10 @@ def main():
          "Opting the main process and the pinned workers out of Windows power throttling (EcoQoS) and raising their priority, together with a native GroupNorm dispatcher. The two were promoted together; the split between them is not attributed."),
         (80, "Native shift-gather and row-select autograd (F65d)", "native",
          "Moves two more groups of Python autograd Functions into the native dispatcher while launching the very same kernels, removing Python backward nodes from the critical path."),
+        (89, "Lean per-update gradient reset (F72a)", "host",
+         "Gradients are cleared through cached parameter lists and train mode is set once, instead of walking the scripted module tree three times every update; the arithmetic is unchanged, so results stay bitwise identical."),
+        (90, "Native glue (F65e) with WDDM queue flushes (F77a)", "native",
+         "Gate, bonus and channel glue now run through the native dispatcher, and the Windows GPU command queue is flushed after the forward and the backward so the GPU starts earlier; both were small on their own and were promoted together after six interleaved blocks."),
     ]
     milestones = []
     for it, title, kind, comment in MILESTONES:
