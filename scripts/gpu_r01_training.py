@@ -148,7 +148,7 @@ def place_host_cores(worker_pids):
             "physical_cores": len(cores), "main_core_scheduling_classes": [cores[core]["rank"] for core in main_cores]}, previous
 
 
-def set_host_qos(worker_pids):
+def set_host_qos(worker_pids, main_priority=None):
     """F86: opt the main process and preparation workers out of Windows power throttling (EcoQoS)
     and raise them to above-normal priority.
 
@@ -187,13 +187,15 @@ def set_host_qos(worker_pids):
             kernel32.CloseHandle(handle)
         process = psutil.Process(pid)
         previous_priority = int(process.nice())
-        process.nice(psutil.ABOVE_NORMAL_PRIORITY_CLASS)
+        # F86b: optionally raise only the dispatching main process to high priority (never realtime).
+        high = main_priority == "high" and pid == os.getpid()
+        process.nice(psutil.HIGH_PRIORITY_CLASS if high else psutil.ABOVE_NORMAL_PRIORITY_CLASS)
         processes.append({"pid": pid, "role": "main" if pid == os.getpid() else "worker",
                           "previous_throttling": {"control_mask": before.control, "state_mask": before.state} if queried else None,
                           "previous_priority_class": previous_priority, "priority_class": int(process.nice())})
     coarsest, finest, current = wintypes.ULONG(), wintypes.ULONG(), wintypes.ULONG()
     status = ctypes.WinDLL("ntdll").NtQueryTimerResolution(ctypes.byref(coarsest), ctypes.byref(finest), ctypes.byref(current))
-    return {"mode": "above_normal_unthrottled", "processes": processes,
+    return {"mode": "main_high_unthrottled" if main_priority == "high" else "above_normal_unthrottled", "processes": processes,
             "timer_resolution_100ns": {"coarsest": coarsest.value, "finest": finest.value, "current": current.value} if status == 0 else None}
 
 
@@ -462,7 +464,9 @@ def run_case(args):
         if options.get("process_qos"):
             if warm_pool is None:
                 raise ValueError("F86 process QoS needs the prestarted worker pool")
-            report["process_qos"] = set_host_qos(report["prestarted_worker_pids"])
+            if options.get("main_priority", "high") != "high":
+                raise ValueError("F86b main_priority supports only 'high'")
+            report["process_qos"] = set_host_qos(report["prestarted_worker_pids"], options.get("main_priority"))
         # Host garbage-collection time inside the training loop (accounting only).
         gc_totals, gc_started = {0: [0, 0.0], 1: [0, 0.0], 2: [0, 0.0]}, {}
 

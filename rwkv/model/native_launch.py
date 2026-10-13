@@ -62,8 +62,9 @@ def configure(model,options):
         # The cached RawModule/RawKernel retains CUfunction ownership through backward.
         # F90: checkpoint tile 16 recomputes the same states from twice as many stored checkpoints.
         tile=int(options.get('wkv_tile',32))
-        if tile not in (16,32):
-            raise ValueError('Native WKV checkpoint tile must be 16 or 32')
+        # F90b: tile 8 uses the same kernels with four times the tile-32 checkpoints.
+        if tile not in (8,16,32):
+            raise ValueError('Native WKV checkpoint tile must be 8, 16 or 32')
         forward,backward=compile_module(torch.device('cuda',torch.cuda.current_device()),torch.bfloat16,4,tile,True,False,False,0)
         handles=(int(forward.kernel.ptr),int(backward.kernel.ptr))
         for module in model.modules():

@@ -3,6 +3,7 @@
 from argparse import ArgumentParser, Namespace
 from dataclasses import asdict, replace
 import hashlib
+import os
 import json
 from pathlib import Path
 import sys
@@ -175,7 +176,8 @@ def training_models(model_class, architecture, device, dtype, seed):
     else:
         model = model_class(architecture).selective_cast(dtype).to(device)
         model.copy_downcast_(master, dtype)
-    assert isinstance(model, torch.jit.ScriptModule), "Comparison requires both models' default JIT path"
+    # F91 eager_model sets RWKV_NO_JIT before the model modules are imported; the comparison then uses plain nn.Modules.
+    assert isinstance(model, torch.jit.ScriptModule) or os.environ.get("RWKV_NO_JIT"), "Comparison requires both models' default JIT path"
     return master, model
 
 
