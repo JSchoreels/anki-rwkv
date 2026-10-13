@@ -1,0 +1,57 @@
+{
+  "provenance": {
+    "captured_utc": "2026-10-13T13:25:29.045537+00:00",
+    "git_commit": "d8348447c625ef99108ea2731ebe64bfd3181e60",
+    "git_dirty": true,
+    "git_status_porcelain_z": " M docs/GPU_OPTIMIZATIONS_LOG.md\u0000?? scripts/check_r01_seed_gate.py\u0000?? scripts/r01_seed_gate.py\u0000",
+    "source_tree_sha256": "a10c05294939bd34bb6ef45dec0eb5aecef47a65618d3697b48bcaa99aa0d4e5",
+    "source_archive": "artifacts/sources/experiment-sources/a10c05294939bd34bb6ef45dec0eb5aecef47a65618d3697b48bcaa99aa0d4e5/source.zip",
+    "source_paths": [
+      "rwkv",
+      "expertium",
+      "scripts",
+      "configs",
+      "pyproject.toml",
+      "uv.lock",
+      "justfile",
+      "upstream.json"
+    ]
+  },
+  "checks": [
+    "constant shift: paired seed pairing",
+    "constant shift: point, two-level and user-only bounds equal +0.2%",
+    "constant shift: passes a 1% margin",
+    "constant shift: fails a 0.1% margin",
+    "run cost counts six full runs, none from store",
+    "seed noise: two-level upper exceeds user-only upper",
+    "seed noise: reference seed SD reported",
+    "seed noise: seed-level t bound reported for paired seeds",
+    "bootstrap is deterministic for a fixed seed",
+    "3% regression fails a 1% margin",
+    "different seed sets use independent seed draws",
+    "two seeds rejected",
+    "duplicate seeds rejected",
+    "missing/invalid margin rejected",
+    "held-out input hash mismatch rejected",
+    "options differing within a side rejected",
+    "paired label counts enforced",
+    "per-user rows must reproduce recorded aggregates",
+    "smoke runs rejected",
+    "store token without resolve() fails closed",
+    "store references counted as reused",
+    "0014: paired per-seed deltas match the recorded study",
+    "0014: reference seed means match recorded aggregates",
+    "0014: 20 paired held-out users",
+    "0047: same-seed replicates rejected without the degenerate flag",
+    "0047: degenerate input yields no gate decision",
+    "0047: exact replicas give zero delta and zero bounds"
+  ],
+  "status": "passed",
+  "recorded_0014_brief": [
+    "non-inferiority not shown (P-B pending approval; informational only) | margin 1.000% | users 20 | seeds C[2026, 2027, 2028] R[2026, 2027, 2028] | runs 6 (new for this candidate 6)",
+    "curve_log_loss_label_weighted: delta +0.300% upper +0.847% (user-only +0.627%, seed-t +1.109%) ref seed SD 0.660%",
+    "curve_log_loss_user_average: delta +0.262% upper +1.193% (user-only +0.633%, seed-t +1.969%) ref seed SD 0.894%",
+    "instant_log_loss_label_weighted: delta -0.065% upper +0.450% (user-only +0.010%, seed-t +0.997%) ref seed SD 0.287%",
+    "instant_log_loss_user_average: delta -0.093% upper +0.581% (user-only +0.019%, seed-t +1.454%) ref seed SD 0.396%"
+  ]
+}
