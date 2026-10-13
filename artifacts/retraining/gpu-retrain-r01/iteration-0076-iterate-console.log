@@ -1,0 +1,45 @@
+[queue] 000020-baseline-drift-f71 registered for gpu, training-source: counted R01 iteration 0076 (E72-F71-F73a) steps plan..report
+[queue] 000020-baseline-drift-f71 started after 0:00:00; holds gpu, training-source
+[plan] artifacts\retraining\gpu-retrain-r01\plans\iteration-0076-claude.json: control E33-F48-F50-F65b, candidate E72-F71-F73a, overrides {'host_placement': 'physical', 'preparation_workers': 5}
+[preflight] reused; 1 main threads, writable workspace temp
+[prepare] protocol frozen in artifacts\retraining\gpu-retrain-r01\iteration-0076/protocol.json
+[select] selected E72-F71-F73a
+[smoke] smoke failed (exit 1); log C:\Users\jonat\workspace\anki-rwkv\artifacts\retraining\gpu-retrain-r01\iteration-0076-expertium-smoke-console.log; tail:   File "C:\Users\jonat\workspace\anki-rwkv\scripts\gpu_r01_policy.py", line 167, in launch_plan |     raise ValueError("A retry requires --repeat-reason explaining what fixes the recorded failure") | ValueError: A retry requires --repeat-reason explaining what fixes the recorded failure
+[queue] 000023-baseline-drift-f71 registered for gpu, training-source: counted R01 iteration 0076 steps smoke-compare..report
+[queue] 000023-baseline-drift-f71 started after 0:00:00; holds gpu, training-source
+usage: r01_iterate.py [-h] --iteration ITERATION --previous PREVIOUS
+                      [--model {expertium,baseline}] --candidate CANDIDATE
+                      [--set KEY=JSON] [--explanation EXPLANATION]
+                      [--evidence EVIDENCE] [--check-reason CHECK_REASON]
+                      [--round-authorization ROUND_AUTHORIZATION]
+                      [--round-iterations ROUND_ITERATIONS]
+                      [--loss-ceiling LOSS_CEILING] [--agent AGENT]
+                      [--from-step {plan,prepare,select,smoke,full,profile,report}]
+                      [--allow-smoke-mismatch] [--preflight PREFLIGHT]
+                      [--check CHECK] [--heartbeat-seconds HEARTBEAT_SECONDS]
+                      [--fast-turnaround] [--turnaround TURNAROUND]
+                      [--fresh-selection FRESH_SELECTION]
+                      [--prescreen PRESCREEN]
+r01_iterate.py: error: Record --check evidence when creating the plan; do not add checks to an existing frozen plan
+[queue] 000024-baseline-drift-f71 registered for gpu, training-source: counted R01 iteration 0076 steps smoke-compare..report
+[queue] 000024-baseline-drift-f71 started after 0:00:00; holds gpu, training-source
+[preflight] reused; 1 main threads, writable workspace temp
+[smoke] status complete; updates equal True; results equal True; reference artifacts\retraining\gpu-retrain-r01\iteration-0072\functional-smoke-v1\expertium\E33-F48-F50-F65b
+[replicates] background CPU 17.0% > 10.0%; waiting
+[replicates] background CPU 15.7% > 10.0%; waiting
+[replicates] background CPU 15.6% > 10.0%; waiting
+[replicates] background CPU 16.3% > 10.0%; waiting
+[replicates] background CPU 13.4% > 10.0%; waiting
+[replicates] background CPU 15.4% > 10.0%; waiting
+[replicates] background CPU 14.1% > 10.0%; waiting
+[replicates] background CPU 13.0% > 10.0%; waiting
+[replicates] background CPU 12.7% > 10.0%; waiting
+[replicates] background CPU 17.6% > 10.0%; waiting
+[replicates] background CPU 15.0% > 10.0%; waiting
+[full] background before timing: 5.8% total CPU, 0 other Python GPU processes
+[full] running 60s; log artifacts/retraining/gpu-retrain-r01/iteration-0076-expertium-console.log (resource counters in sidecar)
+[full] status complete; training 41.366 s; 185,056 reviews/s; process wall 84.273 s
+[drift] queue wait 0.50 s (0.84 s); summed preparation 108.1 s (161.1 s); validation 28.2 s (32.4 s); primer 9.6 s (15.2 s); GC 0.13 s (0.20 s) [new (reference)]
+[profile] artifacts\retraining\gpu-retrain-r01\iteration-0076/profiles/expertium-E72-F71-F73a/profile.md
+[profile] training worker CPU 51.6% (62.8%); GPU 64.4% (63.6%) [new (reference)]
+[report] 0076 expertium E72-F71-F73a: 185,056 reviews/s, +8.90% vs previous, +516.75% vs baseline, process wall -15.45%; exact True; run replicate blocks to the next look (2); misses 3

@@ -1,0 +1,27 @@
+Traceback (most recent call last):
+  File "C:\Users\jonat\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\pathlib.py", line 1311, in mkdir
+    os.mkdir(self, mode)
+FileNotFoundError: [WinError 206] The filename or extension is too long: 'C:\\Users\\jonat\\workspace\\anki-rwkv\\artifacts\\retraining\\gpu-retrain-r01\\runtime-0075-8d946f7a48d5\\artifacts\\retraining\\gpu-retrain-r01\\iteration-0075\\functional-smoke-v1\\expertium\\E33-F48-F50-F65b-F71-F73a\\worker-ready\\d135e214707f437cbc7084175b6012c1'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\jonat\workspace\anki-rwkv\artifacts\retraining\gpu-retrain-r01\runtime-0075-8d946f7a48d5\scripts\gpu_r01_training.py", line 344, in run_case
+    warm_pool = pool_stack.enter_context(warm_preparation_pool(workers, ready_directory))
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\jonat\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\contextlib.py", line 526, in enter_context
+    result = _enter(cm)
+             ^^^^^^^^^^
+  File "C:\Users\jonat\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\contextlib.py", line 137, in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+  File "C:\Users\jonat\workspace\anki-rwkv\artifacts\retraining\gpu-retrain-r01\runtime-0075-8d946f7a48d5\scripts\gpu_r01_packing.py", line 82, in warm_preparation_pool
+    ready_directory.mkdir(parents=True, exist_ok=False)
+  File "C:\Users\jonat\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\pathlib.py", line 1316, in mkdir
+    self.mkdir(mode, parents=False, exist_ok=exist_ok)
+  File "C:\Users\jonat\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\pathlib.py", line 1311, in mkdir
+    os.mkdir(self, mode)
+FileNotFoundError: [WinError 206] The filename or extension is too long: 'C:\\Users\\jonat\\workspace\\anki-rwkv\\artifacts\\retraining\\gpu-retrain-r01\\runtime-0075-8d946f7a48d5\\artifacts\\retraining\\gpu-retrain-r01\\iteration-0075\\functional-smoke-v1\\expertium\\E33-F48-F50-F65b-F71-F73a\\worker-ready\\d135e214707f437cbc7084175b6012c1'
+{"model": "expertium", "track": "E33-F48-F50-F65b-F71-F73a", "status": "failed", "training_seconds": null, "reviews_per_second": null, "evaluation": null, "error": "[WinError 206] The filename or extension is too long: 'C:\\\\Users\\\\jonat\\\\workspace\\\\anki-rwkv\\\\artifacts\\\\retraining\\\\gpu-retrain-r01\\\\runtime-0075-8d946f7a48d5\\\\artifacts\\\\retraining\\\\gpu-retrain-r01\\\\iteration-0075\\\\functional-smoke-v1\\\\expertium\\\\E33-F48-F50-F65b-F71-F73a\\\\worker-ready\\\\d135e214707f437cbc7084175b6012c1'"}
+{"origin_git_commit": "bc793385031b526ece236d7e271040a000036efb", "origin_source_archive": "artifacts/sources/experiment-sources/cadc74bc096c3a2ece8583e37fe7f8010d683e50affda299112e56d5405af7a8/source.zip", "origin_source_sha256": "8d946f7a48d551dc9fe84773e2f87235ce0acf835ade0cb7b27ebced83fe88eb", "source_file_count": 241, "isolated_git_commit": "ac86d337ffa28cbe9586e8f42650d877cfdcbe9c", "shared_dataset_root": "C:\\Users\\jonat\\workspace\\anki-rwkv\\data", "runtime": "artifacts/retraining/gpu-retrain-r01/runtime-0075-8d946f7a48d5", "purpose": "Immutable experiment source; independent local Git identity; shared dataset without copying; exported results retain process provenance unchanged."}
+{"exported_files": 4, "iteration": "0075"}

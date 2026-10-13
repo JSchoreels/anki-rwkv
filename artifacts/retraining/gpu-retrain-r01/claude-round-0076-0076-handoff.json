@@ -1,0 +1,69 @@
+{
+  "status": "partial counted round; remaining iterations already authorized",
+  "model": "expertium",
+  "iterations": [
+    "0076"
+  ],
+  "accepted_iteration": "0076",
+  "accepted_result": "artifacts/retraining/gpu-retrain-r01/iteration-0076/expertium/E72-F71-F73a/result.json",
+  "accepted_options": {
+    "prefetch_users": true,
+    "preparation_workers": 5,
+    "gpu_packed_features": true,
+    "packed_ipc": true,
+    "async_transfer": true,
+    "batched_id_encodings": true,
+    "grouped_sync": true,
+    "main_threads": 1,
+    "bulk_transfer": true,
+    "parallel_evaluation": true,
+    "exact_shift": true,
+    "exact_index": true,
+    "batch_chunks": 512,
+    "gpu_memory_fraction": 0.95,
+    "fast_samples": true,
+    "prestart_pool": true,
+    "row_tiles_exact": 4,
+    "exact_group_norm": true,
+    "deferred_reads": true,
+    "shared_shift_orders": true,
+    "stream_launches": true,
+    "prefetch_rows": true,
+    "sync_free_loss": true,
+    "columnar_samples": true,
+    "skip_uninitialized_fill": true,
+    "skip_padding_sources": true,
+    "native_wkv": true,
+    "host_placement": "physical"
+  },
+  "accepted_reviews_per_second": 185056.02070175216,
+  "next_iteration_hint": "0077",
+  "prior_miss_streak": 0,
+  "implementation_git_commit": "530f1655c6369cff6e25810000f380a95554265b",
+  "new_authorization_required": false,
+  "host_path": "docs/R01_HOST_PATH.md",
+  "ledger": "docs/GPU_OPTIMIZATIONS.md",
+  "summary": "artifacts/retraining/gpu-retrain-r01/claude-round-0076-0076-summary.md",
+  "next_steps": [
+    "F73b: four pinned workers on E72-F71",
+    "F72 main-thread budget audit (per-phase thread_time) before zero-copy slots",
+    "Enable Windows long paths (human) or keep E72-style aliases for long track names"
+  ],
+  "acceptance": "Use current LOOP gates and source/runtime-compatible recorded checks; no broader validation authorized",
+  "round_iteration_budget": 10,
+  "completed_candidate_iterations": 5,
+  "remaining_authorized_iterations": 5,
+  "round_start_iteration": "0071",
+  "round_authorization": "Ten full R01 training cycles",
+  "gpu_time_by_iteration": {
+    "0076": {
+      "gpu_process_wall_seconds": 455.8,
+      "runs": 6,
+      "smoke_runs": 1,
+      "evaluations_reused": 0,
+      "evaluation_seconds_saved": 0.0,
+      "scope": "process wall of recorded GPU case processes; excludes waits for a quiet machine, profiles and reports"
+    }
+  },
+  "gpu_process_wall_seconds_total": 455.8
+}

@@ -1,0 +1,25 @@
+{
+  "step": "smoke",
+  "command": [
+    "C:\\Users\\jonat\\workspace\\anki-rwkv\\.venv\\Scripts\\python.exe",
+    "scripts/run_gpu_r01.py",
+    "--case",
+    "--output",
+    "artifacts\\retraining\\gpu-retrain-r01\\iteration-0076",
+    "--model",
+    "expertium",
+    "--track",
+    "E72-F71-F73a",
+    "--smoke",
+    "--check-reason",
+    "F73a changes only the preparation worker count and F71 placement; smoke must match the accepted 0072 smoke bitwise"
+  ],
+  "log": "artifacts/retraining/gpu-retrain-r01/iteration-0076-expertium-smoke-console.log",
+  "started_utc": "2026-10-13T14:02:07.496092+00:00",
+  "status": "failed; no automatic retry",
+  "attempt": 1,
+  "pid": 26688,
+  "returncode": 1,
+  "error": "StepFailure: smoke failed (exit 1); log C:\\Users\\jonat\\workspace\\anki-rwkv\\artifacts\\retraining\\gpu-retrain-r01\\iteration-0076-expertium-smoke-console.log; tail:   File \"C:\\Users\\jonat\\workspace\\anki-rwkv\\scripts\\gpu_r01_policy.py\", line 167, in launch_plan |     raise ValueError(\"A retry requires --repeat-reason explaining what fixes the recorded failure\") | ValueError: A retry requires --repeat-reason explaining what fixes the recorded failure",
+  "elapsed_seconds": 0.2809999999990396
+}

@@ -1,0 +1,89 @@
+{
+  "models": [
+    "expertium"
+  ],
+  "model_scope_reason": "Continuation of the Expertium-only R01 work; Alex remains paused by earlier human request.",
+  "control_tracks": {
+    "expertium": "E33-F48-F50-F65b"
+  },
+  "candidate_tracks": {
+    "expertium": "E72-F71-F73a"
+  },
+  "case_options_by_model": {
+    "expertium": {
+      "E33-F48-F50-F65b": {
+        "prefetch_users": true,
+        "preparation_workers": 6,
+        "gpu_packed_features": true,
+        "packed_ipc": true,
+        "async_transfer": true,
+        "batched_id_encodings": true,
+        "grouped_sync": true,
+        "main_threads": 1,
+        "bulk_transfer": true,
+        "parallel_evaluation": true,
+        "exact_shift": true,
+        "exact_index": true,
+        "batch_chunks": 512,
+        "gpu_memory_fraction": 0.95,
+        "fast_samples": true,
+        "prestart_pool": true,
+        "row_tiles_exact": 4,
+        "exact_group_norm": true,
+        "deferred_reads": true,
+        "shared_shift_orders": true,
+        "stream_launches": true,
+        "prefetch_rows": true,
+        "sync_free_loss": true,
+        "columnar_samples": true,
+        "skip_uninitialized_fill": true,
+        "skip_padding_sources": true,
+        "native_wkv": true
+      },
+      "E72-F71-F73a": {
+        "prefetch_users": true,
+        "preparation_workers": 5,
+        "gpu_packed_features": true,
+        "packed_ipc": true,
+        "async_transfer": true,
+        "batched_id_encodings": true,
+        "grouped_sync": true,
+        "main_threads": 1,
+        "bulk_transfer": true,
+        "parallel_evaluation": true,
+        "exact_shift": true,
+        "exact_index": true,
+        "batch_chunks": 512,
+        "gpu_memory_fraction": 0.95,
+        "fast_samples": true,
+        "prestart_pool": true,
+        "row_tiles_exact": 4,
+        "exact_group_norm": true,
+        "deferred_reads": true,
+        "shared_shift_orders": true,
+        "stream_launches": true,
+        "prefetch_rows": true,
+        "sync_free_loss": true,
+        "columnar_samples": true,
+        "skip_uninitialized_fill": true,
+        "skip_padding_sources": true,
+        "native_wkv": true,
+        "host_placement": "physical"
+      }
+    }
+  },
+  "case_explanations": {
+    "expertium": {
+      "E33-F48-F50-F65b": "Launch the unchanged accepted four-row NVRTC WKV kernels through a C++ dispatcher and C++ autograd node, replacing Python/CuPy forward/backward wrapping while preserving tensor types, checkpoint layout, current stream and argument bytes.",
+      "E72-F71-F73a": "F73a stacks five preparation workers on F71 core placement: each worker keeps its own physical core and the main process gets three dedicated cores instead of two. E72 aliases the accepted 0072 options for Windows path length. Batch bytes and RNG are identical across 6/5/4 workers."
+    }
+  },
+  "selection_evidence": "Human 2026-10-13 approved host_placement for long runs and 'everything you think can help, the packed two per core for ex'. 0074 ended F71 at stack candidate (mean +2.42%, lower -0.72%) with report decision 'investigate retuning freed resources'. 0075 (same options, long track name) failed at smoke setup on the Windows 260-character path limit before any training. Worker-count byte/RNG check passed (artifacts/diagnostics/r01-f73-worker-counts-v1).",
+  "prerequisite_checks": [
+    {
+      "path": "artifacts/diagnostics/r01-f73-worker-counts-v1",
+      "sha256": "9b35feb7238f9eeb04fb9a800d3702263c4d3fbee6c3416c51da7d68bba7c04d",
+      "status": "passed, source compatible; runtime compatibility must also be reviewed"
+    }
+  ]
+}
