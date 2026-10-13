@@ -1,0 +1,107 @@
+{
+  "status": "partial counted round; remaining iterations already authorized",
+  "model": "expertium",
+  "iterations": [
+    "0051",
+    "0052",
+    "0053"
+  ],
+  "accepted_iteration": "0042",
+  "accepted_result": "artifacts/retraining/gpu-retrain-r01/iteration-0042/expertium/E33-F48-F50/result.json",
+  "accepted_options": {
+    "prefetch_users": true,
+    "preparation_workers": 6,
+    "gpu_packed_features": true,
+    "packed_ipc": true,
+    "async_transfer": true,
+    "batched_id_encodings": true,
+    "grouped_sync": true,
+    "main_threads": 1,
+    "bulk_transfer": true,
+    "parallel_evaluation": true,
+    "exact_shift": true,
+    "exact_index": true,
+    "batch_chunks": 512,
+    "gpu_memory_fraction": 0.95,
+    "fast_samples": true,
+    "prestart_pool": true,
+    "row_tiles_exact": 4,
+    "exact_group_norm": true,
+    "deferred_reads": true,
+    "shared_shift_orders": true,
+    "stream_launches": true,
+    "prefetch_rows": true,
+    "sync_free_loss": true,
+    "columnar_samples": true,
+    "skip_uninitialized_fill": true,
+    "skip_padding_sources": true
+  },
+  "accepted_reviews_per_second": 197499.48784125826,
+  "next_iteration_hint": "0054",
+  "prior_miss_streak": 6,
+  "implementation_git_commit": "4e9bae201a7b1a457a6b95a3f4680a2543218543",
+  "new_authorization_required": false,
+  "host_path": "docs/R01_HOST_PATH.md",
+  "ledger": "docs/GPU_OPTIMIZATIONS.md",
+  "summary": "artifacts/retraining/gpu-retrain-r01/codex-round-0051-0053-summary.md",
+  "next_steps": [
+    "Continue --iteration 0054 --previous 0053; inherit campaign budget 23/index 6 with 17 remaining through 0070 and cumulative loss ceiling 0.001; do not reset authorization.",
+    "Accepted reference remains 0042 E33-F48-F50. Retain 0048 F58 recurrence_prefetch=true as positive unproven stack; omit rejected F55/F62 and 0051-0053 F34 gate/channel bundles.",
+    "For 0054 slot 7, establish exact feasibility for a distinct F34 group (eight-way shift/lerp reductions, bonus/GroupNorm glue or vectorized loading); absent feasibility advance to F51 RNG-preserving split batching while preserving dropout and per-split weight-gradient order.",
+    "F49 needs main-stream preallocated outputs plus genuinely independent deferred recurrence scheduling; bounded two-stream split memory grew 94-436 MiB and immediate recurrence joins serialize calls. P3b attribution, whole-group F62 Adam, F58 recompute/per-row prefetch remain pending. No Alex/broader validation; parent manages follow-on chats and shutdown."
+  ],
+  "acceptance": "Use current LOOP gates and source/runtime-compatible recorded checks; no broader validation authorized",
+  "round_iteration_budget": 23,
+  "completed_candidate_iterations": 6,
+  "remaining_authorized_iterations": 17,
+  "round_start_iteration": "0048",
+  "round_authorization": "I want you to follow R01 cycles, spawn each time a new GPT 6.1 Sol medium thread for 3 iterations, until you reach iteration number 70. Go up to 70 and then shutdown the computer.",
+  "next_iteration": "0054",
+  "previous_argument": "0053",
+  "loss_ceiling_fraction": 0.001,
+  "stack_candidates": [
+    {
+      "iteration": "0048",
+      "track": "E33-F48-F50-F58",
+      "option_overrides": {
+        "recurrence_prefetch": true
+      },
+      "mean_gain_percent": 0.10968623263891697,
+      "lower_bound_percent": -1.6501143406453256,
+      "decision": "positive unproven at six-block cap"
+    }
+  ],
+  "rejected_candidates": [
+    "0049 E33-F48-F50-F58-F55",
+    "0050 E33-F48-F50-F58-F62",
+    "0051 E33-F48-F50-F58-F34a",
+    "0052 E33-F48-F50-F58-F34b",
+    "0053 E33-F48-F50-F58-F34c"
+  ],
+  "candidate_preparation": "artifacts/diagnostics/r01-round-0051-0053/preparation.md",
+  "slot_7": "Distinct exact F34 feasibility, otherwise F51 RNG-preserving split batching; retain F58 only",
+  "worker_stop": "Completed exactly 0051\u20130053; parent controls next chat and shutdown",
+  "batch_decisions": [
+    {
+      "iteration": "0051",
+      "n": 2,
+      "mean_percent": -1.6541511563790023,
+      "lower_bound_percent": -3.036918559117885,
+      "decision": "reject"
+    },
+    {
+      "iteration": "0052",
+      "n": 2,
+      "mean_percent": -1.2882402970654239,
+      "lower_bound_percent": -2.6761524986393948,
+      "decision": "reject"
+    },
+    {
+      "iteration": "0053",
+      "n": 2,
+      "mean_percent": -1.2071103197715538,
+      "lower_bound_percent": -2.59616322925853,
+      "decision": "reject"
+    }
+  ]
+}

@@ -664,3 +664,45 @@ Implementation commit after experiments: `e8b906614639edf1e091f050c82541a9025d87
 Implementation commit after experiments: `e8b906614639edf1e091f050c82541a9025d878c`. Tested revision remains `9482526e5b5a66b994dcfa77d3dd1b5db1644d42` with per-process source snapshots in the linked raw results and iteration record; [commit record](../artifacts/retraining/gpu-retrain-r01/iteration-0050/implementation-commit.json).
 
 <!-- r01-0050:end -->
+
+<!-- r01-0051:start -->
+## R01 iteration 0051
+
+[Iteration record](../artifacts/retraining/gpu-retrain-r01/iteration-0051/summary.md)
+
+| Training start (UTC) | Trial commit | Model | Improvement IDs | What was tried | Training users reached | Training reviews | Training seconds | Reviews/s | Speed Δ vs previous | Speed Δ vs baseline | Instant User | Instant User Δ vs previous | Instant User Δ vs baseline | Instant Weighted | Instant Weighted Δ vs previous | Instant Weighted Δ vs baseline | Curve User | Curve User Δ vs previous | Curve User Δ vs baseline | Curve Weighted | Curve Weighted Δ vs previous | Curve Weighted Δ vs baseline | Raw result | Notes |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 2026-10-13T00:38:46.395956+00:00 | `1518f099728c54cd6bf4f79547aaf9a9506149c5` | Expertium (light) | E33, F48, F50, F58, F34a | P4 two-stream splits increased reserved memory; recurrence-only joins serialize calls. Fall back to exact fused time-mixer gate addition and multiplication, preserving BF16 rounding and original backward operations, stacked on F58. | 2 | 1,024 | 0.812 | 1,261 | — | — | 0.433909490 | — | — | 0.421975411 | — | — | 0.423755109 | — | — | 0.416540190 | — | — | [result](../artifacts/retraining/gpu-retrain-r01/iteration-0051/functional-smoke-v1/expertium/E33-F48-F50-F58-F34a/result.json) | Infrastructure check; excluded from comparisons. Declared schedule change: 512-chunk batches, 2 updates. |
+| 2026-10-13T00:39:15.047106+00:00 | `1518f099728c54cd6bf4f79547aaf9a9506149c5` | Expertium (light) | E33, F48, F50, F58, F34a | P4 two-stream splits increased reserved memory; recurrence-only joins serialize calls. Fall back to exact fused time-mixer gate addition and multiplication, preserving BF16 rounding and original backward operations, stacked on F58. | 80 | 7,654,975 | 45.710 | 167,468 | -15.21% | +458.13% | 0.382592464 | +0.00% | -0.99% | 0.398428596 | +0.00% | -0.76% | 0.370387972 | +0.00% | -4.48% | 0.387472684 | +0.00% | -3.25% | [result](../artifacts/retraining/gpu-retrain-r01/iteration-0051/expertium/E33-F48-F50-F58-F34a/result.json) | Declared schedule change: 512-chunk batches, 167 updates. |
+
+Implementation commit after experiments: `4e9bae201a7b1a457a6b95a3f4680a2543218543`. Tested revision remains `1518f099728c54cd6bf4f79547aaf9a9506149c5` with per-process source snapshots in the linked raw results and iteration record; [commit record](../artifacts/retraining/gpu-retrain-r01/iteration-0051/implementation-commit.json).
+
+<!-- r01-0051:end -->
+
+<!-- r01-0052:start -->
+## R01 iteration 0052
+
+[Iteration record](../artifacts/retraining/gpu-retrain-r01/iteration-0052/summary.md)
+
+| Training start (UTC) | Trial commit | Model | Improvement IDs | What was tried | Training users reached | Training reviews | Training seconds | Reviews/s | Speed Δ vs previous | Speed Δ vs baseline | Instant User | Instant User Δ vs previous | Instant User Δ vs baseline | Instant Weighted | Instant Weighted Δ vs previous | Instant Weighted Δ vs baseline | Curve User | Curve User Δ vs previous | Curve User Δ vs baseline | Curve Weighted | Curve Weighted Δ vs previous | Curve Weighted Δ vs baseline | Raw result | Notes |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 2026-10-13T00:48:43.418836+00:00 | `291db556a3d410b91cc01ac4a24db34d21dc8134` | Expertium (light) | E33, F48, F50, F58, F34b | F34 forward-only slice was negative in 0051. Test the changed forward/backward gate mechanism: fuse independent backward products into one launch, preserve the same rounded gradient for both add inputs, stack on retained F58. | 2 | 1,024 | 0.794 | 1,290 | — | — | 0.433909490 | — | — | 0.421975411 | — | — | 0.423755109 | — | — | 0.416540190 | — | — | [result](../artifacts/retraining/gpu-retrain-r01/iteration-0052/functional-smoke-v1/expertium/E33-F48-F50-F58-F34b/result.json) | Infrastructure check; excluded from comparisons. Declared schedule change: 512-chunk batches, 2 updates. |
+| 2026-10-13T00:49:12.074838+00:00 | `291db556a3d410b91cc01ac4a24db34d21dc8134` | Expertium (light) | E33, F48, F50, F58, F34b | F34 forward-only slice was negative in 0051. Test the changed forward/backward gate mechanism: fuse independent backward products into one launch, preserve the same rounded gradient for both add inputs, stack on retained F58. | 80 | 7,654,975 | 45.747 | 167,334 | -15.27% | +457.68% | 0.382592464 | +0.00% | -0.99% | 0.398428596 | +0.00% | -0.76% | 0.370387972 | +0.00% | -4.48% | 0.387472684 | +0.00% | -3.25% | [result](../artifacts/retraining/gpu-retrain-r01/iteration-0052/expertium/E33-F48-F50-F58-F34b/result.json) | Declared schedule change: 512-chunk batches, 167 updates. |
+
+Implementation commit after experiments: `4e9bae201a7b1a457a6b95a3f4680a2543218543`. Tested revision remains `291db556a3d410b91cc01ac4a24db34d21dc8134` with per-process source snapshots in the linked raw results and iteration record; [commit record](../artifacts/retraining/gpu-retrain-r01/iteration-0052/implementation-commit.json).
+
+<!-- r01-0052:end -->
+
+<!-- r01-0053:start -->
+## R01 iteration 0053
+
+[Iteration record](../artifacts/retraining/gpu-retrain-r01/iteration-0053/summary.md)
+
+| Training start (UTC) | Trial commit | Model | Improvement IDs | What was tried | Training users reached | Training reviews | Training seconds | Reviews/s | Speed Δ vs previous | Speed Δ vs baseline | Instant User | Instant User Δ vs previous | Instant User Δ vs baseline | Instant Weighted | Instant Weighted Δ vs previous | Instant Weighted Δ vs baseline | Curve User | Curve User Δ vs previous | Curve User Δ vs baseline | Curve Weighted | Curve Weighted Δ vs previous | Curve Weighted Δ vs baseline | Raw result | Notes |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 2026-10-13T00:58:29.576262+00:00 | `397b44ac282bd581b07c7c8eeb001192b61501f0` | Expertium (light) | E33, F48, F50, F58, F34c | Gate forward and forward/backward slices were negative under contemporaneous blocks. Test exact channel-mixer ReLU-square forward glue with original threshold/square backward order, stacked only on F58; omit both gate variants and rejected F55/F62. | 2 | 1,024 | 0.735 | 1,393 | — | — | 0.433909490 | — | — | 0.421975411 | — | — | 0.423755109 | — | — | 0.416540190 | — | — | [result](../artifacts/retraining/gpu-retrain-r01/iteration-0053/functional-smoke-v1/expertium/E33-F48-F50-F58-F34c/result.json) | Infrastructure check; excluded from comparisons. Declared schedule change: 512-chunk batches, 2 updates. |
+| 2026-10-13T00:58:58.136157+00:00 | `397b44ac282bd581b07c7c8eeb001192b61501f0` | Expertium (light) | E33, F48, F50, F58, F34c | Gate forward and forward/backward slices were negative under contemporaneous blocks. Test exact channel-mixer ReLU-square forward glue with original threshold/square backward order, stacked only on F58; omit both gate variants and rejected F55/F62. | 80 | 7,654,975 | 45.762 | 167,279 | -15.30% | +457.50% | 0.382592464 | +0.00% | -0.99% | 0.398428596 | +0.00% | -0.76% | 0.370387972 | +0.00% | -4.48% | 0.387472684 | +0.00% | -3.25% | [result](../artifacts/retraining/gpu-retrain-r01/iteration-0053/expertium/E33-F48-F50-F58-F34c/result.json) | Declared schedule change: 512-chunk batches, 167 updates. |
+
+Implementation commit after experiments: `4e9bae201a7b1a457a6b95a3f4680a2543218543`. Tested revision remains `397b44ac282bd581b07c7c8eeb001192b61501f0` with per-process source snapshots in the linked raw results and iteration record; [commit record](../artifacts/retraining/gpu-retrain-r01/iteration-0053/implementation-commit.json).
+
+<!-- r01-0053:end -->

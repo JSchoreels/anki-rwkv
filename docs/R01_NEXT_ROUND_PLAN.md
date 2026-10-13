@@ -82,3 +82,9 @@ Twin A/B timing on real batches (P3b) stays useful for attribution inside promot
   - Replicates wait for system CPU at most 10% and refuse after `--max-wait-minutes`; a game (AOW4.exe) was the cause before.
 - **First use.** The report's replicate-block path (`report_gpu_r01_next.py` with `replicated_blocks`) is CPU-checked but untested on a real iteration. If it fails on 0048, repair it, rerun the report, and record the repair; a repaired report does not consume an iteration.
 - **Candidate preparation.** P3 (recurrence microbenchmarks), P4 (F49 memory) and P5 (F62 bitwise feasibility) belong to their slots' candidate preparation. P2 (CPU gate inside `r01_iterate.py`) matters less now, because only gated replicate blocks decide speed.
+
+## Campaign handoff after 0053
+
+0051–0053 completed under the inherited campaign authorization. P4 failed memory-neutral independent-overlap prerequisites, so 0051 used exact gate-forward F34 glue; 0052 fused its backward and 0053 tested channel ReLU-square without gates. All were exact but rejected at two blocks (−1.654%, −1.288%, −1.207%). Accepted 0042 and retained unproven 0048 F58 are unchanged. [Preparation](../artifacts/diagnostics/r01-round-0051-0053/preparation.md).
+
+Continue `--iteration 0054 --previous 0053` without resetting budget or loss ceiling: 6/23 completed, 17 remaining through 0070. For slot 7, establish exact feasibility for another F34 group (eight-way shift/lerp and its original reductions, bonus/GroupNorm glue or vectorized loading); do not repeat negative bundles unchanged. If none is viable, advance to F51 RNG-preserving split batching preparation, retaining dropout-call and per-split weight-gradient order. F58 alone remains for stacking; omit rejected F55/F62 and these glue slices without a concrete changed mechanism. Parent manages fresh chats and shutdown.
