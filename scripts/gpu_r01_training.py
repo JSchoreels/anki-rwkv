@@ -96,16 +96,11 @@ def evaluation_job(section, user, seed):
     return prepare(make_samples(section, user, 128), seed=seed)
 
 
-def place_host_threads(worker_pids):
-    """F36: give the dispatching main thread both SMT siblings of one physical core.
-
-    The core is the one Windows ranks most preferred (highest CPU-set scheduling
-    class). Preparation workers are restricted to the other cores, so they no longer
-    share the dispatch thread's core. Placement only; arithmetic and order are unchanged."""
+def cpu_set_cores():
+    """Physical cores as {core index: {"cpus": logical CPUs, "rank": CPU-set scheduling class}}."""
     import ctypes
     import struct
     from ctypes import wintypes
-    import psutil
 
     kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
     size = wintypes.ULONG(0)
@@ -119,6 +114,52 @@ def place_host_threads(worker_pids):
         _, _, cpu, core, _, _, _, _, rank = struct.unpack_from("<IHBBBBBBB", buffer.raw, offset + 8)
         cores.setdefault(core, {"cpus": [], "rank": rank})["cpus"].append(cpu)
         offset += length
+    return cores
+
+
+def place_host_cores(worker_pids):
+    """F71: one preparation worker per physical core; the main process keeps the remaining cores.
+
+    Windows can pack the workers two per physical core (SMT siblings) while other cores idle,
+    which slowed preparation about 1.4x and main-thread dispatch about 1.2x in the 2026-10-13
+    baseline-drift diagnostic. Each worker gets the first logical CPU of its own core; the main
+    process (dispatch, driver and telemetry threads) gets both siblings of the best-ranked
+    remaining cores. Returns the report and the previous main-process affinity, which must be
+    restored before any later pool starts, because child processes inherit it.
+    Placement only; arithmetic and order are unchanged."""
+    import psutil
+
+    cores = cpu_set_cores()
+    process = psutil.Process()
+    previous = process.cpu_affinity()
+    usable = sorted((-entry["rank"], core) for core, entry in cores.items() if set(entry["cpus"]) <= set(previous))
+    if len(usable) <= len(worker_pids):
+        raise RuntimeError(f"F71 placement needs more physical cores than workers: {len(usable)} cores, {len(worker_pids)} workers")
+    main_cores = [core for _, core in usable[:len(usable) - len(worker_pids)]]
+    worker_cores = [core for _, core in usable[len(usable) - len(worker_pids):]]
+    main_cpus = sorted(cpu for core in main_cores for cpu in cores[core]["cpus"])
+    process.cpu_affinity(main_cpus)
+    worker_cpus = []
+    for pid, core in zip(sorted(worker_pids), worker_cores):
+        cpu = min(cores[core]["cpus"])
+        psutil.Process(pid).cpu_affinity([cpu])
+        worker_cpus.append(cpu)
+    return {"mode": "physical", "main_process_cpus": main_cpus, "worker_cpus": worker_cpus, "workers": len(worker_pids),
+            "physical_cores": len(cores), "main_core_scheduling_classes": [cores[core]["rank"] for core in main_cores]}, previous
+
+
+def place_host_threads(worker_pids):
+    """F36: give the dispatching main thread both SMT siblings of one physical core.
+
+    The core is the one Windows ranks most preferred (highest CPU-set scheduling
+    class). Preparation workers are restricted to the other cores, so they no longer
+    share the dispatch thread's core. Placement only; arithmetic and order are unchanged."""
+    import ctypes
+    from ctypes import wintypes
+    import psutil
+
+    kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
+    cores = cpu_set_cores()
     allowed = set(psutil.Process().cpu_affinity())
     choices = [(-entry["rank"], core) for core, entry in cores.items() if set(entry["cpus"]) <= allowed]
     if len(cores) < 2 or not choices:
@@ -360,10 +401,14 @@ def run_case(args):
             report["prestarted_workers"] = len(report["prestarted_worker_pids"])
             report["pool_ready_wait_seconds"] = time.perf_counter() - waited
             report["pool_prestart_seconds"] = time.perf_counter() - pool_started
+        restore_affinity = None
         if options.get("host_placement"):
             if warm_pool is None:
-                raise ValueError("F36 host placement needs the prestarted worker pool")
-            report["host_placement"] = place_host_threads(report["prestarted_worker_pids"])
+                raise ValueError("F36/F71 host placement needs the prestarted worker pool")
+            if options["host_placement"] == "physical":
+                report["host_placement"], restore_affinity = place_host_cores(report["prestarted_worker_pids"])
+            else:
+                report["host_placement"] = place_host_threads(report["prestarted_worker_pids"])
         # Host garbage-collection time inside the training loop (accounting only).
         gc_totals, gc_started = {0: [0, 0.0], 1: [0, 0.0], 2: [0, 0.0]}, {}
 
@@ -558,6 +603,11 @@ def run_case(args):
                 source.close()
         torch.cuda.synchronize()
         report["training_seconds"] = time.perf_counter() - train_started
+        if restore_affinity is not None:
+            # F71: the evaluation pool would inherit the main-process cores; return to the original set.
+            import psutil
+            psutil.Process().cpu_affinity(restore_affinity)
+            report["host_placement"]["restored_main_process_cpus"] = len(restore_affinity)
         gc.callbacks.remove(gc_account)
         report["training_gc"] = {f"generation_{g}": {"collections": n, "seconds": t} for g, (n, t) in gc_totals.items()}
         kernel_stack.close()
