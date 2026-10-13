@@ -748,3 +748,45 @@ Implementation commit after experiments: `9072bc032a61a55878f5e73aa8c3b4beab7f23
 Implementation commit after experiments: `9072bc032a61a55878f5e73aa8c3b4beab7f234b`. Tested revision remains `fa1ba472b232faa3ba436f8840aae8e51074c216` with per-process source snapshots in the linked raw results and iteration record; [commit record](../artifacts/retraining/gpu-retrain-r01/iteration-0056/implementation-commit.json).
 
 <!-- r01-0056:end -->
+
+<!-- r01-0057:start -->
+## R01 iteration 0057
+
+[Iteration record](../artifacts/retraining/gpu-retrain-r01/iteration-0057/summary.md)
+
+| Training start (UTC) | Trial commit | Model | Improvement IDs | What was tried | Training users reached | Training reviews | Training seconds | Reviews/s | Speed Δ vs previous | Speed Δ vs baseline | Instant User | Instant User Δ vs previous | Instant User Δ vs baseline | Instant Weighted | Instant Weighted Δ vs previous | Instant Weighted Δ vs baseline | Curve User | Curve User Δ vs previous | Curve User Δ vs baseline | Curve Weighted | Curve Weighted Δ vs previous | Curve Weighted Δ vs baseline | Raw result | Notes |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 2026-10-13T02:10:54.302193+00:00 | `1d109ff0c08b1d96489eba617ccc18dd75855970` | Expertium (light) | E33, F48, F50, F58, F58a | Prefetch next recomputation scalar inputs and each row v before the current shuffle tree; retain exact arithmetic and inherited scalar F58, omit rejected slices. | 2 | 1,024 | 0.752 | 1,362 | — | — | 0.433909490 | — | — | 0.421975411 | — | — | 0.423755109 | — | — | 0.416540190 | — | — | [result](../artifacts/retraining/gpu-retrain-r01/iteration-0057/functional-smoke-v1/expertium/E33-F48-F50-F58-F58a/result.json) | Infrastructure check; excluded from comparisons. Declared schedule change: 512-chunk batches, 2 updates. |
+| 2026-10-13T02:11:26.299493+00:00 | `1d109ff0c08b1d96489eba617ccc18dd75855970` | Expertium (light) | E33, F48, F50, F58, F58a | Prefetch next recomputation scalar inputs and each row v before the current shuffle tree; retain exact arithmetic and inherited scalar F58, omit rejected slices. | 80 | 7,654,975 | 45.183 | 169,423 | -14.22% | +464.64% | 0.382592464 | +0.00% | -0.99% | 0.398428596 | +0.00% | -0.76% | 0.370387972 | +0.00% | -4.48% | 0.387472684 | +0.00% | -3.25% | [result](../artifacts/retraining/gpu-retrain-r01/iteration-0057/expertium/E33-F48-F50-F58-F58a/result.json) | Declared schedule change: 512-chunk batches, 167 updates. |
+
+Implementation commit after experiments: `3f42024b77a2cbac699eb56da89b29620ed99615`. Tested revision remains `1d109ff0c08b1d96489eba617ccc18dd75855970` with per-process source snapshots in the linked raw results and iteration record; [commit record](../artifacts/retraining/gpu-retrain-r01/iteration-0057/implementation-commit.json).
+
+<!-- r01-0057:end -->
+
+<!-- r01-0058:start -->
+## R01 iteration 0058
+
+[Iteration record](../artifacts/retraining/gpu-retrain-r01/iteration-0058/summary.md)
+
+| Training start (UTC) | Trial commit | Model | Improvement IDs | What was tried | Training users reached | Training reviews | Training seconds | Reviews/s | Speed Δ vs previous | Speed Δ vs baseline | Instant User | Instant User Δ vs previous | Instant User Δ vs baseline | Instant Weighted | Instant Weighted Δ vs previous | Instant Weighted Δ vs baseline | Curve User | Curve User Δ vs previous | Curve User Δ vs baseline | Curve Weighted | Curve Weighted Δ vs previous | Curve Weighted Δ vs baseline | Raw result | Notes |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 2026-10-13T02:27:39.375036+00:00 | `ec88c3128d3bcc317ee8bf7731722461a466cd84` | Expertium (light) | E33, F48, F50, F58, F58b | Pipeline per-row backward gradient loads ahead of current recurrence work, preserving arithmetic and reduction order. Replace the previous pipeline mode; retain inherited scalar F58 and omit rejected slices. | 2 | 1,024 | 0.723 | 1,417 | — | — | 0.433909490 | — | — | 0.421975411 | — | — | 0.423755109 | — | — | 0.416540190 | — | — | [result](../artifacts/retraining/gpu-retrain-r01/iteration-0058/functional-smoke-v1/expertium/E33-F48-F50-F58-F58b/result.json) | Infrastructure check; excluded from comparisons. Declared schedule change: 512-chunk batches, 2 updates. |
+| 2026-10-13T02:28:10.841775+00:00 | `ec88c3128d3bcc317ee8bf7731722461a466cd84` | Expertium (light) | E33, F48, F50, F58, F58b | Pipeline per-row backward gradient loads ahead of current recurrence work, preserving arithmetic and reduction order. Replace the previous pipeline mode; retain inherited scalar F58 and omit rejected slices. | 80 | 7,654,975 | 45.270 | 169,097 | -14.38% | +463.56% | 0.382592464 | +0.00% | -0.99% | 0.398428596 | +0.00% | -0.76% | 0.370387972 | +0.00% | -4.48% | 0.387472684 | +0.00% | -3.25% | [result](../artifacts/retraining/gpu-retrain-r01/iteration-0058/expertium/E33-F48-F50-F58-F58b/result.json) | Declared schedule change: 512-chunk batches, 167 updates. |
+
+Implementation commit after experiments: `3f42024b77a2cbac699eb56da89b29620ed99615`. Tested revision remains `ec88c3128d3bcc317ee8bf7731722461a466cd84` with per-process source snapshots in the linked raw results and iteration record; [commit record](../artifacts/retraining/gpu-retrain-r01/iteration-0058/implementation-commit.json).
+
+<!-- r01-0058:end -->
+
+<!-- r01-0059:start -->
+## R01 iteration 0059
+
+[Iteration record](../artifacts/retraining/gpu-retrain-r01/iteration-0059/summary.md)
+
+| Training start (UTC) | Trial commit | Model | Improvement IDs | What was tried | Training users reached | Training reviews | Training seconds | Reviews/s | Speed Δ vs previous | Speed Δ vs baseline | Instant User | Instant User Δ vs previous | Instant User Δ vs baseline | Instant Weighted | Instant Weighted Δ vs previous | Instant Weighted Δ vs baseline | Curve User | Curve User Δ vs previous | Curve User Δ vs baseline | Curve Weighted | Curve Weighted Δ vs previous | Curve Weighted Δ vs baseline | Raw result | Notes |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 2026-10-13T02:37:15.957453+00:00 | `28c9eb5864801855bd61614ff66b4939872e4f47` | Expertium (light) | E33, F48, F50, F58, F58c | Pipeline forward recurrence scalar loads ahead of current recurrence work, preserving arithmetic and reduction order. Replace the previous pipeline mode; retain inherited scalar F58 and omit rejected slices. | 2 | 1,024 | 0.762 | 1,344 | — | — | 0.433909490 | — | — | 0.421975411 | — | — | 0.423755109 | — | — | 0.416540190 | — | — | [result](../artifacts/retraining/gpu-retrain-r01/iteration-0059/functional-smoke-v1/expertium/E33-F48-F50-F58-F58c/result.json) | Infrastructure check; excluded from comparisons. Declared schedule change: 512-chunk batches, 2 updates. |
+| 2026-10-13T02:37:47.612895+00:00 | `28c9eb5864801855bd61614ff66b4939872e4f47` | Expertium (light) | E33, F48, F50, F58, F58c | Pipeline forward recurrence scalar loads ahead of current recurrence work, preserving arithmetic and reduction order. Replace the previous pipeline mode; retain inherited scalar F58 and omit rejected slices. | 80 | 7,654,975 | 45.425 | 168,520 | -14.67% | +461.64% | 0.382592464 | +0.00% | -0.99% | 0.398428596 | +0.00% | -0.76% | 0.370387972 | +0.00% | -4.48% | 0.387472684 | +0.00% | -3.25% | [result](../artifacts/retraining/gpu-retrain-r01/iteration-0059/expertium/E33-F48-F50-F58-F58c/result.json) | Declared schedule change: 512-chunk batches, 167 updates. |
+
+Implementation commit after experiments: `3f42024b77a2cbac699eb56da89b29620ed99615`. Tested revision remains `28c9eb5864801855bd61614ff66b4939872e4f47` with per-process source snapshots in the linked raw results and iteration record; [commit record](../artifacts/retraining/gpu-retrain-r01/iteration-0059/implementation-commit.json).
+
+<!-- r01-0059:end -->

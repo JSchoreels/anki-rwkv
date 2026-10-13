@@ -1,0 +1,93 @@
+{
+  "models": [
+    "expertium"
+  ],
+  "model_scope_reason": "Continuation of the Expertium-only R01 work; Alex remains paused by earlier human request.",
+  "control_tracks": {
+    "expertium": "E33-F48-F50"
+  },
+  "candidate_tracks": {
+    "expertium": "E33-F48-F50-F58-F58a"
+  },
+  "case_options_by_model": {
+    "expertium": {
+      "E33-F48-F50": {
+        "prefetch_users": true,
+        "preparation_workers": 6,
+        "gpu_packed_features": true,
+        "packed_ipc": true,
+        "async_transfer": true,
+        "batched_id_encodings": true,
+        "grouped_sync": true,
+        "main_threads": 1,
+        "bulk_transfer": true,
+        "parallel_evaluation": true,
+        "exact_shift": true,
+        "exact_index": true,
+        "batch_chunks": 512,
+        "gpu_memory_fraction": 0.95,
+        "fast_samples": true,
+        "prestart_pool": true,
+        "row_tiles_exact": 4,
+        "exact_group_norm": true,
+        "deferred_reads": true,
+        "shared_shift_orders": true,
+        "stream_launches": true,
+        "prefetch_rows": true,
+        "sync_free_loss": true,
+        "columnar_samples": true,
+        "skip_uninitialized_fill": true,
+        "skip_padding_sources": true
+      },
+      "E33-F48-F50-F58-F58a": {
+        "prefetch_users": true,
+        "preparation_workers": 6,
+        "gpu_packed_features": true,
+        "packed_ipc": true,
+        "async_transfer": true,
+        "batched_id_encodings": true,
+        "grouped_sync": true,
+        "main_threads": 1,
+        "bulk_transfer": true,
+        "parallel_evaluation": true,
+        "exact_shift": true,
+        "exact_index": true,
+        "batch_chunks": 512,
+        "gpu_memory_fraction": 0.95,
+        "fast_samples": true,
+        "prestart_pool": true,
+        "row_tiles_exact": 4,
+        "exact_group_norm": true,
+        "deferred_reads": true,
+        "shared_shift_orders": true,
+        "stream_launches": true,
+        "prefetch_rows": true,
+        "sync_free_loss": true,
+        "columnar_samples": true,
+        "skip_uninitialized_fill": true,
+        "skip_padding_sources": true,
+        "recurrence_prefetch": true,
+        "recurrence_load_pipeline": 1
+      }
+    }
+  },
+  "case_explanations": {
+    "expertium": {
+      "E33-F48-F50": "Combine F48 with an exact row-selection backward that excludes zero hierarchy padding sources while preserving sequential real-source order and the unchanged clamped forward.",
+      "E33-F48-F50-F58-F58a": "Prefetch next recomputation scalar inputs and each row v before the current shuffle tree; retain exact arithmetic and inherited scalar F58, omit rejected slices."
+    }
+  },
+  "selection_evidence": "F58 remains unproven; dominant recurrence backward recomputes each tile. 216 synthetic and five real batch checks pass on final source; this is a changed mechanism, not a replay.",
+  "prerequisite_checks": [
+    {
+      "path": "artifacts/diagnostics/r01-round-0057-0059/synthetic-1/result.json",
+      "sha256": "246aaad4283f7e619291fe4f0f60bbfba7bdccebd1d67270df9ed45ed946d09b",
+      "status": "passed, source compatible; runtime compatibility must also be reviewed"
+    },
+    {
+      "path": "artifacts/diagnostics/r01-round-0057-0059/real-1-final/result.json",
+      "sha256": "ea0b21b4369f18b4eb3850c5b1d5c72ec5a37a8543fd0232348f644822e310ac",
+      "status": "passed, source compatible; runtime compatibility must also be reviewed"
+    }
+  ]
+}

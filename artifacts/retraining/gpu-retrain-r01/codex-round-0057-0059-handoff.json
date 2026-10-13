@@ -1,0 +1,167 @@
+{
+  "status": "partial counted round; remaining iterations already authorized",
+  "model": "expertium",
+  "iterations": [
+    "0057",
+    "0058",
+    "0059"
+  ],
+  "accepted_iteration": "0042",
+  "accepted_result": "artifacts/retraining/gpu-retrain-r01/iteration-0042/expertium/E33-F48-F50/result.json",
+  "accepted_options": {
+    "prefetch_users": true,
+    "preparation_workers": 6,
+    "gpu_packed_features": true,
+    "packed_ipc": true,
+    "async_transfer": true,
+    "batched_id_encodings": true,
+    "grouped_sync": true,
+    "main_threads": 1,
+    "bulk_transfer": true,
+    "parallel_evaluation": true,
+    "exact_shift": true,
+    "exact_index": true,
+    "batch_chunks": 512,
+    "gpu_memory_fraction": 0.95,
+    "fast_samples": true,
+    "prestart_pool": true,
+    "row_tiles_exact": 4,
+    "exact_group_norm": true,
+    "deferred_reads": true,
+    "shared_shift_orders": true,
+    "stream_launches": true,
+    "prefetch_rows": true,
+    "sync_free_loss": true,
+    "columnar_samples": true,
+    "skip_uninitialized_fill": true,
+    "skip_padding_sources": true
+  },
+  "accepted_reviews_per_second": 197499.48784125826,
+  "next_iteration_hint": "0060",
+  "prior_miss_streak": 12,
+  "implementation_git_commit": "3f42024b77a2cbac699eb56da89b29620ed99615",
+  "new_authorization_required": false,
+  "host_path": "docs/R01_HOST_PATH.md",
+  "ledger": "docs/GPU_OPTIMIZATIONS.md",
+  "summary": "artifacts/retraining/gpu-retrain-r01/codex-round-0057-0059-summary.md",
+  "next_steps": [
+    "Continue --iteration 0060 --previous 0059 without resetting authorization/baseline: budget 23, index 12 complete, 11 remaining through 0070, cumulative loss ceiling 0.001.",
+    "Accepted 0042 E33-F48-F50 unchanged. Retain only 0048 F58 recurrence_prefetch=true as unproven; omit all rejected 0049-0059 slices including recurrence_load_pipeline modes 1/2/3.",
+    "Prepare P3b twin A/B attribution before further F58 stacking, then a changed pending mechanism: forward per-row v prefetch with five real plus synthetic checks, or whole-group F62 AdamW preserving None-gradient, steps and signed zeros.",
+    "Pending exact eight-way shift/lerp, independent deferred F49 overlap and substantive F51/F52 work must preserve dropout calls and split weight-gradient order. Follow extended written order and quiet frozen blocks. Alex/broader validation paused; parent manages chats/shutdown."
+  ],
+  "acceptance": "Use current LOOP gates and source/runtime-compatible recorded checks; no broader validation authorized",
+  "round_iteration_budget": 23,
+  "completed_candidate_iterations": 12,
+  "remaining_authorized_iterations": 11,
+  "round_start_iteration": "0048",
+  "round_authorization": "I want you to follow R01 cycles, spawn each time a new GPT 6.1 Sol medium thread for 3 iterations, until you reach iteration number 70. Go up to 70 and then shutdown the computer.",
+  "next_iteration": "0060",
+  "previous_argument": "0059",
+  "loss_ceiling_fraction": 0.001,
+  "stack_candidates": [
+    {
+      "iteration": "0048",
+      "track": "E33-F48-F50-F58",
+      "option_overrides": {
+        "recurrence_prefetch": true
+      },
+      "mean_gain_percent": 0.10968623263891697,
+      "lower_bound_percent": -1.6501143406453256,
+      "decision": "positive unproven at six-block cap"
+    }
+  ],
+  "rejected_candidates": [
+    "0049 E33-F48-F50-F58-F55",
+    "0050 E33-F48-F50-F58-F62",
+    "0051 E33-F48-F50-F58-F34a",
+    "0052 E33-F48-F50-F58-F34b",
+    "0053 E33-F48-F50-F58-F34c",
+    "0054 E33-F48-F50-F58-F34d",
+    "0055 E33-F48-F50-F58-F51a",
+    "0056 E33-F48-F50-F58-F52a",
+    "0057 E33-F48-F50-F58-F58a",
+    "0058 E33-F48-F50-F58-F58b",
+    "0059 E33-F48-F50-F58-F58c"
+  ],
+  "candidate_preparation": "artifacts/diagnostics/r01-round-0057-0059/preparation.md",
+  "batch_decisions": [
+    {
+      "iteration": "0057",
+      "blocks": 4,
+      "mean_percent": -0.23631542063708988,
+      "lower_bound_percent": -1.23023068409569,
+      "decision": "reject",
+      "reference_mean_reviews_per_second": 169871.4787332263,
+      "candidate_mean_reviews_per_second": 169652.37834972984,
+      "paired_wall_gain_percent": -0.37604112915861077,
+      "allocator_retries": 0,
+      "ooms": 0,
+      "sm_clock_median_values": [
+        3157.0
+      ],
+      "peak_reserved_values_mib": [
+        12188.0
+      ],
+      "full_background_cpu": 6.3,
+      "all_evaluations_exact": true
+    },
+    {
+      "iteration": "0058",
+      "blocks": 2,
+      "mean_percent": -0.4239049332825151,
+      "lower_bound_percent": -1.8239699077505889,
+      "decision": "reject",
+      "reference_mean_reviews_per_second": 170118.50426689954,
+      "candidate_mean_reviews_per_second": 169657.75879261343,
+      "paired_wall_gain_percent": -0.4754665211754938,
+      "allocator_retries": 0,
+      "ooms": 0,
+      "sm_clock_median_values": [
+        3157.0
+      ],
+      "peak_reserved_values_mib": [
+        12188.0
+      ],
+      "full_background_cpu": 5.7,
+      "all_evaluations_exact": true
+    },
+    {
+      "iteration": "0059",
+      "blocks": 2,
+      "mean_percent": -0.5795990295836884,
+      "lower_bound_percent": -1.9774749058468433,
+      "decision": "reject",
+      "reference_mean_reviews_per_second": 170644.8790163818,
+      "candidate_mean_reviews_per_second": 169554.79960377899,
+      "paired_wall_gain_percent": -0.6652971214443304,
+      "allocator_retries": 0,
+      "ooms": 0,
+      "sm_clock_median_values": [
+        3157.0
+      ],
+      "peak_reserved_values_mib": [
+        12188.0
+      ],
+      "full_background_cpu": 6.4,
+      "all_evaluations_exact": true
+    }
+  ],
+  "worker_stop": "Completed exactly 0057-0059; parent controls next chat and shutdown",
+  "pending_components": [
+    "P3b twin A/B attribution",
+    "F58 forward per-row v prefetch or changed shape-selective scheduling",
+    "F62 whole-group AdamW preserving None gradients/steps/signed zeros",
+    "F34 exact eight-way lerp/reduction",
+    "F49 independently deferred recurrence overlap if memory-neutral",
+    "F51 per-token batching with original dropout/weight-gradient order",
+    "F52 padding-free mixer/recurrence"
+  ],
+  "rejected_option_overrides": {
+    "recurrence_load_pipeline": [
+      1,
+      2,
+      3
+    ]
+  }
+}

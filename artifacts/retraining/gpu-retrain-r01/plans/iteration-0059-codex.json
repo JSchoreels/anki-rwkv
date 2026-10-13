@@ -1,0 +1,93 @@
+{
+  "models": [
+    "expertium"
+  ],
+  "model_scope_reason": "Continuation of the Expertium-only R01 work; Alex remains paused by earlier human request.",
+  "control_tracks": {
+    "expertium": "E33-F48-F50"
+  },
+  "candidate_tracks": {
+    "expertium": "E33-F48-F50-F58-F58c"
+  },
+  "case_options_by_model": {
+    "expertium": {
+      "E33-F48-F50": {
+        "prefetch_users": true,
+        "preparation_workers": 6,
+        "gpu_packed_features": true,
+        "packed_ipc": true,
+        "async_transfer": true,
+        "batched_id_encodings": true,
+        "grouped_sync": true,
+        "main_threads": 1,
+        "bulk_transfer": true,
+        "parallel_evaluation": true,
+        "exact_shift": true,
+        "exact_index": true,
+        "batch_chunks": 512,
+        "gpu_memory_fraction": 0.95,
+        "fast_samples": true,
+        "prestart_pool": true,
+        "row_tiles_exact": 4,
+        "exact_group_norm": true,
+        "deferred_reads": true,
+        "shared_shift_orders": true,
+        "stream_launches": true,
+        "prefetch_rows": true,
+        "sync_free_loss": true,
+        "columnar_samples": true,
+        "skip_uninitialized_fill": true,
+        "skip_padding_sources": true
+      },
+      "E33-F48-F50-F58-F58c": {
+        "prefetch_users": true,
+        "preparation_workers": 6,
+        "gpu_packed_features": true,
+        "packed_ipc": true,
+        "async_transfer": true,
+        "batched_id_encodings": true,
+        "grouped_sync": true,
+        "main_threads": 1,
+        "bulk_transfer": true,
+        "parallel_evaluation": true,
+        "exact_shift": true,
+        "exact_index": true,
+        "batch_chunks": 512,
+        "gpu_memory_fraction": 0.95,
+        "fast_samples": true,
+        "prestart_pool": true,
+        "row_tiles_exact": 4,
+        "exact_group_norm": true,
+        "deferred_reads": true,
+        "shared_shift_orders": true,
+        "stream_launches": true,
+        "prefetch_rows": true,
+        "sync_free_loss": true,
+        "columnar_samples": true,
+        "skip_uninitialized_fill": true,
+        "skip_padding_sources": true,
+        "recurrence_prefetch": true,
+        "recurrence_load_pipeline": 3
+      }
+    }
+  },
+  "case_explanations": {
+    "expertium": {
+      "E33-F48-F50": "Combine F48 with an exact row-selection backward that excludes zero hierarchy padding sources while preserving sequential real-source order and the unchanged clamped forward.",
+      "E33-F48-F50-F58-F58c": "Pipeline forward recurrence scalar loads ahead of current recurrence work, preserving arithmetic and reduction order. Replace the previous pipeline mode; retain inherited scalar F58 and omit rejected slices."
+    }
+  },
+  "selection_evidence": "Changed F58 mechanism independently passes 216 synthetic BF16/FP32 cases and five real loss/every-gradient batches; modes are alternatives, not no-op replays.",
+  "prerequisite_checks": [
+    {
+      "path": "artifacts/diagnostics/r01-round-0057-0059/synthetic-3/result.json",
+      "sha256": "403ea5ae11a6cd185b19f69f15bc3cd2ad93a9a87fd8a53b607ddb1725e67619",
+      "status": "passed, source compatible; runtime compatibility must also be reviewed"
+    },
+    {
+      "path": "artifacts/diagnostics/r01-round-0057-0059/real-3-final/result.json",
+      "sha256": "315d9973f89a4ca93401d5f88b81aaadd0d1ce9c28f70d65f3f19ba87f232b46",
+      "status": "passed, source compatible; runtime compatibility must also be reviewed"
+    }
+  ]
+}
