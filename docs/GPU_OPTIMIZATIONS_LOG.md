@@ -790,3 +790,45 @@ Implementation commit after experiments: `3f42024b77a2cbac699eb56da89b29620ed996
 Implementation commit after experiments: `3f42024b77a2cbac699eb56da89b29620ed99615`. Tested revision remains `28c9eb5864801855bd61614ff66b4939872e4f47` with per-process source snapshots in the linked raw results and iteration record; [commit record](../artifacts/retraining/gpu-retrain-r01/iteration-0059/implementation-commit.json).
 
 <!-- r01-0059:end -->
+
+<!-- r01-0060:start -->
+## R01 iteration 0060
+
+[Iteration record](../artifacts/retraining/gpu-retrain-r01/iteration-0060/summary.md)
+
+| Training start (UTC) | Trial commit | Model | Improvement IDs | What was tried | Training users reached | Training reviews | Training seconds | Reviews/s | Speed Δ vs previous | Speed Δ vs baseline | Instant User | Instant User Δ vs previous | Instant User Δ vs baseline | Instant Weighted | Instant Weighted Δ vs previous | Instant Weighted Δ vs baseline | Curve User | Curve User Δ vs previous | Curve User Δ vs baseline | Curve Weighted | Curve Weighted Δ vs previous | Curve Weighted Δ vs baseline | Raw result | Notes |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 2026-10-13T03:00:26.340011+00:00 | `248381d7bbd79bae2ce942ddeb5c8d87ccbbe5bd` | Expertium (light) | E33, F48, F50, F58d | Pipeline forward per-row value loads before current shuffle work, preserving arithmetic and reduction order. Test independently on accepted 0042; omit unproven scalar F58 after inconclusive P3b attribution. | 2 | 1,024 | 0.781 | 1,311 | — | — | 0.433909490 | — | — | 0.421975411 | — | — | 0.423755109 | — | — | 0.416540190 | — | — | [result](../artifacts/retraining/gpu-retrain-r01/iteration-0060/functional-smoke-v1/expertium/E33-F48-F50-F58d/result.json) | Infrastructure check; excluded from comparisons. Declared schedule change: 512-chunk batches, 2 updates. |
+| 2026-10-13T03:00:57.951862+00:00 | `248381d7bbd79bae2ce942ddeb5c8d87ccbbe5bd` | Expertium (light) | E33, F48, F50, F58d | Pipeline forward per-row value loads before current shuffle work, preserving arithmetic and reduction order. Test independently on accepted 0042; omit unproven scalar F58 after inconclusive P3b attribution. | 80 | 7,654,975 | 45.130 | 169,622 | -14.12% | +465.31% | 0.382592464 | +0.00% | -0.99% | 0.398428596 | +0.00% | -0.76% | 0.370387972 | +0.00% | -4.48% | 0.387472684 | +0.00% | -3.25% | [result](../artifacts/retraining/gpu-retrain-r01/iteration-0060/expertium/E33-F48-F50-F58d/result.json) | Declared schedule change: 512-chunk batches, 167 updates. |
+
+Implementation commit after experiments: `f127c14f93da8d9ea7f82426fc8f891cb0e65b27`. Tested revision remains `248381d7bbd79bae2ce942ddeb5c8d87ccbbe5bd` with per-process source snapshots in the linked raw results and iteration record; [commit record](../artifacts/retraining/gpu-retrain-r01/iteration-0060/implementation-commit.json).
+
+<!-- r01-0060:end -->
+
+<!-- r01-0061:start -->
+## R01 iteration 0061
+
+[Iteration record](../artifacts/retraining/gpu-retrain-r01/iteration-0061/summary.md)
+
+| Training start (UTC) | Trial commit | Model | Improvement IDs | What was tried | Training users reached | Training reviews | Training seconds | Reviews/s | Speed Δ vs previous | Speed Δ vs baseline | Instant User | Instant User Δ vs previous | Instant User Δ vs baseline | Instant Weighted | Instant Weighted Δ vs previous | Instant Weighted Δ vs baseline | Curve User | Curve User Δ vs previous | Curve User Δ vs baseline | Curve Weighted | Curve Weighted Δ vs previous | Curve Weighted Δ vs baseline | Raw result | Notes |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 2026-10-13T03:09:47.230246+00:00 | `76ca4383baa08179137c6895f5c250d51f5eaf8a` | Expertium (light) | E33, F48, F50, F58e | Pipeline forward scalar and per-row value loads before current shuffle work, preserving arithmetic and reduction order. Test independently on accepted 0042; omit unproven scalar F58 after inconclusive P3b attribution. | 2 | 1,024 | 0.729 | 1,404 | — | — | 0.433909490 | — | — | 0.421975411 | — | — | 0.423755109 | — | — | 0.416540190 | — | — | [result](../artifacts/retraining/gpu-retrain-r01/iteration-0061/functional-smoke-v1/expertium/E33-F48-F50-F58e/result.json) | Infrastructure check; excluded from comparisons. Declared schedule change: 512-chunk batches, 2 updates. |
+| 2026-10-13T03:10:18.863541+00:00 | `76ca4383baa08179137c6895f5c250d51f5eaf8a` | Expertium (light) | E33, F48, F50, F58e | Pipeline forward scalar and per-row value loads before current shuffle work, preserving arithmetic and reduction order. Test independently on accepted 0042; omit unproven scalar F58 after inconclusive P3b attribution. | 80 | 7,654,975 | 44.836 | 170,734 | -13.55% | +469.02% | 0.382592464 | +0.00% | -0.99% | 0.398428596 | +0.00% | -0.76% | 0.370387972 | +0.00% | -4.48% | 0.387472684 | +0.00% | -3.25% | [result](../artifacts/retraining/gpu-retrain-r01/iteration-0061/expertium/E33-F48-F50-F58e/result.json) | Declared schedule change: 512-chunk batches, 167 updates. |
+
+Implementation commit after experiments: `f127c14f93da8d9ea7f82426fc8f891cb0e65b27`. Tested revision remains `76ca4383baa08179137c6895f5c250d51f5eaf8a` with per-process source snapshots in the linked raw results and iteration record; [commit record](../artifacts/retraining/gpu-retrain-r01/iteration-0061/implementation-commit.json).
+
+<!-- r01-0061:end -->
+
+<!-- r01-0062:start -->
+## R01 iteration 0062
+
+[Iteration record](../artifacts/retraining/gpu-retrain-r01/iteration-0062/summary.md)
+
+| Training start (UTC) | Trial commit | Model | Improvement IDs | What was tried | Training users reached | Training reviews | Training seconds | Reviews/s | Speed Δ vs previous | Speed Δ vs baseline | Instant User | Instant User Δ vs previous | Instant User Δ vs baseline | Instant Weighted | Instant Weighted Δ vs previous | Instant Weighted Δ vs baseline | Curve User | Curve User Δ vs previous | Curve User Δ vs baseline | Curve Weighted | Curve Weighted Δ vs previous | Curve Weighted Δ vs baseline | Raw result | Notes |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 2026-10-13T03:33:19.868293+00:00 | `43b6c2a2e426d2d4c3db6df14a573b3797e808d6` | Expertium (light) | E33, F48, F50, F58f | Pipeline recomputation per-row value loads without scalar prefetch before current shuffle work, preserving arithmetic and reduction order. Test independently on accepted 0042; omit unproven scalar F58 after inconclusive P3b attribution. | 2 | 1,024 | 0.785 | 1,305 | — | — | 0.433909490 | — | — | 0.421975411 | — | — | 0.423755109 | — | — | 0.416540190 | — | — | [result](../artifacts/retraining/gpu-retrain-r01/iteration-0062/functional-smoke-v1/expertium/E33-F48-F50-F58f/result.json) | Infrastructure check; excluded from comparisons. Declared schedule change: 512-chunk batches, 2 updates. |
+| 2026-10-13T03:33:51.826937+00:00 | `43b6c2a2e426d2d4c3db6df14a573b3797e808d6` | Expertium (light) | E33, F48, F50, F58f | Pipeline recomputation per-row value loads without scalar prefetch before current shuffle work, preserving arithmetic and reduction order. Test independently on accepted 0042; omit unproven scalar F58 after inconclusive P3b attribution. | 80 | 7,654,975 | 45.328 | 168,881 | -14.49% | +462.84% | 0.382592464 | +0.00% | -0.99% | 0.398428596 | +0.00% | -0.76% | 0.370387972 | +0.00% | -4.48% | 0.387472684 | +0.00% | -3.25% | [result](../artifacts/retraining/gpu-retrain-r01/iteration-0062/expertium/E33-F48-F50-F58f/result.json) | Declared schedule change: 512-chunk batches, 167 updates. |
+
+Implementation commit after experiments: `f127c14f93da8d9ea7f82426fc8f891cb0e65b27`. Tested revision remains `43b6c2a2e426d2d4c3db6df14a573b3797e808d6` with per-process source snapshots in the linked raw results and iteration record; [commit record](../artifacts/retraining/gpu-retrain-r01/iteration-0062/implementation-commit.json).
+
+<!-- r01-0062:end -->

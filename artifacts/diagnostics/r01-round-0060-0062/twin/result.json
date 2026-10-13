@@ -1,0 +1,469 @@
+{
+  "provenance": {
+    "captured_utc": "2026-10-13T02:53:01.730212+00:00",
+    "git_commit": "7ddaed78b82d31907a7169bcd56049e3f47379f0",
+    "git_dirty": true,
+    "git_status_porcelain_z": " M scripts/check_r01_exact_options.py\u0000",
+    "source_tree_sha256": "da98510a02532a99c48d6937743cd23c0fc7d6bd547131eb58cb26582609ca69",
+    "source_archive": "artifacts/sources/experiment-sources/da98510a02532a99c48d6937743cd23c0fc7d6bd547131eb58cb26582609ca69/source.zip",
+    "source_paths": [
+      "rwkv",
+      "expertium",
+      "scripts",
+      "configs",
+      "pyproject.toml",
+      "uv.lock",
+      "justfile",
+      "upstream.json"
+    ]
+  },
+  "torch": "2.9.1+cu128",
+  "options": {
+    "a": {
+      "prefetch_users": true,
+      "preparation_workers": 6,
+      "gpu_packed_features": true,
+      "packed_ipc": true,
+      "async_transfer": true,
+      "batched_id_encodings": true,
+      "grouped_sync": true,
+      "main_threads": 1,
+      "bulk_transfer": true,
+      "parallel_evaluation": true,
+      "exact_shift": true,
+      "exact_index": true,
+      "batch_chunks": 512,
+      "gpu_memory_fraction": 0.95,
+      "fast_samples": true,
+      "prestart_pool": true,
+      "row_tiles_exact": 4,
+      "exact_group_norm": true,
+      "deferred_reads": true,
+      "shared_shift_orders": true,
+      "stream_launches": true,
+      "prefetch_rows": true,
+      "sync_free_loss": true,
+      "columnar_samples": true,
+      "skip_uninitialized_fill": true,
+      "skip_padding_sources": true
+    },
+    "b": {
+      "prefetch_users": true,
+      "preparation_workers": 6,
+      "gpu_packed_features": true,
+      "packed_ipc": true,
+      "async_transfer": true,
+      "batched_id_encodings": true,
+      "grouped_sync": true,
+      "main_threads": 1,
+      "bulk_transfer": true,
+      "parallel_evaluation": true,
+      "exact_shift": true,
+      "exact_index": true,
+      "batch_chunks": 512,
+      "gpu_memory_fraction": 0.95,
+      "fast_samples": true,
+      "prestart_pool": true,
+      "row_tiles_exact": 4,
+      "exact_group_norm": true,
+      "deferred_reads": true,
+      "shared_shift_orders": true,
+      "stream_launches": true,
+      "prefetch_rows": true,
+      "sync_free_loss": true,
+      "columnar_samples": true,
+      "skip_uninitialized_fill": true,
+      "skip_padding_sources": true,
+      "recurrence_prefetch": true
+    }
+  },
+  "self_test": false,
+  "not_exercised": {
+    "a": [
+      "async_transfer",
+      "batch_chunks",
+      "batched_id_encodings",
+      "bulk_transfer",
+      "columnar_samples",
+      "deferred_reads",
+      "fast_samples",
+      "gpu_memory_fraction",
+      "gpu_packed_features",
+      "grouped_sync",
+      "main_threads",
+      "packed_ipc",
+      "parallel_evaluation",
+      "prefetch_users",
+      "preparation_workers",
+      "prestart_pool"
+    ],
+    "b": [
+      "async_transfer",
+      "batch_chunks",
+      "batched_id_encodings",
+      "bulk_transfer",
+      "columnar_samples",
+      "deferred_reads",
+      "fast_samples",
+      "gpu_memory_fraction",
+      "gpu_packed_features",
+      "grouped_sync",
+      "main_threads",
+      "packed_ipc",
+      "parallel_evaluation",
+      "prefetch_users",
+      "preparation_workers",
+      "prestart_pool"
+    ]
+  },
+  "scope": "five real Expertium batches; BF16 forward/backward from the fresh seed-2025 checkpoint; loss and every parameter gradient",
+  "batches": [
+    {
+      "user_id": 1495,
+      "offset": 0,
+      "reviews": 256,
+      "loss_bitwise_equal": true,
+      "same_gradient_set": true,
+      "parameters": 429,
+      "differing_gradients": [],
+      "memory": {
+        "a": {
+          "peak_reserved_bytes": 3741319168,
+          "peak_allocated_bytes": 3605614080,
+          "allocator_retries": 0,
+          "forward_backward_seconds": 0.13516509998589754
+        },
+        "b": {
+          "peak_reserved_bytes": 3741319168,
+          "peak_allocated_bytes": 3606127616,
+          "allocator_retries": 0,
+          "forward_backward_seconds": 0.1358069000125397
+        }
+      },
+      "differing_gradient_count": 0
+    },
+    {
+      "user_id": 1619,
+      "offset": 32768,
+      "reviews": 256,
+      "loss_bitwise_equal": true,
+      "same_gradient_set": true,
+      "parameters": 429,
+      "differing_gradients": [],
+      "memory": {
+        "a": {
+          "peak_reserved_bytes": 3988783104,
+          "peak_allocated_bytes": 3671691264,
+          "allocator_retries": 0,
+          "forward_backward_seconds": 0.13562750001437962
+        },
+        "b": {
+          "peak_reserved_bytes": 3988783104,
+          "peak_allocated_bytes": 3672204800,
+          "allocator_retries": 0,
+          "forward_backward_seconds": 0.1314348999876529
+        }
+      },
+      "differing_gradient_count": 0
+    },
+    {
+      "user_id": 3958,
+      "offset": 0,
+      "reviews": 229,
+      "loss_bitwise_equal": true,
+      "same_gradient_set": true,
+      "parameters": 429,
+      "differing_gradients": [],
+      "memory": {
+        "a": {
+          "peak_reserved_bytes": 4506779648,
+          "peak_allocated_bytes": 4109363712,
+          "allocator_retries": 0,
+          "forward_backward_seconds": 0.14553629999863915
+        },
+        "b": {
+          "peak_reserved_bytes": 4506779648,
+          "peak_allocated_bytes": 4109877248,
+          "allocator_retries": 0,
+          "forward_backward_seconds": 0.14969739998923615
+        }
+      },
+      "differing_gradient_count": 0
+    },
+    {
+      "user_id": 2155,
+      "offset": 0,
+      "reviews": 37,
+      "loss_bitwise_equal": true,
+      "same_gradient_set": true,
+      "parameters": 429,
+      "differing_gradients": [],
+      "memory": {
+        "a": {
+          "peak_reserved_bytes": 775946240,
+          "peak_allocated_bytes": 734547968,
+          "allocator_retries": 0,
+          "forward_backward_seconds": 0.08810079999966547
+        },
+        "b": {
+          "peak_reserved_bytes": 778043392,
+          "peak_allocated_bytes": 735061504,
+          "allocator_retries": 0,
+          "forward_backward_seconds": 0.08636400001705624
+        }
+      },
+      "differing_gradient_count": 0
+    },
+    {
+      "user_id": 906,
+      "offset": 0,
+      "reviews": 77,
+      "loss_bitwise_equal": true,
+      "same_gradient_set": true,
+      "parameters": 429,
+      "differing_gradients": [],
+      "memory": {
+        "a": {
+          "peak_reserved_bytes": 1453326336,
+          "peak_allocated_bytes": 1327379456,
+          "allocator_retries": 0,
+          "forward_backward_seconds": 0.1006684000021778
+        },
+        "b": {
+          "peak_reserved_bytes": 1455423488,
+          "peak_allocated_bytes": 1327892992,
+          "allocator_retries": 0,
+          "forward_backward_seconds": 0.10188289999496192
+        }
+      },
+      "differing_gradient_count": 0
+    }
+  ],
+  "status": "passed",
+  "twin_pairs": [
+    {
+      "user_id": 1495,
+      "reviews": 256,
+      "pairs": [
+        {
+          "order": [
+            "a",
+            "b"
+          ],
+          "a_seconds": 0.13550010000471957,
+          "b_seconds": 0.13565620000008494,
+          "bitwise_equal": true
+        },
+        {
+          "order": [
+            "b",
+            "a"
+          ],
+          "a_seconds": 0.13948640000307932,
+          "b_seconds": 0.13386349999927916,
+          "bitwise_equal": true
+        },
+        {
+          "order": [
+            "a",
+            "b"
+          ],
+          "a_seconds": 0.13508269999874756,
+          "b_seconds": 0.1349149000016041,
+          "bitwise_equal": true
+        },
+        {
+          "order": [
+            "b",
+            "a"
+          ],
+          "a_seconds": 0.13411340001039207,
+          "b_seconds": 0.1361075000022538,
+          "bitwise_equal": true
+        }
+      ]
+    },
+    {
+      "user_id": 1619,
+      "reviews": 256,
+      "pairs": [
+        {
+          "order": [
+            "a",
+            "b"
+          ],
+          "a_seconds": 0.1293162000074517,
+          "b_seconds": 0.1311810999759473,
+          "bitwise_equal": true
+        },
+        {
+          "order": [
+            "b",
+            "a"
+          ],
+          "a_seconds": 0.1310788999835495,
+          "b_seconds": 0.13037629998871125,
+          "bitwise_equal": true
+        },
+        {
+          "order": [
+            "a",
+            "b"
+          ],
+          "a_seconds": 0.13084900000831112,
+          "b_seconds": 0.13283200000296347,
+          "bitwise_equal": true
+        },
+        {
+          "order": [
+            "b",
+            "a"
+          ],
+          "a_seconds": 0.13124190000235103,
+          "b_seconds": 0.13208659997326322,
+          "bitwise_equal": true
+        }
+      ]
+    },
+    {
+      "user_id": 3958,
+      "reviews": 229,
+      "pairs": [
+        {
+          "order": [
+            "a",
+            "b"
+          ],
+          "a_seconds": 0.14697150001302361,
+          "b_seconds": 0.14677719998871908,
+          "bitwise_equal": true
+        },
+        {
+          "order": [
+            "b",
+            "a"
+          ],
+          "a_seconds": 0.14676109998254105,
+          "b_seconds": 0.1478038000059314,
+          "bitwise_equal": true
+        },
+        {
+          "order": [
+            "a",
+            "b"
+          ],
+          "a_seconds": 0.14690940000582486,
+          "b_seconds": 0.14601130000664853,
+          "bitwise_equal": true
+        },
+        {
+          "order": [
+            "b",
+            "a"
+          ],
+          "a_seconds": 0.1504152000125032,
+          "b_seconds": 0.15490920000593178,
+          "bitwise_equal": true
+        }
+      ]
+    },
+    {
+      "user_id": 2155,
+      "reviews": 37,
+      "pairs": [
+        {
+          "order": [
+            "a",
+            "b"
+          ],
+          "a_seconds": 0.08818890000111423,
+          "b_seconds": 0.08623320001061074,
+          "bitwise_equal": true
+        },
+        {
+          "order": [
+            "b",
+            "a"
+          ],
+          "a_seconds": 0.08809710000059567,
+          "b_seconds": 0.08583730002283119,
+          "bitwise_equal": true
+        },
+        {
+          "order": [
+            "a",
+            "b"
+          ],
+          "a_seconds": 0.08694639999885112,
+          "b_seconds": 0.08761909999884665,
+          "bitwise_equal": true
+        },
+        {
+          "order": [
+            "b",
+            "a"
+          ],
+          "a_seconds": 0.08621179999317974,
+          "b_seconds": 0.08766819999436848,
+          "bitwise_equal": true
+        }
+      ]
+    },
+    {
+      "user_id": 906,
+      "reviews": 77,
+      "pairs": [
+        {
+          "order": [
+            "a",
+            "b"
+          ],
+          "a_seconds": 0.1021269999910146,
+          "b_seconds": 0.09943629999179393,
+          "bitwise_equal": true
+        },
+        {
+          "order": [
+            "b",
+            "a"
+          ],
+          "a_seconds": 0.10182169999461621,
+          "b_seconds": 0.09945650000008754,
+          "bitwise_equal": true
+        },
+        {
+          "order": [
+            "a",
+            "b"
+          ],
+          "a_seconds": 0.09972120000747964,
+          "b_seconds": 0.10804479999933392,
+          "bitwise_equal": true
+        },
+        {
+          "order": [
+            "b",
+            "a"
+          ],
+          "a_seconds": 0.09986619997653179,
+          "b_seconds": 0.10047880001366138,
+          "bitwise_equal": true
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "batches": 5,
+    "batches_bitwise_equal": 5
+  },
+  "twin_timing": {
+    "pairs": 20,
+    "mean_log_gain_percent": -0.22556948161998266,
+    "standard_error_percent": 0.5739335230930381,
+    "descriptive_normal_95_interval_percent": [
+      -1.3504791868823374,
+      0.899340223642372
+    ],
+    "scope": "diagnostic only; warm forward/backward wall time excluding model setup, GC, allocator clearing and gradient clones; alternating AB/BA within batch; seeded RNG restored after warmup; pooled heterogeneous batches, not frozen promotion gate"
+  }
+}
