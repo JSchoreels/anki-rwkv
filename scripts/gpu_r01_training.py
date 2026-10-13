@@ -266,6 +266,8 @@ def run_case(args):
                 raise ValueError("F50 requires Expertium exact row selection")
             base.skip_padding_sources = True
         for module in base.modules():
+            if hasattr(module, "exact_shift_lerp"):
+                module.exact_shift_lerp = bool(options.get("exact_shift_lerp", False))
             if hasattr(module, "exact_bonus_products"):
                 module.exact_bonus_products = bool(options.get("exact_bonus_products", False))
             if hasattr(module, "exact_gate_glue"):
@@ -281,6 +283,9 @@ def run_case(args):
                 raise ValueError("F49 requires Expertium")
             base.concurrent_splits = True
         optimizer = get_optimizer(Namespace(PEAK_LR=7e-4), master)
+        if options.get("group_adam"):
+            from scripts.gpu_r01_group_adam import install_group_adam
+            install_group_adam(optimizer, reusable=options["group_adam"] == 2)
         warm_pool = None
         if options.get("prestart_pool"):
             # F28: spawn and import the preparation workers while the GPU primer runs.

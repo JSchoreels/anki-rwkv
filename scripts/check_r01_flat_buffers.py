@@ -166,6 +166,9 @@ def main():
         from scripts.gpu_r01_update import MasterChildSync
         from scripts.gpu_r01_flat import FlatMasterChildSync
         optimizer = get_optimizer(Namespace(PEAK_LR=7e-4), master)
+        if options.get("group_adam"):
+            from scripts.gpu_r01_group_adam import install_group_adam
+            install_group_adam(optimizer, reusable=options["group_adam"] == 2)
         helper = FlatMasterChildSync(master, model, optimizer) if options.get("flat_buffers") else MasterChildSync(master, model)
         # Exercise flat copies separately, then actual real gradients and repeated Adam updates.
         before = {n: p.detach().clone() for n,p in model.named_parameters()}
@@ -179,6 +182,10 @@ def main():
             optimizer.zero_grad(set_to_none=True)
             for n,p in model.named_parameters():
                 p.grad = saved[n].clone() if saved[n] is not None else None
+            if step == 1:
+                # Divergent active sets must retain independent lazy counters.
+                for n,p in list(model.named_parameters())[::3]:
+                    p.grad = None
             if step == 2:
                 # Signed zeros and tiny gradients exercise the original +0 conversion contract.
                 p = next(model.parameters())

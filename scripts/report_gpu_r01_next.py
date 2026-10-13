@@ -70,6 +70,9 @@ def describe(track):
                 "F58h": "short-history forward scalar and row-value pipeline",
                 "F55": "wave-aware recurrence backward layout",
                 "F62": "flat optimizer buffers",
+                "F62b": "whole active-group AdamW packing",
+                "F62c": "reused whole active-group AdamW buffers",
+                "F34e": "exact eight-way shift/lerp forward",
                 "F54": "compact exact recurrence previous-state storage",
              "E31": "accepted iteration-0031 Expertium configuration: E30, F37",
              "E33": "accepted iteration-0033 Expertium configuration: E31, F42"}

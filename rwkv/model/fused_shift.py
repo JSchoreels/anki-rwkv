@@ -75,3 +75,28 @@ class FusedShiftLerp(torch.autograd.Function):
         dx = dx + torch.zeros_like(x).scatter_add_(1, indices, ds)
         dw = (grad * (shifted - x).unsqueeze(0)).sum((1, 2), keepdim=True)
         return dx, None, dw
+
+
+class ExactShiftLerp(torch.autograd.Function):
+    """F34e fused forward, with the original autograd reduction graph backward."""
+    @staticmethod
+    def forward(ctx, x, select, weight):
+        from rwkv.model import nvrtc
+        x, select, weight = x.contiguous(), select.contiguous(), weight.contiguous()
+        B, T, C = x.shape
+        out = torch.empty((8, B, T, C), device=x.device, dtype=x.dtype)
+        args = tuple(np.uint64(v.data_ptr()) for v in (x, select, weight, out)) + tuple(np.int32(v) for v in (B, T, C))
+        nvrtc.raw_launch(kernel(x.dtype), x.device, ((out.numel()+255)//256,), (256,), args)
+        ctx.save_for_backward(x, select, weight)
+        return out
+
+    @staticmethod
+    def backward(ctx, grad):
+        x, select, weight = ctx.saved_tensors
+        with torch.enable_grad():
+            x = x.detach().requires_grad_()
+            weight = weight.detach().requires_grad_()
+            shifted = torch.gather(x, 1, select.unsqueeze(-1).expand_as(x))
+            output = torch.lerp(x.unsqueeze(0), shifted.unsqueeze(0), weight)
+            dx, dw = torch.autograd.grad(output, (x, weight), grad)
+        return dx, None, dw

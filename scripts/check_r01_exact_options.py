@@ -26,7 +26,7 @@ import statistics
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
-APPLIED = {"exact_bonus_products", "batched_split_gather", "fused_padded_gather", "exact_shift", "exact_index", "exact_group_norm", "fused_shift", "row_tiles_exact", "shared_shift_orders",
+APPLIED = {"exact_shift_lerp", "exact_bonus_products", "batched_split_gather", "fused_padded_gather", "exact_shift", "exact_index", "exact_group_norm", "fused_shift", "row_tiles_exact", "shared_shift_orders",
            "stream_launches", "prefetch_rows", "prefetch_shift", "sync_free_loss", "jit_optimize", "nondeterministic", "skip_uninitialized_fill", "skip_padding_sources", "concurrent_splits", "concurrent_split_limit", "exact_gate_glue", "exact_channel_glue", "worker_scatter_orders", "recurrence_prefetch", "recurrence_load_pipeline", "wave_aware_backward", "flat_buffers", "compact_previous_state"}
 
 
@@ -146,7 +146,7 @@ def main():
             with torch.no_grad():
                 next(p for p in model.parameters() if p.dtype == torch.bfloat16).view(-1).view(torch.int16)[0] ^= 1
         for module in model.modules():
-            for flag in ("fused_shift", "exact_shift", "exact_index", "exact_group_norm"):
+            for flag in ("fused_shift", "exact_shift_lerp", "exact_shift", "exact_index", "exact_group_norm"):
                 if hasattr(module, flag):
                     setattr(module, flag, bool(options.get(flag, False)))
         if options.get("sync_free_loss"):
