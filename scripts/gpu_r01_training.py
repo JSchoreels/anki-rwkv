@@ -562,6 +562,26 @@ def run_case(args):
                 raise ValueError("F57 bookkeeping_stride must be a positive integer")
             report["bookkeeping_stride"] = bookkeeping_stride
             transitions = 0
+            # Full runs: weight snapshots every `snapshot_users` users, on a SAVE request, and before a STOP request
+            # (control files in the run directory), so an interrupted epoch can resume from its latest snapshot.
+            snapshot_users = int(full_run.get("snapshot_users", 0))
+            control = ROOT / full_run["control_dir"] if full_run.get("control_dir") else None
+            row_end = {row["user_id"]: row["train_range"][1] for row in rows}
+
+            def save_snapshot(reason):
+                folder = path / "snapshots" / f"users-{report['progress_users']:05d}"
+                folder.mkdir(parents=True, exist_ok=True)
+                torch.save(master.state_dict(), folder / "master.pth")
+                torch.save(optimizer.state_dict(), folder / "optimizer.pth")
+                done = sorted(int(user) for user, record in coverage.items() if record["reviews"] == row_end[int(user)])
+                meta = {"reason": reason, "utc": datetime.now(timezone.utc).isoformat(), "progress_users": report["progress_users"],
+                        "updates": report["updates"], "update_offset_end": update_offset + report["updates"],
+                        "review_presentations": report["review_presentations"], "done_users": done,
+                        "folder": folder.relative_to(ROOT).as_posix()}
+                atomic_json(folder / "snapshot.json", meta)
+                atomic_json(path / "snapshots" / "latest.json", meta)
+                report["latest_snapshot"] = {key: meta[key] for key in ("reason", "utc", "progress_users", "folder")}
+                atomic_json(path / "result.json", report)
             try:
                 for row, item, batch in transferred:
                     # Per-update timing (accounting only): host start and device span, read with the update's values.
@@ -597,6 +617,15 @@ def run_case(args):
                             if report["progress_users"] % bookkeeping_stride == 0:
                                 report["training_elapsed_seconds"] = time.perf_counter() - train_started
                                 atomic_json(path / "result.json", report)
+                            if full_run:
+                                if control is not None and (control / "STOP").exists():
+                                    save_snapshot("stop")
+                                    raise InterruptedError("STOP requested; snapshot saved, `run` resumes from it")
+                                if control is not None and (control / "SAVE").exists():
+                                    (control / "SAVE").unlink(missing_ok=True)
+                                    save_snapshot("save")
+                                elif snapshot_users and report["progress_users"] % snapshot_users == 0:
+                                    save_snapshot("periodic")
                         last_user = part_user
                     cpu_labels = item.batch.labels
                     curve_n = int(((1 - cpu_labels[:, :, 6]) * cpu_labels[:, :, 4]).sum())

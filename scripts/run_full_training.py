@@ -10,8 +10,11 @@ is scored; after the final epoch the full validation and the sealed final-test u
 use the upstream label database and `rwkv/get_result.get_stats` (see scripts/full_run_metrics.py).
 
   prepare  --run DIR [--train 8000 --validation 1500 --test 500 --quick 300 --epochs 5]
-  run      --run DIR          (all remaining epochs; one GPU process each)
+  run      --run DIR          (all remaining epochs; one GPU process each; resumes from the latest snapshot)
   epoch    --run DIR --epoch N
+  save     --run DIR          (snapshot at the next user boundary; training continues)
+  stop     --run DIR          (snapshot at the next user boundary, then stop; `run` resumes from it)
+  latest   --run DIR          (path of the newest saved weights, for trying the model)
   pages    --run DIR [--push-every SECONDS]   (pages/data/train-8k.json; optional commit+push loop)
 """
 from argparse import ArgumentParser, Namespace
@@ -34,6 +37,7 @@ REVISION = "75299740cff05894ef42d7ad990666691efdd2da"
 R01_COHORT = ROOT / "artifacts/retraining/gpu-retrain-r01/cohorts-user-holdout-v1.json"
 PAGES_JSON = ROOT / "pages/data/train-8k.json"
 SLICE_PERCENT = 5
+SNAPSHOT_USERS = 400
 
 
 def atomic_json(path, value):
@@ -157,8 +161,17 @@ def write_protocol(run, epoch, config):
     final = epoch == config["epochs"]
     evaluation = sorted(config["validation_users"] + config["final_test_users"]) if final else config["quick_validation_users"]
     full_run = {"epoch": epoch, "evaluate": True, "benchmark_db": (run / "label-db").relative_to(ROOT).as_posix(),
-                "evaluation_set": "validation+final_test" if final else "quick_validation"}
-    if epoch > 1:
+                "evaluation_set": "validation+final_test" if final else "quick_validation",
+                "snapshot_users": config.get("snapshot_users", SNAPSHOT_USERS), "control_dir": run.relative_to(ROOT).as_posix()}
+    resume_file = run / f"epoch-{epoch:02d}.resume.json"
+    if resume_file.exists():
+        # Mid-epoch resume: skip users fully trained before the interruption; a user in flight is retrained.
+        resume = json.loads(resume_file.read_text())
+        done = set(resume["done_users"])
+        order = [user for user in order if user not in done]
+        full_run.update(init_master=resume["master"], init_optimizer=resume["optimizer"], update_offset=resume["update_offset_end"],
+                        resumed={"done_users": len(done), "from": resume["folder"], "attempts": resume["attempts"]})
+    elif epoch > 1:
         previous = epoch_result(run, epoch - 1, config)
         if not previous or previous.get("status") != "complete":
             raise RuntimeError(f"Epoch {epoch - 1} is not complete")
@@ -207,17 +220,34 @@ def run_epoch(run, epoch):
 
 def run_all(run):
     config = json.loads((run / "run.json").read_text())
+    (run / "STOP").unlink(missing_ok=True)
+    (run / "SAVE").unlink(missing_ok=True)
     for epoch in range(1, config["epochs"] + 1):
         result = epoch_result(run, epoch, config)
         if result and result.get("status") == "complete":
             continue
         folder = epoch_dir(run, epoch)
         if folder.exists():
-            # Preserve a failed or interrupted attempt; the epoch restarts from the previous checkpoint.
+            # Preserve a failed or interrupted attempt; resume from its latest snapshot when it has one,
+            # otherwise from the previous resume point or the previous epoch's checkpoint.
             attempt = 1
             while folder.with_name(f"{folder.name}-attempt-{attempt}").exists():
                 attempt += 1
-            shutil.move(str(folder), str(folder.with_name(f"{folder.name}-attempt-{attempt}")))
+            moved = folder.with_name(f"{folder.name}-attempt-{attempt}")
+            shutil.move(str(folder), str(moved))
+            latest = moved / config["model"] / config["track"] / "snapshots" / "latest.json"
+            if latest.exists() and result and result.get("status") != "complete":
+                snapshot = json.loads(latest.read_text())
+                snapshot_folder = moved / config["model"] / config["track"] / "snapshots" / Path(snapshot["folder"]).name
+                resume_file = run / f"epoch-{epoch:02d}.resume.json"
+                previous = json.loads(resume_file.read_text()) if resume_file.exists() else {"done_users": [], "attempts": []}
+                atomic_json(resume_file, {
+                    "done_users": sorted(set(previous["done_users"]) | set(snapshot["done_users"])),
+                    "master": (snapshot_folder / "master.pth").relative_to(ROOT).as_posix(),
+                    "optimizer": (snapshot_folder / "optimizer.pth").relative_to(ROOT).as_posix(),
+                    "update_offset_end": snapshot["update_offset_end"], "folder": snapshot_folder.relative_to(ROOT).as_posix(),
+                    "attempts": previous["attempts"] + [moved.name], "exact": False,
+                    "note": "resumed mid-epoch: users fully trained before the snapshot are skipped; users in flight are retrained from their start"})
         if (run / "STOP").exists():
             print("[run] STOP file present; not starting a new epoch", flush=True)
             return 1
@@ -246,7 +276,9 @@ def page_state(run):
         row = {"epoch": epoch, "users_done": 0, "finished_utc": None, "evaluation": None}
         if result:
             started = started or result.get("started_utc")
-            done = n if result.get("status") in ("evaluating", "complete") else result.get("progress_users", 0)
+            protocol_path = epoch_dir(run, epoch) / "protocol.json"
+            resumed = (json.loads(protocol_path.read_text())["full_run"].get("resumed") or {}).get("done_users", 0)                 if protocol_path.exists() else 0
+            done = n if result.get("status") in ("evaluating", "complete") else resumed + result.get("progress_users", 0)
             row["users_done"] = done
             if result.get("training_seconds"):
                 rates.append(result["reviews_per_second"])
@@ -298,6 +330,17 @@ def page_state(run):
             "epochs": epochs}
 
 
+def latest_weights(run):
+    """Newest saved master weights: an epoch-end checkpoint or a mid-epoch snapshot."""
+    candidates = list(run.glob("epoch-*/*/*/master.pth")) + list(run.glob("epoch-*/*/*/snapshots/users-*/master.pth"))
+    if not candidates:
+        print("no saved weights yet")
+        return 1
+    newest = max(candidates, key=lambda path: path.stat().st_mtime)
+    print(newest.relative_to(ROOT).as_posix())
+    return 0
+
+
 def pages(run, push_every):
     while True:
         state = page_state(run)
@@ -317,7 +360,7 @@ def pages(run, push_every):
 
 def main():
     parser = ArgumentParser(description=__doc__)
-    parser.add_argument("command", choices=("prepare", "run", "epoch", "pages"))
+    parser.add_argument("command", choices=("prepare", "run", "epoch", "pages", "save", "stop", "latest"))
     parser.add_argument("--run", type=Path, required=True)
     parser.add_argument("--epoch", type=int)
     parser.add_argument("--train", type=int, default=8000)
@@ -338,6 +381,12 @@ def main():
         return run_all(run)
     if args.command == "epoch":
         return run_epoch(run, args.epoch)
+    if args.command in ("save", "stop"):
+        (run / args.command.upper()).touch()
+        print(f"{args.command.upper()} requested; it takes effect at the next user boundary (seconds)")
+        return 0
+    if args.command == "latest":
+        return latest_weights(run)
     return pages(run, args.push_every)
 
 
