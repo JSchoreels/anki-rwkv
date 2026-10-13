@@ -1,0 +1,48 @@
+/* "How one update flows through CPU and GPU" section of campaign.html. */
+:root {
+  --pl-w-bg: #e1f5ee; --pl-w-ink: #085041; --pl-w-line: #0f6e56;
+  --pl-m-bg: #eeedfe; --pl-m-ink: #3c3489; --pl-m-line: #534ab7;
+  --pl-g-bg: #faece7; --pl-g-ink: #712b13; --pl-g-line: #993c1d;
+  --pl-q-bg: #f1efe8; --pl-q-ink: #444441; --pl-q-line: #888780;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --pl-w-bg: #085041; --pl-w-ink: #e1f5ee; --pl-w-line: #5dcaa5;
+    --pl-m-bg: #3c3489; --pl-m-ink: #eeedfe; --pl-m-line: #afa9ec;
+    --pl-g-bg: #712b13; --pl-g-ink: #faece7; --pl-g-line: #f0997b;
+    --pl-q-bg: #2c2c2a; --pl-q-ink: #f1efe8; --pl-q-line: #b4b2a9;
+  }
+}
+:root[data-theme="dark"] {
+  --pl-w-bg: #085041; --pl-w-ink: #e1f5ee; --pl-w-line: #5dcaa5;
+  --pl-m-bg: #3c3489; --pl-m-ink: #eeedfe; --pl-m-line: #afa9ec;
+  --pl-g-bg: #712b13; --pl-g-ink: #faece7; --pl-g-line: #f0997b;
+  --pl-q-bg: #2c2c2a; --pl-q-ink: #f1efe8; --pl-q-line: #b4b2a9;
+}
+.pl-svg { width: 100%; height: auto; display: block; max-width: 760px; margin: 8px auto 0; }
+.pl-svg text { font-family: inherit; }
+.pl-t { font-size: 14px; font-weight: 600; fill: var(--ink); }
+.pl-s { font-size: 12px; fill: var(--muted); }
+.pl-frame { fill: var(--bg); stroke: var(--line); stroke-width: 1; }
+.pl-w rect { fill: var(--pl-w-bg); stroke: var(--pl-w-line); stroke-width: .75; } .pl-w text { fill: var(--pl-w-ink); }
+.pl-m rect { fill: var(--pl-m-bg); stroke: var(--pl-m-line); stroke-width: .75; } .pl-m text { fill: var(--pl-m-ink); }
+.pl-g rect { fill: var(--pl-g-bg); stroke: var(--pl-g-line); stroke-width: .75; } .pl-g text { fill: var(--pl-g-ink); }
+.pl-q rect { fill: var(--pl-q-bg); stroke: var(--pl-q-line); stroke-width: .75; } .pl-q text { fill: var(--pl-q-ink); }
+.pl-w text.pl-s, .pl-m text.pl-s, .pl-g text.pl-s, .pl-q text.pl-s { opacity: .85; }
+.pl-arr { stroke: var(--muted); stroke-width: 1.25; fill: none; }
+.pl-read { stroke: var(--muted); stroke-width: 1.25; fill: none; stroke-dasharray: 4 3; }
+.pl-roles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-top: 12px; }
+.pl-role { border: 1px solid var(--line); border-radius: 10px; padding: 10px 14px; border-top-width: 4px; }
+.pl-role.w { border-top-color: var(--pl-w-line); } .pl-role.m { border-top-color: var(--pl-m-line); } .pl-role.g { border-top-color: var(--pl-g-line); }
+.pl-role h3 { margin: 2px 0 6px; font-size: 1rem; }
+.pl-role ol { margin: 0; padding-left: 18px; font-size: 14px; }
+.pl-role li { margin-bottom: 4px; }
+.pl-controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 14px 0 10px; }
+.pl-controls .btn[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); }
+.pl-metrics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-bottom: 8px; }
+.pl-metrics > div { background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px; }
+.pl-metrics .k { font-size: 13px; color: var(--muted); }
+.pl-metrics .v { font-size: 1.3rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+.pl-legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13px; color: var(--muted); margin-top: 6px; }
+.pl-legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }
+@media (max-width: 760px) { .pl-roles { grid-template-columns: 1fr; } }
