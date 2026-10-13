@@ -1,0 +1,49 @@
+[prepare] 1/5 real batches
+[prepare] 2/5 real batches
+[prepare] 3/5 real batches
+[prepare] 4/5 real batches
+[prepare] 5/5 real batches
+{"status": "failed", "summary": null, "not_exercised_b": ["async_transfer", "batch_chunks", "batched_id_encodings", "bulk_transfer", "columnar_samples", "deferred_reads"], "error": "RuntimeError: The following operation failed in the TorchScript interpreter.\nTraceback of TorchScript (most recent call last):\n  File \"C:\\Users\\jonat\\workspace\\anki-rwkv\\expertium\\model\\srs_model.py\", line 368, in _get_loss\n        batch_label_review_th: torch.Tensor,\n    ):\n        out_ahead_logits, out_w, out_w_log_p, out_p_logits = self.forward_batch(\n                                                             ~~~~~~~~~~~~~~~~~~ <--- HERE\n            batch_start,\n            batch_sub_gather,\n  File \"C:\\Users\\jonat\\workspace\\anki-rwkv\\expertium\\model\\srs_model.py\", line 309, in forward_batch\n            skips = batch_skips[i]\n            if self.batched_split_gather and x.is_cuda:\n                x = self.forward_batched_gather(x, i, module_splits, sub_lens, time_shift_selects, skips)\n                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~ <--- HERE\n            elif self.concurrent_splits and x.is_cuda:\n                x = self.forward_split_streams(x, i, module_splits, sub_lens, time_shift_selects, skips)\nRuntimeError: TypeError: 'torch._C.ScriptModule' object is not callable\n\nAt:\n  C:\\Users\\jonat\\workspace\\anki-rwkv\\expertium\\model\\srs_model.py(284): forward_batched_gather\n  C:\\Users\\jonat\\workspace\\anki-rwkv\\.venv\\Lib\\site-packages\\torch\\jit\\_recursive.py(1056): lazy_binding_method\n  C:\\Users\\jonat\\workspace\\anki-rwkv\\expertium\\model\\srs_model.py(522): get_loss\n  C:\\Users\\jonat\\workspace\\anki-rwkv\\scripts\\check_r01_exact_options.py(196): run\n  C:\\Users\\jonat\\workspace\\anki-rwkv\\scripts\\check_r01_exact_options.py(204): <genexpr>\n  C:\\Users\\jonat\\workspace\\anki-rwkv\\scripts\\check_r01_exact_options.py(204): main\n  C:\\Users\\jonat\\workspace\\anki-rwkv\\scripts\\check_r01_exact_options.py(228): <module>\n\n"}
+Traceback (most recent call last):
+  File "C:\Users\jonat\workspace\anki-rwkv\scripts\check_r01_exact_options.py", line 228, in <module>
+    main()
+  File "C:\Users\jonat\workspace\anki-rwkv\scripts\check_r01_exact_options.py", line 204, in main
+    (loss_a, grads_a, memory_a), (loss_b, grads_b, memory_b) = (run(variants[name], item, batch, checkpoint) for name in ("a", "b"))
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\jonat\workspace\anki-rwkv\scripts\check_r01_exact_options.py", line 204, in <genexpr>
+    (loss_a, grads_a, memory_a), (loss_b, grads_b, memory_b) = (run(variants[name], item, batch, checkpoint) for name in ("a", "b"))
+                                                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\jonat\workspace\anki-rwkv\scripts\check_r01_exact_options.py", line 196, in run
+    stats = model.get_loss(batch)
+            ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\jonat\workspace\anki-rwkv\expertium\model\srs_model.py", line 522, in get_loss
+    return self._get_loss(
+           ^^^^^^^^^^^^^^^
+RuntimeError: The following operation failed in the TorchScript interpreter.
+Traceback of TorchScript (most recent call last):
+  File "C:\Users\jonat\workspace\anki-rwkv\expertium\model\srs_model.py", line 368, in _get_loss
+        batch_label_review_th: torch.Tensor,
+    ):
+        out_ahead_logits, out_w, out_w_log_p, out_p_logits = self.forward_batch(
+                                                             ~~~~~~~~~~~~~~~~~~ <--- HERE
+            batch_start,
+            batch_sub_gather,
+  File "C:\Users\jonat\workspace\anki-rwkv\expertium\model\srs_model.py", line 309, in forward_batch
+            skips = batch_skips[i]
+            if self.batched_split_gather and x.is_cuda:
+                x = self.forward_batched_gather(x, i, module_splits, sub_lens, time_shift_selects, skips)
+                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~ <--- HERE
+            elif self.concurrent_splits and x.is_cuda:
+                x = self.forward_split_streams(x, i, module_splits, sub_lens, time_shift_selects, skips)
+RuntimeError: TypeError: 'torch._C.ScriptModule' object is not callable
+
+At:
+  C:\Users\jonat\workspace\anki-rwkv\expertium\model\srs_model.py(284): forward_batched_gather
+  C:\Users\jonat\workspace\anki-rwkv\.venv\Lib\site-packages\torch\jit\_recursive.py(1056): lazy_binding_method
+  C:\Users\jonat\workspace\anki-rwkv\expertium\model\srs_model.py(522): get_loss
+  C:\Users\jonat\workspace\anki-rwkv\scripts\check_r01_exact_options.py(196): run
+  C:\Users\jonat\workspace\anki-rwkv\scripts\check_r01_exact_options.py(204): <genexpr>
+  C:\Users\jonat\workspace\anki-rwkv\scripts\check_r01_exact_options.py(204): main
+  C:\Users\jonat\workspace\anki-rwkv\scripts\check_r01_exact_options.py(228): <module>
+
+

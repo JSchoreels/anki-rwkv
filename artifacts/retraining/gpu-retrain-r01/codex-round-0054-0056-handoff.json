@@ -1,0 +1,110 @@
+{
+  "status": "partial counted round; remaining iterations already authorized",
+  "model": "expertium",
+  "iterations": [
+    "0054",
+    "0055",
+    "0056"
+  ],
+  "accepted_iteration": "0042",
+  "accepted_result": "artifacts/retraining/gpu-retrain-r01/iteration-0042/expertium/E33-F48-F50/result.json",
+  "accepted_options": {
+    "prefetch_users": true,
+    "preparation_workers": 6,
+    "gpu_packed_features": true,
+    "packed_ipc": true,
+    "async_transfer": true,
+    "batched_id_encodings": true,
+    "grouped_sync": true,
+    "main_threads": 1,
+    "bulk_transfer": true,
+    "parallel_evaluation": true,
+    "exact_shift": true,
+    "exact_index": true,
+    "batch_chunks": 512,
+    "gpu_memory_fraction": 0.95,
+    "fast_samples": true,
+    "prestart_pool": true,
+    "row_tiles_exact": 4,
+    "exact_group_norm": true,
+    "deferred_reads": true,
+    "shared_shift_orders": true,
+    "stream_launches": true,
+    "prefetch_rows": true,
+    "sync_free_loss": true,
+    "columnar_samples": true,
+    "skip_uninitialized_fill": true,
+    "skip_padding_sources": true
+  },
+  "accepted_reviews_per_second": 197499.48784125826,
+  "next_iteration_hint": "0057",
+  "prior_miss_streak": 9,
+  "implementation_git_commit": "9072bc032a61a55878f5e73aa8c3b4beab7f234b",
+  "new_authorization_required": false,
+  "host_path": "docs/R01_HOST_PATH.md",
+  "ledger": "docs/GPU_OPTIMIZATIONS.md",
+  "summary": "artifacts/retraining/gpu-retrain-r01/codex-round-0054-0056-summary.md",
+  "next_steps": [
+    "Continue --iteration 0057 --previous 0056; inherit campaign budget 23/index 9, 14 remaining through 0070 and cumulative loss ceiling 0.001. This worker stops after 0056.",
+    "Accepted 0042 E33-F48-F50 unchanged. Retain only prior 0048 F58 recurrence_prefetch=true as positive unproven stack; omit rejected F55/F62 and all 0051-0056 glue/gather bundles.",
+    "Slot 10 consolidation has no new surviving stack component. Do not count an identical 0048 repeat; choose a concretely changed pending mechanism such as F58 recompute/per-row prefetch, genuine deferred F49 overlap or whole-group F62 Adam with exactness prerequisites.",
+    "Full F51 per-token batching, F52 padding-free mixer/recurrence, exact eight-way lerp and P3b attribution remain pending. Preserve dropout calls, per-split weight-gradient order, compatible checks, quiet launches and frozen replicated-block looks. Alex/broader validation paused; parent controls new chats and shutdown."
+  ],
+  "acceptance": "Use current LOOP gates and source/runtime-compatible recorded checks; no broader validation authorized",
+  "round_iteration_budget": 23,
+  "completed_candidate_iterations": 9,
+  "remaining_authorized_iterations": 14,
+  "round_start_iteration": "0048",
+  "round_authorization": "I want you to follow R01 cycles, spawn each time a new GPT 6.1 Sol medium thread for 3 iterations, until you reach iteration number 70. Go up to 70 and then shutdown the computer.",
+  "next_iteration": "0057",
+  "previous_argument": "0056",
+  "loss_ceiling_fraction": 0.001,
+  "stack_candidates": [
+    {
+      "iteration": "0048",
+      "track": "E33-F48-F50-F58",
+      "option_overrides": {
+        "recurrence_prefetch": true
+      },
+      "mean_gain_percent": 0.10968623263891697,
+      "lower_bound_percent": -1.6501143406453256,
+      "decision": "positive unproven at six-block cap"
+    }
+  ],
+  "rejected_candidates": [
+    "0049 E33-F48-F50-F58-F55",
+    "0050 E33-F48-F50-F58-F62",
+    "0051 E33-F48-F50-F58-F34a",
+    "0052 E33-F48-F50-F58-F34b",
+    "0053 E33-F48-F50-F58-F34c",
+    "0054 E33-F48-F50-F58-F34d",
+    "0055 E33-F48-F50-F58-F51a",
+    "0056 E33-F48-F50-F58-F52a"
+  ],
+  "candidate_preparation": "artifacts/diagnostics/r01-round-0054-0056/preparation.md",
+  "batch_decisions": [
+    {
+      "iteration": "0054",
+      "n": 2,
+      "mean_percent": -1.2258982411671893,
+      "lower_bound_percent": -2.614686987747672,
+      "decision": "reject"
+    },
+    {
+      "iteration": "0055",
+      "n": 2,
+      "mean_percent": -1.1032718965367505,
+      "lower_bound_percent": -2.493784800405696,
+      "decision": "reject"
+    },
+    {
+      "iteration": "0056",
+      "n": 4,
+      "mean_percent": -0.36536780278397796,
+      "lower_bound_percent": -1.408233259104763,
+      "decision": "reject"
+    }
+  ],
+  "slot_10": "No new stack survives; avoid identical 0048 replay and choose concretely changed pending mechanism",
+  "worker_stop": "Completed exactly 0054\u20130056; parent controls next chat and shutdown"
+}
