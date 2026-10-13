@@ -27,7 +27,7 @@ import statistics
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 APPLIED = {"partial_shift_lerp", "explicit_shift_lerp", "exact_shift_lerp", "exact_bonus_products", "batched_split_gather", "fused_padded_gather", "exact_shift", "exact_index", "exact_group_norm", "fused_shift", "row_tiles_exact", "shared_shift_orders",
-           "stream_launches", "prefetch_rows", "prefetch_shift", "sync_free_loss", "jit_optimize", "nondeterministic", "skip_uninitialized_fill", "skip_padding_sources", "concurrent_splits", "concurrent_split_limit", "exact_gate_glue", "exact_channel_glue", "worker_scatter_orders", "recurrence_prefetch", "recurrence_load_pipeline", "wave_aware_backward", "flat_buffers", "compact_previous_state"}
+           "stream_launches", "driver_launch", "prefetch_rows", "prefetch_shift", "sync_free_loss", "jit_optimize", "nondeterministic", "skip_uninitialized_fill", "skip_padding_sources", "concurrent_splits", "concurrent_split_limit", "exact_gate_glue", "exact_channel_glue", "worker_scatter_orders", "recurrence_prefetch", "recurrence_load_pipeline", "wave_aware_backward", "flat_buffers", "compact_previous_state"}
 
 
 def load_options(value, track):
@@ -177,6 +177,7 @@ def main():
                                   load_pipeline=int(options.get("recurrence_load_pipeline", 0)),
                                   wave_aware=bool(options.get("wave_aware_backward", False))))
             nvrtc.set_stream_launch(options.get("stream_launches", False))
+            nvrtc.set_driver_launch(options.get("driver_launch", False))
             exact_index.set_shared_orders(options.get("shared_shift_orders", False))
             if options.get("worker_scatter_orders"):
                 from scripts.gpu_scatter_orders import install_orders
@@ -184,6 +185,7 @@ def main():
             exact_index.set_prefetch_rows(options.get("prefetch_rows", False))
             exact_index.set_prefetch_shift(options.get("prefetch_shift", False))
             stack.callback(nvrtc.set_stream_launch, False)
+            stack.callback(nvrtc.set_driver_launch, False)
             stack.callback(exact_index.set_shared_orders, False)
             stack.callback(exact_index.set_prefetch_rows, False)
             stack.callback(exact_index.set_prefetch_shift, False)

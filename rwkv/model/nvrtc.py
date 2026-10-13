@@ -19,6 +19,55 @@ _raw_pointer_launch = False
 _stream_launch = False
 _streams = {}
 _functions = {}
+_driver_launch = False
+_driver = None
+_driver_parameters = None
+
+
+def set_driver_launch(enabled=False):
+    """F65a: launch the identical CuPy function through the CUDA driver ABI."""
+    global _driver_launch
+    _driver_launch = bool(enabled)
+
+
+def driver_launch(function, grid, block, args, stream):
+    """Copy exact by-value arguments into thread-local, typed driver parameter slots."""
+    global _driver, _driver_parameters
+    import ctypes
+    import threading
+    if _driver is None:
+        _driver = ctypes.WinDLL('nvcuda.dll') if os.name == 'nt' else ctypes.CDLL('libcuda.so.1')
+        launch = _driver.cuLaunchKernel
+        launch.argtypes = [ctypes.c_void_p, *([ctypes.c_uint] * 7), ctypes.c_void_p,
+                           ctypes.POINTER(ctypes.c_void_p), ctypes.POINTER(ctypes.c_void_p)]
+        launch.restype = ctypes.c_int
+        _driver_parameters = threading.local()
+    types = {np.dtype('uint64'): ctypes.c_uint64, np.dtype('int64'): ctypes.c_int64,
+             np.dtype('int32'): ctypes.c_int32}
+    signature = tuple(arg.dtype for arg in args)
+    if any(dtype not in types for dtype in signature):
+        raise TypeError('Native launcher accepts only explicit uint64/int64/int32 argument bytes')
+    cache = getattr(_driver_parameters, 'cache', None)
+    if cache is None:
+        cache = _driver_parameters.cache = {}
+    entry = cache.get(signature)
+    if entry is None:
+        fields = [(f'a{i}', types[dtype]) for i, dtype in enumerate(signature)]
+        struct = type('KernelParameters', (ctypes.Structure,), {'_fields_': fields})
+        values = struct()
+        pointers = (ctypes.c_void_p * len(fields))(*(ctypes.addressof(values) + getattr(struct, name).offset for name, _ in fields))
+        entry = cache[signature] = values, pointers, tuple(name for name, _ in fields)
+    values, pointers, names = entry
+    for name, value in zip(names, args):
+        setattr(values, name, int(value))
+    dimensions = tuple(grid) + (1,) * (3 - len(grid)) + tuple(block) + (1,) * (3 - len(block))
+    if len(dimensions) != 6 or any(type(v) is not int or v < 1 for v in dimensions):
+        raise ValueError('Driver launch requires positive integer grid/block dimensions')
+    # cuLaunchKernel copies host argument values before returning; Torch retains tensor
+    # storage, exactly as in the CuPy path. Slots are thread-local, not shared by callers.
+    status = _driver.cuLaunchKernel(function.ptr, *dimensions, 0, stream, pointers, None)
+    if status:
+        raise RuntimeError(f'CUDA driver launch failed with status {status}')
 
 
 def set_stream_launch(enabled=False):
@@ -30,6 +79,14 @@ def set_stream_launch(enabled=False):
 def raw_launch(kernel, device, grid, block, args):
     """Enqueue a CuPy RawKernel on Torch's current stream of `device`."""
     index = device.index if device.index is not None else torch.cuda.current_device()
+    if _driver_launch:
+        pointer = torch.cuda.current_stream(device).cuda_stream
+        with _cupy.cuda.Device(index):
+            function = _functions.get((id(kernel), index))
+            if function is None:
+                function = _functions[(id(kernel), index)] = (kernel, kernel.kernel)
+            driver_launch(function[1], grid, block, args, pointer)
+        return
     if _stream_launch and index == torch.cuda.current_device():
         # Same kernel, arguments and stream; only the per-call Device/ExternalStream
         # context setup (about 12 us of host time) is skipped.

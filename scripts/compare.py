@@ -179,11 +179,17 @@ def training_models(model_class, architecture, device, dtype, seed):
     return master, model
 
 
-def evaluate(model, batches):
+def evaluate(model, batches, deferred_metric_reads=False):
     model.eval()
     totals = {"curve_labels": 0, "instant_labels": 0, "curve_log_loss": 0.0,
               "curve_raw_log_loss": 0.0, "instant_log_loss": 0.0,
               "instant_rating_cross_entropy": 0.0}
+    pending = []
+    def add_metrics(values, ahead_n, imm_n):
+        totals["curve_log_loss"] += values[0] * ahead_n
+        totals["curve_raw_log_loss"] += values[1] * ahead_n
+        totals["instant_rating_cross_entropy"] += values[2] * imm_n
+        totals["instant_log_loss"] += values[3]
     with torch.no_grad():
         for item in batches:
             batch = item["batch"]
@@ -196,10 +202,16 @@ def evaluate(model, batches):
             )
             totals["curve_labels"] += stats.ahead_n
             totals["instant_labels"] += stats.imm_n
-            totals["curve_log_loss"] += stats.ahead_avg.item() * stats.ahead_n
-            totals["curve_raw_log_loss"] += stats.ahead_raw_avg.item() * stats.ahead_n
-            totals["instant_rating_cross_entropy"] += stats.imm_avg.item() * stats.imm_n
-            totals["instant_log_loss"] += losses[mask].sum().item()
+            if deferred_metric_reads:
+                # Keep the original scalar reductions, scalar precision and batch order.
+                pending.append((torch.stack((stats.ahead_avg, stats.ahead_raw_avg, stats.imm_avg,
+                                             losses[mask].sum())), stats.ahead_n, stats.imm_n))
+            else:
+                add_metrics((stats.ahead_avg.item(), stats.ahead_raw_avg.item(), stats.imm_avg.item(),
+                             losses[mask].sum().item()), stats.ahead_n, stats.imm_n)
+        if pending:
+            for values, (_, ahead_n, imm_n) in zip(torch.stack([row[0] for row in pending]).tolist(), pending):
+                add_metrics(values, ahead_n, imm_n)
     assert totals["curve_labels"] > 0 and totals["instant_labels"] > 0
     for key in ["curve_log_loss", "curve_raw_log_loss"]:
         totals[key] /= totals["curve_labels"]

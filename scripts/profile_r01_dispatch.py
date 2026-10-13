@@ -28,6 +28,8 @@ def main():
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--passes", type=int, default=3)
     parser.add_argument("--extra-options", help="JSON options merged over the selection entry")
+    parser.add_argument("--trace", type=Path, help="Optional Chrome trace of one small and one large warmed update")
+    parser.add_argument("--timeline-only", action="store_true", help="Two NVTX-labelled updates; no nested CUPTI profiler")
     args = parser.parse_args()
     output = (ROOT / args.output).resolve()
     if not output.is_relative_to(ROOT / "artifacts"):
@@ -40,6 +42,11 @@ def main():
         options = {**options, **json.loads(args.extra_options)}
     from scripts.benchmark_r01_components import windows
     data_path, selected = windows("expertium")
+    if args.timeline_only:
+        from scripts.benchmark_r01_components import COHORT
+        cohort = json.loads(COHORT.read_text(encoding='utf-8'))
+        smallest = min(cohort['stages']['100']['rows'], key=lambda row: row['available_reviews'])
+        selected = [(smallest, smallest['available_reviews']), (selected[0][0], 65536)]
     os.environ["GPU_BATCH1_DATA_PATH"] = str(ROOT / data_path)
     os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":4096:8"
     os.environ["CUPY_CACHE_DIR"] = str(ROOT / "artifacts/cache/cupy-cache")
@@ -67,6 +74,12 @@ def main():
     torch.cuda.set_per_process_memory_fraction(options["gpu_memory_fraction"], 0)
     nvrtc.register()
     nvrtc.set_checkpoint_length(32)
+    nvrtc.set_stream_launch(options.get("stream_launches", False))
+    nvrtc.set_driver_launch(options.get("driver_launch", False))
+    from rwkv.model import exact_index
+    exact_index.set_shared_orders(options.get("shared_shift_orders", False))
+    exact_index.set_prefetch_rows(options.get("prefetch_rows", False))
+    torch.utils.deterministic.fill_uninitialized_memory = not options.get("skip_uninitialized_fill", False)
     device = torch.device("cuda:0")
     config = {"MODEL": "expertium", "DTYPE": "bfloat16", "SEED": 2025, "WKV_BACKEND": "nvrtc"}
     prepared = []
@@ -87,6 +100,7 @@ def main():
         if hasattr(module, "exact_group_norm"):
             module.exact_group_norm = options.get("exact_group_norm", False)
     base.sync_free_loss = options.get("sync_free_loss", False)
+    base.skip_padding_sources = bool(options.get("skip_padding_sources", False))
     optimizer = get_optimizer(Namespace(PEAK_LR=7e-4), master)
     grouped = MasterChildSync(master, base)
     torch.set_num_threads(options.get("main_threads", 4))
@@ -137,6 +151,16 @@ def main():
             update(item)
     torch.cuda.synchronize()
     stages.clear()
+    if args.timeline_only:
+        for item in prepared:
+            with torch.cuda.nvtx.range(f'R01_reviews_{item.reviews}'):
+                update(item)
+                torch.cuda.synchronize()
+        output.parent.mkdir(parents=True, exist_ok=True)
+        result.update(status='diagnostic completed', review_sizes=[item.reviews for item in prepared])
+        output.write_text(json.dumps(result, indent=2)+'\n', encoding='utf-8')
+        print(json.dumps({'status':result['status'],'review_sizes':result['review_sizes']}))
+        return
     begin = time.perf_counter()
     for _ in range(args.passes):
         for item in prepared:
@@ -162,6 +186,20 @@ def main():
             for event in averages]
     result["profiler_top_self_cpu"] = sorted(rows, key=lambda r: -r["self_cpu_ms_per_update"])[:40]
     result["profiler_top_device"] = sorted(rows, key=lambda r: -r["device_ms_per_update"])[:25]
+    result["custom_op_cpu"] = [r for r in rows if any(s in r["name"].lower() for s in ("exact", "rwkv", "raw_launch"))]
+    if args.trace:
+        trace_path = (ROOT / args.trace).resolve()
+        if not trace_path.is_relative_to(ROOT / "artifacts") or trace_path.exists():
+            raise ValueError("Trace must be a new path under workspace artifacts")
+        ordered = sorted(prepared, key=lambda item: item.reviews)
+        with profile(activities=[ProfilerActivity.CPU, ProfilerActivity.CUDA]) as timeline:
+            for label, item in (("small", ordered[0]), ("large", ordered[-1])):
+                with torch.profiler.record_function(f"R01_{label}_{item.reviews}_reviews"):
+                    update(item)
+                    torch.cuda.synchronize()
+        trace_path.parent.mkdir(parents=True, exist_ok=True)
+        timeline.export_chrome_trace(str(trace_path))
+        result["trace"] = trace_path.relative_to(ROOT).as_posix()
     launches = [r for r in rows if r["name"] in ("cudaLaunchKernel", "cuLaunchKernel", "cudaLaunchKernelExC", "cuLaunchKernelEx")]
     result["launches_per_update"] = sum(r["calls_per_update"] for r in launches)
     result["launch_cpu_ms_per_update"] = sum(r["self_cpu_ms_per_update"] for r in launches)

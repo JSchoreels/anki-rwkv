@@ -224,6 +224,7 @@ def run_case(args):
         # F38: one shift-backward sort per split and stream-argument raw launches, bitwise equal.
         from rwkv.model import exact_index
         nvrtc.set_stream_launch(options.get("stream_launches", False))
+        nvrtc.set_driver_launch(options.get("driver_launch", False))
         exact_index.set_shared_orders(options.get("shared_shift_orders", False))
         # F35: row-selection backward with pipelined loads; same sequential sums, bitwise equal.
         exact_index.set_prefetch_rows(options.get("prefetch_rows", False))
@@ -587,6 +588,7 @@ def run_case(args):
         nvrtc.set_checkpoint_length(32)
         nvrtc.set_raw_pointer_launch(False)
         nvrtc.set_stream_launch(False)
+        nvrtc.set_driver_launch(False)
         exact_index.set_shared_orders(False)
         exact_index.set_prefetch_rows(False)
         exact_index.set_prefetch_shift(False)
@@ -616,7 +618,7 @@ def run_case(args):
                         for tensor in (batch.start, batch.labels, batch.label_review_th):
                             validation_hash.update(tensor.numpy().tobytes())
                         yield {"batch": batch.to(device)}
-                values = evaluate(master, heldout())
+                values = evaluate(master, heldout(), deferred_metric_reads=bool(options.get("deferred_evaluation_metrics", False)))
                 per_user.append({"user_id": user, **values})
                 progress.evaluation(len(per_user), len(evaluation_rows))
         progress.end()
