@@ -265,10 +265,14 @@ def run_case(args):
                 raise ValueError("F50 requires Expertium exact row selection")
             base.skip_padding_sources = True
         for module in base.modules():
+            if hasattr(module, "exact_bonus_products"):
+                module.exact_bonus_products = bool(options.get("exact_bonus_products", False))
             if hasattr(module, "exact_gate_glue"):
                 module.exact_gate_glue = int(options.get("exact_gate_glue", 0))
             if hasattr(module, "exact_channel_glue"):
                 module.exact_channel_glue = bool(options.get("exact_channel_glue", False))
+        base.batched_split_gather = bool(options.get("batched_split_gather", False))
+        base.fused_padded_gather = bool(options.get("fused_padded_gather", False))
         if hasattr(base, "concurrent_split_limit"):
             base.concurrent_split_limit = int(options.get("concurrent_split_limit", 0))
         if options.get("concurrent_splits"):

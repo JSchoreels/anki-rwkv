@@ -24,6 +24,14 @@ extern "C" __global__ void gate_backward(const G* dy,const G* s,const G* g,G* ds
  int i=blockIdx.x*blockDim.x+threadIdx.x; if(i>=n)return;
  ds[i]=wr(__fmul_rn(rd(dy[i]),rd(g[i]))); dg[i]=wr(__fmul_rn(rd(dy[i]),rd(s[i])));
 }}
+extern "C" __global__ void bonus_forward(const G* r,const G* b,const G* k,G* rb,G* y,int n) {{
+ int i=blockIdx.x*blockDim.x+threadIdx.x; if(i>=n)return;
+ G z=wr(__fmul_rn(rd(r[i]),rd(b[i%32]))); rb[i]=z; y[i]=wr(__fmul_rn(rd(z),rd(k[i])));
+}}
+extern "C" __global__ void padded_forward(const G* x,const long long* index,G* y,int n) {{
+ int i=blockIdx.x*blockDim.x+threadIdx.x; if(i>=n)return;
+ long long row=index[i/32]; y[i]=x[(row<0?0:row)*32+i%32];
+}}
 extern "C" __global__ void channel_forward(const G* x,G* r,G* y,int n) {{
  int i=blockIdx.x*blockDim.x+threadIdx.x; if(i>=n)return;
  float a=rd(x[i]); G z=wr(a<0.0f?0.0f:a); r[i]=z; y[i]=wr(__fmul_rn(rd(z),rd(z)));
@@ -70,3 +78,20 @@ class ExactChannelGlue(torch.autograd.Function):
     def backward(ctx,dy):
         r,=ctx.saved_tensors
         return torch.ops.aten.threshold_backward(dy*(2*r),r,0)
+
+
+class ExactBonusProducts(torch.autograd.Function):
+    """F34: fuse products, retaining op-boundary rounding and reduction order."""
+    @staticmethod
+    def forward(ctx, r, bonus, k):
+        r, bonus, k = r.contiguous(), bonus.contiguous(), k.contiguous()
+        rb, y = torch.empty_like(r), torch.empty_like(r)
+        launch('bonus_forward', (r, bonus, k), (rb, y))
+        ctx.save_for_backward(r, bonus, k, rb)
+        return y
+
+    @staticmethod
+    def backward(ctx, dy):
+        r, bonus, k, rb = ctx.saved_tensors
+        drb = dy * k
+        return drb * bonus, (drb * r).sum_to_size(bonus.shape), dy * rb

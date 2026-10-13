@@ -261,3 +261,33 @@ class ExactPaddedIndexSelect(ExactIndexSelect):
         ctx.save_for_backward(index)
         ctx.rows = x.shape[0]
         return torch.index_select(x, 0, index.clamp(min=0))
+
+
+class PreGatheredIndexSelect(ExactIndexSelect):
+    """F51: independent original backward nodes after batched forward loads."""
+    @staticmethod
+    def forward(ctx, x, index, loaded):
+        ctx.save_for_backward(index)
+        ctx.rows = x.shape[0]
+        return loaded
+
+    @staticmethod
+    def backward(ctx, grad):
+        index, = ctx.saved_tensors
+        return rows_backward(grad, index, ctx.rows), None, None
+
+
+class FusedPaddedIndexSelect(ExactIndexSelect):
+    """F52: clamp padding directly in the row-load kernel."""
+    @staticmethod
+    def forward(ctx, x, index):
+        from rwkv.model.exact_glue import kernel
+        from rwkv.model import nvrtc
+        if not x.is_cuda or x.dim() != 2 or x.shape[1] != 32 or x.dtype not in (torch.float32, torch.bfloat16):
+            raise ValueError("Fused padding gather requires CUDA float32/BF16 width 32")
+        ctx.save_for_backward(index)
+        ctx.rows = x.shape[0]
+        out = torch.empty((index.numel(), x.shape[1]), device=x.device, dtype=x.dtype)
+        args = tuple(np.uint64(t.data_ptr()) for t in (x, index, out)) + (np.int32(out.numel()),)
+        nvrtc.raw_launch(kernel(x.dtype, 'padded_forward'), x.device, ((out.numel()+255)//256,), (256,), args)
+        return out

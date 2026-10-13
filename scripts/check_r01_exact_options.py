@@ -23,7 +23,7 @@ import sys
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
-APPLIED = {"exact_shift", "exact_index", "exact_group_norm", "fused_shift", "row_tiles_exact", "shared_shift_orders",
+APPLIED = {"exact_bonus_products", "batched_split_gather", "fused_padded_gather", "exact_shift", "exact_index", "exact_group_norm", "fused_shift", "row_tiles_exact", "shared_shift_orders",
            "stream_launches", "prefetch_rows", "prefetch_shift", "sync_free_loss", "jit_optimize", "nondeterministic", "skip_uninitialized_fill", "skip_padding_sources", "concurrent_splits", "concurrent_split_limit", "exact_gate_glue", "exact_channel_glue", "worker_scatter_orders", "recurrence_prefetch", "wave_aware_backward", "flat_buffers", "compact_previous_state"}
 
 
@@ -152,10 +152,14 @@ def main():
                 raise ValueError("F50 requires exact_index")
             model.skip_padding_sources = True
         for module in model.modules():
+            if hasattr(module, "exact_bonus_products"):
+                module.exact_bonus_products = bool(options.get("exact_bonus_products", False))
             if hasattr(module, "exact_gate_glue"):
                 module.exact_gate_glue = int(options.get("exact_gate_glue", 0))
             if hasattr(module, "exact_channel_glue"):
                 module.exact_channel_glue = bool(options.get("exact_channel_glue", False))
+        model.batched_split_gather = bool(options.get("batched_split_gather", False))
+        model.fused_padded_gather = bool(options.get("fused_padded_gather", False))
         model.concurrent_split_limit = int(options.get("concurrent_split_limit", 0))
         if options.get("concurrent_splits"):
             model.concurrent_splits = True

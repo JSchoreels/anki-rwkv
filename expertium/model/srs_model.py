@@ -5,7 +5,7 @@ import numpy as np
 from rwkv.config import RWKV_SUBMODULES
 from rwkv.data_processing import RWKVSample
 from expertium.model.rwkv_model import RWKV7
-from rwkv.model.exact_index import ExactIndexSelect, ExactPaddedIndexSelect
+from rwkv.model.exact_index import ExactIndexSelect, ExactPaddedIndexSelect, PreGatheredIndexSelect, FusedPaddedIndexSelect
 import torch
 from typing import NamedTuple
 
@@ -121,6 +121,8 @@ class SrsRWKV(ModuleType):
         super().__init__()
         self.exact_index = False  # F27: sort-free row-selection backward, bitwise equal when deterministic
         self.skip_padding_sources = False  # F50: hierarchy padding contributes zero gradients.
+        self.batched_split_gather = False
+        self.fused_padded_gather = False
         self.concurrent_split_limit = 0
         self.concurrent_splits = False  # F49: opt-in independent split streams.
         # F37: skip the host syncs in _get_loss. Any NaN they catch also makes average_loss
@@ -260,6 +262,31 @@ class SrsRWKV(ModuleType):
             result.record_stream(parent)
         return torch.cat(outputs)
 
+    @torch.jit.ignore
+    def forward_batched_gather(self, x: torch.Tensor, module_index: int,
+                               gathers: list[torch.Tensor], lengths: list[int],
+                               shifts: list[torch.Tensor], skips: list[torch.Tensor]) -> torch.Tensor:
+        # Four-row alignment retains 256-byte aligned BF16 split bases.
+        aligned = []
+        for gather in gathers:
+            aligned.append(gather)
+            pad = (-gather.numel()) % 4
+            if pad:
+                aligned.append(torch.zeros(pad, device=gather.device, dtype=gather.dtype))
+        with torch.no_grad():
+            loaded = x.index_select(0, torch.cat(aligned).clamp(min=0))
+        submodule = getattr(self.rwkv_modules, str(module_index))
+        outputs = []
+        offset = 0
+        for gather, length, shift, skip in zip(gathers, lengths, shifts, skips):
+            count = gather.numel()
+            module_in = PreGatheredIndexSelect.apply(x, gather, loaded[offset:offset+count])
+            result = submodule.forward(module_in.view(-1, length, self.d_model),
+                               time_shift_select_BT=shift.view(-1, length), skip_BT=skip.view(-1, length))
+            outputs.append(result.view(-1, self.d_model))
+            offset += count + (-count) % 4
+        return torch.cat(outputs)
+
     @FunctionType
     def forward_batch(
         self,
@@ -278,15 +305,19 @@ class SrsRWKV(ModuleType):
             sub_lens = batch_sub_gather_lens[i]
             time_shift_selects = batch_time_shift_selects[i]
             skips = batch_skips[i]
-            if self.concurrent_splits and x.is_cuda:
+            if self.batched_split_gather and x.is_cuda:
+                x = self.forward_batched_gather(x, i, module_splits, sub_lens, time_shift_selects, skips)
+            elif self.concurrent_splits and x.is_cuda:
                 x = self.forward_split_streams(x, i, module_splits, sub_lens, time_shift_selects, skips)
             else:
                 y = []
                 for split_gather, sub_len, time_shift_select, skip in zip(
                     module_splits, sub_lens, time_shift_selects, skips
                 ):
-                    split_index = torch.clamp(split_gather, min=0)
-                    if self.exact_index and x.is_cuda:
+                    split_index = split_gather if self.fused_padded_gather else torch.clamp(split_gather, min=0)
+                    if self.fused_padded_gather and x.is_cuda:
+                        module_in = FusedPaddedIndexSelect.apply(x, split_gather).view(-1, sub_len, self.d_model)
+                    elif self.exact_index and x.is_cuda:
                         if self.skip_padding_sources:
                             module_in = ExactPaddedIndexSelect.apply(x, split_gather).view(-1, sub_len, self.d_model)
                         else:

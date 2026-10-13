@@ -1,4 +1,4 @@
-from rwkv.model.exact_glue import ExactGateGlue, ExactChannelGlue
+from rwkv.model.exact_glue import ExactGateGlue, ExactChannelGlue, ExactBonusProducts
 from dataclasses import dataclass
 import math
 import os
@@ -118,6 +118,7 @@ class RWKV7ChannelMixer(ModuleType):
     # Also the same as for RWKV-5
     def __init__(self, config: RWKV7Config, layer_id):
         super().__init__()
+        self.exact_bonus_products = False
         self.exact_gate_glue = 0
         self.exact_channel_glue = False
         self.exact_shift = False
@@ -232,6 +233,7 @@ class RWKV7TimeMixer(ModuleType):
     def __init__(self, config: RWKV7Config, layer_id):
         super().__init__()
         self.fused_shift = False
+        self.exact_bonus_products = False
         self.exact_gate_glue = 0
         self.exact_channel_glue = False
         self.exact_shift = False
@@ -415,9 +417,11 @@ class RWKV7TimeMixer(ModuleType):
                                            self.out_group_norm.eps).view(B, T, C)
         else:
             out_BTC = self.out_group_norm(out_BTHK.view(B * T, C)).view(B, T, C)
-        bonus_BTC = (
-            (r_BTHK * self.bonus * k_BTHK).sum(dim=-1, keepdim=True) * v_BTHK
-        ).view(B, T, C)
+        if self.exact_bonus_products and r_BTHK.is_cuda and K == 32:
+            bonus_products = ExactBonusProducts.apply(r_BTHK, self.bonus, k_BTHK)
+        else:
+            bonus_products = r_BTHK * self.bonus * k_BTHK
+        bonus_BTC = (bonus_products.sum(dim=-1, keepdim=True) * v_BTHK).view(B, T, C)
         if self.exact_gate_glue and out_BTC.is_cuda:
             gated = ExactGateGlue.apply(out_BTC, bonus_BTC, g_BTC, self.exact_gate_glue == 2)
         else:
