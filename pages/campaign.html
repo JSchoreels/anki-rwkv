@@ -72,6 +72,15 @@
     </div>
   </section>
 
+  <section class="panel">
+    <div class="panel-head">
+      <h2>Milestones</h2>
+      <p class="hint">What changed and why it mattered. Curated milestones by default; pick decisions to list every matching iteration. Colours match the chart above.</p>
+    </div>
+    <div class="legend" id="tl-filter" role="group" aria-label="Filter timeline"></div>
+    <ol class="timeline" id="timeline"></ol>
+  </section>
+
   <section class="panel" id="pipeline">
     <div class="panel-head">
       <h2>How one update flows through CPU and GPU</h2>
@@ -168,15 +177,6 @@
     </div>
     <p class="hint" id="pl-note"></p>
     <p>The GPU is still idle about 40% of the time. One update launches thousands of small kernels, and on Windows (WDDM) every launch costs CPU time, so the main thread&rsquo;s dispatch is now the bottleneck. That is why most recent gains came from launching less (native dispatch, F65), synchronizing less (F33, F37) and grouping copies (F23), rather than from faster maths.</p>
-  </section>
-
-  <section class="panel">
-    <div class="panel-head">
-      <h2>Milestones</h2>
-      <p class="hint">What changed and why it mattered. Curated milestones by default; pick decisions to list every matching iteration. Colours match the chart above.</p>
-    </div>
-    <div class="legend" id="tl-filter" role="group" aria-label="Filter timeline"></div>
-    <ol class="timeline" id="timeline"></ol>
   </section>
 
   <section class="panel prose">
