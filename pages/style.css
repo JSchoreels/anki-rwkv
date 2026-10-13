@@ -66,9 +66,11 @@ h2 { margin: 0; font-size: 1.15rem; }
 .tl { position: relative; padding: 0 0 18px 52px; scroll-margin-top: 16px; }
 .tl .dot {
   position: absolute; left: 0; top: 0; width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center;
-  background: var(--surface); border: 2px solid var(--accent); color: var(--accent); font-weight: 700; font-size: 13px;
+  background: var(--surface); border: 3px solid var(--dc, var(--accent)); color: var(--ink); font-weight: 700; font-size: 13px;
 }
-.tl.hl .body { outline: 2px solid var(--accent); }
+.tl .body { border-left: 4px solid var(--dc, var(--line)); }
+.tag.dec-tag { background: color-mix(in srgb, var(--dc) 16%, transparent); color: var(--dc); border: 1px solid var(--dc); }
+.tag.neutral { background: transparent; border: 1px solid var(--line); color: var(--muted); font-weight: 500; }
 .tl .body { border: 1px solid var(--line); border-radius: 10px; padding: 10px 14px; }
 .tl h3 { margin: 0 0 2px; font-size: 1rem; }
 .tl .meta { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 13px; color: var(--muted); margin-bottom: 6px; font-variant-numeric: tabular-nums; }
@@ -99,3 +101,5 @@ code { font-size: .9em; }
   .tl .dot { width: 34px; height: 34px; }
   .timeline::before { left: 16px; }
 }
+.tl { min-width: 0; }
+.tl .body { min-width: 0; overflow-wrap: anywhere; }

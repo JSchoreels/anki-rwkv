@@ -28,6 +28,7 @@
     DATA.milestones.forEach((m, i) => { m.n = i + 1; });
     fillHeadline();
     buildLegend();
+    buildTimelineFilters();
     buildTimeline();
     buildTable();
     buildCharts();
@@ -247,24 +248,74 @@
     });
   }
 
+  let tlSel = new Set(['milestones']);
+
+  function buildTimelineFilters() {
+    const box = $('tl-filter');
+    box.textContent = '';
+    const mk = (key, label, color) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'chip' + (tlSel.has(key) ? '' : ' off');
+      const i = document.createElement('i');
+      i.style.background = color;
+      b.append(i, label);
+      b.addEventListener('click', () => {
+        tlSel.has(key) ? tlSel.delete(key) : tlSel.add(key);
+        if (!tlSel.size) tlSel.add('milestones');
+        buildTimelineFilters();
+        buildTimeline();
+      });
+      box.append(b);
+    };
+    mk('milestones', 'Milestones', 'var(--accent)');
+    ORDER.filter((d) => DATA.exp.some((e) => e.decision === d)).forEach((d) => {
+      const n = DATA.exp.filter((e) => e.decision === d).length;
+      mk(d, (DATA.decision_labels[d] || d) + ' (' + n + ')', 'var(--c-' + d + ')');
+    });
+  }
+
   function buildTimeline() {
     const ol = $('timeline');
-    DATA.milestones.forEach((m) => {
+    ol.textContent = '';
+    const byIt = {};
+    DATA.exp.forEach((e) => { byIt[e.iteration] = e; });
+    const items = new Map();
+    if (tlSel.has('milestones')) {
+      DATA.milestones.forEach((m) => {
+        const e = byIt[m.iteration];
+        items.set(m.iteration, { it: m.iteration, end: m.end_iteration, title: m.title, kind: m.kind, comment: m.comment, e: m.end_iteration ? null : e, m, n: m.n });
+      });
+    }
+    DATA.exp.forEach((e) => {
+      if (!tlSel.has(e.decision) || items.has(e.iteration)) return;
+      let desc = e.description || '';
+      if (desc.length > 320) desc = desc.slice(0, 317) + '…';
+      items.set(e.iteration, { it: e.iteration, title: (e.label || e.track) + (e.track_name ? ' – ' + e.track_name : ''), comment: desc, e, n: null });
+    });
+    // a milestone card shows its decision colour only if that iteration's decision is selected or milestones are shown
+    const list = [...items.values()].sort((a, b) => a.it - b.it);
+    list.forEach((x) => {
+      const e = x.e;
+      const dec = e ? e.decision : 'none';
       const li = document.createElement('li');
       li.className = 'tl';
-      li.id = 'ms-' + m.n;
-      const dot = document.createElement('div'); dot.className = 'dot'; dot.textContent = m.n;
+      li.style.setProperty('--dc', dec === 'none' ? 'var(--muted)' : 'var(--c-' + dec + ')');
+      const dot = document.createElement('div'); dot.className = 'dot'; dot.textContent = x.n != null ? x.n : String(x.it).slice(-2);
+      dot.title = 'Iteration ' + iterLabel(x.it);
       const body = document.createElement('div'); body.className = 'body';
-      const h = document.createElement('h3'); h.textContent = m.title;
+      const h = document.createElement('h3'); h.textContent = x.title;
       const meta = document.createElement('div'); meta.className = 'meta';
-      const tag = document.createElement('span'); tag.className = 'tag'; tag.textContent = m.kind;
-      const parts = [tag, document.createTextNode(m.end_iteration ? 'Iterations ' + iterLabel(m.iteration) + '–' + iterLabel(m.end_iteration) : 'Iteration ' + iterLabel(m.iteration))];
-      const span = (txt) => { const s = document.createElement('span'); s.textContent = txt; return s; };
-      if (m.reviews_per_second) parts.push(span(fmt(m.reviews_per_second) + ' reviews/s (×' + (m.speedup_x || 0).toFixed(2) + ')'));
-      if (m.block && m.block.mean_percent != null) parts.push(span('blocks: mean ' + pct(m.block.mean_percent) + ', lower ' + pct(m.block.lower_bound_percent)));
-      else if (m.gain_vs_previous_accepted_percent != null) parts.push(span(pct(m.gain_vs_previous_accepted_percent, 1) + ' vs previous accepted (single run)'));
+      const span = (txt, cls) => { const s = document.createElement('span'); s.textContent = txt; if (cls) s.className = cls; return s; };
+      const parts = [];
+      if (e) parts.push(span(DATA.decision_labels[dec] || dec, 'tag dec-tag'));
+      if (x.kind) parts.push(span(x.kind, 'tag neutral'));
+      parts.push(span(x.end ? 'Iterations ' + iterLabel(x.it) + '–' + iterLabel(x.end) : 'Iteration ' + iterLabel(x.it)));
+      if (e && e.reviews_per_second) parts.push(span(fmt(e.reviews_per_second) + ' reviews/s (×' + (e.vs_baseline_x || 0).toFixed(2) + ')'));
+      if (e && e.block && e.block.mean_percent != null) parts.push(span('blocks: mean ' + pct(e.block.mean_percent) + ', lower ' + pct(e.block.lower_bound_percent)));
+      else if (x.m && x.m.gain_vs_previous_accepted_percent != null) parts.push(span(pct(x.m.gain_vs_previous_accepted_percent, 1) + ' vs previous accepted (single run)'));
       meta.append(...parts);
-      const p = document.createElement('p'); p.textContent = m.comment;
+      const p = document.createElement('p'); p.textContent = x.comment;
       body.append(h, meta, p);
       li.append(dot, body);
       ol.append(li);
