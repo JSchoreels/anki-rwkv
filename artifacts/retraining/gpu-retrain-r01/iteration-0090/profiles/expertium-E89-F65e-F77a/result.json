@@ -1,0 +1,1429 @@
+{
+  "status": "profiled; not quality validation or promotion",
+  "analysis_provenance": {
+    "captured_utc": "2026-10-13T18:18:11.957836+00:00",
+    "git_commit": "917f1839e4cba8a0e4bbfc91ccb305e2ced407f8",
+    "git_dirty": true,
+    "git_status_porcelain_z": " M docs/GPU_OPTIMIZATIONS_LOG.md\u0000",
+    "source_tree_sha256": "9d2589f510b7beabc320ca35cbfdbf336f34689c0281244fbaf48a2834da62ab",
+    "source_archive": "artifacts/sources/experiment-sources/9d2589f510b7beabc320ca35cbfdbf336f34689c0281244fbaf48a2834da62ab/source.zip",
+    "source_paths": [
+      "rwkv",
+      "expertium",
+      "scripts",
+      "configs",
+      "pyproject.toml",
+      "uv.lock",
+      "justfile",
+      "upstream.json"
+    ]
+  },
+  "captured_utc": "2026-10-13T18:18:11.958336+00:00",
+  "inputs": [
+    {
+      "path": "artifacts/retraining/gpu-retrain-r01/iteration-0090/expertium/E89-F65e-F77a/result.json",
+      "bytes": 22039,
+      "sha256": "d95b3fbfd9785adb9b216625d04e91e9fa9b0d9dac1b0663f21024c45ae550a7",
+      "ignored_unfinished_tail": false
+    },
+    {
+      "path": "artifacts/retraining/gpu-retrain-r01/iteration-0090/protocol.json",
+      "bytes": 110359,
+      "sha256": "4b91120ab822c8fc503c79d348a54d9d275afee0f0715289450de5add2c99041",
+      "ignored_unfinished_tail": false
+    },
+    {
+      "path": "artifacts/retraining/gpu-retrain-r01/iteration-0090/expertium/E89-F65e-F77a/resources.jsonl",
+      "bytes": 136304,
+      "sha256": "07deb918279554c20e4e6f29be3dd935344355678bc47d6a64cb58e4f6fff313",
+      "ignored_unfinished_tail": false
+    },
+    {
+      "path": "artifacts/retraining/gpu-retrain-r01/iteration-0090/expertium/E89-F65e-F77a/updates.jsonl",
+      "bytes": 86152,
+      "sha256": "93d57ea067b54e121f6555d1cba51e627dbd799d0dcc1967527cddd72c9e40bd",
+      "ignored_unfinished_tail": false
+    },
+    {
+      "path": "artifacts/retraining/gpu-retrain-r01/iteration-0090/expertium/E89-F65e-F77a/resources-summary.json",
+      "bytes": 1007,
+      "sha256": "1c6f0a5e53fda71fbe21b1fba03517a00e3d5a40f68fdd24583b34a90b7c8c32",
+      "ignored_unfinished_tail": false
+    }
+  ],
+  "repeat_reason": null,
+  "model": "expertium",
+  "track": "E89-F65e-F77a",
+  "case_status": "complete",
+  "scope": "complete-case telemetry",
+  "training_provenance": {
+    "captured_utc": "2026-10-13T18:16:49.255062+00:00",
+    "git_commit": "125e6ddabdf30afaf4ab687b350c7113016437ec",
+    "git_dirty": true,
+    "git_status_porcelain_z": "?? isolation.json\u0000",
+    "source_tree_sha256": "5c9a131ea4ace42e605a05cd1c4ccfc4415c87323bb415a1a429b1d84193e367",
+    "source_archive": "artifacts/sources/experiment-sources/5c9a131ea4ace42e605a05cd1c4ccfc4415c87323bb415a1a429b1d84193e367/source.zip",
+    "source_paths": [
+      "rwkv",
+      "expertium",
+      "scripts",
+      "configs",
+      "pyproject.toml",
+      "uv.lock",
+      "justfile",
+      "upstream.json"
+    ]
+  },
+  "implementation_sha256": "5522420bc872c8ecd548cbc7762f446180832a08746658cacf874aed111000db",
+  "expected_preparation_workers": 5,
+  "phases": {
+    "startup/primer": {
+      "samples": 11,
+      "observed_interval_seconds": 10.413029999999935,
+      "counters": {
+        "nvidia_utilization.gpu": {
+          "status": "observed",
+          "samples": 11,
+          "observed_seconds": 10.413029999999935,
+          "mean": 1.4977888760523945,
+          "p10": 1.0,
+          "median": 1.0,
+          "p95": 6.0,
+          "min": 1.0,
+          "max": 6.0
+        },
+        "nvidia_utilization.memory": {
+          "status": "observed",
+          "samples": 11,
+          "observed_seconds": 10.413029999999935,
+          "mean": 1.0,
+          "p10": 1.0,
+          "median": 1.0,
+          "p95": 1.0,
+          "min": 1.0,
+          "max": 1.0
+        },
+        "nvidia_memory.used": {
+          "status": "observed",
+          "samples": 11,
+          "observed_seconds": 10.413029999999935,
+          "mean": 2812.7125518797134,
+          "p10": 2486.0,
+          "median": 2854.0,
+          "p95": 2971.0,
+          "min": 2486.0,
+          "max": 3031.0
+        },
+        "ram_available_bytes": {
+          "status": "observed",
+          "samples": 11,
+          "observed_seconds": 10.413029999999935,
+          "mean": 15104852734.950752,
+          "p10": 13509705728.0,
+          "median": 14619058176.0,
+          "p95": 16994140160.0,
+          "min": 13292154880.0,
+          "max": 16994140160.0
+        },
+        "ram_used_percent": {
+          "status": "observed",
+          "samples": 11,
+          "observed_seconds": 10.413029999999935,
+          "mean": 54.69040722248953,
+          "p10": 49.0,
+          "median": 56.2,
+          "p95": 59.8,
+          "min": 49.0,
+          "max": 60.1
+        },
+        "process_tree_rss_bytes": {
+          "status": "observed",
+          "samples": 11,
+          "observed_seconds": 10.413029999999935,
+          "mean": 2931155239.852022,
+          "p10": 547131392.0,
+          "median": 3665719296.0,
+          "p95": 4903923712.0,
+          "min": 547131392.0,
+          "max": 5029044224.0
+        },
+        "torch_cuda_allocated_bytes": {
+          "status": "observed",
+          "samples": 10,
+          "observed_seconds": 9.371191299999964,
+          "mean": 59764757.174016185,
+          "p10": 0.0,
+          "median": 38535168.0,
+          "p95": 140240384.0,
+          "min": 0.0,
+          "max": 172610560.0
+        },
+        "torch_cuda_reserved_bytes": {
+          "status": "observed",
+          "samples": 10,
+          "observed_seconds": 9.371191299999964,
+          "mean": 68897363.24122341,
+          "p10": 0.0,
+          "median": 39845888.0,
+          "p95": 159383552.0,
+          "min": 0.0,
+          "max": 192937984.0
+        },
+        "torch_cuda_peak_reserved_bytes": {
+          "status": "observed",
+          "samples": 10,
+          "observed_seconds": 9.371191299999964,
+          "mean": 68897363.24122341,
+          "p10": 0.0,
+          "median": 39845888.0,
+          "p95": 159383552.0,
+          "min": 0.0,
+          "max": 192937984.0
+        },
+        "swap_used_bytes": {
+          "status": "observed",
+          "samples": 11,
+          "observed_seconds": 10.413029999999935,
+          "mean": 63295487.99999999,
+          "p10": 63295488.0,
+          "median": 63295488.0,
+          "p95": 63295488.0,
+          "min": 63295488.0,
+          "max": 63295488.0
+        },
+        "worker_pool_cpu_percent": {
+          "status": "observed",
+          "samples": 6,
+          "observed_seconds": 5.185569099999952,
+          "mean": 11.473170150215893,
+          "p10": 0.0,
+          "median": 0.0,
+          "p95": 57.3,
+          "min": 0.0,
+          "max": 57.3
+        },
+        "observed_worker_count": {
+          "status": "observed",
+          "samples": 11,
+          "observed_seconds": 10.413029999999935,
+          "mean": 2.989439817229008,
+          "p10": 0.0,
+          "median": 5.0,
+          "p95": 5.0,
+          "min": 0.0,
+          "max": 5.0
+        }
+      },
+      "gpu_below20_percent_time_fraction": 1.0,
+      "per_core_cpu_percent": {
+        "0": {
+          "status": "observed",
+          "samples": 11,
+          "observed_seconds": 10.413029999999935,
+          "mean": 33.29536995667942,
+          "p10": 0.0,
+          "median": 31.6,
+          "p95": 57.8,
+          "min": 0.0,
+          "max": 57.8
+        },
+        "1": {
+          "status": "observed",
+          "samples": 11,
+          "observed_seconds": 10.413029999999935,
+          "mean": 22.949112408204325,
+          "p10": 0.0,
+          "median": 22.4,
+          "p95": 57.4,
+          "min": 0.0,
+          "max": 57.4
+        },
+        "2": {
+          "status": "observed",
+          "samples": 11,
+          "observed_seconds": 10.413029999999935,
+          "mean": 33.39190267866344,
+          "p10": 0.0,
+          "median": 29.9,
+          "p95": 67.2,
+          "min": 0.0,
+          "max": 67.2
+        },
+        "3": {
+          "status": "observed",
+          "samples": 11,
+          "observed_seconds": 10.413029999999935,
+          "mean": 23.614528314045316,
+          "p10": 0.0,
+          "median": 22.4,
+          "p95": 51.5,
+          "min": 0.0,
+          "max": 51.5
+        },
+        "4": {
+          "status": "observed",
+          "samples": 11,
+          "observed_seconds": 10.413029999999935,
+          "mean": 15.338769952646151,
+          "p10": 0.0,
+          "median": 15.2,
+          "p95": 45.1,
+          "min": 0.0,
+          "max": 45.1
+        },
+        "5": {
+          "status": "observed",
+          "samples": 11,
+          "observed_seconds": 10.413029999999935,
+          "mean": 20.370200005186145,
+          "p10": 0.0,
+          "median": 16.2,
+          "p95": 57.4,
+          "min": 0.0,
+          "max": 57.4
+        },
+        "6": {
+          "status": "observed",
+          "samples": 11,
+          "observed_seconds": 10.413029999999935,
+          "mean": 58.11083577210495,
+          "p10": 0.0,
+          "median": 61.2,
+          "p95": 98.5,
+          "min": 0.0,
+          "max": 98.5
+        },
+        "7": {
+          "status": "observed",
+          "samples": 11,
+          "observed_seconds": 10.413029999999935,
+          "mean": 34.01674063072942,
+          "p10": 0.0,
+          "median": 41.8,
+          "p95": 72.5,
+          "min": 0.0,
+          "max": 72.5
+        },
+        "8": {
+          "status": "observed",
+          "samples": 11,
+          "observed_seconds": 10.413029999999935,
+          "mean": 9.155658756385304,
+          "p10": 0.0,
+          "median": 6.0,
+          "p95": 40.6,
+          "min": 0.0,
+          "max": 40.6
+        },
+        "9": {
+          "status": "observed",
+          "samples": 11,
+          "observed_seconds": 10.413029999999935,
+          "mean": 18.188376818275106,
+          "p10": 0.0,
+          "median": 12.1,
+          "p95": 62.3,
+          "min": 0.0,
+          "max": 62.3
+        },
+        "10": {
+          "status": "observed",
+          "samples": 11,
+          "observed_seconds": 10.413029999999935,
+          "mean": 42.83730589367399,
+          "p10": 0.0,
+          "median": 49.3,
+          "p95": 69.7,
+          "min": 0.0,
+          "max": 69.7
+        },
+        "11": {
+          "status": "observed",
+          "samples": 11,
+          "observed_seconds": 10.413029999999935,
+          "mean": 39.719689528408566,
+          "p10": 0.0,
+          "median": 49.3,
+          "p95": 75.4,
+          "min": 0.0,
+          "max": 75.4
+        },
+        "12": {
+          "status": "observed",
+          "samples": 11,
+          "observed_seconds": 10.413029999999935,
+          "mean": 10.99981386109528,
+          "p10": 0.0,
+          "median": 7.6,
+          "p95": 29.0,
+          "min": 0.0,
+          "max": 29.0
+        },
+        "13": {
+          "status": "observed",
+          "samples": 11,
+          "observed_seconds": 10.413029999999935,
+          "mean": 14.13974142396617,
+          "p10": 0.0,
+          "median": 9.0,
+          "p95": 50.0,
+          "min": 0.0,
+          "max": 50.0
+        },
+        "14": {
+          "status": "observed",
+          "samples": 11,
+          "observed_seconds": 10.413029999999935,
+          "mean": 6.627175576177255,
+          "p10": 0.0,
+          "median": 6.0,
+          "p95": 27.1,
+          "min": 0.0,
+          "max": 27.1
+        },
+        "15": {
+          "status": "observed",
+          "samples": 11,
+          "observed_seconds": 10.413029999999935,
+          "mean": 13.214380037318962,
+          "p10": 0.0,
+          "median": 9.0,
+          "p95": 54.4,
+          "min": 0.0,
+          "max": 54.4
+        }
+      },
+      "per_pid_cpu_percent_one_core100": {
+        "16828": {
+          "status": "observed",
+          "samples": 6,
+          "observed_seconds": 5.185569099999952,
+          "mean": 11.232894335551688,
+          "p10": 0.0,
+          "median": 0.0,
+          "p95": 56.1,
+          "min": 0.0,
+          "max": 56.1
+        },
+        "18496": {
+          "status": "observed",
+          "samples": 6,
+          "observed_seconds": 5.185569099999952,
+          "mean": 12.554411316204828,
+          "p10": 0.0,
+          "median": 0.0,
+          "p95": 62.7,
+          "min": 0.0,
+          "max": 62.7
+        },
+        "27892": {
+          "status": "observed",
+          "samples": 10,
+          "observed_seconds": 9.371191299999964,
+          "mean": 156.79722299874564,
+          "p10": 97.0,
+          "median": 105.4,
+          "p95": 365.2,
+          "min": 97.0,
+          "max": 365.2
+        },
+        "29744": {
+          "status": "observed",
+          "samples": 6,
+          "observed_seconds": 5.185569099999952,
+          "mean": 11.65337701121405,
+          "p10": 0.0,
+          "median": 0.0,
+          "p95": 58.2,
+          "min": 0.0,
+          "max": 58.2
+        },
+        "29932": {
+          "status": "observed",
+          "samples": 6,
+          "observed_seconds": 5.185569099999952,
+          "mean": 11.473170150215893,
+          "p10": 0.0,
+          "median": 0.0,
+          "p95": 57.3,
+          "min": 0.0,
+          "max": 57.3
+        },
+        "31672": {
+          "status": "observed",
+          "samples": 6,
+          "observed_seconds": 5.185569099999952,
+          "mean": 10.451997937893013,
+          "p10": 0.0,
+          "median": 0.0,
+          "p95": 52.2,
+          "min": 0.0,
+          "max": 52.2
+        }
+      },
+      "process_io_read_bytes": {
+        "delta": 934447629,
+        "observed_pids": 6,
+        "counter_resets": 0,
+        "comparable_intervals": 40,
+        "scope": "within observed samples/process lifetimes; first-seen counters excluded"
+      },
+      "process_io_write_bytes": {
+        "delta": 96791213,
+        "observed_pids": 6,
+        "counter_resets": 0,
+        "comparable_intervals": 40,
+        "scope": "within observed samples/process lifetimes; first-seen counters excluded"
+      },
+      "process_page_faults": {
+        "delta": 2335916,
+        "observed_pids": 6,
+        "counter_resets": 0,
+        "comparable_intervals": 40,
+        "scope": "within observed samples/process lifetimes; first-seen counters excluded"
+      }
+    },
+    "training including user transitions": {
+      "samples": 38,
+      "observed_interval_seconds": 38.61684539999999,
+      "counters": {
+        "nvidia_utilization.gpu": {
+          "status": "observed",
+          "samples": 38,
+          "observed_seconds": 38.61684539999999,
+          "mean": 60.79890770932856,
+          "p10": 2.0,
+          "median": 74.0,
+          "p95": 92.0,
+          "min": 1.0,
+          "max": 92.0
+        },
+        "nvidia_utilization.memory": {
+          "status": "observed",
+          "samples": 38,
+          "observed_seconds": 38.61684539999999,
+          "mean": 15.922301517150952,
+          "p10": 1.0,
+          "median": 18.0,
+          "p95": 31.0,
+          "min": 1.0,
+          "max": 32.0
+        },
+        "nvidia_memory.used": {
+          "status": "observed",
+          "samples": 38,
+          "observed_seconds": 38.61684539999999,
+          "mean": 13236.277698568814,
+          "p10": 4497.0,
+          "median": 14743.0,
+          "p95": 15390.0,
+          "min": 2953.0,
+          "max": 15414.0
+        },
+        "ram_available_bytes": {
+          "status": "observed",
+          "samples": 38,
+          "observed_seconds": 38.61684539999999,
+          "mean": 10926101976.633787,
+          "p10": 9840848896.0,
+          "median": 10954387456.0,
+          "p95": 12285399040.0,
+          "min": 9315160064.0,
+          "max": 13197209600.0
+        },
+        "ram_used_percent": {
+          "status": "observed",
+          "samples": 38,
+          "observed_seconds": 38.61684539999999,
+          "mean": 67.23855373489415,
+          "p10": 63.9,
+          "median": 67.1,
+          "p95": 71.2,
+          "min": 60.4,
+          "max": 72.1
+        },
+        "process_tree_rss_bytes": {
+          "status": "observed",
+          "samples": 38,
+          "observed_seconds": 38.61684539999999,
+          "mean": 7209246414.690796,
+          "p10": 6071844864.0,
+          "median": 7291166720.0,
+          "p95": 8399450112.0,
+          "min": 5088907264.0,
+          "max": 8485773312.0
+        },
+        "torch_cuda_allocated_bytes": {
+          "status": "observed",
+          "samples": 38,
+          "observed_seconds": 38.61684539999999,
+          "mean": 1544337003.5089793,
+          "p10": 139570176.0,
+          "median": 702154240.0,
+          "p95": 5491123200.0,
+          "min": 69808640.0,
+          "max": 7867783168.0
+        },
+        "torch_cuda_reserved_bytes": {
+          "status": "observed",
+          "samples": 38,
+          "observed_seconds": 38.61684539999999,
+          "mean": 10873980098.246677,
+          "p10": 1719664640.0,
+          "median": 12459180032.0,
+          "p95": 13105102848.0,
+          "min": 96468992.0,
+          "max": 13105102848.0
+        },
+        "torch_cuda_peak_reserved_bytes": {
+          "status": "observed",
+          "samples": 38,
+          "observed_seconds": 38.61684539999999,
+          "mean": 10873980098.246677,
+          "p10": 1719664640.0,
+          "median": 12459180032.0,
+          "p95": 13105102848.0,
+          "min": 96468992.0,
+          "max": 13105102848.0
+        },
+        "swap_used_bytes": {
+          "status": "observed",
+          "samples": 38,
+          "observed_seconds": 38.61684539999999,
+          "mean": 63295488.0,
+          "p10": 63295488.0,
+          "median": 63295488.0,
+          "p95": 63295488.0,
+          "min": 63295488.0,
+          "max": 63295488.0
+        },
+        "worker_pool_cpu_percent": {
+          "status": "observed",
+          "samples": 38,
+          "observed_seconds": 38.61684539999999,
+          "mean": 55.135289520412286,
+          "p10": 11.66,
+          "median": 63.339999999999996,
+          "p95": 91.94,
+          "min": 0.0,
+          "max": 91.94
+        },
+        "observed_worker_count": {
+          "status": "observed",
+          "samples": 38,
+          "observed_seconds": 38.61684539999999,
+          "mean": 5.0,
+          "p10": 5.0,
+          "median": 5.0,
+          "p95": 5.0,
+          "min": 5.0,
+          "max": 5.0
+        }
+      },
+      "gpu_below20_percent_time_fraction": 0.16173583148249626,
+      "per_core_cpu_percent": {
+        "0": {
+          "status": "observed",
+          "samples": 38,
+          "observed_seconds": 38.61684539999999,
+          "mean": 82.2330784251476,
+          "p10": 28.4,
+          "median": 94.3,
+          "p95": 100.0,
+          "min": 18.1,
+          "max": 100.0
+        },
+        "1": {
+          "status": "observed",
+          "samples": 38,
+          "observed_seconds": 38.61684539999999,
+          "mean": 12.134101571642129,
+          "p10": 3.0,
+          "median": 10.3,
+          "p95": 28.6,
+          "min": 3.0,
+          "max": 31.4
+        },
+        "2": {
+          "status": "observed",
+          "samples": 38,
+          "observed_seconds": 38.61684539999999,
+          "mean": 35.249955913799184,
+          "p10": 23.9,
+          "median": 35.3,
+          "p95": 54.4,
+          "min": 16.4,
+          "max": 54.4
+        },
+        "3": {
+          "status": "observed",
+          "samples": 38,
+          "observed_seconds": 38.61684539999999,
+          "mean": 24.719668358513864,
+          "p10": 10.4,
+          "median": 23.5,
+          "p95": 42.6,
+          "min": 8.8,
+          "max": 43.3
+        },
+        "4": {
+          "status": "observed",
+          "samples": 38,
+          "observed_seconds": 38.61684539999999,
+          "mean": 66.04040399270944,
+          "p10": 10.6,
+          "median": 73.1,
+          "p95": 100.0,
+          "min": 7.5,
+          "max": 100.0
+        },
+        "5": {
+          "status": "observed",
+          "samples": 38,
+          "observed_seconds": 38.61684539999999,
+          "mean": 10.367777640376637,
+          "p10": 3.0,
+          "median": 9.1,
+          "p95": 22.4,
+          "min": 1.5,
+          "max": 28.4
+        },
+        "6": {
+          "status": "observed",
+          "samples": 38,
+          "observed_seconds": 38.61684539999999,
+          "mean": 56.98805691570027,
+          "p10": 41.8,
+          "median": 57.6,
+          "p95": 73.9,
+          "min": 27.3,
+          "max": 76.1
+        },
+        "7": {
+          "status": "observed",
+          "samples": 38,
+          "observed_seconds": 38.61684539999999,
+          "mean": 43.204037679110925,
+          "p10": 30.3,
+          "median": 40.3,
+          "p95": 61.2,
+          "min": 27.3,
+          "max": 65.7
+        },
+        "8": {
+          "status": "observed",
+          "samples": 38,
+          "observed_seconds": 38.61684539999999,
+          "mean": 64.77746531180917,
+          "p10": 9.0,
+          "median": 75.8,
+          "p95": 100.0,
+          "min": 3.0,
+          "max": 100.0
+        },
+        "9": {
+          "status": "observed",
+          "samples": 38,
+          "observed_seconds": 38.61684539999999,
+          "mean": 8.231151176061683,
+          "p10": 1.5,
+          "median": 6.1,
+          "p95": 23.9,
+          "min": 1.5,
+          "max": 23.9
+        },
+        "10": {
+          "status": "observed",
+          "samples": 38,
+          "observed_seconds": 38.61684539999999,
+          "mean": 46.72853490098903,
+          "p10": 30.9,
+          "median": 47.0,
+          "p95": 65.7,
+          "min": 13.6,
+          "max": 80.6
+        },
+        "11": {
+          "status": "observed",
+          "samples": 38,
+          "observed_seconds": 38.61684539999999,
+          "mean": 44.75327274195222,
+          "p10": 25.4,
+          "median": 46.3,
+          "p95": 68.7,
+          "min": 9.0,
+          "max": 71.6
+        },
+        "12": {
+          "status": "observed",
+          "samples": 38,
+          "observed_seconds": 38.61684539999999,
+          "mean": 62.541909719534026,
+          "p10": 6.1,
+          "median": 69.7,
+          "p95": 100.0,
+          "min": 1.5,
+          "max": 100.0
+        },
+        "13": {
+          "status": "observed",
+          "samples": 38,
+          "observed_seconds": 38.61684539999999,
+          "mean": 9.34257650703912,
+          "p10": 1.5,
+          "median": 9.1,
+          "p95": 25.0,
+          "min": 0.0,
+          "max": 25.4
+        },
+        "14": {
+          "status": "observed",
+          "samples": 38,
+          "observed_seconds": 38.61684539999999,
+          "mean": 62.78449042707147,
+          "p10": 6.0,
+          "median": 72.1,
+          "p95": 100.0,
+          "min": 3.0,
+          "max": 100.0
+        },
+        "15": {
+          "status": "observed",
+          "samples": 38,
+          "observed_seconds": 38.61684539999999,
+          "mean": 8.470669997814014,
+          "p10": 1.5,
+          "median": 6.0,
+          "p95": 25.4,
+          "min": 0.0,
+          "max": 28.8
+        }
+      },
+      "per_pid_cpu_percent_one_core100": {
+        "16828": {
+          "status": "observed",
+          "samples": 38,
+          "observed_seconds": 38.61684539999999,
+          "mean": 41.4490559257335,
+          "p10": 0.0,
+          "median": 46.9,
+          "p95": 71.2,
+          "min": 0.0,
+          "max": 73.2
+        },
+        "18496": {
+          "status": "observed",
+          "samples": 38,
+          "observed_seconds": 38.61684539999999,
+          "mean": 60.14055088482198,
+          "p10": 0.0,
+          "median": 64.2,
+          "p95": 100.1,
+          "min": 0.0,
+          "max": 101.4
+        },
+        "27892": {
+          "status": "observed",
+          "samples": 38,
+          "observed_seconds": 38.61684539999999,
+          "mean": 108.72976207657803,
+          "p10": 88.3,
+          "median": 104.6,
+          "p95": 137.3,
+          "min": 56.0,
+          "max": 138.9
+        },
+        "29744": {
+          "status": "observed",
+          "samples": 38,
+          "observed_seconds": 38.61684539999999,
+          "mean": 59.06254890229835,
+          "p10": 0.0,
+          "median": 68.6,
+          "p95": 100.0,
+          "min": 0.0,
+          "max": 100.1
+        },
+        "29932": {
+          "status": "observed",
+          "samples": 38,
+          "observed_seconds": 38.61684539999999,
+          "mean": 59.001660013637455,
+          "p10": 0.0,
+          "median": 68.6,
+          "p95": 100.0,
+          "min": 0.0,
+          "max": 101.5
+        },
+        "31672": {
+          "status": "observed",
+          "samples": 38,
+          "observed_seconds": 38.61684539999999,
+          "mean": 56.02263187557014,
+          "p10": 0.0,
+          "median": 59.0,
+          "p95": 100.1,
+          "min": 0.0,
+          "max": 101.5
+        }
+      },
+      "process_io_read_bytes": {
+        "delta": 3275927144,
+        "observed_pids": 6,
+        "counter_resets": 0,
+        "comparable_intervals": 222,
+        "scope": "within observed samples/process lifetimes; first-seen counters excluded"
+      },
+      "process_io_write_bytes": {
+        "delta": 3135486989,
+        "observed_pids": 6,
+        "counter_resets": 0,
+        "comparable_intervals": 222,
+        "scope": "within observed samples/process lifetimes; first-seen counters excluded"
+      },
+      "process_page_faults": {
+        "delta": 18524854,
+        "observed_pids": 6,
+        "counter_resets": 0,
+        "comparable_intervals": 222,
+        "scope": "within observed samples/process lifetimes; first-seen counters excluded"
+      }
+    },
+    "checkpoint save/evaluation": {
+      "samples": 28,
+      "observed_interval_seconds": 28.203821199999993,
+      "counters": {
+        "nvidia_utilization.gpu": {
+          "status": "observed",
+          "samples": 28,
+          "observed_seconds": 28.203821199999993,
+          "mean": 18.62984880218995,
+          "p10": 1.0,
+          "median": 21.0,
+          "p95": 27.0,
+          "min": 1.0,
+          "max": 29.0
+        },
+        "nvidia_utilization.memory": {
+          "status": "observed",
+          "samples": 28,
+          "observed_seconds": 28.203821199999993,
+          "mean": 1.0,
+          "p10": 1.0,
+          "median": 1.0,
+          "p95": 1.0,
+          "min": 1.0,
+          "max": 1.0
+        },
+        "nvidia_memory.used": {
+          "status": "observed",
+          "samples": 28,
+          "observed_seconds": 28.203821199999993,
+          "mean": 3988.581261708612,
+          "p10": 3629.0,
+          "median": 3634.0,
+          "p95": 3690.0,
+          "min": 3629.0,
+          "max": 12452.0
+        },
+        "ram_available_bytes": {
+          "status": "observed",
+          "samples": 28,
+          "observed_seconds": 28.203821199999993,
+          "mean": 12405843476.911001,
+          "p10": 12124733440.0,
+          "median": 12340678656.0,
+          "p95": 12792672256.0,
+          "min": 12111056896.0,
+          "max": 14474805248.0
+        },
+        "ram_used_percent": {
+          "status": "observed",
+          "samples": 28,
+          "observed_seconds": 28.203821199999993,
+          "mean": 62.79258188284076,
+          "p10": 62.8,
+          "median": 63.0,
+          "p95": 63.7,
+          "min": 56.6,
+          "max": 63.7
+        },
+        "process_tree_rss_bytes": {
+          "status": "observed",
+          "samples": 28,
+          "observed_seconds": 28.203821199999993,
+          "mean": 5991898352.899713,
+          "p10": 5996720128.0,
+          "median": 6113665024.0,
+          "p95": 6248566784.0,
+          "min": 3138531328.0,
+          "max": 6294003712.0
+        },
+        "torch_cuda_allocated_bytes": {
+          "status": "observed",
+          "samples": 28,
+          "observed_seconds": 28.203821199999993,
+          "mean": 83442441.70297718,
+          "p10": 70050304.0,
+          "median": 72739840.0,
+          "p95": 75993600.0,
+          "min": 70050304.0,
+          "max": 341092352.0
+        },
+        "torch_cuda_reserved_bytes": {
+          "status": "observed",
+          "samples": 28,
+          "observed_seconds": 28.203821199999993,
+          "mean": 813694975.9999999,
+          "p10": 813694976.0,
+          "median": 813694976.0,
+          "p95": 813694976.0,
+          "min": 813694976.0,
+          "max": 813694976.0
+        },
+        "torch_cuda_peak_reserved_bytes": {
+          "status": "observed",
+          "samples": 28,
+          "observed_seconds": 28.203821199999993,
+          "mean": 13105102848.0,
+          "p10": 13105102848.0,
+          "median": 13105102848.0,
+          "p95": 13105102848.0,
+          "min": 13105102848.0,
+          "max": 13105102848.0
+        },
+        "swap_used_bytes": {
+          "status": "observed",
+          "samples": 28,
+          "observed_seconds": 28.203821199999993,
+          "mean": 62319993.47972652,
+          "p10": 62066688.0,
+          "median": 62066688.0,
+          "p95": 63037440.0,
+          "min": 62066688.0,
+          "max": 63037440.0
+        },
+        "worker_pool_cpu_percent": {
+          "status": "observed",
+          "samples": 26,
+          "observed_seconds": 26.05515600000001,
+          "mean": 52.95203710589984,
+          "p10": 11.940000000000001,
+          "median": 53.6,
+          "p95": 99.1,
+          "min": 0.0,
+          "max": 100.5
+        },
+        "observed_worker_count": {
+          "status": "observed",
+          "samples": 28,
+          "observed_seconds": 28.203821199999993,
+          "mean": 4.803064699615949,
+          "p10": 5.0,
+          "median": 5.0,
+          "p95": 5.0,
+          "min": 0.0,
+          "max": 5.0
+        }
+      },
+      "gpu_below20_percent_time_fraction": 0.29796836891023665,
+      "per_core_cpu_percent": {
+        "0": {
+          "status": "observed",
+          "samples": 28,
+          "observed_seconds": 28.203821199999993,
+          "mean": 71.11299027239617,
+          "p10": 51.1,
+          "median": 75.3,
+          "p95": 88.5,
+          "min": 28.8,
+          "max": 88.7
+        },
+        "1": {
+          "status": "observed",
+          "samples": 28,
+          "observed_seconds": 28.203821199999993,
+          "mean": 30.939654210401997,
+          "p10": 10.3,
+          "median": 24.2,
+          "p95": 71.6,
+          "min": 6.0,
+          "max": 83.6
+        },
+        "2": {
+          "status": "observed",
+          "samples": 28,
+          "observed_seconds": 28.203821199999993,
+          "mean": 43.0100442077686,
+          "p10": 23.9,
+          "median": 45.5,
+          "p95": 63.6,
+          "min": 16.7,
+          "max": 68.7
+        },
+        "3": {
+          "status": "observed",
+          "samples": 28,
+          "observed_seconds": 28.203821199999993,
+          "mean": 33.0271812094031,
+          "p10": 15.5,
+          "median": 26.9,
+          "p95": 58.2,
+          "min": 9.0,
+          "max": 59.7
+        },
+        "4": {
+          "status": "observed",
+          "samples": 28,
+          "observed_seconds": 28.203821199999993,
+          "mean": 30.619420751043606,
+          "p10": 6.1,
+          "median": 30.3,
+          "p95": 63.6,
+          "min": 4.5,
+          "max": 67.2
+        },
+        "5": {
+          "status": "observed",
+          "samples": 28,
+          "observed_seconds": 28.203821199999993,
+          "mean": 29.4484100955797,
+          "p10": 7.6,
+          "median": 27.3,
+          "p95": 58.2,
+          "min": 4.5,
+          "max": 58.8
+        },
+        "6": {
+          "status": "observed",
+          "samples": 28,
+          "observed_seconds": 28.203821199999993,
+          "mean": 55.448530638819946,
+          "p10": 17.1,
+          "median": 55.2,
+          "p95": 80.3,
+          "min": 11.9,
+          "max": 82.1
+        },
+        "7": {
+          "status": "observed",
+          "samples": 28,
+          "observed_seconds": 28.203821199999993,
+          "mean": 62.190911923665396,
+          "p10": 36.4,
+          "median": 62.7,
+          "p95": 88.1,
+          "min": 9.0,
+          "max": 92.5
+        },
+        "8": {
+          "status": "observed",
+          "samples": 28,
+          "observed_seconds": 28.203821199999993,
+          "mean": 24.043075183372796,
+          "p10": 6.1,
+          "median": 19.7,
+          "p95": 51.5,
+          "min": 2.9,
+          "max": 53.7
+        },
+        "9": {
+          "status": "observed",
+          "samples": 28,
+          "observed_seconds": 28.203821199999993,
+          "mean": 21.314440522690695,
+          "p10": 6.1,
+          "median": 19.7,
+          "p95": 44.8,
+          "min": 3.0,
+          "max": 55.2
+        },
+        "10": {
+          "status": "observed",
+          "samples": 28,
+          "observed_seconds": 28.203821199999993,
+          "mean": 53.31247365481094,
+          "p10": 23.9,
+          "median": 54.5,
+          "p95": 82.1,
+          "min": 20.9,
+          "max": 90.9
+        },
+        "11": {
+          "status": "observed",
+          "samples": 28,
+          "observed_seconds": 28.203821199999993,
+          "mean": 50.311487078566756,
+          "p10": 26.9,
+          "median": 47.8,
+          "p95": 80.6,
+          "min": 6.0,
+          "max": 89.6
+        },
+        "12": {
+          "status": "observed",
+          "samples": 28,
+          "observed_seconds": 28.203821199999993,
+          "mean": 16.044230690981642,
+          "p10": 6.1,
+          "median": 14.9,
+          "p95": 35.7,
+          "min": 3.0,
+          "max": 36.8
+        },
+        "13": {
+          "status": "observed",
+          "samples": 28,
+          "observed_seconds": 28.203821199999993,
+          "mean": 12.453192434435126,
+          "p10": 1.5,
+          "median": 9.1,
+          "p95": 25.4,
+          "min": 0.0,
+          "max": 38.2
+        },
+        "14": {
+          "status": "observed",
+          "samples": 28,
+          "observed_seconds": 28.203821199999993,
+          "mean": 15.952598208217355,
+          "p10": 4.5,
+          "median": 13.4,
+          "p95": 32.9,
+          "min": 3.0,
+          "max": 39.7
+        },
+        "15": {
+          "status": "observed",
+          "samples": 28,
+          "observed_seconds": 28.203821199999993,
+          "mean": 19.412420045763195,
+          "p10": 5.7,
+          "median": 17.9,
+          "p95": 42.3,
+          "min": 3.0,
+          "max": 44.1
+        }
+      },
+      "per_pid_cpu_percent_one_core100": {
+        "4704": {
+          "status": "observed",
+          "samples": 26,
+          "observed_seconds": 26.05515600000001,
+          "mean": 53.39964354080279,
+          "p10": 13.4,
+          "median": 53.0,
+          "p95": 100.0,
+          "min": 0.0,
+          "max": 100.0
+        },
+        "9880": {
+          "status": "observed",
+          "samples": 26,
+          "observed_seconds": 26.05515600000001,
+          "mean": 52.52163255134639,
+          "p10": 9.0,
+          "median": 51.5,
+          "p95": 100.0,
+          "min": 0.0,
+          "max": 101.4
+        },
+        "16380": {
+          "status": "observed",
+          "samples": 26,
+          "observed_seconds": 26.05515600000001,
+          "mean": 53.07412056369991,
+          "p10": 7.5,
+          "median": 54.6,
+          "p95": 100.0,
+          "min": 0.0,
+          "max": 101.4
+        },
+        "27304": {
+          "status": "observed",
+          "samples": 26,
+          "observed_seconds": 26.05515600000001,
+          "mean": 52.7613399025517,
+          "p10": 14.9,
+          "median": 53.0,
+          "p95": 98.6,
+          "min": 0.0,
+          "max": 101.4
+        },
+        "27892": {
+          "status": "observed",
+          "samples": 28,
+          "observed_seconds": 28.203821199999993,
+          "mean": 88.02319512399976,
+          "p10": 47.2,
+          "median": 94.1,
+          "p95": 104.5,
+          "min": 11.4,
+          "max": 104.6
+        },
+        "34116": {
+          "status": "observed",
+          "samples": 26,
+          "observed_seconds": 26.05515600000001,
+          "mean": 53.00344897109842,
+          "p10": 14.9,
+          "median": 53.0,
+          "p95": 98.4,
+          "min": 0.0,
+          "max": 98.5
+        }
+      },
+      "process_io_read_bytes": {
+        "delta": 470392415,
+        "observed_pids": 6,
+        "counter_resets": 0,
+        "comparable_intervals": 157,
+        "scope": "within observed samples/process lifetimes; first-seen counters excluded"
+      },
+      "process_io_write_bytes": {
+        "delta": 360374247,
+        "observed_pids": 6,
+        "counter_resets": 0,
+        "comparable_intervals": 157,
+        "scope": "within observed samples/process lifetimes; first-seen counters excluded"
+      },
+      "process_page_faults": {
+        "delta": 1699228,
+        "observed_pids": 6,
+        "counter_resets": 0,
+        "comparable_intervals": 157,
+        "scope": "within observed samples/process lifetimes; first-seen counters excluded"
+      }
+    }
+  },
+  "workload": {
+    "planned_training_users": 80,
+    "planned_evaluation_users": 20,
+    "logged_updates": 167,
+    "logged_training_reviews": 7654975,
+    "logged_users": 80,
+    "history_deciles": {
+      "1": {
+        "logged_users": 4,
+        "completed_users": 4,
+        "reviews": 21917,
+        "updates": 4
+      },
+      "2": {
+        "logged_users": 11,
+        "completed_users": 11,
+        "reviews": 103948,
+        "updates": 11
+      },
+      "3": {
+        "logged_users": 6,
+        "completed_users": 6,
+        "reviews": 80507,
+        "updates": 6
+      },
+      "4": {
+        "logged_users": 14,
+        "completed_users": 14,
+        "reviews": 262889,
+        "updates": 14
+      },
+      "5": {
+        "logged_users": 8,
+        "completed_users": 8,
+        "reviews": 224226,
+        "updates": 8
+      },
+      "6": {
+        "logged_users": 7,
+        "completed_users": 7,
+        "reviews": 279717,
+        "updates": 7
+      },
+      "7": {
+        "logged_users": 10,
+        "completed_users": 10,
+        "reviews": 536500,
+        "updates": 10
+      },
+      "8": {
+        "logged_users": 4,
+        "completed_users": 4,
+        "reviews": 299415,
+        "updates": 8
+      },
+      "9": {
+        "logged_users": 7,
+        "completed_users": 7,
+        "reviews": 939563,
+        "updates": 18
+      },
+      "10": {
+        "logged_users": 9,
+        "completed_users": 9,
+        "reviews": 4906293,
+        "updates": 81
+      }
+    },
+    "full_history_complete": true,
+    "complete_training_observation": true,
+    "training_observed_seconds": 38.61684539999999,
+    "minimum_observation_seconds": 120,
+    "observation_window_sufficient": false,
+    "full_history_profile_available": false
+  },
+  "queue": {
+    "preparation_seconds_sum_across_parallel_workers": 113.70880909999971,
+    "preparation_seconds_per_update": {
+      "status": "observed",
+      "samples": 167,
+      "observed_seconds": 167,
+      "mean": 0.6808910724550881,
+      "p10": 0.13365229999999428,
+      "median": 0.7689695999999913,
+      "p95": 1.7032163999999739,
+      "min": 0.019161599999961254,
+      "max": 2.251785600000062
+    },
+    "future_wait_seconds_sum": 1.6066529000004266,
+    "future_wait_seconds_per_update": {
+      "status": "observed",
+      "samples": 167,
+      "observed_seconds": 167,
+      "mean": 0.009620676047906746,
+      "p10": 2.0999999605919584e-06,
+      "median": 2.4000000848900527e-06,
+      "p95": 0.04367329999990943,
+      "min": 1.7000000980260666e-06,
+      "max": 0.3287434999999732
+    },
+    "interpretation": "worker preparation durations can overlap; future waits may occur on background staging threads; sums are not critical-path stall time"
+  },
+  "sampler": {
+    "interval_seconds": 1.0,
+    "samples": 77,
+    "sampling_wall_seconds": 3.4106233000006796,
+    "sampling_thread_cpu_seconds": 0.859375,
+    "case_wall_seconds": 80.47321650000004,
+    "sampling_wall_fraction": 0.0423820917999738,
+    "sampling_errors": [],
+    "scope": "one-second CPU/process-tree/RAM/I-O/paging and CUDA allocator samples; phases mark wrapper boundaries, user transition/queue timing in updates.jsonl",
+    "gpu_telemetry": "gpu_power.jsonl: existing one-second power, compute utilization, temperature and memory-used monitor during training",
+    "unavailable_counters": {},
+    "unavailable": [
+      "GPU byte/s bandwidth",
+      "hardware kernel occupancy",
+      "continuous per-worker peak RAM"
+    ],
+    "GPU_memory_activity": "nvidia utilization.memory is sampled memory activity percent where available; not achieved bytes/s bandwidth",
+    "overhead": "measured sampler wall time/fraction; no claim that this equals critical-path slowdown; all matched cases use the same telemetry"
+  },
+  "unavailable": {
+    "actual_GPU_bytes_per_second": "not sampled",
+    "physical_disk_IO": "process I/O includes IPC/device traffic; physical disk counters not sampled",
+    "Windows_swap_in_out_bytes": "installed psutil Windows swap_memory returns literal zero placeholders; treat as unavailable, not measured zero",
+    "precise_steady_vs_user_transition": "current telemetry combines training and user transitions; exact phase timestamps not recorded",
+    "kernel_occupancy": "not sampled"
+  },
+  "interpretation": "per-core CPU is system-wide; summed process RSS can double-count shared pages; page faults include soft faults; memory activity percent is not achieved bandwidth; prefix profiles do not select or promote a candidate",
+  "analysis_wall_seconds": 0.12503619999995408
+}

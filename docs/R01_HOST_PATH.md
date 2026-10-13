@@ -140,3 +140,9 @@ Current accepted-path diagnostic costs are lower than the old 0022 wrapper figur
 - WKV checkpoint tiles 8/16/32 are bitwise equal on real batches, but tile 8 raises peak reserved memory to 13.6 GB and ran 117k–143k reviews/s: VRAM headroom, not arithmetic, limits smaller tiles. Rows-per-thread variants at tile 16 are untested.
 - Scheduling-only probes: main process HIGH priority (F86b), deferred-read depth 3 (F33c) were neutral to slightly negative; a stream query after forward and after backward (F77a) and additional flush points at each hierarchy-stream boundary (F77b) were small positive stack candidates (+0.52% and +0.27% at six blocks, lower bounds below zero).
 
+## Round 0089–0090 findings (2026-10-13)
+
+- Accepted reference is 0090 `E89-F65e-F77a`: accepted 0089 (E89 = E83 + F72a `lean_step_reset`) plus F65e `native_glue` and F77a `wddm_flush`; promoted at six blocks (+1.47%, lower +0.22%), exact. Round stopped after 2 of 12 counted iterations because the human shortened it (finish by 21:00).
+- GPU state changed before 0090 timing: 0084–0089 ran voltage-capped (~2.475 GHz); after a reboot the MSI Afterburner overclock profile was re-enabled (~2.8–3.1 GHz, memory 17,001 MHz). 0090 reference replicates ran 201,655–212,686 reviews/s (0089 references ~197k–201k). GPU busy fell to ~61% (from ~78%) with training-worker CPU ~55%, so the faster GPU makes per-update host work relatively larger.
+- Single full runs remain noisy: the 0090 candidate full run (block 1) was 192,956 reviews/s against 209,945 for its reference, while the five later candidate replicates ran 195,326–214,366.
+- Implementation records for 0089–0090 name `c97cfe0` (HEAD at closure, an AGENT.md-only commit). The tested training source is `5626758d6932f0f08684d8e8737f3afd8353bc01` (F72a, wkv options; F65e/F77a were earlier); `917f183` only adds the E89 report alias.

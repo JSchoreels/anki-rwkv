@@ -1180,3 +1180,31 @@ Implementation commit after experiments: `7fced6223659f08303718bd8e14055f3f4c956
 Implementation commit after experiments: `7fced6223659f08303718bd8e14055f3f4c956a4`. Tested revision remains `e0408ff0b7563211d8f4a60f863e144256e04c45` with per-process source snapshots in the linked raw results and iteration record; [commit record](../artifacts/retraining/gpu-retrain-r01/iteration-0088/implementation-commit.json).
 
 <!-- r01-0088:end -->
+
+<!-- r01-0089:start -->
+## R01 iteration 0089
+
+[Iteration record](../artifacts/retraining/gpu-retrain-r01/iteration-0089/summary.md)
+
+| Training start (UTC) | Trial commit | Model | Improvement IDs | What was tried | Training users reached | Training reviews | Training seconds | Reviews/s | Speed Δ vs previous | Speed Δ vs baseline | Instant User | Instant User Δ vs previous | Instant User Δ vs baseline | Instant Weighted | Instant Weighted Δ vs previous | Instant Weighted Δ vs baseline | Curve User | Curve User Δ vs previous | Curve User Δ vs baseline | Curve Weighted | Curve Weighted Δ vs previous | Curve Weighted Δ vs baseline | Raw result | Notes |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 2026-10-13T17:49:08.286537+00:00 | `c64051c51c7bebc5673ff90435aeec950df7a583` | Expertium (light) | E83, F72a | Reset gradients through cached master/child parameter lists and set train mode once before the loop, instead of optimizer.zero_grad, child zero_grad and train() walking the scripted module tree every update, on the accepted 0083 stack. | 2 | 1,024 | 0.656 | 1,560 | — | — | 0.433909490 | — | — | 0.421975411 | — | — | 0.423755109 | — | — | 0.416540190 | — | — | [result](../artifacts/retraining/gpu-retrain-r01/iteration-0089/functional-smoke-v1/expertium/E83-F72a/result.json) | Infrastructure check; excluded from comparisons. Declared schedule change: 512-chunk batches, 2 updates. |
+| 2026-10-13T17:50:59.452030+00:00 | `c64051c51c7bebc5673ff90435aeec950df7a583` | Expertium (light) | E83, F72a | Reset gradients through cached master/child parameter lists and set train mode once before the loop, instead of optimizer.zero_grad, child zero_grad and train() walking the scripted module tree every update, on the accepted 0083 stack. | 80 | 7,654,975 | 37.944 | 201,745 | +7.58% | +572.37% | 0.382592464 | +0.00% | -0.99% | 0.398428596 | +0.00% | -0.76% | 0.370387972 | +0.00% | -4.48% | 0.387472684 | +0.00% | -3.25% | [result](../artifacts/retraining/gpu-retrain-r01/iteration-0089/expertium/E83-F72a/result.json) | Declared schedule change: 512-chunk batches, 167 updates. |
+
+Implementation commit after experiments: `c97cfe0e39fe69a1d36a23f028e2d978575ac06d`. Tested revision remains `c64051c51c7bebc5673ff90435aeec950df7a583` with per-process source snapshots in the linked raw results and iteration record; [commit record](../artifacts/retraining/gpu-retrain-r01/iteration-0089/implementation-commit.json).
+
+<!-- r01-0089:end -->
+
+<!-- r01-0090:start -->
+## R01 iteration 0090
+
+[Iteration record](../artifacts/retraining/gpu-retrain-r01/iteration-0090/summary.md)
+
+| Training start (UTC) | Trial commit | Model | Improvement IDs | What was tried | Training users reached | Training reviews | Training seconds | Reviews/s | Speed Δ vs previous | Speed Δ vs baseline | Instant User | Instant User Δ vs previous | Instant User Δ vs baseline | Instant Weighted | Instant Weighted Δ vs previous | Instant Weighted Δ vs baseline | Curve User | Curve User Δ vs previous | Curve User Δ vs baseline | Curve Weighted | Curve Weighted Δ vs previous | Curve Weighted Δ vs baseline | Raw result | Notes |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 2026-10-13T18:10:58.496628+00:00 | `125e6ddabdf30afaf4ab687b350c7113016437ec` | Expertium (light) | E89, F65e, F77a | Stacks two exact stack candidates from round 0080-0088 on accepted 0089 (E89 = E83 + F72a): F65e native gate/bonus/channel glue dispatcher (0081, +0.04%) and F77a WDDM stream query after forward and backward (0087, +0.52% at six blocks). | 2 | 1,024 | 0.800 | 1,280 | — | — | 0.433909490 | — | — | 0.421975411 | — | — | 0.423755109 | — | — | 0.416540190 | — | — | [result](../artifacts/retraining/gpu-retrain-r01/iteration-0090/functional-smoke-v1/expertium/E89-F65e-F77a/result.json) | Infrastructure check; excluded from comparisons. Declared schedule change: 512-chunk batches, 2 updates. |
+| 2026-10-13T18:17:02.078781+00:00 | `125e6ddabdf30afaf4ab687b350c7113016437ec` | Expertium (light) | E89, F65e, F77a | Stacks two exact stack candidates from round 0080-0088 on accepted 0089 (E89 = E83 + F72a): F65e native gate/bonus/channel glue dispatcher (0081, +0.04%) and F77a WDDM stream query after forward and backward (0087, +0.52% at six blocks). | 80 | 7,654,975 | 39.672 | 192,956 | -4.36% | +543.07% | 0.382592464 | +0.00% | -0.99% | 0.398428596 | +0.00% | -0.76% | 0.370387972 | +0.00% | -4.48% | 0.387472684 | +0.00% | -3.25% | [result](../artifacts/retraining/gpu-retrain-r01/iteration-0090/expertium/E89-F65e-F77a/result.json) | Declared schedule change: 512-chunk batches, 167 updates. |
+
+Implementation commit after experiments: `c97cfe0e39fe69a1d36a23f028e2d978575ac06d`. Tested revision remains `125e6ddabdf30afaf4ab687b350c7113016437ec` with per-process source snapshots in the linked raw results and iteration record; [commit record](../artifacts/retraining/gpu-retrain-r01/iteration-0090/implementation-commit.json).
+
+<!-- r01-0090:end -->
