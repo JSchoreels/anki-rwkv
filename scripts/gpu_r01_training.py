@@ -264,6 +264,13 @@ def run_case(args):
             if not options.get("exact_index") or not hasattr(base, "skip_padding_sources"):
                 raise ValueError("F50 requires Expertium exact row selection")
             base.skip_padding_sources = True
+        for module in base.modules():
+            if hasattr(module, "exact_gate_glue"):
+                module.exact_gate_glue = int(options.get("exact_gate_glue", 0))
+            if hasattr(module, "exact_channel_glue"):
+                module.exact_channel_glue = bool(options.get("exact_channel_glue", False))
+        if hasattr(base, "concurrent_split_limit"):
+            base.concurrent_split_limit = int(options.get("concurrent_split_limit", 0))
         if options.get("concurrent_splits"):
             if not hasattr(base, "concurrent_splits"):
                 raise ValueError("F49 requires Expertium")

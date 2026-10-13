@@ -24,7 +24,7 @@ import sys
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 APPLIED = {"exact_shift", "exact_index", "exact_group_norm", "fused_shift", "row_tiles_exact", "shared_shift_orders",
-           "stream_launches", "prefetch_rows", "prefetch_shift", "sync_free_loss", "jit_optimize", "nondeterministic", "skip_uninitialized_fill", "skip_padding_sources", "concurrent_splits", "worker_scatter_orders", "recurrence_prefetch", "wave_aware_backward", "flat_buffers", "compact_previous_state"}
+           "stream_launches", "prefetch_rows", "prefetch_shift", "sync_free_loss", "jit_optimize", "nondeterministic", "skip_uninitialized_fill", "skip_padding_sources", "concurrent_splits", "concurrent_split_limit", "exact_gate_glue", "exact_channel_glue", "worker_scatter_orders", "recurrence_prefetch", "wave_aware_backward", "flat_buffers", "compact_previous_state"}
 
 
 def load_options(value, track):
@@ -47,6 +47,8 @@ def main():
     parser.add_argument("--a-track")
     parser.add_argument("--b-track")
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--memory-diagnostics", action="store_true")
+    parser.add_argument("--recurrence-only-stream", action="store_true")
     parser.add_argument("--self-test", action="store_true",
                         help="Negative control: flip the lowest bit of one BF16 weight in B; the check must then fail")
     args = parser.parse_args()
@@ -118,6 +120,11 @@ def main():
         return a.dtype == b.dtype and a.shape == b.shape and torch.equal(a.view(bits), b.view(bits))
 
     def run(options, item, batch, checkpoint):
+        import gc
+        gc.collect()
+        torch.cuda.empty_cache()
+        torch.cuda.reset_peak_memory_stats()
+        memory_start = torch.cuda.memory_stats()
         torch._C._set_graph_executor_optimize(bool(options.get("jit_optimize", False)))
         torch.use_deterministic_algorithms(not options.get("nondeterministic", False), warn_only=False)
         torch.utils.deterministic.fill_uninitialized_memory = not options.get("skip_uninitialized_fill", False)
@@ -144,6 +151,12 @@ def main():
             if not options.get("exact_index"):
                 raise ValueError("F50 requires exact_index")
             model.skip_padding_sources = True
+        for module in model.modules():
+            if hasattr(module, "exact_gate_glue"):
+                module.exact_gate_glue = int(options.get("exact_gate_glue", 0))
+            if hasattr(module, "exact_channel_glue"):
+                module.exact_channel_glue = bool(options.get("exact_channel_glue", False))
+        model.concurrent_split_limit = int(options.get("concurrent_split_limit", 0))
         if options.get("concurrent_splits"):
             model.concurrent_splits = True
         model.train()
@@ -165,21 +178,32 @@ def main():
             stack.callback(exact_index.set_shared_orders, False)
             stack.callback(exact_index.set_prefetch_rows, False)
             stack.callback(exact_index.set_prefetch_shift, False)
+            if args.recurrence_only_stream and options is variants["b"]:
+                original_launch = nvrtc.launch
+                side = torch.cuda.Stream()
+                def recurrence_launch(kernel, device, shape, tensors):
+                    parent = torch.cuda.current_stream(device)
+                    side.wait_stream(parent)
+                    with torch.cuda.stream(side):
+                        original_launch(kernel, device, shape, tensors)
+                    parent.wait_stream(side)
+                nvrtc.launch = recurrence_launch
+                stack.callback(setattr, nvrtc, "launch", original_launch)
             stats = model.get_loss(batch)
             stats.average_loss.backward()
         torch.cuda.synchronize()
-        return stats.average_loss.detach().clone(), {name: p.grad.detach().clone() for name, p in model.named_parameters() if p.grad is not None}
+        return stats.average_loss.detach().clone(), {name: p.grad.detach().clone() for name, p in model.named_parameters() if p.grad is not None}, {"peak_reserved_bytes": torch.cuda.max_memory_reserved(), "peak_allocated_bytes": torch.cuda.max_memory_allocated(), "allocator_retries": torch.cuda.memory_stats()["num_alloc_retries"] - memory_start["num_alloc_retries"]}
 
     try:
         checkpoint = fresh_checkpoint("expertium", 2025)
         for row, item, batch in batches:
-            (loss_a, grads_a), (loss_b, grads_b) = (run(variants[name], item, batch, checkpoint) for name in ("a", "b"))
+            (loss_a, grads_a, memory_a), (loss_b, grads_b, memory_b) = (run(variants[name], item, batch, checkpoint) for name in ("a", "b"))
             names = sorted(grads_a)
             differing = [name for name in names if name not in grads_b or not same(grads_a[name], grads_b[name])]
             result["batches"].append({"user_id": row["user_id"], "offset": item.offset, "reviews": int(batch.num_data),
                                       "loss_bitwise_equal": same(loss_a, loss_b), "same_gradient_set": sorted(grads_b) == names,
                                       "parameters": len(names), "differing_gradients": differing[:10],
-                                      "differing_gradient_count": len(differing)})
+                                      "memory": {"a": memory_a, "b": memory_b}, "differing_gradient_count": len(differing)})
             print(f"[compare] {len(result['batches'])}/{len(batches)} batches; differing gradients {len(differing)}", flush=True)
         batches_equal = sum(b["loss_bitwise_equal"] and b["same_gradient_set"] and not b["differing_gradient_count"] for b in result["batches"])
         result["summary"] = {"batches": len(result["batches"]), "batches_bitwise_equal": batches_equal}

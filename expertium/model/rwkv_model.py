@@ -1,3 +1,4 @@
+from rwkv.model.exact_glue import ExactGateGlue, ExactChannelGlue
 from dataclasses import dataclass
 import math
 import os
@@ -117,6 +118,8 @@ class RWKV7ChannelMixer(ModuleType):
     # Also the same as for RWKV-5
     def __init__(self, config: RWKV7Config, layer_id):
         super().__init__()
+        self.exact_gate_glue = 0
+        self.exact_channel_glue = False
         self.exact_shift = False
         assert config.d_model // config.n_heads == 32
         self.d_model = config.d_model
@@ -156,7 +159,11 @@ class RWKV7ChannelMixer(ModuleType):
                 index=time_shift_select_BT.unsqueeze(-1).expand(-1, -1, self.d_model),
             )
         k_BTK = self.W_k(torch.lerp(x_BTC, x_shift_BTC, self.lerp_k))
-        o_BTC = self.W_v(torch.square(torch.nn.functional.relu(k_BTK)))
+        if self.exact_channel_glue and k_BTK.is_cuda:
+            hidden = ExactChannelGlue.apply(k_BTK)
+        else:
+            hidden = torch.square(torch.nn.functional.relu(k_BTK))
+        o_BTC = self.W_v(hidden)
         return in_BTC + self.dropout(o_BTC)
 
 
@@ -225,6 +232,8 @@ class RWKV7TimeMixer(ModuleType):
     def __init__(self, config: RWKV7Config, layer_id):
         super().__init__()
         self.fused_shift = False
+        self.exact_gate_glue = 0
+        self.exact_channel_glue = False
         self.exact_shift = False
         self.exact_group_norm = False  # F32: multi-SM GroupNorm weight/bias backward, bitwise equal
         assert config.d_model % config.n_heads == 0
@@ -409,5 +418,9 @@ class RWKV7TimeMixer(ModuleType):
         bonus_BTC = (
             (r_BTHK * self.bonus * k_BTHK).sum(dim=-1, keepdim=True) * v_BTHK
         ).view(B, T, C)
-        out_BTC = self.W_o(g_BTC * (out_BTC + bonus_BTC))
+        if self.exact_gate_glue and out_BTC.is_cuda:
+            gated = ExactGateGlue.apply(out_BTC, bonus_BTC, g_BTC, self.exact_gate_glue == 2)
+        else:
+            gated = g_BTC * (out_BTC + bonus_BTC)
+        out_BTC = self.W_o(gated)
         return in_BTC + self.dropout(out_BTC), v0_BTC

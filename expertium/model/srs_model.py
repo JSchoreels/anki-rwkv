@@ -121,6 +121,7 @@ class SrsRWKV(ModuleType):
         super().__init__()
         self.exact_index = False  # F27: sort-free row-selection backward, bitwise equal when deterministic
         self.skip_padding_sources = False  # F50: hierarchy padding contributes zero gradients.
+        self.concurrent_split_limit = 0
         self.concurrent_splits = False  # F49: opt-in independent split streams.
         # F37: skip the host syncs in _get_loss. Any NaN they catch also makes average_loss
         # non-finite, which the caller must check; the label counts are returned as -1.
@@ -235,7 +236,7 @@ class SrsRWKV(ModuleType):
         used = []
         # Host issue order is unchanged, including Philox offset reservation.
         for number, (gather, length, shift, skip) in enumerate(zip(gathers, lengths, shifts, skips)):
-            key = (x.device.index, number)
+            key = (x.device.index, number % self.concurrent_split_limit if self.concurrent_split_limit else number)
             stream = _split_streams.get(key)
             if stream is None:
                 stream = _split_streams[key] = torch.cuda.Stream(device=x.device)
