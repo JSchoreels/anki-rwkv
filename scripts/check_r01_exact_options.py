@@ -24,7 +24,7 @@ import sys
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 APPLIED = {"exact_bonus_products", "batched_split_gather", "fused_padded_gather", "exact_shift", "exact_index", "exact_group_norm", "fused_shift", "row_tiles_exact", "shared_shift_orders",
-           "stream_launches", "prefetch_rows", "prefetch_shift", "sync_free_loss", "jit_optimize", "nondeterministic", "skip_uninitialized_fill", "skip_padding_sources", "concurrent_splits", "concurrent_split_limit", "exact_gate_glue", "exact_channel_glue", "worker_scatter_orders", "recurrence_prefetch", "wave_aware_backward", "flat_buffers", "compact_previous_state"}
+           "stream_launches", "prefetch_rows", "prefetch_shift", "sync_free_loss", "jit_optimize", "nondeterministic", "skip_uninitialized_fill", "skip_padding_sources", "concurrent_splits", "concurrent_split_limit", "exact_gate_glue", "exact_channel_glue", "worker_scatter_orders", "recurrence_prefetch", "recurrence_load_pipeline", "wave_aware_backward", "flat_buffers", "compact_previous_state"}
 
 
 def load_options(value, track):
@@ -170,6 +170,7 @@ def main():
                 stack.enter_context(row_tiled_backend(rows=options["row_tiles_exact"], tile=32, exact=True,
                                                      compact_previous=bool(options.get("compact_previous_state", False)),
                                   next_step_prefetch=bool(options.get("recurrence_prefetch", False)),
+                                  load_pipeline=int(options.get("recurrence_load_pipeline", 0)),
                                   wave_aware=bool(options.get("wave_aware_backward", False))))
             nvrtc.set_stream_launch(options.get("stream_launches", False))
             exact_index.set_shared_orders(options.get("shared_shift_orders", False))

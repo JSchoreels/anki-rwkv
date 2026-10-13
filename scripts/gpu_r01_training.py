@@ -236,6 +236,7 @@ def run_case(args):
                 row_tiled_backend(rows=options["row_tiles_exact"], tile=32, exact=True,
                                   compact_previous=bool(options.get("compact_previous_state", False)),
                                   next_step_prefetch=bool(options.get("recurrence_prefetch", False)),
+                                  load_pipeline=int(options.get("recurrence_load_pipeline", 0)),
                                   wave_aware=bool(options.get("wave_aware_backward", False))))
         device = torch.device("cuda:0")
         checkpoint = fresh_checkpoint(args.model, training_seed)

@@ -54,6 +54,8 @@ def smoke_view(case):
 
 def load_snapshot():
     import psutil
+    from scripts.r01_replicates import wait_for_quiet
+    quiet = wait_for_quiet(10.0, 20 * 60)
     query = ["nvidia-smi", "--query-compute-apps=pid,process_name", "--format=csv,noheader"]
     try:
         result = subprocess.run(query, capture_output=True, text=True, timeout=5)
@@ -62,7 +64,7 @@ def load_snapshot():
     if result.returncode:
         raise RuntimeError("GPU process query failed; resolve background-load visibility before timing")
     apps = result.stdout.lower()
-    return {"total_cpu_percent": psutil.cpu_percent(interval=2.0), "python_gpu_processes": apps.count("python")}
+    return {"total_cpu_percent": quiet["total_cpu_percent"], "quiet_gate": quiet, "python_gpu_processes": apps.count("python")}
 
 
 def main():

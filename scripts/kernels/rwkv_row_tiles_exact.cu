@@ -29,11 +29,28 @@ __global__ void forward_kernel(int B, int T, int H, const F* r, const F* k,
     float state[ROWS];
     #pragma unroll
     for (int q = 0; q < ROWS; ++q) state[q] = 0.0f;
+#if FORWARD_PREFETCH
+    int64_t fy = get_index3(b, 0, h, y, T, H, 32);
+    float fr = to_float<F>(r[fy]), fk = to_float<F>(k[fy]), fw = w[fy];
+    float fa = to_float<F>(a[fy]), fd = to_float<F>(kd[fy]);
+    bool fs = skip[get_index1(b, 0, T)];
+#endif
     for (int t = 0; t < T; ++t) {
         const int64_t iy = get_index3(b, t, h, y, T, H, 32);
+#if FORWARD_PREFETCH
+        const float ry = fr, ky = fk, wy = fw, ay = fa, kdy = fd;
+        const bool skipped = fs;
+        if (t + 1 < T) {
+            fy = get_index3(b, t + 1, h, y, T, H, 32);
+            fr = to_float<F>(r[fy]); fk = to_float<F>(k[fy]); fw = w[fy];
+            fa = to_float<F>(a[fy]); fd = to_float<F>(kd[fy]);
+            fs = skip[get_index1(b, t + 1, T)];
+        }
+#else
         const float ry = to_float<F>(r[iy]), ky = to_float<F>(k[iy]);
         const float wy = w[iy], ay = to_float<F>(a[iy]), kdy = to_float<F>(kd[iy]);
         const bool skipped = skip[get_index1(b, t, T)];
+#endif
         #pragma unroll
         for (int q = 0; q < ROWS; ++q) {
             const int x = threadIdx.y + q * WARPS;
@@ -83,12 +100,37 @@ __global__ void backward_kernel(int B, int T, int H, const F* r, const F* k,
             const int x = threadIdx.y + q * WARPS;
             state[q] = checkpoints[get_index4(b, l, h, x, y, L, H, 32, 32)];
         }
+#if RECOMPUTE_PREFETCH
+        int64_t cy = get_index3(b, l * TILE, h, y, T, H, 32);
+        float ck = to_float<F>(k[cy]), cw = w[cy], ca = to_float<F>(a[cy]), cd = to_float<F>(kd[cy]);
+        bool cs = skip[get_index1(b, l * TILE, T)];
+        float cv[ROWS];
+        #pragma unroll
+        for (int q = 0; q < ROWS; ++q)
+            cv[q] = to_float<F>(v[get_index3(b, l * TILE, h, threadIdx.y + q * WARPS, T, H, 32)]);
+#endif
         for (int c = 0; c < TILE && l * TILE + c < T; ++c) {
             const int t = l * TILE + c;
             const int64_t iy = get_index3(b, t, h, y, T, H, 32);
+#if RECOMPUTE_PREFETCH
+            const float ky = ck, wy = cw, ay = ca, kdy = cd;
+            const bool skipped = cs;
+            float vx[ROWS];
+            #pragma unroll
+            for (int q = 0; q < ROWS; ++q) vx[q] = cv[q];
+            if (c + 1 < TILE && t + 1 < T) {
+                cy = get_index3(b, t + 1, h, y, T, H, 32);
+                ck = to_float<F>(k[cy]); cw = w[cy]; ca = to_float<F>(a[cy]); cd = to_float<F>(kd[cy]);
+                cs = skip[get_index1(b, t + 1, T)];
+                #pragma unroll
+                for (int q = 0; q < ROWS; ++q)
+                    cv[q] = to_float<F>(v[get_index3(b, t + 1, h, threadIdx.y + q * WARPS, T, H, 32)]);
+            }
+#else
             const float ky = to_float<F>(k[iy]), wy = w[iy];
             const float ay = to_float<F>(a[iy]), kdy = to_float<F>(kd[iy]);
             const bool skipped = skip[get_index1(b, t, T)];
+#endif
 #if COMPACT_PREVIOUS_STATE
             if (threadIdx.x == 0 && threadIdx.y == 0) previous_slot[c] = last_slot;
             if (!skipped) last_slot = c;
@@ -102,7 +144,11 @@ __global__ void backward_kernel(int B, int T, int H, const F* r, const F* k,
 #endif
                 float dot = warp_sum(__fmul_rn(state[q], kdy));
                 dot = __shfl_sync(FULL_MASK, dot, 0);
+#if RECOMPUTE_PREFETCH
+                state[q] = advance(state[q], dot, wy, ay, kdy, vx[q], ky);
+#else
                 state[q] = advance(state[q], dot, wy, ay, kdy, to_float<F>(v[get_index3(b, t, h, x, T, H, 32)]), ky);
+#endif
                 chunk[q][c] = state[q];
                 if (skipped) state[q] = before;
             }
@@ -111,6 +157,12 @@ __global__ void backward_kernel(int B, int T, int H, const F* r, const F* k,
         __syncthreads();
 #endif
         const int top = nvrtc_min(T - 1, (l + 1) * TILE - 1);
+#if ROW_GRAD_PREFETCH
+        float pgrad[ROWS];
+        #pragma unroll
+        for (int q = 0; q < ROWS; ++q)
+            pgrad[q] = to_float<F>(grad[get_index3(b, top, h, threadIdx.y + q * WARPS, T, H, 32)]);
+#endif
 #if NEXT_STEP_PREFETCH
         int64_t py = get_index3(b, top, h, y, T, H, 32);
         float pr = to_float<F>(r[py]), pk = to_float<F>(k[py]), pv = to_float<F>(v[py]);
@@ -138,12 +190,25 @@ __global__ void backward_kernel(int B, int T, int H, const F* r, const F* k,
             const bool skipped = skip[get_index1(b, t, T)];
 #endif
             float ds_rows[ROWS], remove[ROWS], product[ROWS];
+#if ROW_GRAD_PREFETCH
+            float current_grad[ROWS];
+            #pragma unroll
+            for (int q = 0; q < ROWS; ++q) {
+                current_grad[q] = pgrad[q];
+                if (t > l * TILE)
+                    pgrad[q] = to_float<F>(grad[get_index3(b, t - 1, h, threadIdx.y + q * WARPS, T, H, 32)]);
+            }
+#endif
             if (threadIdx.y == 0) { Kd[y] = kdy; A[y] = ay; }
             #pragma unroll
             for (int q = 0; q < ROWS; ++q) {
                 const int x = threadIdx.y + q * WARPS;
                 const int64_t ix = get_index3(b, t, h, x, T, H, 32);
+#if ROW_GRAD_PREFETCH
+                float ds = __fmul_rn(current_grad[q], ry);
+#else
                 float ds = __fmul_rn(to_float<F>(grad[ix]), ry);
+#endif
                 if (!skipped) { ds = __fadd_rn(ds, carry[q]); carry[q] = 0.0f; }
                 ds_rows[q] = ds;
                 remove[q] = __fmul_rn(kdy, __fmul_rn(ay, ds));
