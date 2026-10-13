@@ -23,6 +23,7 @@
 </header>
 
 <main class="wrap">
+  <div class="explain-box" style="margin-top:16px"><strong>Which versions.</strong> &ldquo;Alex&rdquo; is the default model from srs-benchmark (commit <code>3effecc</code>). &ldquo;Expertium&rdquo; is his iter36 snapshot from rwkv-anki-autoresearch (commit <code>39666c6</code>), the version this repository trains. Expertium&rsquo;s current runs keep this body but swap the output curve for a GRU-style head; see <a href="#heads">the output heads</a>.</div>
   <section class="cards compact" aria-label="Headline comparison">
     <div class="card big"><div class="k">Parameters</div><div class="v" id="h-params">&ndash;</div><div class="s" id="h-params-sub"></div></div>
     <div class="card"><div class="k">Hidden width &times; heads</div><div class="v" id="h-width">&ndash;</div><div class="s">channels &times; heads (32 channels per head)</div></div>
@@ -98,7 +99,7 @@
     <div class="sbar-label">Expertium: 32 channels, 1 head</div><div class="vec" id="vec-exp"></div>
   </section>
 
-  <section class="panel">
+  <section class="panel" id="heads">
     <div class="panel-head">
       <h2>The output heads</h2>
       <p class="hint"><strong>Curve</strong> mixes basis forgetting curves, each with its own stability, then adds a learned correction sampled at fixed time points. <strong>Instant</strong> predicts the four grades. Each tick below is one basis curve's stability (time to fall to 90%) or one correction point, on a log time axis.</p>
@@ -110,7 +111,11 @@
     <div class="rug" id="rug-exp-s"></div>
     <div class="rug" id="rug-exp-p"></div>
     <div class="keys"><span><i style="background:var(--s1)"></i>basis-curve stability</span><span><i style="background:var(--s2)"></i>correction point</span></div>
-    <p class="explain-box">The correction applies to the iter36 snapshot trained here (upstream commit <code>39666c6</code>). Expertium&rsquo;s later versions can switch it off with <code>RWKV_NO_AHEAD_RESIDUAL=1</code>, and his GRU head always does. The curve is then only the basis-curve mix, so predicted recall can only fall over time. The correction head&rsquo;s <span id="ahead-n"></span> parameters still exist but get no gradient.</p>
+    <p class="explain-box">Both rugs above describe the versions trained in this repository. In the iter36 snapshot the <span id="ahead-n"></span>-parameter correction head is active.</p>
+    <h3>Expertium&rsquo;s current head: a few learned power-law curves</h3>
+    <p class="lead-p">Expertium&rsquo;s current runs set <code>RWKV_GRU_HEAD=N</code> (N&nbsp;=&nbsp;3 in his runs), modelled on the GRU model in srs-benchmark. Instead of weighting dozens of curves with fixed stabilities, the head predicts, for every review, the weight <code>w<sub>i</sub></code>, stability <code>S<sub>i</sub></code> and decay <code>d<sub>i</sub></code> of N curves:</p>
+    <p class="formula">R(t) = &Sigma;<sub>i=1..N</sub> w<sub>i</sub> &middot; (1 + t / S<sub>i</sub>)<sup>&minus;d<sub>i</sub></sup>&nbsp;&nbsp;&nbsp;&nbsp;S<sub>i</sub>, d<sub>i</sub> &gt; 0, weights sum to 1</p>
+    <p class="lead-p">This is a power-law shape like FSRS&rsquo;s forgetting curve. The correction head is switched off (the same as <code>RWKV_NO_AHEAD_RESIDUAL=1</code>), so every curve, and their mix, can only fall over time. Its parameter count is not included in the totals on this page, which describe the iter36 snapshot. Try both kinds of head in <a href="./#curve">the curve explainer</a> on the home page.</p>
   </section>
 
   <section class="panel">

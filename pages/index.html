@@ -92,19 +92,30 @@
   <section class="panel" id="curve">
     <div class="panel-head">
       <h2>3. From memory to a forgetting curve</h2>
-      <p class="hint">The output head does not predict one number. It outputs weights over many basis curves, each an exponential decay <code>0.9<sup>t / s</sup></code> with its own stability <code>s</code>, and adds a learned correction. Drag the bars to set weights (they are normalised to sum to 1), or try a preset. Hover the chart to read a probability.</p>
+      <p class="hint">The output head does not predict a single number. It predicts a whole forgetting curve, built as a weighted mix of simpler curves. The models on this site build that mix in two different ways; switch between them. Hover the chart to read a probability.</p>
+    </div>
+    <div class="controls">
+      <div class="seg" id="curve-mode" role="group" aria-label="Kind of curve head">
+        <button type="button" data-mode="basis" aria-pressed="true">Fixed basis curves (Alex, iter36 snapshot)</button>
+        <button type="button" data-mode="gru" aria-pressed="false">Learned power-law curves (Expertium now)</button>
+      </div>
     </div>
     <div class="curvebox">
       <div>
-        <div class="presets" id="curve-presets"></div>
-        <svg id="curve-w" viewBox="0 0 360 230" role="img" aria-label="Weights of each basis curve"></svg>
+        <div id="curve-basis">
+          <div class="presets" id="curve-presets"></div>
+          <svg id="curve-w" viewBox="0 0 360 230" role="img" aria-label="Weights of each basis curve"></svg>
+        </div>
+        <div id="curve-gru" class="gru" hidden></div>
       </div>
       <div>
         <svg id="curve-plot" viewBox="0 0 560 300" role="img" aria-label="Predicted probability of recall over time"></svg>
         <p class="hint" id="curve-read">&nbsp;</p>
       </div>
     </div>
-    <div class="explain-box">Mixing fast and slow curves gives a long tail that a single exponential cannot: a card can be partly forgotten within a day yet keep a stable core for months. The real models use 128 (Alex) or 64 (Expertium) basis curves from 0.1&nbsp;s to about 100 years. Alex&rsquo;s model, and the Expertium snapshot trained here, also add a learned <em>correction</em> sampled at the same number of time points. Expertium&rsquo;s later versions drop it, so their curve is only the mix and can only fall over time. A separate <em>Instant</em> head predicts the four grades for the review that is about to happen.</div>
+    <div class="explain-box" id="curve-note-basis">Each basis curve is an exponential decay <code>0.9<sup>t / s</sup></code> with a <strong>fixed</strong> stability <code>s</code>; the model only chooses the weights. Drag the bars to set them (they are normalised to sum to 1), or try a preset. Mixing fast and slow curves gives a long tail that a single exponential cannot: a card can be partly forgotten within a day yet keep a stable core for months. The real heads use 128 (Alex) or 64 (Expertium iter36) basis curves from 0.1&nbsp;s to about 100 years, and add a learned <em>correction</em> at the same number of time points.</div>
+    <div class="explain-box" id="curve-note-gru" hidden>Expertium&rsquo;s current runs (<code>RWKV_GRU_HEAD=3</code>, modelled on srs-benchmark&rsquo;s GRU) use only <strong>3 curves</strong>, but predict each one&rsquo;s weight, stability <code>S</code> and decay <code>d</code> for every review: <code>R(t) = &Sigma; w<sub>i</sub>&middot;(1 + t/S<sub>i</sub>)<sup>&minus;d<sub>i</sub></sup></code>. That is a power-law shape, like FSRS&rsquo;s forgetting curve, so a single curve already has a long tail. There is no correction head, so predicted recall can only fall over time. Dashed lines are the three curves; the solid line is their mix.</div>
+    <p class="hint">Either way, a separate <em>Instant</em> head predicts the four grades for the review that is about to happen.</p>
   </section>
 
   <section class="panel prose">

@@ -351,7 +351,7 @@
     ['Channel-mixer factor', A.streams.map((s) => s[2]).join(' / '), E.streams.map((s) => s[2]).join(' / ')],
     ['LoRA ranks: decay / in-context rate / value / gate', '16 / 16 / 8 / 16', '16 / 16 / 8 / 16'],
     ['Input encoder', `92 → ${A.F * A.C} → ${A.C}`, `92 → ${E.F * E.C} → ${E.C}`],
-    ['Basis curves / correction points', `${A.curves} / ${A.points}`, `${E.curves} / ${E.points} (later upstream versions can turn the correction off)`],
+    ['Curve head', `${A.curves} fixed exp. curves + ${A.points}-pt correction`, `${E.curves} fixed exp. curves + ${E.points}-pt correction; now: 3 learned power-law curves`],
     ['Head inner width', A.headMult * A.C, E.headMult * E.C],
     ['State per card', kib(A.layerBytes * A.streams[0][1]), kib(E.layerBytes * E.streams[0][1])],
     ['State per note', kib(A.layerBytes * A.streams[2][1]), kib(E.layerBytes * E.streams[2][1])],

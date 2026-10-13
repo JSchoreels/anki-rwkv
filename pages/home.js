@@ -285,7 +285,17 @@
   }
   const R = (t, sIdx) => Math.pow(0.9, t / BASIS[sIdx][0]);
   const total = () => weights.reduce((a, b) => a + b, 0) || 1;
-  const mix = (t) => weights.reduce((a, w, i) => a + w * R(t, i), 0) / total();
+  const basisMix = (t) => weights.reduce((a, w, i) => a + w * R(t, i), 0) / total();
+
+  // Expertium's current GRU-style head (RWKV_GRU_HEAD=N): N curves whose weight, stability S and
+  // decay d are all predicted per review. R(t) = sum_i w_i * (1 + t / S_i)^(-d_i).
+  let mode = 'basis';
+  const GRU = [{ w: 0.3, S: 10 * MIN, d: 0.5 }, { w: 0.4, S: 3 * DAY, d: 0.5 }, { w: 0.3, S: 180 * DAY, d: 0.5 }];
+  const GCOL = ['var(--s2)', 'var(--s3)', 'var(--s7)'];
+  const gruTotal = () => GRU.reduce((a, c) => a + c.w, 0) || 1;
+  const gruR = (t, c) => Math.pow(1 + t / c.S, -c.d);
+  const gruMix = (t) => GRU.reduce((a, c) => a + c.w * gruR(t, c), 0) / gruTotal();
+  const mix = (t) => (mode === 'basis' ? basisMix(t) : gruMix(t));
 
   // Weight bars.
   const WB = { x0: 30, y0: 14, w: 320, h: 170 };
@@ -369,10 +379,15 @@
     psvg.prepend(grid);
     psvg.append(s('text', { x: P.x0 + P.w / 2, y: P.y0 + P.h + 34, 'text-anchor': 'middle' }, 'time since review (log scale) · probability of recall'));
     const tot = total();
-    BASIS.forEach((_, i) => {
-      if (weights[i] / tot < 0.005 && i !== hover) return;
-      psvg.append(s('path', { class: 'basis' + (i === hover ? ' hl' : ''), d: path((t) => R(t, i)) }));
-    });
+    if (mode === 'basis') {
+      BASIS.forEach((_, i) => {
+        if (weights[i] / tot < 0.005 && i !== hover) return;
+        psvg.append(s('path', { class: 'basis' + (i === hover ? ' hl' : ''), d: path((t) => R(t, i)) }));
+      });
+    } else {
+      GRU.forEach((c, i) => psvg.append(s('path', { class: 'basis', d: path((t) => gruR(t, c)),
+        style: `stroke:${GCOL[i]};stroke-opacity:.9;stroke-width:1.5;stroke-dasharray:4 3` })));
+    }
     psvg.append(s('path', { class: 'mix', d: path(mix) }));
     if (probeT) {
       const r = mix(probeT);
@@ -385,7 +400,7 @@
       for (let k = 0; k < 80; k++) { const mid = Math.sqrt(lo * hi); if (mix(mid) > 0.9) lo = mid; else hi = mid; }
       $('curve-read').textContent = `Recall falls to 90% after about ${humanT(lo)}. Hover the chart to read other delays.`;
     }
-    if (hover >= 0) $('curve-read').textContent += ` Highlighted: the ${BASIS[hover][1]} curve, weight ${Math.round(100 * weights[hover] / tot)}%.`;
+    if (mode === 'basis' && hover >= 0) $('curve-read').textContent += ` Highlighted: the ${BASIS[hover][1]} curve, weight ${Math.round(100 * weights[hover] / tot)}%.`;
   }
   psvg.addEventListener('pointermove', (ev) => {
     const pt = psvg.createSVGPoint(); pt.x = ev.clientX; pt.y = ev.clientY;
@@ -394,6 +409,34 @@
     drawPlot();
   });
   psvg.addEventListener('pointerleave', () => { probeT = null; drawPlot(); });
+  const logS0 = Math.log10(MIN), logS1 = Math.log10(5 * 365 * DAY);
+  const weightOuts = [];
+  GRU.forEach((c, i) => {
+    const row = h('div', { class: 'gru-row', style: { '--fc': GCOL[i] } }, h('b', {}, h('i'), `curve ${i + 1}`));
+    const slider = (label, min, max, step, value, set, show) => {
+      const out = h('output');
+      const inp = h('input', { type: 'range', min, max, step, value, 'aria-label': `curve ${i + 1} ${label}` });
+      inp.addEventListener('input', () => { set(+inp.value); out.textContent = show(); weightOuts.forEach((f) => f()); drawPlot(); });
+      out.textContent = show();
+      return [h('label', {}, label, inp, out), out];
+    };
+    const [wl, wo] = slider('weight', 0, 1, 0.01, c.w, (v) => { c.w = v; }, () => `${Math.round(100 * c.w / gruTotal())}%`);
+    weightOuts.push(() => { wo.textContent = `${Math.round(100 * c.w / gruTotal())}%`; });
+    row.append(wl,
+      slider('stability S', logS0, logS1, 0.01, Math.log10(c.S), (v) => { c.S = Math.pow(10, v); }, () => humanT(c.S))[0],
+      slider('decay d', 0.1, 3, 0.05, c.d, (v) => { c.d = v; }, () => c.d.toFixed(2))[0]);
+    $('curve-gru').append(row);
+  });
+  [...$('curve-mode').children].forEach((b) => b.addEventListener('click', () => {
+    mode = b.dataset.mode;
+    [...$('curve-mode').children].forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+    $('curve-basis').hidden = mode !== 'basis';
+    $('curve-gru').hidden = mode === 'basis';
+    $('curve-note-basis').hidden = mode !== 'basis';
+    $('curve-note-gru').hidden = mode === 'basis';
+    hover = -1;
+    drawCurve();
+  }));
   function drawCurve() { drawWeights(); drawPlot(); }
   drawCurve();
 })();
