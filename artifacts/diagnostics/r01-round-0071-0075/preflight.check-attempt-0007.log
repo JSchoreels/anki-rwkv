@@ -1,0 +1,56 @@
+Traceback (most recent call last):
+  File "C:\Users\jonat\workspace\anki-rwkv\scripts\check_r01_evaluation_reads.py", line 66, in <module>
+    if __name__=='__main__':main()
+                            ^^^^^^
+  File "C:\Users\jonat\workspace\anki-rwkv\scripts\check_r01_evaluation_reads.py", line 47, in main
+    evaluate(master,items())
+  File "C:\Users\jonat\workspace\anki-rwkv\scripts\compare.py", line 196, in evaluate
+    stats = model.get_loss(batch)
+            ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\jonat\workspace\anki-rwkv\expertium\model\srs_model.py", line 522, in get_loss
+    return self._get_loss(
+           ^^^^^^^^^^^^^^^
+RuntimeError: The following operation failed in the TorchScript interpreter.
+Traceback of TorchScript (most recent call last):
+  File "C:\Users\jonat\workspace\anki-rwkv\expertium\model\srs_model.py", line 368, in _get_loss
+        batch_label_review_th: torch.Tensor,
+    ):
+        out_ahead_logits, out_w, out_w_log_p, out_p_logits = self.forward_batch(
+                                                             ~~~~~~~~~~~~~~~~~~ <--- HERE
+            batch_start,
+            batch_sub_gather,
+  File "C:\Users\jonat\workspace\anki-rwkv\expertium\model\srs_model.py", line 334, in forward_batch
+                        0
+                    ) and module_in.size(0) == skip_BT.size(0)
+                    module_out = submodule(
+                                 ~~~~~~~~~ <--- HERE
+                        module_in,
+                        time_shift_select_BT=time_shift_select_BT,
+  File "C:\Users\jonat\workspace\anki-rwkv\expertium\model\rwkv_model.py", line 85, in forward
+        x_BTC, v0_BTC = in_BTC, torch.empty_like(in_BTC)
+        for _, block in enumerate(self.blocks):
+            x_BTC, v0_BTC = block(
+                            ~~~~~ <--- HERE
+                in_BTC=x_BTC,
+                v0_BTC=v0_BTC,
+  File "C:\Users\jonat\workspace\anki-rwkv\expertium\model\rwkv_model.py", line 103, in forward
+    @FunctionType
+    def forward(self, in_BTC, v0_BTC, time_shift_select_BT, skip_BT):
+        x_BTC, v0_BTC = self.time_mixer(
+                        ~~~~~~~~~~~~~~~ <--- HERE
+            in_BTC=in_BTC,
+            v0_BTC=v0_BTC,
+  File "C:\Users\jonat\workspace\anki-rwkv\expertium\model\rwkv_model.py", line 367, in forward
+            rkvdag_8BTC.unbind(dim=0)
+        )
+        r_BTC = self.W_r(r_BTC)
+                ~~~~~~~~ <--- HERE
+        k_BTC = self.W_k(k_BTC)
+        k_scale_BTH = torch.nn.functional.sigmoid(self.k_scale_linear(k_scale_BTC))
+  File "C:\Users\jonat\workspace\anki-rwkv\.venv\Lib\site-packages\torch\nn\modules\linear.py", line 134, in forward
+        Runs the forward pass.
+        """
+        return F.linear(input, self.weight, self.bias)
+               ~~~~~~~~ <--- HERE
+RuntimeError: Deterministic behavior was enabled with either `torch.use_deterministic_algorithms(True)` or `at::Context::setDeterministicAlgorithms(true)`, but this operation is not deterministic because it uses CuBLAS and you have CUDA >= 10.2. To enable deterministic behavior in this case, you must set an environment variable before running your PyTorch application: CUBLAS_WORKSPACE_CONFIG=:4096:8 or CUBLAS_WORKSPACE_CONFIG=:16:8. For more information, go to https://docs.nvidia.com/cuda/cublas/index.html#results-reproducibility
+
