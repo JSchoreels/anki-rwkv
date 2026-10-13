@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>8k Training Run</title>
+<meta name="description" content="Live progress of the 8k-user training / 2k-user held-out evaluation run: which user slices each epoch has trained, and the held-out metrics after each evaluation.">
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="train.css">
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <div class="top-row">
+      <div>
+        <p class="eyebrow">anki-rwkv &middot; <a href="./">R01 campaign</a> &middot; full run</p>
+        <h1>8k / 2k training run</h1>
+        <p class="lede">Each row is one epoch over the 8,000 training users, cut into slices of <span id="slice-pct">5</span>% of all users. A slice turns green once trained. The last 20% are the 2,000 held-out users: they turn green when that epoch is evaluated, and the metrics appear on the right.</p>
+      </div>
+      <button id="theme" class="btn" type="button" aria-label="Toggle light and dark theme">Theme</button>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <div id="mock-bar" class="mock-bar" hidden>
+    <strong>Preview with sample data.</strong> Nothing is running yet; the numbers are placeholders.
+    <label class="sel">State
+      <select id="demo">
+        <option value="progress">Epoch 3 in progress</option>
+        <option value="evaluating">Evaluating after epoch 5</option>
+        <option value="done">Finished and evaluated</option>
+      </select>
+    </label>
+  </div>
+
+  <section class="cards" aria-label="Run status">
+    <div class="card big">
+      <div class="k">Status</div>
+      <div class="v" id="c-status">&ndash;</div>
+      <div class="s" id="c-status-sub"></div>
+    </div>
+    <div class="card">
+      <div class="k">Training progress</div>
+      <div class="v" id="c-progress">&ndash;</div>
+      <div class="s" id="c-progress-sub"></div>
+    </div>
+    <div class="card">
+      <div class="k">Throughput</div>
+      <div class="v" id="c-rps">&ndash;</div>
+      <div class="s">reviews/s, training</div>
+    </div>
+    <div class="card">
+      <div class="k">Estimated finish</div>
+      <div class="v" id="c-eta">&ndash;</div>
+      <div class="s" id="c-eta-sub"></div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head row">
+      <h2>Epochs</h2>
+      <div class="legend" aria-label="Legend">
+        <span class="key"><i class="sw trained"></i>Trained</span>
+        <span class="key"><i class="sw active"></i>Training now</span>
+        <span class="key"><i class="sw todo"></i>Not yet</span>
+        <span class="key"><i class="sw evaluated"></i>Evaluated (held-out 20%)</span>
+      </div>
+    </div>
+    <div class="grid-head" aria-hidden="true">
+      <span></span><span class="gh-train">Training users (80%)</span><span class="gh-eval">Held-out (20%)</span><span class="gh-metrics">Held-out metrics</span>
+    </div>
+    <div id="rows" class="rows" role="list"></div>
+    <p class="hint" id="rows-hint"></p>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head"><h2>Run details</h2></div>
+    <div class="table-wrap">
+      <table id="details"><tbody></tbody></table>
+    </div>
+  </section>
+</main>
+
+<footer class="wrap foot">
+  Updated <span id="updated">&ndash;</span>. Data from <code>pages/data/train-8k.json</code>, written by the training run's progress file.
+</footer>
+
+<script src="train.js"></script>
+</body>
+</html>
