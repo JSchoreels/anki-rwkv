@@ -52,19 +52,26 @@ def load():
 def configure(model,options):
     if not (options.get('native_wkv') or options.get('native_group_norm') or options.get('native_index') or options.get('native_glue')):
         return
+    if options.get('wkv_tile',32) != 32 and not options.get('native_wkv'):
+        raise ValueError('F90 checkpoint tile applies to the native WKV path only')
     if options.get('native_wkv') and (options.get('row_tiles_exact') != 4 or options.get('recurrence_load_pipeline',0) or options.get('recurrence_prefetch') or options.get('wave_aware_backward') or options.get('compact_previous_state')):
         raise ValueError('Native WKV initially binds only accepted four-row/tile32 kernels')
     load()
     if options.get('native_wkv'):
         from scripts.gpu_row_tiles import compile_module
         # The cached RawModule/RawKernel retains CUfunction ownership through backward.
-        forward,backward=compile_module(torch.device('cuda',torch.cuda.current_device()),torch.bfloat16,4,32,True,False,False,0)
+        # F90: checkpoint tile 16 recomputes the same states from twice as many stored checkpoints.
+        tile=int(options.get('wkv_tile',32))
+        if tile not in (16,32):
+            raise ValueError('Native WKV checkpoint tile must be 16 or 32')
+        forward,backward=compile_module(torch.device('cuda',torch.cuda.current_device()),torch.bfloat16,4,tile,True,False,False,0)
         handles=(int(forward.kernel.ptr),int(backward.kernel.ptr))
         for module in model.modules():
             if hasattr(module,'native_wkv'):
                 module.native_wkv=True
                 module.native_forward_handle=handles[0]
                 module.native_backward_handle=handles[1]
+                module.native_tile=tile
     if options.get('native_group_norm'):
         if not options.get('exact_group_norm'):
             raise ValueError('Native GroupNorm requires the accepted exact normalization path')

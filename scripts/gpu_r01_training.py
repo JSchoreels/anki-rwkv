@@ -531,6 +531,11 @@ def run_case(args):
                     log.flush()
                 progress.training(report["progress_users"], report["review_presentations"], report["updates"], loss_value)
 
+            bookkeeping_stride = int(options.get("bookkeeping_stride", 1))
+            if bookkeeping_stride < 1:
+                raise ValueError("F57 bookkeeping_stride must be a positive integer")
+            report["bookkeeping_stride"] = bookkeeping_stride
+            transitions = 0
             try:
                 for row, item, batch in transferred:
                     # Per-update timing (accounting only): host start and device span, read with the update's values.
@@ -553,15 +558,19 @@ def run_case(args):
                         if part_user == last_user:
                             continue
                         watch.check()
-                        import psutil
-                        process = psutil.Process()
-                        rss, skipped = sampled_tree_rss(process)
-                        report["rss_sampling_skipped_processes"] = report.get("rss_sampling_skipped_processes", 0) + skipped
-                        report["peak_process_tree_rss_mib"] = max(report["peak_process_tree_rss_mib"], rss)
+                        transitions += 1
+                        # F57: bookkeeping stride; RSS and progress JSON every `stride` users (1 = every user).
+                        if transitions % bookkeeping_stride == 1 or bookkeeping_stride == 1:
+                            import psutil
+                            process = psutil.Process()
+                            rss, skipped = sampled_tree_rss(process)
+                            report["rss_sampling_skipped_processes"] = report.get("rss_sampling_skipped_processes", 0) + skipped
+                            report["peak_process_tree_rss_mib"] = max(report["peak_process_tree_rss_mib"], rss)
                         if last_user is not None:
                             report["progress_users"] += 1
-                            report["training_elapsed_seconds"] = time.perf_counter() - train_started
-                            atomic_json(path / "result.json", report)
+                            if report["progress_users"] % bookkeeping_stride == 0:
+                                report["training_elapsed_seconds"] = time.perf_counter() - train_started
+                                atomic_json(path / "result.json", report)
                         last_user = part_user
                     cpu_labels = item.batch.labels
                     curve_n = int(((1 - cpu_labels[:, :, 6]) * cpu_labels[:, :, 4]).sum())
