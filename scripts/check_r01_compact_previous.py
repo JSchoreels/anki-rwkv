@@ -11,7 +11,7 @@ sys.path.insert(0, str(ROOT))
 def main():
     parser = ArgumentParser(description=__doc__)
     parser.add_argument("--output", type=Path, required=True)
-    parser.add_argument("--load-pipeline", type=int, default=0, choices=(0, 1, 2, 3))
+    parser.add_argument("--load-pipeline", type=int, default=0, choices=(0, 1, 2, 3, 4, 5, 6))
     parser.add_argument("--prefetch", action="store_true")
     parser.add_argument("--wave-aware", action="store_true")
     args = parser.parse_args()

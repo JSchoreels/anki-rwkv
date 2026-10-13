@@ -38,12 +38,14 @@ def source_options(dtype, exact=False, compact_previous=False, next_step_prefetc
         options.append("-DCOMPACT_PREVIOUS_STATE=1")
     if next_step_prefetch:
         options.append("-DNEXT_STEP_PREFETCH=1")
-    if load_pipeline not in (0, 1, 2, 3):
+    if load_pipeline not in (0, 1, 2, 3, 4, 5, 6):
         raise ValueError("Invalid recurrence load pipeline")
     if load_pipeline:
         if not exact:
             raise ValueError("Load pipelines require exact arithmetic")
-        options.append(("", "-DRECOMPUTE_PREFETCH=1", "-DROW_GRAD_PREFETCH=1", "-DFORWARD_PREFETCH=1")[load_pipeline])
+        options.extend(((), ("-DRECOMPUTE_PREFETCH=1",), ("-DROW_GRAD_PREFETCH=1",), ("-DFORWARD_PREFETCH=1",),
+                        ("-DFORWARD_V_PREFETCH=1",), ("-DFORWARD_PREFETCH=1", "-DFORWARD_V_PREFETCH=1"),
+                        ("-DRECOMPUTE_V_PREFETCH=1",))[load_pipeline])
     return source, tuple(options)
 
 

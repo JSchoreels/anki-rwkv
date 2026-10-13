@@ -1,5 +1,7 @@
 # GPU optimization ledger
 
+0060–0062 preparation (uncommitted): P3b alternating real-batch attribution is complete and exact; F58's diagnostic mean −0.226% is inconclusive. F58d forward row-value, F58e forward scalar-plus-row-value and F58f recomputation value-only schedules are implemented with throughput — pending final checks/frozen blocks; each is independent on accepted 0042 without inherited F58. [Preparation and raw attribution](../artifacts/diagnostics/r01-round-0060-0062/preparation.md). Whole-group F62, exact eight-way lerp, genuinely deferred memory-neutral F49 overlap and substantive F51/F52 batching remain pending with measured gains —; next prepare their semantics/checks after these distinct load schedules. Original 0048 remains the sole unproven stack; accepted 0042 unchanged.
+
 Start with the current reports below. This file keeps the track list and decisions; detailed measurements and diagnostics live with their runs.
 
 ## What to read

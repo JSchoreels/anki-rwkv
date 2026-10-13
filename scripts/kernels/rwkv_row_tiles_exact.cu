@@ -29,6 +29,12 @@ __global__ void forward_kernel(int B, int T, int H, const F* r, const F* k,
     float state[ROWS];
     #pragma unroll
     for (int q = 0; q < ROWS; ++q) state[q] = 0.0f;
+#if FORWARD_V_PREFETCH
+    float fv[ROWS];
+    #pragma unroll
+    for (int q = 0; q < ROWS; ++q)
+        fv[q] = to_float<F>(v[get_index3(b, 0, h, threadIdx.y + q * WARPS, T, H, 32)]);
+#endif
 #if FORWARD_PREFETCH
     int64_t fy = get_index3(b, 0, h, y, T, H, 32);
     float fr = to_float<F>(r[fy]), fk = to_float<F>(k[fy]), fw = w[fy];
@@ -37,6 +43,16 @@ __global__ void forward_kernel(int B, int T, int H, const F* r, const F* k,
 #endif
     for (int t = 0; t < T; ++t) {
         const int64_t iy = get_index3(b, t, h, y, T, H, 32);
+#if FORWARD_V_PREFETCH
+        float vx[ROWS];
+        #pragma unroll
+        for (int q = 0; q < ROWS; ++q) vx[q] = fv[q];
+        if (t + 1 < T) {
+            #pragma unroll
+            for (int q = 0; q < ROWS; ++q)
+                fv[q] = to_float<F>(v[get_index3(b, t + 1, h, threadIdx.y + q * WARPS, T, H, 32)]);
+        }
+#endif
 #if FORWARD_PREFETCH
         const float ry = fr, ky = fk, wy = fw, ay = fa, kdy = fd;
         const bool skipped = fs;
@@ -60,7 +76,11 @@ __global__ void forward_kernel(int B, int T, int H, const F* r, const F* k,
             const float previous = state[q];
             float dot = warp_sum(__fmul_rn(state[q], kdy));
             dot = __shfl_sync(FULL_MASK, dot, 0);
+#if FORWARD_V_PREFETCH
+            state[q] = advance(state[q], dot, wy, ay, kdy, vx[q], ky);
+#else
             state[q] = advance(state[q], dot, wy, ay, kdy, to_float<F>(v[ix]), ky);
+#endif
             const float result = warp_sum(__fmul_rn(state[q], ry));
             if (y == 0) out[ix] = to_F<F>(result);
             if (skipped) state[q] = previous;
@@ -100,18 +120,30 @@ __global__ void backward_kernel(int B, int T, int H, const F* r, const F* k,
             const int x = threadIdx.y + q * WARPS;
             state[q] = checkpoints[get_index4(b, l, h, x, y, L, H, 32, 32)];
         }
-#if RECOMPUTE_PREFETCH
-        int64_t cy = get_index3(b, l * TILE, h, y, T, H, 32);
-        float ck = to_float<F>(k[cy]), cw = w[cy], ca = to_float<F>(a[cy]), cd = to_float<F>(kd[cy]);
-        bool cs = skip[get_index1(b, l * TILE, T)];
+#if RECOMPUTE_PREFETCH || RECOMPUTE_V_PREFETCH
         float cv[ROWS];
         #pragma unroll
         for (int q = 0; q < ROWS; ++q)
             cv[q] = to_float<F>(v[get_index3(b, l * TILE, h, threadIdx.y + q * WARPS, T, H, 32)]);
 #endif
+#if RECOMPUTE_PREFETCH
+        int64_t cy = get_index3(b, l * TILE, h, y, T, H, 32);
+        float ck = to_float<F>(k[cy]), cw = w[cy], ca = to_float<F>(a[cy]), cd = to_float<F>(kd[cy]);
+        bool cs = skip[get_index1(b, l * TILE, T)];
+#endif
         for (int c = 0; c < TILE && l * TILE + c < T; ++c) {
             const int t = l * TILE + c;
             const int64_t iy = get_index3(b, t, h, y, T, H, 32);
+#if RECOMPUTE_V_PREFETCH
+            float vx[ROWS];
+            #pragma unroll
+            for (int q = 0; q < ROWS; ++q) vx[q] = cv[q];
+            if (c + 1 < TILE && t + 1 < T) {
+                #pragma unroll
+                for (int q = 0; q < ROWS; ++q)
+                    cv[q] = to_float<F>(v[get_index3(b, t + 1, h, threadIdx.y + q * WARPS, T, H, 32)]);
+            }
+#endif
 #if RECOMPUTE_PREFETCH
             const float ky = ck, wy = cw, ay = ca, kdy = cd;
             const bool skipped = cs;
@@ -144,7 +176,7 @@ __global__ void backward_kernel(int B, int T, int H, const F* r, const F* k,
 #endif
                 float dot = warp_sum(__fmul_rn(state[q], kdy));
                 dot = __shfl_sync(FULL_MASK, dot, 0);
-#if RECOMPUTE_PREFETCH
+#if RECOMPUTE_PREFETCH || RECOMPUTE_V_PREFETCH
                 state[q] = advance(state[q], dot, wy, ay, kdy, vx[q], ky);
 #else
                 state[q] = advance(state[q], dot, wy, ay, kdy, to_float<F>(v[get_index3(b, t, h, x, T, H, 32)]), ky);

@@ -1,5 +1,7 @@
 # R01 next-round order: ten counted iterations from 0048 (Expertium)
 
+Current 0060–0062 continuation prioritizes P3b attribution and three independent load schedules on accepted 0042: forward row v (F58d), forward scalar plus row v (F58e), recomputation row v only (F58f). P3b's 20 alternating pairs were exact with mean −0.226%, interval [−1.35,+0.90]%; they do not establish a beneficial F58 effect. Omit inherited F58 from these standalone measurements while preserving original 0048 as unproven historical stack state. Whole-group F62 and exact eight-way lerp move to preparation after 0062; they remain pending, not failed. [Preparation](../artifacts/diagnostics/r01-round-0060-0062/preparation.md). Original count/baseline/0.001 ceiling remain inherited.
+
 This is a proposed order, not an authorization. It was written on 2026-10-12 from the [0041–0045 review](../artifacts/diagnostics/r01-round-0041-0045-review/summary.md) and the [ledger](GPU_OPTIMIZATIONS.md), then revised with the human's decisions below. A round starts only on a quoted human request passed with `--round-iterations 10 --loss-ceiling 0.001`; counted rounds run to completion through misses. Iterations 0046 (instrumented repeat of 0042) and 0047 (calibration replicates) are uncounted and human-authorized; the counted round starts at 0048. Alex/Default and broader validation stay paused unless the human says otherwise. Track details live in the ledger rows named below.
 
 ## Active counted campaign (2026-10-13)

@@ -20,6 +20,9 @@ import json
 import os
 from pathlib import Path
 import sys
+import time
+import math
+import statistics
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
@@ -48,6 +51,7 @@ def main():
     parser.add_argument("--b-track")
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--memory-diagnostics", action="store_true")
+    parser.add_argument("--twin-pairs", type=int, default=0, help="P3b diagnostic pairs per batch, alternating AB/BA; timed forward/backward after warmup, identical restored RNG")
     parser.add_argument("--recurrence-only-stream", action="store_true")
     parser.add_argument("--self-test", action="store_true",
                         help="Negative control: flip the lowest bit of one BF16 weight in B; the check must then fail")
@@ -96,7 +100,7 @@ def main():
               "not_exercised": {name: sorted(set(options) - APPLIED) for name, options in variants.items()},
               "scope": "five real Expertium batches; BF16 forward/backward from the fresh seed-2025 checkpoint; loss and every parameter gradient",
               "batches": [], "status": "running"}
-    if any(o.get("skip_padding_sources") for o in variants.values()):
+    if not args.twin_pairs and any(o.get("skip_padding_sources") for o in variants.values()):
         original_rows_backward = exact_index.rows_backward
         result["padding_sources"] = {"calls": 0, "sources": 0, "nonzero": 0, "negative_zero": 0, "nonfinite": 0}
 
@@ -194,14 +198,34 @@ def main():
                     parent.wait_stream(side)
                 nvrtc.launch = recurrence_launch
                 stack.callback(setattr, nvrtc, "launch", original_launch)
+            if args.twin_pairs:
+                cpu_rng, cuda_rng = torch.get_rng_state(), torch.cuda.get_rng_state()
+                stats = model.get_loss(batch)
+                stats.average_loss.backward()
+                model.zero_grad(set_to_none=True)
+                torch.set_rng_state(cpu_rng)
+                torch.cuda.set_rng_state(cuda_rng)
+                torch.cuda.synchronize()
+            started = time.perf_counter()
             stats = model.get_loss(batch)
             stats.average_loss.backward()
+            torch.cuda.synchronize()
+            elapsed = time.perf_counter() - started
         torch.cuda.synchronize()
-        return stats.average_loss.detach().clone(), {name: p.grad.detach().clone() for name, p in model.named_parameters() if p.grad is not None}, {"peak_reserved_bytes": torch.cuda.max_memory_reserved(), "peak_allocated_bytes": torch.cuda.max_memory_allocated(), "allocator_retries": torch.cuda.memory_stats()["num_alloc_retries"] - memory_start["num_alloc_retries"]}
+        return stats.average_loss.detach().clone(), {name: p.grad.detach().clone() for name, p in model.named_parameters() if p.grad is not None}, {"peak_reserved_bytes": torch.cuda.max_memory_reserved(), "peak_allocated_bytes": torch.cuda.max_memory_allocated(), "allocator_retries": torch.cuda.memory_stats()["num_alloc_retries"] - memory_start["num_alloc_retries"], "forward_backward_seconds": elapsed}
 
     try:
         checkpoint = fresh_checkpoint("expertium", 2025)
         for row, item, batch in batches:
+            pairs = []
+            for pair in range(args.twin_pairs):
+                order = ("a", "b") if pair % 2 == 0 else ("b", "a")
+                measured = {name: run(variants[name], item, batch, checkpoint) for name in order}
+                equal = same(measured['a'][0], measured['b'][0]) and measured['a'][1].keys() == measured['b'][1].keys() and all(same(measured['a'][1][n], measured['b'][1][n]) for n in measured['a'][1])
+                pairs.append({"order": list(order), "a_seconds": measured['a'][2]['forward_backward_seconds'], "b_seconds": measured['b'][2]['forward_backward_seconds'], "bitwise_equal": equal})
+                print(f"[twin] batch {len(result['batches'])+1}/5 pair {pair+1}/{args.twin_pairs}; exact {equal}", flush=True)
+            if pairs:
+                result.setdefault('twin_pairs', []).append({"user_id": row['user_id'], "reviews": int(batch.num_data), "pairs": pairs})
             (loss_a, grads_a, memory_a), (loss_b, grads_b, memory_b) = (run(variants[name], item, batch, checkpoint) for name in ("a", "b"))
             names = sorted(grads_a)
             differing = [name for name in names if name not in grads_b or not same(grads_a[name], grads_b[name])]
@@ -213,6 +237,14 @@ def main():
         batches_equal = sum(b["loss_bitwise_equal"] and b["same_gradient_set"] and not b["differing_gradient_count"] for b in result["batches"])
         result["summary"] = {"batches": len(result["batches"]), "batches_bitwise_equal": batches_equal}
         result["status"] = "passed" if batches_equal == len(result["batches"]) > 0 else "failed"
+        if args.twin_pairs:
+            pairs = [p for batch in result['twin_pairs'] for p in batch['pairs']]
+            effects = [100 * math.log(p['a_seconds'] / p['b_seconds']) for p in pairs]
+            mean = statistics.mean(effects)
+            se = statistics.stdev(effects) / math.sqrt(len(effects)) if len(effects) > 1 else None
+            result['twin_timing'] = {"pairs": len(pairs), "mean_log_gain_percent": mean, "standard_error_percent": se, "descriptive_normal_95_interval_percent": [mean-1.96*se, mean+1.96*se] if se is not None else None, "scope": "diagnostic only; warm forward/backward wall time excluding model setup, GC, allocator clearing and gradient clones; alternating AB/BA within batch; seeded RNG restored after warmup; pooled heterogeneous batches, not frozen promotion gate"}
+            if not all(p['bitwise_equal'] for p in pairs):
+                result['status'] = 'failed'
     except Exception as error:
         result.update(status="failed", error=f"{type(error).__name__}: {error}")
         raise
