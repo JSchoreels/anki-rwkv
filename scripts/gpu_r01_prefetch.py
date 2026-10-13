@@ -10,12 +10,15 @@ def training_batches(rows, span, seed, pool, options, cache_paths=None, depth=8)
     if (options.get("prefetch_users") is not True
             or set(options) - {"prefetch_users", "reduced_sync", "preparation_workers", "fused_shift", "padding_factor", "async_transfer", "packed_ipc", "gpu_packed_features", "preprocessing_cache", "batched_id_encodings", "preprocessing_cache_bytes", "preprocessing_cache_mode",
                                           "split_excess", "batch_chunks", "gpu_memory_fraction", "grouped_sync", "main_threads", "driver_launch", "deferred_evaluation_metrics", "native_wkv", "native_group_norm",
-                                         "bulk_transfer", "parallel_evaluation", "jit_optimize", "main_priority", "wddm_flush", "wddm_flush_streams", "wkv_rows", "lean_step_reset", "nondeterministic", "skip_uninitialized_fill", "skip_padding_sources", "concurrent_splits", "concurrent_split_limit", "exact_bonus_products", "batched_split_gather", "fused_padded_gather", "exact_gate_glue", "exact_channel_glue", "worker_scatter_orders", "recurrence_prefetch", "recurrence_load_pipeline", "wave_aware_backward", "flat_buffers", "group_adam", "partial_shift_lerp", "explicit_shift_lerp", "exact_shift_lerp", "compact_previous_state", "exact_shift", "exact_index", "shared_shift_orders", "stream_launches", "prefetch_rows", "prefetch_shift", "training_seed", "pack_users", "prestart_pool", "fast_samples", "columnar_samples", "batch_segment_features", "direct_sample_matrix", "row_tiles_exact", "exact_group_norm", "deferred_reads", "host_placement", "sync_free_loss", "process_qos", "native_index", "native_glue", "deferred_read_depth", "wkv_tile", "bookkeeping_stride"}
+                                         "bulk_transfer", "parallel_evaluation", "jit_optimize", "main_priority", "wddm_flush", "wddm_flush_streams", "wkv_rows", "lean_step_reset", "nondeterministic", "skip_uninitialized_fill", "skip_padding_sources", "concurrent_splits", "concurrent_split_limit", "exact_bonus_products", "batched_split_gather", "fused_padded_gather", "exact_gate_glue", "exact_channel_glue", "worker_scatter_orders", "recurrence_prefetch", "recurrence_load_pipeline", "wave_aware_backward", "flat_buffers", "group_adam", "partial_shift_lerp", "explicit_shift_lerp", "exact_shift_lerp", "compact_previous_state", "exact_shift", "exact_index", "shared_shift_orders", "stream_launches", "prefetch_rows", "prefetch_shift", "training_seed", "pack_users", "prestart_pool", "fast_samples", "columnar_samples", "batch_segment_features", "direct_sample_matrix", "row_tiles_exact", "exact_group_norm", "deferred_reads", "host_placement", "sync_free_loss", "process_qos", "native_index", "native_glue", "deferred_read_depth", "wkv_tile", "bookkeeping_stride", "worker_frames", "worker_qos"}
             or bool(options.get("preprocessing_cache")) != (cache_paths is not None) or depth < 1):
         raise ValueError("Unsupported R01 ordered-prefetch preparation options")
 
     def jobs():
-        descriptors_only = cache_paths is not None and options.get("preprocessing_cache_mode") != "cold_build"
+        # F93a: with worker_frames each worker loads and splits its own user history, so the main
+        # process neither runs the history-loading thread nor pickles DataFrame slices.
+        descriptors_only = ((cache_paths is not None and options.get("preprocessing_cache_mode") != "cold_build")
+                            or bool(options.get("worker_frames")))
         source = ((row, None) for row in rows) if descriptors_only else frame_stream(rows, prefetch=True)
         for row, frame in source:
             section = split_frame(frame, row, "train") if frame is not None else None
@@ -33,6 +36,8 @@ def training_batches(rows, span, seed, pool, options, cache_paths=None, depth=8)
             first_row, first_offset = parts[0][0], parts[0][1]
             yield first_row, (parts, seed + first_row["user_id"] + first_offset, options)
 
+    if options.get("worker_frames") and (options.get("pack_users") or cache_paths is not None):
+        raise ValueError("F93a worker_frames does not combine with F29 packing or the preprocessing cache")
     if options.get("pack_users") and cache_paths is not None:
         raise ValueError("F29 packing prepares from history slices; it does not combine with the preprocessing cache")
     iterator = iter(packed_jobs() if options.get("pack_users") else jobs())

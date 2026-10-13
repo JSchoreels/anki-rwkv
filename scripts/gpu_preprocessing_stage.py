@@ -13,6 +13,19 @@ from scripts.gpu_preprocessing_cache import (PreprocessingCache, cache_context, 
 from scripts.trial_batches import TrialBatch
 
 _FRAMES = {}
+_HISTORIES = {}
+
+
+def worker_history(row):
+    """F93a: this worker's split training history for the job's user. Jobs are submitted in user
+    order, so a worker never returns to an earlier user and one resident history suffices."""
+    key = json.dumps(row, sort_keys=True)
+    if key not in _HISTORIES:
+        _HISTORIES.clear()
+        from rwkv.data_processing import get_rwkv_data
+        from scripts.gpu_batch1 import DATA
+        _HISTORIES[key] = split_frame(get_rwkv_data(DATA, row["user_id"]), row, "train")
+    return _HISTORIES[key]
 
 
 def prepare_job(row, offset, end, seed, options, section=None, cache_path=None):
@@ -55,6 +68,8 @@ def prepare_job(row, offset, end, seed, options, section=None, cache_path=None):
         saved, cache_info = cache.get_or_build(context, build)
         samples, layout = saved["samples"], saved["layout"]
     else:
+        if section is None and cache_path is None and options.get("worker_frames"):
+            section = worker_history(row).iloc[offset:end]
         if cache_path is not None or section is None:
             raise ValueError("Uncached CPU extensions require the selected DataFrame")
         from scripts.gpu_r01_samples import samples_for

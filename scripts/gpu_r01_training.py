@@ -148,14 +148,16 @@ def place_host_cores(worker_pids):
             "physical_cores": len(cores), "main_core_scheduling_classes": [cores[core]["rank"] for core in main_cores]}, previous
 
 
-def set_host_qos(worker_pids, main_priority=None):
+def set_host_qos(worker_pids, main_priority=None, worker_qos=None):
     """F86: opt the main process and preparation workers out of Windows power throttling (EcoQoS)
     and raise them to above-normal priority.
 
     Windows 11 may lower the clock and priority of background console processes, which the
     agent-launched runs are; the slow host state ran dispatch about 1.2x slower with unchanged
     GPU clocks. Records each process's previous throttling and priority state and the system
-    timer resolution (100 ns units). Scheduling only; arithmetic and order are unchanged."""
+    timer resolution (100 ns units). F93b `worker_qos="eco"` instead leaves the preparation workers
+    under EcoQoS (execution-speed throttling on) at normal priority, keeping power and boost headroom
+    for the unthrottled main process. Scheduling only; arithmetic and order are unchanged."""
     import ctypes
     from ctypes import wintypes
     import psutil
@@ -171,6 +173,9 @@ def set_host_qos(worker_pids, main_priority=None):
         getattr(kernel32, name).restype = wintypes.BOOL
         getattr(kernel32, name).argtypes = (wintypes.HANDLE, ctypes.c_int, ctypes.c_void_p, wintypes.DWORD)
     power_throttling, set_information, query_limited = 4, 0x0200, 0x1000
+    if worker_qos not in (None, "eco"):
+        raise ValueError("F93b worker_qos supports only 'eco'")
+    eco_workers = worker_qos == "eco"
     processes = []
     for pid in [os.getpid(), *sorted(worker_pids)]:
         handle = kernel32.OpenProcess(set_information | query_limited, False, pid)
@@ -181,6 +186,8 @@ def set_host_qos(worker_pids, main_priority=None):
             queried = kernel32.GetProcessInformation(handle, power_throttling, ctypes.byref(before), ctypes.sizeof(before))
             # Take control of EXECUTION_SPEED and IGNORE_TIMER_RESOLUTION with both state bits clear: never throttle.
             wanted = Throttling(1, 0x1 | 0x4, 0)
+            if eco_workers and pid != os.getpid():
+                wanted = Throttling(1, 0x1, 0x1)
             if not kernel32.SetProcessInformation(handle, power_throttling, ctypes.byref(wanted), ctypes.sizeof(wanted)):
                 raise OSError(ctypes.get_last_error(), f"SetProcessInformation(ProcessPowerThrottling) failed for {pid}")
         finally:
@@ -189,10 +196,12 @@ def set_host_qos(worker_pids, main_priority=None):
         previous_priority = int(process.nice())
         # F86b: optionally raise only the dispatching main process to high priority (never realtime).
         high = main_priority == "high" and pid == os.getpid()
-        process.nice(psutil.HIGH_PRIORITY_CLASS if high else psutil.ABOVE_NORMAL_PRIORITY_CLASS)
+        eco = eco_workers and pid != os.getpid()
+        process.nice(psutil.HIGH_PRIORITY_CLASS if high else psutil.NORMAL_PRIORITY_CLASS if eco else psutil.ABOVE_NORMAL_PRIORITY_CLASS)
         processes.append({"pid": pid, "role": "main" if pid == os.getpid() else "worker",
                           "previous_throttling": {"control_mask": before.control, "state_mask": before.state} if queried else None,
-                          "previous_priority_class": previous_priority, "priority_class": int(process.nice())})
+                          "previous_priority_class": previous_priority, "priority_class": int(process.nice()),
+                          **({"throttling": "eco"} if eco else {})})
     coarsest, finest, current = wintypes.ULONG(), wintypes.ULONG(), wintypes.ULONG()
     status = ctypes.WinDLL("ntdll").NtQueryTimerResolution(ctypes.byref(coarsest), ctypes.byref(finest), ctypes.byref(current))
     return {"mode": "main_high_unthrottled" if main_priority == "high" else "above_normal_unthrottled", "processes": processes,
@@ -478,7 +487,10 @@ def run_case(args):
                 raise ValueError("F86 process QoS needs the prestarted worker pool")
             if options.get("main_priority", "high") != "high":
                 raise ValueError("F86b main_priority supports only 'high'")
-            report["process_qos"] = set_host_qos(report["prestarted_worker_pids"], options.get("main_priority"))
+            report["process_qos"] = set_host_qos(report["prestarted_worker_pids"], options.get("main_priority"),
+                                                 options.get("worker_qos"))
+        elif options.get("worker_qos"):
+            raise ValueError("F93b worker_qos needs F86 process_qos")
         # Host garbage-collection time inside the training loop (accounting only).
         gc_totals, gc_started = {0: [0, 0.0], 1: [0, 0.0], 2: [0, 0.0]}, {}
 
