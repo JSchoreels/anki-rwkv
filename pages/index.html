@@ -58,7 +58,7 @@
   <section class="panel" id="wkv">
     <div class="panel-head">
       <h2>2. The memory: a small matrix that learns while it reads</h2>
-      <p class="hint">Inside each stream, every head keeps a state matrix <strong>S</strong>. Each review writes a <em>value</em> at a <em>key</em>; a later read with that key gets the value back. This toy uses 4&times;4 instead of 32&times;32 and four slightly overlapping keys, one per card.</p>
+      <p class="hint">Inside each stream, every head keeps a state matrix <strong>S</strong>. Each review writes a <em>value</em> at a <em>key</em>; a later review reads the matrix with its own <em>receptance</em> vector and gets back what was stored near it. This toy uses 4&times;4 instead of 32&times;32 and four slightly overlapping keys, one per card, and reads each card back with its own key.</p>
     </div>
     <div class="wkv">
       <div>
@@ -121,9 +121,9 @@
   <section class="panel prose">
     <h2>Putting it together</h2>
     <ul>
-      <li><strong>Inputs.</strong> Each review becomes 92 numbers: intervals, the grade, the answer time, today&rsquo;s workload, calendar cycles and random ID tags. See the <a href="models.html">architecture page</a>.</li>
+      <li><strong>Inputs.</strong> Each review becomes 92 numbers: intervals, the grade, the answer time, today&rsquo;s workload, day cycles and random ID tags. See the <a href="models.html">architecture page</a>.</li>
       <li><strong>Streams.</strong> The encoded review passes through the card stream, then deck, note, preset and user streams. Each stream is a stack of RWKV-7 layers whose memory is shared only among reviews with the same ID.</li>
-      <li><strong>Two questions per review.</strong> A <em>query</em> copy with the grade hidden predicts the grade (Instant), and is not allowed to write to memory. The real review then writes to memory and predicts recall at the next review&rsquo;s delay (Curve).</li>
+      <li><strong>Two questions per review.</strong> A <em>query</em> copy with the grade hidden predicts the grade (Instant); its update to memory is discarded. The real review then writes to memory and predicts recall at the next review&rsquo;s delay (Curve).</li>
       <li><strong>Training.</strong> All of this runs in parallel on the GPU over thousands of users&rsquo; histories. The <a href="campaign.html">R01 campaign</a> made that training several times faster without changing a single bit of the result.</li>
     </ul>
   </section>

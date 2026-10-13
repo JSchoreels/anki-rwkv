@@ -17,8 +17,9 @@
     $('hub-campaign').innerHTML = `×${x.speedup_x.toFixed(2)} <small>faster · ${fmt(x.accepted_reviews_per_second)} reviews/s</small>`;
   }).catch(() => { $('hub-campaign').textContent = ''; });
   fetch('data/train-8k.json', { cache: 'no-cache' }).then((r) => r.json()).then((d) => {
-    const done = (d.epochs || []).filter((e) => e.status === 'done' || e.trained_slices === e.total_slices).length;
-    const label = d.mock ? 'not started' : d.status;
+    const done = (d.epochs || []).filter((e) => (e.users_done || 0) >= d.training_users).length;
+    const STATUS = { training: 'training', evaluating: 'evaluating', finished: 'finished', failed: 'stopped', waiting: 'not started' };
+    const label = d.mock ? 'not started' : (STATUS[d.status] || d.status);
     $('hub-train').innerHTML = `${esc(label)} <small>· ${done}/${d.epochs_planned} epochs · ${fmt(d.training_users)} users</small>`;
   }).catch(() => { $('hub-train').textContent = ''; });
 
@@ -129,7 +130,7 @@
       g.append(s('text', { x: pos[i].x, y: pos[i].y + 4, 'text-anchor': 'middle' }, r.q ? '?' : G[r.grade]));
       if (r.i === sel.i && !r.q) g.append(s('rect', { x: pos[i].x - tok / 2 - 3, y: pos[i].y - tok / 2 - 3, width: tok + 6, height: tok + 6, rx: 8, fill: 'none', stroke: 'var(--ink)', 'stroke-width': 2 }));
       const tipText = r.q
-        ? `<b>Query for review ${r.i + 1}</b>${esc(c.label)}, day ${r.day}<div class="m">Grade, answer time and state are blanked. Predicts the grade (Instant), reads memory, never writes it.</div>`
+        ? `<b>Query for review ${r.i + 1}</b>${esc(c.label)}, day ${r.day}<div class="m">Grade, answer time and review state are blanked. Predicts the grade (Instant) from memory; its own update to memory is thrown away, so later reviews never see it.</div>`
         : `<b>Review ${r.i + 1}: ${GNAME[r.grade]}</b>${esc(c.label)} · ${esc(r.deck)} · day ${r.day}${r.first ? '<div class="m">first time this card is seen</div>' : ''}`;
       bindTip(g, tipText);
       const choose = () => { selected = r.i; drawHist(); };
@@ -145,7 +146,7 @@
     }).join(' · ');
     $('stream-explain').innerHTML = `${STREAM_NOTE[stream]}<br>Review ${sel.i + 1} (${esc(CARDS[sel.card].label)}, day ${sel.day}) has this many earlier reviews in each stream&rsquo;s memory: ${counts}. ` +
       `The streams are stacked, so the final prediction combines all five views.` +
-      (showQ ? ' <br>Dashed &ldquo;?&rdquo; squares are query rows: they read the memory to guess the grade before it is revealed, then the real review writes to memory.' : '');
+      (showQ ? ' <br>Dashed &ldquo;?&rdquo; squares are query rows: they use the memory to guess the grade before it is revealed, and their own update is discarded. Then the real review updates memory for good.' : '');
   }
   drawHist();
 
@@ -217,7 +218,7 @@
     seq.replaceChildren(...SEQ.map(([ki, v], i) => {
       const chip = h('span', { class: (i === t - 1 ? 'now' : i < t - 1 ? 'done' : '') + (v ? '' : ' read'), style: { '--fc': KCOL[ki] } },
         h('i'), v ? `write ${KNAME[ki]}` : `read ${KNAME[ki]}?`);
-      bindTip(chip, v ? `<b>Review of ${KNAME[ki]}</b>writes value [${v.map(fmt2).join(', ')}] at its key` : `<b>Query for ${KNAME[ki]}</b>reads S·k; skip = true, so nothing is written`);
+      bindTip(chip, v ? `<b>Review of ${KNAME[ki]}</b>writes value [${v.map(fmt2).join(', ')}] at its key` : `<b>Query for ${KNAME[ki]}</b>reads S with this card\u2019s vector; skip = true, so its update is not kept`);
       return chip;
     }));
     // State heatmap.
@@ -254,7 +255,7 @@
     const cur = SEQ[t - 1];
     let msg;
     if (!cur) msg = 'Press <strong>Step</strong> or <strong>Play</strong>. Card A is written three times with different values, and read back in between.';
-    else if (!cur[1]) msg = `A query reads <strong>S&middot;k</strong> for ${KNAME[cur[0]]} and does not change S. This is how the model guesses a grade before it sees it.`;
+    else if (!cur[1]) msg = `A query reads S for ${KNAME[cur[0]]} and leaves S unchanged. This is how the model guesses a grade before it sees it. (In the real model a query computes an update, uses it for its own output, then throws it away.)`;
     else if (rule === 'delta') msg = `The delta rule first <strong>erases</strong> what S already returns for this key (the a&middot;(S&middot;k)&middot;k&#7488; term), then writes the new value. With a = 1 and w = 1 the latest value for a key comes back almost exactly; the small errors come from the keys overlapping.`;
     else msg = `Without the erase term, new values are simply <strong>added</strong> on top of the old ones. Watch card A&rsquo;s error grow each time it is rewritten: the memory returns a blend of every value ever stored there.`;
     if (t >= SEQ.length) msg += ` <br>Done. Switch the rule, or lower the decay w to see older memories fade.`;

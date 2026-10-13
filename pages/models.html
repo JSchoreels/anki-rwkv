@@ -23,7 +23,7 @@
 </header>
 
 <main class="wrap">
-  <div class="explain-box" style="margin-top:16px"><strong>Which versions.</strong> &ldquo;Alex&rdquo; is the default model from srs-benchmark (commit <code>3effecc</code>). &ldquo;Expertium&rdquo; is his iter36 snapshot from rwkv-anki-autoresearch (commit <code>39666c6</code>), the version this repository trains. Expertium&rsquo;s current runs keep this body but swap the output curve for a GRU-style head; see <a href="#heads">the output heads</a>.</div>
+  <div class="explain-box" style="margin-top:16px"><strong>Which versions.</strong> &ldquo;Alex&rdquo; is the default model from srs-benchmark (commit <code>3effecc</code>). &ldquo;Expertium&rdquo; is his iter36 snapshot from rwkv-anki-autoresearch (commit <code>39666c6</code>), the version this repository trains. Expertium&rsquo;s current runs use the same stream layout but a different curve head (and may enable other options not shown here); see <a href="#heads">the output heads</a>.</div>
   <section class="cards compact" aria-label="Headline comparison">
     <div class="card big"><div class="k">Parameters</div><div class="v" id="h-params">&ndash;</div><div class="s" id="h-params-sub"></div></div>
     <div class="card"><div class="k">Hidden width &times; heads</div><div class="v" id="h-width">&ndash;</div><div class="s">channels &times; heads (32 channels per head)</div></div>
@@ -113,7 +113,7 @@
     <div class="keys"><span><i style="background:var(--s1)"></i>basis-curve stability</span><span><i style="background:var(--s2)"></i>correction point</span></div>
     <p class="explain-box">Both rugs above describe the versions trained in this repository. In the iter36 snapshot the <span id="ahead-n"></span>-parameter correction head is active.</p>
     <h3>Expertium&rsquo;s current head: a few learned power-law curves</h3>
-    <p class="lead-p">Expertium&rsquo;s current runs set <code>RWKV_GRU_HEAD=N</code> (N&nbsp;=&nbsp;3 in his runs), modelled on the GRU model in srs-benchmark. Instead of weighting dozens of curves with fixed stabilities, the head predicts, for every review, the weight <code>w<sub>i</sub></code>, stability <code>S<sub>i</sub></code> and decay <code>d<sub>i</sub></code> of N curves:</p>
+    <p class="lead-p">Expertium&rsquo;s current runs set <code>RWKV_GRU_HEAD=N</code> (N&nbsp;=&nbsp;3 in his runs), modelled on the GRU model in srs-benchmark. Instead of weighting dozens of curves with fixed stabilities, three small linear layers on the curve head&rsquo;s hidden output predict, for every review, the weight <code>w<sub>i</sub></code>, stability <code>S<sub>i</sub></code> and decay <code>d<sub>i</sub></code> of N curves. The Instant head is unchanged.</p>
     <p class="formula">R(t) = &Sigma;<sub>i=1..N</sub> w<sub>i</sub> &middot; (1 + t / S<sub>i</sub>)<sup>&minus;d<sub>i</sub></sup>&nbsp;&nbsp;&nbsp;&nbsp;S<sub>i</sub>, d<sub>i</sub> &gt; 0, weights sum to 1</p>
     <p class="lead-p">This is a power-law shape like FSRS&rsquo;s forgetting curve. The correction head is switched off (the same as <code>RWKV_NO_AHEAD_RESIDUAL=1</code>), so every curve, and their mix, can only fall over time. Its parameter count is not included in the totals on this page, which describe the iter36 snapshot. Try both kinds of head in <a href="./#curve">the curve explainer</a> on the home page.</p>
   </section>
