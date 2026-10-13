@@ -72,7 +72,7 @@ def describe(track):
                 "F62": "flat optimizer buffers",
                 "F60": "deferred per-user evaluation metric reads",
                 "F65b": "native WKV dispatcher/autograd using unchanged NVRTC kernels",
-                "F65c": "native exact GroupNorm dispatcher/autograd using unchanged reduction kernels", "F71": "one preparation worker per physical core, main process on the remaining cores", "F73a": "five preparation workers with F71 core placement", "E72": "accepted iteration-0072 Expertium configuration: E33, F48, F50, F65b (alias for Windows path length)", "F73b": "four preparation workers with F71 core placement", "F86": "main process and preparation workers opted out of Windows power throttling at above-normal priority",
+                "F65c": "native exact GroupNorm dispatcher/autograd using unchanged reduction kernels", "F71": "one preparation worker per physical core, main process on the remaining cores", "F73a": "five preparation workers with F71 core placement", "E72": "accepted iteration-0072 Expertium configuration: E33, F48, F50, F65b (alias for Windows path length)", "F73b": "four preparation workers with F71 core placement", "E76": "accepted iteration-0076 Expertium configuration: E72, F71, F73a (alias for Windows path length)", "F86": "main process and preparation workers opted out of Windows power throttling at above-normal priority",
                 "F62b": "whole active-group AdamW packing",
                 "F62c": "reused whole active-group AdamW buffers",
                 "F34g": "fused rounded shift/lerp derivative elements",
