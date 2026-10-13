@@ -1,0 +1,292 @@
+{
+  "status": "partial counted round; remaining iterations already authorized",
+  "model": "expertium",
+  "iterations": [
+    "0066",
+    "0067",
+    "0068"
+  ],
+  "accepted_iteration": "0042",
+  "accepted_result": "artifacts/retraining/gpu-retrain-r01/iteration-0042/expertium/E33-F48-F50/result.json",
+  "accepted_options": {
+    "prefetch_users": true,
+    "preparation_workers": 6,
+    "gpu_packed_features": true,
+    "packed_ipc": true,
+    "async_transfer": true,
+    "batched_id_encodings": true,
+    "grouped_sync": true,
+    "main_threads": 1,
+    "bulk_transfer": true,
+    "parallel_evaluation": true,
+    "exact_shift": true,
+    "exact_index": true,
+    "batch_chunks": 512,
+    "gpu_memory_fraction": 0.95,
+    "fast_samples": true,
+    "prestart_pool": true,
+    "row_tiles_exact": 4,
+    "exact_group_norm": true,
+    "deferred_reads": true,
+    "shared_shift_orders": true,
+    "stream_launches": true,
+    "prefetch_rows": true,
+    "sync_free_loss": true,
+    "columnar_samples": true,
+    "skip_uninitialized_fill": true,
+    "skip_padding_sources": true
+  },
+  "accepted_reviews_per_second": 197499.48784125826,
+  "next_iteration_hint": "0069",
+  "prior_miss_streak": 21,
+  "implementation_git_commit": "dab8feead8d278233f1972bd24683903a239aea7",
+  "new_authorization_required": false,
+  "host_path": "docs/R01_HOST_PATH.md",
+  "ledger": "docs/GPU_OPTIMIZATIONS.md",
+  "summary": "artifacts/retraining/gpu-retrain-r01/codex-round-0066-0068-summary.md",
+  "next_steps": [
+    "Continue --iteration 0069 --previous 0068: campaign budget 23/index21 complete, exactly two authorized candidates remain through 0070; inherit original baseline and cumulative 0.001 ceiling.",
+    "Accepted 0042 E33-F48-F50/options unchanged. Retain 0048 F58, 0061 F58e mode5, 0064 F58g mode7 and 0067 F34e exact shift lerp forward as unproven options; modes5/7 cannot stack. Omit rejected whole-group F62b/F62c and prior rejected schedules/bundles.",
+    "Prioritize exact shift lerp backward consolidation removing graph reconstruction while preserving original op-boundary rounding and reductions; check synthetic and five real loss/every-gradient batches before freeze.",
+    "Other substantive pending mechanisms: memory-neutral genuinely deferred F49 with main-stream outputs, F51 token work preserving dropout and split weight-gradient order, F52 downstream padding removal preserving skip/residual/bonus/dropout semantics. Retain failures and choose a concretely changed fallback. Alex/broader validation paused; parent controls final chat/shutdown."
+  ],
+  "acceptance": "Use current LOOP gates and source/runtime-compatible recorded checks; no broader validation authorized",
+  "round_iteration_budget": 23,
+  "completed_candidate_iterations": 21,
+  "remaining_authorized_iterations": 2,
+  "round_start_iteration": "0048",
+  "round_authorization": "I want you to follow R01 cycles, spawn each time a new GPT 6.1 Sol medium thread for 3 iterations, until you reach iteration number 70. Go up to 70 and then shutdown the computer.",
+  "next_iteration": "0069",
+  "previous_argument": "0068",
+  "loss_ceiling_fraction": 0.001,
+  "stack_candidates": [
+    {
+      "iteration": "0048",
+      "track": "E33-F48-F50-F58",
+      "option_overrides": {
+        "recurrence_prefetch": true
+      },
+      "mean_gain_percent": 0.10968623263891697,
+      "lower_bound_percent": -1.6501143406453256,
+      "decision": "positive unproven at six-block cap"
+    },
+    {
+      "iteration": "0061",
+      "track": "E33-F48-F50-F58e",
+      "option_overrides": {
+        "recurrence_load_pipeline": 5
+      },
+      "mean_gain_percent": 2.7137132218191917,
+      "lower_bound_percent": -2.142808733080881,
+      "decision": "positive unproven at six-block cap",
+      "caveat": "0061 mean dominated by one +15.964% fast-state block with faster preparation/validation. Combined original F58 + F58e checked in 0063 but rejected at two blocks; neither standalone component is independently promoted."
+    },
+    {
+      "iteration": "0064",
+      "track": "E33-F48-F50-F58g",
+      "option_overrides": {
+        "recurrence_load_pipeline": 7,
+        "recurrence_prefetch": false
+      },
+      "mean_gain_percent": 0.016917791858417353,
+      "lower_bound_percent": -0.7974171853721401,
+      "decision": "positive unproven at six-block cap",
+      "caveat": "Modes 5/7/8 are alternative forward schedules; no additive effect or compatible combination is established."
+    },
+    {
+      "iteration": "0067",
+      "track": "E33-F48-F50-F34e",
+      "option_overrides": {
+        "exact_shift_lerp": true
+      },
+      "mean_gain_percent": 0.22851384351982862,
+      "lower_bound_percent": -0.5875439429085749,
+      "decision": "positive unproven at six-block cap",
+      "caveat": "Forward-only exact gather/lerp; original autograd graph reconstructed backward. No additive effect with retained recurrence options established."
+    }
+  ],
+  "rejected_candidates": [
+    "0049 E33-F48-F50-F58-F55",
+    "0050 E33-F48-F50-F58-F62",
+    "0051 E33-F48-F50-F58-F34a",
+    "0052 E33-F48-F50-F58-F34b",
+    "0053 E33-F48-F50-F58-F34c",
+    "0054 E33-F48-F50-F58-F34d",
+    "0055 E33-F48-F50-F58-F51a",
+    "0056 E33-F48-F50-F58-F52a",
+    "0057 E33-F48-F50-F58-F58a",
+    "0058 E33-F48-F50-F58-F58b",
+    "0059 E33-F48-F50-F58-F58c",
+    "0060 E33-F48-F50-F58d",
+    "0062 E33-F48-F50-F58f",
+    "0063 E33-F48-F50-F58-F58e",
+    "0065 E33-F48-F50-F58h",
+    "0066 E33-F48-F50-F62b",
+    "0068 E33-F48-F50-F62c"
+  ],
+  "rejected_option_overrides": {
+    "recurrence_load_pipeline": [
+      1,
+      2,
+      3,
+      4,
+      6,
+      8
+    ],
+    "group_adam": [
+      1,
+      2
+    ]
+  },
+  "rejected_bundles": [
+    {
+      "iteration": "0063",
+      "option_overrides": {
+        "recurrence_prefetch": true,
+        "recurrence_load_pipeline": 5
+      },
+      "decision": "reject; do not infer rejection of either standalone component"
+    }
+  ],
+  "candidate_preparation": "artifacts/diagnostics/r01-round-0066-0068/preparation.md",
+  "batch_decisions": [
+    {
+      "iteration": "0066",
+      "blocks": 2,
+      "mean_percent": -0.8602017237646864,
+      "lower_bound_percent": -2.2541322554790133,
+      "decision": "reject",
+      "reference_mean_reviews_per_second": 168603.64148339117,
+      "candidate_mean_reviews_per_second": 167224.86323599762,
+      "paired_wall": {
+        "a_seconds": 43.280182600050466,
+        "b_seconds": 43.400435100105824,
+        "gain_percent": -0.27707671542459567,
+        "median_update_gain_percent": -0.16413868960527545,
+        "gain_ci95_percent": [
+          -0.9987248221682399,
+          0.4063222945378975
+        ],
+        "segment_gain_percent": [
+          -1.3173934334221205,
+          -0.6272085543460371,
+          -0.2531044370102542,
+          0.49947491162996016,
+          -1.3054096281309047,
+          -1.9156082690219733,
+          1.182388437715809,
+          2.0743956051815005
+        ],
+        "trimmed_5mad_gain_percent": -0.36655357250690024,
+        "trimmed_3mad_gain_percent": -0.36658705364737143
+      },
+      "allocator_retries": 0,
+      "ooms": 0,
+      "sm_clock_median_values": [
+        3157.0
+      ],
+      "peak_reserved_values_mib": [
+        12188.0
+      ],
+      "all_evaluations_exact": true
+    },
+    {
+      "iteration": "0067",
+      "blocks": 6,
+      "mean_percent": 0.22851384351982862,
+      "lower_bound_percent": -0.5875439429085749,
+      "decision": "stack candidate",
+      "reference_mean_reviews_per_second": 168533.62068437322,
+      "candidate_mean_reviews_per_second": 168748.34914034788,
+      "paired_wall": {
+        "a_seconds": 42.25195370003348,
+        "b_seconds": 42.029082899942296,
+        "gain_percent": 0.5302775714182806,
+        "median_update_gain_percent": 0.12625832067776344,
+        "gain_ci95_percent": [
+          -0.038199837335040066,
+          1.1016745721216914
+        ],
+        "segment_gain_percent": [
+          0.0015917931841302746,
+          -0.21280022327060388,
+          0.2105469899211787,
+          1.842454307139274,
+          0.42877021408567195,
+          0.27962545946753625,
+          0.2741533776665639,
+          1.328142527015297
+        ],
+        "trimmed_5mad_gain_percent": 0.40352658660263163,
+        "trimmed_3mad_gain_percent": 0.32619302678031925
+      },
+      "allocator_retries": 0,
+      "ooms": 0,
+      "sm_clock_median_values": [
+        3157.0
+      ],
+      "peak_reserved_values_mib": [
+        12188.0
+      ],
+      "all_evaluations_exact": true
+    },
+    {
+      "iteration": "0068",
+      "blocks": 2,
+      "mean_percent": -0.7833841733387636,
+      "lower_bound_percent": -2.178394779158277,
+      "decision": "reject",
+      "reference_mean_reviews_per_second": 168444.28153230163,
+      "candidate_mean_reviews_per_second": 166925.69370046252,
+      "paired_wall": {
+        "a_seconds": 43.29598819982493,
+        "b_seconds": 43.54178489980404,
+        "gain_percent": -0.5645076345508704,
+        "median_update_gain_percent": -0.5874011592466699,
+        "gain_ci95_percent": [
+          -1.4745089468543249,
+          0.3571993915706617
+        ],
+        "segment_gain_percent": [
+          -1.7780406396346038,
+          -0.6428164768749633,
+          -1.0339570494097727,
+          -0.5512835551193196,
+          -0.3671327220673315,
+          -0.4976852272012722,
+          0.29778604079337967,
+          0.9804709282315249
+        ],
+        "trimmed_5mad_gain_percent": -0.7870612094777685,
+        "trimmed_3mad_gain_percent": -0.8724477937348429
+      },
+      "allocator_retries": 0,
+      "ooms": 0,
+      "sm_clock_median_values": [
+        3157.0
+      ],
+      "peak_reserved_values_mib": [
+        12188.0,
+        12192.0
+      ],
+      "all_evaluations_exact": true
+    }
+  ],
+  "worker_stop": "Completed exactly 0066-0068; parent controls final 0069-0070 chat and shutdown",
+  "pending_components": [
+    "F34 exact lerp backward consolidation replacing graph reconstruction while preserving original rounding/reduction order",
+    "F49 independent deferred recurrence overlap only after main-stream output preallocation and memory-neutral preparation",
+    "Substantive F51 token preparation preserving split weight-gradient order and dropout draws",
+    "F52 downstream padding removal preserving skip-state, residual/bonus/normalization/dropout behavior"
+  ],
+  "p3b_attribution": {
+    "status": "exact diagnostic, inconclusive",
+    "result": "artifacts/diagnostics/r01-round-0060-0062/twin/result.json",
+    "pairs": 20,
+    "mean_log_gain_percent": -0.22556948161998266,
+    "promotion_rule_unchanged": true
+  },
+  "schedule_compatibility": "Modes 5, 7 and 8 are mutually exclusive forward schedules. Original F58 is a distinct backward scalar prefetch. Do not count a replay of rejected 0063 or assume retained gains add.",
+  "report_repairs": "0066 direct post-block report and 0067/0068 initial reports hit Windows Errno22 opening run log; explicit report-only resumes succeeded, preserving completed training/profile and attempt logs.",
+  "implementation_provenance_caveat": "0066 froze before implementation commit; 0067/0068 after. Use recorded experiment origin and source archives, never substitute implementation commit for historical test revision."
+}
