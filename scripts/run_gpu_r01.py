@@ -50,7 +50,8 @@ class R01SourceWatch(shared.SourceWatch):
             self.hashes["scripts/gpu_scatter_orders.py"] = manifest["scripts/gpu_scatter_orders.py"]
         # F31 kernels exist from iteration 0021; older archives keep their original watch set.
         for name in ("scripts/gpu_r01_flat.py", "scripts/gpu_r01_group_adam.py", "rwkv/model/fused_shift.py", "scripts/gpu_row_tiles.py", "scripts/kernels/rwkv_row_tiles_exact.cu", "rwkv/model/exact_group_norm.py",
-                     "rwkv/model/exact_index.py", "rwkv/model/nvrtc.py", "rwkv/model/exact_glue.py", "rwkv/model/native_launch.py", "rwkv/model/csrc/native_launch.cpp"):
+                     "rwkv/model/exact_index.py", "rwkv/model/nvrtc.py", "rwkv/model/exact_glue.py", "rwkv/model/native_launch.py", "rwkv/model/csrc/native_launch.cpp",
+                     "scripts/r01_evaluation_reuse.py"):
             if name in manifest:
                 self.hashes[name] = manifest[name]
         self.implementation_sha256 = hashlib.sha256(json.dumps(self.hashes, sort_keys=True).encode()).hexdigest()
@@ -298,6 +299,10 @@ def prepare(output, iteration="0002", previous=None, plan=None, resume_prepared=
                         case_explanations=proposed.get("case_explanations", {}),
                         eligible_tracks={m: proposed["candidate_tracks"][m] for m in models},
                         check_policy="reuse applicable profiles; focused smoke checks for changed code, no mandatory paired repeats")
+        if "turnaround" in proposed:
+            # F74: opt-in turnaround and budget settings; absent means the unchanged loop.
+            from scripts.r01_replicates import turnaround_settings
+            protocol["turnaround"] = turnaround_settings(proposed["turnaround"])
     # Predeclare which gains count as faster rather than run-to-run variation.
     from scripts.gpu_r01_policy import planned_updates
     protocol["planned_updates"] = {model: planned_updates(

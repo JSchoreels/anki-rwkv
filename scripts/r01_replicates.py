@@ -7,11 +7,18 @@ low, in the requested order (for example A,A,A,A for calibration or A,B,A,B for 
 
   r01_replicates.py prepare --source <iteration dir> --output <new iteration dir> --authorization "<quote>"
   r01_replicates.py run --output <iteration dir> --sequence TRACK[,TRACK...] --reason "<repeat reason>"
+
+F74 turnaround (human request 2026-10-13: "make sure iteration can be as short as possible tho, avoiding multiple
+time the same work, for example through storing prior result to reuse later"): every run is indexed in the
+result store, and a protocol frozen with turnaround.evaluation_reuse="exact_replica" names an already evaluated
+run of the same track as the evaluation origin. The training process re-proves the origin (F67) and skips the
+held-out pass only when every hash and manifest matches; otherwise it evaluates normally. Timing is unaffected.
 """
 from argparse import ArgumentParser
 from datetime import datetime, timezone
 import hashlib
 import json
+import os
 from pathlib import Path
 import subprocess
 import sys
@@ -21,6 +28,55 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 from scripts.r01_workflow import configure_runtime, run_logged, write_json
 from scripts.gpu_r01_policy import launch_plan, result_metadata
+
+
+# F74 settings frozen in protocol["turnaround"]; absent means the unchanged loop. Reuse-only items (T1, T2) may be
+# enabled now; measurement-design items (T4-T6) and P-D budgets stay off until the human approves them.
+TURNAROUND_DEFAULTS = {"evaluation_reuse": "off", "candidate_full_run": "separate", "multi_arm_blocks": False,
+                       "primer_passes": None, "strong_negative_prescreen": None,
+                       "variant_cap_per_track": None, "gpu_budget_minutes": None, "approval": None}
+REUSE_ONLY = {"evaluation_reuse": ("off", "exact_replica"), "candidate_full_run": ("separate", "first_block")}
+NEEDS_APPROVAL = ("multi_arm_blocks", "primer_passes", "strong_negative_prescreen", "variant_cap_per_track", "gpu_budget_minutes")
+
+
+def turnaround_settings(value):
+    """Validate opt-in F74/P-D settings before a protocol freezes them."""
+    unknown = sorted(set(value) - set(TURNAROUND_DEFAULTS))
+    if unknown:
+        raise ValueError(f"Unknown turnaround settings: {unknown}")
+    settings = {**TURNAROUND_DEFAULTS, **value}
+    for key, allowed in REUSE_ONLY.items():
+        if settings[key] not in allowed:
+            raise ValueError(f"turnaround.{key} must be one of {allowed}")
+    enabled = [key for key in NEEDS_APPROVAL if settings[key] not in (None, False)]
+    if enabled and not (settings["approval"] or "").strip():
+        raise ValueError(f"{enabled} change the measurement design or round budget; quote the human approval in turnaround.approval")
+    if settings["multi_arm_blocks"]:
+        raise ValueError("T4 multi-arm blocks need multi-candidate protocols (prepare, select, pairing, report); not implemented")
+    if settings["primer_passes"] is not None and settings["primer_passes"] not in (1, 2, 3):
+        raise ValueError("turnaround.primer_passes must be 1, 2 or 3 (3 is the unchanged primer)")
+    prescreen = settings["strong_negative_prescreen"]
+    if prescreen is not None and not (isinstance(prescreen, dict) and prescreen.get("threshold_percent", 0) < 0):
+        raise ValueError("turnaround.strong_negative_prescreen needs a negative threshold_percent")
+    for key in ("variant_cap_per_track", "gpu_budget_minutes"):
+        if settings[key] is not None and not (isinstance(settings[key], (int, float)) and settings[key] > 0):
+            raise ValueError(f"turnaround.{key} must be positive")
+    return settings
+
+
+def evaluation_origin(protocol_path, track, iteration_dir, smoke=False):
+    """Controller-relative case directory of an evaluated exact-replica origin, or None (T1)."""
+    from scripts.r01_result_store import evaluation_origin as lookup, record
+    for path in [*iteration_dir.glob("expertium/*/result.json"), *iteration_dir.glob("replicates/*/expertium/*/result.json"),
+                 *iteration_dir.glob("replicates/*/functional-smoke-v1/expertium/*/result.json")]:
+        try:
+            record(ROOT, path)  # idempotent; keeps the index current for runs launched by older helpers
+        except ValueError:
+            pass
+    entry, refused = lookup(ROOT, protocol_path, "expertium", track, iteration_dir=iteration_dir, smoke=smoke)
+    if entry is None:
+        return None, refused
+    return Path(entry["value"]["result"]).parent.as_posix(), refused
 
 
 def gpu_state():
@@ -81,6 +137,7 @@ def run(args):
     unknown = [track for track in sequence if track not in protocol["case_options_by_model"]["expertium"]]
     if unknown:
         raise ValueError(f"Tracks outside the frozen protocol: {unknown}")
+    turnaround = protocol.get("turnaround") or {}
     replicates = output / "replicates"
     existing = sorted(int(p.name[1:]) for p in replicates.glob("r*") if p.name[1:].isdigit()) if replicates.exists() else []
     # The record stays beside the iteration folder: the isolated runtime copies that folder once,
@@ -103,25 +160,47 @@ def run(args):
                 (folder / name).write_bytes((output / name).read_bytes())
         state = {"background": quiet, "gpu_state": gpu_state(), "recorded_utc": datetime.now(timezone.utc).isoformat()}
         write_json(folder / "background-load.json", {"total_cpu_percent": quiet["total_cpu_percent"], **state})
-        launch = SimpleArgs(track, args.reason)
+        launch = SimpleArgs(track, args.reason, smoke=args.smoke)
         print(f"[replicates] r{offset} {track}: " + json.dumps(launch_plan(ROOT, folder, launch))[:200], flush=True)
         command = [sys.executable, "-X", "utf8", str(ROOT / "scripts/run_isolated_gpu_r01.py"), "--case",
                    "--output", str(folder.relative_to(ROOT)), "--model", "expertium", "--track", track,
-                   "--repeat-reason", args.reason]
+                   "--repeat-reason", args.reason] + (["--smoke", "--check-reason", args.reason] if args.smoke else [])
+        origin = None
+        if turnaround.get("evaluation_reuse") == "exact_replica" and not args.no_evaluation_reuse:
+            origin, refused = evaluation_origin(output / "protocol.json", track, output, smoke=args.smoke)
+            print(f"[replicates] r{offset} {track}: evaluation origin {origin or 'none (evaluates)'}"
+                  + (f"; {len(refused)} stored records refused" if refused else ""), flush=True)
         # Logs stay outside the iteration folder: the isolated runtime copies it, and a live log would differ at export.
         log = output.parent / f"{output.name}-replicate-r{offset}-console.log"
-        run_logged(f"replicate-r{offset}", command, log, root=ROOT, heartbeat_seconds=60, timeout_seconds=1200)
-        result = json.loads((folder / "expertium" / track / "result.json").read_text(encoding="utf-8"))
+        from scripts.r01_evaluation_reuse import ORIGIN_ENVIRONMENT
+        if origin:
+            os.environ[ORIGIN_ENVIRONMENT] = origin
+        try:
+            run_logged(f"replicate-r{offset}", command, log, root=ROOT, heartbeat_seconds=60, timeout_seconds=1200)
+        finally:
+            os.environ.pop(ORIGIN_ENVIRONMENT, None)
+        result_path = folder / ("functional-smoke-v1" if args.smoke else "") / "expertium" / track / "result.json"
+        result = json.loads(result_path.read_text(encoding="utf-8"))
+        try:
+            from scripts.r01_result_store import record as store
+            store(ROOT, result_path)
+        except Exception as error:  # noqa: BLE001 - indexing never stops a timing campaign
+            print(f"[replicates] result store not updated: {error}", flush=True)
+        reuse = result.get("evaluation_reuse") or {}
         record["runs"].append({"replicate": f"r{offset}", "track": track, "reviews_per_second": result["reviews_per_second"],
                                "training_seconds": result["training_seconds"], "trained_parameter_sha256": result["trained_parameter_sha256"],
-                               **state})
+                               "smoke": args.smoke, "process_wall_seconds": result.get("process_wall_seconds"),
+                               "validation_seconds": result.get("validation_seconds"),
+                               "evaluation_reuse": reuse.get("status", "not requested"), "evaluation_origin": origin, **state})
         write_json(log_path, record)
-        print(f"[replicates] r{offset} {track}: {result['reviews_per_second']:,.0f} reviews/s", flush=True)
+        print(f"[replicates] r{offset} {track}: {result['reviews_per_second']:,.0f} reviews/s; evaluation "
+              f"{reuse.get('status', 'computed')} ({result.get('validation_seconds', float('nan')):.1f} s)"
+              + (f"; refused: {reuse.get('reasons', [])[:2]}" if reuse.get("status") == "refused" else ""), flush=True)
 
 
 class SimpleArgs:
-    def __init__(self, track, reason):
-        self.model, self.track, self.smoke, self.check_reason = "expertium", track, False, None
+    def __init__(self, track, reason, smoke=False):
+        self.model, self.track, self.smoke, self.check_reason = "expertium", track, smoke, reason if smoke else None
         self.repeat_reason = reason
 
 
@@ -138,6 +217,8 @@ def main():
     r.add_argument("--reason", required=True)
     r.add_argument("--max-background-cpu", type=float, default=10.0)
     r.add_argument("--max-wait-minutes", type=float, default=20.0)
+    r.add_argument("--smoke", action="store_true", help="Functional smoke replicates (F74 end-to-end reuse proof), never timing")
+    r.add_argument("--no-evaluation-reuse", action="store_true", help="Evaluate every run even when the protocol enables T1")
     args = parser.parse_args()
     {"prepare": prepare, "run": run}[args.command](args)
 

@@ -392,9 +392,16 @@ def block_decision(effects_percent, calibrated_sd_percent=BLOCK_CALIBRATED_SD_PE
 def replicate_blocks(output, model, control_track, candidate_track):
     """Pair each candidate replicate with the reference replicate launched just before it (R C R C ...)."""
     folders = sorted((Path(output) / "replicates").glob("r*"), key=lambda path: int(path.name[1:]) if path.name[1:].isdigit() else -1)
+    protocol_path = Path(output) / "protocol.json"
+    turnaround = json.loads(protocol_path.read_text(encoding="utf-8")).get("turnaround") or {} if protocol_path.exists() else {}
+    if turnaround.get("candidate_full_run") == "first_block" and folders and (Path(output) / model / candidate_track / "result.json").exists():
+        # F74 T2: the step-5 candidate full run was launched right after r1 (the reference), so it is block 1's candidate.
+        folders.insert(1, Path(output))
     blocks, waiting = [], None
     for folder in folders:
         for track in (control_track, candidate_track):
+            if folder == Path(output) and track == control_track:
+                continue
             case = folder / model / track
             if not (case / "result.json").exists():
                 continue

@@ -349,7 +349,8 @@ def run_case(args):
         first = split_frame(get_rwkv_data(DATA, rows[0]["user_id"]), rows[0], "train").iloc[:1024]
         prime = prepare(make_samples(first, rows[0]["user_id"], 128), seed=2025).to(device)
         prime.start = prime.start.to(dtype)
-        for _ in range(3):
+        # F74 T5 (pending approval, off): a frozen protocol may shorten the discarded primer.
+        for _ in range((protocol.get("turnaround") or {}).get("primer_passes") or 3):
             base.zero_grad(set_to_none=True)
             stats = base.get_loss(prime)
             if stats is None or not torch.isfinite(stats.average_loss):
@@ -651,32 +652,69 @@ def run_case(args):
         report["status"] = "evaluating"
         atomic_json(path / "result.json", report)
         progress = Progress(f"{args.model}/{args.track}", len(evaluation_rows), 0)
+        # F74 T1: an exact replica may reuse an evaluated origin's scores after the fail-closed F67 proof.
+        from scripts import r01_evaluation_reuse as reuse
+        origin = reuse.origin_request(os.environ.get("GPU_R01_CONTROLLER_ROOT")) \
+            if (protocol.get("turnaround") or {}).get("evaluation_reuse") == "exact_replica" else None
+        if isinstance(origin, dict):
+            report["evaluation_reuse"], origin = origin, None
+        elif origin is not None:
+            reasons = reuse.precheck(report, origin)
+            if reasons:
+                report["evaluation_reuse"], origin = {"status": "refused", "reasons": reasons, "origin": str(origin)}, None
+
+        def heldout_batches(row, evaluation_pool):
+            user = row["user_id"]
+            section = split_frame(get_rwkv_data(DATA, user), row, "validation")
+            offsets = range(0, len(section), 1024)
+            seeds = [2025 + user + row["validation_range"][0] + offset for offset in offsets]
+            if evaluation_pool is None:
+                batches = (prepare(make_samples(section.iloc[offset:offset + 1024], user, 128), seed=seed)
+                           for offset, seed in zip(offsets, seeds))
+            else:
+                # Futures are consumed in submission order, so hashing and evaluation order are unchanged.
+                futures = [evaluation_pool.submit(evaluation_job, section.iloc[offset:offset + 1024], user, seed)
+                           for offset, seed in zip(offsets, seeds)]
+                batches = (future.result() for future in futures)
+            for batch in batches:
+                for tensor in (batch.start, batch.labels, batch.label_review_th):
+                    validation_hash.update(tensor.numpy().tobytes())
+                yield batch
         with preparation_pool(workers if options.get("parallel_evaluation") else 0) as evaluation_pool:
-            for row in evaluation_rows:
+            if origin is not None:
+                # Prepare and hash the held-out inputs exactly as evaluation would, without the GPU pass.
+                for row in evaluation_rows:
+                    watch.check()
+                    for _ in heldout_batches(row, evaluation_pool):
+                        pass
+                report["validation_input_sha256"] = validation_hash.hexdigest()
+                report["evaluation_context"] = reuse.evaluation_context(ROOT, report, provenance)
+                try:
+                    proof = reuse.prove_reuse(report, protocol, origin, json.loads((origin.parents[1] / "protocol.json").read_text()),
+                                              candidate_checkpoint=path / "master.pth")
+                except Exception as exc:  # noqa: BLE001 - any proof error falls back to a normal evaluation
+                    proof = {"status": "refused", "reasons": [f"{type(exc).__name__}: {exc}"]}
+                if proof["status"] == "reusable":
+                    per_user = proof["per_user"]
+                    report["evaluation_reuse"] = {"status": "reused", "label": "held-out scores reused from an exact replica",
+                                                  "proof_seconds": time.perf_counter() - eval_started,
+                                                  "loss_provenance": proof["loss_provenance"]}
+                else:
+                    report["evaluation_reuse"] = {"status": "refused", "reasons": proof["reasons"], "origin": str(origin),
+                                                  "proof_seconds": time.perf_counter() - eval_started}
+                    validation_hash = hashlib.sha256()
+                    report.pop("evaluation_context")
+            for row in evaluation_rows if (report.get("evaluation_reuse") or {}).get("status") != "reused" else ():
                 watch.check()
-                user = row["user_id"]
-                section = split_frame(get_rwkv_data(DATA, user), row, "validation")
-                def heldout():
-                    offsets = range(0, len(section), 1024)
-                    seeds = [2025 + user + row["validation_range"][0] + offset for offset in offsets]
-                    if evaluation_pool is None:
-                        batches = (prepare(make_samples(section.iloc[offset:offset + 1024], user, 128), seed=seed)
-                                   for offset, seed in zip(offsets, seeds))
-                    else:
-                        # Futures are consumed in submission order, so hashing and evaluation order are unchanged.
-                        futures = [evaluation_pool.submit(evaluation_job, section.iloc[offset:offset + 1024], user, seed)
-                                   for offset, seed in zip(offsets, seeds)]
-                        batches = (future.result() for future in futures)
-                    for batch in batches:
-                        for tensor in (batch.start, batch.labels, batch.label_review_th):
-                            validation_hash.update(tensor.numpy().tobytes())
-                        yield {"batch": batch.to(device)}
-                values = evaluate(master, heldout(), deferred_metric_reads=bool(options.get("deferred_evaluation_metrics", False)))
-                per_user.append({"user_id": user, **values})
+                values = evaluate(master, ({"batch": batch.to(device)} for batch in heldout_batches(row, evaluation_pool)),
+                                  deferred_metric_reads=bool(options.get("deferred_evaluation_metrics", False)))
+                per_user.append({"user_id": row["user_id"], **values})
                 progress.evaluation(len(per_user), len(evaluation_rows))
         progress.end()
         report["validation_seconds"] = time.perf_counter() - eval_started
         report["validation_input_sha256"] = validation_hash.hexdigest()
+        if "evaluation_context" not in report:
+            report["evaluation_context"] = reuse.evaluation_context(ROOT, report, provenance)
         report["per_user"] = per_user
         report["evaluation"] = aggregate(per_user)
         report["status"] = "complete"
