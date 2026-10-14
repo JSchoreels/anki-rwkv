@@ -103,9 +103,12 @@
       if (x && x.finished_utc) {
         m.className = 'metrics';
         const num = v => v == null ? '–' : v.toFixed(4);
-        m.innerHTML = `<div class="m"><b>${num(x.log_loss)}</b><span>LogLoss</span></div>` +
-          `<div class="m"><b>${num(x.rmse_bins)}</b><span>RMSE (bins)</span></div>` +
-          `<div class="m"><b>${num(x.auc)}</b><span>AUC</span></div>` +
+        // Instant head when the data has it (review-weighted); otherwise the curve-head fields.
+        const w = k => x.instant && x.instant[k] ? x.instant[k].weighted : null;
+        const ll = x.instant ? w('LogLoss') : x.log_loss, rb = x.instant ? w('RMSE(bins)') : x.rmse_bins, auc = x.instant ? w('AUC') : x.auc;
+        m.innerHTML = `<div class="m"><b>${num(ll)}</b><span>LogLoss</span></div>` +
+          `<div class="m"><b>${num(rb)}</b><span>RMSE (bins)</span></div>` +
+          `<div class="m"><b>${num(auc)}</b><span>AUC</span></div>` +
           `<div class="m set"><span>${x.set || ''}${x.users ? `, ${fmt(x.users)} users` : ''}</span></div>`;
       } else {
         m.className = 'metrics none';
@@ -115,7 +118,10 @@
       row.append(lbl, train, evc, m);
       rows.appendChild(row);
     });
-    $('rows-hint').textContent = `${trainSlices} training slices of ${fmt(usersPerSlice)} users per row. ` + (d.metric_note ||
+    const instant = d.epochs.some(e => e.evaluation && e.evaluation.instant);
+    $('rows-hint').textContent = `${trainSlices} training slices of ${fmt(usersPerSlice)} users per row. ` + (instant
+      ? `Benchmark test reviews (FSRS benchmark selection and RMSE bins), instant head, review-weighted. Rows 1–${E - 1}: quick validation subset; last row: full validation set (final-test users reported separately).`
+      : d.metric_note ||
       `Evaluation is planned after epoch ${(d.evaluate_after_epochs || []).join(', ') || '–'}.`);
 
     const det = [
