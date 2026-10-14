@@ -34,3 +34,29 @@ Log update: paste each `report` row into ACCURACY_LOG "Runs"; add seed and order
 - After expertium-catch-up lands: re-baseline the screen with WSD decay (A03), then screen and gate s64h (A17) and width 80 (A01).
 - No fork-model held-out scores in this harness yet. The default scorer builds the expertium model; compression's held-out eval B covers the fork. Fork comparisons must use `fork_unseen` (id < 5000).
 - Gate and final runs, and any job over 60 minutes, need an explicit human request (ACCURACY_LOOP.md rule 6).
+
+## Update after 000317 / A08 (2026-10-14)
+
+000317 and `runbook-2026-10-14c.sh` finished (exit 0, 6.1 min eval). `decay-e10-q25` (epoch-10 checkpoint plus the 0.25-epoch WSD decay from expertium-catch-up) against `fullrun-e10`, 1,000 screen users, review-weighted with 95% user bootstrap:
+
+| Subset | Curve Δ LogLoss | Instant Δ LogLoss | Better users (curve / instant) |
+|---|---|---|---|
+| all (1000) | −0.00136 [−0.00192, −0.00081] | −0.00103 [−0.00129, −0.00080] | 676 / 747 |
+| fork_unseen (464) | −0.00152 [−0.00268, −0.00037] | −0.00116 [−0.00163, −0.00073] | 322 / 347 |
+| fork_seen (536) | −0.00122 [−0.00162, −0.00088] | −0.00093 [−0.00119, −0.00070] | 354 / 400 |
+
+Own collection, full layout (173,690 reviews), Δ% vs fork RWKV (curve 0.4417, instant 0.4366):
+
+| Run | Curve LL (Δ%) | Instant LL (Δ%) |
+|---|---|---|
+| `fullrun-e10` | 0.4535 (+2.68%) | 0.4525 (+3.64%) |
+| `decay-e10-q25` | 0.4536 (+2.70%) | 0.4518 (+3.49%) |
+
+**Noise verdict.** Order noise (000324, the A15 `-o1`/`-o2` evaluation) is still pending: it waits for the GPU behind 000323-wide-kernels, so only the two-seed band exists (0.0001 to 0.0002; decision band provisionally 0.0004). Against that provisional band the gain is outside it: 3.4x on curve, 2.6x on instant, with consistent sign on both fork subsets and the quick-300 result (−0.0018 / −0.0013). Caveats: the bootstrap covers user sampling only, not training order; the full run's consecutive epochs moved 0.002 to 0.003 on quick-300, so an order band near that size would swallow the curve gain. The decay starts from the same weights and adds only the cool-down, which makes a pure order effect less likely but unproven. Collection is flat on curve (+0.0001) and 0.0007 better on instant, one user, not evidence either way. Verdict: outside the seed band, order band not yet measured, so "likely real, small".
+
+**Recommendation (user decides).** Promote A08 to a full run: the cool-down is cheap (a fraction of an epoch from an existing checkpoint) and low-risk. Do not claim the gain as established until 000324 gives the order SD; if 2 x order SD x sqrt(2) exceeds 0.0014, treat it as unproven.
+
+**Next steps.**
+1. When 000324 lands: run the `noise` commands above, fill the Noise bands rows, replace the provisional 0.0004 band in ACCURACY_LOOP.md, and re-judge the A08 gain against it.
+2. Re-baseline the screen with WSD decay (A03) before screening A17 and A01.
+3. `per_user.jsonl` of `decay-e10-q25` stays uncommitted (per-user data); the aggregate comparison JSON is committed.

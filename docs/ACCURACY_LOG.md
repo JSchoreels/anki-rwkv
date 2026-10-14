@@ -11,6 +11,11 @@ Columns: LogLoss, RMSE(bins) and AUC are upstream benchmark metrics on the label
 | 2026-10-14 14:01 | `screen-w32-s2025` | screen | 2025 | 2000 | 1000/1000 | 0.3526 | 0.3334 | 0.0785 | 0.0694 | 0.7009 | 0.7357 | 0.3493 | 0.3250 | 190,818 | 192800 | 4352 | 0.4643 (+5.12%) | 0.4605 (+5.48%) | 13.2 | 6.3 |
 | 2026-10-14 14:02 | `screen-w32-s2026` | screen | 2026 | 2000 | 1000/1000 | 0.3525 | 0.3335 | 0.0774 | 0.0685 | 0.6991 | 0.7349 | 0.3494 | 0.3252 | 185,612 | 192800 | 4352 | 0.4619 (+4.58%) | 0.4656 (+6.64%) | 13.4 | 6.1 |
 | 2026-10-14 14:02 | `fullrun-e10` (score only) | screen | 2025 | 8000 × 10 epochs | 1000/1000 | 0.3352 | 0.3185 | 0.0632 | 0.0560 | 0.7335 | 0.7618 | 0.3301 | 0.3097 | — | 192800 | 4352 | 0.4535 (+2.68%) | 0.4525 (+3.64%) | — | 6.0 |
+| 2026-10-14 18:14 | `decay-e10-q25` (score only) | screen | 2025 | 8000 × 10 epochs + 0.25-epoch WSD decay | 1000/1000 | 0.3338 | 0.3175 | 0.0609 | 0.0543 | 0.7350 | 0.7629 | 0.3286 | 0.3085 | — | 192800 | 4352 | 0.4536 (+2.70%) | 0.4518 (+3.49%) | — | 6.1 |
+
+### A08 (000317): `decay-e10-q25` vs `fullrun-e10`, 2026-10-14
+
+Paired on the 1,000 screen users (review-weighted, 95% user bootstrap): curve −0.00136 [−0.00192, −0.00081], instant −0.00103 [−0.00129, −0.00080]; better for 676 (curve) and 747 (instant) of 1,000 users. `fork_unseen` (464): −0.00152 / −0.00116; `fork_seen` (536): −0.00122 / −0.00093, all intervals exclude 0. Own collection, full layout (173,690 reviews): fullrun-e10 curve 0.4535 (+2.68%), instant 0.4525 (+3.64%); decay-e10-q25 curve 0.4536 (+2.70%), instant 0.4518 (+3.49%), one user, descriptive only. Raw: `artifacts/accuracy/comparisons/decay-e10-q25--vs--fullrun-e10.json`.
 
 ## Noise bands
 
