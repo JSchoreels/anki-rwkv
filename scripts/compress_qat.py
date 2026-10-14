@@ -2,8 +2,10 @@
 
 Start: the fork's RWKV_trained_on_5000_10000.pth. Data: training users of the 8k/2k run (main checkout run.json)
 outside dataset users 5000-10000, so the run's validation users stay held out and the fork's own training users are
-not revisited. Samples are contiguous history segments (<= --segment reviews, upstream trains on <= 32,768-review
-segments); a batch packs segments from several users up to --batch-reviews reviews.
+not revisited. Samples are 128-review windows (the R01 training regime; the NVRTC training kernel accepts at most 383
+rows), cut from one random contiguous span of <= 8,192 reviews per user and pool; a batch packs windows from several
+users up to --batch-reviews reviews. Upstream trained the fork model on segments of up to 32,768 reviews, so this
+fine-tune is shorter-context than the original training (the fp32 fine-tune control measures that effect).
 
 Training follows rwkv/train_rwkv.py: fp32 master weights, bfloat16 child for forward/backward, the upstream AdamW
 parameter groups (eps 1e-18, betas 0.9/0.999, weight decay 0.01), gradient clip 0.5, loss = stats.average_loss.
@@ -59,7 +61,8 @@ class SegmentBatches(torch.utils.data.IterableDataset):
     """Endless prepared training batches. Each worker loads a few random users at a time, cuts their histories into
     contiguous segments (random phase), shuffles them and packs batches of <= batch_reviews reviews."""
 
-    def __init__(self, users, counts, data, segment, batch_reviews, users_per_pool, seed):
+    def __init__(self, users, counts, data, segment, batch_reviews, users_per_pool, seed, span):
+        self.span = span
         self.users, self.counts, self.data = users, counts, data
         self.segment, self.batch_reviews, self.users_per_pool, self.seed = segment, batch_reviews, users_per_pool, seed
 
@@ -69,7 +72,7 @@ class SegmentBatches(torch.utils.data.IterableDataset):
         info = torch.utils.data.get_worker_info()
         wid = info.id if info else 0
         rng = random.Random(self.seed * 1000 + wid)
-        weights = [min(self.counts[str(u)], 4 * self.segment) for u in self.users]  # ~reviews actually used
+        weights = [min(self.counts[str(u)], self.span) for u in self.users]  # ~reviews actually used
         while True:
             pool = []
             reviews_in_pool = 0
@@ -79,12 +82,13 @@ class SegmentBatches(torch.utils.data.IterableDataset):
                 n = len(frame)
                 if n < 16:
                     continue
-                # At most 4 segments of a user per pool (keeps pools mixed); users weighted by reviews used.
-                phase = rng.randrange(self.segment) if n > self.segment else 0
-                cuts = sorted(set([0, n] + list(range(phase, n, self.segment))))
-                segments = [(a, b) for a, b in zip(cuts, cuts[1:]) if b - a >= 16]
-                rng.shuffle(segments)
-                for s, e in segments[:4]:
+                # One random contiguous span of <= `span` reviews per user and pool, cut into `segment`-review
+                # samples (keeps pools mixed); users weighted by the reviews used.
+                start = rng.randrange(n - self.span + 1) if n > self.span else 0
+                stop = min(n, start + self.span)
+                segments = [(a, min(stop, a + self.segment)) for a in range(start, stop, self.segment)]
+                segments = [(a, b) for a, b in segments if b - a >= 16]
+                for s, e in segments:
                     sample = create_sample(user, frame.iloc[s:e], [], torch.float32, torch.device("cpu"))
                     pool.append((user, e - s, sample))
                     reviews_in_pool += e - s
@@ -136,7 +140,9 @@ def main():
     parser.add_argument("--warmup", type=int, default=30)
     parser.add_argument("--time-budget", type=float, default=2400, help="training seconds (cosine end)")
     parser.add_argument("--max-steps", type=int, default=0)
-    parser.add_argument("--segment", type=int, default=8192)
+    parser.add_argument("--segment", type=int, default=128,
+                        help="reviews per sample; the NVRTC training kernel accepts <= 383 rows (reviews + queries)")
+    parser.add_argument("--span", type=int, default=8192, help="contiguous reviews taken from one user per pool")
     parser.add_argument("--batch-reviews", type=int, default=32768)
     parser.add_argument("--users-per-pool", type=int, default=3)
     parser.add_argument("--workers", type=int, default=6)
@@ -175,7 +181,7 @@ def main():
     (out / "config.json").write_text(json.dumps(config, indent=1))
     loader = torch.utils.data.DataLoader(
         SegmentBatches(users, counts, cc.data_path(run), args.segment, args.batch_reviews, args.users_per_pool,
-                       args.seed),
+                       args.seed, args.span),
         batch_size=None, num_workers=args.workers, prefetch_factor=2 if args.workers else None)
     log = (out / "steps.jsonl").open("a", encoding="utf-8")
     train_seconds = 0.0

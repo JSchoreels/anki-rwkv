@@ -10,4 +10,4 @@ PY=/c/Users/jonat/workspace/anki-rwkv/.venv/Scripts/python.exe
 BITS=$1; GROUP=$2; NAME=$3; BUDGET=${4:-2400}
 nvidia-smi --query-gpu=memory.used,memory.total,temperature.gpu --format=csv
 $PY scripts/compress_qat.py --bits "$BITS" --group "$GROUP" --lr 1e-4 --warmup 30 --time-budget "$BUDGET" \
-  --segment 8192 --batch-reviews 24576 --workers 6 --save-every 900 --out "artifacts/compression/qat/$NAME"
+  --segment 128 --span 8192 --batch-reviews 32768 --workers 6 --save-every 900 --out "artifacts/compression/qat/$NAME"

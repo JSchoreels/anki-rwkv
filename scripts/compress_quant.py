@@ -136,6 +136,9 @@ def _quantize_rows(x: torch.Tensor, bits: int) -> torch.Tensor:
 
 def reference_rwkv7_q(r_BTHK: torch.Tensor, k_BTHK: torch.Tensor, v_BTHK: torch.Tensor, w_BTHK: torch.Tensor,
                       a_BTHK: torch.Tensor, k_deformed_BTHK: torch.Tensor, skip_BT: torch.Tensor, bits: int):
+    if r_BTHK.is_cuda:  # any length, optional state rounding: scripts/compress_wkv_cuda.py
+        return torch.ops.compress.wkv_q(r_BTHK, k_BTHK, v_BTHK, w_BTHK, a_BTHK, k_deformed_BTHK, skip_BT,
+                                        bits).to(k_BTHK.dtype)
     if bits == 0:
         return reference_rwkv7(r_BTHK, k_BTHK, v_BTHK, w_BTHK, a_BTHK, k_deformed_BTHK, skip_BT)
     out_dtype = k_BTHK.dtype
@@ -184,6 +187,8 @@ def install_state_quant_model():
     Must run before rwkv.architecture / rwkv.model.srs_model are imported. With state_bits = 0 (the default) every
     module runs the original code path, so weight-only variants are unaffected."""
     import importlib.util
+    from scripts import compress_wkv_cuda
+    compress_wkv_cuda.define()
     name = "rwkv.model.rwkv_model"
     if name in sys.modules:
         if getattr(sys.modules[name], "STATE_QUANT_PATCHED", False):
