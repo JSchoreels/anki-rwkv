@@ -310,9 +310,17 @@ def sweep(announce=True):
     return live
 
 
+def _claims_of(record):
+    """Claims a ticket needs; a timing ticket always needs cpu-heavy too (tickets made by older code lack it in the file)."""
+    claims = set(record.get("claims") or [])
+    if record.get("timing"):
+        claims.add("cpu-heavy")
+    return claims
+
+
 def _blockers(me, live):
-    mine = set(me["claims"])
-    return [other for other in live if other["seq"] < me["seq"] and other["ticket"] != me["ticket"] and mine & set(other["claims"])]
+    mine = _claims_of(me)
+    return [other for other in live if other["seq"] < me["seq"] and other["ticket"] != me["ticket"] and mine & _claims_of(other)]
 
 
 def _outside_holders(me):
@@ -372,6 +380,21 @@ def _quiet_block(me):
     """Reason the ticket must not start now because of a GPU quiet window, else None."""
     hit = _quiet_hit(me)
     return hit[0] if hit else None
+
+
+def _bypassed(me, other):
+    """True when a waiting ticket that a quiet window holds back must not hold up `me`, which the window lets through.
+
+    When the only claim shared is cpu-heavy, `me` passes the held ticket only if it is expected to end before the window
+    does (the held timing ticket's expected start); otherwise it would still be running when the benchmark is due."""
+    if other.get("state") != "waiting":
+        return False
+    hit = _quiet_hit(other)
+    if not hit:
+        return False
+    if _claims_of(me) & _claims_of(other) == {"cpu-heavy"}:
+        return datetime.now() + timedelta(minutes=me.get("expected_minutes") or DEFAULT_EXPECTED_MINUTES) <= hit[1]
+    return True
 
 
 def _try_start(me):
@@ -435,8 +458,10 @@ def hold(owner, purpose, claims, heartbeat=60.0, max_wait_minutes=None, ticket=N
          expected_minutes=None, timing=False):
     """Register (or attach to) a ticket and block until it holds its claims. Returns the running ticket record."""
     _ensure_dirs()
-    claims = sorted(set(claims), key=NAMES.index)
+    claims = sorted(set(claims) | ({"cpu-heavy"} if timing else set()), key=NAMES.index)  # a speed benchmark excludes CPU-heavy steps
     me = _attach(ticket, owner) if ticket else _new_ticket(owner, purpose, claims, hold_minutes, command)
+    if timing:
+        claims = me["claims"] = sorted(set(me["claims"]) | {"cpu-heavy"}, key=NAMES.index)
     me.update(state="waiting", pid=os.getpid(), pid_started=_process_started(os.getpid()), heartbeat=_iso(), command=command)
     if expected_minutes:
         me["expected_minutes"] = expected_minutes
@@ -452,8 +477,7 @@ def hold(owner, purpose, claims, heartbeat=60.0, max_wait_minutes=None, ticket=N
             live = sweep()
             if not me["_path"].exists():
                 _cancelled_exit(me, waiting_since)
-            # A waiting ticket that a quiet window holds back must not hold up tickets the window lets through.
-            blockers = [other for other in _blockers(me, live) if not (other.get("state") == "waiting" and _quiet_block(other))]
+            blockers = [other for other in _blockers(me, live) if not _bypassed(me, other)]
             outside = _outside_holders(me)
             hit = None if blockers or outside else _quiet_hit(me)
             quiet = hit[0] if hit else None
@@ -632,7 +656,7 @@ def main():
             p.add_argument("--ticket", help="attach to a reservation made with enqueue (keeps its place in the queue)")
             p.add_argument("--heartbeat-seconds", type=float, default=60.0)
             p.add_argument("--expected-minutes", type=float, help="expected run time; a ticket never starts if it would run into a GPU quiet window (default 60)")
-            p.add_argument("--timing", action="store_true", help="speed measurement: held by quiet windows with scope timing")
+            p.add_argument("--timing", action="store_true", help="speed measurement: held by quiet windows with scope timing; also claims cpu-heavy")
             p.add_argument("--max-wait-minutes", type=float, help="give up with exit code 75 instead of waiting indefinitely")
             p.add_argument("command", nargs=REMAINDER)
     p = sub.add_parser("cancel")

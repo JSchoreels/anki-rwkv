@@ -244,6 +244,57 @@ def check_quiet_windows(h, report):
     report["quiet_windows"] = {"non_timing_ran_before_window_end": True, "timing_start_after_window_end_s": round(late, 3)}
 
 
+def _ticket_exists(h, suffix, timeout=10):
+    deadline = time.monotonic() + timeout
+    while not any(name.endswith(suffix) for name in h.tickets()) and time.monotonic() < deadline:
+        time.sleep(0.05)
+    time.sleep(0.4)  # let the wrapper settle into its wait
+
+
+def check_cpu_heavy(h, report):
+    """The cpu-heavy claim: CPU accuracy steps run beside ordinary gpu jobs but never beside a --timing speed benchmark."""
+    # 1. cpu-heavy runs alongside a non-timing gpu ticket
+    h.run("G1", 2.5, ["gpu"])
+    h.wait_for("G1", "start")
+    h.run("C1", 0.3, ["cpu-heavy"], extra=["--expected-minutes", "1"])
+    h.wait("C1")
+    assert h.events()[("C1", "start")] < h.events()[("G1", "end")] if ("G1", "end") in h.events() else True, "cpu-heavy must not wait for a plain gpu job"
+    assert ("G1", "end") not in h.events() or h.events()[("C1", "end")] <= h.events()[("G1", "end")], "cpu-heavy should have run inside the gpu job"
+    h.wait("G1")
+    # 2. cpu-heavy waits for a running timing ticket (which holds gpu and cpu-heavy)
+    h.run("T2", 2.0, ["gpu"], extra=["--timing", "--expected-minutes", "1"])
+    h.wait_for("T2", "start")
+    assert (h.root / "claims" / "cpu-heavy").exists(), "a timing ticket must hold cpu-heavy"
+    h.run("C2", 0.2, ["cpu-heavy"])
+    h.wait("T2", "C2")
+    assert h.events()[("T2", "end")] <= h.events()[("C2", "start")], "cpu-heavy must wait for the timing ticket"
+    # 3. a timing ticket waits for a running cpu-heavy ticket
+    h.run("C3", 2.0, ["cpu-heavy"])
+    h.wait_for("C3", "start")
+    h.run("T3", 0.2, ["gpu"], extra=["--timing"])
+    h.wait("C3", "T3")
+    assert h.events()[("C3", "end")] <= h.events()[("T3", "start")], "a timing ticket must wait for cpu-heavy"
+    # 4. a timing ticket held by a quiet window does not block a later cpu-heavy ticket that ends before the window does
+    now = datetime.now()
+    quiet = h.root / "queue" / "quiet.json"
+    window_end = now + timedelta(seconds=14)
+    quiet.write_text(json.dumps([{"start": (now - timedelta(minutes=1)).isoformat(timespec="seconds"), "end": window_end.isoformat(timespec="seconds"), "scope": "timing", "reason": "check"}]), encoding="utf-8")
+    end = datetime.fromisoformat(window_end.isoformat(timespec="seconds")).timestamp()
+    h.run("T4", 0.2, ["gpu"], extra=["--timing", "--expected-minutes", "5"])
+    _ticket_exists(h, "-T4.json")
+    h.run("C4", 0.2, ["cpu-heavy"], extra=["--expected-minutes", "0.05"])  # 3 s: ends well before the window does
+    h.wait("C4")
+    assert h.events()[("C4", "start")] < end and ("T4", "start") not in h.events(), "cpu-heavy must pass a quiet-window-held timing ticket"
+    h.run("C5", 0.2, ["cpu-heavy"], extra=["--expected-minutes", "10"])  # would still run at the benchmark's start: it must queue behind
+    time.sleep(1.5)
+    assert ("C5", "start") not in h.events(), "cpu-heavy that would overlap the held timing start must wait behind it"
+    h.wait("T4", "C5", timeout=40)
+    assert h.events()[("T4", "end")] <= h.events()[("C5", "start")], "C5 queues behind the timing ticket"
+    quiet.unlink()
+    assert not (h.root / "claims" / "cpu-heavy").exists() and h.tickets() == []
+    report["cpu_heavy"] = {"beside_gpu": True, "waits_for_timing": True, "timing_waits_for_cpu_heavy": True, "passes_held_timing": True, "overlapping_waits": True}
+
+
 def check_wait_script(h, report):
     """r01_queue_wait.py in follow mode reports a ticket that came and went between two polls, and exits once per finish."""
     watcher = subprocess.Popen([PYTHON, WAIT, "--interval", "30"], cwd=ROOT, env=h.env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, encoding="utf-8")
@@ -266,7 +317,7 @@ def main():
     h = Harness(output)
     report = {"provenance": process_provenance(), "wake_limit_s": WAKE_LIMIT}
     started = time.monotonic()
-    for check in (check_fifo_and_wake, check_outside_holder, check_stale_ticket, check_reservation_and_cancel, check_cancel_waiting_wrapper, check_give_up_and_claim_run, check_quiet_windows, check_wait_script):
+    for check in (check_fifo_and_wake, check_outside_holder, check_stale_ticket, check_reservation_and_cancel, check_cancel_waiting_wrapper, check_give_up_and_claim_run, check_quiet_windows, check_cpu_heavy, check_wait_script):
         print(f"[check] {check.__name__}", flush=True)
         check(h, report)
     status = h.command("status").stdout

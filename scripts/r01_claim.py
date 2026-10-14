@@ -18,7 +18,7 @@ import sys
 ROOT = Path(__file__).resolve().parents[1]
 COORDINATION = Path(os.environ.get("R01_COORDINATION_ROOT") or ROOT / "artifacts" / "coordination")
 CLAIMS = COORDINATION / "claims"
-NAMES = ("gpu", "training-source", "ledger", "plan", "git")
+NAMES = ("gpu", "training-source", "ledger", "plan", "git", "cpu-heavy")
 
 
 def _path(name):

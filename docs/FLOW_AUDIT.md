@@ -16,7 +16,7 @@ Mark each item `ok`, `VIOLATION` (with evidence) or `n/a`.
 6. **Pushed.** `git status -sb` in the track's worktree (`C:\Users\jonat\workspace\wt\<track>`) and in the main checkout shows no `ahead` commits.
 7. **Docs.** For timing jobs, the result is recorded in `docs/GPU_OPTIMIZATIONS.md` on the track's branch once processed. Note it as pending if the result hasn't been processed yet.
 8. **No waiting agent.** The owner did not keep an agent alive for the job: the command is detached and no agent is listed as waiting on it. Note this when you can't verify it.
-9. **Outside work.** Other GPU users while a timing job ran: note `nvidia-smi` processes if checked now, and any non-queue GPU jobs mentioned in handoffs.
+9. **Outside work.** Other GPU users while a timing job ran: note `nvidia-smi` processes if checked now, and any non-queue GPU jobs mentioned in handoffs. CPU-heavy accuracy steps (collection scoring/noise with threads) must have run through the queue with `--claim cpu-heavy --expected-minutes N` so they never overlapped a `--timing` ticket (it claims `cpu-heavy` automatically); flag any that ran unwrapped or overlapped a timing run, and any ticket without `--expected-minutes`.
 
 ## Log entry format
 
