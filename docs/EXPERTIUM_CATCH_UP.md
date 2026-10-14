@@ -4,6 +4,16 @@ This repository vendors Expertium's 100-user-era iter36 model (commit `39666c6`,
 
 The default model, data and training are unchanged: every switch is off unless a track (R01 options dict) or a full-run `prepare` sets it, and [scripts/check_expertium_catch_up.py](../scripts/check_expertium_catch_up.py) proves the defaults bitwise.
 
+Which champion: iter 53 is his last promoted champion and the last one on the published 92-input layout this repository trains on (val half: curve 0.297523 / instant 0.265191 on his split, not comparable to ours). His later reference models depend on his rebuilt `-id` dataset (review times, 103-114 inputs). Examples: featB, realcyc, and `w10lf`, the leak-free 10+2-epoch base he ships (561,732 parameters). Those layouts cannot be fed from our data, so their feature changes are not ported; their training findings (decay length, clock leak) are reflected below.
+
+## Recipes for consumers
+
+- Width-80 champion, accepted schedule: track options `{**accepted, "architecture": "w80"}` passed through `compatible_options`, or `run_full_training.py prepare ... --extra-options '{"architecture": "w80"}'`.
+- Closest to his iter-53 recipe: `--extra-options '{"architecture": "w80", "optimizer": "expertium-iter53", "distillation": {"teacher": "C:/Users/jonat/workspace/anki/qt/aqt/rwkv_inference/RWKV_trained_on_5000_10000.pth", "alpha": 0.9, "decay_alpha": 0.5}}' --final-lr-schedule '{"decay_start": 0.75, "shape": "one_minus_sin"}'`. Read the contamination warning in item 5 first.
+- Default width with only the leak fix and feature drop: `--extra-options '{"end_to_start_intervals": true, "architecture": {"base": "iter36", "zero_features": [22]}}'`.
+- Decay an existing run: `scripts/expertium_decay.py auto --source-run <run dir> --epoch <N> --out artifacts/<new> --fraction 0.25`, then read `<out>/summary.md`.
+- `run_full_training.py prepare` resolves `data/` and the R01 cohort file relative to the checkout it runs from. A worktree needs both (a junction to the main checkout's `data/` and a copy of `artifacts/retraining/gpu-retrain-r01/cohorts-user-holdout-v1.json`). `expertium_decay.py` and `expertium_speed.py` read them from the main checkout directly.
+
 ## Switches
 
 All five items are R01 track options. Each lives in one key; `scripts/gpu_r01_training.run_case` reads them through [scripts/expertium_options.py](../scripts/expertium_options.py) and never imports it when none is set.
@@ -37,7 +47,7 @@ Code: [expertium/variants.py](../expertium/variants.py) (presets), [expertium/mo
 
 The accepted schedule is a 5-update linear warmup to 7e-4, then constant. With `lr_schedule`, progress is counted in this case's training reviews, which are known before training (update counts depend on packing): the learning rate is constant until `decay_start` of them, then follows `shape` to `final x peak` at `decay_end`. Without the key the accepted expression runs; a schedule with `decay_start` 1.0 equals it bitwise.
 
-Upstream recipe: a warmup-stable run, then a separate decay process started from its final checkpoint, LR from peak to 0. His default shape `1 + cos(pi/2 (1 + x))` is identically `1 - sin(pi x / 2)` (`"one_minus_sin"`, LR mass 0.363); `"cosine"` is the standard half cosine (mass 0.5). His decay length grew from 0.25 of the training budget to 1.0 epoch (iter 34, the era's largest single gain), and his 10-epoch endgame used a 10 + 1-2 epoch split.
+Upstream recipe: a warmup-stable run, then a separate decay process started from its final checkpoint, LR from peak to 0. His default shape `1 + cos(pi/2 (1 + x))` is identically `1 - sin(pi x / 2)` (`"one_minus_sin"`, LR mass 0.363); `"cosine"` is the standard half cosine (mass 0.5). His decay length grew from 0.25 of the training budget to 1.0 epoch (iter 34, the era's largest single gain). In his leak-free 10-epoch endgame (2026-09-15), decays of 1 and 2 epochs after 10 warmup-stable epochs were close, and 3 epochs hurt the curve head (+0.000248); he settled on 1. The 0.25-epoch default here is the requested short first test; a 1-epoch decay (about 55 min training plus evaluation on the 8k split) is the next length to try.
 
 Two ways to use it:
 
