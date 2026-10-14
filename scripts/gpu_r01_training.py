@@ -841,7 +841,13 @@ def run_case(args):
         # EV01 (docs/EVAL_SPEED.md): opt-in merged-batch evaluation of full runs, same inputs and per-section sums.
         fast = bool(full_run.get("fast_evaluation") and full_run.get("benchmark_db")) and origin is None
         if fast:
-            from scripts.fast_evaluation import evaluate_fast
+            from scripts.fast_evaluation import evaluate_fast, supports_fast
+            fast = supports_fast(master)
+            report["evaluation_mode"] = "fast" if fast else "reference (fast evaluation unsupported for this model)"
+        if full_run:
+            report.setdefault("evaluation_mode", "reference")
+        if fast:
+            report["evaluation_batch_chunks"] = int(full_run.get("fast_evaluation_chunks", 512))
 
             def fast_progress(done, total):
                 progress.evaluation(done, total)

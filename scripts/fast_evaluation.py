@@ -453,6 +453,12 @@ def load_model(checkpoint, model="expertium", config=None, device="cuda:0"):
     return master
 
 
+def supports_fast(model):
+    """loss_terms replicates the iter36/upstream `_get_loss`; other heads (e.g. Expertium variants) need their own."""
+    from scripts.compare import BaselineModel, SmallModel
+    return type(model) in (SmallModel, BaselineModel)
+
+
 def runtime_setup(threads=4):
     """The evaluation-time global settings of run_full_training.run_epoch / run_case."""
     os.environ.setdefault("CUBLAS_WORKSPACE_CONFIG", ":4096:8")
@@ -576,6 +582,9 @@ def evaluate_fast(model, rows, db_path, *, workers=5, batch_chunks=512, depth=No
     import numpy as np
     import torch
     from scripts.trial_batches import preparation_pool
+    if not supports_fast(model):
+        raise ValueError(f"Fast evaluation supports the iter36 and upstream models only, not {type(model).__name__}; "
+                         "use --mode reference")
     _float32_den_check()
     model.eval()
     device = torch.device(device)
