@@ -685,45 +685,78 @@ def evaluate_fast(model, rows, db_path, *, workers=5, batch_chunks=512, depth=No
 
 
 def evaluate_reference(model, rows, db_path, *, workers=5, db_size=DEFAULT_DB_SIZE, progress=None, device="cuda:0"):
-    """The full run's original per-user evaluation (gpu_r01_training.run_case with a benchmark_db)."""
+    """The full run's original per-user evaluation (gpu_r01_training.run_case with a benchmark_db).
+
+    Same calls in the same order; only host timers are added (get_loss already synchronizes on its
+    NaN check, so its timer covers the GPU forward). The breakdown is the profile in docs/EVAL_SPEED.md.
+    """
     import hashlib
     import torch
     from rwkv.data_processing import get_rwkv_data
     from rwkv.prepare_batch import prepare
+    from scripts import full_run_metrics
     from scripts.full_run_metrics import benchmark_metrics, evaluate_with_predictions
     from scripts.gpu_batch1 import DATA, make_samples, split_frame
     from scripts.gpu_r01_training import evaluation_job
     from scripts.trial_batches import preparation_pool
     device = torch.device(device)
     validation_hash = hashlib.sha256()
+    timing = {"frame_load_seconds": 0.0, "preparation_wait_seconds": 0.0, "input_hash_seconds": 0.0,
+              "host_to_device_seconds": 0.0, "get_loss_seconds": 0.0, "collect_predictions_seconds": 0.0,
+              "benchmark_metrics_seconds": 0.0, "sections": 0}
+
+    def timed(name, fn, *args):
+        started = time.perf_counter()
+        try:
+            return fn(*args)
+        finally:
+            timing[name] += time.perf_counter() - started
+
+    class TimedModel:
+        def eval(self):
+            return model.eval()
+
+        def get_loss(self, batch):
+            timing["sections"] += 1
+            return timed("get_loss_seconds", model.get_loss, batch)
 
     def heldout_batches(row, evaluation_pool):
         user = row["user_id"]
-        section = split_frame(get_rwkv_data(DATA, user), row, "validation")
+        section = timed("frame_load_seconds", lambda: split_frame(get_rwkv_data(DATA, user), row, "validation"))
         offsets = range(0, len(section), 1024)
         seeds = [2025 + user + row["validation_range"][0] + offset for offset in offsets]
         if evaluation_pool is None:
-            batches = (prepare(make_samples(section.iloc[offset:offset + 1024], user, 128), seed=seed)
+            batches = (timed("preparation_wait_seconds",
+                             lambda o=offset, s=seed: prepare(make_samples(section.iloc[o:o + 1024], user, 128), seed=s))
                        for offset, seed in zip(offsets, seeds))
         else:
             futures = [evaluation_pool.submit(evaluation_job, section.iloc[offset:offset + 1024], user, seed)
                        for offset, seed in zip(offsets, seeds)]
-            batches = (future.result() for future in futures)
+            batches = (timed("preparation_wait_seconds", future.result) for future in futures)
         for batch in batches:
+            started = time.perf_counter()
             for tensor in (batch.start, batch.labels, batch.label_review_th):
                 validation_hash.update(tensor.numpy().tobytes())
+            timing["input_hash_seconds"] += time.perf_counter() - started
             yield batch
 
+    original_collect = full_run_metrics.collect_predictions
+    full_run_metrics.collect_predictions = lambda stats, out: timed("collect_predictions_seconds", original_collect, stats, out)
     per_user = []
-    with preparation_pool(workers) as evaluation_pool:
-        for row in rows:
-            values, predictions = evaluate_with_predictions(
-                model, ({"batch": batch.to(device)} for batch in heldout_batches(row, evaluation_pool)))
-            values["benchmark"] = benchmark_metrics(row["user_id"], Path(db_path), db_size, predictions)
-            per_user.append({"user_id": row["user_id"], **values})
-            if progress:
-                progress(len(per_user), len(rows))
-    return per_user, {"validation_input_sha256": validation_hash.hexdigest()}
+    try:
+        with preparation_pool(workers) as evaluation_pool:
+            for row in rows:
+                values, predictions = evaluate_with_predictions(
+                    TimedModel(), ({"batch": timed("host_to_device_seconds", batch.to, device)}
+                                   for batch in heldout_batches(row, evaluation_pool)))
+                values["benchmark"] = timed("benchmark_metrics_seconds", benchmark_metrics, row["user_id"],
+                                            Path(db_path), db_size, predictions)
+                per_user.append({"user_id": row["user_id"], **values})
+                if progress:
+                    progress(len(per_user), len(rows))
+    finally:
+        full_run_metrics.collect_predictions = original_collect
+    return per_user, {"validation_input_sha256": validation_hash.hexdigest(), **timing}
 
 
 def evaluate_checkpoint(checkpoint, users, output=None, *, model="expertium", config=None, mode="fast",
