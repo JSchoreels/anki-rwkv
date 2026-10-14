@@ -90,6 +90,46 @@ Fast vs reference per user (300 users): label counts, coverage, sizes, RMSE and 
 
 Why not bitwise: the inputs are identical, and every per-section reduction is replayed on the original shape, so the differences come from the forward itself. With more rows in one forward, the FP32 GEMMs (cuBLAS chooses kernels by matrix size) round differently; the CPU shows the same effect with MKL. The tolerance is therefore the float reduction-order noise of a different GEMM shape: about 1e-7 relative per prediction, 1e-6 on six-decimal metrics (one rounding step) and up to 1e-5 on a single user's AUC when near-tied predictions swap rank. This is far below run-to-run differences of interest (the screening deltas in `docs/GPU_OPTIMIZATIONS.md` are 1e-4 and larger), but it is not parity, so the fast path stays opt-in and recorded runs compared with exact parity must use `--mode reference` or the exact mode below.
 
+## Promotion campaign (2026-10-14)
+
+Requested to decide whether fast evaluation may become the full-run default. Every row compares `--mode fast` (512 chunks per forward, input hash on) with a reference on the same checkpoint and users: the full run's own recorded `result.json` (written by the original in-run evaluation) where one exists, otherwise `--mode reference` on the same machine. Max |Δ| per user covers the four R01 losses and the six-decimal benchmark LogLoss, RMSE(bins) and RMSE of both heads; AUC is listed separately. Aggregates cover the R01 log losses (label-weighted and user-averaged) and the benchmark aggregates (LogLoss, RMSE(bins), AUC, RMSE per head, review-weighted and user-averaged; recomputed with `full_run_metrics.aggregate` for recorded results). Evidence: `artifacts/eval-speed/promotion/` and `artifacts/eval-speed/gpu/` (`compare-*.json`, field `tolerance`).
+
+| Checkpoint / architecture | Users | Max aggregate abs Δ | Max per-user abs Δ (losses) | Max per-user abs Δ (AUC) | Input hash equal | Reference s | Fast s | Passes proposed tolerance |
+|---|---|---|---|---|---|---|---|---|
+| iter36 epoch 01 | 300 | 6.7e-9 | 1.0e-6 | 4e-6 | yes | 895.2 (recorded) | 100.8 | yes |
+| iter36 epoch 02 | 300 | 2.3e-8 | 1.0e-6 | 8e-6 | yes | 828.9 (recorded) | 102.6 | yes |
+| iter36 epoch 03 | 300 | 1.8e-8 | 1.0e-6 | 2e-6 | yes | 829.9 (recorded) | 100.5 | yes |
+| iter36 epoch 04 | 300 | 3.0e-8 | 1.0e-6 | 5e-6 | yes | 827.3 (recorded) | 99.8 | yes |
+| iter36 epoch 05 | 300 | 8.1e-8 | 1.0e-6 | 1.6e-5 | yes | 822.7 (recorded) | 99.6 | yes |
+| iter36 epoch 06 | 300 | 7.7e-8 | 1.0e-6 | 1.0e-5 | yes | 831.6 (recorded) | 99.7 | yes |
+| iter36 epoch 07 | 300 | 5.0e-8 | 1.0e-6 | 1.1e-5 | yes | 888.4 (recorded); 965.9 (standalone) | 119.8 (5 workers) | yes |
+| iter36 epoch 08 | 300 | 2.7e-8 | 1.0e-6 | 1.0e-5 | yes | 874.7 (recorded) | 100.2 | yes |
+| iter36 epoch 09 | 300 | 2.0e-8 | 1.0e-6 | 4e-6 | yes | 898.1 (recorded) | 99.6 | yes |
+| iter36 epoch 10, final set | 2,000 | 2.0e-9 | 1.0e-6 | 1.1e-5 | yes | 5,825.3 (recorded) | 612.4 | yes |
+| upstream 2.76M baseline (`RWKV_trained_on_5000_10000.pth`), fork-unseen users < 5000 | 100 | 5.0e-8 | 3.8e-8 | 1e-6 | yes | 335.5 (standalone) | 38.7 | yes |
+| EV07 full-run smoke, iter36 trained 1 epoch on 50 users, `fast_evaluation` false vs true | 100 | P3-AGG | P3-LOSS | P3-AUC | P3-HASH | P3-REF | P3-FAST | P3-PASS |
+
+Epochs 01–09 used 7 workers; epoch 07's fast row is the 5-worker run of job 1. The per-user loss maximum of 1.0e-6 is always the six-decimal rounding step of a benchmark LogLoss or RMSE (one to two users per checkpoint); the unrounded R01 losses differ by at most 9.6e-8 (epoch 02). In total 4,700 iter36 user-evaluations over 10 checkpoints plus 100 baseline user-evaluations, all with identical inputs and label counts.
+
+Not covered: the Expertium width-80 variant on branch `expertium-catch-up` (`expertium/model/variant_model.py`) has a different head (GRU forgetting curve, no ahead residual, its own `_get_loss_variant`). `loss_terms` replicates only the iter36/upstream `_get_loss`, so `evaluate_fast` refuses other model classes (`supports_fast`), and a full run with such a model falls back to the reference evaluation and records `evaluation_mode` accordingly. Supporting it needs a variant-specific per-position term function (EV08).
+
+## Proposed evaluation-tolerance rule
+
+PROPOSED 2026-10-14, awaiting the human decision; not in force. The exact wording for `AGENT.md` and `docs/GPU_RETRAIN_LOOP.md` is the patch [proposals/eval-tolerance-rule.diff](proposals/eval-tolerance-rule.diff) (`git apply docs/proposals/eval-tolerance-rule.diff` once approved). `scripts/check_fast_evaluation.py compare` reports the check as `tolerance.passes`.
+
+- Training changes still need bit-identical parity.
+- The evaluation path may differ from the reference only by floating-point reduction order, with identical `validation_input_sha256`, identical label counts, benchmark sizes and coverage, and:
+
+| Quantity | Proposed limit | Largest observed (P1–P3) | Margin |
+|---|---|---|---|
+| Any aggregate metric | ≤ 1e-6 | 8.1e-8 (epoch 05, benchmark AUC user-average) | 12x |
+| Per-user loss (R01 losses; benchmark LogLoss, RMSE(bins), RMSE) | ≤ 1e-5 | 1.0e-6 (six-decimal rounding step); 9.6e-8 unrounded | 10x |
+| Per-user AUC | ≤ 1e-4 | 1.6e-5 (epoch 05) | 6x |
+
+- AUC caveat: AUC is a rank statistic. A 1e-7 change in a prediction can swap two near-tied predictions, so a single user's six-decimal AUC moves in steps of about 1e-5 even though every probability moved by 1e-7; that is why per-user AUC gets its own, wider limit. Aggregate AUC stays under the 1e-6 aggregate limit.
+- Every result records the evaluation mode and commit (`mode`, `batch_chunks` and `provenance` in `fast_evaluation.py` results; `evaluation_mode` and `evaluation_batch_chunks` in full-run results). `--mode reference` and the exact `--batch-chunks 8` mode stay available for bit-identical claims.
+- The limits sit far below the quality gates the loops use (R01 non-exact ceilings of 0.1%–1% relative, about 3e-4 to 3e-3 on these log losses; the accuracy loop's measured seed-noise bands) and above the observed reduction-order noise.
+
 ## Which mode to use
 
 - Screening and repeated measurements of new checkpoints: `--mode fast` (default), preferably `--workers 7` (or 10) and `--batch-chunks 1024` when nothing else needs the CPU. Differences to the original are float noise (above), identical for both arms of a comparison run the same way.
@@ -102,11 +142,12 @@ Why not bitwise: the inputs are identical, and every per-section reduction is re
 
 ## Untested and follow-up ideas
 
-Recorded as EV02–EV07 in [GPU_OPTIMIZATIONS.md](GPU_OPTIMIZATIONS.md#optimization-tracks).
+Recorded as EV02–EV08 in [GPU_OPTIMIZATIONS.md](GPU_OPTIMIZATIONS.md#optimization-tracks).
 
 - EV02: exact merged forward. The per-position differences come from shape-dependent FP32 kernels; padding or chunking each GEMM to the original section row counts, or row-invariant kernels, could give exact results with merged batching. Pending, needs a kernel-level check of which ops differ.
 - EV03: more preparation throughput. The fast path is CPU-bound; try 7 workers with 1,024 chunks, a prestarted pool shared with training (F59), and caching prepared evaluation inputs across epochs (they do not depend on the checkpoint; about 0.8 kB per review, so tens of GB for the 2,000-user set).
 - EV04: GPU-side feature encodings for evaluation (the training path's `gpu_packed_features`) would cut worker CPU and the ~50 MB per batch transfer, but GPU `sin/cos` differ from the CPU `prepare` inputs: inputs would no longer be identical.
 - EV05: BF16 evaluation forward: faster on the GPU, which is not the bottleneck; changes results; screening only.
-- EV06: add `scripts/fast_evaluation.py` to `R01SourceWatch` (`scripts/run_gpu_r01.py`) before a full run enables `fast_evaluation`; left out to avoid changing the watched-source hash for other sessions.
-- EV07: a full-run smoke with `"fast_evaluation": true` to check the `run_case` wiring end to end.
+- EV06: `scripts/fast_evaluation.py` is now in `R01SourceWatch` (`scripts/run_gpu_r01.py`, listed only when present in the source archive, so older archives keep their watch set).
+- EV07: a full-run smoke with `"fast_evaluation": true` to check the `run_case` wiring end to end (done in the promotion campaign above).
+- EV08: per-position terms for Expertium variant heads (width-80 GRU curve) so they can use the fast path.

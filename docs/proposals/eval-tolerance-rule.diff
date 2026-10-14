@@ -1,0 +1,34 @@
+diff --git a/AGENT.md b/AGENT.md
+index b72a398..52586ba 100644
+--- a/AGENT.md
++++ b/AGENT.md
+@@ -59,6 +59,17 @@ optimization tracks, including ideas that have not been implemented or tested.
+ - Preserve pending and completed investigations. Any claimed training benefit
+   from filtering remains subject to the validation requirements below.
+ 
++## Evaluation tolerance (PROPOSED 2026-10-14, awaiting the human decision; not in force)
++
++- Training changes still need bit-identical parity (weights, updates, losses, held-out inputs) as before; this rule covers the evaluation path only.
++- An evaluation path may differ from `scripts/fast_evaluation.py --mode reference` only by floating-point reduction order, and only when all of these hold against the reference on the same checkpoint and users (`scripts/check_fast_evaluation.py compare`, field `tolerance.passes`):
++  - identical `validation_input_sha256` and identical label counts, benchmark sizes and coverage;
++  - every aggregate metric (Curve/Instant log loss label-weighted and user-averaged; benchmark LogLoss, RMSE(bins), AUC and RMSE for both heads, review-weighted and user-averaged) within |Δ| ≤ 1e-6;
++  - every per-user loss (the four R01 losses; benchmark LogLoss, RMSE(bins), RMSE) within |Δ| ≤ 1e-5;
++  - per-user AUC within |Δ| ≤ 1e-4: AUC is a rank statistic, so a 1e-7 change can swap near-tied predictions and move one user's six-decimal AUC by about 1e-5.
++- Every evaluation result records its mode (`fast`/`reference`, batch chunks) and the commit; `--mode reference` and the exact one-section mode (`--batch-chunks 8`) stay available, and any claim of bit-identical scores uses one of them.
++- A new evaluation path, a changed batch size, precision, kernel or model architecture is re-checked against the reference before its numbers are used. Evidence and thresholds: [EVAL_SPEED.md](docs/EVAL_SPEED.md#proposed-evaluation-tolerance-rule).
++
+ ## Validation requires an explicit user request
+ 
+ - Before treating a set of changes as validated, run a matched multi-user quality
+diff --git a/docs/GPU_RETRAIN_LOOP.md b/docs/GPU_RETRAIN_LOOP.md
+index 05b957e..89409d2 100644
+--- a/docs/GPU_RETRAIN_LOOP.md
++++ b/docs/GPU_RETRAIN_LOOP.md
+@@ -27,6 +27,7 @@
+ - A round is a sequence of new candidate iterations. When the human specifies a count, complete that count even after consecutive speed misses. At round start, pass the quoted request with `--round-authorization` and the count with `--round-iterations N`; freeze the count and progress in each protocol. Diagnostics, smokes and control repeats do not substitute for new candidate iterations; repaired checks or run resumes do not create extra iterations. Keep the speed and quality rules unchanged.
+ - Stop at the requested count and require fresh authorization for more iterations. A partial handoff preserves the already-authorized remaining count; it does not close the budget or reset progress. Choose substantive candidates rather than repeating unchanged failures to fill the count; repair or report an actual blocker instead of claiming the count complete.
+ - When no explicit count is requested, stop each model before another iteration after three consecutive misses of its applicable target: failure to exceed measured noise for bitwise-equal adaptations, or the nominal 5% target for other changes.
++- PROPOSED 2026-10-14 (awaiting the human decision; not in force): held-out scoring may use the fast evaluation path (`scripts/fast_evaluation.py`, full runs with `"fast_evaluation": true`) under the evaluation-tolerance rule in [AGENT.md](../AGENT.md#evaluation-tolerance-proposed-2026-10-14-awaiting-the-human-decision-not-in-force). Promotion parity for training changes stays bit-identical: compare trained weights, updates and the reference-mode (or `--batch-chunks 8`) scores; fast-mode scores of a candidate and its control are comparable to each other but are not used to claim bit-identical results.
+ - R01 results are preliminary screens. Larger cohorts or broader quality validation require a separate explicit human request; follow AGENT.md for that validation phase.
+ - Proposed on 2026-10-13 and pending human approval: an uncounted exploration lane for structural prototypes, a multi-seed non-inferiority gate for non-exact candidates, F05 as an R01 speed screen, and a per-track variant cap with GPU-time budgets ([proposal](R01_NEXT_ROUND_PLAN.md#proposed-loop-changes-2026-10-13-pending-human-approval)). Until the human approves an item, the rules above apply unchanged.
+ - Tooling prepared for P-A and P-B, inactive until approved (2026-10-13): `scripts/r01_exploration.py record` writes an uncounted prototype screen (track, options, source files, microbenchmark and paired real-batch A/B evidence with hashes, outcome, decision text, provenance) to `artifacts/retraining/gpu-retrain-r01/exploration/<track>-<n>/`; it never reads or changes protocols, run logs, round budgets or promotion, and a passed screen only makes the prototype eligible for a counted slot. `scripts/r01_seed_gate.py` evaluates N≥3 candidate against N≥3 reference full-history runs on the fixed cohort that differ only in training seed: paired per-user relative deltas for the four held-out losses, a two-level bootstrap (users paired, seeds within side; seed 20261012, 10,000 resamples, alpha 0.05, familywise upper quantile 1 − alpha/4), the reference seed spread, a user-only and a seed-level t sensitivity bound, the run cost, and a decision against a `--margin` that has no default. Reference seed runs are computed once per accepted reference and reused across candidates (paths or `store:<entry file>` tokens checked by `scripts/r01_result_store.py`). To enable either, the human approves the item and, for P-B, states the margin; the round authorization then quotes that approval, P-A records pass it as `--lane-authorization`, and P-B replaces the single-seed loss ceiling only for non-exact candidates (exact candidates keep bitwise parity). Wiring P-B into the frozen protocol and `report_gpu_r01_next.py` is a separate change under the `training-source` claim after approval. Commands: [enable once approved](R01_NEXT_ROUND_PLAN.md#enable-once-approved-p-a-and-p-b-tooling).
