@@ -159,7 +159,7 @@ Statuses and measurements below are retained from the existing ledger. Missing v
 | EV04 | GPU-side feature encodings for evaluation | Low / low | Proposed 2026-10-14; pending | Inputs would change (GPU sin/cos) | — (pending) | Only if evaluation inputs may differ from the CPU `prepare` |
 | EV05 | BF16 evaluation forward | Low / low | Proposed 2026-10-14; pending | Results change | — (pending) | Screening only; the GPU is not the bottleneck |
 | EV06 | Watch `scripts/fast_evaluation.py` in `R01SourceWatch` | Low / low | Implemented `fb2d4e1` (conditional on the source archive) | — | — | Done |
-| EV07 | Full-run smoke with `fast_evaluation` | Low / low | Passed 2026-10-14: training bit-identical, same schema plus fast timing fields, same input hash, metrics within the proposed tolerance | Aggregate |Δ| ≤ 1.0e-7 | Final evaluation 232.3 → 37.2 s (100 users) | [EVAL_SPEED.md](EVAL_SPEED.md#promotion-campaign-2026-10-14) |
+| EV07 | Full-run smoke with `fast_evaluation` | Low / low | Passed 2026-10-14: training bit-identical, same schema plus fast timing fields, same input hash, metrics within the proposed tolerance | Aggregate |Δ| ≤ 1.0e-7 | Final evaluation 232.3 → 37.2 s (100 users; indicative only: not a `--timing` job, GPU shared with other work) | [EVAL_SPEED.md](EVAL_SPEED.md#promotion-campaign-2026-10-14) |
 | EV08 | Fast-path per-position terms for Expertium variant heads (width-80 GRU curve) | Medium / medium | Proposed 2026-10-14; pending; `evaluate_fast` refuses unsupported models and full runs fall back to the reference | — (pending) | — (pending) | Write a variant `loss_terms`, then the tolerance check against `--mode reference` |
 
 F12's data-quality investigation is tracked as DQ01 in [DATA_QUALITY.md](DATA_QUALITY.md).
