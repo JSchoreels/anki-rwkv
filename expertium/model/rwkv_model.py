@@ -455,7 +455,7 @@ class RWKV7TimeMixer(ModuleType):
             out_BTC = torch.ops.rwkv_native.group_norm(out_BTHK.view(B*T,C),self.out_group_norm.weight,
                        self.out_group_norm.bias,self.out_group_norm.num_groups,self.out_group_norm.eps,
                        self.native_group_chains_handle,self.native_group_tree_handle).view(B,T,C)
-        elif self.exact_group_norm and out_BTHK.is_cuda and C == 32:
+        elif self.exact_group_norm and out_BTHK.is_cuda:  # any C (wide-kernels port: 64/80 channels)
             out_BTC = ExactGroupNorm.apply(out_BTHK.view(B * T, C), self.out_group_norm.weight,
                                            self.out_group_norm.bias, self.out_group_norm.num_groups,
                                            self.out_group_norm.eps).view(B, T, C)

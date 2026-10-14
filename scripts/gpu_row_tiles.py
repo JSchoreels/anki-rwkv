@@ -12,13 +12,41 @@ ROOT = Path(__file__).resolve().parents[1]
 _modules = {}
 
 
-def source_options(dtype, exact=False, compact_previous=False, next_step_prefetch=False, load_pipeline=0):
+# Wide-kernels port: head size 16 (Expertium w64/w80) by text rewrite, like nvrtc.head_source; K=32 text unchanged.
+HEAD16_REWRITES = (("T, H, 32)", "T, H, 16)", 23), ("L, H, 32, 32)", "L, H, 16, 16)", 3), ("[32 * 33]", "[16 * 17]", 4),
+                   (" * 33 + ", " * 17 + ", 10), ("Kd[32], A[32]", "Kd[16], A[16]", 1),
+                   ("const int WARPS = 32 / ROWS;", "const int WARPS = 16 / ROWS;", 2), ("j < 32;", "j < 16;", 1),
+                   ("for (int offset = 16; offset > 0; offset /= 2)", "for (int offset = 8; offset > 0; offset /= 2)", 1),
+                   ("__shfl_down_sync(FULL_MASK, value, offset)", "__shfl_down_sync(FULL_MASK, value, offset, 16)", 1),
+                   ("__shfl_sync(FULL_MASK, dot, 0)", "__shfl_sync(FULL_MASK, dot, 0, 16)", 2),
+                   ("__shfl_sync(FULL_MASK, warp_sum(remove[q]), 0)",
+                    "__shfl_sync(FULL_MASK, warp_sum(remove[q]), 0, 16)", 1))
+
+
+def head16_source(text):
+    """Rewrite the exact row-tiled kernels (F31) from head size 32 to 16: index strides, shared tiles, warp
+    reductions of width 16 (two state rows per 32-lane warp), as the production NVRTC K=16 rewrite does."""
+    for old, new, count in HEAD16_REWRITES:
+        if text.count(old) != count:
+            raise RuntimeError(f"K=16 row-tile rewrite expected {count}x {old!r}, found {text.count(old)}")
+        text = text.replace(old, new)
+    return text
+
+
+def source_options(dtype, exact=False, compact_previous=False, next_step_prefetch=False, load_pipeline=0, head=32):
     if dtype not in (torch.float32, torch.bfloat16):
         raise ValueError("Row-tiled recurrence supports float32 or BF16")
     prefix = nvrtc.kernel_source(dtype).split("namespace rwkv {")[0]
     # F31 pins every float operation to the production instruction sequence.
     kernel = "rwkv_row_tiles_exact.cu" if exact else "rwkv_row_tiles.cu"
-    source = prefix + (ROOT / "scripts/kernels" / kernel).read_text()
+    text = (ROOT / "scripts/kernels" / kernel).read_text()
+    if head == 16:
+        if not exact:
+            raise ValueError("Head size 16 row tiles exist only for the exact kernel")
+        text = head16_source(text)
+    elif head != 32:
+        raise ValueError("Row-tiled recurrence supports head sizes 16 and 32")
+    source = prefix + text
     options = ["--std=c++17"]
     if dtype == torch.bfloat16:
         runtime = Path(sysconfig.get_paths()["purelib"]) / "nvidia/cuda_runtime/include"
@@ -49,13 +77,16 @@ def source_options(dtype, exact=False, compact_previous=False, next_step_prefetc
     return source, tuple(options)
 
 
-def compile_module(device, dtype, rows, tile, exact=False, compact_previous=False, next_step_prefetch=False, load_pipeline=0):
+def compile_module(device, dtype, rows, tile, exact=False, compact_previous=False, next_step_prefetch=False, load_pipeline=0,
+                   head=32):
     if rows not in (1, 2, 4, 8) or tile not in (8, 16, 32):
         raise ValueError("Rows must be 1, 2, 4 or 8; checkpoint tile must be 8, 16 or 32")
     index = device.index if device.index is not None else torch.cuda.current_device()
     key = index, dtype, rows, tile, exact, compact_previous, next_step_prefetch, load_pipeline
+    if head != 32:
+        key += (head,)
     if key not in _modules:
-        source, options = source_options(dtype, exact, compact_previous, next_step_prefetch, load_pipeline)
+        source, options = source_options(dtype, exact, compact_previous, next_step_prefetch, load_pipeline, head)
         scalar = "float" if dtype == torch.float32 else "__nv_bfloat16"
         namespace = "rwkv_exact" if exact else "rwkv_future"
         names = tuple(f"{namespace}::{name}_kernel<{tile}, {rows}, {scalar}>" for name in ("forward", "backward"))
@@ -74,13 +105,15 @@ def row_tiled_backend(rows=4, tile=8, exact=False, compact_previous=False, next_
     original_module, original_launch = nvrtc.module, nvrtc.launch
     original_tile = nvrtc._checkpoint_length
 
-    def module(device, dtype):
+    def module(device, dtype, head=32):
         if wave_aware or load_pipeline in (7, 8):
+            if head != 32:
+                raise ValueError("Wave-aware and adaptive pipelines exist only for head size 32")
             # Forward remains at the accepted layout; launch chooses backward by B.
             return tuple((device, dtype, i) for i in (0, 1))
-        return compile_module(device, dtype, rows, tile, exact, compact_previous, next_step_prefetch, load_pipeline)
+        return compile_module(device, dtype, rows, tile, exact, compact_previous, next_step_prefetch, load_pipeline, head)
 
-    def launch(kernel, device, shape, args):
+    def launch(kernel, device, shape, args, head=32):
         import numpy as np
         launch_rows = rows
         if load_pipeline in (7, 8):
@@ -100,7 +133,7 @@ def row_tiled_backend(rows=4, tile=8, exact=False, compact_previous=False, next_
             kernel = compile_module(device, dtype, launch_rows, tile, exact, compact_previous, next_step_prefetch, load_pipeline)[index]
         # Torch owns and retains storage; enqueue on its current stream.
         arguments = tuple(np.uint64(arg.data_ptr()) if isinstance(arg, torch.Tensor) else np.int32(arg) for arg in args)
-        nvrtc.raw_launch(kernel, device, (shape[0], shape[2]), (32, 32 // launch_rows), arguments)
+        nvrtc.raw_launch(kernel, device, (shape[0], shape[2]), (head, head // launch_rows), arguments)
 
     nvrtc.set_checkpoint_length(tile)
     nvrtc.module, nvrtc.launch = module, launch

@@ -111,6 +111,28 @@ extern "C" __global__ void rows_backward(const F* grad, const long long* order, 
         gradient += read(grad[order[j] * C + c]);
     out[i] = write(0.0f + gradient);
 }}
+// Wide rows (C > 32): PyTorch's general indexing_backward_kernel reads the destination,
+// adds one source in float and stores it in the destination dtype, once per duplicate
+// in source order, starting from the zero-initialized destination.
+extern "C" __global__ void rows_backward_wide(const F* grad, const long long* order, const long long* starts,
+    F* out, long long rows, int C) {{
+    long long i = (long long)blockIdx.x * blockDim.x + threadIdx.x;
+    if (i >= rows * C) return;
+    int c = (int)(i % C);
+    long long row = i / C;
+    F weight = write(0.0f);
+    for (long long j = starts[row]; j < starts[row + 1]; j++)
+        weight = write(read(weight) + read(grad[order[j] * C + c]));
+    out[i] = weight;
+}}
+// Pure row copy for index_copy with unique targets: out[target[i]] = src[i].
+extern "C" __global__ void copy_rows(const F* src, const long long* target, F* out, long long n, int C) {{
+    long long i = (long long)blockIdx.x * blockDim.x + threadIdx.x;
+    if (i >= n * C) return;
+    long long row = i / C;
+    int c = (int)(i % C);
+    out[target[row] * C + c] = src[i];
+}}
 // F35: the same sequential float sum in source order. Each step loads 64 values whose
 // indices were fetched during the previous step, then fetches the next 64 indices
 // before adding the values, so long destinations are not bound by dependent loads.
@@ -181,7 +203,8 @@ extern "C" __global__ void rows_backward_prefetch(const F* grad, const long long
             cccl = next(p for p in candidates if (p / "nv/target").exists())
             options += [f"--include-path={runtime}", f"--include-path={cccl}"]
         raw = nvrtc._cupy.RawModule(code=code, options=tuple(options))
-        _KERNELS[dtype] = {name: raw.get_function(name) for name in ("shift_backward", "shift_backward_prefetch", "rows_backward", "rows_backward_prefetch")}
+        _KERNELS[dtype] = {name: raw.get_function(name) for name in ("shift_backward", "shift_backward_prefetch", "rows_backward", "rows_backward_prefetch",
+                                                                "rows_backward_wide", "copy_rows")}
     return _KERNELS[dtype]
 
 
@@ -212,12 +235,32 @@ class ExactShiftGather(torch.autograd.Function):
         return shift_backward(grad, select), None
 
 
-def rows_backward(grad, index, rows):
-    """Gradient of torch.index_select(x, 0, index) for a 2-D x with `rows` rows."""
+def row_order(index, rows):
+    """Stable source order and per-destination starts of an index_select backward (sources -1 excluded)."""
+    index = index.contiguous().long()
+    sorted_rows, order = torch.sort(index, stable=True)
+    return order, torch.searchsorted(sorted_rows, torch.arange(rows + 1, device=index.device))
+
+
+def rows_backward(grad, index, rows, orders=None):
+    """Gradient of torch.index_select(x, 0, index) for a 2-D x with `rows` rows.
+
+    Width <= 32 reproduces PyTorch's small-stride kernel (float sum, one rounding); wider rows reproduce its
+    general kernel (one rounding to the destination dtype per source). `orders` = row_order(index, rows) reuses a
+    sort across calls with the same index (wide kernels, interleaved streams).
+    """
     from rwkv.model import nvrtc
     grad, index = grad.contiguous(), index.contiguous().long()
     C = grad.shape[1]
+    if C > 32:
+        order, starts = orders if orders is not None else row_order(index, rows)
+        out = torch.empty((rows, C), device=grad.device, dtype=grad.dtype)
+        args = tuple(np.uint64(v.data_ptr()) for v in (grad, order, starts, out)) + (np.int64(rows), np.int32(C))
+        nvrtc.raw_launch(kernel(grad.dtype)["rows_backward_wide"], grad.device, ((rows * C + 255) // 256,), (256,), args)
+        return out
     cached = _row_orders.get((index.data_ptr(), index.numel(), index._version, index.device))
+    if orders is not None:
+        cached = (None, *orders)
     if cached is None:
         sorted_rows, order = torch.sort(index, stable=True)
         starts = torch.searchsorted(sorted_rows, torch.arange(rows + 1, device=index.device))
@@ -236,8 +279,8 @@ def rows_backward(grad, index, rows):
 class ExactIndexSelect(torch.autograd.Function):
     @staticmethod
     def forward(ctx, x, index):
-        if not x.is_cuda or x.dim() != 2 or x.shape[1] > 32 or x.dtype not in (torch.float32, torch.bfloat16):
-            raise ValueError("Exact row selection requires 2-D CUDA float32/BF16 rows of width <= 32")
+        if not x.is_cuda or x.dim() != 2 or x.dtype not in (torch.float32, torch.bfloat16):
+            raise ValueError("Exact row selection requires 2-D CUDA float32/BF16 rows")
         ctx.save_for_backward(index)
         ctx.rows = x.shape[0]
         return torch.index_select(x, 0, index)
@@ -256,8 +299,8 @@ class ExactPaddedIndexSelect(ExactIndexSelect):
     """
     @staticmethod
     def forward(ctx, x, index):
-        if not x.is_cuda or x.dim() != 2 or x.shape[1] > 32 or x.dtype not in (torch.float32, torch.bfloat16):
-            raise ValueError("Exact padded row selection requires CUDA float32/BF16 rows of width <= 32")
+        if not x.is_cuda or x.dim() != 2 or x.dtype not in (torch.float32, torch.bfloat16):
+            raise ValueError("Exact padded row selection requires CUDA float32/BF16 rows")
         ctx.save_for_backward(index)
         ctx.rows = x.shape[0]
         return torch.index_select(x, 0, index.clamp(min=0))
@@ -291,3 +334,47 @@ class FusedPaddedIndexSelect(ExactIndexSelect):
         args = tuple(np.uint64(t.data_ptr()) for t in (x, index, out)) + (np.int32(out.numel()),)
         nvrtc.raw_launch(kernel(x.dtype, 'padded_forward'), x.device, ((out.numel()+255)//256,), (256,), args)
         return out
+
+
+class OrderedIndexSelect(torch.autograd.Function):
+    """Wide-kernels port: ExactIndexSelect with a precomputed row_order (one sort reused across layers)."""
+    @staticmethod
+    def forward(ctx, x, index, order, starts):
+        if not x.is_cuda or x.dim() != 2 or x.dtype not in (torch.float32, torch.bfloat16):
+            raise ValueError("Exact row selection requires 2-D CUDA float32/BF16 rows")
+        ctx.save_for_backward(index, order, starts)
+        ctx.rows = x.shape[0]
+        return torch.index_select(x, 0, index)
+
+    @staticmethod
+    def backward(ctx, grad):
+        index, order, starts = ctx.saved_tensors
+        return rows_backward(grad, index, ctx.rows, (order, starts)), None, None, None
+
+
+def copy_rows(x, target, source):
+    """x.index_copy(0, target, source) for unique targets, without the deterministic index_put sort."""
+    from rwkv.model import nvrtc
+    out = x.clone()
+    source, target = source.contiguous(), target.contiguous().long()
+    n, C = source.shape
+    if n:
+        args = tuple(np.uint64(v.data_ptr()) for v in (source, target, out)) + (np.int64(n), np.int32(C))
+        nvrtc.raw_launch(kernel(x.dtype)["copy_rows"], x.device, ((n * C + 255) // 256,), (256,), args)
+    return out
+
+
+class ExactIndexCopy(torch.autograd.Function):
+    """index_copy along rows with unique targets; values and both gradients equal PyTorch's bit for bit
+    (derivatives.yaml: self grad.index_fill(0, index, 0), source grad.index_select(0, index))."""
+    @staticmethod
+    def forward(ctx, x, target, source):
+        if not x.is_cuda or x.dim() != 2 or x.dtype != source.dtype or x.dtype not in (torch.float32, torch.bfloat16):
+            raise ValueError("Exact index copy requires 2-D CUDA float32/BF16 rows of one dtype")
+        ctx.save_for_backward(target)
+        return copy_rows(x, target, source)
+
+    @staticmethod
+    def backward(ctx, grad):
+        (target,) = ctx.saved_tensors
+        return grad.index_fill(0, target, 0), None, grad.index_select(0, target)
