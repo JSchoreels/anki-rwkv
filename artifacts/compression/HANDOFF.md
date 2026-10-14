@@ -44,3 +44,12 @@ All three are untested on the GPU.
 - State rounding applies only in the patched model: `compress_quant.install_state_quant_model()` must run before any `rwkv` model import.
 - Nothing private is committed: `preds/` parquets, `label-db-b`, `_generated/`, the 11 MB dequantized `.bin` and logs stay untracked. Commit only aggregate/per-dataset-user metrics.
 - The QAT checkpoint holds latent fp32 weights. Always score it through the int4 fake quantization (`--variants w4-pc…`).
+
+## Fork alignment (fork commit fdf9c689f, docs/rwkv-runtime-precision-2026-10-14.MD)
+
+The fork's recommended default is f32 weights + int8 card/note state. Int4 weights are treated as storage-only there: on an M1 Max with a NEON packed kernel they save about 15 MB RSS of about 506 MB, take 15.8 s to rebuild against 12.4 s, and score the queue about 3.7x slower. Its int4 recipe matches ours (group 32, symmetric -7..7, rank-2 `.weight` only, 1,922,693 B). On one collection it measures +0.14% log loss and UM+ max 0.0096 -> 0.0149.
+
+Follow-ups when processing 000309/000310/000311:
+1. Report UM+ plus the max and p99 per-prediction |delta p| for w4-g32 against fp32 on held-out users, to compare with the fork's 13 pp max shift.
+2. Frame int4 as a download/storage format that is decoded to f32 at load. The fork's own decoded-at-load row matches the f32 baseline in RAM and CPU.
+3. Check whether our export stores f16 or f32 group scales. Align with the fork's `ARWKVINT4POC1` (`packed_weights.rs`, f32 scales) before proposing a format.
