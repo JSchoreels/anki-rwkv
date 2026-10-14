@@ -26,3 +26,6 @@ P3 fast vs reference (aggregates only):
 - `artifacts/eval-speed/gpu/job5.sh`, `job5-queue.log`
 - `artifacts/eval-speed/promotion/p1/`, `p2/`
 - `docs/EVAL_SPEED.md` (campaign table, proposed rule), `docs/GPU_OPTIMIZATIONS.md` (EV01, EV07, EV08)
+
+## Update 2026-10-14: decisions made
+User approved both: tolerance rule applied (AGENT.md, GPU_RETRAIN_LOOP.md, PROPOSED labels removed) and `fast_evaluation` defaults to true in `write_protocol` (`scripts/run_full_training.py`). Reference mode stays via `fast_evaluation: false`; EV08 models fall back to reference. Only EV08 and an optional `--timing` job remain.

@@ -117,9 +117,9 @@ Every check passes the proposed tolerance.
 
 Not covered: the Expertium width-80 variant on branch `expertium-catch-up` (`expertium/model/variant_model.py`) has a different head (GRU forgetting curve, no ahead residual, its own `_get_loss_variant`). `loss_terms` replicates only the iter36/upstream `_get_loss`, so `evaluate_fast` refuses other model classes (`supports_fast`), and a full run with such a model falls back to the reference evaluation and records `evaluation_mode` accordingly. Supporting it needs a variant-specific per-position term function (EV08).
 
-## Proposed evaluation-tolerance rule
+## Evaluation-tolerance rule
 
-PROPOSED 2026-10-14, awaiting the human decision; not in force. The exact wording for `AGENT.md` and `docs/GPU_RETRAIN_LOOP.md` is the patch [proposals/eval-tolerance-rule.diff](proposals/eval-tolerance-rule.diff) (`git apply docs/proposals/eval-tolerance-rule.diff` once approved). `scripts/check_fast_evaluation.py compare` reports the check as `tolerance.passes`.
+ADOPTED 2026-10-14, decided by the user. Applied to `AGENT.md` and `docs/GPU_RETRAIN_LOOP.md` (patch kept at [proposals/eval-tolerance-rule.diff](proposals/eval-tolerance-rule.diff)). Full runs now default to `fast_evaluation` true (2026-10-14, user decision); `fast_evaluation: false` / `--mode reference` stay available. `scripts/check_fast_evaluation.py compare` reports the check as `tolerance.passes`.
 
 - Training changes still need bit-identical parity.
 - The evaluation path may differ from the reference only by floating-point reduction order, with identical `validation_input_sha256`, identical label counts, benchmark sizes and coverage, and:
