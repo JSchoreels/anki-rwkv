@@ -202,6 +202,10 @@ def compare(args):
         for head in ("ahead", "instant"):
             for metric in BENCH:
                 note(f"benchmark.{head}.{metric}", x["benchmark"].get(head, {}).get(metric), y["benchmark"].get(head, {}).get(metric))
+    from scripts.full_run_metrics import aggregate as benchmark_aggregate
+    for result in (a, b):
+        if "benchmark" not in result:  # recorded full-run results keep only the R01 aggregate
+            result["benchmark"] = benchmark_aggregate(result["per_user"])
     aggregates = {}
     for section in ("evaluation", "benchmark"):
         if section not in a or section not in b:
@@ -216,7 +220,36 @@ def compare(args):
             "timing": {name: {"evaluation_seconds": r.get("evaluation_seconds", r.get("validation_seconds")),
                               "reviews_per_second": r.get("reviews_per_second"), "validation_reviews": r.get("validation_reviews")}
                        for name, r in (("reference", a), ("candidate", b))},
-            "passed": exact_users == len(ua)}
+            "passed": exact_users == len(ua), "tolerance": tolerance(stats, aggregates, a, b)}
+
+
+# PROPOSED evaluation-tolerance rule (docs/EVAL_SPEED.md, awaiting the human decision).
+TOLERANCE = {"aggregate": 1e-6, "per_user_loss": 1e-5, "per_user_auc": 1e-4}
+LOSS_FIELDS = ["curve_log_loss", "curve_raw_log_loss", "instant_log_loss", "instant_rating_cross_entropy"] +     [f"benchmark.{h}.{m}" for h in ("ahead", "instant") for m in ("LogLoss", "RMSE(bins)", "RMSE")]
+COUNT_FIELDS = ["curve_labels", "instant_labels", "benchmark.size", "benchmark.ahead_coverage", "benchmark.instant_coverage",
+                "benchmark.ahead.size", "benchmark.instant.size"]
+
+
+def _hash(result):
+    return result.get("validation_input_sha256") or (result.get("timing") or {}).get("validation_input_sha256")
+
+
+def tolerance(stats, aggregates, a, b):
+    numeric = [abs(v["reference"] - v["candidate"]) for section in aggregates.values() for v in section.values()
+               if isinstance(v["reference"], float) and isinstance(v["candidate"], float)]
+    missing = [k for section in aggregates.values() for k, v in section.items() if v["candidate"] is None]
+    max_aggregate = max(numeric, default=0.0)
+    max_loss = max((stats[f]["max_abs"] for f in LOSS_FIELDS if f in stats), default=0.0)
+    max_auc = max((stats[f]["max_abs"] for f in ("benchmark.ahead.AUC", "benchmark.instant.AUC") if f in stats), default=0.0)
+    counts_exact = all(stats[f]["exact"] == stats[f]["values"] for f in COUNT_FIELDS if f in stats)
+    hashes = (_hash(a), _hash(b))
+    result = {"input_hash_equal": None if None in hashes else hashes[0] == hashes[1], "input_hashes": hashes,
+              "counts_exact": counts_exact, "max_aggregate_abs": max_aggregate, "max_per_user_loss_abs": max_loss,
+              "max_per_user_auc_abs": max_auc, "missing_aggregates": missing, "thresholds": TOLERANCE}
+    result["passes"] = (result["input_hash_equal"] is True and counts_exact and not missing
+                        and max_aggregate <= TOLERANCE["aggregate"] and max_loss <= TOLERANCE["per_user_loss"]
+                        and max_auc <= TOLERANCE["per_user_auc"])
+    return result
 
 
 def _flatten(value, prefix=""):
@@ -255,7 +288,7 @@ def main():
     output = Path(args.output)
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(json.dumps(result, indent=1))
-    summary = {k: v for k, v in result.items() if k not in ("fields", "aggregates", "provenance", "mismatches")}
+    summary = {k: v for k, v in result.items() if k not in ("fields", "aggregates", "provenance", "mismatches", "timing")}
     if "values" in summary:
         summary["values"] = {k: f"{v['exact']}/{v['positions']} max|d| {v['max_abs']:.3g}" for k, v in summary["values"].items()}
     print(json.dumps(summary)[:3000])
