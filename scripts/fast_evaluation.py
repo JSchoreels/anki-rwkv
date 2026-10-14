@@ -873,6 +873,7 @@ def main():
     parser.add_argument("--limit", type=int, help="first N users only")
     parser.add_argument("--device", default="cuda:0")
     parser.add_argument("--input-hash", action="store_true", help="fast mode: also compute validation_input_sha256")
+    parser.add_argument("--quiet", action="store_true", help="no per-user progress line")
     parser.add_argument("--threads", type=int, default=4, help="main-process intra-op threads (run_case uses 4)")
     args = parser.parse_args()
     users = parse_users(args.users)[:args.limit]
@@ -890,7 +891,7 @@ def main():
     report = evaluate_checkpoint(args.checkpoint, users, args.output, model=args.model, config=args.config,
                                  mode=args.mode, data_path=data_path, label_db=label_db, counts=counts,
                                  workers=args.workers, batch_chunks=args.batch_chunks, device=args.device,
-                                 threads=args.threads, input_hash=args.input_hash)
+                                 threads=args.threads, input_hash=args.input_hash, quiet=args.quiet)
     print(json.dumps({key: report[key] for key in ("mode", "user_count", "evaluation_seconds", "validation_reviews",
                                                    "reviews_per_second", "evaluation")}, indent=1))
 
