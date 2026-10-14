@@ -96,6 +96,21 @@ What it trains:
 4. Fallback if R = w64kd and EPOCH_MIN > 57 (the teacher forward is too slow for one ticket per epoch): use `w64` if it also met the threshold. Otherwise do not scale up, and report.
 5. Evaluation afterwards: run `small_model_report.py` with the scale labels added to `--labels` (fork/w8+s8 reference). Apply the "good candidate" criteria, and also compare `scale-R-dec` with `decay` (w32 at 8k users × 10 epochs).
 6. Not covered: the user's own collection and the window protocol. Both evaluators build only the w32 model (SMALL_MODEL SM07).
+7. Re-launch semantics: with the same recipe the runbook resumes (finished epochs and a finished decay are skipped). `RUN_TAG=<tag>` starts a separate run: experiment `scale-R-gate-<tag>`, labels `scale-R-<tag>-{e4,dec}`. Checkpoints: every epoch in `artifacts/accuracy/experiments/scale-R-gate/run/epoch-0N/...`, the decayed final in `artifacts/small-model/scale-R-gate-decay/expertium/E89-F65e-F77a/master.pth`.
+
+## Save and export a candidate (CPU only, about 1 min each; docs/SMALL_MODEL.md section 4)
+
+Run this on every checkpoint that meets the "good candidate" bar (`scale-R-dec`). Also run it on the best screen checkpoint (`R-o0`) if the user asks to keep it. Use a new `--out` per checkpoint; `package` refuses an existing folder:
+```
+$PY -X utf8 scripts/small_model_export.py package \
+  --checkpoint artifacts/small-model/scale-R-gate-decay/expertium/E89-F65e-F77a/master.pth \
+  --arch w64 --label scale-R-dec --out C:/Users/jonat/workspace/anki-rwkv/artifacts/models/scale-R-dec
+```
+- It copies `master.pth` to the main checkout (it survives removal of the worktree). It writes `weights.f32.bin` (the fork's ARWKVWEIGHTS1 container), `weights.int8.bin`, `architecture.json`, `parity.json` and `manifest.json` (sha256, params, architecture, training config, held-out summary vs `fork/w8+s8`).
+- Exit 0 means NumPy vs PyTorch max |Δp| < 1e-5 on 3 held-out users (fp32 and int8). Quote the parity figures and the manifest's `evaluation` Δ% in the report.
+- If the held-out scoring finishes later, refresh only the manifest: `$PY -X utf8 scripts/small_model_export.py manifest --dir <out> --checkpoint <the original master.pth, so the training record is found> --arch w64 --label scale-R-dec`.
+- Never commit the package (`artifacts/` is gitignored; no `.pth` in git).
+- Anki cannot load it yet: the fork's Rust runtime is fixed to its 2.76M shapes. The changes it needs are listed in docs/SMALL_MODEL.md section 4 ("Fork changes needed", SM08) for the user or Codex. Do not edit the fork.
 
 Caveats:
 - The w64 screens use 256 chunks and the baselines 512, so twice the updates (disclosed).

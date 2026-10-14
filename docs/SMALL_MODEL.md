@@ -73,6 +73,110 @@ Runbook [artifacts/small-model/runbook-2026-10-15.sh](../artifacts/small-model/r
 
 Decision criteria, scale-up plan and exact commands: [HANDOFF.md](../artifacts/small-model/HANDOFF.md).
 
+## 4. From checkpoint to Anki
+
+### Where checkpoints live (all kept, none overwritten)
+
+| Run | Checkpoint |
+|---|---|
+| Screens (tonight) | `artifacts/accuracy/experiments/screen-<w64\|w64kd>-s2025[-o1\|-o2]/run/epoch-01/expertium/E89-F65e-F77a/master.pth` (one folder per run; a retried epoch first moves the old folder to `epoch-01-attempt-K`) |
+| Scale-up, every epoch | `artifacts/accuracy/experiments/scale-<R>-gate[-<RUN_TAG>]/run/epoch-0{1..4}/expertium/E89-F65e-F77a/{master,optimizer}.pth` |
+| Scale-up, decayed final | `artifacts/small-model/scale-<R>-gate[-<RUN_TAG>]-decay/expertium/E89-F65e-F77a/master.pth` |
+
+All paths are under the small-model worktree (`C:\Users\jonat\workspace\wt\small-model`), gitignored, not a temp or scratch folder. Nothing in the trainers deletes a `.pth`. The one risk is removing the worktree (or `git clean -x`), so `package` below copies the chosen checkpoint to the main checkout's `artifacts/models/<label>/`.
+
+Re-launching `runbook-scaleup.sh` with the same recipe resumes: finished epochs and a finished decay are skipped. Before the 2026-10-15 fix, a re-launch silently skipped the decay, because `expertium_decay.py prepare` refuses an existing folder. `RUN_TAG=<tag>` gives a fresh run its own experiment, decay folder and held-out labels (`scale-<R>-<tag>-dec`).
+
+### Can the fork load our model? Not as it is
+
+The fork's runtime is Rust (`rslib/src/rwkv/mod.rs`). The Python under `qt/aqt/rwkv_inference/` is the same fixed 2.76M architecture (`architecture.py`). The runtime loads an `ARWKVWEIGHTS1` file (`WeightMap::load`, mod.rs:3192), selected by `ANKI_RWKV_MODEL_PATH` or the embedded `RWKV_trained_on_5000_10000.bin` (`qt/aqt/rwkv_scheduler.py:213`, `:4014`). That container is generic: named f32 tensors with their shapes. The model built from it is hard-coded:
+- `D_MODEL = 128`, `HEADS = 4`, `HEAD_SIZE = 32` (mod.rs:57-61), `MODULE_LAYERS = [3, 4, 2, 3, 4]`, `CHANNEL_MIXER_DIMS` (mod.rs:78-79), `NUM_CURVES = 128` (mod.rs:62);
+- LoRA ranks 8/16/16/16 in `TimeMixer::load` (mod.rs:5822-5860), `MAX_LORA_RANK`/`MAX_CHANNEL_MIXER_DIM` (mod.rs:296-298);
+- fixed-size scratch arrays `[f32; D_MODEL]` and `[f32; HEAD_SIZE]` throughout (e.g. mod.rs:3447-3477, 5460-5482, 5776);
+- a strictly sequential stream order card → deck → note → preset → user, all layers of a stream before the next (`review_features`, mod.rs:3703);
+- the 128-curve softmax mixture plus the ahead-logit residual head (`SrsModel::from_weights`, mod.rs:3490).
+
+Our tensor names follow the same scheme (`features2card.*`, `rwkv_modules.{i}.blocks.{l}.time_mixer.W_r`, `head_w.*`, `p_linear`, ...), and the block equations are the same. Every shape differs, so `load` fails at its first tensor shape check:
+- **w32 (iter36):** d = 32, 1 head of 32, layers [1, 4, 3, 3, 3], channel mixers 32 wide, 64 curves / 64 points.
+- **w64:** d = 64, 4 heads of 16, layers [2, 4, 1, 3, 3].
+
+w64 also has switches the fork lacks:
+- an interleaved layer schedule;
+- 9 stripped channel mixers and a stripped layer-0 value LoRA;
+- input feature 22 zeroed;
+- a 3-term power-curve head (`gru_*` tensors) instead of the softmax mixture, and no ahead residual.
+
+**The fork can load neither our w32 nor our w64 checkpoints.**
+
+### What this repository now produces (`scripts/small_model_export.py`, `scripts/small_model_numpy.py`)
+
+`package` writes a self-contained folder:
+- `master.pth`: a copy of the checkpoint.
+- `weights.f32.bin`: the fork's `ARWKVWEIGHTS1` container. The writer re-encodes the fork's own `RWKV_trained_on_5000_10000.bin` byte for byte (checked 2026-10-15).
+- `weights.int8.bin`: `ARWKVWEIGHTS8PC1`, int8 per-output-channel linears (the scorer's `w8`) plus the f32 rest.
+- `architecture.json`: every shape and switch, the layer schedule, the constants and the input layout.
+- `parity.json`: the NumPy vs PyTorch check below.
+- `manifest.json`: sha256 of every file, parameters, architecture, training config and phases, and the held-out summary with Δ% vs `fork/w8+s8`.
+
+`small_model_numpy.py` is a pure-NumPy forward and the executable spec for a port. It reads only those files and returns `p_curve`, `p_imm` and `p_rating`.
+
+| | w32 decay (iter36) | w64 |
+|---|---:|---:|
+| Parameters | 192,800 | 331,511 |
+| `weights.f32.bin` | 798,493 B | 1,351,553 B |
+| `weights.int8.bin` | 273,436 B | 436,391 B |
+| Fork 2.76M f32 `.bin`, for reference: 11,082,637 B | | |
+
+Command (CPU, about 1 min). It refuses an existing `--out`, so a package is never overwritten:
+```
+PY=C:/Users/jonat/workspace/anki-rwkv/.venv/Scripts/python.exe
+cd C:/Users/jonat/workspace/wt/small-model
+$PY -X utf8 scripts/small_model_export.py package --checkpoint <master.pth> --arch <w64|iter36> --label <heldout tag> \
+    --out C:/Users/jonat/workspace/anki-rwkv/artifacts/models/<heldout tag>
+```
+
+### Verified vs not
+
+Verified on CPU (2026-10-15): the NumPy forward against the PyTorch model, on full-history batches of the smallest held-out users. The table gives max |Δp| over labelled positions, across the curve, instant and 4-rating outputs.
+
+| Model | Users | fp32 (f32 file vs PyTorch) | int8 (int8 file vs PyTorch with `w8-pc` weights) |
+|---|---|---:|---:|
+| w32 `decay-8k-e10-q25` | 4676, 1745, 516 | 9.5e-7 | 7.7e-7 |
+| w64 (noised random init) | 4676, 1745 | 3.6e-7 | 4.2e-7 |
+| w64-sequential (noised random init) | 4676, 1745 | 3.6e-7 | 3.6e-7 |
+
+Also verified:
+- Control: on the same weights, the interleaved and sequential w64 schedules differ by up to 0.056 in p, so the check tells the schedules apart.
+- The int8 file dequantizes bit-exactly to `compress_quant` w8-pc.
+
+Not verified:
+- Anything in Rust: nothing was compiled or run in the fork.
+- int8 state (`s8`) in NumPy, which uses fp32 state only.
+- The one-review-at-a-time form. Its reference is `expertium/model/variant_rnn.py`, checked against the parallel model by `scripts/check_expertium_catch_up.py`.
+- A trained w64 checkpoint: none exists yet, so the w64 parity used noised random weights.
+
+### Fork changes needed (for the user or Codex; this repository never edits the fork)
+
+1. **Make the shapes data-driven.** Read `architecture.json` next to the weights file.
+   - Turn `D_MODEL`, `HEADS`/`HEAD_SIZE` (per stream), `MODULE_LAYERS`, `CHANNEL_MIXER_DIMS`, the LoRA ranks (`TimeMixer::load`) and `NUM_CURVES`/num_points into runtime fields.
+   - Replace the `[f32; D_MODEL]`/`[f32; HEAD_SIZE]` scratch arrays with `Vec`s, or use const generics with one instantiation per shipped architecture (d128/h32, d32/h32, d64/h16).
+   - Keep the 2.76M path as the default when no `architecture.json` is present.
+2. **Layer schedule.** For `layer_schedule == "interleaved"`, `review_features` runs `layer_steps` in round order (card L0, deck L0, note L0, preset L0, user L0, card L1, ...) instead of whole streams. Each stream keeps its own `v0`, and each (stream, layer) its own per-entity state, as in `VariantSrsRWKVRnn`.
+3. **Variant switches.**
+   - Skip the channel mixer of every layer in `channel_mixer_stripped_layers`. Its tensors are 1×1 dummies: accept them and ignore them.
+   - Accept the unused 1×1 dummy `v_lora_simple` on layer 0.
+   - Zero input feature 22 before `features2card`.
+4. **Curve head.**
+   - Power mixture: R(t) = Σᵢ softmax(w)ᵢ (1 + t / (1e-7 + Sᵢ))^(−dᵢ), where S, d = exp(clamp(·, ±25)) come from `gru_{w,s,d}_{weight,bias}` on the `head_w` output.
+   - Without an ahead residual, the curve logit gets +1e-5; skip `head_ahead_logits`/`ahead_linear` (1×1 dummies).
+   - For iter36, use 64 curves / 64 points instead of 128.
+5. **State store.**
+   - Per-layer state is H·K² per (stream, layer): 1,024 floats for w64 vs 4,096, so the state blobs change.
+   - Bump `STATE_CACHE_STORE_SCHEMA_VERSION` (mod.rs:65), or key the cache by the model's sha256 from `manifest.json`, so states cached by the 2.76M model are never reused.
+   - int8 state rows are `HEAD_SIZE` long (`precision.rs:49`), so 16 for w64.
+6. **int8 weights (optional).** Production loads f32 only; `packed_weights.rs` is test-only int4 (mod.rs:43). Either dequantize `ARWKVWEIGHTS8PC1` at load, which shrinks the shipped file but not RAM, or keep the int8 codes resident with per-row scales.
+7. **Acceptance.** The fork's Rust replay of a held-out user must reproduce `small_model_numpy.py` (or the PyTorch scorer) to about 1e-5. Then run the fork's collection replay against the 2.76M int8 baseline.
+
 ## Backlog
 
 | ID | Idea | Status | Next step |
@@ -84,3 +188,4 @@ Decision criteria, scale-up plan and exact commands: [HANDOFF.md](../artifacts/s
 | SM05 | KD only on fork-unseen training users (teacher targets on its own training users may be overfit) | Untested idea | Needs a per-user KD mask in the trainer |
 | SM06 | w80 + KD, longer decay (1 epoch, Expertium's choice) | Untested | After SM03 |
 | SM07 | Window-protocol and collection evaluation of w64 checkpoints (`fast_evaluation` and `accuracy_collection` only build the w32 model) | Gap | Add a variant-aware evaluator hook |
+| SM08 | Fork runtime port of the exported format (section 4, "Fork changes needed") | Specified, not started | User or Codex in the fork; acceptance = Rust vs `small_model_numpy.py` within 1e-5 |
