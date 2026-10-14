@@ -1,4 +1,4 @@
-# Held-out evaluation B: interim summary (chunks 1+2)
+# Held-out evaluation B: interim summary (chunks 1+2) - SUPERSEDED by heldout-b-final.md (1,000 users)
 
 INTERIM. Chunks 3 and 4 are queued as tickets 000321/000322; the final aggregation follows 000322. Aggregates only.
 

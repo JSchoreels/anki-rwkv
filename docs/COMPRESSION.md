@@ -120,3 +120,10 @@ The user decided to keep the current runtime model ("save the results but let's 
 | Q06 | State quantization for deck/preset/user modules and low-rank state (`StateCompression` in the fork's tests) | Pending | Extend `set_state_bits` to all modules; measure memory vs accuracy |
 | Q07 | f16 storage of scales and non-Linear parameters | Accounted only (table column) | Confirm no accuracy change (expected) |
 | Q08 | Better PTQ: MSE-optimal clipping / GPTQ-style error feedback for 3-bit | Pending | Cheap CPU experiment on the collection before QAT |
+
+## Held-out B final (2026-10-15, 1,000 users)
+
+Full results: [artifacts/compression/heldout-b-final.md](../artifacts/compression/heldout-b-final.md) (supersedes the chunks 1+2 interim file). The runtime model stays f32 weights + int8 card/note state + f32 deck/preset/global state (user decision 2026-10-14); int4 and int8 weights are measured options, not adopted.
+
+- w4-g32+s8: LogLoss +0.072% curve / +0.478% instant, RMSE(bins) +0.55% / +24.4%. w8-pc+s8: -0.004% / +0.009%. fp32+s8: +0.000% / +0.000%.
+- **For Codex:** compare with the fork's int4-state replay (+0.14% LogLoss, 13 pp max shift). int4 weights + int8 state on 300 users (14.9M predictions): max |dp| 0.345 curve / 0.372 instant, p99 0.036 / 0.092, mean UM+ 0.01374 / 0.01795 against fp32 0.01337 / 0.00573. int8 weights + int8 state: max |dp| 0.047 / 0.049, p99 0.0036 / 0.0106, UM+ 0.00950 / 0.00328 against 0.00963 / 0.00303.

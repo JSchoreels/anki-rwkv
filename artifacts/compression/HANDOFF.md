@@ -96,3 +96,9 @@ Follow-ups when processing 000309/000310/000311:
 
 ## Decision 2026-10-14 (user): keep the current model
 "Save the results but let's keep the current model." The runtime model stays as it is: f32 weights + int8 card/note state + f32 deck/preset/global state. int4 and int8 weights (and the QAT work) are documented as measured options, not adopted. Chunk 4 still finishes so the final results are complete.
+
+## Update after 000329 (final) - 2026-10-15
+- Chunk 4 (ticket 000329) finished, exit 0, 2,952 s. `heldout-b.jsonl` now holds 1,000 users x 6 variants, 0 errors; shift stats exist for the 300 chunk-4 users.
+- Final report: `artifacts/compression/heldout-b-final.md` (regenerate with `scripts/compress_report_b.py`); interim chunks 1+2 file marked superseded; `docs/COMPRESSION.md` has a "Held-out B final" section with the "for Codex" paragraph.
+- Headline: w4-g32+s8 LogLoss +0.072% curve / +0.478% instant; w8-pc+s8 -0.004% / +0.009%. Runtime decision unchanged (f32 weights + int8 card/note state).
+- Nothing pending.
