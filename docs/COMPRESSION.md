@@ -96,6 +96,10 @@ $Q run --owner compression --purpose "held-out GPU eval, 300 users" --claim gpu 
 
 Then on CPU: `scripts/compress_score_collection.py --checkpoint artifacts/compression/qat/w4pc-run1/final.pth --tag qat-w4pc-run1 --variants w4-pc,fp32` (and the same for the control with `--variants fp32`), then `scripts/compress_report.py`. Check the smoke's `peak` MiB first; if it exceeds ~13 GiB, halve `--batch-reviews`.
 
+## Decision (2026-10-14)
+
+The user decided to keep the current runtime model ("save the results but let's keep the current model"): f32 weights + int8 card/note state + f32 deck/preset/global state. The int4 and int8 weight results above are measured options, not adopted.
+
 ## Recommendation
 
 - **Ship PTQ first.** int8 weights (3.0 MB, 3.7× smaller) are free, and int4 group-32 weights (1.89 MB, or 1.63 MB with f16 scales; 5.8–6.8× smaller) cost ≤ 0.1% on the collection and about +0.1% curve / +0.3% instant on held-out users. Combined with the fork's existing int8 state, this is the answer to "as small as int8 and as accurate": no fine-tuning needed. Per-channel int4 is the smallest 4-bit layout (1.64 MB) but costs +0.4% (collection) to +1.4% (held-out) on the instant head.

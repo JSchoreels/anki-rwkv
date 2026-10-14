@@ -18,6 +18,50 @@ METRICS = ["LogLoss", "RMSE(bins)", "AUC"]
 HEADS = [("ahead", "curve"), ("instant", "instant")]
 
 
+DP_EDGES = np.logspace(-7, np.log10(0.5), 101)  # must match compress_heldout_b.DP_EDGES
+
+
+def shift_table(path):
+    """Per-prediction shift vs fp32 over the users whose rows carry `shift` (added after chunk 3; a subset of users)."""
+    acc = {}
+    for line in path.read_text().splitlines():
+        row = json.loads(line)
+        for head, st in row.get("shift", {}).items():
+            a = acc.setdefault((row["variant"], head), {"users": 0, "n": 0, "max": 0.0, "hist": np.zeros(len(DP_EDGES) + 1),
+                                                        "umv": [], "umr": [], "w": []})
+            a["users"] += 1
+            a["n"] += st["n"]
+            a["max"] = max(a["max"], st["max_abs_dp"])
+            a["hist"] += np.array(st["dp_hist"])
+            a["umv"].append(st["um_plus_variant"])
+            a["umr"].append(st["um_plus_fp32"])
+            a["w"].append(st["n"])
+    out, lines = {}, []
+    if not acc:
+        return out, lines
+    n_users = max(a["users"] for a in acc.values())
+    lines = [f"### Per-prediction shift vs fp32, subset of {n_users} users with the stats (benchmark test reviews only)", "",
+             "Percentiles are upper edges of log-spaced |Δp| bins (~17% wide), pooled over predictions. UM+ is the pairwise "
+             "Search Stats Extended definition against fp32 (score of the variant / of fp32), review-weighted mean over users.", "",
+            "| Variant | Head | Users | Predictions | max &#124;Δp&#124; | p99 &#124;Δp&#124; | p99.9 &#124;Δp&#124; | mean UM+ variant | mean UM+ fp32 |",
+             "|---|---|---:|---:|---:|---:|---:|---:|---:|"]
+    for variant in VARIANTS:
+        for head, hname in HEADS:
+            a = acc.get((variant, head))
+            if not a:
+                continue
+            cum = np.cumsum(a["hist"]) / a["hist"].sum()
+            edge = lambda q: float(np.append(DP_EDGES, 0.5)[min(int(np.searchsorted(cum, q)), len(DP_EDGES))])
+            w = np.array(a["w"], dtype=float)
+            res = {"users": a["users"], "predictions": a["n"], "max_abs_dp": a["max"], "p99_abs_dp": edge(0.99),
+                   "p999_abs_dp": edge(0.999), "um_plus_variant": float((np.array(a["umv"]) * w).sum() / w.sum()),
+                   "um_plus_fp32": float((np.array(a["umr"]) * w).sum() / w.sum())}
+            out.setdefault(variant, {})[hname] = res
+            lines.append(f"| {variant} | {hname} | {res['users']} | {res['predictions']:,} | {res['max_abs_dp']:.4f} | "
+                         f"{res['p99_abs_dp']:.5f} | {res['p999_abs_dp']:.5f} | {res['um_plus_variant']:.5f} | {res['um_plus_fp32']:.5f} |")
+    return out, lines
+
+
 def load(path):
     per = {}
     errors = {}
@@ -94,6 +138,10 @@ def main():
         if len(group) >= 20:
             summary[name] = table(per, group)
             out += [""] + markdown(summary[name], group, name)
+    shift, shift_lines = shift_table(OUT / "heldout-b.jsonl")
+    if shift:
+        summary["shift_vs_fp32_subset"] = shift
+        out += [""] + shift_lines
     summary["model_seconds"] = {v: float(sum(per[v][u]["model_seconds"] for u in users)) for v in present}
     (OUT / "heldout-b-summary.json").write_text(json.dumps(summary, indent=1))
     print(f"users {len(users)}, reviews {summary['reviews']:,}, benchmark test reviews "

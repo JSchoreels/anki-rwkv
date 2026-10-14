@@ -85,3 +85,14 @@ Follow-ups when processing 000309/000310/000311:
 - Re-queued as **000325** (chunk 3) and **000326** (chunk 4) with `C:\Program Files\Git\usr\bin\bash.exe`, `--expected-minutes 57`. Both resume from the users already in `heldout-b.jsonl`.
 - The queue now maps a System32 `bash` to Git Bash (main f046f7b). Still use an absolute interpreter path in queued commands.
 - After 000326: final aggregation with `scripts/compress_report_b.py` (aggregates only; never commit `heldout-b.jsonl`).
+
+## Update 2026-10-14 21:20 (per-prediction shift stats, ticket for chunk 4 below)
+
+- `scripts/compress_heldout_b.py` now adds a `shift` field to every non-fp32 row (fp32 is scored first in the same pass and used as the reference; existing fields unchanged). Per head (curve/instant), on the benchmark test reviews: `max_abs_dp`, `dp_hist` (|dp| histogram: bin 0 < 1e-7, 100 log-spaced bins 1e-7..0.5, last >= 0.5), `um_plus_variant`/`um_plus_fp32` and `n`. No per-prediction arrays are stored. `--no-shift-stats` disables it.
+- UM+ is the pairwise Search Stats Extended definition (the anki fork's `qt/tools/rwkv_um_plus.py`, vectorised): 41 bins of rounded disagreement `a-b` (width 0.05), score = sqrt(sum_bins (sum error)^2 / n_bin / N), for the variant and for fp32 against outcomes, per user.
+- Overhead measured on CPU (3 users, 285-5,431 reviews): the stats cost ~15 ms per 30k predictions against 0.6-12 s of model time per variant, i.e. well under 1%.
+- `compress_report_b.py` prints a "Per-prediction shift vs fp32" table (max, pooled p99 and p99.9 from the histogram at ~17% bin resolution, mean UM+) over the subset of users that carry the stats, labelled with that user count. Chunks 1-3 users have no stats; chunk 4 (and any rescoring slice) does.
+- Chunk 4 re-queued as ticket 000329 (log `logs/heldout-b-run4.log`); it should cover ~300 users with stats (>200), so no separate rescoring was queued.
+
+## Decision 2026-10-14 (user): keep the current model
+"Save the results but let's keep the current model." The runtime model stays as it is: f32 weights + int8 card/note state + f32 deck/preset/global state. int4 and int8 weights (and the QAT work) are documented as measured options, not adopted. Chunk 4 still finishes so the final results are complete.

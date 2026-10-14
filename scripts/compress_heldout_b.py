@@ -32,6 +32,47 @@ from scripts.compress_score_heldout import UserBatches, first  # noqa: E402
 LABEL_DB_B = ROOT / "artifacts" / "compression" / "label-db-b"
 
 
+# Per-prediction shift statistics (added 2026-10-14 21:20, ticket 000325 follow-up): computed online against the fp32
+# variant of the same user on the benchmark test reviews of each head; no per-prediction arrays are stored.
+# |dp| histogram: bin 0 = |dp| < 1e-7, then 100 log-spaced bins from 1e-7 to 0.5 (width factor ~1.17), last = >= 0.5.
+import numpy as np  # noqa: E402
+
+DP_EDGES = np.logspace(-7, np.log10(0.5), 101)
+
+
+def um_plus_pair(y, a, b):
+    """FSRS-benchmark / Search Stats Extended UM+ (same as anki qt/tools/rwkv_um_plus.py, vectorised): samples are
+    binned by the rounded disagreement a-b (41 bins of width 0.05); score = sqrt(sum_bins (sum error)^2 / n_bin / N)
+    for the first (a) and second (b) predictor against the outcomes y."""
+    index = np.clip(np.floor((a - b) * 20 + 0.5) + 20, 0, 40).astype(int)
+    counts = np.bincount(index, minlength=41)
+    out = []
+    for p in (a, b):
+        err = np.bincount(index, weights=p - y, minlength=41)
+        nz = counts > 0
+        out.append(float(np.sqrt((err[nz] ** 2 / counts[nz]).sum() / counts.sum())))
+    return out
+
+
+def shift_stats(variant_preds, ref_preds, labels_ths):
+    """Per head: max |dp|, |dp| histogram counts, UM+ scores (variant first, fp32 second) and n, vs fp32."""
+    out = {}
+    for head in ("ahead", "instant"):
+        vp, rp, rating = variant_preds[head], ref_preds[head], variant_preds["rating"]
+        ths = [t for t in labels_ths if t in vp and t in rp and t in rating]
+        if not ths:
+            continue
+        a = np.array([float(vp[t]) for t in ths])
+        b = np.array([float(rp[t]) for t in ths])
+        y = np.clip(np.array([float(rating[t]) for t in ths]), 0, 1)
+        d = np.abs(a - b)
+        hist = np.bincount(np.searchsorted(DP_EDGES, d, side="right"), minlength=len(DP_EDGES) + 1)
+        um_variant, um_ref = um_plus_pair(y, a, b)
+        out[head] = {"n": len(ths), "max_abs_dp": float(d.max()), "dp_hist": hist.tolist(),
+                     "um_plus_variant": um_variant, "um_plus_fp32": um_ref}
+    return out
+
+
 def parse_variant(name):
     weights, _, state = name.partition("+")
     if weights not in cq.WEIGHT_SCHEMES or state not in ("", "s8", "s4"):
@@ -81,6 +122,8 @@ def main():
     parser.add_argument("--time-limit", type=float, default=3200, help="stop starting new users after N seconds")
     parser.add_argument("--device", choices=("cuda", "cpu"), default="cuda")
     parser.add_argument("--out", default="artifacts/compression/heldout-b.jsonl")
+    parser.add_argument("--no-shift-stats", dest="shift_stats", action="store_false",
+                        help="skip the per-prediction |dp| / UM+ statistics against fp32 (fp32 must be scored in the same pass)")
     parser.add_argument("--parity-user", type=int, default=1745, help="0 = skip the GPU vs CPU parity check")
     args = parser.parse_args()
     cpu = args.device == "cpu"
@@ -152,6 +195,7 @@ def main():
             rows.append({"user_id": user, "variant": "error", "error": error or "no labels"})
         else:
             gpu_batch = batch.to(device)
+            ref_preds = None
             for variant in variants:
                 if variant in done.get(user, set()):
                     continue
@@ -169,11 +213,18 @@ def main():
                     continue
                 if not cpu:
                     torch.cuda.synchronize()
+                shift = None
+                if args.shift_stats:
+                    if variant == "fp32":
+                        ref_preds = predictions
+                    elif ref_preds is not None:
+                        shift = shift_stats(predictions, ref_preds, labels[0])
                 rows.append({"user_id": user, "variant": variant, "weights": weights, "state_bits": state_bits or 32,
                              "weight_bytes": nbytes, "reviews": counts[str(user)],
                              "prepare_seconds": round(prep_seconds, 2),
                              "model_seconds": round(time.perf_counter() - t0, 3), **values,
-                             "benchmark": metrics(user, labels, predictions)})
+                             "benchmark": metrics(user, labels, predictions),
+                             **({"shift": shift} if shift else {})})
                 scored += counts[str(user)]
             del gpu_batch
         with out.open("a", encoding="utf-8") as f:
