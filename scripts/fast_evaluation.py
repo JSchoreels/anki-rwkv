@@ -563,8 +563,12 @@ def _float32_den_check():
 
 
 def evaluate_fast(model, rows, db_path, *, workers=5, batch_chunks=512, depth=None, db_size=DEFAULT_DB_SIZE,
-                  progress=None, device="cuda:0", collect_predictions=False):
+                  progress=None, device="cuda:0", collect_predictions=False, input_hash=False):
     """Fast path: merged batches, exact per-section reductions, array benchmark metrics.
+
+    input_hash=True also returns the original `validation_input_sha256` (sha256 over each section's
+    start/labels/label_review_th exactly as the per-section path prepares them), hashed in a helper
+    thread; it proves bitwise-identical inputs against a recorded run at the cost of host time.
 
     Two-stage pipeline: batch k's copy, forward and reductions are queued on the GPU (no host
     synchronization) before batch k-1's results are read back and booked per user.
@@ -646,6 +650,23 @@ def evaluate_fast(model, rows, db_path, *, workers=5, batch_chunks=512, depth=No
                     progress(len(results), len(rows))
         timing["bookkeeping_seconds"] += time.perf_counter() - started
 
+    digest = None
+    if input_hash:
+        import hashlib
+        from concurrent.futures import ThreadPoolExecutor
+        digest = hashlib.sha256()
+        hasher = ThreadPoolExecutor(max_workers=1)  # one thread: sections are hashed in submission order
+
+        def hash_sections(batch, info):
+            width = batch.start.shape[1]
+            start = batch.start.view(batch.num_data, info["global_T"], width).numpy()
+            labels, review_th = batch.labels.numpy(), batch.label_review_th.numpy()
+            for meta in info["sections"]:
+                rows, T = slice(meta["first"], meta["first"] + meta["chunks"]), meta["T"]
+                digest.update(start[rows, :T].tobytes())
+                digest.update(labels[rows, :T].tobytes())
+                digest.update(review_th[rows, :T].tobytes())
+
     with preparation_pool(workers) as pool:
         submit = (lambda fn, *a: pool.submit(fn, *a)) if pool else None
         queue = deque()
@@ -670,11 +691,18 @@ def evaluate_fast(model, rows, db_path, *, workers=5, batch_chunks=512, depth=No
             started = time.perf_counter()
             launched = launch(batch, info)
             timing["launch_seconds"] += time.perf_counter() - started
+            if digest is not None:
+                hasher.submit(hash_sections, batch, info)
             if inflight is not None:
                 finish(*inflight)
             inflight = launched
         if inflight is not None:
             finish(*inflight)
+        if digest is not None:
+            started = time.perf_counter()
+            hasher.shutdown(wait=True)
+            timing["input_hash_wait_seconds"] = time.perf_counter() - started
+            timing["validation_input_sha256"] = digest.hexdigest()
         waited = time.perf_counter()
         per_user = []
         for user in order:
@@ -761,7 +789,7 @@ def evaluate_reference(model, rows, db_path, *, workers=5, db_size=DEFAULT_DB_SI
 
 def evaluate_checkpoint(checkpoint, users, output=None, *, model="expertium", config=None, mode="fast",
                         data_path=None, label_db=None, counts=None, workers=5, batch_chunks=512, threads=4,
-                        quiet=False, extra=None, device="cuda:0"):
+                        quiet=False, extra=None, device="cuda:0", input_hash=False):
     """Evaluate `checkpoint` on `users`; returns (and writes to `output`) per-user metrics and aggregates."""
     data_path = Path(data_path or os.environ.get("GPU_BATCH1_DATA_PATH") or ROOT / "data/anki-revlogs-10k")
     os.environ["GPU_BATCH1_DATA_PATH"] = str(data_path)
@@ -788,7 +816,7 @@ def evaluate_checkpoint(checkpoint, users, output=None, *, model="expertium", co
     eval_started = time.perf_counter()
     if mode == "fast":
         per_user, timing, _ = evaluate_fast(master, rows, label_db, workers=workers, batch_chunks=batch_chunks,
-                                            progress=progress, device=device)
+                                            progress=progress, device=device, input_hash=input_hash)
     elif mode == "reference":
         per_user, timing = evaluate_reference(master, rows, label_db, workers=workers, progress=progress, device=device)
     else:
@@ -844,6 +872,7 @@ def main():
     parser.add_argument("--batch-chunks", type=int, default=512)
     parser.add_argument("--limit", type=int, help="first N users only")
     parser.add_argument("--device", default="cuda:0")
+    parser.add_argument("--input-hash", action="store_true", help="fast mode: also compute validation_input_sha256")
     parser.add_argument("--threads", type=int, default=4, help="main-process intra-op threads (run_case uses 4)")
     args = parser.parse_args()
     users = parse_users(args.users)[:args.limit]
@@ -861,7 +890,7 @@ def main():
     report = evaluate_checkpoint(args.checkpoint, users, args.output, model=args.model, config=args.config,
                                  mode=args.mode, data_path=data_path, label_db=label_db, counts=counts,
                                  workers=args.workers, batch_chunks=args.batch_chunks, device=args.device,
-                                 threads=args.threads)
+                                 threads=args.threads, input_hash=args.input_hash)
     print(json.dumps({key: report[key] for key in ("mode", "user_count", "evaluation_seconds", "validation_reviews",
                                                    "reviews_per_second", "evaluation")}, indent=1))
 

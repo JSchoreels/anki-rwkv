@@ -204,6 +204,8 @@ def compare(args):
                 note(f"benchmark.{head}.{metric}", x["benchmark"].get(head, {}).get(metric), y["benchmark"].get(head, {}).get(metric))
     aggregates = {}
     for section in ("evaluation", "benchmark"):
+        if section not in a or section not in b:
+            continue
         flat_a, flat_b = _flatten(a[section]), _flatten(b[section])
         aggregates[section] = {key: {"reference": flat_a[key], "candidate": flat_b.get(key),
                                      "exact": flat_a[key] == flat_b.get(key)} for key in flat_a}
@@ -211,8 +213,9 @@ def compare(args):
                       == json.dumps({k: ub[u][k] for k in FIELDS + ["benchmark"]}, sort_keys=True) for u in ua)
     return {"check": "compare", "reference": args.reference, "candidate": args.candidate, "users": len(ua),
             "users_all_fields_exact": exact_users, "fields": stats, "aggregates": aggregates,
-            "timing": {name: {"evaluation_seconds": r["evaluation_seconds"], "reviews_per_second": r["reviews_per_second"],
-                              "validation_reviews": r["validation_reviews"]} for name, r in (("reference", a), ("candidate", b))},
+            "timing": {name: {"evaluation_seconds": r.get("evaluation_seconds", r.get("validation_seconds")),
+                              "reviews_per_second": r.get("reviews_per_second"), "validation_reviews": r.get("validation_reviews")}
+                       for name, r in (("reference", a), ("candidate", b))},
             "passed": exact_users == len(ua)}
 
 
