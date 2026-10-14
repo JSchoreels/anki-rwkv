@@ -97,7 +97,7 @@ def label_job(args):
     return user
 
 
-def prepare(run, train, validation, test, quick, epochs, seed, track):
+def prepare(run, train, validation, test, quick, epochs, seed, track, extra_options=None, final_lr_schedule=None):
     run.mkdir(parents=True, exist_ok=False)
     counts = review_counts()
     reserved = json.loads(R01_COHORT.read_text())["independent_final_test_users"]
@@ -110,6 +110,13 @@ def prepare(run, train, validation, test, quick, epochs, seed, track):
     quick_users = sorted(random.Random(seed + 1).sample(groups["validation"], quick))
     plan = json.loads((ROOT / "artifacts/retraining/gpu-retrain-r01/plans/iteration-0090-claude.json").read_text())
     options = plan["case_options_by_model"]["expertium"][track]
+    dropped = []
+    if extra_options or final_lr_schedule:
+        # Expertium catch-up switches (docs/EXPERTIUM_CATCH_UP.md); width-32-only kernels go when the width changes.
+        from scripts.expertium_options import LearningRate, compatible_options
+        options, dropped = compatible_options({**options, **(extra_options or {})})
+        if final_lr_schedule:
+            LearningRate(final_lr_schedule, 1)
     toml = run / "labels.toml"
     toml.write_text(f'DATA_PATH = "{DATASET}"\nLABEL_FILTER_LMDB_PATH = "{(run / "label-db").relative_to(ROOT).as_posix()}"\n'
                     'LABEL_FILTER_LMDB_SIZE = 10_000_000_000\nALGO = "FSRS-6"\nSHORT = true\nSECS = true\n'
@@ -126,6 +133,11 @@ def prepare(run, train, validation, test, quick, epochs, seed, track):
               "evaluation": {"quick": "after every non-final epoch on quick_validation_users",
                              "final": "after the final epoch on validation_users and final_test_users (reported separately)"},
               "lr": "AdamW peak 7e-4, 5-update linear warmup once, then constant (R01 schedule)"}
+    if extra_options or final_lr_schedule:
+        config.update(extra_options=extra_options or {}, dropped_width32_options=dropped,
+                      final_lr_schedule=final_lr_schedule)
+        if final_lr_schedule:
+            config["lr"] += f"; final epoch: {final_lr_schedule}"
     atomic_json(run / "run.json", config)
     started = time.time()
     users = sorted(groups["validation"] + final_test)
@@ -166,6 +178,8 @@ def write_protocol(run, epoch, config):
     if config.get("fast_evaluation"):
         # EV01 (docs/EVAL_SPEED.md): opt-in per run.json; absent keeps the original per-user evaluation.
         full_run.update(fast_evaluation=True, fast_evaluation_chunks=int(config.get("fast_evaluation_chunks", 512)))
+    if final and config.get("final_lr_schedule"):
+        full_run["lr_schedule"] = config["final_lr_schedule"]
     resume_file = run / f"epoch-{epoch:02d}.resume.json"
     if resume_file.exists():
         # Mid-epoch resume: skip users fully trained before the interruption; a user in flight is retrained.
@@ -374,12 +388,17 @@ def main():
     parser.add_argument("--seed", type=int, default=20261013)
     parser.add_argument("--track", default="E89-F65e-F77a")
     parser.add_argument("--push-every", type=int, default=0)
+    parser.add_argument("--extra-options", type=json.loads, default=None,
+                        help="prepare: Expertium catch-up track options as JSON (docs/EXPERTIUM_CATCH_UP.md)")
+    parser.add_argument("--final-lr-schedule", type=json.loads, default=None,
+                        help='prepare: final-epoch decay, e.g. {"decay_start": 0.75, "shape": "one_minus_sin"}')
     args = parser.parse_args()
     run = (ROOT / args.run).resolve()
     if not run.is_relative_to(ROOT / "artifacts"):
         parser.error("Run directory must be under artifacts/")
     if args.command == "prepare":
-        return prepare(run, args.train, args.validation, args.test, args.quick, args.epochs, args.seed, args.track) or 0
+        return prepare(run, args.train, args.validation, args.test, args.quick, args.epochs, args.seed, args.track,
+                       args.extra_options, args.final_lr_schedule) or 0
     if args.command == "run":
         return run_all(run)
     if args.command == "epoch":

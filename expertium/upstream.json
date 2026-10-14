@@ -18,8 +18,8 @@
     "expertium/model/rwkv_model.py": {
       "source": "rwkv/model/rwkv_model.py",
       "original_sha256": "3db2cde588b05b0888271ec37b00893a12e55fd87c31079fae4dcf9d5934c7f7",
-      "adapted_sha256": "e40d8190eda6d704caa27c66bdf937609841c73b10cec240524489a063f614fd",
-      "adaptation": "Import namespace adaptation plus optional ExactShiftGather and FusedShiftLerp paths; exact_shift and fused_shift default to false."
+      "adapted_sha256": "7075ff164957388c4caea0056390eaa429002303a72a2e1ff204b4b5c7979924",
+      "adaptation": "Import namespace adaptation plus optional ExactShiftGather and FusedShiftLerp paths; exact_shift and fused_shift default to false. Expertium catch-up: the channel-mixer head-size assertion also accepts 16 (width-80 variant, NVRTC K=16 kernel); no computation changes."
     },
     "expertium/model/rwkv_ops.py": {
       "source": "rwkv/model/rwkv_ops.py",
@@ -35,6 +35,46 @@
       "source": "rwkv/model/rwkv_rnn_model.py",
       "original_sha256": "4838b338d47af4e73e66fb693a1c99f1a814b8f68cbeec607df3f6c6bee59d0a",
       "adapted_sha256": "229c6e036baf05618842828d814e6f1a37979b7ddbd583c6b5132c548001b6d5"
+    }
+  },
+  "catch_up": {
+    "repository": "https://github.com/Expertium/rwkv-anki-autoresearch",
+    "commit": "1f2e6b058ea66fc4a26abc4ea9ed42021a292316",
+    "date": "2026-10-14",
+    "note": "5,000-user era (iter 31 merged width-80 lineage .. iter 53 champion, clock-leak fix 2026-09-10, s64h d=64 shipped trunk 2026-09-23). The ported code files are byte-identical at a9fcf466 (first read) and 1f2e6b0. s64h architecture: reconstructed (his scratchpad/shrink/architecture_s64h.py is unpublished), parameter counts of s64 and s64h reproduced exactly. Upstream code is ported into new files gated by explicit options, not vendored; sha256 below are of the upstream files as fetched (raw bytes) at this commit. See docs/EXPERTIUM_CATCH_UP.md.",
+    "sources": {
+      "rwkv/model/srs_model.py": "aaaeddf239dc5097f56d0bbed6bdc3644277900139bcdbe60b20b9dd19d51381",
+      "rwkv/model/rwkv_model.py": "1c5bbf086fdb0a00aae8e4d82cb8e3268eb5a86b13fef342477c913c4ec7f7a5",
+      "rwkv/model/srs_model_rnn.py": "c494aac9c7216b61991272ffdc91066a98d5a89e53f5c819b5e8d20e962227ca",
+      "rwkv/model/rwkv_rnn_model.py": "bef2c1eae2b283c277731e9cc7e49577278b36bd0968221b25471fb788205d45",
+      "rwkv/model/pava.py": "b80ab51b40d9c749677776db0d678a92204be1678c2291a55c71a51dfa8de81e",
+      "rwkv/train_rwkv.py": "4c4d6aa325bcc90b56f0c63d4d33f72ce23993563e71d0c7130254aa24805497",
+      "rwkv/muon.py": "8a54b103d6a34257319c37a8062e66f00a9747f0f0e2b021dd7731e4855078ad",
+      "rwkv/clock_fix.py": "bae04a8c46aaf988330268c97c38c5ef5d02f29beba264004a7a442b326b0143",
+      "rwkv/id_features.py": "4255c1072de892ed81003ac86dd8801d1da4d0be990171a12324f09597dfff0b",
+      "rwkv/prepare_batch.py": "42b3891e1cbde459dfa55e4851be13265394770551094246c646ccf2b1e302a4",
+      "rwkv/config.py": "8ef1471b4601c904726fabfd6a2ae97b23b56206d9691f18ab360dedff37c1df",
+      "scratchpad/track2_a18/architecture_d80_lora4_cnd.py": "f1979416311eb8632ac9b8ae92578ac3a6798eb3613a48b5b1fc492123def97d",
+      "scratchpad/iter53_muonlora/run_iter53.cmd": "093bb8668717d0620b94287f679918c485076cc9d0542c188afd7e241e9b5f82",
+      "scratchpad/iter53_muonlora/i53_ws.toml": "93428c93eaaaa3e23db52b29a5d9718cfd503becb7f8170088d564ea7e81630a",
+      "scratchpad/iter53_muonlora/i53_decay.toml": "a7b5018f77e963f65d523b764a7d79d0daeaf3c2f84bf1cad0853f7b29d7f021",
+      "scratchpad/iter32_kd/run_iter32_kd_v2.cmd": "0ff1387ed0f465a252fbfa22b4c1f6b996032bc8cf66085e4eb1aed6655b2c9c",
+      "scratchpad/iter32_kd/kd_dump.toml": "251f30447c29e0e67a4897f3d4923f9b479e487606ecae36686d2347ac0b4d16",
+      "optimization/champion_5k_track2.json": "b8d9f11437522d83418fe460d12abcaf6a39188c045f487bed8e8da11d1b1338",
+      "optimization/HISTORY.md": "92f8746b3101d506250f6b0bf9a9f9dcd3733b1595a6f16f2743e8cfbe8f2443",
+      "optimization/research_5k_verbose.md": "ee59b09cb04b5e7fca186f69662901dd803063fd839df970a7f9c2a2c74eb993",
+      "optimization/research_5k.md": "38c1bd8d71b1674653a8e1513f5ba02571e3635c65cf0eccbfdd9387062c56a7",
+      "optimization/LEDGER.md": "e3f7598de68955cbbfd776583fa249b50425d1c5ff9376cd20364f1a82329b75",
+      "optimization/LOGLOSS_BREAKDOWN.md": "9bdb6c2f792bf605c3d7dd232d239afe5461575a6d7a05fc16702c8e16988abc",
+      "optimization/AGENTS_ARCHIVE_2026-10-12.md": "4e9badae64db378c125261109c17891ba59c7b19728cb7efe3989d5571614829",
+      "PROJECT_MAP.md": "9f6b2bfe5df69f46ddf5b54daf98e8ae2f1e77ef97f7f88a17bb4714b96dfe87",
+      "reference_s64h/ref_metrics.json": "9a4d412c258d1b2c5f7f4781972b6a3ce0150a1dec6ca6b8b57acc6a851a9ff5"
+    },
+    "ported_files": {
+      "expertium/variants.py": "bbd069052f2e750855d5978df22fdb0d2c70a94b561390971140888f13613ff8",
+      "expertium/model/variant_model.py": "ddc399376524b4a815a5c48163e5c60fdbbee9deaf9a61a4cd61583bfa11d491",
+      "expertium/model/variant_rnn.py": "57ecffcef42cd69f7e34f922875851163fb76183807418d2f58632192d61334d",
+      "expertium/intervals.py": "57c2c535052296d677a8a14f7d189f6b8276093b25c84bfe092da407d07f09ed"
     }
   }
 }

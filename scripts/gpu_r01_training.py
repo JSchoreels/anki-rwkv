@@ -341,13 +341,20 @@ def run_case(args):
                                   load_pipeline=int(options.get("recurrence_load_pipeline", 0)),
                                   wave_aware=bool(options.get("wave_aware_backward", False))))
         device = torch.device("cuda:0")
-        checkpoint = fresh_checkpoint(args.model, training_seed)
+        # Expertium catch-up switches (docs/EXPERTIUM_CATCH_UP.md); a track without them keeps this path unchanged.
+        catch_up = None
+        if any(key in options for key in ("architecture", "lr_schedule", "optimizer", "end_to_start_intervals",
+                                          "distillation")) or (protocol.get("full_run") or {}).get("lr_schedule"):
+            from scripts.expertium_options import CatchUp
+            catch_up = CatchUp(options, protocol.get("full_run") or {}, rows)
+        variant = catch_up is not None and catch_up.spec is not None
+        checkpoint = catch_up.fresh_checkpoint(training_seed) if variant else fresh_checkpoint(args.model, training_seed)
         # Full runs (scripts/run_full_training.py) continue from the previous epoch; R01 protocols have no "full_run".
         full_run = protocol.get("full_run") or {}
         if full_run.get("init_master"):
             checkpoint = {"model": torch.load(ROOT / full_run["init_master"], map_location="cpu", weights_only=True)}
         report["initial_parameter_sha256"] = tensor_hash(checkpoint["model"])
-        master, base, dtype = benchmark_models(config, device)
+        master, base, dtype = catch_up.models(config, device) if variant else benchmark_models(config, device)
         master.load_state_dict(checkpoint["model"])
         base.copy_downcast_(master, dtype)
         if options.get("native_wkv") or options.get("native_group_norm") or options.get("native_index") or options.get("native_glue"):
@@ -400,7 +407,10 @@ def run_case(args):
             if not hasattr(base, "concurrent_splits"):
                 raise ValueError("F49 requires Expertium")
             base.concurrent_splits = True
-        optimizer = get_optimizer(Namespace(PEAK_LR=7e-4), master)
+        optimizer = catch_up.optimizer(master) if catch_up else get_optimizer(Namespace(PEAK_LR=7e-4), master)
+        if catch_up:
+            catch_up.load_teacher(device, dtype)
+            report["expertium_catch_up"] = catch_up.describe(master)
         if full_run.get("init_optimizer"):
             # Load on CPU: load_state_dict moves moments to the parameters' device but keeps AdamW's `step` where it
             # is, and a CUDA `step` makes non-capturable AdamW sync once per parameter (429 per update).
@@ -681,7 +691,9 @@ def run_case(args):
                             torch.cuda.synchronize()
                             graphs.metrics["capture_seconds"] += time.perf_counter() - capture_start
                     else:
-                        stats = reduced.get_loss(batch) if reduced else active.get_loss(batch)
+                        stats = (reduced.get_loss(batch) if reduced else
+                                 catch_up.loss(active, batch, report["review_presentations"]) if catch_up else
+                                 active.get_loss(batch))
                     if stats is None or (not deferred and not torch.isfinite(stats.average_loss)):
                         raise RuntimeError(f"Non-finite training loss user {user}")
                     wddm_flush = options.get("wddm_flush")
@@ -702,7 +714,8 @@ def run_case(args):
                         transfer_child_grad_to_master(master, active)
                     # F33 checks the same finite loss/norm after the next update is queued.
                     norm = torch.nn.utils.clip_grad_norm_(master.parameters(), CLIP, error_if_nonfinite=not deferred)
-                    lr = 7e-4 * min(1.0, (report["updates"] + 1 + update_offset) / 5)
+                    lr = (catch_up.learning_rate(report["updates"], update_offset, report["review_presentations"])
+                          if catch_up else 7e-4 * min(1.0, (report["updates"] + 1 + update_offset) / 5))
                     for group in optimizer.param_groups:
                         group["lr"] = lr
                     optimizer.step()

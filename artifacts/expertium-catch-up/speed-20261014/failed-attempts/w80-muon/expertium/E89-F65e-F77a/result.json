@@ -1,0 +1,225 @@
+{
+  "model": "expertium",
+  "track": "E89-F65e-F77a",
+  "options": {
+    "prefetch_users": true,
+    "preparation_workers": 5,
+    "gpu_packed_features": true,
+    "packed_ipc": true,
+    "async_transfer": true,
+    "batched_id_encodings": true,
+    "grouped_sync": true,
+    "main_threads": 1,
+    "bulk_transfer": true,
+    "parallel_evaluation": true,
+    "exact_shift": true,
+    "batch_chunks": 512,
+    "gpu_memory_fraction": 0.95,
+    "fast_samples": true,
+    "prestart_pool": true,
+    "deferred_reads": true,
+    "shared_shift_orders": true,
+    "stream_launches": true,
+    "sync_free_loss": true,
+    "columnar_samples": true,
+    "skip_uninitialized_fill": true,
+    "host_placement": "physical",
+    "process_qos": true,
+    "deferred_read_depth": 2,
+    "bookkeeping_stride": 8,
+    "lean_step_reset": true,
+    "wddm_flush": true,
+    "architecture": "w80",
+    "optimizer": "expertium-iter53"
+  },
+  "config": {
+    "MODEL": "expertium",
+    "DTYPE": "bfloat16",
+    "WKV_BACKEND": "nvrtc",
+    "SEED": 2025,
+    "BATCH_CHUNKS": 512,
+    "CHUNK_REVIEWS": 128,
+    "PREFETCH_WORKERS": 5,
+    "PREFETCH_BATCHES": 10,
+    "CPU_THREADS": 4,
+    "EPOCHS": 1,
+    "DATA_PATH": "C:\\Users\\jonat\\workspace\\anki-rwkv\\data\\anki-revlogs-10k-original-20261011",
+    "DATASET_REVISION": "75299740cff05894ef42d7ad990666691efdd2da",
+    "GPU_MEMORY_FRACTION": 0.95,
+    "PEAK_LR": 0.0007,
+    "WARMUP_STEPS": 5
+  },
+  "torch": "2.9.1+cu128",
+  "cuda": "12.8",
+  "gpu": "NVIDIA GeForce RTX 5080",
+  "training_dropout": "enabled",
+  "device_used_at_start_mib": 1290.4375,
+  "master_dtype": "float32",
+  "float32_matmul_precision": "highest",
+  "cuda_matmul_allow_tf32": false,
+  "rss_sampling": "process tree at user transitions; sampled maximum, not continuous peak",
+  "provenance": {
+    "captured_utc": "2026-10-14T13:10:10.508498+00:00",
+    "git_commit": "8c0e0bbd1aebc66c7fab32a1238c3a8eebd792e2",
+    "git_dirty": false,
+    "git_status_porcelain_z": "",
+    "source_tree_sha256": "01f4acc408ff572bd1ca8ebe8735a645e778de38168e30c2722fab4f7ab1cecb",
+    "source_archive": "artifacts/sources/experiment-sources/01f4acc408ff572bd1ca8ebe8735a645e778de38168e30c2722fab4f7ab1cecb/source.zip",
+    "source_paths": [
+      "rwkv",
+      "expertium",
+      "scripts",
+      "configs",
+      "pyproject.toml",
+      "uv.lock",
+      "justfile",
+      "upstream.json"
+    ]
+  },
+  "status": "failed",
+  "smoke_only": false,
+  "implementation_sha256": "b98b32f2aa50daac6a9feefff14a9cc7e23c65d213928ef488a2bec7394e3eb5",
+  "started_utc": "2026-10-14T13:10:11.448819+00:00",
+  "training_users": 160,
+  "evaluation_users": 0,
+  "progress_users": 0,
+  "updates": 0,
+  "review_presentations": 0,
+  "training_curve_labels": 0,
+  "training_instant_labels": 0,
+  "hierarchical_padded_positions": 0,
+  "peak_process_tree_rss_mib": 5966.5703125,
+  "gpu_copy_milliseconds": 0.0,
+  "gpu_copy_overlap_training_milliseconds": 0.0,
+  "initial_parameter_sha256": "5715d36ea2e0464adfc444d6b58de3c6f593183f0a629e1a8ccb323eaad5f678",
+  "expertium_catch_up": {
+    "keys": [
+      "architecture",
+      "optimizer"
+    ],
+    "architecture": {
+      "name": "w80",
+      "parameters": 558209
+    },
+    "optimizer": "expertium-iter53"
+  },
+  "discarded_primer_seconds": 15.686076700003468,
+  "model_setup_seconds": 4.541297100004158,
+  "warmup_job_workers": 1,
+  "prestarted_worker_pids": [
+    1856,
+    4280,
+    15228,
+    28492,
+    29736
+  ],
+  "prestarted_workers": 5,
+  "pool_ready_wait_seconds": 0.00031039999157655984,
+  "pool_prestart_seconds": 15.751248100001249,
+  "host_placement": {
+    "mode": "physical",
+    "main_process_cpus": [
+      2,
+      3,
+      6,
+      7,
+      10,
+      11
+    ],
+    "worker_cpus": [
+      0,
+      4,
+      8,
+      14,
+      12
+    ],
+    "workers": 5,
+    "physical_cores": 8,
+    "main_core_scheduling_classes": [
+      6,
+      6,
+      5
+    ]
+  },
+  "process_qos": {
+    "mode": "above_normal_unthrottled",
+    "processes": [
+      {
+        "pid": 22764,
+        "role": "main",
+        "previous_throttling": {
+          "control_mask": 0,
+          "state_mask": 0
+        },
+        "previous_priority_class": 32,
+        "priority_class": 32768
+      },
+      {
+        "pid": 1856,
+        "role": "worker",
+        "previous_throttling": {
+          "control_mask": 0,
+          "state_mask": 0
+        },
+        "previous_priority_class": 32,
+        "priority_class": 32768
+      },
+      {
+        "pid": 4280,
+        "role": "worker",
+        "previous_throttling": {
+          "control_mask": 0,
+          "state_mask": 0
+        },
+        "previous_priority_class": 32,
+        "priority_class": 32768
+      },
+      {
+        "pid": 15228,
+        "role": "worker",
+        "previous_throttling": {
+          "control_mask": 0,
+          "state_mask": 0
+        },
+        "previous_priority_class": 32,
+        "priority_class": 32768
+      },
+      {
+        "pid": 28492,
+        "role": "worker",
+        "previous_throttling": {
+          "control_mask": 0,
+          "state_mask": 0
+        },
+        "previous_priority_class": 32,
+        "priority_class": 32768
+      },
+      {
+        "pid": 29736,
+        "role": "worker",
+        "previous_throttling": {
+          "control_mask": 0,
+          "state_mask": 0
+        },
+        "previous_priority_class": 32,
+        "priority_class": 32768
+      }
+    ],
+    "timer_resolution_100ns": {
+      "coarsest": 156250,
+      "finest": 5000,
+      "current": 5000
+    }
+  },
+  "training_started_utc": "2026-10-14T13:10:30.637967+00:00",
+  "deferred_read_depth": 2,
+  "lean_step_reset": {
+    "master_parameters": 420,
+    "child_parameters": 420
+  },
+  "bookkeeping_stride": 8,
+  "rss_sampling_skipped_processes": 0,
+  "error": "The following operation failed in the TorchScript interpreter.\nTraceback of TorchScript (most recent call last):\n  File \"C:\\Users\\jonat\\workspace\\wt\\expertium-catch-up\\expertium\\model\\variant_model.py\", line 454, in _get_loss_variant\n        W_LOSS_SCALE = 1e-5\n        ahead_logits_mag_loss = torch.sqrt(\n            1e-16 + out_ahead_logits.square().mean(dim=-1)\n                    ~~~~~~~~~~~~~~~~~~~~~~~ <--- HERE\n        )\n        ahead_logits_mag_avg = (ahead_logits_mag_loss * ahead_mask).sum() / (\nRuntimeError: CUDA out of memory. Tried to allocate 64.00 MiB. GPU 0 has a total capacity of 15.89 GiB of which 0 bytes is free. 15.10 GiB allowed; Of the allocated memory 14.57 GiB is allocated by PyTorch, and 499.18 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)\n",
+  "error_type": "RuntimeError",
+  "case_elapsed_seconds": 23.950093899999047
+}

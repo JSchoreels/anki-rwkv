@@ -1,0 +1,288 @@
+{
+  "provenance": {
+    "captured_utc": "2026-10-14T14:25:35.183745+00:00",
+    "git_commit": "9c3206274b086662eb648f71e797d96127a97541",
+    "git_dirty": true,
+    "git_status_porcelain_z": " M artifacts/expertium-catch-up/speed-20261014/all.log\u0000 M artifacts/expertium-catch-up/speed-20261014/check-gpu.json\u0000",
+    "source_tree_sha256": "2b4bf89aa5549ecba9cfcbf737e853d022abbaae0ca66461fd1285722397cc3c",
+    "source_archive": "artifacts/sources/experiment-sources/2b4bf89aa5549ecba9cfcbf737e853d022abbaae0ca66461fd1285722397cc3c/source.zip",
+    "source_paths": [
+      "rwkv",
+      "expertium",
+      "scripts",
+      "configs",
+      "pyproject.toml",
+      "uv.lock",
+      "justfile",
+      "upstream.json"
+    ]
+  },
+  "torch": "2.9.1+cu128",
+  "options": {
+    "a": {
+      "prefetch_users": true,
+      "preparation_workers": 5,
+      "gpu_packed_features": true,
+      "packed_ipc": true,
+      "async_transfer": true,
+      "batched_id_encodings": true,
+      "grouped_sync": true,
+      "main_threads": 1,
+      "bulk_transfer": true,
+      "parallel_evaluation": true,
+      "exact_shift": true,
+      "exact_index": true,
+      "batch_chunks": 512,
+      "gpu_memory_fraction": 0.95,
+      "fast_samples": true,
+      "prestart_pool": true,
+      "row_tiles_exact": 4,
+      "exact_group_norm": true,
+      "deferred_reads": true,
+      "shared_shift_orders": true,
+      "stream_launches": true,
+      "prefetch_rows": true,
+      "sync_free_loss": true,
+      "columnar_samples": true,
+      "skip_uninitialized_fill": true,
+      "skip_padding_sources": true,
+      "native_wkv": true,
+      "host_placement": "physical",
+      "process_qos": true,
+      "native_group_norm": true,
+      "native_index": true,
+      "deferred_read_depth": 2,
+      "bookkeeping_stride": 8,
+      "wkv_tile": 16,
+      "lean_step_reset": true,
+      "native_glue": true,
+      "wddm_flush": true
+    },
+    "b": {
+      "prefetch_users": true,
+      "preparation_workers": 5,
+      "gpu_packed_features": true,
+      "packed_ipc": true,
+      "async_transfer": true,
+      "batched_id_encodings": true,
+      "grouped_sync": true,
+      "main_threads": 1,
+      "bulk_transfer": true,
+      "parallel_evaluation": true,
+      "exact_shift": true,
+      "exact_index": true,
+      "batch_chunks": 512,
+      "gpu_memory_fraction": 0.95,
+      "fast_samples": true,
+      "prestart_pool": true,
+      "row_tiles_exact": 4,
+      "exact_group_norm": true,
+      "deferred_reads": true,
+      "shared_shift_orders": true,
+      "stream_launches": true,
+      "prefetch_rows": true,
+      "sync_free_loss": true,
+      "columnar_samples": true,
+      "skip_uninitialized_fill": true,
+      "skip_padding_sources": true,
+      "native_wkv": true,
+      "host_placement": "physical",
+      "process_qos": true,
+      "native_group_norm": true,
+      "native_index": true,
+      "deferred_read_depth": 2,
+      "bookkeeping_stride": 8,
+      "wkv_tile": 16,
+      "lean_step_reset": true,
+      "native_glue": true,
+      "wddm_flush": true,
+      "architecture": "iter36"
+    }
+  },
+  "self_test": false,
+  "not_exercised": {
+    "a": [
+      "async_transfer",
+      "batch_chunks",
+      "batched_id_encodings",
+      "bookkeeping_stride",
+      "bulk_transfer",
+      "columnar_samples",
+      "deferred_read_depth",
+      "deferred_reads",
+      "fast_samples",
+      "gpu_memory_fraction",
+      "gpu_packed_features",
+      "grouped_sync",
+      "host_placement",
+      "lean_step_reset",
+      "main_threads",
+      "packed_ipc",
+      "parallel_evaluation",
+      "prefetch_users",
+      "preparation_workers",
+      "prestart_pool",
+      "process_qos",
+      "wddm_flush"
+    ],
+    "b": [
+      "async_transfer",
+      "batch_chunks",
+      "batched_id_encodings",
+      "bookkeeping_stride",
+      "bulk_transfer",
+      "columnar_samples",
+      "deferred_read_depth",
+      "deferred_reads",
+      "fast_samples",
+      "gpu_memory_fraction",
+      "gpu_packed_features",
+      "grouped_sync",
+      "host_placement",
+      "lean_step_reset",
+      "main_threads",
+      "packed_ipc",
+      "parallel_evaluation",
+      "prefetch_users",
+      "preparation_workers",
+      "prestart_pool",
+      "process_qos",
+      "wddm_flush"
+    ]
+  },
+  "scope": "five real Expertium batches; BF16 forward/backward from the fresh seed-2025 checkpoint; loss and every parameter gradient",
+  "batches": [
+    {
+      "user_id": 1495,
+      "offset": 0,
+      "reviews": 256,
+      "loss_bitwise_equal": true,
+      "same_gradient_set": true,
+      "parameters": 429,
+      "differing_gradients": [],
+      "memory": {
+        "a": {
+          "peak_reserved_bytes": 3875536896,
+          "peak_allocated_bytes": 3701418496,
+          "allocator_retries": 0,
+          "forward_backward_seconds": 13.605576499991002
+        },
+        "b": {
+          "peak_reserved_bytes": 3879731200,
+          "peak_allocated_bytes": 3735486464,
+          "allocator_retries": 0,
+          "forward_backward_seconds": 0.18860350000613835
+        }
+      },
+      "differing_gradient_count": 0
+    },
+    {
+      "user_id": 1619,
+      "offset": 32768,
+      "reviews": 256,
+      "loss_bitwise_equal": true,
+      "same_gradient_set": true,
+      "parameters": 429,
+      "differing_gradients": [],
+      "memory": {
+        "a": {
+          "peak_reserved_bytes": 4057989120,
+          "peak_allocated_bytes": 3806411776,
+          "allocator_retries": 0,
+          "forward_backward_seconds": 0.17695050001202617
+        },
+        "b": {
+          "peak_reserved_bytes": 4068474880,
+          "peak_allocated_bytes": 3804789248,
+          "allocator_retries": 0,
+          "forward_backward_seconds": 0.16960910000489093
+        }
+      },
+      "differing_gradient_count": 0
+    },
+    {
+      "user_id": 3958,
+      "offset": 0,
+      "reviews": 229,
+      "loss_bitwise_equal": true,
+      "same_gradient_set": true,
+      "parameters": 429,
+      "differing_gradients": [],
+      "memory": {
+        "a": {
+          "peak_reserved_bytes": 4567597056,
+          "peak_allocated_bytes": 4238700544,
+          "allocator_retries": 0,
+          "forward_backward_seconds": 0.19640240000444464
+        },
+        "b": {
+          "peak_reserved_bytes": 4575985664,
+          "peak_allocated_bytes": 4235811328,
+          "allocator_retries": 0,
+          "forward_backward_seconds": 0.19939690000319388
+        }
+      },
+      "differing_gradient_count": 0
+    },
+    {
+      "user_id": 2155,
+      "offset": 0,
+      "reviews": 37,
+      "loss_bitwise_equal": true,
+      "same_gradient_set": true,
+      "parameters": 429,
+      "differing_gradients": [],
+      "memory": {
+        "a": {
+          "peak_reserved_bytes": 773849088,
+          "peak_allocated_bytes": 750935040,
+          "allocator_retries": 0,
+          "forward_backward_seconds": 0.15040540001064073
+        },
+        "b": {
+          "peak_reserved_bytes": 773849088,
+          "peak_allocated_bytes": 751448576,
+          "allocator_retries": 0,
+          "forward_backward_seconds": 0.12936229999468196
+        }
+      },
+      "differing_gradient_count": 0
+    },
+    {
+      "user_id": 906,
+      "offset": 0,
+      "reviews": 77,
+      "loss_bitwise_equal": true,
+      "same_gradient_set": true,
+      "parameters": 429,
+      "differing_gradients": [],
+      "memory": {
+        "a": {
+          "peak_reserved_bytes": 1495269376,
+          "peak_allocated_bytes": 1354442752,
+          "allocator_retries": 0,
+          "forward_backward_seconds": 0.1255587000050582
+        },
+        "b": {
+          "peak_reserved_bytes": 1495269376,
+          "peak_allocated_bytes": 1355103744,
+          "allocator_retries": 0,
+          "forward_backward_seconds": 0.13057820001267828
+        }
+      },
+      "differing_gradient_count": 0
+    }
+  ],
+  "status": "passed",
+  "padding_sources": {
+    "calls": 0,
+    "sources": 0,
+    "nonzero": 0,
+    "negative_zero": 0,
+    "nonfinite": 0
+  },
+  "summary": {
+    "batches": 5,
+    "batches_bitwise_equal": 5
+  }
+}
