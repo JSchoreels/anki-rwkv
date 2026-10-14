@@ -1,0 +1,882 @@
+{
+  "model": "expertium",
+  "track": "E89-F65e-F77a",
+  "options": {
+    "prefetch_users": true,
+    "preparation_workers": 5,
+    "gpu_packed_features": true,
+    "packed_ipc": true,
+    "async_transfer": true,
+    "batched_id_encodings": true,
+    "grouped_sync": true,
+    "main_threads": 1,
+    "bulk_transfer": true,
+    "parallel_evaluation": true,
+    "exact_shift": true,
+    "batch_chunks": 512,
+    "gpu_memory_fraction": 0.95,
+    "fast_samples": true,
+    "prestart_pool": true,
+    "deferred_reads": true,
+    "shared_shift_orders": true,
+    "stream_launches": true,
+    "sync_free_loss": true,
+    "columnar_samples": true,
+    "skip_uninitialized_fill": true,
+    "host_placement": "physical",
+    "process_qos": true,
+    "deferred_read_depth": 2,
+    "bookkeeping_stride": 8,
+    "lean_step_reset": true,
+    "wddm_flush": true
+  },
+  "config": {
+    "MODEL": "expertium",
+    "DTYPE": "bfloat16",
+    "WKV_BACKEND": "nvrtc",
+    "SEED": 2025,
+    "BATCH_CHUNKS": 512,
+    "CHUNK_REVIEWS": 128,
+    "PREFETCH_WORKERS": 5,
+    "PREFETCH_BATCHES": 10,
+    "CPU_THREADS": 4,
+    "EPOCHS": 1,
+    "DATA_PATH": "C:\\Users\\jonat\\workspace\\anki-rwkv\\data\\anki-revlogs-10k-original-20261011",
+    "DATASET_REVISION": "75299740cff05894ef42d7ad990666691efdd2da",
+    "GPU_MEMORY_FRACTION": 0.95,
+    "PEAK_LR": 0.0007,
+    "WARMUP_STEPS": 5
+  },
+  "torch": "2.9.1+cu128",
+  "cuda": "12.8",
+  "gpu": "NVIDIA GeForce RTX 5080",
+  "training_dropout": "enabled",
+  "device_used_at_start_mib": 1290.4375,
+  "master_dtype": "float32",
+  "float32_matmul_precision": "highest",
+  "cuda_matmul_allow_tf32": false,
+  "rss_sampling": "process tree at user transitions; sampled maximum, not continuous peak",
+  "provenance": {
+    "captured_utc": "2026-10-14T13:07:49.316163+00:00",
+    "git_commit": "8c0e0bbd1aebc66c7fab32a1238c3a8eebd792e2",
+    "git_dirty": false,
+    "git_status_porcelain_z": "",
+    "source_tree_sha256": "01f4acc408ff572bd1ca8ebe8735a645e778de38168e30c2722fab4f7ab1cecb",
+    "source_archive": "artifacts/sources/experiment-sources/01f4acc408ff572bd1ca8ebe8735a645e778de38168e30c2722fab4f7ab1cecb/source.zip",
+    "source_paths": [
+      "rwkv",
+      "expertium",
+      "scripts",
+      "configs",
+      "pyproject.toml",
+      "uv.lock",
+      "justfile",
+      "upstream.json"
+    ]
+  },
+  "status": "complete",
+  "smoke_only": false,
+  "implementation_sha256": "b98b32f2aa50daac6a9feefff14a9cc7e23c65d213928ef488a2bec7394e3eb5",
+  "started_utc": "2026-10-14T13:07:50.250530+00:00",
+  "training_users": 160,
+  "evaluation_users": 0,
+  "progress_users": 160,
+  "updates": 287,
+  "review_presentations": 12406383,
+  "training_curve_labels": 10842161,
+  "training_instant_labels": 10842161,
+  "hierarchical_padded_positions": 157283421,
+  "peak_process_tree_rss_mib": 8075.36328125,
+  "gpu_copy_milliseconds": 1756.5955810546875,
+  "gpu_copy_overlap_training_milliseconds": 14.82666015625,
+  "initial_parameter_sha256": "49a3841f33713c283c2880f5dc9b89ed2c0411294ee2c48cba941868751eae18",
+  "discarded_primer_seconds": 8.207723900006386,
+  "model_setup_seconds": 3.766364099996281,
+  "warmup_job_workers": 1,
+  "prestarted_worker_pids": [
+    2368,
+    2764,
+    5924,
+    22452,
+    38292
+  ],
+  "prestarted_workers": 5,
+  "pool_ready_wait_seconds": 0.0003620999923441559,
+  "pool_prestart_seconds": 8.272039300005417,
+  "host_placement": {
+    "mode": "physical",
+    "main_process_cpus": [
+      2,
+      3,
+      6,
+      7,
+      10,
+      11
+    ],
+    "worker_cpus": [
+      0,
+      4,
+      8,
+      14,
+      12
+    ],
+    "workers": 5,
+    "physical_cores": 8,
+    "main_core_scheduling_classes": [
+      6,
+      6,
+      5
+    ],
+    "restored_main_process_cpus": 16
+  },
+  "process_qos": {
+    "mode": "above_normal_unthrottled",
+    "processes": [
+      {
+        "pid": 35608,
+        "role": "main",
+        "previous_throttling": {
+          "control_mask": 0,
+          "state_mask": 0
+        },
+        "previous_priority_class": 32,
+        "priority_class": 32768
+      },
+      {
+        "pid": 2368,
+        "role": "worker",
+        "previous_throttling": {
+          "control_mask": 0,
+          "state_mask": 0
+        },
+        "previous_priority_class": 32,
+        "priority_class": 32768
+      },
+      {
+        "pid": 2764,
+        "role": "worker",
+        "previous_throttling": {
+          "control_mask": 0,
+          "state_mask": 0
+        },
+        "previous_priority_class": 32,
+        "priority_class": 32768
+      },
+      {
+        "pid": 5924,
+        "role": "worker",
+        "previous_throttling": {
+          "control_mask": 0,
+          "state_mask": 0
+        },
+        "previous_priority_class": 32,
+        "priority_class": 32768
+      },
+      {
+        "pid": 22452,
+        "role": "worker",
+        "previous_throttling": {
+          "control_mask": 0,
+          "state_mask": 0
+        },
+        "previous_priority_class": 32,
+        "priority_class": 32768
+      },
+      {
+        "pid": 38292,
+        "role": "worker",
+        "previous_throttling": {
+          "control_mask": 0,
+          "state_mask": 0
+        },
+        "previous_priority_class": 32,
+        "priority_class": 32768
+      }
+    ],
+    "timer_resolution_100ns": {
+      "coarsest": 156250,
+      "finest": 5000,
+      "current": 5000
+    }
+  },
+  "training_started_utc": "2026-10-14T13:08:01.187783+00:00",
+  "deferred_read_depth": 2,
+  "lean_step_reset": {
+    "master_parameters": 444,
+    "child_parameters": 444
+  },
+  "bookkeeping_stride": 8,
+  "rss_sampling_skipped_processes": 0,
+  "training_elapsed_seconds": 101.85683359998802,
+  "training_seconds": 103.98588009999366,
+  "training_gc": {
+    "generation_0": {
+      "collections": 720,
+      "seconds": 0.062423100098385476
+    },
+    "generation_1": {
+      "collections": 66,
+      "seconds": 0.02747950001503341
+    },
+    "generation_2": {
+      "collections": 2,
+      "seconds": 0.1907192000071518
+    }
+  },
+  "cold_training_seconds": 103.98588009999366,
+  "reviews_per_second": 119308.34251794496,
+  "cold_reviews_per_second": 119308.34251794496,
+  "coverage": {
+    "4703": {
+      "reviews": 94745,
+      "updates": 2
+    },
+    "8021": {
+      "reviews": 16152,
+      "updates": 1
+    },
+    "780": {
+      "reviews": 43042,
+      "updates": 1
+    },
+    "945": {
+      "reviews": 13639,
+      "updates": 1
+    },
+    "7253": {
+      "reviews": 121251,
+      "updates": 2
+    },
+    "4352": {
+      "reviews": 14133,
+      "updates": 1
+    },
+    "3755": {
+      "reviews": 10757,
+      "updates": 1
+    },
+    "6071": {
+      "reviews": 36721,
+      "updates": 1
+    },
+    "292": {
+      "reviews": 52856,
+      "updates": 1
+    },
+    "7458": {
+      "reviews": 19612,
+      "updates": 1
+    },
+    "4625": {
+      "reviews": 919958,
+      "updates": 15
+    },
+    "467": {
+      "reviews": 146089,
+      "updates": 3
+    },
+    "3757": {
+      "reviews": 24017,
+      "updates": 1
+    },
+    "2882": {
+      "reviews": 7034,
+      "updates": 1
+    },
+    "4782": {
+      "reviews": 67340,
+      "updates": 2
+    },
+    "6003": {
+      "reviews": 16698,
+      "updates": 1
+    },
+    "8384": {
+      "reviews": 173571,
+      "updates": 3
+    },
+    "1732": {
+      "reviews": 6480,
+      "updates": 1
+    },
+    "1644": {
+      "reviews": 38901,
+      "updates": 1
+    },
+    "7182": {
+      "reviews": 227490,
+      "updates": 4
+    },
+    "4045": {
+      "reviews": 391376,
+      "updates": 6
+    },
+    "1678": {
+      "reviews": 74506,
+      "updates": 2
+    },
+    "3249": {
+      "reviews": 16633,
+      "updates": 1
+    },
+    "2130": {
+      "reviews": 9194,
+      "updates": 1
+    },
+    "3638": {
+      "reviews": 39240,
+      "updates": 1
+    },
+    "8716": {
+      "reviews": 166192,
+      "updates": 3
+    },
+    "5616": {
+      "reviews": 63383,
+      "updates": 1
+    },
+    "5392": {
+      "reviews": 228675,
+      "updates": 4
+    },
+    "4068": {
+      "reviews": 21964,
+      "updates": 1
+    },
+    "9775": {
+      "reviews": 229886,
+      "updates": 4
+    },
+    "1789": {
+      "reviews": 56463,
+      "updates": 1
+    },
+    "328": {
+      "reviews": 77168,
+      "updates": 2
+    },
+    "4072": {
+      "reviews": 40062,
+      "updates": 1
+    },
+    "8369": {
+      "reviews": 10908,
+      "updates": 1
+    },
+    "3729": {
+      "reviews": 10584,
+      "updates": 1
+    },
+    "8000": {
+      "reviews": 255951,
+      "updates": 4
+    },
+    "8086": {
+      "reviews": 26049,
+      "updates": 1
+    },
+    "2775": {
+      "reviews": 20746,
+      "updates": 1
+    },
+    "9483": {
+      "reviews": 11307,
+      "updates": 1
+    },
+    "8695": {
+      "reviews": 38122,
+      "updates": 1
+    },
+    "2631": {
+      "reviews": 50284,
+      "updates": 1
+    },
+    "2846": {
+      "reviews": 116232,
+      "updates": 2
+    },
+    "2117": {
+      "reviews": 305951,
+      "updates": 5
+    },
+    "5039": {
+      "reviews": 23306,
+      "updates": 1
+    },
+    "5880": {
+      "reviews": 25939,
+      "updates": 1
+    },
+    "4537": {
+      "reviews": 209477,
+      "updates": 4
+    },
+    "5457": {
+      "reviews": 25350,
+      "updates": 1
+    },
+    "4627": {
+      "reviews": 33237,
+      "updates": 1
+    },
+    "3535": {
+      "reviews": 11809,
+      "updates": 1
+    },
+    "3839": {
+      "reviews": 58861,
+      "updates": 1
+    },
+    "9135": {
+      "reviews": 8152,
+      "updates": 1
+    },
+    "3376": {
+      "reviews": 15714,
+      "updates": 1
+    },
+    "7240": {
+      "reviews": 110398,
+      "updates": 2
+    },
+    "919": {
+      "reviews": 56901,
+      "updates": 1
+    },
+    "2134": {
+      "reviews": 18015,
+      "updates": 1
+    },
+    "7108": {
+      "reviews": 26107,
+      "updates": 1
+    },
+    "7171": {
+      "reviews": 6614,
+      "updates": 1
+    },
+    "9199": {
+      "reviews": 38441,
+      "updates": 1
+    },
+    "1727": {
+      "reviews": 6537,
+      "updates": 1
+    },
+    "1090": {
+      "reviews": 8962,
+      "updates": 1
+    },
+    "9643": {
+      "reviews": 22400,
+      "updates": 1
+    },
+    "7373": {
+      "reviews": 62797,
+      "updates": 1
+    },
+    "7213": {
+      "reviews": 82016,
+      "updates": 2
+    },
+    "5859": {
+      "reviews": 1023175,
+      "updates": 16
+    },
+    "9734": {
+      "reviews": 247307,
+      "updates": 4
+    },
+    "8886": {
+      "reviews": 6887,
+      "updates": 1
+    },
+    "8867": {
+      "reviews": 138609,
+      "updates": 3
+    },
+    "9735": {
+      "reviews": 11985,
+      "updates": 1
+    },
+    "2521": {
+      "reviews": 149492,
+      "updates": 3
+    },
+    "6090": {
+      "reviews": 493856,
+      "updates": 8
+    },
+    "2096": {
+      "reviews": 16357,
+      "updates": 1
+    },
+    "2656": {
+      "reviews": 169158,
+      "updates": 3
+    },
+    "4533": {
+      "reviews": 6519,
+      "updates": 1
+    },
+    "4700": {
+      "reviews": 6585,
+      "updates": 1
+    },
+    "1669": {
+      "reviews": 9506,
+      "updates": 1
+    },
+    "5936": {
+      "reviews": 44053,
+      "updates": 1
+    },
+    "1950": {
+      "reviews": 30796,
+      "updates": 1
+    },
+    "159": {
+      "reviews": 7100,
+      "updates": 1
+    },
+    "3890": {
+      "reviews": 20313,
+      "updates": 1
+    },
+    "4565": {
+      "reviews": 220751,
+      "updates": 4
+    },
+    "1148": {
+      "reviews": 55594,
+      "updates": 1
+    },
+    "5127": {
+      "reviews": 5296,
+      "updates": 1
+    },
+    "2278": {
+      "reviews": 154116,
+      "updates": 3
+    },
+    "9595": {
+      "reviews": 18249,
+      "updates": 1
+    },
+    "2977": {
+      "reviews": 41324,
+      "updates": 1
+    },
+    "7655": {
+      "reviews": 34179,
+      "updates": 1
+    },
+    "3985": {
+      "reviews": 12283,
+      "updates": 1
+    },
+    "8705": {
+      "reviews": 18720,
+      "updates": 1
+    },
+    "6227": {
+      "reviews": 36101,
+      "updates": 1
+    },
+    "8804": {
+      "reviews": 5570,
+      "updates": 1
+    },
+    "6472": {
+      "reviews": 173347,
+      "updates": 3
+    },
+    "5712": {
+      "reviews": 26218,
+      "updates": 1
+    },
+    "100": {
+      "reviews": 12094,
+      "updates": 1
+    },
+    "4535": {
+      "reviews": 47304,
+      "updates": 1
+    },
+    "4128": {
+      "reviews": 5770,
+      "updates": 1
+    },
+    "2539": {
+      "reviews": 175100,
+      "updates": 3
+    },
+    "7500": {
+      "reviews": 6029,
+      "updates": 1
+    },
+    "1864": {
+      "reviews": 66820,
+      "updates": 2
+    },
+    "6260": {
+      "reviews": 13881,
+      "updates": 1
+    },
+    "1371": {
+      "reviews": 84994,
+      "updates": 2
+    },
+    "5576": {
+      "reviews": 31756,
+      "updates": 1
+    },
+    "7361": {
+      "reviews": 24400,
+      "updates": 1
+    },
+    "754": {
+      "reviews": 64588,
+      "updates": 1
+    },
+    "2988": {
+      "reviews": 19796,
+      "updates": 1
+    },
+    "2289": {
+      "reviews": 142062,
+      "updates": 3
+    },
+    "6356": {
+      "reviews": 36347,
+      "updates": 1
+    },
+    "7711": {
+      "reviews": 13693,
+      "updates": 1
+    },
+    "9751": {
+      "reviews": 8621,
+      "updates": 1
+    },
+    "6532": {
+      "reviews": 9254,
+      "updates": 1
+    },
+    "8376": {
+      "reviews": 45726,
+      "updates": 1
+    },
+    "6492": {
+      "reviews": 8093,
+      "updates": 1
+    },
+    "1556": {
+      "reviews": 38492,
+      "updates": 1
+    },
+    "1303": {
+      "reviews": 17435,
+      "updates": 1
+    },
+    "1004": {
+      "reviews": 11463,
+      "updates": 1
+    },
+    "3141": {
+      "reviews": 83797,
+      "updates": 2
+    },
+    "7923": {
+      "reviews": 18325,
+      "updates": 1
+    },
+    "8927": {
+      "reviews": 12632,
+      "updates": 1
+    },
+    "8614": {
+      "reviews": 5119,
+      "updates": 1
+    },
+    "7231": {
+      "reviews": 5160,
+      "updates": 1
+    },
+    "3279": {
+      "reviews": 62559,
+      "updates": 1
+    },
+    "2380": {
+      "reviews": 23661,
+      "updates": 1
+    },
+    "3060": {
+      "reviews": 76788,
+      "updates": 2
+    },
+    "530": {
+      "reviews": 648679,
+      "updates": 10
+    },
+    "5825": {
+      "reviews": 14162,
+      "updates": 1
+    },
+    "6639": {
+      "reviews": 29780,
+      "updates": 1
+    },
+    "135": {
+      "reviews": 130685,
+      "updates": 2
+    },
+    "1043": {
+      "reviews": 7695,
+      "updates": 1
+    },
+    "5975": {
+      "reviews": 78122,
+      "updates": 2
+    },
+    "1954": {
+      "reviews": 86535,
+      "updates": 2
+    },
+    "3678": {
+      "reviews": 76574,
+      "updates": 2
+    },
+    "5179": {
+      "reviews": 60406,
+      "updates": 1
+    },
+    "1577": {
+      "reviews": 9777,
+      "updates": 1
+    },
+    "3374": {
+      "reviews": 157733,
+      "updates": 3
+    },
+    "6631": {
+      "reviews": 11366,
+      "updates": 1
+    },
+    "4199": {
+      "reviews": 21964,
+      "updates": 1
+    },
+    "8552": {
+      "reviews": 60023,
+      "updates": 1
+    },
+    "6291": {
+      "reviews": 52195,
+      "updates": 1
+    },
+    "7764": {
+      "reviews": 44439,
+      "updates": 1
+    },
+    "4984": {
+      "reviews": 21235,
+      "updates": 1
+    },
+    "7146": {
+      "reviews": 23951,
+      "updates": 1
+    },
+    "1189": {
+      "reviews": 197652,
+      "updates": 4
+    },
+    "3847": {
+      "reviews": 5096,
+      "updates": 1
+    },
+    "4482": {
+      "reviews": 12651,
+      "updates": 1
+    },
+    "6814": {
+      "reviews": 7541,
+      "updates": 1
+    },
+    "7118": {
+      "reviews": 260787,
+      "updates": 4
+    },
+    "4865": {
+      "reviews": 3608,
+      "updates": 1
+    },
+    "6891": {
+      "reviews": 75666,
+      "updates": 2
+    },
+    "9976": {
+      "reviews": 123802,
+      "updates": 2
+    },
+    "9758": {
+      "reviews": 78638,
+      "updates": 2
+    },
+    "5706": {
+      "reviews": 9019,
+      "updates": 1
+    },
+    "8250": {
+      "reviews": 295385,
+      "updates": 5
+    },
+    "5036": {
+      "reviews": 84640,
+      "updates": 2
+    },
+    "5711": {
+      "reviews": 9110,
+      "updates": 1
+    },
+    "5153": {
+      "reviews": 52329,
+      "updates": 1
+    },
+    "7928": {
+      "reviews": 16253,
+      "updates": 1
+    },
+    "9512": {
+      "reviews": 56362,
+      "updates": 1
+    },
+    "7405": {
+      "reviews": 8294,
+      "updates": 1
+    },
+    "2602": {
+      "reviews": 26994,
+      "updates": 1
+    },
+    "2907": {
+      "reviews": 14825,
+      "updates": 1
+    },
+    "8581": {
+      "reviews": 14810,
+      "updates": 1
+    }
+  },
+  "peak_allocated_mib": 9193.75634765625,
+  "peak_reserved_mib": 15442.0,
+  "allocator_stats": {
+    "num_alloc_retries": 1,
+    "num_ooms": 0,
+    "num_device_alloc": 1122,
+    "num_device_free": 475
+  },
+  "trained_parameter_sha256": "64ec2caacfd5a9602c0cdb8a9294822e6dfc72d95259a4e4c7e3d48f0886c135",
+  "update_offset_end": 287,
+  "case_elapsed_seconds": 116.29609270000947
+}

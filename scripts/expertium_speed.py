@@ -45,7 +45,11 @@ def cases():
     generic.pop("architecture")
     return {"w32": accepted, "w32-generic": generic, "w32-variant": {**generic, "architecture": "iter36"},
             "w80-sequential": {**generic, "architecture": "w80-sequential"}, "w80": {**generic, "architecture": "w80"},
-            "w64": {**generic, "architecture": "w64"},
+            "w64": {**generic, "architecture": "w64"}, "w64-sequential": {**generic, "architecture": "w64-sequential"},
+            # d=80 runs out of the 16 GB at 512 chunks (65,536 reviews per update): half-size updates, disclosed.
+            "w80-b256": {**generic, "architecture": "w80", "batch_chunks": 256},
+            "w80-sequential-b256": {**generic, "architecture": "w80-sequential", "batch_chunks": 256},
+            "w32-generic-b256": {**generic, "batch_chunks": 256},
             "w80-muon": {**generic, "architecture": "w80", "optimizer": "expertium-iter53"},
             "w32-kd": {**accepted, "distillation": {"teacher": str(TEACHER), "alpha": 0.9}}}, dropped
 
@@ -133,7 +137,7 @@ def report(out):
                      "main_process_cpu_seconds": process.get("main_process_cpu_seconds"),
                      "system_busy_cpu_seconds": process.get("system_busy_cpu_seconds"),
                      "peak_allocated_mib": result.get("peak_allocated_mib"), "error": result.get("error")})
-    base = next((r["reviews_per_second"] for r in rows if r["case"] == "w32" and r["reviews_per_second"]), None)
+    base = next((r["reviews_per_second"] for r in rows if r["case"] == "w32" and r["reviews_per_second"]), None)         or next((r["reviews_per_second"] for r in rows if r["case"] == "w32-generic" and r["reviews_per_second"]), None)
     lines = ["| Case | Status | Parameters | Reviews/s | vs w32 | Training s | Updates | Main CPU s | Machine CPU s | Peak MiB |",
              "|---|---|---|---|---|---|---|---|---|---|"]
     for r in rows:
