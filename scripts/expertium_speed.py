@@ -164,6 +164,13 @@ def run_all(out, names, budget_minutes):
     check = subprocess.call([sys.executable, "-X", "utf8", str(ROOT / "scripts/check_expertium_gpu.py"),
                              "--output", str(out / "check-gpu.json")], cwd=ROOT)
     note(f"check_expertium_gpu exit {check}")
+    accepted = json.loads((out / "speed.json").read_text())["cases"]["w32"]
+    if not (out / "exact-iter36-variant").exists():
+        # Default-unchanged proof on CUDA: the accepted track vs the same track through the variant class.
+        exact = subprocess.call([sys.executable, "-X", "utf8", str(ROOT / "scripts/check_r01_exact_options.py"),
+                                 "--a", json.dumps(accepted), "--b", json.dumps({**accepted, "architecture": "iter36"}),
+                                 "--output", str(out / "exact-iter36-variant")], cwd=ROOT)
+        note(f"check_r01_exact_options accepted vs architecture=iter36 exit {exact}")
     for name in names:
         elapsed = (time.perf_counter() - started) / 60
         if (out / name).exists():

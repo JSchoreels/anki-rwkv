@@ -27,7 +27,7 @@ import statistics
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 APPLIED = {"native_wkv", "native_group_norm", "native_index", "wkv_tile", "native_glue", "partial_shift_lerp", "explicit_shift_lerp", "exact_shift_lerp", "exact_bonus_products", "batched_split_gather", "fused_padded_gather", "exact_shift", "exact_index", "exact_group_norm", "fused_shift", "row_tiles_exact", "shared_shift_orders",
-           "stream_launches", "driver_launch", "prefetch_rows", "prefetch_shift", "sync_free_loss", "jit_optimize", "nondeterministic", "skip_uninitialized_fill", "skip_padding_sources", "concurrent_splits", "concurrent_split_limit", "exact_gate_glue", "exact_channel_glue", "worker_scatter_orders", "recurrence_prefetch", "recurrence_load_pipeline", "wave_aware_backward", "flat_buffers", "compact_previous_state", "wddm_flush_streams", "wkv_rows"}
+           "stream_launches", "driver_launch", "prefetch_rows", "prefetch_shift", "sync_free_loss", "jit_optimize", "nondeterministic", "skip_uninitialized_fill", "skip_padding_sources", "concurrent_splits", "concurrent_split_limit", "exact_gate_glue", "exact_channel_glue", "worker_scatter_orders", "recurrence_prefetch", "recurrence_load_pipeline", "wave_aware_backward", "flat_buffers", "compact_previous_state", "wddm_flush_streams", "wkv_rows", "architecture"}
 
 
 def load_options(value, track):
@@ -132,8 +132,16 @@ def main():
         torch._C._set_graph_executor_optimize(bool(options.get("jit_optimize", False)))
         torch.use_deterministic_algorithms(not options.get("nondeterministic", False), warn_only=False)
         torch.utils.deterministic.fill_uninitialized_memory = not options.get("skip_uninitialized_fill", False)
-        master, model, dtype = benchmark_models({"MODEL": "expertium", "DTYPE": "bfloat16", "SEED": 2025, "WKV_BACKEND": "nvrtc"},
-                                                torch.device("cuda:0"))
+        if options.get("architecture") is not None:
+            # Expertium catch-up variant class (docs/EXPERTIUM_CATCH_UP.md); "iter36" must equal the default bitwise.
+            from scripts.compare import training_models
+            from expertium.variants import variant
+            from expertium.model.variant_model import VariantSrsRWKV
+            dtype = torch.bfloat16
+            master, model = training_models(VariantSrsRWKV, variant(options["architecture"]), torch.device("cuda:0"), dtype, 2025)
+        else:
+            master, model, dtype = benchmark_models({"MODEL": "expertium", "DTYPE": "bfloat16", "SEED": 2025, "WKV_BACKEND": "nvrtc"},
+                                                    torch.device("cuda:0"))
         master.load_state_dict(checkpoint["model"])
         model.copy_downcast_(master, dtype)
         if options.get("native_wkv") or options.get("native_group_norm") or options.get("native_index") or options.get("native_glue"):
