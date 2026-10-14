@@ -1,0 +1,3344 @@
+{
+  "model": "expertium",
+  "track": "E89-F65e-F77a",
+  "options": {
+    "prefetch_users": true,
+    "preparation_workers": 5,
+    "gpu_packed_features": true,
+    "packed_ipc": true,
+    "async_transfer": true,
+    "batched_id_encodings": true,
+    "grouped_sync": true,
+    "main_threads": 1,
+    "bulk_transfer": true,
+    "parallel_evaluation": true,
+    "exact_shift": true,
+    "exact_index": true,
+    "batch_chunks": 512,
+    "gpu_memory_fraction": 0.8,
+    "fast_samples": true,
+    "prestart_pool": true,
+    "row_tiles_exact": 4,
+    "exact_group_norm": true,
+    "deferred_reads": true,
+    "shared_shift_orders": true,
+    "stream_launches": true,
+    "prefetch_rows": true,
+    "sync_free_loss": true,
+    "columnar_samples": true,
+    "skip_uninitialized_fill": true,
+    "skip_padding_sources": true,
+    "native_wkv": true,
+    "host_placement": "physical",
+    "process_qos": true,
+    "native_group_norm": true,
+    "native_index": true,
+    "deferred_read_depth": 2,
+    "bookkeeping_stride": 8,
+    "wkv_tile": 16,
+    "lean_step_reset": true,
+    "native_glue": true,
+    "wddm_flush": true
+  },
+  "config": {
+    "MODEL": "expertium",
+    "DTYPE": "bfloat16",
+    "WKV_BACKEND": "nvrtc",
+    "SEED": 2025,
+    "BATCH_CHUNKS": 512,
+    "CHUNK_REVIEWS": 128,
+    "PREFETCH_WORKERS": 5,
+    "PREFETCH_BATCHES": 10,
+    "CPU_THREADS": 4,
+    "EPOCHS": 1,
+    "DATA_PATH": "C:\\Users\\jonat\\workspace\\anki-rwkv\\data\\anki-revlogs-10k-original-20261011",
+    "DATASET_REVISION": "75299740cff05894ef42d7ad990666691efdd2da",
+    "GPU_MEMORY_FRACTION": 0.8,
+    "PEAK_LR": 0.0007,
+    "WARMUP_STEPS": 5
+  },
+  "torch": "2.9.1+cu128",
+  "cuda": "12.8",
+  "gpu": "NVIDIA GeForce RTX 5080",
+  "training_dropout": "enabled",
+  "device_used_at_start_mib": 1290.4375,
+  "master_dtype": "float32",
+  "float32_matmul_precision": "highest",
+  "cuda_matmul_allow_tf32": false,
+  "rss_sampling": "process tree at user transitions; sampled maximum, not continuous peak",
+  "provenance": {
+    "captured_utc": "2026-10-14T17:33:01.534723+00:00",
+    "git_commit": "8c2e3cc98f0fc5a28578a2eed8c5e9ffe768a194",
+    "git_dirty": false,
+    "git_status_porcelain_z": "",
+    "source_tree_sha256": "395ad11d5f8b4d97295ddb34b3e344e3320a43f86c05ae76cd23f2c7548937d3",
+    "source_archive": "artifacts/sources/experiment-sources/395ad11d5f8b4d97295ddb34b3e344e3320a43f86c05ae76cd23f2c7548937d3/source.zip",
+    "source_paths": [
+      "rwkv",
+      "expertium",
+      "scripts",
+      "configs",
+      "pyproject.toml",
+      "uv.lock",
+      "justfile",
+      "upstream.json"
+    ]
+  },
+  "status": "complete",
+  "smoke_only": false,
+  "implementation_sha256": "d3e1875c38d427c10bb2c1d0be0548bbc0b786be6d3174a4e321f3d237f26e05",
+  "started_utc": "2026-10-14T17:33:02.470231+00:00",
+  "training_users": 50,
+  "evaluation_users": 100,
+  "progress_users": 50,
+  "updates": 63,
+  "review_presentations": 2044361,
+  "training_curve_labels": 1719976,
+  "training_instant_labels": 1719976,
+  "hierarchical_padded_positions": 25564750,
+  "peak_process_tree_rss_mib": 6789.5078125,
+  "gpu_copy_milliseconds": 290.49560546875,
+  "gpu_copy_overlap_training_milliseconds": 1.93658447265625,
+  "recurrence_kernel": {
+    "rows_per_thread": 4,
+    "checkpoint_tile": 32,
+    "threads_per_block": 256,
+    "compact_previous_state": false,
+    "recurrence_prefetch": false,
+    "wave_aware_backward": false,
+    "recurrence_load_pipeline": 0
+  },
+  "initial_parameter_sha256": "49a3841f33713c283c2880f5dc9b89ed2c0411294ee2c48cba941868751eae18",
+  "native_extension": {
+    "identity": {
+      "source_sha256": "110315ab5338acc840788b5edb18c61899a4d769504ee0015eefcb1b240dfb85",
+      "torch": "2.9.1+cu128",
+      "torch_cuda": "12.8",
+      "platform": "nt",
+      "flags": [
+        "/nologo",
+        "/LD",
+        "/std:c++17",
+        "/O2",
+        "/MD",
+        "/EHsc",
+        "/bigobj",
+        "/D_CRT_SECURE_NO_WARNINGS",
+        "/DNOMINMAX"
+      ],
+      "msvc_version": "14.44.35207",
+      "windows_sdk_version": "10.0.26100.0",
+      "cuda_header_version": "13.4",
+      "cuda_header_sha256": "7a79d67ca888061b1dfbe4739b51ad64f85a2f3ad874947ce09b2c635b4c7072",
+      "torch_cudart_sha256": "c2c9a9c22a9bcba90e261825968836787b331038047a26770cffb7a583c28344",
+      "libraries": [
+        "c10.lib",
+        "c10_cuda.lib",
+        "torch_cpu.lib",
+        "torch_cuda.lib",
+        "torch.lib",
+        "cuda.lib",
+        "torch_cudart.lib"
+      ]
+    },
+    "binary_sha256": "3c58235f9933e6cc83161e369897ef6148c5a2e320ea4b83e241888c640cfb0c",
+    "build_key": "f1b68c9d56963ef5e70c5bc5a343afbf9481ae45d2571d057644270e5f83cbe7"
+  },
+  "discarded_primer_seconds": 9.275201900003594,
+  "model_setup_seconds": 3.7138159000023734,
+  "warmup_job_workers": 2,
+  "prestarted_worker_pids": [
+    11292,
+    23376,
+    32548,
+    35480,
+    38972
+  ],
+  "prestarted_workers": 5,
+  "pool_ready_wait_seconds": 0.0003150999982608482,
+  "pool_prestart_seconds": 9.332290599995758,
+  "host_placement": {
+    "mode": "physical",
+    "main_process_cpus": [
+      2,
+      3,
+      6,
+      7,
+      10,
+      11
+    ],
+    "worker_cpus": [
+      0,
+      4,
+      8,
+      14,
+      12
+    ],
+    "workers": 5,
+    "physical_cores": 8,
+    "main_core_scheduling_classes": [
+      6,
+      6,
+      5
+    ],
+    "restored_main_process_cpus": 16
+  },
+  "process_qos": {
+    "mode": "above_normal_unthrottled",
+    "processes": [
+      {
+        "pid": 11184,
+        "role": "main",
+        "previous_throttling": {
+          "control_mask": 0,
+          "state_mask": 0
+        },
+        "previous_priority_class": 32,
+        "priority_class": 32768
+      },
+      {
+        "pid": 11292,
+        "role": "worker",
+        "previous_throttling": {
+          "control_mask": 0,
+          "state_mask": 0
+        },
+        "previous_priority_class": 32,
+        "priority_class": 32768
+      },
+      {
+        "pid": 23376,
+        "role": "worker",
+        "previous_throttling": {
+          "control_mask": 0,
+          "state_mask": 0
+        },
+        "previous_priority_class": 32,
+        "priority_class": 32768
+      },
+      {
+        "pid": 32548,
+        "role": "worker",
+        "previous_throttling": {
+          "control_mask": 0,
+          "state_mask": 0
+        },
+        "previous_priority_class": 32,
+        "priority_class": 32768
+      },
+      {
+        "pid": 35480,
+        "role": "worker",
+        "previous_throttling": {
+          "control_mask": 0,
+          "state_mask": 0
+        },
+        "previous_priority_class": 32,
+        "priority_class": 32768
+      },
+      {
+        "pid": 38972,
+        "role": "worker",
+        "previous_throttling": {
+          "control_mask": 0,
+          "state_mask": 0
+        },
+        "previous_priority_class": 32,
+        "priority_class": 32768
+      }
+    ],
+    "timer_resolution_100ns": {
+      "coarsest": 156250,
+      "finest": 5000,
+      "current": 5000
+    }
+  },
+  "training_started_utc": "2026-10-14T17:33:14.420329+00:00",
+  "deferred_read_depth": 2,
+  "lean_step_reset": {
+    "master_parameters": 444,
+    "child_parameters": 444
+  },
+  "bookkeeping_stride": 8,
+  "rss_sampling_skipped_processes": 0,
+  "training_elapsed_seconds": 11.523117100005038,
+  "training_seconds": 12.2182318999985,
+  "training_gc": {
+    "generation_0": {
+      "collections": 152,
+      "seconds": 0.009815599885769188
+    },
+    "generation_1": {
+      "collections": 14,
+      "seconds": 0.004653399984817952
+    },
+    "generation_2": {
+      "collections": 0,
+      "seconds": 0.0
+    }
+  },
+  "cold_training_seconds": 12.2182318999985,
+  "reviews_per_second": 167320.52695777128,
+  "cold_reviews_per_second": 167320.52695777128,
+  "coverage": {
+    "9988": {
+      "reviews": 46258,
+      "updates": 1
+    },
+    "3265": {
+      "reviews": 7569,
+      "updates": 1
+    },
+    "4461": {
+      "reviews": 55194,
+      "updates": 1
+    },
+    "5237": {
+      "reviews": 20133,
+      "updates": 1
+    },
+    "7270": {
+      "reviews": 65412,
+      "updates": 1
+    },
+    "5635": {
+      "reviews": 12926,
+      "updates": 1
+    },
+    "4614": {
+      "reviews": 35998,
+      "updates": 1
+    },
+    "7780": {
+      "reviews": 6846,
+      "updates": 1
+    },
+    "616": {
+      "reviews": 7284,
+      "updates": 1
+    },
+    "9164": {
+      "reviews": 20310,
+      "updates": 1
+    },
+    "4350": {
+      "reviews": 104060,
+      "updates": 2
+    },
+    "4502": {
+      "reviews": 77722,
+      "updates": 2
+    },
+    "3696": {
+      "reviews": 8387,
+      "updates": 1
+    },
+    "8115": {
+      "reviews": 8394,
+      "updates": 1
+    },
+    "7499": {
+      "reviews": 19102,
+      "updates": 1
+    },
+    "2088": {
+      "reviews": 62552,
+      "updates": 1
+    },
+    "1817": {
+      "reviews": 131564,
+      "updates": 3
+    },
+    "6992": {
+      "reviews": 88772,
+      "updates": 2
+    },
+    "1574": {
+      "reviews": 14844,
+      "updates": 1
+    },
+    "6532": {
+      "reviews": 9254,
+      "updates": 1
+    },
+    "8191": {
+      "reviews": 54580,
+      "updates": 1
+    },
+    "8632": {
+      "reviews": 2641,
+      "updates": 1
+    },
+    "6451": {
+      "reviews": 19009,
+      "updates": 1
+    },
+    "9882": {
+      "reviews": 126113,
+      "updates": 2
+    },
+    "2459": {
+      "reviews": 360262,
+      "updates": 6
+    },
+    "6023": {
+      "reviews": 11439,
+      "updates": 1
+    },
+    "3319": {
+      "reviews": 17388,
+      "updates": 1
+    },
+    "8334": {
+      "reviews": 14754,
+      "updates": 1
+    },
+    "1546": {
+      "reviews": 43232,
+      "updates": 1
+    },
+    "3666": {
+      "reviews": 12155,
+      "updates": 1
+    },
+    "9565": {
+      "reviews": 11121,
+      "updates": 1
+    },
+    "4963": {
+      "reviews": 39811,
+      "updates": 1
+    },
+    "4572": {
+      "reviews": 94773,
+      "updates": 2
+    },
+    "4160": {
+      "reviews": 53166,
+      "updates": 1
+    },
+    "5437": {
+      "reviews": 12126,
+      "updates": 1
+    },
+    "2803": {
+      "reviews": 35526,
+      "updates": 1
+    },
+    "7900": {
+      "reviews": 17618,
+      "updates": 1
+    },
+    "2736": {
+      "reviews": 26475,
+      "updates": 1
+    },
+    "6097": {
+      "reviews": 28100,
+      "updates": 1
+    },
+    "5192": {
+      "reviews": 6901,
+      "updates": 1
+    },
+    "5632": {
+      "reviews": 8925,
+      "updates": 1
+    },
+    "8082": {
+      "reviews": 10060,
+      "updates": 1
+    },
+    "6828": {
+      "reviews": 10577,
+      "updates": 1
+    },
+    "6464": {
+      "reviews": 84040,
+      "updates": 2
+    },
+    "8304": {
+      "reviews": 24925,
+      "updates": 1
+    },
+    "3262": {
+      "reviews": 11791,
+      "updates": 1
+    },
+    "3429": {
+      "reviews": 12907,
+      "updates": 1
+    },
+    "7212": {
+      "reviews": 19642,
+      "updates": 1
+    },
+    "3224": {
+      "reviews": 61303,
+      "updates": 1
+    },
+    "5860": {
+      "reviews": 10420,
+      "updates": 1
+    }
+  },
+  "peak_allocated_mib": 9126.38818359375,
+  "peak_reserved_mib": 11722.0,
+  "allocator_stats": {
+    "num_alloc_retries": 0,
+    "num_ooms": 0,
+    "num_device_alloc": 606,
+    "num_device_free": 41
+  },
+  "trained_parameter_sha256": "8e577c152984e8503462e720215f1812b34cb8d113d50fd0c66cd1a3811a0c5a",
+  "update_offset_end": 63,
+  "evaluation_mode": "fast",
+  "evaluation_batch_chunks": 512,
+  "evaluation_progress_users": 100,
+  "fast_evaluation": {
+    "preparation_seconds": 138.12264200004574,
+    "wait_seconds": 30.385139300022274,
+    "launch_seconds": 5.97431180003332,
+    "readback_seconds": 0.01959420001367107,
+    "bookkeeping_seconds": 0.15943740001239348,
+    "metrics_wait_seconds": 0.03340980000211857,
+    "batches": 93,
+    "chunks": 47064,
+    "padded_positions": 12048384,
+    "sections": 5928,
+    "input_hash_wait_seconds": 5.119999696034938e-05,
+    "validation_input_sha256": "7708797a598d4f6c4031fe88945d8abefcbdfa8158561bfe8ab0f9e6a0e79a78"
+  },
+  "validation_seconds": 37.21391060001042,
+  "validation_input_sha256": "7708797a598d4f6c4031fe88945d8abefcbdfa8158561bfe8ab0f9e6a0e79a78",
+  "evaluation_context": {
+    "driver_version": "617.14",
+    "nvrtc_version": "12.8",
+    "backend": "{\"recurrence_kernel\": {\"checkpoint_tile\": 32, \"compact_previous_state\": false, \"recurrence_load_pipeline\": 0, \"recurrence_prefetch\": false, \"rows_per_thread\": 4, \"threads_per_block\": 256, \"wave_aware_backward\": false}, \"wkv_backend\": \"nvrtc\"}",
+    "deterministic_algorithms": true,
+    "cublas_workspace_config": ":4096:8",
+    "evaluation_dtype": "bfloat16",
+    "prepared_input_sha256": "7708797a598d4f6c4031fe88945d8abefcbdfa8158561bfe8ab0f9e6a0e79a78",
+    "evaluation_source_sha256": "16e0e1ef3ad2e9a583ee7479353bc83080489f99dbae5e4f41ae1d18629bd2ed",
+    "runtime": {
+      "torch": "2.9.1+cu128",
+      "numpy": "2.5.4",
+      "cupy": "14.2.0",
+      "nvrtc_package": "none",
+      "cuda_path": "C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v13.4",
+      "driver_version": "617.14",
+      "gpu_name": "NVIDIA GeForce RTX 5080"
+    }
+  },
+  "per_user": [
+    {
+      "user_id": 4,
+      "curve_labels": 13421,
+      "instant_labels": 13421,
+      "curve_log_loss": 0.3880900001649787,
+      "curve_raw_log_loss": 0.3680135836638385,
+      "instant_log_loss": 0.3879231165226575,
+      "instant_rating_cross_entropy": 0.9222493059019975,
+      "benchmark": {
+        "size": 11180,
+        "ahead_coverage": 1.0,
+        "ahead": {
+          "RMSE": 0.343095,
+          "LogLoss": 0.401182,
+          "RMSE(bins)": 0.132824,
+          "AUC": 0.518232,
+          "size": 11180
+        },
+        "instant_coverage": 1.0,
+        "instant": {
+          "RMSE": 0.342449,
+          "LogLoss": 0.398367,
+          "RMSE(bins)": 0.130088,
+          "AUC": 0.661739,
+          "size": 11180
+        }
+      }
+    },
+    {
+      "user_id": 31,
+      "curve_labels": 21794,
+      "instant_labels": 21794,
+      "curve_log_loss": 0.15276003808174218,
+      "curve_raw_log_loss": 0.19501309470333636,
+      "instant_log_loss": 0.21636089469529493,
+      "instant_rating_cross_entropy": 0.9397217618622692,
+      "benchmark": {
+        "size": 18160,
+        "ahead_coverage": 1.0,
+        "ahead": {
+          "RMSE": 0.163531,
+          "LogLoss": 0.154479,
+          "RMSE(bins)": 0.104794,
+          "AUC": 0.719133,
+          "size": 18160
+        },
+        "instant_coverage": 1.0,
+        "instant": {
+          "RMSE": 0.203757,
+          "LogLoss": 0.218076,
+          "RMSE(bins)": 0.160593,
+          "AUC": 0.735316,
+          "size": 18160
+        }
+      }
+    },
+    {
+      "user_id": 70,
+      "curve_labels": 659223,
+      "instant_labels": 659223,
+      "curve_log_loss": 0.9854057327435962,
+      "curve_raw_log_loss": 1.0539072946216284,
+      "instant_log_loss": 0.8988585953057682,
+      "instant_rating_cross_entropy": 1.1217035525721508,
+      "benchmark": {
+        "size": 548655,
+        "ahead_coverage": 1.0,
+        "ahead": {
+          "RMSE": 0.602047,
+          "LogLoss": 1.033658,
+          "RMSE(bins)": 0.395123,
+          "AUC": 0.506861,
+          "size": 548655
+        },
+        "instant_coverage": 1.0,
+        "instant": {
+          "RMSE": 0.585226,
+          "LogLoss": 0.940587,
+          "RMSE(bins)": 0.368054,
+          "AUC": 0.584307,
+          "size": 548655
+        }
+      }
+    },
+    {
+      "user_id": 79,
+      "curve_labels": 5147,
+      "instant_labels": 5147,
+      "curve_log_loss": 0.3086906872995159,
+      "curve_raw_log_loss": 0.3913008736734926,
+      "instant_log_loss": 0.33794612525063905,
+      "instant_rating_cross_entropy": 1.9442121774357732,
+      "benchmark": {
+        "size": 4285,
+        "ahead_coverage": 1.0,
+        "ahead": {
+          "RMSE": 0.285785,
+          "LogLoss": 0.303875,
+          "RMSE(bins)": 0.146617,
+          "AUC": 0.537096,
+          "size": 4285
+        },
+        "instant_coverage": 1.0,
+        "instant": {
+          "RMSE": 0.297868,
+          "LogLoss": 0.331635,
+          "RMSE(bins)": 0.170112,
+          "AUC": 0.326295,
+          "size": 4285
+        }
+      }
+    },
+    {
+      "user_id": 97,
+      "curve_labels": 39170,
+      "instant_labels": 39170,
+      "curve_log_loss": 0.14918588973488586,
+      "curve_raw_log_loss": 0.17746956161175087,
+      "instant_log_loss": 0.2187686615340832,
+      "instant_rating_cross_entropy": 1.3349613849578659,
+      "benchmark": {
+        "size": 32635,
+        "ahead_coverage": 1.0,
+        "ahead": {
+          "RMSE": 0.168834,
+          "LogLoss": 0.154115,
+          "RMSE(bins)": 0.107365,
+          "AUC": 0.765178,
+          "size": 32635
+        },
+        "instant_coverage": 1.0,
+        "instant": {
+          "RMSE": 0.210995,
+          "LogLoss": 0.22471,
+          "RMSE(bins)": 0.166156,
+          "AUC": 0.744893,
+          "size": 32635
+        }
+      }
+    },
+    {
+      "user_id": 100,
+      "curve_labels": 8847,
+      "instant_labels": 8847,
+      "curve_log_loss": 0.43211980615448276,
+      "curve_raw_log_loss": 0.35819802789738237,
+      "instant_log_loss": 0.3980348504464128,
+      "instant_rating_cross_entropy": 1.6989275186334314,
+      "benchmark": {
+        "size": 7370,
+        "ahead_coverage": 1.0,
+        "ahead": {
+          "RMSE": 0.372932,
+          "LogLoss": 0.469801,
+          "RMSE(bins)": 0.216837,
+          "AUC": 0.219742,
+          "size": 7370
+        },
+        "instant_coverage": 1.0,
+        "instant": {
+          "RMSE": 0.360106,
+          "LogLoss": 0.426648,
+          "RMSE(bins)": 0.19468,
+          "AUC": 0.796991,
+          "size": 7370
+        }
+      }
+    },
+    {
+      "user_id": 116,
+      "curve_labels": 4772,
+      "instant_labels": 4772,
+      "curve_log_loss": 0.2514347829180711,
+      "curve_raw_log_loss": 0.26646719956637827,
+      "instant_log_loss": 0.2874050172356528,
+      "instant_rating_cross_entropy": 1.382703327972751,
+      "benchmark": {
+        "size": 3975,
+        "ahead_coverage": 1.0,
+        "ahead": {
+          "RMSE": 0.25285,
+          "LogLoss": 0.256291,
+          "RMSE(bins)": 0.101138,
+          "AUC": 0.616548,
+          "size": 3975
+        },
+        "instant_coverage": 1.0,
+        "instant": {
+          "RMSE": 0.268861,
+          "LogLoss": 0.291136,
+          "RMSE(bins)": 0.136998,
+          "AUC": 0.732101,
+          "size": 3975
+        }
+      }
+    },
+    {
+      "user_id": 148,
+      "curve_labels": 8622,
+      "instant_labels": 8622,
+      "curve_log_loss": 0.25640268496282415,
+      "curve_raw_log_loss": 0.27901325902137475,
+      "instant_log_loss": 0.2927533448143421,
+      "instant_rating_cross_entropy": 1.2605055646577255,
+      "benchmark": {
+        "size": 7185,
+        "ahead_coverage": 1.0,
+        "ahead": {
+          "RMSE": 0.243149,
+          "LogLoss": 0.242624,
+          "RMSE(bins)": 0.095308,
+          "AUC": 0.504687,
+          "size": 7185
+        },
+        "instant_coverage": 1.0,
+        "instant": {
+          "RMSE": 0.262233,
+          "LogLoss": 0.283184,
+          "RMSE(bins)": 0.137262,
+          "AUC": 0.515781,
+          "size": 7185
+        }
+      }
+    },
+    {
+      "user_id": 244,
+      "curve_labels": 18620,
+      "instant_labels": 18620,
+      "curve_log_loss": 0.4679601961780824,
+      "curve_raw_log_loss": 0.4958739305381232,
+      "instant_log_loss": 0.4621233881736288,
+      "instant_rating_cross_entropy": 1.2894294195157245,
+      "benchmark": {
+        "size": 15510,
+        "ahead_coverage": 1.0,
+        "ahead": {
+          "RMSE": 0.385048,
+          "LogLoss": 0.477574,
+          "RMSE(bins)": 0.160196,
+          "AUC": 0.586202,
+          "size": 15510
+        },
+        "instant_coverage": 1.0,
+        "instant": {
+          "RMSE": 0.383062,
+          "LogLoss": 0.469493,
+          "RMSE(bins)": 0.153248,
+          "AUC": 0.494529,
+          "size": 15510
+        }
+      }
+    },
+    {
+      "user_id": 311,
+      "curve_labels": 5557,
+      "instant_labels": 5557,
+      "curve_log_loss": 0.489485157690225,
+      "curve_raw_log_loss": 0.46763458825474874,
+      "instant_log_loss": 0.4734114598344079,
+      "instant_rating_cross_entropy": 1.5346283298914265,
+      "benchmark": {
+        "size": 4630,
+        "ahead_coverage": 1.0,
+        "ahead": {
+          "RMSE": 0.393842,
+          "LogLoss": 0.497575,
+          "RMSE(bins)": 0.21193,
+          "AUC": 0.657315,
+          "size": 4630
+        },
+        "instant_coverage": 1.0,
+        "instant": {
+          "RMSE": 0.389435,
+          "LogLoss": 0.48113,
+          "RMSE(bins)": 0.202934,
+          "AUC": 0.512543,
+          "size": 4630
+        }
+      }
+    },
+    {
+      "user_id": 320,
+      "curve_labels": 23370,
+      "instant_labels": 23370,
+      "curve_log_loss": 0.4130875382545314,
+      "curve_raw_log_loss": 0.3637030118275362,
+      "instant_log_loss": 0.4022332662795413,
+      "instant_rating_cross_entropy": 1.5882573702062968,
+      "benchmark": {
+        "size": 19475,
+        "ahead_coverage": 1.0,
+        "ahead": {
+          "RMSE": 0.353084,
+          "LogLoss": 0.42,
+          "RMSE(bins)": 0.184906,
+          "AUC": 0.493762,
+          "size": 19475
+        },
+        "instant_coverage": 1.0,
+        "instant": {
+          "RMSE": 0.349205,
+          "LogLoss": 0.408322,
+          "RMSE(bins)": 0.177296,
+          "AUC": 0.72978,
+          "size": 19475
+        }
+      }
+    },
+    {
+      "user_id": 695,
+      "curve_labels": 55459,
+      "instant_labels": 55459,
+      "curve_log_loss": 0.575745013592063,
+      "curve_raw_log_loss": 0.5661483282526726,
+      "instant_log_loss": 0.5263128695235796,
+      "instant_rating_cross_entropy": 0.881115355799275,
+      "benchmark": {
+        "size": 46205,
+        "ahead_coverage": 1.0,
+        "ahead": {
+          "RMSE": 0.416921,
+          "LogLoss": 0.555751,
+          "RMSE(bins)": 0.145119,
+          "AUC": 0.502144,
+          "size": 46205
+        },
+        "instant_coverage": 1.0,
+        "instant": {
+          "RMSE": 0.405826,
+          "LogLoss": 0.512208,
+          "RMSE(bins)": 0.107282,
+          "AUC": 0.523659,
+          "size": 46205
+        }
+      }
+    },
+    {
+      "user_id": 844,
+      "curve_labels": 43544,
+      "instant_labels": 43544,
+      "curve_log_loss": 0.39186827035734767,
+      "curve_raw_log_loss": 0.398846773420781,
+      "instant_log_loss": 0.39414545290833247,
+      "instant_rating_cross_entropy": 0.8497500436453396,
+      "benchmark": {
+        "size": 36285,
+        "ahead_coverage": 1.0,
+        "ahead": {
+          "RMSE": 0.350232,
+          "LogLoss": 0.413638,
+          "RMSE(bins)": 0.088721,
+          "AUC": 0.539631,
+          "size": 36285
+        },
+        "instant_coverage": 1.0,
+        "instant": {
+          "RMSE": 0.350021,
+          "LogLoss": 0.411461,
+          "RMSE(bins)": 0.087516,
+          "AUC": 0.479651,
+          "size": 36285
+        }
+      }
+    },
+    {
+      "user_id": 849,
+      "curve_labels": 111792,
+      "instant_labels": 111792,
+      "curve_log_loss": 0.9487960216426254,
+      "curve_raw_log_loss": 1.068209226296382,
+      "instant_log_loss": 0.8926561518563073,
+      "instant_rating_cross_entropy": 1.3066108389788897,
+      "benchmark": {
+        "size": 93125,
+        "ahead_coverage": 1.0,
+        "ahead": {
+          "RMSE": 0.581715,
+          "LogLoss": 0.958671,
+          "RMSE(bins)": 0.346661,
+          "AUC": 0.552892,
+          "size": 93125
+        },
+        "instant_coverage": 1.0,
+        "instant": {
+          "RMSE": 0.570992,
+          "LogLoss": 0.901676,
+          "RMSE(bins)": 0.327808,
+          "AUC": 0.497193,
+          "size": 93125
+        }
+      }
+    },
+    {
+      "user_id": 1096,
+      "curve_labels": 23430,
+      "instant_labels": 23430,
+      "curve_log_loss": 0.27735501378138655,
+      "curve_raw_log_loss": 0.2883963145827616,
+      "instant_log_loss": 0.30803332520101095,
+      "instant_rating_cross_entropy": 1.353156777561296,
+      "benchmark": {
+        "size": 19520,
+        "ahead_coverage": 1.0,
+        "ahead": {
+          "RMSE": 0.283925,
+          "LogLoss": 0.30103,
+          "RMSE(bins)": 0.071342,
+          "AUC": 0.497886,
+          "size": 19520
+        },
+        "instant_coverage": 1.0,
+        "instant": {
+          "RMSE": 0.294409,
+          "LogLoss": 0.325806,
+          "RMSE(bins)": 0.105113,
+          "AUC": 0.516376,
+          "size": 19520
+        }
+      }
+    },
+    {
+      "user_id": 1266,
+      "curve_labels": 14835,
+      "instant_labels": 14835,
+      "curve_log_loss": 0.21024878228056257,
+      "curve_raw_log_loss": 0.23031349048887315,
+      "instant_log_loss": 0.268279963725739,
+      "instant_rating_cross_entropy": 0.8876441220141116,
+      "benchmark": {
+        "size": 12360,
+        "ahead_coverage": 1.0,
+        "ahead": {
+          "RMSE": 0.236118,
+          "LogLoss": 0.225149,
+          "RMSE(bins)": 0.12524,
+          "AUC": 0.810244,
+          "size": 12360
+        },
+        "instant_coverage": 1.0,
+        "instant": {
+          "RMSE": 0.262247,
+          "LogLoss": 0.282777,
+          "RMSE(bins)": 0.16801,
+          "AUC": 0.752994,
+          "size": 12360
+        }
+      }
+    },
+    {
+      "user_id": 1309,
+      "curve_labels": 26438,
+      "instant_labels": 26438,
+      "curve_log_loss": 0.2469559982063929,
+      "curve_raw_log_loss": 0.26395462431778427,
+      "instant_log_loss": 0.27795647885851893,
+      "instant_rating_cross_entropy": 0.8876200744212779,
+      "benchmark": {
+        "size": 22030,
+        "ahead_coverage": 1.0,
+        "ahead": {
+          "RMSE": 0.258281,
+          "LogLoss": 0.266213,
+          "RMSE(bins)": 0.095833,
+          "AUC": 0.475731,
+          "size": 22030
+        },
+        "instant_coverage": 1.0,
+        "instant": {
+          "RMSE": 0.271041,
+          "LogLoss": 0.294121,
+          "RMSE(bins)": 0.127215,
+          "AUC": 0.592938,
+          "size": 22030
+        }
+      }
+    },
+    {
+      "user_id": 1362,
+      "curve_labels": 6854,
+      "instant_labels": 6854,
+      "curve_log_loss": 0.37872858184191655,
+      "curve_raw_log_loss": 0.429152765403971,
+      "instant_log_loss": 0.38921750026643886,
+      "instant_rating_cross_entropy": 1.7483635032563087,
+      "benchmark": {
+        "size": 5710,
+        "ahead_coverage": 1.0,
+        "ahead": {
+          "RMSE": 0.319364,
+          "LogLoss": 0.358235,
+          "RMSE(bins)": 0.147829,
+          "AUC": 0.538015,
+          "size": 5710
+        },
+        "instant_coverage": 1.0,
+        "instant": {
+          "RMSE": 0.325201,
+          "LogLoss": 0.372091,
+          "RMSE(bins)": 0.158232,
+          "AUC": 0.34608,
+          "size": 5710
+        }
+      }
+    },
+    {
+      "user_id": 1382,
+      "curve_labels": 12493,
+      "instant_labels": 12493,
+      "curve_log_loss": 0.18296402575665685,
+      "curve_raw_log_loss": 0.23644079874616833,
+      "instant_log_loss": 0.23877453649434308,
+      "instant_rating_cross_entropy": 1.1996009600541326,
+      "benchmark": {
+        "size": 10410,
+        "ahead_coverage": 1.0,
+        "ahead": {
+          "RMSE": 0.196061,
+          "LogLoss": 0.187337,
+          "RMSE(bins)": 0.093624,
+          "AUC": 0.564916,
+          "size": 10410
+        },
+        "instant_coverage": 1.0,
+        "instant": {
+          "RMSE": 0.22655,
+          "LogLoss": 0.241892,
+          "RMSE(bins)": 0.147562,
+          "AUC": 0.569331,
+          "size": 10410
+        }
+      }
+    },
+    {
+      "user_id": 1415,
+      "curve_labels": 16331,
+      "instant_labels": 16331,
+      "curve_log_loss": 0.45444618008460996,
+      "curve_raw_log_loss": 0.42690827313694935,
+      "instant_log_loss": 0.43080962598451567,
+      "instant_rating_cross_entropy": 1.400046200620428,
+      "benchmark": {
+        "size": 13605,
+        "ahead_coverage": 1.0,
+        "ahead": {
+          "RMSE": 0.379713,
+          "LogLoss": 0.479759,
+          "RMSE(bins)": 0.129868,
+          "AUC": 0.41966,
+          "size": 13605
+        },
+        "instant_coverage": 1.0,
+        "instant": {
+          "RMSE": 0.370702,
+          "LogLoss": 0.44665,
+          "RMSE(bins)": 0.100771,
+          "AUC": 0.573118,
+          "size": 13605
+        }
+      }
+    },
+    {
+      "user_id": 1590,
+      "curve_labels": 6066,
+      "instant_labels": 6066,
+      "curve_log_loss": 0.12691901336545958,
+      "curve_raw_log_loss": 0.168237477838207,
+      "instant_log_loss": 0.19163959300679181,
+      "instant_rating_cross_entropy": 0.6411892344583744,
+      "benchmark": {
+        "size": 5055,
+        "ahead_coverage": 1.0,
+        "ahead": {
+          "RMSE": 0.123042,
+          "LogLoss": 0.125006,
+          "RMSE(bins)": 0.120456,
+          "AUC": 0.621314,
+          "size": 5055
+        },
+        "instant_coverage": 1.0,
+        "instant": {
+          "RMSE": 0.175128,
+          "LogLoss": 0.192198,
+          "RMSE(bins)": 0.173991,
+          "AUC": 0.969622,
+          "size": 5055
+        }
+      }
+    },
+    {
+      "user_id": 1620,
+      "curve_labels": 28013,
+      "instant_labels": 28013,
+      "curve_log_loss": 0.6539847567952509,
+      "curve_raw_log_loss": 0.6656415986521346,
+      "instant_log_loss": 0.6087861538903603,
+      "instant_rating_cross_entropy": 0.9621406926940417,
+      "benchmark": {
+        "size": 23340,
+        "ahead_coverage": 1.0,
+        "ahead": {
+          "RMSE": 0.503112,
+          "LogLoss": 0.757922,
+          "RMSE(bins)": 0.27343,
+          "AUC": 0.576601,
+          "size": 23340
+        },
+        "instant_coverage": 1.0,
+        "instant": {
+          "RMSE": 0.487994,
+          "LogLoss": 0.68892,
+          "RMSE(bins)": 0.24286,
+          "AUC": 0.427277,
+          "size": 23340
+        }
+      }
+    },
+    {
+      "user_id": 1697,
+      "curve_labels": 5604,
+      "instant_labels": 5604,
+      "curve_log_loss": 0.5680019755307306,
+      "curve_raw_log_loss": 0.5537544677059281,
+      "instant_log_loss": 0.5313932213248908,
+      "instant_rating_cross_entropy": 1.2773040705370444,
+      "benchmark": {
+        "size": 4665,
+        "ahead_coverage": 1.0,
+        "ahead": {
+          "RMSE": 0.422381,
+          "LogLoss": 0.562252,
+          "RMSE(bins)": 0.212186,
+          "AUC": 0.550173,
+          "size": 4665
+        },
+        "instant_coverage": 1.0,
+        "instant": {
+          "RMSE": 0.413028,
+          "LogLoss": 0.526038,
+          "RMSE(bins)": 0.192988,
+          "AUC": 0.591877,
+          "size": 4665
+        }
+      }
+    },
+    {
+      "user_id": 1794,
+      "curve_labels": 108167,
+      "instant_labels": 108167,
+      "curve_log_loss": 0.26368357685135774,
+      "curve_raw_log_loss": 0.29749129462008705,
+      "instant_log_loss": 0.3024599672965161,
+      "instant_rating_cross_entropy": 1.0459485022088695,
+      "benchmark": {
+        "size": 90135,
+        "ahead_coverage": 1.0,
+        "ahead": {
+          "RMSE": 0.239132,
+          "LogLoss": 0.236028,
+          "RMSE(bins)": 0.098442,
+          "AUC": 0.519654,
+          "size": 90135
+        },
+        "instant_coverage": 1.0,
+        "instant": {
+          "RMSE": 0.260401,
+          "LogLoss": 0.281004,
+          "RMSE(bins)": 0.14299,
+          "AUC": 0.451207,
+          "size": 90135
+        }
+      }
+    },
+    {
+      "user_id": 1830,
+      "curve_labels": 264360,
+      "instant_labels": 264360,
+      "curve_log_loss": 0.588206531309332,
+      "curve_raw_log_loss": 0.6500797666324071,
+      "instant_log_loss": 0.5601151178781051,
+      "instant_rating_cross_entropy": 0.8861099323741713,
+      "benchmark": {
+        "size": 219675,
+        "ahead_coverage": 1.0,
+        "ahead": {
+          "RMSE": 0.432892,
+          "LogLoss": 0.582101,
+          "RMSE(bins)": 0.191185,
+          "AUC": 0.598604,
+          "size": 219675
+        },
+        "instant_coverage": 1.0,
+        "instant": {
+          "RMSE": 0.427068,
+          "LogLoss": 0.556066,
+          "RMSE(bins)": 0.175069,
+          "AUC": 0.357266,
+          "size": 219675
+        }
+      }
+    },
+    {
+      "user_id": 1845,
+      "curve_labels": 9167,
+      "instant_labels": 9167,
+      "curve_log_loss": 0.3456380715400868,
+      "curve_raw_log_loss": 0.31223829569311506,
+      "instant_log_loss": 0.34755454027523996,
+      "instant_rating_cross_entropy": 0.7790636914603724,
+      "benchmark": {
+        "size": 7635,
+        "ahead_coverage": 1.0,
+        "ahead": {
+          "RMSE": 0.308207,
+          "LogLoss": 0.343247,
+          "RMSE(bins)": 0.14675,
+          "AUC": 0.450236,
+          "size": 7635
+        },
+        "instant_coverage": 1.0,
+        "instant": {
+          "RMSE": 0.30795,
+          "LogLoss": 0.343772,
+          "RMSE(bins)": 0.148049,
+          "AUC": 0.735447,
+          "size": 7635
+        }
+      }
+    },
+    {
+      "user_id": 1901,
+      "curve_labels": 29720,
+      "instant_labels": 29720,
+      "curve_log_loss": 0.3896918830944383,
+      "curve_raw_log_loss": 0.3674757701060252,
+      "instant_log_loss": 0.39487554234418704,
+      "instant_rating_cross_entropy": 1.2656634607794788,
+      "benchmark": {
+        "size": 24765,
+        "ahead_coverage": 1.0,
+        "ahead": {
+          "RMSE": 0.339118,
+          "LogLoss": 0.392327,
+          "RMSE(bins)": 0.123568,
+          "AUC": 0.548181,
+          "size": 24765
+        },
+        "instant_coverage": 1.0,
+        "instant": {
+          "RMSE": 0.340776,
+          "LogLoss": 0.39583,
+          "RMSE(bins)": 0.127592,
+          "AUC": 0.671103,
+          "size": 24765
+        }
+      }
+    },
+    {
+      "user_id": 1914,
+      "curve_labels": 5459,
+      "instant_labels": 5459,
+      "curve_log_loss": 0.6742529851336863,
+      "curve_raw_log_loss": 0.7544787537649801,
+      "instant_log_loss": 0.6338777669643522,
+      "instant_rating_cross_entropy": 1.3057496607096166,
+      "benchmark": {
+        "size": 4540,
+        "ahead_coverage": 1.0,
+        "ahead": {
+          "RMSE": 0.467236,
+          "LogLoss": 0.660754,
+          "RMSE(bins)": 0.260226,
+          "AUC": 0.616592,
+          "size": 4540
+        },
+        "instant_coverage": 1.0,
+        "instant": {
+          "RMSE": 0.46062,
+          "LogLoss": 0.627298,
+          "RMSE(bins)": 0.246436,
+          "AUC": 0.396755,
+          "size": 4540
+        }
+      }
+    },
+    {
+      "user_id": 1980,
+      "curve_labels": 65033,
+      "instant_labels": 65033,
+      "curve_log_loss": 0.27165318569783814,
+      "curve_raw_log_loss": 0.2863589860750378,
+      "instant_log_loss": 0.30875450447393055,
+      "instant_rating_cross_entropy": 1.1125179788916113,
+      "benchmark": {
+        "size": 54190,
+        "ahead_coverage": 1.0,
+        "ahead": {
+          "RMSE": 0.262151,
+          "LogLoss": 0.262835,
+          "RMSE(bins)": 0.084811,
+          "AUC": 0.69563,
+          "size": 54190
+        },
+        "instant_coverage": 1.0,
+        "instant": {
+          "RMSE": 0.281715,
+          "LogLoss": 0.308392,
+          "RMSE(bins)": 0.133391,
+          "AUC": 0.719026,
+          "size": 54190
+        }
+      }
+    },
+    {
+      "user_id": 2017,
+      "curve_labels": 48939,
+      "instant_labels": 48939,
+      "curve_log_loss": 0.5882509527079219,
+      "curve_raw_log_loss": 0.5369489833713491,
+      "instant_log_loss": 0.5568701413326731,
+      "instant_rating_cross_entropy": 1.3312799585360295,
+      "benchmark": {
+        "size": 40780,
+        "ahead_coverage": 1.0,
+        "ahead": {
+          "RMSE": 0.423188,
+          "LogLoss": 0.559642,
+          "RMSE(bins)": 0.174044,
+          "AUC": 0.573225,
+          "size": 40780
+        },
+        "instant_coverage": 1.0,
+        "instant": {
+          "RMSE": 0.420046,
+          "LogLoss": 0.539634,
+          "RMSE(bins)": 0.163589,
+          "AUC": 0.604572,
+          "size": 40780
+        }
+      }
+    },
+    {
+      "user_id": 2192,
+      "curve_labels": 52164,
+      "instant_labels": 52164,
+      "curve_log_loss": 0.3687931535144647,
+      "curve_raw_log_loss": 0.3832150641070348,
+      "instant_log_loss": 0.3748573275141149,
+      "instant_rating_cross_entropy": 1.0422485613487458,
+      "benchmark": {
+        "size": 43465,
+        "ahead_coverage": 1.0,
+        "ahead": {
+          "RMSE": 0.333075,
+          "LogLoss": 0.384001,
+          "RMSE(bins)": 0.096095,
+          "AUC": 0.504957,
+          "size": 43465
+        },
+        "instant_coverage": 1.0,
+        "instant": {
+          "RMSE": 0.33495,
+          "LogLoss": 0.387074,
+          "RMSE(bins)": 0.102605,
+          "AUC": 0.441457,
+          "size": 43465
+        }
+      }
+    },
+    {
+      "user_id": 2267,
+      "curve_labels": 473965,
+      "instant_labels": 473965,
+      "curve_log_loss": 0.41569473038096444,
+      "curve_raw_log_loss": 0.4181879934003693,
+      "instant_log_loss": 0.41135053672974436,
+      "instant_rating_cross_entropy": 0.9071112410702737,
+      "benchmark": {
+        "size": 371030,
+        "ahead_coverage": 1.0,
+        "ahead": {
+          "RMSE": 0.345356,
+          "LogLoss": 0.406137,
+          "RMSE(bins)": 0.072935,
+          "AUC": 0.511562,
+          "size": 371030
+        },
+        "instant_coverage": 1.0,
+        "instant": {
+          "RMSE": 0.345281,
+          "LogLoss": 0.403705,
+          "RMSE(bins)": 0.072854,
+          "AUC": 0.515437,
+          "size": 371030
+        }
+      }
+    },
+    {
+      "user_id": 2394,
+      "curve_labels": 13103,
+      "instant_labels": 13103,
+      "curve_log_loss": 0.2674572458228455,
+      "curve_raw_log_loss": 0.26763951760045557,
+      "instant_log_loss": 0.2986813422733433,
+      "instant_rating_cross_entropy": 0.7382903032600174,
+      "benchmark": {
+        "size": 10915,
+        "ahead_coverage": 1.0,
+        "ahead": {
+          "RMSE": 0.252246,
+          "LogLoss": 0.254035,
+          "RMSE(bins)": 0.101559,
+          "AUC": 0.536695,
+          "size": 10915
+        },
+        "instant_coverage": 1.0,
+        "instant": {
+          "RMSE": 0.267791,
+          "LogLoss": 0.289824,
+          "RMSE(bins)": 0.135679,
+          "AUC": 0.661678,
+          "size": 10915
+        }
+      }
+    },
+    {
+      "user_id": 2539,
+      "curve_labels": 128211,
+      "instant_labels": 128211,
+      "curve_log_loss": 0.6027009664653635,
+      "curve_raw_log_loss": 0.717468378131929,
+      "instant_log_loss": 0.6043654266430496,
+      "instant_rating_cross_entropy": 0.9180192036723599,
+      "benchmark": {
+        "size": 106840,
+        "ahead_coverage": 1.0,
+        "ahead": {
+          "RMSE": 0.448811,
+          "LogLoss": 0.605081,
+          "RMSE(bins)": 0.207759,
+          "AUC": 0.622106,
+          "size": 106840
+        },
+        "instant_coverage": 1.0,
+        "instant": {
+          "RMSE": 0.450823,
+          "LogLoss": 0.607157,
+          "RMSE(bins)": 0.209865,
+          "AUC": 0.424245,
+          "size": 106840
+        }
+      }
+    },
+    {
+      "user_id": 2802,
+      "curve_labels": 6909,
+      "instant_labels": 6909,
+      "curve_log_loss": 0.20103293820355075,
+      "curve_raw_log_loss": 0.2633249405423714,
+      "instant_log_loss": 0.26563093875869,
+      "instant_rating_cross_entropy": 1.5551855797394258,
+      "benchmark": {
+        "size": 5755,
+        "ahead_coverage": 1.0,
+        "ahead": {
+          "RMSE": 0.228749,
+          "LogLoss": 0.218248,
+          "RMSE(bins)": 0.105906,
+          "AUC": 0.732327,
+          "size": 5755
+        },
+        "instant_coverage": 1.0,
+        "instant": {
+          "RMSE": 0.257551,
+          "LogLoss": 0.277925,
+          "RMSE(bins)": 0.15618,
+          "AUC": 0.596329,
+          "size": 5755
+        }
+      }
+    },
+    {
+      "user_id": 2922,
+      "curve_labels": 32901,
+      "instant_labels": 32901,
+      "curve_log_loss": 0.5432752071235003,
+      "curve_raw_log_loss": 0.6283149668458117,
+      "instant_log_loss": 0.5348885197258442,
+      "instant_rating_cross_entropy": 1.1074841115881304,
+      "benchmark": {
+        "size": 27405,
+        "ahead_coverage": 1.0,
+        "ahead": {
+          "RMSE": 0.438713,
+          "LogLoss": 0.589139,
+          "RMSE(bins)": 0.19683,
+          "AUC": 0.617099,
+          "size": 27405
+        },
+        "instant_coverage": 1.0,
+        "instant": {
+          "RMSE": 0.436428,
+          "LogLoss": 0.575317,
+          "RMSE(bins)": 0.18841,
+          "AUC": 0.401814,
+          "size": 27405
+        }
+      }
+    },
+    {
+      "user_id": 2942,
+      "curve_labels": 14358,
+      "instant_labels": 14358,
+      "curve_log_loss": 0.7528226785169768,
+      "curve_raw_log_loss": 0.7008567037194996,
+      "instant_log_loss": 0.6644651652345552,
+      "instant_rating_cross_entropy": 0.9777450859214556,
+      "benchmark": {
+        "size": 11960,
+        "ahead_coverage": 1.0,
+        "ahead": {
+          "RMSE": 0.510906,
+          "LogLoss": 0.789659,
+          "RMSE(bins)": 0.277964,
+          "AUC": 0.470383,
+          "size": 11960
+        },
+        "instant_coverage": 1.0,
+        "instant": {
+          "RMSE": 0.489713,
+          "LogLoss": 0.69147,
+          "RMSE(bins)": 0.235747,
+          "AUC": 0.617618,
+          "size": 11960
+        }
+      }
+    },
+    {
+      "user_id": 2949,
+      "curve_labels": 16331,
+      "instant_labels": 16331,
+      "curve_log_loss": 0.2148967728599989,
+      "curve_raw_log_loss": 0.20413063676320334,
+      "instant_log_loss": 0.2494631284858919,
+      "instant_rating_cross_entropy": 0.9820891155935854,
+      "benchmark": {
+        "size": 13605,
+        "ahead_coverage": 1.0,
+        "ahead": {
+          "RMSE": 0.219972,
+          "LogLoss": 0.219749,
+          "RMSE(bins)": 0.111897,
+          "AUC": 0.357961,
+          "size": 13605
+        },
+        "instant_coverage": 1.0,
+        "instant": {
+          "RMSE": 0.237393,
+          "LogLoss": 0.252285,
+          "RMSE(bins)": 0.143499,
+          "AUC": 0.616269,
+          "size": 13605
+        }
+      }
+    },
+    {
+      "user_id": 2957,
+      "curve_labels": 21174,
+      "instant_labels": 21174,
+      "curve_log_loss": 0.28733060801584887,
+      "curve_raw_log_loss": 0.24989639091513657,
+      "instant_log_loss": 0.2941693300294214,
+      "instant_rating_cross_entropy": 1.490684039151127,
+      "benchmark": {
+        "size": 17645,
+        "ahead_coverage": 1.0,
+        "ahead": {
+          "RMSE": 0.274991,
+          "LogLoss": 0.300202,
+          "RMSE(bins)": 0.1682,
+          "AUC": 0.234042,
+          "size": 17645
+        },
+        "instant_coverage": 1.0,
+        "instant": {
+          "RMSE": 0.276023,
+          "LogLoss": 0.29904,
+          "RMSE(bins)": 0.172269,
+          "AUC": 0.744607,
+          "size": 17645
+        }
+      }
+    },
+    {
+      "user_id": 3004,
+      "curve_labels": 11151,
+      "instant_labels": 11151,
+      "curve_log_loss": 0.6260941481750093,
+      "curve_raw_log_loss": 0.591883493941329,
+      "instant_log_loss": 0.5782088747624057,
+      "instant_rating_cross_entropy": 1.0409954343929535,
+      "benchmark": {
+        "size": 9290,
+        "ahead_coverage": 1.0,
+        "ahead": {
+          "RMSE": 0.455833,
+          "LogLoss": 0.639975,
+          "RMSE(bins)": 0.212077,
+          "AUC": 0.530501,
+          "size": 9290
+        },
+        "instant_coverage": 1.0,
+        "instant": {
+          "RMSE": 0.442438,
+          "LogLoss": 0.585993,
+          "RMSE(bins)": 0.179898,
+          "AUC": 0.6015,
+          "size": 9290
+        }
+      }
+    },
+    {
+      "user_id": 3069,
+      "curve_labels": 7899,
+      "instant_labels": 7899,
+      "curve_log_loss": 0.4819358985346169,
+      "curve_raw_log_loss": 0.511939108209499,
+      "instant_log_loss": 0.46358470962626797,
+      "instant_rating_cross_entropy": 1.2494616516029733,
+      "benchmark": {
+        "size": 6580,
+        "ahead_coverage": 1.0,
+        "ahead": {
+          "RMSE": 0.397393,
+          "LogLoss": 0.509619,
+          "RMSE(bins)": 0.162499,
+          "AUC": 0.432867,
+          "size": 6580
+        },
+        "instant_coverage": 1.0,
+        "instant": {
+          "RMSE": 0.389854,
+          "LogLoss": 0.481947,
+          "RMSE(bins)": 0.145079,
+          "AUC": 0.496845,
+          "size": 6580
+        }
+      }
+    },
+    {
+      "user_id": 3260,
+      "curve_labels": 86663,
+      "instant_labels": 86663,
+      "curve_log_loss": 0.3532456070306444,
+      "curve_raw_log_loss": 0.38821597714374506,
+      "instant_log_loss": 0.3663475535164431,
+      "instant_rating_cross_entropy": 1.0859957210622524,
+      "benchmark": {
+        "size": 71470,
+        "ahead_coverage": 1.0,
+        "ahead": {
+          "RMSE": 0.330242,
+          "LogLoss": 0.377552,
+          "RMSE(bins)": 0.100182,
+          "AUC": 0.525885,
+          "size": 71470
+        },
+        "instant_coverage": 1.0,
+        "instant": {
+          "RMSE": 0.333573,
+          "LogLoss": 0.385086,
+          "RMSE(bins)": 0.110588,
+          "AUC": 0.418439,
+          "size": 71470
+        }
+      }
+    },
+    {
+      "user_id": 3567,
+      "curve_labels": 11701,
+      "instant_labels": 11701,
+      "curve_log_loss": 0.14941235514797518,
+      "curve_raw_log_loss": 0.22246833723402973,
+      "instant_log_loss": 0.20952555897113412,
+      "instant_rating_cross_entropy": 1.8726104316971421,
+      "benchmark": {
+        "size": 9750,
+        "ahead_coverage": 1.0,
+        "ahead": {
+          "RMSE": 0.152235,
+          "LogLoss": 0.148867,
+          "RMSE(bins)": 0.112335,
+          "AUC": 0.475007,
+          "size": 9750
+        },
+        "instant_coverage": 1.0,
+        "instant": {
+          "RMSE": 0.194626,
+          "LogLoss": 0.210059,
+          "RMSE(bins)": 0.165868,
+          "AUC": 0.515755,
+          "size": 9750
+        }
+      }
+    },
+    {
+      "user_id": 3673,
+      "curve_labels": 33969,
+      "instant_labels": 33969,
+      "curve_log_loss": 0.2906922928699631,
+      "curve_raw_log_loss": 0.3006583895612031,
+      "instant_log_loss": 0.3182617295756592,
+      "instant_rating_cross_entropy": 0.8774240725212885,
+      "benchmark": {
+        "size": 28305,
+        "ahead_coverage": 1.0,
+        "ahead": {
+          "RMSE": 0.283779,
+          "LogLoss": 0.300323,
+          "RMSE(bins)": 0.067672,
+          "AUC": 0.516564,
+          "size": 28305
+        },
+        "instant_coverage": 1.0,
+        "instant": {
+          "RMSE": 0.294846,
+          "LogLoss": 0.326345,
+          "RMSE(bins)": 0.104737,
+          "AUC": 0.569045,
+          "size": 28305
+        }
+      }
+    },
+    {
+      "user_id": 3788,
+      "curve_labels": 77880,
+      "instant_labels": 77880,
+      "curve_log_loss": 0.18986890576751142,
+      "curve_raw_log_loss": 0.2066248316863101,
+      "instant_log_loss": 0.2394870071332762,
+      "instant_rating_cross_entropy": 1.0091356811267203,
+      "benchmark": {
+        "size": 64895,
+        "ahead_coverage": 1.0,
+        "ahead": {
+          "RMSE": 0.184704,
+          "LogLoss": 0.17595,
+          "RMSE(bins)": 0.107933,
+          "AUC": 0.630423,
+          "size": 64895
+        },
+        "instant_coverage": 1.0,
+        "instant": {
+          "RMSE": 0.215161,
+          "LogLoss": 0.228502,
+          "RMSE(bins)": 0.154263,
+          "AUC": 0.553257,
+          "size": 64895
+        }
+      }
+    },
+    {
+      "user_id": 3789,
+      "curve_labels": 7080,
+      "instant_labels": 7080,
+      "curve_log_loss": 0.17016478296221987,
+      "curve_raw_log_loss": 0.20732192411429465,
+      "instant_log_loss": 0.2318642643211925,
+      "instant_rating_cross_entropy": 1.9649727785823035,
+      "benchmark": {
+        "size": 5900,
+        "ahead_coverage": 1.0,
+        "ahead": {
+          "RMSE": 0.183139,
+          "LogLoss": 0.171446,
+          "RMSE(bins)": 0.092422,
+          "AUC": 0.488285,
+          "size": 5900
+        },
+        "instant_coverage": 1.0,
+        "instant": {
+          "RMSE": 0.219198,
+          "LogLoss": 0.233789,
+          "RMSE(bins)": 0.15196,
+          "AUC": 0.459943,
+          "size": 5900
+        }
+      }
+    },
+    {
+      "user_id": 3798,
+      "curve_labels": 7498,
+      "instant_labels": 7498,
+      "curve_log_loss": 0.5146875558721603,
+      "curve_raw_log_loss": 0.5007519519990462,
+      "instant_log_loss": 0.4893413339178859,
+      "instant_rating_cross_entropy": 1.6999137309049728,
+      "benchmark": {
+        "size": 6245,
+        "ahead_coverage": 1.0,
+        "ahead": {
+          "RMSE": 0.407107,
+          "LogLoss": 0.527663,
+          "RMSE(bins)": 0.158809,
+          "AUC": 0.506641,
+          "size": 6245
+        },
+        "instant_coverage": 1.0,
+        "instant": {
+          "RMSE": 0.39961,
+          "LogLoss": 0.500022,
+          "RMSE(bins)": 0.136317,
+          "AUC": 0.546706,
+          "size": 6245
+        }
+      }
+    },
+    {
+      "user_id": 3853,
+      "curve_labels": 38226,
+      "instant_labels": 38226,
+      "curve_log_loss": 0.2726647588557166,
+      "curve_raw_log_loss": 0.2984578677275295,
+      "instant_log_loss": 0.30898023862913093,
+      "instant_rating_cross_entropy": 1.295456127329436,
+      "benchmark": {
+        "size": 31855,
+        "ahead_coverage": 1.0,
+        "ahead": {
+          "RMSE": 0.268281,
+          "LogLoss": 0.275132,
+          "RMSE(bins)": 0.084089,
+          "AUC": 0.618504,
+          "size": 31855
+        },
+        "instant_coverage": 1.0,
+        "instant": {
+          "RMSE": 0.283493,
+          "LogLoss": 0.310634,
+          "RMSE(bins)": 0.124554,
+          "AUC": 0.409543,
+          "size": 31855
+        }
+      }
+    },
+    {
+      "user_id": 3866,
+      "curve_labels": 20094,
+      "instant_labels": 20094,
+      "curve_log_loss": 1.035580742990388,
+      "curve_raw_log_loss": 1.0372534159867932,
+      "instant_log_loss": 0.8960414236073851,
+      "instant_rating_cross_entropy": 1.1439330521728122,
+      "benchmark": {
+        "size": 16740,
+        "ahead_coverage": 1.0,
+        "ahead": {
+          "RMSE": 0.594006,
+          "LogLoss": 1.034204,
+          "RMSE(bins)": 0.372218,
+          "AUC": 0.477321,
+          "size": 16740
+        },
+        "instant_coverage": 1.0,
+        "instant": {
+          "RMSE": 0.564737,
+          "LogLoss": 0.882098,
+          "RMSE(bins)": 0.322455,
+          "AUC": 0.522622,
+          "size": 16740
+        }
+      }
+    },
+    {
+      "user_id": 3879,
+      "curve_labels": 45411,
+      "instant_labels": 45411,
+      "curve_log_loss": 0.4225759980505878,
+      "curve_raw_log_loss": 0.4598940337190689,
+      "instant_log_loss": 0.4293199070317274,
+      "instant_rating_cross_entropy": 1.536170481049926,
+      "benchmark": {
+        "size": 37840,
+        "ahead_coverage": 1.0,
+        "ahead": {
+          "RMSE": 0.353366,
+          "LogLoss": 0.414712,
+          "RMSE(bins)": 0.101416,
+          "AUC": 0.600948,
+          "size": 37840
+        },
+        "instant_coverage": 1.0,
+        "instant": {
+          "RMSE": 0.356274,
+          "LogLoss": 0.421743,
+          "RMSE(bins)": 0.107413,
+          "AUC": 0.497754,
+          "size": 37840
+        }
+      }
+    },
+    {
+      "user_id": 3888,
+      "curve_labels": 39048,
+      "instant_labels": 39048,
+      "curve_log_loss": 0.42156828901677246,
+      "curve_raw_log_loss": 0.3730677228842272,
+      "instant_log_loss": 0.4207570999036483,
+      "instant_rating_cross_entropy": 1.1330158928593537,
+      "benchmark": {
+        "size": 32540,
+        "ahead_coverage": 1.0,
+        "ahead": {
+          "RMSE": 0.365475,
+          "LogLoss": 0.438166,
+          "RMSE(bins)": 0.225021,
+          "AUC": 0.601245,
+          "size": 32540
+        },
+        "instant_coverage": 1.0,
+        "instant": {
+          "RMSE": 0.363876,
+          "LogLoss": 0.433829,
+          "RMSE(bins)": 0.222304,
+          "AUC": 0.775617,
+          "size": 32540
+        }
+      }
+    },
+    {
+      "user_id": 4004,
+      "curve_labels": 107055,
+      "instant_labels": 107055,
+      "curve_log_loss": 0.24179238375995077,
+      "curve_raw_log_loss": 0.267145635782183,
+      "instant_log_loss": 0.28088883149685673,
+      "instant_rating_cross_entropy": 1.0157519413145335,
+      "benchmark": {
+        "size": 89210,
+        "ahead_coverage": 1.0,
+        "ahead": {
+          "RMSE": 0.241945,
+          "LogLoss": 0.24155,
+          "RMSE(bins)": 0.083554,
+          "AUC": 0.535307,
+          "size": 89210
+        },
+        "instant_coverage": 1.0,
+        "instant": {
+          "RMSE": 0.260192,
+          "LogLoss": 0.280586,
+          "RMSE(bins)": 0.127905,
+          "AUC": 0.621899,
+          "size": 89210
+        }
+      }
+    },
+    {
+      "user_id": 4186,
+      "curve_labels": 3888,
+      "instant_labels": 3888,
+      "curve_log_loss": 0.7197127629899316,
+      "curve_raw_log_loss": 0.7890266165397908,
+      "instant_log_loss": 0.6684354283682112,
+      "instant_rating_cross_entropy": 1.7529012836485243,
+      "benchmark": {
+        "size": 3240,
+        "ahead_coverage": 1.0,
+        "ahead": {
+          "RMSE": 0.487216,
+          "LogLoss": 0.713065,
+          "RMSE(bins)": 0.298858,
+          "AUC": 0.59424,
+          "size": 3240
+        },
+        "instant_coverage": 1.0,
+        "instant": {
+          "RMSE": 0.476228,
+          "LogLoss": 0.662705,
+          "RMSE(bins)": 0.278362,
+          "AUC": 0.41831,
+          "size": 3240
+        }
+      }
+    },
+    {
+      "user_id": 4474,
+      "curve_labels": 8795,
+      "instant_labels": 8795,
+      "curve_log_loss": 0.36781044973101784,
+      "curve_raw_log_loss": 0.3567614722109573,
+      "instant_log_loss": 0.370518665411311,
+      "instant_rating_cross_entropy": 1.4694319594916192,
+      "benchmark": {
+        "size": 7325,
+        "ahead_coverage": 1.0,
+        "ahead": {
+          "RMSE": 0.331756,
+          "LogLoss": 0.385453,
+          "RMSE(bins)": 0.101918,
+          "AUC": 0.434505,
+          "size": 7325
+        },
+        "instant_coverage": 1.0,
+        "instant": {
+          "RMSE": 0.331113,
+          "LogLoss": 0.380383,
+          "RMSE(bins)": 0.099372,
+          "AUC": 0.589725,
+          "size": 7325
+        }
+      }
+    },
+    {
+      "user_id": 4727,
+      "curve_labels": 34304,
+      "instant_labels": 34304,
+      "curve_log_loss": 1.6156183515202756,
+      "curve_raw_log_loss": 1.8592411880867916,
+      "instant_log_loss": 1.487039427259075,
+      "instant_rating_cross_entropy": 1.8658867803360544,
+      "benchmark": {
+        "size": 28415,
+        "ahead_coverage": 1.0,
+        "ahead": {
+          "RMSE": 0.772478,
+          "LogLoss": 1.611863,
+          "RMSE(bins)": 0.68039,
+          "AUC": 0.587133,
+          "size": 28415
+        },
+        "instant_coverage": 1.0,
+        "instant": {
+          "RMSE": 0.751889,
+          "LogLoss": 1.476571,
+          "RMSE(bins)": 0.656282,
+          "AUC": 0.472841,
+          "size": 28415
+        }
+      }
+    },
+    {
+      "user_id": 5018,
+      "curve_labels": 15762,
+      "instant_labels": 15762,
+      "curve_log_loss": 0.2504091815187035,
+      "curve_raw_log_loss": 0.24079849307983453,
+      "instant_log_loss": 0.27639631589132735,
+      "instant_rating_cross_entropy": 0.9321577686061564,
+      "benchmark": {
+        "size": 13135,
+        "ahead_coverage": 1.0,
+        "ahead": {
+          "RMSE": 0.218373,
+          "LogLoss": 0.215265,
+          "RMSE(bins)": 0.103533,
+          "AUC": 0.448983,
+          "size": 13135
+        },
+        "instant_coverage": 1.0,
+        "instant": {
+          "RMSE": 0.236824,
+          "LogLoss": 0.251745,
+          "RMSE(bins)": 0.138306,
+          "AUC": 0.569009,
+          "size": 13135
+        }
+      }
+    },
+    {
+      "user_id": 5054,
+      "curve_labels": 83750,
+      "instant_labels": 83750,
+      "curve_log_loss": 0.31971205920585943,
+      "curve_raw_log_loss": 0.3343746671281644,
+      "instant_log_loss": 0.34362480915126514,
+      "instant_rating_cross_entropy": 0.872246476937052,
+      "benchmark": {
+        "size": 69790,
+        "ahead_coverage": 1.0,
+        "ahead": {
+          "RMSE": 0.301266,
+          "LogLoss": 0.32622,
+          "RMSE(bins)": 0.067872,
+          "AUC": 0.563776,
+          "size": 69790
+        },
+        "instant_coverage": 1.0,
+        "instant": {
+          "RMSE": 0.31064,
+          "LogLoss": 0.349486,
+          "RMSE(bins)": 0.101697,
+          "AUC": 0.458595,
+          "size": 69790
+        }
+      }
+    },
+    {
+      "user_id": 5069,
+      "curve_labels": 181946,
+      "instant_labels": 181946,
+      "curve_log_loss": 0.19897965748974544,
+      "curve_raw_log_loss": 0.2502660045344714,
+      "instant_log_loss": 0.26351596876346123,
+      "instant_rating_cross_entropy": 1.3596763499591773,
+      "benchmark": {
+        "size": 151620,
+        "ahead_coverage": 1.0,
+        "ahead": {
+          "RMSE": 0.211453,
+          "LogLoss": 0.197712,
+          "RMSE(bins)": 0.06302,
+          "AUC": 0.567169,
+          "size": 151620
+        },
+        "instant_coverage": 1.0,
+        "instant": {
+          "RMSE": 0.244751,
+          "LogLoss": 0.262554,
+          "RMSE(bins)": 0.138632,
+          "AUC": 0.442214,
+          "size": 151620
+        }
+      }
+    },
+    {
+      "user_id": 5142,
+      "curve_labels": 4337,
+      "instant_labels": 4337,
+      "curve_log_loss": 0.15584742719879177,
+      "curve_raw_log_loss": 0.17655326038468452,
+      "instant_log_loss": 0.20944769315959288,
+      "instant_rating_cross_entropy": 0.8085391664109198,
+      "benchmark": {
+        "size": 3610,
+        "ahead_coverage": 1.0,
+        "ahead": {
+          "RMSE": 0.163427,
+          "LogLoss": 0.159832,
+          "RMSE(bins)": 0.115003,
+          "AUC": 0.271317,
+          "size": 3610
+        },
+        "instant_coverage": 1.0,
+        "instant": {
+          "RMSE": 0.198479,
+          "LogLoss": 0.212593,
+          "RMSE(bins)": 0.161516,
+          "AUC": 0.699656,
+          "size": 3610
+        }
+      }
+    },
+    {
+      "user_id": 5161,
+      "curve_labels": 5345,
+      "instant_labels": 5345,
+      "curve_log_loss": 0.6213781765122856,
+      "curve_raw_log_loss": 0.7031661199675864,
+      "instant_log_loss": 0.5937197050945685,
+      "instant_rating_cross_entropy": 1.1398307364493245,
+      "benchmark": {
+        "size": 4450,
+        "ahead_coverage": 1.0,
+        "ahead": {
+          "RMSE": 0.469207,
+          "LogLoss": 0.662052,
+          "RMSE(bins)": 0.272337,
+          "AUC": 0.643371,
+          "size": 4450
+        },
+        "instant_coverage": 1.0,
+        "instant": {
+          "RMSE": 0.462448,
+          "LogLoss": 0.631604,
+          "RMSE(bins)": 0.258657,
+          "AUC": 0.371221,
+          "size": 4450
+        }
+      }
+    },
+    {
+      "user_id": 5203,
+      "curve_labels": 40063,
+      "instant_labels": 40063,
+      "curve_log_loss": 0.5292950937579718,
+      "curve_raw_log_loss": 0.5212918105480231,
+      "instant_log_loss": 0.507002160912359,
+      "instant_rating_cross_entropy": 0.9730927507581522,
+      "benchmark": {
+        "size": 33335,
+        "ahead_coverage": 1.0,
+        "ahead": {
+          "RMSE": 0.4241,
+          "LogLoss": 0.563168,
+          "RMSE(bins)": 0.183076,
+          "AUC": 0.54792,
+          "size": 33335
+        },
+        "instant_coverage": 1.0,
+        "instant": {
+          "RMSE": 0.416332,
+          "LogLoss": 0.532859,
+          "RMSE(bins)": 0.161206,
+          "AUC": 0.52172,
+          "size": 33335
+        }
+      }
+    },
+    {
+      "user_id": 5216,
+      "curve_labels": 103380,
+      "instant_labels": 103380,
+      "curve_log_loss": 0.7671758413107258,
+      "curve_raw_log_loss": 0.7298164529426459,
+      "instant_log_loss": 0.6913895441499202,
+      "instant_rating_cross_entropy": 0.9716867031079469,
+      "benchmark": {
+        "size": 86110,
+        "ahead_coverage": 1.0,
+        "ahead": {
+          "RMSE": 0.484374,
+          "LogLoss": 0.716505,
+          "RMSE(bins)": 0.224387,
+          "AUC": 0.516704,
+          "size": 86110
+        },
+        "instant_coverage": 1.0,
+        "instant": {
+          "RMSE": 0.466868,
+          "LogLoss": 0.639987,
+          "RMSE(bins)": 0.18266,
+          "AUC": 0.498096,
+          "size": 86110
+        }
+      }
+    },
+    {
+      "user_id": 5273,
+      "curve_labels": 8622,
+      "instant_labels": 8622,
+      "curve_log_loss": 0.42129724150265596,
+      "curve_raw_log_loss": 0.4432664448812317,
+      "instant_log_loss": 0.42114400277417596,
+      "instant_rating_cross_entropy": 1.31948753889988,
+      "benchmark": {
+        "size": 7185,
+        "ahead_coverage": 1.0,
+        "ahead": {
+          "RMSE": 0.362752,
+          "LogLoss": 0.432123,
+          "RMSE(bins)": 0.127293,
+          "AUC": 0.589423,
+          "size": 7185
+        },
+        "instant_coverage": 1.0,
+        "instant": {
+          "RMSE": 0.361803,
+          "LogLoss": 0.431833,
+          "RMSE(bins)": 0.127084,
+          "AUC": 0.443249,
+          "size": 7185
+        }
+      }
+    },
+    {
+      "user_id": 5277,
+      "curve_labels": 14091,
+      "instant_labels": 14091,
+      "curve_log_loss": 0.13706178640225403,
+      "curve_raw_log_loss": 0.17195462516223672,
+      "instant_log_loss": 0.20854322269551503,
+      "instant_rating_cross_entropy": 0.6629240830350182,
+      "benchmark": {
+        "size": 11740,
+        "ahead_coverage": 1.0,
+        "ahead": {
+          "RMSE": 0.135938,
+          "LogLoss": 0.128946,
+          "RMSE(bins)": 0.098724,
+          "AUC": 0.396999,
+          "size": 11740
+        },
+        "instant_coverage": 1.0,
+        "instant": {
+          "RMSE": 0.189035,
+          "LogLoss": 0.203863,
+          "RMSE(bins)": 0.164693,
+          "AUC": 0.574763,
+          "size": 11740
+        }
+      }
+    },
+    {
+      "user_id": 5329,
+      "curve_labels": 4996,
+      "instant_labels": 4996,
+      "curve_log_loss": 0.1740702958710438,
+      "curve_raw_log_loss": 0.1726760704866689,
+      "instant_log_loss": 0.22292302225569519,
+      "instant_rating_cross_entropy": 0.8081574788372263,
+      "benchmark": {
+        "size": 4160,
+        "ahead_coverage": 1.0,
+        "ahead": {
+          "RMSE": 0.156702,
+          "LogLoss": 0.151218,
+          "RMSE(bins)": 0.116496,
+          "AUC": 0.512959,
+          "size": 4160
+        },
+        "instant_coverage": 1.0,
+        "instant": {
+          "RMSE": 0.193831,
+          "LogLoss": 0.20794,
+          "RMSE(bins)": 0.16421,
+          "AUC": 0.511039,
+          "size": 4160
+        }
+      }
+    },
+    {
+      "user_id": 5384,
+      "curve_labels": 13737,
+      "instant_labels": 13737,
+      "curve_log_loss": 0.33403898098261897,
+      "curve_raw_log_loss": 0.2892829267237743,
+      "instant_log_loss": 0.32680230835965085,
+      "instant_rating_cross_entropy": 1.4185360823169133,
+      "benchmark": {
+        "size": 11445,
+        "ahead_coverage": 1.0,
+        "ahead": {
+          "RMSE": 0.306003,
+          "LogLoss": 0.348031,
+          "RMSE(bins)": 0.169557,
+          "AUC": 0.231934,
+          "size": 11445
+        },
+        "instant_coverage": 1.0,
+        "instant": {
+          "RMSE": 0.303391,
+          "LogLoss": 0.337674,
+          "RMSE(bins)": 0.163973,
+          "AUC": 0.704312,
+          "size": 11445
+        }
+      }
+    },
+    {
+      "user_id": 5984,
+      "curve_labels": 10430,
+      "instant_labels": 10430,
+      "curve_log_loss": 0.3102010623249203,
+      "curve_raw_log_loss": 0.32243418973278565,
+      "instant_log_loss": 0.33581026832529365,
+      "instant_rating_cross_entropy": 0.9242112132926915,
+      "benchmark": {
+        "size": 8690,
+        "ahead_coverage": 1.0,
+        "ahead": {
+          "RMSE": 0.283461,
+          "LogLoss": 0.298292,
+          "RMSE(bins)": 0.095736,
+          "AUC": 0.567765,
+          "size": 8690
+        },
+        "instant_coverage": 1.0,
+        "instant": {
+          "RMSE": 0.295356,
+          "LogLoss": 0.32696,
+          "RMSE(bins)": 0.126222,
+          "AUC": 0.532138,
+          "size": 8690
+        }
+      }
+    },
+    {
+      "user_id": 6033,
+      "curve_labels": 13831,
+      "instant_labels": 13831,
+      "curve_log_loss": 0.3303231224983308,
+      "curve_raw_log_loss": 0.30331111416693635,
+      "instant_log_loss": 0.3290728757338517,
+      "instant_rating_cross_entropy": 0.8140952285635317,
+      "benchmark": {
+        "size": 11525,
+        "ahead_coverage": 1.0,
+        "ahead": {
+          "RMSE": 0.296879,
+          "LogLoss": 0.328864,
+          "RMSE(bins)": 0.128741,
+          "AUC": 0.396068,
+          "size": 11525
+        },
+        "instant_coverage": 1.0,
+        "instant": {
+          "RMSE": 0.299137,
+          "LogLoss": 0.331448,
+          "RMSE(bins)": 0.133721,
+          "AUC": 0.590166,
+          "size": 11525
+        }
+      }
+    },
+    {
+      "user_id": 6239,
+      "curve_labels": 6875,
+      "instant_labels": 6875,
+      "curve_log_loss": 0.23949432980580762,
+      "curve_raw_log_loss": 0.23001106700897217,
+      "instant_log_loss": 0.2682305919300426,
+      "instant_rating_cross_entropy": 0.7158421113361012,
+      "benchmark": {
+        "size": 5725,
+        "ahead_coverage": 1.0,
+        "ahead": {
+          "RMSE": 0.230451,
+          "LogLoss": 0.233438,
+          "RMSE(bins)": 0.117564,
+          "AUC": 0.438957,
+          "size": 5725
+        },
+        "instant_coverage": 1.0,
+        "instant": {
+          "RMSE": 0.243482,
+          "LogLoss": 0.258806,
+          "RMSE(bins)": 0.142046,
+          "AUC": 0.74813,
+          "size": 5725
+        }
+      }
+    },
+    {
+      "user_id": 6460,
+      "curve_labels": 75402,
+      "instant_labels": 75402,
+      "curve_log_loss": 0.8875959144032655,
+      "curve_raw_log_loss": 0.8885645651743964,
+      "instant_log_loss": 0.8036830658552321,
+      "instant_rating_cross_entropy": 1.3030714344766166,
+      "benchmark": {
+        "size": 62830,
+        "ahead_coverage": 1.0,
+        "ahead": {
+          "RMSE": 0.570625,
+          "LogLoss": 0.938937,
+          "RMSE(bins)": 0.350034,
+          "AUC": 0.571019,
+          "size": 62830
+        },
+        "instant_coverage": 1.0,
+        "instant": {
+          "RMSE": 0.552765,
+          "LogLoss": 0.851422,
+          "RMSE(bins)": 0.319557,
+          "AUC": 0.435114,
+          "size": 62830
+        }
+      }
+    },
+    {
+      "user_id": 6522,
+      "curve_labels": 33390,
+      "instant_labels": 33390,
+      "curve_log_loss": 0.3420789840238185,
+      "curve_raw_log_loss": 0.3124004979232144,
+      "instant_log_loss": 0.3434667033755019,
+      "instant_rating_cross_entropy": 1.098419049104626,
+      "benchmark": {
+        "size": 27825,
+        "ahead_coverage": 1.0,
+        "ahead": {
+          "RMSE": 0.296192,
+          "LogLoss": 0.32621,
+          "RMSE(bins)": 0.12622,
+          "AUC": 0.433309,
+          "size": 27825
+        },
+        "instant_coverage": 1.0,
+        "instant": {
+          "RMSE": 0.296456,
+          "LogLoss": 0.327023,
+          "RMSE(bins)": 0.127591,
+          "AUC": 0.700986,
+          "size": 27825
+        }
+      }
+    },
+    {
+      "user_id": 6647,
+      "curve_labels": 128626,
+      "instant_labels": 128626,
+      "curve_log_loss": 0.2993429143516352,
+      "curve_raw_log_loss": 0.28076559013837227,
+      "instant_log_loss": 0.3210872990434112,
+      "instant_rating_cross_entropy": 1.0191007741867792,
+      "benchmark": {
+        "size": 107185,
+        "ahead_coverage": 1.0,
+        "ahead": {
+          "RMSE": 0.296357,
+          "LogLoss": 0.320505,
+          "RMSE(bins)": 0.124934,
+          "AUC": 0.550203,
+          "size": 107185
+        },
+        "instant_coverage": 1.0,
+        "instant": {
+          "RMSE": 0.303451,
+          "LogLoss": 0.337634,
+          "RMSE(bins)": 0.140546,
+          "AUC": 0.767964,
+          "size": 107185
+        }
+      }
+    },
+    {
+      "user_id": 6691,
+      "curve_labels": 94019,
+      "instant_labels": 94019,
+      "curve_log_loss": 0.45461444385217964,
+      "curve_raw_log_loss": 0.5654691336590002,
+      "instant_log_loss": 0.4507475938688361,
+      "instant_rating_cross_entropy": 1.9488769816696017,
+      "benchmark": {
+        "size": 78340,
+        "ahead_coverage": 1.0,
+        "ahead": {
+          "RMSE": 0.348268,
+          "LogLoss": 0.411033,
+          "RMSE(bins)": 0.205397,
+          "AUC": 0.540062,
+          "size": 78340
+        },
+        "instant_coverage": 1.0,
+        "instant": {
+          "RMSE": 0.351273,
+          "LogLoss": 0.415333,
+          "RMSE(bins)": 0.208921,
+          "AUC": 0.236034,
+          "size": 78340
+        }
+      }
+    },
+    {
+      "user_id": 6938,
+      "curve_labels": 14773,
+      "instant_labels": 14773,
+      "curve_log_loss": 0.17802813051486963,
+      "curve_raw_log_loss": 0.19941849853059962,
+      "instant_log_loss": 0.23126707940129704,
+      "instant_rating_cross_entropy": 1.6952119326935249,
+      "benchmark": {
+        "size": 12310,
+        "ahead_coverage": 1.0,
+        "ahead": {
+          "RMSE": 0.194588,
+          "LogLoss": 0.187955,
+          "RMSE(bins)": 0.124194,
+          "AUC": 0.446093,
+          "size": 12310
+        },
+        "instant_coverage": 1.0,
+        "instant": {
+          "RMSE": 0.222621,
+          "LogLoss": 0.236839,
+          "RMSE(bins)": 0.164967,
+          "AUC": 0.409941,
+          "size": 12310
+        }
+      }
+    },
+    {
+      "user_id": 7002,
+      "curve_labels": 5498,
+      "instant_labels": 5498,
+      "curve_log_loss": 0.41483428388584653,
+      "curve_raw_log_loss": 0.39226357171040266,
+      "instant_log_loss": 0.40298920954388245,
+      "instant_rating_cross_entropy": 1.0677586950012101,
+      "benchmark": {
+        "size": 4580,
+        "ahead_coverage": 1.0,
+        "ahead": {
+          "RMSE": 0.366301,
+          "LogLoss": 0.450331,
+          "RMSE(bins)": 0.146283,
+          "AUC": 0.427996,
+          "size": 4580
+        },
+        "instant_coverage": 1.0,
+        "instant": {
+          "RMSE": 0.359946,
+          "LogLoss": 0.427581,
+          "RMSE(bins)": 0.129226,
+          "AUC": 0.604626,
+          "size": 4580
+        }
+      }
+    },
+    {
+      "user_id": 7004,
+      "curve_labels": 15602,
+      "instant_labels": 15602,
+      "curve_log_loss": 0.1948630986597932,
+      "curve_raw_log_loss": 0.27829469628646397,
+      "instant_log_loss": 0.23615757536695578,
+      "instant_rating_cross_entropy": 2.0663061323585823,
+      "benchmark": {
+        "size": 13000,
+        "ahead_coverage": 1.0,
+        "ahead": {
+          "RMSE": 0.21091,
+          "LogLoss": 0.213122,
+          "RMSE(bins)": 0.125839,
+          "AUC": 0.391233,
+          "size": 13000
+        },
+        "instant_coverage": 1.0,
+        "instant": {
+          "RMSE": 0.228719,
+          "LogLoss": 0.244477,
+          "RMSE(bins)": 0.15452,
+          "AUC": 0.250534,
+          "size": 13000
+        }
+      }
+    },
+    {
+      "user_id": 7199,
+      "curve_labels": 5825,
+      "instant_labels": 5825,
+      "curve_log_loss": 1.1905103540829836,
+      "curve_raw_log_loss": 1.6465995054081275,
+      "instant_log_loss": 1.22467239052441,
+      "instant_rating_cross_entropy": 2.008459836648769,
+      "benchmark": {
+        "size": 4850,
+        "ahead_coverage": 1.0,
+        "ahead": {
+          "RMSE": 0.676105,
+          "LogLoss": 1.223699,
+          "RMSE(bins)": 0.496129,
+          "AUC": 0.528704,
+          "size": 4850
+        },
+        "instant_coverage": 1.0,
+        "instant": {
+          "RMSE": 0.68485,
+          "LogLoss": 1.251401,
+          "RMSE(bins)": 0.509384,
+          "AUC": 0.498124,
+          "size": 4850
+        }
+      }
+    },
+    {
+      "user_id": 7294,
+      "curve_labels": 14667,
+      "instant_labels": 14667,
+      "curve_log_loss": 0.4806171479737998,
+      "curve_raw_log_loss": 0.4308586422852568,
+      "instant_log_loss": 0.4504292273786387,
+      "instant_rating_cross_entropy": 1.087861430509256,
+      "benchmark": {
+        "size": 12220,
+        "ahead_coverage": 1.0,
+        "ahead": {
+          "RMSE": 0.383601,
+          "LogLoss": 0.485925,
+          "RMSE(bins)": 0.196987,
+          "AUC": 0.400844,
+          "size": 12220
+        },
+        "instant_coverage": 1.0,
+        "instant": {
+          "RMSE": 0.372807,
+          "LogLoss": 0.449292,
+          "RMSE(bins)": 0.180244,
+          "AUC": 0.751953,
+          "size": 12220
+        }
+      }
+    },
+    {
+      "user_id": 7427,
+      "curve_labels": 6781,
+      "instant_labels": 6781,
+      "curve_log_loss": 0.20017551800930786,
+      "curve_raw_log_loss": 0.21482616516626474,
+      "instant_log_loss": 0.2506057284711965,
+      "instant_rating_cross_entropy": 1.3116193387979884,
+      "benchmark": {
+        "size": 5650,
+        "ahead_coverage": 1.0,
+        "ahead": {
+          "RMSE": 0.220633,
+          "LogLoss": 0.213245,
+          "RMSE(bins)": 0.091786,
+          "AUC": 0.43356,
+          "size": 5650
+        },
+        "instant_coverage": 1.0,
+        "instant": {
+          "RMSE": 0.245718,
+          "LogLoss": 0.262763,
+          "RMSE(bins)": 0.141787,
+          "AUC": 0.692323,
+          "size": 5650
+        }
+      }
+    },
+    {
+      "user_id": 7476,
+      "curve_labels": 41299,
+      "instant_labels": 41299,
+      "curve_log_loss": 0.33051157696428546,
+      "curve_raw_log_loss": 0.33754904650821216,
+      "instant_log_loss": 0.35500269133131535,
+      "instant_rating_cross_entropy": 1.0998235195539614,
+      "benchmark": {
+        "size": 34415,
+        "ahead_coverage": 1.0,
+        "ahead": {
+          "RMSE": 0.290687,
+          "LogLoss": 0.307882,
+          "RMSE(bins)": 0.091143,
+          "AUC": 0.610883,
+          "size": 34415
+        },
+        "instant_coverage": 1.0,
+        "instant": {
+          "RMSE": 0.303411,
+          "LogLoss": 0.338498,
+          "RMSE(bins)": 0.125205,
+          "AUC": 0.626586,
+          "size": 34415
+        }
+      }
+    },
+    {
+      "user_id": 7496,
+      "curve_labels": 376359,
+      "instant_labels": 376359,
+      "curve_log_loss": 0.2023745145642096,
+      "curve_raw_log_loss": 0.2509363852671841,
+      "instant_log_loss": 0.2528293102393605,
+      "instant_rating_cross_entropy": 1.0702567382942962,
+      "benchmark": {
+        "size": 313605,
+        "ahead_coverage": 1.0,
+        "ahead": {
+          "RMSE": 0.206708,
+          "LogLoss": 0.199558,
+          "RMSE(bins)": 0.099053,
+          "AUC": 0.43687,
+          "size": 313605
+        },
+        "instant_coverage": 1.0,
+        "instant": {
+          "RMSE": 0.233609,
+          "LogLoss": 0.249475,
+          "RMSE(bins)": 0.147657,
+          "AUC": 0.454354,
+          "size": 313605
+        }
+      }
+    },
+    {
+      "user_id": 7594,
+      "curve_labels": 12595,
+      "instant_labels": 12595,
+      "curve_log_loss": 0.5306627344119733,
+      "curve_raw_log_loss": 0.49007759850594956,
+      "instant_log_loss": 0.49328749998546206,
+      "instant_rating_cross_entropy": 2.0103479925627368,
+      "benchmark": {
+        "size": 10495,
+        "ahead_coverage": 1.0,
+        "ahead": {
+          "RMSE": 0.426403,
+          "LogLoss": 0.572929,
+          "RMSE(bins)": 0.168029,
+          "AUC": 0.544502,
+          "size": 10495
+        },
+        "instant_coverage": 1.0,
+        "instant": {
+          "RMSE": 0.415343,
+          "LogLoss": 0.530858,
+          "RMSE(bins)": 0.135842,
+          "AUC": 0.549534,
+          "size": 10495
+        }
+      }
+    },
+    {
+      "user_id": 7787,
+      "curve_labels": 52253,
+      "instant_labels": 52253,
+      "curve_log_loss": 0.29925045751277185,
+      "curve_raw_log_loss": 0.33662403624109055,
+      "instant_log_loss": 0.3279291251911523,
+      "instant_rating_cross_entropy": 0.7252779336287558,
+      "benchmark": {
+        "size": 43540,
+        "ahead_coverage": 1.0,
+        "ahead": {
+          "RMSE": 0.294034,
+          "LogLoss": 0.314768,
+          "RMSE(bins)": 0.057,
+          "AUC": 0.574209,
+          "size": 43540
+        },
+        "instant_coverage": 1.0,
+        "instant": {
+          "RMSE": 0.304351,
+          "LogLoss": 0.340305,
+          "RMSE(bins)": 0.096856,
+          "AUC": 0.495855,
+          "size": 43540
+        }
+      }
+    },
+    {
+      "user_id": 7792,
+      "curve_labels": 35279,
+      "instant_labels": 35279,
+      "curve_log_loss": 0.22862752265164857,
+      "curve_raw_log_loss": 0.2599284206684013,
+      "instant_log_loss": 0.2711575850158015,
+      "instant_rating_cross_entropy": 1.2389803718789343,
+      "benchmark": {
+        "size": 29395,
+        "ahead_coverage": 1.0,
+        "ahead": {
+          "RMSE": 0.247452,
+          "LogLoss": 0.251076,
+          "RMSE(bins)": 0.089009,
+          "AUC": 0.41328,
+          "size": 29395
+        },
+        "instant_coverage": 1.0,
+        "instant": {
+          "RMSE": 0.263276,
+          "LogLoss": 0.284427,
+          "RMSE(bins)": 0.126776,
+          "AUC": 0.471332,
+          "size": 29395
+        }
+      }
+    },
+    {
+      "user_id": 7804,
+      "curve_labels": 183880,
+      "instant_labels": 183880,
+      "curve_log_loss": 0.7476080575853761,
+      "curve_raw_log_loss": 0.8354571665386181,
+      "instant_log_loss": 0.7160186892051605,
+      "instant_rating_cross_entropy": 1.4180158403870435,
+      "benchmark": {
+        "size": 153110,
+        "ahead_coverage": 1.0,
+        "ahead": {
+          "RMSE": 0.525984,
+          "LogLoss": 0.801267,
+          "RMSE(bins)": 0.302177,
+          "AUC": 0.613525,
+          "size": 153110
+        },
+        "instant_coverage": 1.0,
+        "instant": {
+          "RMSE": 0.519363,
+          "LogLoss": 0.765485,
+          "RMSE(bins)": 0.28818,
+          "AUC": 0.427515,
+          "size": 153110
+        }
+      }
+    },
+    {
+      "user_id": 7912,
+      "curve_labels": 6484,
+      "instant_labels": 6484,
+      "curve_log_loss": 0.2537712004589564,
+      "curve_raw_log_loss": 0.33331319499004775,
+      "instant_log_loss": 0.28695774313699013,
+      "instant_rating_cross_entropy": 1.7465960769871,
+      "benchmark": {
+        "size": 5395,
+        "ahead_coverage": 1.0,
+        "ahead": {
+          "RMSE": 0.24627,
+          "LogLoss": 0.250544,
+          "RMSE(bins)": 0.088457,
+          "AUC": 0.555685,
+          "size": 5395
+        },
+        "instant_coverage": 1.0,
+        "instant": {
+          "RMSE": 0.262888,
+          "LogLoss": 0.284598,
+          "RMSE(bins)": 0.127615,
+          "AUC": 0.518928,
+          "size": 5395
+        }
+      }
+    },
+    {
+      "user_id": 7980,
+      "curve_labels": 49668,
+      "instant_labels": 49668,
+      "curve_log_loss": 0.4883608466232227,
+      "curve_raw_log_loss": 0.5103710940968897,
+      "instant_log_loss": 0.47789628338466245,
+      "instant_rating_cross_entropy": 1.0887409577834257,
+      "benchmark": {
+        "size": 41380,
+        "ahead_coverage": 1.0,
+        "ahead": {
+          "RMSE": 0.364438,
+          "LogLoss": 0.440015,
+          "RMSE(bins)": 0.134258,
+          "AUC": 0.571317,
+          "size": 41380
+        },
+        "instant_coverage": 1.0,
+        "instant": {
+          "RMSE": 0.36397,
+          "LogLoss": 0.435556,
+          "RMSE(bins)": 0.131633,
+          "AUC": 0.446701,
+          "size": 41380
+        }
+      }
+    },
+    {
+      "user_id": 7987,
+      "curve_labels": 73923,
+      "instant_labels": 73923,
+      "curve_log_loss": 0.35040218395420386,
+      "curve_raw_log_loss": 0.3799019345828643,
+      "instant_log_loss": 0.3730663355653724,
+      "instant_rating_cross_entropy": 0.9111652522273321,
+      "benchmark": {
+        "size": 61600,
+        "ahead_coverage": 1.0,
+        "ahead": {
+          "RMSE": 0.319067,
+          "LogLoss": 0.353792,
+          "RMSE(bins)": 0.096131,
+          "AUC": 0.607346,
+          "size": 61600
+        },
+        "instant_coverage": 1.0,
+        "instant": {
+          "RMSE": 0.327286,
+          "LogLoss": 0.374932,
+          "RMSE(bins)": 0.119709,
+          "AUC": 0.49887,
+          "size": 61600
+        }
+      }
+    },
+    {
+      "user_id": 7988,
+      "curve_labels": 4710,
+      "instant_labels": 4710,
+      "curve_log_loss": 0.8611708139759466,
+      "curve_raw_log_loss": 0.954858325086455,
+      "instant_log_loss": 0.7874599414266599,
+      "instant_rating_cross_entropy": 1.3259633670693496,
+      "benchmark": {
+        "size": 3925,
+        "ahead_coverage": 1.0,
+        "ahead": {
+          "RMSE": 0.52975,
+          "LogLoss": 0.825644,
+          "RMSE(bins)": 0.373583,
+          "AUC": 0.560624,
+          "size": 3925
+        },
+        "instant_coverage": 1.0,
+        "instant": {
+          "RMSE": 0.51253,
+          "LogLoss": 0.746796,
+          "RMSE(bins)": 0.348314,
+          "AUC": 0.538306,
+          "size": 3925
+        }
+      }
+    },
+    {
+      "user_id": 8135,
+      "curve_labels": 16111,
+      "instant_labels": 16111,
+      "curve_log_loss": 0.5490179623751569,
+      "curve_raw_log_loss": 0.4768670103132048,
+      "instant_log_loss": 0.5405587260338797,
+      "instant_rating_cross_entropy": 1.2275469130580632,
+      "benchmark": {
+        "size": 13425,
+        "ahead_coverage": 1.0,
+        "ahead": {
+          "RMSE": 0.421917,
+          "LogLoss": 0.542037,
+          "RMSE(bins)": 0.255322,
+          "AUC": 0.622771,
+          "size": 13425
+        },
+        "instant_coverage": 1.0,
+        "instant": {
+          "RMSE": 0.423495,
+          "LogLoss": 0.545529,
+          "RMSE(bins)": 0.258044,
+          "AUC": 0.707354,
+          "size": 13425
+        }
+      }
+    },
+    {
+      "user_id": 8210,
+      "curve_labels": 247911,
+      "instant_labels": 247911,
+      "curve_log_loss": 0.8180521616563365,
+      "curve_raw_log_loss": 0.8066801307358491,
+      "instant_log_loss": 0.7299920510049552,
+      "instant_rating_cross_entropy": 1.0330454058904817,
+      "benchmark": {
+        "size": 177460,
+        "ahead_coverage": 1.0,
+        "ahead": {
+          "RMSE": 0.509237,
+          "LogLoss": 0.777956,
+          "RMSE(bins)": 0.280063,
+          "AUC": 0.558109,
+          "size": 177460
+        },
+        "instant_coverage": 1.0,
+        "instant": {
+          "RMSE": 0.4906,
+          "LogLoss": 0.694871,
+          "RMSE(bins)": 0.243793,
+          "AUC": 0.422219,
+          "size": 177460
+        }
+      }
+    },
+    {
+      "user_id": 8597,
+      "curve_labels": 28398,
+      "instant_labels": 28398,
+      "curve_log_loss": 0.22489981354070018,
+      "curve_raw_log_loss": 0.2163884042255794,
+      "instant_log_loss": 0.2563984689095279,
+      "instant_rating_cross_entropy": 0.8140049012175445,
+      "benchmark": {
+        "size": 23660,
+        "ahead_coverage": 1.0,
+        "ahead": {
+          "RMSE": 0.200713,
+          "LogLoss": 0.199103,
+          "RMSE(bins)": 0.116415,
+          "AUC": 0.40271,
+          "size": 23660
+        },
+        "instant_coverage": 1.0,
+        "instant": {
+          "RMSE": 0.220709,
+          "LogLoss": 0.233611,
+          "RMSE(bins)": 0.148208,
+          "AUC": 0.589502,
+          "size": 23660
+        }
+      }
+    },
+    {
+      "user_id": 9451,
+      "curve_labels": 6830,
+      "instant_labels": 6830,
+      "curve_log_loss": 0.6657915595160745,
+      "curve_raw_log_loss": 0.6144755632950656,
+      "instant_log_loss": 0.6057918744066275,
+      "instant_rating_cross_entropy": 1.555313932232417,
+      "benchmark": {
+        "size": 5690,
+        "ahead_coverage": 1.0,
+        "ahead": {
+          "RMSE": 0.478488,
+          "LogLoss": 0.694499,
+          "RMSE(bins)": 0.23944,
+          "AUC": 0.435581,
+          "size": 5690
+        },
+        "instant_coverage": 1.0,
+        "instant": {
+          "RMSE": 0.462229,
+          "LogLoss": 0.628947,
+          "RMSE(bins)": 0.205213,
+          "AUC": 0.620095,
+          "size": 5690
+        }
+      }
+    },
+    {
+      "user_id": 9466,
+      "curve_labels": 57886,
+      "instant_labels": 57886,
+      "curve_log_loss": 0.39068920875052926,
+      "curve_raw_log_loss": 0.3997626508898974,
+      "instant_log_loss": 0.3943909092935988,
+      "instant_rating_cross_entropy": 1.0866615621129987,
+      "benchmark": {
+        "size": 48235,
+        "ahead_coverage": 1.0,
+        "ahead": {
+          "RMSE": 0.308172,
+          "LogLoss": 0.338686,
+          "RMSE(bins)": 0.129698,
+          "AUC": 0.542568,
+          "size": 48235
+        },
+        "instant_coverage": 1.0,
+        "instant": {
+          "RMSE": 0.314614,
+          "LogLoss": 0.354992,
+          "RMSE(bins)": 0.145259,
+          "AUC": 0.504615,
+          "size": 48235
+        }
+      }
+    },
+    {
+      "user_id": 9475,
+      "curve_labels": 26558,
+      "instant_labels": 26558,
+      "curve_log_loss": 0.3719411194447931,
+      "curve_raw_log_loss": 0.38496928394650987,
+      "instant_log_loss": 0.37758389017705646,
+      "instant_rating_cross_entropy": 1.065361285561565,
+      "benchmark": {
+        "size": 22100,
+        "ahead_coverage": 1.0,
+        "ahead": {
+          "RMSE": 0.315359,
+          "LogLoss": 0.352364,
+          "RMSE(bins)": 0.091359,
+          "AUC": 0.513377,
+          "size": 22100
+        },
+        "instant_coverage": 1.0,
+        "instant": {
+          "RMSE": 0.319766,
+          "LogLoss": 0.363092,
+          "RMSE(bins)": 0.106068,
+          "AUC": 0.509602,
+          "size": 22100
+        }
+      }
+    },
+    {
+      "user_id": 9630,
+      "curve_labels": 7799,
+      "instant_labels": 7799,
+      "curve_log_loss": 0.26488137485729085,
+      "curve_raw_log_loss": 0.24169844729057535,
+      "instant_log_loss": 0.3063481841152762,
+      "instant_rating_cross_entropy": 0.7723321132376219,
+      "benchmark": {
+        "size": 6495,
+        "ahead_coverage": 1.0,
+        "ahead": {
+          "RMSE": 0.277651,
+          "LogLoss": 0.284816,
+          "RMSE(bins)": 0.204232,
+          "AUC": 0.763991,
+          "size": 6495
+        },
+        "instant_coverage": 1.0,
+        "instant": {
+          "RMSE": 0.293619,
+          "LogLoss": 0.323311,
+          "RMSE(bins)": 0.225433,
+          "AUC": 0.838858,
+          "size": 6495
+        }
+      }
+    },
+    {
+      "user_id": 9748,
+      "curve_labels": 70312,
+      "instant_labels": 70312,
+      "curve_log_loss": 0.4806389254294798,
+      "curve_raw_log_loss": 0.47794326308837914,
+      "instant_log_loss": 0.46192073973932285,
+      "instant_rating_cross_entropy": 1.359505629440985,
+      "benchmark": {
+        "size": 58590,
+        "ahead_coverage": 1.0,
+        "ahead": {
+          "RMSE": 0.373071,
+          "LogLoss": 0.459299,
+          "RMSE(bins)": 0.118903,
+          "AUC": 0.522448,
+          "size": 58590
+        },
+        "instant_coverage": 1.0,
+        "instant": {
+          "RMSE": 0.369729,
+          "LogLoss": 0.445674,
+          "RMSE(bins)": 0.108612,
+          "AUC": 0.449018,
+          "size": 58590
+        }
+      }
+    },
+    {
+      "user_id": 9785,
+      "curve_labels": 3913,
+      "instant_labels": 3913,
+      "curve_log_loss": 0.3918702246365631,
+      "curve_raw_log_loss": 0.34471524825356303,
+      "instant_log_loss": 0.39760967267312086,
+      "instant_rating_cross_entropy": 1.3609548264868327,
+      "benchmark": {
+        "size": 3260,
+        "ahead_coverage": 1.0,
+        "ahead": {
+          "RMSE": 0.363933,
+          "LogLoss": 0.434909,
+          "RMSE(bins)": 0.184977,
+          "AUC": 0.602932,
+          "size": 3260
+        },
+        "instant_coverage": 1.0,
+        "instant": {
+          "RMSE": 0.36332,
+          "LogLoss": 0.432953,
+          "RMSE(bins)": 0.184269,
+          "AUC": 0.758658,
+          "size": 3260
+        }
+      }
+    },
+    {
+      "user_id": 9914,
+      "curve_labels": 12463,
+      "instant_labels": 12463,
+      "curve_log_loss": 0.3523009750942142,
+      "curve_raw_log_loss": 0.3573827408657672,
+      "instant_log_loss": 0.3584231811513643,
+      "instant_rating_cross_entropy": 0.7351377074431332,
+      "benchmark": {
+        "size": 10380,
+        "ahead_coverage": 1.0,
+        "ahead": {
+          "RMSE": 0.318701,
+          "LogLoss": 0.361545,
+          "RMSE(bins)": 0.095058,
+          "AUC": 0.463286,
+          "size": 10380
+        },
+        "instant_coverage": 1.0,
+        "instant": {
+          "RMSE": 0.321047,
+          "LogLoss": 0.364956,
+          "RMSE(bins)": 0.104993,
+          "AUC": 0.491861,
+          "size": 10380
+        }
+      }
+    },
+    {
+      "user_id": 9937,
+      "curve_labels": 16376,
+      "instant_labels": 16376,
+      "curve_log_loss": 0.6566802619737594,
+      "curve_raw_log_loss": 0.6241812778424798,
+      "instant_log_loss": 0.5968433765882857,
+      "instant_rating_cross_entropy": 0.9142071640871476,
+      "benchmark": {
+        "size": 13645,
+        "ahead_coverage": 1.0,
+        "ahead": {
+          "RMSE": 0.452994,
+          "LogLoss": 0.63521,
+          "RMSE(bins)": 0.163677,
+          "AUC": 0.499874,
+          "size": 13645
+        },
+        "instant_coverage": 1.0,
+        "instant": {
+          "RMSE": 0.438915,
+          "LogLoss": 0.578855,
+          "RMSE(bins)": 0.119549,
+          "AUC": 0.534614,
+          "size": 13645
+        }
+      }
+    }
+  ],
+  "evaluation": {
+    "curve_labels": 5222780,
+    "curve_log_loss_label_weighted": 0.5185616176313,
+    "curve_log_loss_user_average": 0.42850891460047563,
+    "instant_labels": 5222780,
+    "instant_log_loss_label_weighted": 0.5070644867074217,
+    "instant_log_loss_user_average": 0.4307499958322556
+  },
+  "case_elapsed_seconds": 62.75689289999718
+}

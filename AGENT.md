@@ -72,6 +72,17 @@ optimization tracks, including ideas that have not been implemented or tested.
 - Preserve pending and completed investigations. Any claimed training benefit
   from filtering remains subject to the validation requirements below.
 
+## Evaluation tolerance (adopted 2026-10-14)
+
+- Training changes still need bit-identical parity (weights, updates, losses, held-out inputs) as before; this rule covers the evaluation path only.
+- An evaluation path may differ from `scripts/fast_evaluation.py --mode reference` only by floating-point reduction order, and only when all of these hold against the reference on the same checkpoint and users (`scripts/check_fast_evaluation.py compare`, field `tolerance.passes`):
+  - identical `validation_input_sha256` and identical label counts, benchmark sizes and coverage;
+  - every aggregate metric (Curve/Instant log loss label-weighted and user-averaged; benchmark LogLoss, RMSE(bins), AUC and RMSE for both heads, review-weighted and user-averaged) within |Δ| ≤ 1e-6;
+  - every per-user loss (the four R01 losses; benchmark LogLoss, RMSE(bins), RMSE) within |Δ| ≤ 1e-5;
+  - per-user AUC within |Δ| ≤ 1e-4: AUC is a rank statistic, so a 1e-7 change can swap near-tied predictions and move one user's six-decimal AUC by about 1e-5.
+- Every evaluation result records its mode (`fast`/`reference`, batch chunks) and the commit; `--mode reference` and the exact one-section mode (`--batch-chunks 8`) stay available, and any claim of bit-identical scores uses one of them.
+- A new evaluation path, a changed batch size, precision, kernel or model architecture is re-checked against the reference before its numbers are used. Evidence and thresholds: [EVAL_SPEED.md](docs/EVAL_SPEED.md#evaluation-tolerance-rule).
+
 ## Validation requires an explicit user request
 
 - Before treating a set of changes as validated, run a matched multi-user quality
