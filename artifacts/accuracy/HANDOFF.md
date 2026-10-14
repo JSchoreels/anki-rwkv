@@ -70,3 +70,54 @@ The runbook's `q()` does not pass `--expected-minutes`, so its tickets get the d
 ## Update: A08 promoted (2026-10-14)
 
 User approved promoting A08. Main now has `final_decay_epochs` (default 0.25) in `scripts/run_full_training.py` (merge 1017383; `scripts/check_full_run_decay.py` is the CPU check). Status: promoted, provisional until A15 order band (000328). When 000328 lands, re-judge against the order SD; if the gain is inside the band, set the default to 0 (`FINAL_DECAY_EPOCHS`) and mark A08 accordingly. Next screens should use the cool-down as the baseline (A03 re-baseline).
+
+## Update after 000328 / A15 (2026-10-14)
+
+Runbook 14b finished at 22:11 (tickets 000316, 000324, 000328 exit 0). Noise JSONs are in `noise/`, logged in ACCURACY_LOG "Noise bands" and ACCURACY_LOOP "Seed-noise band". Review-weighted, 1,000 screen users:
+
+| Head | Seed SD (s2025/26/27) | Seed SD×√2 | Order SD (s2025, o1/o2) | Order SD×√2 | Band 2 × max |
+|---|---|---|---|---|---|
+| curve LogLoss | 0.00021 | 0.00030 | 0.00220 | 0.00311 | **0.0062** |
+| instant LogLoss | 0.00012 | 0.00018 | 0.00096 | 0.00136 | **0.0027** |
+
+Training order dominates (about 10× on curve, 7.7× on instant). n = 3 per component, so each SD is uncertain by about 2×.
+
+**A08 re-judged.** Gain −0.00136 curve / −0.00103 instant is inside the whole-training band (0.22× and 0.38×). Unproven against independent trainings. A08 is paired (same epoch-10 weights plus 0.25 epoch), so that band probably overstates its noise, but this is unmeasured. Status: promoted, provisional (default `final_decay_epochs` 0.25 stays). If the check below shows the spread of decays comparable to the gain, set `FINAL_DECAY_EPOCHS` to 0 and mark A08 accordingly.
+
+**Queued (detached, from `C:\Users\jonat\workspace\anki-rwkv`, log `artifacts/accuracy-a08/queue-a08-decay-seeds.log`; held by the quiet window until 02:00):**
+
+| Ticket | What | Output (main checkout) |
+|---|---|---|
+| 000330 | `expertium_decay.py auto` from `run-8k-20261013` epoch 10, 0.25 epoch, `one_minus_sin`, `--seed 2` (original `decay-8k-e10-q25` used `--seed 1`), `--evaluate quick`, expected 20 min | `artifacts/accuracy-a08/decay-8k-e10-q25-o2/expertium/E89-F65e-F77a/master.pth` |
+| 000331 | same, `--seed 3` | `artifacts/accuracy-a08/decay-8k-e10-q25-o3/...` |
+
+Both were `prepare`d already (different user subsets and order per seed), so `auto` goes straight to the run. Each job also writes `summary.md` (decayed vs epoch 10 on the 300 quick users; the earlier seed-1 result was −0.0018 / −0.0013).
+
+**Follow-ups once both finish** (fresh agent, Sonnet medium; PY = main venv python, run from the accuracy-loop worktree):
+
+```
+PY=C:/Users/jonat/workspace/anki-rwkv/.venv/Scripts/python.exe
+QUEUE=C:/Users/jonat/workspace/anki-rwkv/scripts/r01_queue.py
+AL=C:/Users/jonat/workspace/wt/accuracy-loop/scripts/accuracy_loop.py
+M=C:/Users/jonat/workspace/anki-rwkv/artifacts/accuracy-a08
+for s in 2 3; do
+  $PY -X utf8 $AL prepare decay-e10-q25-o$s --tier screen --seed 2025 --checkpoint $M/decay-8k-e10-q25-o$s/expertium/E89-F65e-F77a/master.pth --note "A08 check: decay data-order seed $s"
+done
+```
+(copy the extra `prepare` arguments from `experiments/decay-e10-q25/experiment.json`: model, track, options, `order_seed`, note). Then one GPU ticket for both evaluations (~13 min, fast mode), and CPU steps under `cpu-heavy`:
+
+```
+$PY $QUEUE run --owner accuracy-loop --purpose "accuracy-loop: fast eval of the two A08 decay order-seed checkpoints (~13 min)" --claim gpu --expected-minutes 16 -- $PY -X utf8 $AL evaluate decay-e10-q25-o2 decay-e10-q25-o3
+for n in decay-e10-q25-o2 decay-e10-q25-o3; do
+  $PY $QUEUE run --owner accuracy-loop --purpose "accuracy-loop: collection scoring $n" --claim cpu-heavy --expected-minutes 12 -- $PY -X utf8 $AL collection $n --threads 2
+  $PY -X utf8 $AL report $n
+  $PY -X utf8 $AL compare fullrun-e10 $n
+done
+$PY $QUEUE run --owner accuracy-loop --purpose "accuracy-loop: noise over the three decays" --claim cpu-heavy --expected-minutes 5 -- $PY -X utf8 $AL noise decay-e10-q25 decay-e10-q25-o2 decay-e10-q25-o3
+```
+
+Decision rule: A08 holds if all three decays beat `fullrun-e10` on both heads and the SD of the three decays (a decay-only order spread) times √2, doubled, is below the gain (0.0014 curve, 0.0010 instant); then record that paired band for continuation experiments. Otherwise treat the gain as unproven, ask the user about setting `--final-decay-epochs 0`, and say so in ACCURACY_LOG/IDEAS. Scoring `fullrun-e10` and the decays on the same 1k users is already the paired design. Per-user files of public benchmark users may be committed; collection results stay aggregate-only.
+
+**Screening implication** (written into ACCURACY_LOOP.md as a recommendation): single-run screens cannot resolve gains below about 0.006 curve / 0.003 instant; use paired continuations or average several order seeds. The user decides.
+
+Runbook note: queue tickets in runbooks now need `--expected-minutes` (see the 20:45 note).
