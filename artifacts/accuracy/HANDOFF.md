@@ -125,3 +125,28 @@ Runbook note: queue tickets in runbooks now need `--expected-minutes` (see the 2
 ## Adopted screening protocol (2026-10-14, user decision)
 
 The A15 recommendation is adopted: screens are paired (shared init and order seed, per-user paired delta) and averaged over k = 3 order seeds. Promote only on a consistent sign across all k and |mean| > 2 × sigma × √2 / √k (about 0.0036 curve / 0.0016 instant at k = 3). k = 1 is a pre-filter only (drop if clearly worse than 0.0062 / 0.0027, never promote). Baselines `screen-w32-s2025`, `-o1`, `-o2` are reused. New command `accuracy_loop.py screen CAND=BASE ...` (smoke-checked on the A15 runs). Details in ACCURACY_LOOP.md "Seed-noise band". A08's pending test (000330/000331) already follows this design.
+
+## Update: A08 settling evaluation queued (2026-10-15)
+
+000330/000331 finished training the decays `decay-e10-q25-o2` and `-o3` (checkpoints in `anki-rwkv/artifacts/accuracy-a08/decay-8k-e10-q25-o2` and `-o3`). Both were `prepare`d (score-only, epochs 0, order_seed 20261013, 1k screen users) in `experiments/decay-e10-q25-o2` and `-o3`.
+
+**Ticket 000333-accuracy-loop** (GPU claim, expected 30 min, not --timing): `accuracy_loop.py evaluate decay-e10-q25-o2 decay-e10-q25-o3`, queued detached from the main checkout behind 000332-small-model. Log: `artifacts/accuracy/queue-a08-decay-eval.log`. Outputs: `experiments/decay-e10-q25-o2/eval/` and `-o3/eval/` (`per_user.jsonl` stays uncommitted). Check with `r01_queue.py status`; if the wrapper died, rerun the evaluate command below under the queue.
+
+Preliminary quick-300 signal (decay job summaries, NOT the official verdict), curve / instant vs epoch 10: seed1 -0.0018 / -0.0013, seed2 -0.00180 / -0.00132, seed3 -0.00228 / -0.00140.
+
+**Follow-up commands** (fresh Sonnet medium agent, after 000333 exits 0; from the accuracy-loop worktree):
+
+```
+PY=C:/Users/jonat/workspace/anki-rwkv/.venv/Scripts/python.exe
+QUEUE=C:/Users/jonat/workspace/anki-rwkv/scripts/r01_queue.py
+AL=C:/Users/jonat/workspace/wt/accuracy-loop/scripts/accuracy_loop.py
+for n in decay-e10-q25-o2 decay-e10-q25-o3; do
+  $PY $QUEUE run --owner accuracy-loop --purpose "accuracy-loop: collection scoring $n" --claim cpu-heavy --expected-minutes 12 -- $PY -X utf8 $AL collection $n --threads 2
+  $PY -X utf8 $AL report $n
+  $PY -X utf8 $AL compare fullrun-e10 $n
+done
+$PY $QUEUE run --owner accuracy-loop --purpose "accuracy-loop: noise over the three decays" --claim cpu-heavy --expected-minutes 5 -- $PY -X utf8 $AL noise decay-e10-q25 decay-e10-q25-o2 decay-e10-q25-o3
+$PY -X utf8 $AL screen decay-e10-q25=fullrun-e10 decay-e10-q25-o2=fullrun-e10 decay-e10-q25-o3=fullrun-e10   # check usage with `screen --help`
+```
+
+**Verdict rule:** A08 HOLDS if all three decays (seeds 1/2/3) beat `fullrun-e10` on curve and instant AND 2 x SD x sqrt(2) of the three decays is below 0.0014 (curve) / 0.0010 (instant). If it fails, record it in ACCURACY_LOG/IDEAS and mark "needs user decision" (do not revert `final_decay_epochs`; the user decides on `--final-decay-epochs 0`). Log rows go in ACCURACY_LOG; commit small records with `git add -f`, never checkpoints or per_user files of the own collection.
