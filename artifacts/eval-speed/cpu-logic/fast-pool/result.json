@@ -1,0 +1,164 @@
+{
+ "status": "complete",
+ "mode": "fast",
+ "checkpoint": "C:/Users/jonat/workspace/anki-rwkv/artifacts/full-run/run-8k-20261013/epoch-07/expertium/E89-F65e-F77a/master.pth",
+ "model": "expertium",
+ "config": null,
+ "users": [
+  9094,
+  9785
+ ],
+ "user_count": 2,
+ "data_path": "C:\\Users\\jonat\\workspace\\anki-rwkv\\data\\anki-revlogs-10k-original-20261011",
+ "label_db": "C:\\Users\\jonat\\workspace\\anki-rwkv\\artifacts\\full-run\\run-8k-20261013\\label-db",
+ "workers": 1,
+ "batch_chunks": 16,
+ "torch": "2.9.1+cu128",
+ "device": "cpu",
+ "gpu": null,
+ "evaluation_seconds": 4.823634199994558,
+ "total_seconds": 7.025439400000323,
+ "validation_reviews": 7115,
+ "scored_labels": 10916,
+ "reviews_per_second": 1475.0289315072912,
+ "labels_per_second": 2263.024007917581,
+ "timing": {
+  "preparation_seconds": 0.17533389999880455,
+  "wait_seconds": 2.309834800005774,
+  "launch_seconds": 1.4583541000101832,
+  "readback_seconds": 1.8999999156221747e-06,
+  "bookkeeping_seconds": 0.0005686999938916415,
+  "metrics_wait_seconds": 0.601387299997441,
+  "batches": 4,
+  "chunks": 57,
+  "padded_positions": 13996,
+  "sections": 8
+ },
+ "provenance": {
+  "captured_utc": "2026-10-14T07:58:29.500367+00:00",
+  "git_commit": "e61e7cd8c98e6abed2f1412e3f0ae40eb93bdf3e",
+  "git_dirty": true,
+  "git_status_porcelain_z": " M scripts/gpu_r01_training.py\u0000 M scripts/run_full_training.py\u0000?? scripts/check_fast_evaluation.py\u0000?? scripts/fast_evaluation.py\u0000",
+  "source_tree_sha256": "8a5ea29c73e755e7de6399dc7bab4b730157fd5561120230d331d0873eb5c91d",
+  "source_archive": "artifacts/sources/experiment-sources/8a5ea29c73e755e7de6399dc7bab4b730157fd5561120230d331d0873eb5c91d/source.zip",
+  "source_paths": [
+   "rwkv",
+   "expertium",
+   "scripts",
+   "configs",
+   "pyproject.toml",
+   "uv.lock",
+   "justfile",
+   "upstream.json"
+  ]
+ },
+ "evaluation": {
+  "curve_labels": 5458,
+  "curve_log_loss_label_weighted": 0.24469736754517496,
+  "curve_log_loss_user_average": 0.19818998579604263,
+  "instant_labels": 5458,
+  "instant_log_loss_label_weighted": 0.2427838620094643,
+  "instant_log_loss_user_average": 0.1966491802297103
+ },
+ "benchmark": {
+  "users": 2,
+  "ahead": {
+   "users": 2,
+   "reviews": 4545,
+   "LogLoss": {
+    "weighted": 0.275537693069307,
+    "user_average": 0.2205095
+   },
+   "RMSE(bins)": {
+    "weighted": 0.08524005830583059,
+    "user_average": 0.078552
+   },
+   "AUC": {
+    "weighted": 0.8432412574257425,
+    "user_average": 0.8709245
+   },
+   "RMSE": {
+    "weighted": 0.2757293487348735,
+    "user_average": 0.2383245
+   }
+  },
+  "instant": {
+   "users": 2,
+   "reviews": 4545,
+   "LogLoss": {
+    "weighted": 0.2722291881188119,
+    "user_average": 0.21928550000000002
+   },
+   "RMSE(bins)": {
+    "weighted": 0.082787499449945,
+    "user_average": 0.0793105
+   },
+   "AUC": {
+    "weighted": 0.8473573828382839,
+    "user_average": 0.8659465
+   },
+   "RMSE": {
+    "weighted": 0.27889725632563256,
+    "user_average": 0.242549
+   }
+  }
+ },
+ "per_user": [
+  {
+   "user_id": 9094,
+   "curve_labels": 1545,
+   "instant_labels": 1545,
+   "curve_log_loss": 0.09099518445028071,
+   "curve_raw_log_loss": 0.09145561318277927,
+   "instant_log_loss": 0.09031341453971986,
+   "instant_rating_cross_entropy": 0.6916885351671755,
+   "benchmark": {
+    "size": 1285,
+    "ahead_coverage": 1.0,
+    "ahead": {
+     "RMSE": 0.152246,
+     "LogLoss": 0.093875,
+     "RMSE(bins)": 0.063161,
+     "AUC": 0.934631,
+     "size": 1285
+    },
+    "instant_coverage": 1.0,
+    "instant": {
+     "RMSE": 0.158902,
+     "LogLoss": 0.097448,
+     "RMSE(bins)": 0.071309,
+     "AUC": 0.908725,
+     "size": 1285
+    }
+   }
+  },
+  {
+   "user_id": 9785,
+   "curve_labels": 3913,
+   "instant_labels": 3913,
+   "curve_log_loss": 0.30538478714180456,
+   "curve_raw_log_loss": 0.30722212679484234,
+   "instant_log_loss": 0.30298494591970077,
+   "instant_rating_cross_entropy": 1.062505035168248,
+   "benchmark": {
+    "size": 3260,
+    "ahead_coverage": 1.0,
+    "ahead": {
+     "RMSE": 0.324403,
+     "LogLoss": 0.347144,
+     "RMSE(bins)": 0.093943,
+     "AUC": 0.807218,
+     "size": 3260
+    },
+    "instant_coverage": 1.0,
+    "instant": {
+     "RMSE": 0.326196,
+     "LogLoss": 0.341123,
+     "RMSE(bins)": 0.087312,
+     "AUC": 0.823168,
+     "size": 3260
+    }
+   }
+  }
+ ]
+}
