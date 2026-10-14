@@ -3,7 +3,7 @@
 A finished ticket's JSON file leaves artifacts/coordination/queue/tickets/. Run this as a background command so a
 waiting agent costs no tokens: the command exits when a ticket finishes, which wakes the session once per job.
 
-    python scripts/r01_queue_wait.py              # every ticket present now
+    python scripts/r01_queue_wait.py              # every ticket, including ones queued after the start
     python scripts/r01_queue_wait.py 000310 000312
     python scripts/r01_queue_wait.py --all        # wait until every watched ticket is gone
 """
@@ -24,14 +24,18 @@ def main():
     parser.add_argument("--all", action="store_true", help="exit only once every watched ticket has finished")
     parser.add_argument("--interval", type=float, default=30.0, help="seconds between checks")
     args = parser.parse_args()
+    follow = not args.tickets  # no filter: also watch tickets queued after the start
     now = present()
-    watched = {t for t in now if not args.tickets or any(t.startswith(p) for p in args.tickets)}
-    if not watched:
+    watched = {t for t in now if follow or any(t.startswith(p) for p in args.tickets)}
+    if not watched and not follow:
         print("no matching tickets in the queue")
         return
-    print(f"watching: {', '.join(sorted(watched))}", flush=True)
+    print(f"watching: {', '.join(sorted(watched)) or 'nothing yet'}{' (+ new tickets)' if follow else ''}", flush=True)
     while True:
-        done = watched - present()
+        now = present()
+        if follow:
+            watched |= now
+        done = watched - now
         if done and (not args.all or done == watched):
             print(f"finished: {', '.join(sorted(done))}")
             left = sorted(watched - done)
