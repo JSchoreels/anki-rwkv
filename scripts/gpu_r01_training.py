@@ -402,7 +402,9 @@ def run_case(args):
             base.concurrent_splits = True
         optimizer = get_optimizer(Namespace(PEAK_LR=7e-4), master)
         if full_run.get("init_optimizer"):
-            optimizer.load_state_dict(torch.load(ROOT / full_run["init_optimizer"], map_location=device, weights_only=True))
+            # Load on CPU: load_state_dict moves moments to the parameters' device but keeps AdamW's `step` where it
+            # is, and a CUDA `step` makes non-capturable AdamW sync once per parameter (429 per update).
+            optimizer.load_state_dict(torch.load(ROOT / full_run["init_optimizer"], map_location="cpu", weights_only=True))
         update_offset = int(full_run.get("update_offset", 0))
         if options.get("group_adam"):
             from scripts.gpu_r01_group_adam import install_group_adam
