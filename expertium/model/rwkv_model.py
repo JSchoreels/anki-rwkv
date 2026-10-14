@@ -137,7 +137,7 @@ class RWKV7ChannelMixer(ModuleType):
         self.exact_shift = False
         self.native_shift = False  # F65d
         self.native_shift_handle = 0
-        assert config.d_model // config.n_heads == 32
+        assert config.d_model // config.n_heads in (16, 32)  # 16: expertium.variants w80 (NVRTC K=16 kernel)
         self.d_model = config.d_model
         with torch.no_grad():
             ratio_1_to_almost_0 = 1.0 - (layer_id / config.total_layers)

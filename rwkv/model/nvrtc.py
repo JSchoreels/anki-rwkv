@@ -118,12 +118,37 @@ def set_checkpoint_length(length=32):
     _checkpoint_length = length
 
 
-def kernel_source(dtype=torch.float32):
+def head_source(kernels, head):
+    """Expertium catch-up (width-80 variant, docs/EXPERTIUM_CATCH_UP.md): rewrite the K=32 recurrence for K=16.
+
+    Each head row is K threads; the warp shuffles take width K, so a 32-lane warp holds two independent rows.
+    K=32 returns the text unchanged, so its compiled kernel and launch stay identical.
+    """
+    if head == 32:
+        return kernels
+    if head != 16:
+        raise ValueError("NVRTC recurrence supports head dimensions 16 and 32")
+    import re
+    replacements = [("const int K = 32;", "const int K = 16;", 2), ("[32 * (32 + 1)]", "[16 * (16 + 1)]", 4),
+                    ("[32 * 32]", "[16 * 16]", 1), ("K_k_deformed[32]", "K_k_deformed[16]", 1), ("K_a[32]", "K_a[16]", 1),
+                    ("for (int offset = 16; offset > 0; offset /= 2)", "for (int offset = 8; offset > 0; offset /= 2)", 5)]
+    for old, new, count in replacements:
+        if kernels.count(old) != count:
+            raise RuntimeError(f"K=16 rewrite expected {count}x {old!r}, found {kernels.count(old)}")
+        kernels = kernels.replace(old, new)
+    kernels, down = re.subn(r"__shfl_down_sync\(FULL_MASK, (\w+), offset\)", r"__shfl_down_sync(FULL_MASK, \1, offset, 16)", kernels)
+    kernels, broadcast = re.subn(r"__shfl_sync\(FULL_MASK, (\w+), 0\)", r"__shfl_sync(FULL_MASK, \1, 0, 16)", kernels)
+    if (down, broadcast) != (10, 3):
+        raise RuntimeError(f"K=16 rewrite found {down} reductions and {broadcast} broadcasts, expected 10 and 3")
+    return kernels
+
+
+def kernel_source(dtype=torch.float32, head=32):
     sources = Path(__file__).parent / "csrc" / "cuda"
     source = (sources / "rwkv7_cuda.cu").read_text()
     start = source.index("namespace rwkv {")
     end = source.index("template <int CHUNK_LEN=32, typename F>\nstd::tuple", start)
-    kernels = source[start:end].replace("std::min(", "nvrtc_min(") + "\n}"
+    kernels = head_source(source[start:end].replace("std::min(", "nvrtc_min("), head) + "\n}"
     helpers = (sources / "rwkv7_cuda_utils.h").read_text()
     helpers = helpers[helpers.index("__device__ inline int64_t get_index1"):]
     conversions = ""
@@ -141,9 +166,9 @@ __device__ inline int nvrtc_min(int x, int y) { return x < y ? x : y; }
 """ + conversions + helpers + kernels
 
 
-def module(device, dtype):
+def module(device, dtype, head=32):
     index = device.index if device.index is not None else torch.cuda.current_device()
-    key = (index, dtype, _checkpoint_length)
+    key = (index, dtype, _checkpoint_length) if head == 32 else (index, dtype, _checkpoint_length, head)
     if key not in _modules:
         with _cupy.cuda.Device(index):
             scalar = "float" if dtype == torch.float32 else "__nv_bfloat16"
@@ -168,15 +193,15 @@ def module(device, dtype):
                 if cccl is None:
                     raise RuntimeError("BF16 NVRTC needs CCCL headers (nv/target); install a CUDA toolkit or nvidia-cuda-cccl-cu12")
                 options.append(f"--include-path={cccl}")
-            raw = _cupy.RawModule(code=kernel_source(dtype), options=tuple(options), name_expressions=names)
+            raw = _cupy.RawModule(code=kernel_source(dtype, head), options=tuple(options), name_expressions=names)
             _modules[key] = tuple(raw.get_function(name) for name in names)
     return _modules[key]
 
 
 def validate(inputs, skip):
     r = inputs[0]
-    if r.ndim != 4 or r.shape[-1] != 32 or not 0 < r.shape[1] < 384:
-        raise ValueError("NVRTC recurrence requires head dimension 32 and 1–383 timesteps")
+    if r.ndim != 4 or r.shape[-1] not in (16, 32) or not 0 < r.shape[1] < 384:
+        raise ValueError("NVRTC recurrence requires head dimension 16 or 32 and 1–383 timesteps")
     if r.dtype not in (torch.float32, torch.bfloat16) or any(
             x.dtype != (torch.float32 if i == 3 else r.dtype) or x.device != r.device or x.shape != r.shape
             or not x.is_contiguous() for i, x in enumerate(inputs)):
@@ -188,7 +213,7 @@ def validate(inputs, skip):
     return r.shape
 
 
-def launch(kernel, device, shape, args):
+def launch(kernel, device, shape, args, head=32):
     with _cupy.cuda.Device(device.index), _cupy.cuda.ExternalStream(torch.cuda.current_stream(device).cuda_stream):
         # DLPack shares storage and preserves the current Torch CUDA stream.
         # CuPy does not need a BF16 array type: uint16 exposes the same bits to
@@ -201,31 +226,38 @@ def launch(kernel, device, shape, args):
         else:
             args = tuple(_cupy.from_dlpack(arg.detach().view(torch.uint16) if arg.dtype == torch.bfloat16 else arg.detach()) if isinstance(arg, torch.Tensor)
                          else np.int32(arg) for arg in args)
-        kernel((shape[0], shape[2]), (32, 32), args)
+        kernel((shape[0], shape[2]), (head, head), args)
 
 
 def forward(r, k, v, w, a, kd, skip):
     inputs = (r, k, v, w, a, kd)
-    b, t, h, _ = shape = validate(inputs, skip)
+    b, t, h, k = shape = validate(inputs, skip)
     checkpoints = (t + _checkpoint_length - 1) // _checkpoint_length
     out = torch.empty_like(r)
-    states = torch.empty((b, checkpoints, h, 32, 32), device=r.device, dtype=torch.float32)
-    launch(module(r.device, r.dtype)[0], r.device, shape, (b, t, h, *inputs, skip, out, checkpoints, states))
+    states = torch.empty((b, checkpoints, h, k, k), device=r.device, dtype=torch.float32)
+    arguments = (b, t, h, *inputs, skip, out, checkpoints, states)
+    if k == 32:
+        launch(module(r.device, r.dtype)[0], r.device, shape, arguments)
+    else:  # Expertium width-80 variant (K=16)
+        launch(module(r.device, r.dtype, head=k)[0], r.device, shape, arguments, head=k)
     return out, states
 
 
 def backward(r, k, v, w, a, kd, skip, states, grad):
     inputs = (r, k, v, w, a, kd)
-    b, t, h, _ = shape = validate(inputs, skip)
+    b, t, h, k = shape = validate(inputs, skip)
     grad = grad.contiguous()
     if grad.shape != r.shape or grad.dtype != r.dtype or grad.device != r.device:
         raise ValueError("Invalid NVRTC output gradient")
-    expected_states = (b, (t + _checkpoint_length - 1) // _checkpoint_length, h, 32, 32)
+    expected_states = (b, (t + _checkpoint_length - 1) // _checkpoint_length, h, k, k)
     if states.shape != expected_states or states.device != r.device or states.dtype != torch.float32:
         raise ValueError("Invalid NVRTC state checkpoints")
     gradients = tuple(torch.empty_like(x) for x in inputs)
-    launch(module(r.device, r.dtype)[1], r.device, shape,
-           (b, t, h, *inputs, skip, grad, states.shape[1], states, *gradients))
+    arguments = (b, t, h, *inputs, skip, grad, states.shape[1], states, *gradients)
+    if k == 32:
+        launch(module(r.device, r.dtype)[1], r.device, shape, arguments)
+    else:  # Expertium width-80 variant (K=16)
+        launch(module(r.device, r.dtype, head=k)[1], r.device, shape, arguments, head=k)
     return gradients
 
 

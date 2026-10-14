@@ -206,6 +206,10 @@ def read_user_metadata(table_path, user_id):
 
 def get_rwkv_data(data_path, user_id, equalize_review_ths=[]):
     df = pd.read_parquet(data_path / "revlogs" / f"{user_id=}")
+    if __import__("os").environ.get("EXPERTIUM_END_TO_START") == "1":
+        # Opt-in end-to-start intervals (docs/EXPERTIUM_CATCH_UP.md item 4); unset leaves the frame untouched.
+        from expertium.intervals import end_to_start_published
+        df = end_to_start_published(df)
     df_len = len(df)
     df["user_id"] = user_id
     df["review_th"] = range(1, df.shape[0] + 1)
