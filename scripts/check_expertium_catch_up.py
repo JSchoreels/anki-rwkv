@@ -93,7 +93,7 @@ def main():
            torch.equal(loss_base.average_loss, loss_same.average_loss))
     record("iter36 variant gradients bitwise", equal_grads, equal_grads)
     for name, expected in (("iter36", variants.ITER36_PARAMETERS), ("w80", variants.W80_PARAMETERS),
-                           ("w80-sequential", variants.W80_PARAMETERS)):
+                           ("w80-sequential", variants.W80_PARAMETERS), ("w64", variants.W64_PARAMETERS)):
         model = variants.build(name)
         count = sum(p.numel() for p in model.parameters())
         record(f"{name} parameters", count, count == expected)
@@ -126,7 +126,7 @@ def main():
            torch.isfinite(stats.average_loss).item() and wide.gru_s_weight.grad.abs().sum().item() > 0)
     labelled = batch.labels[0, :, 4] > 0
     features, label_times = batch.start.float(), batch.labels[0, :, 0]
-    for name in ("iter36", "w80", "w80-sequential"):
+    for name in ("iter36", "w80", "w80-sequential", "w64"):
         model = variants.build(name)
         perturb(model, 11, 0.01)
         model.eval()

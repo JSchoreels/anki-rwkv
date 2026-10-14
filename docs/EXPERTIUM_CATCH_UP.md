@@ -1,10 +1,32 @@
 # Expertium catch-up: 5,000-user-era options
 
-This repository vendors Expertium's 100-user-era iter36 model (commit `39666c6`, [expertium/upstream.json](../expertium/upstream.json)). His 5,000-user era restarted iteration numbers and moved to a width-80 lineage: iter 31 merged the width-80 trunk with PAVA, a GRU curve head and Muon, iter 32 added distillation from a d=128 teacher, and iter 53 (`iter53_muonlora`, promoted 2026-08-18) is his last promoted champion. After it he fixed a query-row clock leak (2026-09-10) and ran warmup-stable-decay endgames. This page lists what was ported, as opt-in options, from [Expertium/rwkv-anki-autoresearch](https://github.com/Expertium/rwkv-anki-autoresearch) at `a9fcf466b7794f2e109ef851916d759c8ea6b768` (2026-10-12). The upstream files read, with their sha256, are pinned under `catch_up` in [expertium/upstream.json](../expertium/upstream.json).
+This repository vendors Expertium's 100-user-era iter36 model (commit `39666c6`, [expertium/upstream.json](../expertium/upstream.json)). His 5,000-user era restarted iteration numbers and moved to a width-80 lineage: iter 31 merged the width-80 trunk with PAVA, a GRU curve head and Muon, iter 32 added distillation from a d=128 teacher, and iter 53 (`iter53_muonlora`, promoted 2026-08-18) is his last promoted champion. After it he fixed a query-row clock leak (2026-09-10) and ran warmup-stable-decay endgames. This page lists what was ported, as opt-in options, from [Expertium/rwkv-anki-autoresearch](https://github.com/Expertium/rwkv-anki-autoresearch) at `1f2e6b058ea66fc4a26abc4ea9ed42021a292316` (2026-10-14). The upstream files read, with their sha256, are pinned under `catch_up` in [expertium/upstream.json](../expertium/upstream.json).
 
 The default model, data and training are unchanged: every switch is off unless a track (R01 options dict) or a full-run `prepare` sets it, and [scripts/check_expertium_catch_up.py](../scripts/check_expertium_catch_up.py) proves the defaults bitwise.
 
-Which champion: iter 53 is his last promoted champion and the last one on the published 92-input layout this repository trains on (val half: curve 0.297523 / instant 0.265191 on his split, not comparable to ours). His later reference models depend on his rebuilt `-id` dataset (review times, 103-114 inputs). Examples: featB, realcyc, and `w10lf`, the leak-free 10+2-epoch base he ships (561,732 parameters). Those layouts cannot be fed from our data, so their feature changes are not ported; their training findings (decay length, clock leak) are reflected below.
+Pinned commit: `1f2e6b058ea66fc4a26abc4ea9ed42021a292316` (2026-10-14). The work started from `a9fcf466` (2026-10-12); every ported code file is byte-identical in both. The commits since then add documentation (`PROJECT_MAP.md`, `optimization/LOGLOSS_BREAKDOWN.md`, `GPU_RUN_BOARD.md`, `LEDGER.md`, `DISPATCH_PLAN.md`), archive `AGENTS.md` to `optimization/AGENTS_ARCHIVE_2026-10-12.md`, add s64h deployment codebooks and raise his state budgets to card <= 450 / note <= 400 bits.
+
+### Which champion: w80 primary, w64 (s64h) beside it
+
+His paired epoch-size table (`optimization/LOGLOSS_BREAKDOWN.md`, same 2,279 users, his split and his `-id` layout):
+
+| Model | Parameters | Schedule | Curve (ahead) | Instant (imm) |
+|---|---:|---|---:|---:|
+| s64h, d=64 | 332,922 | 1 WS + 1 decay | 0.2979 | 0.2643 |
+| s64hc10, d=64 | 332,922 | 10 WS + 1 decay | 0.2968 | 0.2629 |
+| s80, d=80 | 561,732 | 1 WS + 1 decay | 0.2976 | 0.2638 |
+| w10lf, d=80 | 561,732 | 10 WS + 2 decay | 0.2970 | 0.2624 |
+| d128e10, d=128 | 2,575,766 | 10 WS + 2 decay | 0.2963 | 0.2612 |
+
+Decision: the width-80 champion stays the primary variant (`"w80"`), and s64h is vendored next to it as `"w64"`.
+
+- s64h is his deployment trunk. He adopted it on 2026-09-22/23 because it is 1.69x smaller for his quantized-state budgets, not because it is more accurate. In his matched 10+1 confirmation it cost +0.00003 curve / +0.0004 instant against d=80 (`s64hc10` vs `lfd1`), and the table above shows the same ordering.
+- This repository's open problem is accuracy: the width-32 model is 3-4% worse than the 2.76M fork model on the user's collection, and the fork ships float weights without his state quantization. Accuracy favours d=80.
+- w64 is cheaper per review, so it may win under a fixed time budget. The speed job measures w32, w64 and w80 side by side.
+
+Both share the recipe: GRU N=3, no ahead residual, stripped mixers, value-LoRA strip, interleave, input dim 22 zeroed. `w64` = 4 heads x 16 (d=64) with the head and input-encoder multipliers at 2 instead of 4. His `architecture_s64h.py` is not published (his `scratchpad/shrink/` is git-ignored). The reconstruction is pinned by parameter counts: at his 103-input layout it gives exactly 332,922 for s64h, and 372,986 with multipliers 4/4, his `s64` arm; w80 likewise gives his w10lf count, 561,732. On our 92 inputs without PAVA, w64 has 331,511 parameters. Dropout and the other settings are assumed to match w80, which no parameter count can confirm.
+
+Both reference models (iter 53, s64h) were trained by him on different inputs. Iter 53 used the published 92-input layout as here; w10lf, s64h and later used his rebuilt `-id` layout (review times, 103-105 inputs), which this repository cannot feed, so only their architectures and training findings are ported. Iter 53's own score on his validation half (0.297523 / 0.265191) is not comparable to ours.
 
 ## Recipes for consumers
 
@@ -18,9 +40,9 @@ Which champion: iter 53 is his last promoted champion and the last one on the pu
 
 All five items are R01 track options. Each lives in one key; `scripts/gpu_r01_training.run_case` reads them through [scripts/expertium_options.py](../scripts/expertium_options.py) and never imports it when none is set.
 
-| Item | Key | Values | Upstream (a9fcf466) |
+| Item | Key | Values | Upstream (1f2e6b0) |
 |---|---|---|---|
-| 1. Width-80 champion | `"architecture"` | `"w80"`, `"w80-sequential"`, `"iter36"`, or `{"base": <preset>, <field>: <value>}` | `scratchpad/track2_a18/architecture_d80_lora4_cnd.py` + iter-53 env: `RWKV_GRU_HEAD=3`, `RWKV_NO_AHEAD_RESIDUAL=1`, `RWKV_STRIP_L0_VLORA=1`, `RWKV_STRIP_CMIX=...`, `RWKV_INTERLEAVE=1`, `RWKV_DROPOUT_SCALE=0.5`, `RWKV_ZERO_FEATURES=22` |
+| 1. Width-80 champion (and s64h) | `"architecture"` | `"w80"`, `"w80-sequential"`, `"w64"`, `"w64-sequential"`, `"iter36"`, or `{"base": <preset>, <field>: <value>}` | `scratchpad/track2_a18/architecture_d80_lora4_cnd.py` + iter-53 env: `RWKV_GRU_HEAD=3`, `RWKV_NO_AHEAD_RESIDUAL=1`, `RWKV_STRIP_L0_VLORA=1`, `RWKV_STRIP_CMIX=...`, `RWKV_INTERLEAVE=1`, `RWKV_DROPOUT_SCALE=0.5`, `RWKV_ZERO_FEATURES=22` |
 | 2. Warmup-stable-decay | `"lr_schedule"` (track) or `full_run.lr_schedule`; decay-only: [scripts/expertium_decay.py](../scripts/expertium_decay.py) | `{"decay_start": 0.75, "decay_end": 1.0, "shape": "one_minus_sin", "final": 0.0, "peak": 7e-4, "warmup_updates": 5}` | `TRAIN_MODE="D"` decay runs, `RWKV_DECAY_SHAPE` |
 | 3. Muon + AdamW (incl. LoRA) | `"optimizer"` | `"expertium-iter53"` or `{"kind": "muon", "groups": "matrices"\|"projections", "include_lora": true, "lr_scale": ..., "adjust_lr_fn": "original"\|"match_rms_adamw", "lora_weight_decay": 0.0, "wd_at_adamw_rate": true, "momentum": 0.95}` | `RWKV_MUON=1`, `RWKV_MUON_LR=0.0025`, `RWKV_MUON_INCLUDE_LORA=1` (iter 53) |
 | 4a. Interval leak fix | `"end_to_start_intervals"` | `true` | `RWKV_E2S_PUBLISHED=1`; analogue of `RWKV_CLOCK_AT_PREV_ANSWER` |
@@ -93,9 +115,9 @@ Teacher: the 2.76M srs-benchmark RWKV, e.g. `C:/Users/jonat/workspace/anki/qt/aq
 |---|---|---|
 | Default model untouched: variant class with all switches off vs vendored `SrsRWKV` | bitwise equal initial weights, training loss and every gradient (CPU, real user batch) | [check-cpu.json](../artifacts/expertium-catch-up/check-cpu.json) |
 | Default LR | equal to the accepted expression for 0-39 updates, offsets 0 and 13,789 | same |
-| w80 parameters / strict recurrent load | 558,209 / passes (also iter36 192,800, w80-sequential) | same |
+| w80 / w64 parameters, strict recurrent load | 558,209 / 331,511; passes (also iter36 192,800, w80-sequential) | same |
 | Interleave machinery | stream-major order through the canonical gather/scatter path = sequential forward, max abs 0.0 | same |
-| Recurrent vs parallel predictions (weights +N(0, 0.01)) | iter36 9.5e-7, w80 3.3e-6, w80-sequential 5.4e-6; vendored RNN 6.0e-7 | same |
+| Recurrent vs parallel predictions (weights +N(0, 0.01)) | iter36 9.5e-7, w80 3.3e-6, w80-sequential 5.4e-6, w64 1.4e-6; vendored RNN 6.0e-7 | same |
 | NVRTC head-size 32 source | unchanged (K=16 is a separate rewrite) | same |
 | Muon grouping, LoRA group, step | 528,320 Muon / 27,520 LoRA / 29,889 AdamW on w80; finite step, LR restored | same |
 | End-to-start | off: frame identical; on: `elapsed_seconds - duration`, sentinel kept | same |

@@ -67,7 +67,7 @@ def main():
     from expertium.model.variant_model import VariantSrsRWKV
     frame = get_rwkv_data(DATA, 7)
     batch = prepare(make_samples(frame.iloc[:300], 7, 128)[:1], seed=2025)
-    for name in ("w80", "w80-sequential"):
+    for name in ("w80", "w80-sequential", "w64"):
         master, child = training_models(VariantSrsRWKV, variant(name), device, torch.bfloat16, 2025)
         cpu = VariantSrsRWKV(variant(name)).float()
         cpu.load_state_dict({k: v.cpu() for k, v in master.state_dict().items()})

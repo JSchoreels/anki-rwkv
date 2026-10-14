@@ -6,6 +6,7 @@ A variant is selected by ONE key, the R01 track option `"architecture"`:
 
     "architecture": "w80"                       # the iter-53 champion: d=80, GRU N=3, interleave, ...
     "architecture": "w80-sequential"            # same without the round-robin layer schedule
+    "architecture": "w64"                       # s64h, his shipped d=64 trunk (w80 recipe, 4 heads, mults 2)
     "architecture": "iter36"                    # the default model through the variant class (KD-capable)
     "architecture": {"base": "iter36", "zero_features": [22]}   # any preset plus field overrides
 
@@ -39,21 +40,30 @@ _HEAD_DIM, _N_HEADS, _DROPOUT_SCALE = 16, 5, 0.5
 _DROPOUT, _DROPOUT_LONG, _DROPOUT_LAYER = 0.02 * _DROPOUT_SCALE, 0.05 * _DROPOUT_SCALE, 0.01 * _DROPOUT_SCALE
 
 
-def _w80_stream(n_layers, dropout):
-    return RWKV7Config(d_model=_HEAD_DIM * _N_HEADS, n_heads=_N_HEADS, n_layers=n_layers, layer_offset=0,
+def _w80_stream(n_layers, dropout, heads=_N_HEADS):
+    return RWKV7Config(d_model=_HEAD_DIM * heads, n_heads=heads, n_layers=n_layers, layer_offset=0,
                        total_layers=n_layers, channel_mixer_factor=1.0, decay_lora=4, a_lora=4, v0_mix_amt_lora=2,
                        gate_lora=4, dropout=dropout, dropout_layer=_DROPOUT_LAYER)
 
 
-def w80_config():
+def w80_config(heads=_N_HEADS, mult=4):
     # Each stream keeps the champion's depth, mixer and dropout by NAME. The order is this repository's batch chain:
     # rwkv.prepare_batch.prepare gathers streams in rwkv.architecture's tuple order (card, deck, note, preset, user)
     # for every model, so module i always processes that stream. Upstream iter 41 moved note before deck by
     # changing prepare(); iter 43 measured the order change as free (docs/EXPERTIUM_CATCH_UP.md).
-    modules = [("card_id", _w80_stream(2, _DROPOUT)), ("deck_id", _w80_stream(4, _DROPOUT_LONG)),
-               ("note_id", _w80_stream(1, _DROPOUT)), ("preset_id", _w80_stream(3, _DROPOUT_LONG)),
-               ("user_id", _w80_stream(3, _DROPOUT_LONG))]
-    return AnkiRWKVConfig(d_model=_HEAD_DIM * _N_HEADS, modules=modules, dropout=_DROPOUT, num_curves=128, num_points=128)
+    modules = [("card_id", _w80_stream(2, _DROPOUT, heads)), ("deck_id", _w80_stream(4, _DROPOUT_LONG, heads)),
+               ("note_id", _w80_stream(1, _DROPOUT, heads)), ("preset_id", _w80_stream(3, _DROPOUT_LONG, heads)),
+               ("user_id", _w80_stream(3, _DROPOUT_LONG, heads))]
+    return AnkiRWKVConfig(d_model=_HEAD_DIM * heads, modules=modules, dropout=_DROPOUT, num_curves=128, num_points=128,
+                          head_fc_mult=mult, features_fc_mult=mult)
+
+
+def w64_config():
+    # s64h, his shipped d=64 trunk (adopted 2026-09-22/23): the w80 recipe at 4 heads x 16 with the head and
+    # input-encoder multipliers halved (4 -> 2). His architecture file (scratchpad/shrink/architecture_s64h.py) is not
+    # published; this reconstruction reproduces his parameter counts exactly at his 103-input layout: 332,922 for s64h
+    # and, with multipliers 4/4, 372,986 for his `s64` arm (docs/EXPERTIUM_CATCH_UP.md).
+    return w80_config(heads=4, mult=2)
 
 
 # rwkv.prepare_batch.prepare builds gathers in this order (rwkv.architecture.DEFAULT_ANKI_RWKV_CONFIG's tuples).
@@ -63,6 +73,7 @@ W80_STRIP_CMIX = ("user_id:0", "user_id:1", "user_id:2", "preset_id:0", "preset_
                   "deck_id:1", "deck_id:2", "card_id:1")
 # 558,212 upstream minus pava_theta's 3 floats (PAVA is not ported; see docs/EXPERTIUM_CATCH_UP.md).
 W80_PARAMETERS = 558_209
+W64_PARAMETERS = 331_511  # 332,922 upstream at 103 inputs, minus 11 x 128 input weights and PAVA's 3
 ITER36_PARAMETERS = 192_800
 
 
@@ -72,7 +83,11 @@ def preset(name):
     if name in ("w80", "w80-sequential"):
         return VariantConfig(name=name, base=w80_config(), gru_head=3, no_ahead_residual=True, zero_features=(22,),
                              interleave=name == "w80", strip_l0_vlora=True, strip_cmix=W80_STRIP_CMIX)
-    raise ValueError(f"Unknown Expertium architecture preset {name!r}; expected iter36, w80 or w80-sequential")
+    if name in ("w64", "w64-sequential"):
+        return VariantConfig(name=name, base=w64_config(), gru_head=3, no_ahead_residual=True, zero_features=(22,),
+                             interleave=name == "w64", strip_l0_vlora=True, strip_cmix=W80_STRIP_CMIX)
+    raise ValueError(f"Unknown Expertium architecture preset {name!r}; expected iter36, w64, w64-sequential, w80 or "
+                     "w80-sequential")
 
 
 def variant(spec):

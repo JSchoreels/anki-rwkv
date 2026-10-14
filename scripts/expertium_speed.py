@@ -16,6 +16,7 @@ Cases (each a set of overrides on the accepted track E89-F65e-F77a of plan itera
   w32-variant    as w32-generic, through the variant class ("architecture": "iter36")
   w80-sequential "architecture": "w80-sequential"
   w80            "architecture": "w80" (interleaved, the champion)
+  w64            "architecture": "w64" (s64h, his shipped d=64 trunk)
   w80-muon       w80 + "optimizer": "expertium-iter53"
   w32-kd         accepted options + distillation from the 2.76M fork teacher
 """
@@ -44,6 +45,7 @@ def cases():
     generic.pop("architecture")
     return {"w32": accepted, "w32-generic": generic, "w32-variant": {**generic, "architecture": "iter36"},
             "w80-sequential": {**generic, "architecture": "w80-sequential"}, "w80": {**generic, "architecture": "w80"},
+            "w64": {**generic, "architecture": "w64"},
             "w80-muon": {**generic, "architecture": "w80", "optimizer": "expertium-iter53"},
             "w32-kd": {**accepted, "distillation": {"teacher": str(TEACHER), "alpha": 0.9}}}, dropped
 
@@ -147,7 +149,7 @@ def report(out):
     return 0
 
 
-ORDER = ("w32", "w80-sequential", "w80", "w32-generic", "w32-variant", "w80-muon", "w32-kd")
+ORDER = ("w32", "w64", "w80", "w32-generic", "w80-sequential", "w80-muon", "w32-variant", "w32-kd")
 
 
 def run_all(out, names, budget_minutes):
