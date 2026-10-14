@@ -219,10 +219,14 @@ def main():
     reference = cq.quantize_state_dict(state, names, bits, group)
     loaded = read_weights(path)
     assert list(loaded) == list(reference), "tensor order/names differ"
+    # torch.equal treats -0.0 == +0.0: fake quantization keeps -0.0 while a packed zero code decodes to +0.0, so
+    # the values match but the bytes do not. Hashes and the f32 companion file therefore come from the decoded export.
     mismatched = [n for n in reference if not torch.equal(loaded[n], reference[n].float())]
     assert not mismatched, f"dequantized tensors differ from the evaluated model: {mismatched[:5]}"
+    signed_zero_only = [n for n in reference if not torch.equal(loaded[n].view(torch.int32),
+                                                                reference[n].float().contiguous().view(torch.int32))]
     if args.dequantized_v1:
-        write_v1(OUT / f"RWKV_trained_on_5000_10000_{args.scheme}_dequantized_f32.bin", reference)
+        write_v1(OUT / f"RWKV_trained_on_5000_10000_{args.scheme}_dequantized_f32.bin", loaded)
     # Round trip of the original float32 container, as a check of the shared header layout.
     fork_bin = cq.FORK_WEIGHTS.with_suffix(".bin")
     v1 = read_weights(fork_bin)
@@ -232,7 +236,9 @@ def main():
         "scheme": args.scheme, "bits": bits, "group": group, "tensors": len(state), "quantized_tensors": len(names),
         "source_fp32_bin": {"file": fork_bin.name, "bytes": fork_bin.stat().st_size,
                             "sha256": hashlib.sha256(fork_bin.read_bytes()).hexdigest()},
-        "dequantized_sha256": {n: sha256_f32(t) for n, t in reference.items()},
+        "dequantized_sha256": {n: sha256_f32(t) for n, t in loaded.items()},
+        "dequantized_sha256_source": "decoded export (packed zero decodes to +0.0)",
+        "signed_zero_only_tensors_vs_fake_quant": len(signed_zero_only),
         "examples": {},
     }
     for name in ("features2card.0.weight", "rwkv_modules.0.blocks.0.time_mixer.W_r.weight", "w_linear.weight"):
@@ -241,7 +247,7 @@ def main():
         rows, cols = state[name].shape
         g = cols if group is None else min(group, cols)
         codes, scales = quantize_codes(state[name], bits, group)
-        deq = reference[name]
+        deq = loaded[name]
         vectors["examples"][name] = {
             "shape": [rows, cols], "group": g,
             "row0_scales": [float(x) for x in scales[0]],

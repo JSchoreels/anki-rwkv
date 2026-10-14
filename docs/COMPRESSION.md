@@ -44,6 +44,11 @@ There is also a test-only experiment in `rslib/src/rwkv/mod.rs` (`StateCompressi
 | fork/fp32 | 11,051,536 | — | 52,224 / 34,816 | 0.4417 | +0.00% | -0.00% | 0.4366 | +0.00% | -0.00% | 0.0223 | 0.0194 |
 | fork/w8-g32 | 3,250,960 | 2,985,352 | 52,224 / 34,816 | 0.4416 | -0.00% | -0.00% | 0.4367 | +0.01% | +0.01% | 0.0223 | 0.0199 |
 | fork/w8-pc | 2,995,488 | 2,857,616 | 52,224 / 34,816 | 0.4417 | -0.00% | -0.00% | 0.4367 | +0.02% | +0.02% | 0.0224 | 0.0200 |
+
+Scope (review with Codex, 2026-10-14):
+- These rows are an early screen. Every row uses f32 state, and the 105 users were picked for shorter histories, so this does not validate the int4-weight / int8-state combination we propose. Tickets 000309/000310 run the matched combination on the larger held-out set.
+- Our collection scores cover 173,690 filtered reviews, while the fork doc covers 176,835 interday reviews. Its +0.14% and our +0.11% instant figures are close, but they are not the same measurement.
+- The fork doc already reports collection RMSE(bins). UM+ is the one calibration comparison we still owe.
 | fork/w4-g32 | 1,891,088 | 1,625,480 | 52,224 / 34,816 | 0.4417 | +0.02% | +0.02% | 0.4371 | +0.11% | +0.11% | 0.0229 | 0.0188 |
 | fork/w4-g64 | 1,729,168 | 1,544,520 | 52,224 / 34,816 | 0.4418 | +0.04% | +0.04% | 0.4374 | +0.18% | +0.18% | 0.0229 | 0.0223 |
 | fork/w4-pc | 1,635,616 | 1,497,744 | 52,224 / 34,816 | 0.4418 | +0.02% | +0.02% | 0.4384 | +0.42% | +0.41% | 0.0221 | 0.0230 |

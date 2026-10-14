@@ -53,3 +53,8 @@ Follow-ups when processing 000309/000310/000311:
 1. Report UM+ plus the max and p99 per-prediction |delta p| for w4-g32 against fp32 on held-out users, to compare with the fork's 13 pp max shift.
 2. Frame int4 as a download/storage format that is decoded to f32 at load. The fork's own decoded-at-load row matches the f32 baseline in RAM and CPU.
 3. Check whether our export stores f16 or f32 group scales. Align with the fork's `ARWKVINT4POC1` (`packed_weights.rs`, f32 scales) before proposing a format.
+
+## Codex cross-check (2026-10-14)
+- Our ARWKVWEIGHTS2 and the fork's ARWKVINT4POC1 decode bit-identically for all 504 tensors, and both use f32 scales. The 1,060 B size difference is 265 four-byte group-size fields. Follow-up 3 above is resolved.
+- Fixed a fixture bug. Fake quantization keeps -0.0, while a packed zero decodes to +0.0, and `torch.equal` misses that difference. `dequantized_sha256` and the `_dequantized_f32.bin` companion now come from the decoded export, and the regenerated test vectors changed 260 hashes. The int4 .bin is unchanged (sha e4faab45…).
+- The held-out 105-user screen used f32 state and short-history users. The matched w4+s8 quality numbers (000309/000310) are still owed, with QAT 000311.
