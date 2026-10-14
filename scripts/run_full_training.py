@@ -38,6 +38,11 @@ R01_COHORT = ROOT / "artifacts/retraining/gpu-retrain-r01/cohorts-user-holdout-v
 PAGES_JSON = ROOT / "pages/data/train-8k.json"
 SLICE_PERCENT = 5
 SNAPSHOT_USERS = 400
+# A08 (docs/GPU_TRAINING.md, promoted 2026-10-14, provisional until the A15 order band): new runs end with a 0.25-epoch
+# cool-down, WSD decay from the last epoch's weights and AdamW state (scripts/expertium_decay.py), scored as the final result.
+FINAL_DECAY_EPOCHS = 0.25
+FINAL_DECAY_SHAPE = "one_minus_sin"
+FINAL_DECAY_DIR = "decay-final"
 
 
 def atomic_json(path, value):
@@ -97,7 +102,8 @@ def label_job(args):
     return user
 
 
-def prepare(run, train, validation, test, quick, epochs, seed, track, extra_options=None, final_lr_schedule=None):
+def prepare(run, train, validation, test, quick, epochs, seed, track, extra_options=None, final_lr_schedule=None,
+            final_decay_epochs=FINAL_DECAY_EPOCHS):
     run.mkdir(parents=True, exist_ok=False)
     counts = review_counts()
     reserved = json.loads(R01_COHORT.read_text())["independent_final_test_users"]
@@ -132,7 +138,10 @@ def prepare(run, train, validation, test, quick, epochs, seed, track, extra_opti
               "training_reviews_per_epoch": sum(counts[user] for user in groups["train"]),
               "evaluation": {"quick": "after every non-final epoch on quick_validation_users",
                              "final": "after the final epoch on validation_users and final_test_users (reported separately)"},
-              "lr": "AdamW peak 7e-4, 5-update linear warmup once, then constant (R01 schedule)"}
+              "lr": "AdamW peak 7e-4, 5-update linear warmup once, then constant (R01 schedule)",
+              "final_decay_epochs": final_decay_epochs}
+    if final_decay_epochs:
+        config["lr"] += f"; then a {final_decay_epochs}-epoch {FINAL_DECAY_SHAPE} decay to 0 (A08 cool-down, {FINAL_DECAY_DIR}/)"
     if extra_options or final_lr_schedule:
         config.update(extra_options=extra_options or {}, dropped_width32_options=dropped,
                       final_lr_schedule=final_lr_schedule)
@@ -277,6 +286,35 @@ def run_all(run):
             return 1
         print(f"[run] epoch {epoch} complete: {result['reviews_per_second']:,.0f} reviews/s, "
               f"{result['training_seconds'] / 60:.1f} min training", flush=True)
+    return decay_stage(run, config)
+
+
+def decay_stage(run, config):
+    """A08 cool-down appended after the last epoch; the main epochs are untouched. Off when run.json has no
+    `final_decay_epochs` (runs prepared before 2026-10-14) or it is 0. Its evaluation of validation + final test is the final result;
+    the last main epoch keeps its own evaluation as the matched control (`decay-final/summary.md`)."""
+    fraction = config.get("final_decay_epochs") or 0
+    if not fraction:
+        return 0
+    out = run / FINAL_DECAY_DIR
+    result_path = out / config["model"] / config["track"] / "result.json"
+    if result_path.exists() and json.loads(result_path.read_text()).get("status") == "complete" and (out / "summary.md").exists():
+        return 0
+    if out.exists():
+        attempt = 1
+        while out.with_name(f"{out.name}-attempt-{attempt}").exists():
+            attempt += 1
+        shutil.move(str(out), str(out.with_name(f"{out.name}-attempt-{attempt}")))
+    if (run / "STOP").exists():
+        print("[run] STOP file present; not starting the cool-down", flush=True)
+        return 1
+    print(f"[run] cool-down {fraction} epoch starting {datetime.now().strftime('%H:%M:%S')}", flush=True)
+    code = subprocess.call([sys.executable, "-X", "utf8", str(ROOT / "scripts/expertium_decay.py"), "auto", "--source-run", str(run),
+                            "--epoch", str(config["epochs"]), "--out", str(out.relative_to(ROOT)), "--fraction", str(fraction),
+                            "--shape", FINAL_DECAY_SHAPE, "--evaluate", "validation+final_test"])
+    if code != 0 or not result_path.exists():
+        print(f"[run] cool-down failed (exit {code}); rerun `run` to repeat it", flush=True)
+        return 1
     return 0
 
 
@@ -393,13 +431,17 @@ def main():
                         help="prepare: Expertium catch-up track options as JSON (docs/EXPERTIUM_CATCH_UP.md)")
     parser.add_argument("--final-lr-schedule", type=json.loads, default=None,
                         help='prepare: final-epoch decay, e.g. {"decay_start": 0.75, "shape": "one_minus_sin"}')
+    parser.add_argument("--final-decay-epochs", type=float, default=FINAL_DECAY_EPOCHS,
+                        help="prepare: A08 cool-down after the last epoch, in epochs of training reviews (default 0.25; 0 = off)")
     args = parser.parse_args()
+    if not 0 <= args.final_decay_epochs <= 1:
+        parser.error("--final-decay-epochs must be in [0, 1]")
     run = (ROOT / args.run).resolve()
     if not run.is_relative_to(ROOT / "artifacts"):
         parser.error("Run directory must be under artifacts/")
     if args.command == "prepare":
         return prepare(run, args.train, args.validation, args.test, args.quick, args.epochs, args.seed, args.track,
-                       args.extra_options, args.final_lr_schedule) or 0
+                       args.extra_options, args.final_lr_schedule, args.final_decay_epochs) or 0
     if args.command == "run":
         return run_all(run)
     if args.command == "epoch":
