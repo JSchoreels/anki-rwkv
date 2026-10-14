@@ -2,6 +2,17 @@
 
 **Parallel sessions:** when several agents share this checkout, follow [docs/R01_PARALLEL_SESSIONS.md](docs/R01_PARALLEL_SESSIONS.md) for file ownership, the `scripts/r01_queue.py` run queue (launch a GPU job once as one background job; it waits its turn without polling and the session is notified when it ends), `scripts/r01_claim.py` edit claims and the commit rules.
 
+**Subagent rotation (human decision 2026-10-14):** never keep a subagent alive while it waits on a long job.
+- **Hand off before waiting:** before any wait on a GPU queue job, training or evaluation:
+  1. enqueue the job detached, so the agent has no background children and the job's completion doesn't wake it;
+  2. write its outputs to files;
+  3. commit a short `HANDOFF.md` with tickets, output paths and the exact follow-up commands;
+  4. stop.
+- **Respawn fresh:** when results land, start a fresh agent from the handoff file.
+- **Why:** long-lived agents re-sent 300–685k tokens of context on every wake, while a fresh agent finished a task in about 53k.
+- **Model choice:** use Sonnet at medium effort for mechanical steps (scoring, tables, runbooks, simple merges). Keep Opus for design work.
+- **Queue position:** detach jobs when first enqueued; re-registering a waiting ticket loses its queue position.
+
 # Optimization records
 
 `docs/GPU_OPTIMIZATIONS.md` is the persistent list of GPU and general training
