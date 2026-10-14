@@ -178,6 +178,7 @@ def main():
     reviews = 0
     labels = 0
     step = 0
+    ooms = 0
     last_save = 0.0
     window = []
     started = time.perf_counter()
@@ -199,13 +200,22 @@ def main():
         batch.start = batch.start.to(torch.bfloat16)  # as scripts/benchmark_gpu_trial.update for the bf16 child
         copy_fake_quant(master, child, qnames, args.bits, group)
         child.train()
-        stats = child.get_loss(batch)
-        ok = stats is not None and bool(torch.isfinite(stats.average_loss))
-        if ok:
-            stats.average_loss.backward()
-            transfer_grads(master, child)
-            norm = torch.nn.utils.clip_grad_norm_(master.parameters(), 0.5)
-            optimizer.step()
+        try:
+            stats = child.get_loss(batch)
+            ok = stats is not None and bool(torch.isfinite(stats.average_loss))
+            if ok:
+                stats.average_loss.backward()
+                transfer_grads(master, child)
+                norm = torch.nn.utils.clip_grad_norm_(master.parameters(), 0.5)
+                optimizer.step()
+        except torch.OutOfMemoryError:
+            stats, ok = None, False
+            ooms += 1
+            print(f"[qat] OOM at step {step + 1} ({item['reviews']} reviews); batch skipped ({ooms} so far)", flush=True)
+            del batch
+            torch.cuda.empty_cache()
+            if ooms >= 5:
+                raise
         optimizer.zero_grad(set_to_none=True)
         child.zero_grad(set_to_none=True)
         torch.cuda.synchronize()
@@ -240,7 +250,7 @@ def main():
     summary = {"steps": step, "train_seconds": round(train_seconds, 1), "loader_wait_seconds": round(wait_seconds, 1),
                "wall_seconds": round(time.perf_counter() - started, 1), "reviews": reviews, "curve_labels": labels,
                "reviews_per_second": round(reviews / max(train_seconds, 1e-9), 1),
-               "peak_reserved_mib": round(torch.cuda.max_memory_reserved() / 2**20),
+               "peak_reserved_mib": round(torch.cuda.max_memory_reserved() / 2**20), "oom_skipped_batches": ooms,
                "finished_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())}
     (out / "summary.json").write_text(json.dumps(summary, indent=1))
     print(f"[qat] done {summary}", flush=True)

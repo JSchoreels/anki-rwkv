@@ -9,6 +9,7 @@ EXP='C:\Users\jonat\workspace\anki-rwkv\artifacts\full-run\run-8k-20261013\epoch
 ONLY="--only fork:fp32 --only fork:w8-pc --only fork:w4-g32 --only fork:w4-pc --only fork:w3-g32 --only fork:w3-pc --only fork:w2-g32 --only expertium-e10:fp32"
 WEIGHTS=(--weights "fork=$FORK" --weights "expertium-e10=$EXP")
 for extra in "$@"; do
+  [ -f "${extra#*=}" ] || { echo "[heldout-gpu] skipping missing ${extra#*=}"; continue; }
   tag=${extra%%=*}; WEIGHTS+=(--weights "$extra"); ONLY="$ONLY --only $tag:fp32"
   case $tag in *w4pc*) ONLY="$ONLY --only $tag:w4-pc";; *w2g32*) ONLY="$ONLY --only $tag:w2-g32";; *w3pc*) ONLY="$ONLY --only $tag:w3-pc";; esac
 done
