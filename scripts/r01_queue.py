@@ -334,13 +334,16 @@ def _quiet_block(me):
 
     queue/quiet.json holds [{"start": "2026-10-14T21:00", "end": "2026-10-15T01:00", "reason": "..."}] in local time.
     A ticket does not start inside a window, nor when its expected end (--expected-minutes, default 60) would
-    reach into one. Running jobs are never interrupted. Delete the file or the entry to lift a window early."""
+    reach into one. A window with "scope": "timing" only holds tickets run with --timing (speed benchmarks, which
+    other load on the PC would invalidate); other GPU jobs run through it. Running jobs are never interrupted.
+    Delete the file or the entry to lift a window early."""
     try:
         windows = json.loads(QUIET.read_text(encoding="utf-8"))
     except (OSError, ValueError):
         return None
     if not me.get("claims") or "gpu" not in me["claims"]:
         return None
+    timing = bool(me.get("timing"))
     now = datetime.now()
     expected = timedelta(minutes=me.get("expected_minutes") or DEFAULT_EXPECTED_MINUTES)
     for window in windows:
@@ -348,6 +351,8 @@ def _quiet_block(me):
             start, end = datetime.fromisoformat(window["start"]), datetime.fromisoformat(window["end"])
         except (KeyError, ValueError):
             continue
+        if window.get("scope", "all") == "timing" and not timing:
+            continue  # the user is using the PC: accuracy jobs may run, only speed measurements would be invalid
         if now < end and now + expected > start:
             return f"GPU quiet window {window['start']} to {window['end']} ({window.get('reason', 'no reason given')})"
     return None
@@ -410,7 +415,7 @@ def _cancelled_exit(me, waiting_since):
 
 
 def hold(owner, purpose, claims, heartbeat=60.0, max_wait_minutes=None, ticket=None, command=None, hold_minutes=30.0,
-         expected_minutes=None):
+         expected_minutes=None, timing=False):
     """Register (or attach to) a ticket and block until it holds its claims. Returns the running ticket record."""
     _ensure_dirs()
     claims = sorted(set(claims), key=NAMES.index)
@@ -418,6 +423,8 @@ def hold(owner, purpose, claims, heartbeat=60.0, max_wait_minutes=None, ticket=N
     me.update(state="waiting", pid=os.getpid(), pid_started=_process_started(os.getpid()), heartbeat=_iso(), command=command)
     if expected_minutes:
         me["expected_minutes"] = expected_minutes
+    if timing:
+        me["timing"] = True
     _write_ticket(me)
     print(f"[queue] {me['ticket']} registered for {', '.join(claims)}: {purpose}", flush=True)
     waiting_since = time.monotonic()
@@ -525,7 +532,7 @@ def run_command(command, heartbeat=60.0, record=None):
 def status():
     try:
         for window in json.loads(QUIET.read_text(encoding="utf-8")):
-            print(f"[queue] GPU quiet window {window.get('start')} to {window.get('end')}: {window.get('reason', '')}")
+            print(f"[queue] GPU quiet window ({window.get('scope', 'all')}) {window.get('start')} to {window.get('end')}: {window.get('reason', '')}")
     except (OSError, ValueError):
         pass
     _ensure_dirs()
@@ -600,6 +607,7 @@ def main():
             p.add_argument("--ticket", help="attach to a reservation made with enqueue (keeps its place in the queue)")
             p.add_argument("--heartbeat-seconds", type=float, default=60.0)
             p.add_argument("--expected-minutes", type=float, help="expected run time; a ticket never starts if it would run into a GPU quiet window (default 60)")
+            p.add_argument("--timing", action="store_true", help="speed measurement: held by quiet windows with scope timing")
             p.add_argument("--max-wait-minutes", type=float, help="give up with exit code 75 instead of waiting indefinitely")
             p.add_argument("command", nargs=REMAINDER)
     p = sub.add_parser("cancel")
@@ -625,7 +633,7 @@ def main():
     if not command:
         parser.error("run needs a command after --")
     record = hold(args.owner, args.purpose, claims, heartbeat, args.max_wait_minutes, args.ticket, command, args.hold_minutes,
-                  args.expected_minutes)
+                  args.expected_minutes, args.timing)
     code = None
     try:
         code = run_command(command, heartbeat, record)

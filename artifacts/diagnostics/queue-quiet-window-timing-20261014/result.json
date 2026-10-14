@@ -1,0 +1,176 @@
+{
+  "provenance": {
+    "captured_utc": "2026-10-14T16:18:34.770553+00:00",
+    "git_commit": "ce123d2719a39dc92b4987680c615921b4023794",
+    "git_dirty": true,
+    "git_status_porcelain_z": " M docs/GPU_OPTIMIZATIONS_LOG.md\u0000 M docs/R01_PARALLEL_SESSIONS.md\u0000 M scripts/r01_queue.py\u0000?? .claude/launch.json\u0000",
+    "source_tree_sha256": "492e538f17302de4f1a8683a9a6bff348155d2eb91a8dc06b0a582d6aa3b3cab",
+    "source_archive": "artifacts/sources/experiment-sources/492e538f17302de4f1a8683a9a6bff348155d2eb91a8dc06b0a582d6aa3b3cab/source.zip",
+    "source_paths": [
+      "rwkv",
+      "expertium",
+      "scripts",
+      "configs",
+      "pyproject.toml",
+      "uv.lock",
+      "justfile",
+      "upstream.json"
+    ]
+  },
+  "wake_limit_s": 2.5,
+  "fifo": {
+    "wake_after_release_s": [
+      0.07,
+      0.062
+    ],
+    "overlap": false
+  },
+  "outside_holder": {
+    "wake_after_release_s": 0.114
+  },
+  "stale": {
+    "start_after_launch_s": 0.147,
+    "removed_line": [
+      "[queue] removed stale ticket 000001-ghost (ghost: crashed): process 30056 is gone"
+    ]
+  },
+  "reservation": {
+    "ticket": "000008-G",
+    "ran_before_later_ticket": true,
+    "cancel_refused_for_other_owner": true
+  },
+  "cancel_waiting": {
+    "wrapper_exit_code": 76,
+    "wrapper_exit_after_cancel_s": 0.206,
+    "cancel_output": [
+      "[queue] cancelled 000012-M",
+      "[queue] waiting wrapper pid 39728 of 000012-M exited without running its command"
+    ]
+  },
+  "give_up": {
+    "exit_code": 75,
+    "claim_run_wake_s": 0.067
+  },
+  "status": [
+    "[queue] running: none",
+    "[queue] waiting: none",
+    "[queue] claims held outside the queue: none"
+  ],
+  "history_entries": 12,
+  "wrapper_results": {
+    "A": {
+      "exit_code": 0,
+      "output": [
+        "[queue] 000001-A registered for gpu: test A",
+        "[queue] 000001-A started after 0:00:00; holds gpu",
+        "[queue] 000001-A finished with exit code 0 after 0:00:03; released gpu"
+      ]
+    },
+    "B": {
+      "exit_code": 0,
+      "output": [
+        "[queue] 000002-B registered for gpu: test B",
+        "[queue] 000002-B waiting 0:00:00 for gpu: behind 000001-A running 0:00:01 (A: test A)",
+        "[queue] removed stale ticket 000004-D (D: test D): process 20684 is gone",
+        "[queue] removed stale ticket 000001-A (A: test A): process 29124 is gone",
+        "[queue] 000002-B started after 0:00:02; holds gpu",
+        "[queue] 000002-B finished with exit code 0 after 0:00:01; released gpu"
+      ]
+    },
+    "C": {
+      "exit_code": 0,
+      "output": [
+        "[queue] 000003-C registered for gpu: test C",
+        "[queue] 000003-C waiting 0:00:00 for gpu: behind 000001-A running 0:00:01 (A: test A); 000002-B waiting (B: test B)",
+        "[queue] removed stale ticket 000004-D (D: test D): process 20684 is gone",
+        "[queue] removed stale ticket 000001-A (A: test A): process 29124 is gone",
+        "[queue] 000003-C started after 0:00:02; holds gpu",
+        "[queue] 000003-C finished with exit code 0 after 0:00:00; released gpu"
+      ]
+    },
+    "D": {
+      "exit_code": 0,
+      "output": [
+        "[queue] 000004-D registered for ledger: test D",
+        "[queue] 000004-D started after 0:00:00; holds ledger",
+        "[queue] 000004-D finished with exit code 0 after 0:00:01; released ledger"
+      ]
+    },
+    "E": {
+      "exit_code": 0,
+      "output": [
+        "[queue] 000006-E registered for gpu: test E",
+        "[queue] 000006-E waiting 0:00:00 for gpu: claims held outside the queue: gpu by human since 2026-10-14T16:18:38+00:00 (manual hold)",
+        "[queue] 000006-E started after 0:00:01; holds gpu",
+        "[queue] 000006-E finished with exit code 0 after 0:00:00; released gpu"
+      ]
+    },
+    "F": {
+      "exit_code": 0,
+      "output": [
+        "[queue] 000007-F registered for gpu: test F",
+        "[queue] removed stale ticket 000001-ghost (ghost: crashed): process 30056 is gone",
+        "[queue] 000007-F started after 0:00:00; holds gpu",
+        "[queue] 000007-F finished with exit code 0 after 0:00:00; released gpu"
+      ]
+    },
+    "G": {
+      "exit_code": 0,
+      "output": [
+        "[queue] 000008-G registered for gpu: test G",
+        "[queue] 000008-G started after 0:00:00; holds gpu",
+        "[queue] 000008-G finished with exit code 0 after 0:00:01; released gpu"
+      ]
+    },
+    "H": {
+      "exit_code": 0,
+      "output": [
+        "[queue] 000009-H registered for gpu: test H",
+        "[queue] 000009-H waiting 0:00:00 for gpu: behind 000008-G reserved until 2026-10-14T16:48:41+00:00 (G: reserve)",
+        "[queue] 000009-H started after 0:00:01; holds gpu",
+        "[queue] 000009-H finished with exit code 0 after 0:00:00; released gpu"
+      ]
+    },
+    "M": {
+      "exit_code": 76,
+      "output": [
+        "[queue] 000012-M registered for gpu: test M",
+        "[queue] 000012-M waiting 0:00:00 for gpu: behind 000011-L running 0:00:00 (L: test L)",
+        "[queue] 000012-M was cancelled after waiting 0:00:00; the command did not run"
+      ]
+    },
+    "L": {
+      "exit_code": 0,
+      "output": [
+        "[queue] 000011-L registered for gpu: test L",
+        "[queue] 000011-L started after 0:00:00; holds gpu",
+        "[queue] 000011-L finished with exit code 0 after 0:00:03; released gpu"
+      ]
+    },
+    "I": {
+      "exit_code": 75,
+      "output": [
+        "[queue] 000014-I registered for gpu: test I",
+        "[queue] 000014-I waiting 0:00:00 for gpu: behind 000013-A2 running 0:00:01 (A2: test A2)",
+        "[queue] 000014-I gave up after 0:00:01: 000013-A2 running 0:00:02 (A2: test A2)"
+      ]
+    },
+    "A2": {
+      "exit_code": 0,
+      "output": [
+        "[queue] 000013-A2 registered for gpu: test A2",
+        "[queue] 000013-A2 started after 0:00:00; holds gpu",
+        "[queue] 000013-A2 finished with exit code 0 after 0:00:03; released gpu"
+      ]
+    },
+    "K": {
+      "exit_code": 0,
+      "output": [
+        "[queue] 000015-K registered for gpu: test K",
+        "[queue] 000015-K waiting 0:00:00 for gpu: behind 000013-A2 running 0:00:01 (A2: test A2); 000014-I waiting (I: test I)",
+        "[queue] 000015-K started after 0:00:02; holds gpu"
+      ]
+    }
+  },
+  "elapsed_s": 16.5
+}
