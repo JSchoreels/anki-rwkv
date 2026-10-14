@@ -838,7 +838,22 @@ def run_case(args):
                 for tensor in (batch.start, batch.labels, batch.label_review_th):
                     validation_hash.update(tensor.numpy().tobytes())
                 yield batch
-        with preparation_pool(workers if options.get("parallel_evaluation") else 0) as evaluation_pool:
+        # EV01 (docs/EVAL_SPEED.md): opt-in merged-batch evaluation of full runs, same inputs and per-section sums.
+        fast = bool(full_run.get("fast_evaluation") and full_run.get("benchmark_db")) and origin is None
+        if fast:
+            from scripts.fast_evaluation import evaluate_fast
+
+            def fast_progress(done, total):
+                progress.evaluation(done, total)
+                if done % 20 == 0:
+                    report["evaluation_progress_users"] = done
+                    atomic_json(path / "result.json", report)
+            per_user, report["fast_evaluation"], _ = evaluate_fast(
+                master, evaluation_rows, ROOT / full_run["benchmark_db"], workers=workers, progress=fast_progress,
+                batch_chunks=int(full_run.get("fast_evaluation_chunks", 512)),
+                db_size=full_run.get("benchmark_db_size", 10_000_000_000))
+            watch.check()
+        with preparation_pool(0 if fast else workers if options.get("parallel_evaluation") else 0) as evaluation_pool:
             if origin is not None:
                 # Prepare and hash the held-out inputs exactly as evaluation would, without the GPU pass.
                 for row in evaluation_rows:
@@ -862,7 +877,7 @@ def run_case(args):
                                                   "proof_seconds": time.perf_counter() - eval_started}
                     validation_hash = hashlib.sha256()
                     report.pop("evaluation_context")
-            for row in evaluation_rows if (report.get("evaluation_reuse") or {}).get("status") != "reused" else ():
+            for row in evaluation_rows if not fast and (report.get("evaluation_reuse") or {}).get("status") != "reused" else ():
                 watch.check()
                 if full_run.get("benchmark_db"):
                     # Full runs also score the upstream benchmark test reviews (LogLoss, RMSE(bins), AUC).
@@ -882,7 +897,7 @@ def run_case(args):
                     atomic_json(path / "result.json", report)
         progress.end()
         report["validation_seconds"] = time.perf_counter() - eval_started
-        report["validation_input_sha256"] = validation_hash.hexdigest()
+        report["validation_input_sha256"] = None if fast else validation_hash.hexdigest()
         if "evaluation_context" not in report:
             report["evaluation_context"] = reuse.evaluation_context(ROOT, report, provenance)
         report["per_user"] = per_user

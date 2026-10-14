@@ -163,6 +163,9 @@ def write_protocol(run, epoch, config):
     full_run = {"epoch": epoch, "evaluate": True, "benchmark_db": (run / "label-db").relative_to(ROOT).as_posix(),
                 "evaluation_set": "validation+final_test" if final else "quick_validation",
                 "snapshot_users": config.get("snapshot_users", SNAPSHOT_USERS), "control_dir": run.relative_to(ROOT).as_posix()}
+    if config.get("fast_evaluation"):
+        # EV01 (docs/EVAL_SPEED.md): opt-in per run.json; absent keeps the original per-user evaluation.
+        full_run.update(fast_evaluation=True, fast_evaluation_chunks=int(config.get("fast_evaluation_chunks", 512)))
     resume_file = run / f"epoch-{epoch:02d}.resume.json"
     if resume_file.exists():
         # Mid-epoch resume: skip users fully trained before the interruption; a user in flight is retrained.
