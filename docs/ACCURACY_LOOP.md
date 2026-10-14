@@ -29,6 +29,8 @@ All tiers are fixed subsets of one user-disjoint split, the full run's `run.json
 - Each tier's band is measured on its own control: identical configuration, two (later three or more) training seeds, `scripts/accuracy_loop.py noise A B`. With two seeds the band is the observed |difference| of each aggregate metric, which is what a single-seed paired comparison sees under no effect. With three or more seeds the band is the across-seed SD × √2 (the SD of a two-run difference); a promotion margin is 2 × that.
 - The band is recorded per metric (curve and instant benchmark LogLoss, review-weighted and user-averaged) in [ACCURACY_LOG.md](ACCURACY_LOG.md#noise-bands), with the run names it came from. It is re-measured when the control recipe changes (for example when WSD decay joins the screen recipe).
 - Reference point: Expertium's seed noise is about 0.0004 LogLoss. Training-order noise is not yet in the band (idea A15).
+- Current screen band (2026-10-14): two seeds differ by 0.0001 (curve) and 0.00006 (instant) review-weighted on 1,000 users. Decisions use **0.0004** until a third seed and an order-seed run exist, because two seeds are one draw of the difference.
+- The user bootstrap in `compare` measures user sampling only. Two seeds of the same recipe already produce a user-averaged instant interval that barely excludes zero, so an effect must clear the seed band as well as its bootstrap interval.
 - Missing measured noise leaves promotion pending; unknown noise is never treated as zero.
 
 ## Promotion rules

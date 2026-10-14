@@ -1,0 +1,203 @@
+{
+ "name": "check-fast-cpu",
+ "reported_utc": "2026-10-14T13:15:16.192262+00:00",
+ "tier": "screen",
+ "kind": "score",
+ "seed": 2025,
+ "model": "expertium",
+ "track": "E89-F65e-F77a",
+ "epochs": 0,
+ "train_users": 0,
+ "eval_users": 3,
+ "eval_users_done": 3,
+ "option_overrides": {},
+ "env": {},
+ "init": null,
+ "checkpoint_transform": null,
+ "evaluator": null,
+ "note": "plumbing check: fast mode on CPU vs recorded epoch-7",
+ "evaluation_wall_seconds": 10.4,
+ "eval_modes": [
+  "fast (EV01, c6530b9)"
+ ],
+ "evaluation_jobs": 1,
+ "metrics": {
+  "all": {
+   "users": 3,
+   "ahead": {
+    "users": 3,
+    "reviews": 7505,
+    "LogLoss": {
+     "weighted": 0.2099662218520986,
+     "user_average": 0.183434
+    },
+    "RMSE(bins)": {
+     "weighted": 0.06687501998667555,
+     "user_average": 0.06526
+    },
+    "AUC": {
+     "weighted": 0.7864734437041971,
+     "user_average": 0.813719
+    },
+    "RMSE": {
+     "weighted": 0.22770858494337107,
+     "user_average": 0.21020766666666665
+    }
+   },
+   "instant": {
+    "users": 3,
+    "reviews": 7505,
+    "LogLoss": {
+     "weighted": 0.20434316055962692,
+     "user_average": 0.17955900000000002
+    },
+    "RMSE(bins)": {
+     "weighted": 0.06184525316455696,
+     "user_average": 0.06277
+    },
+    "AUC": {
+     "weighted": 0.8107549880079947,
+     "user_average": 0.8288153333333333
+    },
+    "RMSE": {
+     "weighted": 0.2272318441039307,
+     "user_average": 0.21099966666666667
+    }
+   },
+   "r01_all_labels": {
+    "curve_log_loss": {
+     "label_weighted": 0.205032248403445,
+     "user_average": 0.18015999645890055,
+     "labels": 9011
+    },
+    "instant_log_loss": {
+     "label_weighted": 0.19916654503606107,
+     "user_average": 0.175153812341477,
+     "labels": 9011
+    }
+   }
+  },
+  "fork_unseen": {
+   "users": 1,
+   "ahead": {
+    "users": 1,
+    "reviews": 2960,
+    "LogLoss": {
+     "weighted": 0.109283,
+     "user_average": 0.109283
+    },
+    "RMSE(bins)": {
+     "weighted": 0.038676,
+     "user_average": 0.038676
+    },
+    "AUC": {
+     "weighted": 0.699308,
+     "user_average": 0.699308
+    },
+    "RMSE": {
+     "weighted": 0.153974,
+     "user_average": 0.153974
+    }
+   },
+   "instant": {
+    "users": 1,
+    "reviews": 2960,
+    "LogLoss": {
+     "weighted": 0.100106,
+     "user_average": 0.100106
+    },
+    "RMSE(bins)": {
+     "weighted": 0.029689,
+     "user_average": 0.029689
+    },
+    "AUC": {
+     "weighted": 0.754553,
+     "user_average": 0.754553
+    },
+    "RMSE": {
+     "weighted": 0.147901,
+     "user_average": 0.147901
+    }
+   },
+   "r01_all_labels": {
+    "curve_log_loss": {
+     "label_weighted": 0.1441000280285801,
+     "user_average": 0.1441000280285801,
+     "labels": 3553
+    },
+    "instant_log_loss": {
+     "label_weighted": 0.13216308026860005,
+     "user_average": 0.13216308026860005,
+     "labels": 3553
+    }
+   }
+  },
+  "fork_seen": {
+   "users": 2,
+   "ahead": {
+    "users": 2,
+    "reviews": 4545,
+    "LogLoss": {
+     "weighted": 0.275537693069307,
+     "user_average": 0.2205095
+    },
+    "RMSE(bins)": {
+     "weighted": 0.08524005830583059,
+     "user_average": 0.078552
+    },
+    "AUC": {
+     "weighted": 0.8432412574257425,
+     "user_average": 0.8709245
+    },
+    "RMSE": {
+     "weighted": 0.2757293487348735,
+     "user_average": 0.2383245
+    }
+   },
+   "instant": {
+    "users": 2,
+    "reviews": 4545,
+    "LogLoss": {
+     "weighted": 0.2722291881188119,
+     "user_average": 0.21928550000000002
+    },
+    "RMSE(bins)": {
+     "weighted": 0.082787499449945,
+     "user_average": 0.0793105
+    },
+    "AUC": {
+     "weighted": 0.8473573828382839,
+     "user_average": 0.8659465
+    },
+    "RMSE": {
+     "weighted": 0.27889725632563256,
+     "user_average": 0.242549
+    }
+   },
+   "r01_all_labels": {
+    "curve_log_loss": {
+     "label_weighted": 0.2446973599812931,
+     "user_average": 0.19818998067406077,
+     "labels": 5458
+    },
+    "instant_log_loss": {
+     "label_weighted": 0.24278386096108653,
+     "user_average": 0.1966491783779155,
+     "labels": 5458
+    }
+   }
+  }
+ },
+ "evaluation_reviews": 11744,
+ "evaluation_model_seconds": 0,
+ "model_facts": {
+  "card_state_bytes_float32": 4352,
+  "card_layers": 1,
+  "d_model": 32,
+  "state_formula": "card layers x (heads x (d/heads)^2 + 2d) x 4 B",
+  "params": 192800,
+  "checkpoint": "C:\\Users\\jonat\\workspace\\anki-rwkv\\artifacts\\full-run\\run-8k-20261013\\epoch-07\\expertium\\E89-F65e-F77a\\master.pth",
+  "checkpoint_bytes": 946437
+ },
+ "status": "complete"
+}

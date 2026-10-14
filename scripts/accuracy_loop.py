@@ -9,7 +9,7 @@ so every GPU job stays short enough for the shared queue. Every experiment write
 (artifacts/accuracy/experiments/<name>/result.json) plus one line in artifacts/accuracy/results.jsonl.
 
   tiers      [--split RUN_JSON]                     build artifacts/accuracy/tiers.json (CPU, once)
-  prepare    NAME --tier screen --seed S [--options JSON] [--env JSON] [--epochs N]
+  prepare    NAME --tier screen --seed S [--order-seed O] [--options JSON] [--env JSON] [--epochs N]
              [--init-master P [--init-optimizer P --update-offset N]] [--checkpoint P] [--evaluator MOD:FN]
              [--checkpoint-transform MOD:FN] [--eval-users N] [--note TEXT]
   train      NAME [--epochs-per-job K]               GPU (queue): remaining epochs (K per job; exit 3 = more to do)
@@ -172,6 +172,7 @@ def prepare(args):
     kind = "score" if args.checkpoint else "train"
     experiment = {
         "name": args.name, "created_utc": now(), "tier": args.tier, "kind": kind, "seed": seed, "note": args.note,
+        "order_seed": args.order_seed if args.order_seed is not None else split["split_seed"],
         "model": args.model or split["model"], "track": args.track or split["track"],
         "epochs": 0 if kind == "score" else (args.epochs or tier["epochs"]),
         "options": options, "option_overrides": overrides, "env": json.loads(args.env) if args.env else {},
@@ -195,7 +196,9 @@ def prepare(args):
         # in-training evaluation is switched off (accuracy_loop evaluates separately), so sealed users are never read.
         run = {"created_utc": now(), "dataset_path": tiers["dataset_path"], "dataset_revision": tiers["dataset_revision"],
                "model": experiment["model"], "track": experiment["track"], "options": options, "epochs": experiment["epochs"],
-               "split_seed": split["split_seed"], "slice_percent": split.get("slice_percent"),
+               # The per-epoch training-user order is shuffled with split_seed * 1000 + epoch (run_full_training).
+               "split_seed": args.order_seed if args.order_seed is not None else split["split_seed"],
+               "slice_percent": split.get("slice_percent"),
                "split": f"accuracy-loop tier {args.tier} of {tiers['split']}",
                "train_users": tier["train_users"], "validation_users": eval_users, "quick_validation_users": eval_users,
                "final_test_users": [], "review_counts": split["review_counts"],
@@ -439,7 +442,8 @@ def report(args):
     expected = set(experiment["eval_users"])
     done = {r["user_id"] for r in per_user}
     record = {"name": args.name, "reported_utc": now(), "tier": experiment["tier"], "kind": experiment["kind"],
-              "seed": experiment["seed"], "model": experiment["model"], "track": experiment["track"],
+              "seed": experiment["seed"], "order_seed": experiment.get("order_seed"),
+              "model": experiment["model"], "track": experiment["track"],
               "epochs": experiment["epochs"], "train_users": experiment["train_users"],
               "eval_users": len(expected), "eval_users_done": len(done & expected),
               "option_overrides": experiment["option_overrides"], "env": experiment["env"], "init": experiment["init"],
@@ -656,6 +660,7 @@ def main():
     p.add_argument("--tier", choices=("screen", "gate", "final"), required=True)
     p.add_argument("--seed", type=int)
     p.add_argument("--epochs", type=int)
+    p.add_argument("--order-seed", type=int, help="training-user order seed (default: the split's seed; A15 order noise)")
     p.add_argument("--options", help="JSON object merged into the split's accepted R01 track options")
     p.add_argument("--env", help="JSON object of environment variables for every process of this experiment")
     p.add_argument("--model")
