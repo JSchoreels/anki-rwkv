@@ -69,3 +69,13 @@ Follow-ups when processing 000309/000310/000311:
 - Interim aggregate summary (chunks 1+2, 409 users): `artifacts/compression/heldout-b-interim-chunks12.md`.
 - Per-user `heldout-b.jsonl` must NEVER be committed (aggregate-only rule). The earlier instruction above to commit it is superseded: commit only aggregate summaries.
 - Remaining: final aggregation after 000322 (chunks 3+4 are 000321/000322), QAT 000311, and per-prediction output if UM+ / max |dp| shift are wanted.
+
+## Update after 000311 (2026-10-14)
+
+- QAT int4 per-channel run finished (exit 0, 2,533 s): 24 steps, 648k reviews, 269 reviews/s, peak 23.2 GiB, no OOM skips. Aggregate summary: `artifacts/compression/qat-w4pc-run1.md`. Checkpoints stay local and untracked (`qat/w4pc-run1/{final,step-*}.pth`).
+- Training loss went 0.982 -> 0.941, but per-batch noise is about +/-0.07 and lr stayed <= 2.1e-5, so nothing can be read from the curve. `summary.json` has no eval numbers. QAT vs PTQ (+0.02% / +0.42%) is not established.
+- Next, in order:
+  1. Score on the collection (CPU), command in the .md. Cheap, no GPU.
+  2. Add `--checkpoint` to `scripts/compress_heldout_b.py` (it hardcodes `cq.FORK_WEIGHTS`), then run `w4-pc,w4-pc+s8` on the QAT weights over the same cohort-B users.
+  3. The fp32 control (000291) was cancelled and never ran. Re-queue it (`jobs/qat.sh 0 0 fp32-control1 2400`) only if step 1 is promising.
+  4. If it is, consider a longer or higher-lr QAT run.
