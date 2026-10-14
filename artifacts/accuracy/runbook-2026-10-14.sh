@@ -28,10 +28,8 @@ done
 "$PY" -X utf8 "$AL" check-eval check-e07 "$RUN/epoch-07/expertium/E89-F65e-F77a/result.json" | tail -20
 "$PY" -X utf8 "$AL" check-eval check-e06 "$RUN/epoch-06/expertium/E89-F65e-F77a/result.json" | tail -20
 
-until_done "accuracy-loop: screen eval w32 seeds 2025+2026 (1k validation users, shared pass, resumable, <=52 min)" \
-  "$PY" -X utf8 "$AL" evaluate screen-w32-s2025 screen-w32-s2026 --max-minutes 52 || exit 1
-until_done "accuracy-loop: score full-run epoch 10 on the 1k screen users (resumable, <=52 min)" \
-  "$PY" -X utf8 "$AL" evaluate fullrun-e10 --max-minutes 52 || exit 1
+# One shared pass: identical prepared inputs for all three checkpoints; never slower than separate passes.
+until_done "accuracy-loop: screen eval w32 seeds 2025+2026 and full-run epoch 10 (1k validation users, shared pass, resumable, <=52 min)"   "$PY" -X utf8 "$AL" evaluate screen-w32-s2025 screen-w32-s2026 fullrun-e10 --max-minutes 52 || exit 1
 
 for name in screen-w32-s2025 screen-w32-s2026 fullrun-e10; do
   "$PY" -X utf8 "$AL" collection "$name" --threads 2 2>&1 | grep -v -i warn
