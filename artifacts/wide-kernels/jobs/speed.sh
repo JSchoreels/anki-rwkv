@@ -3,6 +3,10 @@
 # The queue runs commands from the main checkout; this cds into the worktree. Finished cases are skipped.
 # Stops starting new cases after BUDGET_MINUTES (default 26) so the ticket fits its --expected-minutes.
 cd /c/Users/jonat/workspace/wt/wide-kernels || exit 1
+# 000323 lessons: the queue's PATH had no coreutils (date failed, budget logic saw 0 min), and the w32 control needs the
+# native build that lives in the main checkout's cache (the worktree has none for this key).
+export PATH="/usr/bin:/bin:$PATH"
+export GPU_R01_CONTROLLER_ROOT='C:\Users\jonat\workspace\anki-rwkv'
 PY=/c/Users/jonat/workspace/anki-rwkv/.venv/Scripts/python.exe
 OUT=artifacts/wide-kernels/speed-20261014
 CASES="${CASES:-w32 w80-b256-wide w64-b256-wide w80-b256 w64-b256 w80-sequential-b256-wide w64-wide}"

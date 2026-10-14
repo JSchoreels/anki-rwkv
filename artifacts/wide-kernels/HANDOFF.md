@@ -49,3 +49,32 @@ cd C:\Users\jonat\workspace\anki-rwkv
 ```
 
 Launch it detached (`Start-Process` with one quoted argument string; PowerShell 5.1 does not quote array arguments).
+
+## Update after 000323 (2026-10-14, ran 20:06:46-20:24:55 local, exit 0)
+
+Results are in `artifacts/wide-kernels/speed-20261014/` (clean cases: `w80-sequential-b256-wide`, `w64-wide`) and `run1-contaminated/` (the five cases to rerun; moved there so a rerun fills the original paths).
+
+Why `summary.md` showed "failed" and dashes: (1) the **w32 control failed in 6 s**: its accepted options use the native extension, whose build lives in the main checkout's `artifacts/cache/r01-native/<key>` (key f1b68c9d... matches), and the worktree has no such folder; `native_launch.load()` looks under `GPU_R01_CONTROLLER_ROOT` or the worktree root, so it died on a missing `build.json`. The other cases drop the native switches, so they ran. (2) `report()` printed dashes for every row when no w32 baseline existed, although the data was in each `result.json`. Fixed: it now falls back to the accepted w32 figure (178,242 reviews/s, docs/GPU_OPTIMIZATIONS.md) with a note, and has `--parallel-until <UTC ISO>` which adds an Overlap column. (3) `speed.sh` had no coreutils on the queue's PATH (`date: command not found`, so "after 0 min" and the 26-min budget never applied; harmless this time). `speed.sh` now exports PATH and `GPU_R01_CONTROLLER_ROOT`.
+
+Contamination: an accuracy collection scoring ran until 20:15:10 local (18:15:10 UTC). Share of training time overlapping it: w80-b256-wide 100%, w64-b256-wide 100%, w80-b256 100%, w64-b256 21%, w80-sequential-b256-wide 0%, w64-wide 0%.
+
+| Case | Reviews/s | vs accepted w32 (178,242) | Training s | Peak alloc MiB | Main / machine CPU s | Overlap |
+|---|---|---|---|---|---|---|
+| w32 control | failed | | | | | |
+| w80 ported (256) | 111,281 | -37.6% | 111.5 | 8,417 | 145 / 827 | 100% |
+| w80 generic (256) | 62,216 | -65.1% | 199.4 | 8,530 | 204 / 1,048 | 100% |
+| w64 ported (256) | 141,274 | -20.7% | 87.8 | 6,687 | 117 / 756 | 100% |
+| w64 generic (256) | 74,584 | -58.2% | 166.3 | 6,778 | 133 / 802 | 21% |
+| w80-sequential ported (256) | 119,808 | -32.8% | 103.6 | 8,399 | 128 / 583 | 0% |
+| w64 ported (512 chunks) | 39,041 | -78.1% | 317.8 | 13,042 | 151 / 1,357 | 0% |
+
+Ported vs generic: w80 1.79x, w64 1.89x (both sides overlapped; the ported side more so, so the ratio is probably conservative). Machine CPU for the overlapped rows includes the foreign scoring, so the CPU columns are not comparable. w64 at 512 chunks does only 287 updates' worth in 318 s and nearly fills 16 GB (still paging; earlier generic 18,711 reviews/s, 2.09x). Peak MiB is peak allocated.
+
+**A clean rerun is needed** (control failed; four rows contaminated). It restarts only those five cases (clean ones are skipped), about 12 min of cases, so 20 min expected. Queue it after 01:00 (`--timing`; launch detached, `Start-Process` with one quoted argument string):
+
+```
+cd C:\Users\jonat\workspace\anki-rwkv
+C:\Users\jonat\workspace\anki-rwkv\.venv\Scripts\python.exe scripts/r01_queue.py run --owner wide-kernels --purpose "wide-kernels: clean rerun of w32 control and four contaminated cases" --claim gpu --timing --expected-minutes 20 -- "C:\Program Files\Git\usr\bin\bash.exe" /c/Users/jonat/workspace/wt/wide-kernels/artifacts/wide-kernels/jobs/speed.sh
+```
+
+Afterwards (fresh Sonnet medium agent): run `C:\Users\jonat\workspace\anki-rwkv\.venv\Scripts\python.exe scripts/expertium_speed.py report --out artifacts/wide-kernels/speed-20261014` in the worktree (no `--parallel-until` needed; check no foreign CPU load in `all.log` and the machine), replace the W04 numbers in `docs/GPU_OPTIMIZATIONS.md`, commit as Jonathan Schoreels, push `wide-kernels`.
