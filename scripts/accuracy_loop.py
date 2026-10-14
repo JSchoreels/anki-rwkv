@@ -369,6 +369,9 @@ def collection(args):
     experiment = load(exp_dir(args.name) / "experiment.json")
     path = checkpoint_for(experiment)
     out = exp_dir(args.name) / "collection.json"
+    if out.exists() and load(out).get("checkpoint") == str(Path(path).resolve()) and not args.force:
+        print(f"[collection] {args.name}: already scored ({out.relative_to(ROOT).as_posix()}); --force to rescore")
+        return 0
     started, started_utc = time.perf_counter(), now()
     code = subprocess.call([sys.executable, "-X", "utf8", str(ROOT / "scripts/accuracy_collection.py"),
                             "--checkpoint", str(path), "--out", str(out), "--threads", str(args.threads),
@@ -677,6 +680,7 @@ def main():
     p = sub.add_parser("collection")
     p.add_argument("name")
     p.add_argument("--threads", type=int, default=2)
+    p.add_argument("--force", action="store_true")
     sub.add_parser("report").add_argument("name")
     p = sub.add_parser("compare")
     p.add_argument("control")
