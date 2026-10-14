@@ -2,7 +2,7 @@
 
 `scripts/fast_evaluation.py` scores a checkpoint on a list of users and writes per-user metrics plus aggregates. It reproduces the full run's evaluation (`scripts/run_full_training.py` → `scripts/gpu_r01_training.run_case` with a `full_run` protocol) much faster. The original path stays available as `--mode reference`, and full runs keep using it unless `run.json` sets `"fast_evaluation": true`.
 
-Status (2026-10-14): implemented, opt-in, committed. On the 300 quick-validation users the fast path takes **118.9 s instead of 965.9 s (8.1x; 186,641 vs 22,972 history reviews/s)**, with bitwise-identical inputs (`validation_input_sha256` equal to the full run's) but not bitwise-identical outputs: merging sections into one forward changes FP32 rounding (relative ~1e-7 per prediction). Per-user losses agree within 3.8e-8 absolute, aggregates within 5e-8, and the six-decimal benchmark metrics are equal for 299/300 users (LogLoss) and 278/300 (curve AUC, max 1.1e-5). Because it is not exact it is opt-in, not the default.
+Status (2026-10-14): implemented, opt-in, committed. On the 300 quick-validation users the fast path takes **118.9 s instead of 965.9 s (8.1x; 186,641 vs 22,972 history reviews/s)**, with bitwise-identical inputs (`validation_input_sha256` equal to the full run's) but not bitwise-identical outputs: merging sections into one forward changes FP32 rounding (relative ~1e-7 per prediction). Per-user losses agree within 3.8e-8 absolute, aggregates within 5e-8, and the six-decimal benchmark metrics are equal for 299/300 users (LogLoss) and 278/300 (curve AUC, max 1.1e-5). On the 2,000-user final set (epoch 10) it takes **612 s instead of the run's 5,825 s (9.5x)** with the run's own `validation_input_sha256`. Because merged forwards are not exact, the path is opt-in, not the default. An exact mode (`--batch-chunks 8`, one section per forward) is bitwise identical to the reference on all 300 users and takes 722 s (1.34x).
 
 ## Use
 
@@ -44,7 +44,22 @@ All runs: RTX 5080, torch 2.9.1+cu128, FP32 master, deterministic algorithms, `C
 | `--mode fast --input-hash` | 119.8 | 185,222 | 324,966 | 8.1x |
 | Final 2,000-user evaluation in the full run (epoch 10, recorded) | 5,825.3 | — | — | — |
 
-JOB2-TABLE
+Settings sweep and the 2,000-user final set (queue ticket 000289; same machine and conditions):
+
+| Run | Users | Workers / chunks | Evaluation s | History reviews/s | Labels/s | vs reference |
+|---|---|---|---|---|---|---|
+| fast, epoch 7 | 300 | 7 / 512 | 101.6 | 218,336 | 383,065 | 9.5x |
+| fast, epoch 7 | 300 | 7 / 1024 | 89.6 | 247,626 | 434,454 | 10.8x |
+| fast, epoch 7 | 300 | 10 / 512 | 89.0 | 249,306 | 437,400 | 10.9x |
+| exact mode (one section per forward), epoch 7 | 300 | 7 / 8 | 722.3 | 30,721 | 53,899 | 1.34x, bitwise equal |
+| fast `--input-hash`, epoch 10 | 2,000 | 7 / 512 | 612.4 | 238,080 | 412,712 | 9.5x vs the run's 5,825.3 s |
+| fast, epoch 7 | 2,000 | 7 / 512 | 604.0 | 241,400 | 418,471 | — |
+
+The 2,000-user set (`validation_users+final_test_users`) has 145,795,912 history reviews and 252,739,888 labels; the run's in-process final evaluation scored them at 25,028 reviews/s. In every fast run the main process mostly waits for preparation (for example 450 s of 612 s on 2,000 users, with 3,826 s of worker preparation), so more workers or larger batches help until the CPU saturates; GPU read-back waits stay below 0.2 s. 7 workers with 1,024 chunks together were not measured.
+
+Fast vs the run's recorded epoch-10 final evaluation (2,000 users, `compare-final2000-recorded-vs-fast.json`): input hash identical (`41aa2ffa…`); label counts, sizes and coverage identical for every user; six-decimal benchmark metrics identical for 1,994–1,999 of 2,000 users (curve LogLoss 1,994, instant LogLoss 1,998, RMSE(bins) 1,999/2,000), AUC for 1,833 (curve, max 1.1e-5) and 1,947 (instant, max 2e-6); R01 loss fields max |Δ| 6.9e-8; aggregate label-weighted and user-averaged Curve/Instant log loss within 2.0e-10.
+
+The exact mode (`compare-quick300-reference-vs-c8.json`): every per-user field and every aggregate of all 300 users is identical to `--mode reference` (and therefore to the run). It is launch-bound (683 s of launches for 21,821 forwards) and saves the main-process history loads, input hash, prediction loops and metrics.
 
 ### Profile of the original path (300 users, host timers in `--mode reference`)
 
@@ -75,6 +90,23 @@ Fast vs reference per user (300 users): label counts, coverage, sizes, RMSE and 
 
 Why not bitwise: the inputs are identical, and every per-section reduction is replayed on the original shape, so the differences come from the forward itself. With more rows in one forward, the FP32 GEMMs (cuBLAS chooses kernels by matrix size) round differently; the CPU shows the same effect with MKL. The tolerance is therefore the float reduction-order noise of a different GEMM shape: about 1e-7 relative per prediction, 1e-6 on six-decimal metrics (one rounding step) and up to 1e-5 on a single user's AUC when near-tied predictions swap rank. This is far below run-to-run differences of interest (the screening deltas in `docs/GPU_OPTIMIZATIONS.md` are 1e-4 and larger), but it is not parity, so the fast path stays opt-in and recorded runs compared with exact parity must use `--mode reference` or the exact mode below.
 
+## Which mode to use
+
+- Screening and repeated measurements of new checkpoints: `--mode fast` (default), preferably `--workers 7` (or 10) and `--batch-chunks 1024` when nothing else needs the CPU. Differences to the original are float noise (above), identical for both arms of a comparison run the same way.
+- Numbers that must equal a recorded run bit for bit (parity claims, recorded protocols): `--mode reference`, or `--batch-chunks 8` (exact, 1.34x).
+- Full runs: unchanged unless `run.json` sets `"fast_evaluation": true` (optional `"fast_evaluation_chunks"`, 8 for the exact mode). `run_full_training.write_protocol` then passes `full_run.fast_evaluation`, and `run_case` calls `evaluate_fast` with the run's preparation workers; `validation_input_sha256` is recorded as null in that case. This wiring is checked only by compilation, not by a full-run smoke.
+
+## CPU collection scorer
+
+`artifacts/collection-eval/2026-10-14/score_collection.py` (gitignored, unchanged) scores one user on CPU with the window protocol: 52.4 s for epoch 8 (48.9 s model, prepared inputs cached). The same checkpoint through `scripts/fast_evaluation.py --users 1 --data-path <collection-dataset> --label-db <collection-label-db> --device cpu --workers 0 --threads 2 --batch-chunks 512` took 39.2 s including preparation, with all eight benchmark metrics identical and R01 losses within 3e-10 (CPU GEMMs also round differently by batch shape). A modest win; the CPU recurrence dominates. Evidence: `artifacts/eval-speed/collection-cpu/`.
+
 ## Untested and follow-up ideas
 
-PENDING.
+Recorded as EV02–EV07 in [GPU_OPTIMIZATIONS.md](GPU_OPTIMIZATIONS.md#optimization-tracks).
+
+- EV02: exact merged forward. The per-position differences come from shape-dependent FP32 kernels; padding or chunking each GEMM to the original section row counts, or row-invariant kernels, could give exact results with merged batching. Pending, needs a kernel-level check of which ops differ.
+- EV03: more preparation throughput. The fast path is CPU-bound; try 7 workers with 1,024 chunks, a prestarted pool shared with training (F59), and caching prepared evaluation inputs across epochs (they do not depend on the checkpoint; about 0.8 kB per review, so tens of GB for the 2,000-user set).
+- EV04: GPU-side feature encodings for evaluation (the training path's `gpu_packed_features`) would cut worker CPU and the ~50 MB per batch transfer, but GPU `sin/cos` differ from the CPU `prepare` inputs: inputs would no longer be identical.
+- EV05: BF16 evaluation forward: faster on the GPU, which is not the bottleneck; changes results; screening only.
+- EV06: add `scripts/fast_evaluation.py` to `R01SourceWatch` (`scripts/run_gpu_r01.py`) before a full run enables `fast_evaluation`; left out to avoid changing the watched-source hash for other sessions.
+- EV07: a full-run smoke with `"fast_evaluation": true` to check the `run_case` wiring end to end.
