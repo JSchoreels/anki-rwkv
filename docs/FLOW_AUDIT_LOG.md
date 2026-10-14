@@ -28,3 +28,9 @@ One entry per finished queue ticket. See [FLOW_AUDIT.md](FLOW_AUDIT.md) for the 
 - 4 exit: ok (0) · 5 handoff: VIOLATION (no committed HANDOFF.md in wt/eval-speed names 000312) · 6 pushed: VIOLATION (wt eval-speed ahead 1: e458927; main clean) · 7 docs: pending (per main session)
 - 8 no waiting agent: not verifiable from the record · 9 outside work: ok now (nvidia-smi lists no compute processes; not checked during the run)
 - notes: eval-speed is a parity smoke in the accuracy lane; its logged reviews/s (167k) is incidental. Main-session decision needed on the docs quote and the missing handoff.
+
+## 2026-10-14 20:03 — 000316-accuracy-loop
+- verdict: clean
+- 1 lane: ok (accuracy job, A15 order-noise screens; no timing flag needed; purpose is not a benchmark) · 2 quiet: n/a (not timing; ran 19:34–20:00 local, outside 21:00–01:00 anyway) · 3 expected: ok (no expected_minutes, predates flag; real 26.6 min vs 2 x 13 = 26 min purpose) · 4 exit: ok (0)
+- 5 handoff: ok (wt accuracy-loop artifacts/accuracy/HANDOFF.md at c1010b4 names 000316 and its outputs) · 6 pushed: ok (accuracy-loop and main in sync with origin) · 7 docs: pending (result processed only when runbook finishes) · 8 no waiting agent: not verifiable from the record · 9 outside work: nvidia-smi now lists only desktop processes; not checked during the run
+- notes: 000324-accuracy-loop (seed 2027) registered through the queue as designed and is waiting behind 000317, 000321, 000322, 000323. Shared eval is queued by runbook 14b after 000324 finishes, not yet a ticket. Runbook log is in wt artifacts/accuracy/runbook-2026-10-14b-detached.log.
