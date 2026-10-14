@@ -244,6 +244,35 @@ def main():
         targets = load.targets(batch)
         record("fork 2.76M teacher loads strictly and predicts in (0, 1)", load.parameters,
                load.parameters == 2_762_884 and bool(((targets[0] > 0) & (targets[0] < 1)).all()))
+
+        # 6. CatchUp as run_case drives it (CPU stand-in for the CUDA trainer): w80, iter-53 Muon, teacher, decay.
+        options = {"architecture": "w80", "optimizer": "expertium-iter53", "lr_schedule": {"decay_start": 0.5},
+                   "distillation": {"teacher": str(TEACHER), "alpha": 0.9, "decay_alpha": 0.5, "teacher_dtype": "float32"}}
+        rows = [{"train_range": [0, 4]}]
+        catch_up = xo.CatchUp(options, {}, rows)
+        torch.manual_seed(2025)
+        student = variants.build(catch_up.spec)
+        optimizer = catch_up.optimizer(student)
+        catch_up.teacher = xo.Teacher(options["distillation"], torch.device("cpu"), torch.float32)
+        losses, rates = [], []
+        for update in range(4):
+            optimizer.zero_grad(set_to_none=True)
+            student.train()
+            torch.manual_seed(update)
+            stats = catch_up.loss(student, batch, update)
+            stats.average_loss.backward()
+            torch.nn.utils.clip_grad_norm_(student.parameters(), 0.5)
+            rate = catch_up.learning_rate(update, 0, update)
+            for group in optimizer.param_groups:
+                group["lr"] = rate
+            optimizer.step()
+            losses.append(stats.average_loss.item())
+            rates.append(rate)
+        # Warmup (u+1)/5 of 7e-4; reviews 0..3 of 4 with decay from 2: factors 1, 1, 1, 1 - sin(pi/4).
+        expected = [7e-4 * 0.2, 7e-4 * 0.4, 7e-4 * 0.6, 7e-4 * 0.8 * (1 - 0.7071067811865476)]
+        record("CatchUp w80 + iter-53 Muon + KD + decay: 4 CPU updates (losses, learning rates)", [losses, rates],
+               bool(torch.isfinite(torch.tensor(losses)).all()) and all(abs(a - b) < 1e-12 for a, b in zip(rates, expected))
+               and not catch_up.schedule.decaying(1) and catch_up.schedule.decaying(2))
     results["seconds"] = time.perf_counter() - started
     failed = [name for name, value in results.items() if isinstance(value, dict) and not value["ok"]]
     results["failed"] = failed

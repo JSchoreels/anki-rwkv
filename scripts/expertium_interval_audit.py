@@ -65,6 +65,10 @@ def main():
     out["fraction_query_rows_interval_under_1h"] = float(short.mean())
     out["median_duration_share_under_1h"] = float(np.median(share[short])) if short.any() else None
     out["fraction_query_rows_corrected_interval_clamped_to_0"] = float(((seconds - duration) < 0).mean())
+    # Answer-to-answer intervals can never be shorter than the review's own duration, except by the floor to whole
+    # seconds (< 1 s). Show-to-show intervals would be shorter whenever this review took longer than the last one.
+    out["fraction_query_rows_interval_shorter_than_duration_by_over_1s"] = float(((seconds + 1.0) < duration).mean())
+    out["fraction_query_rows_interval_shorter_than_duration_by_over_1s_under_1h"] = float(((seconds + 1.0) < duration)[short].mean()) if short.any() else None
     # Outcome information in the duration, among in-session (< 1 h) query rows: P(fail) by duration quartile.
     q = query[short].copy()
     q["duration_quartile"] = pd.qcut(q["duration"].rank(method="first"), 4, labels=False)
