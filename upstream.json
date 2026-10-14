@@ -53,7 +53,7 @@
   "baseline_reason": "RWKV revision before runtime tensor-shape annotation changes; preserves conventional PyTorch imports.",
   "adaptations": {
     "rwkv/data_processing.py": "Read existing cards/decks user partitions directly; preserve filtered-root reads for absent partitions. Use group indices instead of copying per-group DataFrames when preparing module locations, preserving group order and exact feature tensors. Expertium catch-up: get_rwkv_data applies expertium.intervals.end_to_start_published only when EXPERTIUM_END_TO_START=1 (docs/EXPERTIUM_CATCH_UP.md item 4); unset is unchanged.",
-    "rwkv/model/rwkv_model.py": "Add an explicit option to use the existing reference recurrence on CUDA and an opt-in fused shift/lerp path. Both are disabled by default; the default architecture and upstream CUDA kernels are unchanged.",
+    "rwkv/model/rwkv_model.py": "Add an explicit option to use the existing reference recurrence on CUDA and an opt-in fused shift/lerp path; R01 exact shift/lerp forward and explicit/fused rounded backward candidates (dab8fee, a9ed123). Both are disabled by default; the default architecture and upstream CUDA kernels are unchanged.",
     "rwkv/prepare_batch.py": "Expose padding_factor and allowed_excess_in_one_step as optional preparation arguments; retain the original 0.9 and 20000 defaults."
   },
   "adapted_sha256": {
@@ -61,7 +61,7 @@
     "features/factory.py": "7cf2f7b695dbc2ff9bb9361c6c05d061108c5870476cdec6f33a8fa9c0fd2512",
     "utils.py": "ab5c4fb4a486eb484503304b08ba25a63bfdf32cd93ed5933534c1fc1c0c0205",
     "rwkv/data_processing.py": "3da4058dd7cff55765cb6c19362fadffb82fa48dab5838492ecabcc595d84c70",
-    "rwkv/model/rwkv_model.py": "26fe4ebd8bfb3f38d63ababacdb548f670a7343141ba4b61e4e452cbc13b9611",
+    "rwkv/model/rwkv_model.py": "d17682902d73ae04622f46a34da6151f3d8b3b2d861701b72885c3e928df56b7",
     "rwkv/prepare_batch.py": "f17fa5766bdd6de7450386b2b288b757db5f8987a11a436d770c473aa9bfd9cf"
   }
 }
