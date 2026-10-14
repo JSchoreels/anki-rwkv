@@ -21,3 +21,10 @@ One entry per finished queue ticket. See [FLOW_AUDIT.md](FLOW_AUDIT.md) for the 
 - 4 exit: ok (0) · 5 handoff: ok (wt artifacts/compression/HANDOFF.md at 4d6a768 names 000311 and qat/w4pc-run1 outputs) · 6 pushed: VIOLATION at audit time (main ahead 1: a13bcb1, main-session r01_queue_wait.py commit; pushed with this entry) · wt compression in sync
 - 7 docs: pending (QAT result not processed; separate agent processing) · 8 no waiting agent: not verifiable from the record · 9 outside work: ok (nvidia-smi compute list has no queue job; one codex-runtime python.exe, pid 24128, is listed, not a queue job)
 - notes: 000311 finished normally (exit 0, 24 steps, 648,441 reviews, peak 23,160 MiB, 0 OOM skips). Stale copy in queue/stale/ and the missing expected_minutes are known context, not flagged. Whether 269 reviews/s counts as a measured speed for a QAT job needs a main-session decision.
+
+## 2026-10-14 19:35 — 000312-eval-speed
+- verdict: 3 violations
+- 1 lane: VIOLATION (purpose is a parity smoke, fast_evaluation false/true, so no timing flag is needed; but docs/GPU_OPTIMIZATIONS.md on eval-speed e458927 quotes "Final evaluation 232.3 → 37.2 s" as a speed result) · 2 quiet: n/a (not timing; started 19:28 local, outside 21:00–01:00 anyway) · 3 expected: predates rule (no expected_minutes; real 5.5 min vs ~15 min purpose, not an overrun)
+- 4 exit: ok (0) · 5 handoff: VIOLATION (no committed HANDOFF.md in wt/eval-speed names 000312) · 6 pushed: VIOLATION (wt eval-speed ahead 1: e458927; main clean) · 7 docs: pending (per main session)
+- 8 no waiting agent: not verifiable from the record · 9 outside work: ok now (nvidia-smi lists no compute processes; not checked during the run)
+- notes: eval-speed is a parity smoke in the accuracy lane; its logged reviews/s (167k) is incidental. Main-session decision needed on the docs quote and the missing handoff.
