@@ -122,7 +122,36 @@ Teacher: the 2.76M srs-benchmark RWKV, e.g. `C:/Users/jonat/workspace/anki/qt/aq
 | Muon grouping, LoRA group, step | 528,320 Muon / 27,520 LoRA / 29,889 AdamW on w80; finite step, LR restored | same |
 | End-to-start | off: frame identical; on: `elapsed_seconds - duration`, sentinel kept | same |
 | Distillation | alpha 0 = plain loss; fork teacher loads strictly | same |
-| GPU: NVRTC K=16 vs reference; w80 CUDA vs CPU | pending until the 8k run releases the GPU | [check-gpu.json](../artifacts/expertium-catch-up/check-gpu.json) |
-| Speed: w80 vs w32 short R01 runs | pending | [speed-20261014](../artifacts/expertium-catch-up/speed-20261014) |
+| GPU: NVRTC K=16 vs the PyTorch reference recurrence | float32 forward 9.3e-8, gradients 2.0e-7 (K=32 control 1.8e-7 / 1.5e-7); BF16 3.0e-3 / 4.2e-3; w80, w80-sequential, w64 run on CUDA with finite losses and gradients | [check-gpu.json](../artifacts/expertium-catch-up/speed-20261014/check-gpu.json) |
+| Speed: short R01 runs, same 160 users (12.4M reviews) | see Measurements | [speed-20261014](../artifacts/expertium-catch-up/speed-20261014/summary.md) |
 
 Commands: `.venv/Scripts/python.exe scripts/check_expertium_catch_up.py` (CPU, about 25 s); `scripts/check_expertium_gpu.py` and `scripts/expertium_speed.py case --out artifacts/expertium-catch-up/speed-20261014 --case <name>` through the queue.
+
+## Measurements (2026-10-14, RTX 5080 16 GB, shared machine)
+
+Speed, one pass over the same 160 stratified training users (12,406,383 reviews), no evaluation. Reviews/s is training reviews over training seconds. Machine CPU seconds cover every process on the machine over the case and include other agents' work, so they are indicative only. The width-32-only kernels (`row_tiles_exact`, `native_wkv`, `wkv_tile`, `exact_index`, `skip_padding_sources`, `native_index`, `prefetch_rows`, `native_glue`, `exact_group_norm`, `native_group_norm`) are dropped in every "generic" case.
+
+| Case | Parameters | Options | Reviews/s | Training s | Peak allocated MiB | Machine CPU s |
+|---|---:|---|---:|---:|---:|---:|
+| w32-generic | 192,800 | accepted minus width-32 kernels | 119,308 | 104.0 | 9,194 | 764 |
+| w32-variant | 192,800 | same, through the variant class | 127,866 | 97.0 | 9,196 | 693 |
+| w32-kd | 192,800 | accepted + 2.76M teacher online | 113,121 | 109.7 | 9,491 | 782 |
+| w64 (s64h, interleaved, first implementation) | 331,511 | generic | 16,050 | 773.0 | 13,241 | 3,704 |
+| w80, w80-sequential, w80 + Muon | 558,209 | generic, 512 chunks | CUDA out of memory at 65,536 reviews per update | — | — | — |
+
+Pending in a queued follow-up job (`artifacts/expertium-catch-up/jobs/speed2.sh`): w32 with the accepted kernels (the first attempt failed on a missing native-extension cache in the worktree), w64 after the fused interleave gather/scatter (`w64-r2`), w64-sequential, w80 and w80-sequential at 256 chunks (32,768 reviews per update, a disclosed schedule change), the w32 control at 256 chunks, and the GPU bitwise check of the accepted track against the same track through `"architecture": "iter36"`. The first w64 measurement used one out-of-place copy of the whole canonical tensor per split and layer, now one per (stream, layer) step.
+
+Decay-only, 0.25 epoch (145,578,259 reviews, 1,991 users, 3,460 updates, 823 s, 176,906 reviews/s) from the 8k run's epoch-10 weights and AdamW state, `one_minus_sin` from 7e-4 to 0, scored on the run's 300 quick-validation users ([summary](../artifacts/expertium-catch-up/decay-8k-e10-q25/summary.md)). The control is epoch 10's own scores for the same users. The decayed model also saw 0.25 epoch more data; a whole constant-LR epoch moved these users by about 0.0001-0.0004 between epochs 7 and 8.
+
+| Model | Benchmark curve LogLoss (weighted / user avg) | Benchmark instant LogLoss (weighted / user avg) | R01 curve / instant (label-weighted) |
+|---|---|---|---|
+| epoch 10 (control) | 0.36128 / 0.33635 | 0.34473 / 0.31055 | 0.36039 / 0.34492 |
+| + 0.25-epoch decay | 0.35906 / 0.33456 | 0.34327 / 0.30924 | 0.35808 / 0.34327 |
+
+Paired per-user benchmark LogLoss, decayed minus control: curve -0.00180 (SE 0.00027, 211/300 users improved), instant -0.00131 (SE 0.00012, 225/300 improved). This is a 300-user screen; the 2,000-user evaluation of the decayed checkpoint (about 100 min) is a separate proposal.
+
+## Operational notes
+
+- Worktrees: the queue runs commands from the main checkout's directory, so queue jobs here go through `artifacts/expertium-catch-up/jobs/*.sh`, which `cd` into the worktree first. The accepted native kernels need `artifacts/cache/r01-native/<build identity>/` in the running checkout (copied from the main checkout; `rwkv/model/native_launch.py` verifies the identity).
+- w80 does not fit 65,536 reviews per update in 16 GB with the generic kernels; use `"batch_chunks": 256` and disclose the changed update schedule.
+
