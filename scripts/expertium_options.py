@@ -184,6 +184,9 @@ class CatchUp:
             raise ValueError(f"Expertium architecture/distillation options do not support {unknown_variant_combo}")
         self.options = options
         self.spec = options.get("architecture")
+        if self.spec is None and options.get("distillation"):
+            # get_loss(kd_mix=...) lives on the variant class; "iter36" is the default model bitwise.
+            self.spec = "iter36"
         if self.spec is not None:
             from expertium.variants import variant
             self.variant = variant(self.spec)

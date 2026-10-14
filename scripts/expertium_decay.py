@@ -9,6 +9,8 @@ reviews, with the learning rate decaying from 7e-4 to 0 over exactly those revie
   prepare --source-run DIR --epoch N --out artifacts/... [--fraction 0.25 --shape one_minus_sin
           --evaluate quick|validation|validation+final_test|none --seed 1 --extra-options JSON]
   run     --out artifacts/...        (one GPU process; submit through scripts/r01_queue.py)
+  auto    <prepare arguments>         (prepare unless --out exists, then run; lets a queued job wait for the epoch)
+  compare --out artifacts/...        (decayed vs the source epoch on the same held-out users; summary.md/json)
 
 The source run directory is only read. Its label database is opened read-only (lock=False) for the benchmark
 metrics. Compare against the source epoch's own scores on the same users (matched control).
@@ -126,9 +128,70 @@ def run(out):
     return gpu_r01_training.run_case(args)
 
 
+def summarize(per_user, users):
+    import numpy as np
+    from scripts.full_run_metrics import aggregate
+    rows = [row for row in per_user if row["user_id"] in users]
+    bench = aggregate(rows)
+    out = {"users": len(rows)}
+    for head, key in (("ahead", "curve"), ("instant", "instant")):
+        out[f"benchmark_{key}_logloss_weighted"] = bench.get(head, {}).get("LogLoss", {}).get("weighted")
+        out[f"benchmark_{key}_logloss_user_average"] = bench.get(head, {}).get("LogLoss", {}).get("user_average")
+        labels = np.array([row[f"{key}_labels"] for row in rows], dtype=float)
+        losses = np.array([row[f"{key}_log_loss"] for row in rows], dtype=float)
+        out[f"r01_{key}_logloss_label_weighted"] = float((losses * labels).sum() / labels.sum())
+    return out
+
+
+def compare(out):
+    decay = json.loads((out / "decay.json").read_text())
+    result = json.loads((out / MODEL / decay["track"] / "result.json").read_text())
+    source = json.loads((Path(decay["source_case"]) / "result.json").read_text())
+    users = {row["user_id"] for row in result["per_user"]}
+    by_user = {row["user_id"]: row for row in source["per_user"]}
+    missing = sorted(users - set(by_user))
+    if missing:
+        raise RuntimeError(f"Source epoch has no scores for {len(missing)} evaluated users")
+    summary = {"decayed": summarize(result["per_user"], users), "source_epoch": summarize(source["per_user"], users),
+               "reviews_per_second": result.get("reviews_per_second"), "training_seconds": result.get("training_seconds"),
+               "updates": result.get("updates"), "training_reviews": result.get("review_presentations"),
+               "provenance_commit": (result.get("provenance") or {}).get("commit")}
+    deltas = {}
+    for key in ("curve", "instant"):
+        paired = [(row["benchmark"]["ahead" if key == "curve" else "instant"]["LogLoss"],
+                   by_user[row["user_id"]]["benchmark"]["ahead" if key == "curve" else "instant"]["LogLoss"])
+                  for row in result["per_user"]
+                  if ("ahead" if key == "curve" else "instant") in row.get("benchmark", {})
+                  and ("ahead" if key == "curve" else "instant") in by_user[row["user_id"]].get("benchmark", {})]
+        import numpy as np
+        diff = np.array([a - b for a, b in paired])
+        deltas[key] = {"users": len(diff), "mean_user_delta": float(diff.mean()),
+                       "standard_error": float(diff.std(ddof=1) / np.sqrt(len(diff))), "users_improved": int((diff < 0).sum())}
+    summary["paired_benchmark_logloss_delta_decayed_minus_source"] = deltas
+    (out / "summary.json").write_text(json.dumps(summary, indent=1) + "\n", encoding="utf-8")
+    d, c = summary["decayed"], summary["source_epoch"]
+    lines = [f"# Decay-only from epoch {decay['source_epoch']} ({decay['fraction_of_epoch_reviews']} epoch, {decay['lr']})", "",
+             f"{d['users']} held-out users ({decay['evaluation_set']}); control = the source epoch's scores of the same users.", "",
+             "| | Benchmark curve LogLoss (weighted / user avg) | Benchmark instant LogLoss (weighted / user avg) | R01 curve / instant (label-weighted) |",
+             "|---|---|---|---|"]
+    for name, row in (("source epoch", c), ("decayed", d)):
+        lines.append(f"| {name} | {row['benchmark_curve_logloss_weighted']:.5f} / {row['benchmark_curve_logloss_user_average']:.5f} | "
+                     f"{row['benchmark_instant_logloss_weighted']:.5f} / {row['benchmark_instant_logloss_user_average']:.5f} | "
+                     f"{row['r01_curve_logloss_label_weighted']:.5f} / {row['r01_instant_logloss_label_weighted']:.5f} |")
+    lines += ["", f"Paired per-user benchmark LogLoss delta (decayed - source): curve {deltas['curve']['mean_user_delta']:+.5f} "
+              f"(SE {deltas['curve']['standard_error']:.5f}, {deltas['curve']['users_improved']}/{deltas['curve']['users']} improved); "
+              f"instant {deltas['instant']['mean_user_delta']:+.5f} (SE {deltas['instant']['standard_error']:.5f}, "
+              f"{deltas['instant']['users_improved']}/{deltas['instant']['users']} improved).",
+              f"Training: {summary['training_reviews']:,} reviews in {summary['training_seconds']:.0f} s, "
+              f"{summary['reviews_per_second']:,.0f} reviews/s, {summary['updates']} updates."]
+    (out / "summary.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
+    print("\n".join(lines))
+    return 0
+
+
 def main():
     parser = ArgumentParser(description=__doc__)
-    parser.add_argument("command", choices=("prepare", "run"))
+    parser.add_argument("command", choices=("prepare", "run", "auto", "compare"))
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--source-run", type=Path)
     parser.add_argument("--epoch", type=int)
@@ -142,12 +205,17 @@ def main():
     out = (ROOT / args.out).resolve()
     if not out.is_relative_to(ROOT / "artifacts"):
         parser.error("--out must be under this checkout's artifacts/")
-    if args.command == "prepare":
+    if args.command == "compare":
+        return compare(out)
+    if args.command in ("prepare", "auto") and not (args.command == "auto" and out.exists()):
         if args.source_run is None or args.epoch is None or not 0 < args.fraction <= 1:
             parser.error("prepare needs --source-run, --epoch and 0 < --fraction <= 1")
-        return prepare(args.source_run.resolve(), args.epoch, out, args.fraction, args.shape, args.evaluate, args.seed,
+        code = prepare(args.source_run.resolve(), args.epoch, out, args.fraction, args.shape, args.evaluate, args.seed,
                        args.extra_options, args.final)
-    return run(out)
+        if args.command == "prepare" or code:
+            return code
+    code = run(out)
+    return code or compare(out)
 
 
 if __name__ == "__main__":
