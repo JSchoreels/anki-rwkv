@@ -143,24 +143,29 @@ def main():
     parser.add_argument("--seed", type=int, default=2025)
     parser.add_argument("--save-every", type=float, default=900, help="checkpoint every N training seconds")
     parser.add_argument("--out", required=True)
+    parser.add_argument("--device", choices=("cuda", "cpu"), default="cuda", help="cpu: code-path test only")
     args = parser.parse_args()
 
-    from rwkv.model.nvrtc import register
-    register()
+    cpu = args.device == "cpu"
+    if cpu:
+        torch.set_num_threads(2)
+    else:
+        from rwkv.model.nvrtc import register
+        register()
     from scripts.experiment_provenance import process_provenance
 
     out = ROOT / args.out
     out.mkdir(parents=True, exist_ok=True)
     prov = process_provenance()
     torch.manual_seed(args.seed)
-    device = torch.device("cuda")
+    device = torch.device(args.device)
     run = cc.run_info()
     users = sorted(cc.outside_fork_range(run["train_users"]))
     counts = run["review_counts"]
     group = args.group or None
     init = torch.load(args.init, map_location="cpu", weights_only=True)
-    master = cq.load_model(state={k: v.float() for k, v in init.items()}, reference_wkv=False).to(device)
-    child = cq.load_model(state={k: v.float() for k, v in init.items()}, reference_wkv=False)
+    master = cq.load_model(state={k: v.float() for k, v in init.items()}, reference_wkv=cpu).to(device)
+    child = cq.load_model(state={k: v.float() for k, v in init.items()}, reference_wkv=cpu)
     child = child.selective_cast(torch.bfloat16).to(device)
     qnames = set(cq.linear_weight_names(master))
     optimizer = get_optimizer(master, args.lr)
@@ -171,7 +176,7 @@ def main():
     loader = torch.utils.data.DataLoader(
         SegmentBatches(users, counts, cc.data_path(run), args.segment, args.batch_reviews, args.users_per_pool,
                        args.seed),
-        batch_size=None, num_workers=args.workers, prefetch_factor=2, persistent_workers=False)
+        batch_size=None, num_workers=args.workers, prefetch_factor=2 if args.workers else None)
     log = (out / "steps.jsonl").open("a", encoding="utf-8")
     train_seconds = 0.0
     wait_seconds = 0.0
@@ -218,7 +223,8 @@ def main():
                 raise
         optimizer.zero_grad(set_to_none=True)
         child.zero_grad(set_to_none=True)
-        torch.cuda.synchronize()
+        if not cpu:
+            torch.cuda.synchronize()
         dt = time.perf_counter() - t0
         if step > 0:  # the first step includes kernel compilation
             train_seconds += dt + wait
@@ -238,7 +244,7 @@ def main():
             print(f"[qat] step {step} lr {lr:.2e} loss {sum(r['loss'] for r in recent) / max(1, len(recent)):.4f} "
                   f"ahead {sum(r['ahead'] for r in recent) / max(1, len(recent)):.4f} | train {train_seconds:.0f}s "
                   f"wait {wait_seconds:.0f}s | {reviews / max(train_seconds, 1e-9):,.0f} reviews/s | "
-                  f"peak {torch.cuda.max_memory_reserved() / 2**20:,.0f} MiB", flush=True)
+                  f"peak {(0 if cpu else torch.cuda.max_memory_reserved()) / 2**20:,.0f} MiB", flush=True)
         done = train_seconds >= args.time_budget or (args.max_steps and step >= args.max_steps)
         if done or train_seconds - last_save >= args.save_every:
             last_save = train_seconds
@@ -250,7 +256,7 @@ def main():
     summary = {"steps": step, "train_seconds": round(train_seconds, 1), "loader_wait_seconds": round(wait_seconds, 1),
                "wall_seconds": round(time.perf_counter() - started, 1), "reviews": reviews, "curve_labels": labels,
                "reviews_per_second": round(reviews / max(train_seconds, 1e-9), 1),
-               "peak_reserved_mib": round(torch.cuda.max_memory_reserved() / 2**20), "oom_skipped_batches": ooms,
+               "peak_reserved_mib": round((0 if cpu else torch.cuda.max_memory_reserved()) / 2**20), "oom_skipped_batches": ooms,
                "finished_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())}
     (out / "summary.json").write_text(json.dumps(summary, indent=1))
     print(f"[qat] done {summary}", flush=True)
