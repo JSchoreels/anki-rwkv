@@ -8,7 +8,7 @@ Input: the finished ticket ids (printed by `scripts/r01_queue_wait.py`). Each ti
 
 Mark each item `ok`, `VIOLATION` (with evidence) or `n/a`.
 
-1. **Lane.** If the job measured speed (reviews/s, timing, benchmark in its purpose, command or outputs), its record has `"timing": true`. Accuracy jobs need no flag.
+1. **Lane.** If the job measured speed (reviews/s, timing, benchmark in its purpose, command or outputs), its record has `"timing": true`. Accuracy jobs need no flag, even when they log throughput in passing (for example a QAT or training run's reviews/s). That figure is then not a speed result: mark the lane `ok` and check that no handoff or doc quotes it as one.
 2. **Quiet window.** A timing job's `started` (UTC; convert to local time) and its finish time fall outside every window in `artifacts/coordination/queue/quiet.json`. If not, its reviews/s must not be quoted.
 3. **Expected minutes.** The record has `expected_minutes`, and the real run time (finish − `started`) is at most about 1.5× that. Flag large overruns, since they break the quiet-window planning.
 4. **Exit code.** The job exited 0. If not, check that the follow-up handles it (re-queue or explanation).
