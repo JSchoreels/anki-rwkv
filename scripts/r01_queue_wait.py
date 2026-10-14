@@ -49,7 +49,10 @@ def finished_since(offset):
 
 
 def label(ticket):
-    return f"{ticket} (removed: cancelled or stale)" if (STALE / f"{ticket}.json").exists() else ticket
+    # a finished run can race a sweep that also files it under stale/, so history wins
+    if ticket in finished_since(0)[0] or not (STALE / f"{ticket}.json").exists():
+        return ticket
+    return f"{ticket} (removed: cancelled or stale)"
 
 
 def main():
