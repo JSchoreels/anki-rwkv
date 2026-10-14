@@ -524,6 +524,11 @@ def run_command(command, heartbeat=60.0, record=None):
         raise SystemExit("[queue] run needs a command after --")
     local = ROOT / command[0]
     executable = str(local) if local.is_file() else shutil.which(command[0]) or command[0]
+    if os.name == "nt" and Path(executable).name.lower() in ("bash", "bash.exe") and "system32" in executable.lower():
+        # a shell without Git Bash on PATH resolves "bash" to the WSL launcher, which fails with no distribution installed
+        git_bash = Path(os.environ.get("ProgramFiles", r"C:\Program Files")) / "Git" / "usr" / "bin" / "bash.exe"
+        if git_bash.is_file():
+            executable = str(git_bash)
     if executable.lower().endswith(".py"):
         command = [sys.executable, executable, *command[1:]]
     else:
