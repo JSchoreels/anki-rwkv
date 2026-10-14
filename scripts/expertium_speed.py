@@ -7,6 +7,7 @@ evaluation; only the track options differ. Reviews/s is training review presenta
 
   prepare --out artifacts/expertium-catch-up/speed-<date> [--users 120 --seed 20261014]
   case    --out DIR --case NAME           (one GPU process per case; run through scripts/r01_queue.py)
+  all     --out DIR [--cases a,b,...] [--budget-minutes 55]   (GPU check, then each case in a fresh process)
   report  --out DIR
 
 Cases (each a set of overrides on the accepted track E89-F65e-F77a of plan iteration-0090):
@@ -146,19 +147,53 @@ def report(out):
     return 0
 
 
+ORDER = ("w32", "w80-sequential", "w80", "w32-generic", "w32-variant", "w80-muon", "w32-kd")
+
+
+def run_all(out, names, budget_minutes):
+    """One queue job: the GPU parity check, then cases in order until the time budget would be exceeded."""
+    import subprocess
+    started = time.perf_counter()
+    log = out / "all.log"
+
+    def note(text):
+        with log.open("a", encoding="utf-8") as handle:
+            print(text, file=handle)
+        print(text, flush=True)
+
+    check = subprocess.call([sys.executable, "-X", "utf8", str(ROOT / "scripts/check_expertium_gpu.py"),
+                             "--output", str(out / "check-gpu.json")], cwd=ROOT)
+    note(f"check_expertium_gpu exit {check}")
+    for name in names:
+        elapsed = (time.perf_counter() - started) / 60
+        if (out / name).exists():
+            continue
+        if elapsed > budget_minutes:
+            note(f"budget reached at {elapsed:.1f} min; not started: {name}")
+            continue
+        code = subprocess.call([sys.executable, "-X", "utf8", str(Path(__file__)), "case", "--out", str(out),
+                                "--case", name], cwd=ROOT)
+        note(f"{name} exit {code} after {(time.perf_counter() - started) / 60:.1f} min")
+    return report(out)
+
+
 def main():
     parser = ArgumentParser(description=__doc__)
-    parser.add_argument("command", choices=("prepare", "case", "report"))
+    parser.add_argument("command", choices=("prepare", "case", "report", "all"))
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--case")
     parser.add_argument("--users", type=int, default=120)
     parser.add_argument("--seed", type=int, default=20261014)
+    parser.add_argument("--cases", default=",".join(ORDER))
+    parser.add_argument("--budget-minutes", type=float, default=50)
     args = parser.parse_args()
     out = (ROOT / args.out).resolve()
     if args.command == "prepare":
         return prepare(out, args.users, args.seed)
     if args.command == "case":
         return run_case(out, args.case)
+    if args.command == "all":
+        return run_all(out, args.cases.split(","), args.budget_minutes)
     return report(out)
 
 
