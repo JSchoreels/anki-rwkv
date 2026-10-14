@@ -46,6 +46,8 @@ def cases():
     return {"w32": accepted, "w32-generic": generic, "w32-variant": {**generic, "architecture": "iter36"},
             "w80-sequential": {**generic, "architecture": "w80-sequential"}, "w80": {**generic, "architecture": "w80"},
             "w64": {**generic, "architecture": "w64"}, "w64-sequential": {**generic, "architecture": "w64-sequential"},
+            # Same options as w64, measured after the fused per-(stream, layer) interleave gather/scatter.
+            "w64-r2": {**generic, "architecture": "w64"},
             # d=80 runs out of the 16 GB at 512 chunks (65,536 reviews per update): half-size updates, disclosed.
             "w80-b256": {**generic, "architecture": "w80", "batch_chunks": 256},
             "w80-sequential-b256": {**generic, "architecture": "w80-sequential", "batch_chunks": 256},

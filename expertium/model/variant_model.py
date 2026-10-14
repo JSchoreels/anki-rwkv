@@ -269,18 +269,33 @@ class VariantSrsRWKV(SrsRWKV):
             positions.append(stream_positions)
             targets.append(stream_targets)
             cur = torch.cat(parts)
+        # The splits of one stream hold disjoint entities, so their canonical rows are disjoint: one gather and one
+        # scatter per (stream, layer) step serve every split (same values as per-split gathers and scatters).
+        fused_gather, fused_sizes, fused_positions, fused_targets = [], [], [], []
+        for i in range(len(gathers)):
+            sizes = [canonical.numel() for canonical in gathers[i]]
+            offsets = [0]
+            for size in sizes[:-1]:
+                offsets.append(offsets[-1] + size)
+            fused_gather.append(torch.cat(gathers[i]).clamp(min=0))
+            fused_sizes.append(sizes)
+            fused_positions.append(torch.cat([keep + offset for keep, offset in zip(positions[i], offsets)]))
+            fused_targets.append(torch.cat(targets[i]))
         v0s = [[None] * len(splits) for splits in batch_sub_gather]
         for i, layer in self.layer_steps:
             # Scripted ModuleLists have no Python indexing; children are named by position.
             block = getattr(getattr(self.rwkv_modules, str(i)).blocks, str(layer))
-            for s, canonical in enumerate(gathers[i]):
+            inputs = x.index_select(0, fused_gather[i]).split(fused_sizes[i])
+            outputs = []
+            for s, x_split in enumerate(inputs):
                 length = batch_sub_gather_lens[i][s]
-                x_in = x.index_select(0, canonical.clamp(min=0)).view(-1, length, self.d_model)
+                x_in = x_split.view(-1, length, self.d_model)
                 v0_in = torch.empty_like(x_in) if layer == 0 else v0s[i][s]
                 x_out, v0s[i][s] = block.forward(x_in, v0_in, batch_time_shift_selects[i][s].view(-1, length),
                                                  batch_skips[i][s].view(-1, length))
-                flat = x_out.reshape(-1, self.d_model)
-                x = x.index_copy(0, targets[i][s], flat.index_select(0, positions[i][s]))
+                outputs.append(x_out.reshape(-1, self.d_model))
+            flat = torch.cat(outputs)
+            x = x.index_copy(0, fused_targets[i], flat.index_select(0, fused_positions[i]))
         return x
 
     @FunctionType
