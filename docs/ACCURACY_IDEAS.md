@@ -3,6 +3,7 @@
 The persistent list of model-quality ideas for the [accuracy loop](ACCURACY_LOOP.md); results are recorded chronologically in the [accuracy log](ACCURACY_LOG.md). Speed and GPU-efficiency tracks stay in [GPU_OPTIMIZATIONS.md](GPU_OPTIMIZATIONS.md). Rules, as in [AGENT.md](../AGENT.md): every idea keeps a stable ID and stays listed whatever its outcome; unmeasured values are `—`; a row's status changes only with evidence from a recorded experiment (link it).
 
 Statuses: `pending` (no experiment yet), `blocked` (waits for a hook or a sibling branch), `screened` (screen tier run, not dropped), `dropped at screen`, `gate pending`, `promoted` (passed the gate), `rejected at gate`, `final`. Tier: the cheapest tier whose verdict counts for this idea (capacity and size changes always need the gate, see [promotion rules](ACCURACY_LOOP.md#promotion-rules)).
+Screening follows the [adopted protocol](ACCURACY_LOOP.md#seed-noise-band) (2026-10-14): paired, k = 3 order seeds, a consistent sign and a mean beyond 2 × sigma × √2 / √k; a single-run screen is only a pre-filter, so a screen delta inside the band is "inconclusive".
 
 ## Ideas
 

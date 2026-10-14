@@ -121,3 +121,7 @@ Decision rule: A08 holds if all three decays beat `fullrun-e10` on both heads an
 **Screening implication** (written into ACCURACY_LOOP.md as a recommendation): single-run screens cannot resolve gains below about 0.006 curve / 0.003 instant; use paired continuations or average several order seeds. The user decides.
 
 Runbook note: queue tickets in runbooks now need `--expected-minutes` (see the 20:45 note).
+
+## Adopted screening protocol (2026-10-14, user decision)
+
+The A15 recommendation is adopted: screens are paired (shared init and order seed, per-user paired delta) and averaged over k = 3 order seeds. Promote only on a consistent sign across all k and |mean| > 2 × sigma × √2 / √k (about 0.0036 curve / 0.0016 instant at k = 3). k = 1 is a pre-filter only (drop if clearly worse than 0.0062 / 0.0027, never promote). Baselines `screen-w32-s2025`, `-o1`, `-o2` are reused. New command `accuracy_loop.py screen CAND=BASE ...` (smoke-checked on the A15 runs). Details in ACCURACY_LOOP.md "Seed-noise band". A08's pending test (000330/000331) already follows this design.
