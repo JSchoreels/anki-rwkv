@@ -329,33 +329,49 @@ QUIET = COORDINATION / "queue" / "quiet.json"
 DEFAULT_EXPECTED_MINUTES = 60.0
 
 
-def _quiet_block(me):
-    """Reason the ticket must not start now because of a GPU quiet window, else None.
+def _quiet_windows():
+    """Valid windows of quiet.json as (start, end, entry) in naive local time; anything malformed is ignored."""
+    try:
+        windows = json.loads(QUIET.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return []
+    found = []
+    for window in windows if isinstance(windows, list) else []:
+        try:
+            start, end = (datetime.fromisoformat(window[key]) for key in ("start", "end"))
+        except (KeyError, TypeError, ValueError):
+            continue
+        start, end = (moment.astimezone().replace(tzinfo=None) if moment.tzinfo else moment for moment in (start, end))
+        if end > start:
+            found.append((start, end, window))
+    return found
+
+
+def _quiet_hit(me):
+    """(reason, window end) when a GPU quiet window holds the ticket back now, else None.
 
     queue/quiet.json holds [{"start": "2026-10-14T21:00", "end": "2026-10-15T01:00", "reason": "..."}] in local time.
     A ticket does not start inside a window, nor when its expected end (--expected-minutes, default 60) would
     reach into one. A window with "scope": "timing" only holds tickets run with --timing (speed benchmarks, which
     other load on the PC would invalidate); other GPU jobs run through it. Running jobs are never interrupted.
     Delete the file or the entry to lift a window early."""
-    try:
-        windows = json.loads(QUIET.read_text(encoding="utf-8"))
-    except (OSError, ValueError):
-        return None
     if not me.get("claims") or "gpu" not in me["claims"]:
         return None
     timing = bool(me.get("timing"))
     now = datetime.now()
     expected = timedelta(minutes=me.get("expected_minutes") or DEFAULT_EXPECTED_MINUTES)
-    for window in windows:
-        try:
-            start, end = datetime.fromisoformat(window["start"]), datetime.fromisoformat(window["end"])
-        except (KeyError, ValueError):
-            continue
+    for start, end, window in _quiet_windows():
         if window.get("scope", "all") == "timing" and not timing:
             continue  # the user is using the PC: accuracy jobs may run, only speed measurements would be invalid
         if now < end and now + expected > start:
-            return f"GPU quiet window {window['start']} to {window['end']} ({window.get('reason', 'no reason given')})"
+            return f"GPU quiet window {window['start']} to {window['end']} ({window.get('reason', 'no reason given')})", end
     return None
+
+
+def _quiet_block(me):
+    """Reason the ticket must not start now because of a GPU quiet window, else None."""
+    hit = _quiet_hit(me)
+    return hit[0] if hit else None
 
 
 def _try_start(me):
@@ -393,7 +409,8 @@ def _describe(record, now=None):
         age = _duration((now - datetime.fromisoformat(since)).total_seconds())
         return f"{record['ticket']} running {age} ({record.get('owner')}: {record.get('purpose')})"
     if state == "waiting":
-        return f"{record['ticket']} waiting ({record.get('owner')}: {record.get('purpose')})"
+        flags = (", timing" if record.get("timing") else "") + (f", expected {record['expected_minutes']:g} min" if record.get("expected_minutes") else "")
+        return f"{record['ticket']} waiting{flags} ({record.get('owner')}: {record.get('purpose')})"
     return f"{record['ticket']} reserved until {record.get('expires')} ({record.get('owner')}: {record.get('purpose')})"
 
 
@@ -435,8 +452,11 @@ def hold(owner, purpose, claims, heartbeat=60.0, max_wait_minutes=None, ticket=N
             live = sweep()
             if not me["_path"].exists():
                 _cancelled_exit(me, waiting_since)
-            blockers, outside = _blockers(me, live), _outside_holders(me)
-            quiet = None if blockers or outside else _quiet_block(me)
+            # A waiting ticket that a quiet window holds back must not hold up tickets the window lets through.
+            blockers = [other for other in _blockers(me, live) if not (other.get("state") == "waiting" and _quiet_block(other))]
+            outside = _outside_holders(me)
+            hit = None if blockers or outside else _quiet_hit(me)
+            quiet = hit[0] if hit else None
             if quiet and (last_line is None or time.monotonic() - last_line >= heartbeat):
                 print(f"[queue] {me['ticket']} waiting: {quiet}", flush=True)
             started = False if blockers or outside or quiet else _try_start(me)
@@ -464,6 +484,8 @@ def hold(owner, purpose, claims, heartbeat=60.0, max_wait_minutes=None, ticket=N
                 _write_ticket(me)
                 last_beat = now
             timeout = heartbeat if deadline is None else max(0.05, min(heartbeat, deadline - now))
+            if hit:  # wake when the window ends, not up to a heartbeat later
+                timeout = max(0.05, min(timeout, (hit[1] - datetime.now()).total_seconds() + 0.2))
             watcher.wait(timeout)
 
 
@@ -530,11 +552,9 @@ def run_command(command, heartbeat=60.0, record=None):
 # ----------------------------------------------------------------------------- commands
 
 def status():
-    try:
-        for window in json.loads(QUIET.read_text(encoding="utf-8")):
+    for start, end, window in _quiet_windows():
+        if end > datetime.now():
             print(f"[queue] GPU quiet window ({window.get('scope', 'all')}) {window.get('start')} to {window.get('end')}: {window.get('reason', '')}")
-    except (OSError, ValueError):
-        pass
     _ensure_dirs()
     now = _utc()
     live = sweep()

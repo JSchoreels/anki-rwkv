@@ -5,6 +5,7 @@ concurrency of disjoint claims, event-driven wake-up (well under the 30 s heartb
 outside the queue, reservations, give-up exit codes, cancellation, and cancellation of a waiting wrapper (it must exit without running).
 """
 from argparse import ArgumentParser
+from datetime import datetime, timedelta, timezone
 import json
 import os
 from pathlib import Path
@@ -19,6 +20,7 @@ from scripts.experiment_provenance import process_provenance  # noqa: E402
 PYTHON = sys.executable
 QUEUE = str(ROOT / "scripts" / "r01_queue.py")
 CLAIM = str(ROOT / "scripts" / "r01_claim.py")
+WAIT = str(ROOT / "scripts" / "r01_queue_wait.py")
 CHILD = (
     "import sys, time\n"
     "log, name, seconds = sys.argv[1], sys.argv[2], float(sys.argv[3])\n"
@@ -193,6 +195,66 @@ def check_give_up_and_claim_run(h, report):
     report["give_up"] = {"exit_code": 75, "claim_run_wake_s": round(wake, 3)}
 
 
+def check_quiet_windows(h, report):
+    """Regression (2026-10-14): quiet windows hold gpu tickets, a scoped window lets other tickets pass the held head, bad files are ignored."""
+    os.environ["R01_COORDINATION_ROOT"] = str(h.root)  # before the import: the queue module reads it once
+    from scripts import r01_queue as Q
+
+    quiet = h.root / "queue" / "quiet.json"
+    assert Q.QUIET == quiet, "the check must not touch the live quiet.json"
+    now = datetime.now()
+    stamp = lambda moment: moment.isoformat(timespec="seconds")
+    gpu = {"claims": ["gpu"], "expected_minutes": 10}
+
+    def held(me, *windows, raw=None):
+        quiet.write_text(raw if raw is not None else json.dumps(list(windows)), encoding="utf-8")
+        return Q._quiet_block(me) is not None
+
+    window = {"start": stamp(now + timedelta(minutes=30)), "end": stamp(now + timedelta(minutes=90))}
+    assert not held({**gpu, "expected_minutes": 29}, window) and held({**gpu, "expected_minutes": 31}, window), "expected end must reach into the window to be held"
+    assert held(gpu, {"start": stamp(now - timedelta(minutes=5)), "end": stamp(now + timedelta(minutes=5))}), "inside a window"
+    assert not held(gpu, {"start": stamp(now - timedelta(hours=3)), "end": stamp(now - timedelta(hours=2))}), "past window"
+    assert not held({"claims": ["ledger"]}, {"start": stamp(now - timedelta(minutes=5)), "end": stamp(now + timedelta(minutes=5))}), "only gpu tickets are held"
+    inside = {"start": stamp(now - timedelta(minutes=5)), "end": stamp(now + timedelta(minutes=5))}
+    assert not held(gpu, {**inside, "scope": "timing"}) and held({**gpu, "timing": True}, {**inside, "scope": "timing"}), "scope timing"
+    assert held(gpu, {**inside, "start": stamp(now - timedelta(minutes=1))}, {"start": "nope", "end": "x"}, inside), "a bad entry must not hide a good one"
+    aware = datetime.now(timezone.utc)
+    assert held(gpu, {"start": (aware - timedelta(minutes=5)).isoformat(timespec="seconds"), "end": (aware + timedelta(minutes=5)).isoformat(timespec="seconds")}), "timezone-aware window"
+    for raw in ("", "{", "{}", '{"start": "a"}', "[1, null, \"x\"]", '[{"start": "2026-10-14T21:00"}]', json.dumps([{"start": inside["end"], "end": inside["start"]}])):
+        assert not held(gpu, raw=raw), f"malformed quiet.json must be ignored: {raw!r}"
+    Q.status()  # must not crash on the last (inverted) file
+
+    # live: a held timing ticket at the head must not hold up a later non-timing ticket
+    quiet.write_text(json.dumps([{"start": stamp(now - timedelta(minutes=1)), "end": stamp(now + timedelta(seconds=9)), "scope": "timing", "reason": "check"}]), encoding="utf-8")
+    end = datetime.fromisoformat(json.loads(quiet.read_text(encoding="utf-8"))[0]["end"]).timestamp()
+    h.run("T", 0.2, ["gpu"], extra=["--timing", "--expected-minutes", "5"])
+    deadline = time.monotonic() + 10
+    while not any(name.endswith("-T.json") for name in h.tickets()) and time.monotonic() < deadline:
+        time.sleep(0.05)
+    time.sleep(0.5)
+    h.run("N", 0.2, ["gpu"])
+    h.wait("N")
+    started_n = h.events()[("N", "start")]
+    assert started_n < end, "a non-timing ticket must run through a timing window, even behind a held timing ticket"
+    assert ("T", "start") not in h.events(), "a timing ticket must wait for the window to end"
+    h.wait("T", timeout=30)
+    late = h.events()[("T", "start")] - end
+    assert -0.5 <= late < WAKE_LIMIT, f"the held ticket should start right after the window ends, not a heartbeat later: {late}"
+    quiet.unlink()
+    report["quiet_windows"] = {"non_timing_ran_before_window_end": True, "timing_start_after_window_end_s": round(late, 3)}
+
+
+def check_wait_script(h, report):
+    """r01_queue_wait.py in follow mode reports a ticket that came and went between two polls, and exits once per finish."""
+    watcher = subprocess.Popen([PYTHON, WAIT, "--interval", "30"], cwd=ROOT, env=h.env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, encoding="utf-8")
+    time.sleep(1.0)
+    h.run("W", 0.1, ["ledger"])
+    h.wait("W")
+    output, _ = watcher.communicate(timeout=40)  # the 30 s poll sees only the history line, never the ticket
+    assert "finished:" in output and "-W" in output, output
+    report["wait_script"] = output.strip().splitlines()
+
+
 def main():
     parser = ArgumentParser(description=__doc__)
     parser.add_argument("--output", type=Path, required=True)
@@ -204,7 +266,7 @@ def main():
     h = Harness(output)
     report = {"provenance": process_provenance(), "wake_limit_s": WAKE_LIMIT}
     started = time.monotonic()
-    for check in (check_fifo_and_wake, check_outside_holder, check_stale_ticket, check_reservation_and_cancel, check_cancel_waiting_wrapper, check_give_up_and_claim_run):
+    for check in (check_fifo_and_wake, check_outside_holder, check_stale_ticket, check_reservation_and_cancel, check_cancel_waiting_wrapper, check_give_up_and_claim_run, check_quiet_windows, check_wait_script):
         print(f"[check] {check.__name__}", flush=True)
         check(h, report)
     status = h.command("status").stdout
