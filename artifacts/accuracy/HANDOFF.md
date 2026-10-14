@@ -8,6 +8,8 @@ Branch `accuracy-loop` (merged into main at 26f2cb7). Rules: [docs/ACCURACY_LOOP
 |---|---|---|---|
 | 000316 | A15: train `screen-w32-s2025-o1` and `-o2` (seed 2025, order seeds 1 and 2), then registers the third-seed training `screen-w32-s2027`, then one fast eval of all three, collections, reports, two `noise` runs | `runbook-2026-10-14b.sh` → `runbook-2026-10-14b-detached.log` | `experiments/screen-w32-s2025-o1`, `-o2`, `screen-w32-s2027`; `noise/screen-w32-s2025--screen-w32-s2026--screen-w32-s2027.json`, `noise/screen-w32-s2025--screen-w32-s2025-o1--screen-w32-s2025-o2.json` |
 | 000317 | A08: fast eval of expertium-catch-up's epoch-10 decay checkpoint (`wt/expertium-catch-up/artifacts/expertium-catch-up/decay-8k-e10-q25/.../master.pth`, read-only) on the 1k screen users, then collection, report, compare vs `fullrun-e10` | `runbook-2026-10-14c.sh` → `runbook-2026-10-14c-detached.log` | `experiments/decay-e10-q25`; `comparisons/decay-e10-q25--vs--fullrun-e10.json` |
+| 000324 | A15 step 2, registered by runbook 14b: train `screen-w32-s2027` (third seed). Finished exit 0 after 13.2 min | `runbook-2026-10-14b-detached.log` | `experiments/screen-w32-s2027` |
+| 000328 | A15 step 3, registered by runbook 14b: one fast eval of `-o1`, `-o2`, `s2027` on the 1k screen users (~19 min). Then the runbook runs the CPU collections, reports and both `noise` runs | `runbook-2026-10-14b-detached.log` | `noise/*.json`, per-experiment eval |
 
 Earlier tickets 000307/000308 were cancelled before running and re-registered as 000316/000317 when the runbooks were detached. Check with `scripts/r01_queue.py status` and `tail` of the logs. If a runbook died, rerun only the missing steps below. Every step is resumable or idempotent.
 
@@ -60,3 +62,7 @@ Own collection, full layout (173,690 reviews), Δ% vs fork RWKV (curve 0.4417, i
 1. When 000324 lands: run the `noise` commands above, fill the Noise bands rows, replace the provisional 0.0004 band in ACCURACY_LOOP.md, and re-judge the A08 gain against it.
 2. Re-baseline the screen with WSD decay (A03) before screening A17 and A01.
 3. `per_user.jsonl` of `decay-e10-q25` stays uncommitted (per-user data); the aggregate comparison JSON is committed.
+
+
+## Note (2026-10-14 20:45)
+The runbook's `q()` does not pass `--expected-minutes`, so its tickets get the default 60 min. Add it in the next runbook. Don't edit runbook-2026-10-14b.sh while it runs, because bash reads scripts as it goes.
