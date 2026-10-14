@@ -134,7 +134,7 @@ PROPOSED 2026-10-14, awaiting the human decision; not in force. The exact wordin
 
 - Screening and repeated measurements of new checkpoints: `--mode fast` (default), preferably `--workers 7` (or 10) and `--batch-chunks 1024` when nothing else needs the CPU. Differences to the original are float noise (above), identical for both arms of a comparison run the same way.
 - Numbers that must equal a recorded run bit for bit (parity claims, recorded protocols): `--mode reference`, or `--batch-chunks 8` (exact, 1.34x).
-- Full runs: unchanged unless `run.json` sets `"fast_evaluation": true` (optional `"fast_evaluation_chunks"`, 8 for the exact mode). `run_full_training.write_protocol` then passes `full_run.fast_evaluation`, and `run_case` calls `evaluate_fast` with the run's preparation workers; `validation_input_sha256` is recorded as null in that case. This wiring is checked only by compilation, not by a full-run smoke.
+- Full runs: unchanged unless `run.json` sets `"fast_evaluation": true` (optional `"fast_evaluation_chunks"`, 8 for the exact mode). `run_full_training.write_protocol` then passes `full_run.fast_evaluation`, and `run_case` calls `evaluate_fast` with the run's preparation workers; `validation_input_sha256` is computed by the fast path (`input_hash=True`, measured cost under 1 s on 300 users).
 
 ## CPU collection scorer
 

@@ -857,7 +857,7 @@ def run_case(args):
             per_user, report["fast_evaluation"], _ = evaluate_fast(
                 master, evaluation_rows, ROOT / full_run["benchmark_db"], workers=workers, progress=fast_progress,
                 batch_chunks=int(full_run.get("fast_evaluation_chunks", 512)),
-                db_size=full_run.get("benchmark_db_size", 10_000_000_000))
+                db_size=full_run.get("benchmark_db_size", 10_000_000_000), input_hash=True)
             watch.check()
         with preparation_pool(0 if fast else workers if options.get("parallel_evaluation") else 0) as evaluation_pool:
             if origin is not None:
@@ -903,7 +903,7 @@ def run_case(args):
                     atomic_json(path / "result.json", report)
         progress.end()
         report["validation_seconds"] = time.perf_counter() - eval_started
-        report["validation_input_sha256"] = None if fast else validation_hash.hexdigest()
+        report["validation_input_sha256"] = report["fast_evaluation"]["validation_input_sha256"] if fast else validation_hash.hexdigest()
         if "evaluation_context" not in report:
             report["evaluation_context"] = reuse.evaluation_context(ROOT, report, provenance)
         report["per_user"] = per_user
