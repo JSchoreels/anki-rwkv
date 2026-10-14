@@ -66,3 +66,7 @@ Own collection, full layout (173,690 reviews), Δ% vs fork RWKV (curve 0.4417, i
 
 ## Note (2026-10-14 20:45)
 The runbook's `q()` does not pass `--expected-minutes`, so its tickets get the default 60 min. Add it in the next runbook. Don't edit runbook-2026-10-14b.sh while it runs, because bash reads scripts as it goes.
+
+## Update: A08 promoted (2026-10-14)
+
+User approved promoting A08. Main now has `final_decay_epochs` (default 0.25) in `scripts/run_full_training.py` (merge 1017383; `scripts/check_full_run_decay.py` is the CPU check). Status: promoted, provisional until A15 order band (000328). When 000328 lands, re-judge against the order SD; if the gain is inside the band, set the default to 0 (`FINAL_DECAY_EPOCHS`) and mark A08 accordingly. Next screens should use the cool-down as the baseline (A03 re-baseline).

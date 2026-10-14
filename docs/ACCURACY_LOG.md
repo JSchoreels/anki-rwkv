@@ -17,6 +17,8 @@ Columns: LogLoss, RMSE(bins) and AUC are upstream benchmark metrics on the label
 
 Paired on the 1,000 screen users (review-weighted, 95% user bootstrap): curve −0.00136 [−0.00192, −0.00081], instant −0.00103 [−0.00129, −0.00080]; better for 676 (curve) and 747 (instant) of 1,000 users. `fork_unseen` (464): −0.00152 / −0.00116; `fork_seen` (536): −0.00122 / −0.00093, all intervals exclude 0. Own collection, full layout (173,690 reviews): fullrun-e10 curve 0.4535 (+2.68%), instant 0.4525 (+3.64%); decay-e10-q25 curve 0.4536 (+2.70%), instant 0.4518 (+3.49%), one user, descriptive only. Raw: `artifacts/accuracy/comparisons/decay-e10-q25--vs--fullrun-e10.json`.
 
+**Promotion (user approved 2026-10-14).** A08 is promoted: new full runs end with the 0.25-epoch WSD cool-down (`final_decay_epochs`, default 0.25, `scripts/run_full_training.py`; main merge 1017383, docs in `docs/GPU_TRAINING.md`). The gain stays provisional until the A15 order-noise band (ticket 000328) is measured; if it is inside the band, pass `--final-decay-epochs 0`. No best-checkpoint registry exists; `decay-e10-q25` is the current best full-run result recorded here (checkpoint under `artifacts/accuracy/experiments/decay-e10-q25/`).
+
 ## Noise bands
 
 | Tier | Runs | Metric | Values | Band | Notes |
