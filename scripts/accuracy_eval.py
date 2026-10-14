@@ -12,6 +12,9 @@ stops starting new users after spec["max_minutes"] and exits 3 (incomplete), kee
 
   accuracy_eval.py SPEC_JSON     (written by scripts/accuracy_loop.py evaluate)
 
+spec["mode"] = "fast" (the loop's default since 2026-10-14) delegates to the EV01 fast path in
+scripts/fast_evaluation.py instead: inputs bitwise identical, outputs within FP32 rounding of this reference path.
+
 Hook: spec["evaluator"] = "module:function" replaces the default scorer. It is called as
 function(models, rows, context) and must yield (name, per_user_row) pairs with the same row schema;
 context carries device, label lookup, deadline, done-sets and the spec.
@@ -143,8 +146,48 @@ def default_scorer(models, rows, context):
                              "seconds": round(time.perf_counter() - started, 3), "shared_models": len(todo), **values}
 
 
+FAST_LABEL = "fast (EV01, c6530b9)"
+
+
+def main_fast(spec):
+    """EV01 fast path (scripts/fast_evaluation.py, merged from eval-speed): bitwise-identical inputs, FP32 rounding
+    differences only (aggregate LogLoss within 2e-10 of the reference). One checkpoint at a time; a checkpoint's
+    missing users are scored in one call, so the time budget is checked between checkpoints."""
+    from scripts.fast_evaluation import evaluate_checkpoint
+    started = time.time()
+    deadline = started + 60 * float(spec.get("max_minutes") or 1e9)
+    counts = {str(r["user_id"]): r["available_reviews"] for r in spec["users"]}
+    users = [r["user_id"] for r in spec["users"]]
+    complete = True
+    for name, checkpoint in spec["checkpoints"].items():
+        output = Path(spec["outputs"][name])
+        output.parent.mkdir(parents=True, exist_ok=True)
+        done = {json.loads(line)["user_id"] for line in output.read_text(encoding="utf-8").splitlines() if line.strip()}             if output.exists() else set()
+        todo = [u for u in users if u not in done]
+        if not todo:
+            continue
+        if time.time() > deadline:
+            complete = False
+            break
+        t0 = time.time()
+        report = evaluate_checkpoint(checkpoint, todo, output.parent / f"fast-{time.strftime('%Y%m%d-%H%M%S')}",
+                                     model=spec["model"], mode="fast", data_path=spec["dataset_path"], label_db=spec["label_db"],
+                                     counts=counts, workers=int(spec.get("workers") or 5), batch_chunks=int(spec.get("batch_chunks") or 512),
+                                     threads=4, quiet=True, extra={"accuracy_loop_experiment": name},
+                                     device=os.environ.get("ACCURACY_EVAL_DEVICE", "cuda:0"))
+        with output.open("a", encoding="utf-8") as f:
+            for row in report["per_user"]:
+                f.write(json.dumps({**row, "reviews": counts[str(row["user_id"])], "eval_mode": FAST_LABEL}) + "\n")
+        print(f"[eval-fast] {name}: {len(todo)} users, {report['validation_reviews']:,} reviews in {report['evaluation_seconds']:.0f}s "
+              f"({report['reviews_per_second']:,.0f} reviews/s; {time.time() - t0:.0f}s with setup)", flush=True)
+    print(f"[eval] {'complete' if complete else 'incomplete'} after {time.time() - started:.0f}s", flush=True)
+    return 0 if complete else 3
+
+
 def main():
     spec = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+    if spec.get("mode") == "fast":
+        return main_fast(spec)
     options = spec.get("options") or {}
     os.environ["GPU_BATCH1_DATA_PATH"] = spec["dataset_path"]
     os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":4096:8"

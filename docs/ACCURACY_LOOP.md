@@ -40,6 +40,12 @@ All tiers are fixed subsets of one user-disjoint split, the full run's `run.json
 5. Record dropped, inconclusive and rejected results in the log and update the idea's status; never delete the row.
 6. Authorization: screen runs are covered by the accuracy-loop request of 2026-10-14. Gate and final runs, and any GPU job over 60 minutes, need an explicit human request; write the exact commands as a proposal in the log.
 
+## Evaluation modes
+
+- `fast` (default since 2026-10-14): the EV01 path from the `eval-speed` branch (`scripts/fast_evaluation.py`, merged at `c6530b9`, see [EVAL_SPEED.md](EVAL_SPEED.md)). Inputs are bitwise identical to the full run's evaluation; merged forwards change only FP32 rounding (aggregate LogLoss within 2e-10, per-user R01 losses within 6.9e-8 of the reference), far below the ~4e-4 seed noise. About 8–10× faster (2,000 users in 612 s instead of 5,825 s). Approved for screen and gate comparisons on 2026-10-14; every per-user row and result records `eval: fast (EV01, c6530b9)`. The R01 exactness rules still govern speed promotions, not accuracy comparisons.
+- `reference` (`evaluate --mode reference`): the full run's in-training evaluation re-run standalone in `scripts/accuracy_eval.py`; bitwise equal to the recorded epoch-6 and epoch-7 per-user results on 12 users (`artifacts/accuracy/checks/check-eval-check-e0{6,7}.json`). It is resumable per user and can score several checkpoints on shared inputs.
+- Never mix modes inside one paired comparison.
+
 ## What every result reports
 
 - Held-out benchmark metrics (upstream `rwkv/get_result.get_stats` on the label-DB benchmark test reviews): **curve** and **instant** LogLoss separately, RMSE(bins), AUC, each review-weighted and user-averaged, on all evaluation users and on `fork_unseen` / `fork_seen`. The R01 all-label curve and instant losses are kept in the record too; the composite training objective is never compared.
@@ -83,4 +89,4 @@ Outputs: `artifacts/accuracy/experiments/<name>/` holds `experiment.json`, the r
 
 ## Tier costs
 
-Measured wall times per phase are in [ACCURACY_LOG.md](ACCURACY_LOG.md#tier-costs). Planning numbers before measurement: training at about 189k reviews/s, held-out evaluation at about 25k reviews/s (full run epoch 7: 22.2M reviews in 888 s), collection about 6.5 CPU minutes.
+Measured wall times per phase are in [ACCURACY_LOG.md](ACCURACY_LOG.md#tier-costs). Planning numbers before measurement: training at about 189k reviews/s, held-out evaluation at about 25k reviews/s in reference mode (full run epoch 7: 22.2M reviews in 888 s) and about 230k reviews/s in fast mode, collection about 6.5–9 CPU minutes.

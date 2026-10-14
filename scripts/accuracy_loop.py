@@ -53,6 +53,7 @@ RESULTS = BASE / "results.jsonl"
 FORK_FULL = {"curve": 0.4417, "instant": 0.4366}  # fork RWKV 2.76M, full layout, 173,690 collection test reviews
 FORK_SEEN_FROM = 5000  # the fork's model was trained on dataset users 5000-10000; >= this id counts as seen
 TIER_SEED = 20261014
+EVAL_MODES = {"fast": "fast (EV01, c6530b9)", "reference": "reference (full-run in-training path, bitwise)"}
 EVAL_REVIEWS_PER_SECOND = 25_000  # full-run evaluation rate (epoch 7: 22.2M reviews in 888 s); for ETAs only
 
 
@@ -330,12 +331,12 @@ def evaluate(args):
             "users": [{"user_id": u, "available_reviews": counts[str(u)]} for u in users],
             "dataset_path": first["dataset_path"], "label_db": first["label_db"], "model": first["model"],
             "evaluator": first.get("evaluator"), "max_minutes": args.max_minutes, "workers": args.workers,
+            "mode": "reference" if first.get("evaluator") else args.mode, "batch_chunks": args.batch_chunks,
             "options": first["options"]}
     spec_path = exp_dir(first["name"]) / "eval" / f"spec-{datetime.now():%Y%m%d-%H%M%S}.json"
     atomic_json(spec_path, spec)
     remaining = sum(counts[str(u)] for u in users)
-    print(f"[evaluate] {', '.join(args.names)}: {len(users)} users, {remaining:,} reviews "
-          f"(~{remaining / EVAL_REVIEWS_PER_SECOND / 60:.0f} min at {EVAL_REVIEWS_PER_SECOND:,}/s for one model)", flush=True)
+    print(f"[evaluate] {', '.join(args.names)}: {len(users)} users, {remaining:,} reviews, mode {spec['mode']}", flush=True)
     started, started_utc = time.perf_counter(), now()
     code = subprocess.call([sys.executable, "-X", "utf8", str(ROOT / "scripts/accuracy_eval.py"), str(spec_path)],
                            cwd=ROOT, env=child_env(first))
@@ -345,6 +346,7 @@ def evaluate(args):
         with (exp_dir(e["name"]) / "phases.jsonl").open("a", encoding="utf-8") as f:
             f.write(json.dumps({"phase": "evaluate", "started_utc": started_utc, "wall_seconds": round(wall, 1), "exit": code,
                                 "shared_with": [n for n in args.names if n != e["name"]], "users_done": done,
+                                "eval_mode": EVAL_MODES[spec["mode"]] if not first.get("evaluator") else f"hook {first['evaluator']}",
                                 "users_total": len(users), "spec": spec_path.relative_to(ROOT).as_posix()}) + "\n")
     print(f"[evaluate] exit {code} after {wall / 60:.1f} min" + (" (time budget reached; rerun to resume)" if code == 3 else ""),
           flush=True)
@@ -458,6 +460,7 @@ def report(args):
         record["provenance"] = (results[0] or {}).get("provenance")
     evals = [p for p in phases if p["phase"] == "evaluate"]
     record["evaluation_wall_seconds"] = sum(p["wall_seconds"] for p in evals)
+    record["eval_modes"] = sorted({r.get("eval_mode") or EVAL_MODES["reference"] for r in per_user})
     record["evaluation_jobs"] = len(evals)
     if per_user:
         record["metrics"] = {name: summarize([r for r in per_user if r["user_id"] in expected], subset)
@@ -677,6 +680,9 @@ def main():
     p.add_argument("names", nargs="+")
     p.add_argument("--max-minutes", type=float, default=55.0)
     p.add_argument("--workers", type=int, default=5)
+    p.add_argument("--mode", choices=("fast", "reference"), default="fast",
+                   help="fast = EV01 scripts/fast_evaluation.py (approved for accuracy comparisons 2026-10-14); reference = bitwise")
+    p.add_argument("--batch-chunks", type=int, default=512)
     p = sub.add_parser("collection")
     p.add_argument("name")
     p.add_argument("--threads", type=int, default=2)
