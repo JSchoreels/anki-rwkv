@@ -29,6 +29,10 @@ WIDTH32_ONLY = ("row_tiles_exact", "native_wkv", "wkv_tile", "wkv_rows", "exact_
                 "native_group_norm", "recurrence_load_pipeline", "recurrence_prefetch", "wave_aware_backward",
                 "compact_previous_state", "fused_shift", "explicit_shift_lerp", "partial_shift_lerp",
                 "exact_shift_lerp", "concurrent_splits", "concurrent_split_limit")
+# Wide-kernels port (docs/GPU_OPTIMIZATIONS.md W01-W04): exact kernels that also exist for head size 16 and rows
+# wider than 32 (d=64/80), each bitwise equal to the generic path there (scripts/check_wide_kernels.py).
+# prefetch_rows only affects rows of width <= 32, so it is a no-op on these models.
+WIDE_PORTED = ("row_tiles_exact", "exact_index", "skip_padding_sources", "prefetch_rows", "exact_group_norm")
 # Switches that rebuild or re-run the student loss outside get_loss.
 NOT_WITH_VARIANTS = ("dynamic_graphs", "reduced_sync", "group_adam")
 
@@ -47,13 +51,29 @@ def is_width32(spec):
     return config.d_model == 32 and all(c.d_model // c.n_heads == 32 for _, c in config.modules)
 
 
-def compatible_options(options):
-    """Track options with the width-32 kernels removed when the architecture is not width 32."""
+def is_head16(spec):
+    from expertium.variants import variant
+    return all(c.d_model // c.n_heads == 16 for _, c in variant(spec).base.modules)
+
+
+def width32_only(spec):
+    """Switches this architecture cannot run: all width-32 kernels, minus the wide-kernels ports at head size 16."""
+    if is_head16(spec):
+        return tuple(key for key in WIDTH32_ONLY if key not in WIDE_PORTED)
+    return WIDTH32_ONLY
+
+
+def compatible_options(options, wide_kernels=False):
+    """Track options with the width-32 kernels removed when the architecture is not width 32.
+
+    wide_kernels=True keeps the switches ported to head size 16 (WIDE_PORTED); the default reproduces the
+    generic cases measured before the port."""
     spec = variant_spec(options)
     if spec is None or is_width32(spec):
         return dict(options), []
-    dropped = sorted(key for key in options if key in WIDTH32_ONLY)
-    return {key: value for key, value in options.items() if key not in WIDTH32_ONLY}, dropped
+    unsupported = width32_only(spec) if wide_kernels else WIDTH32_ONLY
+    dropped = sorted(key for key in options if key in unsupported)
+    return {key: value for key, value in options.items() if key not in unsupported}, dropped
 
 
 def decay_factor(x, shape):
@@ -191,7 +211,7 @@ class CatchUp:
             from expertium.variants import variant
             self.variant = variant(self.spec)
             if not is_width32(self.spec):
-                bad = sorted(key for key in options if key in WIDTH32_ONLY and options[key])
+                bad = sorted(key for key in options if key in width32_only(self.spec) and options[key])
                 if bad:
                     raise ValueError(f"Width-32 kernels {bad} with architecture {self.variant.name}; "
                                      "use scripts.expertium_options.compatible_options")

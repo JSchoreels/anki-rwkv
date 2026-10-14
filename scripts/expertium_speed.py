@@ -125,8 +125,15 @@ def run_case(out, name):
     return code
 
 
-def report(out):
+ACCEPTED_W32_REVIEWS_PER_SECOND = 178242  # docs/GPU_OPTIMIZATIONS.md: accepted w32, same 160 users and seed (512 chunks)
+
+
+def report(out, parallel_until=None):
+    """Summary table. Without a finished w32 control the accepted figure is used for "vs w32" and the table says so.
+    parallel_until: UTC ISO time; cases whose training ran before it are flagged as overlapping foreign CPU work."""
+    from datetime import datetime, timedelta, timezone
     config = json.loads((out / "speed.json").read_text())
+    until = datetime.fromisoformat(parallel_until) if parallel_until else None
     rows = []
     for name in config["cases"]:
         path = out / name / "expertium" / TRACK / "result.json"
@@ -134,23 +141,40 @@ def report(out):
             continue
         result = json.loads(path.read_text())
         process = json.loads((out / name / "process.json").read_text()) if (out / name / "process.json").exists() else {}
+        begin = result.get("training_started_utc")
+        overlap = None
+        if until and begin and result.get("training_seconds"):
+            start = datetime.fromisoformat(begin)
+            end = start + timedelta(seconds=result["training_seconds"])
+            overlap = max(0.0, (min(end, until) - start).total_seconds()) / result["training_seconds"]
         rows.append({"case": name, "status": result.get("status"), "reviews_per_second": result.get("reviews_per_second"),
                      "training_seconds": result.get("training_seconds"), "updates": result.get("updates"),
                      "reviews": result.get("review_presentations"),
                      "parameters": (result.get("expertium_catch_up") or {}).get("architecture", {}).get("parameters"),
                      "main_process_cpu_seconds": process.get("main_process_cpu_seconds"),
                      "system_busy_cpu_seconds": process.get("system_busy_cpu_seconds"),
-                     "peak_allocated_mib": result.get("peak_allocated_mib"), "error": result.get("error")})
-    base = next((r["reviews_per_second"] for r in rows if r["case"] == "w32" and r["reviews_per_second"]), None)         or next((r["reviews_per_second"] for r in rows if r["case"] == "w32-generic" and r["reviews_per_second"]), None)
-    lines = ["| Case | Status | Parameters | Reviews/s | vs w32 | Training s | Updates | Main CPU s | Machine CPU s | Peak MiB |",
-             "|---|---|---|---|---|---|---|---|---|---|"]
+                     "peak_allocated_mib": result.get("peak_allocated_mib"), "training_started_utc": begin,
+                     "parallel_overlap": overlap, "error": result.get("error")})
+    base = next((r["reviews_per_second"] for r in rows if r["case"] == "w32" and r["reviews_per_second"]), None)
+    note = ""
+    if base is None:
+        base = ACCEPTED_W32_REVIEWS_PER_SECOND
+        note = f"w32 control missing or failed in this run: vs w32 uses the accepted {base:,} reviews/s (docs/GPU_OPTIMIZATIONS.md)."
+    lines = ["| Case | Status | Parameters | Reviews/s | vs w32 | Training s | Updates | Main CPU s | Machine CPU s | Peak MiB | Overlap |",
+             "|---|---|---|---|---|---|---|---|---|---|---|"]
     for r in rows:
         rate = r["reviews_per_second"]
+        if not rate:
+            lines.append(f"| {r['case']} | {r['status']} | — | — | — | — | — | {r['main_process_cpu_seconds'] or 0:.0f} | "
+                         f"{r['system_busy_cpu_seconds'] or 0:.0f} | — | — |")
+            continue
+        overlap = "—" if r["parallel_overlap"] is None else f"{r['parallel_overlap'] * 100:.0f}%"
         lines.append(f"| {r['case']} | {r['status']} | {r['parameters'] or '—'} | {rate:,.0f} | "
                      f"{(rate / base - 1) * 100:+.1f}% | {r['training_seconds']:.1f} | {r['updates']} | "
                      f"{r['main_process_cpu_seconds'] or 0:.0f} | {r['system_busy_cpu_seconds'] or 0:.0f} | "
-                     f"{r['peak_allocated_mib']:.0f} |" if rate and base else
-                     f"| {r['case']} | {r['status']} | — | — | — | — | — | — | — | — |")
+                     f"{r['peak_allocated_mib']:.0f} | {overlap} |")
+    if note:
+        lines += ["", note]
     (out / "summary.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
     (out / "summary.json").write_text(json.dumps(rows, indent=1) + "\n", encoding="utf-8")
     print("\n".join(lines))
@@ -203,6 +227,7 @@ def main():
     parser.add_argument("--seed", type=int, default=20261014)
     parser.add_argument("--cases", default=",".join(ORDER))
     parser.add_argument("--budget-minutes", type=float, default=50)
+    parser.add_argument("--parallel-until", help="UTC ISO time; report flags cases overlapping foreign work before it")
     args = parser.parse_args()
     out = (ROOT / args.out).resolve()
     if args.command == "prepare":
@@ -211,7 +236,7 @@ def main():
         return run_case(out, args.case)
     if args.command == "all":
         return run_all(out, args.cases.split(","), args.budget_minutes)
-    return report(out)
+    return report(out, args.parallel_until)
 
 
 if __name__ == "__main__":

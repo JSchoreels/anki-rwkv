@@ -282,10 +282,28 @@ class VariantSrsRWKV(SrsRWKV):
             fused_positions.append(torch.cat([keep + offset for keep, offset in zip(positions[i], offsets)]))
             fused_targets.append(torch.cat(targets[i]))
         v0s = [[None] * len(splits) for splits in batch_sub_gather]
+        exact = self.exact_index and x.is_cuda
+        if exact:
+            # Wide-kernels port: sort-free exact gather/scatter, one sort per stream reused by all its layers.
+            # Bitwise equal to the deterministic index_select / index_copy below (scripts/check_wide_kernels.py).
+            from rwkv.model.exact_index import ExactIndexCopy, OrderedIndexSelect, row_order
+            rows = x.size(0)
+            gather_orders, position_orders = [], []
+            for i in range(len(gathers)):
+                if self.skip_padding_sources:
+                    # F50: padding sources (-1) leave the backward sum; their gradients are +0 here.
+                    source = torch.cat(gathers[i])
+                else:
+                    source = fused_gather[i]
+                gather_orders.append(row_order(source, rows))
+                position_orders.append(row_order(fused_positions[i], fused_gather[i].numel()))
         for i, layer in self.layer_steps:
             # Scripted ModuleLists have no Python indexing; children are named by position.
             block = getattr(getattr(self.rwkv_modules, str(i)).blocks, str(layer))
-            inputs = x.index_select(0, fused_gather[i]).split(fused_sizes[i])
+            if exact:
+                inputs = OrderedIndexSelect.apply(x, fused_gather[i], *gather_orders[i]).split(fused_sizes[i])
+            else:
+                inputs = x.index_select(0, fused_gather[i]).split(fused_sizes[i])
             outputs = []
             for s, x_split in enumerate(inputs):
                 length = batch_sub_gather_lens[i][s]
@@ -295,7 +313,11 @@ class VariantSrsRWKV(SrsRWKV):
                                                  batch_skips[i][s].view(-1, length))
                 outputs.append(x_out.reshape(-1, self.d_model))
             flat = torch.cat(outputs)
-            x = x.index_copy(0, fused_targets[i], flat.index_select(0, fused_positions[i]))
+            if exact:
+                kept = OrderedIndexSelect.apply(flat, fused_positions[i], *position_orders[i])
+                x = ExactIndexCopy.apply(x, fused_targets[i], kept)
+            else:
+                x = x.index_copy(0, fused_targets[i], flat.index_select(0, fused_positions[i]))
         return x
 
     @FunctionType
