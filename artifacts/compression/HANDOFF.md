@@ -58,3 +58,8 @@ Follow-ups when processing 000309/000310/000311:
 - Our ARWKVWEIGHTS2 and the fork's ARWKVINT4POC1 decode bit-identically for all 504 tensors, and both use f32 scales. The 1,060 B size difference is 265 four-byte group-size fields. Follow-up 3 above is resolved.
 - Fixed a fixture bug. Fake quantization keeps -0.0, while a packed zero decodes to +0.0, and `torch.equal` misses that difference. `dequantized_sha256` and the `_dequantized_f32.bin` companion now come from the decoded export, and the regenerated test vectors changed 260 hashes. The int4 .bin is unchanged (sha e4faab45…).
 - The held-out 105-user screen used f32 state and short-history users. The matched w4+s8 quality numbers (000309/000310) are still owed, with QAT 000311.
+
+## Update after flow audit of 000309 (2026-10-14 18:30)
+- 000309 hit its 3,200 s limit after 300 of 1,000 cohort users (exit 0). It is resumable, so chunks 3 and 4 are queued as 000321/000322 (57 min each, logs `logs/heldout-b-run3.log` and `run4.log`). With 000310 that covers about 1,000 users.
+- Everything above is pushed. "(not pushed)" earlier in this file is stale.
+- Speed: the held-out log reports about 38k review-evals/s for this CPU/GPU mix. It is not a clean benchmark, so don't quote it as runtime speed.
