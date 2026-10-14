@@ -1,7 +1,7 @@
 {
  "mock": false,
  "model": "Expertium, accepted R01 configuration 0090 (E89-F65e-F77a), BF16",
- "status": "evaluating",
+ "status": "finished",
  "training_users": 8000,
  "evaluation_users": 2000,
  "validation_users": 1500,
@@ -25,11 +25,11 @@
  "reviews_per_second": 183701.0562005036,
  "estimates": {
   "epoch_seconds": 3138.517817190001,
-  "evaluation_seconds": 4486.028061538462,
+  "evaluation_seconds": 5825.305035400001,
   "quick_evaluation_seconds": 682.7368
  },
  "started_utc": "2026-10-13T22:47:56.765664+00:00",
- "updated_utc": "2026-10-14T11:26:39.098281+00:00",
+ "updated_utc": "2026-10-14T11:28:08.710445+00:00",
  "checkpoints": "after every epoch (master weights and AdamW state)",
  "metric_note": "Benchmark test reviews (FSRS benchmark selection and RMSE bins), curve head, review-weighted. Rows 1-4: quick validation subset; last row: full validation set (final-test users reported separately).",
  "epochs": [
@@ -353,9 +353,77 @@
    "users_done": 8000,
    "finished_utc": null,
    "evaluation": {
-    "users_done": 1980,
+    "users_done": 2000,
     "users_total": 2000,
-    "finished_utc": null
+    "finished_utc": "2026-10-14T08:58:05.135984+00:00",
+    "set": "validation",
+    "users": 1500,
+    "log_loss": 0.33095343211139067,
+    "rmse_bins": 0.06269222374095149,
+    "auc": 0.731252292066458,
+    "instant": {
+     "users": 1500,
+     "reviews": 76644485,
+     "LogLoss": {
+      "weighted": 0.31387960595847175,
+      "user_average": 0.30371813133333336
+     },
+     "RMSE(bins)": {
+      "weighted": 0.055519525793799776,
+      "user_average": 0.060925568
+     },
+     "AUC": {
+      "weighted": 0.7629237229652661,
+      "user_average": 0.7807240823844609
+     },
+     "RMSE": {
+      "weighted": 0.29468454236779074,
+      "user_average": 0.2875945366666667
+     }
+    },
+    "final_test": {
+     "users": 500,
+     "ahead": {
+      "users": 500,
+      "reviews": 27390220,
+      "LogLoss": {
+       "weighted": 0.3279253566521189,
+       "user_average": 0.319118084
+      },
+      "RMSE(bins)": {
+       "weighted": 0.06597602470498594,
+       "user_average": 0.072547104
+      },
+      "AUC": {
+       "weighted": 0.7357641332052249,
+       "user_average": 0.7453624076305221
+      },
+      "RMSE": {
+       "weighted": 0.3023834764680605,
+       "user_average": 0.29552663399999995
+      }
+     },
+     "instant": {
+      "users": 500,
+      "reviews": 27390220,
+      "LogLoss": {
+       "weighted": 0.30315814438712063,
+       "user_average": 0.29626842
+      },
+      "RMSE(bins)": {
+       "weighted": 0.05401471380259086,
+       "user_average": 0.058887614
+      },
+      "AUC": {
+       "weighted": 0.7749891560014073,
+       "user_average": 0.7806226566265061
+      },
+      "RMSE": {
+       "weighted": 0.29021520524296623,
+       "user_average": 0.28351928800000004
+      }
+     }
+    }
    }
   }
  ]
