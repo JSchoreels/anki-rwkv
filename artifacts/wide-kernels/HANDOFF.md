@@ -78,3 +78,37 @@ C:\Users\jonat\workspace\anki-rwkv\.venv\Scripts\python.exe scripts/r01_queue.py
 ```
 
 Afterwards (fresh Sonnet medium agent): run `C:\Users\jonat\workspace\anki-rwkv\.venv\Scripts\python.exe scripts/expertium_speed.py report --out artifacts/wide-kernels/speed-20261014` in the worktree (no `--parallel-until` needed; check no foreign CPU load in `all.log` and the machine), replace the W04 numbers in `docs/GPU_OPTIMIZATIONS.md`, commit as Jonathan Schoreels, push `wide-kernels`.
+
+## Update after 000327 (2026-10-15; ticket 000327-wide-kernels, ran 00:10-00:36 local, 22:10:04-22:36:16 UTC, exit 0)
+
+Ticket **000327-wide-kernels** (`--timing`, `--expected-minutes 20`, ran 26.2 min: the spilled w80 cases took 12 + 10 min; if the rerun below does not spill, 20 minutes is enough, about 12 min of cases plus startup). Outputs: `artifacts/wide-kernels/speed-20261014/` (`summary.md`, `summary.json`, `all.log`, `queue-console-rerun.log`, `<case>/expertium/E89-F65e-F77a/{result.json,gpu_power.jsonl}`); first-run contaminated cases are in `run1-contaminated/`. Ledger: W01-W04 in `docs/GPU_OPTIMIZATIONS.md` updated.
+
+**Cause of the odd numbers: GPU memory spill, not an error.** The card has 16.3 GB. w32, w80-b256-wide and w80-b256 each reserved 15.3-15.5 GB (peak allocated only 8.4-9.5 GB; the caching allocator holds the rest). Other desktop processes held 1.7-2.2 GB of VRAM at start (1.1 GB in the first run; Chrome, Spotify, Steam, iCUE, Codex python appear in `nvidia-smi`), so the total exceeded 16.3 GB and Windows paged into shared memory. Signature in `gpu_power.jsonl`: w80 runs at 95-99% "utilization" but only 90-105 W (non-spilling cases draw 170-210 W), device memory above 15.5 GB in 91-94% of samples (first run 54-66%), and the rate falls from ~110-160k to 5-20k reviews/s after the first 2.3M reviews, recovering only at the end. Same position in both w80 cases. Not the cause: no script error (all cases exit 0; PATH/controller-root fix worked, w32 ran with the native build and the budget guard worked), clocks and temperature normal (SM 3.14-3.18 GHz, 42-56 C), no other queue job (history: 000329 ended 22:10:04 UTC just as 000327 started, gpu held alone until 22:36:16), no small-model activity (its worktree was created at 00:36:02 local, after the cases ran). `w64-b256` generic did not start: the 26-min budget stopped it after the slow w80 cases. The table's `Overlap` column is empty (no `--parallel-until` given); the first-run overlap shares are in the "after 000323" section.
+
+Valid numbers (accepted w32 = 178,242 reviews/s, 287 updates; 160 users):
+
+| Case | Parameters | Reviews/s | vs accepted w32 | Training s | Peak alloc MiB | Verdict |
+|---|---|---|---|---|---|---|
+| w64 ported (256) | 331,511 | 165,018 | -7.4% | 75.2 | 6,687 | valid (reserved 11.9 GB, no spill) |
+| w80-sequential ported (256) | 558,209 | 119,808 | -32.8% | 103.6 | 8,399 | valid first run, borderline (66% of samples above 15.5 GB) |
+| w64 ported (512 chunks) | 331,511 | 39,041 | -78.1% | 317.8 | 13,042 | valid but paging by design |
+| w32 control | n/a | 127,086 | | 97.6 | 9,491 | **invalid** (partial spill, 16% of samples above 15.5 GB); accepted 178,242 stands |
+| w80 ported (256) | 558,209 | 17,247 | | 719.3 | 8,417 | **invalid** (spill; first run 111,281 also partly contaminated) |
+| w80 generic (256) | 558,209 | 20,810 | | 596.2 | 8,530 | **invalid** (spill; first run 62,216 contaminated) |
+| w64 generic (256) | 331,511 | not run | | | | first run 74,584 had 21% overlap |
+
+Parameter counts for the small-model comparison: **w64 331,511; w80 558,209** (w32 baseline model 2.76M-class fork RWKV is a different family; Expertium's s64h is 332,922).
+
+8k/2k 10-epoch ETA (581,942,738 train reviews per epoch, the figure in `docs/ACCURACY_LOG.md`): ported w64 at 165,018 reviews/s is **58.8 min per epoch, 9.8 h for 10 epochs** (plus about 10 min fast final evaluation). w80 is not established; indicative 111-120k reviews/s gives 81-87 min per epoch, 13.5-14.5 h, but those rows are not clean.
+
+**A rerun is needed for the w80 pair, w64 generic and the w32 control** (w64 ported, w80-sequential and w64-wide stay). Precondition: the GPU must be empty apart from the desktop, with device memory in use <= 1,300 MiB before it starts (`nvidia-smi --query-gpu=memory.used --format=csv`); close Chrome, Spotify, Steam, iCUE, Discord and any Codex python (a Codex python.exe held ~12 GB when checked at 00:37). If the card still has >1.3 GB in use, expect the same spill and do not queue. Do not queue it from this agent. Command (move the invalid cases first, then launch detached, `Start-Process` with one quoted argument string, `--timing`, after the quiet window):
+
+```
+cd C:\Users\jonat\workspace\wt\wide-kernels\artifacts\wide-kernels\speed-20261014
+mkdir run2-spilled; mv w32 w80-b256-wide w80-b256 run2-spilled/
+$env:CASES = "w32 w80-b256-wide w80-b256 w64-b256"
+cd C:\Users\jonat\workspace\anki-rwkv
+C:\Users\jonat\workspace\anki-rwkv\.venv\Scripts\python.exe scripts/r01_queue.py run --owner wide-kernels --purpose "wide-kernels: w32 control, w80 pair and w64 generic without GPU memory spill" --claim gpu --timing --expected-minutes 20 -- "C:\Program Files\Git\usr\bin\bash.exe" /c/Users/jonat/workspace/wt/wide-kernels/artifacts/wide-kernels/jobs/speed.sh
+```
+
+Afterwards (fresh Sonnet medium agent): check each `result.json`/`gpu_power.jsonl` for spill (power >= 150 W, device memory not pinned above 15.5 GB), run `scripts/expertium_speed.py report --out artifacts/wide-kernels/speed-20261014`, update W04 and the ETA, commit as Jonathan Schoreels, push `wide-kernels`.
