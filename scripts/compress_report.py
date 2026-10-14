@@ -27,9 +27,10 @@ def collection_table(rows, reference, fork_int8):
     if reference not in by:
         return [], {}
     ref, i8 = by[reference], by.get(fork_int8)
-    lines = ["| Variant | Weight bytes | Card/note state bytes | Curve LogLoss | Δ% vs fork fp32 | Δ% vs fork int8 | "
+    compact = compact_bytes()
+    lines = ["| Variant | Weight bytes | Bytes, f16 scales/other | Card/note state bytes | Curve LogLoss | Δ% vs fork fp32 | Δ% vs fork int8 | "
              "Instant LogLoss | Δ% vs fork fp32 | Δ% vs fork int8 | Curve RMSE(bins) | Instant RMSE(bins) |",
-             "|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|"]
+             "|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|"]
     summary = {}
     for label, r in by.items():
         c, i = r["curve"]["LogLoss"], r["instant"]["LogLoss"]
@@ -42,12 +43,24 @@ def collection_table(rows, reference, fork_int8):
             entry["curve_delta_pct_vs_int8"] = pct(c, i8["curve"]["LogLoss"])
             entry["instant_delta_pct_vs_int8"] = pct(i, i8["instant"]["LogLoss"])
         summary[label] = entry
-        lines.append(f"| {label} | {entry['weight_bytes']:,} | {r['card_state_bytes']:,} / {r['note_state_bytes']:,} | "
+        f16 = compact.get(r["weights"]) if label.startswith("fork/") else None
+        entry["weight_bytes_f16_scales_other"] = f16
+        lines.append(f"| {label} | {entry['weight_bytes']:,} | {f'{f16:,}' if f16 else '—'} | {r['card_state_bytes']:,} / {r['note_state_bytes']:,} | "
                      f"{c:.4f} | {entry['curve_delta_pct_vs_fp32']:+.2f}% | "
                      f"{entry.get('curve_delta_pct_vs_int8', float('nan')):+.2f}% | {i:.4f} | "
                      f"{entry['instant_delta_pct_vs_fp32']:+.2f}% | {entry.get('instant_delta_pct_vs_int8', float('nan')):+.2f}% | "
                      f"{entry['curve_rmse_bins']:.4f} | {entry['instant_rmse_bins']:.4f} |")
     return lines, summary
+
+
+def compact_bytes():
+    sys.path.insert(0, str(ROOT))
+    import torch
+    from scripts import compress_quant as cq
+    state = torch.load(cq.FORK_WEIGHTS, map_location="cpu", weights_only=True)
+    names = cq.linear_weight_names(state)
+    return {k: (cq.weight_bytes(state, names, b, g, scale_bytes=2, other_bytes=2)["total"] if b else None)
+            for k, (b, g) in cq.WEIGHT_SCHEMES.items()}
 
 
 def heldout_table(rows, reference, labels=None, seed=0):

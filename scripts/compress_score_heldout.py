@@ -56,16 +56,23 @@ def main():
     parser.add_argument("--workers", type=int, default=4)
     parser.add_argument("--out", default="artifacts/compression/heldout-scores.jsonl")
     parser.add_argument("--time-limit", type=float, default=0, help="stop starting new users after N seconds")
+    parser.add_argument("--device", choices=("cuda", "cpu"), default="cuda",
+                        help="cpu = reference recurrence, 2 threads, in-process preparation (light screen)")
     args = parser.parse_args()
 
-    from rwkv.model.nvrtc import register
-    register()
+    cpu = args.device == "cpu"
+    if cpu:
+        torch.set_num_threads(2)
+        args.workers = 0
+    else:
+        from rwkv.model.nvrtc import register
+        register()
     from scripts.compress_metrics import metrics, read_labels
     from scripts.experiment_provenance import process_provenance
     from scripts.full_run_metrics import evaluate_with_predictions
     import lmdb
 
-    device = torch.device("cuda")
+    device = torch.device(args.device)
     run = cc.run_info()
     data = cc.data_path(run)
     counts = run["review_counts"]
@@ -97,7 +104,7 @@ def main():
     model = None
     if any(not tag.startswith("expertium") for tag, _ in grid):
         model = cq.load_model(state=next(v[0] for k, v in states.items() if not k[0].startswith("expertium")),
-                              reference_wkv=False).to(device)
+                              reference_wkv=cpu).to(device)
     expertium = None
     if any(tag.startswith("expertium") for tag, _ in grid):
         # Expertium iter36 (the run's small model) as an equal-protocol reference, fp32 only.
@@ -105,6 +112,10 @@ def main():
         from expertium.model.srs_model import SrsRWKV as ESrsRWKV
         expertium = ESrsRWKV(ECONFIG).float()
         expertium.load_state_dict(next(v[0] for k, v in states.items() if k[0].startswith("expertium")))
+        if cpu:
+            for module in expertium.modules():
+                if hasattr(module, "use_reference_wkv"):
+                    module.use_reference_wkv = True
         expertium = expertium.to(device).eval()
     env = lmdb.open(str(cc.RUN / "label-db"), readonly=True, lock=False)
     prov = process_provenance()
@@ -139,7 +150,8 @@ def main():
                     torch.cuda.empty_cache()
                     rows.append({"user_id": user, "label": label, "error": f"OOM: {oom}"[:300]})
                     continue
-                torch.cuda.synchronize()
+                if not cpu:
+                    torch.cuda.synchronize()
                 seconds = time.perf_counter() - t0
                 rows.append({"user_id": user, "label": label, "weights": tag, "variant": variant,
                              "checkpoint": path, "weight_bytes": nbytes, "reviews": counts[str(user)],
