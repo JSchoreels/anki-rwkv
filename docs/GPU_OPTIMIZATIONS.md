@@ -160,6 +160,7 @@ Statuses and measurements below are retained from the existing ledger. Missing v
 | EV05 | BF16 evaluation forward | Low / low | Proposed 2026-10-14; pending | Results change | — (pending) | Screening only; the GPU is not the bottleneck |
 | EV06 | Watch `scripts/fast_evaluation.py` in `R01SourceWatch` | Low / low | Proposed 2026-10-14; pending | — | — | Add before a full run enables fast evaluation |
 | EV07 | Full-run smoke with `fast_evaluation` | Low / low | Proposed 2026-10-14; pending | — (pending) | — (pending) | Check the `run_case` wiring end to end |
+| Q01–Q08 | Model compression of the fork's 2.76M RWKV (weight PTQ/QAT, state precision, distillation) | Medium / medium | 2026-10-14 session `compression`: weight PTQ measured on the collection and a 105-user CPU screen; QAT implemented, pending GPU; details and backlog in [COMPRESSION.md](COMPRESSION.md) | Collection int4 group-32: 0.4417 / 0.4371 (+0.02% / +0.11% vs fp32 0.4417 / 0.4366); held-out screen see COMPRESSION.md | — (pending: QAT not run) | Run the QAT smoke, int4 per-channel QAT and its fine-tune-only control through the queue (COMPRESSION.md, Ready-to-run QAT) |
 
 F12's data-quality investigation is tracked as DQ01 in [DATA_QUALITY.md](DATA_QUALITY.md).
 F03 packs prepared CPU tensors; F14 materializes packed feature metadata on the GPU.
