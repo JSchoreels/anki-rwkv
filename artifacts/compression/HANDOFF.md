@@ -79,3 +79,9 @@ Follow-ups when processing 000309/000310/000311:
   2. Add `--checkpoint` to `scripts/compress_heldout_b.py` (it hardcodes `cq.FORK_WEIGHTS`), then run `w4-pc,w4-pc+s8` on the QAT weights over the same cohort-B users.
   3. The fp32 control (000291) was cancelled and never ran. Re-queue it (`jobs/qat.sh 0 0 fp32-control1 2400`) only if step 1 is promising.
   4. If it is, consider a longer or higher-lr QAT run.
+
+## Update 2026-10-14 20:10: chunks 3/4 re-queued
+- 000321/000322 exited 1 in under 1 s without scoring: plain `bash` resolved to the WSL launcher (System32, no distribution). Logs `logs/heldout-b-run3.log`/`run4.log` are overwritten by the re-queue.
+- Re-queued as **000325** (chunk 3) and **000326** (chunk 4) with `C:\Program Files\Git\usr\bin\bash.exe`, `--expected-minutes 57`. Both resume from the users already in `heldout-b.jsonl`.
+- The queue now maps a System32 `bash` to Git Bash (main f046f7b). Still use an absolute interpreter path in queued commands.
+- After 000326: final aggregation with `scripts/compress_report_b.py` (aggregates only; never commit `heldout-b.jsonl`).
