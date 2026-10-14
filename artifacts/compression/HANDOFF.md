@@ -67,7 +67,7 @@ Follow-ups when processing 000309/000310/000311:
 ## Update after 000310 (2026-10-14)
 
 - Interim aggregate summary (chunks 1+2, 409 users): `artifacts/compression/heldout-b-interim-chunks12.md`.
-- Per-user `heldout-b.jsonl` must NEVER be committed (aggregate-only rule). The earlier instruction above to commit it is superseded: commit only aggregate summaries.
+- ~~Per-user `heldout-b.jsonl` must never be committed.~~ Superseded 2026-10-14 21:35: the user approved committing it (anonymized public benchmark users). Commit it only while no held-out chunk is writing to it.
 - Remaining: final aggregation after 000322 (chunks 3+4 are 000321/000322), QAT 000311, and per-prediction output if UM+ / max |dp| shift are wanted.
 
 ## Update after 000311 (2026-10-14)
@@ -84,7 +84,7 @@ Follow-ups when processing 000309/000310/000311:
 - 000321/000322 exited 1 in under 1 s without scoring: plain `bash` resolved to the WSL launcher (System32, no distribution). Logs `logs/heldout-b-run3.log`/`run4.log` are overwritten by the re-queue.
 - Re-queued as **000325** (chunk 3) and **000326** (chunk 4) with `C:\Program Files\Git\usr\bin\bash.exe`, `--expected-minutes 57`. Both resume from the users already in `heldout-b.jsonl`.
 - The queue now maps a System32 `bash` to Git Bash (main f046f7b). Still use an absolute interpreter path in queued commands.
-- After 000326: final aggregation with `scripts/compress_report_b.py` (aggregates only; never commit `heldout-b.jsonl`).
+- After 000329 (chunk 4, replaces the cancelled 000326): final aggregation with `scripts/compress_report_b.py` (then commit the updated `heldout-b.jsonl`, user-approved).
 
 ## Update 2026-10-14 21:20 (per-prediction shift stats, ticket for chunk 4 below)
 
