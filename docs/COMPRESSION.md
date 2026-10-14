@@ -10,6 +10,8 @@ Status 2026-10-14 (agent session `compression`, branch `compression`): post-trai
 - **Held-out users agree but are more sensitive on the instant head** (CPU screen, 105 users with ≤ 20,000 reviews, review-weighted): int8 per-channel −0.01% curve / +0.01% instant, int4 group-32 +0.08% / +0.42%, int4 per-channel +0.14% / +1.33%, 3-bit group-32 +0.13% / +1.23%, 3-bit per-channel +0.62% / +18.3%. Expertium epoch 9 (192.8k, float32) is +4.7% / +7.2% behind fork float32 on the same users.
 - **Recommendation:** ship int4 group-32 (or group-64) PTQ weights with int8 state now; it needs no training. QAT is only worth running for ≤ 3-bit or per-channel int4 targets, and the fork's 2.76M model at 4 bits (1.6–1.9 MB) is still 2–2.5× larger than the 192.8k Expertium model in float32 (0.77 MB) while ~3% better on the collection; see [Recommendation](#recommendation).
 
+Integration package for the fork (file format, exported 1,923,753-byte int4 group-32 weight file, test vectors, Rust changes): [COMPRESSION_INTEGRATION.md](COMPRESSION_INTEGRATION.md).
+
 ## 1. The fork's int8 scheme (read from `C:\Users\jonat\workspace\anki`, read-only)
 
 | Aspect | Fork int8 / int4 ("RWKV state" preference, default int8) |
