@@ -1,7 +1,7 @@
 {
  "mock": false,
  "model": "Expertium, accepted R01 configuration 0090 (E89-F65e-F77a), BF16",
- "status": "evaluating",
+ "status": "training",
  "training_users": 8000,
  "evaluation_users": 2000,
  "validation_users": 1500,
@@ -29,7 +29,7 @@
   "quick_evaluation_seconds": 682.7368
  },
  "started_utc": "2026-10-13T22:47:56.765664+00:00",
- "updated_utc": "2026-10-14T07:44:44.922028+00:00",
+ "updated_utc": "2026-10-14T07:55:36.388932+00:00",
  "checkpoints": "after every epoch (master weights and AdamW state)",
  "metric_note": "Benchmark test reviews (FSRS benchmark selection and RMSE bins), curve head, review-weighted. Rows 1-4: quick validation subset; last row: full validation set (final-test users reported separately).",
  "epochs": [
@@ -283,14 +283,39 @@
    "users_done": 8000,
    "finished_utc": null,
    "evaluation": {
-    "users_done": 240,
+    "users_done": 300,
     "users_total": 300,
-    "finished_utc": null
+    "finished_utc": "2026-10-14T06:40:16.244129+00:00",
+    "set": "quick validation",
+    "users": 300,
+    "log_loss": 0.361575877153096,
+    "rmse_bins": 0.06449276078136833,
+    "auc": 0.7280619969053242,
+    "instant": {
+     "users": 300,
+     "reviews": 16010375,
+     "LogLoss": {
+      "weighted": 0.3443279552312173,
+      "user_average": 0.31056459666666664
+     },
+     "RMSE(bins)": {
+      "weighted": 0.05743746040676748,
+      "user_average": 0.06061877666666668
+     },
+     "AUC": {
+      "weighted": 0.7578143189831789,
+      "user_average": 0.7786390100671141
+     },
+     "RMSE": {
+      "weighted": 0.31370849553117897,
+      "user_average": 0.29234610333333333
+     }
+    }
    }
   },
   {
    "epoch": 9,
-   "users_done": 0,
+   "users_done": 1008,
    "finished_utc": null,
    "evaluation": null
   },
