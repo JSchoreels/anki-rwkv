@@ -52,6 +52,8 @@ def cases():
             "w80-b256": {**generic, "architecture": "w80", "batch_chunks": 256},
             "w80-sequential-b256": {**generic, "architecture": "w80-sequential", "batch_chunks": 256},
             "w32-generic-b256": {**generic, "batch_chunks": 256},
+            "w64-b256": {**generic, "architecture": "w64", "batch_chunks": 256},
+            "w80-muon-b256": {**generic, "architecture": "w80", "optimizer": "expertium-iter53", "batch_chunks": 256},
             "w80-muon": {**generic, "architecture": "w80", "optimizer": "expertium-iter53"},
             "w32-kd": {**accepted, "distillation": {"teacher": str(TEACHER), "alpha": 0.9}}}, dropped
 
