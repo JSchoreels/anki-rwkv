@@ -23,7 +23,7 @@ All three are untested on the GPU.
 - If a chunk fails, read the first lines of its log.
 
 ## After the jobs
-1. Report B: `.venv python scripts/compress_report_b.py`. It prints paired Δ% with 95% CIs per head and metric, splits at 20k reviews, and writes `heldout-b-summary.json`. Then paste the tables into the COMPRESSION.md held-out section and the COMPRESSION_INTEGRATION.md accuracy section, and commit `heldout-b.jsonl` and the summary with `git add -f`.
+1. Report B: `.venv python scripts/compress_report_b.py`. It prints paired Δ% with 95% CIs per head and metric, splits at 20k reviews, and writes `heldout-b-summary.json`. Then paste the tables into the COMPRESSION.md held-out section and the COMPRESSION_INTEGRATION.md accuracy section. Do NOT commit `heldout-b.jsonl` (per-user data); commit only aggregate summaries with `git add -f`.
 2. More users:
    - Re-enqueue `bash <abs>/artifacts/compression/jobs/heldout-b.sh 1000` until 1,000 users are scored.
    - Decide from the w4-g32+s8 CI whether 2,500 are needed; if so, use `heldout-b.sh 2500`.
@@ -63,3 +63,9 @@ Follow-ups when processing 000309/000310/000311:
 - 000309 hit its 3,200 s limit after 300 of 1,000 cohort users (exit 0). It is resumable, so chunks 3 and 4 are queued as 000321/000322 (57 min each, logs `logs/heldout-b-run3.log` and `run4.log`). With 000310 that covers about 1,000 users.
 - Everything above is pushed. "(not pushed)" earlier in this file is stale.
 - Speed: the held-out log reports about 38k review-evals/s for this CPU/GPU mix. It is not a clean benchmark, so don't quote it as runtime speed.
+
+## Update after 000310 (2026-10-14)
+
+- Interim aggregate summary (chunks 1+2, 409 users): `artifacts/compression/heldout-b-interim-chunks12.md`.
+- Per-user `heldout-b.jsonl` must NEVER be committed (aggregate-only rule). The earlier instruction above to commit it is superseded: commit only aggregate summaries.
+- Remaining: final aggregation after 000322 (chunks 3+4 are 000321/000322), QAT 000311, and per-prediction output if UM+ / max |dp| shift are wanted.
