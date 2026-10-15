@@ -23,6 +23,10 @@ from scripts.experiment_provenance import process_provenance
 from scripts.run_gpu_batch1 import SourceWatch, tensor_hash, aggregate
 
 
+# Long-context training option (chunk_reviews) is wired through; runbook-next.sh `context` checks for this flag.
+LONG_CHUNKS_READY = True
+
+
 def atomic_json(path, value):
     """Windows readers can briefly deny deletion/replacement of progress JSON."""
     path = Path(path)
@@ -294,8 +298,15 @@ def run_case(args):
         raise ValueError("Preparation workers must be an integer between 1 and 8")
     # Seed studies vary initialization, dropout and batch encodings; held-out inputs keep seed 2025.
     training_seed = options.get("training_seed", 2025)
+    # Long-context training (docs/SMALL_MODEL.md 5.3): reviews per independent training chunk. Unset = 128, the
+    # accepted R01 layout, unchanged. Evaluation keeps its 128-review samples.
+    chunk_reviews = options.get("chunk_reviews", 128)
+    if type(chunk_reviews) is not int or not 16 <= chunk_reviews <= 8192:
+        raise ValueError("chunk_reviews must be an integer between 16 and 8192")
+    if chunk_reviews != 128 and (options.get("sample_cache") or options.get("preprocessing_cache") or options.get("pack_users")):
+        raise ValueError("chunk_reviews other than 128 does not support sample/preprocessing caches or pack_users")
     config = {"MODEL": args.model, "DTYPE": "bfloat16", "WKV_BACKEND": "nvrtc", "SEED": training_seed,
-              "BATCH_CHUNKS": chunks, "CHUNK_REVIEWS": 128, "PREFETCH_WORKERS": workers,
+              "BATCH_CHUNKS": chunks, "CHUNK_REVIEWS": chunk_reviews, "PREFETCH_WORKERS": workers,
               "PREFETCH_BATCHES": workers * 2, "CPU_THREADS": 4, "EPOCHS": 1,
               "DATA_PATH": protocol["dataset_path"], "DATASET_REVISION": protocol["dataset_revision"],
               "GPU_MEMORY_FRACTION": memory_fraction, "PEAK_LR": 7e-4, "WARMUP_STEPS": 5}
@@ -526,7 +537,12 @@ def run_case(args):
         coverage = {}
         pool_context = prestarted_pool(pool_stack, warm_pool) if warm_pool is not None else preparation_pool(workers)
         with limited_gpu(0, 0, path), pool_context as pool, (path / "updates.jsonl").open("w", encoding="utf-8") as log:
-            source = training_batches(rows, chunks * 128, training_seed, pool, options, cache_paths, workers * 2)
+            if chunk_reviews > 191:
+                # A sample holds its reviews plus query rows (up to about 2x); scripts/check_long_wkv.py covers it.
+                from rwkv.model import nvrtc as nvrtc_limits
+                report["nvrtc_max_timesteps"] = 4 * chunk_reviews
+                kernel_stack.callback(nvrtc_limits.set_max_timesteps, nvrtc_limits.set_max_timesteps(4 * chunk_reviews))
+            source = training_batches(rows, chunks * chunk_reviews, training_seed, pool, options, cache_paths, workers * 2)
             transferred = transfer_batches(source, dtype, options.get("async_transfer", False),
                                            **({"bulk": True} if options.get("bulk_transfer") else {}))
             deferred = options.get("deferred_reads", False)

@@ -303,7 +303,7 @@ Design: continue from the same checkpoint (`scale-w64kd-gate` epoch 3) with 0.25
 | Arm | Switch | Why | Ready |
 |---|---|---|---|
 | A (optional), `cal-kd09-s{1,2,3}` | decay_alpha 0.9 (teacher-heavy decay) instead of 0.5 | e3 → dec with 0.5 improved curve LogLoss by 0.23 pp (instant unchanged) but raised instant RMSE(bins) from +81.3% to +84.9% (fp32). KD lowered RMSE(bins) on the screens (o0 +152% → +115%), though inside the band at k = 3 (instant −0.0043, band 0.0066; `small_model_report.py --rmse-bins`). But the window check shows the student already matches the teacher in-window, so the expected gain is small | Yes, `runbook-next.sh kd09` |
-| **B (recommended)**, `cal-ctx1024-s{1,2,3}` | 1,024-review training chunks (`batch_chunks` 32, so the same 32,768 reviews per update), decay_alpha 0.5 | Tests the diagnosis in 5.1: does more context in training reduce the position drift and the RMSE(bins) gap? | After P1 |
+| **B (recommended)**, `cal-ctx1024-s{1,2,3}` | 1,024-review training chunks (`batch_chunks` 32, so the same 32,768 reviews per update), decay_alpha 0.5 | Tests the diagnosis in 5.1: does more context in training reduce the position drift and the RMSE(bins) gap? | Code ready (P1); runs after the GPU `check` stage passes |
 
 Both arms share the control: seeds 2 and 3 are `runbook-next.sh control` (ready); seed 1 exists. B is the real test of the diagnosis. A is launchable today but low-value; run it only if the GPU would otherwise idle.
 
@@ -312,10 +312,31 @@ Readout: `small_model_report.py` on the 464 held-out users, with `--rmse-bins` (
 - **RMSE(bins)**, also needed for a calibration fix: the same rule. The band on the 1-epoch screens was 0.0076 curve / 0.0066 instant; decays from one checkpoint should be tighter.
 - For B, also re-run `small_model_calibration.py` on dumps of `cal-ctx1024-s1`. Expected if the diagnosis holds: the drift beyond 20k reviews shrinks and the gap stops growing with history length.
 
-Prerequisite P1 for arm B (code, then about 15 min of GPU checks; not done):
-1. `scripts/gpu_r01_training.py` hard-codes 128 in four places: span `chunks * 128`, `CHUNK_REVIEWS`, `samples_for(..., 128)` through `prepare_job`, and the warm-up prime. `expertium_decay.prepare` also writes `chunk_reviews: 128` into its protocol. Read `chunk_reviews` from the track options (default 128, bit-identical when unset), and export `LONG_CHUNKS_READY = True`; the runbook checks for it. `rwkv/model/nvrtc.validate` refuses T ≥ 384, and a 1,024-review user-stream sample is about 2,050 rows. Each kernel saves its state every 32 steps (`_checkpoint_length`), so a longer T looks possible: lift the guard for K = 16.
-2. Prove it: forward and backward parity against the reference recurrence at T = 512, 1,024 and 2,100 for K = 16 and 32. Extend the shape list in `scripts/check_wide_kernels.py`; one short `--claim gpu` ticket.
-3. Memory and throughput probe: 32 chunks × 1,024 have the same rows as 256 × 128, but less parallelism per step. One 10-min ticket of the arm B decay; read reviews/s from its log. If it is below about 80k/s, re-size arm B (0.125-epoch decays).
+P1 for arm B, long-context training (implemented 2026-10-15; CPU-checked; its GPU check is runbook stage `check`, not yet run):
+1. **Track option `chunk_reviews`** (default 128, unchanged when unset), read in:
+   - `scripts/gpu_r01_training.py`: span `chunks * chunk_reviews`, `CHUNK_REVIEWS`; it refuses sample/preprocessing caches and `pack_users` with a chunk other than 128;
+   - `scripts/gpu_r01_samples.samples_for`, which every preparation path calls;
+   - the R01 prefetch allowlist;
+   - `expertium_decay` (protocol and options).
+
+   Evaluation inside the trainer keeps its 128-review samples. `LONG_CHUNKS_READY` marks the code.
+2. **WKV beyond 383 steps.** The NVRTC kernels (generic and row-tiled exact) loop over any T and checkpoint every 32 steps; the cap was only in `nvrtc.validate`. `nvrtc.set_max_timesteps` now raises it explicitly (default still 383). The trainer raises it to 4 × chunk_reviews when the chunk exceeds 191 reviews, and restores it at the end of the case. A 1,024-review sample has 2,048 user-stream rows with its queries.
+3. **CPU check, `scripts/check_long_chunks.py`** (0 failed, `artifacts/small-model/check-long-chunks.json`):
+   - 1,024-review samples;
+   - the fast columnar construction equals the original construction on every batch field;
+   - a w64 student + fork teacher KD step on 1,024-review samples has finite loss and gradients;
+   - the teacher cache round-trips the long batch;
+   - the timestep limit is raised and restored;
+   - decay `prepare` carries the option.
+
+   `check_kd_cache.py` and `check_expertium_catch_up.py` still pass.
+4. **GPU check, `scripts/check_long_wkv.py`** (runbook stage `check`, ≈ 10 min, not run yet: queuing it needs the user's go):
+   - for K = 16 and 32 at T = 512, 1,024 and 2,100: the generic NVRTC float32 forward and all gradients against a float64 autograd reference (whose forward matches `small_model_wkv.reference` to 1.1e-7 on CPU);
+   - the first 383 outputs of a long run bit-identical to a 383-step run;
+   - the row-tiled exact kernel bit-identical to the generic kernel;
+   - a probe of one real 32,768-review update (user 101) as 256 × 128 vs 32 × 1,024 chunks, both with the same 49,828 labelled rows: teacher + student fwd/bwd, median ms, peak MiB.
+
+   `context` refuses to run until this check has passed. Size arm B from the probe: if 1,024-review updates are more than about 2× slower, use 0.125-epoch decays.
 
 Not proposed now (backlog):
 - Head temperature folded into the export (≈ 8% of the gap, free);
@@ -333,12 +354,15 @@ nohup "C:/Program Files/Git/usr/bin/bash.exe" C:/Users/jonat/workspace/wt/small-
 
 | Stage | Tickets | Estimate | Output |
 |---|---|---:|---|
-| `control` | completion ticket (fork w8+s8 on the 34 users cut by time limits, `scale-w64kd-e1/e2` w8+s8 for the epoch slope; ≈ 40 min) + 2 decays (`cal-ctl-s2`, `cal-ctl-s3`; ≤ 22 min each) + scoring (≈ 27 min) | ≈ 1.9 h | `artifacts/small-model/cal-ctl-s*/expertium/E89-F65e-F77a/master.pth`; rows in the worktree's `artifacts/small-model/heldout.jsonl` (all stages write there now); teacher cache filled for about 1,300 users per seed |
-| `context` | refuses until P1; then 3 decays (≈ 40 min each; re-size after the P1 probe) + scoring (≈ 38 min) | ≈ 2.7 h | `cal-ctx1024-s*` |
+| `check` | 1 ticket: WKV parity beyond 383 steps + 32 × 1,024 vs 256 × 128 update probe | ≈ 10 min | `artifacts/small-model/check-long-wkv.json`; gate for `context` |
+| `control` | completion ticket (fork w8+s8 on the 34 users cut by time limits, `scale-w64kd-e1/e2` w8+s8 for the epoch slope; ≈ 40 min) + 2 decays (`cal-ctl-s2`, `cal-ctl-s3`; ≤ 24 min each with the smoke) + scoring (≈ 27 min) | ≈ 1.9 h | `artifacts/small-model/cal-ctl-s*/expertium/E89-F65e-F77a/master.pth`; rows in the worktree's `artifacts/small-model/heldout.jsonl` (all stages write there); teacher cache filled for about 1,300 users per seed |
+| `context` | refuses until `check` passed; 3 decays at 1,024-review chunks (≈ 40 min each; re-size from the probe) + scoring (≈ 38 min) | ≈ 2.7 h | `cal-ctx1024-s*` |
 | `kd09` (optional) | 3 decays + scoring | ≈ 1.6 h | `cal-kd09-s*` |
-| `scale` | `TIER=gate EPOCHS=6 EPOCH1_MIN=62 EPOCH_MIN=41` (+ `DECAY_ALPHA` or `EXTRA` from the screen winner) | ≈ 4.7 h | `scale-w64kd-gate-cached`, labels `s-w64kd-gate-{e6,dec}` |
+| `scale` | e.g. `TIER=gate EPOCHS=6 EPOCH1_MIN=62 EPOCH_MIN=41 EXTRA='{"chunk_reviews": 1024, "batch_chunks": 32}'` (if B wins). Trains epoch 1 and scores it (slope point, ≈ 75 min), then stops; `CONTINUE=1` resumes epochs 2–6, decay and scoring | ≈ 4.7 h at 128-review chunks (re-estimate at 1,024 from the probe) | `scale-w64kd-gate-cached[-tag]`, labels `s-w64kd-gate-{e1,e6,dec}` |
 
-After `control` and an arm, run (the 464-user frontier needs no `--labels` filter once the fork is complete; add `--min-user-id 101` for the check without the upstream validation users 1–100: today +5.27% / +5.99%, unchanged):
+Every training ticket (decays and epochs) starts with a 60–120 s smoke: `expertium_decay.py smoke` runs the same options and checkpoint on the trainer's smoke rows (2 users × 512 reviews) in a scratch copy under `artifacts/small-model/smoke/`, without the teacher cache. Training starts only if the smoke passes. The smoke is not run on GPU yet. CPU steps (`prepare`, reports, calibration analysis) run outside the queue and claim nothing.
+
+After `control` and an arm, run on all 464 users, then again with `--min-user-id 101` to exclude the upstream validation users 1–100 (today +5.27% / +5.99% either way). Report both:
 ```
 $PY -X utf8 scripts/small_model_report.py --rmse-bins \
   --labels fork/w8+s8,scale-w64kd-dec/w8+s8,cal-ctl-s2/w8+s8,cal-ctl-s3/w8+s8,cal-ctx1024-s1/w8+s8,cal-ctx1024-s2/w8+s8,cal-ctx1024-s3/w8+s8 \
@@ -347,8 +371,8 @@ $PY -X utf8 scripts/small_model_report.py --rmse-bins \
 For arm A, replace `cal-ctx1024` with `cal-kd09`.
 
 Recommended order:
-1. P1 code and CPU checks (an agent session), then its GPU check and probe (≈ 15 min).
-2. `control` and `context` in one night (≈ 4.6 h). `control` can run before P1 is done.
+1. `check` (≈ 10 min). P1 code and CPU checks are done.
+2. `control` and `context` in one night (≈ 4.6 h). `control` does not depend on `check`.
 3. If B passes, size a full long-context run from B's measured rate: train from scratch or from epoch 3 at long chunks, cached KD. If it does not, the window check still says the gap is long-context behaviour. Next would be SM11 (full-history teacher targets) or longer chunks, not `scale` with the same 128-chunk recipe. `scale` 5k × 6 cached (4.7 h) stays available as the plain more-training baseline.
 
 
@@ -357,9 +381,14 @@ Recommended order:
 - **Fairness.** The 464 users are fork-unseen (id < 5000) and outside every student training set, and the fork is re-scored by our code. The main bias favours the fork: 128-chunk training against full-history scoring, as 5.1 measures. Held-out B contains student training users: never use it for students.
 - **Time-limit cuts.** The 34 users cut by time limits are long-history users, 14% of reviews. Adopted: `control` first completes `fork/w8+s8` on them, so reports can use all 464 users.
 - **Users with id ≤ 100** (upstream validation range). Adopted as an option, `small_model_report.py --min-user-id 101` (418 users). `scale-w64kd-dec` stays +5.27% / +5.99%.
-- **Scoring cost.** Full-history scoring was 42% of small-model GPU time: one user per stream, plus resumes. Fork rows are already reused from `heldout.jsonl` (scored once). Scoring w8+s8 only, with tickets sized by label count, cuts the rest. Batching users per scoring pass is an open speed idea.
-- **Epoch slope.** Asked for a 1-epoch point at 5k users before multi-epoch scale-ups. Adopted at no training cost: `control` scores the existing `scale-w64kd-gate` epoch-1 and epoch-2 checkpoints.
-- **Smoke checks.** Asked for a 60–120 s smoke check inside long tickets. Not yet in the runbook. P1's 10-min probe plays that role for arm B; add one before a `scale` launch.
+- **Scoring cost.** Full-history scoring was 42% of small-model GPU time: one user per stream, plus resumes.
+  - Fork rows are scored once and reused from `heldout.jsonl`. Every stage scores w8+s8 only, with tickets sized by label count.
+  - Batching several users per pass is feasible but not done. `collect_predictions` keys predictions by review index only, so a batched pass needs a per-sample user map and length bucketing. It also needs a GPU equivalence and speed check before any result depends on it (ledger S05).
+- **Epoch slope.** Asked for a 1-epoch point at 5k users before multi-epoch runs. Adopted:
+  - `control` scores the existing `scale-w64kd-gate` epoch-1 and epoch-2 checkpoints at no training cost;
+  - `scale` stops after epoch 1 and its score until re-launched with `CONTINUE=1`.
+- **Smoke checks.** Adopted: every training ticket begins with `expertium_decay.py smoke` (60–120 s, same options) and trains only if it passes.
+- **Longer training context and matching KD targets.** Adopted as P1 (5.3). With longer chunks the online teacher sees the same long chunks, so its targets match the student's context. The cache keeps them apart from 128-review targets (batch-option hash). Full-history teacher targets (SM11) remain a later option.
 
 ## Backlog
 
@@ -374,6 +403,6 @@ Recommended order:
 | SM07 | Window-protocol and collection evaluation of w64 checkpoints (`fast_evaluation` and `accuracy_collection` only build the w32 model) | Gap | Add a variant-aware evaluator hook |
 | SM08 | Fork runtime port of the exported format (section 4, "Fork changes needed") | Specified, not started | User or Codex in the fork; acceptance = Rust vs `small_model_numpy.py` within 1e-5 |
 | SM09 | Teacher-target cache for KD (section 5.2) | Implemented 2026-10-15, CPU check bit-identical (`check_kd_cache.py`); 3.7 GB / 5.8 GB for 5k / 8k users | First real use in `runbook-next.sh control`; read the cached epoch's reviews/s from `phases.jsonl` |
-| SM10 | Long-context training (A09): in the 128-window protocol w64kd matches the fork (+0.1% LogLoss); the full-history gap is long-context behaviour (section 5.1) | Diagnosed 2026-10-15 (CPU, 64 users); screen arm B designed | P1 (chunk_reviews option + WKV T > 383 parity), then `runbook-next.sh context` |
+| SM10 | Long-context training (A09): in the 128-window protocol w64kd matches the fork (+0.1% LogLoss); the full-history gap is long-context behaviour (section 5.1) | Diagnosed 2026-10-15 (CPU, 64 users); P1 implemented and CPU-checked (`chunk_reviews`, `check_long_chunks.py`) | `runbook-next.sh check` (GPU parity + probe), then `context` |
 | SM11 | KD targets from the teacher's full-history replay instead of its 128-chunk predictions | Idea | Only if SM10 confirms the context diagnosis; one replay ≈ 3.8 h for 5k users at batch 1 (needs batching across users) |
 | SM12 | Head temperature (Platt) folded into the export | Measured offline: closes ≈ 8% of the instant RMSE(bins) gap, LogLoss −0.1% | Cheap add-on once the recipe is fixed; fit on training users, never on the 464 |

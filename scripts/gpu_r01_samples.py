@@ -119,7 +119,9 @@ def create_sample_fast(user_id, section_df, equalize_review_ths, dtype, device, 
 
 
 def samples_for(section, user, options, chunk=128):
-    """F30 when the frozen options select it; otherwise the original per-chunk construction."""
+    """F30 when the frozen options select it; otherwise the original per-chunk construction.
+    The track option "chunk_reviews" (long-context training, docs/SMALL_MODEL.md 5.3) overrides the chunk length."""
+    chunk = options.get("chunk_reviews", chunk)
     if options.get("fast_samples"):
         return make_samples_fast(section, user, chunk, columnar=options.get("columnar_samples", False),
                                  batch_segment_features=options.get("batch_segment_features", False),

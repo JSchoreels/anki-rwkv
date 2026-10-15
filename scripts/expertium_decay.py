@@ -11,6 +11,10 @@ reviews, with the learning rate decaying from 7e-4 to 0 over exactly those revie
   run     --out artifacts/...        (one GPU process; submit through scripts/r01_queue.py)
   auto    <prepare arguments>         (prepare unless --out exists, then run; lets a queued job wait for the epoch)
   compare --out artifacts/...        (decayed vs the source epoch on the same held-out users; summary.md/json)
+  smoke   --out artifacts/...        (60-120 s GPU smoke of a prepared decay: the same options and checkpoint on the
+                                      trainer's smoke rows, 2 users x 512 reviews, in a scratch copy under
+                                      artifacts/small-model/smoke/ that is deleted on success; the teacher cache is
+                                      not used. Put it at the start of a long ticket: `smoke ... && run ...`)
 
 The source run directory is only read. Its label database is opened read-only (lock=False) for the benchmark
 metrics. Compare against the source epoch's own scores on the same users (matched control).
@@ -67,7 +71,7 @@ def prepare(source_run, epoch, out, fraction, shape, evaluate, seed, extra_optio
                 "lr_schedule": schedule, "benchmark_db": str(source_run / "label-db"), "evaluation_set": evaluate}
     protocol = {"rows": rows_for(users, counts), "evaluation_rows": rows_for(evaluation, counts),
                 "dataset_path": str(dataset), "dataset_revision": config["dataset_revision"],
-                "training": {"epochs": 1, "chunk_reviews": 128, "gpu_memory_fraction": 0.95},
+                "training": {"epochs": 1, "chunk_reviews": options.get("chunk_reviews", 128), "gpu_memory_fraction": 0.95},
                 "execution_mode": {"CUBLAS_WORKSPACE_CONFIG": ":4096:8"}, "full_run": full_run}
     decay = {"created_utc": datetime.now(timezone.utc).isoformat(), "source_run": str(source_run), "source_epoch": epoch,
              "source_case": str(folder), "source_update_offset_end": result["update_offset_end"], "model": MODEL,
@@ -98,7 +102,32 @@ def readonly_benchmark_info(db_path, db_size, user_id):
     return [], []
 
 
-def run(out):
+def smoke(out):
+    """Run the prepared decay `out` in the trainer's smoke mode on a scratch copy; never touches `out`."""
+    import shutil
+    import time
+    scratch = ROOT / "artifacts/small-model/smoke" / f"{out.name}-{os.getpid()}"
+    scratch.mkdir(parents=True)
+    decay = json.loads((out / "decay.json").read_text())
+    distillation = decay["options"].get("distillation")
+    if isinstance(distillation, dict):
+        decay["options"]["distillation"] = {k: v for k, v in distillation.items() if k != "cache"}
+    atomic_json(scratch / "decay.json", decay)
+    shutil.copy(out / "protocol.json", scratch / "protocol.json")
+    started = time.perf_counter()
+    code = run(scratch, smoke=True)
+    result_path = scratch / MODEL / decay["track"] / "result.json"
+    result = json.loads(result_path.read_text()) if result_path.exists() else {}
+    print(json.dumps({"smoke": out.name, "exit": code, "status": result.get("status"), "updates": result.get("updates"),
+                      "reviews": result.get("review_presentations"), "error": result.get("error"),
+                      "seconds": round(time.perf_counter() - started, 1)}), flush=True)
+    if code == 0 and result.get("status") == "complete":
+        shutil.rmtree(scratch, ignore_errors=True)
+        return 0
+    return code or 1
+
+
+def run(out, smoke=False):
     decay = json.loads((out / "decay.json").read_text())
     protocol = json.loads((out / "protocol.json").read_text())
     os.environ["GPU_BATCH1_DATA_PATH"] = protocol["dataset_path"]
@@ -123,7 +152,7 @@ def run(out):
     elif case.get("prefetch_users"):
         from scripts.gpu_r01_prefetch import training_batches
         gpu_batch1.training_batches = training_batches
-    args = Namespace(model=MODEL, track=decay["track"], smoke=False, expected_source=None,
+    args = Namespace(model=MODEL, track=decay["track"], smoke=smoke, expected_source=None,
                      output=out.relative_to(ROOT).as_posix())
     return gpu_r01_training.run_case(args)
 
@@ -194,7 +223,7 @@ def compare(out):
 
 def main():
     parser = ArgumentParser(description=__doc__)
-    parser.add_argument("command", choices=("prepare", "run", "auto", "compare"))
+    parser.add_argument("command", choices=("prepare", "run", "auto", "compare", "smoke"))
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--source-run", type=Path)
     parser.add_argument("--epoch", type=int)
@@ -210,6 +239,8 @@ def main():
         parser.error("--out must be under this checkout's artifacts/")
     if args.command == "compare":
         return compare(out)
+    if args.command == "smoke":
+        return smoke(out)
     if args.command in ("prepare", "auto") and not (args.command == "auto" and out.exists()):
         if args.source_run is None or args.epoch is None or not 0 < args.fraction <= 1:
             parser.error("prepare needs --source-run, --epoch and 0 < --fraction <= 1")

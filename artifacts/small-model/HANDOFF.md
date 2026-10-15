@@ -193,12 +193,15 @@ Nothing is queued. Every stage of `artifacts/small-model/runbook-next.sh` needs 
   - in the 128-review training protocol the student matches the fork: instant LogLoss +0.1%, RMSE(bins) +1.7%;
   - over full histories it is +5.3% / +45%: the gap is long-context behaviour, not capacity and not a head temperature (Platt closes 8%).
 - **Screen** (paired k = 3 decays from `scale-w64kd-gate` epoch 3):
-  - `control` (ready, ≈ 1.9 h; also completes the fork on all 464 users and scores epochs 1–2 for the slope);
-  - arm B `context`, 1,024-review chunks (recommended; needs P1: trainer `chunk_reviews` option + WKV parity at T > 383);
+  - `check` (≈ 10 min): GPU parity of the WKV recurrence beyond 383 steps + 32 × 1,024 update probe. Gate for `context`;
+  - `control` (≈ 1.9 h; also completes the fork on all 464 users and scores epochs 1–2 for the slope);
+  - arm B `context`, 1,024-review chunks (recommended; P1 implemented and CPU-checked 2026-10-15: `chunk_reviews`, `check_long_chunks.py`);
   - arm A `kd09` (optional, low value).
+- **Smoke.** Every training ticket starts with `expertium_decay.py smoke` (60–120 s); `scale` stops after epoch 1 + its score until `CONTINUE=1`.
 - **Launch** (from `C:\Users\jonat\workspace\anki-rwkv`):
   ```
-  nohup "C:/Program Files/Git/usr/bin/bash.exe" C:/Users/jonat/workspace/wt/small-model/artifacts/small-model/runbook-next.sh control > C:/Users/jonat/workspace/wt/small-model/artifacts/small-model/runbook-next-control.log 2>&1 & disown
+  nohup "C:/Program Files/Git/usr/bin/bash.exe" C:/Users/jonat/workspace/wt/small-model/artifacts/small-model/runbook-next.sh check > C:/Users/jonat/workspace/wt/small-model/artifacts/small-model/runbook-next-check.log 2>&1 & disown
+  # then the same with `control`, then `context` (each after the previous launch returned)
   ```
 - **Afterwards** (fresh Sonnet agent):
   1. rows land directly in this worktree's `artifacts/small-model/heldout.jsonl` (runbook-next writes there);

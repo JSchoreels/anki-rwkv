@@ -15,6 +15,10 @@ _modules = {}
 _dll_handles = []
 _cupy = None
 _checkpoint_length = 32
+# The kernels checkpoint their state every _checkpoint_length steps and loop over any T; 383 is the validated R01
+# window (128 reviews + queries). Long-context training (docs/SMALL_MODEL.md section 5.3) raises it explicitly with
+# set_max_timesteps after scripts/check_long_wkv.py; the default path is unchanged.
+_max_timesteps = 383
 _raw_pointer_launch = False
 _stream_launch = False
 _streams = {}
@@ -110,6 +114,15 @@ def set_raw_pointer_launch(enabled=False):
     _raw_pointer_launch = bool(enabled)
 
 
+def set_max_timesteps(limit=383):
+    """Opt-in limit on T for validate(); returns the previous value."""
+    global _max_timesteps
+    if type(limit) is not int or limit < 1:
+        raise ValueError("NVRTC timestep limit must be a positive integer")
+    previous, _max_timesteps = _max_timesteps, limit
+    return previous
+
+
 def set_checkpoint_length(length=32):
     """Select recomputation tiles before a forward/backward pair, never between them."""
     global _checkpoint_length
@@ -200,8 +213,9 @@ def module(device, dtype, head=32):
 
 def validate(inputs, skip):
     r = inputs[0]
-    if r.ndim != 4 or r.shape[-1] not in (16, 32) or not 0 < r.shape[1] < 384:
-        raise ValueError("NVRTC recurrence requires head dimension 16 or 32 and 1–383 timesteps")
+    if r.ndim != 4 or r.shape[-1] not in (16, 32) or not 0 < r.shape[1] <= _max_timesteps:
+        raise ValueError(f"NVRTC recurrence requires head dimension 16 or 32 and 1–{_max_timesteps} timesteps "
+                         f"(got {tuple(r.shape)}; nvrtc.set_max_timesteps raises the limit)")
     if r.dtype not in (torch.float32, torch.bfloat16) or any(
             x.dtype != (torch.float32 if i == 3 else r.dtype) or x.device != r.device or x.shape != r.shape
             or not x.is_contiguous() for i, x in enumerate(inputs)):
