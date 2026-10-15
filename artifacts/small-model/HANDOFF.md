@@ -167,3 +167,19 @@ Criteria: (1) w64kd passes (all negative, |mean| above both bands); w64 fails on
 The k=3 verdict found w64kd promising; the HANDOFF rule blocked the scale-up only through the runbook's own one-ticket-per-epoch cap (EPOCH_MIN 61.6 > 57) and the 4-epoch budget (383 > 360 min). The user's instruction ("if that model seems promising, start training it on more users/epochs; budget 6h") governs, the queue has no ticket-length rule and quiet.json is empty, so the main session launched **w64kd with EPOCHS=3, EPOCH_MIN=62, MAX_EPOCH_MIN=66**: 3x62 + 35 + 55 + 45 = 321 min <= 360. Runbook change: `EPOCHS`/`MAX_EPOCH_MIN` env options (defaults unchanged: 4 / 57). Labels: `scale-w64kd-e3` (epoch 3) and `scale-w64kd-dec` (decayed). Log: `artifacts/small-model/runbook-scaleup.log` (worktree). Follow-up when its last ticket ends: steps 5-7 of "Scale-up" above (report with the scale labels vs fork/w8+s8 and vs `decay`; package `scale-w64kd-dec` if it meets the good-candidate bar, and package it anyway as "closer, not yet close enough" if it beats the w32 `decay` checkpoint, so the user has a usable file).
 
 Scale-up tickets: 000349-000351 epochs 1-3 (exit 3, 3, 0). 000352 decay exited 1 after training completed: the decayed checkpoint `artifacts/small-model/scale-w64kd-gate-decay/expertium/E89-F65e-F77a/master.pth` is valid; only the post-run `compare` crashed (KeyError 'per_user' with --evaluate none, fixed in bcc8c9e). No re-queue needed: 000353 (scoring) and the resume ticket score `scale-w64kd-dec` fp32 + w8+s8 and `scale-w64kd-e3` fp32.
+
+# Scale-up RESULT, tickets 000349-000354 all processed (2026-10-15, CPU report; accuracy lane, no speed figures)
+
+Report on the 430 users every label has (`heldout-report.md/json`; scale rows were written to the main checkout's heldout.jsonl by the queue and merged into this worktree's file, 8,272 rows). Δ% vs fork w8+s8:
+
+| Label | Curve LL / Δ% | Instant LL / Δ% | Instant RMSE(bins) Δ% |
+|---|---|---|---:|
+| scale-w64kd-dec w8+s8 | 0.30970 / +5.28% [+4.17, +6.82] | 0.28534 / +5.99% [+5.42, +6.61] | +85.0% |
+| scale-w64kd-dec fp32 | 0.30970 / +5.28% | 0.28532 / +5.98% | +84.9% |
+| scale-w64kd-e3 fp32 | 0.31037 / +5.51% | 0.28533 / +5.99% | +81.3% |
+| w32 decay w8+s8 | 0.31385 / +6.69% | 0.28886 / +7.30% | +88.6% |
+| w64kd screens o0-o2 (mean) | +9.79% | +10.25% | +115 to +152% |
+
+Paired scale-w64kd-dec vs w32 decay (k = 1): curve -0.00415 (window band 0.00622, inside), instant -0.00348 (0.00272, marginally beyond); same for w8+s8 (-0.00416 / -0.00351). Beats `decay` on both heads. Fork fp32 for reference: +0.01% / -0.01%.
+
+Good-candidate bar (<= +1.0% / +1.5%, bootstrap upper <= +2.0% / +2.5%, RMSE(bins) <= +15%): NOT met (+5.28% / +5.99%, upper +6.82% / +6.61%, RMSE +85%). It beats `decay` on both heads, so verdict "closer, not yet close enough" (remaining gap about 4.3 pp curve, 4.5 pp instant). int8 free. Packaged: `C:/Users/jonat/workspace/anki-rwkv/artifacts/models/scale-w64kd-dec/` (not in git): int8 file 436,391 B, 331,511 params, parity PASS (fp32 max |dp| 8.3e-7 curve / 1.4e-6 instant; w8 8.9e-7 / 1.3e-6). The 000352 compare crash was fixed in bcc8c9e. Next ideas: SM06 (w80 + KD, longer decay), more epochs/users.

@@ -960,6 +960,105 @@
     100.82392907859419,
     130.79201150604052
    ]
+  },
+  {
+   "label": "scale-w64kd-e3/fp32",
+   "parameters": 331511,
+   "weight_bytes": 1326044,
+   "state_bits": 32,
+   "arch": "w64",
+   "kind": "expertium",
+   "users": 430,
+   "ahead.LogLoss": 0.31037067093083176,
+   "ahead.LogLoss.delta_pct": 5.5099315288345885,
+   "ahead.LogLoss.ci95": [
+    4.269573075707912,
+    7.267316692125983
+   ],
+   "ahead.RMSE(bins)": 0.05658505485342396,
+   "ahead.RMSE(bins).delta_pct": 43.57004943952878,
+   "ahead.RMSE(bins).ci95": [
+    35.5030324616353,
+    51.61351978018367
+   ],
+   "instant.LogLoss": 0.2853317304665814,
+   "instant.LogLoss.delta_pct": 5.9866625891745295,
+   "instant.LogLoss.ci95": [
+    5.460573772485243,
+    6.561623434842975
+   ],
+   "instant.RMSE(bins)": 0.03858054549490693,
+   "instant.RMSE(bins).delta_pct": 81.30430306413248,
+   "instant.RMSE(bins).ci95": [
+    70.66710885480043,
+    93.28563974709238
+   ]
+  },
+  {
+   "label": "scale-w64kd-dec/fp32",
+   "parameters": 331511,
+   "weight_bytes": 1326044,
+   "state_bits": 32,
+   "arch": "w64",
+   "kind": "expertium",
+   "users": 430,
+   "ahead.LogLoss": 0.30969596330359184,
+   "ahead.LogLoss.delta_pct": 5.280565927572822,
+   "ahead.LogLoss.ci95": [
+    4.169888392328639,
+    6.817005519725002
+   ],
+   "ahead.RMSE(bins)": 0.05489730438797743,
+   "ahead.RMSE(bins).delta_pct": 39.28781593470283,
+   "ahead.RMSE(bins).ci95": [
+    32.69690797897637,
+    45.46003855525595
+   ],
+   "instant.LogLoss": 0.2853212689128232,
+   "instant.LogLoss.delta_pct": 5.982776638016873,
+   "instant.LogLoss.ci95": [
+    5.410240776164815,
+    6.601401780682971
+   ],
+   "instant.RMSE(bins)": 0.039337464638843134,
+   "instant.RMSE(bins).delta_pct": 84.86134706407722,
+   "instant.RMSE(bins).ci95": [
+    71.39480487456534,
+    100.23167384775181
+   ]
+  },
+  {
+   "label": "scale-w64kd-dec/w8+s8",
+   "parameters": 331511,
+   "weight_bytes": 410459,
+   "state_bits": 8,
+   "arch": "w64",
+   "kind": "expertium",
+   "users": 430,
+   "ahead.LogLoss": 0.30969600697990884,
+   "ahead.LogLoss.delta_pct": 5.280580775255439,
+   "ahead.LogLoss.ci95": [
+    4.17346687075666,
+    6.816282767093496
+   ],
+   "ahead.RMSE(bins)": 0.05490264793583023,
+   "ahead.RMSE(bins).delta_pct": 39.30137381551422,
+   "ahead.RMSE(bins).ci95": [
+    32.704719116253024,
+    45.47726945398728
+   ],
+   "instant.LogLoss": 0.2853411341099466,
+   "instant.LogLoss.delta_pct": 5.990155578807443,
+   "instant.LogLoss.ci95": [
+    5.421880603807524,
+    6.608486440605784
+   ],
+   "instant.RMSE(bins)": 0.03935919822680461,
+   "instant.RMSE(bins).delta_pct": 84.9634812606753,
+   "instant.RMSE(bins).ci95": [
+    71.5190415747515,
+    100.31718262735798
+   ]
   }
  ],
  "screens": {
@@ -1122,6 +1221,90 @@
      "consistent_sign": true,
      "better_beyond_band": true,
      "worse_beyond_band": false
+    }
+   }
+  },
+  "scale-dec-vs-decay": {
+   "users": 430,
+   "k": 1,
+   "heads": {
+    "curve": {
+     "deltas": [
+      -0.004145908893632755
+     ],
+     "mean_delta": -0.004145908893632755,
+     "base_values": [
+      0.3138418721972246
+     ],
+     "cand_values": [
+      0.30969596330359184
+     ],
+     "sigma_full_history": NaN,
+     "band_full_history": NaN,
+     "band_window_sigma": 0.006222539674441619,
+     "consistent_sign": true,
+     "better_beyond_band": null,
+     "worse_beyond_band": null
+    },
+    "instant": {
+     "deltas": [
+      -0.003480106985992104
+     ],
+     "mean_delta": -0.003480106985992104,
+     "base_values": [
+      0.2888013758988153
+     ],
+     "cand_values": [
+      0.2853212689128232
+     ],
+     "sigma_full_history": NaN,
+     "band_full_history": NaN,
+     "band_window_sigma": 0.0027152900397563427,
+     "consistent_sign": true,
+     "better_beyond_band": null,
+     "worse_beyond_band": null
+    }
+   }
+  },
+  "scale-dec-vs-decay-int8": {
+   "users": 430,
+   "k": 1,
+   "heads": {
+    "curve": {
+     "deltas": [
+      -0.0041581638169888024
+     ],
+     "mean_delta": -0.0041581638169888024,
+     "base_values": [
+      0.31385417079689765
+     ],
+     "cand_values": [
+      0.30969600697990884
+     ],
+     "sigma_full_history": NaN,
+     "band_full_history": NaN,
+     "band_window_sigma": 0.006222539674441619,
+     "consistent_sign": true,
+     "better_beyond_band": null,
+     "worse_beyond_band": null
+    },
+    "instant": {
+     "deltas": [
+      -0.003514055695879592
+     ],
+     "mean_delta": -0.003514055695879592,
+     "base_values": [
+      0.2888551898058262
+     ],
+     "cand_values": [
+      0.2853411341099466
+     ],
+     "sigma_full_history": NaN,
+     "band_full_history": NaN,
+     "band_window_sigma": 0.0027152900397563427,
+     "consistent_sign": true,
+     "better_beyond_band": null,
+     "worse_beyond_band": null
     }
    }
   }

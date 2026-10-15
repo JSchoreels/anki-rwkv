@@ -47,8 +47,13 @@ Final k=3 held-out frontier (runbook 2026-10-15, tickets 000332-000348 all exit 
 | w64kd screen o0 / o1 / o2 | 331,511 | +10.17 / +8.63 / +10.56% (mean +9.79) | +9.39 / +9.86 / +11.51% (mean +10.25) | +115 / +127 / +152% |
 | w64 o0 w8+s8 | 331,511 | 0.32758 / +11.36% | 0.30144 / +11.97% | +151.9% |
 | w64kd o0 w8+s8 | 331,511 | 0.32412 / +10.18% | 0.29449 / +9.39% | +115.1% |
+| **Scale-up w64kd, 3 epochs on 5,000 users + 0.25-epoch decay (`scale-w64kd-dec`, w8+s8)** | 331,511 | 0.30970 / +5.28% [+4.17, +6.82] | 0.28534 / +5.99% [+5.42, +6.61] | +85.0% |
+| scale-w64kd-dec fp32 | 331,511 | 0.30970 / +5.28% | 0.28532 / +5.98% | +84.9% |
+| scale-w64kd-e3 fp32 (before decay) | 331,511 | 0.31037 / +5.51% | 0.28533 / +5.99% | +81.3% |
 
 Paired k=3 vs w32 (mean of cand - base LogLoss; band = larger of full-history and window band): w64 curve -0.00151 (band 0.00359, inside), instant -0.01166 (0.00471, better); w64kd curve -0.00706 (0.00490, better), instant -0.01673 (0.00488, better); kd-vs-w64 curve -0.00555, instant -0.00507 (both negative, better). Gap closure vs w32 (pp): w64 0.51 curve (fails 1.0) / 4.34 instant; w64kd 2.40 / 6.22. int8 cost (o0, w8+s8 minus fp32): w64 +0.01 pp / +0.01 pp, w64kd +0.01 pp / 0.00 pp. Verdict: w64kd is promising (R) but its EPOCH_MIN is 61.6 > 57 and w64 does not pass, so the HANDOFF rule does not permit the scale-up. The screens (o0-o2) stay above the full-run w32 (+6.7% / +7.3%), so none reaches the good-candidate bar.
+
+Scale-up result (tickets 000349-000354, all processed; w64kd, EPOCHS=3, 62 min/epoch, 430 users every label has; accuracy lane, no speed figures): `scale-w64kd-dec` (w8+s8) is +5.28% curve / +5.99% instant vs fork w8+s8, instant RMSE(bins) +85.0%. It beats the w32 `decay` (+6.69% / +7.30%) on both heads, paired (k = 1) curve -0.00415, instant -0.00348 LogLoss, but a single run: inside the report's window band on curve (0.00622) and marginally past it on instant (0.00272); the full-history band is not defined for k = 1. int8 is free (w8+s8 minus fp32 +0.00 / +0.01 pp). Verdict: NOT a good candidate (bar: <= +1.0% / +1.5%, RMSE(bins) <= +15%); "closer, not yet close enough" (gap about +4.3 pp curve / +4.5 pp instant). Packaged as `artifacts/models/scale-w64kd-dec/` (main checkout, not in git): int8 file 436,391 B (410,459 B of weights; 331,511 params), NumPy-vs-PyTorch parity PASS (max |dp| 1.4e-6 fp32, 3.7e-6 w8). The decay `compare` crash on ticket 000352 (post-run, KeyError per_user) was fixed in bcc8c9e; the checkpoint was valid.
 
 ### Comparability and gaps
 
@@ -199,7 +204,7 @@ Not verified:
 |---|---|---|---|
 | SM01 | Full-history held-out frontier vs fork int8 (464 users) | Done 2026-10-15 (430 users every label has) | See frontier table; 34 users unscored (time limits) |
 | SM02 | w64 vs w32 and w64+KD vs w64, paired k = 3 screens | Done 2026-10-15: w64kd promising, w64 not | Scale-up blocked by the EPOCH_MIN fallback rule; main session decides (HANDOFF k=3 verdict) |
-| SM03 | Scale-up of the winning recipe (gate tier, ≤ 6 h) | Not permitted by the rule (w64kd EPOCH_MIN 61.6 > 57, w64 fails) | HANDOFF section "Scale-up" |
+| SM03 | Scale-up of the winning recipe (gate tier, ≤ 6 h) | Done 2026-10-15 (main session override: w64kd, 3 epochs): `scale-w64kd-dec` +5.28% / +5.99% vs fork w8+s8, beats w32 decay, not a good candidate; packaged | More users/epochs, w80 + KD (SM06) or longer decay to close the remaining ~4.3 / 4.5 pp |
 | SM04 | CPU inference cost of fork vs w32/w64 (recurrent step, 1 thread, `--timing`) | Pending | Small timing ticket with the RNN classes (`expertium.variants.build(..., rnn=True)`, fork `srs_model_rnn`) |
 | SM05 | KD only on fork-unseen training users (teacher targets on its own training users may be overfit) | Untested idea | Needs a per-user KD mask in the trainer |
 | SM06 | w80 + KD, longer decay (1 epoch, Expertium's choice) | Untested | After SM03 |

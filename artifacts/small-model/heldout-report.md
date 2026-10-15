@@ -20,6 +20,9 @@ Reference for Δ%: `fork/w8+s8`. Review-weighted over benchmark test reviews; 95
 | w64kd-o2/fp32 | 331,511 | 1,326,044 | 0.32523 | +10.56% [+8.92, +12.89] | 0.30019 | +11.51% [+10.25, +13.18] | 0.07185 | +82.3% | 0.05372 | +152.4% |
 | w64-o0/w8+s8 | 331,511 | 410,459 | 0.32758 | +11.36% [+9.43, +13.92] | 0.30144 | +11.97% [+10.69, +13.56] | 0.07026 | +78.3% | 0.05361 | +151.9% |
 | w64kd-o0/w8+s8 | 331,511 | 410,459 | 0.32412 | +10.18% [+8.45, +12.62] | 0.29449 | +9.39% [+8.18, +11.18] | 0.07171 | +81.9% | 0.04578 | +115.1% |
+| scale-w64kd-e3/fp32 | 331,511 | 1,326,044 | 0.31037 | +5.51% [+4.27, +7.27] | 0.28533 | +5.99% [+5.46, +6.56] | 0.05659 | +43.6% | 0.03858 | +81.3% |
+| scale-w64kd-dec/fp32 | 331,511 | 1,326,044 | 0.30970 | +5.28% [+4.17, +6.82] | 0.28532 | +5.98% [+5.41, +6.60] | 0.05490 | +39.3% | 0.03934 | +84.9% |
+| scale-w64kd-dec/w8+s8 | 331,511 | 410,459 | 0.30970 | +5.28% [+4.17, +6.82] | 0.28534 | +5.99% [+5.42, +6.61] | 0.05490 | +39.3% | 0.03936 | +85.0% |
 
 ## Paired screen: w64-vs-w32 (k = 3, 430 users)
 
@@ -41,3 +44,17 @@ Reference for Δ%: `fork/w8+s8`. Review-weighted over benchmark test reviews; 95
 |---|---|---:|---:|---:|---|---|
 | curve | -0.00351, -0.00785, -0.00530 | -0.00555 | 0.00490 | 0.00359 | True | better |
 | instant | -0.00692, -0.00628, -0.00200 | -0.00507 | 0.00488 | 0.00157 | True | better |
+
+## Paired screen: scale-dec-vs-decay (k = 1, 430 users)
+
+| Head | Deltas (cand - base) | Mean | Band (full-history sigma) | Band (window sigma) | Same sign | Verdict |
+|---|---|---:|---:|---:|---|---|
+| curve | -0.00415 | -0.00415 | nan | 0.00622 | True | inside band |
+| instant | -0.00348 | -0.00348 | nan | 0.00272 | True | inside band |
+
+## Paired screen: scale-dec-vs-decay-int8 (k = 1, 430 users)
+
+| Head | Deltas (cand - base) | Mean | Band (full-history sigma) | Band (window sigma) | Same sign | Verdict |
+|---|---|---:|---:|---:|---|---|
+| curve | -0.00416 | -0.00416 | nan | 0.00622 | True | inside band |
+| instant | -0.00351 | -0.00351 | nan | 0.00272 | True | inside band |
