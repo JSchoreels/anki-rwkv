@@ -106,6 +106,37 @@ def _process_started(pid):
         return None
 
 
+def _launcher(launched_by=None):
+    """Best-effort record of who started this `run`: parent chain, terminal flags, explicit statement. Never raises."""
+    info = {"launched_by": launched_by or os.environ.get("R01_LAUNCHED_BY") or None}
+    try:
+        info["stdin_tty"] = sys.stdin.isatty()
+        info["stdout_tty"] = sys.stdout.isatty()
+    except Exception:
+        pass
+    try:
+        import psutil
+
+        chain, process = [], psutil.Process(os.getpid())
+        for _ in range(4):  # venv launcher stubs add a hop
+            process = process.parent()
+            if process is None:
+                break
+            try:
+                command = " ".join(process.cmdline())[:300]
+            except Exception:
+                command = None
+            try:
+                name = process.name()
+            except Exception:
+                name = None
+            chain.append({"pid": process.pid, "name": name, "cmdline": command})
+        info["parents"] = chain
+    except Exception as error:
+        info["parents_error"] = type(error).__name__
+    return info
+
+
 def _alive(pid, started=None):
     if not pid:
         return False
@@ -455,7 +486,7 @@ def _cancelled_exit(me, waiting_since):
 
 
 def hold(owner, purpose, claims, heartbeat=60.0, max_wait_minutes=None, ticket=None, command=None, hold_minutes=30.0,
-         expected_minutes=None, timing=False):
+         expected_minutes=None, timing=False, launcher=None):
     """Register (or attach to) a ticket and block until it holds its claims. Returns the running ticket record."""
     _ensure_dirs()
     claims = sorted(set(claims) | ({"cpu-heavy"} if timing else set()), key=NAMES.index)  # a speed benchmark excludes CPU-heavy steps
@@ -467,6 +498,8 @@ def hold(owner, purpose, claims, heartbeat=60.0, max_wait_minutes=None, ticket=N
         me["expected_minutes"] = expected_minutes
     if timing:
         me["timing"] = True
+    if launcher:
+        me["launcher"] = launcher
     _write_ticket(me)
     print(f"[queue] {me['ticket']} registered for {', '.join(claims)}: {purpose}", flush=True)
     waiting_since = time.monotonic()
@@ -678,6 +711,7 @@ def main():
             p.add_argument("--heartbeat-seconds", type=float, default=60.0)
             p.add_argument("--expected-minutes", type=float, help="expected run time; a ticket never starts if it would run into a GPU quiet window (default 60)")
             p.add_argument("--timing", action="store_true", help="speed measurement: held by quiet windows with scope timing; also claims cpu-heavy")
+            p.add_argument("--launched-by", help="who launched this job, e.g. 'detached runbook X' or 'agent, detached' (also R01_LAUNCHED_BY); stored in the ticket's launcher field")
             p.add_argument("--max-wait-minutes", type=float, help="give up with exit code 75 instead of waiting indefinitely")
             p.add_argument("command", nargs=REMAINDER)
     p = sub.add_parser("cancel")
@@ -706,7 +740,7 @@ def main():
     if relative:
         parser.error(f"the queue runs commands from {ROOT}, not from {Path.cwd()}; pass absolute paths for: {', '.join(relative)}")
     record = hold(args.owner, args.purpose, claims, heartbeat, args.max_wait_minutes, args.ticket, command, args.hold_minutes,
-                  args.expected_minutes, args.timing)
+                  args.expected_minutes, args.timing, _launcher(args.launched_by))
     code = None
     try:
         code = run_command(command, heartbeat, record)

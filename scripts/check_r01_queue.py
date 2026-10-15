@@ -319,6 +319,28 @@ def check_relative_paths(h, report):
     report["relative_paths"] = done.stderr.strip().splitlines()[-1]
 
 
+def check_launcher(h, report):
+    """The history record carries a launcher field: explicit --launched-by / R01_LAUNCHED_BY, tty flags and the parent chain."""
+    h.run("launcher-flag", 0.2, ["gpu"], extra=("--launched-by", "check flag"))
+    h.wait("launcher-flag")
+    assert h.results["launcher-flag"]["exit_code"] == 0, h.results["launcher-flag"]
+    env = {**h.env, "R01_LAUNCHED_BY": "check env"}
+    done = subprocess.run([PYTHON, QUEUE, "run", "--owner", "launcher-env", "--purpose", "launcher env", "--claim", "gpu", "--expected-minutes", "1",
+                           "--", PYTHON, "-c", "pass"], cwd=ROOT, env=env, capture_output=True, text=True, encoding="utf-8", timeout=30)
+    assert done.returncode == 0, done.stderr
+    records = {}
+    for line in (h.root / "queue" / "history.jsonl").read_text(encoding="utf-8").splitlines():
+        record = json.loads(line)
+        if record.get("owner", "").startswith("launcher-"):
+            records[record["owner"]] = record
+    flag, env_record = records["launcher-flag"]["launcher"], records["launcher-env"]["launcher"]
+    assert flag["launched_by"] == "check flag" and env_record["launched_by"] == "check env", (flag, env_record)
+    for launcher in (flag, env_record):
+        assert isinstance(launcher["stdin_tty"], bool) and launcher["stdout_tty"] is False, launcher  # stdout is piped by the harness
+        assert launcher.get("parents") and os.getpid() in [p["pid"] for p in launcher["parents"]], launcher  # this checker is in the chain (venv stubs add hops)
+    report["launcher"] = {"flag": flag, "env": env_record}
+
+
 def main():
     parser = ArgumentParser(description=__doc__)
     parser.add_argument("--output", type=Path, required=True)
@@ -330,7 +352,7 @@ def main():
     h = Harness(output)
     report = {"provenance": process_provenance(), "wake_limit_s": WAKE_LIMIT}
     started = time.monotonic()
-    for check in (check_fifo_and_wake, check_outside_holder, check_stale_ticket, check_reservation_and_cancel, check_cancel_waiting_wrapper, check_give_up_and_claim_run, check_quiet_windows, check_cpu_heavy, check_relative_paths, check_wait_script):
+    for check in (check_fifo_and_wake, check_outside_holder, check_stale_ticket, check_reservation_and_cancel, check_cancel_waiting_wrapper, check_give_up_and_claim_run, check_quiet_windows, check_cpu_heavy, check_relative_paths, check_launcher, check_wait_script):
         print(f"[check] {check.__name__}", flush=True)
         check(h, report)
     status = h.command("status").stdout
