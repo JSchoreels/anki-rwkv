@@ -38,7 +38,7 @@ R01_COHORT = ROOT / "artifacts/retraining/gpu-retrain-r01/cohorts-user-holdout-v
 PAGES_JSON = ROOT / "pages/data/train-8k.json"
 SLICE_PERCENT = 5
 SNAPSHOT_USERS = 400
-# A08 (docs/GPU_TRAINING.md, promoted 2026-10-14, provisional until the A15 order band): new runs end with a 0.25-epoch
+# A08 (docs/GPU_TRAINING.md, promoted 2026-10-14, settled 2026-10-15: three decay order seeds all beat the epoch-10 control): new runs end with a 0.25-epoch
 # cool-down, WSD decay from the last epoch's weights and AdamW state (scripts/expertium_decay.py), scored as the final result.
 FINAL_DECAY_EPOCHS = 0.25
 FINAL_DECAY_SHAPE = "one_minus_sin"
