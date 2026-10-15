@@ -163,3 +163,5 @@ $PY -X utf8 $AL screen decay-e10-q25=fullrun-e10 decay-e10-q25-o2=fullrun-e10 de
 | mean / SD | −0.00145 / 0.00011 | −0.00108 / 0.00006 |
 
 2·SD·√2 = 0.00031 curve (< 0.0014) and 0.00016 instant (< 0.0010); all three beat `fullrun-e10` on both heads. **Verdict: A08 HOLDS.** The provisional wording is removed from ACCURACY_LOG, ACCURACY_IDEAS, GPU_TRAINING.md and the `run_full_training.py` comment; `final_decay_epochs` stays 0.25. Paired decay band for continuation experiments: 0.0003 curve / 0.0002 instant. Note: when running `accuracy_loop.py` under `r01_queue.py run`, pass an absolute script path (the queue runs from the main checkout, so a relative path used its copy and missed this worktree's experiments). Files: `comparisons/*decay-e10-q25-o*`, `noise/decay-e10-q25--decay-e10-q25-o2--decay-e10-q25-o3.json`, `comparisons/screen--decay-*.json`.
+
+**A08 order-check ticket ids (added 2026-10-15 from the flow audits).** GPU evaluation: 000333 (exit 0). CPU scoring steps (`cpu-heavy`): 000335-000337 failed (relative script path, queued from the main checkout; fixed by the queue's relative-path refusal), reruns 000338-000340 exit 0.
