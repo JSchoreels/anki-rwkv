@@ -357,3 +357,9 @@ Verified by reading `runbook-next.sh` (`scale` stage) and `scripts/accuracy_loop
 
 1. The "LAUNCHED ~16:40" follow-up steps (fresh Sonnet medium agent, when the log ends with `done: scale` or a gate stop), with `<chunk>` = 2048: grep the log, read the gate JSONs, run `small_model_report.py --rmse-bins` for the listed labels, write a "RESULT probe-scale" section here and in SMALL_MODEL.md, `git add -f` heldout.jsonl and the JSONs, commit and push. Launch nothing.
 2. Then the priority re-assessment per anki-rwkv `AGENT.md` (main session, Opus high).
+
+## RESUMED 2026-10-16 00:15: epochs 3-4 of scale-w64kd-gate-cached-ctx2048 (user go: "You can resume the work")
+
+- Launched by the main session with the resume command from the PAUSED section above, from anki-rwkv, appending (`>>`) to `runbook-next-scale-ctx2048.log`.
+- Gates e1/e2 re-ran from the cached scores (000375, 000376: GO, same numbers as above). Epoch 3 training is ticket 000377 (started 00:16:36, ~62 min at ~98k reviews/s). The runbook continues on its own: epoch-3 gate, epoch 4, epoch-4 gate, decay, scoring.
+- When the run is final: a fresh Sonnet medium agent runs the "LAUNCHED ~16:40" follow-up with chunk 2048 (absolute LogLoss/RMSE vs fork w8+s8), then an Opus re-assessment of priorities. No new GPU work starts without the user's go.
