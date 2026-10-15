@@ -26,8 +26,8 @@
   <nav class="hub" aria-label="Project pages">
     <a class="card" href="models.html">
       <h2>Model architectures</h2>
-      <p>Alex&rsquo;s default model and Expertium&rsquo;s compact model, block by block: the 92 input numbers, the five streams, where every parameter goes and how much memory each card needs.</p>
-      <div class="stat" id="hub-models">2.76M <small>vs</small> 173k <small>parameters</small></div>
+      <p>Alex&rsquo;s default model and ExpertiumExpertium&rsquo;s compact model, block by block: the 92 input numbersrsquo;s compact model (his run 110, commit 1f2e6b0), block by block: the input numbers, the five streams, where every parameter goes and how much memory each card needs.</p>
+      <div class="stat" id="hub-models">2.76M <small>vs</small> 333k <small>parameters (derived)</small></div>
     </a>
     <a class="card" href="campaign.html">
       <h2>R01 speed campaign</h2>
@@ -97,7 +97,7 @@
     <div class="controls">
       <div class="seg" id="curve-mode" role="group" aria-label="Kind of curve head">
         <button type="button" data-mode="basis" aria-pressed="true">Fixed basis curves (Alex, iter36 snapshot)</button>
-        <button type="button" data-mode="gru" aria-pressed="false">Learned power-law curves (Expertium now)</button>
+        <button type="button" data-mode="gru" aria-pressed="false">Learned power-law curves (Expertium, run 110)</button>
       </div>
     </div>
     <div class="curvebox">
@@ -114,7 +114,7 @@
       </div>
     </div>
     <div class="explain-box" id="curve-note-basis">Each basis curve is an exponential decay <code>0.9<sup>t / s</sup></code> with a <strong>fixed</strong> stability <code>s</code>; the model only chooses the weights. Drag the bars to set them (they are normalised to sum to 1), or try a preset. Mixing fast and slow curves gives a long tail that a single exponential cannot: a card can be partly forgotten within a day yet keep a stable core for months. The real heads use 128 (Alex) or 64 (the older Expertium-style iter36 config trained in this repository) basis curves from 0.1&nbsp;s to about 100 years, and add a learned <em>correction</em> at the same number of time points. Expertium&rsquo;s own model does not work this way: see the learned power-law curves.</div>
-    <div class="explain-box" id="curve-note-gru" hidden>Expertium&rsquo;s current runs (<code>RWKV_GRU_HEAD=3</code>, modelled on srs-benchmark&rsquo;s GRU) use only <strong>3 curves</strong>, but predict each one&rsquo;s weight, stability <code>S</code> and decay <code>d</code> for every review: <code>R(t) = &Sigma; w<sub>i</sub>&middot;(1 + t/S<sub>i</sub>)<sup>&minus;d<sub>i</sub></sup></code>. That is a power-law shape, like FSRS&rsquo;s forgetting curve, so a single curve already has a long tail. There is no correction head, so predicted recall can only fall over time. Dashed lines are the three curves; the solid line is their mix.</div>
+    <div class="explain-box" id="curve-note-gru" hidden>ExpertiumExpertium&rsquo;s current runs (<code>RWKV_GRU_HEAD=3</code>rsquo;s runs since iteration 31, including run 110 (<code>RWKV_GRU_HEAD=3</code>, modelled on srs-benchmark&rsquo;s GRU) use only <strong>3 curves</strong>, but predict each one&rsquo;s weight, stability <code>S</code> and decay <code>d</code> for every review: <code>R(t) = &Sigma; w<sub>i</sub>&middot;(1 + t/S<sub>i</sub>)<sup>&minus;d<sub>i</sub></sup></code>. That is a power-law shape, like FSRS&rsquo;s forgetting curve, so a single curve already has a long tail. There is no correction head, so predicted recall can only fall over time. Dashed lines are the three curves; the solid line is their mix.</div>
     <p class="hint">Either way, a separate <em>Instant</em> head predicts the four grades for the review that is about to happen.</p>
   </section>
 
