@@ -209,3 +209,32 @@ Nothing is queued. Every stage of `artifacts/small-model/runbook-next.sh` needs 
   2. run the `small_model_report.py --rmse-bins` command in SMALL_MODEL.md 5.4;
   3. apply the paired rule on LogLoss and RMSE(bins);
   4. check the `kd_cache` counters and reviews/s in each decay's `result.json`/log (accuracy lane, not a benchmark).
+
+# LAUNCHED 2026-10-15 12:18-12:20 (user's go; check -> control -> context; detached, through the r01 queue)
+
+The runbook stages run as separate detached processes. The queue serializes their tickets, so control and context interleave. Logs: `artifacts/small-model/runbook-next-{check,control,context}.log`. Don't edit `runbook-next.sh` while they run: bash reads the script as it executes. The uncommitted usage-comment line in it (mentions a chain mode that does not exist) is harmless; drop it after the runs.
+
+| Ticket | Stage | Step | Status |
+|---|---|---|---|
+| 000355 | check | WKV parity beyond 383 steps + update probe | **done, 35/35 passed**, 38 s (`check-long-wkv.json`) |
+| 000356 | control | fork w8+s8 on the 34 cut users + `scale-w64kd-e1/e2/dec` w8+s8 (464 users) | running at 12:19 |
+| 000357 | context | decay `cal-ctx1024-s1` (smoke first) | queued behind 000356 |
+| next | control / context | decays `cal-ctl-s2`, `cal-ctl-s3`, `cal-ctx1024-s2`, `cal-ctx1024-s3` (smoke first each), then scoring of each stage's decays + resume | each registers when the previous ticket of its stage ends |
+
+check results:
+- Parity: K = 16/32, T = 512/1,024/2,100. Generic NVRTC vs float64 reference: relative max error ≤ 1.9e-7 (forward and all gradients). The first 383 outputs of a long run are bit-identical to a 383-step run, and row-tiled exact equals generic bit for bit (BF16 and float32).
+- Probe (one 32,768-review update, user 101, teacher + w64 student fwd/bwd, eager): 256 × 128 chunks 499 ms (row-tiled 482), 32 × 1,024 chunks 632 ms (row-tiled 652), so about 1.3× slower per update; peak 5.6 → 6.0 GB. Under the 2× re-size threshold, so arm B keeps 0.25-epoch decays (≈ 26–30 min each instead of ≈ 20). Probe timings are eager-mode step times, not training rates (accuracy lane, not a benchmark).
+
+Expected end: about 4.5–5 h after 12:19, so ≈ 17:00–17:30.
+
+Follow-up (fresh Sonnet agent, when both logs say `done:`):
+1. `grep -E "exit|done|stop|smoke" artifacts/small-model/runbook-next-{control,context}.log`. Each decay ticket prints a smoke JSON line first. A failed smoke leaves no checkpoint and the stage logs "no checkpoint". Re-launch that stage the same way: it resumes.
+2. Report (CPU), on all 464 users and again with `--min-user-id 101`:
+   ```
+   $PY -X utf8 scripts/small_model_report.py --rmse-bins \
+     --labels fork/w8+s8,scale-w64kd-e1/w8+s8,scale-w64kd-e2/w8+s8,scale-w64kd-dec/w8+s8,cal-ctl-s2/w8+s8,cal-ctl-s3/w8+s8,cal-ctx1024-s1/w8+s8,cal-ctx1024-s2/w8+s8,cal-ctx1024-s3/w8+s8 \
+     --screen "ctx1024-vs-ctl:cal-ctx1024-s1/w8+s8=scale-w64kd-dec/w8+s8,cal-ctx1024-s2/w8+s8=cal-ctl-s2/w8+s8,cal-ctx1024-s3/w8+s8=cal-ctl-s3/w8+s8"
+   ```
+3. Apply the paired k = 3 rule (SMALL_MODEL.md 5.3) on LogLoss and RMSE(bins). Also read each decay's `kd_cache` counters and reviews/s in its `result.json` (accuracy lane).
+4. Optional: dump `cal-ctx1024-s1` on the 64 calibration users (CPU, `small_model_heldout.py --dump --max-reviews 80000 --count 64`) and re-run `small_model_calibration.py`.
+5. Do NOT launch `scale` without the user: it needs the screen verdict (`EXTRA` with the long chunks if B wins) and the user's go.

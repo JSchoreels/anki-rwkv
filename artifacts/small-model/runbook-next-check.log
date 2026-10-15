@@ -1,0 +1,45 @@
+[next 12:18:37] enqueue: long-context WKV parity (T 512-2100, K 16/32) + 32x1024 vs 256x128 update probe (expected 10 min)
+[queue] 000355-small-model registered for gpu: small-model: long-context WKV parity (T 512-2100, K 16/32) + 32x1024 vs 256x128 update probe
+[queue] 000355-small-model started after 0:00:00; holds gpu
+[ok] default guard still refuses T = 384: True
+C:\Users\jonat\workspace\wt\small-model\scripts\check_long_wkv.py:57: UserWarning: Converting a tensor with requires_grad=True to a scalar may lead to unexpected behavior.
+Consider using tensor.detach() first. (Triggered internally at C:\actions-runner\_work\pytorch\pytorch\pytorch\torch\csrc\autograd\generated\python_variable_methods.cpp:837.)
+  return float((a.double() - b.double()).abs().max() / b.double().abs().max().clamp_min(1e-30))
+[ok] generic NVRTC float32 K=16 T=512 vs float64 reference (relative max error): {'out': '9.7e-08', 'dr': '1.8e-07', 'dk': '9.0e-08', 'dv': '1.1e-07', 'dw': '1.7e-07', 'da': '1.4e-07', 'dkd': '9.3e-08'}
+[ok] prefix K=16 T=512 bfloat16: first 383 outputs bit-identical: None
+[ok] row-tiled exact K=16 T=512 bfloat16 == generic (forward + gradients): None
+[ok] prefix K=16 T=512 float32: first 383 outputs bit-identical: None
+[ok] row-tiled exact K=16 T=512 float32 == generic (forward + gradients): None
+[ok] generic NVRTC float32 K=16 T=1024 vs float64 reference (relative max error): {'out': '6.7e-08', 'dr': '1.4e-07', 'dk': '9.1e-08', 'dv': '1.5e-07', 'dw': '1.1e-07', 'da': '1.1e-07', 'dkd': '1.7e-07'}
+[ok] prefix K=16 T=1024 bfloat16: first 383 outputs bit-identical: None
+[ok] row-tiled exact K=16 T=1024 bfloat16 == generic (forward + gradients): None
+[ok] prefix K=16 T=1024 float32: first 383 outputs bit-identical: None
+[ok] row-tiled exact K=16 T=1024 float32 == generic (forward + gradients): None
+[ok] generic NVRTC float32 K=16 T=2100 vs float64 reference (relative max error): {'out': '7.7e-08', 'dr': '8.5e-08', 'dk': '1.0e-07', 'dv': '8.3e-08', 'dw': '1.5e-07', 'da': '1.7e-07', 'dkd': '1.1e-07'}
+[ok] prefix K=16 T=2100 bfloat16: first 383 outputs bit-identical: None
+[ok] row-tiled exact K=16 T=2100 bfloat16 == generic (forward + gradients): None
+[ok] prefix K=16 T=2100 float32: first 383 outputs bit-identical: None
+[ok] row-tiled exact K=16 T=2100 float32 == generic (forward + gradients): None
+[ok] generic NVRTC float32 K=32 T=512 vs float64 reference (relative max error): {'out': '1.2e-07', 'dr': '7.8e-08', 'dk': '8.6e-08', 'dv': '1.1e-07', 'dw': '1.4e-07', 'da': '1.4e-07', 'dkd': '1.3e-07'}
+[ok] prefix K=32 T=512 bfloat16: first 383 outputs bit-identical: None
+[ok] row-tiled exact K=32 T=512 bfloat16 == generic (forward + gradients): None
+[ok] prefix K=32 T=512 float32: first 383 outputs bit-identical: None
+[ok] row-tiled exact K=32 T=512 float32 == generic (forward + gradients): None
+[ok] generic NVRTC float32 K=32 T=1024 vs float64 reference (relative max error): {'out': '1.2e-07', 'dr': '8.1e-08', 'dk': '8.4e-08', 'dv': '7.3e-08', 'dw': '1.6e-07', 'da': '1.9e-07', 'dkd': '1.4e-07'}
+[ok] prefix K=32 T=1024 bfloat16: first 383 outputs bit-identical: None
+[ok] row-tiled exact K=32 T=1024 bfloat16 == generic (forward + gradients): None
+[ok] prefix K=32 T=1024 float32: first 383 outputs bit-identical: None
+[ok] row-tiled exact K=32 T=1024 float32 == generic (forward + gradients): None
+[ok] generic NVRTC float32 K=32 T=2100 vs float64 reference (relative max error): {'out': '8.7e-08', 'dr': '9.7e-08', 'dk': '1.1e-07', 'dv': '9.7e-08', 'dw': '1.1e-07', 'da': '1.0e-07', 'dkd': '9.0e-08'}
+[ok] prefix K=32 T=2100 bfloat16: first 383 outputs bit-identical: None
+[ok] row-tiled exact K=32 T=2100 bfloat16 == generic (forward + gradients): None
+[ok] prefix K=32 T=2100 float32: first 383 outputs bit-identical: None
+[ok] row-tiled exact K=32 T=2100 float32 == generic (forward + gradients): None
+[ok] probe generic chunks of 128 reviews (32,768 reviews, teacher + student fwd/bwd): {'samples': 65536, 'max_rows': 92, 'median_ms': 499.2, 'reviews_per_second_step_only': 65642, 'peak_allocated_mib': 5582, 'loss': 1.88759, 'users': [101]}
+[ok] probe row_tiles chunks of 128 reviews (32,768 reviews, teacher + student fwd/bwd): {'samples': 65536, 'max_rows': 92, 'median_ms': 481.6, 'reviews_per_second_step_only': 68043, 'peak_allocated_mib': 5582, 'loss': 1.88759, 'users': [101]}
+[ok] probe generic chunks of 1024 reviews (32,768 reviews, teacher + student fwd/bwd): {'samples': 65536, 'max_rows': 92, 'median_ms': 632.3, 'reviews_per_second_step_only': 51821, 'peak_allocated_mib': 6014, 'loss': 1.88906, 'users': [101]}
+[ok] probe row_tiles chunks of 1024 reviews (32,768 reviews, teacher + student fwd/bwd): {'samples': 65536, 'max_rows': 92, 'median_ms': 652.0, 'reviews_per_second_step_only': 50257, 'peak_allocated_mib': 6014, 'loss': 1.88906, 'users': [101]}
+35/35 passed; 38.4 s; C:\Users\jonat\workspace\wt\small-model\artifacts\small-model\check-long-wkv.json
+[queue] 000355-small-model finished with exit code 0 after 0:00:40; released gpu
+[next 12:19:18] exit 0: long-context WKV parity (T 512-2100, K 16/32) + 32x1024 vs 256x128 update probe
+[next 12:19:18] done: check

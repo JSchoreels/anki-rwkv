@@ -330,13 +330,20 @@ P1 for arm B, long-context training (implemented 2026-10-15; CPU-checked; its GP
    - decay `prepare` carries the option.
 
    `check_kd_cache.py` and `check_expertium_catch_up.py` still pass.
-4. **GPU check, `scripts/check_long_wkv.py`** (runbook stage `check`, ≈ 10 min, not run yet: queuing it needs the user's go):
+4. **GPU check, `scripts/check_long_wkv.py`** (runbook stage `check`; ticket 000355, 2026-10-15 12:18, **35/35 passed**, `artifacts/small-model/check-long-wkv.json`):
    - for K = 16 and 32 at T = 512, 1,024 and 2,100: the generic NVRTC float32 forward and all gradients against a float64 autograd reference (whose forward matches `small_model_wkv.reference` to 1.1e-7 on CPU);
    - the first 383 outputs of a long run bit-identical to a 383-step run;
    - the row-tiled exact kernel bit-identical to the generic kernel;
    - a probe of one real 32,768-review update (user 101) as 256 × 128 vs 32 × 1,024 chunks, both with the same 49,828 labelled rows: teacher + student fwd/bwd, median ms, peak MiB.
 
    `context` refuses to run until this check has passed. Size arm B from the probe: if 1,024-review updates are more than about 2× slower, use 0.125-epoch decays.
+
+   Results:
+   - parity: relative max error ≤ 1.9e-7 against float64, forward and all gradients, up to T = 2,100;
+   - prefix and row-tiled checks: bit-identical;
+   - probe (eager step times, not training rates): 499 ms at 256 × 128 against 632 ms at 32 × 1,024, about 1.3× slower; peak 5.6 → 6.0 GB.
+
+   Arm B keeps its 0.25-epoch decays. `control` and `context` were launched at 12:19 (tickets 000356 onwards; HANDOFF).
 
 Not proposed now (backlog):
 - Head temperature folded into the export (≈ 8% of the gap, free);
