@@ -193,7 +193,7 @@ Nothing is queued. Every stage of `artifacts/small-model/runbook-next.sh` needs 
   - in the 128-review training protocol the student matches the fork: instant LogLoss +0.1%, RMSE(bins) +1.7%;
   - over full histories it is +5.3% / +45%: the gap is long-context behaviour, not capacity and not a head temperature (Platt closes 8%).
 - **Screen** (paired k = 3 decays from `scale-w64kd-gate` epoch 3):
-  - `control` (ready, ≈ 1.2 h);
+  - `control` (ready, ≈ 1.9 h; also completes the fork on all 464 users and scores epochs 1–2 for the slope);
   - arm B `context`, 1,024-review chunks (recommended; needs P1: trainer `chunk_reviews` option + WKV parity at T > 383);
   - arm A `kd09` (optional, low value).
 - **Launch** (from `C:\Users\jonat\workspace\anki-rwkv`):
@@ -201,7 +201,7 @@ Nothing is queued. Every stage of `artifacts/small-model/runbook-next.sh` needs 
   nohup "C:/Program Files/Git/usr/bin/bash.exe" C:/Users/jonat/workspace/wt/small-model/artifacts/small-model/runbook-next.sh control > C:/Users/jonat/workspace/wt/small-model/artifacts/small-model/runbook-next-control.log 2>&1 & disown
   ```
 - **Afterwards** (fresh Sonnet agent):
-  1. merge the main checkout's new `cal-*` rows of `artifacts/small-model/heldout.jsonl` into this worktree's file;
+  1. rows land directly in this worktree's `artifacts/small-model/heldout.jsonl` (runbook-next writes there);
   2. run the `small_model_report.py --rmse-bins` command in SMALL_MODEL.md 5.4;
   3. apply the paired rule on LogLoss and RMSE(bins);
   4. check the `kd_cache` counters and reviews/s in each decay's `result.json`/log (accuracy lane, not a benchmark).

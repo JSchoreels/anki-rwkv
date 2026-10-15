@@ -7,8 +7,10 @@
 #     > C:/Users/jonat/workspace/wt/small-model/artifacts/small-model/runbook-next-<stage>.log 2>&1 & disown
 #
 # Stages (calibration screen = paired k=3 0.25-epoch decays of scale-w64kd-gate epoch 3, decay order seeds 1-3):
-#   control  (ready, ~1.2 h) control seeds 2-3 (decay_alpha 0.5, 128-review chunks; seed 1 = existing
-#            scale-w64kd-dec), scoring included. Needed by both arms; fills the teacher cache on the way.
+#   control  (ready, ~1.9 h) first completes fork/w8+s8 and scale-w64kd-dec/w8+s8 on all 464 users (34 long-history
+#            users were cut by time limits), and scores the existing scale-w64kd-gate epoch 1/2 checkpoints (slope:
+#            what 1 and 2 epochs at 5k give); then control seeds 2-3 (decay_alpha 0.5, 128-review chunks; seed 1 =
+#            existing scale-w64kd-dec), scoring included. Needed by both arms; fills the teacher cache on the way.
 #   context  (NOT ready: needs prerequisite P1, section 5.3) arm B, the recommended arm: the same decays at
 #            1,024-review training chunks (batch_chunks 32, same 32,768 reviews per update), seeds 1-3; then scoring.
 #   kd09     (ready, ~1.6 h, optional, low expected value: section 5.1 window result) arm A: decay_alpha 0.9.
@@ -33,7 +35,7 @@ TEACHER=C:/Users/jonat/workspace/anki/qt/aqt/rwkv_inference/RWKV_trained_on_5000
 # Teacher cache (bf16 fork teacher, training_seed 2025): main checkout, gitignored, survives the worktree. ~3.7 GB for
 # the 5k gate users, ~5.8 GB for 8k. Shared by every stage: same seed and span = same batches.
 CACHE=C:/Users/jonat/workspace/anki-rwkv/artifacts/cache/kd-teacher/fork-bf16-s2025
-OUT=C:/Users/jonat/workspace/anki-rwkv/artifacts/small-model/heldout.jsonl  # queue runs from the main checkout
+OUT=$WT/artifacts/small-model/heldout.jsonl  # absolute; the complete file lives in the worktree (resume reads it)
 log() { echo "[next $(date +%H:%M:%S)] $*"; }
 q() {
   local minutes=$1 purpose=$2; shift 3
@@ -72,6 +74,9 @@ score() {  # score LABEL... (w8+s8 only: int8 is free for w64, measured twice), 
 cd "$WT" || exit 1
 case "$STAGE" in
 control)
+  E=$SRC/epoch-0
+  # shellcheck disable=SC2086
+  q 40 "complete fork + scale-w64kd-dec on 464 users; score scale-w64kd-gate epochs 1-2" -- "$PY" -X utf8 "$SC"     --model fork=fork::$TEACHER --model scale-w64kd-dec=expertium:w64:$SM/scale-w64kd-gate-decay/expertium/E89-F65e-F77a/master.pth     --model scale-w64kd-e1=expertium:w64:${E}1/expertium/E89-F65e-F77a/master.pth     --model scale-w64kd-e2=expertium:w64:${E}2/expertium/E89-F65e-F77a/master.pth     --only fork/w8+s8 --only scale-w64kd-dec/w8+s8 --only scale-w64kd-e1/w8+s8 --only scale-w64kd-e2/w8+s8     --time-limit 3000 --out "$OUT"
   decay cal-ctl-s2 2 0.5 22 || exit 1
   decay cal-ctl-s3 3 0.5 22 || exit 1
   score cal-ctl-s2 cal-ctl-s3

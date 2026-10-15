@@ -333,12 +333,12 @@ nohup "C:/Program Files/Git/usr/bin/bash.exe" C:/Users/jonat/workspace/wt/small-
 
 | Stage | Tickets | Estimate | Output |
 |---|---|---:|---|
-| `control` | 2 decays (`cal-ctl-s2`, `cal-ctl-s3`; ≤ 22 min each) + scoring (≈ 27 min) | ≈ 1.2 h | `artifacts/small-model/cal-ctl-s*/expertium/E89-F65e-F77a/master.pth`; rows `cal-ctl-s*/w8+s8` in the main checkout's `heldout.jsonl`; teacher cache filled for about 1,300 users per seed |
+| `control` | completion ticket (fork w8+s8 on the 34 users cut by time limits, `scale-w64kd-e1/e2` w8+s8 for the epoch slope; ≈ 40 min) + 2 decays (`cal-ctl-s2`, `cal-ctl-s3`; ≤ 22 min each) + scoring (≈ 27 min) | ≈ 1.9 h | `artifacts/small-model/cal-ctl-s*/expertium/E89-F65e-F77a/master.pth`; rows in the worktree's `artifacts/small-model/heldout.jsonl` (all stages write there now); teacher cache filled for about 1,300 users per seed |
 | `context` | refuses until P1; then 3 decays (≈ 40 min each; re-size after the P1 probe) + scoring (≈ 38 min) | ≈ 2.7 h | `cal-ctx1024-s*` |
 | `kd09` (optional) | 3 decays + scoring | ≈ 1.6 h | `cal-kd09-s*` |
 | `scale` | `TIER=gate EPOCHS=6 EPOCH1_MIN=62 EPOCH_MIN=41` (+ `DECAY_ALPHA` or `EXTRA` from the screen winner) | ≈ 4.7 h | `scale-w64kd-gate-cached`, labels `s-w64kd-gate-{e6,dec}` |
 
-After `control` and an arm: merge the main checkout's new `heldout.jsonl` rows into the worktree file, then run:
+After `control` and an arm, run (the 464-user frontier needs no `--labels` filter once the fork is complete; add `--min-user-id 101` for the check without the upstream validation users 1–100: today +5.27% / +5.99%, unchanged):
 ```
 $PY -X utf8 scripts/small_model_report.py --rmse-bins \
   --labels fork/w8+s8,scale-w64kd-dec/w8+s8,cal-ctl-s2/w8+s8,cal-ctl-s3/w8+s8,cal-ctx1024-s1/w8+s8,cal-ctx1024-s2/w8+s8,cal-ctx1024-s3/w8+s8 \
@@ -348,8 +348,18 @@ For arm A, replace `cal-ctx1024` with `cal-kd09`.
 
 Recommended order:
 1. P1 code and CPU checks (an agent session), then its GPU check and probe (≈ 15 min).
-2. `control` and `context` in one night (≈ 4 h). `control` can run before P1 is done.
+2. `control` and `context` in one night (≈ 4.6 h). `control` can run before P1 is done.
 3. If B passes, size a full long-context run from B's measured rate: train from scratch or from epoch 3 at long chunks, cached KD. If it does not, the window check still says the gap is long-context behaviour. Next would be SM11 (full-history teacher targets) or longer chunks, not `scale` with the same 128-chunk recipe. `scale` 5k × 6 cached (4.7 h) stays available as the plain more-training baseline.
+
+
+### 5.5 Review notes from the main session (2026-10-15), and what was adopted
+
+- **Fairness.** The 464 users are fork-unseen (id < 5000) and outside every student training set, and the fork is re-scored by our code. The main bias favours the fork: 128-chunk training against full-history scoring, as 5.1 measures. Held-out B contains student training users: never use it for students.
+- **Time-limit cuts.** The 34 users cut by time limits are long-history users, 14% of reviews. Adopted: `control` first completes `fork/w8+s8` on them, so reports can use all 464 users.
+- **Users with id ≤ 100** (upstream validation range). Adopted as an option, `small_model_report.py --min-user-id 101` (418 users). `scale-w64kd-dec` stays +5.27% / +5.99%.
+- **Scoring cost.** Full-history scoring was 42% of small-model GPU time: one user per stream, plus resumes. Fork rows are already reused from `heldout.jsonl` (scored once). Scoring w8+s8 only, with tickets sized by label count, cuts the rest. Batching users per scoring pass is an open speed idea.
+- **Epoch slope.** Asked for a 1-epoch point at 5k users before multi-epoch scale-ups. Adopted at no training cost: `control` scores the existing `scale-w64kd-gate` epoch-1 and epoch-2 checkpoints.
+- **Smoke checks.** Asked for a 60–120 s smoke check inside long tickets. Not yet in the runbook. P1's 10-min probe plays that role for arm B; add one before a `scale` launch.
 
 ## Backlog
 

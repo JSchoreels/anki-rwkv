@@ -25,11 +25,13 @@ WINDOW_SIGMA = {"ahead": 0.00220, "instant": 0.00096}
 HEADS = {"ahead": "curve", "instant": "instant"}
 
 
-def load(path):
+def load(path, min_user=0):
     per = {}
     meta = {}
     for row in map(json.loads, Path(path).read_text().splitlines()):
         if "benchmark" not in row or "ahead" not in row["benchmark"] or "instant" not in row["benchmark"]:
+            continue
+        if row["user_id"] < min_user:
             continue
         per.setdefault(row["label"], {})[row["user_id"]] = row["benchmark"]
         meta[row["label"]] = {k: row.get(k) for k in ("parameters", "weight_bytes", "state_bits", "arch", "kind")}
@@ -130,10 +132,12 @@ def main():
     parser.add_argument("--pair", action="append", default=[], help="CAND=BASE; group with --screen-name")
     parser.add_argument("--screen", action="append", default=[],
                         help="NAME:CAND1=BASE1,CAND2=BASE2,... one paired k-order screen per flag")
+    parser.add_argument("--min-user-id", type=int, default=0,
+                        help="drop users below this id (101 = exclude the upstream validation range 1-100)")
     parser.add_argument("--rmse-bins", action="store_true", help="also apply the paired rule to RMSE(bins)")
     parser.add_argument("--out", default="artifacts/small-model/heldout-report")
     args = parser.parse_args()
-    per, meta = load(ROOT / args.jsonl)
+    per, meta = load(ROOT / args.jsonl, args.min_user_id)
     labels = args.labels.split(",") if args.labels else sorted(per)
     users, rows = frontier(per, meta, labels, args.reference)
     screens = {}
