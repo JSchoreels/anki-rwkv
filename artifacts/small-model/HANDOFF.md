@@ -316,3 +316,44 @@ Follow-up (fresh Sonnet medium agent, when the log's last line is `done: scale` 
   - Run: `scale-w64kd-gate-cached-ctx2048`; labels `s-w64kd-gate-ctx2048-e<K>/w8+s8` and `-dec`.
   - Epoch gates after epochs 1 and 2. Estimate: done around 22:30–23:30 if both gates say go.
 - **Follow-up:** as in "LAUNCHED ~16:40" above, with `<chunk>` = 2048 and this log.
+
+## PAUSED 2026-10-15 19:44: scale-w64kd-gate-cached-ctx2048 after epoch 2 (user cap ~20:00; epoch 3 needs an explicit go)
+
+- **Status:** `scale-w64kd-gate-cached-ctx2048` (2,048-review chunks x 16, section "Override 2026-10-15 17:17", commit 09d0cb7) finished epochs 1 and 2. Both epoch gates said GO (`gate-scale-w64kd-gate-cached-ctx2048-e1.json`, `-e2.json`; 100-user subset, w8+s8).
+
+| Checkpoint | LogLoss curve | vs fork 0.28665 | LogLoss instant | vs fork 0.26105 |
+|---|---:|---:|---:|---:|
+| e1 | 0.29771 | +3.86% | 0.27421 | +5.04% |
+| e2 | 0.29595 | +3.24% | 0.27078 | +3.73% |
+| e2 projected final | 0.29368 | +2.45% | 0.26707 | +2.31% |
+
+  The previous scale run's best decay (same subset) was +4.98% / +6.23%.
+- **Timings:** epoch 1 took 77 min (71 planned), epoch 2 took 61 min (61 planned); gates took 5.3 and 3.4 min.
+- **What stopped it:** the user said "don't start epoch 3 before I tell you". The runbook had already enqueued epoch 3 as ticket 000374; it was cancelled about 10 s in (smoke step) and killed, so the log ends with "training failed (exit 1), stop". The epoch-2 checkpoint is intact (`artifacts/accuracy/experiments/scale-w64kd-gate-cached-ctx2048/run/epoch-02`); there is no `epoch-03` folder, so no `epoch-03-attempt-N` leftover.
+- **Epoch 3 needs the user's explicit go.** Do not resume without it.
+
+### Resume command (after the user's go)
+
+Same form as the 17:17 relaunch (detached, from `C:\Users\jonat\workspace\anki-rwkv`), same parameters; no FORCE:
+
+```
+TIER=gate EPOCHS=4 EPOCH1_MIN=69 EPOCH_MIN=59 RUN_TAG=ctx2048 EXTRA='{"chunk_reviews": 2048, "batch_chunks": 16}' \
+  nohup "C:/Program Files/Git/usr/bin/bash.exe" C:/Users/jonat/workspace/wt/small-model/artifacts/small-model/runbook-next.sh scale \
+  > C:/Users/jonat/workspace/wt/small-model/artifacts/small-model/runbook-next-scale-ctx2048.log 2>&1 & disown
+```
+
+(Use `>>` instead of `>` to keep the old log. Epoch minutes are the planned values from the 17:17 launch; e2 actually took 61 min and e1 77, so EPOCH_MIN=59 is slightly low; it only sets the queue ticket's expected minutes.)
+
+Verified by reading `runbook-next.sh` (`scale` stage) and `scripts/accuracy_loop.py`:
+- NAME = `scale-w64kd-gate-cached-ctx2048` follows from TIER=gate and RUN_TAG=ctx2048; `experiment.json` exists, so it logs "resuming existing" and does not re-prepare.
+- The loop over epochs skips any epoch whose `run/epoch-NN/<CKPT>/master.pth` exists, so epochs 1 and 2 are not retrained; `accuracy_loop.py train` also skips epochs whose `result.json` is complete. Training starts at epoch 3, one epoch per ticket (smoke first).
+- FORCE=1 is only consulted when a gate says STOP; both gates said GO, so it is not needed. Do not set it.
+- The script re-runs the epoch-1 and epoch-2 gates after the (skipped) training step. Rows already in `heldout.jsonl` are skipped, so each should be a short ticket (a few minutes of GPU queue, expected 15) and give the same GO. It also re-makes the CPU smoke-prep folder each launch.
+- Epoch 4, the 0.25-epoch decay and scoring then follow in the same launch.
+- NOT confirmed: that epoch 3 (the `_epoch` child, `run_full_training.py`) picks up the optimizer/model state from `epoch-02` with these options. I did not read that code or run anything; the epoch-3 smoke killed at ~10 s gave no evidence either way. Check the first lines of the new log / `phases.jsonl` for the epoch-3 start and that the loss continues from the epoch-2 level.
+- NOT confirmed: the uncommitted `heldout.jsonl` change in the worktree is the gate rows from this run; it was left uncommitted here on purpose.
+
+### Follow-up after the run ends
+
+1. The "LAUNCHED ~16:40" follow-up steps (fresh Sonnet medium agent, when the log ends with `done: scale` or a gate stop), with `<chunk>` = 2048: grep the log, read the gate JSONs, run `small_model_report.py --rmse-bins` for the listed labels, write a "RESULT probe-scale" section here and in SMALL_MODEL.md, `git add -f` heldout.jsonl and the JSONs, commit and push. Launch nothing.
+2. Then the priority re-assessment per anki-rwkv `AGENT.md` (main session, Opus high).
