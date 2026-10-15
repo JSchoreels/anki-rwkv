@@ -43,6 +43,10 @@ def cases():
     accepted = json.loads(PLAN.read_text())["case_options_by_model"]["expertium"][TRACK]
     generic, dropped = compatible_options({**accepted, "architecture": "w80"})
     generic.pop("architecture")
+    # S06 (docs/SMALL_MODEL.md Q3): w64 with the wide-kernels ports kept, no KD, memory fraction 0.8; the long-context
+    # cases keep 32,768 reviews per update except 32 x 2,048 (65,536; speed only).
+    wide, _ = compatible_options({**accepted, "architecture": "w64"}, wide_kernels=True)
+    ctx = {**wide, "gpu_memory_fraction": 0.8}
     return {"w32": accepted, "w32-generic": generic, "w32-variant": {**generic, "architecture": "iter36"},
             "w80-sequential": {**generic, "architecture": "w80-sequential"}, "w80": {**generic, "architecture": "w80"},
             "w64": {**generic, "architecture": "w64"}, "w64-sequential": {**generic, "architecture": "w64-sequential"},
@@ -55,6 +59,10 @@ def cases():
             "w64-b256": {**generic, "architecture": "w64", "batch_chunks": 256},
             "w80-muon-b256": {**generic, "architecture": "w80", "optimizer": "expertium-iter53", "batch_chunks": 256},
             "w80-muon": {**generic, "architecture": "w80", "optimizer": "expertium-iter53"},
+            "w64-ctx128-b256": {**ctx, "chunk_reviews": 128, "batch_chunks": 256},
+            "w64-ctx1024-b32": {**ctx, "chunk_reviews": 1024, "batch_chunks": 32},
+            "w64-ctx2048-b16": {**ctx, "chunk_reviews": 2048, "batch_chunks": 16},
+            "w64-ctx2048-b32": {**ctx, "chunk_reviews": 2048, "batch_chunks": 32},
             "w32-kd": {**accepted, "distillation": {"teacher": str(TEACHER), "alpha": 0.9}}}, dropped
 
 
@@ -87,7 +95,8 @@ def run_case(out, name):
     folder = out / name
     protocol = {"rows": rows_for(config["users"], config["review_counts"]), "evaluation_rows": [],
                 "dataset_path": config["dataset_path"], "dataset_revision": config["dataset_revision"],
-                "training": {"epochs": 1, "chunk_reviews": 128, "gpu_memory_fraction": 0.95},
+                "training": {"epochs": 1, "chunk_reviews": options.get("chunk_reviews", 128),
+                             "gpu_memory_fraction": options.get("gpu_memory_fraction", 0.95)},
                 "execution_mode": {"CUBLAS_WORKSPACE_CONFIG": ":4096:8"}, "full_run": {"evaluate": False}}
     folder.mkdir(parents=True, exist_ok=False)
     atomic_json(folder / "protocol.json", protocol)
