@@ -13,6 +13,15 @@
 - **Model choice:** use Sonnet at medium effort for mechanical steps (scoring, tables, runbooks, simple merges). Keep Opus for design work.
 - **Queue position:** detach jobs when first enqueued; re-registering a waiting ticket loses its queue position.
 
+**Priority re-assessment (human decision 2026-10-15):** a final result (a screen verdict, a finished run, a gate stop; not a mid-runbook ticket) can change what should come next, so the next steps are re-ranked before anything else is launched.
+- **Who:** once the result agent has committed its verdict, the main session starts a fresh agent on **Opus 5.5 at high effort**. This is design work, not result processing.
+- **Input:** the track's goal and backlog (e.g. `docs/SMALL_MODEL.md` "Priorities" and "Backlog"), the new result and the parked items the user holds.
+- **Output:**
+  1. updates the backlog rows the result touches (status, next step, items superseded or newly justified);
+  2. proposes a ranked top 3 in the track's "Priorities" section, each with a one-line reason against the goal, GPU cost and what it decides;
+  3. names any queued step that the result made pointless or mis-sized.
+- **It only proposes:** it enqueues nothing and changes no runbook. The main session relays the order, and the user approves or edits it before anything launches.
+
 **Flow audit (human decision 2026-10-14):** on every wake caused by a finished queue ticket, also run a small agent (Haiku, or Sonnet at low effort) through [docs/FLOW_AUDIT.md](docs/FLOW_AUDIT.md). It checks the job against the coordination flow: lane and `--timing`, quiet windows, `--expected-minutes`, handoff, pushed commits, docs. It appends one entry to `docs/FLOW_AUDIT_LOG.md`. It only reports, and the main session decides on fixes.
 
 # Optimization records
