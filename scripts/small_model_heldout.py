@@ -15,6 +15,8 @@ Models (repeatable --model TAG=KIND:ARCH:PATH):
 Variants (--variants, applied to every model): fp32, w8 (int8 per-channel weights), +s8 (int8 card/note state rows,
 like the fork's runtime int8). Example: fp32,w8+s8.
 Resumable JSONL, one row per (user, tag/variant).
+--window W (diagnostic): the training protocol instead, i.e. the same history cut into independent W-review samples
+(state reset at every sample start); labels get the suffix "@wW" so they never mix with full-history rows.
 
 usage: small_model_heldout.py --model fork=fork::<pth> --model decay=expertium:iter36:<pth> --variants fp32,w8+s8
        --out artifacts/small-model/heldout.jsonl --time-limit 3000 [--device cpu --count 2]
@@ -111,6 +113,37 @@ def set_expertium_state_bits(model, bits):
             sub._small_model_bits = bits
 
 
+def dump_predictions(folder, user, label, labels, predictions):
+    import numpy as np
+    review_ths, bins = labels
+    kept = [i for i, th in enumerate(review_ths)
+            if th in predictions["ahead"] and th in predictions["instant"] and th in predictions["rating"]]
+    ths = [review_ths[i] for i in kept]
+    folder.mkdir(parents=True, exist_ok=True)
+    np.savez_compressed(folder / f"{user}_{label.replace('/', '_')}.npz", review_th=np.array(ths, dtype=np.int64),
+                        bin=np.array([bins[i] for i in kept]),
+                        y=np.clip(np.array([predictions["rating"][th] for th in ths]), 0, 1),
+                        p_ahead=np.array([predictions["ahead"][th] for th in ths]),
+                        p_instant=np.array([predictions["instant"][th] for th in ths]))
+
+
+class WindowBatches(UserBatches):
+    """The history as independent `window`-review samples (the R01 training protocol), one batch per user."""
+    window = 128
+
+    def __getitem__(self, index):
+        user = self.users[index]
+        started = time.perf_counter()
+        try:
+            from rwkv.data_processing import get_rwkv_data
+            from rwkv.prepare_batch import prepare
+            frame = get_rwkv_data(self.data, user)
+            batch = prepare(cc.make_samples(frame, user, self.window), seed=2025 + user)
+        except Exception as error:  # recorded, not fatal
+            return user, None, repr(error), time.perf_counter() - started
+        return user, batch, None, time.perf_counter() - started
+
+
 def parse_variant(name):
     weights, _, state = name.partition("+")
     scheme = {"fp32": "fp32", "w8": "w8-pc", "w4": "w4-g32"}.get(weights)
@@ -131,6 +164,9 @@ def main():
     parser.add_argument("--device", choices=("cuda", "cpu"), default="cuda")
     parser.add_argument("--out", default="artifacts/small-model/heldout.jsonl")
     parser.add_argument("--max-reviews", type=int, default=0, help="CPU smoke: skip users above this many reviews")
+    parser.add_argument("--window", type=int, default=0, help="diagnostic: score independent W-review samples")
+    parser.add_argument("--dump", default="", help="also write per-review benchmark predictions (review_th, bin, y, "
+                        "p_ahead, p_instant) to DIR/<user>_<tag>_<variant>.npz, for calibration diagnostics")
     args = parser.parse_args()
     cpu = args.device == "cpu"
     if cpu:
@@ -163,6 +199,8 @@ def main():
     grid = [f"{tag}/{v}" for tag in specs for v in args.variants.split(",")]
     if args.only:
         grid = args.only
+    if args.window:
+        grid = [f"{label}@w{args.window}" for label in grid]
     out = ROOT / args.out
     out.parent.mkdir(parents=True, exist_ok=True)
     done = {}
@@ -173,7 +211,7 @@ def main():
 
     models, states = {}, {}
     for label in grid:
-        tag, variant = label.split("/", 1)
+        tag, variant = label.split("@")[0].split("/", 1)
         kind, arch, path = specs[tag]
         scheme, _ = parse_variant(variant)
         if tag not in models:
@@ -195,7 +233,9 @@ def main():
     env = lmdb.open(str(cc.RUN / "label-db"), readonly=True, lock=False, map_size=10_000_000_000)
     prov = process_provenance()
     print(f"[small-model] {len(users)} users, {len(todo)} to score, grid {grid}", flush=True)
-    loader = torch.utils.data.DataLoader(UserBatches(todo, cc.data_path(run), counts), batch_size=1,
+    WindowBatches.window = args.window
+    dataset = (WindowBatches if args.window else UserBatches)(todo, cc.data_path(run), counts)
+    loader = torch.utils.data.DataLoader(dataset, batch_size=1,
                                          num_workers=args.workers, collate_fn=first,
                                          prefetch_factor=1 if args.workers else None)
     started = time.perf_counter()
@@ -214,7 +254,7 @@ def main():
             for label in grid:
                 if label in done.get(user, set()):
                     continue
-                tag, variant = label.split("/", 1)
+                tag, variant = label.split("@")[0].split("/", 1)
                 kind, model, _, _ = models[tag]
                 scheme, state_bits = parse_variant(variant)
                 state, nbytes, params = states[(tag, scheme)]
@@ -239,6 +279,8 @@ def main():
                              "prepare_seconds": round(prep_seconds, 2),
                              "model_seconds": round(time.perf_counter() - t0, 3), **values,
                              "benchmark": metrics(user, labels, predictions)})
+                if args.dump:
+                    dump_predictions(ROOT / args.dump, user, label, labels, predictions)
                 scored += counts[str(user)]
             del gpu_batch
         with out.open("a", encoding="utf-8") as f:

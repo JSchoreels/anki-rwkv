@@ -183,3 +183,25 @@ Report on the 430 users every label has (`heldout-report.md/json`; scale rows we
 Paired scale-w64kd-dec vs w32 decay (k = 1): curve -0.00415 (window band 0.00622, inside), instant -0.00348 (0.00272, marginally beyond); same for w8+s8 (-0.00416 / -0.00351). Beats `decay` on both heads. Fork fp32 for reference: +0.01% / -0.01%.
 
 Good-candidate bar (<= +1.0% / +1.5%, bootstrap upper <= +2.0% / +2.5%, RMSE(bins) <= +15%): NOT met (+5.28% / +5.99%, upper +6.82% / +6.61%, RMSE +85%). It beats `decay` on both heads, so verdict "closer, not yet close enough" (remaining gap about 4.3 pp curve, 4.5 pp instant). int8 free. Packaged: `C:/Users/jonat/workspace/anki-rwkv/artifacts/models/scale-w64kd-dec/` (not in git): int8 file 436,391 B, 331,511 params, parity PASS (fp32 max |dp| 8.3e-7 curve / 1.4e-6 instant; w8 8.9e-7 / 1.3e-6). The 000352 compare crash was fixed in bcc8c9e. Next ideas: SM06 (w80 + KD, longer decay), more epochs/users.
+
+# Next step designed, NOT launched (2026-10-15 ~12:00; design: docs/SMALL_MODEL.md section 5)
+
+Nothing is queued. Every stage of `artifacts/small-model/runbook-next.sh` needs the user's go (heavy GPU).
+
+- **KD cost.** Teacher-target cache implemented (`distillation.cache`; `scripts/check_kd_cache.py` gives bit-identical loss and gradients on a hit). Estimate: KD epochs drop from 57 to about 38 min at 5k users after the first epoch. 8k users × 6–10 epochs does not fit 6 h even without KD; 5k × 6 (4.7 h) or 8k × 4 (5.1 h) does.
+- **Calibration** (CPU diagnostic, `scripts/small_model_calibration.py`, `artifacts/small-model/calibration-{full,window}.json`, 64 users):
+  - in the 128-review training protocol the student matches the fork: instant LogLoss +0.1%, RMSE(bins) +1.7%;
+  - over full histories it is +5.3% / +45%: the gap is long-context behaviour, not capacity and not a head temperature (Platt closes 8%).
+- **Screen** (paired k = 3 decays from `scale-w64kd-gate` epoch 3):
+  - `control` (ready, ≈ 1.2 h);
+  - arm B `context`, 1,024-review chunks (recommended; needs P1: trainer `chunk_reviews` option + WKV parity at T > 383);
+  - arm A `kd09` (optional, low value).
+- **Launch** (from `C:\Users\jonat\workspace\anki-rwkv`):
+  ```
+  nohup "C:/Program Files/Git/usr/bin/bash.exe" C:/Users/jonat/workspace/wt/small-model/artifacts/small-model/runbook-next.sh control > C:/Users/jonat/workspace/wt/small-model/artifacts/small-model/runbook-next-control.log 2>&1 & disown
+  ```
+- **Afterwards** (fresh Sonnet agent):
+  1. merge the main checkout's new `cal-*` rows of `artifacts/small-model/heldout.jsonl` into this worktree's file;
+  2. run the `small_model_report.py --rmse-bins` command in SMALL_MODEL.md 5.4;
+  3. apply the paired rule on LogLoss and RMSE(bins);
+  4. check the `kd_cache` counters and reviews/s in each decay's `result.json`/log (accuracy lane, not a benchmark).

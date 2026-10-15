@@ -7,9 +7,19 @@ sets `full_run.lr_schedule`); without them the accepted path is untouched. One k
     "lr_schedule": {"decay_start": 0.75, "shape": "one_minus_sin", ...}                               item 2
     "optimizer": "expertium-iter53" | {"kind": "muon", ...}                                            item 3
     "end_to_start_intervals": true                                                                     item 4
-    "distillation": {"teacher": "<.pth>", "alpha": 0.9, "decay_alpha": 0.5}                            item 5
+    "distillation": {"teacher": "<.pth>", "alpha": 0.9, "decay_alpha": 0.5[, "cache": "<dir>"]}          item 5
+
+Teacher cache (docs/SMALL_MODEL.md, "KD cost"): an R01 training batch is a pure function of (user, offset, reviews,
+seed = training_seed + user + offset), whatever the epoch's user order, so the teacher's targets for a batch are the
+same every epoch. With "cache" set, the first time a batch is seen its online targets are also written (only the
+labelled rows the loss reads: the curve at ahead rows, the 4 rating probabilities at query rows, float32); later
+epochs read them back instead of running the teacher. Rows the loss masks out are zero in a cached target, which
+leaves the loss and every gradient bit-identical (scripts/check_kd_cache.py). The files live in
+<cache>/batches-<hash>, the hash covering every track option except the distillation spec and the kernel switches
+(WIDTH32_ONLY, all bitwise-exact), so runs whose batches could be built differently never share targets.
 """
 from argparse import Namespace
+import json
 import math
 import os
 from pathlib import Path
@@ -137,7 +147,7 @@ class Teacher:
     dropout off) on the identical PreparedBatch. The default teacher architecture is the 2.76M srs-benchmark RWKV.
     """
 
-    def __init__(self, spec, device, dtype):
+    def __init__(self, spec, device, dtype, batch_options=None):
         self.path = Path(spec["teacher"])
         self.alpha = float(spec.get("alpha", 0.9))
         self.decay_alpha = float(spec.get("decay_alpha", self.alpha))
@@ -166,9 +176,48 @@ class Teacher:
         self.input_dtype = teacher_dtype
         self.parameters = sum(p.numel() for p in master.parameters())
         self.sha256 = __import__("hashlib").sha256(self.path.read_bytes()).hexdigest()
+        self.cache = None
+        if spec.get("cache"):
+            batch_options = {key: value for key, value in (batch_options or {}).items()
+                             if key != "distillation" and key not in WIDTH32_ONLY}
+            digest = __import__("hashlib").sha256(json.dumps(batch_options, sort_keys=True).encode()).hexdigest()[:12]
+            self.cache = Path(spec["cache"]) / f"batches-{digest}"
+        self.cache_stats = {"hits": 0, "writes": 0, "online": 0}
+        if self.cache is not None:
+            identity = {"format": 1, "teacher_sha256": self.sha256, "teacher_architecture": architecture,
+                        "teacher_dtype": str(teacher_dtype), "batch_options": batch_options}
+            self.cache.mkdir(parents=True, exist_ok=True)
+            manifest = self.cache / "manifest.json"
+            if manifest.exists():
+                if json.loads(manifest.read_text()) != identity:
+                    raise ValueError(f"teacher cache {self.cache} was written by another teacher: {manifest.read_text()}")
+            else:
+                manifest.write_text(json.dumps(identity, indent=1) + "\n")
 
     @torch.no_grad()
-    def targets(self, batch, decaying=False):
+    def targets(self, batch, decaying=False, key=None, labels=None):
+        """(teacher curve probabilities [B, T], rating probabilities [B, T, 4], alpha). key identifies the batch
+        for the cache, e.g. (user, offset, reviews, seed); labels = the batch's labels on the CPU, if at hand."""
+        alpha = self.decay_alpha if decaying else self.alpha
+        path = None
+        if self.cache is not None and key is not None:
+            path = self.cache / ("_".join(str(part) for part in key) + ".pt")
+            cpu = (labels if labels is not None else batch.labels).detach().cpu()
+            curve_rows = torch.nonzero(((1 - cpu[:, :, 6]) * cpu[:, :, 4]).reshape(-1), as_tuple=True)[0]
+            query_rows = torch.nonzero((cpu[:, :, 6] * cpu[:, :, 4]).reshape(-1), as_tuple=True)[0]
+            fingerprint = [list(cpu.shape), float(cpu.double().sum())]
+            if path.exists():
+                stored = torch.load(path, map_location="cpu", weights_only=True)
+                if stored["fingerprint"] != fingerprint:
+                    raise RuntimeError(f"teacher cache {path} holds another batch: {stored['fingerprint']} != {fingerprint}")
+                rows, steps = cpu.shape[:2]
+                device = batch.labels.device
+                curve = torch.zeros(rows * steps, device=device)
+                curve[curve_rows.to(device)] = stored["curve"].to(device)
+                rating = torch.zeros(rows * steps, 4, device=device)
+                rating[query_rows.to(device)] = stored["rating"].to(device)
+                self.cache_stats["hits"] += 1
+                return curve.view(rows, steps), rating.view(rows, steps, 4), alpha
         start = batch.start
         batch.start = start.to(self.input_dtype)
         try:
@@ -177,12 +226,21 @@ class Teacher:
             batch.start = start
         if stats is None:
             raise RuntimeError("Teacher produced NaN outputs")
-        alpha = self.decay_alpha if decaying else self.alpha
-        return stats.p_curve.float().clamp(1e-5, 1 - 1e-5), stats.p_imm_all.float(), alpha
+        curve, rating = stats.p_curve.float().clamp(1e-5, 1 - 1e-5), stats.p_imm_all.float()
+        self.cache_stats["online"] += 1
+        if path is not None:
+            temporary = path.with_name(path.name + ".tmp")
+            torch.save({"fingerprint": fingerprint,
+                        "curve": curve.reshape(-1)[curve_rows.to(curve.device)].cpu(),
+                        "rating": rating.reshape(-1, 4)[query_rows.to(rating.device)].cpu()}, temporary)
+            os.replace(temporary, path)
+            self.cache_stats["writes"] += 1
+        return curve, rating, alpha
 
     def describe(self):
         return {"teacher": str(self.path), "teacher_sha256": self.sha256, "teacher_parameters": self.parameters,
-                "alpha": self.alpha, "decay_alpha": self.decay_alpha}
+                "alpha": self.alpha, "decay_alpha": self.decay_alpha,
+                **({"cache": str(self.cache)} if self.cache is not None else {})}
 
 
 def make_optimizer(spec, master):
@@ -244,18 +302,18 @@ class CatchUp:
 
     def load_teacher(self, device, dtype):
         if self.options.get("distillation"):
-            self.teacher = Teacher(self.options["distillation"], device, dtype)
+            self.teacher = Teacher(self.options["distillation"], device, dtype, self.options)
 
     def learning_rate(self, updates_done, update_offset, reviews_done):
         if self.schedule is None:
             return default_learning_rate(updates_done, update_offset)
         return self.schedule(updates_done, update_offset, reviews_done)
 
-    def loss(self, model, batch, reviews_done):
+    def loss(self, model, batch, reviews_done, key=None, labels=None):
         if self.teacher is None:
             return model.get_loss(batch)
         decaying = self.schedule is not None and self.schedule.decaying(reviews_done)
-        return model.get_loss(batch, kd_mix=self.teacher.targets(batch, decaying))
+        return model.get_loss(batch, kd_mix=self.teacher.targets(batch, decaying, key, labels))
 
     def describe(self, master):
         out = {"keys": sorted(key for key in KEYS if key in self.options)}

@@ -7,7 +7,8 @@
    delta (candidate - base) per head; the accuracy-loop rule (docs/ACCURACY_LOOP.md, adopted 2026-10-14) -- all k
    deltas the same sign and |mean| > 2 * sigma * sqrt(2) / sqrt(k) -- with sigma measured here as the larger SD across
    order seeds of the bases and of the candidates (full-history protocol, these users); the window-protocol sigma
-   (0.00220 curve / 0.00096 instant) is printed beside it.
+   (0.00220 curve / 0.00096 instant) is printed beside it. --rmse-bins adds the same paired rule on RMSE(bins) for
+   every screen (calibration screens; no window-protocol sigma exists for it).
 
 usage: small_model_report.py [--jsonl artifacts/small-model/heldout.jsonl] [--labels a/fp32,b/fp32 ...]
        [--reference fork/w8+s8] [--pair screen-w64kd-o0/fp32=screen-w64-o0/fp32 ...] [--out artifacts/small-model/heldout-report]
@@ -69,22 +70,22 @@ def frontier(per, meta, labels, reference):
     return users, rows
 
 
-def screen(per, pairs):
+def screen(per, pairs, metric="LogLoss"):
     labels = sorted({x for pair in pairs for x in pair})
     users = sorted(set.intersection(*(set(per[label]) for label in labels)))
     k = len(pairs)
-    out = {"users": len(users), "k": k, "heads": {}}
+    out = {"users": len(users), "k": k, "metric": metric, "heads": {}}
     for head in HEADS:
         deltas, base_vals, cand_vals = [], [], []
         for cand, base in pairs:
-            c, sizes = arrays(per, cand, users, head, "LogLoss")
-            b, _ = arrays(per, base, users, head, "LogLoss")
+            c, sizes = arrays(per, cand, users, head, metric)
+            b, _ = arrays(per, base, users, head, metric)
             deltas.append(rw(c, sizes) - rw(b, sizes))
             cand_vals.append(rw(c, sizes))
             base_vals.append(rw(b, sizes))
         sigma = max(float(np.std(base_vals, ddof=1)), float(np.std(cand_vals, ddof=1))) if k > 1 else float("nan")
         band = 2 * sigma * math.sqrt(2) / math.sqrt(k) if k > 1 else float("nan")
-        window_band = 2 * WINDOW_SIGMA[head] * math.sqrt(2) / math.sqrt(k)
+        window_band = 2 * WINDOW_SIGMA[head] * math.sqrt(2) / math.sqrt(k) if metric == "LogLoss" else float("nan")
         mean = float(np.mean(deltas))
         same_sign = all(d < 0 for d in deltas) or all(d > 0 for d in deltas)
         out["heads"][HEADS[head]] = {
@@ -111,7 +112,7 @@ def markdown(users, rows, reference, screens):
                      f"{r['instant.LogLoss.delta_pct']:+.2f}% {fmt_ci(r['instant.LogLoss.ci95'])} | {r['ahead.RMSE(bins)']:.5f} | "
                      f"{r['ahead.RMSE(bins).delta_pct']:+.1f}% | {r['instant.RMSE(bins)']:.5f} | {r['instant.RMSE(bins).delta_pct']:+.1f}% |")
     for name, s in screens.items():
-        lines += ["", f"## Paired screen: {name} (k = {s['k']}, {s['users']} users)", "",
+        lines += ["", f"## Paired screen: {name} ({s.get('metric', 'LogLoss')}, k = {s['k']}, {s['users']} users)", "",
                   "| Head | Deltas (cand - base) | Mean | Band (full-history sigma) | Band (window sigma) | Same sign | Verdict |",
                   "|---|---|---:|---:|---:|---|---|"]
         for head, h in s["heads"].items():
@@ -129,6 +130,7 @@ def main():
     parser.add_argument("--pair", action="append", default=[], help="CAND=BASE; group with --screen-name")
     parser.add_argument("--screen", action="append", default=[],
                         help="NAME:CAND1=BASE1,CAND2=BASE2,... one paired k-order screen per flag")
+    parser.add_argument("--rmse-bins", action="store_true", help="also apply the paired rule to RMSE(bins)")
     parser.add_argument("--out", default="artifacts/small-model/heldout-report")
     args = parser.parse_args()
     per, meta = load(ROOT / args.jsonl)
@@ -138,6 +140,8 @@ def main():
     for spec in args.screen:
         name, _, body = spec.partition(":")
         screens[name] = screen(per, [tuple(p.split("=")) for p in body.split(",")])
+        if args.rmse_bins:
+            screens[f"{name} RMSE(bins)"] = screen(per, [tuple(p.split("=")) for p in body.split(",")], "RMSE(bins)")
     if args.pair:
         screens["pairs"] = screen(per, [tuple(p.split("=")) for p in args.pair])
     out = ROOT / args.out

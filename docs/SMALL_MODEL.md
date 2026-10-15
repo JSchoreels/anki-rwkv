@@ -198,6 +198,159 @@ Not verified:
 6. **int8 weights (optional).** Production loads f32 only; `packed_weights.rs` is test-only int4 (mod.rs:43). Either dequantize `ARWKVWEIGHTS8PC1` at load, which shrinks the shipped file but not RAM, or keep the int8 codes resident with per-row scales.
 7. **Acceptance.** The fork's Rust replay of a held-out user must reproduce `small_model_numpy.py` (or the PyTorch scorer) to about 1e-5. Then run the fork's collection replay against the 2.76M int8 baseline.
 
+## 5. Next step: KD cost and calibration (design, 2026-10-15; nothing launched)
+
+Starting point: `scale-w64kd-dec` (w8+s8) is +5.28% curve / +5.99% instant LogLoss and +85% instant RMSE(bins) vs fork w8+s8 (430 users). The good-candidate bar is ≤ +1.0% / +1.5% LogLoss and ≤ +15% instant RMSE(bins). Runbook: [artifacts/small-model/runbook-next.sh](../artifacts/small-model/runbook-next.sh). All rates and times below are accuracy-lane estimates from logged training rates and queue durations, not benchmarks.
+
+### 5.1 Where the calibration gap is (CPU diagnostic, no GPU)
+
+Data:
+- The 430-user report rows (`heldout.jsonl`), split by history size.
+- New per-review dumps (`small_model_heldout.py --dump`) of fork w8+s8 and `scale-w64kd-dec` w8+s8 on the first 64 held-out users with ≤ 80k reviews: 1,087,000 benchmark reviews, CPU.
+- The same 64 users scored again in the training protocol (`--window 128`: independent 128-review samples, state reset at each).
+- Analysis: `scripts/small_model_calibration.py`, written to `artifacts/small-model/calibration-{full,window}.json`.
+
+Instant RMSE(bins) by user size (430 users, size quintiles of benchmark reviews):
+
+| Size quintile | Share of reviews | Fork | w64kd | Δ% | Users worse |
+|---|---:|---:|---:|---:|---:|
+| 2,000–6,865 | 2% | 0.0471 | 0.0550 | +17% | 98% |
+| 6,875–13,975 | 5% | 0.0414 | 0.0532 | +29% | 99% |
+| 14,125–27,405 | 9% | 0.0343 | 0.0480 | +40% | 99% |
+| 27,430–66,015 | 19% | 0.0251 | 0.0414 | +65% | 100% |
+| 66,180–427,540 | 66% | 0.0163 | 0.0362 | +122% | 100% |
+
+The gap is systematic: almost every user is worse. It grows with history length. On long histories the fork's binned error falls towards the noise floor; ours stays at about 0.036, a bias that more reviews do not average away. The review-weighted +85% is dominated by the largest users.
+
+On the 64 dumped users (instant head; the curve head is similar):
+- **Not a global temperature or offset.**
+  - A Platt layer (a · logit + b), fitted on half the users and applied to the other half, moves RMSE(bins) from 0.0496 to 0.0484. The fork is at 0.0343, so it closes 8% of the gap, and LogLoss improves by 0.1%.
+  - The fitted slope is a ≈ 1.07–1.09 instant and 1.09–1.19 curve, against 1.00 for the fork: our model is slightly under-confident.
+  - An oracle per-user constant shift (the upper bound of any per-user offset) gives 0.0485.
+  - So a calibration layer on the head is cheap (it could be folded into the export) but is not the fix.
+- **Range compression.** In the hardest decile the model predicts 0.388 instant against 0.361 observed (fork 0.321 against 0.325). On the curve head it predicts 0.440 against 0.407, and it is pessimistic in the 0.85–0.97 band.
+- **The gap grows along the history.** Instant LogLoss gap by position in the user's history: +2.1% for reviews 0–1k, +3.7% for 1k–5k, +5.1% for 5k–20k, +5.7% beyond 20k. The instant bias drifts to +0.0056 beyond 20k reviews, against −0.0009 for the fork.
+
+**The decisive check.** The same 64 users and reviews, scored in the training protocol (independent 128-review samples):
+
+| Protocol | Head | Fork LogLoss | w64kd LogLoss | Δ% | Fork RMSE(bins) | w64kd RMSE(bins) | Δ% |
+|---|---|---:|---:|---:|---:|---:|---:|
+| 128-review windows (training protocol) | instant | 0.3382 | 0.3385 | **+0.1%** | 0.0646 | 0.0657 | **+1.7%** |
+| 128-review windows | curve | 0.3519 | 0.3521 | +0.1% | 0.0694 | 0.0719 | +3.6% |
+| Full history (deployment, the held-out protocol) | instant | 0.2995 | 0.3153 | +5.3% | 0.0343 | 0.0496 | +45% |
+| Full history | curve | 0.3254 | 0.3381 | +3.9% | 0.0504 | 0.0652 | +29% |
+
+In the protocol it was trained and distilled in, the 331k student already matches the 2.76M teacher, within 0.1% LogLoss and 2–4% RMSE(bins). The whole remaining gap is the benefit of long context:
+- the fork gains 11.4% instant LogLoss going from windows to full history (7.5% curve);
+- the student gains 6.9% (4.0% curve).
+
+Caveats: 64 users with ≤ 80k reviews, one checkpoint, no noise band computed for this comparison; the window protocol handicaps the fork (it was trained on long segments), which is the point. So capacity is not the binding limit at this point. Neither the KD weight nor more epochs of the same recipe can teach what neither the data chunks nor the teacher's window targets contain.
+
+**Diagnosis (confirmed by the window check).** Our students train on independent 128-review chunks, with recurrent state reset between chunks (`CHUNK_REVIEWS = 128`, hard-coded in `scripts/gpu_r01_training.py`). They are then deployed and scored over full histories of up to 430k reviews. The fork was trained on long segments (`MAX_TRAIN_GLOBAL_LEN = 66000`). The KD targets come from the teacher run on the same 128-review chunks, so they are the fork's *window* predictions, not its full-history ones. This is idea A09 (ACCURACY_IDEAS), now measured. It also explains why more of the same training saturates: the w32 at 8k users × 10 epochs is still at +6.7%. Head temperature, KD alpha and per-head calibration act on the output and cannot add the missing long-context behaviour. With longer training chunks, the online teacher also sees the longer chunks, so its KD targets improve with them (the cache is keyed by batch options, so it keeps them apart).
+
+### 5.2 KD cost: cache the teacher's targets (implemented, CPU-checked)
+
+Measured: KD epochs run at 108.2k reviews/s (`scale-w64kd-gate` epochs 1–3, 57.2 min tickets at 5k users), against 167.0k for w64 without KD. The teacher forward costs about 3.3 µs per review on top of the student's 6.0.
+
+Options assessed:
+
+| Option | Verdict |
+|---|---|
+| Teacher in bf16 | Already the case: `teacher_dtype` defaults to bfloat16 and none of our experiments overrides it |
+| int8 teacher | No int8 GPU path in this repo. The teacher cost is the WKV recurrence and the gathers, not d=128 matmuls. Not worth building |
+| Teacher targets once per dataset from a full-history replay | The scorer replays one user per stream at about 27k reviews/s, so 5k users take ≈ 3.8 h: more than the whole saving at 6 epochs. It would also change the targets (full-history instead of window predictions), so it is a recipe change, not a speed change. Kept as calibration idea SM11 |
+| **Cache the online targets per training batch** | **Chosen.** A training batch is a pure function of (user, offset, reviews, seed = training_seed + user + offset); only the user order changes between epochs. So the targets of epoch 1 are exactly those of every later epoch, and of the decay too (same training seed and span) |
+
+Implementation (`distillation.cache`, `scripts/expertium_options.py` `Teacher`; call site `scripts/gpu_r01_training.py`):
+- The first time a batch is seen, its online targets are also written. Only the labelled rows the loss reads are stored: the curve probability at ahead rows and the 4 rating probabilities at query rows, float32.
+- Later epochs read the file and scatter it back into zero tensors. The masked-out rows do not reach the loss.
+- Each file carries a fingerprint (label shape and sum), so another batch under the same key is refused.
+- The folder is `<cache>/batches-<hash>`. The hash covers every track option except the distillation spec and the bitwise-exact kernel switches, so runs that could build batches differently never share targets. A manifest pins the teacher's sha256 and dtype.
+- Counters (`hits`, `writes`, `online`) go into the epoch's `result.json` as `kd_cache`.
+
+`scripts/check_kd_cache.py` (CPU, 10 s, `artifacts/small-model/check-kd-cache.json`), on real batches of user 7 with the fork teacher and a w64 student:
+- a miss returns the online targets bit for bit;
+- a hit gives the same student loss and all 354 gradients bit for bit (eager mode; the control, two online passes, is bit-identical too);
+- decay_alpha is applied on hits;
+- a foreign batch and a foreign teacher are both refused;
+- 9.9 B per training review: **3.7 GB for the 5k gate users, 5.8 GB for 8k**. That goes on disk (2.2 TB free; read rate ≈ 1.7 MB/s at 167k reviews/s), not VRAM (16 GB, full) and not pinned RAM (31 GB, shared with 5–6 preparation workers).
+
+`check_expertium_catch_up.py` still passes (0 failed). Not yet verified on GPU: the cached epoch's real rate. The first cached epoch logs it in `phases.jsonl` (accuracy lane); a `--timing` ticket is only needed to quote it as a speed result.
+
+Epoch estimates (accuracy-lane):
+
+| | Online KD | Cached: epoch 1 (online + writes) | Cached: later epochs (hits) | 0.25-epoch decay |
+|---|---:|---:|---:|---:|
+| Gate, 5k users, 369.5M reviews | 57 min (measured) | ≈ 59 min | ≈ 38 min | 20 min online (measured), ≈ 11 cached |
+| Final, 8k users, 581.9M reviews | ≈ 91 min | ≈ 93 min | ≈ 59 min | ≈ 16 cached |
+
+Plans (training + decay + scoring of `dec` and `eN` in w8+s8, about 22 min):
+
+| Plan | Online KD | Cached KD |
+|---|---:|---:|
+| 5k × 6 epochs | 6.4 h | **4.7 h** |
+| 5k × 8 epochs | 8.3 h | 6.0 h |
+| 8k × 4 epochs | 6.8 h | **5.1 h** |
+| 8k × 6 epochs | 9.9 h | 7.1 h |
+| 8k × 10 epochs | 16 h | 11.0 h |
+
+**8k users × 6–10 epochs does not fit 6 h, even with free KD.** Six epochs of 582M reviews at 167k/s are 349 min of pure training, before the decay and scoring. In one 6 h window: 5k × 6–7 or 8k × 4. 8k × 6–10 needs two windows; the runbook resumes per epoch. Given 5.1, more epochs of the same 128-chunk recipe are expected to give diminishing returns. Spend the next window on the screen below first.
+
+### 5.3 Calibration screen (paired k = 3, docs rule)
+
+Design: continue from the same checkpoint (`scale-w64kd-gate` epoch 3) with 0.25-epoch decays, as A08 did. The arms differ only in the tested switch. Decay order seeds 1/2/3 give k = 3. The control is decay_alpha 0.5 at 128-review chunks; its seed 1 is the existing `scale-w64kd-dec`. Branching from one checkpoint makes the paired noise smaller than between independent trainings (A15).
+
+| Arm | Switch | Why | Ready |
+|---|---|---|---|
+| A (optional), `cal-kd09-s{1,2,3}` | decay_alpha 0.9 (teacher-heavy decay) instead of 0.5 | e3 → dec with 0.5 improved curve LogLoss by 0.23 pp (instant unchanged) but raised instant RMSE(bins) from +81.3% to +84.9% (fp32). KD lowered RMSE(bins) on the screens (o0 +152% → +115%), though inside the band at k = 3 (instant −0.0043, band 0.0066; `small_model_report.py --rmse-bins`). But the window check shows the student already matches the teacher in-window, so the expected gain is small | Yes, `runbook-next.sh kd09` |
+| **B (recommended)**, `cal-ctx1024-s{1,2,3}` | 1,024-review training chunks (`batch_chunks` 32, so the same 32,768 reviews per update), decay_alpha 0.5 | Tests the diagnosis in 5.1: does more context in training reduce the position drift and the RMSE(bins) gap? | After P1 |
+
+Both arms share the control: seeds 2 and 3 are `runbook-next.sh control` (ready); seed 1 exists. B is the real test of the diagnosis. A is launchable today but low-value; run it only if the GPU would otherwise idle.
+
+Readout: `small_model_report.py` on the 464 held-out users, with `--rmse-bins` (new: the same paired rule applied to RMSE(bins)):
+- **LogLoss:** all three deltas negative on both heads and |mean| beyond the larger band.
+- **RMSE(bins)**, also needed for a calibration fix: the same rule. The band on the 1-epoch screens was 0.0076 curve / 0.0066 instant; decays from one checkpoint should be tighter.
+- For B, also re-run `small_model_calibration.py` on dumps of `cal-ctx1024-s1`. Expected if the diagnosis holds: the drift beyond 20k reviews shrinks and the gap stops growing with history length.
+
+Prerequisite P1 for arm B (code, then about 15 min of GPU checks; not done):
+1. `scripts/gpu_r01_training.py` hard-codes 128 in four places: span `chunks * 128`, `CHUNK_REVIEWS`, `samples_for(..., 128)` through `prepare_job`, and the warm-up prime. `expertium_decay.prepare` also writes `chunk_reviews: 128` into its protocol. Read `chunk_reviews` from the track options (default 128, bit-identical when unset), and export `LONG_CHUNKS_READY = True`; the runbook checks for it. `rwkv/model/nvrtc.validate` refuses T ≥ 384, and a 1,024-review user-stream sample is about 2,050 rows. Each kernel saves its state every 32 steps (`_checkpoint_length`), so a longer T looks possible: lift the guard for K = 16.
+2. Prove it: forward and backward parity against the reference recurrence at T = 512, 1,024 and 2,100 for K = 16 and 32. Extend the shape list in `scripts/check_wide_kernels.py`; one short `--claim gpu` ticket.
+3. Memory and throughput probe: 32 chunks × 1,024 have the same rows as 256 × 128, but less parallelism per step. One 10-min ticket of the arm B decay; read reviews/s from its log. If it is below about 80k/s, re-size arm B (0.125-epoch decays).
+
+Not proposed now (backlog):
+- Head temperature folded into the export (≈ 8% of the gap, free);
+- KD only on fork-unseen users (SM05);
+- full-history teacher targets (SM11);
+- w80 (SM06).
+
+### 5.4 Runbook (`artifacts/small-model/runbook-next.sh`, not launched)
+
+Launch from `C:\Users\jonat\workspace\anki-rwkv`, one stage per launch, detached (heavy GPU: the user's go first):
+```
+nohup "C:/Program Files/Git/usr/bin/bash.exe" C:/Users/jonat/workspace/wt/small-model/artifacts/small-model/runbook-next.sh control \
+  > C:/Users/jonat/workspace/wt/small-model/artifacts/small-model/runbook-next-control.log 2>&1 & disown
+```
+
+| Stage | Tickets | Estimate | Output |
+|---|---|---:|---|
+| `control` | 2 decays (`cal-ctl-s2`, `cal-ctl-s3`; ≤ 22 min each) + scoring (≈ 27 min) | ≈ 1.2 h | `artifacts/small-model/cal-ctl-s*/expertium/E89-F65e-F77a/master.pth`; rows `cal-ctl-s*/w8+s8` in the main checkout's `heldout.jsonl`; teacher cache filled for about 1,300 users per seed |
+| `context` | refuses until P1; then 3 decays (≈ 40 min each; re-size after the P1 probe) + scoring (≈ 38 min) | ≈ 2.7 h | `cal-ctx1024-s*` |
+| `kd09` (optional) | 3 decays + scoring | ≈ 1.6 h | `cal-kd09-s*` |
+| `scale` | `TIER=gate EPOCHS=6 EPOCH1_MIN=62 EPOCH_MIN=41` (+ `DECAY_ALPHA` or `EXTRA` from the screen winner) | ≈ 4.7 h | `scale-w64kd-gate-cached`, labels `s-w64kd-gate-{e6,dec}` |
+
+After `control` and an arm: merge the main checkout's new `heldout.jsonl` rows into the worktree file, then run:
+```
+$PY -X utf8 scripts/small_model_report.py --rmse-bins \
+  --labels fork/w8+s8,scale-w64kd-dec/w8+s8,cal-ctl-s2/w8+s8,cal-ctl-s3/w8+s8,cal-ctx1024-s1/w8+s8,cal-ctx1024-s2/w8+s8,cal-ctx1024-s3/w8+s8 \
+  --screen "ctx1024-vs-ctl:cal-ctx1024-s1/w8+s8=scale-w64kd-dec/w8+s8,cal-ctx1024-s2/w8+s8=cal-ctl-s2/w8+s8,cal-ctx1024-s3/w8+s8=cal-ctl-s3/w8+s8"
+```
+For arm A, replace `cal-ctx1024` with `cal-kd09`.
+
+Recommended order:
+1. P1 code and CPU checks (an agent session), then its GPU check and probe (≈ 15 min).
+2. `control` and `context` in one night (≈ 4 h). `control` can run before P1 is done.
+3. If B passes, size a full long-context run from B's measured rate: train from scratch or from epoch 3 at long chunks, cached KD. If it does not, the window check still says the gap is long-context behaviour. Next would be SM11 (full-history teacher targets) or longer chunks, not `scale` with the same 128-chunk recipe. `scale` 5k × 6 cached (4.7 h) stays available as the plain more-training baseline.
+
 ## Backlog
 
 | ID | Idea | Status | Next step |
@@ -210,3 +363,7 @@ Not verified:
 | SM06 | w80 + KD, longer decay (1 epoch, Expertium's choice) | Untested | After SM03 |
 | SM07 | Window-protocol and collection evaluation of w64 checkpoints (`fast_evaluation` and `accuracy_collection` only build the w32 model) | Gap | Add a variant-aware evaluator hook |
 | SM08 | Fork runtime port of the exported format (section 4, "Fork changes needed") | Specified, not started | User or Codex in the fork; acceptance = Rust vs `small_model_numpy.py` within 1e-5 |
+| SM09 | Teacher-target cache for KD (section 5.2) | Implemented 2026-10-15, CPU check bit-identical (`check_kd_cache.py`); 3.7 GB / 5.8 GB for 5k / 8k users | First real use in `runbook-next.sh control`; read the cached epoch's reviews/s from `phases.jsonl` |
+| SM10 | Long-context training (A09): in the 128-window protocol w64kd matches the fork (+0.1% LogLoss); the full-history gap is long-context behaviour (section 5.1) | Diagnosed 2026-10-15 (CPU, 64 users); screen arm B designed | P1 (chunk_reviews option + WKV T > 383 parity), then `runbook-next.sh context` |
+| SM11 | KD targets from the teacher's full-history replay instead of its 128-chunk predictions | Idea | Only if SM10 confirms the context diagnosis; one replay ≈ 3.8 h for 5k users at batch 1 (needs batching across users) |
+| SM12 | Head temperature (Platt) folded into the export | Measured offline: closes ≈ 8% of the instant RMSE(bins) gap, LogLoss −0.1% | Cheap add-on once the recipe is fixed; fit on training users, never on the 464 |

@@ -411,6 +411,8 @@ def run_case(args):
         if catch_up:
             catch_up.load_teacher(device, dtype)
             report["expertium_catch_up"] = catch_up.describe(master)
+            if catch_up.teacher is not None and catch_up.teacher.cache is not None:
+                report["kd_cache"] = catch_up.teacher.cache_stats  # live counters, saved with every result.json
         if full_run.get("init_optimizer"):
             # Load on CPU: load_state_dict moves moments to the parameters' device but keeps AdamW's `step` where it
             # is, and a CUDA `step` makes non-capturable AdamW sync once per parameter (429 per update).
@@ -692,7 +694,9 @@ def run_case(args):
                             graphs.metrics["capture_seconds"] += time.perf_counter() - capture_start
                     else:
                         stats = (reduced.get_loss(batch) if reduced else
-                                 catch_up.loss(active, batch, report["review_presentations"]) if catch_up else
+                                 catch_up.loss(active, batch, report["review_presentations"],
+                                               (user, item.offset, item.reviews, item.seed) if len(parts) == 1 else None,
+                                               cpu_labels) if catch_up else
                                  active.get_loss(batch))
                     if stats is None or (not deferred and not torch.isfinite(stats.average_loss)):
                         raise RuntimeError(f"Non-finite training loss user {user}")

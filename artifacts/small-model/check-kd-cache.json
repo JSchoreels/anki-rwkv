@@ -1,0 +1,59 @@
+{
+ "cache folder: kernel switch and distillation spec share it, batch options do not": {
+  "value": [
+   "batches-b89ea0e0bfa8",
+   "batches-bfbf902bc34e"
+  ],
+  "ok": true
+ },
+ "miss returns the online targets bit for bit, one file written": {
+  "value": {
+   "hits": 2,
+   "writes": 1,
+   "online": 1
+  },
+  "ok": true
+ },
+ "control: two online passes are bit-identical": {
+  "value": 354,
+  "ok": true
+ },
+ "hit: student loss and every gradient bit-identical to online targets": {
+  "value": {
+   "loss": 2.296367883682251,
+   "gradients": 354,
+   "stats": {
+    "hits": 1,
+    "writes": 1,
+    "online": 1
+   }
+  },
+  "ok": true
+ },
+ "decay_alpha applied on a hit": {
+  "value": 0.5,
+  "ok": true
+ },
+ "another batch under the same key is refused": {
+  "value": true,
+  "ok": true
+ },
+ "a cache written by another teacher is refused": {
+  "value": true,
+  "ok": true
+ },
+ "payload bytes per training review (float32; a 32k-review training file adds ~1 KB of header)": {
+  "value": {
+   "file_bytes": 8229,
+   "payload_bytes": 6356,
+   "labelled_rows": 779,
+   "reviews": 640,
+   "per_review": 9.93,
+   "gate_5k_GB": 3.67,
+   "final_8k_GB": 5.78
+  },
+  "ok": true
+ },
+ "seconds": 10.123391300003277,
+ "failed": []
+}
