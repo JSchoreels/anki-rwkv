@@ -121,6 +121,11 @@
   </section>
 
   <section class="panel">
+    <div class="panel-head"><h2>Going smaller still: status, 2026-10-15</h2></div>
+    <p class="lead-p">A separate effort tests a much smaller student model (331,511 parameters, 436&nbsp;KB as int8) distilled from the fork model. The best scale-up so far, <code>scale-w64kd-dec</code>, scores +5.3% curve and +6.0% instant LogLoss against the fork with int8 weights and int8 state, on 464 held-out users the student never trained on (the fork is rescored fresh). That beats the 32-channel baseline (+6.7% / +7.3%) but misses the good-candidate bar of +1.0% / +1.5% LogLoss and +15% RMSE(bins); calibration (RMSE(bins) about +85%) is the main weakness. The comparison leans slightly in the fork&rsquo;s favour: students train on 128-review chunks but are scored on full histories. <strong>Pending:</strong> a calibration screen (three paired seeds) of cool-downs on 1,024-review chunks against 128-review chunks, expected around 17:00 to 17:30; no decision yet. A multi-epoch scale-up will use its first epoch as a cheap go/no-go check.</p>
+  </section>
+
+  <section class="panel">
     <div class="panel-head"><h2>Side by side</h2></div>
     <div class="table-wrap"><table class="plain" id="ctable"></table></div>
     <p class="muted">Sources: <code>rwkv/architecture.py</code>, <code>expertium/architecture.py</code>, <code>rwkv/model/srs_model.py</code>, <code>rwkv/model/rwkv_model.py</code>, <code>rwkv/data_processing.py</code>, <code>rwkv/prepare_batch.py</code> and <code>rwkv/config.py</code>. Parameter counts are computed in the page from the configurations and match the totals in the repository README.</p>
