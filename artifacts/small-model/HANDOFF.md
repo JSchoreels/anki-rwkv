@@ -45,11 +45,11 @@ Steps:
 1. Drop any label that is missing from `--labels`, because the frontier uses the users that every listed label has.
 2. Cross-check: the 100 users shared with held-out B must reproduce `C:/Users/jonat/workspace/wt/compression/artifacts/compression/heldout-b.jsonl` for `fork/fp32` and `fork/w8+s8` (variant `w8-pc+s8` there) within about 2e-4 LogLoss per user.
 3. Then:
-   - fill the SMALL_MODEL.md frontier table and ledger rows S01/S02 (reviews/s, review-evals/s, the self-test errors);
+   - fill the SMALL_MODEL.md frontier table and ledger rows S01/S02 (accuracy and the self-test errors; no speed columns: these are accuracy-lane runs, docs/FLOW_AUDIT.md item 1);
    - commit `heldout.jsonl` (public anonymized benchmark users, allowed) and `heldout-report.{md,json}`;
    - commit the experiments' `experiment.json`/`phases.jsonl`/`result.json` with `git add -f`, never checkpoints;
    - commit as Jonathan Schoreels with the Co-Authored-By trailer, then push.
-4. Quote reviews/s for each training run and the 8k/2k 10-epoch ETA (582M reviews per epoch / reviews/s × 10).
+4. Use each training run's logged reviews/s only to size the scale-up (`EPOCH_MIN`) and as a rough planning ETA, labelled "accuracy-lane estimate, not a benchmark". Never quote it as a speed result; a real speed figure needs a `--timing` ticket (docs/FLOW_AUDIT.md item 1).
 
 If a step failed:
 - Training: `$PY .../r01_queue.py run --owner small-model --purpose "small-model: retrain <name>" --claim gpu --expected-minutes 36 -- $PY -X utf8 C:/Users/jonat/workspace/wt/small-model/scripts/accuracy_loop.py train <name>`. If the log shows an out-of-memory error, prepare a new experiment with `"batch_chunks": 128`.
