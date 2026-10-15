@@ -306,6 +306,19 @@ def check_wait_script(h, report):
     report["wait_script"] = output.strip().splitlines()
 
 
+def check_relative_paths(h, report):
+    """A command queued from another directory (a worktree) is refused when a relative path argument names something there."""
+    caller = h.root / "caller"
+    (caller / "scripts").mkdir(parents=True)
+    (caller / "scripts" / "job.py").write_text("print('wrong checkout')\n", encoding="utf-8")
+    before = len(list((h.root / "queue" / "tickets").glob("*.json")))
+    done = subprocess.run([PYTHON, QUEUE, "run", "--owner", "check", "--purpose", "relative", "--claim", "gpu", "--expected-minutes", "1",
+                           "--", PYTHON, "scripts/job.py", "train", "name"], cwd=caller, env=h.env, capture_output=True, text=True, encoding="utf-8", timeout=30)
+    assert done.returncode == 2 and "scripts/job.py" in done.stderr and "absolute" in done.stderr, (done.returncode, done.stderr)
+    assert len(list((h.root / "queue" / "tickets").glob("*.json"))) == before, "a refused command must not register a ticket"
+    report["relative_paths"] = done.stderr.strip().splitlines()[-1]
+
+
 def main():
     parser = ArgumentParser(description=__doc__)
     parser.add_argument("--output", type=Path, required=True)
@@ -317,7 +330,7 @@ def main():
     h = Harness(output)
     report = {"provenance": process_provenance(), "wake_limit_s": WAKE_LIMIT}
     started = time.monotonic()
-    for check in (check_fifo_and_wake, check_outside_holder, check_stale_ticket, check_reservation_and_cancel, check_cancel_waiting_wrapper, check_give_up_and_claim_run, check_quiet_windows, check_cpu_heavy, check_wait_script):
+    for check in (check_fifo_and_wake, check_outside_holder, check_stale_ticket, check_reservation_and_cancel, check_cancel_waiting_wrapper, check_give_up_and_claim_run, check_quiet_windows, check_cpu_heavy, check_relative_paths, check_wait_script):
         print(f"[check] {check.__name__}", flush=True)
         check(h, report)
     status = h.command("status").stdout

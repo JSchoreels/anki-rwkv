@@ -541,6 +541,27 @@ def detach(record):
         pass
 
 
+def _relative_to_caller(command, cwd=None):
+    """Relative path arguments that name a file or folder in the caller's directory when that is not ROOT (e.g. a worktree).
+
+    Commands run with cwd=ROOT, so such a path would silently resolve to the main checkout's copy instead."""
+    cwd = Path(cwd or Path.cwd()).resolve()
+    if cwd == ROOT:
+        return []
+    found = []
+    for arg in command:
+        if not arg or arg.startswith("-") or Path(arg).is_absolute() or "=" in arg:
+            continue
+        if not ("/" in arg or "\\" in arg or Path(arg).suffix in (".py", ".sh")):
+            continue  # bare words such as `train` or an experiment name are subcommands, not paths
+        try:
+            if (cwd / arg).exists():
+                found.append(arg)
+        except OSError:
+            pass
+    return found
+
+
 def run_command(command, heartbeat=60.0, record=None):
     """Run a command bound to this process's lifetime; refresh the ticket heartbeat while it runs. Returns the exit code."""
     command = list(command[1:] if command[:1] == ["--"] else command)
@@ -681,6 +702,9 @@ def main():
     command = args.command[1:] if args.command[:1] == ["--"] else args.command
     if not command:
         parser.error("run needs a command after --")
+    relative = _relative_to_caller(command)
+    if relative:
+        parser.error(f"the queue runs commands from {ROOT}, not from {Path.cwd()}; pass absolute paths for: {', '.join(relative)}")
     record = hold(args.owner, args.purpose, claims, heartbeat, args.max_wait_minutes, args.ticket, command, args.hold_minutes,
                   args.expected_minutes, args.timing)
     code = None
