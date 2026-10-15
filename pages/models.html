@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Model Architectures</title>
-<meta name="description" content="Visual comparison of the two RWKV spaced-repetition models in anki-rwkv: Alex's default 2.76M-parameter model and Expertium's 193k-parameter iter36 model, from the 92 input features to the forgetting-curve heads.">
+<meta name="description" content="Visual comparison of the two RWKV spaced-repetition models in anki-rwkv: Alex's default 2.76M-parameter model and Expertium's compact model, from the 92 input features to the forgetting-curve heads.">
 <link rel="stylesheet" href="style.css">
 <link rel="stylesheet" href="explain.css">
 </head>
@@ -15,7 +15,7 @@
       <div>
         <p class="eyebrow"><a href="./">anki-rwkv</a> &middot; model architectures &middot; <a href="campaign.html">R01 campaign</a> &middot; <a href="train.html">8k/2k run</a></p>
         <h1>Two RWKV models, <span class="accent">same inputs</span>, very different budgets</h1>
-        <p class="lede">Both models read the same 92 numbers per review and pass them through the same five streams: card, deck, note, preset and user. Alex's default model is wide (128 channels, 4 heads). Expertium's iter36 model is narrow (32 channels, 1 head) and keeps only 4.25&nbsp;KiB of memory per card.</p>
+        <p class="lede">Both models read the same 92 numbers per review and pass them through the same five streams: card, deck, note, preset and user. Alex's default model is wide (128 channels, 4 heads). Expertium's model is narrow (32 channels, 1 head) and keeps only 4.25&nbsp;KiB of memory per card.</p>
       </div>
       <button id="theme" class="btn" type="button" aria-label="Toggle light and dark theme">Theme</button>
     </div>
@@ -23,7 +23,7 @@
 </header>
 
 <main class="wrap">
-  <div class="explain-box" style="margin-top:16px"><strong>Which versions.</strong> &ldquo;Alex&rdquo; is the default model from srs-benchmark (commit <code>3effecc</code>). &ldquo;Expertium&rdquo; is his iter36 snapshot from rwkv-anki-autoresearch (commit <code>39666c6</code>), the version this repository trains. Expertium&rsquo;s current runs use the same stream layout but a different curve head (and may enable other options not shown here); see <a href="#heads">the output heads</a>.</div>
+  <div class="explain-box" style="margin-top:16px"><strong>Which versions.</strong> &ldquo;Alex&rdquo; is the default model from srs-benchmark (commit <code>3effecc</code>). &ldquo;Expertium&rdquo; is his current configuration: the stream layout of his iter36 snapshot from rwkv-anki-autoresearch (commit <code>39666c6</code>) with <code>RWKV_GRU_HEAD=3</code>, i.e. 3 learned power-law curves and no correction head. It may enable other options not shown here, and its parameter count is derived from the repository code, not read from a log of his runs. The older iter36 curve head (64 fixed curves plus a correction head), which this repository also trains, is shown separately in <a href="#heads">the output heads</a>.</div>
   <section class="cards compact" aria-label="Headline comparison">
     <div class="card big"><div class="k">Parameters</div><div class="v" id="h-params">&ndash;</div><div class="s" id="h-params-sub"></div></div>
     <div class="card"><div class="k">Hidden width &times; heads</div><div class="v" id="h-width">&ndash;</div><div class="s">channels &times; heads (32 channels per head)</div></div>
@@ -56,7 +56,7 @@
     <div class="keys" id="pkeys"></div>
     <div class="cmp">
       <div><div class="sbar-label">Alex (default) <span id="w-alex-n"></span></div><div class="waffle" id="w-alex" style="--wcols:40"></div></div>
-      <div><div class="sbar-label">Expertium iter36 <span id="w-exp-n"></span></div><div class="waffle" id="w-exp" style="--wcols:40"></div><p class="wcap" id="w-exp-cap"></p></div>
+      <div><div class="sbar-label">Expertium <span id="w-exp-n"></span></div><div class="waffle" id="w-exp" style="--wcols:40"></div><p class="wcap" id="w-exp-cap"></p></div>
     </div>
     <h3>Share of each model's own budget</h3>
     <div id="shares"></div>
@@ -102,20 +102,22 @@
   <section class="panel" id="heads">
     <div class="panel-head">
       <h2>The output heads</h2>
-      <p class="hint"><strong>Curve</strong> mixes basis forgetting curves, each with its own stability, then adds a learned correction sampled at fixed time points. <strong>Instant</strong> predicts the four grades. Each tick below is one basis curve's stability (time to fall to 90%) or one correction point, on a log time axis.</p>
+      <p class="hint"><strong>Curve</strong> predicts the forgetting curve. Alex mixes 128 fixed-stability basis curves and adds a learned correction sampled at fixed time points; Expertium uses 3 learned power-law curves and no correction. <strong>Instant</strong> predicts the four grades. Each tick below is one basis curve's stability (time to fall to 90%), one correction point, or (Expertium) a curve's starting stability, on a log time axis.</p>
     </div>
     <div class="sbar-label">Alex: <span id="rug-alex-n"></span></div>
     <div class="rug" id="rug-alex-s"></div>
     <div class="rug" id="rug-alex-p"></div>
     <div class="sbar-label">Expertium: <span id="rug-exp-n"></span></div>
     <div class="rug" id="rug-exp-s"></div>
-    <div class="rug" id="rug-exp-p"></div>
-    <div class="keys"><span><i style="background:var(--s1)"></i>basis-curve stability</span><span><i style="background:var(--s2)"></i>correction point</span></div>
-    <p class="explain-box">Both rugs above describe the versions trained in this repository. In the iter36 snapshot the <span id="ahead-n"></span>-parameter correction head is active.</p>
+    <div class="sbar-label">Expertium-style config as trained in this repo (iter36 snapshot): <span id="rug-iter36-n"></span></div>
+    <div class="rug" id="rug-iter36-s"></div>
+    <div class="rug" id="rug-iter36-p"></div>
+    <div class="keys"><span><i style="background:var(--s1)"></i>basis-curve stability (Expertium: starting stability of each learned curve)</span><span><i style="background:var(--s2)"></i>correction point</span></div>
+    <p class="explain-box">Expertium&rsquo;s own head is the single three-tick rug: his three curves have their weight, stability and decay predicted for every review, so the ticks only show where the stabilities start (1&nbsp;hour, about 4&nbsp;days, 1&nbsp;year). The two rugs under the iter36 label are the older head this repository also trains; there the <span id="ahead-n"></span>-parameter correction head is active and the whole model has <span id="iter-total"></span> parameters. Expertium&rsquo;s model has no such head.</p>
     <h3>Expertium&rsquo;s current head: a few learned power-law curves</h3>
     <p class="lead-p">Expertium&rsquo;s current runs set <code>RWKV_GRU_HEAD=N</code> (N&nbsp;=&nbsp;3 in his runs), modelled on the GRU model in srs-benchmark. Instead of weighting dozens of curves with fixed stabilities, three small linear layers on the curve head&rsquo;s hidden output predict, for every review, the weight <code>w<sub>i</sub></code>, stability <code>S<sub>i</sub></code> and decay <code>d<sub>i</sub></code> of N curves. The Instant head is unchanged.</p>
     <p class="formula">R(t) = &Sigma;<sub>i=1..N</sub> w<sub>i</sub> &middot; (1 + t / S<sub>i</sub>)<sup>&minus;d<sub>i</sub></sup>&nbsp;&nbsp;&nbsp;&nbsp;S<sub>i</sub>, d<sub>i</sub> &gt; 0, weights sum to 1</p>
-    <p class="lead-p">This is a power-law shape like FSRS&rsquo;s forgetting curve. The correction head is switched off (the same as <code>RWKV_NO_AHEAD_RESIDUAL=1</code>), so every curve, and their mix, can only fall over time. Its parameter count is not included in the totals on this page, which describe the iter36 snapshot. Try both kinds of head in <a href="./#curve">the curve explainer</a> on the home page.</p>
+    <p class="lead-p">This is a power-law shape like FSRS&rsquo;s forgetting curve. The correction head is switched off (the same as <code>RWKV_NO_AHEAD_RESIDUAL=1</code>), so every curve, and their mix, can only fall over time. The parameter totals on this page for Expertium describe this head, derived from the repository code (<code>expertium/model/variant_model.py</code>) rather than read from a log of his runs. Try both kinds of head in <a href="./#curve">the curve explainer</a> on the home page.</p>
   </section>
 
   <section class="panel">

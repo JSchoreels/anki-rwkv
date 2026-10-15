@@ -1,5 +1,5 @@
 // Architecture page. Every count is derived from the two configurations below, which mirror
-// rwkv/architecture.py (Alex, default) and expertium/architecture.py (Expertium iter36).
+// rwkv/architecture.py (Alex, default) and expertium/architecture.py (Expertium iter36), plus Expertium's current head (RWKV_GRU_HEAD=3, no correction head), which is the model shown as "Expertium".
 (() => {
   'use strict';
   const { h, bindTip, fmt, esc } = window.UI;
@@ -21,7 +21,13 @@
       streams: [['card', 3, 1.5], ['deck', 4, 2], ['note', 2, 1.5], ['preset', 3, 2], ['user', 4, 2]],
     },
     exp: {
-      name: 'Expertium', full: 'Expertium iter36', C: 32, H: 1, F: 4, headMult: 4, curves: 64, points: 64,
+      // Expertium's current runs: RWKV_GRU_HEAD=3 (3 learned power-law curves), correction head off.
+      name: 'Expertium', full: 'Expertium', C: 32, H: 1, F: 4, headMult: 4, curves: 3, points: 0, gru: 3,
+      streams: [['card', 1, 1], ['deck', 4, 1], ['note', 3, 1], ['preset', 3, 1], ['user', 3, 1]],
+    },
+    // Expertium-style config as trained in this repository (iter36 snapshot): 64 fixed curves + 64-point correction head.
+    iter36: {
+      name: 'Expertium iter36', full: 'Expertium-style, iter36 snapshot', C: 32, H: 1, F: 4, headMult: 4, curves: 64, points: 64,
       streams: [['card', 1, 1], ['deck', 4, 1], ['note', 3, 1], ['preset', 3, 1], ['user', 3, 1]],
     },
   };
@@ -51,9 +57,17 @@
       out.push({ id: s, label: `${s[0].toUpperCase()}${s.slice(1)} stream`, color: STREAM_COLORS[s], n: per * n,
         desc: `${n} layer${n > 1 ? 's' : ''} × ${fmt(per)} parameters; ${STREAM_TEXT[s]}` });
     }
-    out.push({ id: 'heads', label: 'Output heads', color: 'var(--s7)',
-      n: 2 * C + (C * hd + hd + hd * points + points) + (C * C + C + 2 * C + C * hd + hd + hd * curves + curves) + (C * hd + hd + hd * 4 + 4),
-      desc: `${curves} basis curves, ${points} correction points, 4 grades` });
+    const instant = C * hd + hd + hd * 4 + 4;
+    if (m.gru) {
+      // prehead norm + 6 dummy 1x1 parameters kept by the code + weight head + (w, S, d) linears for N curves + Instant head
+      out.push({ id: 'heads', label: 'Output heads', color: 'var(--s7)',
+        n: 2 * C + 6 + (C * C + C + 2 * C + C * hd + hd) + 3 * (m.gru * hd + m.gru) + instant,
+        desc: `${m.gru} learned power-law curves (weight, stability, decay each), no correction head, 4 grades` });
+    } else {
+      out.push({ id: 'heads', label: 'Output heads', color: 'var(--s7)',
+        n: 2 * C + (C * hd + hd + hd * points + points) + (C * C + C + 2 * C + C * hd + hd + hd * curves + curves) + instant,
+        desc: `${curves} basis curves, ${points} correction points, 4 grades` });
+    }
     return out;
   }
   for (const m of Object.values(MODELS)) {
@@ -62,7 +76,7 @@
     m.layers = m.streams.reduce((a, s) => a + s[1], 0);
     m.layerBytes = (m.H * 32 * 32 + 2 * m.C) * 4; // WKV matrices + two token-shift vectors, fp32
   }
-  const A = MODELS.alex, E = MODELS.exp;
+  const A = MODELS.alex, E = MODELS.exp, I = MODELS.iter36;
   const kib = (b) => (b / 1024).toLocaleString('en-US', { maximumFractionDigits: 2 }) + ' KiB';
 
   // ---------- Headline ----------
@@ -177,8 +191,10 @@
     const hd = m.headMult * m.C;
     flow.append(h('div', { class: 'heads3' },
       h('div', { class: 'stage stream', style: { '--fc': 'var(--s7)' } }, h('div', { class: 't' }, 'Curve mix'),
-        h('div', { class: 'sub' }, `${m.C}→${m.C}→${hd}→ weights for ${m.curves} basis curves`)),
-      h('div', { class: 'stage stream', style: { '--fc': 'var(--s7)' } }, h('div', { class: 't' }, 'Curve correction'),
+        h('div', { class: 'sub' }, m.gru ? `${m.C}→${m.C}→${hd}→ weight, stability and decay for ${m.curves} power-law curves` : `${m.C}→${m.C}→${hd}→ weights for ${m.curves} basis curves`)),
+      m.gru ? h('div', { class: 'stage stream', style: { '--fc': 'var(--s7)' } }, h('div', { class: 't' }, 'No correction head'),
+        h('div', { class: 'sub' }, 'switched off (RWKV_NO_AHEAD_RESIDUAL)'))
+        : h('div', { class: 'stage stream', style: { '--fc': 'var(--s7)' } }, h('div', { class: 't' }, 'Curve correction'),
         h('div', { class: 'sub' }, `${m.C}→${hd}→ ${m.points} time points`)),
       h('div', { class: 'stage stream', style: { '--fc': 'var(--s7)' } }, h('div', { class: 't' }, 'Instant'),
         h('div', { class: 'sub' }, `${m.C}→${hd}→ 4 grades`))));
@@ -334,13 +350,22 @@
     });
     if (withTicks) TICKS.forEach(([s, l], i) => el.append(h('span', { class: 'tick' + (i % 2 ? '' : ' minor'), style: { left: pos(s) + '%' } }, l)));
   }
-  for (const [k, m] of [['alex', A], ['exp', E]]) {
+  // Expertium: three curves whose stability is predicted per review. The ticks mark only the starting
+  // values (bias), log-spaced from 1 hour to 1 year (expertium/model/variant_model.py).
+  {
+    const n = E.gru;
+    const init = Array.from({ length: n }, (_, i) => Math.exp(Math.log(3600) + (Math.log(31536000) - Math.log(3600)) * i / (n - 1)));
+    $('rug-exp-n').textContent = `${n} learned power-law curves, head width ${E.headMult * E.C}; no correction head`;
+    rug($('rug-exp-s'), init, 'var(--s1)', 'Initial stability of curve', true);
+  }
+  for (const [k, m] of [['alex', A], ['iter36', I]]) {
     $(`rug-${k}-n`).textContent = `${m.curves} basis curves (top) and ${m.points} correction points (bottom), head width ${m.headMult * m.C}`;
     rug($(`rug-${k}-s`), space(m.curves, 0.1, 22), 'var(--s1)', 'Basis curve', false);
     rug($(`rug-${k}-p`), space(m.points, 0.5, 21), 'var(--s2)', 'Correction point', true);
   }
 
-  $('ahead-n').textContent = fmt(E.C * E.headMult * E.C + E.headMult * E.C + E.headMult * E.C * E.points + E.points);
+  $('ahead-n').textContent = fmt(I.C * I.headMult * I.C + I.headMult * I.C + I.headMult * I.C * I.points + I.points);
+  $('iter-total').textContent = fmt(I.total);
 
   // ---------- Comparison table ----------
   const rows = [
@@ -351,14 +376,14 @@
     ['Channel-mixer factor', A.streams.map((s) => s[2]).join(' / '), E.streams.map((s) => s[2]).join(' / ')],
     ['LoRA ranks: decay / in-context rate / value / gate', '16 / 16 / 8 / 16', '16 / 16 / 8 / 16'],
     ['Input encoder', `92 → ${A.F * A.C} → ${A.C}`, `92 → ${E.F * E.C} → ${E.C}`],
-    ['Curve head', `${A.curves} fixed exp. curves + ${A.points}-pt correction`, `${E.curves} fixed exp. curves + ${E.points}-pt correction; now: 3 learned power-law curves`],
+    ['Curve head', `${A.curves} fixed exp. curves + ${A.points}-pt correction`, `${E.gru} learned power-law curves (weight, S, d per review), no correction head`],
     ['Head inner width', A.headMult * A.C, E.headMult * E.C],
     ['State per card', kib(A.layerBytes * A.streams[0][1]), kib(E.layerBytes * E.streams[0][1])],
     ['State per note', kib(A.layerBytes * A.streams[2][1]), kib(E.layerBytes * E.streams[2][1])],
     ['Dropout: card, note / deck, preset, user / per layer', '0.02 / 0.05 / 0.01', '0.02 / 0.05 / 0.01'],
   ];
   const ct = $('ctable');
-  ct.append(h('thead', {}, h('tr', {}, h('th', {}, ''), h('th', { class: 'r' }, 'Alex (default)'), h('th', { class: 'r' }, 'Expertium iter36'))));
+  ct.append(h('thead', {}, h('tr', {}, h('th', {}, ''), h('th', { class: 'r' }, 'Alex (default)'), h('th', { class: 'r' }, 'Expertium'))));
   const cb = h('tbody');
   rows.forEach(([k, a, e]) => cb.append(h('tr', {}, h('td', {}, k), h('td', { class: 'r' }, String(a)), h('td', { class: 'r' }, String(e)))));
   ct.append(cb);
