@@ -312,6 +312,8 @@ Readout: `small_model_report.py` on the 464 held-out users, with `--rmse-bins` (
 - **RMSE(bins)**, also needed for a calibration fix: the same rule. The band on the 1-epoch screens was 0.0076 curve / 0.0066 instant; decays from one checkpoint should be tighter.
 - For B, also re-run `small_model_calibration.py` on dumps of `cal-ctx1024-s1`. Expected if the diagnosis holds: the drift beyond 20k reviews shrinks and the gap stops growing with history length.
 
+**Result of arm B (2026-10-15, 464 held-out users, int8 w8+s8, details in the HANDOFF "RESULT 2026-10-15"):** the diagnosis holds. 1,024-review chunks beat 128 on all four metrics under the paired k = 3 rule: LogLoss curve -0.00471 (band 0.00053, window band 0.00359) and instant -0.00541 (0.00056 / 0.00157); RMSE(bins) curve -0.00643 (0.00073) and instant -0.00915 (0.00123); all three seed deltas negative. Δ% vs fork int8: curve +5.53% to +3.95%, instant +6.06% to +4.07%, RMSE(bins) instant +89% to +45%. Cost: about 15% lower training reviews/s (accuracy lane, indicative). Recommendation: `scale` uses 1,024-review chunks; needs the user's go.
+
 P1 for arm B, long-context training (implemented 2026-10-15; CPU-checked; its GPU check is runbook stage `check`, not yet run):
 1. **Track option `chunk_reviews`** (default 128, unchanged when unset), read in:
    - `scripts/gpu_r01_training.py`: span `chunks * chunk_reviews`, `CHUNK_REVIEWS`; it refuses sample/preprocessing caches and `pack_users` with a chunk other than 128;

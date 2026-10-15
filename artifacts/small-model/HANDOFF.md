@@ -238,3 +238,52 @@ Follow-up (fresh Sonnet agent, when both logs say `done:`):
 3. Apply the paired k = 3 rule (SMALL_MODEL.md 5.3) on LogLoss and RMSE(bins). Also read each decay's `kd_cache` counters and reviews/s in its `result.json` (accuracy lane).
 4. Optional: dump `cal-ctx1024-s1` on the 64 calibration users (CPU, `small_model_heldout.py --dump --max-reviews 80000 --count 64`) and re-run `small_model_calibration.py`.
 5. Do NOT launch `scale` without the user: it needs the screen verdict (`EXTRA` with the long chunks if B wins) and the user's go.
+
+# RESULT 2026-10-15 (calibration screen B: 1,024-review chunks vs 128, paired k = 3)
+
+**Verdict: yes. 1,024-review training context beats 128 under the k = 3 rule on LogLoss (curve and instant) and on RMSE(bins) (curve and instant), all three seed deltas negative and well beyond both bands.**
+
+Follow-up step 1: both logs end `done:`; every ticket through 000365 exited 0, all six smokes exited 0 (status complete), no "no checkpoint". Step 4 (calibration dump) skipped. `runbook-next.sh` stray usage comment dropped (checkout). Accuracy lane, no speed claim.
+
+Held-out, full history, 464 fork-unseen users (min-user-id 101: 451 users, same picture; numbers in brackets). Δ% vs `fork/w8+s8` (int8, LogLoss 0.29766 curve / 0.27216 instant, RMSE(bins) 0.03867 / 0.02084):
+
+| Label | Curve LL | Δ% | Instant LL | Δ% | Curve RMSE(bins) Δ% | Instant RMSE(bins) Δ% |
+|---|---:|---:|---:|---:|---:|---:|
+| scale-w64kd-e1 | 0.31803 | +6.85% | 0.29344 | +7.82% | +51.8% | +102.7% |
+| scale-w64kd-e2 | 0.31469 | +5.72% | 0.28948 | +6.36% | +41.5% | +83.6% |
+| scale-w64kd-dec (ctl s1) | 0.31374 | +5.40% | 0.28892 | +6.16% | +42.5% | +91.9% |
+| cal-ctl-s2 | 0.31434 | +5.61% | 0.28876 | +6.10% | +44.6% | +89.4% |
+| cal-ctl-s3 | 0.31425 | +5.58% | 0.28827 | +5.92% | +44.3% | +84.8% |
+| cal-ctx1024-s1 | 0.30929 | +3.91% | 0.28341 | +4.13% | +27.3% | +45.0% |
+| cal-ctx1024-s2 | 0.30963 | +4.02% | 0.28313 | +4.03% | +27.8% | +43.9% |
+| cal-ctx1024-s3 | 0.30929 | +3.91% | 0.28318 | +4.05% | +26.4% | +45.5% |
+
+Means: control curve +5.53% / instant +6.06%, RMSE(bins) +43.8% / +88.7%; ctx1024 curve +3.95% / instant +4.07%, RMSE(bins) +27.2% / +44.8%.
+
+Paired k = 3 (cand = ctx1024 seed i, base = control seed i; s1 base is `scale-w64kd-dec`). Bands: full-history sigma (window sigma for LogLoss in brackets):
+
+| Metric | Deltas | Mean | Band | Verdict |
+|---|---|---:|---:|---|
+| LogLoss curve | -0.00445, -0.00472, -0.00496 | -0.00471 | 0.00053 (window 0.00359) | better, beyond both |
+| LogLoss instant | -0.00551, -0.00563, -0.00509 | -0.00541 | 0.00056 (window 0.00157) | better, beyond both |
+| RMSE(bins) curve | -0.00587, -0.00650, -0.00692 | -0.00643 | 0.00073 | better |
+| RMSE(bins) instant | -0.00978, -0.00950, -0.00819 | -0.00915 | 0.00123 | better |
+
+451 users: LogLoss -0.00448 / -0.00531, RMSE(bins) -0.00611 / -0.00903, same verdicts. Effect size: the long context removes about 1.6 pp of the LogLoss gap to fork int8 (both heads) and cuts the RMSE(bins) gap roughly in half on the instant head (+89% to +45%).
+
+Epoch slope of `scale-w64kd-gate` (LogLoss, curve / instant): e1 to e2 -0.00334 / -0.00396 (Δ% 6.85 to 5.72, 7.82 to 6.36); e2 to dec(128) only -0.00095 / -0.00056. The 128-chunk decay gives little; its RMSE(bins) instant even rises (+83.6% to +91.9%). The ctx1024 decay gives -0.0054 more on top, so the improvement is the context, not the extra decay steps.
+
+Training speed (accuracy lane, `result.json` reviews_per_second, 0.25-epoch decays, ~92.4 M reviews LR schedule; the runs shared the box with CPU scoring jobs and the cache state differs, so only indicative):
+
+| Decay | reviews/s | seconds | kd_cache hits / writes (online) |
+|---|---:|---:|---|
+| dec (ctl s1, 128) | 79,605 | 1,161 | no counters recorded |
+| cal-ctl-s2 (128) | 60,205 | 1,536 | 0 / 3,534 |
+| cal-ctl-s3 (128) | 63,397 | 1,457 | 833 / 2,631 |
+| cal-ctx1024-s1 | 50,958 | 1,813 | 0 / 3,465 |
+| cal-ctx1024-s2 | 54,300 | 1,703 | 979 / 2,555 |
+| cal-ctx1024-s3 | 70,147 | 1,317 | 1,523 / 1,941 |
+
+Cold-cache pairs (0 hits): ctx1024 50,958 vs ctl-s2 60,205 reviews/s, about 15% slower. Means 58,468 (ctx) vs 67,736 (ctl, three), about 14% slower; the check-stage probe predicted ~1.3x per update, so the cost is at most 1.15-1.3x. The KD cache is keyed by chunk option, so 1,024-chunk targets are separate; hits come from re-reading targets written earlier in the same seed family. Not a benchmark.
+
+Recommendation: `scale` should use 1,024-review chunks (`EXTRA` with chunk_reviews 1024, batch_chunks 32), accepting about 15-30% lower training throughput. Still needs the user's go; nothing enqueued.
