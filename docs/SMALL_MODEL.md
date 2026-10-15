@@ -34,6 +34,18 @@ Recurrent state per entity (the other size that ships; `compress_quant.state_byt
 
 Training speed (RTX 5080, 160-user R01 speed runs; inference unmeasured): w32 accepted 178,242 reviews/s; w64 with the wide kernels 141,274 (contaminated run, W04); w80 with them 111,281; w32 + online fork teacher (KD) 113,121.
 
+Interim k=1 held-out frontier (tickets 000341/000342, full history, 360 fork-unseen users all labels have; Δ% vs fork w8+s8; accuracy lane, no speed figures; details in the HANDOFF):
+
+| Candidate | Parameters | Curve LL / Δ% | Instant LL / Δ% |
+|---|---:|---|---|
+| Fork fp32 | 2,762,884 | 0.29870 / +0.00% | 0.27475 / -0.01% |
+| Fork w8+s8 | 2,762,884 | 0.29869 / ref | 0.27478 / ref |
+| w32 decay-e10-q25 (w8+s8) | 192,800 | 0.31414 / +5.17% | 0.29282 / +6.57% |
+| w32 fullrun-e10 | 192,800 | 0.31518 / +5.52% | 0.29382 / +6.93% |
+| w32 screen o0 | 192,800 | 0.32870 / +10.05% | 0.31310 / +13.95% |
+| w64 screen o0 | 331,511 | 0.32814 / +9.86% | 0.30539 / +11.14% |
+| w64kd screen o0 | 331,511 | 0.32494 / +8.79% | 0.29812 / +8.49% |
+
 ### Comparability and gaps
 
 - **The only held-out comparison of our model with the fork** is the 105-user CPU screen (epoch 9, f32 weights and state, users ≤ 20k reviews): +4.7% curve / +7.2% instant. The collection gives +2.7% / +3.5–3.6% but is one user.

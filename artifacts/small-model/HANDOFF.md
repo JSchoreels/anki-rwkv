@@ -25,6 +25,31 @@ Untested on GPU at launch (the GPU was busy):
 
 The scorer passed a CPU smoke on 1 user (fork, w32 iter36, random-init w64).
 
+# INTERIM k=1 read, tickets 000341/000342 (2026-10-15, CPU report; accuracy lane, no speed figures)
+
+Scored: fork fp32/w8+s8 on 360 users (time limit), decay fp32/w8+s8, fullrun-e10, w32-o0, w64-o0, w64kd-o0 on 410 of the 464 users (time limit, resume in step 10). Report on the 360 users every label has (`heldout-report.md`); screens paired on 410 users. o1/o2 and w8+s8 of w64/w64kd not scored yet.
+
+| Label | Params | Curve LL | Δ% vs fork w8+s8 | Instant LL | Δ% | Curve RMSE(bins) Δ% | Instant RMSE(bins) Δ% |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| fork/fp32 | 2,762,884 | 0.29870 | +0.00% | 0.27475 | -0.01% | +0.0% | -0.3% |
+| fork/w8+s8 | 2,762,884 | 0.29869 | ref | 0.27478 | ref | ref | ref |
+| decay/w8+s8 (w32) | 192,800 | 0.31414 | +5.17% | 0.29282 | +6.57% | +37.9% | +77.2% |
+| fullrun-e10 (w32) | 192,800 | 0.31518 | +5.52% | 0.29382 | +6.93% | +42.2% | +79.4% |
+| w32-o0 | 192,800 | 0.32870 | +10.05% | 0.31310 | +13.95% | +75.4% | +193.3% |
+| w64-o0 | 331,511 | 0.32814 | +9.86% | 0.30539 | +11.14% | +75.6% | +140.6% |
+| w64kd-o0 | 331,511 | 0.32494 | +8.79% | 0.29812 | +8.49% | +78.7% | +104.8% |
+
+Cross-check: the 79 users shared with held-out B reproduce `heldout-b.jsonl` for fork/fp32 and fork/w8+s8 (w8-pc+s8) exactly (max |dLL| = 0.0 on both heads). Self-test (max abs vs float32): fork bits0 1.8e-7, K16 bits0 8.9e-8, K32 bits0 1.2e-7; int8-state rows bits8: fork 2.2e-4, K16 4.2e-4, K32 1.3e-3 (the scorer did not abort; int8-state rounding differs by order).
+
+Paired k=1 (410 users; full-history band is nan at k=1, window band 0.00622 curve / 0.00272 instant): w64-w32 curve -0.00063, instant -0.00765; w64kd-w32 curve -0.00313, instant -0.01467; kd-vs-w64 curve -0.00250, instant -0.00703.
+
+Threshold at k=1 (needs k=3, so NOT met / not decidable yet):
+1. Paired k=3: only o0 exists. w64kd: both heads negative; instant beats both bands; curve -0.00313 is inside the 0.0036 band. w64: curve -0.00063 inside, instant -0.00765 beyond the 0.0016 band.
+2. Gap closure (o0 only): w64kd 1.26 pp curve (>=1.0 ok), 5.46 pp instant (>=1.5 ok); w64 0.19 pp curve (fails), 2.81 pp instant (ok).
+3. int8 free: not scored yet (`w64-o0/w8+s8`, `w64kd-o0/w8+s8` are in step 10).
+Verdict: no recipe is "promising" yet; w64kd is the leader and would be R (kd-vs-w64 negative on both heads). Caveat: the o0 screens sit far above the full-run w32 (+10% vs +5%), so the absolute "good candidate" bar is only reachable by the scale-up.
+Scale-up sizing (accuracy-lane estimate, not a benchmark): w64kd r=106,987/s gives EPOCH_MIN = 369477375/106987/60+4 = 61.6 (> 57: refused, so the w64kd fallback applies); w64 r=166,967/s gives 40.9, i.e. EPOCH_MIN=41 (4x41+135 = 299 min <= 360). Per the HANDOFF rule, w64kd that passes but has EPOCH_MIN > 57 falls back to w64 only if w64 also passes; at k=1 w64 does not pass curve gap closure.
+
 ## Follow-up (fresh agent, Sonnet medium)
 
 Commands (run from the small-model worktree; PY is the main checkout's venv python):
