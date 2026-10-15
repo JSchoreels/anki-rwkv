@@ -146,6 +146,9 @@ def summarize(per_user, users):
 def compare(out):
     decay = json.loads((out / "decay.json").read_text())
     result = json.loads((out / MODEL / decay["track"] / "result.json").read_text())
+    if "per_user" not in result:  # trained with --evaluate none: nothing to compare, the checkpoint is the output
+        print(f"[decay] {out}: no evaluation in result.json (--evaluate none); skipping compare")
+        return 0
     source = json.loads((Path(decay["source_case"]) / "result.json").read_text())
     users = {row["user_id"] for row in result["per_user"]}
     by_user = {row["user_id"]: row for row in source["per_user"]}
