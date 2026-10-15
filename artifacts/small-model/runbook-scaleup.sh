@@ -30,7 +30,7 @@ NAME=scale-$R-gate$SUFFIX
 LBL=scale-$R$SUFFIX
 EXP=$WT/artifacts/accuracy/experiments/$NAME
 DEC=$WT/artifacts/small-model/$NAME-decay
-OUT=artifacts/small-model/heldout.jsonl
+OUT=C:/Users/jonat/workspace/anki-rwkv/artifacts/small-model/heldout.jsonl  # absolute: the queue runs from the main checkout (same file as runbook-2026-10-15.sh)
 log() { echo "[scaleup $(date +%H:%M:%S)] $*"; }
 q() {
   local minutes=$1 purpose=$2; shift 3
