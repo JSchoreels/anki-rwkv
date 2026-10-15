@@ -361,5 +361,5 @@ Verified by reading `runbook-next.sh` (`scale` stage) and `scripts/accuracy_loop
 ## RESUMED 2026-10-16 00:15: epochs 3-4 of scale-w64kd-gate-cached-ctx2048 (user go: "You can resume the work")
 
 - Launched by the main session with the resume command from the PAUSED section above, from anki-rwkv, appending (`>>`) to `runbook-next-scale-ctx2048.log`.
-- Gates e1/e2 re-ran from the cached scores (000375, 000376: GO, same numbers as above). Epoch 3 training is ticket 000377 (started 00:16:36, ~62 min at ~98k reviews/s). The runbook continues on its own: epoch-3 gate, epoch 4, epoch-4 gate, decay, scoring.
+- Gates e1/e2 re-ran from the cached scores (000375, 000376: GO, same numbers as above). Epoch 3 training is ticket 000377 (started 00:16:36, ~62 min at ~98k reviews/s). The runbook continues on its own: epoch 4, decay, scoring (gates run only after epochs 1-2, see runbook-next.sh line 192; no e3/e4 gate). Epoch 3 finished 01:10 (000377, exit 3, 115,273 reviews/s, 53.4 min); epoch 4 is 000378.
 - When the run is final: a fresh Sonnet medium agent runs the "LAUNCHED ~16:40" follow-up with chunk 2048 (absolute LogLoss/RMSE vs fork w8+s8), then an Opus re-assessment of priorities. No new GPU work starts without the user's go.
