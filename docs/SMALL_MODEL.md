@@ -442,19 +442,40 @@ Time (5k users × 6 epochs cached, 128-review chunks, accuracy-lane estimates):
 
 For 8k users (final tier), epoch 1 has 1.6× the reference's data per epoch, so A is easier there. Read that decision with this in mind.
 
+### 5.7 Chunk-size probe, then the real run (user go 2026-10-15 ~16:30)
+
+Screen B showed the context is the main lever: 1,024-review chunks beat 128 by about 9x the k = 3 band. Before spending ~6 h of GPU on `scale`, one cheap decay asks whether longer still helps.
+- **Probe:** `cal-ctx2048-s1`, a 0.25-epoch decay at 2,048-review chunks (batch_chunks 16, same 32,768 reviews per update), seed 1, paired with `cal-ctx1024-s1` (k = 1). The long-WKV parity check covers T up to 2,100.
+- **Pick** (`scripts/small_model_chunk_pick.py`, decision in `artifacts/small-model/chunk-pick.json`):
+  - use 2,048 only if it has all 464 users,
+  - and improves LogLoss by at least 0.001 on both heads, with the 95% user-bootstrap upper bound < 0,
+  - and its decay trains at most 1.5x as long as the 1,024 one;
+  - otherwise use 1,024, which is also the fallback if the probe fails (for example out of memory).
+  - The margin is about 2x the k = 3 band and a fifth of the 128 → 1,024 effect, so a single seed cannot pass on noise.
+- **Real run:** `runbook-next.sh probe-scale` chains the probe, the pick and `scale` with TIER=gate, EPOCHS=4 and RUN_TAG=ctx<chunk>. The labels are `s-w64kd-gate-ctx<chunk>-e<K>` and `-dec`.
+  - The epoch gate (5.6) runs after epochs 1 and 2 against `scale-w64kd-gate` (128 chunks).
+  - Epoch estimates are 61 min scaled by the measured decay times (about 73 min at 1,024).
+
+## Priorities (re-assessed after each final result; AGENT.md "Priority re-assessment")
+
+Current order (2026-10-15 16:30, after screen B, user-approved):
+1. `probe-scale` (5.7): the 2,048 probe, then `scale` at the picked chunk size behind the epoch gate. Running.
+2. SM11 (full-history teacher targets) and SM12 (head temperature): the context-related improvements on top of the new recipe.
+3. SM06 (w80 + KD), SM04 (CPU inference timing), SM05, and the Expertium run-110 port (sibling inputs, PAVA, Muon on the scale matrices); the user's call.
+
 ## Backlog
 
 | ID | Idea | Status | Next step |
 |---|---|---|---|
 | SM01 | Full-history held-out frontier vs fork int8 (464 users) | Done 2026-10-15 (430 users every label has) | See frontier table; 34 users unscored (time limits) |
 | SM02 | w64 vs w32 and w64+KD vs w64, paired k = 3 screens | Done 2026-10-15: w64kd promising, w64 not | Scale-up blocked by the EPOCH_MIN fallback rule; main session decides (HANDOFF k=3 verdict) |
-| SM03 | Scale-up of the winning recipe (gate tier, ≤ 6 h) | Done 2026-10-15 (main session override: w64kd, 3 epochs): `scale-w64kd-dec` +5.28% / +5.99% vs fork w8+s8, beats w32 decay, not a good candidate; packaged | More users/epochs, w80 + KD (SM06) or longer decay to close the remaining ~4.3 / 4.5 pp |
+| SM03 | Scale-up of the winning recipe (gate tier, ≤ 6 h) | Done 2026-10-15 (main session override: w64kd, 3 epochs): `scale-w64kd-dec` +5.28% / +5.99% vs fork w8+s8, beats w32 decay, not a good candidate; packaged | Superseded by SM10: the next scale-up uses long-context chunks (5.7) |
 | SM04 | CPU inference cost of fork vs w32/w64 (recurrent step, 1 thread, `--timing`) | Pending | Small timing ticket with the RNN classes (`expertium.variants.build(..., rnn=True)`, fork `srs_model_rnn`) |
 | SM05 | KD only on fork-unseen training users (teacher targets on its own training users may be overfit) | Untested idea | Needs a per-user KD mask in the trainer |
 | SM06 | w80 + KD, longer decay (1 epoch, Expertium's choice) | Untested | After SM03 |
 | SM07 | Window-protocol and collection evaluation of w64 checkpoints (`fast_evaluation` and `accuracy_collection` only build the w32 model) | Gap | Add a variant-aware evaluator hook |
 | SM08 | Fork runtime port of the exported format (section 4, "Fork changes needed") | Specified, not started | User or Codex in the fork; acceptance = Rust vs `small_model_numpy.py` within 1e-5 |
 | SM09 | Teacher-target cache for KD (section 5.2) | Implemented 2026-10-15, CPU check bit-identical (`check_kd_cache.py`); 3.7 GB / 5.8 GB for 5k / 8k users | First real use in `runbook-next.sh control`; read the cached epoch's reviews/s from `phases.jsonl` |
-| SM10 | Long-context training (A09): in the 128-window protocol w64kd matches the fork (+0.1% LogLoss); the full-history gap is long-context behaviour (section 5.1) | Diagnosed 2026-10-15 (CPU, 64 users); P1 implemented and CPU-checked (`chunk_reviews`, `check_long_chunks.py`) | `runbook-next.sh check` (GPU parity + probe), then `context` |
-| SM11 | KD targets from the teacher's full-history replay instead of its 128-chunk predictions | Idea | Only if SM10 confirms the context diagnosis; one replay ≈ 3.8 h for 5k users at batch 1 (needs batching across users) |
+| SM10 | Long-context training (A09): in the 128-window protocol w64kd matches the fork (+0.1% LogLoss); the full-history gap is long-context behaviour (section 5.1) | Confirmed 2026-10-15 (screen B, paired k = 3): 1,024-review chunks beat 128 on LogLoss (−0.0047 / −0.0054) and RMSE(bins) (5.3) | `probe-scale` (5.7): 2,048 probe, then the 4-epoch gate-tier run |
+| SM11 | KD targets from the teacher's full-history replay instead of its 128-chunk predictions | Idea, now justified (SM10 confirmed) | Next after `probe-scale`; one replay ≈ 3.8 h for 5k users at batch 1 (needs batching across users) |
 | SM12 | Head temperature (Platt) folded into the export | Measured offline: closes ≈ 8% of the instant RMSE(bins) gap, LogLoss −0.1% | Cheap add-on once the recipe is fixed; fit on training users, never on the 464 |

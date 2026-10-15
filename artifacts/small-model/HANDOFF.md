@@ -287,3 +287,18 @@ Training speed (accuracy lane, `result.json` reviews_per_second, 0.25-epoch deca
 Cold-cache pairs (0 hits): ctx1024 50,958 vs ctl-s2 60,205 reviews/s, about 15% slower. Means 58,468 (ctx) vs 67,736 (ctl, three), about 14% slower; the check-stage probe predicted ~1.3x per update, so the cost is at most 1.15-1.3x. The KD cache is keyed by chunk option, so 1,024-chunk targets are separate; hits come from re-reading targets written earlier in the same seed family. Not a benchmark.
 
 Recommendation: `scale` should use 1,024-review chunks (`EXTRA` with chunk_reviews 1024, batch_chunks 32), accepting about 15-30% lower training throughput. Still needs the user's go; nothing enqueued.
+
+## LAUNCHED 2026-10-15 ~16:40: probe-scale (user go: "ok for your order, you can proceed and fill the queue")
+
+Plan in docs/SMALL_MODEL.md 5.7; launched detached from the main session:
+`nohup bash runbook-next.sh probe-scale > artifacts/small-model/runbook-next-probe-scale.log`.
+1. `ctx2048`: decay `cal-ctx2048-s1` (2,048 x 16 chunks, ~40 min), then scoring on 464 users (~16 min + resume).
+2. `scripts/small_model_chunk_pick.py` writes `artifacts/small-model/chunk-pick.json` (2,048 only if it beats `cal-ctx1024-s1` by at least 0.001 LogLoss on both heads, CI upper bound < 0, at most 1.5x slower; else 1,024).
+3. `scale` TIER=gate EPOCHS=4 RUN_TAG=ctx<chunk>: run `scale-w64kd-gate-cached-ctx<chunk>`, labels `s-w64kd-gate-ctx<chunk>-e<K>/w8+s8` and `-dec`. Epoch gates after epochs 1 and 2 (`gate-scale-w64kd-gate-cached-ctx<chunk>-e<K>.json`); a "stop" ends the launch cleanly.
+- Estimate: probe ~1 h, then about 5.5 h of training, gates, decay and scoring if both gates say go, or about 1.5 h if epoch 1 stops. Finish around 00:00-01:00.
+
+Follow-up (fresh Sonnet medium agent, when the log's last line is `done: scale` or a gate stop):
+1. grep the log for exit/done/stop/smoke/"chunk pick"; read chunk-pick.json and the gate JSONs.
+2. If scale finished: `$PY -X utf8 scripts/small_model_report.py --rmse-bins --labels fork/w8+s8,scale-w64kd-dec/w8+s8,cal-ctx1024-s1/w8+s8,cal-ctx2048-s1/w8+s8,s-w64kd-gate-ctx<chunk>-e4/w8+s8,s-w64kd-gate-ctx<chunk>-dec/w8+s8` (all users and `--min-user-id 101`), restoring heldout-report.{md,json} afterwards, or writing them with `--out` into a scratch path. Compare against the good-candidate bar in this file. Quote reviews/s per epoch from the run's result files.
+3. Write a "RESULT probe-scale" section here and in SMALL_MODEL.md, `git add -f` heldout.jsonl and the JSONs, commit and push. Launch nothing.
+4. Then the main session starts the priority re-assessment (AGENT.md, Opus high).

@@ -14,6 +14,11 @@
 #            (decay_alpha 0.5, 128-review chunks; seed 1 = existing scale-w64kd-dec) and their scoring.
 #   context  (~2.7 h; after `check` passed) arm B, the recommended arm: the same decays at 1,024-review training chunks
 #            (batch_chunks 32, same 32,768 reviews per update), seeds 1-3; then scoring.
+#   ctx2048  (~1 h) one 0.25-epoch decay at 2,048-review chunks (batch_chunks 16, same 32,768 reviews per update),
+#            seed 1, paired against cal-ctx1024-s1 (k = 1; screen B effect was ~9x the k=3 band), then its scoring.
+#   probe-scale (user go 2026-10-15 ~16:30) runs `ctx2048`, then picks the chunk size for `scale` with
+#            scripts/small_model_chunk_pick.py (rule in docs/SMALL_MODEL.md 5.7; 1,024 if the probe failed or is not
+#            clearly better), writes artifacts/small-model/chunk-pick.json, then runs `scale` TIER=gate EPOCHS=4.
 #   kd09     (~1.6 h, optional, low expected value: section 5.1 window result) arm A: decay_alpha 0.9.
 #   scale    cached-KD run of the screen winner: TIER=gate|final EPOCHS=<n> EPOCH1_MIN=<min> EPOCH_MIN=<min>
 #            [RUN_TAG=<tag>] [DECAY_ALPHA=0.5] [EXTRA='<json merged into the options>', e.g. '{"chunk_reviews": 1024,
@@ -27,7 +32,7 @@
 # options (`expertium_decay.py smoke`: 2 users x 512 reviews, scratch copy, no teacher cache) and only trains if it
 # passes. Re-launching a stage resumes: finished decays/epochs are skipped, scoring resumes per (user, label).
 set -u
-STAGE=${1:?stage check, control, context, kd09 or scale}
+STAGE=${1:?stage check, control, context, ctx2048, probe-scale, kd09 or scale}
 PY=C:/Users/jonat/workspace/anki-rwkv/.venv/Scripts/python.exe
 BASH_EXE="C:/Program Files/Git/usr/bin/bash.exe"
 QUEUE=C:/Users/jonat/workspace/anki-rwkv/scripts/r01_queue.py
@@ -133,6 +138,21 @@ context)
     decay "cal-ctx1024-s$seed" "$seed" 0.5 40 "$CTX" || exit 1
   done
   score cal-ctx1024-s1 cal-ctx1024-s2 cal-ctx1024-s3
+  ;;
+ctx2048)
+  "$PY" -c "import json, sys; r = json.load(open(r'$SM/check-long-wkv.json')); sys.exit(1 if r['failed'] else 0)" 2>/dev/null || {
+    log "long-WKV check missing or failed ($SM/check-long-wkv.json); stop"; exit 2; }
+  decay cal-ctx2048-s1 1 0.5 45 '"chunk_reviews": 2048, "batch_chunks": 16' || exit 1
+  score cal-ctx2048-s1
+  ;;
+probe-scale)
+  "$BASH_EXE" "$0" ctx2048 || log "ctx2048 stage failed (exit $?); the pick falls back to 1,024"
+  PICK=$("$PY" -X utf8 "$WT/scripts/small_model_chunk_pick.py" --jsonl "$OUT" --sm "$SM" --out "$SM/chunk-pick.json") || {
+    log "chunk pick failed; stop"; exit 1; }
+  read -r CHUNK BATCH EMIN E1MIN <<< "$PICK"
+  log "chunk pick: $CHUNK x $BATCH, epoch estimate $E1MIN/$EMIN min (see $SM/chunk-pick.json); starting scale"
+  TIER=gate EPOCHS=4 EPOCH1_MIN=$E1MIN EPOCH_MIN=$EMIN RUN_TAG=ctx$CHUNK     EXTRA="{\"chunk_reviews\": $CHUNK, \"batch_chunks\": $BATCH}" "$BASH_EXE" "$0" scale
+  exit $?
   ;;
 scale)
   TIER=${TIER:?gate or final}; EPOCHS=${EPOCHS:?number of epochs}
