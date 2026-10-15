@@ -302,3 +302,17 @@ Follow-up (fresh Sonnet medium agent, when the log's last line is `done: scale` 
 2. If scale finished: `$PY -X utf8 scripts/small_model_report.py --rmse-bins --labels fork/w8+s8,scale-w64kd-dec/w8+s8,cal-ctx1024-s1/w8+s8,cal-ctx2048-s1/w8+s8,s-w64kd-gate-ctx<chunk>-e4/w8+s8,s-w64kd-gate-ctx<chunk>-dec/w8+s8` (all users and `--min-user-id 101`), restoring heldout-report.{md,json} afterwards, or writing them with `--out` into a scratch path. Compare against the good-candidate bar in this file. Quote reviews/s per epoch from the run's result files.
 3. Write a "RESULT probe-scale" section here and in SMALL_MODEL.md, `git add -f` heldout.jsonl and the JSONs, commit and push. Launch nothing.
 4. Then the main session starts the priority re-assessment (AGENT.md, Opus high).
+
+### Override 2026-10-15 17:17: scale runs at 2,048-review chunks (user: "yeah go for 2048")
+
+- **The pick** (`chunk-pick.json`) kept 1,024 on a near miss.
+  - cal-ctx2048-s1 vs cal-ctx1024-s1 LogLoss: −0.00095 curve (95% upper bound −0.00077) and −0.00106 instant (−0.00093), against the −0.001 margin.
+  - Both decays had a cold KD cache (0 hits), and the 2,048 decay trained faster: 62.4k vs 51.0k reviews/s.
+  - The main session proposed the post-hoc override and the user approved it.
+- **The 1,024 run was stopped** after about 20 min of epoch 1, before any checkpoint (ticket 000369 cancelled, process tree killed). `artifacts/accuracy/experiments/scale-w64kd-gate-cached-ctx1024` holds only its prepared config.
+- **Relaunched detached** from the main checkout at 17:17, as ticket 000370 onwards:
+  `TIER=gate EPOCHS=4 EPOCH1_MIN=69 EPOCH_MIN=59 RUN_TAG=ctx2048 EXTRA='{"chunk_reviews": 2048, "batch_chunks": 16}' runbook-next.sh scale`
+  - Log: `artifacts/small-model/runbook-next-scale-ctx2048.log`.
+  - Run: `scale-w64kd-gate-cached-ctx2048`; labels `s-w64kd-gate-ctx2048-e<K>/w8+s8` and `-dec`.
+  - Epoch gates after epochs 1 and 2. Estimate: done around 22:30–23:30 if both gates say go.
+- **Follow-up:** as in "LAUNCHED ~16:40" above, with `<chunk>` = 2048 and this log.

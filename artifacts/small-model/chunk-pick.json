@@ -1,0 +1,36 @@
+{
+ "rule": "Rule (k = 1, paired on the users both labels have, review-weighted as small_model_report.py):\n  use the candidate (2,048-review chunks) only if\n    - it has a row for every user the base has (464 full-history validation users),\n    - LogLoss(cand) - LogLoss(base) <= -MARGIN on both heads, with the 95% user-bootstrap upper bound < 0,\n    - its decay trained at most MAX_SLOWDOWN times as long as the base decay;\n  otherwise keep the base (1,024-review chunks). A missing probe (failed, OOM, no rows) also keeps the base.\nMARGIN 0.001 is about 2x the k = 3 full-history band of screen B (0.00053 / 0.00056) and a fifth of the\n128 -> 1,024 effect (-0.0047 / -0.0054), so a single seed cannot pass it on noise.",
+ "candidate": "cal-ctx2048-s1/w8+s8",
+ "base": "cal-ctx1024-s1/w8+s8",
+ "margin": 0.001,
+ "max_slowdown": 1.5,
+ "heads": {
+  "ahead": {
+   "cand": 0.3083392154747805,
+   "base": 0.30929231351251624,
+   "delta": -0.0009530980377357445,
+   "ci95_upper": -0.0007721468640585583
+  },
+  "instant": {
+   "cand": 0.28235025357206145,
+   "base": 0.2834118122626671,
+   "delta": -0.0010615586906056462,
+   "ci95_upper": -0.0009256213910016935
+  }
+ },
+ "users": 464,
+ "candidate_missing_users": 0,
+ "training_seconds": {
+  "cal-ctx2048-s1": 1481.52290489999,
+  "cal-ctx1024-s1": 1813.2533271000138,
+  "cal-ctl-s2": 1536.0462019999977
+ },
+ "pick": "base",
+ "chunk_reviews": 1024,
+ "batch_chunks": 32,
+ "reasons": [
+  "ahead: delta -0.00095 (upper -0.00077) not <= -0.001"
+ ],
+ "epoch_min": 73,
+ "epoch1_min": 83
+}
