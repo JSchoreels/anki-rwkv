@@ -141,3 +141,23 @@ Caveats:
 - The w64 screens use 256 chunks and the baselines 512, so twice the updates (disclosed).
 - KD: 1,003 of the 2,000 screen training users (2,524 of the gate's 5,000) are teacher-training users.
 - Screens choose a recipe; they validate nothing (AGENT.md). A broader validation needs the user's explicit request.
+
+# FINAL k=3 verdict, tickets 000332-000348 processed (2026-10-15, CPU report; accuracy lane, no speed figures)
+
+All 17 tickets exit 0. Report on the 430 fork-unseen users every label has (34 of 464 cut by time limits across all resume passes): `heldout-report.md/json`. heldout.jsonl has 6,880 rows (the main checkout has no copy; this worktree file is the complete one and is committed).
+
+| Label | Mean Δ% curve vs fork w8+s8 | Mean Δ% instant | Paired mean Δ vs w32 curve (band) | instant (band) | Gap closure curve / instant (pp) |
+|---|---:|---:|---|---|---|
+| w32 o0-o2 | +12.19 | +16.47 | base | base | base |
+| w64 o0-o2 | +11.68 | +12.13 | -0.00151 (0.00359, inside) | -0.01166 (0.00471, better) | 0.51 (fails 1.0) / 4.34 |
+| w64kd o0-o2 | +9.79 | +10.25 | -0.00706 (0.00490, better) | -0.01673 (0.00488, better) | 2.40 / 6.22 |
+
+Per-seed deltas vs w32 are all negative on both heads for w64kd (curve -0.00367, -0.01098, -0.00653; instant -0.01574, -0.01976, -0.01470); w64 curve -0.00016, -0.00313, -0.00123. kd-vs-w64: curve -0.00555, instant -0.00507, all seeds negative. Reference points: w32 decay/w8+s8 +6.69% / +7.30%, fullrun-e10 +6.95% / +7.53%, fork fp32 +0.01% / -0.01%.
+
+int8 cost (R-o0 w8+s8 minus fp32): w64 curve +0.01 pp, instant +0.01 pp; w64kd curve +0.01 pp, instant 0.00 pp (both <= 0.10: free).
+
+Cross-check: 93 users shared with held-out B reproduce `heldout-b.jsonl` for fork/fp32 (max |dLL| 3e-8 curve, 0 instant) and fork/w8+s8 = w8-pc+s8 (6e-8, 5e-9).
+
+Self-test: `small_model_heldout.py` aborts only on keys ending in "0" (the bits0 / float-state recurrences, threshold 1e-4); the int8-state (bits8) errors up to 1.3e-3 are reported but exempt by design, because int8 state rounding legitimately differs by summation order.
+
+Criteria: (1) w64kd passes (all negative, |mean| above both bands); w64 fails on curve. (2) w64kd passes (2.40 >= 1.0, 6.22 >= 1.5); w64 fails curve. (3) int8 free for both. So R = w64kd (kd-vs-w64 negative on both heads). Sizing (accuracy-lane estimate, not a benchmark): w64kd r=106,987/s gives EPOCH_MIN = 369477375/106987/60+4 = 61.6 > 57, refused; fallback to w64 needs w64 to pass, and it does not. VERDICT: w64kd is the promising recipe, but the HANDOFF rule does NOT permit the scale-up. Do not scale up; the rule says to report and propose w80 + KD (SM06) or a KD-speed fix (smaller teacher cost per epoch, or a relaxed EPOCH_MIN cap). For information only, w64 r=166,967/s would be EPOCH_MIN=41 (299 min), but it is not promising. If the user overrides the rule for w64kd, EPOCH_MIN=62 gives 4x62+135 = 383 min > 360 (does not fit; 3 epochs would). No good-candidate checkpoint exists, so nothing was packaged. The screens are above the full-run w32 (+6.7%/+7.3%).

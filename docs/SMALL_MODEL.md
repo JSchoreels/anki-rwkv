@@ -34,17 +34,21 @@ Recurrent state per entity (the other size that ships; `compress_quant.state_byt
 
 Training speed (RTX 5080, 160-user R01 speed runs; inference unmeasured): w32 accepted 178,242 reviews/s; w64 with the wide kernels 141,274 (contaminated run, W04); w80 with them 111,281; w32 + online fork teacher (KD) 113,121.
 
-Interim k=1 held-out frontier (tickets 000341/000342, full history, 360 fork-unseen users all labels have; Δ% vs fork w8+s8; accuracy lane, no speed figures; details in the HANDOFF):
+Final k=3 held-out frontier (runbook 2026-10-15, tickets 000332-000348 all exit 0; full history, 430 fork-unseen users every label has, 34 of 464 cut by time limits; Δ% vs fork w8+s8; accuracy lane, no speed figures; details in the HANDOFF and `artifacts/small-model/heldout-report.md`):
 
-| Candidate | Parameters | Curve LL / Δ% | Instant LL / Δ% |
-|---|---:|---|---|
-| Fork fp32 | 2,762,884 | 0.29870 / +0.00% | 0.27475 / -0.01% |
-| Fork w8+s8 | 2,762,884 | 0.29869 / ref | 0.27478 / ref |
-| w32 decay-e10-q25 (w8+s8) | 192,800 | 0.31414 / +5.17% | 0.29282 / +6.57% |
-| w32 fullrun-e10 | 192,800 | 0.31518 / +5.52% | 0.29382 / +6.93% |
-| w32 screen o0 | 192,800 | 0.32870 / +10.05% | 0.31310 / +13.95% |
-| w64 screen o0 | 331,511 | 0.32814 / +9.86% | 0.30539 / +11.14% |
-| w64kd screen o0 | 331,511 | 0.32494 / +8.79% | 0.29812 / +8.49% |
+| Candidate | Parameters | Curve LL / Δ% | Instant LL / Δ% | Instant RMSE(bins) Δ% |
+|---|---:|---|---|---:|
+| Fork fp32 | 2,762,884 | 0.29418 / +0.01% | 0.26919 / -0.01% | -0.4% |
+| Fork w8+s8 | 2,762,884 | 0.29416 / ref | 0.26921 / ref | ref |
+| w32 decay-e10-q25 (w8+s8) | 192,800 | 0.31385 / +6.69% | 0.28886 / +7.30% | +88.6% |
+| w32 fullrun-e10 | 192,800 | 0.31461 / +6.95% | 0.28947 / +7.53% | +89.6% |
+| w32 screen o0 / o1 / o2 | 192,800 | +11.42 / +12.37 / +12.78% (mean +12.19) | +15.24 / +17.20 / +16.96% (mean +16.47) | +212 / +229 / +211% |
+| w64 screen o0 / o1 / o2 | 331,511 | +11.37 / +11.30 / +12.36% (mean +11.68) | +11.96 / +12.19 / +12.25% (mean +12.13) | +152 / +153 / +150% |
+| w64kd screen o0 / o1 / o2 | 331,511 | +10.17 / +8.63 / +10.56% (mean +9.79) | +9.39 / +9.86 / +11.51% (mean +10.25) | +115 / +127 / +152% |
+| w64 o0 w8+s8 | 331,511 | 0.32758 / +11.36% | 0.30144 / +11.97% | +151.9% |
+| w64kd o0 w8+s8 | 331,511 | 0.32412 / +10.18% | 0.29449 / +9.39% | +115.1% |
+
+Paired k=3 vs w32 (mean of cand - base LogLoss; band = larger of full-history and window band): w64 curve -0.00151 (band 0.00359, inside), instant -0.01166 (0.00471, better); w64kd curve -0.00706 (0.00490, better), instant -0.01673 (0.00488, better); kd-vs-w64 curve -0.00555, instant -0.00507 (both negative, better). Gap closure vs w32 (pp): w64 0.51 curve (fails 1.0) / 4.34 instant; w64kd 2.40 / 6.22. int8 cost (o0, w8+s8 minus fp32): w64 +0.01 pp / +0.01 pp, w64kd +0.01 pp / 0.00 pp. Verdict: w64kd is promising (R) but its EPOCH_MIN is 61.6 > 57 and w64 does not pass, so the HANDOFF rule does not permit the scale-up. The screens (o0-o2) stay above the full-run w32 (+6.7% / +7.3%), so none reaches the good-candidate bar.
 
 ### Comparability and gaps
 
@@ -193,9 +197,9 @@ Not verified:
 
 | ID | Idea | Status | Next step |
 |---|---|---|---|
-| SM01 | Full-history held-out frontier vs fork int8 (464 users) | Queued 2026-10-15 | Report after the runbook |
-| SM02 | w64 vs w32 and w64+KD vs w64, paired k = 3 screens | Queued | Report; apply the HANDOFF threshold |
-| SM03 | Scale-up of the winning recipe (gate tier, ≤ 6 h) | Planned, triggered by threshold | HANDOFF section "Scale-up" |
+| SM01 | Full-history held-out frontier vs fork int8 (464 users) | Done 2026-10-15 (430 users every label has) | See frontier table; 34 users unscored (time limits) |
+| SM02 | w64 vs w32 and w64+KD vs w64, paired k = 3 screens | Done 2026-10-15: w64kd promising, w64 not | Scale-up blocked by the EPOCH_MIN fallback rule; main session decides (HANDOFF k=3 verdict) |
+| SM03 | Scale-up of the winning recipe (gate tier, ≤ 6 h) | Not permitted by the rule (w64kd EPOCH_MIN 61.6 > 57, w64 fails) | HANDOFF section "Scale-up" |
 | SM04 | CPU inference cost of fork vs w32/w64 (recurrent step, 1 thread, `--timing`) | Pending | Small timing ticket with the RNN classes (`expertium.variants.build(..., rnn=True)`, fork `srs_model_rnn`) |
 | SM05 | KD only on fork-unseen training users (teacher targets on its own training users may be overfit) | Untested idea | Needs a per-user KD mask in the trainer |
 | SM06 | w80 + KD, longer decay (1 epoch, Expertium's choice) | Untested | After SM03 |
