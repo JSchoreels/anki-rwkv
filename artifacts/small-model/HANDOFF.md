@@ -197,7 +197,8 @@ Nothing is queued. Every stage of `artifacts/small-model/runbook-next.sh` needs 
   - `control` (≈ 1.9 h; also completes the fork on all 464 users and scores epochs 1–2 for the slope);
   - arm B `context`, 1,024-review chunks (recommended; P1 implemented and CPU-checked 2026-10-15: `chunk_reviews`, `check_long_chunks.py`);
   - arm A `kd09` (optional, low value).
-- **Smoke.** Every training ticket starts with `expertium_decay.py smoke` (60–120 s); `scale` stops after epoch 1 + its score until `CONTINUE=1`.
+- **Smoke.** Every training ticket starts with `expertium_decay.py smoke` (60–120 s).
+- **Epoch gate** (SMALL_MODEL.md 5.6): `scale` gates itself after epochs 1 and 2 on the fixed 100-user subset (`gate-users.json`). Decisions: `artifacts/small-model/gate-<run>-e<K>.json`. "stop" ends the launch resumably; `FORCE=1` continues.
 - **Launch** (from `C:\Users\jonat\workspace\anki-rwkv`):
   ```
   nohup "C:/Program Files/Git/usr/bin/bash.exe" C:/Users/jonat/workspace/wt/small-model/artifacts/small-model/runbook-next.sh check > C:/Users/jonat/workspace/wt/small-model/artifacts/small-model/runbook-next-check.log 2>&1 & disown

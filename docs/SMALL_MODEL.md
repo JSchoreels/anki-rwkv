@@ -358,7 +358,7 @@ nohup "C:/Program Files/Git/usr/bin/bash.exe" C:/Users/jonat/workspace/wt/small-
 | `control` | completion ticket (fork w8+s8 on the 34 users cut by time limits, `scale-w64kd-e1/e2` w8+s8 for the epoch slope; ≈ 40 min) + 2 decays (`cal-ctl-s2`, `cal-ctl-s3`; ≤ 24 min each with the smoke) + scoring (≈ 27 min) | ≈ 1.9 h | `artifacts/small-model/cal-ctl-s*/expertium/E89-F65e-F77a/master.pth`; rows in the worktree's `artifacts/small-model/heldout.jsonl` (all stages write there); teacher cache filled for about 1,300 users per seed |
 | `context` | refuses until `check` passed; 3 decays at 1,024-review chunks (≈ 40 min each; re-size from the probe) + scoring (≈ 38 min) | ≈ 2.7 h | `cal-ctx1024-s*` |
 | `kd09` (optional) | 3 decays + scoring | ≈ 1.6 h | `cal-kd09-s*` |
-| `scale` | e.g. `TIER=gate EPOCHS=6 EPOCH1_MIN=62 EPOCH_MIN=41 EXTRA='{"chunk_reviews": 1024, "batch_chunks": 32}'` (if B wins). Trains epoch 1 and scores it (slope point, ≈ 75 min), then stops; `CONTINUE=1` resumes epochs 2–6, decay and scoring | ≈ 4.7 h at 128-review chunks (re-estimate at 1,024 from the probe) | `scale-w64kd-gate-cached[-tag]`, labels `s-w64kd-gate-{e1,e6,dec}` |
+| `scale` | e.g. `TIER=gate EPOCHS=6 EPOCH1_MIN=62 EPOCH_MIN=41 EXTRA='{"chunk_reviews": 1024, "batch_chunks": 32}'` (if B wins; `SAME_RECIPE=1` for more of the reference recipe). The epoch gate (5.6) runs after epochs 1 and 2; "stop" ends the launch, `FORCE=1` continues | ≈ 4.9 h at 128-review chunks if both gates say go; ≈ 1.1–1.3 h if epoch 1 says stop (re-estimate at 1,024 from the probe) | `scale-w64kd-gate-cached[-tag]`, labels `s-w64kd-gate-{e1,e2,e6,dec}`, decisions `artifacts/small-model/gate-<run>-e{1,2}.json` |
 
 Every training ticket (decays and epochs) starts with a 60–120 s smoke: `expertium_decay.py smoke` runs the same options and checkpoint on the trainer's smoke rows (2 users × 512 reviews) in a scratch copy under `artifacts/small-model/smoke/`, without the teacher cache. Training starts only if the smoke passes. The smoke is not run on GPU yet. CPU steps (`prepare`, reports, calibration analysis) run outside the queue and claim nothing.
 
@@ -386,9 +386,52 @@ Recommended order:
   - Batching several users per pass is feasible but not done. `collect_predictions` keys predictions by review index only, so a batched pass needs a per-sample user map and length bucketing. It also needs a GPU equivalence and speed check before any result depends on it (ledger S05).
 - **Epoch slope.** Asked for a 1-epoch point at 5k users before multi-epoch runs. Adopted:
   - `control` scores the existing `scale-w64kd-gate` epoch-1 and epoch-2 checkpoints at no training cost;
-  - `scale` stops after epoch 1 and its score until re-launched with `CONTINUE=1`.
+  - every multi-epoch run passes the epoch gate (5.6) after epochs 1 and 2, the first epoch of the real run doubling as the cheap check.
 - **Smoke checks.** Adopted: every training ticket begins with `expertium_decay.py smoke` (60–120 s, same options) and trains only if it passes.
 - **Longer training context and matching KD targets.** Adopted as P1 (5.3). With longer chunks the online teacher sees the same long chunks, so its targets match the student's context. The cache keeps them apart from 128-review targets (batch-option hash). Full-history teacher targets (SM11) remain a later option.
+
+
+### 5.6 Epoch gate: the first epoch of the real run is the cheap check (user request, 2026-10-15)
+
+The check is never a throwaway run. `runbook-next.sh scale` (and any later multi-epoch runbook, via its `epoch_gate` function):
+1. Trains epoch 1 of the real experiment. The checkpoint is saved in the run folder, and later epochs resume from it.
+2. Scores that checkpoint (w8+s8) on a **fixed 100-user subset**, `artifacts/small-model/gate-users.json`:
+   - 10 users per history-length decile of the 464, evenly spaced ranks inside each decile, ids ≥ 101;
+   - 21.9% of the 464 users' reviews (3.7k to 861k reviews per user).
+
+   The rows go into `heldout.jsonl` under the run's normal label (`<lbl>-e1/w8+s8`). The ticket also scores the fork and the reference run `scale-w64kd-gate` (e1, e2, e3, dec) on the same users, skipping rows that already exist:
+   - first gate ever: ≈ 15 min (the reference labels are new);
+   - later gates: ≈ 3–4 min (one label, 2.3 min of scoring + model loading).
+3. Decides on the CPU: `scripts/small_model_gate.py` writes `artifacts/small-model/gate-<run>-e<K>.json` (metrics, rule, thresholds, verdict).
+4. **Go:** the runbook continues with the remaining epochs, the decay and full scoring. **Stop:** the launch ends cleanly and logs why; everything stays resumable, and a re-launch with `FORCE=1` continues from the saved epoch.
+5. Re-checks the same way after epoch 2 (runs of 3 or more epochs).
+
+Rule: paired, review-weighted LogLoss on the subset users. Both heads must pass every test.
+
+| Test | When | Passes if | Why this threshold |
+|---|---|---|---|
+| A, matching point | every gate | cand_eK − ref_eK < 0 with its 95% user-bootstrap upper bound < 0, and ≤ −band on at least one head. Band: 0.0062 curve / 0.0027 instant | The k = 1 whole-training noise band (A15): a single run must beat one seed's noise |
+| A′, no regression | `SAME_RECIPE=1` (more users or epochs of the reference recipe, which cannot beat itself) | cand_eK − ref_eK ≤ +band on both heads | Same band, as a non-inferiority margin |
+| B, projection | every gate | projected final ≤ (1 − 1%) × ref_dec. Projection: cand_eK + b · (ln N − ln K) + (ref_dec − ref_e3) | b is the log-epoch slope: the reference's least-squares fit over its epochs 1–3 at K = 1, the candidate's own (e2 − e1)/ln 2 at K = 2. 1% of LogLoss is about 1 pp of the gap to the fork, the smallest gain worth a multi-hour run |
+| C, not flattening | K = 2 | cand_e1 − cand_e2 ≥ 0.5 × (ref_e1 − ref_e2) | Stop early if the gain per epoch has halved against the reference |
+
+A subset user without a row for any label gives verdict "stop" with reason "incomplete". The log-epoch projection is a prior for a go/no-go, not a forecast to report.
+
+Checked on CPU:
+- `small_model_gate.py --self-test`: 8 synthetic cases (go; inside the band; flattening; still improving; beats the band but short of the margin; same recipe with more epochs; same recipe with the same epochs; missing row), all as intended.
+- The `epoch_gate` bash branch, run with a stubbed queue: go → continue; stop → launch ends with exit 0; stop + `FORCE=1` → continue.
+- A real-data dry run reports the reference rows still missing on the subset. The `control` stage, or the first gate ticket, scores them.
+- The subset scoring has not run on GPU: queuing a GPU ticket from this session was refused, so it needs the user's go.
+
+Time (5k users × 6 epochs cached, 128-review chunks, accuracy-lane estimates):
+
+| Outcome | GPU time used | Saved vs the full run (≈ 4.9 h) |
+|---|---:|---:|
+| Stop at epoch 1 | ≈ 1.1–1.3 h (61 min epoch + 4–15 min gate) | ≈ 3.6–3.8 h |
+| Stop at epoch 2 | ≈ 1.9 h | ≈ 3.0 h |
+| Go at both gates | ≈ 4.9 h (+ ≈ 8 min for the two gates) | — (+3%) |
+
+For 8k users (final tier), epoch 1 has 1.6× the reference's data per epoch, so A is easier there. Read that decision with this in mind.
 
 ## Backlog
 

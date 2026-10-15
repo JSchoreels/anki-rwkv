@@ -17,8 +17,10 @@
 #   kd09     (~1.6 h, optional, low expected value: section 5.1 window result) arm A: decay_alpha 0.9.
 #   scale    cached-KD run of the screen winner: TIER=gate|final EPOCHS=<n> EPOCH1_MIN=<min> EPOCH_MIN=<min>
 #            [RUN_TAG=<tag>] [DECAY_ALPHA=0.5] [EXTRA='<json merged into the options>', e.g. '{"chunk_reviews": 1024,
-#            "batch_chunks": 32}'] [CONTINUE=1]. Trains epoch 1 and scores it (slope point), then STOPS unless
-#            CONTINUE=1; re-launch with CONTINUE=1 to resume epochs 2..n, the 0.25-epoch decay and scoring.
+#            "batch_chunks": 32}'] [SAME_RECIPE=1: more users/epochs of the reference recipe] [FORCE=1]. Epoch gate (docs/SMALL_MODEL.md 5.6): after epochs 1 and 2 of the real
+#            run, `epoch_gate` scores that checkpoint on the fixed 100-user subset next to the fork and the reference
+#            run (one short ticket), and scripts/small_model_gate.py writes a go/stop decision JSON. "stop" ends the
+#            launch cleanly with everything resumable; re-launch with FORCE=1 to continue from the saved epoch.
 #
 # Every GPU step is one queue ticket (`--claim gpu`, absolute paths; docs/R01_PARALLEL_SESSIONS.md); CPU steps
 # (prepare) run outside the queue and claim nothing. Every training ticket starts with a 60-120 s smoke of the same
@@ -42,6 +44,7 @@ TEACHER=C:/Users/jonat/workspace/anki/qt/aqt/rwkv_inference/RWKV_trained_on_5000
 CACHE=C:/Users/jonat/workspace/anki-rwkv/artifacts/cache/kd-teacher/fork-bf16-s2025
 OUT=$SM/heldout.jsonl  # absolute; the complete file lives in the worktree (resume reads it)
 CTX='"chunk_reviews": 1024, "batch_chunks": 32'
+GATE_USERS=$SM/gate-users.json
 log() { echo "[next $(date +%H:%M:%S)] $*"; }
 q() {
   local minutes=$1 purpose=$2; shift 3
@@ -78,6 +81,29 @@ score() {  # score LABEL... (w8+s8 only: int8 is free for w64, measured twice); 
   # shellcheck disable=SC2086
   q 15 "full-history scoring resume: $*" -- "$PY" -X utf8 "$SC" $models $only --time-limit 1500 --out "$OUT"
 }
+# epoch_gate NAME LBL EXP EPOCH EPOCHS: go/stop after EPOCH of a multi-epoch run (any future runbook can reuse it).
+# Returns 0 = go (or FORCE=1), 10 = stop (decision written, launch should end), 1 = error.
+epoch_gate() {
+  local name=$1 lbl=$2 exp=$3 epoch=$4 epochs=$5 E=$SRC/epoch-0
+  local ckpt=$exp/run/epoch-0$epoch/$CKPT decision=$SM/gate-$name-e$epoch.json previous=""
+  [ "$epoch" -eq 2 ] && previous="--previous $lbl-e1/w8+s8"
+  # Rows already in heldout.jsonl are skipped, so the reference labels are scored once (first gate ~15 min, later ~4).
+  q 15 "epoch gate: score $lbl-e$epoch + references on the 100-user subset" -- "$PY" -X utf8 "$SC" \
+    --users-file "$GATE_USERS" --model "$lbl-e$epoch=expertium:w64:$ckpt" --model "fork=fork::$TEACHER" \
+    --model "scale-w64kd-e1=expertium:w64:${E}1/$CKPT" --model "scale-w64kd-e2=expertium:w64:${E}2/$CKPT" \
+    --model "scale-w64kd-e3=expertium:w64:${E}3/$CKPT" --model "scale-w64kd-dec=expertium:w64:$SM/scale-w64kd-gate-decay/$CKPT" \
+    --only "$lbl-e$epoch/w8+s8" --only fork/w8+s8 --only scale-w64kd-e1/w8+s8 --only scale-w64kd-e2/w8+s8 \
+    --only scale-w64kd-e3/w8+s8 --only scale-w64kd-dec/w8+s8 --time-limit 1500 --out "$OUT" || return 1
+  # shellcheck disable=SC2086
+  "$PY" -X utf8 "$WT/scripts/small_model_gate.py" --candidate "$lbl-e$epoch/w8+s8" $previous --epoch "$epoch" \
+    --epochs "$epochs" --jsonl "$OUT" --users-file "$GATE_USERS" --out "$decision" ${SAME_RECIPE:+--same-recipe}
+  local rc=$?
+  [ $rc -eq 0 ] && return 0
+  [ $rc -eq 10 ] || { log "gate script failed (exit $rc)"; return 1; }
+  if [ "${FORCE:-0}" = 1 ]; then log "gate says STOP ($decision), FORCE=1: continuing"; return 0; fi
+  log "gate says STOP after epoch $epoch: see $decision. Everything is saved; re-launch with FORCE=1 to continue."
+  return 10
+}
 cd "$WT" || exit 1
 case "$STAGE" in
 check)
@@ -111,7 +137,7 @@ context)
 scale)
   TIER=${TIER:?gate or final}; EPOCHS=${EPOCHS:?number of epochs}
   EPOCH1_MIN=${EPOCH1_MIN:?first-epoch minutes}; EPOCH_MIN=${EPOCH_MIN:?later-epoch minutes}
-  DECAY_ALPHA=${DECAY_ALPHA:-0.5}; EXTRA=${EXTRA:-'{}'}; CONTINUE=${CONTINUE:-0}
+  DECAY_ALPHA=${DECAY_ALPHA:-0.5}; EXTRA=${EXTRA:-'{}'}
   SUFFIX=${RUN_TAG:+-$RUN_TAG}
   NAME=scale-w64kd-$TIER-cached$SUFFIX
   EXP=$WT/artifacts/accuracy/experiments/$NAME
@@ -136,9 +162,6 @@ print(json.dumps(o))")
     --extra-options "$OPTS" > /dev/null || exit 1
   for epoch in $(seq 1 "$EPOCHS"); do
     EP=$EXP/run/epoch-$(printf "%02d" "$epoch")/$CKPT
-    if [ "$epoch" -eq 2 ] && [ "$CONTINUE" != 1 ]; then
-      log "epoch 1 trained and scored ($LBL-e1); inspect the slope, then re-launch with CONTINUE=1"; exit 0
-    fi
     if [ ! -f "$EP" ]; then
       m=$EPOCH_MIN; [ "$epoch" -eq 1 ] && m=$EPOCH1_MIN
       q $(( m + 2 )) "cached-KD run epoch $epoch/$EPOCHS ($TIER, smoke first)" -- "$BASH_EXE" -c \
@@ -146,9 +169,11 @@ print(json.dumps(o))")
       rc=$?
       [ $rc -eq 0 ] || [ $rc -eq 3 ] || { log "training failed (exit $rc), stop"; exit 1; }
     fi
-    if [ "$epoch" -eq 1 ]; then
-      q 16 "cached-KD run: score epoch 1 (slope point)" -- "$PY" -X utf8 "$SC" --model "$LBL-e1=expertium:w64:$EP" \
-        --only "$LBL-e1/w8+s8" --time-limit 1500 --out "$OUT"
+    if [ "$epoch" -le 2 ] && [ "$epoch" -lt "$EPOCHS" ]; then
+      epoch_gate "$NAME" "$LBL" "$EXP" "$epoch" "$EPOCHS"
+      rc=$?
+      [ $rc -eq 10 ] && { log "done: $STAGE stopped by the epoch-$epoch gate"; exit 0; }
+      [ $rc -eq 0 ] || exit 1
     fi
   done
   EL=$(printf "%02d" "$EPOCHS")

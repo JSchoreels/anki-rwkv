@@ -164,6 +164,8 @@ def main():
     parser.add_argument("--device", choices=("cuda", "cpu"), default="cuda")
     parser.add_argument("--out", default="artifacts/small-model/heldout.jsonl")
     parser.add_argument("--max-reviews", type=int, default=0, help="CPU smoke: skip users above this many reviews")
+    parser.add_argument("--users-file", default="", help="JSON with a 'users' list (e.g. artifacts/small-model/"
+                        "gate-users.json): score only these users, in the usual stratified order")
     parser.add_argument("--window", type=int, default=0, help="diagnostic: score independent W-review samples")
     parser.add_argument("--dump", default="", help="also write per-review benchmark predictions (review_th, bin, y, "
                         "p_ahead, p_instant) to DIR/<user>_<tag>_<variant>.npz, for calibration diagnostics")
@@ -188,6 +190,9 @@ def main():
     run = cc.run_info()
     counts = run["review_counts"]
     users = heldout_users(counts)
+    if args.users_file:
+        wanted = set(json.loads(Path(args.users_file).read_text())["users"])
+        users = [u for u in users if u in wanted]
     if args.max_reviews:
         users = [u for u in users if counts[str(u)] <= args.max_reviews]
     users = users[args.start:args.start + args.count] if args.count else users[args.start:]
