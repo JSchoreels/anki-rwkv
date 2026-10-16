@@ -442,3 +442,12 @@ Fork w8+s8: curve 0.29766, instant 0.27216. Paired ctx8192c-dec8 minus ctx2048c-
 better), -0.00123 instant (90% better). Longer windows are the biggest lever found so far; bar P (<= +1.0% both heads) is
 ~0.2 points away. Next: longdecay (16k-chunk decay from ctx8192 e8, runbook-2026-10-16d.sh, launched by
 jobs/launch-longdecay-after-q8.sh after "done: cont" at 17:32).
+
+## 2026-10-16 18:30 Q9 relaunched at 16k (000410) and Q10 chained at 32k
+- 000409 (16k decay) failed in 5 s on the old chunk_reviews <= 8192 guard; raised to 32,768 in a4c9937 (user OK).
+  Failed log: runbook-2026-10-16d-longdecay-fail1.log. Relaunch: runbook-2026-10-16d-longdecay.log, ticket 000410,
+  ~25k rev/s cold, decay ETA ~19:20, scoring after.
+- Q10 (user: "test without window"; 21:30 cutoff lifted, user will cancel if they need the GPU):
+  jobs/launch-32k-after-16k.sh waits for "done: longdecay"/"longdecay ended" in the 16k log, then runs the same stage
+  at DCHUNK=32768 DBATCH=1 -> scale-w64kd-gate-cached-ctx8192-cont-decay-L32k, label s-w64kd-gate-ctx8192c-dec8-L32k,
+  log runbook-2026-10-16d-longdecay32k.log, launcher log jobs/launch-32k-after-16k.log. Dry run OK.
