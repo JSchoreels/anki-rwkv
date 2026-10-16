@@ -451,3 +451,15 @@ jobs/launch-longdecay-after-q8.sh after "done: cont" at 17:32).
   jobs/launch-32k-after-16k.sh waits for "done: longdecay"/"longdecay ended" in the 16k log, then runs the same stage
   at DCHUNK=32768 DBATCH=1 -> scale-w64kd-gate-cached-ctx8192-cont-decay-L32k, label s-w64kd-gate-ctx8192c-dec8-L32k,
   log runbook-2026-10-16d-longdecay32k.log, launcher log jobs/launch-32k-after-16k.log. Dry run OK.
+
+## 2026-10-16 19:36 Q9 result: 16k x 2 decay (000410 decay, 000411 scoring 14 min, 464 users, w8+s8 vs fork w8+s8)
+
+| model | curve | instant |
+|---|---|---|
+| ctx8192c dec8 | +1.24% | +1.21% |
+| **ctx8192c dec8-L16k** | **+1.17%** | **+1.16%** |
+
+Paired L16k minus 8k-decay: -0.00020 curve (259/464 users better), -0.00014 instant (310/464 better). A real but
+small gain (~0.06 points) from a 0.25-epoch decay alone; the base was still trained at 8192. Bar P still ~0.17 points
+away. Q10 (32768 x 1 decay from the same e8) fired at 19:34:46 as ticket 000412, log
+runbook-2026-10-16d-longdecay32k.log.
