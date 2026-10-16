@@ -367,3 +367,9 @@ Verified by reading `runbook-next.sh` (`scale` stage) and `scripts/accuracy_loop
 ## DONE 03:00: result of scale-w64kd-gate-cached-ctx2048 (CPU report)
 
 464-user scoring finished (000380/000381). F (better = `-dec`, w8+s8) = +2.16% curve / +2.16% instant vs fork (e4: +2.61% / +2.48%); S (e2 − e4, 100 gate users) = 0.00236 / 0.00260, still learning; branch **E** (not P: F above +1.0% / +1.5%). G from Q2 is still open and only affects Q7. Table and details: docs/SMALL_MODEL.md "Result 2026-10-16 03:00". The `e3-extend.json` gate file is a dry-run artefact (mtime 00:38), ignored.
+
+## QUEUE 2026-10-16 from 03:01 (main session, plan in docs/SMALL_MODEL.md "Queue 2026-10-16" and "Re-assessment 2026-10-16 ~03:30")
+
+- Q1-Q3 ran from `artifacts/small-model/jobs/chain-q1-q3.sh` (log `artifacts/small-model/chain-q1-q3.log`; the "exit" it prints is always 0, read the `[queue] ... finished with exit code` lines): 000382 Q1 SM04 CPU timing (exit 0, `cpu-timing.json`, e1ba148), 000383 Q2 SM13 in-window@2048 (exit 0, `@w2048` rows in `heldout.jsonl`, G in ee73eb5), 000384 Q3 S06 (exit 1, output dir pre-created; fixed da60b34, requeued as 000386, log `artifacts/small-model/speed-ctx-20261016.log`, output `speed-ctx-20261016/`).
+- Q4 extend (epochs 5-6, gate after e5, decay, 464-user scoring) was started at 03:20 by `artifacts/small-model/jobs/launch-q4-after-chain.sh` (log `launch-q4.log`); runbook log `artifacts/small-model/runbook-2026-10-16-extend.log`; epoch 5 = 000385. experiment.json / run/run.json now say 6 epochs (backups `*.bak-4ep`).
+- Next: Q5 (S05 batched scoring, branch s05-batched) and Q6 (ctx4096 decay probe) after Q4, then Q7 per the 03:30 re-assessment (needs the `cont` runbook stage, Sonnet writer).
