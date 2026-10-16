@@ -629,6 +629,31 @@ Ticket 000387, exit 0 after 4:44, `--timing`, 1 thread, `--impl eager,numpy` (me
 - Exactness vs eager: max |dp| <= 4.2e-7 on probabilities (sm18 commit, 1,490 real reviews of user 7). The s8 int8-state path is not covered.
 - **Eager discrepancy vs SM04** (w64 batch 1: 2.364 here vs 3.452 ms in `cpu-timing.json`; w32 2.661 vs 4.289; fork 3.954 vs 3.854 unchanged). The diff of `scripts/small_model_cpu_timing.py` between e1ba148 and 3e97f25 only adds the numpy path, `--impl` and the exactness check; the eager timing code, settings (1,000 / 60 steps, 5 repeats, warmup 50) and torch/CPU are identical. Not a code change, so unexplained run-to-run variance (the fork matches, w64 and w32 were about 30-40% slower in SM04; possible causes are machine load or process warm-up state, e.g. here the numpy runs and exactness check execute before the eager runs in the same process). Use the SM18 numbers as the current measurement; the eager w64 batch-1 speedup over the eager fork is 1.67x here rather than 1.12x.
 
+### Result 2026-10-16 06:35: extended run (epochs 5-6 + decay, 464 users)
+
+Full-history scoring of `s-w64kd-gate-ctx2048-e6` and `-dec6` finished at 06:35 (ticket 000391, exit 0). `small_model_report.py --rmse-bins`, reference `fork/w8+s8`, review-weighted, 95% user-bootstrap CI; w8+s8 only. The tool's common-user set is the 451 users with ids >= 101 and a benchmark row in every label (same set as the 03:00 table; 464 rows exist per label).
+
+| Label (w8+s8) | Curve LogLoss | Δ% [CI] | Instant LogLoss | Δ% [CI] | Curve RMSE(bins) | Δ% | Instant RMSE(bins) | Δ% |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| fork/w8+s8 | 0.29766 | +0.00% | 0.27216 | +0.00% | 0.03867 | +0.0% | 0.02084 | +0.0% |
+| s-w64kd-gate-ctx2048-e4 | 0.30542 | +2.61% [+2.05, +3.33] | 0.27891 | +2.48% [+2.29, +2.69] | 0.04648 | +20.2% | 0.02678 | +28.5% |
+| s-w64kd-gate-ctx2048-dec | 0.30408 | +2.16% [+1.62, +2.90] | 0.27804 | +2.16% [+1.97, +2.35] | 0.04441 | +14.8% | 0.02481 | +19.0% |
+| s-w64kd-gate-ctx2048-e6 | 0.30435 | +2.25% [+1.70, +2.94] | 0.27799 | +2.14% [+1.96, +2.32] | 0.04560 | +17.9% | 0.02576 | +23.6% |
+| s-w64kd-gate-ctx2048-dec6 | 0.30291 | +1.76% [+1.30, +2.37] | 0.27714 | +1.83% [+1.67, +1.98] | 0.04323 | +11.8% | 0.02418 | +16.0% |
+
+Paired per-user differences (LogLoss, review-weighted, user bootstrap 95% CI, 4,000 resamples; cand − base, negative = better):
+
+| Pair | Curve | Instant |
+|---|---:|---:|
+| dec6 − dec | −0.00118 [−0.00162, −0.00081] | −0.00086 [−0.00097, −0.00077] |
+| e6 − e4 | −0.00102 [−0.00177, −0.00020] | −0.00093 [−0.00107, −0.00079] |
+| dec6 − e6 (decay gain) | −0.00142 [−0.00191, −0.00103] | −0.00081 [−0.00091, −0.00072] |
+
+- **F6** (better of e6/dec6 = `-dec6`): **+1.76% curve / +1.83% instant** (previous F +2.16% / +2.16%). Two more epochs plus decay bought −0.40 / −0.33 points; the gain over the 4-epoch result is significant on both heads.
+- **S6** (definition from the 03:30 re-assessment: e4 − e6 on the 100 gate users, w8+s8; fork 0.28665 / 0.26105): e4 0.29359 / 0.26818, e6 0.29349 / 0.26736, so **S6 = 0.00010 curve / 0.00082 instant**. Thresholds 0.0005 / 0.0010 (both heads, as for S): both fail, so the gate users say **flat**. The e5 gate row (curve −0.00040, instant +0.00087 vs e4) already showed this. The 464-user paired e6 − e4 (−0.00102 / −0.00093) is larger on curve than the gate subset suggests (the 100-user subset has curve CI [−0.00061, +0.00074] for e4 − e6, i.e. consistent with zero); the Q7 table is defined on S6, so S6 is used.
+- **P verdict: not met.** Curve +1.76% > +1.0%, instant +1.83% > +1.5%; RMSE(bins) +11.8% / +16.0% (instant still above the +15% bar). Row 1 of the Q7 table (pruning) does not apply.
+- **If Q6 fails** (Q6 = cal-ctx4096-e6 vs dec6 at 2048 is still running and decides the primary): S6 is flat, so **fallback 2 (Muon w64 from scratch)** applies, not fallback 1 (epochs 7-8 at 2,048). Caveat for the decision: the 464-user improvement from e4 to e6 is real, only the gate subset is flat; if the user prefers, fallback 1 is the cheaper alternative (≈ 175 min) with an expected gain of roughly another −0.0005 curve / −0.0005 instant by the log-slope.
+
 ## Backlog
 
 | ID | Idea | Status | Next step |
