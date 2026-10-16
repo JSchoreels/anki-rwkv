@@ -425,3 +425,20 @@ Details in docs/SMALL_MODEL.md ("Result 06:35", "Result 07:20", "Result 07:33", 
 - Q7 relaunched 09:20 (`TIER=gate FROM=6 TO=8 CHUNK=2048 ... cont`, log `runbook-2026-10-16b-cont-rerun.log`): resumes
   the existing experiment, e7 kept, e8 = ticket 000400 behind 000399; failed attempt moved to `epoch-08-attempt-1`.
 - Both runbooks then interleave FIFO (Q8 e8/decay/scoring and Q7 decay/scoring). Expected end ~19:30-20:30.
+
+## 2026-10-16 17:32 Q8 result: ctx8192 dec8 (000407 decay, 000408 scoring, 464 users, w8+s8 vs fork w8+s8)
+
+| model | curve | instant |
+|---|---|---|
+| ctx2048 e6 | +2.25% | +2.14% |
+| ctx2048 dec6 | +1.76% | +1.83% |
+| cal-ctx4096 e6 | +1.68% | +1.69% |
+| ctx2048c e8 | +2.07% | +1.83% |
+| ctx2048c dec8 | +1.66% | +1.66% |
+| ctx8192c e8 | +1.73% | +1.54% |
+| **ctx8192c dec8** | **+1.24%** | **+1.21%** |
+
+Fork w8+s8: curve 0.29766, instant 0.27216. Paired ctx8192c-dec8 minus ctx2048c-dec8: -0.00124 curve (75% of users
+better), -0.00123 instant (90% better). Longer windows are the biggest lever found so far; bar P (<= +1.0% both heads) is
+~0.2 points away. Next: longdecay (16k-chunk decay from ctx8192 e8, runbook-2026-10-16d.sh, launched by
+jobs/launch-longdecay-after-q8.sh after "done: cont" at 17:32).
