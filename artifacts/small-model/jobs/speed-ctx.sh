@@ -9,12 +9,12 @@ PY=/c/Users/jonat/workspace/anki-rwkv/.venv/Scripts/python.exe
 OUT=artifacts/small-model/speed-ctx-20261016
 CASES="${CASES:-w64-ctx128-b256 w64-ctx1024-b32 w64-ctx2048-b16 w64-ctx2048-b32}"
 MAX_OTHERS_MB="${MAX_OTHERS_MB:-3686}"   # 3.6 GB
-mkdir -p "$OUT"
-{ date; nvidia-smi; nvidia-smi --query-compute-apps=pid,process_name,used_memory --format=csv; } >> "$OUT/all.log" 2>&1
+LOG="$OUT.log"   # outside $OUT: expertium_speed.py prepare creates $OUT itself (exist_ok=False)
+{ date; nvidia-smi; nvidia-smi --query-compute-apps=pid,process_name,used_memory --format=csv; } >> "$LOG" 2>&1
 USED=$(nvidia-smi --query-gpu=memory.used --format=csv,noheader,nounits | head -1 | tr -d ' \r')
-case "$USED" in ''|*[!0-9]*) echo "cannot read VRAM in use ('$USED'); refusing to start" | tee -a "$OUT/all.log"; exit 3;; esac
+case "$USED" in ''|*[!0-9]*) echo "cannot read VRAM in use ('$USED'); refusing to start" | tee -a "$LOG"; exit 3;; esac
 if [ "$USED" -gt "$MAX_OTHERS_MB" ]; then
-  echo "VRAM in use by others is ${USED} MiB > ${MAX_OTHERS_MB} MiB at start; skipping S06 (queue row skip rule)" | tee -a "$OUT/all.log"
+  echo "VRAM in use by others is ${USED} MiB > ${MAX_OTHERS_MB} MiB at start; skipping S06 (queue row skip rule)" | tee -a "$LOG"
   exit 2
 fi
 if [ ! -e "$OUT/speed.json" ]; then
@@ -23,6 +23,6 @@ fi
 for CASE in $CASES; do
   if [ -e "$OUT/$CASE" ]; then continue; fi
   "$PY" -X utf8 scripts/expertium_speed.py case --out "$OUT" --case "$CASE"
-  echo "$CASE exit $? at $(date)" >> "$OUT/all.log"
+  echo "$CASE exit $? at $(date)" >> "$LOG"
 done
 "$PY" -X utf8 scripts/expertium_speed.py report --out "$OUT"
