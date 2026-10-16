@@ -15,7 +15,8 @@ same every epoch. With "cache" set, the first time a batch is seen its online ta
 labelled rows the loss reads: the curve at ahead rows, the 4 rating probabilities at query rows, float32); later
 epochs read them back instead of running the teacher. Rows the loss masks out are zero in a cached target, which
 leaves the loss and every gradient bit-identical (scripts/check_kd_cache.py). The files live in
-<cache>/batches-<hash>, the hash covering every track option except the distillation spec and the kernel switches
+<cache>/batches-<hash>, the hash covering every track option except the distillation spec, the optimizer
+(TEACHER_BLIND: it only updates the student, so AdamW and Muon runs share targets) and the kernel switches
 (WIDTH32_ONLY, all bitwise-exact), so runs whose batches could be built differently never share targets.
 """
 from argparse import Namespace
@@ -31,6 +32,9 @@ from expertium.intervals import end_to_start_published  # noqa: F401  (re-export
 KEYS = ("architecture", "lr_schedule", "optimizer", "end_to_start_intervals", "distillation")
 PEAK_LR, WARMUP_UPDATES = 7e-4, 5
 E2S_ENV = "EXPERTIUM_END_TO_START"
+# Track options that cannot change which batches are built or what the teacher sees: the optimizer only updates the
+# student from gradients, so an AdamW and a Muon run share the same teacher targets (SM20).
+TEACHER_BLIND = ("distillation", "optimizer")
 # Accepted R01 switches whose kernels assume d_model 32 / head size 32 (or need one that does). A variant of
 # another width runs the generic PyTorch or NVRTC path for these; `compatible_options` drops them.
 WIDTH32_ONLY = ("row_tiles_exact", "native_wkv", "wkv_tile", "wkv_rows", "exact_index", "skip_padding_sources",
@@ -179,7 +183,7 @@ class Teacher:
         self.cache = None
         if spec.get("cache"):
             batch_options = {key: value for key, value in (batch_options or {}).items()
-                             if key != "distillation" and key not in WIDTH32_ONLY}
+                             if key not in TEACHER_BLIND and key not in WIDTH32_ONLY}
             digest = __import__("hashlib").sha256(json.dumps(batch_options, sort_keys=True).encode()).hexdigest()[:12]
             self.cache = Path(spec["cache"]) / f"batches-{digest}"
         self.cache_stats = {"hits": 0, "writes": 0, "online": 0}

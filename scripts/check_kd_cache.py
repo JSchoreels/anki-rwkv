@@ -76,6 +76,13 @@ def main():
                                   {**track, "batch_chunks": 32, "chunk_reviews": 1024}).cache
         record("cache folder: kernel switch and distillation spec share it, batch options do not",
                [cached.cache.name, other_folder.name], same_folder == cached.cache and other_folder != cached.cache)
+        muon = xo.Teacher({**spec, "cache": folder}, torch.device("cpu"), torch.float32,
+                          {**track, "optimizer": {"kind": "muon"}})
+        iter53 = xo.Teacher({**spec, "cache": folder}, torch.device("cpu"), torch.float32,
+                            {**track, "optimizer": "expertium-iter53"})
+        record("cache folder: the optimizer does not change it (SM20), the manifest still matches",
+               [cached.cache.name, muon.cache.name, iter53.cache.name],
+               muon.cache == cached.cache == iter53.cache)
         key = (args.user, 0, 640, 2025 + args.user)
         reference = online.targets(batch)
         miss = cached.targets(batch, key=key, labels=batch.labels)
