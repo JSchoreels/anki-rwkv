@@ -18,7 +18,7 @@ Resumable JSONL, one row per (user, tag/variant).
 --window W (diagnostic): the training protocol instead, i.e. the same history cut into independent W-review samples
 (state reset at every sample start); labels get the suffix "@wW" so they never mix with full-history rows.
 --batch-users N (S05, docs/GPU_OPTIMIZATIONS.md): N users per forward pass instead of one, grouped by history length
-(length buckets, at most --batch-reviews padded reviews per group). Each user keeps its batch-1 inputs (per-user
+(length buckets, at most --batch-length padded sequence length per group). Each user keeps its batch-1 inputs (per-user
 encoding seed, checked with --input-sha), its own int8 state rows (the rounding is per state row) and the batch-1
 loss path on its own outputs; only the forward's floating-point reduction order may differ, so its rows must pass
 the AGENT.md evaluation tolerance (scripts/small_model_batch_compare.py). Absent or 1: the original one-user loop.
@@ -27,6 +27,7 @@ usage: small_model_heldout.py --model fork=fork::<pth> --model decay=expertium:i
        --out artifacts/small-model/heldout.jsonl --time-limit 3000 [--device cpu --count 2] [--batch-users 8]
 """
 import argparse
+import gc
 import hashlib
 import json
 import os
@@ -166,8 +167,37 @@ class SeededSamples(list):
             yield sample
 
 
+def prepare_group(data, group):
+    """S05: several users' whole histories as one prepared batch, one row per user (row i = users[i]).
+    Returns (users, lengths, batch, errors, seconds); users that failed to load are in errors."""
+    from rwkv.data_processing import get_rwkv_data
+    from rwkv.prepare_batch import prepare
+    started = time.perf_counter()
+    samples, users, errors = [], [], {}
+    for user in group:
+        try:
+            frame = get_rwkv_data(data, user)
+            found = cc.make_samples(frame, user, len(frame))
+            if len(found) != 1:
+                raise ValueError(f"expected one full-history sample, got {len(found)}")
+        except Exception as error:  # recorded, not fatal
+            errors[user] = repr(error)
+            continue
+        samples += found
+        users.append(user)
+    batch = None
+    if samples:
+        try:
+            batch = prepare(SeededSamples(samples, [2025 + u for u in users]))
+        except Exception as error:
+            errors.update({u: repr(error) for u in users})
+            users = []
+    lengths = [s.card_features.size(0) for s in samples] if batch is not None else []
+    return users, lengths, batch, errors, time.perf_counter() - started
+
+
 class GroupBatches(torch.utils.data.Dataset):
-    """S05: several users' whole histories as one prepared batch, one row per user (row i = users[i])."""
+    """S05: one prepared batch per group of users (prepare_group)."""
 
     def __init__(self, groups, data):
         self.groups, self.data = groups, data
@@ -176,40 +206,20 @@ class GroupBatches(torch.utils.data.Dataset):
         return len(self.groups)
 
     def __getitem__(self, index):
-        from rwkv.data_processing import get_rwkv_data
-        from rwkv.prepare_batch import prepare
-        started = time.perf_counter()
-        samples, users, errors = [], [], {}
-        for user in self.groups[index]:
-            try:
-                frame = get_rwkv_data(self.data, user)
-                found = cc.make_samples(frame, user, len(frame))
-                if len(found) != 1:
-                    raise ValueError(f"expected one full-history sample, got {len(found)}")
-            except Exception as error:  # recorded, not fatal
-                errors[user] = repr(error)
-                continue
-            samples += found
-            users.append(user)
-        batch = None
-        if samples:
-            try:
-                batch = prepare(SeededSamples(samples, [2025 + u for u in users]))
-            except Exception as error:
-                errors.update({u: repr(error) for u in users})
-                users = []
-        lengths = [s.card_features.size(0) for s in samples] if batch is not None else []
-        return users, lengths, batch, errors, time.perf_counter() - started
+        return prepare_group(self.data, self.groups[index])
 
 
-def length_groups(users, counts, size, cap):
-    """Length buckets: consecutive users by review count, at most `size` per group and at most `cap` padded reviews
-    (members x longest history); a user above the cap is scored alone. Groups run in the stratified order of their
+SEQ_PER_REVIEW = 1.9  # measured: a full-history sequence is about 1.75-1.9x its review count (group 7 of s05-check: 1.75)
+
+
+def length_groups(users, counts, size, cap, per_review=SEQ_PER_REVIEW):
+    """Length buckets: consecutive users by review count, at most `size` per group and at most `cap` padded sequence
+    length (members x longest review count x per_review, the memory estimate); a user above the cap is scored alone. Groups run in the stratified order of their
     first member, so a time limit still cuts across history lengths."""
     position = {u: i for i, u in enumerate(users)}
     groups, current = [], []
     for user in sorted(users, key=lambda u: (counts[str(u)], u)):
-        if current and (len(current) == size or (len(current) + 1) * counts[str(user)] > cap):
+        if current and (len(current) == size or (len(current) + 1) * counts[str(user)] * per_review > cap):
             groups.append(current)
             current = []
         current.append(user)
@@ -275,16 +285,96 @@ def configure(models, states, label):
     return tag, variant, kind, model, state_bits, nbytes, params
 
 
+def is_oom(error):
+    """CUDA out of memory in any of its guises: torch.OutOfMemoryError, or the AcceleratorError / RuntimeError a
+    failing kernel or gather raises with "out of memory" in its message."""
+    return isinstance(error, torch.OutOfMemoryError) or (
+        isinstance(error, RuntimeError) and "out of memory" in str(error).lower())
+
+
+def free_cuda():
+    gc.collect()
+    if torch.cuda.is_available():
+        try:
+            torch.cuda.synchronize()
+        except Exception:  # a failed kernel may leave the context unusable; empty_cache below then also fails
+            pass
+        torch.cuda.empty_cache()
+
+
+def score_group(model, data, device, users, lengths, batch, need, note=None, force_split=False):
+    """S05: score the users at positions `need` of one prepared group. Returns {user: (values, predictions, share,
+    batch_users, fallback, batch_seconds)}; values None means an error row (predictions holds the message).
+
+    On out of memory (is_oom) the GPU tensors are freed and the group is split in half (re-prepared from the CPU
+    data, the same per-user seeds), recursively, down to one user scored by the batch-1 path. `fallback` records the
+    first OOM that caused the split. force_split skips the whole-group attempt (a later label of an OOM group)."""
+    from scripts.full_run_metrics import evaluate_with_predictions
+    cpu = device.type == "cpu"
+    if not force_split:
+        gpu_batch, oom = None, None
+        try:
+            gpu_batch = batch.to(device)
+            t0 = time.perf_counter()
+            with torch.inference_mode():
+                results = evaluate_rows(model, gpu_batch, [(i, lengths[i]) for i in need])
+            if not cpu:
+                torch.cuda.synchronize()
+            seconds = time.perf_counter() - t0
+            total = sum(lengths[i] for i in need)
+            return {users[i]: (values, predictions, seconds * lengths[i] / total, len(users), note, seconds)
+                    for i, (values, predictions) in zip(need, results)}
+        except Exception as error:
+            if not is_oom(error):
+                raise
+            oom = f"OOM at {len(users)} users: {error}"[:300]
+        finally:
+            del gpu_batch
+        free_cuda()
+        note = note or oom
+        print(f"[small-model] {oom[:120]}; splitting the group", flush=True)
+    note = note or "OOM earlier in this group"
+    out = {}
+    if len(need) > 1:
+        half = len(need) // 2
+        for part in (need[:half], need[half:]):
+            sub_users, sub_lengths, sub_batch, errors, _ = prepare_group(data, [users[i] for i in part])
+            out.update({u: (None, e, 0.0, 1, note, 0.0) for u, e in errors.items()})
+            if sub_batch is not None:
+                out.update(score_group(model, data, device, sub_users, sub_lengths, sub_batch,
+                                       list(range(len(sub_users))), note))
+                free_cuda()
+        return out
+    for i in need:
+        t1 = time.perf_counter()
+        try:
+            single = cc.full_history_batch(data, users[i]).to(device)
+            with torch.inference_mode():
+                values, predictions = evaluate_with_predictions(model, [{"batch": single}])
+            del single
+            if not cpu:
+                torch.cuda.synchronize()
+            seconds = time.perf_counter() - t1
+            out[users[i]] = (values, predictions, seconds, 1, note, seconds)
+        except Exception as error:
+            if not is_oom(error):
+                raise
+            message = f"OOM: {error}"[:300]
+            free_cuda()
+            out[users[i]] = (None, message, 0.0, 1, note, 0.0)
+    return out
+
+
 def score_batched(args, todo, grid, done, specs, models, states, counts, env, prov, out, run):
     """S05 loop: length-bucketed groups of --batch-users users, one forward per (group, label). Rows match the
     one-user loop's, plus batch_users / batch_model_seconds; model_seconds and prepare_seconds are the group's time
-    shared by history length. A group that runs out of GPU memory is rescored one user at a time (batch_fallback)."""
+    shared by history length. A group that runs out of GPU memory is split in half, recursively, down to batch 1 (batch_fallback)."""
     from scripts.compress_metrics import metrics, read_labels
     from scripts.full_run_metrics import evaluate_with_predictions
     device, cpu = torch.device(args.device), args.device == "cpu"
-    groups = length_groups(todo, counts, args.batch_users, args.batch_reviews)
+    groups = length_groups(todo, counts, args.batch_users, args.batch_length)
     print(f"[small-model] S05 batched scoring: {len(groups)} groups of <= {args.batch_users} users, "
-          f"<= {args.batch_reviews:,} padded reviews each", flush=True)
+          f"<= {args.batch_length:,} padded sequence length each (x{SEQ_PER_REVIEW} reviews)", flush=True)
     loader = torch.utils.data.DataLoader(GroupBatches(groups, cc.data_path(run)), batch_size=1,
                                          num_workers=args.workers, collate_fn=first,
                                          prefetch_factor=1 if args.workers else None)
@@ -300,45 +390,23 @@ def score_batched(args, todo, grid, done, specs, models, states, counts, env, pr
         rows += [{"user_id": u, "label": "error", "error": "no labels"} for u in users if labels[u] is None]
         live = [(i, u) for i, u in enumerate(users) if labels[u] is not None]
         total = max(sum(lengths), 1)
-        gpu_batch = batch.to(device) if live else None
+        data = cc.data_path(run)
+        split = None  # the first OOM of this group: later labels go straight to the split path
         for label in grid:
-            need = [(i, u) for i, u in live if label not in done.get(u, set())]
+            need = [i for i, u in live if label not in done.get(u, set())]
             if not need:
                 continue
             tag, variant, kind, model, state_bits, nbytes, params = configure(models, states, label)
             common = {"label": label, "tag": tag, "variant": variant, "kind": kind, "arch": specs[tag][1],
                       "checkpoint": specs[tag][2], "parameters": params, "weight_bytes": nbytes,
                       "state_bits": state_bits or 32}
-            t0 = time.perf_counter()
-            try:
-                with torch.inference_mode():
-                    results = evaluate_rows(model, gpu_batch, [(i, lengths[i]) for i, _ in need])
-                if not cpu:
-                    torch.cuda.synchronize()
-                seconds = time.perf_counter() - t0
-                need_total = sum(lengths[i] for i, _ in need)
-                timed = [(values, predictions, seconds * lengths[i] / need_total, batch.num_data, None)
-                         for (i, _), (values, predictions) in zip(need, results)]
-            except torch.OutOfMemoryError as oom:
-                torch.cuda.empty_cache()
-                seconds, fallback = 0.0, f"OOM at {batch.num_data} users: {oom}"[:300]
-                print(f"[small-model] group {index + 1}: {fallback[:120]}; rescoring one user at a time", flush=True)
-                timed = []
-                for _, user in need:
-                    t1 = time.perf_counter()
-                    try:
-                        single = cc.full_history_batch(cc.data_path(run), user).to(device)
-                        with torch.inference_mode():
-                            values, predictions = evaluate_with_predictions(model, [{"batch": single}])
-                        del single
-                    except torch.OutOfMemoryError as oom_single:
-                        torch.cuda.empty_cache()
-                        timed.append((None, f"OOM: {oom_single}"[:300], 0.0, 1, fallback))
-                        continue
-                    if not cpu:
-                        torch.cuda.synchronize()
-                    timed.append((values, predictions, time.perf_counter() - t1, 1, fallback))
-            for (i, user), (values, predictions, share, batch_users, fallback) in zip(need, timed):
+            scored_rows = score_group(model, data, device, users, lengths, batch, need, split, bool(split))
+            split = split or next((r[4] for r in scored_rows.values() if r[4]), None)
+            for i in need:
+                user = users[i]
+                if user not in scored_rows:
+                    continue
+                values, predictions, share, batch_users, fallback, seconds = scored_rows[user]
                 if values is None:
                     rows.append({"user_id": user, "label": label, "error": predictions})
                     continue
@@ -355,7 +423,6 @@ def score_batched(args, todo, grid, done, specs, models, states, counts, env, pr
                 if args.dump:
                     dump_predictions(ROOT / args.dump, user, label, labels[user], predictions)
                 scored += counts[str(user)]
-        del gpu_batch
         with out.open("a", encoding="utf-8") as f:
             for row in rows:
                 row["provenance_commit"] = prov["git_commit"]
@@ -388,9 +455,10 @@ def main():
                         "p_ahead, p_instant) to DIR/<user>_<tag>_<variant>.npz, for calibration diagnostics")
     parser.add_argument("--batch-users", type=int, default=1, help="S05: users per forward pass, length-bucketed "
                         "(1 = the original one-user loop)")
-    parser.add_argument("--batch-reviews", type=int, default=1_000_000, help="S05: at most this many padded reviews "
-                        "(users x longest review count) per group, about the largest held-out user (860,510), so a "
-                        "group needs about the memory batch-1 already needs; a longer user is scored alone")
+    parser.add_argument("--batch-length", type=int, default=800_000, help="S05: at most this padded sequence length per "
+                        "group (users x longest review count x 1.9, the measured sequence/review ratio, a memory "
+                        "estimate). 800,000 fits the 16 GB GPU: a group of 8 x 48,045 reviews (est. 730k) ran, 8 x "
+                        "61,058 (est. 928k) ran out of memory; a longer user is scored alone")
     parser.add_argument("--input-sha", action="store_true", help="record input_sha256 (encoded features + labels) "
                         "per row, to check that batched inputs equal batch-1 inputs")
     args = parser.parse_args()
