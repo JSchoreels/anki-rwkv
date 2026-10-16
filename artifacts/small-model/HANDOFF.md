@@ -393,9 +393,11 @@ Details in docs/SMALL_MODEL.md ("Result 06:35", "Result 07:20", "Result 07:33", 
 - CPU: SM18 numpy w64 at batch 1 is 0.51 ms vs fork eager 3.95 ms (7.8x), and 1.84x faster than the numpy fork (0.94 ms); the saving appears once dispatch overhead is removed.
 - S06 speed: ctx1024 −17%, ctx2048 −33% reviews/s vs ctx128 (150.6k → 101.4k); ctx2048 x 32 OOMs.
 - Q5 S05 batched scoring: NOT adopted. 000394 within tolerance, 0 fallbacks, but 0.78x (115 s vs 90 s model time); first run 000392 OOM-crashed (fixed df64fd9). Backlog S05b: batch short users only. Branch s05-batched unmerged.
-- Q6 ctx4096 decay: FAIL. Paired vs dec6: curve −0.00025 [−0.00036, −0.00012], instant −0.00036 [−0.00041, −0.00031] (bar: curve ≤ −0.001); 1.43x slower. cal-ctx4096-e6 is still the best checkpoint by a small margin.
+- Q6 ctx4096 decay: FAIL. Paired vs dec6: curve −0.00025 [−0.00036, −0.00012], instant −0.00036 [−0.00041, −0.00031] (bar: curve ≤ −0.001); wall time 38:35 vs 27:03 (accuracy tickets, indication only, not a speed result). cal-ctx4096-e6 is still the best checkpoint by a small margin.
 - Q7 (main session decision 07:34): epochs 7-8 at 2,048 (`runbook-2026-10-16b.sh cont`, FROM=6 TO=8, labels s-w64kd-gate-ctx2048c-e7/-e8/-dec8, log artifacts/small-model/runbook-2026-10-16b-cont.log). First launch failed in 1 s (3d9c15d), relaunched 07:35; ticket 000396 = epoch 7 is running.
 - ETAs: e7 ≈ 08:40, e7 gate, e8 ≈ 09:45, decay ≈ 10:15, 464-user scoring ≈ 10:50.
 - Q8 (afternoon): Muon w64 from scratch (`runbook-2026-10-16c.sh arch`, 70e94db, ≈ 300-345 min), start ≈ 11:00, end ≈ 16:30-17:00; must start before 15:00 (limit 20:00).
 - Follow-up bug SM20: "optimizer" is part of the KD cache key, so Muon epoch 1 recomputes teacher targets (≈ 76 min, +6 GB) although they do not depend on the optimizer.
 - Do not touch ticket 000396 or any runbook*.sh while `runbook-2026-10-16b.sh` is executing.
+
+- Q5 rerun after the OOM fix: job `artifacts/small-model/jobs/q5-rerun.sh` (3d9c15d), log `artifacts/small-model/q5-rerun.log`, ticket 000394 exit 0: tolerance passes, speed-up 0.78 (`s05-gpu-check2.json`) -> not adopted; the 2.05x of the crashed run 000392 covered only the 56 shorter users and is superseded.

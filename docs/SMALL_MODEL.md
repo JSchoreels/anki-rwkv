@@ -668,7 +668,7 @@ Branch `s05-batched` (not merged). First run, ticket 000392 (06:35): crashed wit
 
 ### Result 2026-10-16 07:33: Q6 ctx4096 decay probe
 
-Decay at 4,096-review chunks from the e6 checkpoint of the ctx2048 run: ticket 000393 (exit 0, 38:35 against 27:03 for the 2048 decay = 1.43x, which includes a cold KD cache for the 4096 chunks); 464-user scoring ticket 000395 (exit 0, 14:55). Label `cal-ctx4096-e6`. `small_model_report.py --labels fork/w8+s8,s-w64kd-gate-ctx2048-dec6/w8+s8,cal-ctx4096-e6/w8+s8 --reference fork/w8+s8 --pair cal-ctx4096-e6/w8+s8=s-w64kd-gate-ctx2048-dec6/w8+s8 --rmse-bins` (w8+s8):
+Decay at 4,096-review chunks from the e6 checkpoint of the ctx2048 run: ticket 000393 (exit 0, 38:35 wall against 27:03 for the 2048 decay; accuracy tickets, not a timing measurement — the ratio 1.43x is an indication only and includes a cold KD cache for the 4096 chunks); 464-user scoring ticket 000395 (exit 0, 14:55). Label `cal-ctx4096-e6`. `small_model_report.py --labels fork/w8+s8,s-w64kd-gate-ctx2048-dec6/w8+s8,cal-ctx4096-e6/w8+s8 --reference fork/w8+s8 --pair cal-ctx4096-e6/w8+s8=s-w64kd-gate-ctx2048-dec6/w8+s8 --rmse-bins` (w8+s8):
 
 | Label | Curve LogLoss | Δ% [CI] | Instant LogLoss | Δ% [CI] | Curve RMSE(bins) Δ% | Instant RMSE(bins) Δ% |
 |---|---:|---:|---:|---:|---:|---:|
@@ -678,7 +678,7 @@ Decay at 4,096-review chunks from the e6 checkpoint of the ctx2048 run: ticket 0
 
 Paired cand − base (cal-ctx4096-e6 − dec6): curve −0.00025, instant −0.00037. Per-user paired 95% bootstrap CI (451 users with id ≥ 101, review-weighted, 4,000 resamples): curve −0.00025 [−0.00036, −0.00012], instant −0.00036 [−0.00041, −0.00031]. The effect is real in sign but tiny.
 
-- **Rule** (amended 03:30): pass needs curve ≤ −0.001 with upper95 < 0, instant ≤ +0.0005, and ≤ 1.5x slower. Curve −0.00025 is a quarter of the bar → **FAIL**. Speed (1.43x) was within the limit.
+- **Rule** (amended 03:30): pass needs curve ≤ −0.001 with upper95 < 0, instant ≤ +0.0005, and ≤ 1.5x slower. Curve −0.00025 is a quarter of the bar → **FAIL**. The speed clause was judged on accuracy-ticket wall time only (indication 1.43x, no `--timing` run), so it is unverified; the accuracy clause alone decides the FAIL.
 - `cal-ctx4096-e6` is nevertheless now the best checkpoint (+1.68% / +1.69%; instant RMSE(bins) +12.9% meets the +15% bar), but the difference to dec6 is small. Longer chunks alone do not close the gap; Q7 = 4,096 continuation (SM19) is dropped.
 
 ### Decision 2026-10-16 07:34: Q7 = epochs 7-8 at 2,048, Q8 = Muon w64
