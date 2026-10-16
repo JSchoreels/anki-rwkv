@@ -520,6 +520,20 @@ Expected timeline (branch E, context or capacity verdict unknown): Q1 03:10–03
 
 **Is the 100-user gate scoring still relevant now that evaluation is faster?** Yes, keep it for go/stop, but score every epoch. The faster evaluation (EV01, 300 users in ≈ 2 min) is the in-training window-protocol evaluator: it scores 128-review samples and falls back to the reference path for Expertium variant heads (EV08). The gap we are closing is the full-history one (5.1: +0.1% in-window vs +5% full history), and full-history scoring is still one user per pass: ≈ 1.5 min of model time out of a ≈ 3.4 min ticket for 100 users, ≈ 11 min per label for 464. Moving every gate to 464 users would add ≈ 7.6 min per gate (≈ 26 min on a 4-epoch run with a gate after each epoch, about 9% of its training) for no change in decision: both gates passed with upper95 at −0.0038 to −0.0062 (curve CI half-width ≈ 0.0017, instant ≈ 0.0007), far from 0 and from the bands. The subset is less useful for the level vs the fork (its curve Δ% ran 0.3–1.1 pp below the 464-user value), so finals stay on 464 users. Recommendation: (1) keep 100 users for gates; (2) add a 100-user score after every epoch (≈ 3.4 min, ≈ 5% of an epoch), because the missing e3 point is why tonight's continuation rule must use e2→e4; (3) escalate a single gate to 464 users when it is close to its boundary (upper95 > −0.001, or projection within 0.002 of the target); (4) once S05 passes (Q5) and a 464-user label costs ≤ ≈ 4 min, move gates to all 464 users, so the last epoch's gate doubles as its final score.
 
+### Result 2026-10-16 03:00: scale-w64kd-gate-cached-ctx2048 (4 epochs + decay, 464 users)
+
+Full-history scoring of `s-w64kd-gate-ctx2048-e4` and `-dec` finished at 03:00 (tickets 000380 + 000381, exit 0); all 464 users scored. `small_model_report.py --rmse-bins`, reference `fork/w8+s8`, review-weighted, 95% user-bootstrap CI. Only w8+s8 rows exist for the student labels (no fp32 rows; `fork/fp32` has 430 users and is not paired).
+
+| Label (w8+s8) | Curve LogLoss | Δ% [CI] | Instant LogLoss | Δ% [CI] | Curve RMSE(bins) | Δ% | Instant RMSE(bins) | Δ% |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| fork/w8+s8 | 0.29766 | +0.00% | 0.27216 | +0.00% | 0.03867 | +0.0% | 0.02084 | +0.0% |
+| s-w64kd-gate-ctx2048-e4 | 0.30542 | +2.61% [+2.05, +3.33] | 0.27891 | +2.48% [+2.29, +2.69] | 0.04648 | +20.2% | 0.02678 | +28.5% |
+| s-w64kd-gate-ctx2048-dec | 0.30408 | +2.16% [+1.62, +2.90] | 0.27804 | +2.16% [+1.97, +2.35] | 0.04441 | +14.8% | 0.02481 | +19.0% |
+
+- **F** (better of the two = `-dec`): **+2.16% curve / +2.16% instant**. The 464-user value was inside the expected +2.8–3.5% / +2.3–2.5% or better on both heads (previous best, 128-chunk `scale-w64kd-dec`: +5.28% / +5.99%).
+- **S** (100 gate users, w8+s8, fork 0.28665 / 0.26105): e2 0.29595 / 0.27078, e4 0.29359 / 0.26818 (dec 0.29233 / 0.26731), so S = e2 − e4 = **0.00236 curve / 0.00260 instant**. Threshold for "still learning" is 0.0009 / 0.0017: both heads pass, with the e2→e4 slope at 1.3x / 0.76x of the log-slope prediction (−0.00176 / −0.00343).
+- **Verdict: branch E.** F misses P (curve +2.16% > +1.0%, instant +2.16% > +1.5%; RMSE(bins) +14.8% / +19.0% is also above the +15% instant bar), F is within 4.0% on both heads, and S says still learning. G (Q2) only affects Q7. The file `gate-scale-w64kd-gate-cached-ctx2048-e3-extend.json` exists (mtime 2026-10-16 00:38) and was ignored (`verdict: incomplete`, dry-run artefact).
+
 ## Backlog
 
 | ID | Idea | Status | Next step |

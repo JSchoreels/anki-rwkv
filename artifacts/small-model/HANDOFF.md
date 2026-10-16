@@ -363,3 +363,7 @@ Verified by reading `runbook-next.sh` (`scale` stage) and `scripts/accuracy_loop
 - Launched by the main session with the resume command from the PAUSED section above, from anki-rwkv, appending (`>>`) to `runbook-next-scale-ctx2048.log`.
 - Gates e1/e2 re-ran from the cached scores (000375, 000376: GO, same numbers as above). Epoch 3 training is ticket 000377 (started 00:16:36, ~62 min at ~98k reviews/s). The runbook continues on its own: epoch 4, decay, scoring (gates run only after epochs 1-2, see runbook-next.sh line 192; no e3/e4 gate). Epoch 3 finished 01:10 (000377, exit 3, 115,273 reviews/s, 53.4 min); epoch 4 is 000378.
 - When the run is final: a fresh Sonnet medium agent runs the "LAUNCHED ~16:40" follow-up with chunk 2048 (absolute LogLoss/RMSE vs fork w8+s8), then an Opus re-assessment of priorities. No new GPU work starts without the user's go.
+
+## DONE 03:00: result of scale-w64kd-gate-cached-ctx2048 (CPU report)
+
+464-user scoring finished (000380/000381). F (better = `-dec`, w8+s8) = +2.16% curve / +2.16% instant vs fork (e4: +2.61% / +2.48%); S (e2 − e4, 100 gate users) = 0.00236 / 0.00260, still learning; branch **E** (not P: F above +1.0% / +1.5%). G from Q2 is still open and only affects Q7. Table and details: docs/SMALL_MODEL.md "Result 2026-10-16 03:00". The `e3-extend.json` gate file is a dry-run artefact (mtime 00:38), ignored.
