@@ -598,6 +598,37 @@ Decision rule after the primary (464 users, w8+s8 vs `fork/w8+s8`, F8 = the bett
 
 **Speed in parallel: yes, start SM18 now** (second Sonnet medium writer, CPU only, no GPU, no queue). The Anki fork runs the model in Rust (SM08), where the per-op overhead that dominated SM04 does not exist. A low-overhead step for both models is therefore the honest proxy for the real CPU saving. Brief: in `scripts/small_model_cpu_timing.py` add a `--runtime {eager,numpy,script}` axis for the fork and w64. `numpy` is the `small_model_numpy.py` step with preallocated buffers and no per-step allocation; `script` is `torch.jit.script` of the step. Exactness: max |Δp| ≤ 1e-5 vs eager on 3 users x 500 reviews. Smoke only (1 thread, light enough to run beside training). The timing ticket (`--timing`, ≈ 15 min) goes into tonight's quiet window, not during the day. Escalate to Opus only if neither runtime gives w64 ≥ 3x over the fork at batch 1.
 
+### Result 2026-10-16 04:28: S06 long-context speed profile
+
+Queue Q3 (ticket 000386, exit 0 after 6:57; the first attempt, ticket 000384, failed and was fixed in da60b34). w64, no KD, 160 users, `expertium_speed.py`; result `artifacts/small-model/speed-ctx-20261016/summary.md` + `speed.json` (log `artifacts/small-model/speed-ctx-20261016.log`).
+
+| Case | Reviews/s | vs ctx128 | Peak MiB |
+|---|---:|---:|---:|
+| ctx128 x 256 (control) | 150,589 | 1.00x | 6,687 |
+| ctx1024 x 32 | 124,733 | 0.83x (-17%) | 6,832 |
+| ctx2048 x 16 | 101,429 | 0.67x (-33%) | 6,845 |
+| ctx2048 x 32 | failed: CUDA OOM (12.72 GiB allowed, 12.01 allocated by PyTorch) | — | — |
+
+- **Chunk length costs throughput**: -17% at 1,024 and -33% at 2,048 relative to 128 (fewer parallel sequences per step, the recurrence is the bottleneck). The real ctx2048 KD run did 103-115k reviews/s, consistent (its KD targets are cached).
+- **b32 at 2048 does not fit**: the b16 case peaked at only 6,845 MiB, yet doubling the batch chunks ran out of memory at 12 GiB, so memory more than doubles with chunks x length (activations/backward are not linear in the b16 peak). Larger batches at 2,048 are not an option without lowering memory use.
+- **ctx4096 x 8 (Q6/Q7) is not covered.** Cautious extrapolation from the trend (-17%, -33%): about -45% to -50%, i.e. roughly 75-85k reviews/s, to be confirmed by the real run's reviews/s.
+- Decision: training is recurrence-bound at long chunks (S07 cache I/O is not the lever); larger batches are blocked by memory at 2,048.
+
+### Result 2026-10-16 04:33: SM18 low-overhead CPU step
+
+Ticket 000387, exit 0 after 4:44, `--timing`, 1 thread, `--impl eager,numpy` (merged from branch `sm18`, `scripts/small_model_fast_step.py`); result `artifacts/small-model/cpu-timing-sm18.json`. Per-review medians (ms), batch 1 / batch 256:
+
+| Model | numpy f32 | eager f32 | eager int8 |
+|---|---:|---:|---:|
+| fork | 0.939 / 0.2479 | 3.954 / 0.1896 | 10.151 / 0.2011 |
+| w64 | 0.509 / 0.0613 | 2.364 / 0.0721 | 5.733 / 0.0915 |
+| w32 | 0.592 / 0.0502 | 2.661 / 0.0408 | 6.841 / 0.0659 |
+
+- **At batch 1, w64 numpy is 7.8x faster than the eager fork (0.509 vs 3.954 ms) and 1.84x faster than the numpy fork (0.939 ms)**, so the CPU saving of the small model appears once per-op dispatch is removed (SM04 only showed 1.12x). w32 numpy (0.592) is slower than w64 numpy at batch 1.
+- At batch 256 the numpy step is not better than eager except for w64 (0.0613 vs 0.0721 ms); for the fork (0.2479 vs 0.1896) and w32 (0.0502 vs 0.0408) eager is faster: the numpy step is meant for batch 1, not batching.
+- Exactness vs eager: max |dp| <= 4.2e-7 on probabilities (sm18 commit, 1,490 real reviews of user 7). The s8 int8-state path is not covered.
+- **Eager discrepancy vs SM04** (w64 batch 1: 2.364 here vs 3.452 ms in `cpu-timing.json`; w32 2.661 vs 4.289; fork 3.954 vs 3.854 unchanged). The diff of `scripts/small_model_cpu_timing.py` between e1ba148 and 3e97f25 only adds the numpy path, `--impl` and the exactness check; the eager timing code, settings (1,000 / 60 steps, 5 repeats, warmup 50) and torch/CPU are identical. Not a code change, so unexplained run-to-run variance (the fork matches, w64 and w32 were about 30-40% slower in SM04; possible causes are machine load or process warm-up state, e.g. here the numpy runs and exactness check execute before the eager runs in the same process). Use the SM18 numbers as the current measurement; the eager w64 batch-1 speedup over the eager fork is 1.67x here rather than 1.12x.
+
 ## Backlog
 
 | ID | Idea | Status | Next step |
@@ -619,5 +650,5 @@ Decision rule after the primary (464 users, w8+s8 vs `fork/w8+s8`, F8 = the bett
 | SM15 | Pruning step 1: w48 student (3 heads x 16, 195,949 parameters, 14x fewer than the fork) with the same long-context KD recipe, non-inferiority gates vs the ctx2048 run | Proposed 2026-10-16; starts only when the bar is met (user: accuracy first, then prune) | Queue Q7-P (or Q4 if F ≤ bar); needs the `w48` preset, gate `--reference-prefix`, ARCH-generic runbook stage |
 | SM16 | Context beyond the chunk: carry the recurrent state (detached) from a user's chunk k to chunk k+1 (truncated BPTT), so training sees deployment-length histories | Idea 2026-10-16 (design, Opus); conflicts with the per-batch purity the KD cache relies on, so it needs a batch-order redesign | Only if SM13 says context-bound and Q6 says longer chunks no longer pay |
 | SM17 | Epoch scoring after every epoch on the 100 gate users; 464 users for finals and for gates near their boundary; all-464 gates once S05 lands | Proposed 2026-10-16 (answer to the user's 100-user question, Priorities) | Built into the new runbook stages (Q4, Q7) |
-| SM18 | Low-overhead CPU step (fused/compiled) to realise the MAC saving at batch 1 | Code done 2026-10-16 on branch `sm18` (not merged): `--impl eager,numpy` in the SM04 script; `scripts/small_model_fast_step.py` is a fused pure-NumPy step (exact: max \|Δp\| ≤ 4.2e-7 over 1,490 real reviews of user 7 for fork, w64 and w32). Smoke (1 thread, machine loaded by training; not the result): numpy b1 fork 0.99 / w64 0.51 / w32 0.92 ms vs eager 4.1 / 2.8 / 2.8 ms. `torch.jit`/`torch.compile` not tried (no C++ compiler on this machine; dict-of-state step). Full timing ticket pending | Main session enqueues the `--timing` ticket in a quiet window (command in the sm18 branch report), merges `sm18` after the result; s8 state rounding is not in the timing step, so not covered |
+| SM18 | Low-overhead CPU step (fused/compiled) to realise the MAC saving at batch 1 | Done 2026-10-16 (merged `sm18`; ticket 000387, `--timing`, 1 thread): at batch 1 w64 numpy 0.509 ms = 7.8x faster than the eager fork (3.954) and 1.84x faster than the numpy fork (0.939); exact to 4.2e-7 (s8 state path not covered) | See "Result 2026-10-16 04:33: SM18 low-overhead CPU step"; eager w64 differs from SM04 (2.364 vs 3.452 ms), eager code unchanged, unexplained variance |
 | SM19 | Continue the ctx2048 run at 4,096-review chunks (epochs 7–8 from e6, x8 batch) + decay at 4,096 | Proposed 2026-10-16 ~03:30 (G context-bound) | Q7 primary if Q6 passes; needs the `cont` stage in `runbook-2026-10-16.sh` (Sonnet medium) |
