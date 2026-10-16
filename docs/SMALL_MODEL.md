@@ -654,6 +654,42 @@ Paired per-user differences (LogLoss, review-weighted, user bootstrap 95% CI, 4,
 - **P verdict: not met.** Curve +1.76% > +1.0%, instant +1.83% > +1.5%; RMSE(bins) +11.8% / +16.0% (instant still above the +15% bar). Row 1 of the Q7 table (pruning) does not apply.
 - **If Q6 fails** (Q6 = cal-ctx4096-e6 vs dec6 at 2048 is still running and decides the primary): S6 is flat, so **fallback 2 (Muon w64 from scratch)** applies, not fallback 1 (epochs 7-8 at 2,048). Caveat for the decision: the 464-user improvement from e4 to e6 is real, only the gate subset is flat; if the user prefers, fallback 1 is the cheaper alternative (≈ 175 min) with an expected gain of roughly another −0.0005 curve / −0.0005 instant by the log-slope.
 
+### Result 2026-10-16 07:20: Q5 S05 batched scoring (rerun)
+
+Branch `s05-batched` (not merged). First run, ticket 000392 (06:35): crashed with an uncaught `torch.AcceleratorError` (OOM) after 56 of 100 users; the partial result was within tolerance at 2.05x (`artifacts/small-model/s05-gpu-check.json`). Fix df64fd9: robust OOM catch, split-in-half fallback, `--batch-length` cap of 800k padded reviews. Rerun, ticket 000394 (07:15, exit 0, 3:16 wall, job `artifacts/small-model/jobs/q5-rerun.sh`; `s05-gpu-check2.json`, `s05-check2.jsonl`): all 100 users scored, 0 fallbacks, passes the evaluation tolerance (max aggregate |Δ| 9e-8 vs the batch-1 rows).
+
+| Scoring | Model time | Review-evals/s | Speed-up |
+|---|---:|---:|---:|
+| batch 1 (current) | 89.68 s | 77.7k | 1.00x |
+| batched (s05-batched) | 114.98 s | 60.6k | 0.78x |
+
+- **Verdict: not adopted** (rule: ≥ 2x). Batched scoring is slower overall, although the partial first run (56 users, the shorter ones scored first by bucket order) reached 2.05x.
+- Reading: short users gain about 2x from batching, long users lose (padding waste and long sequences with a large batch dimension). Follow-up **S05b** (backlog): batch only users below a length threshold and keep long users at batch 1. `s05-batched` stays unmerged.
+
+### Result 2026-10-16 07:33: Q6 ctx4096 decay probe
+
+Decay at 4,096-review chunks from the e6 checkpoint of the ctx2048 run: ticket 000393 (exit 0, 38:35 against 27:03 for the 2048 decay = 1.43x, which includes a cold KD cache for the 4096 chunks); 464-user scoring ticket 000395 (exit 0, 14:55). Label `cal-ctx4096-e6`. `small_model_report.py --labels fork/w8+s8,s-w64kd-gate-ctx2048-dec6/w8+s8,cal-ctx4096-e6/w8+s8 --reference fork/w8+s8 --pair cal-ctx4096-e6/w8+s8=s-w64kd-gate-ctx2048-dec6/w8+s8 --rmse-bins` (w8+s8):
+
+| Label | Curve LogLoss | Δ% [CI] | Instant LogLoss | Δ% [CI] | Curve RMSE(bins) Δ% | Instant RMSE(bins) Δ% |
+|---|---:|---:|---:|---:|---:|---:|
+| fork/w8+s8 | 0.29766 | +0.00% | 0.27216 | +0.00% | +0.0% | +0.0% |
+| s-w64kd-gate-ctx2048-dec6 | 0.30291 | +1.76% [+1.30, +2.37] | 0.27714 | +1.83% [+1.67, +1.98] | +11.8% | +16.0% |
+| cal-ctx4096-e6 | 0.30265 | +1.68% [+1.22, +2.30] | 0.27677 | +1.69% [+1.55, +1.84] | +10.7% | +12.9% |
+
+Paired cand − base (cal-ctx4096-e6 − dec6): curve −0.00025, instant −0.00037. Per-user paired 95% bootstrap CI (451 users with id ≥ 101, review-weighted, 4,000 resamples): curve −0.00025 [−0.00036, −0.00012], instant −0.00036 [−0.00041, −0.00031]. The effect is real in sign but tiny.
+
+- **Rule** (amended 03:30): pass needs curve ≤ −0.001 with upper95 < 0, instant ≤ +0.0005, and ≤ 1.5x slower. Curve −0.00025 is a quarter of the bar → **FAIL**. Speed (1.43x) was within the limit.
+- `cal-ctx4096-e6` is nevertheless now the best checkpoint (+1.68% / +1.69%; instant RMSE(bins) +12.9% meets the +15% bar), but the difference to dec6 is small. Longer chunks alone do not close the gap; Q7 = 4,096 continuation (SM19) is dropped.
+
+### Decision 2026-10-16 07:34: Q7 = epochs 7-8 at 2,048, Q8 = Muon w64
+
+Q6 failed and the 100-user S6 was flat, so the 03:30 table pointed to fallback 2 (Muon from scratch). The main session ran fallback 1 instead: epochs 7-8 at 2,048 (`runbook-2026-10-16b.sh cont`, `FROM=6 TO=8 CHUNK=2048`, experiment `scale-w64kd-gate-cached-ctx2048-cont`, labels `s-w64kd-gate-ctx2048c-e7`, `-e8`, `-dec8`, log `artifacts/small-model/runbook-2026-10-16b-cont.log`). Reason: the 464-user paired gains of epochs 5-6 were real (dec6 − dec −0.00118 [−0.00162, −0.00081] curve, −0.00086 instant; e6 − e4 −0.00102 curve) and only the 100-user subset looked flat; fallback 1 is also the cheaper option (≈ 175 min).
+
+- **Launch**: the first launch at 07:34 failed within 1 s (the stage read `$EXP.partial` after renaming it; fixed in 3d9c15d); relaunched 07:35, ticket 000396 = epoch 7 (running; do not touch).
+- **Expected**: e7 ≈ 08:40, e7 gate, e8 ≈ 09:45, decay ≈ 10:15, 464-user scoring ≈ 10:50.
+- **Q8 = Muon w64** (`runbook-2026-10-16c.sh arch`, 70e94db, ≈ 300-345 min) kept for the afternoon: start ≈ 11:00, end ≈ 16:30-17:00, before the 20:00 limit; it must start before 15:00.
+- **Cost note**: Muon epoch 1 recomputes the KD teacher targets (≈ 76 min, +6 GB) because `"optimizer"` is part of the KD cache key, although the teacher targets do not depend on the optimizer. Recorded as backlog SM20.
+
 ## Backlog
 
 | ID | Idea | Status | Next step |
@@ -677,3 +713,5 @@ Paired per-user differences (LogLoss, review-weighted, user bootstrap 95% CI, 4,
 | SM17 | Epoch scoring after every epoch on the 100 gate users; 464 users for finals and for gates near their boundary; all-464 gates once S05 lands | Proposed 2026-10-16 (answer to the user's 100-user question, Priorities) | Built into the new runbook stages (Q4, Q7) |
 | SM18 | Low-overhead CPU step (fused/compiled) to realise the MAC saving at batch 1 | Done 2026-10-16 (merged `sm18`; ticket 000387, `--timing`, 1 thread): at batch 1 w64 numpy 0.509 ms = 7.8x faster than the eager fork (3.954) and 1.84x faster than the numpy fork (0.939); exact to 4.2e-7 (s8 state path not covered) | See "Result 2026-10-16 04:33: SM18 low-overhead CPU step"; eager w64 differs from SM04 (2.364 vs 3.452 ms), eager code unchanged, unexplained variance |
 | SM19 | Continue the ctx2048 run at 4,096-review chunks (epochs 7–8 from e6, x8 batch) + decay at 4,096 | Proposed 2026-10-16 ~03:30 (G context-bound) | Q7 primary if Q6 passes; needs the `cont` stage in `runbook-2026-10-16.sh` (Sonnet medium) |
+| S05b | Batch only users below a length threshold in full-history scoring, keep long users at batch 1 (S05 batched was 0.78x overall: short users ~2x, long users slower) | Proposed 2026-10-16 07:20 | Opus/Sonnet: threshold from the per-user lengths in `s05-check2.jsonl`; branch `s05-batched` stays the base; rule ≥ 2x |
+| SM20 | Drop `"optimizer"` from the KD cache key (teacher targets do not depend on the optimizer) | Proposed 2026-10-16 07:34: Muon epoch 1 would recompute the teacher targets (≈ 76 min, +6 GB) | Fix the key in the cache code before Q8 if it can be done without disturbing the running epoch 7 (new key must still match the existing cache files); else accept the cost |

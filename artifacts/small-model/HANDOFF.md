@@ -376,3 +376,26 @@ Verified by reading `runbook-next.sh` (`scale` stage) and `scripts/accuracy_loop
 - Override record (audit 000385): the run's epoch count was raised 4 -> 6 by stage `extend` (experiment.json and run/run.json, backups `*.bak-4ep`), 66-min budget per epoch (epochs 1-4 took 53-57 min plus smoke). Reason: branch E of the 2026-10-16 queue rule (F = +2.16% / +2.16% misses P; S = 0.00236 / 0.00260 still learning; docs/SMALL_MODEL.md "Result 2026-10-16 03:00"). Authority: the user's delegation of 2026-10-15/16 ("I trust your judgement and I don't mind allowing you re-assess the situation and trigger new GPU run anyway", "Feel free to plan work until tomorrow 8PM"). LR stays constant 7e-4 (independent of the epoch count), so epochs 5-6 continue the same protocol; stop rule after e5 (e4 - e5 <= 0 on both heads).
 - Q3 rerun 000386 (exit 0, S06, `speed-ctx-20261016/summary.md`; case ctx2048x32 OOM) and SM18 timing 000387 (exit 0, `cpu-timing-sm18.json`, branch sm18 merged 2542e88) were enqueued by the main session between epoch 5 and the e5 gate; write-ups f5fef5f. Q4 runs from `artifacts/small-model/runbook-2026-10-16.sh` stage `extend`; its e5 gate 000388 (exit 0) wrote `gate-scale-w64kd-gate-cached-ctx2048-e5-extend.json`: GO (curve gain -0.00040, instant +0.00087; stop only if both <= 0). Epoch 6 = 000389, then decay into `scale-w64kd-gate-cached-ctx2048-e6-decay`, 464-user scoring of `-e6`/`-dec6`. Then `jobs/chain-q5-q6.sh` (log `chain-q5-q6.log`, 951b08e) runs Q5 and Q6 (`cal-ctx4096-e6`); Q7 = `runbook-2026-10-16b.sh cont` (be994ba) per the 03:30 re-assessment.
 - DONE 06:35: extended-run result (464 users) written to docs/SMALL_MODEL.md "Result 2026-10-16 06:35": F6 = dec6 +1.76% curve / +1.83% instant (misses P); dec6-dec paired -0.00118 curve / -0.00086 instant; S6 = 0.00010 / 0.00082 (flat); if Q6 fails, fallback 2 (Muon) per table.
+
+## PROGRESS NOTE 2026-10-16 ~08:00
+
+Details in docs/SMALL_MODEL.md ("Result 06:35", "Result 07:20", "Result 07:33", "Decision 07:34"). Held-out, 464 users, w8+s8, Δ% vs fork:
+
+| Label | Curve Δ% | Instant Δ% |
+|---|---:|---:|
+| fork/w8+s8 | +0.00% | +0.00% |
+| s-w64kd-gate-ctx2048-dec (4 ep) | +2.16% | +2.16% |
+| s-w64kd-gate-ctx2048-dec6 (6 ep) | +1.76% | +1.83% |
+| cal-ctx4096-e6 (4,096 decay) | +1.68% | +1.69% |
+
+- Epochs 5-6 + decay were real on 464 users (dec6 − dec: −0.00118 curve [−0.00162, −0.00081], −0.00086 instant), though the 100-user gate subset looked flat (S6 = 0.00010 / 0.00082). P (prune) bar not met.
+- G (SM13, in-window at 2,048) says context-bound: −0.34% curve / +0.48% instant in-window vs +1.98% / +2.40% full history on the same users.
+- CPU: SM18 numpy w64 at batch 1 is 0.51 ms vs fork eager 3.95 ms (7.8x), and 1.84x faster than the numpy fork (0.94 ms); the saving appears once dispatch overhead is removed.
+- S06 speed: ctx1024 −17%, ctx2048 −33% reviews/s vs ctx128 (150.6k → 101.4k); ctx2048 x 32 OOMs.
+- Q5 S05 batched scoring: NOT adopted. 000394 within tolerance, 0 fallbacks, but 0.78x (115 s vs 90 s model time); first run 000392 OOM-crashed (fixed df64fd9). Backlog S05b: batch short users only. Branch s05-batched unmerged.
+- Q6 ctx4096 decay: FAIL. Paired vs dec6: curve −0.00025 [−0.00036, −0.00012], instant −0.00036 [−0.00041, −0.00031] (bar: curve ≤ −0.001); 1.43x slower. cal-ctx4096-e6 is still the best checkpoint by a small margin.
+- Q7 (main session decision 07:34): epochs 7-8 at 2,048 (`runbook-2026-10-16b.sh cont`, FROM=6 TO=8, labels s-w64kd-gate-ctx2048c-e7/-e8/-dec8, log artifacts/small-model/runbook-2026-10-16b-cont.log). First launch failed in 1 s (3d9c15d), relaunched 07:35; ticket 000396 = epoch 7 is running.
+- ETAs: e7 ≈ 08:40, e7 gate, e8 ≈ 09:45, decay ≈ 10:15, 464-user scoring ≈ 10:50.
+- Q8 (afternoon): Muon w64 from scratch (`runbook-2026-10-16c.sh arch`, 70e94db, ≈ 300-345 min), start ≈ 11:00, end ≈ 16:30-17:00; must start before 15:00 (limit 20:00).
+- Follow-up bug SM20: "optimizer" is part of the KD cache key, so Muon epoch 1 recomputes teacher targets (≈ 76 min, +6 GB) although they do not depend on the optimizer.
+- Do not touch ticket 000396 or any runbook*.sh while `runbook-2026-10-16b.sh` is executing.
