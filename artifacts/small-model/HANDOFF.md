@@ -401,3 +401,18 @@ Details in docs/SMALL_MODEL.md ("Result 06:35", "Result 07:20", "Result 07:33", 
 - Do not touch ticket 000396 or any runbook*.sh while `runbook-2026-10-16b.sh` is executing.
 
 - Q5 rerun after the OOM fix: job `artifacts/small-model/jobs/q5-rerun.sh` (3d9c15d), log `artifacts/small-model/q5-rerun.log`, ticket 000394 exit 0: tolerance passes, speed-up 0.78 (`s05-gpu-check2.json`) -> not adopted; the 2.05x of the crashed run 000392 covered only the 56 shorter users and is superseded.
+
+## Q8 queued 2026-10-16 09:05: ctx8192 continuation (SM21 option 5)
+- Launcher `jobs/launch-cont8192-after-q7.sh` (pid detached, log `jobs/launch-cont8192-after-q7.log`) waits for the 2nd
+  "done: cont"/"cont ended" line in `runbook-2026-10-16b-cont.log` (Q7), then runs
+  `TIER=gate FROM=6 TO=8 CHUNK=8192 runbook-2026-10-16b.sh cont` (TO=7 if past 11:45; skipped if past 13:30),
+  log `runbook-2026-10-16b-cont8192.log`. Dry run passed 09:04 (`runbook-2026-10-16b-cont8192-dryrun.log`): chunk 8192 x 4.
+- New experiment `scale-w64kd-gate-cached-ctx8192-cont`, labels `s-w64kd-gate-ctx8192c-e7/-e8/-dec8`,
+  decay dir `scale-w64kd-gate-cached-ctx8192-cont-decay`. Epoch 7 recomputes the KD cache at chunk 8192 (cold).
+- Estimate (fit, not measured): ~44k rev/s at 8192, 369M reviews/epoch -> ~2.3 h/epoch, plus the cold teacher pass in e7.
+  If e7 runs below ~30k rev/s, the 21:30 window is at risk: cancel e8 and decay from e7 by hand.
+- Decision rule: dec8@8192 vs ctx2048c-dec8 on 464 users: context pays if curve <= -0.001 (upper95 < 0) and
+  instant worsens by no more than 0.0005. Then score student vs fork in 8192 windows on the 100 gate users
+  (parity = state size not limiting; gap = try w80 before SM21 carry).
+- Known cosmetic bug: the launcher's final "exited $?" line can print 0 regardless (the runbook log's own done line is authoritative).
+- state-carry branch (f10b197, SM21 design + CPU prototype) fast-forwarded into small-model 09:06 (new files only).
