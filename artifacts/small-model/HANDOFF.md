@@ -477,3 +477,18 @@ Paired L32k minus 8k: -0.00028 curve (266/464 better), -0.00022 instant (295/464
 16k->32k ~0.03. Bar P still ~0.13-0.15 points away. GPU left idle at 21:14 (user plays ~21:30).
 Next (tomorrow): SM21 state carry and/or training the base itself at >= 16k, Muon side-by-side, Haiku flow audit
 for 000409-000413, Sonnet write-up of the window results into docs/SMALL_MODEL.md.
+
+## 2026-10-16 21:40 Per-user view (user asked: does review weighting bias toward heavy users?)
+CPU only, from heldout.jsonl. Per-user = plain mean of per-user LogLoss (every user counts once); tertiles by user
+review count (<= 11,220 / <= 37,940 / <= 655,000). Bar P stays defined per review.
+
+| model | curve per-review | curve per-user | curve light/mid/heavy | instant per-review | instant per-user | instant light/mid/heavy |
+|---|---|---|---|---|---|---|
+| ctx2048c dec8 | +1.66% | +1.19% | +0.89/+1.21/+1.46 | +1.66% | +1.40% | +1.30/+1.36/+1.54 |
+| ctx8192c dec8 | +1.24% | +0.99% | +0.80/+1.08/+1.09 | +1.21% | +1.11% | +1.13/+1.10/+1.10 |
+| dec8-L16k | +1.17% | +0.97% | +0.82/+1.06/+1.03 | +1.16% | +1.09% | +1.13/+1.08/+1.06 |
+| dec8-L32k | +1.15% | +0.97% | +0.82/+1.05/+1.01 | +1.12% | +1.08% | +1.13/+1.08/+1.04 |
+
+Reading: the student's curve gap is largest on heavy users and longer windows close mostly that part (heavy
++1.46 -> +1.01, light +0.89 -> +0.82). Instant is a uniform ~+1.1% on every tertile, worse than fork on ~449/464 users:
+a systematic gap, not a user-type effect, so more context will not fix it (capacity/calibration/KD instead).
