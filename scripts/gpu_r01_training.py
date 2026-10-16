@@ -299,10 +299,10 @@ def run_case(args):
     # Seed studies vary initialization, dropout and batch encodings; held-out inputs keep seed 2025.
     training_seed = options.get("training_seed", 2025)
     # Long-context training (docs/SMALL_MODEL.md 5.3): reviews per independent training chunk. Unset = 128, the
-    # accepted R01 layout, unchanged. Evaluation keeps its 128-review samples.
+    # accepted R01 layout, unchanged. Evaluation keeps its 128-review samples. Up to 32,768 = the fork's own context.
     chunk_reviews = options.get("chunk_reviews", 128)
-    if type(chunk_reviews) is not int or not 16 <= chunk_reviews <= 8192:
-        raise ValueError("chunk_reviews must be an integer between 16 and 8192")
+    if type(chunk_reviews) is not int or not 16 <= chunk_reviews <= 32768:
+        raise ValueError("chunk_reviews must be an integer between 16 and 32768")
     if chunk_reviews != 128 and (options.get("sample_cache") or options.get("preprocessing_cache") or options.get("pack_users")):
         raise ValueError("chunk_reviews other than 128 does not support sample/preprocessing caches or pack_users")
     config = {"MODEL": args.model, "DTYPE": "bfloat16", "WKV_BACKEND": "nvrtc", "SEED": training_seed,
