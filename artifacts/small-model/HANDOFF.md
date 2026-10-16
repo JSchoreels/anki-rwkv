@@ -463,3 +463,17 @@ Paired L16k minus 8k-decay: -0.00020 curve (259/464 users better), -0.00014 inst
 small gain (~0.06 points) from a 0.25-epoch decay alone; the base was still trained at 8192. Bar P still ~0.17 points
 away. Q10 (32768 x 1 decay from the same e8) fired at 19:34:46 as ticket 000412, log
 runbook-2026-10-16d-longdecay32k.log.
+
+## 2026-10-16 21:14 Q10 result: 32768 x 1 decay (000412 decay 84 min ~15k rev/s, 000413 scoring 15 min)
+
+| model (decay from ctx8192 e8) | curve | instant |
+|---|---|---|
+| dec8 at 8192 | +1.24% | +1.21% |
+| dec8-L16k | +1.17% | +1.16% |
+| **dec8-L32k** | **+1.15%** | **+1.12%** |
+
+Paired L32k minus 8k: -0.00028 curve (266/464 better), -0.00022 instant (295/464). L32k minus L16k: -0.00008 curve
+(242/464), -0.00009 instant (264/464). Diminishing returns from the decay window alone: 8k->16k ~0.06 points,
+16k->32k ~0.03. Bar P still ~0.13-0.15 points away. GPU left idle at 21:14 (user plays ~21:30).
+Next (tomorrow): SM21 state carry and/or training the base itself at >= 16k, Muon side-by-side, Haiku flow audit
+for 000409-000413, Sonnet write-up of the window results into docs/SMALL_MODEL.md.
