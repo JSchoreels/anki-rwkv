@@ -492,3 +492,23 @@ review count (<= 11,220 / <= 37,940 / <= 655,000). Bar P stays defined per revie
 Reading: the student's curve gap is largest on heavy users and longer windows close mostly that part (heavy
 +1.46 -> +1.01, light +0.89 -> +0.82). Instant is a uniform ~+1.1% on every tertile, worse than fork on ~449/464 users:
 a systematic gap, not a user-type effect, so more context will not fix it (capacity/calibration/KD instead).
+
+## 2026-10-16 22:45 Shared history (imported decks) vs the student/fork gap
+User asked whether shared histories matter. Used the existing full-cohort relation graph (main repo
+docs/DATA_QUALITY.md DQ02/DQ05; artifacts/data/data-quality/relations-performance/optimized-full-cold-1379b1/repeat-01,
+common blocks >= 20 reviews) and unioned each test user's blocks shared with fork-training users (5000-10000) and
+with gate train_users. CPU only, L32k model.
+
+- 75/464 test users share some history with fork-training users (21 share >= 10%, 6 >= 50%); 72/464 share some with
+  the student's training users. So both models can have seen part of some test histories.
+- Gap by overlap with fork-training users (student L32k vs fork, w8+s8):
+
+| group | users | review share | curve per-review | curve per-user | instant per-review | instant per-user |
+|---|---|---|---|---|---|---|
+| no overlap | 389 | 74.5% | +1.15% | +0.93% | +1.17% | +1.07% |
+| some overlap | 75 | 25.5% | +1.13% | +1.16% | +1.00% | +1.11% |
+| >= 10% overlap | 21 | 2.5% | +1.39% | +1.80% | +1.05% | +1.39% |
+
+Reading: heavy overlap users are where the fork leads most (consistent with it having trained on copies of those
+histories), but they are 2.5% of reviews; on the 389 clean users the gap is the same +1.15% / +1.17%. Shared
+history does not explain the miss of bar P. Worth a later decision (user's): score bar P on clean users too.
