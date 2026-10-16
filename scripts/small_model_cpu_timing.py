@@ -14,6 +14,11 @@ GRU-head / functional linears stay f32. MACs are analytic: nn.Linear in*out per 
 WKV matrix state (decay, k*v outer product, r read) + 3 * N * head width for the power-curve head.
 
     python scripts/small_model_cpu_timing.py --threads 1 --out cpu-timing.json [--smoke]
+
+SM18 (`--impl eager,numpy`, default `eager` = the output above unchanged): `numpy` adds the low-overhead step of
+scripts/small_model_fast_step.py (fused matmuls, folded LayerNorm affines, no torch dispatch; f32 only) as
+precisions["numpy_f32"], plus an exactness check against the eager model over `--check-steps` real reviews of one
+user (max |delta| of the predicted p_curve / p_imm and of the rating logits).
 """
 import argparse
 import importlib
@@ -160,6 +165,102 @@ def time_steps(model, batch, steps, repeats, warmup):
             "reviews_per_s_median": batch / (step["median_ms"] / 1e3)}
 
 
+DATA = Path(r"C:\Users\jonat\workspace\anki-rwkv\data\anki-revlogs-10k-original-20261011")
+STREAMS = ["card_id", "deck_id", "note_id", "preset_id", "user_id"]
+
+
+def real_history(n, user=7):
+    """First n reviews of a real user: (features (n,92) f32, ids {stream: (n,)}, skips (n,), label seconds (n,))."""
+    import os
+    os.environ.setdefault("GPU_BATCH1_DATA_PATH", str(DATA))
+    from rwkv.data_processing import get_rwkv_data
+    from rwkv.prepare_batch import prepare
+    from scripts.gpu_batch1 import make_samples
+    frame = get_rwkv_data(DATA, user)
+    sample = make_samples(frame.iloc[:n], user, n)[0]
+    batch = prepare([sample], seed=2025)
+    return batch.start.float(), sample.ids, sample.skips, batch.labels[0, :, 0], sample
+
+
+def curve_p(model, out, t):
+    """Recall probability and p_imm from a head-output dict (tensors); t (1,1) elapsed seconds."""
+    if hasattr(model, "curve_probability"):
+        p_curve = model.curve_probability(out, t)
+    else:  # fork SrsRWKVRnn.run()
+        raw = model.forgetting_curve(out["w"], t)
+        p_curve = torch.sigmoid(torch.log(raw / (1 - raw)) + model.interp(out["ahead"], t))
+    p = torch.softmax(out["p_logits"], dim=-1)
+    return p_curve.reshape(()), torch.clamp(1.0 - p[0, 0], min=1e-5, max=1.0 - 1e-5), out["p_logits"].reshape(-1)
+
+
+@torch.inference_mode()
+def history_outputs(model, fast, n):
+    """Per-review (p_curve, p_imm, rating logits) over n real reviews, eager (`fast` None) or the numpy step."""
+    import numpy as np
+    feats, ids, skips, times, _ = real_history(n)
+    n = feats.size(0)
+    ents = {s: {} for s in STREAMS}
+    rows = []
+    for i in range(n):
+        keys = {s: int(ids[s][i]) for s in STREAMS}
+        states = [ents[s].get(keys[s]) for s in STREAMS]
+        if fast is not None:
+            out, nxt = fast.step_dict(np.ascontiguousarray(feats[i:i + 1].numpy()), states)
+            out = {k: torch.from_numpy(np.array(v)) for k, v in out.items()}
+        elif hasattr(model, "step"):
+            by_name = dict(zip(STREAMS, states))
+            out, nxt_by = model.step(feats[i:i + 1], {k: v for k, v in by_name.items()})
+            nxt = [nxt_by[s] for s in STREAMS]
+        else:
+            card, deck, note, preset, user = states
+            res = model.review(feats[i:i + 1], card, note, deck, preset, user)
+            out = {"ahead": res[0], "w": res[1], "p_logits": res[2]}
+            nxt = [res[3], res[5], res[4], res[6], res[7]]
+        if not bool(skips[i]):
+            for s, st in zip(STREAMS, nxt):
+                ents[s][keys[s]] = st
+        rows.append(torch.cat([a.reshape(-1) for a in curve_p(model, out, times[i].view(1, 1))]))
+    return torch.stack(rows)
+
+
+def exactness(model, steps):
+    from scripts.small_model_fast_step import NumpyStep
+    fast = NumpyStep(model)
+    ref = history_outputs(model, None, steps)
+    new = history_outputs(model, fast, steps)
+    delta = (ref - new).abs()
+    return {"steps": int(ref.size(0)), "max_abs_p_curve": delta[:, 0].max().item(), "max_abs_p_imm": delta[:, 1].max().item(),
+            "max_abs_p_probabilities": delta[:, :2].max().item(), "max_abs_rating_logits": delta[:, 2:].max().item(),
+            "user": 7, "state_int8_rounding": "not covered by this script (no s8 path in the eager timing step)"}
+
+
+def time_numpy(fast, batch, steps, repeats, warmup):
+    import numpy as np
+    g = np.random.default_rng(0)
+    feats = (g.standard_normal((batch, 92)) * 0.5).astype(np.float32)
+    states = [None] * 5
+    for _ in range(3):
+        states = fast.review(feats, *states)[3:]
+    states = list(states)
+    # review() takes (card, note, deck, preset, user) and returns the same order
+    samples, means = [], []
+    for _ in range(warmup):
+        fast.review(feats, *states)
+    for _ in range(repeats):
+        rep = []
+        for _ in range(steps):
+            t0 = time.perf_counter()
+            fast.review(feats, *states)
+            rep.append(time.perf_counter() - t0)
+        samples += rep
+        means.append(statistics.fmean(rep))
+    q = statistics.quantiles(samples, n=100, method="inclusive")
+    step = {"median_ms": statistics.median(samples) * 1e3, "p90_ms": q[89] * 1e3, "mean_ms": statistics.fmean(samples) * 1e3,
+            "min_ms": min(samples) * 1e3, "repeat_means_ms": [m * 1e3 for m in means], "n": len(samples)}
+    return {"batch": batch, "step": step, "per_review_median_ms": step["median_ms"] / batch,
+            "per_review_p90_ms": step["p90_ms"] / batch, "reviews_per_s_median": batch / (step["median_ms"] / 1e3)}
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--threads", type=int, default=1)
@@ -170,6 +271,8 @@ def main():
     parser.add_argument("--repeats", type=int, default=5)
     parser.add_argument("--warmup", type=int, default=50)
     parser.add_argument("--models", default="fork,w64,w32")
+    parser.add_argument("--impl", default="eager", help="comma list of eager,numpy (SM18); eager alone = the SM04 output")
+    parser.add_argument("--check-steps", type=int, default=1000, help="real reviews for the numpy exactness check")
     args = parser.parse_args()
     if args.smoke:
         args.steps, args.steps256, args.repeats, args.warmup = 100, 20, 1, 10
@@ -191,7 +294,20 @@ def main():
         model, real = builders[name]()
         entry = {"parameters": sum(p.numel() for p in model.parameters()), "real_weights": real,
                  "macs_per_review": count_macs(model), "precisions": {}}
-        for precision in ("f32", "int8"):
+        impls = args.impl.split(",")
+        if "numpy" in impls:
+            from scripts.small_model_fast_step import NumpyStep
+            fast = NumpyStep(model)
+            entry["precisions"]["numpy_f32"] = {
+                "batch1": time_numpy(fast, 1, args.steps, args.repeats, args.warmup),
+                "batch256": time_numpy(fast, 256, args.steps256, args.repeats, max(2, args.warmup // 10))}
+            b1, b256 = (entry["precisions"]["numpy_f32"][k] for k in ("batch1", "batch256"))
+            print(f"[{name} numpy_f32] b1 {b1['per_review_median_ms']:.3f} ms (p90 {b1['per_review_p90_ms']:.3f}); "
+                  f"b256 {b256['per_review_median_ms']:.4f} ms/review", flush=True)
+            if args.check_steps:
+                entry["numpy_exactness"] = exactness(model, args.check_steps)
+                print(f"[{name} numpy exactness] {entry['numpy_exactness']}", flush=True)
+        for precision in (("f32", "int8") if "eager" in impls else ()):
             m = model if precision == "f32" else make_int8(model)
             entry["precisions"][precision] = {
                 "batch1": time_steps(m, 1, args.steps, args.repeats, args.warmup),
