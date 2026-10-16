@@ -200,7 +200,7 @@ Not verified:
 
 ## 5. Next step: KD cost and calibration (design, 2026-10-15; nothing launched)
 
-Starting point: `scale-w64kd-dec` (w8+s8) is +5.28% curve / +5.99% instant LogLoss and +85% instant RMSE(bins) vs fork w8+s8 (430 users). The good-candidate bar is ≤ +1.0% / +1.5% LogLoss and ≤ +15% instant RMSE(bins). Runbook: [artifacts/small-model/runbook-next.sh](../artifacts/small-model/runbook-next.sh). All rates and times below are accuracy-lane estimates from logged training rates and queue durations, not benchmarks.
+Starting point: `scale-w64kd-dec` (w8+s8) is +5.28% curve / +5.99% instant LogLoss and +85% instant RMSE(bins) vs fork w8+s8 (430 users). The good-candidate bar is ≤ +1.0% / +1.5% LogLoss and ≤ +15% instant RMSE(bins) (tightened 2026-10-16 16:40 by the user to ≤ +1.0% on both heads, see P). Runbook: [artifacts/small-model/runbook-next.sh](../artifacts/small-model/runbook-next.sh). All rates and times below are accuracy-lane estimates from logged training rates and queue durations, not benchmarks.
 
 ### 5.1 Where the calibration gap is (CPU diagnostic, no GPU)
 
@@ -502,7 +502,7 @@ Main-session launch list, in order; every GPU step goes through `scripts/r01_que
 - **G** = SM13's in-window gap (Q2): student@w2048 vs fork@w2048, review-weighted, same users. "Context-bound" if G ≤ the k = 3 window band expressed in Δ% (≈ +1.0% curve, ≈ +0.5% instant: 0.00359 / 0.00157 of ≈ 0.35 window LogLoss); "capacity-bound" if above it on either head.
 
 **Thresholds:**
-- **P (start pruning):** F ≤ +1.0% curve and ≤ +1.5% instant (the user-agreed good-candidate LogLoss bar; RMSE(bins) reported beside it). Pruning only makes sense with that headroom: Expertium's d=128 → d=64 cost +0.5% / +1.2%.
+- **P (start pruning):** F ≤ +1.0% curve and ≤ +1.0% instant vs fork w8+s8 on the 464 users (user, 2026-10-16 16:40; was ≤ +1.5% instant before, verdicts above that date used the old bar; RMSE(bins) reported beside it). Pruning only makes sense with that headroom: Expertium's d=128 → d=64 cost +0.5% / +1.2%.
 - **E (extend the same run):** not P, F ≤ +4.0% on both heads (4 epochs must at least beat a single 0.25-epoch ctx1024 decay, +3.91% / +4.13%), and S "still learning".
 - **D (else):** no continuation of this recipe tonight; Q4 stays empty.
 
