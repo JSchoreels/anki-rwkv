@@ -416,3 +416,12 @@ Details in docs/SMALL_MODEL.md ("Result 06:35", "Result 07:20", "Result 07:33", 
   (parity = state size not limiting; gap = try w80 before SM21 carry).
 - Known cosmetic bug: the launcher's final "exited $?" line can print 0 regardless (the runbook log's own done line is authoritative).
 - state-carry branch (f10b197, SM21 design + CPU prototype) fast-forwarded into small-model 09:06 (new files only).
+
+## 2026-10-16 09:18 Q7 epoch 8 lost, re-queued (000400)
+- SM20 (KD cache key drops `optimizer`, 5cbfe15/7deb4b1) was fast-forwarded into small-model at 09:18 while Q7 epoch 8
+  (000398) ran; SourceWatch aborted it at 71% ("Source changed during the experiment"). Rule: merge code into a worktree
+  only between tickets.
+- The Q8 launcher fired on that "cont ended" line: 000399 = ctx8192 epoch 7 (started 09:19, SM20 tree).
+- Q7 relaunched 09:20 (`TIER=gate FROM=6 TO=8 CHUNK=2048 ... cont`, log `runbook-2026-10-16b-cont-rerun.log`): resumes
+  the existing experiment, e7 kept, e8 = ticket 000400 behind 000399; failed attempt moved to `epoch-08-attempt-1`.
+- Both runbooks then interleave FIFO (Q8 e8/decay/scoring and Q7 decay/scoring). Expected end ~19:30-20:30.
