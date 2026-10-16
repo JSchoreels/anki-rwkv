@@ -220,7 +220,7 @@ print(f"[cont-check] OK: epoch {frm + 1} resumes from epoch-{frm:02d} (update_of
       f"AdamW state copied), chunk_reviews {chunk} x batch_chunks {bc} = {chunk * bc} reviews/update, "
       f"{len(run['options'])} option keys all in the prefetch allowlist, only chunk fields differ from the source")
 PYEOF
-  if [ "$BUILD" = 1 ] && [ "$DRYRUN" != 1 ]; then rm -rf "$EXP"; mv "$DEST" "$EXP" || return 2; log "created $EXP"; fi
+  if [ "$BUILD" = 1 ] && [ "$DRYRUN" != 1 ]; then rm -rf "$EXP"; mv "$DEST" "$EXP" || return 2; DEST=$EXP; log "created $EXP"; fi
 
   # ---- decay prepare check in dry run (scratch, source = the DEST run), then clean up
   OPTS=$("$PY" -c "import json; print(json.dumps(json.load(open(r'$DEST/experiment.json'))['option_overrides']))") || return 2
