@@ -534,6 +534,21 @@ Full-history scoring of `s-w64kd-gate-ctx2048-e4` and `-dec` finished at 03:00 (
 - **S** (100 gate users, w8+s8, fork 0.28665 / 0.26105): e2 0.29595 / 0.27078, e4 0.29359 / 0.26818 (dec 0.29233 / 0.26731), so S = e2 − e4 = **0.00236 curve / 0.00260 instant**. Threshold for "still learning" is 0.0009 / 0.0017: both heads pass, with the e2→e4 slope at 1.3x / 0.76x of the log-slope prediction (−0.00176 / −0.00343).
 - **Verdict: branch E.** F misses P (curve +2.16% > +1.0%, instant +2.16% > +1.5%; RMSE(bins) +14.8% / +19.0% is also above the +15% instant bar), F is within 4.0% on both heads, and S says still learning. G (Q2) only affects Q7. The file `gate-scale-w64kd-gate-cached-ctx2048-e3-extend.json` exists (mtime 2026-10-16 00:38) and was ignored (`verdict: incomplete`, dry-run artefact).
 
+### Result 2026-10-16 03:06: SM04 CPU inference timing
+
+Queue Q1 (ticket 000382) finished at 03:06, exit 0, in 4.5 min (15 expected). Script `scripts/small_model_cpu_timing.py`, result `artifacts/small-model/cpu-timing.json`. Recurrent step, 1 thread, Ryzen 7 9850X3D, per-review medians (1,000 steps at batch 1, 60 at batch 256, 5 repeats). w32 uses random init (no checkpoint; speed does not depend on values).
+
+| Model | Params | MACs/review | f32 b1 (ms) | f32 b256 (ms) | int8 b1 (ms) | int8 b256 (ms) | Speed-up vs fork f32 (b1 / b256) |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| fork | 2,762,884 | 2.91M | 3.854 | 0.1871 | 10.150 | 0.2530 | 1.00x / 1.00x |
+| w64 | 331,511 | 0.341M | 3.452 | 0.1008 | 7.054 | 0.1374 | 1.12x / 1.86x |
+| w32 | 192,800 | 0.190M | 4.289 | 0.0606 | 9.839 | 0.0738 | 0.90x / 3.09x |
+
+- **Batch 1 is dispatch-bound.** w64 has 8.5x fewer MACs but is only 1.12x faster than the fork (w32 is slower than the fork), so the per-step cost is PyTorch per-op overhead, not arithmetic.
+- **Batch 256 amortises dispatch**: w64 1.86x and w32 3.1x faster, closer to (but still well under) the MAC ratio.
+- "int8" is torch dynamic-quantized Linear (onednn) and is slower than f32 here; it is an int8-kernel indication only, not the fork's runtime.
+- **Implication:** with plain eager PyTorch the small model saves memory and disk, not CPU per review at batch 1. The CPU saving is realised only with a fused/low-overhead runtime (hand-written step, TorchScript/compiled graph) or by batching cards (SM18).
+
 ## Backlog
 
 | ID | Idea | Status | Next step |
@@ -541,7 +556,7 @@ Full-history scoring of `s-w64kd-gate-ctx2048-e4` and `-dec` finished at 03:00 (
 | SM01 | Full-history held-out frontier vs fork int8 (464 users) | Done 2026-10-15 (430 users every label has) | See frontier table; 34 users unscored (time limits) |
 | SM02 | w64 vs w32 and w64+KD vs w64, paired k = 3 screens | Done 2026-10-15: w64kd promising, w64 not | Scale-up blocked by the EPOCH_MIN fallback rule; main session decides (HANDOFF k=3 verdict) |
 | SM03 | Scale-up of the winning recipe (gate tier, ≤ 6 h) | Done 2026-10-15 (main session override: w64kd, 3 epochs): `scale-w64kd-dec` +5.28% / +5.99% vs fork w8+s8, beats w32 decay, not a good candidate; packaged | Superseded by SM10: the next scale-up uses long-context chunks (5.7) |
-| SM04 | CPU inference cost of fork vs w32/w64 (recurrent step, 1 thread, `--timing`) | Pending; top-3 priority 2026-10-16 (user asked for the CPU saving; only the 8.3x matrix-parameter estimate exists) | Queue Q1: `scripts/small_model_cpu_timing.py` (Sonnet medium), batch 1 and batch 256, f32 and int8, analytic MACs; quiet-night `--timing` ticket |
+| SM04 | CPU inference cost of fork vs w32/w64 (recurrent step, 1 thread, `--timing`) | Done 2026-10-16 03:06 (ticket 000382): batch 1 w64 only 1.12x faster than the fork, batch 256 1.86x (w32 3.1x); dispatch-bound | See "Result 2026-10-16 03:06: SM04 CPU inference timing"; follow-up SM18 |
 | SM05 | KD only on fork-unseen training users (teacher targets on its own training users may be overfit) | Untested idea | Needs a per-user KD mask in the trainer |
 | SM06 | w80 + KD, longer decay (1 epoch, Expertium's choice) | Untested; re-scoped 2026-10-16: at 128 chunks it is pointless | Only at 2,048 (or 4,096) chunks and only if SM13 says capacity-bound: queue Q7 |
 | SM07 | Window-protocol and collection evaluation of w64 checkpoints (`fast_evaluation` and `accuracy_collection` only build the w32 model) | Gap | Add a variant-aware evaluator hook |
@@ -555,3 +570,4 @@ Full-history scoring of `s-w64kd-gate-ctx2048-e4` and `-dec` finished at 03:00 (
 | SM15 | Pruning step 1: w48 student (3 heads x 16, 195,949 parameters, 14x fewer than the fork) with the same long-context KD recipe, non-inferiority gates vs the ctx2048 run | Proposed 2026-10-16; starts only when the bar is met (user: accuracy first, then prune) | Queue Q7-P (or Q4 if F ≤ bar); needs the `w48` preset, gate `--reference-prefix`, ARCH-generic runbook stage |
 | SM16 | Context beyond the chunk: carry the recurrent state (detached) from a user's chunk k to chunk k+1 (truncated BPTT), so training sees deployment-length histories | Idea 2026-10-16 (design, Opus); conflicts with the per-batch purity the KD cache relies on, so it needs a batch-order redesign | Only if SM13 says context-bound and Q6 says longer chunks no longer pay |
 | SM17 | Epoch scoring after every epoch on the 100 gate users; 464 users for finals and for gates near their boundary; all-464 gates once S05 lands | Proposed 2026-10-16 (answer to the user's 100-user question, Priorities) | Built into the new runbook stages (Q4, Q7) |
+| SM18 | Low-overhead CPU step (fused/compiled) to realise the MAC saving at batch 1 | Proposed 2026-10-16 | Hand-written step, TorchScript or compiled graph for w64; re-time against the fork at batch 1 (SM04 script) |
