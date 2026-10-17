@@ -467,6 +467,8 @@ def main_timing(args):
 def main_cuda(args):
     """GPU part of the ticket (seconds, before the smoke): the codec and VQStateWKV on CUDA vs CPU, and the CUDA
     per-step time of the QAT recurrence at the decay's split shapes. Exit 1 stops the ticket before training."""
+    # deterministic cuBLAS (as the decay's protocol sets it) before the first CUDA call
+    os.environ.setdefault("CUBLAS_WORKSPACE_CONFIG", ":4096:8")
     import torch
     from expertium.model.state_vq_hooks import VQStateWKV
     from scripts import state_vq
