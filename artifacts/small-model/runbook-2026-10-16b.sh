@@ -17,7 +17,8 @@
 #   <NEW_LBL>-e<N> after each epoch and the stop rule after FROM+1 (e<FROM> - e<FROM+1> <= 0 on both heads, FORCE=1 continues);
 #   (4) 0.25-epoch decay from the last epoch at CHUNK into $SM/<NEW>-decay; (5) 464-user scoring of e<last> and dec<last>,
 #   resume ticket only if users remain.
-# Environment: TIER (required), FROM (6), TO (8), CHUNK (4096), BATCH_CHUNKS (32768/CHUNK), RUN_TAG (ctx2048), FORCE=1, DRYRUN=1.
+# Environment: TIER (required), FROM (6), TO (8), CHUNK (4096), BATCH_CHUNKS (32768/CHUNK), RUN_TAG (ctx2048), SRC_LBL
+# (s-w64kd-TIER-RUN_TAG), FIRST_MIN (queue estimate of the first epoch), FORCE=1, DRYRUN=1.
 # DRYRUN=1 stubs the queue (echo), builds the new experiment, the smoke scratch and the decay only in scratch folders under
 # $SM (deleted afterwards), never writes into the source run or the real new experiment, and turns missing-artifact
 # exits into warnings; use FROM=4 TO=6 to dry-run before epoch 6 exists.
@@ -68,13 +69,13 @@ cont() {
   [ "$TO" -gt "$FROM" ] || { log "TO ($TO) must exceed FROM ($FROM)"; return 2; }
   SRC=scale-w64kd-$TIER-cached-$RUN_TAG
   SRC_EXP=$WT/artifacts/accuracy/experiments/$SRC
-  SRC_LBL=s-w64kd-$TIER-$RUN_TAG
+  SRC_LBL=${SRC_LBL:-s-w64kd-$TIER-$RUN_TAG}   # override when the source labels differ (ctx8192-cont scored as s-w64kd-gate-ctx8192c)
   NAME=scale-w64kd-$TIER-cached-ctx${CHUNK}-cont
   EXP=$WT/artifacts/accuracy/experiments/$NAME
   LBL=s-w64kd-$TIER-ctx${CHUNK}c
   [ "$NAME" != "$SRC" ] || { log "new experiment equals the source"; return 2; }
   EP() { echo "$EXP/run/epoch-$(printf "%02d" "$1")/$CKPT"; }
-  FIRST_MIN=66; [ "$CHUNK" -gt 2048 ] && FIRST_MIN=80   # cold KD cache at a new chunk length for the first epoch
+  FIRST_MIN=${FIRST_MIN:-66}; [ "$CHUNK" -gt 2048 ] && [ "$FIRST_MIN" = 66 ] && FIRST_MIN=80   # cold KD cache at a new chunk length for the first epoch
   [ -f "$SRC_EXP/experiment.json" ] || { log "no source experiment $SRC_EXP"; return 2; }
 
   # ---- step 0: preconditions on the source (read-only)
