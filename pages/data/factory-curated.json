@@ -120,16 +120,26 @@
    "minutes": 50
   },
   {
-   "what": "One-epoch final decay at 2,048 windows + 464-user scoring",
+   "what": "One-epoch final decay at 2,048 windows",
    "id": "SM35",
    "kind": "gpu-train",
    "decides": "Does a 1-epoch decay beat our quarter epoch (Expertium&rsquo;s big gain)?",
    "track": "small model",
    "match": [
-    "SM35 1-epoch decay",
+    "SM35 1-epoch decay"
+   ],
+   "minutes": 125
+  },
+  {
+   "what": "Score the one-epoch decay on all 464 users",
+   "id": "SM35",
+   "kind": "gpu-train",
+   "decides": "Does a 1-epoch decay beat our quarter epoch (Expertium&rsquo;s big gain)?",
+   "track": "small model",
+   "match": [
     "SM35 scoring"
    ],
-   "minutes": 150
+   "minutes": 25
   },
   {
    "what": "Instant-weighted final decay at 32k (code merged first) + 464-user scoring",
@@ -836,7 +846,7 @@
   }
  ],
  "gpu_break": {
-  "start": "20:00",
+  "start": "22:00",
   "end": "02:00",
   "until": "2026-10-18T02:00",
   "label": "Break: no GPU work"
