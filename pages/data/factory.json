@@ -1,26 +1,70 @@
 {
- "generated_at": "2026-10-17T23:54:34+02:00",
- "updated": "2026-10-17 23:54",
- "material": "f1f410a1bccc0e7b",
+ "generated_at": "2026-10-18T00:00:19+02:00",
+ "updated": "2026-10-18 00:00",
+ "material": "9a17a8e98424f7a1",
  "summary": "running 000431",
  "headline": [
   {
    "k": "Best, 464 users (curve / instant)",
    "v": "0.30066 / 0.27490",
-   "s": "+1.01% / +1.01% vs fork 0.29766 / 0.27216. Epoch 10 + decay: 0.30096 / 0.27471 (+1.11% / +0.94%)",
+   "compare": [
+    {
+     "variant": "Fork reference (w8+s8)",
+     "curve": 0.29766,
+     "instant": 0.27216,
+     "ref": true,
+     "eval": "464 users, 22.66M reviews"
+    },
+    {
+     "variant": "Best: epoch 9 + decay at 16k, scored at 32k (Q11)",
+     "curve": 0.30066,
+     "instant": 0.2749,
+     "curve_pct": 1.01,
+     "instant_pct": 1.01,
+     "eval": "464 users, 22.66M reviews"
+    },
+    {
+     "variant": "Epoch 10 + decay at 32k (Q12)",
+     "curve": 0.30096,
+     "instant": 0.27471,
+     "curve_pct": 1.11,
+     "instant_pct": 0.94,
+     "eval": "464 users, 22.66M reviews"
+    }
+   ],
    "big": true,
    "track": "small model"
   },
   {
    "k": "Own collection (curve / instant)",
    "v": "0.4423 / 0.4375",
-   "s": "+0.14% / +0.18% vs fork, 173,690 reviews (epoch 10 + decay)",
+   "compare": [
+    {
+     "variant": "Fork reference",
+     "curve": 0.4417,
+     "instant": 0.4367,
+     "ref": true,
+     "eval": "173,690 reviews"
+    },
+    {
+     "variant": "Epoch 10 + decay at 32k (Q12)",
+     "curve": 0.4423,
+     "instant": 0.4375,
+     "curve_pct": 0.14,
+     "instant_pct": 0.18,
+     "eval": "173,690 reviews"
+    }
+   ],
    "track": "small model"
   },
   {
    "k": "Size",
    "v": "8.3&times; smaller",
    "s": "331,511 vs 2,762,884 parameters",
+   "link": {
+    "href": "models.html",
+    "text": "Model architectures: the fork vs Expertium&rsquo;s d=64 shape the student uses"
+   },
    "track": "small model"
   },
   {
@@ -32,14 +76,17 @@
  ],
  "now": [
   {
-   "what": "SM30 scale-w64kd-gate-cached-ctx2048-cont-repflags epoch 7/8 (rep_flags, chunk 2048 x 16, smoke first)",
-   "id": "000431-small-model",
+   "what": "Review-number flags as inputs: 2 epochs at 2,048 windows + decay + 464-user scoring (started 23:50; the break was cancelled)",
+   "id": "SM30, ticket 000431",
    "kind": "gpu-train",
+   "decides": "Do explicit 2nd / 3rd / 4th+ review inputs help, paired against the same run without them (0.30259 / 0.27668)?",
    "why": "",
+   "job": "SM30 scale-w64kd-gate-cached-ctx2048-cont-repflags epoch 7/8 (rep_flags, chunk 2048 x 16, smoke first)",
+   "linked": true,
    "track": "small model",
    "ticket": "000431-small-model",
    "started": "23:50",
-   "elapsed": "0:03",
+   "elapsed": "0:09",
    "progress": null,
    "eta": "~00:56"
   }
@@ -48,6 +95,7 @@
  "recent": [
   {
    "ticket": "000430-small-model",
+   "id": "SM30",
    "what": "SM30 scale-w64kd-gate-cached-ctx2048-cont-repflags epoch 7/8 (rep_flags, chunk 2048 x 16, smoke first)",
    "ended": "21:43",
    "date": "10-17",
@@ -56,6 +104,7 @@
   },
   {
    "ticket": "000429-small-model",
+   "id": "SM32b",
    "what": "S09 state-VQ QAT micro-benchmark (kernel correctness + per-update timing, no training)",
    "ended": "21:27",
    "date": "10-17",
@@ -64,6 +113,7 @@
   },
   {
    "ticket": "000428-small-model",
+   "id": "SM35",
    "what": "SM35 scoring s-w64kd-gate-ctx2048c-dec8-1ep, 464 users (pass 1)",
    "ended": "21:26",
    "date": "10-17",
@@ -72,6 +122,7 @@
   },
   {
    "ticket": "000427-small-model",
+   "id": "SM35",
    "what": "SM35 1-epoch decay at 2,048 from ctx2048c e8 (smoke first)",
    "ended": "21:11",
    "date": "10-17",
@@ -80,6 +131,7 @@
   },
   {
    "ticket": "000426-small-model",
+   "id": "",
    "what": "speed profile: w64 at 2,048/8,192/16,384/32,768 windows + fork128 b128/b64 (fork-reference)",
    "ended": "19:28",
    "date": "10-17",
@@ -88,6 +140,7 @@
   },
   {
    "ticket": "000425-small-model",
+   "id": "SM25",
    "what": "SM25 fork with no-steps review-type labels, 464 users (pass 1)",
    "ended": "18:52",
    "date": "10-17",
@@ -276,8 +329,9 @@
    "kind": "cpu",
    "decides": "How much of the gap a free export-time calibration closes",
    "track": "small model",
-   "state": "running",
-   "started_at": "2026-10-17T23:58:00+02:00"
+   "state": "done",
+   "started_at": "2026-10-17T23:58:00+02:00",
+   "ended_at": "2026-10-18T00:02:00+02:00"
   },
   {
    "what": "Review results; then Muon test and the label-free fork fine-tune",
@@ -450,9 +504,31 @@
    "id": "SM28",
    "why": "No signal in the screen (training test is SM37)",
    "track": "small model"
+  },
+  {
+   "status": "dropped",
+   "item": "Calibration temperature folded into the export",
+   "id": "SM12",
+   "why": "Measured 10-18: closes nothing (+1.11% to +1.10% curve, instant unchanged)",
+   "track": "small model"
   }
  ],
  "results": [
+  {
+   "date": "10-18",
+   "kind": "cpu",
+   "name": "Calibration fitted offline on the dec10 student (temperature + bias, user-split cross-validation)",
+   "id": "SM12",
+   "curve": 0.3009,
+   "instant": 0.27469,
+   "curve_pct": 1.1,
+   "instant_pct": 0.94,
+   "eval": "464 users, 22.7M reviews",
+   "fork": "fork 0.29766 / 0.27216 (calibrated the same way: 0.29761 / 0.27214); uncalibrated student 0.30096 / 0.27471",
+   "takeaway": "Nothing to fold into the export: both models are equally (and barely) miscalibrated, gains are ~5e-5. Spaced slice unchanged: +0.79% / +0.84%.",
+   "track": "small model",
+   "label": "sm12-calib"
+  },
   {
    "date": "10-17",
    "kind": "gpu-train",

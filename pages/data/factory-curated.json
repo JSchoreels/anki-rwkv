@@ -3,20 +3,28 @@
   {
    "k": "Best, 464 users (curve / instant)",
    "v": "0.30066 / 0.27490",
-   "s": "+1.01% / +1.01% vs fork 0.29766 / 0.27216. Epoch 10 + decay: 0.30096 / 0.27471 (+1.11% / +0.94%)",
+   "compare": [
+    {"variant": "Fork reference (w8+s8)", "curve": 0.29766, "instant": 0.27216, "ref": true, "eval": "464 users, 22.66M reviews"},
+    {"variant": "Best: epoch 9 + decay at 16k, scored at 32k (Q11)", "curve": 0.30066, "instant": 0.2749, "curve_pct": 1.01, "instant_pct": 1.01, "eval": "464 users, 22.66M reviews"},
+    {"variant": "Epoch 10 + decay at 32k (Q12)", "curve": 0.30096, "instant": 0.27471, "curve_pct": 1.11, "instant_pct": 0.94, "eval": "464 users, 22.66M reviews"}
+   ],
    "big": true,
    "track": "small model"
   },
   {
    "k": "Own collection (curve / instant)",
    "v": "0.4423 / 0.4375",
-   "s": "+0.14% / +0.18% vs fork, 173,690 reviews (epoch 10 + decay)",
+   "compare": [
+    {"variant": "Fork reference", "curve": 0.4417, "instant": 0.4367, "ref": true, "eval": "173,690 reviews"},
+    {"variant": "Epoch 10 + decay at 32k (Q12)", "curve": 0.4423, "instant": 0.4375, "curve_pct": 0.14, "instant_pct": 0.18, "eval": "173,690 reviews"}
+   ],
    "track": "small model"
   },
   {
    "k": "Size",
    "v": "8.3&times; smaller",
    "s": "331,511 vs 2,762,884 parameters",
+   "link": {"href": "models.html", "text": "Model architectures: the fork vs Expertium&rsquo;s d=64 shape the student uses"},
    "track": "small model"
   },
   {

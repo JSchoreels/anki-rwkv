@@ -43,8 +43,35 @@
   .rc .sub { color: var(--muted); font-size: 13px; overflow-wrap: anywhere; }
   .rc .ll { display: flex; flex-wrap: wrap; gap: 2px 16px; margin: 4px 0; font-variant-numeric: tabular-nums; }
   .earlier { color: var(--muted); font-size: 13px; margin: 6px 0 0; }
+  .cards.hl { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .card .s a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
+  .card .k a { color: var(--accent); }
+  .cmp { overflow-x: auto; margin-top: 6px; }
+  .cmp table, .mini { font-size: 13px; }
+  .cmp th, .cmp td { padding: 4px 8px; }
+  .cmp th:first-child, .cmp td:first-child { padding-left: 0; }
+  .cmp td:first-child { white-space: normal; min-width: 11rem; }
+  .card.wide { grid-column: 1 / -1; }
+  .cmp th.n, .cmp td.n, .mini th.n, .mini td.n { text-align: right; font-variant-numeric: tabular-nums; }
+  .cmp td.n.good { font-weight: 600; }
+  .cmp tr.ref td { color: var(--muted); }
+  .cmp tr.top td:first-child { font-weight: 600; }
+  .cmp .ev { color: var(--muted); }
+  .now h3 { margin: 10px 0 0; font-size: 14px; color: var(--muted); font-weight: 600; }
+  .now .table-wrap { margin-top: 4px; max-height: none; }
+  .mini th, .mini td { padding: 5px 8px; vertical-align: top; }
+  .mini td.d { white-space: normal; min-width: 18rem; overflow-wrap: anywhere; }
+  .mini td.w { white-space: nowrap; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .mini tr.fail td { background: color-mix(in srgb, var(--c-rejected) 9%, transparent); }
+  .tag.ok { border-color: var(--c-accepted); color: var(--c-accepted); }
+  .tag.fail { border-color: var(--c-rejected); color: var(--c-rejected); font-weight: 600; }
+  .fld { margin-top: 6px; font-size: 13.5px; }
+  .fld.what { font-size: 1.05rem; font-weight: 600; }
+  .fld b { color: var(--muted); font-weight: 600; margin-right: 4px; }
+  .fld.job { color: var(--muted); font-size: 12.5px; overflow-wrap: anywhere; }
   @media (max-width: 640px) {
     .tablewrap-sm { display: none; }
+    .mini td.d { min-width: 13rem; }
     .cardlist { display: block; }
     .panel { padding: 12px; }
     .cards .card .v { white-space: normal; }
@@ -53,6 +80,7 @@
     h1 { font-size: 1.35rem; }
   }
   @media (max-width: 860px) { .cards { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 700px) { .cards.hl { grid-template-columns: minmax(0, 1fr); } }
   @media (max-width: 420px) { .cards { grid-template-columns: 1fr; } }
 </style>
 </head>
@@ -71,7 +99,7 @@
 </header>
 
 <main class="wrap">
-  <section class="cards" id="headline" aria-label="Headline"></section>
+  <section class="cards hl" id="headline" aria-label="Headline"></section>
 
   <section class="panel">
     <div class="panel-head"><h2>1. Running now</h2><p class="hint" id="now-asof"></p></div>
@@ -136,6 +164,25 @@
   const ll = (v, p) => (none(v) && none(p)) ? '&ndash;'
     : `${none(v) ? '' : v.toFixed(v < 0.4 ? 5 : 4)}${none(p) ? '' : ` <span class="pct${p <= 1.0 ? ' good' : ''}">${p > 0 ? '+' : ''}${p.toFixed(2)}%</span>`}`;
 
+
+  // Headline comparison: rows {variant, curve, instant, curve_pct, instant_pct, eval, ref}; the `ref` row is the fork.
+  // Missing gaps are computed against the ref row (positive = worse than the fork).
+  const cmpTable = (rows) => {
+    const ref = rows.find((r) => r.ref) || {};
+    const gap = (v, p, f) => (!none(p) ? p : (none(v) || none(f) ? null : (v / f - 1) * 100));
+    const num = (v) => (none(v) ? '&ndash;' : v.toFixed(v < 0.4 ? 5 : 4));
+    const pc = (p, isRef) => (isRef ? '<td class="n">&ndash;</td>' : none(p) ? '<td class="n">&ndash;</td>'
+      : `<td class="n${p <= 1.0 ? ' good' : ''}">${p > 0 ? '+' : ''}${p.toFixed(2)}%</td>`);
+    const trs = rows.map((r, i) => `<tr class="${r.ref ? 'ref' : i === rows.findIndex((x) => !x.ref) ? 'top' : ''}"><td>${r.variant}</td>`
+      + `<td class="n">${num(r.curve)}</td><td class="n">${num(r.instant)}</td>`
+      + pc(gap(r.curve, r.curve_pct, ref.curve), r.ref) + pc(gap(r.instant, r.instant_pct, ref.instant), r.ref)
+      + `<td class="n ev">${r.eval || ''}</td></tr>`).join('');
+    return `<div class="cmp"><table><thead><tr><th>Variant</th><th class="n">Curve</th><th class="n">Instant</th>`
+      + `<th class="n">&Delta; curve</th><th class="n">&Delta; instant</th><th class="n">Eval</th></tr></thead><tbody>${trs}</tbody></table></div>`;
+  };
+  const exitTag = (x) => (x === 0 ? '<span class="tag ok">ok</span>' : none(x) ? '<span class="tag">?</span>'
+    : `<span class="tag fail">${x === 143 ? 'stopped' : 'failed'}, exit ${x}</span>`);
+  const tid = (r) => `${r.id ? `${r.id} ` : ''}<span class="id">${(r.ticket || '').slice(0, 6)}</span>`;
 
   // ---- live timetable: laid out here, at page load, from the generated states and the current time
   const pad = (n) => String(n).padStart(2, '0');
@@ -207,46 +254,60 @@
     const L = layout(D, nowD);
     const older = L.done.filter((r) => nowD - r.e > 6 * 3600000);
     const items = [];
-    if (older.length) items.push({ earlier: older });
+    if (older.length) { items.push({ earlier: older }); older.forEach((r) => items.push({ r, old: true })); }
     L.done.filter((r) => nowD - r.e <= 6 * 3600000).concat(L.running).forEach((r) => items.push({ r }));
     L.laid.forEach((r, i) => { if (i === L.breakAt) items.push({ brk: L.brk }); items.push({ r }); });
     L.fixed.forEach((r) => items.push({ r }));
     const trs = [], cs = [];
     items.forEach((it) => {
       if (it.earlier) {
-        const names = it.earlier.map((r) => r.what).join('; ');
-        trs.push(`<tr class="brk"><td colspan="5">Done earlier (${it.earlier.length}): ${names}</td></tr>`);
-        cs.push(`<p class="earlier">Done earlier (${it.earlier.length}): ${names}</p>`);
+        const btn = `<button type="button" class="chip" data-old aria-expanded="false">Done earlier (${it.earlier.length}): show</button>`;
+        trs.push(`<tr class="brk"><td colspan="5">${btn}</td></tr>`);
+        cs.push(`<p class="earlier">${btn}</p>`);
       } else if (it.brk) {
         const b = it.brk;
         trs.push(`<tr class="brk"><td class="when">${b.text}</td><td></td><td>${tag('break')}</td><td>${b.label}</td><td></td></tr>`);
         cs.push(`<div class="rc brk"><div class="l1"><span class="t">${b.text}</span>${tag('break')}</div><div class="tx">${b.label}</div></div>`);
       } else {
         const r = it.r, when = whenText(r, nowD), st = (STATE[r.state] || (() => ''))(r);
-        trs.push(`<tr><td class="when">${when}</td><td>${st}</td><td>${tag(r.kind)}</td><td>${name(r.what, r.id, r.track)}</td><td>${r.decides || ''}</td></tr>`);
-        cs.push(`<div class="rc"><div class="l1"><span class="t">${when}</span>${st}</div><div class="tx">${name(r.what, r.id, '')}</div>`
+        const old = it.old ? ' class="old" hidden' : '';
+        trs.push(`<tr${old}><td class="when">${when}</td><td>${st}</td><td>${tag(r.kind)}</td><td>${name(r.what, r.id, r.track)}</td><td>${r.decides || ''}</td></tr>`);
+        cs.push(`<div class="rc${it.old ? ' old' : ''}"${it.old ? ' hidden' : ''}><div class="l1"><span class="t">${when}</span>${st}</div><div class="tx">${name(r.what, r.id, '')}</div>`
           + (r.decides ? `<div class="sub">${r.decides}</div>` : '') + `<div class="tg">${tag(r.kind)}${trk(r.track)}</div></div>`);
       }
     });
     T('plan', ['When', 'Status', 'Kind', 'What', 'Decides'], trs);
     $('plan-cards').innerHTML = cs.join('');
+    document.querySelectorAll('[data-old]').forEach((b) => b.addEventListener('click', () => {
+      const open = b.getAttribute('aria-expanded') !== 'true';
+      document.querySelectorAll('#plan .old, #plan-cards .old').forEach((x) => { x.hidden = !open; });
+      document.querySelectorAll('[data-old]').forEach((x) => { x.setAttribute('aria-expanded', String(open)); x.textContent = x.textContent.replace(/: (show|hide)$/, open ? ': hide' : ': show'); });
+    }));
   }
 
   function render(D) {
-    $('headline').innerHTML = (D.headline || []).map((h) => `<div class="card${h.big ? ' big' : ''}"><div class="k">${h.k}${trk(h.track)}</div><div class="v">${h.v}</div><div class="s">${h.s}</div></div>`).join('');
+    $('headline').innerHTML = (D.headline || []).map((h) => `<div class="card${h.big ? ' big' : ''}${h.compare ? ' wide' : ''}"><div class="k">${h.k}${trk(h.track)}</div><div class="v">${h.v}</div>`
+      + (h.compare ? cmpTable(h.compare) : `<div class="s">${h.s || ''}</div>`)
+      + (h.link ? `<div class="s"><a href="${h.link.href}">${h.link.text}</a></div>` : '') + '</div>').join('');
 
     $('now-asof').textContent = `As of ${D.updated}. Progress is refreshed whenever a job starts or ends.`;
     const cards = (D.now || []).map((r) => {
       const pct = none(r.progress) ? null : Math.round(r.progress * 100);
       const speed = r.rev_s ? ` &middot; ${r.rev_s.toLocaleString('en-US')} reviews/s` : '';
-      return `<div class="card"><div class="k">${tag(r.kind)}${trk(r.track)} started ${r.started}${r.elapsed ? ` (${r.elapsed} ago)` : ''}${r.eta ? ` &middot; expected end ${r.eta}` : ''}</div><div class="v">${name(r.what, r.id)}</div>`
+      return `<div class="card"><div class="k">${tag(r.kind)}${trk(r.track)} started ${r.started}${r.elapsed ? ` (${r.elapsed} ago)` : ''}${r.eta ? ` &middot; expected end ${r.eta}` : ''}</div>`
         + (pct === null ? '' : `<div class="bar"><i style="width:${pct}%"></i></div><div class="s">${pct}% done${speed}</div>`)
-        + `<div class="s">${r.why || ''}</div></div>`;
+        + `<div class="fld what"><b>What</b>${r.what}${r.id ? ` <span class="id">(${r.id})</span>` : ''}</div>`
+        + `<div class="fld"><b>Decides</b>${r.decides || (r.linked === false ? '<span class="id">not in the plan yet (no curated entry matches this job)</span>' : '<span class="id">&ndash;</span>')}</div>`
+        + (r.why ? `<div class="fld"><b>Why</b>${r.why}</div>` : '')
+        + (r.job && r.job !== r.what ? `<div class="fld job">Queue job: ${r.job}</div>` : '') + '</div>';
     });
     if (!cards.length) cards.push('<div class="card"><div class="v">No job is running</div></div>');
     let extra = '';
-    if ((D.waiting || []).length) extra += `<p class="muted">Waiting in the queue: ${D.waiting.map((w) => `${w.what} <span class="id">(${w.ticket})</span>`).join('; ')}</p>`;
-    if ((D.recent || []).length) extra += `<p class="muted">Finished recently: ${D.recent.map((w) => `${w.what} <span class="id">(${w.date} ${w.ended}, ${w.exit === 0 ? 'ok' : 'exit ' + w.exit}${w.ran ? ', ' + w.ran : ''})</span>`).join('; ')}</p>`;
+    const mini = (head, rows) => `<div class="table-wrap"><table class="mini"><thead><tr>${head.map((h) => `<th${h[1] ? ' class="n"' : ''}>${h[0]}</th>`).join('')}</tr></thead><tbody>${rows.join('')}</tbody></table></div>`;
+    if ((D.waiting || []).length) extra += `<h3>Waiting in the queue (${D.waiting.length})</h3>` + mini([['ID'], ['Description'], ['Flags']],
+      D.waiting.map((w) => `<tr><td class="w">${tid(w)}</td><td class="d">${w.what}</td><td class="w">${w.flags || ''}</td></tr>`));
+    if ((D.recent || []).length) extra += `<h3>Finished recently</h3>` + mini([['ID'], ['Description'], ['Finished'], ['Status'], ['Duration', 1]],
+      D.recent.map((w) => `<tr${w.exit ? ' class="fail"' : ''}><td class="w">${tid(w)}</td><td class="d">${w.what}</td><td class="w">${w.date} ${w.ended}</td><td>${exitTag(w.exit)}</td><td class="w n">${w.ran || '&ndash;'}</td></tr>`));
     $('now').innerHTML = cards.join('') + extra;
 
     drawPlan(D);

@@ -251,6 +251,17 @@ def plan_state(row, running, waiting, finished):
     return {"state": "planned"}
 
 
+def plan_for(purpose, plan_rows):
+    """The curated plan row whose `match` substring occurs in a queue purpose, else None."""
+    for row in plan_rows:
+        matches = row.get("match") or []
+        if isinstance(matches, str):
+            matches = [matches]
+        if any(m and m in purpose for m in matches):
+            return row
+    return None
+
+
 def build(previous):
     curated = json.loads(CURATED.read_text(encoding="utf-8"))
     queue = queue_state()
@@ -264,8 +275,14 @@ def build(previous):
     now_rows = []
     for t in running:
         note = next((n for n in notes if n.get("match") and n["match"] in t["purpose"]), {})
-        row = {"what": note.get("what") or html.escape(t["purpose"]), "id": note.get("id") or t["ticket"],
-               "kind": note.get("kind", "gpu-train"), "why": note.get("why", ""), "track": note.get("track", TRACK),
+        # A running ticket without its own now_notes entry takes What / Decides from the plan row it came from.
+        src = plan_for(t["purpose"], curated["plan"]) or {}
+        linked = bool(note or src)
+        ident = note.get("id") or (f"{src['id']}, ticket {t['ticket'][:6]}" if src.get("id") else t["ticket"])
+        row = {"what": note.get("what") or src.get("what") or html.escape(t["purpose"]), "id": ident,
+               "kind": note.get("kind") or src.get("kind") or "gpu-train",
+               "decides": note.get("decides") or src.get("decides") or "", "why": note.get("why") or src.get("why") or "",
+               "job": html.escape(t["purpose"]), "linked": linked, "track": note.get("track") or src.get("track") or TRACK,
                "ticket": t["ticket"], "started": clock(t["started"]), "elapsed": hms(t["elapsed"]), "progress": None}
         end = None
         if len(running) == 1 and prog:
@@ -287,10 +304,15 @@ def build(previous):
         item = {k: v for k, v in row.items() if k != "match"} | plan_state(row, running, waiting, finished)
         plan.append(item)
 
-    recent = [{"ticket": t["ticket"], "what": html.escape(t["purpose"]), "ended": clock(t["finished"]),
-               "date": t["finished"].strftime("%m-%d"), "exit": t["exit"], "ran": hms(t["ran"]) if t["ran"] else ""}
+    def plan_id(purpose):
+        return (plan_for(purpose, curated["plan"]) or {}).get("id", "")
+
+    recent = [{"ticket": t["ticket"], "id": plan_id(t["purpose"]), "what": html.escape(t["purpose"]),
+               "ended": clock(t["finished"]), "date": t["finished"].strftime("%m-%d"), "exit": t["exit"],
+               "ran": hms(t["ran"]) if t["ran"] else ""}
               for t in reversed(finished[-RECENT:])]
-    waiting_rows = [{"ticket": t["ticket"], "what": html.escape(t["purpose"]), "flags": t["flags"]} for t in waiting]
+    waiting_rows = [{"ticket": t["ticket"], "id": plan_id(t["purpose"]), "what": html.escape(t["purpose"]),
+                     "flags": t["flags"]} for t in waiting]
 
     results = new_result_rows(curated, previous) + curated["results"]
     material_src = {
