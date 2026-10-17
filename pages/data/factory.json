@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-10-17T19:29:07+02:00",
- "updated": "2026-10-17 19:29",
- "material": "2162ae36db11f317",
- "summary": "running 000427, finished 000426",
+ "generated_at": "2026-10-17T19:33:24+02:00",
+ "updated": "2026-10-17 19:33",
+ "material": "abd196bd5bd39f10",
+ "summary": "running 000427",
  "headline": [
   {
    "k": "Best, 464 users (curve / instant)",
@@ -39,9 +39,11 @@
    "track": "small model",
    "ticket": "000427-small-model",
    "started": "19:28",
-   "elapsed": "0:00",
-   "progress": null,
-   "eta": "~21:33"
+   "elapsed": "0:04",
+   "progress": 0.034,
+   "rev_s": 57483,
+   "rev_s_avg": 57483,
+   "eta": "~21:16"
   }
  ],
  "waiting": [],
@@ -229,14 +231,6 @@
    "state": "planned"
   },
   {
-   "what": "State compression trained in, final decay only, from the epoch-10 checkpoint (runbook not written, not launched yet)",
-   "id": "SM32b",
-   "kind": "gpu-train",
-   "decides": "Does the 60&times; smaller state cost less when trained in than when applied afterwards?",
-   "track": "small model",
-   "minutes": 120
-  },
-  {
    "what": "Review results; then Muon test and the label-free fork fine-tune",
    "id": "SM36, SM38",
    "kind": "next",
@@ -256,7 +250,7 @@
    "status": "next",
    "item": "State compression trained in (QAT) at ~400/400 bits per card/note, during the final decay only",
    "id": "SM32b",
-   "why": "Post-training test: 60&times; smaller state than int8 for +0.0012 / +0.0023 nats. Expertium&rsquo;s advice: keep the epoch-10 checkpoint and redo only the final decay with the compression in the loop (QAT from scratch was much worse for him). Code being written now (CPU only); GPU run after the morning jobs",
+   "why": "Post-training test: 60&times; smaller state than int8 for +0.0012 / +0.0023 nats. Expertium&rsquo;s advice: redo only the final decay from the undecayed checkpoint with the compression in the loop. Code written and checked (CPU); first version estimated 4&ndash;7 h of GPU vs 65 min plain, so it is being sped up before it runs (target &le; 2 h)",
    "track": "small model"
   },
   {
