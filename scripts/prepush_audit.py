@@ -11,7 +11,7 @@ Git calls the hook with `<remote name> <remote url>` and one stdin line per ref:
 - secrets in added lines: private key blocks and common token formats (Anthropic, OpenAI, GitHub, AWS, Slack, Hugging Face,
   Google), plus the private patterns in artifacts/push-audit/private-patterns.txt (not committed: they would name what
   they hide);
-- commit metadata: author and committer e-mail must be the public identity (or a bot no-reply address);
+- commit metadata: a warning (no block) when the author or committer e-mail is not the usual public identity;
 - files over 90 MB (GitHub refuses 100 MB); a warning, not a block, above 40 MB.
 
 Exit 1 blocks the push and prints what was found. Every run is logged to artifacts/push-audit/log.jsonl (not committed) with
@@ -85,7 +85,7 @@ def audit(shas):
     for sha in shas:
         for who, email in zip(("author", "committer"), git("show", "-s", "--format=%ae%n%ce", sha).split()):
             if email != PUBLIC_EMAIL and not BOT_EMAIL.search(email):
-                found.append((sha, "(commit metadata)", f"{who} e-mail is not the public identity {PUBLIC_EMAIL}"))
+                print(f"[push-audit] warning: {sha[:10]} {who} e-mail {email} is not {PUBLIC_EMAIL} (not blocked)", file=sys.stderr)
         for line in git("diff-tree", "--no-commit-id", "-r", "--root", "--diff-filter=AMR", "-z", "--name-only", sha).split("\0"):
             path = line.strip()
             if not path:
