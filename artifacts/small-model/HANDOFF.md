@@ -528,3 +528,10 @@ Comparisons: dec9 vs dec8-L16k (+1.17% / +1.16%) and dec9-L32k vs dec8-L32k (+1.
 (note: also one more epoch, so this measures "e9 at 16k", not 16k alone). Gate math as in the 21:14 section.
 Measured at start: ~24k review presentations/s (e8 at 8192: 50k), epoch 13,964 updates -> epoch 9 ends ~06:40; whole chain ~10:00-10:30. Cancel: `python scripts/r01_queue.py cancel <ticket>` from the main repo, then
 kill the chain bash (ps -ef | grep runbook-2026-10-17).
+
+### 2026-10-17 07:05 Q11 step 1: epoch 9 at 16k done (000414, 4 h 28 min, exit 0), 100-user score (000415)
+Undecayed e9 on the 100 gate users vs fork: curve +2.68%, instant +2.51% (e8 at 8192: +1.66% / +1.66%; e7: +1.66% /
++1.80%). No divergence in updates.jsonl (median grad norm 0.068-0.084 per tenth, spikes <= 3.1 as in e8's <= 2.3).
+Read as constant-LR end-of-epoch noise (single-user updates at 7e-4), not a verdict: dec9 (16k decay, running from
+06:55) vs dec8-L16k is the paired test. If dec9 is also worse, epoch 9 at 16k hurt and the 32k decay from it (step 2)
+can be cancelled.
