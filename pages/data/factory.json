@@ -1,7 +1,7 @@
 {
- "generated_at": "2026-10-17T18:38:58+02:00",
- "updated": "2026-10-17 18:38",
- "material": "963d43c7606136cb",
+ "generated_at": "2026-10-17T18:49:15+02:00",
+ "updated": "2026-10-17 18:49",
+ "material": "2b224c02d92dc302",
  "summary": "running 000425",
  "headline": [
   {
@@ -39,7 +39,7 @@
    "track": "small model",
    "ticket": "000425-small-model",
    "started": "18:34",
-   "elapsed": "0:04",
+   "elapsed": "0:15",
    "progress": null,
    "eta": "~19:14"
   }
@@ -219,9 +219,9 @@
  "backlog": [
   {
    "status": "next",
-   "item": "State compression trained in (QAT) at ~400/400 bits per card/note",
+   "item": "State compression trained in (QAT) at ~400/400 bits per card/note, during the final decay only",
    "id": "SM32b",
-   "why": "Post-training test: 60&times; smaller state than int8 for +0.0012 / +0.0023 nats; training with the codec should shrink that cost",
+   "why": "Post-training test: 60&times; smaller state than int8 for +0.0012 / +0.0023 nats. Expertium&rsquo;s advice: keep the epoch-10 checkpoint and redo only the final decay with the compression in the loop (QAT from scratch was much worse for him). Code being written now (CPU only); GPU run after the morning jobs",
    "track": "small model"
   },
   {

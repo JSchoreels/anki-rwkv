@@ -166,9 +166,9 @@
  "backlog": [
   {
    "status": "next",
-   "item": "State compression trained in (QAT) at ~400/400 bits per card/note",
+   "item": "State compression trained in (QAT) at ~400/400 bits per card/note, during the final decay only",
    "id": "SM32b",
-   "why": "Post-training test: 60&times; smaller state than int8 for +0.0012 / +0.0023 nats; training with the codec should shrink that cost",
+   "why": "Post-training test: 60&times; smaller state than int8 for +0.0012 / +0.0023 nats. Expertium&rsquo;s advice: keep the epoch-10 checkpoint and redo only the final decay with the compression in the loop (QAT from scratch was much worse for him). Code being written now (CPU only); GPU run after the morning jobs",
    "track": "small model"
   },
   {
