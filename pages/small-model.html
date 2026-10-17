@@ -86,7 +86,7 @@
     <div class="table-wrap free"><table class="sm-table" id="backlog"></table></div>
   </section>
 
-  <p class="muted">Updated 2026-10-17 15:00. Source: <code>docs/SMALL_MODEL.md</code> and <code>artifacts/small-model/</code> on the <code>small-model</code> branch. Own-collection figures are collection-level aggregates only.</p>
+  <p class="muted">Updated 2026-10-17 16:00. Source: <code>docs/SMALL_MODEL.md</code> and <code>artifacts/small-model/</code> on the <code>small-model</code> branch. Own-collection figures are collection-level aggregates only.</p>
 </main>
 
 <script src="common.js"></script>
@@ -128,6 +128,7 @@
     ['10-17', 'Review-number statistics per user, preset and deck', '', 'The user&rsquo;s pass rate at the 2nd, 3rd&hellip; review of a card: no gain. The student already works it out from history.'],
     ['10-17', 'Small correction model on top of the student', '', 'Fitted on other users, it makes unseen users worse (curve +0.5 to +1.06%). The remaining learning-step information is only in the SM-2 label.'],
     ['10-17', 'Own collection (review types from the fork, not SM-2)', 'SM07', 'Best student +0.18% / +0.21%. Fork with first-review rule &minus;0.06% / +0.04%; fork with review type removed +2.74% / +1.03%. Student calibration a bit worse on curve (RMSE(bins) 0.0274 vs 0.0224).'],
+    ['10-17', 'Expertium&rsquo;s research log, for comparison', 'SM34', 'His d=64 model (333k params, 10+1 epochs, Muon, real-timestamp inputs, leak-free intervals) is +0.0029 curve / +0.0010 instant behind the old d=128 model on his validation users; his curve side is pessimistic by about 0.002 because his rows enforce grade order. With ~1,000x smaller quantized state: +0.0048 / +0.0039.'],
     ['10-17', 'Fork-size model in our trainer', '', 'The fork&rsquo;s architecture now builds in our trainer from its own weights, bit-for-bit equal predictions; a variant without review type is ready for a label-free reference.'],
   ];
 
@@ -143,9 +144,16 @@
     ['running', 'Gap by review type and by inferred stage on all 464 users', 'SM24', 'Stages from intervals and ratings only: same-day, after a fail, spaced'],
     ['running', 'Fork with first-review-rule labels on all 464 users', 'SM25', 'A label-free fork reference for free; about 20:30'],
     ['next', 'Training-speed profile at 2,048 / 8,192 / 32k windows + fork-size cases', '', 'Where the time goes at long windows; also costs the label-free reference. Tomorrow morning, quiet GPU'],
-    ['next', 'Label-free reference: the fork fine-tuned with review type switched off', '', 'Honest best a big model can do without review type; from-scratch retrain only if needed'],
-    ['next', 'Final decay with double weight on the instant loss', 'SM26', 'Instant is the real remaining gap. Code ready on its own branch'],
+    ['next', 'Label-free reference: the fork fine-tuned with review type switched off', 'SM38', 'Honest best a big model can do without review type. Fine-tune first: Expertium found a cheap from-scratch retrain at fork size loses +0.0037 / +0.0043'],
+    ['next', 'Final decay with double weight on the instant loss', 'SM26', 'Instant is the real remaining gap. Code ready. Expertium&rsquo;s loss re-weightings were trades (instant better, curve worse), so also check long intervals'],
     ['next', 'Review-number flags as inputs (2nd / 3rd / 4th+ review)', 'SM30', 'Code being written; about 3 h GPU at 2,048 windows, paired'],
+    ['next', 'One-epoch final decay instead of a quarter epoch', 'SM35', 'One of Expertium&rsquo;s largest gains (about &minus;0.0015 on both heads, bundled); test cheaply at 2,048 windows first'],
+    ['next', 'Muon optimizer for the student', 'SM36', 'Expertium&rsquo;s biggest instant gains came from Muon (&minus;0.0005 instant at d=32); our student is AdamW only'],
+    ['next', 'Deployment-realistic scoring without the duration leak', 'SM31', 'Intervals as Anki knows them when it shows the card; both models, cheap. Expertium: +0.0002 / +0.0004 cost'],
+    ['idea', 'Expertium&rsquo;s state quantization (codebooks, ~450 / 400 bits per card / note)', 'SM32', 'Largest user: fork int8 state 4.6 GB, ours 0.88 GB, his ~14 MB. Costs him about +0.6% / +1.1%'],
+    ['idea', 'Real-timestamp inputs (card age, time since any review, creation batch)', 'SM37', 'Expertium: about &minus;0.0005 / &minus;0.0008 net of the clock leak; needs the dataset build with timestamps'],
+    ['idea', 'Grade-order sanity: interval(Again) &le; Hard &le; Good &le; Easy', 'SM33', 'Measure how often the student breaks it; enforcing it costs Expertium +0.002 on curve'],
+    ['done', 'Cross-check of Expertium&rsquo;s research log, ledger and run board', 'SM34', 'Read 10-17; new rows above, plus a list of his dead ends to skip'],
     ['idea', 'Training with carried state between a user&rsquo;s windows', 'SM21', 'Full-history context at short-window speed (5&ndash;7x faster). Designed, CPU prototype exact'],
     ['idea', 'Teacher targets from the fork&rsquo;s full-history replay', 'SM11', 'Needed with carried state; 5.2 h GPU, 3.7 GB'],
     ['idea', 'Exact kernel work for the w64 width', 'W05', 'w64 still ~21% slower than the w32 fast kernels at short windows; bit-for-bit identical'],
