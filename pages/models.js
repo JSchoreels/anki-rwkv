@@ -1,6 +1,7 @@
-// Architecture page. Every count is derived from the two configurations below, which mirror
-// rwkv/architecture.py (Alex, default) and expertium/variants.py w64 (the reconstruction of Expertium's d=64 trunk), which together with
-// his run 110 `s64hsm10` (rwkv-anki-autoresearch commit 1f2e6b0) is the model shown as "Expertium". The older iter36 config of expertium/architecture.py is kept only as a labelled snapshot.
+// Architecture page. Every count is derived from the configurations below, which mirror rwkv/architecture.py (Alex, default)
+// and expertium/variants.py w64 (the reconstruction of Expertium's d=64 trunk). "Ours" is w64 at our 92 inputs, the small model
+// on the factory page; "Expertium" is his run 110 `s64hsm10` (rwkv-anki-autoresearch commit 1f2e6b0), kept as a table column.
+// The older iter36 config of expertium/architecture.py is kept only as a labelled snapshot.
 (() => {
   'use strict';
   const { h, bindTip, fmt, esc } = window.UI;
@@ -27,6 +28,13 @@
       // Parameters are DERIVED: 332,922 (his figure for s64h/s64hc10, 103 inputs, incl. PAVA's 3) + 2 sibling-rating inputs x 128.
       name: 'Expertium', full: 'Expertium (run 110, s64hsm10)', C: 64, H: 4, hd: 16, F: 2, headMult: 2, curves: 3, points: 0, gru: 3,
       inputs: 105, pava: 3, lora: { d: 4, a: 4, v: 2, g: 4 }, stripV0: true,
+      mixers: { card: [0], deck: [0, 3], note: [0], preset: [], user: [] },
+      streams: [['card', 2, 1], ['deck', 4, 1], ['note', 1, 1], ['preset', 3, 1], ['user', 3, 1]],
+    },
+    // Ours: the w64 preset (expertium/variants.py) at our 92 inputs, no PAVA; must total W64_PARAMETERS = 331,511.
+    ours: {
+      name: 'Ours', full: 'Ours (small model, w64)', C: 64, H: 4, hd: 16, F: 2, headMult: 2, curves: 3, points: 0, gru: 3,
+      inputs: 92, pava: 0, lora: { d: 4, a: 4, v: 2, g: 4 }, stripV0: true,
       mixers: { card: [0], deck: [0, 3], note: [0], preset: [], user: [] },
       streams: [['card', 2, 1], ['deck', 4, 1], ['note', 1, 1], ['preset', 3, 1], ['user', 3, 1]],
     },
@@ -90,15 +98,16 @@
     m.total = m.comp.reduce((a, c) => a + c.n, 0);
     m.layers = m.streams.reduce((a, s) => a + s[1], 0);
   }
-  const A = MODELS.alex, E = MODELS.exp, I = MODELS.iter36;
+  const A = MODELS.alex, E = MODELS.ours, X = MODELS.exp, I = MODELS.iter36;
+  console.assert(E.total === 331511, 'ours should match W64_PARAMETERS', E.total);
   const kib = (b) => (b / 1024).toLocaleString('en-US', { maximumFractionDigits: 2 }) + ' KiB';
 
   // ---------- Headline ----------
   $('h-params').textContent = `${(A.total / 1e6).toFixed(2)}M vs ${Math.round(E.total / 1e3)}k`;
-  $('h-params-sub').textContent = `Alex ${fmt(A.total)} · Expertium ${fmt(E.total)} (${(A.total / E.total).toFixed(1)}× smaller)`;
+  $('h-params-sub').textContent = `Alex ${fmt(A.total)} · ours ${fmt(E.total)} (${(A.total / E.total).toFixed(1)}× smaller)`;
   $('h-width').textContent = `${A.C}×${A.H} vs ${E.C}×${E.H}`;
   $('h-layers').textContent = `${A.layers} vs ${E.layers}`;
-  $('h-layers-sub').textContent = `per stream: Alex ${A.streams.map((s) => s[1]).join('/')}, Expertium ${E.streams.map((s) => s[1]).join('/')} (card/deck/note/preset/user)`;
+  $('h-layers-sub').textContent = `per stream: Alex ${A.streams.map((s) => s[1]).join('/')}, ours ${E.streams.map((s) => s[1]).join('/')} (card/deck/note/preset/user)`;
   $('h-mem').textContent = `${kib(streamBytes(A, 'card', A.streams[0][1])).replace(' KiB', '')} vs ${kib(streamBytes(E, 'card', E.streams[0][1]))}`;
 
   // ---------- 92 input features ----------
@@ -244,7 +253,7 @@
   }
   waffle($('w-alex'), A, 'w-alex');
   waffle($('w-exp'), E, 'w-exp');
-  $('w-exp-cap').textContent = `The whole Expertium model fits in the space Alex spends on its input encoder and part of its card stream.`;
+  $('w-exp-cap').textContent = `Our whole model fits in the space Alex spends on its input encoder and part of its card stream.`;
 
   const allCells = () => Object.values(waffleCells).flat();
   A.comp.forEach((c) => {
@@ -267,7 +276,7 @@
   }
   const pt = $('ptable');
   pt.append(h('thead', {}, h('tr', {}, h('th', {}, 'Component'), h('th', { class: 'r' }, 'Alex'), h('th', { class: 'r' }, 'share'),
-    h('th', { class: 'r' }, 'Expertium'), h('th', { class: 'r' }, 'share'), h('th', { class: 'r' }, 'ratio'))));
+    h('th', { class: 'r' }, 'Ours'), h('th', { class: 'r' }, 'share'), h('th', { class: 'r' }, 'ratio'))));
   const tb = h('tbody');
   A.comp.forEach((c, i) => {
     const e = E.comp[i];
@@ -326,7 +335,7 @@
 
   // ---------- State memory ----------
   function memory(el, m) {
-    const size = 18; // tile size is fixed; one tile is one head's state matrix (32x32 for Alex, 16x16 for Expertium)
+    const size = 18; // tile size is fixed; one tile is one head's state matrix (32x32 for Alex, 16x16 for ours)
     for (const [s, n] of m.streams) {
       const mats = h('div', { class: 'mats' });
       for (let l = 0; l < n; l++) {
@@ -367,7 +376,7 @@
     });
     if (withTicks) TICKS.forEach(([s, l], i) => el.append(h('span', { class: 'tick' + (i % 2 ? '' : ' minor'), style: { left: pos(s) + '%' } }, l)));
   }
-  // Expertium: three curves whose stability is predicted per review. The ticks mark only the starting
+  // Ours (Expertium's head): three curves whose stability is predicted per review. The ticks mark only the starting
   // values (bias), log-spaced from 1 hour to 1 year (expertium/model/variant_model.py).
   {
     const n = E.gru;
@@ -385,23 +394,52 @@
   $('iter-total').textContent = fmt(I.total);
 
   // ---------- Comparison table ----------
+  const mixNote = '1, but kept in only 4 of the 13 layers (card 1, deck 1 and 4, note 1)';
+  const loraNote = '4 / 4 / 2 / 4 (value LoRA stripped in layer 1 of each stream)';
   const rows = [
-    ['Parameters', fmt(A.total), fmt(E.total) + ' (derived)'],
-    ['Hidden width (d_model)', A.C, E.C],
-    ['Heads (channels per head)', `${A.H} (${A.hd})`, `${E.H} (${E.hd})`],
-    ['Layers: card / deck / note / preset / user', A.streams.map((s) => s[1]).join(' / '), E.streams.map((s) => s[1]).join(' / ')],
-    ['Channel-mixer factor', A.streams.map((s) => s[2]).join(' / '), '1, but kept in only 4 of the 13 layers (card 1, deck 1 and 4, note 1)'],
-    ['LoRA ranks: decay / in-context rate / value / gate', '16 / 16 / 8 / 16', '4 / 4 / 2 / 4 (value LoRA stripped in layer 1 of each stream)'],
-    ['Input encoder', `92 → ${A.F * A.C} → ${A.C}`, `${E.inputs} → ${E.F * E.C} → ${E.C} (his layout; input 22 zeroed)`],
-    ['Curve head', `${A.curves} fixed exp. curves + ${A.points}-pt correction`, `${E.gru} learned power-law curves (weight, S, d per review), no correction head`],
-    ['Head inner width', A.headMult * A.C, E.headMult * E.C],
-    ['State per card', kib(streamBytes(A, 'card', A.streams[0][1])), kib(streamBytes(E, 'card', E.streams[0][1]))],
-    ['State per note', kib(streamBytes(A, 'note', A.streams[2][1])), kib(streamBytes(E, 'note', E.streams[2][1]))],
-    ['Dropout: card, note / deck, preset, user / per layer', '0.02 / 0.05 / 0.01', 'not published for run 110'],,
+    ['Parameters', fmt(A.total), fmt(E.total), fmt(X.total) + ' (derived)'],
+    ['Hidden width (d_model)', A.C, E.C, X.C],
+    ['Heads (channels per head)', `${A.H} (${A.hd})`, `${E.H} (${E.hd})`, `${X.H} (${X.hd})`],
+    ['Layers: card / deck / note / preset / user', ...[A, E, X].map((m) => m.streams.map((s) => s[1]).join(' / '))],
+    ['Channel-mixer factor', A.streams.map((s) => s[2]).join(' / '), mixNote, 'same as ours'],
+    ['LoRA ranks: decay / in-context rate / value / gate', '16 / 16 / 8 / 16', loraNote, 'same as ours'],
+    ['Input encoder', `92 → ${A.F * A.C} → ${A.C}`, `92 → ${E.F * E.C} → ${E.C} (input 22 zeroed)`, `${X.inputs} → ${X.F * X.C} → ${X.C} (his layout; input 22 zeroed)`],
+    ['Curve head', `${A.curves} fixed exp. curves + ${A.points}-pt correction`, `${E.gru} learned power-law curves (weight, S, d per review), no correction head`, 'same as ours, plus PAVA’s 3 thresholds'],
+    ['Head inner width', A.headMult * A.C, E.headMult * E.C, X.headMult * X.C],
+    ['State per card (fp32)', ...[A, E, X].map((m) => kib(streamBytes(m, 'card', m.streams[0][1])))],
+    ['State per note (fp32)', ...[A, E, X].map((m) => kib(streamBytes(m, 'note', m.streams[2][1])))],
+    ['Training', 'trained on the review labels', 'distilled from Alex’s model (the fork), windows up to 32,768 reviews, final LR decay', 'his 10-epoch schedule, Muon on the k/v scales'],
+    ['Scored here with', 'int8 weights and int8 state (the w8+s8 reference)', 'int8 weights and int8 state', 'not scored here'],
+    ['Dropout: card, note / deck, preset, user / per layer', '0.02 / 0.05 / 0.01', '0.01 / 0.025 / 0.005', 'not published for run 110'],
   ];
   const ct = $('ctable');
-  ct.append(h('thead', {}, h('tr', {}, h('th', {}, ''), h('th', { class: 'r' }, 'Alex (default)'), h('th', { class: 'r' }, 'Expertium'))));
+  ct.append(h('thead', {}, h('tr', {}, h('th', {}, ''), h('th', { class: 'r' }, 'Alex (default)'), h('th', { class: 'r' }, 'Ours'), h('th', { class: 'r' }, 'Expertium run 110'))));
   const cb = h('tbody');
-  rows.forEach(([k, a, e]) => cb.append(h('tr', {}, h('td', {}, k), h('td', { class: 'r' }, String(a)), h('td', { class: 'r' }, String(e)))));
+  rows.forEach(([k, ...v]) => cb.append(h('tr', {}, h('td', {}, k), ...v.map((x) => h('td', { class: 'r' }, String(x))))));
   ct.append(cb);
+
+  // ---------- Results, read from the factory page's curated headline (pages/data/factory-curated.json) ----------
+  const pct = (x) => (x > 0 ? '+' : '') + x.toFixed(2) + '%';
+  fetch('data/factory-curated.json').then((r) => r.json()).then((d) => {
+    const cards = (d.headline || []).filter((c) => c.compare);
+    if (!cards.length) return;
+    const out = $('results-tables');
+    for (const c of cards) {
+      const ref = c.compare.find((r) => r.ref);
+      const t = h('table', { class: 'plain' });
+      t.append(h('thead', {}, h('tr', {}, h('th', {}, ''), h('th', { class: 'r' }, 'Curve'), h('th', { class: 'r' }, 'Instant'),
+        h('th', { class: 'r' }, 'Δ curve'), h('th', { class: 'r' }, 'Δ instant'), h('th', { class: 'r' }, 'Eval'))));
+      const body = h('tbody');
+      for (const r of c.compare) {
+        const dc = r.ref ? null : (r.curve_pct ?? (ref ? 100 * (r.curve / ref.curve - 1) : null));
+        const di = r.ref ? null : (r.instant_pct ?? (ref ? 100 * (r.instant / ref.instant - 1) : null));
+        const name = r.ref ? `Alex’s model: ${r.variant}` : `Ours: ${r.variant}`;
+        body.append(h('tr', {}, h('td', {}, name), h('td', { class: 'r' }, r.curve.toFixed(5)), h('td', { class: 'r' }, r.instant.toFixed(5)),
+          h('td', { class: 'r' }, dc == null ? '–' : pct(dc)), h('td', { class: 'r' }, di == null ? '–' : pct(di)), h('td', { class: 'r' }, r.eval || '')));
+      }
+      t.append(body);
+      out.append(h('h3', { html: c.k.replace(/ \(curve \/ instant\)/, '') }), h('div', { class: 'table-wrap' }, t));
+    }
+    $('results').hidden = false;
+  }).catch(() => {});
 })();

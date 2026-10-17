@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Model Architectures</title>
-<meta name="description" content="Visual comparison of the two RWKV spaced-repetition models in anki-rwkv: Alex's default 2.76M-parameter model and Expertium's compact model, from the 92 input features to the forgetting-curve heads.">
+<meta name="description" content="Visual comparison of Alex's default 2.76M-parameter RWKV spaced-repetition model and our 331k-parameter small model (Expertium's d=64 shape, distilled from Alex's model), from the 92 input features to the forgetting-curve heads, with current LogLoss.">
 <link rel="stylesheet" href="style.css">
 <link rel="stylesheet" href="explain.css">
 </head>
@@ -14,8 +14,8 @@
     <div class="top-row">
       <div>
         <p class="eyebrow"><a href="./">anki-rwkv</a> &middot; <a href="factory.html">factory overview</a> &middot; model architectures &middot; <a href="campaign.html">R01 campaign</a> &middot; <a href="train.html">8k/2k run</a> &middot; <a href="docs/data-quality/">data quality</a></p>
-        <h1>Two RWKV models, <span class="accent">same inputs</span>, very different budgets</h1>
-        <p class="lede">Both models pass each review through the same five streams: card, deck, note, preset and user. Alex's default model is wide (128 channels, 4 heads of 32). Expertium's latest model, run 110, is narrow (64 channels, 4 heads of 16) and keeps about 9&nbsp;KiB of memory per card.</p>
+        <h1>Alex&rsquo;s model vs ours: <span class="accent">same inputs</span>, 8&times; fewer parameters</h1>
+        <p class="lede">Both models pass each review through the same five streams: card, deck, note, preset and user. Alex's default model is wide (128 channels, 4 heads of 32). Our small model is narrow (64 channels, 4 heads of 16), keeps about 9&nbsp;KiB of fp32 memory per card (a quarter of that in int8) and is distilled from Alex&rsquo;s model.</p>
       </div>
       <button id="theme" class="btn" type="button" aria-label="Toggle light and dark theme">Theme</button>
     </div>
@@ -23,10 +23,15 @@
 </header>
 
 <main class="wrap">
-  <div class="explain-box" style="margin-top:16px"><strong>Which versions.</strong> &ldquo;Alex&rdquo; is the default model from srs-benchmark (commit <code>3effecc</code>). &ldquo;Expertium&rdquo; is his run 110, <code>s64hsm10</code>, from rwkv-anki-autoresearch at commit <code>1f2e6b0</code> (<code>optimization/LEDGER.md</code>, row 14d): the d=64 trunk, 3 learned power-law curves with no correction head, two extra sibling-rating inputs, and Muon on the 26 key/value scale matrices. His architecture file for it is not published, so the layer layout and the <strong>333,178 parameter total are derived</strong>, not his figure: this repository's reconstruction of his d=64 trunk, which reproduces his published 332,922 parameters for the trunk it builds on, plus 2 inputs &times; 128. Not published, so not shown: dropout and exact input list. His LEDGER gives run 110 a curve (ahead) LogLoss of 0.297534 and an instant LogLoss of 0.264587 on his validation half, with the 10-epoch schedule. The older iter36 config (32 channels, 64 fixed curves plus a correction head), which this repository trained earlier, is shown separately in <a href="#heads">the output heads</a>.</div>
+  <div class="explain-box" style="margin-top:16px"><strong>Which versions.</strong> &ldquo;Alex&rdquo; is the default model from srs-benchmark (commit <code>3effecc</code>), trained in this repository as the reference (&ldquo;the fork&rdquo;). &ldquo;Ours&rdquo; is the small model from the <a href="factory.html">factory</a>: the <code>w64</code> preset in <code>expertium/variants.py</code>, which is this repository&rsquo;s reconstruction of Expertium&rsquo;s d=64 trunk (it reproduces his published 332,922 parameters at his input layout). Ours reads the same 92 inputs as Alex&rsquo;s model (with input 22, the review state, zeroed) and has no PAVA thresholds, so it has <strong>331,511 parameters</strong>. Besides the shape, its training differs: knowledge distillation from the fork model, long review windows (up to 32,768 reviews), a final learning-rate decay, and int8 weights plus int8 state at scoring time. Expertium&rsquo;s own run 110 (<code>s64hsm10</code>, rwkv-anki-autoresearch <code>1f2e6b0</code>) uses the same trunk with 105 inputs (derived total 333,178); it is kept as a third column in <a href="#side">the side-by-side table</a>. The older iter36 config (32 channels, 64 fixed curves plus a correction head) is shown separately in <a href="#heads">the output heads</a>.</div>
+  <section class="panel" id="results" hidden>
+    <div class="panel-head"><h2>How close ours gets to Alex&rsquo;s model</h2></div>
+    <p class="hint">LogLoss, lower is better. <strong>Curve</strong> scores the predicted recall probability at the next review; <strong>instant</strong> scores the predicted grade. &Delta; is relative to Alex&rsquo;s model (the fork) on the same reviews. Read live from the <a href="factory.html">factory</a> data, so it follows the latest result.</p>
+    <div id="results-tables"></div>
+  </section>
   <section class="cards compact" aria-label="Headline comparison">
     <div class="card big"><div class="k">Parameters</div><div class="v" id="h-params">&ndash;</div><div class="s" id="h-params-sub"></div></div>
-    <div class="card"><div class="k">Hidden width &times; heads</div><div class="v" id="h-width">&ndash;</div><div class="s">channels &times; heads (32 per head for Alex, 16 for Expertium)</div></div>
+    <div class="card"><div class="k">Hidden width &times; heads</div><div class="v" id="h-width">&ndash;</div><div class="s">channels &times; heads (32 per head for Alex, 16 for ours)</div></div>
     <div class="card"><div class="k">RWKV layers</div><div class="v" id="h-layers">&ndash;</div><div class="s" id="h-layers-sub"></div></div>
     <div class="card"><div class="k">Memory per card</div><div class="v" id="h-mem">&ndash;</div><div class="s">card-stream state, fp32</div></div>
   </section>
@@ -34,7 +39,7 @@
   <section class="panel">
     <div class="panel-head">
       <h2>The 92 numbers each review becomes</h2>
-      <p class="hint">One square per input number, in the order the model receives them. Alex&rsquo;s model uses exactly this vector. Expertium&rsquo;s run 110 reads his own rebuilt review-time layout instead (103 columns in his earlier d=64 runs, plus 2 sibling-rating inputs in run 110: 105 in total, derived), of which this published 92-number layout is the closest relative. Striped squares are blanked on the <em>query</em> copy of a review, the row that has to predict the grade without seeing it. Hover a square or a group.</p>
+      <p class="hint">One square per input number, in the order the model receives them. Both Alex&rsquo;s model and ours use exactly this vector; ours sets input 22 (review state) to 0 in training and scoring, as Expertium does. (Expertium&rsquo;s own run 110 reads his rebuilt 105-column layout instead.) Striped squares are blanked on the <em>query</em> copy of a review, the row that has to predict the grade without seeing it. Hover a square or a group.</p>
     </div>
     <div class="fstrip" id="fstrip" role="img" aria-label="92 input features coloured by group"></div>
     <div class="fgroups" id="fgroups"></div>
@@ -56,7 +61,7 @@
     <div class="keys" id="pkeys"></div>
     <div class="cmp">
       <div><div class="sbar-label">Alex (default) <span id="w-alex-n"></span></div><div class="waffle" id="w-alex" style="--wcols:40"></div></div>
-      <div><div class="sbar-label">Expertium <span id="w-exp-n"></span></div><div class="waffle" id="w-exp" style="--wcols:40"></div><p class="wcap" id="w-exp-cap"></p></div>
+      <div><div class="sbar-label">Ours <span id="w-exp-n"></span></div><div class="waffle" id="w-exp" style="--wcols:40"></div><p class="wcap" id="w-exp-cap"></p></div>
     </div>
     <h3>Share of each model's own budget</h3>
     <div id="shares"></div>
@@ -67,14 +72,14 @@
     <div class="panel-head row">
       <div>
         <h2>Inside one RWKV layer</h2>
-        <p class="hint">How a single layer splits its parameters. 100 squares = the whole layer (so the two grids are not to the same scale; the totals are). The four mixing matrices grow with width squared, so narrowing from 128 to 64 channels shrinks them 4&times;. Expertium keeps a channel mixer in only four of its 13 layers, and the first layer of each stream has no value-residual LoRA.</p>
+        <p class="hint">How a single layer splits its parameters. 100 squares = the whole layer (so the two grids are not to the same scale; the totals are). The four mixing matrices grow with width squared, so narrowing from 128 to 64 channels shrinks them 4&times;. Ours (like Expertium&rsquo;s trunk) keeps a channel mixer in only four of its 13 layers, and the first layer of each stream has no value-residual LoRA.</p>
       </div>
       <div class="seg" id="layer-stream" role="group" aria-label="Pick a stream"></div>
     </div>
     <div class="keys" id="lkeys"></div>
     <div class="cmp">
       <div><div class="sbar-label">Alex <span id="l-alex-n"></span></div><div class="waffle" id="l-alex" style="--wcols:10; max-width: 260px"></div></div>
-      <div><div class="sbar-label">Expertium <span id="l-exp-n"></span></div><div class="waffle" id="l-exp" style="--wcols:10; max-width: 260px"></div></div>
+      <div><div class="sbar-label">Ours <span id="l-exp-n"></span></div><div class="waffle" id="l-exp" style="--wcols:10; max-width: 260px"></div></div>
     </div>
     <ul class="hint" style="padding-left: 18px; margin-top: 12px">
       <li><strong>R, K, V, O</strong>: receptance (what to read), key (where to write), value (what to write) and output projections of the time mixer.</li>
@@ -87,46 +92,41 @@
   <section class="panel">
     <div class="panel-head">
       <h2>What has to be remembered</h2>
-      <p class="hint">At inference time every card, deck, note, preset and user carries its own recurrent state. Each small grid is one head&rsquo;s state matrix in one layer (32&times;32 for Alex, 16&times;16 for Expertium); per layer the model also keeps a token-shift vector as wide as the hidden layer for the time mixer, and another for each channel mixer that is still present. Sizes are fp32.</p>
+      <p class="hint">At inference time every card, deck, note, preset and user carries its own recurrent state. Each small grid is one head&rsquo;s state matrix in one layer (32&times;32 for Alex, 16&times;16 for ours); per layer the model also keeps a token-shift vector as wide as the hidden layer for the time mixer, and another for each channel mixer that is still present. Sizes are fp32; ours is scored with int8 state, which takes a quarter of that.</p>
     </div>
     <div class="cmp">
       <div><h3>Alex</h3><div id="mem-alex"></div></div>
-      <div><h3>Expertium</h3><div id="mem-exp"></div></div>
+      <div><h3>Ours</h3><div id="mem-exp"></div></div>
     </div>
     <h3>Hidden vector between layers</h3>
     <p class="hint">One square per channel, coloured by head.</p>
     <div class="sbar-label">Alex: 128 channels, 4 heads</div><div class="vec" id="vec-alex"></div>
-    <div class="sbar-label">Expertium: 64 channels, 4 heads</div><div class="vec" id="vec-exp"></div>
+    <div class="sbar-label">Ours: 64 channels, 4 heads</div><div class="vec" id="vec-exp"></div>
   </section>
 
   <section class="panel" id="heads">
     <div class="panel-head">
       <h2>The output heads</h2>
-      <p class="hint"><strong>Curve</strong> predicts the forgetting curve. Alex mixes 128 fixed-stability basis curves and adds a learned correction sampled at fixed time points; Expertium uses 3 learned power-law curves and no correction. <strong>Instant</strong> predicts the four grades. Each tick below is one basis curve's stability (time to fall to 90%), one correction point, or (Expertium) a curve's starting stability, on a log time axis.</p>
+      <p class="hint"><strong>Curve</strong> predicts the forgetting curve. Alex mixes 128 fixed-stability basis curves and adds a learned correction sampled at fixed time points; ours uses 3 learned power-law curves (Expertium&rsquo;s head) and no correction. <strong>Instant</strong> predicts the four grades. Each tick below is one basis curve's stability (time to fall to 90%), one correction point, or (ours) a curve's starting stability, on a log time axis.</p>
     </div>
     <div class="sbar-label">Alex: <span id="rug-alex-n"></span></div>
     <div class="rug" id="rug-alex-s"></div>
     <div class="rug" id="rug-alex-p"></div>
-    <div class="sbar-label">Expertium: <span id="rug-exp-n"></span></div>
+    <div class="sbar-label">Ours: <span id="rug-exp-n"></span></div>
     <div class="rug" id="rug-exp-s"></div>
     <div class="sbar-label">Expertium-style config as trained in this repo (iter36 snapshot): <span id="rug-iter36-n"></span></div>
     <div class="rug" id="rug-iter36-s"></div>
     <div class="rug" id="rug-iter36-p"></div>
-    <div class="keys"><span><i style="background:var(--s1)"></i>basis-curve stability (Expertium: starting stability of each learned curve)</span><span><i style="background:var(--s2)"></i>correction point</span></div>
-    <p class="explain-box">Expertium&rsquo;s own head is the single three-tick rug: his three curves have their weight, stability and decay predicted for every review, so the ticks only show where the stabilities start (1&nbsp;hour, about 4&nbsp;days, 1&nbsp;year; this initialisation is this repository&rsquo;s reading of his head code). The two rugs under the iter36 label are this repository&rsquo;s older config; there the <span id="ahead-n"></span>-parameter correction head is active and the whole model has <span id="iter-total"></span> parameters. Run 110 has no such head.</p>
-    <h3>Expertium&rsquo;s current head: a few learned power-law curves</h3>
-    <p class="lead-p">Expertium&rsquo;s runs since iteration 31, including run 110, set <code>RWKV_GRU_HEAD=N</code> (N&nbsp;=&nbsp;3), modelled on the GRU model in srs-benchmark. Instead of weighting dozens of curves with fixed stabilities, three small linear layers on the curve head&rsquo;s hidden output predict, for every review, the weight <code>w<sub>i</sub></code>, stability <code>S<sub>i</sub></code> and decay <code>d<sub>i</sub></code> of N curves. The Instant head is unchanged.</p>
+    <div class="keys"><span><i style="background:var(--s1)"></i>basis-curve stability (ours: starting stability of each learned curve)</span><span><i style="background:var(--s2)"></i>correction point</span></div>
+    <p class="explain-box">Our head is the single three-tick rug, taken from Expertium: its three curves have their weight, stability and decay predicted for every review, so the ticks only show where the stabilities start (1&nbsp;hour, about 4&nbsp;days, 1&nbsp;year; this initialisation is this repository&rsquo;s reading of his head code). The two rugs under the iter36 label are this repository&rsquo;s older config; there the <span id="ahead-n"></span>-parameter correction head is active and the whole model has <span id="iter-total"></span> parameters. Ours (and Expertium&rsquo;s run 110) has no such head.</p>
+    <h3>Our head, from Expertium: a few learned power-law curves</h3>
+    <p class="lead-p">Expertium&rsquo;s runs since iteration 31, including run 110, set <code>RWKV_GRU_HEAD=N</code> (N&nbsp;=&nbsp;3), modelled on the GRU model in srs-benchmark. Instead of weighting dozens of curves with fixed stabilities, three small linear layers on the curve head&rsquo;s hidden output predict, for every review, the weight <code>w<sub>i</sub></code>, stability <code>S<sub>i</sub></code> and decay <code>d<sub>i</sub></code> of N curves. The Instant head is unchanged. Our small model uses this head as is.</p>
     <p class="formula">R(t) = &Sigma;<sub>i=1..N</sub> w<sub>i</sub> &middot; (1 + t / S<sub>i</sub>)<sup>&minus;d<sub>i</sub></sup>&nbsp;&nbsp;&nbsp;&nbsp;S<sub>i</sub>, d<sub>i</sub> &gt; 0, weights sum to 1</p>
-    <p class="lead-p">This is a power-law shape like FSRS&rsquo;s forgetting curve. The correction head is switched off (the same as <code>RWKV_NO_AHEAD_RESIDUAL=1</code>), so every curve, and their mix, can only fall over time. The parameter totals on this page for Expertium describe run 110 and are derived from this repository&rsquo;s reconstruction of his d=64 trunk (<code>expertium/variants.py</code>, <code>expertium/model/variant_model.py</code>), not read from a log of his runs. Try both kinds of head in <a href="./#curve">the curve explainer</a> on the home page.</p>
+    <p class="lead-p">This is a power-law shape like FSRS&rsquo;s forgetting curve. The correction head is switched off (the same as <code>RWKV_NO_AHEAD_RESIDUAL=1</code>), so every curve, and their mix, can only fall over time. Our parameter totals are computed from <code>expertium/variants.py</code> (<code>w64</code>) and <code>expertium/model/variant_model.py</code> and match <code>W64_PARAMETERS</code> there; the Expertium column of the side-by-side table is derived from the same reconstruction, not read from a log of his runs. Try both kinds of head in <a href="./#curve">the curve explainer</a> on the home page.</p>
   </section>
 
   <section class="panel">
-    <div class="panel-head"><h2>Going smaller still: status, 2026-10-15</h2></div>
-    <p class="lead-p">A separate effort trains a much smaller student (331,511 parameters, the <code>w64</code> shape above without run 110&rsquo;s extra inputs) distilled from the fork model, on long review windows. Its best version is +1.01% curve / +1.01% instant LogLoss behind the fork (both with int8 weights and int8 state) on 464 held-out users, and +0.18% / +0.21% on the owner&rsquo;s own collection. Every experiment, the review-type analysis and the backlog are on the <a href="factory.html">factory overview page</a>.</p>
-  </section>
-
-  <section class="panel">
-    <div class="panel-head"><h2>Side by side</h2></div>
+    <div class="panel-head"><h2 id="side">Side by side</h2></div>
     <div class="table-wrap"><table class="plain" id="ctable"></table></div>
     <p class="muted">Sources: <code>rwkv/architecture.py</code>, <code>expertium/architecture.py</code> (iter36 snapshot), <code>expertium/variants.py</code> (w64), his <code>optimization/LEDGER.md</code> at <code>1f2e6b0</code>, <code>rwkv/model/srs_model.py</code>, <code>rwkv/model/rwkv_model.py</code>, <code>rwkv/data_processing.py</code>, <code>rwkv/prepare_batch.py</code> and <code>rwkv/config.py</code>. Parameter counts are computed in the page from the configurations and match the totals in the repository README.</p>
   </section>
