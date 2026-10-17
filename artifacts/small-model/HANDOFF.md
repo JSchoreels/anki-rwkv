@@ -568,3 +568,16 @@ runbook-2026-10-17-longdecay32k.log). If it does not cross the bar: a second epo
   feature-screen/sm24-bytype.txt/json (aggregate). ~45-60 min GPU.
 - Cancel: `python scripts/r01_queue.py cancel <ticket>` from the main repo, then kill the bash chains
   (ps -ef | grep "runbook-2026-10-17[bc]").
+
+## 2026-10-17 11:10 Day plan (user: GPU free by ~22:00-23:00 today)
+- GPU: 000420 e10 at 32k (end ~16:40) -> 100-user score -> 32k decay -> 464 scoring (dec10 result ~18:30, compare vs
+  dec9-L32k +1.01%/+1.01%) -> SM24 dumps via runbook-2026-10-17c-sm24.sh (~19:30, writes feature-screen/sm24-bytype.txt).
+- ~19:30-21:15 only: SM26 instant-weighted 0.25-epoch 32k decay from e10 (needs branch sm26 merged into small-model
+  BETWEEN tickets, i.e. after the SM24 tickets end), then 464 scoring. No e11 / pruning run tonight.
+- Background agents launched 11:05: Sonnet SM26 code (worktree C:/Users/jonat/workspace/wt/sm26, branch sm26, option
+  "instant_loss_weight", not merged); Opus pruning design (docs/SMALL_MODEL_PRUNING.md); Sonnet write-up of window /
+  per-user / shared-history results into docs/SMALL_MODEL.md; Haiku flow audit 000414-000419 (main repo).
+- Pending (main session): SM25 review-type robustness on the 68 CPU-screen users (fork + student with history review
+  types relabelled as a non-SM-2 scheduler would: same-day reviews of graduated cards as "review"); scratch data in the
+  session scratchpad feat/ (dumps, fx); scripts in artifacts/small-model/feature-screen/.
+- User decisions pending: bar P also on review-state reviews (after SM24); commit of heldout.jsonl / heldout-report.*.
