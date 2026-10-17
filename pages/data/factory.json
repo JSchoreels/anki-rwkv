@@ -1,7 +1,7 @@
 {
- "generated_at": "2026-10-17T19:33:24+02:00",
+ "generated_at": "2026-10-17T19:33:41+02:00",
  "updated": "2026-10-17 19:33",
- "material": "abd196bd5bd39f10",
+ "material": "d5d7faabcf496a37",
  "summary": "running 000427",
  "headline": [
   {
@@ -40,10 +40,10 @@
    "ticket": "000427-small-model",
    "started": "19:28",
    "elapsed": "0:04",
-   "progress": 0.034,
-   "rev_s": 57483,
-   "rev_s_avg": 57483,
-   "eta": "~21:16"
+   "progress": 0.037,
+   "rev_s": 57048,
+   "rev_s_avg": 57048,
+   "eta": "~21:17"
   }
  ],
  "waiting": [],
@@ -416,6 +416,16 @@
   }
  ],
  "results": [
+  {
+   "date": "10-17",
+   "kind": "gpu-speed",
+   "name": "Training speed profile (quiet GPU): student at 2,048 / 8,192 / 16,384 / 32,768 windows and the fork-size model",
+   "id": "speed-20261018",
+   "eval": "160 training users, 12.4M reviews per case",
+   "fork": "reviews/s: student 97.7k / 49.3k / 31.9k / 19.9k; fork-size 40.8k (batch 128), 35.7k (batch 64)",
+   "takeaway": "Long windows cost the student a lot (5&times; slower at 32k than at 2,048). The fork-size model at batch 128 trains faster than the student at 16k+ windows, so a label-free fork-size reference is affordable",
+   "track": "small model"
+  },
   {
    "date": "10-17",
    "kind": "collection",
