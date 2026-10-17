@@ -2,7 +2,7 @@
 """CPU check of the opt-in instant_loss_weight training option (docs/SMALL_MODEL.md, SM26).
 
 On one real user's batch, a perturbed w64 student, with and without distillation targets:
-  1. option absent vs weight 1.0 vs the loss code before SM26 (merge-base copy of variant_model.py): loss, per-review
+  1. option absent vs weight 1.0 vs the loss code before SM26 (variant_model.py before the commit adding it): loss, per-review
      loss tensor and every gradient bit for bit;
   2. weight 2.0: loss = (loss at weight 1) + 1 x instant average, i.e. curve part + 2 x instant part with the
      regularizers unchanged; gradients differ; evaluation outputs (p_curve, p_imm) unchanged;
@@ -29,8 +29,11 @@ TEACHER = Path(r"C:\Users\jonat\workspace\anki\qt\aqt\rwkv_inference\RWKV_traine
 
 
 def previous_variant_class(tmp):
-    """VariantSrsRWKV exactly as before SM26 (variant_model.py at the merge-base with small-model)."""
-    base = subprocess.run(["git", "merge-base", "HEAD", "small-model"], cwd=ROOT, capture_output=True, text=True,
+    """VariantSrsRWKV exactly as before SM26 (variant_model.py in the parent of the first commit that adds the option)."""
+    first = subprocess.run(["git", "log", "--reverse", "--format=%H", "-S", "instant_loss_weight", "HEAD", "--",
+                            "expertium/model/variant_model.py"], cwd=ROOT, capture_output=True, text=True,
+                           check=True).stdout.split()[0]
+    base = subprocess.run(["git", "rev-parse", f"{first}^"], cwd=ROOT, capture_output=True, text=True,
                           check=True).stdout.strip()
     source = subprocess.run(["git", "show", f"{base}:expertium/model/variant_model.py"], cwd=ROOT,
                             capture_output=True, text=True, check=True).stdout
