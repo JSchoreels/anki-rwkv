@@ -742,6 +742,85 @@ This is consistent with the evidence so far: going from 2,048 to 4,096 chunks on
 - Decision (pre-registered, 464 users, w8+s8, paired): dec8@8192 − dec8@2048 (`s-w64kd-gate-ctx2048c-dec8`) ≤ −0.001 curve with upper95 < 0 and instant ≤ +0.0005 → context pays; build carry v1 (it gives fork-length context at ≈ 2,048 speed). |Δ| < 0.0005 on both heads → window context is not the lever at 4x; run G@8192, then w80 if G opens.
 - Muon w64 (Q8, 5.5 h) no longer fits after this run and targets in-window fit, which is at parity. It is postponed.
 
+### Feature screen 2026-10-17: candidate inputs and review type (CPU, user request)
+
+Question (user): which other inputs could the dataset give, raw or engineered, and how would we test them? The user
+also asked to drop **review type** (revlog `state`) where possible: the dataset comes from SM-2 users, and the fork's
+curve visibly depends on review type, which breaks for users whose review types do not follow SM-2.
+
+**What the models read today.** 24 per-review columns (`rwkv/data_processing.CARD_FEATURE_COLUMNS`: intervals in days
+and seconds, cumulative intervals, interval mod 24 h, duration, rating one-hot, day of week, new cards / reviews today,
+gaps, `scaled_state`, `is_query`) + card/note/deck/preset id encodings + day-offset encodings = 92 inputs. The w64 student
+already **zeroes input 22 = `scaled_state`** in training and scoring (Expertium's recipe, `expertium/variants.py`), so
+it never sees review type; the fork reads it on every history row. Query rows carry no state for either model. Unused
+today: the deck hierarchy (`parent_id` is dropped on load), the card's review/lapse counts (`i` is computed, not fed),
+and everything in the **-id dataset** (`data/anki-revlogs-10k`): raw Anki ids (creation ms) and `review_time`. Its rows
+match the original by pandas index (ties within a day can be reordered; 3 of 34,149 rows of user 1901 sit one day
+apart), but its intervals are re-derived from show times and its durations are not rounded, so it is a different build,
+not just extra columns.
+
+**Method** (`artifacts/small-model/feature-screen/`, CPU, 2 threads per job, scratch outputs only):
+- per-review predictions (`small_model_heldout.py --device cpu --dump`) of fork w8+s8, the best student
+  (`dec8-L32k` w8+s8) and the fork with its review-type input removed (`fork_nostate.py`: `features2card.0.weight[:, 22]
+  = 0`, the same as a 0 input; the fork is a ScriptModule, no hooks), on 68 test users (every 6th of the 464 by size,
+  <= 150k reviews, 1.68M benchmark reviews; the heaviest users are left out, so this sample's curve gap is +0.49%, not
+  +1.15%);
+- 19 candidate features per review (`features.py`): card prior reviews / lapses / pass streak / interval ratio,
+  default-parameter FSRS-6 R, S, D, review type of the predicted and the previous review, user pass-rate and duration
+  EWMAs, same-day reviews of the card, gap since any review and session position (from `review_time`), hours since the
+  day rollover (shift fitted to the day_offset changes, 100% match on the checked user), days a card waited before its
+  first review (raw card id), deck depth and note siblings (dropped: some users have no cards table);
+- residual screen (`screen.py`): per model and head, logistic recalibration of the model's own logit (base) vs base +
+  feature bins and their interaction with the logit, fitted on half of the users and scored on the other half (2-fold),
+  95% interval by resampling users. A gain on both models = information neither uses; on the student only = capacity.
+
+**Results.**
+1. **No candidate adds information to either model, on either head** (all within about ±0.15% of log loss, mostly
+   slightly negative = cross-user noise). The only large gain, user recent pass rate on the curve (+1.1% fork, +0.9%
+   student), is a **protocol leak**: the curve is forecast at the card's previous review, and the same feature taken as of
+   that review gives −0.3% (`atprev.py`). Instant: no feature helps either model (≤ +0.04%).
+2. **The fork leans hard on review type.** Without it the fork's curve log loss rises **+8.4%** and instant **+3.3%**
+   (student, which never had it: +0.49% / +0.94% on this sample). Zeroing an input a model was trained with overstates
+   what a model trained without it would lose, but the dependence is real; on the de-stated fork, review type and card
+   history features recover +1.1–1.3% (they do nothing for the normal fork).
+3. **The student's curve gap is entirely on learning-step reviews** (`bytype.txt`):
+
+| review type of the predicted review | share | curve: student vs fork | share of the curve gap | fork without review type | instant: student vs fork |
+|---|---|---|---|---|---|
+| learning | 35.2% | +1.16% | 72% | +21.9% | +1.28% |
+| review | 52.5% | **−0.03%** | −3% | +2.2% | +0.74% |
+| relearning | 11.9% | +1.01% | 28% | +3.4% | +0.86% |
+| same-day review of the card: yes / no | 36.4% / 63.6% | +1.17% / +0.14% | 81% / 19% | +16.7% / +4.2% | +1.15% / +0.82% |
+
+   On review-state reviews (the ones the scheduler's interval choice depends on) the student already matches the fork's
+   curve on this sample. The fork's lead is on learning and relearning steps, where it reads the SM-2 review type and
+   where the student has no scheduler-independent substitute (same-day count, streak, FSRS state: no gain in the screen).
+4. **Instant** is behind on every slice (+0.74% to +1.28%), with no feature explaining it: capacity or fit, as the
+   per-user view already suggested.
+
+**Plan** (backlog SM24–SM28; GPU items queue after the overnight Q11 chain):
+- **SM24 (decision support, ~35 min GPU):** the same breakdown on all 464 users: GPU scoring with `--dump` of fork and
+  `dec8-L32k` (and the Q11 models), per review type and same-day. If it holds, the user decides whether bar P is also
+  reported on review-state (or not-same-day) reviews, where review type is not needed, next to the official all-review
+  bar.
+- **SM25 (review-type robustness, CPU):** a realistic non-SM-2 perturbation instead of zeroing: score the fork and the
+  student with history review types rewritten as an FSRS / no-learning-steps scheduler would label them (same-day
+  reviews of graduated cards as "review"). The student is invariant by construction; the fork's change measures the risk
+  the user saw in the fork. ~1 h CPU on the 68 users.
+- **SM26 (instant capacity, ~1.2 h GPU):** instant-weighted final decay: 0.25 epoch from ctx8192 e8 (or Q11 e9) with the
+  instant loss weight doubled, paired against the matching decay; then, if it moves, a wider instant head only.
+- **SM27 (long-history summary inputs for windowed training, ~0.5 day code + ~3.2 h GPU):** the screen measures
+  full-history inference only and finds nothing there, but in 2,048-review training windows the model starts cold and
+  cannot see a card's earlier history. Card prior reviews / lapses, FSRS-6 S/D/R (scheduler-independent, available in
+  Anki's Rust FSRS) and the long user pass rate as of the previous review, computed over the full history, would give
+  windows that information. Test: append them after the 92 inputs with zero-initialised weights (the teacher keeps its
+  92; add the option to `TEACHER_BLIND` so the KD cache is reused), continue ctx2048 e6 for 2 epochs at 2,048 + decay,
+  paired against the existing `ctx2048c-dec8` (+1.66% / +1.66%). Success = moves toward `ctx8192c-dec8` (+1.24% /
+  +1.21%) at 2,048 speed. Prior is modest (the screen is negative); it competes with SM21 for the same cold-start gap
+  and would be cheaper to train and deploy.
+- **SM28 (not planned):** session/clock features (`review_time`), deck depth, card creation age: no signal in the screen
+  and they need the -id build at training and the review clock at inference. Revisit only if SM24 points there.
+
 ## Backlog
 
 | ID | Idea | Status | Next step |
@@ -770,3 +849,8 @@ This is consistent with the evidence so far: going from 2,048 to 4,096 chunks on
 | SM21 | Training with carried state (supersedes SM16): fresh carry at update granularity (v1), strided lanes + stale states at lane starts (v2), with SM11 full-history teacher targets | Design + CPU prototype 2026-10-16 (`scripts/state_carry.py`; check A/B/C pass: carry off = today's batches, zero state bitwise, exact carry = full history to 5e-7; option 3 store 576–739 GB/epoch int8 at 2,048) | Today: option 5 (`cont` at CHUNK=8192) tests the premise; then kernel S0/S_T + trainer integration (Opus ≈ 1.5 days) and the SM11 replay (5.2 h GPU, 3.7 GB) |
 | SM22 | Window curriculum: most epochs at 2,048-review chunks (≈ 105k reviews/s), the last 1–2 epochs + decay at 8,192 (or longer) | Proposed 2026-10-16 13:50 (user). Evidence: from the same e6, one epoch at 8,192 took the 100-gate-user gap vs fork from +2.38% / +2.41% to +1.66% / +1.80% (curve / instant), while two more epochs at 2,048 only reached +2.04% / +1.99% and flatten; 8,192 trains at 32,528 reviews/s (3.2x slower). Q8 (`scale-w64kd-gate-cached-ctx8192-cont`, e7–e8 + decay) is the first instance | Default recipe until SM21 lands. Open: where to switch (after e4? e6?), and whether 16k/32k for the last epoch pays (cold share 2,048 46% / 4,096 36% / 8,192 26.8% / fork 32k 11.5%) |
 | SM23 | More parallel windows at long chunks: 8,192 x 8 (65,536 reviews/update) instead of x4, to refill the GPU (the WKV recurrence is sequential in time, so fewer longer windows per update leave it partly idle) | Proposed 2026-10-16 13:50 (user) | `--timing` ticket first (speed claim, VRAM fit on 16 GB); if it pays, an LR check at the doubled update size (sqrt scaling or a short sweep) before any accuracy run; compare reviews/s and accuracy per GPU-hour against SM22 |
+| SM24 | Gap by review type / same-day on all 464 users (GPU `--dump` scoring of fork and the best students) | Proposed 2026-10-17 (feature screen): on 68 users the curve gap is all on learning/relearning reviews, −0.03% on review-state reviews | ~35 min GPU after Q11; then a user decision on also reporting bar P on review-state reviews |
+| SM25 | Review-type robustness: score fork and student with history review types rewritten as a non-SM-2 scheduler would label them | Proposed 2026-10-17 (user: review type breaks for non-SM-2 users) | CPU, 68 users; the student ignores review type by construction |
+| SM26 | Instant-weighted final decay (instant loss weight x2), then a wider instant head only | Proposed 2026-10-17: instant gap uniform on every slice, no feature explains it | ~1.2 h GPU, paired against the matching decay |
+| SM27 | Long-history summary inputs (card prior reviews/lapses, FSRS-6 S/D/R, user pass rate as of the previous review) for windowed training, zero-initialised extra input columns | Proposed 2026-10-17 (feature screen negative at full-history inference; targets the cold-window gap) | ~0.5 day code (data columns, query keep list, fast-path columns, input dim, teacher slice, `TEACHER_BLIND`) + ~3.2 h GPU vs `ctx2048c-dec8` |
+| SM28 | Session/clock (`review_time`), deck depth, card creation age, note siblings | Screened 2026-10-17: no signal for either model | Not planned |
