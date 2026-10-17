@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-10-17T16:33:40+02:00",
- "updated": "2026-10-17 16:33",
- "material": "2f1f361837191688",
- "summary": "running 000422, finished 000421",
+ "generated_at": "2026-10-17T16:35:57+02:00",
+ "updated": "2026-10-17 16:35",
+ "material": "ee27308ba6d05713",
+ "summary": "running 000422",
  "headline": [
   {
    "k": "Best, 464 users (curve / instant)",
@@ -39,11 +39,11 @@
    "track": "small model",
    "ticket": "000422-small-model",
    "started": "16:31",
-   "elapsed": "0:02",
-   "progress": 0.019,
-   "rev_s": 22030,
-   "rev_s_avg": 22030,
-   "eta": "~17:42"
+   "elapsed": "0:04",
+   "progress": 0.055,
+   "rev_s": 23302,
+   "rev_s_avg": 23302,
+   "eta": "~17:38"
   },
   {
    "what": "State quantization test on the student, without retraining",
@@ -110,7 +110,7 @@
  ],
  "plan": [
   {
-   "when": "~16:25",
+   "when": "16:26 &ndash; 16:31 (done)",
    "what": "Quick score of the new epoch on 100 users",
    "id": "Q12",
    "kind": "gpu-score",
@@ -122,7 +122,7 @@
    "started": "16:26"
   },
   {
-   "when": "~16:30 &ndash; 18:00",
+   "when": "16:31 &ndash; ~17:45 (runs ~23k reviews/s, slower than estimated)",
    "what": "Final decay at 32k windows from the new epoch",
    "id": "Q12",
    "kind": "gpu-train",
@@ -133,7 +133,7 @@
    "ticket": "000422-small-model"
   },
   {
-   "when": "~18:00 &ndash; 18:30",
+   "when": "~17:45 &ndash; 18:05",
    "what": "Score the decayed model on all 464 users",
    "id": "Q12",
    "kind": "gpu-score",
@@ -142,7 +142,7 @@
    "state": "planned"
   },
   {
-   "when": "~18:30",
+   "when": "~18:05",
    "what": "Score it on your own collection (CPU, ~11 min)",
    "id": "SM07",
    "kind": "collection",
@@ -150,7 +150,7 @@
    "track": "small model"
   },
   {
-   "when": "~18:30 &ndash; 19:30",
+   "when": "~18:15 &ndash; 19:15",
    "what": "Per-review scores of fork + new model on 464 users, gap by review type and by inferred stage",
    "id": "SM24",
    "kind": "gpu-score",
@@ -384,6 +384,21 @@
   }
  ],
  "results": [
+  {
+   "date": "10-17",
+   "kind": "gpu-score",
+   "name": "Extra epoch at 32k windows (epoch 10), before decay, 100 gate users",
+   "id": "Q12",
+   "curve": 0.29166,
+   "instant": 0.26654,
+   "curve_pct": 1.75,
+   "instant_pct": 2.1,
+   "eval": "100 users, 5.02M reviews",
+   "fork": "fork 0.28665 / 0.26105",
+   "takeaway": "Better than epoch 9 before decay on the same users (+2.68% / +2.51%). The decay result decides",
+   "track": "small model",
+   "label": "s-w64kd-gate-ctx32768c-e10/w8+s8"
+  },
   {
    "date": "10-17",
    "kind": "collection",
