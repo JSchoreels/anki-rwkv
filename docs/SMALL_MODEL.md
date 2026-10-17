@@ -830,6 +830,50 @@ not just extra columns.
 - **SM28 (not planned):** session/clock features (`review_time`), deck depth, card creation age: no signal in the screen
   and they need the -id build at training and the review clock at inference. Revisit only if SM24 points there.
 
+#### Follow-up 2026-10-17: SM25 (fork under non-SM-2 review types) and per-user rep-number statistics (CPU, 68 users)
+
+**SM25** (`feature-screen/sm25.py`, `sm25_table.py`, `sm25.txt`): the fork scored with its history review types rewritten
+as another scheduler would label them (`base_transform_state` patched; the predicted review carries 0 as before).
+*No steps* (FSRS without learning/relearning steps): a card's first review stays new, every later review is "review"
+(36–43% of history rows change). *Day steps* (steps shorter than a day): a learning/relearning review after a gap of
+≥ 1 day becomes "review" (7–17% change). Log loss vs the normal fork, by review type of the predicted review:
+
+| model | curve all | learning | review | relearning | instant all | learning | review | relearning |
+|---|---|---|---|---|---|---|---|---|
+| student (never reads review type) | +0.49% | +1.16% | −0.03% | +1.01% | +0.93% | +1.28% | +0.74% | +0.86% |
+| fork, review type zeroed | +8.39% | +21.87% | +2.24% | +3.36% | +3.31% | +5.84% | +2.09% | +2.63% |
+| fork, no-steps labels | **+0.43%** | **+1.17%** | −0.04% | +0.69% | +0.55% | +1.08% | +0.17% | +0.85% |
+| fork, day-steps labels | +0.20% | +0.75% | −0.09% | +0.19% | +0.20% | +0.32% | +0.09% | +0.35% |
+
+- A plausible relabelling costs the fork far less than zeroing (+0.43% vs +8.39% curve): zeroing is an
+  out-of-distribution input, a consistent other labelling is not.
+- With no-steps labels the fork's curve lead over the student disappears (all +0.43% vs +0.49%, learning +1.17% vs
+  +1.16%): **the fork's curve advantage on learning steps is the SM-2 review label itself**. For a user whose review
+  types do not follow SM-2 learning steps, the student's curve is on a par with the fork. Instant keeps a real gap
+  (student +0.93% vs relabelled fork +0.55%, review-state +0.74% vs +0.17%).
+
+**Per-user rep-number statistics** (user idea: with SM-2 a card's learning steps are its reviews 2, 3 (4) and
+relearning steps the first reviews after an Again, so a user's own pass rate at "review k of a card" could stand in for
+the review type; `feature-screen/repfeat.py`, `repscreen.py`, `repscreen.txt`). The data supports the premise: 88% of
+second reviews and 35% of fourth reviews are learning-type, and the per-user pass rate at review 2 ranges 0.31–1.00
+(median 0.91). Features, causal (as of the card's previous review for the curve, of the review itself for instant):
+the user's smoothed pass rate minus their overall rate, keyed by review number k, by (ever had an interval ≥ 1 day,
+reviews since the last Again), by (preset, k) and by (deck, k), and the model's own running residual (y − p) on the same
+keys. Screen as above (logistic recalibration + feature bins × logit, 2-fold by user), gain in % of the fork's log loss
+per slice: **no feature helps either model on any slice** (best single: student residual by phase on learning reviews
++0.14% curve, interval crosses 0; combined sets −0.1 to −0.3%). The student's running residual by review number has
+mean ≈ 0 (sd 0.02): it already calibrates per user and per review number from the history it reads.
+
+**A stacked corrector** (`feature-screen/stack.py`, `stack.txt`; gradient boosting on the model's logit + card-history
+features, fitted on other users, 4 folds by user) makes unseen users worse (student curve +0.53% → +1.06%; a first
+version with user-level features +2.0%). Adding review type to it recovers ~0.6 points on learning reviews, again
+locating the remaining learning-step information in the SM-2 label, not in counts.
+
+**Consequence.** The student's learning/relearning curve gap is what the SM-2 review label carries and what a
+scheduler-independent model should not rely on; rep-number statistics, per-user or per-preset, do not recover it and a
+post-hoc corrector does not transfer across users. The review-state slice and a relabelled-fork reference are the
+fair comparisons for non-SM-2 users; instant (+0.4 to +0.6 points beyond the relabelled fork) is the real model gap.
+
 ### Results 2026-10-16/17: longer windows (decay and training), per-user view, shared history
 
 Student vs fork w8+s8 (LogLoss gap, 464 users). Source: `artifacts/small-model/HANDOFF.md` (2026-10-16 18:30 to 2026-10-17 09:30).
@@ -901,7 +945,7 @@ Student vs fork w8+s8 (LogLoss gap, 464 users). Source: `artifacts/small-model/H
 | SM22 | Window curriculum: most epochs at 2,048-review chunks (≈ 105k reviews/s), the last 1–2 epochs + decay at 8,192 (or longer) | Proposed 2026-10-16 13:50 (user). Evidence: from the same e6, one epoch at 8,192 took the 100-gate-user gap vs fork from +2.38% / +2.41% to +1.66% / +1.80% (curve / instant), while two more epochs at 2,048 only reached +2.04% / +1.99% and flatten; 8,192 trains at 32,528 reviews/s (3.2x slower). Q8 (`scale-w64kd-gate-cached-ctx8192-cont`, e7–e8 + decay) is the first instance. Status 2026-10-17: training at 16k (e9) beats decay-only (dec9 +1.03% / +1.04% vs dec8-L16k +1.17% / +1.16%; dec9-L32k +1.01% / +1.01%); e10 at 32k in progress (ticket 000420) | Default recipe until SM21 lands. Open: where to switch (after e4? e6?), and whether 16k/32k for the last epoch pays (cold share 2,048 46% / 4,096 36% / 8,192 26.8% / fork 32k 11.5%) |
 | SM23 | More parallel windows at long chunks: 8,192 x 8 (65,536 reviews/update) instead of x4, to refill the GPU (the WKV recurrence is sequential in time, so fewer longer windows per update leave it partly idle) | Proposed 2026-10-16 13:50 (user) | `--timing` ticket first (speed claim, VRAM fit on 16 GB); if it pays, an LR check at the doubled update size (sqrt scaling or a short sweep) before any accuracy run; compare reviews/s and accuracy per GPU-hour against SM22 |
 | SM24 | Gap by review type / same-day on all 464 users (GPU `--dump` scoring of fork and the best students) | Proposed 2026-10-17 (feature screen): on 68 users the curve gap is all on learning/relearning reviews, −0.03% on review-state reviews | ~35 min GPU after Q11; then a user decision on also reporting bar P on review-state reviews |
-| SM25 | Review-type robustness: score fork and student with history review types rewritten as a non-SM-2 scheduler would label them | Proposed 2026-10-17 (user: review type breaks for non-SM-2 users) | CPU, 68 users; the student ignores review type by construction |
+| SM25 | Review-type robustness: score fork and student with history review types rewritten as a non-SM-2 scheduler would label them | Done 2026-10-17 (CPU, 68 users): no-steps labels cost the fork +0.43% curve / +0.55% instant (zeroing +8.4% / +3.3%) and remove its learning-step curve lead over the student (see the follow-up under the feature screen) | Report a relabelled-fork reference beside bar P |
 | SM26 | Instant-weighted final decay (instant loss weight x2), then a wider instant head only | Proposed 2026-10-17: instant gap uniform on every slice, no feature explains it | ~1.2 h GPU, paired against the matching decay |
 | SM27 | Long-history summary inputs (card prior reviews/lapses, FSRS-6 S/D/R, user pass rate as of the previous review) for windowed training, zero-initialised extra input columns | Proposed 2026-10-17 (feature screen negative at full-history inference; targets the cold-window gap) | ~0.5 day code (data columns, query keep list, fast-path columns, input dim, teacher slice, `TEACHER_BLIND`) + ~3.2 h GPU vs `ctx2048c-dec8` |
 | SM28 | Session/clock (`review_time`), deck depth, card creation age, note siblings | Screened 2026-10-17: no signal for either model | Not planned |
