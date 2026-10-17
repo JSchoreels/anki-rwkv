@@ -9,7 +9,9 @@ Git calls the hook with `<remote name> <remote url>` and one stdin line per ref:
 - own collection (aggregate only): .npz files, or rows with card_id / review_th / per-review arrays, under a path that names
   a collection;
 - secrets in added lines: private key blocks and common token formats (Anthropic, OpenAI, GitHub, AWS, Slack, Hugging Face,
-  Google), and the owner's work e-mail domain;
+  Google), plus the private patterns in artifacts/push-audit/private-patterns.txt (not committed: they would name what
+  they hide);
+- commit metadata: author and committer e-mail must be the public identity (or a bot no-reply address);
 - files over 90 MB (GitHub refuses 100 MB); a warning, not a block, above 40 MB.
 
 Exit 1 blocks the push and prints what was found. Every run is logged to artifacts/push-audit/log.jsonl (not committed) with
@@ -26,6 +28,9 @@ import subprocess
 import sys
 
 LOG = Path(r"C:\Users\jonat\workspace\anki-rwkv\artifacts\push-audit\log.jsonl")
+PRIVATE = LOG.parent / "private-patterns.txt"
+PUBLIC_EMAIL = "jonathan.schoreels@gmail.com"
+BOT_EMAIL = re.compile(r"(noreply|no-reply|^codex@openai.(com|invalid)$|^git@stash$)", re.I)  # tools, not people
 ZERO = "0" * 40
 MAX_BYTES = 90 * 1024 * 1024  # GitHub refuses 100 MB
 WARN_BYTES = 40 * 1024 * 1024
@@ -51,7 +56,6 @@ SECRETS = [
     (re.compile(r"\bxox[abprs]-[A-Za-z0-9-]{10,}"), "Slack token"),
     (re.compile(r"\bhf_[A-Za-z0-9]{30,}"), "Hugging Face token"),
     (re.compile(r"\bAIza[0-9A-Za-z_-]{35}\b"), "Google API key"),
-    (re.compile(r"@jisko\.be\b", re.I), "owner's work e-mail"),
 ]
 
 
@@ -66,9 +70,22 @@ def commits(local, remote):
     return git("rev-list", local, "--not", "--remotes").split()  # new branch: only what no remote has
 
 
+def private_patterns():
+    try:
+        lines = PRIVATE.read_text(encoding="utf-8").splitlines()
+    except OSError:
+        return []
+    return [(re.compile(l.strip(), re.I), "private pattern (artifacts/push-audit/private-patterns.txt)")
+            for l in lines if l.strip() and not l.startswith("#")]
+
+
 def audit(shas):
     found = []
+    secrets = SECRETS + private_patterns()
     for sha in shas:
+        for who, email in zip(("author", "committer"), git("show", "-s", "--format=%ae%n%ce", sha).split()):
+            if email != PUBLIC_EMAIL and not BOT_EMAIL.search(email):
+                found.append((sha, "(commit metadata)", f"{who} e-mail is not the public identity {PUBLIC_EMAIL}"))
         for line in git("diff-tree", "--no-commit-id", "-r", "--root", "--diff-filter=AMR", "-z", "--name-only", sha).split("\0"):
             path = line.strip()
             if not path:
@@ -91,7 +108,7 @@ def audit(shas):
                 continue
             if not line.startswith("+") or path is None:
                 continue
-            for rx, why in SECRETS:
+            for rx, why in secrets:
                 if rx.search(line):
                     found.append((sha, path, why))
             if COLLECTION_PATH.search(path) and COLLECTION_ROW.search(line):
