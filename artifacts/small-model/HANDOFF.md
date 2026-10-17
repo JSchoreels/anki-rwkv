@@ -464,7 +464,7 @@ small gain (~0.06 points) from a 0.25-epoch decay alone; the base was still trai
 away. Q10 (32768 x 1 decay from the same e8) fired at 19:34:46 as ticket 000412, log
 runbook-2026-10-16d-longdecay32k.log.
 
-## 2026-10-16 21:14 Q10 result: 32768 x 1 decay (000412 decay 84 min ~15k rev/s, 000413 scoring 15 min)
+## 2026-10-16 21:14 Q10 result: 32768 x 1 decay (000412 decay 84 min ~18k rev/s (log average 18.3k; was misquoted as ~15k), 000413 scoring 15 min)
 
 | model (decay from ctx8192 e8) | curve | instant |
 |---|---|---|
