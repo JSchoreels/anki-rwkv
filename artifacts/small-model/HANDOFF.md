@@ -526,5 +526,5 @@ artifacts/small-model/runbook-2026-10-17-chain.sh (log runbook-2026-10-17-chain.
    DBATCH=1 -> label s-w64kd-gate-ctx16384c-dec9-L32k, log runbook-2026-10-17-longdecay32k.log (~84 + 15 min).
 Comparisons: dec9 vs dec8-L16k (+1.17% / +1.16%) and dec9-L32k vs dec8-L32k (+1.15% / +1.12%), both paired on 464 users
 (note: also one more epoch, so this measures "e9 at 16k", not 16k alone). Gate math as in the 21:14 section.
-Expected end of the whole chain ~09:00-09:30. Cancel: `python scripts/r01_queue.py cancel <ticket>` from the main repo, then
+Measured at start: ~24k review presentations/s (e8 at 8192: 50k), epoch 13,964 updates -> epoch 9 ends ~06:40; whole chain ~10:00-10:30. Cancel: `python scripts/r01_queue.py cancel <ticket>` from the main repo, then
 kill the chain bash (ps -ef | grep runbook-2026-10-17).
