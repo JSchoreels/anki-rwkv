@@ -1,7 +1,7 @@
 {
- "generated_at": "2026-10-18T01:19:51+02:00",
- "updated": "2026-10-18 01:19",
- "material": "7d445d58d6f4e87a",
+ "generated_at": "2026-10-18T01:44:55+02:00",
+ "updated": "2026-10-18 01:44",
+ "material": "0fe299e9f17e0896",
  "summary": "running 000433",
  "headline": [
   {
@@ -86,7 +86,7 @@
    "track": "small model",
    "ticket": "000433-small-model",
    "started": "00:52",
-   "elapsed": "0:27",
+   "elapsed": "0:52",
    "progress": null,
    "eta": "~01:58"
   }
@@ -97,6 +97,12 @@
    "id": "SM11",
    "what": "SM11 replay probe (10-min slice of the fork full-history export)",
    "flags": "expected 12 min"
+  },
+  {
+   "ticket": "000435-small-model",
+   "id": "SM21",
+   "what": "SM21 GPU parity: S0/S_T kernels + trainer carry path",
+   "flags": "expected 15 min"
   }
  ],
  "recent": [
@@ -314,6 +320,16 @@
    "ticket": "000434-small-model"
   },
   {
+   "what": "Carried-state GPU check: new kernels vs the reference, trainer carry path on the GPU, cost per update",
+   "id": "SM21",
+   "kind": "gpu-speed",
+   "minutes": 15,
+   "track": "small model",
+   "decides": "Kernels and trainer correct on the GPU; how much the carry costs per update (CPU checks all passed)",
+   "state": "waiting",
+   "ticket": "000435-small-model"
+  },
+  {
    "what": "Final decay at 32k from epoch 10 with the state compression trained in (~400/400 bits), then CPU scoring on 34 users (CPU part runs next to SM26)",
    "id": "SM32b",
    "kind": "gpu-train",
@@ -359,15 +375,6 @@
    "state": "planned"
   },
   {
-   "what": "Carried-state kernel check on the GPU (once its code passes on CPU)",
-   "id": "SM21",
-   "kind": "gpu-speed",
-   "minutes": 5,
-   "track": "small model",
-   "decides": "New kernels match the reference with a starting state",
-   "state": "planned"
-  },
-  {
    "what": "Fork full-history replay on the 5,000 training users (4&ndash;5 resumable tickets of 95 min; can stop at any time)",
    "id": "SM11",
    "kind": "gpu-score",
@@ -377,13 +384,14 @@
    "state": "planned"
   },
   {
-   "what": "Carried state, code (CPU): full-history targets DONE (SM11, 18/18 checks); kernels that take and return a starting state + trainer option (SM21) in progress",
+   "what": "Carried state, code (CPU): full-history targets (SM11, 18/18 checks) + kernels with a starting state and the trainer option (SM21, all checks bit for bit); merged together",
    "id": "SM21, SM11",
    "kind": "cpu",
    "track": "small model",
-   "state": "running",
+   "state": "done",
    "started_at": "2026-10-18T00:55:00+02:00",
-   "decides": "Ready to train with full-history context at 2,048-window speed (~1.5 days of work per the design)"
+   "decides": "Ready to train with full-history context at 2,048-window speed (~1.5 days of work per the design)",
+   "ended_at": "2026-10-18T01:40:00+02:00"
   },
   {
    "what": "Own collection + spaced-slice breakdown for the night&rsquo;s decays (compression-in-training, instant-weighted, one-epoch 32k) as they land",
@@ -394,7 +402,7 @@
    "decides": "Same tables as dec10 for each new candidate"
   },
   {
-   "what": "Carried state: 2 epochs at 2,048 from the best checkpoint + decay + 464-user scoring, paired with the same epochs without carry",
+   "what": "Carried state: 2 epochs at 2,048 from epoch 10 + decay + 464-user scoring, carry vs the same run with zero start (both with full-history targets); runbook to write",
    "id": "SM21",
    "kind": "gpu-train",
    "track": "small model",
