@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-10-17T16:35:57+02:00",
- "updated": "2026-10-17 16:35",
- "material": "ee27308ba6d05713",
- "summary": "running 000422",
+ "generated_at": "2026-10-17T17:38:48+02:00",
+ "updated": "2026-10-17 17:38",
+ "material": "775709d56642cf5a",
+ "summary": "running 000423, finished 000422",
  "headline": [
   {
    "k": "Best, 464 users (curve / instant)",
@@ -32,18 +32,16 @@
  ],
  "now": [
   {
-   "what": "cont scale-w64kd-gate-cached-ctx32768-cont: 0.25-epoch decay from e10 at chunk 32768 (smoke first)",
-   "id": "000422-small-model",
+   "what": "cont scale-w64kd-gate-cached-ctx32768-cont: full-history scoring of e10 and dec10 (464 users)",
+   "id": "000423-small-model",
    "kind": "gpu-train",
    "why": "",
    "track": "small model",
-   "ticket": "000422-small-model",
-   "started": "16:31",
-   "elapsed": "0:04",
-   "progress": 0.055,
-   "rev_s": 23302,
-   "rev_s_avg": 23302,
-   "eta": "~17:38"
+   "ticket": "000423-small-model",
+   "started": "17:36",
+   "elapsed": "0:02",
+   "progress": null,
+   "eta": "~18:06"
   },
   {
    "what": "State quantization test on the student, without retraining",
@@ -59,6 +57,14 @@
  ],
  "waiting": [],
  "recent": [
+  {
+   "ticket": "000422-small-model",
+   "what": "cont scale-w64kd-gate-cached-ctx32768-cont: 0.25-epoch decay from e10 at chunk 32768 (smoke first)",
+   "ended": "17:36",
+   "date": "10-17",
+   "exit": 0,
+   "ran": "1:05"
+  },
   {
    "ticket": "000421-small-model",
    "what": "cont gate: score s-w64kd-gate-ctx32768c-e10 on the 100 gate users",
@@ -98,14 +104,6 @@
    "date": "10-17",
    "exit": 0,
    "ran": "0:23"
-  },
-  {
-   "ticket": "000416-small-model",
-   "what": "cont scale-w64kd-gate-cached-ctx16384-cont: 0.25-epoch decay from e9 at chunk 16384 (smoke first)",
-   "ended": "07:42",
-   "date": "10-17",
-   "exit": 0,
-   "ran": "0:47"
   }
  ],
  "plan": [
@@ -128,9 +126,10 @@
    "kind": "gpu-train",
    "decides": "",
    "track": "small model",
-   "state": "running",
-   "started": "16:31",
-   "ticket": "000422-small-model"
+   "state": "done",
+   "ended": "17:36",
+   "exit": 0,
+   "started": "16:31"
   },
   {
    "when": "~17:45 &ndash; 18:05",
@@ -139,7 +138,9 @@
    "kind": "gpu-score",
    "decides": "Target met or not; paired against the current best",
    "track": "small model",
-   "state": "planned"
+   "state": "running",
+   "started": "17:36",
+   "ticket": "000423-small-model"
   },
   {
    "when": "~18:05",
