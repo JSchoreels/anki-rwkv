@@ -157,6 +157,12 @@ class Teacher:
         self.decay_alpha = float(spec.get("decay_alpha", self.alpha))
         if not (0.0 <= self.alpha <= 1.0 and 0.0 <= self.decay_alpha <= 1.0):
             raise ValueError("distillation alphas must lie in [0, 1]")
+        self.replay = None
+        if spec.get("kd_source", "online") != "online":  # SM11: stored full-history targets, no teacher model
+            self.replay = ReplayTargets(spec)
+            self.sha256, self.parameters, self.cache = self.replay.teacher_sha256, None, None
+            self.cache_stats = self.replay.stats
+            return
         architecture = spec.get("teacher_architecture", "baseline")
         teacher_dtype = getattr(torch, spec.get("teacher_dtype", "bfloat16"))
         state = torch.load(self.path, map_location="cpu", weights_only=True)
@@ -203,6 +209,8 @@ class Teacher:
         """(teacher curve probabilities [B, T], rating probabilities [B, T, 4], alpha). key identifies the batch
         for the cache, e.g. (user, offset, reviews, seed); labels = the batch's labels on the CPU, if at hand."""
         alpha = self.decay_alpha if decaying else self.alpha
+        if self.replay is not None:
+            return (*self.replay.targets(batch, key, labels), alpha)
         path = None
         if self.cache is not None and key is not None:
             path = self.cache / ("_".join(str(part) for part in key) + ".pt")
@@ -244,7 +252,91 @@ class Teacher:
     def describe(self):
         return {"teacher": str(self.path), "teacher_sha256": self.sha256, "teacher_parameters": self.parameters,
                 "alpha": self.alpha, "decay_alpha": self.decay_alpha,
-                **({"cache": str(self.cache)} if self.cache is not None else {})}
+                **({"cache": str(self.cache)} if self.cache is not None else {}),
+                **(self.replay.describe() if self.replay is not None else {})}
+
+
+class ReplayTargets:
+    """SM11 (docs/SMALL_MODEL.md): "distillation": {..., "kd_source": "replay", "replay": "<dir>"} reads the fork's
+    full-history targets written by scripts/sm11_replay_export.py instead of running or caching the window teacher.
+
+    Per review the export stores the curve logit of the ahead row labelled by that review and the query row's 4 rating
+    probabilities (float16, row review_th - 1). A batch must hold one user (key = (user, offset, reviews, seed)); its
+    labelled rows are looked up by batch.label_review_th and scattered into zero tensors exactly like a cache hit, so
+    the masked rows the loss ignores stay zero. A labelled row without a stored target is an error (wrong dataset or
+    an incomplete export). The targets do not depend on the batch options, so no cache folder or digest is involved;
+    "cache" is refused with this source."""
+
+    def __init__(self, spec):
+        if spec.get("kd_source") != "replay" or not spec.get("replay"):
+            raise ValueError(f"distillation kd_source must be 'online' or 'replay' with a 'replay' folder: {spec}")
+        if spec.get("cache"):
+            raise ValueError("distillation 'cache' and kd_source 'replay' exclude each other")
+        self.folder = Path(spec["replay"])
+        self.manifest = json.loads((self.folder / "manifest.json").read_text(encoding="utf-8"))
+        if self.manifest.get("kind") != "sm11-full-history-replay" or self.manifest.get("format") != 1:
+            raise ValueError(f"{self.folder} is not an SM11 replay export (format 1)")
+        teacher = Path(spec["teacher"])
+        self.teacher_sha256 = __import__("hashlib").sha256(teacher.read_bytes()).hexdigest()
+        if self.manifest["teacher_sha256"] != self.teacher_sha256:
+            raise ValueError(f"replay targets in {self.folder} come from another teacher than {teacher}")
+        data = os.environ.get("GPU_BATCH1_DATA_PATH")
+        if data and not _same_dataset(Path(data), Path(self.manifest["dataset_path"])):
+            raise ValueError(f"replay targets were exported from {self.manifest['dataset_path']}, training reads {data}")
+        self.user, self.table = None, None
+        self.stats = {"replay_batches": 0, "replay_users": 0}
+
+    def _load(self, user):
+        if user != self.user:
+            import numpy as np
+            path = self.folder / "users" / f"{user}.npz"
+            if not path.exists():
+                raise RuntimeError(f"no replay targets for user {user} in {self.folder} (incomplete export?)")
+            with np.load(path) as stored:
+                meta = json.loads(stored["meta"].tobytes().decode())
+                table = torch.from_numpy(stored["targets"])
+            if meta["teacher_sha256"] != self.teacher_sha256 or meta["user_id"] != user:
+                raise RuntimeError(f"replay file {path} belongs to another teacher or user")
+            self.user, self.table = user, table
+            self.stats["replay_users"] += 1
+        return self.table
+
+    def targets(self, batch, key, labels=None):
+        if key is None:
+            raise RuntimeError("kd_source replay needs single-user batches (a batch key)")
+        table = self._load(int(key[0]))
+        cpu = (labels if labels is not None else batch.labels).detach().cpu()
+        review_th = batch.label_review_th.detach().cpu().reshape(-1).long()
+        curve_rows = torch.nonzero(((1 - cpu[:, :, 6]) * cpu[:, :, 4]).reshape(-1), as_tuple=True)[0]
+        query_rows = torch.nonzero((cpu[:, :, 6] * cpu[:, :, 4]).reshape(-1), as_tuple=True)[0]
+        curve_index, query_index = review_th[curve_rows] - 1, review_th[query_rows] - 1
+        reviews = table.shape[0]
+        if (curve_index.numel() and (int(curve_index.min()) < 0 or int(curve_index.max()) >= reviews)) or                 (query_index.numel() and (int(query_index.min()) < 0 or int(query_index.max()) >= reviews)):
+            raise RuntimeError(f"batch review_th outside user {key[0]}'s {reviews} stored reviews")
+        logits, ratings = table[curve_index, 0].float(), table[query_index, 1:].float()
+        if torch.isnan(logits).any() or torch.isnan(ratings).any():
+            raise RuntimeError(f"labelled rows without a stored target for user {key[0]} (dataset mismatch?)")
+        rows, steps = cpu.shape[:2]
+        device = batch.labels.device
+        curve = torch.zeros(rows * steps, device=device)
+        curve[curve_rows.to(device)] = torch.sigmoid(logits).clamp(1e-5, 1 - 1e-5).to(device)
+        rating = torch.zeros(rows * steps, 4, device=device)
+        rating[query_rows.to(device)] = ratings.to(device)
+        self.stats["replay_batches"] += 1
+        return curve.view(rows, steps), rating.view(rows, steps, 4)
+
+    def describe(self):
+        return {"kd_source": "replay", "replay": str(self.folder),
+                "replay_manifest_sha256": __import__("hashlib").sha256(
+                    (self.folder / "manifest.json").read_bytes()).hexdigest(),
+                "replay_teacher_precision": self.manifest.get("teacher_precision")}
+
+
+def _same_dataset(a, b):
+    if os.path.normcase(str(a.resolve())) == os.path.normcase(str(b.resolve())):
+        return True
+    manifests = [p / "download_manifest.json" for p in (a, b)]
+    return all(m.exists() for m in manifests) and manifests[0].read_bytes() == manifests[1].read_bytes()
 
 
 def make_optimizer(spec, master):
