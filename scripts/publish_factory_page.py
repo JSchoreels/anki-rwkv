@@ -25,6 +25,8 @@ import re
 import subprocess
 import sys
 
+EPOCH_TICKET = re.compile(r"epoch \d+/\d+")  # training tickets that run one epoch of several
+
 ROOT = Path(__file__).resolve().parents[1]
 PY = ROOT / ".venv" / "Scripts" / "python.exe"
 CURATED = ROOT / "pages" / "data" / "factory-curated.json"
@@ -119,8 +121,11 @@ def finished_tickets():
         except ValueError:
             continue
         if r.get("owner") == OWNER and r.get("state") == "finished" and r.get("finished"):
+            code = r.get("exit_code")
+            if code == 3 and EPOCH_TICKET.search(r.get("purpose", "")):
+                code = 0  # accuracy_loop.py train: exit 3 = epoch done, more epochs to do (not a failure)
             rows.append({"ticket": r["ticket"], "purpose": clean(r.get("purpose", "")), "finished": local(r["finished"]),
-                         "started": local(r["started"]) if r.get("started") else None, "exit": r.get("exit_code"),
+                         "started": local(r["started"]) if r.get("started") else None, "exit": code,
                          "ran": r.get("ran_seconds")})
     rows.sort(key=lambda r: r["finished"])
     return rows
