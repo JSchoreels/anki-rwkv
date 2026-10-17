@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Factory Overview</title>
+<meta name="description" content="Factory overview of the anki-rwkv work: the job running now, the planned timetable, the backlog, and every GPU and CPU result with absolute LogLoss and evaluation size.">
+<link rel="stylesheet" href="style.css">
+<style>
+  .sm-table th, .sm-table td { white-space: normal; vertical-align: top; }
+  .sm-table td.num { white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .sm-table td.when { white-space: nowrap; color: var(--muted); }
+  .sm-table .id { color: var(--muted); font-size: 12.5px; }
+  .sm-table .pct { color: var(--muted); font-size: 12.5px; }
+  .sm-table tr.best td { background: var(--accent-soft); }
+  .sm-table tr.brk td { color: var(--muted); font-style: italic; }
+  .table-wrap.free { max-height: none; }
+  .tag { display: inline-block; border-radius: 999px; padding: 1px 9px; font-size: 12.5px; border: 1px solid var(--line); white-space: nowrap; }
+  .tag.running, .tag.gpu-train { border-color: var(--c-extend); color: var(--c-extend); }
+  .tag.next, .tag.gpu-score { border-color: var(--accent); color: var(--accent); }
+  .tag.idea, .tag.cpu { border-color: var(--c-screen); color: var(--c-screen); }
+  .tag.parked, .tag.gpu-speed { border-color: var(--c-stack_candidate); color: var(--c-stack_candidate); }
+  .tag.done, .tag.collection { border-color: var(--c-accepted); color: var(--c-accepted); }
+  .tag.dropped, .tag.break { border-color: var(--c-rejected); color: var(--c-rejected); }
+  .tag.trk { border-color: var(--line); color: var(--muted); font-size: 11.5px; padding: 0 7px; margin-left: 4px; }
+  .good { color: var(--c-accepted); font-weight: 600; }
+  .filters { display: flex; flex-wrap: wrap; gap: 6px 8px; margin: 8px 0 4px; }
+  .filters .chip[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); }
+  .now { display: grid; gap: 10px; }
+  .now .card .v { font-size: 1.15rem; white-space: normal; }
+  .bar { height: 8px; border-radius: 99px; background: var(--line); overflow: hidden; margin: 8px 0 4px; }
+  .bar i { display: block; height: 100%; background: var(--accent); }
+  .cards .card .v { font-size: clamp(1.15rem, 2.4vw, 1.6rem); white-space: nowrap; }
+  @media (max-width: 860px) { .cards { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 420px) { .cards { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <div class="top-row">
+      <div>
+        <p class="eyebrow"><a href="./">anki-rwkv</a> &middot; factory overview &middot; <a href="models.html">model architectures</a> &middot; <a href="campaign.html">R01 campaign</a> &middot; <a href="train.html">8k/2k run</a> &middot; <a href="docs/data-quality/">data quality</a></p>
+        <h1>Factory overview: what runs, what is planned, what is done</h1>
+        <p class="lede">The whole anki-rwkv work in one place. The page updates itself from the job queue and the scoring files; takeaways and the backlog are edited by hand. Today it holds one track, the <b>small model</b>: a 331,511-parameter student (Expertium&rsquo;s d=64 shape, distilled from the fork&rsquo;s 2,762,884-parameter RWKV) trained on 5,000 dataset users and scored on users it never saw, full history, both models with int8 weights and int8 state. LogLoss is lower-is-better; the % is the gap to the fork on the same reviews (positive = student worse). Target: &le; +1.0% on both heads over the 464 held-out users.</p>
+      </div>
+      <button id="theme" class="btn" type="button" aria-label="Toggle light and dark theme">Theme</button>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="cards" id="headline" aria-label="Headline"></section>
+
+  <section class="panel">
+    <div class="panel-head"><h2>1. Running now</h2><p class="hint" id="now-asof"></p></div>
+    <div class="now" id="now"></div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head">
+      <h2>2. Planned</h2>
+      <p class="hint">Times are estimates from the current training speed. No GPU work between 20:00 and 02:00 (break); a ticket that would run into the break waits until 02:00.</p>
+    </div>
+    <div class="table-wrap free"><table class="sm-table" id="plan"></table></div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head">
+      <h2>3. Backlog</h2>
+      <p class="hint">Ideas and follow-ups with the reason they are there. Pointers from Expertium&rsquo;s research are marked; we keep our own training setup.</p>
+    </div>
+    <div class="filters" id="filters" role="group" aria-label="Filter by status"></div>
+    <div class="table-wrap free"><table class="sm-table" id="backlog"></table></div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head">
+      <h2>4. Results</h2>
+      <p class="hint">Newest first, GPU and CPU work together. Each row gives the absolute LogLoss (curve / instant), the gap to the fork on the same reviews, and the evaluation size. &ldquo;Decay&rdquo; = the final pass with the learning rate brought to zero; &ldquo;window&rdquo; = consecutive reviews of one user per training sample.</p>
+    </div>
+    <div class="filters" id="kinds" role="group" aria-label="Filter by kind"></div>
+    <div class="table-wrap free"><table class="sm-table" id="results"></table></div>
+  </section>
+
+  <p class="muted" id="updated"></p>
+</main>
+
+<script src="common.js"></script>
+<script>
+(() => {
+  'use strict';
+  const KIND = { 'gpu-train': 'GPU training', 'gpu-score': 'GPU scoring', 'gpu-speed': 'GPU speed', cpu: 'CPU analysis', collection: 'own collection', break: 'break', next: 'next' };
+  const tag = (k) => `<span class="tag ${k}">${KIND[k] || k}</span>`;
+  const trk = (t) => (t ? ` <span class="tag trk">${t}</span>` : '');
+  const name = (n, id, t) => `${n}${id ? ` <span class="id">(${id})</span>` : ''}${trk(t)}`;
+  const $ = (id) => document.getElementById(id);
+  const T = (id, head, rows) => {
+    $(id).innerHTML = `<thead><tr>${head.map((h) => `<th>${h}</th>`).join('')}</tr></thead><tbody>${rows.join('')}</tbody>`;
+  };
+  const chips = (elId, items, all, key, onPick) => {
+    const f = $(elId);
+    ['all', ...items].forEach((k) => {
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'chip'; b.textContent = k === 'all' ? `all (${all.length})` : `${KIND[k] || k} (${all.filter((r) => r[key] === k).length})`;
+      b.setAttribute('aria-pressed', String(k === 'all'));
+      b.addEventListener('click', () => { f.querySelectorAll('.chip').forEach((c) => c.setAttribute('aria-pressed', 'false')); b.setAttribute('aria-pressed', 'true'); onPick(k); });
+      f.appendChild(b);
+    });
+  };
+  const none = (v) => v === null || v === undefined;
+  const ll = (v, p) => (none(v) && none(p)) ? '&ndash;'
+    : `${none(v) ? '' : v.toFixed(v < 0.4 ? 5 : 4)}${none(p) ? '' : ` <span class="pct${p <= 1.0 ? ' good' : ''}">${p > 0 ? '+' : ''}${p.toFixed(2)}%</span>`}`;
+
+  function render(D) {
+    $('headline').innerHTML = (D.headline || []).map((h) => `<div class="card${h.big ? ' big' : ''}"><div class="k">${h.k}${trk(h.track)}</div><div class="v">${h.v}</div><div class="s">${h.s}</div></div>`).join('');
+
+    $('now-asof').textContent = `As of ${D.updated}. Progress is refreshed whenever a job starts or ends.`;
+    const cards = (D.now || []).map((r) => {
+      const pct = none(r.progress) ? null : Math.round(r.progress * 100);
+      const speed = r.rev_s ? ` &middot; ${r.rev_s.toLocaleString('en-US')} reviews/s` : '';
+      return `<div class="card"><div class="k">${tag(r.kind)}${trk(r.track)} started ${r.started}${r.elapsed ? ` (${r.elapsed} ago)` : ''}${r.eta ? ` &middot; expected end ${r.eta}` : ''}</div><div class="v">${name(r.what, r.id)}</div>`
+        + (pct === null ? '' : `<div class="bar"><i style="width:${pct}%"></i></div><div class="s">${pct}% done${speed}</div>`)
+        + `<div class="s">${r.why || ''}</div></div>`;
+    });
+    if (!cards.length) cards.push('<div class="card"><div class="v">No job is running</div></div>');
+    let extra = '';
+    if ((D.waiting || []).length) extra += `<p class="muted">Waiting in the queue: ${D.waiting.map((w) => `${w.what} <span class="id">(${w.ticket})</span>`).join('; ')}</p>`;
+    if ((D.recent || []).length) extra += `<p class="muted">Finished recently: ${D.recent.map((w) => `${w.what} <span class="id">(${w.date} ${w.ended}, ${w.exit === 0 ? 'ok' : 'exit ' + w.exit}${w.ran ? ', ' + w.ran : ''})</span>`).join('; ')}</p>`;
+    $('now').innerHTML = cards.join('') + extra;
+
+    const STATE = {
+      running: (r) => `<span class="tag running">running since ${r.started}</span>`,
+      waiting: () => '<span class="tag next">queued</span>',
+      done: (r) => `<span class="tag done">${r.exit ? 'failed, exit ' + r.exit : 'done'} ${r.ended}</span>`,
+      partial: (r) => `<span class="tag idea">partly done ${r.ended}</span>`,
+    };
+    T('plan', ['When', 'Status', 'Kind', 'What', 'Decides'], (D.plan || []).map((r) =>
+      `<tr${r.kind === 'break' ? ' class="brk"' : ''}><td class="when">${r.when}</td><td>${(STATE[r.state] || (() => ''))(r)}</td><td>${tag(r.kind)}</td><td>${name(r.what, r.id, r.track)}</td><td>${r.decides || ''}</td></tr>`));
+
+    const back = D.backlog || [];
+    const drawBack = (k) => T('backlog', ['Status', 'Item', 'Why / next step'], back.filter((x) => k === 'all' || x.status === k).map((r) =>
+      `<tr><td><span class="tag ${r.status}">${r.status}</span></td><td>${name(r.item, r.id, r.track)}</td><td>${r.why}</td></tr>`));
+    chips('filters', ['next', 'idea', 'parked', 'done', 'dropped'], back, 'status', drawBack); drawBack('all');
+
+    const res = D.results || [];
+    const drawRes = (k) => T('results', ['Date', 'Kind', 'Result', 'Curve LogLoss', 'Instant LogLoss', 'Evaluated on', 'Takeaway'], res.filter((x) => k === 'all' || x.kind === k).map((r) =>
+      `<tr${r.flag === 'best' ? ' class="best"' : ''}><td class="when">${r.date}</td><td>${tag(r.kind)}</td><td>${name(r.name, r.id, r.track)}</td><td class="num">${ll(r.curve, r.curve_pct)}</td><td class="num">${ll(r.instant, r.instant_pct)}</td><td>${r.eval}${r.fork ? `<br><span class="id">${r.fork}</span>` : ''}</td><td>${r.takeaway === 'pending' ? '<span class="id">pending</span>' : r.takeaway}</td></tr>`));
+    chips('kinds', ['gpu-train', 'gpu-score', 'gpu-speed', 'cpu', 'collection'], res, 'kind', drawRes); drawRes('all');
+
+    $('updated').innerHTML = `Updated ${D.updated}. Sources: the R01 job queue, <code>artifacts/small-model/</code> on the <code>small-model</code> branch (<code>docs/SMALL_MODEL.md</code>) and <code>pages/data/factory-curated.json</code>. Own-collection figures are collection-level aggregates only.`;
+  }
+
+  fetch('data/factory.json', { cache: 'no-store' })
+    .then((r) => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+    .then(render)
+    .catch((e) => {
+      $('now').innerHTML = `<div class="card"><div class="v">Could not load data/factory.json</div><div class="s">${e}. Serve the pages folder over HTTP (file:// does not work) and check that the file exists.</div></div>`;
+    });
+})();
+</script>
+</body>
+</html>
