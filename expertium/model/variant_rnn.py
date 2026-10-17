@@ -60,6 +60,8 @@ class VariantSrsRWKVRnn(SrsRWKVRnn):
     def __init__(self, variant):
         torch.nn.Module.__init__(self)
         config = variant.base
+        if getattr(variant, "rep_flags", False):
+            raise NotImplementedError("rep_flags (SM30) has no recurrent/export port yet; score with the parallel model")
         self.variant = variant
         self.streams = [name for name, _ in config.modules]
         self.gru_n = int(variant.gru_head)

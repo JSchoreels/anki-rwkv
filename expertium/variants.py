@@ -8,6 +8,7 @@ A variant is selected by ONE key, the R01 track option `"architecture"`:
     "architecture": "w80-sequential"            # same without the round-robin layer schedule
     "architecture": "w64"                       # s64h, his shipped d=64 trunk (w80 recipe, 4 heads, mults 2)
     "architecture": "iter36"                    # the default model through the variant class (KD-capable)
+    "architecture": "w64-repflags"              # any preset + "-repflags": 3 review-number flag inputs (SM30)
     "architecture": {"base": "iter36", "zero_features": [22]}   # any preset plus field overrides
 
 Each field below mirrors one upstream environment switch, named in its comment. Upstream sources are pinned
@@ -29,6 +30,7 @@ class VariantConfig:
     interleave: bool = False          # RWKV_INTERLEAVE=1: round-robin layer schedule (front-loaded, iter 41)
     strip_l0_vlora: bool = False      # RWKV_STRIP_L0_VLORA=1: layer 0's dead value-residual LoRA becomes a 1x1 dummy
     strip_cmix: tuple = ()            # RWKV_STRIP_CMIX="<stream>:<layer>,...": channel mixers removed
+    rep_flags: bool = False           # SM30 (not upstream): 3 review-number flag inputs after the 92 (scripts/rep_flags.py)
     extra: dict = field(default_factory=dict)
 
     def stream_names(self):
@@ -78,6 +80,9 @@ ITER36_PARAMETERS = 192_800
 
 
 def preset(name):
+    if name.endswith("-repflags"):
+        # SM30: the preset plus the review-number flag inputs (training option "rep_flags": true sets the same field).
+        return replace(preset(name[:-len("-repflags")]), name=name, rep_flags=True)
     if name == "iter36":
         return VariantConfig(name="iter36", base=DEFAULT_ANKI_RWKV_CONFIG)
     if name in ("w80", "w80-sequential"):
@@ -87,7 +92,7 @@ def preset(name):
         return VariantConfig(name=name, base=w64_config(), gru_head=3, no_ahead_residual=True, zero_features=(22,),
                              interleave=name == "w64", strip_l0_vlora=True, strip_cmix=W80_STRIP_CMIX)
     raise ValueError(f"Unknown Expertium architecture preset {name!r}; expected iter36, w64, w64-sequential, w80 or "
-                     "w80-sequential")
+                     "w80-sequential (each optionally with -repflags)")
 
 
 def variant(spec):

@@ -147,6 +147,8 @@ def architecture(arch):
     from expertium.variants import variant
     from expertium.model.variant_model import interleave_schedule, layer_steps
     v = variant(arch)
+    if v.rep_flags:
+        raise NotImplementedError("rep_flags (SM30) is not in the export format yet")
     base = v.base
     d = base.d_model
     streams = []

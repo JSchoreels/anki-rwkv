@@ -120,7 +120,12 @@ def create_sample_fast(user_id, section_df, equalize_review_ths, dtype, device, 
 
 def samples_for(section, user, options, chunk=128):
     """F30 when the frozen options select it; otherwise the original per-chunk construction.
-    The track option "chunk_reviews" (long-context training, docs/SMALL_MODEL.md 5.3) overrides the chunk length."""
+    The track option "chunk_reviews" (long-context training, docs/SMALL_MODEL.md 5.3) overrides the chunk length.
+    The track option "rep_flags" (SM30, scripts/rep_flags.py) appends the 3 review-number flag columns."""
+    if options.get("rep_flags"):
+        from scripts.rep_flags import append_to_samples
+        return append_to_samples(samples_for(section, user, {k: v for k, v in options.items() if k != "rep_flags"},
+                                             chunk), section)
     chunk = options.get("chunk_reviews", chunk)
     if options.get("fast_samples"):
         return make_samples_fast(section, user, chunk, columnar=options.get("columnar_samples", False),

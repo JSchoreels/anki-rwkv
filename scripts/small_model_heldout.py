@@ -11,7 +11,9 @@ Models (repeatable --model TAG=KIND:ARCH:PATH):
   KIND fork      : the fork's SrsRWKV (ARCH ignored), the compress_heldout_b path (state rounding on card/note).
   KIND expertium : our checkpoints. ARCH iter36 = the R01 width-32 model (expertium.model.srs_model.SrsRWKV),
                    anything else = expertium.variants.build(ARCH) (w64, w80, ...). Eager mode (RWKV_NO_JIT), WKV via
-                   scripts/small_model_wkv.py (any length, head size 16/32).
+                   scripts/small_model_wkv.py (any length, head size 16/32). ARCH w64-repflags (any preset +
+                   "-repflags", SM30): the student with the 3 review-number flag inputs; the batches then carry the
+                   flag columns (scripts/rep_flags.py) and every other model gets them stripped (its usual inputs).
 Variants (--variants, applied to every model): fp32, w8 (int8 per-channel weights), +s8 (int8 card/note state rows,
 like the fork's runtime int8). Example: fp32,w8+s8.
 Resumable JSONL, one row per (user, tag/variant).
@@ -127,9 +129,27 @@ def dump_predictions(folder, user, label, labels, predictions):
                         p_instant=np.array([predictions["instant"][th] for th in ths]))
 
 
+class FlagUserBatches(UserBatches):
+    """SM30: cc.full_history_batch with the review-number flag columns appended (same samples, seed and rows)."""
+
+    def __getitem__(self, index):
+        user = self.users[index]
+        started = time.perf_counter()
+        try:
+            from rwkv.data_processing import get_rwkv_data
+            from rwkv.prepare_batch import prepare
+            from scripts.rep_flags import append_to_samples
+            frame = get_rwkv_data(self.data, user)
+            batch = prepare(append_to_samples(cc.make_samples(frame, user, len(frame)), frame), seed=2025 + user)
+        except Exception as error:  # recorded, not fatal
+            return user, None, repr(error), time.perf_counter() - started
+        return user, batch, None, time.perf_counter() - started
+
+
 class WindowBatches(UserBatches):
     """The history as independent `window`-review samples (the R01 training protocol), one batch per user."""
     window = 128
+    rep_flags = False
 
     def __getitem__(self, index):
         user = self.users[index]
@@ -138,7 +158,11 @@ class WindowBatches(UserBatches):
             from rwkv.data_processing import get_rwkv_data
             from rwkv.prepare_batch import prepare
             frame = get_rwkv_data(self.data, user)
-            batch = prepare(cc.make_samples(frame, user, self.window), seed=2025 + user)
+            samples = cc.make_samples(frame, user, self.window)
+            if self.rep_flags:
+                from scripts.rep_flags import append_to_samples
+                samples = append_to_samples(samples, frame)
+            batch = prepare(samples, seed=2025 + user)
         except Exception as error:  # recorded, not fatal
             return user, None, repr(error), time.perf_counter() - started
         return user, batch, None, time.perf_counter() - started
@@ -201,6 +225,9 @@ def main():
         tag, _, rest = item.partition("=")
         kind, arch, path = rest.split(":", 2)
         specs[tag] = (kind, arch, path)
+    from expertium.variants import variant as resolve_variant
+    flagged = {tag for tag, (kind, arch, _) in specs.items()
+               if kind == "expertium" and arch != "iter36" and resolve_variant(arch).rep_flags}
     grid = [f"{tag}/{v}" for tag in specs for v in args.variants.split(",")]
     if args.only:
         grid = args.only
@@ -239,7 +266,9 @@ def main():
     prov = process_provenance()
     print(f"[small-model] {len(users)} users, {len(todo)} to score, grid {grid}", flush=True)
     WindowBatches.window = args.window
-    dataset = (WindowBatches if args.window else UserBatches)(todo, cc.data_path(run), counts)
+    WindowBatches.rep_flags = bool(flagged)
+    dataset = (WindowBatches if args.window else FlagUserBatches if flagged else UserBatches)(
+        todo, cc.data_path(run), counts)
     loader = torch.utils.data.DataLoader(dataset, batch_size=1,
                                          num_workers=args.workers, collate_fn=first,
                                          prefetch_factor=1 if args.workers else None)
@@ -256,6 +285,10 @@ def main():
             rows.append({"user_id": user, "label": "error", "error": error or "no labels"})
         else:
             gpu_batch = batch.to(device)
+            plain_batch = None
+            if flagged:
+                from scripts.rep_flags import strip_batch
+                plain_batch = strip_batch(gpu_batch)  # the usual 92 inputs, bit for bit, for the other models
             for label in grid:
                 if label in done.get(user, set()):
                     continue
@@ -271,7 +304,8 @@ def main():
                 t0 = time.perf_counter()
                 try:
                     with torch.inference_mode():
-                        values, predictions = evaluate_with_predictions(model, [{"batch": gpu_batch}])
+                        model_batch = gpu_batch if (not flagged or tag in flagged) else plain_batch
+                        values, predictions = evaluate_with_predictions(model, [{"batch": model_batch}])
                 except torch.OutOfMemoryError as oom:
                     torch.cuda.empty_cache()
                     rows.append({"user_id": user, "label": label, "error": f"OOM: {oom}"[:300]})
@@ -287,7 +321,7 @@ def main():
                 if args.dump:
                     dump_predictions(ROOT / args.dump, user, label, labels, predictions)
                 scored += counts[str(user)]
-            del gpu_batch
+            del gpu_batch, plain_batch
         with out.open("a", encoding="utf-8") as f:
             for row in rows:
                 row["provenance_commit"] = prov["git_commit"]

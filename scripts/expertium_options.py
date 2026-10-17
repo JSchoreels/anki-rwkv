@@ -8,6 +8,7 @@ sets `full_run.lr_schedule`); without them the accepted path is untouched. One k
     "optimizer": "expertium-iter53" | {"kind": "muon", ...}                                            item 3
     "end_to_start_intervals": true                                                                     item 4
     "distillation": {"teacher": "<.pth>", "alpha": 0.9, "decay_alpha": 0.5[, "cache": "<dir>"]}          item 5
+    "rep_flags": true                                                       SM30 (scripts/rep_flags.py), student only
 
 Teacher cache (docs/SMALL_MODEL.md, "KD cost"): an R01 training batch is a pure function of (user, offset, reviews,
 seed = training_seed + user + offset), whatever the epoch's user order, so the teacher's targets for a batch are the
@@ -29,12 +30,14 @@ import torch
 
 from expertium.intervals import end_to_start_published  # noqa: F401  (re-exported for the docs/tests)
 
-KEYS = ("architecture", "lr_schedule", "optimizer", "end_to_start_intervals", "distillation")
+KEYS = ("architecture", "lr_schedule", "optimizer", "end_to_start_intervals", "distillation", "rep_flags")
 PEAK_LR, WARMUP_UPDATES = 7e-4, 5
 E2S_ENV = "EXPERTIUM_END_TO_START"
 # Track options that cannot change which batches are built or what the teacher sees: the optimizer only updates the
 # student from gradients, so an AdamW and a Muon run share the same teacher targets (SM20).
-TEACHER_BLIND = ("distillation", "optimizer")
+# SM30 rep_flags only appends 3 student-only input columns: same rows, labels and seeds, and the teacher is handed
+# exactly its 92 inputs (Teacher.targets strips the flags), so its targets are unchanged.
+TEACHER_BLIND = ("distillation", "optimizer", "rep_flags")
 # Accepted R01 switches whose kernels assume d_model 32 / head size 32 (or need one that does). A variant of
 # another width runs the generic PyTorch or NVRTC path for these; `compatible_options` drops them.
 WIDTH32_ONLY = ("row_tiles_exact", "native_wkv", "wkv_tile", "wkv_rows", "exact_index", "skip_padding_sources",
@@ -49,6 +52,13 @@ WIDTH32_ONLY = ("row_tiles_exact", "native_wkv", "wkv_tile", "wkv_rows", "exact_
 WIDE_PORTED = ("row_tiles_exact", "exact_index", "skip_padding_sources", "prefetch_rows", "exact_group_norm")
 # Switches that rebuild or re-run the student loss outside get_loss.
 NOT_WITH_VARIANTS = ("dynamic_graphs", "reduced_sync", "group_adam")
+
+
+def cache_digest(batch_options):
+    """The teacher-cache folder suffix: every track option except TEACHER_BLIND and the kernel switches."""
+    kept = {key: value for key, value in (batch_options or {}).items()
+            if key not in TEACHER_BLIND and key not in WIDTH32_ONLY}
+    return __import__("hashlib").sha256(json.dumps(kept, sort_keys=True).encode()).hexdigest()[:12], kept
 
 
 def requested(options, full_run=None):
@@ -181,10 +191,10 @@ class Teacher:
         self.parameters = sum(p.numel() for p in master.parameters())
         self.sha256 = __import__("hashlib").sha256(self.path.read_bytes()).hexdigest()
         self.cache = None
+        # SM30: the student's batches carry 3 flag columns; the teacher is handed its 92 inputs only.
+        self.rep_flags = bool((batch_options or {}).get("rep_flags"))
         if spec.get("cache"):
-            batch_options = {key: value for key, value in (batch_options or {}).items()
-                             if key not in TEACHER_BLIND and key not in WIDTH32_ONLY}
-            digest = __import__("hashlib").sha256(json.dumps(batch_options, sort_keys=True).encode()).hexdigest()[:12]
+            digest, batch_options = cache_digest(batch_options)
             self.cache = Path(spec["cache"]) / f"batches-{digest}"
         self.cache_stats = {"hits": 0, "writes": 0, "online": 0}
         if self.cache is not None:
@@ -223,7 +233,11 @@ class Teacher:
                 self.cache_stats["hits"] += 1
                 return curve.view(rows, steps), rating.view(rows, steps, 4), alpha
         start = batch.start
-        batch.start = start.to(self.input_dtype)
+        if self.rep_flags:
+            from scripts.rep_flags import strip
+            batch.start = strip(start).to(self.input_dtype)
+        else:
+            batch.start = start.to(self.input_dtype)
         try:
             stats = self.model.get_loss(batch)
         finally:
@@ -269,9 +283,15 @@ class CatchUp:
         if self.spec is None and options.get("distillation"):
             # get_loss(kd_mix=...) lives on the variant class; "iter36" is the default model bitwise.
             self.spec = "iter36"
+        if options.get("rep_flags") and self.spec is None:
+            raise ValueError("rep_flags (SM30) needs an Expertium architecture option")
         if self.spec is not None:
             from expertium.variants import variant
             self.variant = variant(self.spec)
+            if options.get("rep_flags") and not self.variant.rep_flags:
+                # SM30: the architecture option itself (and so the KD cache key) stays e.g. "w64".
+                from dataclasses import replace
+                self.variant = replace(self.variant, rep_flags=True, name=self.variant.name + "+rep_flags")
             if not is_width32(self.spec):
                 bad = sorted(key for key in options if key in width32_only(self.spec) and options[key])
                 if bad:
@@ -329,6 +349,9 @@ class CatchUp:
             out["optimizer"] = self.options["optimizer"]
         if self.options.get("end_to_start_intervals"):
             out["end_to_start_intervals"] = True
+        if self.options.get("rep_flags"):
+            out["rep_flags"] = {"inputs": "92 + 3 review-number flags (2nd, 3rd, 4th+ review of the card)",
+                                "teacher_inputs": 92}
         if self.teacher is not None:
             out["distillation"] = self.teacher.describe()
         return out

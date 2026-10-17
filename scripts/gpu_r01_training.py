@@ -305,6 +305,13 @@ def run_case(args):
         raise ValueError("chunk_reviews must be an integer between 16 and 32768")
     if chunk_reviews != 128 and (options.get("sample_cache") or options.get("preprocessing_cache") or options.get("pack_users")):
         raise ValueError("chunk_reviews other than 128 does not support sample/preprocessing caches or pack_users")
+    rep_flags = bool(options.get("rep_flags"))
+    if rep_flags:
+        # SM30 (scripts/rep_flags.py): the flag columns are appended in samples_for only.
+        if options.get("sample_cache") or options.get("preprocessing_cache") or options.get("pack_users"):
+            raise ValueError("rep_flags does not support sample/preprocessing caches or pack_users")
+        if (protocol.get("full_run") or {}).get("evaluate", True):
+            raise ValueError("rep_flags needs evaluate=false (score with scripts/small_model_heldout.py ARCH w64-repflags)")
     config = {"MODEL": args.model, "DTYPE": "bfloat16", "WKV_BACKEND": "nvrtc", "SEED": training_seed,
               "BATCH_CHUNKS": chunks, "CHUNK_REVIEWS": chunk_reviews, "PREFETCH_WORKERS": workers,
               "PREFETCH_BATCHES": workers * 2, "CPU_THREADS": 4, "EPOCHS": 1,
@@ -355,7 +362,7 @@ def run_case(args):
         # Expertium catch-up switches (docs/EXPERTIUM_CATCH_UP.md); a track without them keeps this path unchanged.
         catch_up = None
         if any(key in options for key in ("architecture", "lr_schedule", "optimizer", "end_to_start_intervals",
-                                          "distillation")) or (protocol.get("full_run") or {}).get("lr_schedule"):
+                                          "distillation", "rep_flags")) or (protocol.get("full_run") or {}).get("lr_schedule"):
             from scripts.expertium_options import CatchUp
             catch_up = CatchUp(options, protocol.get("full_run") or {}, rows)
         variant = catch_up is not None and catch_up.spec is not None
@@ -364,6 +371,12 @@ def run_case(args):
         full_run = protocol.get("full_run") or {}
         if full_run.get("init_master"):
             checkpoint = {"model": torch.load(ROOT / full_run["init_master"], map_location="cpu", weights_only=True)}
+        rep_flags_widened = False
+        if rep_flags:
+            # SM30: continuing from a 92-input checkpoint adds the flag weights at exactly zero (outputs unchanged).
+            from scripts.rep_flags import widen_state
+            checkpoint["model"], rep_flags_widened = widen_state(checkpoint["model"])
+            report["rep_flags_init"] = "zero flag weights added to a 92-input checkpoint" if rep_flags_widened else                 "checkpoint already has flag weights"
         report["initial_parameter_sha256"] = tensor_hash(checkpoint["model"])
         master, base, dtype = catch_up.models(config, device) if variant else benchmark_models(config, device)
         master.load_state_dict(checkpoint["model"])
@@ -427,7 +440,13 @@ def run_case(args):
         if full_run.get("init_optimizer"):
             # Load on CPU: load_state_dict moves moments to the parameters' device but keeps AdamW's `step` where it
             # is, and a CUDA `step` makes non-capturable AdamW sync once per parameter (429 per update).
-            optimizer.load_state_dict(torch.load(ROOT / full_run["init_optimizer"], map_location="cpu", weights_only=True))
+            saved_optimizer = torch.load(ROOT / full_run["init_optimizer"], map_location="cpu", weights_only=True)
+            if rep_flags_widened:
+                # SM30: same moments for every existing parameter; the flag weights start fresh (no state).
+                from scripts.rep_flags import widen_optimizer_state
+                saved_optimizer = widen_optimizer_state(saved_optimizer, optimizer, master)
+            optimizer.load_state_dict(saved_optimizer)
+            del saved_optimizer
         update_offset = int(full_run.get("update_offset", 0))
         if options.get("group_adam"):
             from scripts.gpu_r01_group_adam import install_group_adam
@@ -444,7 +463,11 @@ def run_case(args):
         # Discarded forward/backward primes JIT without performing optimizer updates.
         prime_start = time.perf_counter()
         first = split_frame(get_rwkv_data(DATA, rows[0]["user_id"]), rows[0], "train").iloc[:1024]
-        prime = prepare(make_samples(first, rows[0]["user_id"], 128), seed=2025).to(device)
+        prime_samples = make_samples(first, rows[0]["user_id"], 128)
+        if rep_flags:
+            from scripts.rep_flags import append_to_samples
+            prime_samples = append_to_samples(prime_samples, first)
+        prime = prepare(prime_samples, seed=2025).to(device)
         prime.start = prime.start.to(dtype)
         # F74 T5 (pending approval, off): a frozen protocol may shorten the discarded primer.
         for _ in range((protocol.get("turnaround") or {}).get("primer_passes") or 3):
@@ -455,7 +478,7 @@ def run_case(args):
             stats.average_loss.backward()
         torch.cuda.synchronize()
         base.zero_grad(set_to_none=True)
-        del prime, stats, first
+        del prime, stats, first, prime_samples
         report["discarded_primer_seconds"] = time.perf_counter() - prime_start
         report["model_setup_seconds"] = prime_start - started
         master.load_state_dict(checkpoint["model"])

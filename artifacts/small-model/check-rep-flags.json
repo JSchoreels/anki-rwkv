@@ -1,0 +1,178 @@
+{
+ "A. option off (absent and false) = base commit: production batch + KD loss + every gradient, bitwise": {
+  "value": {
+   "base_commit": "e4fe8a871d54d5000a5c8b8c4db4663bf0330cfc",
+   "tensors": 413,
+   "gradients": 354,
+   "batch_rows": [
+    7958,
+    92
+   ],
+   "loss": 1.696733832359314,
+   "differing": []
+  },
+  "ok": true
+ },
+ "B. user 8949: flags = pandas full-history reference in 2,048-review windows from offset 32768": {
+  "value": {
+   "production": {
+    "samples": 2,
+    "rows": 7941,
+    "query_rows": 3845,
+    "wrong": 0,
+    "rows_where_window_local_count_differs": 1924
+   },
+   "reference": {
+    "samples": 2,
+    "rows": 7941,
+    "query_rows": 3845,
+    "wrong": 0,
+    "rows_where_window_local_count_differs": 1924
+   }
+  },
+  "ok": true
+ },
+ "B. user 3423: flags = pandas full-history reference in 2,048-review windows from offset 16384": {
+  "value": {
+   "production": {
+    "samples": 2,
+    "rows": 7774,
+    "query_rows": 3678,
+    "wrong": 0,
+    "rows_where_window_local_count_differs": 2565
+   },
+   "reference": {
+    "samples": 2,
+    "rows": 7774,
+    "query_rows": 3678,
+    "wrong": 0,
+    "rows_where_window_local_count_differs": 2565
+   }
+  },
+  "ok": true
+ },
+ "B. first review (i == 1) is exactly elapsed_days == -1 on these users": {
+  "value": 0,
+  "ok": true
+ },
+ "B. option on: every batch field but the 3 flag columns equals option off, bitwise, on 3 paths; rows aligned": {
+  "value": {
+   "production (columnar, batched ids, gpu_packed, packed IPC)": [],
+   "gpu_b01 packed, no batched ids": [],
+   "reference make_samples + rwkv prepare": [],
+   "query_rows_one_flag": true,
+   "first_review_rows_no_flag": true,
+   "flag_rows": [
+    502,
+    498,
+    6690
+   ]
+  },
+  "ok": true
+ },
+ "C. epoch-6 checkpoint + zero flag weights: eval predictions, train loss and shared gradients bitwise": {
+  "value": {
+   "widened": true,
+   "eval": {
+    "p_curve": true,
+    "p_imm_all": true,
+    "average_loss": true
+   },
+   "train_loss": [
+    1.2739245891571045,
+    1.2739245891571045
+   ],
+   "shared_gradients": 354,
+   "shared_gradients_equal": true,
+   "flag_grad_abs_sum": 0.056986253708601
+  },
+  "ok": true
+ },
+ "D. one KD training step from epoch 6 (widened AdamW state): finite, flag weights move, moments kept": {
+  "value": {
+   "loss": 1.266938,
+   "flag_weight_abs_max": 0.0007000000914558768,
+   "steps": {
+    "flag_weight": 1.0,
+    "others": [
+     83785.0
+    ]
+   },
+   "epoch6_step": 83784.0,
+   "moments_kept": true,
+   "parameters_with_state": 354
+  },
+  "ok": true
+ },
+ "D. CatchUp({architecture: w64, rep_flags: true}) builds the rep-flags student, fresh flag weights zero": {
+  "value": {
+   "variant": "w64+rep_flags",
+   "describe": {
+    "inputs": "92 + 3 review-number flags (2nd, 3rd, 4th+ review of the card)",
+    "teacher_inputs": 92
+   }
+  },
+  "ok": true
+ },
+ "D. TorchScript (JIT) bf16 child of w64-repflags (as trained): runs, flag weight float32 and gets a gradient": {
+  "value": "ScriptModule torch.float32 torch.bfloat16 True True",
+  "ok": true
+ },
+ "E. teacher gets exactly its 92 inputs (bitwise) and returns the same targets; the student batch keeps 95": {
+  "value": {
+   "teacher_input": [
+    7958,
+    92
+   ],
+   "student_input": [
+    7958,
+    95
+   ]
+  },
+  "ok": true
+ },
+ "E. KD cache digest identical with and without rep_flags = the ctx2048-cont run's cache folder": {
+  "value": {
+   "off": "e66b1ec9cc5b",
+   "on": "e66b1ec9cc5b",
+   "teacher_folders": {
+    "off": "batches-e66b1ec9cc5b",
+    "on": "batches-e66b1ec9cc5b"
+   },
+   "ctx2048_cont_run": "batches-e66b1ec9cc5b"
+  },
+  "ok": true
+ },
+ "F. small_model_heldout.py scores the widened checkpoint (w64-repflags) = the 92-input checkpoint": {
+  "value": {
+   "user": 4676,
+   "labels": [
+    "e6/fp32",
+    "e6/w8+s8",
+    "rf/fp32",
+    "rf/w8+s8"
+   ],
+   "identical_benchmark": {
+    "fp32": true,
+    "w8+s8": true
+   },
+   "rf_fp32_logloss": 0.05268,
+   "parameters": [
+    331895,
+    331511
+   ],
+   "stderr_tail": ""
+  },
+  "ok": true
+ },
+ "G. prefetch allowlist has rep_flags (and still ends with chunk_reviews for check_long_chunks)": {
+  "value": [],
+  "ok": true
+ },
+ "G. expertium_decay.prepare carries rep_flags into the decay options": {
+  "value": true,
+  "ok": true
+ },
+ "seconds": 280.7,
+ "failed": []
+}

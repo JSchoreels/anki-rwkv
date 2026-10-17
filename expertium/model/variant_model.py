@@ -18,7 +18,8 @@ from expertium.model.srs_model import (DTYPE_EXCLUDE, ExactIndexSelect, ExactPad
                                        FunctionType, ModuleType, SrsRWKV, SrsRWKVIterStatistics, wddm_flush_point)
 
 # The GRU head's root parameters stay float32 like the linears they replace (upstream DTYPE_EXCLUDE "gru_").
-VARIANT_DTYPE_EXCLUDE = DTYPE_EXCLUDE + ["gru_"]
+# SM30: the review-number flag weight (a root parameter like the GRU head's) stays float32 too.
+VARIANT_DTYPE_EXCLUDE = DTYPE_EXCLUDE + ["gru_", "rep_flags"]
 
 
 def is_excluded(name):
@@ -129,6 +130,10 @@ class VariantSrsRWKV(SrsRWKV):
         self.zero_features_on = len(variant.zero_features) > 0
         self.zero_features: List[int] = [int(i) for i in variant.zero_features] or [-1]
         self.interleave_on = bool(variant.interleave)
+        # SM30 (scripts/rep_flags.py): rows arrive as [24 card | 3 flags | 68 encodings]; the 92 inputs keep
+        # features2card and the 3 flags add a bias-free float32 [fc, 3] weight at its first layer (one 95-input layer,
+        # split), so zero flag weights leave every output bit-identical.
+        self.rep_flags_on = bool(getattr(variant, "rep_flags", False))
         self.stream_depths: List[int] = [config.n_layers for _, config in anki_rwkv_config.modules]
         # (stream, layer) execution order, round-major; check_expertium_catch_up.py swaps in stream-major order to
         # prove the canonical gather/scatter path reproduces the sequential forward.
@@ -204,6 +209,18 @@ class VariantSrsRWKV(SrsRWKV):
             self.p_linear = torch.nn.Linear(self.p_head_dim, 4)
             torch.nn.init.zeros_(self.p_linear.weight)
             self.p_linear.bias.copy_(torch.tensor([-0.3512, -0.0802, 0.4297, -0.2041]))
+            if self.rep_flags_on:
+                # Registered last (every other parameter keeps its order and random draws); zero = flags unused.
+                self.features2card_rep_flags_weight = torch.nn.Parameter(torch.zeros(self.features_fc_dim, 3))
+
+    @torch.jit.ignore
+    def _rep_flags_term(self, batch_start: torch.Tensor) -> torch.Tensor:
+        """SM30: the flags' share of the first input layer, from pipeline rows of 95 columns."""
+        if batch_start.shape[-1] != 95:
+            raise ValueError(f"rep_flags model needs 95 input columns (24 card, 3 flags, 68 encodings), got "
+                             f"{batch_start.shape[-1]}")
+        weight = self.features2card_rep_flags_weight
+        return torch.nn.functional.linear(batch_start[..., 24:27].to(weight.dtype), weight).to(batch_start.dtype)
 
     # ---- GRU curve head (RWKV_GRU_HEAD) ----
     @torch.jit.ignore
@@ -330,11 +347,24 @@ class VariantSrsRWKV(SrsRWKV):
         batch_skips: list[list[torch.Tensor]],
         batch_num_data: int,
     ):
-        if self.zero_features_on:
-            # RWKV_ZERO_FEATURES: the column is constant 0 in training and evaluation (dim 22 = scaled_state).
-            batch_start = batch_start.index_fill(
-                -1, torch.tensor(self.zero_features, dtype=torch.long, device=batch_start.device), 0.0)
-        x = self.features2card(batch_start)
+        if self.rep_flags_on:
+            # SM30: [the 92 inputs | 3 flags] through one 95-input first layer, split as Linear(92) + Linear(3).
+            flags_term = self._rep_flags_term(batch_start)
+            inputs = torch.cat([batch_start[..., :24], batch_start[..., 27:]], -1)
+            if self.zero_features_on:
+                inputs = inputs.index_fill(
+                    -1, torch.tensor(self.zero_features, dtype=torch.long, device=inputs.device), 0.0)
+            x = self.features2card[0](inputs) + flags_term
+            x = self.features2card[1](x)
+            x = self.features2card[2](x)
+            x = self.features2card[3](x)
+            x = self.features2card[4](x)
+        else:
+            if self.zero_features_on:
+                # RWKV_ZERO_FEATURES: the column is constant 0 in training and evaluation (dim 22 = scaled_state).
+                batch_start = batch_start.index_fill(
+                    -1, torch.tensor(self.zero_features, dtype=torch.long, device=batch_start.device), 0.0)
+            x = self.features2card(batch_start)
 
         assert len(batch_sub_gather) == len(self.rwkv_modules)
         if self.interleave_on:
