@@ -1,7 +1,7 @@
 {
- "generated_at": "2026-10-17T18:57:57+02:00",
- "updated": "2026-10-17 18:57",
- "material": "394967211a5b08dd",
+ "generated_at": "2026-10-17T18:58:46+02:00",
+ "updated": "2026-10-17 18:58",
+ "material": "83635a8d0e203850",
  "summary": "running 000426",
  "headline": [
   {
@@ -39,7 +39,7 @@
    "track": "small model",
    "ticket": "000426-small-model",
    "started": "18:52",
-   "elapsed": "0:05",
+   "elapsed": "0:06",
    "progress": null,
    "eta": "~19:42"
   }
@@ -408,6 +408,44 @@
   }
  ],
  "results": [
+  {
+   "date": "10-17",
+   "kind": "collection",
+   "name": "Epoch 10 + decay at 32k on your collection",
+   "id": "Q12",
+   "curve": 0.4423,
+   "instant": 0.4375,
+   "curve_pct": 0.14,
+   "instant_pct": 0.18,
+   "eval": "own collection, 173,690 reviews",
+   "fork": "fork 0.4417 / 0.4367",
+   "takeaway": "Slightly better than the previous best (+0.18% / +0.21%). Calibration RMSE(bins) 0.0286 / 0.0207 vs fork 0.0224 / 0.0200",
+   "track": "small model"
+  },
+  {
+   "date": "10-17",
+   "kind": "gpu-score",
+   "name": "Fork with review types relabelled by the first-review rule (no learning steps)",
+   "id": "SM25",
+   "curve_pct": 0.46,
+   "instant_pct": 0.45,
+   "eval": "464 users, 22.66M reviews",
+   "fork": "vs the real fork; new student vs this relabelled fork: +0.65% / +0.48%",
+   "takeaway": "Without the SM-2 learning-step labels the fork loses about half of its lead over the student",
+   "track": "small model"
+  },
+  {
+   "date": "10-17",
+   "kind": "cpu",
+   "name": "Where the student's gap sits, by inferred stage (epoch 10 + decay)",
+   "id": "SM24",
+   "curve_pct": 1.11,
+   "instant_pct": 0.94,
+   "eval": "464 users, 22.66M reviews",
+   "fork": "same-day 27% of reviews: +1.63% / +1.16%; after a fail 1.7%: +3.35% / +0.96%; spaced 71%: +0.79% / +0.84%",
+   "takeaway": "Spaced reviews already meet the target on both heads; the curve gap is mostly learning steps (same-day 43% of the gap)",
+   "track": "small model"
+  },
   {
    "date": "10-17",
    "kind": "gpu-train",
