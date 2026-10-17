@@ -388,6 +388,11 @@ def run_case(args):
             if not options.get("deferred_reads") or not hasattr(base, "sync_free_loss"):
                 raise ValueError("F37 sync-free loss needs F33 deferred reads and the Expertium loss")
             base.sync_free_loss = True
+        if options.get("instant_loss_weight") is not None:
+            # SM26: scales only the instant (rating) term of the training loss; evaluation is unaffected.
+            if not hasattr(base, "instant_loss_weight"):
+                raise ValueError("instant_loss_weight needs the Expertium loss")
+            base.instant_loss_weight = float(options["instant_loss_weight"])
         if options.get("wddm_flush_streams"):
             # F77b: identity flush points between hierarchy streams in forward and backward.
             if not hasattr(base, "wddm_flush_streams"):

@@ -150,6 +150,8 @@ class SrsRWKV(ModuleType):
         # F37: skip the host syncs in _get_loss. Any NaN they catch also makes average_loss
         # non-finite, which the caller must check; the label counts are returned as -1.
         self.sync_free_loss = False
+        # SM26: opt-in multiplier on the instant (rating) loss term; None keeps IMMEDIATE_SCALE = 1.0 exactly.
+        self.instant_loss_weight = None
 
         self.card_features_dim = 92
         self.d_model = anki_rwkv_config.d_model
@@ -469,7 +471,7 @@ class SrsRWKV(ModuleType):
         # Optimization-loop knob (local literal — TorchScript can't use module globals/env):
         # weight on the immediate 4-way rating loss. 1.0 = original. (iter2 tried 2.0 -> imm
         # got WORSE, reverted.)
-        IMMEDIATE_SCALE = 1.0
+        IMMEDIATE_SCALE = 1.0 if self.instant_loss_weight is None else float(self.instant_loss_weight)
         w_avg = (w_loss * ahead_mask).sum() / (1e-8 + ahead_mask.sum())
         W_LOSS_SCALE = 1e-5
         ahead_logits_mag_loss = torch.sqrt(
@@ -496,7 +498,7 @@ class SrsRWKV(ModuleType):
         )
         loss_tensor = (
             AHEAD_SCALE * curve_loss.detach()
-            + p_loss.detach()
+            + IMMEDIATE_SCALE * p_loss.detach()
             + AHEAD_RAW_SCALE * curve_raw_loss.detach()
             + W_LOSS_SCALE * w_loss.detach()
             + AHEAD_LOGITS_MAG_LOSS_SCALE * ahead_logits_mag_loss.detach()
