@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-10-17T17:38:48+02:00",
- "updated": "2026-10-17 17:38",
- "material": "775709d56642cf5a",
- "summary": "running 000423, finished 000422",
+ "generated_at": "2026-10-17T17:39:59+02:00",
+ "updated": "2026-10-17 17:39",
+ "material": "27f9d258f6f59771",
+ "summary": "running 000423",
  "headline": [
   {
    "k": "Best, 464 users (curve / instant)",
@@ -39,20 +39,9 @@
    "track": "small model",
    "ticket": "000423-small-model",
    "started": "17:36",
-   "elapsed": "0:02",
+   "elapsed": "0:03",
    "progress": null,
    "eta": "~18:06"
-  },
-  {
-   "what": "State quantization test on the student, without retraining",
-   "id": "SM32",
-   "kind": "cpu",
-   "why": "Expertium&rsquo;s state compression at 403/214, 400/400, 800/400, 800/800 bits per card/note; 68 users.",
-   "track": "small model",
-   "started": "15:00",
-   "eta": "~18:00",
-   "progress": null,
-   "manual": true
   }
  ],
  "waiting": [],
@@ -224,6 +213,13 @@
  "backlog": [
   {
    "status": "next",
+   "item": "State compression trained in (QAT) at ~400/400 bits per card/note",
+   "id": "SM32b",
+   "why": "Post-training test: 60&times; smaller state than int8 for +0.0012 / +0.0023 nats; training with the codec should shrink that cost",
+   "track": "small model"
+  },
+  {
+   "status": "next",
    "item": "Muon optimizer for the student",
    "id": "SM36",
    "why": "Expertium pointer: his largest instant gains (&minus;0.0005 instant at d=32); our student is AdamW only",
@@ -385,6 +381,48 @@
   }
  ],
  "results": [
+  {
+   "date": "10-17",
+   "kind": "cpu",
+   "name": "State compression without retraining: ~800/800 bits per card/note (31.7 MB state for the largest user)",
+   "id": "SM32",
+   "curve_pct": 0.37,
+   "instant_pct": 1.31,
+   "eval": "34 users, 1.21M reviews",
+   "fork": "fork 0.32132 / 0.28497; uncompressed student (int8 state, 959 MB) 0.32183 / 0.28734",
+   "takeaway": "Near the uncompressed student: +0.0007 / +0.0014 nats. Post-training only; training with it (QAT) should cost less",
+   "track": "small model",
+   "curve": 0.32251,
+   "instant": 0.2887
+  },
+  {
+   "date": "10-17",
+   "kind": "cpu",
+   "name": "State compression without retraining: ~400/400 bits (15.6 MB)",
+   "id": "SM32",
+   "curve_pct": 0.53,
+   "instant_pct": 1.63,
+   "eval": "34 users, 1.21M reviews",
+   "fork": "fork 0.32132 / 0.28497; uncompressed student (int8 state, 959 MB) 0.32183 / 0.28734",
+   "takeaway": "Best size/accuracy point: +0.0012 / +0.0023 vs uncompressed (959 MB). Post-training only; training with it (QAT) should cost less",
+   "track": "small model",
+   "curve": 0.32303,
+   "instant": 0.28962
+  },
+  {
+   "date": "10-17",
+   "kind": "cpu",
+   "name": "State compression without retraining: Expertium deployed 403/214 bits (14.5 MB)",
+   "id": "SM32",
+   "curve_pct": 1.78,
+   "instant_pct": 3.72,
+   "eval": "34 users, 1.21M reviews",
+   "fork": "fork 0.32132 / 0.28497; uncompressed student (int8 state, 959 MB) 0.32183 / 0.28734",
+   "takeaway": "His 1-bit norms cost most of it; with 4-bit norms +0.0012 / +0.0025. Post-training only; training with it (QAT) should cost less",
+   "track": "small model",
+   "curve": 0.32702,
+   "instant": 0.29556
+  },
   {
    "date": "10-17",
    "kind": "gpu-score",
