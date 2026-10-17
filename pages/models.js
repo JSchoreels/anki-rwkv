@@ -1,7 +1,5 @@
-// Architecture page. Every count is derived from the configurations below, which mirror rwkv/architecture.py (Alex, default)
-// and expertium/variants.py w64 (the reconstruction of Expertium's d=64 trunk). "Ours" is w64 at our 92 inputs, the small model
-// on the factory page; "Expertium" is his run 110 `s64hsm10` (rwkv-anki-autoresearch commit 1f2e6b0), kept as a table column.
-// The older iter36 config of expertium/architecture.py is kept only as a labelled snapshot.
+// Architecture page. Every count is derived from the configurations below: rwkv/architecture.py (Alex, default) and the w64
+// preset (ours, the small model on the factory page). The older iter36 config is kept only as a labelled snapshot.
 (() => {
   'use strict';
   const { h, bindTip, fmt, esc } = window.UI;
@@ -22,31 +20,22 @@
       name: 'Alex', full: 'Alex (default)', C: 128, H: 4, hd: 32, F: 4, headMult: 4, curves: 128, points: 128,
       streams: [['card', 3, 1.5], ['deck', 4, 2], ['note', 2, 1.5], ['preset', 3, 2], ['user', 4, 2]],
     },
-    exp: {
-      // Expertium, run 110 `s64hsm10` (commit 1f2e6b0): the d=64 trunk (4 heads x 16), 3 learned power-law curves, correction head off,
-      // channel mixers kept in only four layers, value-residual LoRA stripped in layer 1 of each stream, LoRA ranks 4/4/2/4.
-      // Parameters are DERIVED: 332,922 (his figure for s64h/s64hc10, 103 inputs, incl. PAVA's 3) + 2 sibling-rating inputs x 128.
-      name: 'Expertium', full: 'Expertium (run 110, s64hsm10)', C: 64, H: 4, hd: 16, F: 2, headMult: 2, curves: 3, points: 0, gru: 3,
-      inputs: 105, pava: 3, lora: { d: 4, a: 4, v: 2, g: 4 }, stripV0: true,
-      mixers: { card: [0], deck: [0, 3], note: [0], preset: [], user: [] },
-      streams: [['card', 2, 1], ['deck', 4, 1], ['note', 1, 1], ['preset', 3, 1], ['user', 3, 1]],
-    },
-    // Ours: the w64 preset (expertium/variants.py) at our 92 inputs, no PAVA; must total W64_PARAMETERS = 331,511.
+    // Ours: the w64 preset at 92 inputs; must total W64_PARAMETERS = 331,511.
     ours: {
       name: 'Ours', full: 'Ours (small model, w64)', C: 64, H: 4, hd: 16, F: 2, headMult: 2, curves: 3, points: 0, gru: 3,
       inputs: 92, pava: 0, lora: { d: 4, a: 4, v: 2, g: 4 }, stripV0: true,
       mixers: { card: [0], deck: [0, 3], note: [0], preset: [], user: [] },
       streams: [['card', 2, 1], ['deck', 4, 1], ['note', 1, 1], ['preset', 3, 1], ['user', 3, 1]],
     },
-    // Expertium-style config as trained in this repository (iter36 snapshot): 64 fixed curves + 64-point correction head.
+    // Older config trained in this repository (iter36 snapshot): 64 fixed curves + 64-point correction head.
     iter36: {
-      name: 'Expertium iter36', full: 'Expertium-style, iter36 snapshot', C: 32, H: 1, hd: 32, F: 4, headMult: 4, curves: 64, points: 64,
+      name: 'iter36', full: 'iter36 snapshot', C: 32, H: 1, hd: 32, F: 4, headMult: 4, curves: 64, points: 64,
       streams: [['card', 1, 1], ['deck', 4, 1], ['note', 3, 1], ['preset', 3, 1], ['user', 3, 1]],
     },
   };
 
   // Parameters of one RWKV-7 layer (time mixer + channel mixer), grouped for display. `layer` is the index inside the stream;
-  // Expertium's trunk strips the channel mixer (to a 5-parameter dummy) in most layers and the value-residual LoRA (to 3) in layer 1.
+  // The w64 trunk strips the channel mixer (to a 5-parameter dummy) in most layers and the value-residual LoRA (to 3) in layer 1.
   function layerParams(m, stream, layer, cmf) {
     const { C, H } = m;
     const L = m.lora || LORA;
@@ -98,7 +87,7 @@
     m.total = m.comp.reduce((a, c) => a + c.n, 0);
     m.layers = m.streams.reduce((a, s) => a + s[1], 0);
   }
-  const A = MODELS.alex, E = MODELS.ours, X = MODELS.exp, I = MODELS.iter36;
+  const A = MODELS.alex, E = MODELS.ours, I = MODELS.iter36;
   console.assert(E.total === 331511, 'ours should match W64_PARAMETERS', E.total);
   const kib = (b) => (b / 1024).toLocaleString('en-US', { maximumFractionDigits: 2 }) + ' KiB';
 
@@ -189,7 +178,7 @@
     const flow = h('div', { class: 'flow' });
     const enc = m.comp[0];
     flow.append(h('div', { class: 'sbar-label', style: { 'margin-top': '0' } }, m.full, h('span', {}, fmt(m.total) + ' parameters')));
-    flow.append(h('div', { class: 'stage' }, h('div', { class: 't' }, `${m.inputs || 92} input numbers per review`, h('span', {}, m.inputs ? 'his own layout' : 'the shared layout')),
+    flow.append(h('div', { class: 'stage' }, h('div', { class: 't' }, `${m.inputs || 92} input numbers per review`, h('span', {}, 'the shared layout')),
       h('div', { class: 'sub' }, 'plus a query copy of each review with the answer blanked')));
     flow.append(h('div', { class: 'arrow' }));
     flow.append(h('div', { class: 'stage stream', style: { '--fc': enc.color } },
@@ -376,8 +365,8 @@
     });
     if (withTicks) TICKS.forEach(([s, l], i) => el.append(h('span', { class: 'tick' + (i % 2 ? '' : ' minor'), style: { left: pos(s) + '%' } }, l)));
   }
-  // Ours (Expertium's head): three curves whose stability is predicted per review. The ticks mark only the starting
-  // values (bias), log-spaced from 1 hour to 1 year (expertium/model/variant_model.py).
+  // Ours: three curves whose stability is predicted per review. The ticks mark only the starting
+  // values (bias), log-spaced from 1 hour to 1 year.
   {
     const n = E.gru;
     const init = Array.from({ length: n }, (_, i) => Math.exp(Math.log(3600) + (Math.log(31536000) - Math.log(3600)) * i / (n - 1)));
@@ -397,23 +386,23 @@
   const mixNote = '1, but kept in only 4 of the 13 layers (card 1, deck 1 and 4, note 1)';
   const loraNote = '4 / 4 / 2 / 4 (value LoRA stripped in layer 1 of each stream)';
   const rows = [
-    ['Parameters', fmt(A.total), fmt(E.total), fmt(X.total) + ' (derived)'],
-    ['Hidden width (d_model)', A.C, E.C, X.C],
-    ['Heads (channels per head)', `${A.H} (${A.hd})`, `${E.H} (${E.hd})`, `${X.H} (${X.hd})`],
-    ['Layers: card / deck / note / preset / user', ...[A, E, X].map((m) => m.streams.map((s) => s[1]).join(' / '))],
-    ['Channel-mixer factor', A.streams.map((s) => s[2]).join(' / '), mixNote, 'same as ours'],
-    ['LoRA ranks: decay / in-context rate / value / gate', '16 / 16 / 8 / 16', loraNote, 'same as ours'],
-    ['Input encoder', `92 → ${A.F * A.C} → ${A.C}`, `92 → ${E.F * E.C} → ${E.C} (input 22 zeroed)`, `${X.inputs} → ${X.F * X.C} → ${X.C} (his layout; input 22 zeroed)`],
-    ['Curve head', `${A.curves} fixed exp. curves + ${A.points}-pt correction`, `${E.gru} learned power-law curves (weight, S, d per review), no correction head`, 'same as ours, plus PAVA’s 3 thresholds'],
-    ['Head inner width', A.headMult * A.C, E.headMult * E.C, X.headMult * X.C],
-    ['State per card (fp32)', ...[A, E, X].map((m) => kib(streamBytes(m, 'card', m.streams[0][1])))],
-    ['State per note (fp32)', ...[A, E, X].map((m) => kib(streamBytes(m, 'note', m.streams[2][1])))],
-    ['Training', 'trained on the review labels', 'distilled from Alex’s model (the fork), windows up to 32,768 reviews, final LR decay', 'his 10-epoch schedule, Muon on the k/v scales'],
-    ['Scored here with', 'int8 weights and int8 state (the w8+s8 reference)', 'int8 weights and int8 state', 'not scored here'],
-    ['Dropout: card, note / deck, preset, user / per layer', '0.02 / 0.05 / 0.01', '0.01 / 0.025 / 0.005', 'not published for run 110'],
+    ['Parameters', fmt(A.total), fmt(E.total)],
+    ['Hidden width (d_model)', A.C, E.C],
+    ['Heads (channels per head)', `${A.H} (${A.hd})`, `${E.H} (${E.hd})`],
+    ['Layers: card / deck / note / preset / user', ...[A, E].map((m) => m.streams.map((s) => s[1]).join(' / '))],
+    ['Channel-mixer factor', A.streams.map((s) => s[2]).join(' / '), mixNote],
+    ['LoRA ranks: decay / in-context rate / value / gate', '16 / 16 / 8 / 16', loraNote],
+    ['Input encoder', `92 → ${A.F * A.C} → ${A.C}`, `92 → ${E.F * E.C} → ${E.C} (input 22 zeroed)`],
+    ['Curve head', `${A.curves} fixed exp. curves + ${A.points}-pt correction`, `${E.gru} learned power-law curves (weight, S, d per review), no correction head`],
+    ['Head inner width', A.headMult * A.C, E.headMult * E.C],
+    ['State per card (fp32)', ...[A, E].map((m) => kib(streamBytes(m, 'card', m.streams[0][1])))],
+    ['State per note (fp32)', ...[A, E].map((m) => kib(streamBytes(m, 'note', m.streams[2][1])))],
+    ['Training', 'trained on the review labels', 'distilled from Alex’s model (the fork), windows up to 32,768 reviews, final LR decay'],
+    ['Scored here with', 'int8 weights and int8 state (the w8+s8 reference)', 'int8 weights and int8 state'],
+    ['Dropout: card, note / deck, preset, user / per layer', '0.02 / 0.05 / 0.01', '0.01 / 0.025 / 0.005'],
   ];
   const ct = $('ctable');
-  ct.append(h('thead', {}, h('tr', {}, h('th', {}, ''), h('th', { class: 'r' }, 'Alex (default)'), h('th', { class: 'r' }, 'Ours'), h('th', { class: 'r' }, 'Expertium run 110'))));
+  ct.append(h('thead', {}, h('tr', {}, h('th', {}, ''), h('th', { class: 'r' }, 'Alex (default)'), h('th', { class: 'r' }, 'Ours'))));
   const cb = h('tbody');
   rows.forEach(([k, ...v]) => cb.append(h('tr', {}, h('td', {}, k), ...v.map((x) => h('td', { class: 'r' }, String(x))))));
   ct.append(cb);

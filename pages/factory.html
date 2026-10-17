@@ -91,7 +91,7 @@
       <div>
         <p class="eyebrow"><a href="./">anki-rwkv</a> &middot; factory overview &middot; <a href="models.html">model architectures</a> &middot; <a href="campaign.html">R01 campaign</a> &middot; <a href="train.html">8k/2k run</a> &middot; <a href="docs/data-quality/">data quality</a></p>
         <h1>Factory overview: what runs, what is planned, what is done</h1>
-        <p class="lede">The whole anki-rwkv work in one place. The page updates itself from the job queue and the scoring files; takeaways and the backlog are edited by hand. Today it holds one track, the <b>small model</b>: a 331,511-parameter student (Expertium&rsquo;s d=64 shape, distilled from the fork&rsquo;s 2,762,884-parameter RWKV) trained on 5,000 dataset users and scored on users it never saw, full history, both models with int8 weights and int8 state. LogLoss is lower-is-better; the % is the gap to the fork on the same reviews (positive = student worse). Target: &le; +1.0% on both heads over the 464 held-out users.</p>
+        <p class="lede">The whole anki-rwkv work in one place. The page updates itself from the job queue and the scoring files; takeaways and the backlog are edited by hand. Today it holds one track, the <b>small model</b>: a 331,511-parameter student (64 channels, distilled from the fork&rsquo;s 2,762,884-parameter RWKV) trained on 5,000 dataset users and scored on users it never saw, full history, both models with int8 weights and int8 state. LogLoss is lower-is-better; the % is the gap to the fork on the same reviews (positive = student worse). Target: &le; +1.0% on both heads over the 464 held-out users.</p>
       </div>
       <button id="theme" class="btn" type="button" aria-label="Toggle light and dark theme">Theme</button>
     </div>
@@ -118,7 +118,7 @@
   <section class="panel">
     <div class="panel-head">
       <h2>3. Backlog</h2>
-      <p class="hint">Ideas and follow-ups with the reason they are there. Pointers from Expertium&rsquo;s research are marked; we keep our own training setup.</p>
+      <p class="hint">Ideas and follow-ups with the reason they are there. Pointers from outside research are marked; we keep our own training setup.</p>
     </div>
     <div class="filters" id="filters" role="group" aria-label="Filter by status"></div>
     <div class="table-wrap free tablewrap-sm"><table class="sm-table" id="backlog"></table></div>

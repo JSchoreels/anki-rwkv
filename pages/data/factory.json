@@ -1,7 +1,7 @@
 {
- "generated_at": "2026-10-18T00:09:38+02:00",
- "updated": "2026-10-18 00:09",
- "material": "d58c5e2b581d3644",
+ "generated_at": "2026-10-18T00:10:23+02:00",
+ "updated": "2026-10-18 00:10",
+ "material": "fedef309f82f9b56",
  "summary": "running 000431",
  "headline": [
   {
@@ -86,7 +86,7 @@
    "track": "small model",
    "ticket": "000431-small-model",
    "started": "23:50",
-   "elapsed": "0:18",
+   "elapsed": "0:19",
    "progress": null,
    "eta": "~00:56"
   }
@@ -245,7 +245,7 @@
    "what": "One-epoch final decay at 2,048 windows",
    "id": "SM35",
    "kind": "gpu-train",
-   "decides": "Does a 1-epoch decay beat our quarter epoch (Expertium&rsquo;s big gain)?",
+   "decides": "Does a 1-epoch decay beat our quarter epoch (a big gain in outside runs)?",
    "track": "small model",
    "minutes": 125,
    "state": "done",
@@ -348,28 +348,28 @@
    "status": "next",
    "item": "State compression trained in (QAT) at ~400/400 bits per card/note, during the final decay only",
    "id": "SM32b",
-   "why": "Post-training test: 60&times; smaller state than int8 for +0.0012 / +0.0023 nats. Redo only the final decay from epoch 10 with the compression in the loop (Expertium&rsquo;s advice). Sped up: fused GPU kernel, no eigensolver (same codec, bitwise on real states); CPU projection 75&ndash;80 min. A 10-min GPU benchmark decides the launch",
+   "why": "Post-training test: 60&times; smaller state than int8 for +0.0012 / +0.0023 nats. Redo only the final decay from epoch 10 with the compression in the loop. Sped up: fused GPU kernel, no eigensolver (same codec, bitwise on real states); CPU projection 75&ndash;80 min. A 10-min GPU benchmark decides the launch",
    "track": "small model"
   },
   {
    "status": "next",
    "item": "Muon optimizer for the student",
    "id": "SM36",
-   "why": "Expertium pointer: his largest instant gains (&minus;0.0005 instant at d=32); our student is AdamW only",
+   "why": "Outside pointer: largest instant gains (&minus;0.0005 instant at d=32); our student is AdamW only",
    "track": "small model"
   },
   {
    "status": "next",
    "item": "Label-free reference: the fork fine-tuned with review type switched off",
    "id": "SM38",
-   "why": "Honest best a big model can do without review type. Fine-tune first: a cheap from-scratch fork-size retrain lost Expertium +0.0037 / +0.0043",
+   "why": "Honest best a big model can do without review type. Fine-tune first: a cheap from-scratch fork-size retrain lost +0.0037 / +0.0043 in outside runs",
    "track": "small model"
   },
   {
    "status": "next",
    "item": "Deployment-realistic scoring without the duration leak",
    "id": "SM31",
-   "why": "Intervals as Anki knows them when it shows the card; both models, cheap. Expertium: +0.0002 / +0.0004 cost",
+   "why": "Intervals as Anki knows them when it shows the card; both models, cheap. Outside runs: +0.0002 / +0.0004 cost",
    "track": "small model"
   },
   {
@@ -404,7 +404,7 @@
    "status": "idea",
    "item": "Real-timestamp inputs (card age, time since any review, creation batch)",
    "id": "SM37",
-   "why": "Expertium pointer: about &minus;0.0005 / &minus;0.0008 net of the clock leak; needs the dataset build with timestamps",
+   "why": "Outside pointer: about &minus;0.0005 / &minus;0.0008 net of the clock leak; needs the dataset build with timestamps",
    "track": "small model"
   },
   {
@@ -425,12 +425,12 @@
    "status": "idea",
    "item": "Grade-order sanity: interval(Again) &le; Hard &le; Good &le; Easy",
    "id": "SM33",
-   "why": "Measure how often the student breaks it; enforcing it costs Expertium +0.002 on curve",
+   "why": "Measure how often the student breaks it; enforcing it cost +0.002 on curve in outside runs",
    "track": "small model"
   },
   {
    "status": "idea",
-   "item": "Expertium&rsquo;s open tuning queue (Muon learning rate x0.5 / x2, longer warmup)",
+   "item": "Open tuning queue from outside research (Muon learning rate x0.5 / x2, longer warmup)",
    "id": "SM39",
    "why": "Pointers only: we keep our own training setup (decision 10-17)",
    "track": "small model"
@@ -465,9 +465,9 @@
   },
   {
    "status": "done",
-   "item": "Cross-check of Expertium&rsquo;s research log, ledger and run board",
+   "item": "Cross-check of the outside research log, ledger and run board",
    "id": "SM34",
-   "why": "Read 10-17; new rows above, plus a list of his dead ends to skip",
+   "why": "Read 10-17; new rows above, plus a list of dead ends to skip",
    "track": "small model"
   },
   {
@@ -540,7 +540,7 @@
    "instant_pct": 1.59,
    "eval": "464 users, 22.66M reviews",
    "fork": "fork 0.29766 / 0.27216; same start with a quarter-epoch decay 0.30259 / 0.27668",
-   "takeaway": "Longer decay helps: &minus;0.00033 curve [&minus;0.00068, &minus;0.00008] / &minus;0.00019 instant [&minus;0.00025, &minus;0.00012] (292 / 351 of 464 users better). Smaller than Expertium&rsquo;s gain; a 1-epoch decay at 32k would cost ~4&frac12; h",
+   "takeaway": "Longer decay helps: &minus;0.00033 curve [&minus;0.00068, &minus;0.00008] / &minus;0.00019 instant [&minus;0.00025, &minus;0.00012] (292 / 351 of 464 users better). Smaller than the gain seen in outside runs; a 1-epoch decay at 32k would cost ~4&frac12; h",
    "track": "small model",
    "label": "s-w64kd-gate-ctx2048c-dec8-1ep/w8+s8"
   },
@@ -663,13 +663,13 @@
   {
    "date": "10-17",
    "kind": "cpu",
-   "name": "State compression without retraining: Expertium deployed 403/214 bits (14.5 MB)",
+   "name": "State compression without retraining: the deployed 403/214-bit codec (14.5 MB)",
    "id": "SM32",
    "curve_pct": 1.78,
    "instant_pct": 3.72,
    "eval": "34 users, 1.21M reviews",
    "fork": "fork 0.32132 / 0.28497; uncompressed student (int8 state, 959 MB) 0.32183 / 0.28734",
-   "takeaway": "His 1-bit norms cost most of it; with 4-bit norms +0.0012 / +0.0025. Post-training only; training with it (QAT) should cost less",
+   "takeaway": "The 1-bit norms cost most of it; with 4-bit norms +0.0012 / +0.0025. Post-training only; training with it (QAT) should cost less",
    "track": "small model",
    "curve": 0.32702,
    "instant": 0.29556
