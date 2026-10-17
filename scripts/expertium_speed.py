@@ -18,6 +18,7 @@ Cases (each a set of overrides on the accepted track E89-F65e-F77a of plan itera
   w80            "architecture": "w80" (interleaved, the champion)
   w64            "architecture": "w64" (s64h, his shipped d=64 trunk)
   w80-muon       w80 + "optimizer": "expertium-iter53"
+  fork128-b*     "architecture": "fork128" (the fork's d=128 model) at 256/128/64 chunks per update
   w32-kd         accepted options + distillation from the 2.76M fork teacher
 """
 from argparse import ArgumentParser, Namespace
@@ -63,6 +64,12 @@ def cases():
             "w64-ctx1024-b32": {**ctx, "chunk_reviews": 1024, "batch_chunks": 32},
             "w64-ctx2048-b16": {**ctx, "chunk_reviews": 2048, "batch_chunks": 16},
             "w64-ctx2048-b32": {**ctx, "chunk_reviews": 2048, "batch_chunks": 32},
+            # The fork's own d=128 model (card 3 / deck 4 / note 2 / preset 3 / user 4): head size 32 but d_model 128, so every
+            # width-32-only kernel is dropped (docs/SMALL_MODEL.md, "Fork-size preset"). Speed is the same with
+            # zero_features [22]. Batch chunks are a guess for 16 GB; the smaller ones are the fallback if b128 spills.
+            "fork128-b256": {**generic, "architecture": "fork128", "batch_chunks": 256},
+            "fork128-b128": {**generic, "architecture": "fork128", "batch_chunks": 128},
+            "fork128-b64": {**generic, "architecture": "fork128", "batch_chunks": 64},
             "w32-kd": {**accepted, "distillation": {"teacher": str(TEACHER), "alpha": 0.9}}}, dropped
 
 

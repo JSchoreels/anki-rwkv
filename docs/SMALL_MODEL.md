@@ -916,6 +916,34 @@ Student vs fork w8+s8 (LogLoss gap, 464 users). Source: `artifacts/small-model/H
 
 - The fork leads most on heavy-overlap users (consistent with training on copies of those histories), but they are 2.5% of reviews; on the 389 clean users the gap is the same. Shared history does not explain the bar P miss. Open (user's decision): score bar P on clean users too.
 
+## Fork-size preset (label-free reference groundwork)
+
+Goal (user, 2026-10-17): a reference that has the fork's size but no review-type input (input 22), to separate "what removing the label costs" from "what the small width costs". Two later experiments: (a) fine-tune from the fork's weights with input 22 zeroed; (b) retrain from scratch at fork size with input 22 zeroed. This section is the CPU groundwork only; nothing ran on the GPU.
+
+**Feasible, no key mapping needed.** `"architecture": "fork128"` (`expertium/variants.py`, `fork128_config()`) builds the fork's model in the trainer's class `VariantSrsRWKV`: d=128, 4 heads x 32, layers card 3 / deck 4 / note 2 / preset 3 / user 4, channel mixer 1.5 / 2.0 / 1.5 / 2.0 / 2.0, LoRA 16/16/8/16, 128 curves / 128 points, head and input multipliers 4, ahead residual on, no GRU head, no interleave, no stripping, `zero_features=()` (input 22 kept, matches the fork). It has exactly **2,762,884 parameters**, the same 504 state-dict keys and shapes as the fork, and the fork's `.pth` loads into it with `strict=True` directly (the vendored trainer RWKV classes are the fork code plus switches, so names are identical). Label-free: `"fork128-nolabel"` or `{"base": "fork128", "zero_features": [22]}`. Recurrent twin `variants.build("fork128", rnn=True)` also loads strictly.
+
+**Starting a run from the fork's weights.** The trainer starts from a plain state-dict file (`full_run.init_master`; `scripts/accuracy_loop.py prepare ... --init-master P`, as the decay and `cont` flows do). `scripts/fork_checkpoint.py convert --out P [--zero-input 22]` writes it (`--zero-input` also zeroes the dead `features2card.0.weight[:, 22]` column; outputs of a `zero_features=[22]` model are unchanged by it).
+
+**CPU check** `scripts/check_fork_preset.py` (users 1000 and 2000, first 1,500 reviews cut to the 128-review sample, CPU, 2 threads, 10 s): 16 of 16 pass (incl. the `fork128-nolabel` name). fork128 vs upstream `rwkv` SrsRWKV, eval mode: max |dp| curve and instant **0.0** (bitwise) on both users, eval loss identical (1.2937 / 1.3684). `zero_features=[22]` vs the fork with `features2card.0.weight[:, 22] = 0`: max |dp| **0.0**. Zeroing 22 moves the fork's predictions by up to 0.44 / 0.55, so the test is not vacuous. One CPU training step per variant (512 reviews, dropout on): finite loss (1.289 with 22, 1.416 zeroed), finite gradients on 489 of 504 tensors (the 15 without are layer 0's unused value-residual LoRA, as in every model of this family), zero gradient on the input-22 column when zeroed, finite parameters after an AdamW step. `check_expertium_catch_up.py` still passes (0 failed).
+
+**Kernel path.** fork128 has head size 32 but d_model 128, so `is_width32` is false and `is_head16` is false: `compatible_options` drops **all 26** `WIDTH32_ONLY` switches even with `wide_kernels=True` (the `WIDE_PORTED` set is gated on head size 16). Dropped: row_tiles_exact, native_wkv, wkv_tile, wkv_rows, exact_index, skip_padding_sources, native_index, prefetch_rows, fused_padded_gather, batched_split_gather, native_glue, exact_bonus_products, exact_gate_glue, exact_channel_glue, exact_group_norm, native_group_norm, recurrence_load_pipeline, recurrence_prefetch, wave_aware_backward, compact_previous_state, fused_shift, explicit_shift_lerp, partial_shift_lerp, exact_shift_lerp, concurrent_splits, concurrent_split_limit. It runs the generic path (the w80 "generic" cases of `expertium_speed.py`; the NVRTC WKV kernel is K=32 so the recurrence itself is the same kernel as w32). Open: the `WIDE_PORTED` kernels (row tiles, exact index, skip padding, exact group norm) are written for rows wider than 32 and might run at d=128 / head 32; that needs a `check_wide_kernels.py` GPU parity run and a change to the head-16 gate, neither done. Memory: unmeasured; w64 pages at 512 chunks and w80 needs 256, so expect 128 or 64 chunks per update at d=128.
+
+**Commands for the GPU tickets** (`$PY` the venv python, run from the worktree that contains this commit, queue as for Q3):
+
+```
+# initial weights for experiment (a); (b) needs none
+$PY scripts/fork_checkpoint.py convert --out artifacts/fork-reference/fork128-zero22-init.pth --zero-input 22
+# speed profile (three chunk sizes; cases fork128-b256 / -b128 / -b64 in expertium_speed.py)
+$PY scripts/expertium_speed.py prepare --out artifacts/fork-reference/speed-fork128 --users 160
+$PY $QUEUE run --owner <o> --purpose "fork128 speed profile" --claim gpu --timing --expected-minutes 25 -- \
+    $PY -X utf8 scripts/expertium_speed.py all --out artifacts/fork-reference/speed-fork128 --cases fork128-b128,fork128-b64,fork128-b256
+# (a) fine-tune from the fork, input 22 zeroed; (b) = the same without --init-master (random init)
+$PY scripts/accuracy_loop.py prepare <NAME> --tier <TIER> --seed <S> --init-master artifacts/fork-reference/fork128-zero22-init.pth \
+    --options '{"architecture": "fork128-nolabel", "batch_chunks": 128}'
+```
+
+Notes for (a): the accepted schedule warms up to 7e-4, which is the fork's from-scratch peak and will move pretrained weights a lot; consider `lr_schedule: {"peak": ...}` (a lower peak) and compare against the fork scored with 22 zeroed (own-collection fork-with-label-zeroed is +2.74% / +1.03%, commit 71f8dfc). The label-free model also has the plain name `fork128-nolabel` (= the dict spec), which the `KIND:ARCH:PATH` tools (`small_model_heldout.py`, `small_model_export.py --arch`) can take; the dict form cannot be written there, and scoring a label-free checkpoint as plain `fork128` would feed it input 22.
+
 ## Backlog
 
 | ID | Idea | Status | Next step |

@@ -8,6 +8,9 @@ A variant is selected by ONE key, the R01 track option `"architecture"`:
     "architecture": "w80-sequential"            # same without the round-robin layer schedule
     "architecture": "w64"                       # s64h, his shipped d=64 trunk (w80 recipe, 4 heads, mults 2)
     "architecture": "iter36"                    # the default model through the variant class (KD-capable)
+    "architecture": "fork128"                   # the old fork's 2,762,884-parameter RWKV (d=128; its .pth loads via
+                                                # scripts/fork_checkpoint.py); input 22 is KEPT, so it matches the fork
+    "architecture": "fork128-nolabel"           # the same, label-free (= {"base": "fork128", "zero_features": [22]})
     "architecture": {"base": "iter36", "zero_features": [22]}   # any preset plus field overrides
 
 Each field below mirrors one upstream environment switch, named in its comment. Upstream sources are pinned
@@ -66,6 +69,23 @@ def w64_config():
     return w80_config(heads=4, mult=2)
 
 
+# ---- the old fork: upstream srs-benchmark RWKV (rwkv/architecture.py), d=128, 4 heads x 32 ----
+# (stream, layers, channel_mixer_factor, dropout) in batch-chain order; LoRA ranks 16/16/8/16 for every stream.
+_FORK_STREAMS = (("card_id", 3, 1.5, 0.02), ("deck_id", 4, 2.0, 0.05), ("note_id", 2, 1.5, 0.02),
+                 ("preset_id", 3, 2.0, 0.05), ("user_id", 4, 2.0, 0.05))
+FORK128_PARAMETERS = 2_762_884
+
+
+def fork128_config():
+    modules = [(name, RWKV7Config(d_model=128, n_heads=4, n_layers=layers, layer_offset=0, total_layers=layers,
+                                  channel_mixer_factor=factor, decay_lora=16, a_lora=16, v0_mix_amt_lora=8,
+                                  gate_lora=16, dropout=dropout, dropout_layer=0.01))
+               for name, layers, factor, dropout in _FORK_STREAMS]
+    # Upstream: head and input-encoder multipliers 4, 128 curves / 128 points, ahead residual on, no PAVA.
+    return AnkiRWKVConfig(d_model=128, modules=modules, dropout=0.02, num_curves=128, num_points=128,
+                          head_fc_mult=4, features_fc_mult=4)
+
+
 # rwkv.prepare_batch.prepare builds gathers in this order (rwkv.architecture.DEFAULT_ANKI_RWKV_CONFIG's tuples).
 BATCH_STREAMS = ["card_id", "deck_id", "note_id", "preset_id", "user_id"]
 # iter 53 runner (scratchpad/iter53_muonlora/run_iter53.cmd): RWKV_STRIP_CMIX value, verbatim.
@@ -80,14 +100,18 @@ ITER36_PARAMETERS = 192_800
 def preset(name):
     if name == "iter36":
         return VariantConfig(name="iter36", base=DEFAULT_ANKI_RWKV_CONFIG)
+    if name in ("fork128", "fork128-nolabel"):
+        # -nolabel: the same model with input 22 (review type) zeroed in training and evaluation; a plain name so the
+        # `KIND:ARCH:PATH` scoring/export tools (small_model_heldout.py, small_model_export.py) can name it.
+        return VariantConfig(name=name, base=fork128_config(), zero_features=(22,) if name.endswith("nolabel") else ())
     if name in ("w80", "w80-sequential"):
         return VariantConfig(name=name, base=w80_config(), gru_head=3, no_ahead_residual=True, zero_features=(22,),
                              interleave=name == "w80", strip_l0_vlora=True, strip_cmix=W80_STRIP_CMIX)
     if name in ("w64", "w64-sequential"):
         return VariantConfig(name=name, base=w64_config(), gru_head=3, no_ahead_residual=True, zero_features=(22,),
                              interleave=name == "w64", strip_l0_vlora=True, strip_cmix=W80_STRIP_CMIX)
-    raise ValueError(f"Unknown Expertium architecture preset {name!r}; expected iter36, w64, w64-sequential, w80 or "
-                     "w80-sequential")
+    raise ValueError(f"Unknown Expertium architecture preset {name!r}; expected iter36, fork128, fork128-nolabel, w64, w64-sequential, w80 "
+                     "or w80-sequential")
 
 
 def variant(spec):
