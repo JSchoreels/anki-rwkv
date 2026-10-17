@@ -1,7 +1,7 @@
 {
- "generated_at": "2026-10-18T00:57:03+02:00",
- "updated": "2026-10-18 00:57",
- "material": "fe6fc1954d4f8cd9",
+ "generated_at": "2026-10-18T01:19:51+02:00",
+ "updated": "2026-10-18 01:19",
+ "material": "7d445d58d6f4e87a",
  "summary": "running 000433",
  "headline": [
   {
@@ -86,12 +86,19 @@
    "track": "small model",
    "ticket": "000433-small-model",
    "started": "00:52",
-   "elapsed": "0:04",
+   "elapsed": "0:27",
    "progress": null,
    "eta": "~01:58"
   }
  ],
- "waiting": [],
+ "waiting": [
+  {
+   "ticket": "000434-small-model",
+   "id": "SM11",
+   "what": "SM11 replay probe (10-min slice of the fork full-history export)",
+   "flags": "expected 12 min"
+  }
+ ],
  "recent": [
   {
    "ticket": "000432-small-model",
@@ -297,6 +304,16 @@
    "ends_at": "2026-10-18T03:10:41+02:00"
   },
   {
+   "what": "GPU probe of the full-history export: a 10-min slice (kept, the export resumes)",
+   "id": "SM11",
+   "kind": "gpu-score",
+   "minutes": 12,
+   "track": "small model",
+   "decides": "GPU memory and speed of the export before the 5-h run",
+   "state": "waiting",
+   "ticket": "000434-small-model"
+  },
+  {
    "what": "Final decay at 32k from epoch 10 with the state compression trained in (~400/400 bits), then CPU scoring on 34 users (CPU part runs next to SM26)",
    "id": "SM32b",
    "kind": "gpu-train",
@@ -351,16 +368,16 @@
    "state": "planned"
   },
   {
-   "what": "Fork full-history replay on the 5,000 training users (resumable per user, can be stopped at any time)",
+   "what": "Fork full-history replay on the 5,000 training users (4&ndash;5 resumable tickets of 95 min; can stop at any time)",
    "id": "SM11",
    "kind": "gpu-score",
    "minutes": 315,
    "track": "small model",
-   "decides": "Distillation targets for carried-state training; runs only once its export code passes",
+   "decides": "Distillation targets for carried-state training (CPU checks passed: matches the full-history fork within float16 rounding)",
    "state": "planned"
   },
   {
-   "what": "Carried state, code (CPU, no GPU needed): full-history fork targets export, kernels that take and return a starting state, trainer option; bit-for-bit checks",
+   "what": "Carried state, code (CPU): full-history targets DONE (SM11, 18/18 checks); kernels that take and return a starting state + trainer option (SM21) in progress",
    "id": "SM21, SM11",
    "kind": "cpu",
    "track": "small model",
