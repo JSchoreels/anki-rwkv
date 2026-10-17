@@ -28,12 +28,14 @@ for u in users:
     rows["user"].append(np.full(len(th), u)); rows["y"].append(dd["st"]["y"])
     for (m, h) in P:
         P[(m, h)].append(dd[m][f"p_{h}"])
+    F.setdefault("__n__", []).append(len(idx))
     for k in z.files:
         if z[k].ndim and k != "review_th":
-            F.setdefault(k, []).append(z[k][idx].astype(float))
+            F.setdefault(k, {})[len(F["__n__"]) - 1] = z[k][idx].astype(float)
 user = np.concatenate(rows["user"]); y = np.concatenate(rows["y"])
 P = {k: np.clip(np.concatenate(v), 1e-6, 1 - 1e-6) for k, v in P.items()}
-F = {k: np.concatenate(v) for k, v in F.items() if len(v) == len(users)}
+NS = F.pop("__n__")  # users without a feature (e.g. no cards table) get NaN there, the screen's NaN bin
+F = {k: np.concatenate([v.get(i, np.full(n, np.nan)) for i, n in enumerate(NS)]) for k, v in F.items()}
 if len(sys.argv) > 3:
     F = {k: v for k, v in F.items() if k in sys.argv[3].split(",")}
 fold = (np.array([hash((u * 2654435761) % 1000003) for u in user]) % 2)

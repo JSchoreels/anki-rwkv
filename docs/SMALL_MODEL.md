@@ -797,6 +797,15 @@ not just extra columns.
    where the student has no scheduler-independent substitute (same-day count, streak, FSRS state: no gain in the screen).
 4. **Instant** is behind on every slice (+0.74% to +1.28%), with no feature explaining it: capacity or fit, as the
    per-user view already suggested.
+5. **Deck / preset / collection counts** (user follow-up, `deckfeat.py`, `screen-deck.txt`): deck size as of the review
+   (cards created by then, from raw card ids) and in the export snapshot, cards introduced so far per deck / preset /
+   collection, deck progress (introduced / created), reviews so far per deck / preset, each also as of the card's previous
+   review: all between −0.42% and +0.01% for both models on both heads, no signal.
+6. **Deck and preset ids are not used by value.** `rwkv.prepare_batch.add_encodings` (and the batched GPU path
+   `scripts/gpu_id_encodings.py`) give every distinct card / note / deck / preset id a fresh random code per sequence
+   (8-12 dims in {−1.5, −0.5, 0.5, 1.5}), and the day-offset encodings get a random phase. The code says only "same
+   deck as that row"; deck difficulty is learned per user through the deck stream's recurrent state, never as "deck 2 is
+   hard". (Collisions are possible but rare: 4^8 = 65,536 deck codes, 4^12 card codes.)
 
 **Plan** (backlog SM24–SM28; GPU items queue after the overnight Q11 chain):
 - **SM24 (decision support, ~35 min GPU):** the same breakdown on all 464 users: GPU scoring with `--dump` of fork and
