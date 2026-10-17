@@ -94,13 +94,12 @@
 <script>
 (() => {
   'use strict';
-  const UPDATED = '2026-10-17 15:20';
+  const UPDATED = '2026-10-17 15:25';
 
   // ---- 1. running now: [what, id, kind, started, progress 0-1 or null, eta, why]
   const NOW = [
     ['Extra training epoch at 32k-review windows, from the best 16k checkpoint', 'Q12, ticket 000420', 'gpu-train', '09:26', 0.84, '~16:25', 'Then its final decay decides whether the &le; +1.0% target is met. ~14,900 reviews/s.'],
     ['State quantization test on the student, without retraining', 'SM32', 'cpu', '15:00', null, '~18:00', 'Expertium&rsquo;s state compression at 403/214, 400/400, 800/400, 800/800 bits per card/note; 68 users.'],
-    ['Review-number flags as inputs (code + checks)', 'SM30', 'cpu', '14:40', null, 'this evening', 'Code only; the GPU test is not queued until the code is reviewed.'],
   ];
 
   // ---- 2. planned: [time, what, id, kind, decides]
@@ -115,14 +114,14 @@
     ['02:40 &ndash; 03:30', 'Speed profile: w64 at 2,048 / 8,192 / 16,384 / 32,768 windows + fork-size model', '', 'gpu-speed', 'Where training time goes; cost of the label-free reference'],
     ['03:30 &ndash; 06:00', 'One-epoch final decay at 2,048 windows + 464-user scoring', 'SM35', 'gpu-train', 'Does a 1-epoch decay beat our quarter epoch (Expertium&rsquo;s big gain)?'],
     ['06:00 &ndash; 08:10', 'Instant-weighted final decay at 32k (code merged first) + 464-user scoring', 'SM26', 'gpu-train', 'Does doubling the instant weight close the instant gap, at what curve cost?'],
-    ['tomorrow, day', 'Review results; then Muon test, label-free fork fine-tune, review-number flags test', 'SM36, SM38, SM30', 'next', 'Order decided on the night&rsquo;s results'],
+    ['~08:10 &ndash; 11:30', 'Review-number flags as inputs: 2 epochs at 2,048 windows + decay + 464-user scoring (starts when the night jobs end)', 'SM30', 'gpu-train', 'Do explicit 2nd / 3rd / 4th+ review inputs help, paired against the same run without them (0.30259 / 0.27668)?'],
+    ['tomorrow, day', 'Review results; then Muon test and the label-free fork fine-tune', 'SM36, SM38', 'next', 'Order decided on the night&rsquo;s results'],
   ];
 
   // ---- 3. backlog: [status, item, id, why/next]
   const BACK = [
     ['next', 'Muon optimizer for the student', 'SM36', 'Expertium pointer: his largest instant gains (&minus;0.0005 instant at d=32); our student is AdamW only'],
     ['next', 'Label-free reference: the fork fine-tuned with review type switched off', 'SM38', 'Honest best a big model can do without review type. Fine-tune first: a cheap from-scratch fork-size retrain lost Expertium +0.0037 / +0.0043'],
-    ['next', 'Review-number flags as inputs (2nd / 3rd / 4th+ review)', 'SM30', 'Code being written; about 3 h GPU at 2,048 windows, paired'],
     ['next', 'Deployment-realistic scoring without the duration leak', 'SM31', 'Intervals as Anki knows them when it shows the card; both models, cheap. Expertium: +0.0002 / +0.0004 cost'],
     ['idea', 'Training with carried state between a user&rsquo;s windows', 'SM21', 'Full-history context at short-window speed (5&ndash;7x faster). Designed, CPU prototype exact'],
     ['idea', 'Teacher targets from the fork&rsquo;s full-history replay', 'SM11', 'Needed with carried state; 5.2 h GPU, 3.7 GB'],
