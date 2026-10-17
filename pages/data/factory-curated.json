@@ -153,19 +153,7 @@
    ]
   },
   {
-   "what": "Instant-weighted final decay at 32k (code merged first) + 464-user scoring",
-   "id": "SM26",
-   "kind": "gpu-train",
-   "decides": "Does doubling the instant weight close the instant gap, at what curve cost?",
-   "track": "small model",
-   "match": [
-    "SM26 instant-weighted",
-    "SM26 scoring"
-   ],
-   "minutes": 125
-  },
-  {
-   "what": "Review-number flags as inputs: 2 epochs at 2,048 windows + decay + 464-user scoring (starts when the night jobs end)",
+   "what": "Review-number flags as inputs: 2 epochs at 2,048 windows + decay + 464-user scoring (restarts at 02:00; a first start at 21:27 was stopped before the break)",
    "id": "SM30",
    "kind": "gpu-train",
    "decides": "Do explicit 2nd / 3rd / 4th+ review inputs help, paired against the same run without them (0.30259 / 0.27668)?",
@@ -199,6 +187,13 @@
   }
  ],
  "backlog": [
+  {
+   "status": "next",
+   "item": "Instant-weighted final decay at 32k from epoch 10",
+   "id": "SM26",
+   "why": "Skipped tonight: its pre-check compares against the code before the change and failed once the change was merged (a check bug, not a training bug). Fix the check, then run it (~100 min GPU + 25 min scoring)",
+   "track": "small model"
+  },
   {
    "status": "next",
    "item": "State compression trained in (QAT) at ~400/400 bits per card/note, during the final decay only",
