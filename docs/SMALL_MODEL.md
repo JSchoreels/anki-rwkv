@@ -830,6 +830,48 @@ not just extra columns.
 - **SM28 (not planned):** session/clock features (`review_time`), deck depth, card creation age: no signal in the screen
   and they need the -id build at training and the review clock at inference. Revisit only if SM24 points there.
 
+### Results 2026-10-16/17: longer windows (decay and training), per-user view, shared history
+
+Student vs fork w8+s8 (LogLoss gap, 464 users). Source: `artifacts/small-model/HANDOFF.md` (2026-10-16 18:30 to 2026-10-17 09:30).
+
+| model | curve | instant | paired delta (curve / instant) |
+|---|---|---|---|
+| ctx2048c dec8 | +1.66% | +1.66% | |
+| ctx8192c dec8 | +1.24% | +1.21% | |
+| dec8-L16k (8k e8, decay at 16k) | +1.17% | +1.16% | vs 8k decay: -0.00020 / -0.00014 |
+| dec8-L32k (8k e8, decay at 32k) | +1.15% | +1.12% | vs 8k decay: -0.00028 / -0.00022; vs L16k: -0.00008 / -0.00009 |
+| ctx16384c e9 (undecayed) | +2.93% | +2.27% | |
+| ctx16384c dec9 (e9 at 16k, decay at 16k) | +1.03% | +1.04% | vs dec8-L16k: -0.00042 (-0.00076..-0.00017) / -0.00032 (-0.00036..-0.00027) |
+| **ctx16384c dec9-L32k** | **+1.01%** | **+1.01%** | vs dec9: -0.00007 (-0.00017..+0.00003) / -0.00009 (-0.00011..-0.00007) |
+
+- Decay length alone has diminishing returns: 8k -> 16k ~0.06 points, 16k -> 32k ~0.03.
+- Training one epoch at 16k pays ~0.13 points per head on top of a 16k decay (dec9 vs dec8-L16k, 300/464 curve and 385/464 instant users better): the SM22 open point is answered, training at 16k beats decay-only.
+- Undecayed checkpoints are noisy (e9: +2.93% / +2.27%; 100-gate-user score +2.68% / +2.51%, no divergence in updates): constant-LR end-of-epoch noise, judge only after decay.
+- Bar P (<= +1.0% on both heads) missed by ~0.01 points at dec9-L32k.
+- Epoch 10 at 32k (Q12) is running as ticket 000420 (epoch ~6 h, results ~17:00); paired test is dec10 vs dec9-L32k.
+
+**Per-user view** (plain mean of per-user LogLoss; tertiles by user review count <= 11,220 / <= 37,940 / <= 655,000):
+
+| model | curve per-review | curve per-user | curve light/mid/heavy | instant per-review | instant per-user | instant light/mid/heavy |
+|---|---|---|---|---|---|---|
+| ctx2048c dec8 | +1.66% | +1.19% | +0.89/+1.21/+1.46 | +1.66% | +1.40% | +1.30/+1.36/+1.54 |
+| ctx8192c dec8 | +1.24% | +0.99% | +0.80/+1.08/+1.09 | +1.21% | +1.11% | +1.13/+1.10/+1.10 |
+| dec8-L16k | +1.17% | +0.97% | +0.82/+1.06/+1.03 | +1.16% | +1.09% | +1.13/+1.08/+1.06 |
+| dec8-L32k | +1.15% | +0.97% | +0.82/+1.05/+1.01 | +1.12% | +1.08% | +1.13/+1.08/+1.04 |
+
+- The curve gap is concentrated on heavy users, and longer windows close mostly that part (heavy +1.46 -> +1.01, light +0.89 -> +0.82).
+- Instant is a uniform ~+1.1% on every tertile and worse than fork on ~449/464 users: a systematic gap, not a user-type effect, so more context will not fix it (capacity, calibration, KD instead).
+
+**Shared history** (imported decks; relation graph DQ02/DQ05, common blocks >= 20 reviews; L32k model vs fork, w8+s8): 75/464 test users share some history with fork-training users (21 share >= 10%, 6 >= 50%); 72/464 share some with the student's training users.
+
+| group | users | review share | curve per-review | curve per-user | instant per-review | instant per-user |
+|---|---|---|---|---|---|---|
+| no overlap | 389 | 74.5% | +1.15% | +0.93% | +1.17% | +1.07% |
+| some overlap | 75 | 25.5% | +1.13% | +1.16% | +1.00% | +1.11% |
+| >= 10% overlap | 21 | 2.5% | +1.39% | +1.80% | +1.05% | +1.39% |
+
+- The fork leads most on heavy-overlap users (consistent with training on copies of those histories), but they are 2.5% of reviews; on the 389 clean users the gap is the same. Shared history does not explain the bar P miss. Open (user's decision): score bar P on clean users too.
+
 ## Backlog
 
 | ID | Idea | Status | Next step |
@@ -856,7 +898,7 @@ not just extra columns.
 | S05b | Batch only users below a length threshold in full-history scoring, keep long users at batch 1 (S05 batched was 0.78x overall: short users ~2x, long users slower) | Proposed 2026-10-16 07:20 | Opus/Sonnet: threshold from the per-user lengths in `s05-check2.jsonl`; branch `s05-batched` stays the base; rule ≥ 2x |
 | SM20 | Drop `"optimizer"` from the KD cache key (teacher targets do not depend on the optimizer) | Proposed 2026-10-16 07:34: Muon epoch 1 would recompute the teacher targets (≈ 76 min, +6 GB) | Fixed in 5cbfe15 (branch `sm20`): `TEACHER_BLIND = ("distillation", "optimizer")` in `scripts/expertium_options.py`; only `optimizer` added (lr_schedule etc. kept in the key). Verified on CPU: all 4 existing manifests under `artifacts/cache/kd-teacher/fork-bf16-s2025` keep their digest and their manifest identity (no ValueError); AdamW dict, `+"optimizer": "expertium-iter53"` and `+{"kind": "muon"}` give the same digest (`scripts/check_kd_cache.py`). Muon epoch 1 reuses the AdamW targets once merged |
 | SM21 | Training with carried state (supersedes SM16): fresh carry at update granularity (v1), strided lanes + stale states at lane starts (v2), with SM11 full-history teacher targets | Design + CPU prototype 2026-10-16 (`scripts/state_carry.py`; check A/B/C pass: carry off = today's batches, zero state bitwise, exact carry = full history to 5e-7; option 3 store 576–739 GB/epoch int8 at 2,048) | Today: option 5 (`cont` at CHUNK=8192) tests the premise; then kernel S0/S_T + trainer integration (Opus ≈ 1.5 days) and the SM11 replay (5.2 h GPU, 3.7 GB) |
-| SM22 | Window curriculum: most epochs at 2,048-review chunks (≈ 105k reviews/s), the last 1–2 epochs + decay at 8,192 (or longer) | Proposed 2026-10-16 13:50 (user). Evidence: from the same e6, one epoch at 8,192 took the 100-gate-user gap vs fork from +2.38% / +2.41% to +1.66% / +1.80% (curve / instant), while two more epochs at 2,048 only reached +2.04% / +1.99% and flatten; 8,192 trains at 32,528 reviews/s (3.2x slower). Q8 (`scale-w64kd-gate-cached-ctx8192-cont`, e7–e8 + decay) is the first instance | Default recipe until SM21 lands. Open: where to switch (after e4? e6?), and whether 16k/32k for the last epoch pays (cold share 2,048 46% / 4,096 36% / 8,192 26.8% / fork 32k 11.5%) |
+| SM22 | Window curriculum: most epochs at 2,048-review chunks (≈ 105k reviews/s), the last 1–2 epochs + decay at 8,192 (or longer) | Proposed 2026-10-16 13:50 (user). Evidence: from the same e6, one epoch at 8,192 took the 100-gate-user gap vs fork from +2.38% / +2.41% to +1.66% / +1.80% (curve / instant), while two more epochs at 2,048 only reached +2.04% / +1.99% and flatten; 8,192 trains at 32,528 reviews/s (3.2x slower). Q8 (`scale-w64kd-gate-cached-ctx8192-cont`, e7–e8 + decay) is the first instance. Status 2026-10-17: training at 16k (e9) beats decay-only (dec9 +1.03% / +1.04% vs dec8-L16k +1.17% / +1.16%; dec9-L32k +1.01% / +1.01%); e10 at 32k in progress (ticket 000420) | Default recipe until SM21 lands. Open: where to switch (after e4? e6?), and whether 16k/32k for the last epoch pays (cold share 2,048 46% / 4,096 36% / 8,192 26.8% / fork 32k 11.5%) |
 | SM23 | More parallel windows at long chunks: 8,192 x 8 (65,536 reviews/update) instead of x4, to refill the GPU (the WKV recurrence is sequential in time, so fewer longer windows per update leave it partly idle) | Proposed 2026-10-16 13:50 (user) | `--timing` ticket first (speed claim, VRAM fit on 16 GB); if it pays, an LR check at the doubled update size (sqrt scaling or a short sweep) before any accuracy run; compare reviews/s and accuracy per GPU-hour against SM22 |
 | SM24 | Gap by review type / same-day on all 464 users (GPU `--dump` scoring of fork and the best students) | Proposed 2026-10-17 (feature screen): on 68 users the curve gap is all on learning/relearning reviews, −0.03% on review-state reviews | ~35 min GPU after Q11; then a user decision on also reporting bar P on review-state reviews |
 | SM25 | Review-type robustness: score fork and student with history review types rewritten as a non-SM-2 scheduler would label them | Proposed 2026-10-17 (user: review type breaks for non-SM-2 users) | CPU, 68 users; the student ignores review type by construction |
