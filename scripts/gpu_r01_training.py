@@ -714,6 +714,8 @@ def run_case(args):
                             torch.cuda.synchronize()
                             graphs.metrics["capture_seconds"] += time.perf_counter() - capture_start
                     else:
+                        if catch_up is not None and catch_up.carry is not None:
+                            catch_up.carry.attach(item, batch, user)  # SM21: entity rows; table reset per user
                         stats = (reduced.get_loss(batch) if reduced else
                                  catch_up.loss(active, batch, report["review_presentations"],
                                                (user, item.offset, item.reviews, item.seed) if len(parts) == 1 else None,

@@ -281,6 +281,11 @@ class CatchUp:
         total = sum(row["train_range"][1] - row["train_range"][0] for row in rows)
         self.schedule = LearningRate(schedule, total) if schedule else None
         self.teacher = None
+        self.carry = None
+        if options.get("state_carry"):
+            # SM21 v1: carried recurrent state between a user's updates (scripts/state_carry_train.py).
+            from scripts.state_carry_train import StateCarry
+            self.carry = StateCarry(options["state_carry"], options)
         if options.get("end_to_start_intervals"):
             # Read by rwkv.data_processing.get_rwkv_data in this process and in every worker spawned after this.
             os.environ[E2S_ENV] = "1"
@@ -314,6 +319,9 @@ class CatchUp:
         return self.schedule(updates_done, update_offset, reviews_done)
 
     def loss(self, model, batch, reviews_done, key=None, labels=None):
+        if self.carry is not None and self.carry.model is None:
+            with self.carry.active(model):  # the teacher is another model object: it never sees carried state
+                return self.loss(model, batch, reviews_done, key, labels)
         if self.teacher is None:
             return model.get_loss(batch)
         decaying = self.schedule is not None and self.schedule.decaying(reviews_done)
@@ -331,4 +339,6 @@ class CatchUp:
             out["end_to_start_intervals"] = True
         if self.teacher is not None:
             out["distillation"] = self.teacher.describe()
+        if self.carry is not None:
+            out["state_carry"] = self.carry.describe()
         return out
