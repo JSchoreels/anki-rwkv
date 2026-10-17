@@ -153,7 +153,7 @@
    ]
   },
   {
-   "what": "Review-number flags as inputs: 2 epochs at 2,048 windows + decay + 464-user scoring (restarts at 02:00; a first start at 21:27 was stopped before the break)",
+   "what": "Review-number flags as inputs: 2 epochs at 2,048 windows + decay + 464-user scoring (started 23:50; the break was cancelled)",
    "id": "SM30",
    "kind": "gpu-train",
    "decides": "Do explicit 2nd / 3rd / 4th+ review inputs help, paired against the same run without them (0.30259 / 0.27668)?",
@@ -167,7 +167,7 @@
    "minutes": 200
   },
   {
-   "what": "Final decay at 32k from epoch 10 with the state compression trained in (~400/400 bits), then CPU scoring on 34 users",
+   "what": "Final decay at 32k from epoch 10 with the state compression trained in (~400/400 bits), then CPU scoring on 34 users (CPU part runs next to SM26)",
    "id": "SM32b",
    "kind": "gpu-train",
    "minutes": 110,
@@ -176,6 +176,37 @@
    "match": [
     "SM32b state-VQ QAT"
    ]
+  },
+  {
+   "what": "Instant-weighted (x2) final decay at 32k from epoch 10",
+   "id": "SM26",
+   "kind": "gpu-train",
+   "minutes": 100,
+   "decides": "Does weighting the instant loss close the instant gap without hurting the curve? Paired with dec10",
+   "track": "small model",
+   "match": [
+    "SM26 instant-weighted"
+   ]
+  },
+  {
+   "what": "Score the instant-weighted decay on all 464 users",
+   "id": "SM26",
+   "kind": "gpu-score",
+   "minutes": 25,
+   "decides": "Its 464-user number",
+   "track": "small model",
+   "match": [
+    "SM26 scoring"
+   ]
+  },
+  {
+   "what": "Calibration temperature fitted offline on the per-review dumps (CPU, user-split cross-validation)",
+   "id": "SM12",
+   "kind": "cpu",
+   "decides": "How much of the gap a free export-time calibration closes",
+   "track": "small model",
+   "state": "running",
+   "started_at": "2026-10-17T23:58:00+02:00"
   },
   {
    "what": "Review results; then Muon test and the label-free fork fine-tune",
@@ -187,13 +218,6 @@
   }
  ],
  "backlog": [
-  {
-   "status": "next",
-   "item": "Instant-weighted final decay at 32k from epoch 10",
-   "id": "SM26",
-   "why": "Skipped tonight: its pre-check compares against the code before the change and failed once the change was merged (a check bug, not a training bug). Fix the check, then run it (~100 min GPU + 25 min scoring)",
-   "track": "small model"
-  },
   {
    "status": "next",
    "item": "State compression trained in (QAT) at ~400/400 bits per card/note, during the final decay only",
@@ -283,13 +307,6 @@
    "item": "Expertium&rsquo;s open tuning queue (Muon learning rate x0.5 / x2, longer warmup)",
    "id": "SM39",
    "why": "Pointers only: we keep our own training setup (decision 10-17)",
-   "track": "small model"
-  },
-  {
-   "status": "idea",
-   "item": "Calibration temperature folded into the export",
-   "id": "SM12",
-   "why": "Closes ~8% of the instant calibration gap offline",
    "track": "small model"
   },
   {
@@ -890,10 +907,5 @@
    "track": "small model"
   }
  ],
- "gpu_break": {
-  "start": "22:00",
-  "end": "02:00",
-  "until": "2026-10-18T02:00",
-  "label": "Break: no GPU work"
- }
+ "gpu_break": null
 }
