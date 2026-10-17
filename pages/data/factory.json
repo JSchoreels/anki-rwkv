@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-10-17T18:49:15+02:00",
- "updated": "2026-10-17 18:49",
- "material": "2b224c02d92dc302",
- "summary": "running 000425",
+ "generated_at": "2026-10-17T18:54:02+02:00",
+ "updated": "2026-10-17 18:54",
+ "material": "58cf02822950a5d7",
+ "summary": "running 000426, finished 000425",
  "headline": [
   {
    "k": "Best, 464 users (curve / instant)",
@@ -32,20 +32,28 @@
  ],
  "now": [
   {
-   "what": "SM25 fork with no-steps review-type labels, 464 users (pass 1)",
-   "id": "000425-small-model",
+   "what": "speed profile: w64 at 2,048/8,192/16,384/32,768 windows + fork128 b128/b64 (fork-reference)",
+   "id": "000426-small-model",
    "kind": "gpu-train",
    "why": "",
    "track": "small model",
-   "ticket": "000425-small-model",
-   "started": "18:34",
-   "elapsed": "0:15",
+   "ticket": "000426-small-model",
+   "started": "18:52",
+   "elapsed": "0:01",
    "progress": null,
-   "eta": "~19:14"
+   "eta": "~19:42"
   }
  ],
  "waiting": [],
  "recent": [
+  {
+   "ticket": "000425-small-model",
+   "what": "SM25 fork with no-steps review-type labels, 464 users (pass 1)",
+   "ended": "18:52",
+   "date": "10-17",
+   "exit": 0,
+   "ran": "0:17"
+  },
   {
    "ticket": "000424-small-model",
    "what": "SM24 per-review dumps, fork + ctx32768c-dec10, 464 users (pass 1)",
@@ -85,14 +93,6 @@
    "date": "10-17",
    "exit": 0,
    "ran": "6:59"
-  },
-  {
-   "ticket": "000419-small-model",
-   "what": "longdecay scale-w64kd-gate-cached-ctx16384-cont: full-history scoring of s-w64kd-gate-ctx16384c-dec9-L32k (464 users)",
-   "ended": "09:25",
-   "date": "10-17",
-   "exit": 0,
-   "ran": "0:15"
   }
  ],
  "plan": [
@@ -167,9 +167,10 @@
    "kind": "gpu-score",
    "decides": "A label-free fork reference for free",
    "track": "small model",
-   "state": "running",
-   "started": "18:34",
-   "ticket": "000425-small-model"
+   "state": "done",
+   "ended": "18:52",
+   "exit": 0,
+   "started": "18:34"
   },
   {
    "when": "02:40 &ndash; 03:30",
@@ -178,7 +179,9 @@
    "kind": "gpu-speed",
    "decides": "Where training time goes; cost of the label-free reference",
    "track": "small model",
-   "state": "planned"
+   "state": "running",
+   "started": "18:52",
+   "ticket": "000426-small-model"
   },
   {
    "when": "03:30 &ndash; 06:00",
