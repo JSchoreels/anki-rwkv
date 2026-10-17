@@ -1,0 +1,16 @@
+# Small models on the user's own collection (CPU, aggregate only)
+
+`score_collection_small.py` wraps `scripts/small_model_heldout.py` on the collection converted on 2026-10-14
+(anki-rwkv `artifacts/collection-eval/2026-10-14`, read-only): full history as one sequence, the 173,690 benchmark test
+reviews of its label DB. Fork fp32 reproduces the reference exactly (0.4417 / 0.4366), so the wrapper matches the
+2026-10-14 evaluation. The collection's review types come from the user's fork, not SM-2 (806 learning rows, 34,458
+type-4 rows). Only aggregate metrics are kept (no `--dump`).
+
+| model (w8+s8 unless noted) | curve LogLoss | Δ vs fork w8+s8 | instant LogLoss | Δ vs fork w8+s8 | RMSE(bins) curve / instant |
+|---|---|---|---|---|---|
+| fork 2.76M, fp32 | 0.4417 | +0.00% | 0.4366 | −0.02% | 0.0223 / 0.0194 |
+| fork 2.76M, w8+s8 | 0.4417 | — | 0.4367 | — | 0.0224 / 0.0200 |
+| fork, history review types relabelled as no learning steps | 0.4414 | −0.06% | 0.4369 | +0.04% | 0.0237 / 0.0214 |
+| student w64 331.5k, 16k-trained epoch 9, decay at 16k, scored at 32k (`ctx16384c-dec9-L32k`) | 0.4424 | **+0.18%** | 0.4376 | **+0.21%** | 0.0274 / 0.0208 |
+
+For comparison (docs/ACCURACY_LOG.md): the w32 full run at epoch 10 was +2.68% / +3.64% on this collection.
