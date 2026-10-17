@@ -13,7 +13,7 @@
   <div class="wrap">
     <div class="top-row">
       <div>
-        <p class="eyebrow"><a href="./">anki-rwkv</a> &middot; model architectures &middot; <a href="campaign.html">R01 campaign</a> &middot; <a href="train.html">8k/2k run</a></p>
+        <p class="eyebrow"><a href="./">anki-rwkv</a> &middot; <a href="factory.html">factory overview</a> &middot; model architectures &middot; <a href="campaign.html">R01 campaign</a> &middot; <a href="train.html">8k/2k run</a> &middot; <a href="docs/data-quality/">data quality</a></p>
         <h1>Two RWKV models, <span class="accent">same inputs</span>, very different budgets</h1>
         <p class="lede">Both models pass each review through the same five streams: card, deck, note, preset and user. Alex's default model is wide (128 channels, 4 heads of 32). Expertium's latest model, run 110, is narrow (64 channels, 4 heads of 16) and keeps about 9&nbsp;KiB of memory per card.</p>
       </div>
@@ -122,7 +122,7 @@
 
   <section class="panel">
     <div class="panel-head"><h2>Going smaller still: status, 2026-10-15</h2></div>
-    <p class="lead-p">A separate effort trains a much smaller student (331,511 parameters, the <code>w64</code> shape above without run 110&rsquo;s extra inputs) distilled from the fork model, on long review windows. Its best version is +1.01% curve / +1.01% instant LogLoss behind the fork (both with int8 weights and int8 state) on 464 held-out users, and +0.18% / +0.21% on the owner&rsquo;s own collection. Every experiment, the review-type analysis and the backlog are on the <a href="small-model.html">small model page</a>.</p>
+    <p class="lead-p">A separate effort trains a much smaller student (331,511 parameters, the <code>w64</code> shape above without run 110&rsquo;s extra inputs) distilled from the fork model, on long review windows. Its best version is +1.01% curve / +1.01% instant LogLoss behind the fork (both with int8 weights and int8 state) on 464 held-out users, and +0.18% / +0.21% on the owner&rsquo;s own collection. Every experiment, the review-type analysis and the backlog are on the <a href="factory.html">factory overview page</a>.</p>
   </section>
 
   <section class="panel">
