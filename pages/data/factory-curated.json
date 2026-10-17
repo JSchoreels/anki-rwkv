@@ -4,9 +4,29 @@
    "k": "Best, 464 users (curve / instant)",
    "v": "0.30066 / 0.27490",
    "compare": [
-    {"variant": "Fork reference (w8+s8)", "curve": 0.29766, "instant": 0.27216, "ref": true, "eval": "464 users, 22.66M reviews"},
-    {"variant": "Best: epoch 9 + decay at 16k, scored at 32k (Q11)", "curve": 0.30066, "instant": 0.2749, "curve_pct": 1.01, "instant_pct": 1.01, "eval": "464 users, 22.66M reviews"},
-    {"variant": "Epoch 10 + decay at 32k (Q12)", "curve": 0.30096, "instant": 0.27471, "curve_pct": 1.11, "instant_pct": 0.94, "eval": "464 users, 22.66M reviews"}
+    {
+     "variant": "Fork reference (w8+s8)",
+     "curve": 0.29766,
+     "instant": 0.27216,
+     "ref": true,
+     "eval": "464 users, 22.66M reviews"
+    },
+    {
+     "variant": "Best: epoch 9 + decay at 16k, scored at 32k (Q11)",
+     "curve": 0.30066,
+     "instant": 0.2749,
+     "curve_pct": 1.01,
+     "instant_pct": 1.01,
+     "eval": "464 users, 22.66M reviews"
+    },
+    {
+     "variant": "Epoch 10 + decay at 32k (Q12)",
+     "curve": 0.30096,
+     "instant": 0.27471,
+     "curve_pct": 1.11,
+     "instant_pct": 0.94,
+     "eval": "464 users, 22.66M reviews"
+    }
    ],
    "big": true,
    "track": "small model"
@@ -15,8 +35,21 @@
    "k": "Own collection (curve / instant)",
    "v": "0.4423 / 0.4375",
    "compare": [
-    {"variant": "Fork reference", "curve": 0.4417, "instant": 0.4367, "ref": true, "eval": "173,690 reviews"},
-    {"variant": "Epoch 10 + decay at 32k (Q12)", "curve": 0.4423, "instant": 0.4375, "curve_pct": 0.14, "instant_pct": 0.18, "eval": "173,690 reviews"}
+    {
+     "variant": "Fork reference",
+     "curve": 0.4417,
+     "instant": 0.4367,
+     "ref": true,
+     "eval": "173,690 reviews"
+    },
+    {
+     "variant": "Epoch 10 + decay at 32k (Q12)",
+     "curve": 0.4423,
+     "instant": 0.4375,
+     "curve_pct": 0.14,
+     "instant_pct": 0.18,
+     "eval": "173,690 reviews"
+    }
    ],
    "track": "small model"
   },
@@ -24,7 +57,10 @@
    "k": "Size",
    "v": "8.3&times; smaller",
    "s": "331,511 vs 2,762,884 parameters",
-   "link": {"href": "models.html", "text": "Model architectures: Alex&rsquo;s model (the fork) vs ours, side by side"},
+   "link": {
+    "href": "models.html",
+    "text": "Model architectures: Alex&rsquo;s model (the fork) vs ours, side by side"
+   },
    "track": "small model"
   },
   {
@@ -208,6 +244,31 @@
    ]
   },
   {
+   "what": "Carried state, code (CPU, no GPU needed): full-history fork targets export, kernels that take and return a starting state, trainer option; bit-for-bit checks",
+   "id": "SM21, SM11",
+   "kind": "cpu",
+   "track": "small model",
+   "state": "running",
+   "started_at": "2026-10-18T00:55:00+02:00",
+   "decides": "Ready to train with full-history context at 2,048-window speed (~1.5 days of work per the design)"
+  },
+  {
+   "what": "Fork full-history replay on the 5,000 training users (targets for carried-state training)",
+   "id": "SM11",
+   "kind": "gpu-score",
+   "track": "small model",
+   "when": "once its export code passes (est. 10-18 day), ~5.2 h GPU",
+   "decides": "Distillation targets that match what the student sees with carried state"
+  },
+  {
+   "what": "Carried state: 2 epochs at 2,048 from the best checkpoint + decay + 464-user scoring, paired with the same epochs without carry",
+   "id": "SM21",
+   "kind": "gpu-train",
+   "track": "small model",
+   "when": "after the replay, ~3 h GPU",
+   "decides": "Does carried state get long-window accuracy at short-window speed? (curve &le; &minus;0.001, instant &le; +0.0005)"
+  },
+  {
    "what": "Calibration temperature fitted offline on the per-review dumps (CPU, user-split cross-validation)",
    "id": "SM12",
    "kind": "cpu",
@@ -218,7 +279,7 @@
    "ended_at": "2026-10-18T00:02:00+02:00"
   },
   {
-   "what": "Review results; then Muon test and the label-free fork fine-tune",
+   "what": "Review results; then Muon test and the label-free fork fine-tune (fit around the carried-state work)",
    "id": "SM36, SM38",
    "kind": "next",
    "decides": "Order decided on the night&rsquo;s results",
@@ -227,6 +288,20 @@
   }
  ],
  "backlog": [
+  {
+   "status": "next",
+   "item": "Training with carried state between a user&rsquo;s windows",
+   "id": "SM21",
+   "why": "Moved up 10-18 (user): full-history context at short-window speed (2,048 windows ~5x faster than 32k). Designed, CPU prototype exact; code started 10-18",
+   "track": "small model"
+  },
+  {
+   "status": "next",
+   "item": "Teacher targets from the fork&rsquo;s full-history replay",
+   "id": "SM11",
+   "why": "Needed with carried state; 5.2 h GPU, 3.7 GB",
+   "track": "small model"
+  },
   {
    "status": "next",
    "item": "State compression trained in (QAT) at ~400/400 bits per card/note, during the final decay only",
@@ -253,20 +328,6 @@
    "item": "Deployment-realistic scoring without the duration leak",
    "id": "SM31",
    "why": "Intervals as Anki knows them when it shows the card; both models, cheap. Outside runs: +0.0002 / +0.0004 cost",
-   "track": "small model"
-  },
-  {
-   "status": "idea",
-   "item": "Training with carried state between a user&rsquo;s windows",
-   "id": "SM21",
-   "why": "Full-history context at short-window speed (5&ndash;7x faster). Designed, CPU prototype exact",
-   "track": "small model"
-  },
-  {
-   "status": "idea",
-   "item": "Teacher targets from the fork&rsquo;s full-history replay",
-   "id": "SM11",
-   "why": "Needed with carried state; 5.2 h GPU, 3.7 GB",
    "track": "small model"
   },
   {
