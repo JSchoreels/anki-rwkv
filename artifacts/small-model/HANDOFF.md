@@ -603,3 +603,22 @@ Tomorrow, in order (user 2026-10-17: speed work after the last-epoch work; label
 4. Speed route by the profile: carried-state training (SM21 design) vs exact kernel work (W05) vs more parallel windows (SM23).
 Also: raise the 16k-decay expected minutes in runbook-2026-10-16b.sh (line ~299, 27 → ~50; flow audit) once chain b no
 longer runs it.
+
+## Update 2026-10-17 15:35 (supersedes the "Tonight" part above)
+
+- **Runbook f** (`runbook-2026-10-17f-evening-night.sh`, log `-f-evening-night.log`, replaces runbooks c/d/e): after chain b's
+  "cont exit": own-collection CPU scoring of dec10 -> SM24 dumps + breakdown (incl. inferred stage) -> SM25 fork with
+  no-steps labels on 464 users -> speed profile (`--timing`, fork-reference worktree, `speed-20261018`) -> SM35 1-epoch
+  decay at 2,048 from ctx2048c e8 + scoring (label `s-w64kd-gate-ctx2048c-dec8-1ep`) -> cherry-picks SM26 code 6c68cf6,
+  runs its check, then SM26 instant-weighted decay at 32k from e10 + scoring (label `s-w64kd-gate-ctx32768c-dec10-ilw2`).
+  `wait_slot`: no GPU ticket between 20:00 and 02:00 (user break). Ends ~08:10.
+- **SM30 review-number flags** (branch rep-flags, e49f8b6, check re-run by main session: all pass): GPU test starts
+  automatically after runbook f prints "done" (`rep-flags/artifacts/small-model/launch-after-night.sh`), ~3.3 h,
+  pairs against ctx2048c-dec8.
+- **Agents running:** state-quantization PTQ test (branch state-vq, SM32, CPU); factory page (main checkout:
+  pages/factory.html + data/factory*.json + scripts/publish_factory_page.py + 5-min publish loop; small-model.html
+  becomes a redirect). Not yet committed at 15:35.
+- **Page rule:** after every job change update pages/factory.html data (curated JSON) and push; the loop handles
+  running/planned/results mechanically once it exists.
+- **Daily commit:** heldout.jsonl + heldout-report.* after tonight's last scoring.
+- Decisions today: keep our setup, Expertium's research as pointers (SM31-SM39 in the backlog); pruning parked.
