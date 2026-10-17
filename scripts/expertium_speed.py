@@ -64,6 +64,10 @@ def cases():
             "w64-ctx1024-b32": {**ctx, "chunk_reviews": 1024, "batch_chunks": 32},
             "w64-ctx2048-b16": {**ctx, "chunk_reviews": 2048, "batch_chunks": 16},
             "w64-ctx2048-b32": {**ctx, "chunk_reviews": 2048, "batch_chunks": 32},
+            # 2026-10-17: the long windows the small model now trains at (32,768 reviews per update each).
+            "w64-ctx8192-b4": {**ctx, "chunk_reviews": 8192, "batch_chunks": 4},
+            "w64-ctx16384-b2": {**ctx, "chunk_reviews": 16384, "batch_chunks": 2},
+            "w64-ctx32768-b1": {**ctx, "chunk_reviews": 32768, "batch_chunks": 1},
             # The fork's own d=128 model (card 3 / deck 4 / note 2 / preset 3 / user 4): head size 32 but d_model 128, so every
             # width-32-only kernel is dropped (docs/SMALL_MODEL.md, "Fork-size preset"). Speed is the same with
             # zero_features [22]. Batch chunks are a guess for 16 GB; the smaller ones are the fallback if b128 spills.
