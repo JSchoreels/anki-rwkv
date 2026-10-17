@@ -13,7 +13,10 @@ Models (repeatable --model TAG=KIND:ARCH:PATH):
                    anything else = expertium.variants.build(ARCH) (w64, w80, ...). Eager mode (RWKV_NO_JIT), WKV via
                    scripts/small_model_wkv.py (any length, head size 16/32).
 Variants (--variants, applied to every model): fp32, w8 (int8 per-channel weights), +s8 (int8 card/note state rows,
-like the fork's runtime int8). Example: fp32,w8+s8.
+like the fork's runtime int8), +vq<recipe> (expertium models, CPU only: Expertium-style VQ of the card/note state,
+scripts/state_vq.py recipes, codebooks from --vq-codebooks; SM32). Example: fp32,w8+s8,w8+vq403x214.
+On CPU the expertium models route their WKV recurrence through scripts/state_vq.py (before SM32, +s8 was silently
+ignored on the CPU path: RWKV7TimeMixer calls reference_rwkv7, not the patched RWKV7_WKV, for CPU tensors).
 Resumable JSONL, one row per (user, tag/variant).
 --window W (diagnostic): the training protocol instead, i.e. the same history cut into independent W-review samples
 (state reset at every sample start); labels get the suffix "@wW" so they never mix with full-history rows.
@@ -147,6 +150,8 @@ class WindowBatches(UserBatches):
 def parse_variant(name):
     weights, _, state = name.partition("+")
     scheme = {"fp32": "fp32", "w8": "w8-pc", "w4": "w4-g32"}.get(weights)
+    if state.startswith("vq") and scheme is not None:
+        return scheme, state
     if scheme is None or state not in ("", "s8", "s4"):
         raise SystemExit(f"unknown variant {name}")
     return scheme, {"": 0, "s8": 8, "s4": 4}[state]
@@ -167,6 +172,8 @@ def main():
     parser.add_argument("--users-file", default="", help="JSON with a 'users' list (e.g. artifacts/small-model/"
                         "gate-users.json): score only these users, in the usual stratified order")
     parser.add_argument("--window", type=int, default=0, help="diagnostic: score independent W-review samples")
+    parser.add_argument("--vq-codebooks", default="artifacts/small-model/state-vq/codebooks.npz",
+                        help="scripts/state_vq.py codebooks for +vq variants (scripts/state_vq_fit.py)")
     parser.add_argument("--dump", default="", help="also write per-review benchmark predictions (review_th, bin, y, "
                         "p_ahead, p_instant) to DIR/<user>_<tag>_<variant>.npz, for calibration diagnostics")
     args = parser.parse_args()
@@ -214,7 +221,7 @@ def main():
             done.setdefault(row["user_id"], set()).add(row["label"])
     todo = [u for u in users if not set(grid) <= done.get(u, set())]
 
-    models, states = {}, {}
+    models, states, layouts, codecs = {}, {}, {}, {}
     for label in grid:
         tag, variant = label.split("@")[0].split("/", 1)
         kind, arch, path = specs[tag]
@@ -228,6 +235,9 @@ def main():
                         block.time_mixer.use_reference_wkv = True
             else:
                 model = build_expertium(arch, base)
+                if cpu:
+                    from scripts import state_vq
+                    layouts[tag] = state_vq.install(model)
             models[tag] = (kind, model.to(device), base, cq.linear_weight_names(base))
         kind, model, base, names = models[tag]
         if (tag, scheme) not in states:
@@ -264,9 +274,27 @@ def main():
                 scheme, state_bits = parse_variant(variant)
                 state, nbytes, params = states[(tag, scheme)]
                 model.load_state_dict(state)
+                vq_info = None
                 if kind == "fork":
                     cq.set_state_bits(model, state_bits)
+                elif cpu:
+                    from scripts import state_vq
+                    set_expertium_state_bits(model, 0)  # the GPU kernel's bits; CPU state goes through state_vq
+                    if isinstance(state_bits, str):
+                        if state_bits not in codecs:
+                            path = ROOT / args.vq_codebooks
+                            books = state_vq.Codebooks.load(path) if path.exists() else state_vq.Codebooks()
+                            codecs[state_bits] = {s: state_vq.StateCodec(rec, books)
+                                                  for s, rec in zip(layouts[tag], state_vq.recipe(state_bits))}
+                            print(f"[small-model] {state_bits}: {state_vq.describe(state_bits, layouts[tag])}",
+                                  flush=True)
+                        state_vq.configure(layouts[tag], codecs[state_bits])
+                        vq_info = state_vq.describe(state_bits, layouts[tag])
+                    else:
+                        state_vq.configure(layouts[tag], None, state_bits)
                 else:
+                    if isinstance(state_bits, str):
+                        raise SystemExit("+vq variants run on CPU only (--device cpu)")
                     set_expertium_state_bits(model, state_bits)
                 t0 = time.perf_counter()
                 try:
@@ -281,6 +309,7 @@ def main():
                 rows.append({"user_id": user, "label": label, "tag": tag, "variant": variant, "kind": kind,
                              "arch": specs[tag][1], "checkpoint": specs[tag][2], "parameters": params,
                              "weight_bytes": nbytes, "state_bits": state_bits or 32, "reviews": counts[str(user)],
+                             **({"state_vq": vq_info, "vq_codebooks": args.vq_codebooks} if vq_info else {}),
                              "prepare_seconds": round(prep_seconds, 2),
                              "model_seconds": round(time.perf_counter() - t0, 3), **values,
                              "benchmark": metrics(user, labels, predictions)})
