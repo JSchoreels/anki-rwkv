@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-10-17T15:33:14+02:00",
- "updated": "2026-10-17 15:33",
- "material": "faee327bf72290f1",
- "summary": "running 000420",
+ "generated_at": "2026-10-17T16:28:37+02:00",
+ "updated": "2026-10-17 16:28",
+ "material": "9be6b059a4cd8236",
+ "summary": "running 000421, finished 000420",
  "headline": [
   {
    "k": "Best, 464 users (curve / instant)",
@@ -32,18 +32,16 @@
  ],
  "now": [
   {
-   "what": "Extra training epoch at 32k-review windows, from the best 16k checkpoint",
-   "id": "Q12, ticket 000420",
+   "what": "cont gate: score s-w64kd-gate-ctx32768c-e10 on the 100 gate users",
+   "id": "000421-small-model",
    "kind": "gpu-train",
-   "why": "Then its final decay decides whether the &le; +1.0% target is met. ~14,900 reviews/s.",
+   "why": "",
    "track": "small model",
-   "ticket": "000420-small-model",
-   "started": "09:26",
-   "elapsed": "6:06",
-   "progress": 0.881,
-   "rev_s": 14835,
-   "rev_s_avg": 14835,
-   "eta": "~16:22"
+   "ticket": "000421-small-model",
+   "started": "16:26",
+   "elapsed": "0:02",
+   "progress": null,
+   "eta": "~16:30"
   },
   {
    "what": "State quantization test on the student, without retraining",
@@ -59,6 +57,14 @@
  ],
  "waiting": [],
  "recent": [
+  {
+   "ticket": "000420-small-model",
+   "what": "cont scale-w64kd-gate-cached-ctx32768-cont epoch 10/10 (gate, chunk 32768 x 1, smoke first)",
+   "ended": "16:26",
+   "date": "10-17",
+   "exit": 0,
+   "ran": "6:59"
+  },
   {
    "ticket": "000419-small-model",
    "what": "longdecay scale-w64kd-gate-cached-ctx16384-cont: full-history scoring of s-w64kd-gate-ctx16384c-dec9-L32k (464 users)",
@@ -98,14 +104,6 @@
    "date": "10-17",
    "exit": 0,
    "ran": "0:03"
-  },
-  {
-   "ticket": "000414-small-model",
-   "what": "cont scale-w64kd-gate-cached-ctx16384-cont epoch 9/9 (gate, chunk 16384 x 2, smoke first)",
-   "ended": "06:51",
-   "date": "10-17",
-   "exit": 0,
-   "ran": "4:27"
   }
  ],
  "plan": [
@@ -116,7 +114,9 @@
    "kind": "gpu-score",
    "decides": "Sanity check only (undecayed checkpoints are noisy)",
    "track": "small model",
-   "state": "planned"
+   "state": "running",
+   "started": "16:26",
+   "ticket": "000421-small-model"
   },
   {
    "when": "~16:30 &ndash; 18:00",
