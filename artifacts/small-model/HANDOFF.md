@@ -512,3 +512,19 @@ with gate train_users. CPU only, L32k model.
 Reading: heavy overlap users are where the fork leads most (consistent with it having trained on copies of those
 histories), but they are 2.5% of reviews; on the 389 clean users the gap is the same +1.15% / +1.17%. Shared
 history does not explain the miss of bar P. Worth a later decision (user's): score bar P on clean users too.
+
+## 2026-10-17 02:24 Q11: base trained one more epoch at 16k (overnight, ticket 000414 onward)
+Question (SM22 open point): does *training* at 16k beat only *decaying* at 16k/32k? Chain
+artifacts/small-model/runbook-2026-10-17-chain.sh (log runbook-2026-10-17-chain.log), launched detached:
+1. runbook-2026-10-16b.sh cont with TIER=gate FROM=8 TO=9 CHUNK=16384 RUN_TAG=ctx8192-cont SRC_LBL=s-w64kd-gate-ctx8192c:
+   new experiment artifacts/accuracy/experiments/scale-w64kd-gate-cached-ctx16384-cont (epoch 9 from ctx8192-cont e8,
+   16384 x 2 = 32,768 reviews/update, LR constant 7e-4, AdamW state copied; dry run runbook-2026-10-17-cont16k-dryrun.log OK).
+   Ticket 000414 = epoch 9 (cold KD cache at 16k, ~3-3.5 h expected), then 100-user score of s-w64kd-gate-ctx16384c-e9,
+   0.25-epoch decay at 16384 x 2 -> $SM/scale-w64kd-gate-cached-ctx16384-cont-decay, 464-user scoring of
+   s-w64kd-gate-ctx16384c-e9 and -dec9. Log runbook-2026-10-17-cont16k.log.
+2. After "done: cont": runbook-2026-10-16d.sh longdecay SRC_NAME=scale-w64kd-gate-cached-ctx16384-cont EPOCH=9 DCHUNK=32768
+   DBATCH=1 -> label s-w64kd-gate-ctx16384c-dec9-L32k, log runbook-2026-10-17-longdecay32k.log (~84 + 15 min).
+Comparisons: dec9 vs dec8-L16k (+1.17% / +1.16%) and dec9-L32k vs dec8-L32k (+1.15% / +1.12%), both paired on 464 users
+(note: also one more epoch, so this measures "e9 at 16k", not 16k alone). Gate math as in the 21:14 section.
+Expected end of the whole chain ~09:00-09:30. Cancel: `python scripts/r01_queue.py cancel <ticket>` from the main repo, then
+kill the chain bash (ps -ef | grep runbook-2026-10-17).
