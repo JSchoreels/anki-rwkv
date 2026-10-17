@@ -244,6 +244,50 @@
    ]
   },
   {
+   "what": "One-epoch final decay at 32k from epoch 10 (vs the quarter-epoch dec10)",
+   "id": "SM40",
+   "kind": "gpu-train",
+   "minutes": 290,
+   "track": "small model",
+   "match": [
+    "SM40 1-epoch decay"
+   ],
+   "decides": "The one-epoch decay gained &minus;0.00033 curve at 2,048 (SM35); here that would bring the curve to about the +1.0% bar"
+  },
+  {
+   "what": "Score the one-epoch 32k decay on all 464 users",
+   "id": "SM40",
+   "kind": "gpu-score",
+   "minutes": 25,
+   "track": "small model",
+   "match": [
+    "SM40 scoring"
+   ],
+   "decides": "Bar met or not (paired with dec10)"
+  },
+  {
+   "what": "Carried-state kernel check on the GPU (once its code passes on CPU)",
+   "id": "SM21",
+   "kind": "gpu-speed",
+   "minutes": 5,
+   "track": "small model",
+   "match": [
+    "SM21 parity"
+   ],
+   "decides": "New kernels match the reference with a starting state"
+  },
+  {
+   "what": "Fork full-history replay on the 5,000 training users (resumable per user, can be stopped at any time)",
+   "id": "SM11",
+   "kind": "gpu-score",
+   "minutes": 315,
+   "track": "small model",
+   "match": [
+    "SM11 replay"
+   ],
+   "decides": "Distillation targets for carried-state training; runs only once its export code passes"
+  },
+  {
    "what": "Carried state, code (CPU, no GPU needed): full-history fork targets export, kernels that take and return a starting state, trainer option; bit-for-bit checks",
    "id": "SM21, SM11",
    "kind": "cpu",
@@ -253,12 +297,12 @@
    "decides": "Ready to train with full-history context at 2,048-window speed (~1.5 days of work per the design)"
   },
   {
-   "what": "Fork full-history replay on the 5,000 training users (targets for carried-state training)",
-   "id": "SM11",
-   "kind": "gpu-score",
+   "what": "Own collection + spaced-slice breakdown for the night&rsquo;s decays (compression-in-training, instant-weighted, one-epoch 32k) as they land",
+   "id": "SM07, SM24",
+   "kind": "cpu",
    "track": "small model",
-   "when": "once its export code passes (est. 10-18 day), ~5.2 h GPU",
-   "decides": "Distillation targets that match what the student sees with carried state"
+   "when": "10-18 morning, next to the GPU",
+   "decides": "Same tables as dec10 for each new candidate"
   },
   {
    "what": "Carried state: 2 epochs at 2,048 from the best checkpoint + decay + 464-user scoring, paired with the same epochs without carry",
