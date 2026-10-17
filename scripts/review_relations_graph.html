@@ -2,20 +2,66 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<meta name="nav-label" content="data quality">
+<meta name="nav-order" content="5">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self'">
 <title>Review history relations</title>
+<meta name="description" content="Which dataset users share review histories: equal histories, histories contained in another, and long common blocks, from an audit of the full cohort.">
+<link rel="stylesheet" href="../../style.css">
 <style>
-:root{color-scheme:light dark;--bg:light-dark(#f7f8fa,#141719);--fg:light-dark(#202630,#ecf0f5);--muted:light-dark(#586371,#a8b3c1);--panel:light-dark(#fff,#1c2228);--line:light-dark(#dde3eb,#3c4652);--blue:light-dark(#225cbe,#87b3ff);--orange:light-dark(#a95313,#ffbb79);--green:light-dark(#237458,#87d9b7);--node:light-dark(#e6ecf4,#303d4c)}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.5 system-ui,sans-serif}main{max-width:1360px;margin:0 auto;padding:28px}h1{font-size:25px;font-weight:600;margin:0 0 5px}h2{font-size:16px;margin:0 0 12px}p{margin:0 0 12px}.muted{color:var(--muted)}.summary{display:flex;gap:24px;flex-wrap:wrap;margin:20px 0}.summary strong{display:block;font-size:22px;font-weight:600;font-variant-numeric:tabular-nums}.summary span{color:var(--muted)}.controls{display:flex;gap:14px;align-items:end;flex-wrap:wrap;margin:16px 0}label{display:grid;gap:4px;font-size:13px}input,select,button{font:inherit;color:var(--fg);background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:7px 10px}input{max-width:170px}button{cursor:pointer}button:hover{border-color:var(--blue)}.layout{display:grid;grid-template-columns:minmax(0,1fr) 310px;gap:24px}.chart{min-width:0}#network{display:block;width:100%;height:540px;background:var(--panel);border-radius:10px;touch-action:none}#network text{fill:var(--fg);font:12px system-ui,sans-serif;pointer-events:none}#network .edge{cursor:pointer;fill:none}#network .node{cursor:grab}#network .selected{stroke:var(--blue);stroke-width:3px}.legend{display:flex;gap:18px;flex-wrap:wrap;margin:12px 0;color:var(--muted)}.swatch{display:inline-block;width:24px;margin-right:5px;border-top:2px solid;vertical-align:middle}.subset{color:var(--blue)}.common{color:var(--orange);border-top-style:dashed}.equal{color:var(--green)}aside{min-width:0;padding:18px;background:var(--panel);border-radius:10px}#detail{overflow-wrap:anywhere}dl{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin:12px 0}dt{color:var(--muted)}dd{margin:0;text-align:right;font-variant-numeric:tabular-nums}.member-list{max-height:160px;overflow:auto}.table-wrap{overflow:auto;margin-top:22px}table{width:100%;border-collapse:collapse;font-size:13px}th{text-align:left;color:var(--muted);font-weight:500}td,th{padding:9px 8px;border-bottom:1px solid var(--line)}td.numeric{text-align:right;font-variant-numeric:tabular-nums}.block{border-left:3px solid var(--orange);padding:8px 12px;margin:12px 0}.empty{padding:20px;text-align:center;color:var(--muted)}footer{margin-top:20px;color:var(--muted);font-size:12px}@media(max-width:800px){main{padding:18px}.layout{grid-template-columns:1fr}#network{height:430px}aside{min-height:140px}}@media(max-width:420px){main{padding:12px}.controls label{width:calc(50% - 8px)}input,select{max-width:100%;width:100%}#network{height:360px}.summary{gap:14px}}
-.layout aside{align-self:start;max-height:620px;overflow:auto}
+.eyebrow a{color:inherit}.lede a,main a,.foot a{color:var(--accent)}
+:root{--blue:var(--accent);--orange:#a95313;--green:#237458;--node:#e6ecf4}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--orange:#ffbb79;--green:#87d9b7;--node:#303d4c}}
+:root[data-theme="dark"]{--orange:#ffbb79;--green:#87d9b7;--node:#303d4c}
+.dq-cards{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}@media(max-width:560px){.dq-cards{grid-template-columns:1fr 1fr}}
+.controls{display:flex;gap:12px;align-items:end;flex-wrap:wrap;margin:4px 0 14px}
+.controls label{display:grid;gap:4px;font-size:13px;color:var(--muted)}
+.controls input,.controls select,.controls button{font:inherit;font-size:14px;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:7px 10px}
+.controls input{max-width:170px}.controls button{cursor:pointer}.controls button:hover{border-color:var(--accent)}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:16px}
+.dq-chart{min-width:0}
+#network{display:block;width:100%;height:540px;background:var(--bg);border:1px solid var(--line);border-radius:10px;touch-action:none}
+#network text{fill:var(--ink);font:12px system-ui,sans-serif;pointer-events:none}
+#network .edge{cursor:pointer;fill:none}#network .node{cursor:grab}#network .selected{stroke:var(--accent);stroke-width:3px}
+.dq-legend{display:flex;gap:18px;flex-wrap:wrap;margin:10px 0 0;font-size:13.5px;color:var(--muted)}
+.swatch{display:inline-block;width:24px;margin-right:5px;border-top:2px solid;vertical-align:middle}
+.subset{color:var(--blue)}.common{color:var(--orange);border-top-style:dashed}.equal{color:var(--green)}
+.layout aside{align-self:start;max-height:620px;overflow:auto;min-width:0;padding:14px;border:1px solid var(--line);border-radius:10px;font-size:14px}
+.layout aside h2{margin-bottom:8px}
+#detail{overflow-wrap:anywhere}
+dl{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin:12px 0}dt{color:var(--muted)}dd{margin:0;text-align:right;font-variant-numeric:tabular-nums}
+.member-list{max-height:160px;overflow:auto}
+.table-wrap{overflow:auto}
+table{width:100%;border-collapse:collapse;font-size:14px}caption{text-align:left;margin-bottom:6px}
+th{text-align:left;color:var(--muted);font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.04em}
+td,th{padding:8px;border-bottom:1px solid var(--line)}td.numeric{text-align:right;font-variant-numeric:tabular-nums}
+td button{font:inherit;font-size:13px;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:3px 10px;cursor:pointer}
+td button:hover{border-color:var(--accent)}
+.block{border-left:3px solid var(--orange);padding:8px 12px;margin:12px 0}
+.empty{padding:20px;text-align:center;color:var(--muted)}
+.foot{color:var(--muted);font-size:13px;padding:8px 16px 32px}
+@media(max-width:800px){.layout{grid-template-columns:1fr}#network{height:430px}.layout aside{min-height:140px}}
+@media(max-width:560px){.controls label{width:calc(50% - 6px)}.controls input,.controls select{max-width:100%;width:100%}#network{height:360px}}
 </style>
 </head>
 <body>
-<main>
-<h1>Review history relations</h1>
-<p id="scope" class="muted"></p>
-<div id="summary" class="summary"></div>
+<header class="top">
+  <div class="wrap">
+    <div class="top-row">
+      <div>
+        <p class="eyebrow"><a href="../../">anki-rwkv</a> &middot; <a href="../../factory.html">factory overview</a> &middot; <a href="../../models.html">model architectures</a> &middot; <a href="../../campaign.html">R01 campaign</a> &middot; <a href="../../train.html">8k/2k run</a> &middot; data quality</p>
+        <h1>Review history relations</h1>
+        <p id="scope" class="lede"></p>
+      </div>
+      <button id="theme" class="btn" type="button" aria-label="Toggle light and dark theme">Theme</button>
+    </div>
+  </div>
+</header>
+<main class="wrap">
+<section id="summary" class="cards dq-cards" aria-label="Audit summary"></section>
+<section class="panel">
+<div class="panel-head"><h2>Who shares history with whom</h2><p class="hint">Arrows point from a subset to a superset; dashed lines join histories that share a long common block; green dots are groups of users with equal histories. Drag to move, scroll to zoom, select a dot or a row for its evidence.</p></div>
 <div class="controls">
 <label>User ID<input id="user-search" type="search" placeholder="All related users" aria-label="Filter relations by user ID"></label>
 <label>Relation<select id="relation-filter"><option value="all">All relations</option><option value="subset">Containment</option><option value="common_segment">Common blocks</option><option value="equal">Equal histories</option></select></label>
@@ -26,16 +72,21 @@
 <button id="reset-view" type="button">Reset view</button>
 </div>
 <div class="layout">
-<section class="chart" aria-label="Relations graph">
+<div class="dq-chart" aria-label="Relations graph">
 <svg id="network" role="img" aria-label="Interactive graph of users with matching review histories"><title>User history relationships</title><desc>Arrows point from a subset to a superset. Dashed lines join histories with an uninterrupted matching block. Equal histories share a node.</desc></svg>
-<div class="legend"><span><i class="swatch subset"></i>Subset → superset</span><span><i class="swatch common"></i>Common block</span><span><i class="swatch equal"></i>Equal histories grouped</span></div>
-<p id="visible-count" class="muted" aria-live="polite"></p>
-</section>
+<div class="dq-legend"><span><i class="swatch subset"></i>Subset → superset</span><span><i class="swatch common"></i>Common block</span><span><i class="swatch equal"></i>Equal histories grouped</span></div>
+<p id="visible-count" class="hint" aria-live="polite"></p>
+</div>
 <aside><h2>Evidence</h2><div id="detail" aria-live="polite">Select a user or relation to inspect its matching reviews.</div></aside>
 </div>
-<div class="table-wrap"><table><caption id="table-caption" class="muted"></caption><thead><tr><th>Users A / B</th><th>Relation</th><th>Shared reviews</th><th>Coverage A / B</th><th>Longest block</th><th>Evidence</th></tr></thead><tbody id="relation-table"></tbody></table></div>
-<footer id="footnote"></footer>
+</section>
+<section class="panel">
+<div class="panel-head"><h2>Strongest relations</h2></div>
+<div class="table-wrap"><table><caption id="table-caption" class="hint"></caption><thead><tr><th>Users A / B</th><th>Relation</th><th class="r">Shared reviews</th><th>Coverage A / B</th><th>Longest block</th><th>Evidence</th></tr></thead><tbody id="relation-table"></tbody></table></div>
+</section>
+<p id="footnote" class="hint"></p>
 </main>
+<footer class="wrap foot"><a href="../../">anki-rwkv</a> &middot; <a href="../../factory.html">factory overview</a></footer>
 <script id="relations-data" type="application/json">__REVIEW_RELATIONS_DATA__</script>
 <script>__D3_SOURCE__</script>
 <script>
@@ -69,8 +120,8 @@
     return item;
   };
   const metric = (labelText, value) => {
-    const part = element("div", null, document.getElementById("summary"));
-    element("strong", number(value), part); element("span", labelText, part);
+    const part = element("div", null, document.getElementById("summary"), "card");
+    element("div", labelText, part, "k"); element("div", typeof value === "number" ? number(value) : value, part, "v");
   };
   document.getElementById("scope").textContent = (summary.fixture ? "Synthetic verification dataset · " : "Selected dataset audit · ") + number(summary.users) + " users · " + number(summary.distinct_reviews || 0) + " distinct review events";
   metric("equal-history groups", summary.equal_groups); metric("containment links", summary.subset_edges); metric("common-block links", summary.common_segment_edges);
@@ -164,5 +215,7 @@
   draw();
 })();
 </script>
+<script src="../../common.js"></script>
+<script src="../../nav.js" defer></script>
 </body>
 </html>
