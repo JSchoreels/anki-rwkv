@@ -15,6 +15,10 @@ estimator (STE):
     reconstruction; a review that has no previous one (select == t) reads its own input unchanged. Forward value =
     reconstruction exactly, gradient = identity to the gathered vector.
 Codebooks are fixed during training (k-means, docs/SMALL_MODEL.md SM32b), so no codebook gradient is formed.
+Speed (S09, docs/GPU_OPTIMIZATIONS.md): a codec with `.kernel` (scripts/state_vq_cuda.KernelCodec, set by
+install_training for impl "cuda" / "hybrid") runs on CUDA through fused kernels: impl "cuda" = `VQStateWKVKernel`
+(one forward launch per split for all steps + the plain WKV backward kernel along the stored trajectory), impl
+"hybrid" = this file's torch forward + that backward kernel. Same forward value and STE gradient as VQStateWKV.
 Both functions are @torch.jit.ignore: the scripted mixers call them through the Python fallback (the
 `quant_aware_rwkv7` pattern), so the default JIT path stays scripted.
 """
@@ -27,6 +31,40 @@ from expertium.model.rwkv_ops import single_timestep
 
 # stream index (0 = card, 2 = note) -> codec with .wkv(S [N, H, K, K]) and .shift(x [N, C], role "t" | "c")
 CODECS: Dict[int, Any] = {}
+# True only in scripts/check_state_vq_qat.py --dry-run: dispatch to the fused kernels on CPU tensors (their CPU
+# emulation, scripts/state_vq_cuda_emu.py); training never sets it.
+KERNELS_ON_CPU = False
+
+
+def ste_backward(r, k, v, w, a, kd, skip, before, grad_out):
+    """Straight-through WKV gradients along a stored trajectory: before[t] [B, H, K, K] = the state step t starts
+    from (any layout that indexes that way, e.g. a [B, T, ...] tensor transposed). The plain WKV backward with the
+    quantizer as identity (dq/dnxt = I on non-skipped steps)."""
+    grad_out = grad_out.to(r.dtype)
+    B, T, H, K = r.shape
+    dr, dk, dv, dw, da, dkd = (torch.empty_like(r) for _ in range(6))
+    dS = r.new_zeros(B, H, K, K)   # dL / d(stored state after step t)
+    zero = r.new_zeros(())
+    for t in range(T - 1, -1, -1):
+        S = before[t]
+        rt, kt, vt, wt, at, kdt = r[:, t], k[:, t], v[:, t], w[:, t], a[:, t], kd[:, t]
+        akd = at * kdt
+        p = S @ kdt.unsqueeze(-1)                                              # S kd        [B, H, K, 1]
+        nxt = S * wt.unsqueeze(-2) - p @ akd.unsqueeze(-2) + vt.unsqueeze(-1) @ kt.unsqueeze(-2)
+        sk = skip[:, t, None, None, None]
+        g = grad_out[:, t]
+        # out_t = nxt r_t; the stored state is q(nxt) on non-skipped rows (STE: dq/dnxt = I), else S.
+        dn = g.unsqueeze(-1) * rt.unsqueeze(-2) + torch.where(sk, zero, dS)
+        dr[:, t] = (nxt.mT @ g.unsqueeze(-1)).squeeze(-1)
+        dv[:, t] = (dn @ kt.unsqueeze(-1)).squeeze(-1)
+        dk[:, t] = (dn.mT @ vt.unsqueeze(-1)).squeeze(-1)
+        dw[:, t] = (S * dn).sum(-2)
+        dakd = -(dn.mT @ p).squeeze(-1)
+        dp = -(dn @ akd.unsqueeze(-1))
+        dkd[:, t] = (S.mT @ dp).squeeze(-1) + dakd * at
+        da[:, t] = dakd * kdt
+        dS = dn * wt.unsqueeze(-2) + dp @ kdt.unsqueeze(-2) + torch.where(sk, dS, zero)
+    return dr, dk, dv, dw, da, dkd
 
 
 class VQStateWKV(torch.autograd.Function):
@@ -40,45 +78,46 @@ class VQStateWKV(torch.autograd.Function):
     def forward(ctx, r, k, v, w, a, kd, skip, codec):
         B, T, H, K = r.shape
         state = r.new_zeros(B, H, K, K)
-        before = r.new_empty(T, B, H, K, K)
+        kernel = getattr(codec, "kernel", None) if (r.is_cuda or KERNELS_ON_CPU) else None
+        # hybrid: the backward kernel reads the stored states as [B, T, H, K, K]
+        before = r.new_empty(B, T, H, K, K) if kernel is not None else r.new_empty(T, B, H, K, K)
         outs = []
         for t in range(T):
-            before[t] = state
+            if kernel is not None:
+                before[:, t] = state
+            else:
+                before[t] = state
             out_t, nxt = single_timestep(r[:, t], k[:, t], v[:, t], w[:, t], a[:, t], kd[:, t], state)
             outs.append(out_t)
             stored = codec.wkv(nxt).to(nxt.dtype)
             state = torch.where(skip[:, t, None, None, None], state, stored)
+        ctx.kernel = kernel
         ctx.save_for_backward(r, k, v, w, a, kd, skip, before)
         return torch.stack(outs, dim=1)
 
     @staticmethod
     def backward(ctx, grad_out):
         r, k, v, w, a, kd, skip, before = ctx.saved_tensors
-        grad_out = grad_out.to(r.dtype)
-        B, T, H, K = r.shape
-        dr, dk, dv, dw, da, dkd = (torch.empty_like(r) for _ in range(6))
-        dS = r.new_zeros(B, H, K, K)   # dL / d(stored state after step t)
-        zero = r.new_zeros(())
-        for t in range(T - 1, -1, -1):
-            S = before[t]
-            rt, kt, vt, wt, at, kdt = r[:, t], k[:, t], v[:, t], w[:, t], a[:, t], kd[:, t]
-            akd = at * kdt
-            p = S @ kdt.unsqueeze(-1)                                              # S kd        [B, H, K, 1]
-            nxt = S * wt.unsqueeze(-2) - p @ akd.unsqueeze(-2) + vt.unsqueeze(-1) @ kt.unsqueeze(-2)
-            sk = skip[:, t, None, None, None]
-            g = grad_out[:, t]
-            # out_t = nxt r_t; the stored state is q(nxt) on non-skipped rows (STE: dq/dnxt = I), else S.
-            dn = g.unsqueeze(-1) * rt.unsqueeze(-2) + torch.where(sk, zero, dS)
-            dr[:, t] = (nxt.mT @ g.unsqueeze(-1)).squeeze(-1)
-            dv[:, t] = (dn @ kt.unsqueeze(-1)).squeeze(-1)
-            dk[:, t] = (dn.mT @ vt.unsqueeze(-1)).squeeze(-1)
-            dw[:, t] = (S * dn).sum(-2)
-            dakd = -(dn.mT @ p).squeeze(-1)
-            dp = -(dn @ akd.unsqueeze(-1))
-            dkd[:, t] = (S.mT @ dp).squeeze(-1) + dakd * at
-            da[:, t] = dakd * kdt
-            dS = dn * wt.unsqueeze(-2) + dp @ kdt.unsqueeze(-2) + torch.where(sk, dS, zero)
-        return dr, dk, dv, dw, da, dkd, None, None
+        if ctx.kernel is not None:
+            return (*ctx.kernel.backward(r, k, v, w, a, kd, skip, before, grad_out), None, None)
+        return (*ste_backward(r, k, v, w, a, kd, skip, before, grad_out), None, None)
+
+
+class VQStateWKVKernel(torch.autograd.Function):
+    """VQStateWKV on CUDA with fused kernels (impl "cuda"): `codec.kernel.forward` runs all steps of the split in one
+    launch and returns the stored state before every step; the backward is the plain WKV backward kernel along it."""
+
+    @staticmethod
+    def forward(ctx, r, k, v, w, a, kd, skip, codec):
+        out, before = codec.kernel.forward(r, k, v, w, a, kd, skip)
+        ctx.kernel = codec.kernel
+        ctx.save_for_backward(r, k, v, w, a, kd, skip, before)
+        return out
+
+    @staticmethod
+    def backward(ctx, grad_out):
+        r, k, v, w, a, kd, skip, before = ctx.saved_tensors
+        return (*ctx.kernel.backward(r, k, v, w, a, kd, skip, before, grad_out), None, None)
 
 
 @torch.jit.ignore
@@ -87,7 +126,10 @@ def vq_wkv(r_BTHK: Tensor, k_BTHK: Tensor, v_BTHK: Tensor, w_BTHK: Tensor, a_BTH
     """QAT WKV for a card/note time mixer: float32 per-step recurrence with the stored state VQ-coded (STE)."""
     out_dtype = k_BTHK.dtype
     args = [t.float().contiguous() for t in (r_BTHK, k_BTHK, v_BTHK, w_BTHK, a_BTHK, k_deformed_BTHK)]
-    return VQStateWKV.apply(*args, skip_BT.contiguous(), CODECS[slot]).to(out_dtype)
+    codec = CODECS[slot]
+    on_kernel_device = r_BTHK.is_cuda or KERNELS_ON_CPU
+    fn = VQStateWKVKernel if (on_kernel_device and getattr(codec, "impl", "torch") == "cuda") else VQStateWKV
+    return fn.apply(*args, skip_BT.contiguous(), codec).to(out_dtype)
 
 
 @torch.jit.ignore

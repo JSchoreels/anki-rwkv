@@ -57,6 +57,7 @@ class StreamRecipe:
     shift_bits: int = 12
     shift_stages: int = 1
     shift_norm_bits: object = 1
+    factor: str = "eigh"            # rank-1 direction: "eigh" (linalg.eigh) | "sq" (Gram squaring, factorize_sq; S09)
 
     def exact_parts(self):
         return (self.rank == 0 or 0 in self.stages or self.norm_bits is None or self.shift_m == 0
@@ -105,6 +106,10 @@ _N400 = _r(stages=(7,), norm_bits=6, shift_stages=2, shift_norm_bits=6)         
 _N800 = _r(rank=2, stages=(8, 4), norm_bits=6, shift_m=4, shift_stages=3, shift_norm_bits=6)  # note 828 bits
 RECIPES.update({"vq378x412": (_C400, _N400), "vq770x412": (_C800, _N400), "vq770x828": (_C800, _N800),
                 "vq1506x828": (_N800, _N800)})   # upper reference: rank 2 (8 + 4 stages), shift m4 x 3 stages
+# S09: the same codecs with the rank-1 direction from Gram squaring instead of linalg.eigh (same bits and codebooks;
+# the fused CUDA QAT step computes exactly this, so training, scoring and deployment can share one factorization).
+RECIPES.update({name + "p": tuple(replace(rec, factor="sq") for rec in RECIPES[name])
+                for name in ("vq378x412", "vq770x412")})
 
 
 def recipe(name):
@@ -253,6 +258,43 @@ def factorize(A, rank, dtype=torch.float64):
     return u * sign, v * sign, sigma, valid
 
 
+SQ_SQUARINGS = 12   # P <- P @ P twelve times = G^4096: direction error ~ (lambda2 / lambda1)^4096
+SQ_RENORM = 4       # trace renormalisation before every 4th squaring (p1 >= 1/16 after it, p1^16 stays above 1e-20)
+
+
+def factorize_sq(A, dtype=torch.float64, squarings=SQ_SQUARINGS):
+    """Rank-1 `factorize` without an eigensolver (S09): top eigenvector of the same normalised Gram G = An An^T by
+    repeated squaring. P = G / tr(G); `squarings` times P <- P @ P (trace renormalised before every SQ_RENORM-th);
+    u = G p / |G p| with p the column of P with the largest diagonal (it has the largest u1 share); then v, sigma, the
+    valid mask and the sign canon exactly as `factorize`. Only matrix products, reductions and elementwise ops: no
+    cuSOLVER call or host sync on CUDA, and the fused CUDA QAT step (expertium/model/state_vq_cuda.py) runs the same
+    sequence per head. Equals `factorize` up to the (lambda2 / lambda1)^4096 residue (near-degenerate tops) and rounding."""
+    A64 = A.to(dtype)
+    N = A64.shape[0]
+    amax = A64.abs().amax(dim=(1, 2))
+    scale = torch.where(torch.isfinite(amax) & (amax > 1e-30), amax, torch.ones_like(amax))
+    an = A64 / scale[:, None, None]
+    G = an @ an.transpose(1, 2)
+    P = G
+    for i in range(0, squarings, SQ_RENORM):
+        tr = P.diagonal(dim1=1, dim2=2).sum(-1)
+        P = P / torch.where(tr > 0, tr, torch.ones_like(tr))[:, None, None]
+        P = torch.linalg.matrix_power(P, 2 ** min(SQ_RENORM, squarings - i))   # = that many squarings P <- P @ P
+    j = P.diagonal(dim1=1, dim2=2).argmax(-1)
+    col = P[torch.arange(N, device=A.device), :, j]                 # P[n, :, j_n]
+    p = (G @ col.unsqueeze(-1)).squeeze(-1)
+    pn = p.norm(dim=-1, keepdim=True)
+    u = p / torch.where(pn > 0, pn, torch.ones_like(pn))
+    ev = (u * (G @ u.unsqueeze(-1)).squeeze(-1)).sum(-1)            # Rayleigh quotient (eigh's top eigenvalue)
+    v_un = (A64.transpose(1, 2) @ u.unsqueeze(-1)).squeeze(-1)      # A^T u
+    sigma = v_un.norm(dim=-1)
+    valid = torch.isfinite(ev) & (ev > 0) & torch.isfinite(sigma) & (sigma > 1e-20)
+    v = v_un / torch.where(valid, sigma, torch.ones_like(sigma))[..., None]
+    lead = u.abs().argmax(dim=-1, keepdim=True)
+    sign = torch.where(torch.gather(u, -1, lead) >= 0, 1.0, -1.0).to(u.dtype)
+    return (u * sign)[:, None], (v * sign)[:, None], sigma[:, None], valid[:, None]
+
+
 class StateCodec:
     """Encode-decode of one stream's stored state (WKV matrices and shift vectors) for a StreamRecipe.
     wkv_chunk / shift_chunk: rows per nearest-centroid distance matrix (the CPU scorer keeps 4096; the GPU training
@@ -299,7 +341,12 @@ class StateCodec:
         N, H = S.shape[:2]
         A = S.reshape(N * H, K, K)
         fd = self.factor_dtype
-        u, v, sigma, valid = factorize(A, self.rec.rank, fd)
+        if self.rec.factor == "sq":
+            if self.rec.rank != 1:
+                raise ValueError("factor 'sq' (Gram squaring) is rank 1 only")
+            u, v, sigma, valid = factorize_sq(A, fd)
+        else:
+            u, v, sigma, valid = factorize(A, self.rec.rank, fd)
         out = torch.zeros(N * H, K, K, dtype=fd, device=S.device)
         for j in range(self.rec.rank):
             uj, vj = u[:, j], v[:, j]
@@ -471,6 +518,8 @@ def describe(name, layout, recs=None):
             "shift_vectors": len(info["shift_vectors"]), "rank": rec.rank, "stages": list(rec.stages),
             "index_bits": rec.index_bits, "norm_bits": rec.norm_bits, "shift": f"m{rec.shift_m}b{rec.shift_bits}"
             f"x{rec.shift_stages}", "shift_norm_bits": rec.shift_norm_bits}
+        if rec.factor != "eigh":   # absent for the eigh recipes, so their scorer rows are unchanged
+            out[{0: "card", 2: "note"}.get(stream, str(stream))]["factor"] = rec.factor
     return out
 
 
@@ -485,13 +534,18 @@ def file_sha256(path):
     return hashlib.sha256(Path(path).read_bytes()).hexdigest()
 
 
+IMPLS = ("torch", "hybrid", "cuda")
+
+
 def training_spec(value):
     """The `state_vq` training option: a recipe name ("vq378x412") or {"recipe": ..., "codebooks": <.npz>,
     "sha256": <hex of the .npz, checked when given>, "factor_dtype": "float64" (default, = the CPU scorer) | "float32"
-    (faster GPU eigendecomposition; picks can differ from the scorer's on near-ties)}. Codebooks default to this
-    checkout's SM32 k-means file."""
+    (faster factorization; picks can differ from the scorer's on near-ties), "impl": "torch" (default: per-step
+    PyTorch loop, explicit backward) | "hybrid" (torch forward, fused WKV backward kernel on CUDA) | "cuda" (fused
+    forward and backward kernels on CUDA, scripts/state_vq_cuda.py; needs a factor "sq" recipe such as vq378x412p)}.
+    On a CPU device every impl runs the torch path. Codebooks default to this checkout's SM32 k-means file."""
     spec = {"recipe": value} if isinstance(value, str) else dict(value)
-    unknown = set(spec) - {"recipe", "codebooks", "sha256", "factor_dtype"}
+    unknown = set(spec) - {"recipe", "codebooks", "sha256", "factor_dtype", "impl"}
     if unknown or "recipe" not in spec:
         raise ValueError(f"state_vq option needs a recipe; unknown keys {sorted(unknown)}")
     recs = recipe(spec["recipe"])
@@ -503,8 +557,17 @@ def training_spec(value):
         raise ValueError(f"state_vq codebooks {path} have sha256 {digest}, the option pins {spec['sha256']}")
     if spec.get("factor_dtype", "float64") not in ("float64", "float32"):
         raise ValueError(f"state_vq factor_dtype {spec['factor_dtype']!r}: float64 or float32")
-    return {"recipe": spec["recipe"], "codebooks": str(path), "sha256": digest,
-            "factor_dtype": spec.get("factor_dtype", "float64")}
+    impl = spec.get("impl", "torch")
+    if impl not in IMPLS:
+        raise ValueError(f"state_vq impl {impl!r}: one of {IMPLS}")
+    if impl == "cuda" and any(rec.factor != "sq" or rec.rank != 1 for rec in recs):
+        raise ValueError(f"state_vq impl 'cuda' computes the Gram-squaring codec: use a factor 'sq' recipe "
+                         f"({spec['recipe']}p), not {spec['recipe']}")
+    out = {"recipe": spec["recipe"], "codebooks": str(path), "sha256": digest,
+           "factor_dtype": spec.get("factor_dtype", "float64")}
+    if impl != "torch":   # the key is absent for the default, so earlier option dicts describe themselves unchanged
+        out["impl"] = impl
+    return out
 
 
 def training_layout(model):
@@ -540,17 +603,32 @@ def install_training(model, value, device, wkv_chunk=1 << 20, shift_chunk=8192):
     books = Codebooks.load(spec["codebooks"])
     layout = training_layout(model)
     hooks.CODECS.clear()
+    impl = spec.get("impl", "torch") if torch.device(device).type == "cuda" else "torch"
     for (stream, info), rec in zip(layout.items(), recipe(spec["recipe"])):
-        hooks.CODECS[stream] = StateCodec(rec, books, wkv_chunk, shift_chunk,
-                                          getattr(torch, spec["factor_dtype"])).to(device)
+        codec = StateCodec(rec, books, wkv_chunk, shift_chunk, getattr(torch, spec["factor_dtype"])).to(device)
+        attach_kernel(codec, impl, device)
+        hooks.CODECS[stream] = codec
         for module in info["time"] + info["channel"]:
             if getattr(module, "fused_shift", False):
                 raise ValueError("state_vq cannot run with fused_shift (the fused gather+lerp has no shift hook)")
             module.state_vq_slot = stream
     plain = {s: {k: v for k, v in info.items() if k in ("wkv_layers", "heads", "shift_vectors")}
              for s, info in layout.items()}
-    return {**spec, "streams": describe(spec["recipe"], plain), "codebook_handling": "frozen (k-means, no gradient)",
+    return {**spec, "impl_on_device": impl, "streams": describe(spec["recipe"], plain),
+            "codebook_handling": "frozen (k-means, no gradient)",
             "mixers": {str(s): len(info["time"]) + len(info["channel"]) for s, info in layout.items()}}
+
+
+def attach_kernel(codec, impl, device):
+    """impl "cuda" / "hybrid": give `codec` the fused-kernel tensors (scripts/state_vq_cuda.KernelCodec) that
+    expertium/model/state_vq_hooks.py dispatches on; "torch" leaves it a plain codec. Returns the codec."""
+    codec.impl = impl
+    if impl in ("cuda", "hybrid"):
+        from scripts import state_vq_cuda
+        # hybrid: the torch forward (any recipe) with the fused backward only
+        codec.kernel = (state_vq_cuda.KernelCodec(codec, torch.device(device), codec.factor_dtype) if impl == "cuda"
+                        else state_vq_cuda.BackwardKernel())
+    return codec
 
 
 def uninstall_training(model):
