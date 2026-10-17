@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-10-18T00:10:23+02:00",
- "updated": "2026-10-18 00:10",
- "material": "fedef309f82f9b56",
- "summary": "running 000431",
+ "generated_at": "2026-10-18T00:49:44+02:00",
+ "updated": "2026-10-18 00:49",
+ "material": "23982f7c2afe832c",
+ "summary": "running 000432, finished 000431",
  "headline": [
   {
    "k": "Best, 464 users (curve / instant)",
@@ -77,22 +77,31 @@
  "now": [
   {
    "what": "Review-number flags as inputs: 2 epochs at 2,048 windows + decay + 464-user scoring (started 23:50; the break was cancelled)",
-   "id": "SM30, ticket 000431",
+   "id": "SM30, ticket 000432",
    "kind": "gpu-train",
    "decides": "Do explicit 2nd / 3rd / 4th+ review inputs help, paired against the same run without them (0.30259 / 0.27668)?",
    "why": "",
-   "job": "SM30 scale-w64kd-gate-cached-ctx2048-cont-repflags epoch 7/8 (rep_flags, chunk 2048 x 16, smoke first)",
+   "job": "SM30 gate: score s-w64kd-gate-ctx2048crf-e7 on the 100 gate users",
    "linked": true,
    "track": "small model",
-   "ticket": "000431-small-model",
-   "started": "23:50",
-   "elapsed": "0:19",
+   "ticket": "000432-small-model",
+   "started": "00:48",
+   "elapsed": "0:01",
    "progress": null,
-   "eta": "~00:56"
+   "eta": "~00:52"
   }
  ],
  "waiting": [],
  "recent": [
+  {
+   "ticket": "000431-small-model",
+   "id": "SM30",
+   "what": "SM30 scale-w64kd-gate-cached-ctx2048-cont-repflags epoch 7/8 (rep_flags, chunk 2048 x 16, smoke first)",
+   "ended": "00:48",
+   "date": "10-18",
+   "exit": 3,
+   "ran": "0:57"
+  },
   {
    "ticket": "000430-small-model",
    "id": "SM30",
@@ -137,15 +146,6 @@
    "date": "10-17",
    "exit": 0,
    "ran": "0:36"
-  },
-  {
-   "ticket": "000425-small-model",
-   "id": "SM25",
-   "what": "SM25 fork with no-steps review-type labels, 464 users (pass 1)",
-   "ended": "18:52",
-   "date": "10-17",
-   "exit": 0,
-   "ran": "0:17"
   }
  ],
  "plan": [
@@ -291,10 +291,10 @@
    "track": "small model",
    "minutes": 200,
    "state": "running",
-   "started": "23:50",
-   "ticket": "000431-small-model",
-   "started_at": "2026-10-17T21:27:40+02:00",
-   "ends_at": "2026-10-18T00:47:40+02:00"
+   "started": "00:48",
+   "ticket": "000432-small-model",
+   "started_at": "2026-10-17T23:50:41+02:00",
+   "ends_at": "2026-10-18T03:10:41+02:00"
   },
   {
    "what": "Final decay at 32k from epoch 10 with the state compression trained in (~400/400 bits), then CPU scoring on 34 users (CPU part runs next to SM26)",
