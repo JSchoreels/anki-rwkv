@@ -32,6 +32,26 @@
   .bar { height: 8px; border-radius: 99px; background: var(--line); overflow: hidden; margin: 8px 0 4px; }
   .bar i { display: block; height: 100%; background: var(--accent); }
   .cards .card .v { font-size: clamp(1.15rem, 2.4vw, 1.6rem); white-space: nowrap; }
+  .cardlist { display: none; }
+  .rc { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; margin-top: 8px; }
+  .rc.best { background: var(--accent-soft); }
+  .rc.brk { color: var(--muted); font-style: italic; }
+  .rc .l1 { display: flex; flex-wrap: wrap; gap: 4px 8px; align-items: baseline; font-variant-numeric: tabular-nums; }
+  .rc .t { font-weight: 600; }
+  .rc .tx { margin: 4px 0; overflow-wrap: anywhere; }
+  .rc .tg { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+  .rc .sub { color: var(--muted); font-size: 13px; overflow-wrap: anywhere; }
+  .rc .ll { display: flex; flex-wrap: wrap; gap: 2px 16px; margin: 4px 0; font-variant-numeric: tabular-nums; }
+  .earlier { color: var(--muted); font-size: 13px; margin: 6px 0 0; }
+  @media (max-width: 640px) {
+    .tablewrap-sm { display: none; }
+    .cardlist { display: block; }
+    .panel { padding: 12px; }
+    .cards .card .v { white-space: normal; }
+    .top-row { flex-wrap: wrap; }
+    code { overflow-wrap: anywhere; }
+    h1 { font-size: 1.35rem; }
+  }
   @media (max-width: 860px) { .cards { grid-template-columns: 1fr 1fr; } }
   @media (max-width: 420px) { .cards { grid-template-columns: 1fr; } }
 </style>
@@ -61,9 +81,10 @@
   <section class="panel">
     <div class="panel-head">
       <h2>2. Planned</h2>
-      <p class="hint">Times are estimates from the current training speed. No GPU work between 20:00 and 02:00 (break); a ticket that would run into the break waits until 02:00.</p>
+      <p class="hint">Times marked ~ are estimates, laid out in your browser from the running job and each job&rsquo;s expected minutes. A GPU job starts only if it also ends before the break starts; otherwise it waits until the break ends.</p>
     </div>
-    <div class="table-wrap free"><table class="sm-table" id="plan"></table></div>
+    <div class="table-wrap free tablewrap-sm"><table class="sm-table" id="plan"></table></div>
+    <div class="cardlist" id="plan-cards"></div>
   </section>
 
   <section class="panel">
@@ -72,7 +93,8 @@
       <p class="hint">Ideas and follow-ups with the reason they are there. Pointers from Expertium&rsquo;s research are marked; we keep our own training setup.</p>
     </div>
     <div class="filters" id="filters" role="group" aria-label="Filter by status"></div>
-    <div class="table-wrap free"><table class="sm-table" id="backlog"></table></div>
+    <div class="table-wrap free tablewrap-sm"><table class="sm-table" id="backlog"></table></div>
+    <div class="cardlist" id="backlog-cards"></div>
   </section>
 
   <section class="panel">
@@ -81,7 +103,8 @@
       <p class="hint">Newest first, GPU and CPU work together. Each row gives the absolute LogLoss (curve / instant), the gap to the fork on the same reviews, and the evaluation size. &ldquo;Decay&rdquo; = the final pass with the learning rate brought to zero; &ldquo;window&rdquo; = consecutive reviews of one user per training sample.</p>
     </div>
     <div class="filters" id="kinds" role="group" aria-label="Filter by kind"></div>
-    <div class="table-wrap free"><table class="sm-table" id="results"></table></div>
+    <div class="table-wrap free tablewrap-sm"><table class="sm-table" id="results"></table></div>
+    <div class="cardlist" id="results-cards"></div>
   </section>
 
   <p class="muted" id="updated"></p>
@@ -113,6 +136,102 @@
   const ll = (v, p) => (none(v) && none(p)) ? '&ndash;'
     : `${none(v) ? '' : v.toFixed(v < 0.4 ? 5 : 4)}${none(p) ? '' : ` <span class="pct${p <= 1.0 ? ' good' : ''}">${p > 0 ? '+' : ''}${p.toFixed(2)}%</span>`}`;
 
+
+  // ---- live timetable: laid out here, at page load, from the generated states and the current time
+  const pad = (n) => String(n).padStart(2, '0');
+  const hm = (d) => `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  const sameDay = (a, b) => a.toDateString() === b.toDateString();
+  const dayWord = (d, ref) => {
+    if (sameDay(d, ref)) return '';
+    const next = new Date(ref); next.setDate(next.getDate() + 1);
+    return sameDay(d, next) ? 'tomorrow ' : `${d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })} `;
+  };
+  const at = (d, ref, est) => `${dayWord(d, ref)}${est ? '~' : ''}${hm(d)}`;
+  const STATE = {
+    running: () => '<span class="tag running">running</span>',
+    waiting: () => '<span class="tag next">queued</span>',
+    done: (r) => `<span class="tag done">${r.exit ? 'failed, exit ' + r.exit : 'done'}</span>`,
+    partial: () => '<span class="tag idea">partly done</span>',
+    planned: () => '<span class="tag idea">planned</span>',
+  };
+
+  // Break config {start:"20:00", end:"02:00", until:"2026-10-18T02:00", label}: no GPU job starts unless it also ends before
+  // the break starts; otherwise it starts when the break ends. Ignored once `until` has passed (drop the key to remove it).
+  function breakWindow(cfg, nowD) {
+    if (!cfg || !cfg.until) return null;
+    const end = new Date(cfg.until);
+    if (isNaN(end) || end <= nowD) return null;
+    const [sh, sm] = cfg.start.split(':').map(Number); const [eh, em] = cfg.end.split(':').map(Number);
+    const len = (((eh * 60 + em) - (sh * 60 + sm)) + 1440) % 1440 || 1440;
+    return { start: new Date(end.getTime() - len * 60000), end, label: cfg.label || 'Break: no GPU work', text: `${cfg.start} &ndash; ${cfg.end}` };
+  }
+
+  function layout(D, nowD) {
+    const brk = breakWindow(D.gpu_break, nowD);
+    const done = [], running = [], pending = [], fixed = [];
+    (D.plan || []).forEach((r) => {
+      if (r.state === 'done' && r.ended_at) done.push(Object.assign({}, r, { s: r.started_at ? new Date(r.started_at) : null, e: new Date(r.ended_at) }));
+      else if (r.state === 'running' && r.started_at) {
+        let e = r.ends_at ? new Date(r.ends_at) : null;
+        if (e && e < nowD) e = new Date(nowD.getTime() + 5 * 60000); // overrun: assume a few more minutes
+        running.push(Object.assign({}, r, { s: new Date(r.started_at), e }));
+      } else if (r.when && !r.minutes) fixed.push(r);
+      else pending.push(r);
+    });
+    done.sort((a, b) => a.e - b.e);
+    let cursor = new Date(Math.max(nowD.getTime(), ...running.map((r) => (r.e ? r.e.getTime() : 0))));
+    const laid = []; let breakAt = -1;
+    pending.forEach((r) => {
+      const m = r.minutes || 0;
+      let s = new Date(cursor);
+      if (brk && s < brk.end && (s >= brk.start || s.getTime() + m * 60000 > brk.start.getTime())) {
+        s = new Date(brk.end);
+        if (breakAt < 0) breakAt = laid.length;
+      }
+      const e = new Date(s.getTime() + m * 60000);
+      laid.push(Object.assign({}, r, { s, e }));
+      cursor = e;
+    });
+    return { done, running, laid, fixed, brk, breakAt };
+  }
+
+  function whenText(r, nowD) {
+    if (r.state === 'done') return `${r.s ? at(r.s, nowD, false) + ' &ndash; ' : 'ended '}${hm(r.e)}`;
+    if (r.state === 'running') return `since ${at(r.s, nowD, false)}${r.e ? `, ends ${at(r.e, nowD, true)}` : ''}`;
+    if (r.when && !r.minutes) return r.when;
+    return `${at(r.s, nowD, true)} &ndash; ${sameDay(r.s, r.e) ? '' : dayWord(r.e, nowD)}~${hm(r.e)}`;
+  }
+
+  function drawPlan(D) {
+    const nowD = new Date();
+    const L = layout(D, nowD);
+    const older = L.done.filter((r) => nowD - r.e > 6 * 3600000);
+    const items = [];
+    if (older.length) items.push({ earlier: older });
+    L.done.filter((r) => nowD - r.e <= 6 * 3600000).concat(L.running).forEach((r) => items.push({ r }));
+    L.laid.forEach((r, i) => { if (i === L.breakAt) items.push({ brk: L.brk }); items.push({ r }); });
+    L.fixed.forEach((r) => items.push({ r }));
+    const trs = [], cs = [];
+    items.forEach((it) => {
+      if (it.earlier) {
+        const names = it.earlier.map((r) => r.what).join('; ');
+        trs.push(`<tr class="brk"><td colspan="5">Done earlier (${it.earlier.length}): ${names}</td></tr>`);
+        cs.push(`<p class="earlier">Done earlier (${it.earlier.length}): ${names}</p>`);
+      } else if (it.brk) {
+        const b = it.brk;
+        trs.push(`<tr class="brk"><td class="when">${b.text}</td><td></td><td>${tag('break')}</td><td>${b.label}</td><td></td></tr>`);
+        cs.push(`<div class="rc brk"><div class="l1"><span class="t">${b.text}</span>${tag('break')}</div><div class="tx">${b.label}</div></div>`);
+      } else {
+        const r = it.r, when = whenText(r, nowD), st = (STATE[r.state] || (() => ''))(r);
+        trs.push(`<tr><td class="when">${when}</td><td>${st}</td><td>${tag(r.kind)}</td><td>${name(r.what, r.id, r.track)}</td><td>${r.decides || ''}</td></tr>`);
+        cs.push(`<div class="rc"><div class="l1"><span class="t">${when}</span>${st}</div><div class="tx">${name(r.what, r.id, '')}</div>`
+          + (r.decides ? `<div class="sub">${r.decides}</div>` : '') + `<div class="tg">${tag(r.kind)}${trk(r.track)}</div></div>`);
+      }
+    });
+    T('plan', ['When', 'Status', 'Kind', 'What', 'Decides'], trs);
+    $('plan-cards').innerHTML = cs.join('');
+  }
+
   function render(D) {
     $('headline').innerHTML = (D.headline || []).map((h) => `<div class="card${h.big ? ' big' : ''}"><div class="k">${h.k}${trk(h.track)}</div><div class="v">${h.v}</div><div class="s">${h.s}</div></div>`).join('');
 
@@ -130,24 +249,30 @@
     if ((D.recent || []).length) extra += `<p class="muted">Finished recently: ${D.recent.map((w) => `${w.what} <span class="id">(${w.date} ${w.ended}, ${w.exit === 0 ? 'ok' : 'exit ' + w.exit}${w.ran ? ', ' + w.ran : ''})</span>`).join('; ')}</p>`;
     $('now').innerHTML = cards.join('') + extra;
 
-    const STATE = {
-      running: (r) => `<span class="tag running">running since ${r.started}</span>`,
-      waiting: () => '<span class="tag next">queued</span>',
-      done: (r) => `<span class="tag done">${r.exit ? 'failed, exit ' + r.exit : 'done'} ${r.ended}</span>`,
-      partial: (r) => `<span class="tag idea">partly done ${r.ended}</span>`,
-    };
-    T('plan', ['When', 'Status', 'Kind', 'What', 'Decides'], (D.plan || []).map((r) =>
-      `<tr${r.kind === 'break' ? ' class="brk"' : ''}><td class="when">${r.when}</td><td>${(STATE[r.state] || (() => ''))(r)}</td><td>${tag(r.kind)}</td><td>${name(r.what, r.id, r.track)}</td><td>${r.decides || ''}</td></tr>`));
+    drawPlan(D);
 
     const back = D.backlog || [];
     const drawBack = (k) => T('backlog', ['Status', 'Item', 'Why / next step'], back.filter((x) => k === 'all' || x.status === k).map((r) =>
       `<tr><td><span class="tag ${r.status}">${r.status}</span></td><td>${name(r.item, r.id, r.track)}</td><td>${r.why}</td></tr>`));
-    chips('filters', ['next', 'idea', 'parked', 'done', 'dropped'], back, 'status', drawBack); drawBack('all');
+    const drawBackAll = (k) => {
+      drawBack(k);
+      $('backlog-cards').innerHTML = back.filter((x) => k === 'all' || x.status === k).map((r) =>
+        `<div class="rc"><div class="l1"><span class="tag ${r.status}">${r.status}</span></div><div class="tx">${name(r.item, r.id, r.track)}</div><div class="sub">${r.why}</div></div>`).join('');
+    };
+    chips('filters', ['next', 'idea', 'parked', 'done', 'dropped'], back, 'status', drawBackAll); drawBackAll('all');
 
     const res = D.results || [];
     const drawRes = (k) => T('results', ['Date', 'Kind', 'Result', 'Curve LogLoss', 'Instant LogLoss', 'Evaluated on', 'Takeaway'], res.filter((x) => k === 'all' || x.kind === k).map((r) =>
       `<tr${r.flag === 'best' ? ' class="best"' : ''}><td class="when">${r.date}</td><td>${tag(r.kind)}</td><td>${name(r.name, r.id, r.track)}</td><td class="num">${ll(r.curve, r.curve_pct)}</td><td class="num">${ll(r.instant, r.instant_pct)}</td><td>${r.eval}${r.fork ? `<br><span class="id">${r.fork}</span>` : ''}</td><td>${r.takeaway === 'pending' ? '<span class="id">pending</span>' : r.takeaway}</td></tr>`));
-    chips('kinds', ['gpu-train', 'gpu-score', 'gpu-speed', 'cpu', 'collection'], res, 'kind', drawRes); drawRes('all');
+    const drawResAll = (k) => {
+      drawRes(k);
+      $('results-cards').innerHTML = res.filter((x) => k === 'all' || x.kind === k).map((r) =>
+        `<div class="rc${r.flag === 'best' ? ' best' : ''}"><div class="l1"><span class="t">${name(r.name, r.id, r.track)}</span></div>`
+        + `<div class="ll"><span>Curve ${ll(r.curve, r.curve_pct)}</span><span>Instant ${ll(r.instant, r.instant_pct)}</span></div>`
+        + `<div class="sub">${r.date} &middot; ${r.eval}${r.fork ? ` &middot; ${r.fork}` : ''}</div>`
+        + `<div class="tx">${r.takeaway === 'pending' ? '<span class="id">takeaway pending</span>' : r.takeaway}</div><div class="tg">${tag(r.kind)}</div></div>`).join('');
+    };
+    chips('kinds', ['gpu-train', 'gpu-score', 'gpu-speed', 'cpu', 'collection'], res, 'kind', drawResAll); drawResAll('all');
 
     $('updated').innerHTML = `Updated ${D.updated}. Sources: the R01 job queue, <code>artifacts/small-model/</code> on the <code>small-model</code> branch (<code>docs/SMALL_MODEL.md</code>) and <code>pages/data/factory-curated.json</code>. Own-collection figures are collection-level aggregates only.`;
   }

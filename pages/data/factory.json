@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-10-17T18:54:02+02:00",
- "updated": "2026-10-17 18:54",
- "material": "58cf02822950a5d7",
- "summary": "running 000426, finished 000425",
+ "generated_at": "2026-10-17T18:57:57+02:00",
+ "updated": "2026-10-17 18:57",
+ "material": "394967211a5b08dd",
+ "summary": "running 000426",
  "headline": [
   {
    "k": "Best, 464 users (curve / instant)",
@@ -32,14 +32,14 @@
  ],
  "now": [
   {
-   "what": "speed profile: w64 at 2,048/8,192/16,384/32,768 windows + fork128 b128/b64 (fork-reference)",
+   "what": "Speed profile on a quiet GPU: w64 at 2,048 / 8,192 / 16,384 / 32,768 windows + the fork-size model",
    "id": "000426-small-model",
-   "kind": "gpu-train",
-   "why": "",
+   "kind": "gpu-speed",
+   "why": "Where training time goes, and the cost of the label-free reference. Runs alone so the timings are clean.",
    "track": "small model",
    "ticket": "000426-small-model",
    "started": "18:52",
-   "elapsed": "0:01",
+   "elapsed": "0:05",
    "progress": null,
    "eta": "~19:42"
   }
@@ -97,7 +97,6 @@
  ],
  "plan": [
   {
-   "when": "16:26 &ndash; 16:31 (done)",
    "what": "Quick score of the new epoch on 100 users",
    "id": "Q12",
    "kind": "gpu-score",
@@ -106,10 +105,11 @@
    "state": "done",
    "ended": "16:31",
    "exit": 0,
-   "started": "16:26"
+   "started": "16:26",
+   "started_at": "2026-10-17T16:26:34+02:00",
+   "ended_at": "2026-10-17T16:31:21+02:00"
   },
   {
-   "when": "16:31 &ndash; 17:36 (done)",
    "what": "Final decay at 32k windows from the new epoch",
    "id": "Q12",
    "kind": "gpu-train",
@@ -118,10 +118,11 @@
    "state": "done",
    "ended": "17:36",
    "exit": 0,
-   "started": "16:31"
+   "started": "16:31",
+   "started_at": "2026-10-17T16:31:24+02:00",
+   "ended_at": "2026-10-17T17:36:46+02:00"
   },
   {
-   "when": "17:37 &ndash; 17:59 (done)",
    "what": "Score the decayed model on all 464 users",
    "id": "Q12",
    "kind": "gpu-score",
@@ -130,95 +131,112 @@
    "state": "done",
    "ended": "17:59",
    "exit": 0,
-   "started": "17:36"
+   "started": "17:36",
+   "started_at": "2026-10-17T17:36:46+02:00",
+   "ended_at": "2026-10-17T17:59:32+02:00"
   },
   {
-   "when": "~18:05",
    "what": "Score it on your own collection (CPU, ~11 min)",
    "id": "SM07",
    "kind": "collection",
    "decides": "",
-   "track": "small model"
+   "track": "small model",
+   "state": "done",
+   "when": "18:00 &ndash; ~18:11 (CPU)",
+   "ended_at": "2026-10-17T18:11:00+02:00",
+   "started_at": "2026-10-17T18:00:00+02:00"
   },
   {
-   "when": "~18:15 &ndash; 19:15",
    "what": "Per-review scores of fork + new model on 464 users, gap by review type and by inferred stage",
    "id": "SM24",
    "kind": "gpu-score",
    "decides": "Spaced-review slice next to the official bar",
    "track": "small model",
+   "minutes": 60,
    "state": "done",
    "ended": "18:33",
    "exit": 0,
-   "started": "18:00"
+   "started": "18:00",
+   "started_at": "2026-10-17T18:00:08+02:00",
+   "ended_at": "2026-10-17T18:33:50+02:00"
   },
   {
-   "when": "20:00 &ndash; 02:00",
-   "what": "Break: no GPU work",
-   "id": "",
-   "kind": "break",
-   "decides": "",
-   "track": "small model"
-  },
-  {
-   "when": "02:00 &ndash; 02:40",
-   "what": "Fork with first-review-rule labels on all 464 users (moved: would end after 20:00)",
+   "what": "Fork with first-review-rule labels on all 464 users",
    "id": "SM25",
    "kind": "gpu-score",
    "decides": "A label-free fork reference for free",
    "track": "small model",
+   "minutes": 40,
    "state": "done",
    "ended": "18:52",
    "exit": 0,
-   "started": "18:34"
+   "started": "18:34",
+   "started_at": "2026-10-17T18:34:12+02:00",
+   "ended_at": "2026-10-17T18:52:07+02:00"
   },
   {
-   "when": "02:40 &ndash; 03:30",
    "what": "Speed profile: w64 at 2,048 / 8,192 / 16,384 / 32,768 windows + fork-size model",
    "id": "",
    "kind": "gpu-speed",
    "decides": "Where training time goes; cost of the label-free reference",
    "track": "small model",
+   "minutes": 50,
    "state": "running",
    "started": "18:52",
-   "ticket": "000426-small-model"
+   "ticket": "000426-small-model",
+   "started_at": "2026-10-17T18:52:08+02:00",
+   "ends_at": "2026-10-17T19:42:08+02:00"
   },
   {
-   "when": "03:30 &ndash; 06:00",
    "what": "One-epoch final decay at 2,048 windows + 464-user scoring",
    "id": "SM35",
    "kind": "gpu-train",
    "decides": "Does a 1-epoch decay beat our quarter epoch (Expertium&rsquo;s big gain)?",
    "track": "small model",
+   "minutes": 150,
    "state": "planned"
   },
   {
-   "when": "06:00 &ndash; 08:10",
    "what": "Instant-weighted final decay at 32k (code merged first) + 464-user scoring",
    "id": "SM26",
    "kind": "gpu-train",
    "decides": "Does doubling the instant weight close the instant gap, at what curve cost?",
    "track": "small model",
+   "minutes": 125,
    "state": "planned"
   },
   {
-   "when": "~08:10 &ndash; 11:30",
    "what": "Review-number flags as inputs: 2 epochs at 2,048 windows + decay + 464-user scoring (starts when the night jobs end)",
    "id": "SM30",
    "kind": "gpu-train",
    "decides": "Do explicit 2nd / 3rd / 4th+ review inputs help, paired against the same run without them (0.30259 / 0.27668)?",
    "track": "small model",
+   "minutes": 200,
    "state": "planned"
   },
   {
-   "when": "tomorrow, day",
+   "what": "State compression trained in, final decay only, from the epoch-10 checkpoint (runbook not written, not launched yet)",
+   "id": "SM32b",
+   "kind": "gpu-train",
+   "decides": "Does the 60&times; smaller state cost less when trained in than when applied afterwards?",
+   "track": "small model",
+   "minutes": 120
+  },
+  {
    "what": "Review results; then Muon test and the label-free fork fine-tune",
    "id": "SM36, SM38",
    "kind": "next",
    "decides": "Order decided on the night&rsquo;s results",
-   "track": "small model"
+   "track": "small model",
+   "when": "tomorrow, day"
   }
  ],
+ "gpu_break": {
+  "start": "20:00",
+  "end": "02:00",
+  "until": "2026-10-18T02:00",
+  "label": "Break: no GPU work"
+ },
  "backlog": [
   {
    "status": "next",

@@ -207,7 +207,16 @@ def new_result_rows(curated, previous):
 
 # ----------------------------------------------------------------------------------------------- assembly
 
+def iso(moment):
+    return moment.isoformat(timespec="seconds")
+
+
 def plan_state(row, running, waiting, finished):
+    """State of a plan row from the queue, with actual times (ISO) for the browser to lay out the timetable.
+
+    done: started_at / ended_at (first start, last end). running: started_at and ends_at (row start + the row's
+    `minutes`, else the ticket's expected minutes). Nothing here changes every cycle except through a state change.
+    """
     matches = row.get("match") or []
     if isinstance(matches, str):
         matches = [matches]
@@ -216,21 +225,29 @@ def plan_state(row, running, waiting, finished):
     cutoff = now() - timedelta(days=HISTORY_DAYS)
     done = []
     for m in matches:
-        r = next((t for t in running if m in t["purpose"]), None)
-        if r:
-            return {"state": "running", "started": clock(r["started"]), "ticket": r["ticket"]}
         hit = [t for t in finished if m in t["purpose"] and t["finished"] >= cutoff]
         done.append(hit[-1] if hit else None)
+    got = [d for d in done if d]
+    first = min([(d["started"] or d["finished"]) for d in got], default=None)
+    for m in matches:
+        r = next((t for t in running if m in t["purpose"]), None)
+        if r:
+            start = min(first, r["started"]) if first else r["started"]
+            minutes = row.get("minutes") or r.get("expected_minutes")
+            out = {"state": "running", "started": clock(r["started"]), "ticket": r["ticket"], "started_at": iso(start)}
+            if minutes:
+                out["ends_at"] = iso(start + timedelta(minutes=minutes))
+            return out
     w = next((t for m in matches for t in waiting if m in t["purpose"]), None)
     if w:
         return {"state": "waiting", "ticket": w["ticket"]}
-    got = [d for d in done if d]
     if got and len(got) == len(matches):
         last = max(got, key=lambda d: d["finished"])
         return {"state": "done", "ended": clock(last["finished"]), "exit": max((d["exit"] or 0) for d in got),
-                "started": clock(min((d["started"] or d["finished"]) for d in got))}
+                "started": clock(first), "started_at": iso(first), "ended_at": iso(last["finished"])}
     if got:
-        return {"state": "partial", "ended": clock(max(d["finished"] for d in got))}
+        return {"state": "partial", "ended": clock(max(d["finished"] for d in got)),
+                "ended_at": iso(max(d["finished"] for d in got))}
     return {"state": "planned"}
 
 
@@ -279,7 +296,7 @@ def build(previous):
     material_src = {
         "running": [(t["ticket"], "running") for t in running], "waiting": [(t["ticket"], "waiting") for t in waiting],
         "finished": [(t["ticket"], t["exit"]) for t in finished[-RECENT:]],
-        "plan": [(p.get("what"), p.get("state"), p.get("exit")) for p in plan],
+        "plan": [(p.get("what"), p.get("state"), p.get("exit"), p.get("started_at"), p.get("ended_at")) for p in plan],
         "labels": [r["label"] for r in results if r.get("label")],
         "curated": hashlib.sha256(CURATED.read_bytes()).hexdigest(),
     }
@@ -296,7 +313,7 @@ def build(previous):
         "generated_at": stamp.isoformat(timespec="seconds"), "updated": stamp.strftime("%Y-%m-%d %H:%M"),
         "material": material, "summary": ", ".join(parts),
         "headline": curated.get("headline", []), "now": now_rows, "waiting": waiting_rows, "recent": recent,
-        "plan": plan, "backlog": curated["backlog"], "results": results,
+        "plan": plan, "gpu_break": curated.get("gpu_break"), "backlog": curated["backlog"], "results": results,
     }
 
 
