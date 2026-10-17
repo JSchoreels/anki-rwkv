@@ -205,8 +205,9 @@
    "kind": "cpu",
    "decides": "How much of the gap a free export-time calibration closes",
    "track": "small model",
-   "state": "running",
-   "started_at": "2026-10-17T23:58:00+02:00"
+   "state": "done",
+   "started_at": "2026-10-17T23:58:00+02:00",
+   "ended_at": "2026-10-18T00:02:00+02:00"
   },
   {
    "what": "Review results; then Muon test and the label-free fork fine-tune",
@@ -378,6 +379,13 @@
    "id": "SM28",
    "why": "No signal in the screen (training test is SM37)",
    "track": "small model"
+  },
+  {
+   "status": "dropped",
+   "item": "Calibration temperature folded into the export",
+   "id": "SM12",
+   "why": "Measured 10-18: closes nothing (+1.11% to +1.10% curve, instant unchanged)",
+   "track": "small model"
   }
  ],
  "known_labels": [
@@ -397,6 +405,21 @@
   "s-w64kd-gate-ctx2048c-dec8-1ep/w8+s8"
  ],
  "results": [
+  {
+   "date": "2026-10-18",
+   "kind": "cpu",
+   "name": "Calibration fitted offline on the dec10 student (temperature + bias, user-split cross-validation)",
+   "id": "SM12",
+   "curve": "0.30090 (was 0.30096)",
+   "instant": "0.27469 (was 0.27471)",
+   "curve_pct": "+1.10% (was +1.11%)",
+   "instant_pct": "+0.94% (unchanged)",
+   "eval": "464 users, 22.7M reviews",
+   "fork": "fork calibrated the same way: 0.29761 / 0.27214",
+   "takeaway": "Nothing to fold into the export: both models are equally (and barely) miscalibrated, gains are ~5e-5. Spaced slice unchanged: +0.79% / +0.84%.",
+   "track": "small model",
+   "label": "sm12-calib"
+  },
   {
    "date": "10-17",
    "kind": "gpu-train",
