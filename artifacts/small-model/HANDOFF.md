@@ -535,3 +535,20 @@ Undecayed e9 on the 100 gate users vs fork: curve +2.68%, instant +2.51% (e8 at 
 Read as constant-LR end-of-epoch noise (single-user updates at 7e-4), not a verdict: dec9 (16k decay, running from
 06:55) vs dec8-L16k is the paired test. If dec9 is also worse, epoch 9 at 16k hurt and the 32k decay from it (step 2)
 can be cancelled.
+
+## 2026-10-17 08:07 Q11 result: one more epoch at 16k + 16k decay (000416 decay 47 min, 000417 scoring 23 min, 464 users)
+
+| model (w8+s8 vs fork w8+s8) | curve | instant |
+|---|---|---|
+| ctx8192c dec8 | +1.24% | +1.21% |
+| dec8-L16k (8k e8, decay at 16k) | +1.17% | +1.16% |
+| dec8-L32k (8k e8, decay at 32k) | +1.15% | +1.12% |
+| ctx16384c e9 (undecayed) | +2.93% | +2.27% |
+| **ctx16384c dec9 (e9 at 16k, decay at 16k)** | **+1.03%** | **+1.04%** |
+
+Paired dec9 minus dec8-L16k (same decay length): curve -0.00042 (95% user bootstrap -0.00076..-0.00017, 300/464 users
+better), instant -0.00032 (-0.00036..-0.00027, 385/464 better). Training the base at 16k pays ~0.13 points per head on
+top of a 16k decay, where decay length alone gave ~0.06. Bar P (<= +1.0% both) is 0.03-0.04 points away. The undecayed
+e9 being worse was constant-LR noise, as read at 07:05. Step 2 (32k decay from e9, label
+s-w64kd-gate-ctx16384c-dec9-L32k) runs as 000418 since 08:06 (~90 min + ~15 min scoring, log
+runbook-2026-10-17-longdecay32k.log). If it does not cross the bar: a second epoch at 16k (e10) or e10 at 32k.
