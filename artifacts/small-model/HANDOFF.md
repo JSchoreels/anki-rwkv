@@ -552,3 +552,19 @@ top of a 16k decay, where decay length alone gave ~0.06. Bar P (<= +1.0% both) i
 e9 being worse was constant-LR noise, as read at 07:05. Step 2 (32k decay from e9, label
 s-w64kd-gate-ctx16384c-dec9-L32k) runs as 000418 since 08:06 (~90 min + ~15 min scoring, log
 runbook-2026-10-17-longdecay32k.log). If it does not cross the bar: a second epoch at 16k (e10) or e10 at 32k.
+
+## 2026-10-17 09:30 Q11 step 2 result + Q12 launched (epoch 10 at 32k), SM24 after it
+- 000418/000419: 32768 x 1 decay from e9 (64 min) + scoring: **s-w64kd-gate-ctx16384c-dec9-L32k +1.01% curve / +1.01%
+  instant** vs fork w8+s8 (464 users). Paired vs dec9: curve -0.00007 (95% -0.00017..+0.00003, 254/464 better),
+  instant -0.00009 (-0.00011..-0.00007, 293/464). Bar P missed by ~0.01 points on both heads.
+- Q12 (`runbook-2026-10-17b-chain.sh`, log runbook-2026-10-17b-chain.log; cont log runbook-2026-10-17b-cont32k.log; dry
+  run runbook-2026-10-17b-cont32k-dryrun.log OK): runbook-2026-10-16b.sh cont TIER=gate FROM=9 TO=10 CHUNK=32768
+  BATCH_CHUNKS=1 RUN_TAG=ctx16384-cont SRC_LBL=s-w64kd-gate-ctx16384c -> experiment scale-w64kd-gate-cached-ctx32768-cont,
+  labels s-w64kd-gate-ctx32768c-e10 / -dec10 (decay at 32768 x 1). Ticket 000420 since 09:26, ~21k reviews/s at start
+  (cold KD cache) -> epoch ~6 h, end ~15:30; decay + scoring -> results ~17:00. Paired comparison: dec10 vs dec9-L32k.
+- SM24 (chain b's own SM24 step failed at once: relative script path refused by the queue): runbook-2026-10-17c-sm24.sh
+  (log runbook-2026-10-17c-sm24.log) waits for "cont exit" in the chain-b log, then dumps fork + dec9-L32k per review on
+  464 users to $SM/sm24-dump (scores in $SM/sm24-scores.jsonl, heldout.jsonl untouched) and writes
+  feature-screen/sm24-bytype.txt/json (aggregate). ~45-60 min GPU.
+- Cancel: `python scripts/r01_queue.py cancel <ticket>` from the main repo, then kill the bash chains
+  (ps -ef | grep "runbook-2026-10-17[bc]").
