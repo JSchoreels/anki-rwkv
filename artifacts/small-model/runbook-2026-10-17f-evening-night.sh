@@ -101,8 +101,17 @@ if [ -d "$D1" ]; then
   else log "SM35: no decayed checkpoint, skipping scoring"; fi
 fi
 
-# SM26: instant-weighted 0.25-epoch decay at 32k from e10 (pairs with dec10); needs branch sm26 merged
-if git -C $WT merge-base --is-ancestor 6c68cf6 HEAD 2>/dev/null; then
+# SM26: instant-weighted 0.25-epoch decay at 32k from e10 (pairs with dec10). Its code (branch sm26, commit 6c68cf6:
+# code + check only, no docs) is cherry-picked here, between tickets (nothing runs from this worktree at this point).
+if ! grep -q instant_loss_weight $WT/scripts/expertium_options.py; then
+  if git -C $WT -c user.name="Jonathan Schoreels" -c user.email="jonathan.schoreels@gmail.com" cherry-pick -x 6c68cf6 >/dev/null 2>&1; then
+    git -C $WT push -q && log "SM26 code cherry-picked into small-model and pushed: $(git -C $WT log --oneline -1)"
+    "$PY" -X utf8 $WT/scripts/check_instant_loss_weight.py > $SM/check-instant-loss-weight-night.txt 2>&1       && log "SM26 check passed" || log "SM26 check FAILED, skipping SM26"
+  else
+    git -C $WT cherry-pick --abort 2>/dev/null; log "SM26 cherry-pick failed (aborted), skipping SM26"
+  fi
+fi
+if grep -q instant_loss_weight $WT/scripts/expertium_options.py && grep -q "ALL OK" $SM/check-instant-loss-weight-night.txt 2>/dev/null; then
   D2=$SM/scale-w64kd-gate-cached-ctx32768-cont-decay-ilw2; L2=s-w64kd-gate-ctx32768c-dec10-ilw2
   [ -d "$D2" ] || "$PY" -X utf8 $DEC_PY prepare --source-run $EXPS/scale-w64kd-gate-cached-ctx32768-cont/run --epoch 10 \
     --out $D2 --fraction 0.25 --shape one_minus_sin --evaluate none --seed 1 --extra-options '{"instant_loss_weight": 2.0}' \
@@ -119,6 +128,6 @@ if git -C $WT merge-base --is-ancestor 6c68cf6 HEAD 2>/dev/null; then
     fi
   fi
 else
-  log "SM26 skipped: branch sm26 (6c68cf6) is not merged into small-model"
+  log "SM26 skipped: code not in small-model or its check did not print ALL OK"
 fi
 log "done"
