@@ -122,6 +122,8 @@ class VariantSrsRWKV(SrsRWKV):
         self.concurrent_split_limit = 0
         self.concurrent_splits = False
         self.sync_free_loss = False
+        # SM26: opt-in multiplier on the instant (rating) loss term; None keeps IMMEDIATE_SCALE = 1.0 exactly.
+        self.instant_loss_weight = None
 
         self.gru_n = int(variant.gru_head)
         self.gru_on = self.gru_n > 0
@@ -484,7 +486,7 @@ class VariantSrsRWKV(SrsRWKV):
         ahead_raw_avg = (curve_raw_loss * ahead_mask).sum() / (1e-8 + ahead_mask.sum())
         AHEAD_RAW_SCALE = 0.5
         immediate_avg = (p_loss * immediate_mask).sum() / (1e-8 + immediate_mask.sum())
-        IMMEDIATE_SCALE = 1.0
+        IMMEDIATE_SCALE = 1.0 if self.instant_loss_weight is None else float(self.instant_loss_weight)
         w_avg = (w_loss * ahead_mask).sum() / (1e-8 + ahead_mask.sum())
         W_LOSS_SCALE = 1e-5
         ahead_logits_mag_loss = torch.sqrt(
@@ -511,7 +513,7 @@ class VariantSrsRWKV(SrsRWKV):
         )
         loss_tensor = (
             AHEAD_SCALE * curve_loss.detach()
-            + p_loss.detach()
+            + IMMEDIATE_SCALE * p_loss.detach()
             + AHEAD_RAW_SCALE * curve_raw_loss.detach()
             + W_LOSS_SCALE * w_loss.detach()
             + AHEAD_LOGITS_MAG_LOSS_SCALE * ahead_logits_mag_loss.detach()
