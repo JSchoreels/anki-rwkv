@@ -284,6 +284,7 @@ def main():
                         if state_bits not in codecs:
                             path = ROOT / args.vq_codebooks
                             books = state_vq.Codebooks.load(path) if path.exists() else state_vq.Codebooks()
+                            codecs["sha256"] = state_vq.file_sha256(path) if path.exists() else None
                             codecs[state_bits] = {s: state_vq.StateCodec(rec, books)
                                                   for s, rec in zip(layouts[tag], state_vq.recipe(state_bits))}
                             print(f"[small-model] {state_bits}: {state_vq.describe(state_bits, layouts[tag])}",
@@ -309,7 +310,8 @@ def main():
                 rows.append({"user_id": user, "label": label, "tag": tag, "variant": variant, "kind": kind,
                              "arch": specs[tag][1], "checkpoint": specs[tag][2], "parameters": params,
                              "weight_bytes": nbytes, "state_bits": state_bits or 32, "reviews": counts[str(user)],
-                             **({"state_vq": vq_info, "vq_codebooks": args.vq_codebooks} if vq_info else {}),
+                             **({"state_vq": vq_info, "vq_codebooks": args.vq_codebooks,
+                                 "vq_codebooks_sha256": codecs.get("sha256")} if vq_info else {}),
                              "prepare_seconds": round(prep_seconds, 2),
                              "model_seconds": round(time.perf_counter() - t0, 3), **values,
                              "benchmark": metrics(user, labels, predictions)})

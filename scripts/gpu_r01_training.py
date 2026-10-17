@@ -418,6 +418,13 @@ def run_case(args):
             if not hasattr(base, "concurrent_splits"):
                 raise ValueError("F49 requires Expertium")
             base.concurrent_splits = True
+        if options.get("state_vq") is not None:
+            # SM32b: card/note state through the SM32 VQ codec at every stored step (fake-quant, STE, frozen
+            # codebooks); absent = no mixer is touched.
+            if options.get("fused_shift") or not hasattr(base, "rwkv_modules"):
+                raise ValueError("state_vq needs the Expertium model without fused_shift")
+            from scripts.state_vq import install_training
+            report["state_vq"] = install_training(base, options["state_vq"], device)
         optimizer = catch_up.optimizer(master) if catch_up else get_optimizer(Namespace(PEAK_LR=7e-4), master)
         if catch_up:
             catch_up.load_teacher(device, dtype)

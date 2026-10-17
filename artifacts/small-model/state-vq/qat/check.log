@@ -1,0 +1,195 @@
+{"c_grad_check": {"wkv_card": {"forward_bitwise": true, "max_rel_grad_diff": 3.7323281847913666e-16, "ok": true}, "wkv_note": {"forward_bitwise": true, "max_rel_grad_diff": 2.3701528355083196e-16, "ok": true}, "shift": {"grad_identity": true, "own_input_unchanged": true, "stored_coded": true, "stored_changed": true, "ok": true}}, "a_kd_cache": {"digest_plain": "458c9a61e4c9", "digest_state_vq": "458c9a61e4c9", "dec10_cache": "C:\\Users\\jonat\\workspace\\anki-rwkv\\artifacts\\cache\\kd-teacher\\fork-bf16-s2025\\batches-458c9a61e4c9", "prefetch_allowlist_has_state_vq": true, "ok": true}}
+[check] train jit head: 34s
+[check] train jit tree: 35s
+[check] train eager head: 29s
+[check] train eager tree: 29s
+[check] train jit qat: 37s
+[check] forward scorer: 25s
+[check] forward training: 31s
+{
+ "recipe": "vq378x412",
+ "codebooks_sha256": "eab6db585da4f2944b0abf26788a93da49bb81a8b8a44ba2f62819e11a73aee0",
+ "started": "2026-10-17 19:14:50",
+ "head": "4e07e6b7479c4188b5be47814969d0e3c91c6103",
+ "dirty": true,
+ "c_grad_check": {
+  "wkv_card": {
+   "forward_bitwise": true,
+   "max_rel_grad_diff": 3.7323281847913666e-16,
+   "ok": true
+  },
+  "wkv_note": {
+   "forward_bitwise": true,
+   "max_rel_grad_diff": 2.3701528355083196e-16,
+   "ok": true
+  },
+  "shift": {
+   "grad_identity": true,
+   "own_input_unchanged": true,
+   "stored_coded": true,
+   "stored_changed": true,
+   "ok": true
+  }
+ },
+ "a_kd_cache": {
+  "digest_plain": "458c9a61e4c9",
+  "digest_state_vq": "458c9a61e4c9",
+  "dec10_cache": "C:\\Users\\jonat\\workspace\\anki-rwkv\\artifacts\\cache\\kd-teacher\\fork-bf16-s2025\\batches-458c9a61e4c9",
+  "prefetch_allowlist_has_state_vq": true,
+  "ok": true
+ },
+ "a_option_off_bitwise": {
+  "jit": {
+   "steps": 3,
+   "steps_bitwise_equal": 3,
+   "weights_equal": true,
+   "losses": [
+    0.7949205636978149,
+    0.6020579934120178,
+    0.8297457695007324
+   ],
+   "seconds_per_step": [
+    7.13,
+    10.66,
+    10.87
+   ],
+   "ok": true
+  },
+  "eager": {
+   "steps": 3,
+   "steps_bitwise_equal": 3,
+   "weights_equal": true,
+   "losses": [
+    0.7949205636978149,
+    0.6020579934120178,
+    0.8297457695007324
+   ],
+   "seconds_per_step": [
+    5.9,
+    8.87,
+    8.88
+   ],
+   "ok": true
+  }
+ },
+ "c_qat_updates": {
+  "losses_off": [
+   0.7949205636978149,
+   0.6020579934120178,
+   0.8297457695007324
+  ],
+  "losses_qat": [
+   0.797584593296051,
+   0.617737889289856,
+   0.8540385365486145
+  ],
+  "seconds_per_step_off": [
+   7.13,
+   10.66,
+   10.87
+  ],
+  "seconds_per_step_qat": [
+   7.88,
+   11.45,
+   11.69
+  ],
+  "card_note_grads_finite": true,
+  "card_note_grad_abs_sum": [
+   6.243278503417969,
+   9.904544830322266,
+   9.450472831726074
+  ],
+  "grad_differs_from_off": true,
+  "weights_differ_from_off": true,
+  "install": {
+   "recipe": "vq378x412",
+   "codebooks": "C:\\Users\\jonat\\workspace\\wt\\state-vq\\artifacts\\small-model\\state-vq\\codebooks.npz",
+   "sha256": "eab6db585da4f2944b0abf26788a93da49bb81a8b8a44ba2f62819e11a73aee0",
+   "factor_dtype": "float64",
+   "streams": {
+    "card": {
+     "bits": 378,
+     "wkv_layers": 2,
+     "heads": 4,
+     "shift_vectors": 3,
+     "rank": 1,
+     "stages": [
+      3
+     ],
+     "index_bits": 10,
+     "norm_bits": 6,
+     "shift": "m2b12x1",
+     "shift_norm_bits": 6
+    },
+    "note": {
+     "bits": 412,
+     "wkv_layers": 1,
+     "heads": 4,
+     "shift_vectors": 2,
+     "rank": 1,
+     "stages": [
+      7
+     ],
+     "index_bits": 10,
+     "norm_bits": 6,
+     "shift": "m2b12x2",
+     "shift_norm_bits": 6
+    }
+   },
+   "codebook_handling": "frozen (k-means, no gradient)",
+   "mixers": {
+    "0": 3,
+    "2": 2
+   }
+  },
+  "ok": true
+ },
+ "b_forward_vs_scorer": {
+  "4676": {
+   "predictions": 8514,
+   "max_abs_diff": 2.384185791015625e-07,
+   "mean_abs_diff": 1.0228140241583945e-08,
+   "share_above_1e-5": 0.0,
+   "max_abs_metric_diff": 5.960464477539063e-08,
+   "seconds": [
+    6.2,
+    8.1
+   ]
+  },
+  "1058": {
+   "predictions": 12168,
+   "max_abs_diff": 2.980232238769531e-07,
+   "mean_abs_diff": 1.400474025417832e-08,
+   "share_above_1e-5": 0.0,
+   "max_abs_metric_diff": 1.504811544816853e-08,
+   "seconds": [
+    8.2,
+    10.5
+   ]
+  },
+  "3922": {
+   "predictions": 7296,
+   "max_abs_diff": 2.980232238769531e-07,
+   "mean_abs_diff": 2.035429995310934e-08,
+   "share_above_1e-5": 0.0,
+   "max_abs_metric_diff": 0.0,
+   "seconds": [
+    7.8,
+    9.5
+   ]
+  },
+  "ok": true,
+  "users": {
+   "4676": 3716,
+   "1058": 5224,
+   "3922": 5773
+  },
+  "training_path_scripted": true
+ },
+ "ok": {
+  "a": true,
+  "b": true,
+  "c": true
+ }
+}
+ALL OK

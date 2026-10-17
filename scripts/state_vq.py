@@ -33,6 +33,7 @@ norm ranges fitted on the corpus (MSE-optimal uniform log2 grid), no warm-start 
 in his engine), exact nearest-centroid search by matmul distances.
 """
 from dataclasses import dataclass, field, replace
+from pathlib import Path
 import math
 
 import numpy as np
@@ -115,21 +116,24 @@ def recipe(name):
 # ------------------------------------------------------------------------------------------------ quantizers
 
 def nearest(x, centroids, cn2=None, chunk=4096):
-    """Index of the nearest centroid (squared L2) for every row of x [N, D]; centroids [M, D]."""
+    """Index of the nearest centroid (squared L2) for every row of x [N, D]; centroids [M, D]. Rows are independent;
+    `chunk` only bounds the [chunk, M] distance matrix (one chunk when N <= chunk, the GPU training path's setting)."""
     if cn2 is None:
         cn2 = (centroids * centroids).sum(-1)
-    out = torch.empty(x.shape[0], dtype=torch.long)
+    if x.shape[0] <= chunk:
+        return (cn2[None, :] - 2.0 * (x @ centroids.T)).argmin(-1)
+    out = torch.empty(x.shape[0], dtype=torch.long, device=x.device)
     for i in range(0, x.shape[0], chunk):
         xb = x[i:i + chunk]
         out[i:i + chunk] = (cn2[None, :] - 2.0 * (xb @ centroids.T)).argmin(-1)
     return out
 
 
-def rvq(x, books, norms2=None):
+def rvq(x, books, norms2=None, chunk=4096):
     """Residual VQ reconstruction of x [N, D] with stage codebooks books[s] [M, D]."""
     acc = torch.zeros_like(x)
     for s, cb in enumerate(books):
-        idx = nearest(x - acc, cb, None if norms2 is None else norms2[s])
+        idx = nearest(x - acc, cb, None if norms2 is None else norms2[s], chunk)
         acc = acc + cb[idx]
     return acc
 
@@ -228,15 +232,16 @@ class Codebooks:
 
 # ------------------------------------------------------------------------------------------------ state codecs
 
-def factorize(A, rank):
-    """Top-`rank` factors of A [N, K, K] (float64 inside): unit u, unit v, sigma, valid mask, each [N, rank, (K)].
+def factorize(A, rank, dtype=torch.float64):
+    """Top-`rank` factors of A [N, K, K] (`dtype` inside, float64 for the scorer): unit u, unit v, sigma, valid mask,
+    each [N, rank, (K)].
     Same construction as model.rs (Gram of the max-abs normalised matrix, v = A^T u / sigma), plus his sign canon."""
-    A64 = A.double()
+    A64 = A.to(dtype)
     amax = A64.abs().amax(dim=(1, 2))
     scale = torch.where(torch.isfinite(amax) & (amax > 1e-30), amax, torch.ones_like(amax))
     an = A64 / scale[:, None, None]
     evals, evecs = torch.linalg.eigh(an @ an.transpose(1, 2))       # ascending
-    order = torch.arange(K - 1, K - 1 - rank, -1)
+    order = torch.arange(K - 1, K - 1 - rank, -1, device=A.device)
     ev = evals[:, order]                                             # [N, r]
     u = evecs[:, :, order].transpose(1, 2)                           # [N, r, K]
     v_un = torch.einsum("nij,nri->nrj", A64, u)                      # (A^T u) per component
@@ -249,10 +254,14 @@ def factorize(A, rank):
 
 
 class StateCodec:
-    """Encode-decode of one stream's stored state (WKV matrices and shift vectors) for a StreamRecipe."""
+    """Encode-decode of one stream's stored state (WKV matrices and shift vectors) for a StreamRecipe.
+    wkv_chunk / shift_chunk: rows per nearest-centroid distance matrix (the CPU scorer keeps 4096; the GPU training
+    path uses one chunk per WKV step and 8192-row chunks for the shift vectors of a whole split)."""
 
-    def __init__(self, rec, books):
+    def __init__(self, rec, books, wkv_chunk=4096, shift_chunk=4096, factor_dtype=torch.float64):
         self.rec = rec
+        self.factor_dtype = factor_dtype
+        self.wkv_chunk, self.shift_chunk = wkv_chunk, shift_chunk
         self.wkv_books, self.wkv_n2, self.wkv_nq = [], [], []
         for j in range(rec.rank):
             stages = books.wkv[j][:rec.stages[j]] if rec.stages[j] else []
@@ -274,22 +283,32 @@ class StateCodec:
                 self.shift_nq[role] = (NormQuant(rec.shift_norm_bits, *books.shift_norm[(role, rec.shift_norm_bits)])
                                        if rec.shift_norm_bits is not None else NormQuant())
 
+    def to(self, device):
+        """Move the codebooks (and their squared norms) to `device`; returns self."""
+        move = lambda tensors: [t.to(device) for t in tensors]  # noqa: E731
+        self.wkv_books = [move(stages) for stages in self.wkv_books]
+        self.wkv_n2 = [move(stages) for stages in self.wkv_n2]
+        self.shift_books = {role: [move(st) for st in pos] for role, pos in self.shift_books.items()}
+        self.shift_n2 = {role: [move(st) for st in pos] for role, pos in self.shift_n2.items()}
+        return self
+
     def wkv(self, S):
         """S [N, H, K, K] -> reconstruction (float32)."""
         if self.rec.rank == 0:
             return S
         N, H = S.shape[:2]
         A = S.reshape(N * H, K, K)
-        u, v, sigma, valid = factorize(A, self.rec.rank)
-        out = torch.zeros(N * H, K, K, dtype=torch.float64)
+        fd = self.factor_dtype
+        u, v, sigma, valid = factorize(A, self.rec.rank, fd)
+        out = torch.zeros(N * H, K, K, dtype=fd, device=S.device)
         for j in range(self.rec.rank):
             uj, vj = u[:, j], v[:, j]
             if self.wkv_books[j]:
                 q = torch.cat([uj, vj], dim=-1).float()
-                rec = rvq(q, self.wkv_books[j], self.wkv_n2[j]).double()
+                rec = rvq(q, self.wkv_books[j], self.wkv_n2[j], self.wkv_chunk).to(fd)
                 uj, vj = rec[:, :K], rec[:, K:]
             n = torch.sqrt(torch.where(valid[:, j], sigma[:, j], torch.ones_like(sigma[:, j])))
-            nq = self.wkv_nq[j](n.float()).double() if self.rec.norm_bits is not None else n
+            nq = self.wkv_nq[j](n.float()).to(fd) if self.rec.norm_bits is not None else n
             term = (nq * nq)[:, None, None] * uj[:, :, None] * vj[:, None, :]
             out = out + torch.where(valid[:, j, None, None], term, torch.zeros_like(term))
         return out.float().reshape(N, H, K, K)
@@ -306,7 +325,7 @@ class StateCodec:
             m = self.rec.shift_m
             sub = x.shape[1] // m
             unit = torch.cat([rvq(unit[:, p * sub:(p + 1) * sub].contiguous(), self.shift_books[role][p],
-                                  self.shift_n2[role][p]) for p in range(m)], dim=-1)
+                                  self.shift_n2[role][p], self.shift_chunk) for p in range(m)], dim=-1)
         rec = unit * self.shift_nq[role](n1)[:, None]
         return torch.where(valid[:, None], rec, x)
 
@@ -453,3 +472,90 @@ def describe(name, layout, recs=None):
             "index_bits": rec.index_bits, "norm_bits": rec.norm_bits, "shift": f"m{rec.shift_m}b{rec.shift_bits}"
             f"x{rec.shift_stages}", "shift_norm_bits": rec.shift_norm_bits}
     return out
+
+
+# ------------------------------------------------------------------------------------------------ QAT (SM32b)
+
+DEFAULT_CODEBOOKS = Path(__file__).resolve().parents[1] / "artifacts" / "small-model" / "state-vq" / "codebooks.npz"
+STATE_STREAMS = (0, 2)  # card, note (rwkv_modules order card, deck, note, preset, user)
+
+
+def file_sha256(path):
+    import hashlib
+    return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+
+
+def training_spec(value):
+    """The `state_vq` training option: a recipe name ("vq378x412") or {"recipe": ..., "codebooks": <.npz>,
+    "sha256": <hex of the .npz, checked when given>, "factor_dtype": "float64" (default, = the CPU scorer) | "float32"
+    (faster GPU eigendecomposition; picks can differ from the scorer's on near-ties)}. Codebooks default to this
+    checkout's SM32 k-means file."""
+    spec = {"recipe": value} if isinstance(value, str) else dict(value)
+    unknown = set(spec) - {"recipe", "codebooks", "sha256", "factor_dtype"}
+    if unknown or "recipe" not in spec:
+        raise ValueError(f"state_vq option needs a recipe; unknown keys {sorted(unknown)}")
+    recs = recipe(spec["recipe"])
+    if any(rec.exact_parts() for rec in recs):
+        raise ValueError(f"state_vq recipe {spec['recipe']} has exact (unbudgeted) parts; QAT needs a finite budget")
+    path = Path(spec.get("codebooks") or DEFAULT_CODEBOOKS)
+    digest = file_sha256(path)
+    if spec.get("sha256") and spec["sha256"] != digest:
+        raise ValueError(f"state_vq codebooks {path} have sha256 {digest}, the option pins {spec['sha256']}")
+    if spec.get("factor_dtype", "float64") not in ("float64", "float32"):
+        raise ValueError(f"state_vq factor_dtype {spec['factor_dtype']!r}: float64 or float32")
+    return {"recipe": spec["recipe"], "codebooks": str(path), "sha256": digest,
+            "factor_dtype": spec.get("factor_dtype", "float64")}
+
+
+def training_layout(model):
+    """{stream: {"wkv_layers", "heads", "shift_vectors", "time": [mixers], "channel": [mixers]}} for the card/note
+    streams of an expertium model (scripted or eager); channel mixers without a shift (stripped) are left out."""
+    layout = {}
+    for name, module in model.named_modules():
+        parts = name.split(".")
+        if len(parts) != 5 or parts[0] != "rwkv_modules" or parts[2] != "blocks" or int(parts[1]) not in STATE_STREAMS:
+            continue
+        if not hasattr(module, "state_vq_slot"):
+            continue
+        stream, layer = int(parts[1]), int(parts[3])
+        info = layout.setdefault(stream, {"wkv_layers": 0, "heads": 0, "shift_vectors": [], "time": [], "channel": []})
+        if parts[4] == "time_mixer":
+            info["wkv_layers"] += 1
+            info["heads"] = int(module.H)
+            info["shift_vectors"].append((layer, "t"))
+            info["time"].append(module)
+        elif parts[4] == "channel_mixer":
+            info["shift_vectors"].append((layer, "c"))
+            info["channel"].append(module)
+    for info in layout.values():
+        info["shift_vectors"].sort(key=lambda item: (item[0], item[1] != "t"))
+    return {s: layout[s] for s in STATE_STREAMS}
+
+
+def install_training(model, value, device, wkv_chunk=1 << 20, shift_chunk=8192):
+    """Route the card/note mixers of `model` through the QAT hooks (expertium/model/state_vq_hooks.py) with the
+    recipe's codecs on `device`. Returns the description written into the training result."""
+    from expertium.model import state_vq_hooks as hooks
+    spec = training_spec(value)
+    books = Codebooks.load(spec["codebooks"])
+    layout = training_layout(model)
+    hooks.CODECS.clear()
+    for (stream, info), rec in zip(layout.items(), recipe(spec["recipe"])):
+        hooks.CODECS[stream] = StateCodec(rec, books, wkv_chunk, shift_chunk,
+                                          getattr(torch, spec["factor_dtype"])).to(device)
+        for module in info["time"] + info["channel"]:
+            if getattr(module, "fused_shift", False):
+                raise ValueError("state_vq cannot run with fused_shift (the fused gather+lerp has no shift hook)")
+            module.state_vq_slot = stream
+    plain = {s: {k: v for k, v in info.items() if k in ("wkv_layers", "heads", "shift_vectors")}
+             for s, info in layout.items()}
+    return {**spec, "streams": describe(spec["recipe"], plain), "codebook_handling": "frozen (k-means, no gradient)",
+            "mixers": {str(s): len(info["time"]) + len(info["channel"]) for s, info in layout.items()}}
+
+
+def uninstall_training(model):
+    from expertium.model import state_vq_hooks as hooks
+    for info in training_layout(model).values():
+        for module in info["time"] + info["channel"]:
+            module.state_vq_slot = -1
+    hooks.CODECS.clear()

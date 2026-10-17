@@ -65,8 +65,8 @@ def main():
     lines = [f"{len(users)} users; review-weighted benchmark LogLoss; Δ% vs `{args.reference}` [95% user-bootstrap CI]; "
              f"Δ vs `{args.student}` (absolute); state = card+note state of the largest user "
              f"({CARDS:,} cards, {NOTES:,} notes).", "",
-             "| Label | Card bits | Note bits | State (largest user) | Curve LogLoss | Δ% vs fork | Δ vs st w8+s8 | "
-             "Instant LogLoss | Δ% vs fork | Δ vs st w8+s8 |",
+             f"| Label | Card bits | Note bits | State (largest user) | Curve LogLoss | Δ% vs fork | Δ vs {args.student} | "
+             f"Instant LogLoss | Δ% vs fork | Δ vs {args.student} |",
              "|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|"]
     rows = []
     for label in [args.reference] + labels:
