@@ -6,6 +6,7 @@ Static site (no build step). Pages:
 - `models.html` (+ `models.js`): Alex (default) vs Expertium (his run 110 `s64hsm10`, rwkv-anki-autoresearch commit 1f2e6b0: d=64, 4 heads of 16, 3 learned power-law curves, no correction head; layer layout and the 333,178 parameter total are derived from this repository's w64 reconstruction plus 2 sibling-rating inputs, not his figures; this repository's older iter36 config is shown for reference) architecture: the 92 input features, the stream stacks, parameter waffles, per-layer split, recurrent state sizes and output heads. Counts are computed from configurations in `models.js` that mirror `rwkv/architecture.py`, `expertium/variants.py` (w64) and `expertium/architecture.py` (iter36); update them there if an architecture changes.
 - `campaign.html` (+ `app.js`): the R01 GPU training-speed campaign. Charts use Chart.js and chartjs-plugin-annotation, loaded from jsDelivr at pinned versions.
 - `train.html` (+ `train.js`): 8k/2k training-run progress.
+- `small-model.html` (self-contained): small-model experiments with their key results vs the fork, the review-type analyses, training speed by window length and the backlog with a status filter. Hand-curated from `docs/SMALL_MODEL.md` on the `small-model` branch; edit the arrays in its script when results land.
 
 The workflow also copies `docs/data-quality/` (review-relations results written by `scripts/publish_review_relations.py`) into the site at `/docs/data-quality/`, its original URL.
 

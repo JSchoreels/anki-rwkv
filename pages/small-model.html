@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Small Model Progress</title>
+<meta name="description" content="Every small-model experiment with its key result against the fork's 2.76M RWKV, and the backlog of what comes next.">
+<link rel="stylesheet" href="style.css">
+<style>
+  .sm-table th, .sm-table td { white-space: normal; vertical-align: top; }
+  .sm-table td.num { white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .sm-table td.when { white-space: nowrap; color: var(--muted); }
+  .sm-table .id { color: var(--muted); font-size: 12.5px; }
+  .sm-table tr.best td { background: var(--accent-soft); }
+  .table-wrap.free { max-height: none; }
+  .tag { display: inline-block; border-radius: 999px; padding: 1px 9px; font-size: 12.5px; border: 1px solid var(--line); white-space: nowrap; }
+  .tag.running { border-color: var(--c-extend); color: var(--c-extend); }
+  .tag.next { border-color: var(--accent); color: var(--accent); }
+  .tag.idea { border-color: var(--c-screen); color: var(--c-screen); }
+  .tag.parked { border-color: var(--c-stack_candidate); color: var(--c-stack_candidate); }
+  .tag.done { border-color: var(--c-accepted); color: var(--c-accepted); }
+  .tag.dropped { border-color: var(--c-rejected); color: var(--c-rejected); }
+  .good { color: var(--c-accepted); font-weight: 600; }
+  .bad { color: var(--c-rejected); }
+  .filters { display: flex; flex-wrap: wrap; gap: 6px 8px; margin: 8px 0 4px; }
+  .filters .chip[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); }
+  .notes { margin: 8px 0 0; padding-left: 18px; font-size: 14px; }
+  .notes li { margin: 4px 0; }
+  .cards .card .v { font-size: clamp(1.15rem, 2.4vw, 1.6rem); white-space: nowrap; }
+  @media (max-width: 860px) { .cards { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 420px) { .cards { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <div class="top-row">
+      <div>
+        <p class="eyebrow"><a href="./">anki-rwkv</a> &middot; <a href="models.html">model architectures</a> &middot; <a href="campaign.html">R01 campaign</a> &middot; <a href="train.html">8k/2k run</a> &middot; small model</p>
+        <h1>Small model: the fork&rsquo;s accuracy at <span class="accent">one eighth of the size</span></h1>
+        <p class="lede">A 331,511-parameter student (Expertium&rsquo;s d=64 shape, distilled from the fork&rsquo;s 2,762,884-parameter RWKV) trained on 5,000 dataset users and scored on 464 held-out users it never saw, full history, both models with int8 weights and int8 state. Gaps are LogLoss differences against the fork; positive means the student is worse.</p>
+      </div>
+      <button id="theme" class="btn" type="button" aria-label="Toggle light and dark theme">Theme</button>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="cards" aria-label="Headline">
+    <div class="card big"><div class="k">Best on 464 users (curve / instant)</div><div class="v">+1.01% / +1.01%</div><div class="s">target: &le; +1.0% on both</div></div>
+    <div class="card"><div class="k">Own collection (curve / instant)</div><div class="v">+0.18% / +0.21%</div><div class="s">173,690 reviews, non-SM-2 review types</div></div>
+    <div class="card"><div class="k">Size</div><div class="v">8.3&times; smaller</div><div class="s">331,511 vs 2,762,884 parameters</div></div>
+    <div class="card"><div class="k">Training speed now</div><div class="v">~15k</div><div class="s">reviews/s at 32k-review windows (101k at 2,048)</div></div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head">
+      <h2>Model experiments</h2>
+      <p class="hint">GPU training runs in the order they happened. Each row continues from the previous best unless it says otherwise. A &ldquo;decay&rdquo; is the final quarter-epoch with the learning rate brought down to zero; a &ldquo;window&rdquo; is the number of consecutive reviews of one user the model sees per training sample. 464 held-out users unless noted.</p>
+    </div>
+    <div class="table-wrap free"><table class="sm-table" id="exp"></table></div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head">
+      <h2>Analyses</h2>
+      <p class="hint">CPU studies and diagnostics: where the gap is, what review type does, and what did not help.</p>
+    </div>
+    <div class="table-wrap free"><table class="sm-table" id="ana"></table></div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head">
+      <h2>Training speed by window length</h2>
+      <p class="hint">Same 32,768 reviews per update in every row. The recurrence runs step by step through time, so fewer, longer windows leave the GPU mostly idle; longer windows are also what buys accuracy.</p>
+    </div>
+    <div class="table-wrap free"><table class="sm-table" id="speed"></table></div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head">
+      <h2>Backlog</h2>
+      <p class="hint">What is running, what comes next and the ideas behind it.</p>
+    </div>
+    <div class="filters" id="filters" role="group" aria-label="Filter by status"></div>
+    <div class="table-wrap free"><table class="sm-table" id="backlog"></table></div>
+  </section>
+
+  <p class="muted">Updated 2026-10-17 15:00. Source: <code>docs/SMALL_MODEL.md</code> and <code>artifacts/small-model/</code> on the <code>small-model</code> branch. Own-collection figures are collection-level aggregates only.</p>
+</main>
+
+<script src="common.js"></script>
+<script>
+(() => {
+  'use strict';
+  const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const gap = (v) => {
+    if (v === null || v === undefined) return '&ndash;';
+    if (typeof v === 'string') return esc(v);
+    const cls = v <= 1.0 ? 'good' : '';
+    return `<span class="${cls}">${v > 0 ? '+' : ''}${v.toFixed(2)}%</span>`;
+  };
+  const name = (n, id) => `${esc(n)}${id ? ` <span class="id">(${esc(id)})</span>` : ''}`;
+
+  const EXP = [
+    ['10-15', 'Earlier w32 model (192.8k params), full 10-epoch run + decay', 'A08', 'baseline before the small-model work, 128-review windows', 6.69, 7.30, 'Starting point; 430 users'],
+    ['10-15', 'w64 vs w64 + distillation from the fork, 3 seeds each', 'SM02', 'student shape and teacher, short screens', 9.79, 10.25, 'Distillation helps on both heads (w64 alone +11.7% / +12.1%)'],
+    ['10-15', 'Scale-up: w64 + distillation, 3 epochs on 5,000 users', 'SM03', '128-review windows', 5.28, 5.99, 'Beats w32, still far from the target'],
+    ['10-16', '2,048-review windows, 4 epochs + decay', 'SM10', 'windows 16x longer', 2.16, 2.16, 'Context length is the lever'],
+    ['10-16', '6 epochs + decay at 2,048', 'SM14', '+2 epochs', 1.76, 1.83, 'Still improving'],
+    ['10-16', 'Decay at 4,096 from epoch 6', 'Q6', 'longer windows in the decay only', 1.68, 1.69, 'Real but tiny gain'],
+    ['10-16', 'Epochs 7&ndash;8 at 2,048 + decay', 'Q7', '+2 epochs at the same window', 1.66, 1.66, 'Flattening at 2,048'],
+    ['10-16', 'Epochs 7&ndash;8 at 8,192 + decay', 'Q8', 'train at 4x longer windows', 1.24, 1.21, 'Training at longer windows pays far more than more epochs'],
+    ['10-16', 'Same, decay at 16k / at 32k windows', 'Q9 / Q10', 'decay only at longer windows', '+1.17% / +1.15%', '+1.16% / +1.12%', 'Diminishing returns from decay length alone'],
+    ['10-17', 'Epoch 9 at 16k windows + decay at 16k', 'Q11', 'train one more epoch at 16k', 1.03, 1.04, 'Training at 16k beats decay-only (300/464 users better on curve)'],
+    ['10-17', 'Same, decayed at 32k', 'Q11', 'decay at 32k', 1.01, 1.01, 'Best so far, 0.01 point from the target', 'best'],
+    ['10-17', 'Epoch 10 at 32k windows + decay', 'Q12', 'train one more epoch at 32k', 'running', 'running', 'Result tonight, about 18:45'],
+  ];
+
+  const ANA = [
+    ['10-16', 'In-window check at 2,048', 'SM13', 'Student vs fork when both only see 2,048-review windows: &minus;0.34% / +0.48%. With full history +1.98% / +2.40%, so the gap was context, not capacity.'],
+    ['10-16', 'CPU inference speed', 'SM04, SM18', 'At batch 1 the w64 NumPy step is 7.8x faster than the eager fork and 1.84x faster than a NumPy fork (exact to 4e-7).'],
+    ['10-16', 'Per-user view', '', 'Curve gap is concentrated on heavy users and longer windows close mostly that part. Instant gap is a uniform ~+1.1% on light, medium and heavy users.'],
+    ['10-16', 'Shared history (imported decks)', '', '75 of 464 test users share some history with training users; on the 389 clean users the gap is the same. Not the explanation.'],
+    ['10-17', 'Feature screen: 19 candidate inputs + deck / preset / collection counts', 'SM24&ndash;28 plan', 'No candidate adds information to either model (all within &plusmn;0.15%). One apparent +1.1% gain was a leak of future reviews; measured correctly it is &minus;0.3%.'],
+    ['10-17', 'Gap by review type (68 users)', 'SM24 preview', 'Curve: level on normal spaced reviews (&minus;0.03%), +1.0 to +1.2% on learning and relearning steps. Instant: behind on every kind of review (+0.7 to +1.3%).'],
+    ['10-17', 'Fork with rewritten review types (68 users)', 'SM25', 'Labelled as a scheduler without learning steps, the fork loses +0.43% / +0.55% and its learning-step lead over the student disappears. With the input removed it loses +8.4% / +3.3%, mostly because it no longer knows a card&rsquo;s first review.'],
+    ['10-17', 'Review-number statistics per user, preset and deck', '', 'The user&rsquo;s pass rate at the 2nd, 3rd&hellip; review of a card: no gain. The student already works it out from history.'],
+    ['10-17', 'Small correction model on top of the student', '', 'Fitted on other users, it makes unseen users worse (curve +0.5 to +1.06%). The remaining learning-step information is only in the SM-2 label.'],
+    ['10-17', 'Own collection (review types from the fork, not SM-2)', 'SM07', 'Best student +0.18% / +0.21%. Fork with first-review rule &minus;0.06% / +0.04%; fork with review type removed +2.74% / +1.03%. Student calibration a bit worse on curve (RMSE(bins) 0.0274 vs 0.0224).'],
+    ['10-17', 'Fork-size model in our trainer', '', 'The fork&rsquo;s architecture now builds in our trainer from its own weights, bit-for-bit equal predictions; a variant without review type is ready for a label-free reference.'],
+  ];
+
+  const SPEED = [
+    ['2,048 &times; 16', '~101,000', 'from the 2026-10-16 speed profile'],
+    ['8,192 &times; 4', '~32,500', 'epochs 7&ndash;8 at 8,192'],
+    ['16,384 &times; 2', '~23,000', 'epoch 9: 4 h 28 min'],
+    ['32,768 &times; 1', '~15,000', 'epoch 10, running: about 7 h'],
+  ];
+
+  const BACK = [
+    ['running', 'Epoch 10 at 32k windows, decay, 464-user scoring', 'Q12', 'Paired against the current best; decides whether the +1.0% target is met'],
+    ['running', 'Gap by review type and by inferred stage on all 464 users', 'SM24', 'Stages from intervals and ratings only: same-day, after a fail, spaced'],
+    ['running', 'Fork with first-review-rule labels on all 464 users', 'SM25', 'A label-free fork reference for free; about 20:30'],
+    ['next', 'Training-speed profile at 2,048 / 8,192 / 32k windows + fork-size cases', '', 'Where the time goes at long windows; also costs the label-free reference. Tomorrow morning, quiet GPU'],
+    ['next', 'Label-free reference: the fork fine-tuned with review type switched off', '', 'Honest best a big model can do without review type; from-scratch retrain only if needed'],
+    ['next', 'Final decay with double weight on the instant loss', 'SM26', 'Instant is the real remaining gap. Code ready on its own branch'],
+    ['next', 'Review-number flags as inputs (2nd / 3rd / 4th+ review)', 'SM30', 'Code being written; about 3 h GPU at 2,048 windows, paired'],
+    ['idea', 'Training with carried state between a user&rsquo;s windows', 'SM21', 'Full-history context at short-window speed (5&ndash;7x faster). Designed, CPU prototype exact'],
+    ['idea', 'Teacher targets from the fork&rsquo;s full-history replay', 'SM11', 'Needed with carried state; 5.2 h GPU, 3.7 GB'],
+    ['idea', 'Exact kernel work for the w64 width', 'W05', 'w64 still ~21% slower than the w32 fast kernels at short windows; bit-for-bit identical'],
+    ['idea', 'More parallel windows at long lengths (8,192 &times; 8)', 'SM23', 'Timing test first, then a learning-rate check'],
+    ['idea', 'Long-history summary inputs for short windows', 'SM27', 'Card prior reviews, FSRS state, user pass rate; modest prior'],
+    ['idea', 'Robustness to other apps: pass/fail-only ratings, no durations', 'SM29', 'Same test as the review-type one, CPU'],
+    ['idea', 'Calibration temperature folded into the export', 'SM12', 'Closes ~8% of the instant calibration gap offline'],
+    ['idea', 'Distill only on users the fork never trained on', 'SM05', 'Needs a per-user distillation mask'],
+    ['idea', 'Fork runtime port of the exported format', 'SM08', 'Specified; Rust vs NumPy within 1e-5'],
+    ['parked', 'Pruning: depth cut of the deck / preset / user streams (&minus;38% params)', 'SM15', 'Design written; deprioritised 10-17 in favour of accuracy and speed'],
+    ['parked', 'w80 student', 'SM06', 'Only if a capacity limit shows up'],
+    ['parked', 'Muon optimizer for w64', 'Q8 fallback', 'Not run; longer windows won'],
+    ['done', 'Teacher-target cache for distillation', 'SM09', 'In use since 10-15'],
+    ['done', 'Epoch scoring on 100 gate users, finals on 464', 'SM17', 'In use'],
+    ['done', 'Teacher cache shared across optimizers', 'SM20', 'Merged 10-16'],
+    ['dropped', 'Continue at 4,096 windows', 'SM19', 'Superseded by 8k/16k/32k training'],
+    ['dropped', 'Session / clock / deck depth / card age inputs', 'SM28', 'No signal in the screen'],
+  ];
+
+  const T = (id, head, rows) => {
+    document.getElementById(id).innerHTML = `<thead><tr>${head.map((h) => `<th>${h}</th>`).join('')}</tr></thead><tbody>${rows.join('')}</tbody>`;
+  };
+  T('exp', ['Date', 'Experiment', 'What changed', 'Curve', 'Instant', 'Takeaway'], EXP.map((r) =>
+    `<tr${r[7] === 'best' ? ' class="best"' : ''}><td class="when">${r[0]}</td><td>${name(r[1], r[2])}</td><td>${r[3]}</td><td class="num">${gap(r[4])}</td><td class="num">${gap(r[5])}</td><td>${r[6]}</td></tr>`));
+  T('ana', ['Date', 'Study', 'Key result'], ANA.map((r) => `<tr><td class="when">${r[0]}</td><td>${name(r[1], r[2])}</td><td>${r[3]}</td></tr>`));
+  T('speed', ['Window &times; windows per update', 'Reviews/s', 'Measured on'], SPEED.map((r) => `<tr><td>${r[0]}</td><td class="num">${r[1]}</td><td>${r[2]}</td></tr>`));
+
+  const LABEL = { running: 'running', next: 'next', idea: 'idea', parked: 'parked', done: 'done', dropped: 'dropped' };
+  let filter = 'all';
+  const draw = () => T('backlog', ['Status', 'Item', 'Why / next step'], BACK.filter((r) => filter === 'all' || r[0] === filter).map((r) =>
+    `<tr><td><span class="tag ${r[0]}">${LABEL[r[0]]}</span></td><td>${name(r[1], r[2])}</td><td>${r[3]}</td></tr>`));
+  const f = document.getElementById('filters');
+  ['all', ...Object.keys(LABEL)].forEach((k) => {
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'chip'; b.textContent = k === 'all' ? `all (${BACK.length})` : `${k} (${BACK.filter((r) => r[0] === k).length})`;
+    b.setAttribute('aria-pressed', String(k === filter));
+    b.addEventListener('click', () => { filter = k; f.querySelectorAll('.chip').forEach((c) => c.setAttribute('aria-pressed', 'false')); b.setAttribute('aria-pressed', 'true'); draw(); });
+    f.appendChild(b);
+  });
+  draw();
+})();
+</script>
+</body>
+</html>
