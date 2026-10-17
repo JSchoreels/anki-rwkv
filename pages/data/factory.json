@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-10-17T21:14:18+02:00",
- "updated": "2026-10-17 21:14",
- "material": "8daf4d1f2dfeb3a7",
- "summary": "running 000428, finished 000427",
+ "generated_at": "2026-10-17T21:29:21+02:00",
+ "updated": "2026-10-17 21:29",
+ "material": "a1bb13d395a8417d",
+ "summary": "running 000430, 1 pending result, finished 000429",
  "headline": [
   {
    "k": "Best, 464 users (curve / instant)",
@@ -32,20 +32,36 @@
  ],
  "now": [
   {
-   "what": "SM35 scoring s-w64kd-gate-ctx2048c-dec8-1ep, 464 users (pass 1)",
-   "id": "000428-small-model",
+   "what": "SM30 scale-w64kd-gate-cached-ctx2048-cont-repflags epoch 7/8 (rep_flags, chunk 2048 x 16, smoke first)",
+   "id": "000430-small-model",
    "kind": "gpu-train",
    "why": "",
    "track": "small model",
-   "ticket": "000428-small-model",
-   "started": "21:11",
-   "elapsed": "0:03",
+   "ticket": "000430-small-model",
+   "started": "21:27",
+   "elapsed": "0:01",
    "progress": null,
-   "eta": "~21:36"
+   "eta": "~22:33"
   }
  ],
  "waiting": [],
  "recent": [
+  {
+   "ticket": "000429-small-model",
+   "what": "S09 state-VQ QAT micro-benchmark (kernel correctness + per-update timing, no training)",
+   "ended": "21:27",
+   "date": "10-17",
+   "exit": 0,
+   "ran": "0:00"
+  },
+  {
+   "ticket": "000428-small-model",
+   "what": "SM35 scoring s-w64kd-gate-ctx2048c-dec8-1ep, 464 users (pass 1)",
+   "ended": "21:26",
+   "date": "10-17",
+   "exit": 0,
+   "ran": "0:15"
+  },
   {
    "ticket": "000427-small-model",
    "what": "SM35 1-epoch decay at 2,048 from ctx2048c e8 (smoke first)",
@@ -77,22 +93,6 @@
    "date": "10-17",
    "exit": 0,
    "ran": "0:33"
-  },
-  {
-   "ticket": "000423-small-model",
-   "what": "cont scale-w64kd-gate-cached-ctx32768-cont: full-history scoring of e10 and dec10 (464 users)",
-   "ended": "17:59",
-   "date": "10-17",
-   "exit": 0,
-   "ran": "0:22"
-  },
-  {
-   "ticket": "000422-small-model",
-   "what": "cont scale-w64kd-gate-cached-ctx32768-cont: 0.25-epoch decay from e10 at chunk 32768 (smoke first)",
-   "ended": "17:36",
-   "date": "10-17",
-   "exit": 0,
-   "ran": "1:05"
   }
  ],
  "plan": [
@@ -209,11 +209,12 @@
    "decides": "The 464-user number for the one-epoch decay",
    "track": "small model",
    "minutes": 25,
-   "state": "running",
+   "state": "done",
+   "ended": "21:26",
+   "exit": 0,
    "started": "21:11",
-   "ticket": "000428-small-model",
    "started_at": "2026-10-17T21:11:07+02:00",
-   "ends_at": "2026-10-17T21:36:07+02:00"
+   "ended_at": "2026-10-17T21:26:46+02:00"
   },
   {
    "what": "Speed and correctness check of the faster training-time compression (no training)",
@@ -222,7 +223,12 @@
    "minutes": 10,
    "decides": "Whether the compression-in-training decay fits in ~2 h (CPU projection: 75&ndash;80 min vs 65 plain)",
    "track": "small model",
-   "state": "planned"
+   "state": "done",
+   "ended": "21:27",
+   "exit": 0,
+   "started": "21:26",
+   "started_at": "2026-10-17T21:26:54+02:00",
+   "ended_at": "2026-10-17T21:27:38+02:00"
   },
   {
    "what": "Instant-weighted final decay at 32k (code merged first) + 464-user scoring",
@@ -240,7 +246,11 @@
    "decides": "Do explicit 2nd / 3rd / 4th+ review inputs help, paired against the same run without them (0.30259 / 0.27668)?",
    "track": "small model",
    "minutes": 200,
-   "state": "planned"
+   "state": "running",
+   "started": "21:27",
+   "ticket": "000430-small-model",
+   "started_at": "2026-10-17T21:27:40+02:00",
+   "ends_at": "2026-10-18T00:47:40+02:00"
   },
   {
    "what": "Review results; then Muon test and the label-free fork fine-tune",
@@ -428,6 +438,23 @@
   }
  ],
  "results": [
+  {
+   "date": "10-17",
+   "kind": "gpu-score",
+   "name": "s-w64kd-gate-ctx2048c-dec8-1ep",
+   "id": "",
+   "label": "s-w64kd-gate-ctx2048c-dec8-1ep/w8+s8",
+   "auto": true,
+   "first_seen": "2026-10-17T21:29:21+02:00",
+   "curve": 0.30225,
+   "instant": 0.27649,
+   "curve_pct": 1.54,
+   "instant_pct": 1.59,
+   "eval": "464 users, 22.66M reviews",
+   "fork": "fork 0.29766 / 0.27216",
+   "takeaway": "pending",
+   "track": "small model"
+  },
   {
    "date": "10-17",
    "kind": "gpu-speed",
