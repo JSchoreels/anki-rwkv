@@ -179,6 +179,17 @@
    "minutes": 200
   },
   {
+   "what": "Final decay at 32k from epoch 10 with the state compression trained in (~400/400 bits), then CPU scoring on 34 users",
+   "id": "SM32b",
+   "kind": "gpu-train",
+   "minutes": 110,
+   "decides": "How much of the +0.0012 / +0.0023 compression cost training removes",
+   "track": "small model",
+   "match": [
+    "SM32b state-VQ QAT"
+   ]
+  },
+  {
    "what": "Review results; then Muon test and the label-free fork fine-tune",
    "id": "SM36, SM38",
    "kind": "next",
@@ -370,9 +381,35 @@
   "scale-w64kd-e1/w8+s8",
   "scale-w64kd-e2/w8+s8",
   "s-w64kd-gate-ctx32768c-e10/w8+s8",
-  "s-w64kd-gate-ctx32768c-dec10/w8+s8"
+  "s-w64kd-gate-ctx32768c-dec10/w8+s8",
+  "s-w64kd-gate-ctx2048c-dec8-1ep/w8+s8"
  ],
  "results": [
+  {
+   "date": "10-17",
+   "kind": "gpu-train",
+   "name": "One-epoch final decay at 2,048 windows (vs our quarter epoch)",
+   "id": "SM35",
+   "curve": 0.30225,
+   "instant": 0.27649,
+   "curve_pct": 1.54,
+   "instant_pct": 1.59,
+   "eval": "464 users, 22.66M reviews",
+   "fork": "fork 0.29766 / 0.27216; same start with a quarter-epoch decay 0.30259 / 0.27668",
+   "takeaway": "Longer decay helps: &minus;0.00033 curve [&minus;0.00068, &minus;0.00008] / &minus;0.00019 instant [&minus;0.00025, &minus;0.00012] (292 / 351 of 464 users better). Smaller than Expertium&rsquo;s gain; a 1-epoch decay at 32k would cost ~4&frac12; h",
+   "track": "small model",
+   "label": "s-w64kd-gate-ctx2048c-dec8-1ep/w8+s8"
+  },
+  {
+   "date": "10-17",
+   "kind": "gpu-speed",
+   "name": "Speed check of the compression-in-training GPU kernels",
+   "id": "SM32b",
+   "eval": "RTX 5080, 32k and 2,048 windows, no training",
+   "fork": "seconds per update: plain 1.12, with compression 1.38 (fused kernels), 3.4&ndash;3.8 (PyTorch loop)",
+   "takeaway": "Kernels match the reference (max diff 4e-7). Projected decay 85 min vs 64 plain; scheduled after the review-number flags test",
+   "track": "small model"
+  },
   {
    "date": "10-17",
    "kind": "gpu-speed",
