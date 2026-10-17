@@ -2,7 +2,7 @@
 
 Wraps scripts/small_model_heldout.py unchanged; patches rwkv.data_processing.base_transform_state (the only place
 `scaled_state` = state - 2 is built; state = the card's state before the review: 0 new, 1 learning, 2 review,
-3 relearning). Mode from env SM25_MODE:
+3 relearning). Mode from env SM25_MODE (default nosteps):
   nosteps   FSRS without learning / relearning steps: a card's first review stays new (0), every later one is review (2)
   daysteps  steps shorter than a day: a learning / relearning review after a gap of >= 1 day becomes review (2)
 The student never reads the input (zero_features=(22,)), so only the fork changes; query rows carry 0 for both.
@@ -14,7 +14,7 @@ import numpy as np
 
 WT = r"C:\Users\jonat\workspace\wt\small-model"
 sys.path.insert(0, WT)
-MODE = os.environ["SM25_MODE"]
+MODE = os.environ.get("SM25_MODE", "nosteps")
 assert MODE in ("nosteps", "daysteps")
 
 from rwkv import data_processing as dp  # noqa: E402
@@ -37,7 +37,8 @@ def patched(df):
     return _orig(df.assign(state=new))
 
 
-dp.base_transform_state = patched
-from scripts import small_model_heldout as sm  # noqa: E402
+dp.base_transform_state = patched  # module level: spawned data-loader workers re-import this file and get it too
 
-sm.main()
+if __name__ == "__main__":
+    from scripts import small_model_heldout as sm
+    sm.main()
