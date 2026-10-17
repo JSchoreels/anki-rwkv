@@ -222,6 +222,17 @@
    "decides": "GPU memory and speed of the export before the 5-h run"
   },
   {
+   "what": "Carried-state GPU check: new kernels vs the reference, trainer carry path on the GPU, cost per update",
+   "id": "SM21",
+   "kind": "gpu-speed",
+   "minutes": 15,
+   "track": "small model",
+   "match": [
+    "SM21 GPU parity"
+   ],
+   "decides": "Kernels and trainer correct on the GPU; how much the carry costs per update (CPU checks all passed)"
+  },
+  {
    "what": "Final decay at 32k from epoch 10 with the state compression trained in (~400/400 bits), then CPU scoring on 34 users (CPU part runs next to SM26)",
    "id": "SM32b",
    "kind": "gpu-train",
@@ -277,17 +288,6 @@
    "decides": "Bar met or not (paired with dec10)"
   },
   {
-   "what": "Carried-state kernel check on the GPU (once its code passes on CPU)",
-   "id": "SM21",
-   "kind": "gpu-speed",
-   "minutes": 5,
-   "track": "small model",
-   "match": [
-    "SM21 parity"
-   ],
-   "decides": "New kernels match the reference with a starting state"
-  },
-  {
    "what": "Fork full-history replay on the 5,000 training users (4&ndash;5 resumable tickets of 95 min; can stop at any time)",
    "id": "SM11",
    "kind": "gpu-score",
@@ -299,13 +299,14 @@
    "decides": "Distillation targets for carried-state training (CPU checks passed: matches the full-history fork within float16 rounding)"
   },
   {
-   "what": "Carried state, code (CPU): full-history targets DONE (SM11, 18/18 checks); kernels that take and return a starting state + trainer option (SM21) in progress",
+   "what": "Carried state, code (CPU): full-history targets (SM11, 18/18 checks) + kernels with a starting state and the trainer option (SM21, all checks bit for bit); merged together",
    "id": "SM21, SM11",
    "kind": "cpu",
    "track": "small model",
-   "state": "running",
+   "state": "done",
    "started_at": "2026-10-18T00:55:00+02:00",
-   "decides": "Ready to train with full-history context at 2,048-window speed (~1.5 days of work per the design)"
+   "decides": "Ready to train with full-history context at 2,048-window speed (~1.5 days of work per the design)",
+   "ended_at": "2026-10-18T01:40:00+02:00"
   },
   {
    "what": "Own collection + spaced-slice breakdown for the night&rsquo;s decays (compression-in-training, instant-weighted, one-epoch 32k) as they land",
@@ -316,7 +317,7 @@
    "decides": "Same tables as dec10 for each new candidate"
   },
   {
-   "what": "Carried state: 2 epochs at 2,048 from the best checkpoint + decay + 464-user scoring, paired with the same epochs without carry",
+   "what": "Carried state: 2 epochs at 2,048 from epoch 10 + decay + 464-user scoring, carry vs the same run with zero start (both with full-history targets); runbook to write",
    "id": "SM21",
    "kind": "gpu-train",
    "track": "small model",
