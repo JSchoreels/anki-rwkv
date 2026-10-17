@@ -581,3 +581,25 @@ runbook-2026-10-17-longdecay32k.log). If it does not cross the bar: a second epo
   types relabelled as a non-SM-2 scheduler would: same-day reviews of graduated cards as "review"); scratch data in the
   session scratchpad feat/ (dumps, fx); scripts in artifacts/small-model/feature-screen/.
 - User decisions pending: bar P also on review-state reviews (after SM24); commit of heldout.jsonl / heldout-report.*.
+
+## Plan for 2026-10-18 (written 2026-10-17 14:35)
+
+Tonight (running, nothing to do): extra epoch at 32k windows (Q12, ticket 000420, ends ~16:30) → gate score, decay at
+32k, 464 scoring (chain b, `runbook-2026-10-17b-cont32k.log`) → SM24 per-review dumps of fork + dec10 with the
+review-type and inferred-stage breakdown (`runbook-2026-10-17d-sm24.sh`, ~19:45) → SM25 fork with no-steps labels on
+464 users (`runbook-2026-10-17e-sm25.sh`, `feature-screen/sm25-464.txt`, ~20:30). GPU free after that (user stop 22–23h).
+Then on the CPU: dec10 on the own collection (`collection/score_collection_small.py`, see its README) and the daily
+commit of heldout.jsonl + heldout-report.* (user: once a day).
+
+Tomorrow, in order (user 2026-10-17: speed work after the last-epoch work; label-free reference soon):
+1. Speed profile, `--timing`, quiet GPU (~20–30 min): w64 at 2,048 x 16, 8,192 x 4, 32,768 x 1 (where the time goes at
+   long windows) + fork-size cases `fork128-b256/-b128/-b64` from the `fork-reference` worktree
+   (C:/Users/jonat/workspace/wt/fork-reference, 377fdc2: presets fork128 / fork128-nolabel, `scripts/fork_checkpoint.py`,
+   `scripts/check_fork_preset.py` 16/16, commands in its docs/SMALL_MODEL.md section). fork128 runs the generic kernels
+   (all 26 width-32-only switches dropped).
+2. Cost and launch the label-free reference: fine-tune the fork with input 22 zeroed (lower peak LR than 7e-4) on the
+   student's training users, then decay; from-scratch fork-size retrain only if needed.
+3. SM26 instant-weighted decay (branch sm26, unmerged; merge between tickets): `--extra-options '{"instant_loss_weight": 2.0}'`.
+4. Speed route by the profile: carried-state training (SM21 design) vs exact kernel work (W05) vs more parallel windows (SM23).
+Also: raise the 16k-decay expected minutes in runbook-2026-10-16b.sh (line ~299, 27 → ~50; flow audit) once chain b no
+longer runs it.
