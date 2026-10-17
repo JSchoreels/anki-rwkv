@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# Shared pre-push hook (all worktrees): sensitive-content audit, see scripts/prepush_audit.py.
+# Install: cp scripts/pre-push.hook "$(git rev-parse --git-common-dir)/hooks/pre-push"
+exec /c/Users/jonat/workspace/anki-rwkv/.venv/Scripts/python.exe -I /c/Users/jonat/workspace/anki-rwkv/scripts/prepush_audit.py "$@"
