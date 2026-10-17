@@ -49,7 +49,7 @@
    ]
   },
   {
-   "when": "16:31 &ndash; ~17:45 (runs ~23k reviews/s, slower than estimated)",
+   "when": "16:31 &ndash; 17:36 (done)",
    "what": "Final decay at 32k windows from the new epoch",
    "id": "Q12",
    "kind": "gpu-train",
@@ -60,7 +60,7 @@
    ]
   },
   {
-   "when": "~17:45 &ndash; 18:05",
+   "when": "17:37 &ndash; 17:59 (done)",
    "what": "Score the decayed model on all 464 users",
    "id": "Q12",
    "kind": "gpu-score",
@@ -345,9 +345,40 @@
   "s-w64kd-gate-ctx8192c-e8/w8+s8",
   "scale-w64kd-e1/w8+s8",
   "scale-w64kd-e2/w8+s8",
-  "s-w64kd-gate-ctx32768c-e10/w8+s8"
+  "s-w64kd-gate-ctx32768c-e10/w8+s8",
+  "s-w64kd-gate-ctx32768c-dec10/w8+s8"
  ],
  "results": [
+  {
+   "date": "10-17",
+   "kind": "gpu-train",
+   "name": "Extra epoch at 32k windows (epoch 10) + final decay at 32k",
+   "id": "Q12",
+   "curve": 0.30096,
+   "instant": 0.27471,
+   "curve_pct": 1.11,
+   "instant_pct": 0.94,
+   "eval": "464 users, 22.66M reviews",
+   "fork": "fork 0.29766 / 0.27216",
+   "takeaway": "Instant now meets the target (better than the previous best for 341/464 users). Curve slightly worse than the previous best (+0.0003, not significant; 288/464 users better)",
+   "track": "small model",
+   "label": "s-w64kd-gate-ctx32768c-dec10/w8+s8"
+  },
+  {
+   "date": "10-17",
+   "kind": "gpu-score",
+   "name": "Epoch 10 at 32k, before decay",
+   "id": "Q12",
+   "curve": 0.30346,
+   "instant": 0.27751,
+   "curve_pct": 1.95,
+   "instant_pct": 1.96,
+   "eval": "464 users, 22.66M reviews",
+   "fork": "fork 0.29766 / 0.27216",
+   "takeaway": "Undecayed; judge after decay",
+   "track": "small model",
+   "label": "s-w64kd-gate-ctx32768c-e10/w8+s8"
+  },
   {
    "date": "10-17",
    "kind": "cpu",

@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-10-17T17:39:59+02:00",
- "updated": "2026-10-17 17:39",
- "material": "27f9d258f6f59771",
- "summary": "running 000423",
+ "generated_at": "2026-10-17T18:00:29+02:00",
+ "updated": "2026-10-17 18:00",
+ "material": "240a491392090445",
+ "summary": "running 000424, finished 000423",
  "headline": [
   {
    "k": "Best, 464 users (curve / instant)",
@@ -32,20 +32,28 @@
  ],
  "now": [
   {
-   "what": "cont scale-w64kd-gate-cached-ctx32768-cont: full-history scoring of e10 and dec10 (464 users)",
-   "id": "000423-small-model",
+   "what": "SM24 per-review dumps, fork + ctx32768c-dec10, 464 users (pass 1)",
+   "id": "000424-small-model",
    "kind": "gpu-train",
    "why": "",
    "track": "small model",
-   "ticket": "000423-small-model",
-   "started": "17:36",
-   "elapsed": "0:03",
+   "ticket": "000424-small-model",
+   "started": "18:00",
+   "elapsed": "0:00",
    "progress": null,
-   "eta": "~18:06"
+   "eta": "~19:00"
   }
  ],
  "waiting": [],
  "recent": [
+  {
+   "ticket": "000423-small-model",
+   "what": "cont scale-w64kd-gate-cached-ctx32768-cont: full-history scoring of e10 and dec10 (464 users)",
+   "ended": "17:59",
+   "date": "10-17",
+   "exit": 0,
+   "ran": "0:22"
+  },
   {
    "ticket": "000422-small-model",
    "what": "cont scale-w64kd-gate-cached-ctx32768-cont: 0.25-epoch decay from e10 at chunk 32768 (smoke first)",
@@ -85,14 +93,6 @@
    "date": "10-17",
    "exit": 0,
    "ran": "1:04"
-  },
-  {
-   "ticket": "000417-small-model",
-   "what": "cont scale-w64kd-gate-cached-ctx16384-cont: full-history scoring of e9 and dec9 (464 users)",
-   "ended": "08:06",
-   "date": "10-17",
-   "exit": 0,
-   "ran": "0:23"
   }
  ],
  "plan": [
@@ -109,7 +109,7 @@
    "started": "16:26"
   },
   {
-   "when": "16:31 &ndash; ~17:45 (runs ~23k reviews/s, slower than estimated)",
+   "when": "16:31 &ndash; 17:36 (done)",
    "what": "Final decay at 32k windows from the new epoch",
    "id": "Q12",
    "kind": "gpu-train",
@@ -121,15 +121,16 @@
    "started": "16:31"
   },
   {
-   "when": "~17:45 &ndash; 18:05",
+   "when": "17:37 &ndash; 17:59 (done)",
    "what": "Score the decayed model on all 464 users",
    "id": "Q12",
    "kind": "gpu-score",
    "decides": "Target met or not; paired against the current best",
    "track": "small model",
-   "state": "running",
-   "started": "17:36",
-   "ticket": "000423-small-model"
+   "state": "done",
+   "ended": "17:59",
+   "exit": 0,
+   "started": "17:36"
   },
   {
    "when": "~18:05",
@@ -146,7 +147,9 @@
    "kind": "gpu-score",
    "decides": "Spaced-review slice next to the official bar",
    "track": "small model",
-   "state": "planned"
+   "state": "running",
+   "started": "18:00",
+   "ticket": "000424-small-model"
   },
   {
    "when": "20:00 &ndash; 02:00",
@@ -381,6 +384,36 @@
   }
  ],
  "results": [
+  {
+   "date": "10-17",
+   "kind": "gpu-train",
+   "name": "Extra epoch at 32k windows (epoch 10) + final decay at 32k",
+   "id": "Q12",
+   "curve": 0.30096,
+   "instant": 0.27471,
+   "curve_pct": 1.11,
+   "instant_pct": 0.94,
+   "eval": "464 users, 22.66M reviews",
+   "fork": "fork 0.29766 / 0.27216",
+   "takeaway": "Instant now meets the target (better than the previous best for 341/464 users). Curve slightly worse than the previous best (+0.0003, not significant; 288/464 users better)",
+   "track": "small model",
+   "label": "s-w64kd-gate-ctx32768c-dec10/w8+s8"
+  },
+  {
+   "date": "10-17",
+   "kind": "gpu-score",
+   "name": "Epoch 10 at 32k, before decay",
+   "id": "Q12",
+   "curve": 0.30346,
+   "instant": 0.27751,
+   "curve_pct": 1.95,
+   "instant_pct": 1.96,
+   "eval": "464 users, 22.66M reviews",
+   "fork": "fork 0.29766 / 0.27216",
+   "takeaway": "Undecayed; judge after decay",
+   "track": "small model",
+   "label": "s-w64kd-gate-ctx32768c-e10/w8+s8"
+  },
   {
    "date": "10-17",
    "kind": "cpu",
