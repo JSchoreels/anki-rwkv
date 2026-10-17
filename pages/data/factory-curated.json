@@ -142,6 +142,17 @@
    "minutes": 25
   },
   {
+   "what": "Speed and correctness check of the faster training-time compression (no training)",
+   "id": "SM32b",
+   "kind": "gpu-speed",
+   "minutes": 10,
+   "decides": "Whether the compression-in-training decay fits in ~2 h (CPU projection: 75&ndash;80 min vs 65 plain)",
+   "track": "small model",
+   "match": [
+    "S09 state-VQ QAT micro-benchmark"
+   ]
+  },
+  {
    "what": "Instant-weighted final decay at 32k (code merged first) + 464-user scoring",
    "id": "SM26",
    "kind": "gpu-train",
@@ -181,7 +192,7 @@
    "status": "next",
    "item": "State compression trained in (QAT) at ~400/400 bits per card/note, during the final decay only",
    "id": "SM32b",
-   "why": "Post-training test: 60&times; smaller state than int8 for +0.0012 / +0.0023 nats. Expertium&rsquo;s advice: redo only the final decay from the undecayed checkpoint with the compression in the loop. Code written and checked (CPU); first version estimated 4&ndash;7 h of GPU vs 65 min plain, so it is being sped up before it runs (target &le; 2 h)",
+   "why": "Post-training test: 60&times; smaller state than int8 for +0.0012 / +0.0023 nats. Redo only the final decay from epoch 10 with the compression in the loop (Expertium&rsquo;s advice). Sped up: fused GPU kernel, no eigensolver (same codec, bitwise on real states); CPU projection 75&ndash;80 min. A 10-min GPU benchmark decides the launch",
    "track": "small model"
   },
   {
