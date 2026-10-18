@@ -72,6 +72,8 @@ def main():
     largest_row = long_row if args.cpu_smoke else max(protocol["rows"], key=length)
     device = torch.device("cpu" if args.cpu_smoke else "cuda:0")
     cuda = device.type == "cuda"
+    if cuda:  # headroom for the desktop (training runs at 0.8 too); an OOM is reported by the M check
+        torch.cuda.set_per_process_memory_fraction(float(os.environ.get("SM21_GPU_MEMORY_FRACTION", "0.8")))
     sync = torch.cuda.synchronize if cuda else (lambda: None)
     peak_mib = (lambda: torch.cuda.max_memory_allocated() / 2**20) if cuda else (lambda: None)
     reset_peak = torch.cuda.reset_peak_memory_stats if cuda else (lambda: None)
