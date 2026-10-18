@@ -242,7 +242,7 @@
    "ended_at": "2026-10-18T02:04:05+02:00"
   },
   {
-   "what": "Final decay at 32k from epoch 10 with the state compression trained in (~400/400 bits), then CPU scoring on 34 users (CPU part runs next to SM26)",
+   "what": "Final decay at 32k from epoch 10 with the state compression trained in (~400/400 bits): GPU done (19,577 reviews/s); CPU scoring on 34 users running",
    "id": "SM32b",
    "kind": "gpu-train",
    "minutes": 110,
@@ -250,29 +250,10 @@
    "track": "small model",
    "match": [
     "SM32b state-VQ QAT"
-   ]
-  },
-  {
-   "what": "Instant-weighted (x2) final decay at 32k from epoch 10",
-   "id": "SM26",
-   "kind": "gpu-train",
-   "minutes": 100,
-   "decides": "Does weighting the instant loss close the instant gap without hurting the curve? Paired with dec10",
-   "track": "small model",
-   "match": [
-    "SM26 instant-weighted"
-   ]
-  },
-  {
-   "what": "Score the instant-weighted decay on all 464 users",
-   "id": "SM26",
-   "kind": "gpu-score",
-   "minutes": 25,
-   "decides": "Its 464-user number",
-   "track": "small model",
-   "match": [
-    "SM26 scoring"
-   ]
+   ],
+   "state": "done",
+   "started_at": "2026-10-18T02:59:30+02:00",
+   "ended_at": "2026-10-18T04:19:07+02:00"
   },
   {
    "what": "Fork full-history replay on the 5,000 training users (probe: 37,460 reviews/s, 372 users done; ~3 h left, resumable, GPU memory capped at 80%)",
@@ -292,6 +273,28 @@
    "track": "small model",
    "decides": "Does carried state get long-window accuracy at short-window speed? (curve &le; &minus;0.001, instant &le; +0.0005)",
    "minutes": 440
+  },
+  {
+   "what": "Instant-weighted (x2) final decay at 32k from epoch 10 (retry: the 04:19 smoke caught a scripted-model bug, fixed and checked)",
+   "id": "SM26",
+   "kind": "gpu-train",
+   "minutes": 100,
+   "decides": "Does weighting the instant loss close the instant gap without hurting the curve? Paired with dec10",
+   "track": "small model",
+   "match": [
+    "SM26 instant-weighted"
+   ]
+  },
+  {
+   "what": "Score the instant-weighted decay on all 464 users",
+   "id": "SM26",
+   "kind": "gpu-score",
+   "minutes": 25,
+   "decides": "Its 464-user number",
+   "track": "small model",
+   "match": [
+    "SM26 scoring"
+   ]
   },
   {
    "what": "One-epoch final decay at 32k from epoch 10 (vs the quarter-epoch dec10)",
