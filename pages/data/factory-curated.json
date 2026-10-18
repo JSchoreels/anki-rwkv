@@ -270,7 +270,7 @@
    "ended_at": "2026-10-18T07:31:11+02:00"
   },
   {
-   "what": "Carried state: arm A (carry) then arm B (zero start), each 2 epochs at 2,048 from epoch 10 + decay + 464-user scoring, both with full-history targets",
+   "what": "Carried state: arm A (carry, done: +1.50% / +1.48%) then arm B (zero start, running), each 2 epochs at 2,048 from epoch 10 + decay + 464-user scoring, both with full-history targets",
    "id": "SM21",
    "kind": "gpu-train",
    "track": "small model",
@@ -584,6 +584,21 @@
   "s-w64kd-gate-ctx2048c-dec8-1ep/w8+s8"
  ],
  "results": [
+  {
+   "date": "10-18",
+   "kind": "gpu-train",
+   "name": "Carried state v1, arm A (carry): 2 epochs at 2,048 from epoch 10 + decay, full-history targets",
+   "id": "SM21",
+   "curve": 0.30213,
+   "instant": 0.2762,
+   "curve_pct": 1.5,
+   "instant_pct": 1.48,
+   "eval": "464 users, 22.66M reviews",
+   "fork": "fork 0.29766 / 0.27216; 32k windows dec10 0.30096 / 0.27471 (+1.11% / +0.94%); 2,048 windows dec8 0.30259 / 0.27668 (+1.66% / +1.66%)",
+   "takeaway": "Between the two: &minus;0.0005 / &minus;0.0005 vs 2,048 windows, +0.0012 / +0.0015 vs 32k. Gate users: e11 curve matched 32k, e12 slipped (+0.0003). Expected with v1&rsquo;s stale state; the paired arm B (no carry) is running, v2 (exact state) is coded next",
+   "track": "small model",
+   "label": "s-w64kd-gate-sc-carry-dec12/w8+s8"
+  },
   {
    "date": "10-18",
    "kind": "cpu",
