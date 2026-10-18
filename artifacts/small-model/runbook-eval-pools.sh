@@ -9,7 +9,7 @@
 #   POOL=732  bash runbook-eval-pools.sh        (732 first; 2225 is for future reference / decisive checks and is INVALID
 #   POOL=2225 bash runbook-eval-pools.sh         for any model trained on the final tier)
 #   DRYRUN=1 POOL=732 bash runbook-eval-pools.sh   prints the plan and the queue commands, enqueues nothing
-# Resumable: rerun the same command. ONLY=<label substring> restricts to matching labels. GPU is capped at 80% by the scorer
+# Resumable: rerun the same command. ONLY=<bash regex> restricts to matching labels. GPU is capped at 80% by the scorer
 # (HELDOUT_GPU_MEMORY_FRACTION); never run it next to a training job (training holds ~13.4 of 16.3 GB).
 # Tickets: at most MAXT (60) minutes each; users left after a ticket go to the next one (up to 6 passes per label).
 # Time model: 11 min per 31.87M reviews for our w64 checkpoints; the fork is 8x bigger: 29 min per 31.87M (measured on
@@ -28,7 +28,8 @@ V2W=C:/Users/jonat/workspace/wt/sm21v2/artifacts/small-model
 POOL=${POOL:-732}
 DRYRUN=${DRYRUN:-0}
 MAXT=${MAXT:-60}
-ROWS="$SM/heldout.jsonl $SCW/heldout-sm21.jsonl $V2W/heldout-sm21v2.jsonl $OUT"
+PASSES=${PASSES:-6}  # tickets per label at most (PASSES=1 for an OOM retry: a user that still does not fit is not retried 6 times)
+ROWS="$SM/heldout.jsonl $SCW/heldout-sm21.jsonl $V2W/heldout-sm21v2.jsonl $V2W/heldout-sm40v2.jsonl $V2W/heldout-sm40v2-pools.jsonl $OUT"
 case "$POOL" in 732|2225) ;; *) echo "POOL must be 732 or 2225"; exit 2;; esac
 export OMP_NUM_THREADS=4 MKL_NUM_THREADS=4
 mkdir -p "$TODO"
@@ -41,6 +42,7 @@ LABELS=(
   "s-w64kd-gate-sc-carry-dec12/w8+s8|st|expertium:w64|$SCW/scale-w64kd-gate-sc-carry-cont-decay/$CKPT|11"
   "s-w64kd-gate-sc-zero-dec12/w8+s8|st|expertium:w64|$SCW/scale-w64kd-gate-sc-zero-cont-decay/$CKPT|11"
   "s-w64kd-gate-sc-lanes-dec12/w8+s8|st|expertium:w64|$V2W/scale-w64kd-gate-sc-lanes-cont-decay/$CKPT|11"
+  "s-w64kd-gate-sc-lanes-dec12-1ep32k/w8+s8|st|expertium:w64|$V2W/scale-w64kd-gate-sc-lanes-cont-decay1ep32k/$CKPT|11"
 )
 
 # missing LABEL RATE -> prints "<users> <reviews> <minutes>" and writes $TODO/<n>-<pool>.json
@@ -68,13 +70,13 @@ PYEOF
 
 for entry in "${LABELS[@]}"; do
   IFS='|' read -r label tag kind ckpt rate <<< "$entry"
-  [ -n "$ONLY" ] && [[ "$label" != *"$ONLY"* ]] && continue
+  [ -n "$ONLY" ] && ! [[ "$label" =~ $ONLY ]] && continue  # ONLY is a bash regex (e.g. 'fork|dec10')
   if [ "$tag" != fork ] && [ ! -f "$ckpt" ]; then
     log "SKIP $label: checkpoint missing ($ckpt)"; continue
   fi
   name=$(echo "${label%%/*}" | tr -c 'A-Za-z0-9\n' '_')
   todof="$TODO/$name-$POOL.json"
-  for pass in 1 2 3 4 5 6; do
+  for pass in $(seq 1 "$PASSES"); do
     read -r nusers nrev minutes <<< "$(missing "$label" "$rate" "$todof")"
     if [ "$nusers" = 0 ]; then log "$label: pool $POOL complete"; break; fi
     t=$(( minutes > MAXT ? MAXT : minutes ))
