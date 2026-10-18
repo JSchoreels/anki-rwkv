@@ -329,12 +329,22 @@
    "ended_at": "2026-10-18T01:40:00+02:00"
   },
   {
-   "what": "Codebooks refitted on the compression-trained model&rsquo;s states, rescored on the 34 users (CPU)",
+   "what": "Codebooks refitted on the compression-trained model: worse (0.32799 / 0.29382), so not stale codebooks",
    "id": "SM32b",
    "kind": "cpu",
-   "state": "running",
+   "state": "done",
    "started_at": "2026-10-18T05:05:00+02:00",
    "decides": "Was the loss from stale codebooks or from training with compression itself?",
+   "track": "small model",
+   "ended_at": "2026-10-18T06:05:00+02:00"
+  },
+  {
+   "what": "After-training compression of dec10 with codebooks fitted on dec10 itself (the current ones come from an earlier model), 34 users (CPU)",
+   "id": "SM32",
+   "kind": "cpu",
+   "state": "running",
+   "started_at": "2026-10-18T06:10:00+02:00",
+   "decides": "Does a matched codebook shrink the +0.0012 / +0.0023 compression cost?",
    "track": "small model"
   },
   {
@@ -569,7 +579,7 @@
    "instant_pct": 1.91,
    "eval": "34 users (CPU)",
    "fork": "fork 0.32132 / 0.28497 on the same users; compressed after training (dec10) 0.32314 / 0.28946; uncompressed dec10 0.32194 / 0.28716",
-   "takeaway": "Worse than compressing after training (+0.0012 / +0.0010). Not a codec mismatch (checked). Suspect: codebooks frozen on dec10 states while the model&rsquo;s states drift; a refit on the new model&rsquo;s states is running on CPU",
+   "takeaway": "Worse than compressing after training (+0.0012 / +0.0010). Not a codec mismatch, not stale codebooks (refitting them on the new model&rsquo;s states: 0.32799 / 0.29382, worse still; it learned around the frozen books). Training with the compression in the loop hurts here; dropped for now",
    "track": "small model",
    "label": "qat/w8+vq378x412"
   },
@@ -625,7 +635,7 @@
    "id": "SM32b",
    "eval": "RTX 5080, 32k and 2,048 windows, no training",
    "fork": "seconds per update: plain 1.12, with compression 1.38 (fused kernels), 3.4&ndash;3.8 (PyTorch loop)",
-   "takeaway": "Kernels match the reference (max diff 4e-7). Projected decay 85 min vs 64 plain; scheduled after the review-number flags test",
+   "takeaway": "Worse than compressing after training (+0.0012 / +0.0010). Not a codec mismatch, not stale codebooks (refitting them on the new model&rsquo;s states: 0.32799 / 0.29382, worse still; it learned around the frozen books). Training with the compression in the loop hurts here; dropped for now",
    "track": "small model"
   },
   {
