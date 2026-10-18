@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-10-18T18:27:59+02:00",
- "updated": "2026-10-18 18:27",
- "material": "3b355885f6143ce7",
- "summary": "idle, finished 000517",
+ "generated_at": "2026-10-18T18:28:08+02:00",
+ "updated": "2026-10-18 18:28",
+ "material": "3d98cab713aefbc9",
+ "summary": "idle",
  "headline": [
   {
    "k": "Best, 464 users (curve / instant)",
@@ -390,18 +390,18 @@
    "ended_at": "2026-10-18T16:55:00+02:00"
   },
   {
-   "what": "Score the 268 new users of the 732-user set: fork, 32k dec10, carried state arms A / B and v2 (starts when the v2 runbook ends)",
+   "what": "Score the new users of the 732-user set (fork, 32k dec10, carried state A / B / v2): 729 of 732 users done; 3 long users ran out of memory at the 0.8 cap (retry at 0.92 later)",
    "id": "EVAL",
    "kind": "gpu-score",
    "minutes": 50,
    "track": "small model",
    "decides": "732-user readout for v2 vs 32k and for the bar",
    "state": "done",
+   "started_at": "2026-10-18T18:26:41+02:00",
+   "ended_at": "2026-10-18T18:27:16+02:00",
    "ended": "18:27",
    "exit": 0,
-   "started": "18:26",
-   "started_at": "2026-10-18T18:26:41+02:00",
-   "ended_at": "2026-10-18T18:27:16+02:00"
+   "started": "18:26"
   },
   {
    "what": "Score the 2,225-user set (fork, 32k dec10, best carried-state model), when the GPU is otherwise free",
@@ -688,6 +688,21 @@
   }
  ],
  "results": [
+  {
+   "date": "10-18",
+   "kind": "gpu-score",
+   "name": "732-user readout (new standard set): 32k dec10 vs carried state v2 / v1 / no carry",
+   "id": "EVAL",
+   "curve": 0.30525,
+   "instant": 0.27984,
+   "curve_pct": 1.03,
+   "instant_pct": 0.9,
+   "eval": "729 users, 33.30M reviews",
+   "fork": "fork 0.30215 / 0.27733; v2 0.30553 / 0.28026 (+1.12% / +1.05%); v1 +1.38% / +1.42%; no carry +1.43% / +1.50%",
+   "takeaway": "Same order as on 464 users. dec10 is 0.03 pp from the curve bar on this set; v2 vs dec10 +0.00028 [+0.00003, +0.00054] / +0.00042 [+0.00036, +0.00048]",
+   "track": "small model",
+   "label": "s-w64kd-gate-ctx32768c-dec10/w8+s8 (732 pool)"
+  },
   {
    "date": "10-18",
    "kind": "gpu-train",
