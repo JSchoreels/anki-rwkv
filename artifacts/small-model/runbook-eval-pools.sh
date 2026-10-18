@@ -82,7 +82,7 @@ for entry in "${LABELS[@]}"; do
     t=$(( minutes > MAXT ? MAXT : minutes ))
     log "$label pass $pass: $nusers users / $nrev reviews to score, $minutes min total, this ticket $t min"
     if [ "$tag" = fork ]; then spec="--model fork=fork::$ckpt"; else spec="--model ${label%%/*}=$kind:$ckpt"; fi
-    purpose="small-model: pool $POOL full-history scoring of $label ($nusers users, pass $pass)"
+    purpose="small-model: pool $POOL full-history scoring${HELDOUT_GPU_MEMORY_FRACTION:+ at cap $HELDOUT_GPU_MEMORY_FRACTION} of $label ($nusers users, pass $pass)"
     cmd=("$PY" -X utf8 "$SC" $spec --only "$label" --pool "$POOL" --users-file "$todof" --time-limit $(( (t - 2) * 60 )) --out "$OUT")
     if [ "$DRYRUN" = 1 ]; then
       log "DRYRUN enqueue: $purpose (expected $t min)"; echo "    cmd: ${cmd[*]}"; break
