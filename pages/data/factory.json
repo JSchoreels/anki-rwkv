@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-10-18T18:28:08+02:00",
- "updated": "2026-10-18 18:28",
- "material": "3d98cab713aefbc9",
- "summary": "idle",
+ "generated_at": "2026-10-19T00:33:27+02:00",
+ "updated": "2026-10-19 00:33",
+ "material": "418af05724945c88",
+ "summary": "running 000518",
  "headline": [
   {
    "k": "Best, 464 users (curve / instant)",
@@ -74,7 +74,23 @@
    "track": "small model"
   }
  ],
- "now": [],
+ "now": [
+  {
+   "what": "Carried state v2: 2 epochs at 2,048 from epoch 10 + decay + 464-user scoring: +1.20% / +1.10% (no carry +1.51% / +1.56%; 32k dec10 +1.11% / +0.94%)",
+   "id": "SM21, ticket 000518",
+   "kind": "gpu-train",
+   "decides": "With exact carried state, does 2,048-window training beat 32k (dec10 +1.11% / +0.94%)? Paired with arm B (no carry)",
+   "why": "",
+   "job": "SM40v2 1-epoch decay at 32k with strided-lane carry from sc-lanes e12 (smoke first)",
+   "linked": true,
+   "track": "small model",
+   "ticket": "000518-small-model",
+   "started": "00:31",
+   "elapsed": "0:02",
+   "progress": null,
+   "eta": "~08:01"
+  }
+ ],
  "waiting": [],
  "recent": [
   {
@@ -372,12 +388,12 @@
    "minutes": 230,
    "track": "small model",
    "decides": "With exact carried state, does 2,048-window training beat 32k (dec10 +1.11% / +0.94%)? Paired with arm B (no carry)",
-   "state": "done",
-   "ended_at": "2026-10-18T18:27:16+02:00",
-   "ended": "18:27",
-   "exit": 0,
-   "started": "18:26",
-   "started_at": "2026-10-18T18:26:41+02:00"
+   "state": "running",
+   "ended_at": "2026-10-18T17:24:19+02:00",
+   "started": "00:31",
+   "ticket": "000518-small-model",
+   "started_at": "2026-10-18T18:26:41+02:00",
+   "ends_at": "2026-10-18T22:16:41+02:00"
   },
   {
    "what": "Bigger evaluation sets, code (CPU): 732 users (all fork-unseen validation users) as the new standard, 2,225 (+ training users our models never used) for decisive checks; checks ALL OK, dry runs OK",
@@ -419,7 +435,11 @@
    "minutes": 460,
    "track": "small model",
    "decides": "v2 beats 32k before decay (&minus;0.0002 / &minus;0.0011) but trails after the 2,048 decay (+0.0003 / +0.0004): does a long 32k decay put it past dec10 and near the bar? ~7&ndash;8 h; after the user&rsquo;s evening (user 10-18)",
-   "state": "planned"
+   "state": "running",
+   "started": "00:31",
+   "ticket": "000518-small-model",
+   "started_at": "2026-10-19T00:31:19+02:00",
+   "ends_at": "2026-10-19T08:11:19+02:00"
   },
   {
    "what": "Score the one-epoch 32k decay on all 464 users",
