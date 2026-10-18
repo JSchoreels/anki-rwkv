@@ -153,3 +153,14 @@ nohup bash C:/Users/jonat/workspace/wt/state-carry/artifacts/small-model/runbook
 ```
 
 Verify: log lines `[sm21 HH:MM:SS]`, last line `done`; results `artifacts/small-model/sm21-summary.json` / `.md` (decision rule A - B: curve <= -0.001 with upper95 < 0 and instant <= +0.0005), new score rows in `artifacts/small-model/heldout-sm21.jsonl` (commit it afterwards). Do not edit this worktree while it runs. Real run refuses uncommitted source in scripts/ expertium/ rwkv/.
+
+## SM40v2: one-epoch 32k decay with 1-lane carry (prepared 2026-10-18, NOT launched)
+
+- 1-lane carry works without trainer changes: `"state_carry": {"lanes": "strided"}` at `batch_chunks` 1 gives one window per update, each continuing its predecessor's exact end state. CPU check `scripts/check_state_carry_lane1.py` -> `artifacts/small-model/check-state-carry-lane1.json` (ALL OK: layout = v1 items, first update bitwise = stock, every window matches the full-history forward, equals v1 carry at 1 window/update).
+- Runbook `artifacts/small-model/runbook-2026-10-18-sm40v2.sh` (dry run log `runbook-2026-10-18-sm40v2-dryrun.log`, ends `DRYRUN OK`): `expertium_decay.py prepare --fraction 1.0` from `scale-w64kd-gate-sc-lanes-cont` epoch 12 at 32,768 x 1, then 464-user and 732-pool scoring (label `s-w64kd-gate-sc-lanes-dec12-1ep32k`), summary vs dec10 and vs sc-lanes dec12. Training ticket queued as 450 min (~285 min pure training at 23.9k reviews/s +10% carry, up to ~7 h wall clock as epoch 10).
+- Launch (no source edits in this worktree while it runs):
+
+```
+nohup bash C:/Users/jonat/workspace/wt/sm21v2/artifacts/small-model/runbook-2026-10-18-sm40v2.sh > C:/Users/jonat/workspace/wt/sm21v2/artifacts/small-model/runbook-2026-10-18-sm40v2.log 2>&1 & disown
+```
+  Rerun the same command to resume; `SUMMARY_ONLY=1` recomputes `sm40v2-summary.json/.md`. The smoke is the only memory test for user 6810 at 32k x 1.
