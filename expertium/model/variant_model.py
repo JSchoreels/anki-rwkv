@@ -122,8 +122,9 @@ class VariantSrsRWKV(SrsRWKV):
         self.concurrent_split_limit = 0
         self.concurrent_splits = False
         self.sync_free_loss = False
-        # SM26: opt-in multiplier on the instant (rating) loss term; None keeps IMMEDIATE_SCALE = 1.0 exactly.
-        self.instant_loss_weight = None
+        # SM26: opt-in multiplier on the instant (rating) loss term; the default 1.0 keeps IMMEDIATE_SCALE = 1.0 exactly.
+        # A float, not None: TorchScript fixes the attribute type when the model is scripted, so None could not become 2.0.
+        self.instant_loss_weight = 1.0
 
         self.gru_n = int(variant.gru_head)
         self.gru_on = self.gru_n > 0
@@ -486,7 +487,7 @@ class VariantSrsRWKV(SrsRWKV):
         ahead_raw_avg = (curve_raw_loss * ahead_mask).sum() / (1e-8 + ahead_mask.sum())
         AHEAD_RAW_SCALE = 0.5
         immediate_avg = (p_loss * immediate_mask).sum() / (1e-8 + immediate_mask.sum())
-        IMMEDIATE_SCALE = 1.0 if self.instant_loss_weight is None else float(self.instant_loss_weight)
+        IMMEDIATE_SCALE = self.instant_loss_weight
         w_avg = (w_loss * ahead_mask).sum() / (1e-8 + ahead_mask.sum())
         W_LOSS_SCALE = 1e-5
         ahead_logits_mag_loss = torch.sqrt(
