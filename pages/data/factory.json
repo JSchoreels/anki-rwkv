@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-10-18T11:11:36+02:00",
- "updated": "2026-10-18 11:11",
- "material": "a3cee626770c1e7e",
- "summary": "running 000450",
+ "generated_at": "2026-10-18T11:51:43+02:00",
+ "updated": "2026-10-18 11:51",
+ "material": "bba79501ecb0e699",
+ "summary": "running 000451, finished 000450",
  "headline": [
   {
    "k": "Best, 464 users (curve / instant)",
@@ -76,23 +76,32 @@
  ],
  "now": [
   {
-   "what": "Carried state: arm A (carry) then arm B (zero start), each 2 epochs at 2,048 from epoch 10 + decay + 464-user scoring, both with full-history targets",
-   "id": "SM21, ticket 000450",
+   "what": "SM21 gate: score s-w64kd-gate-sc-zero-e11 on the 100 gate users",
+   "id": "000451-small-model",
    "kind": "gpu-train",
-   "decides": "Does carried state get long-window accuracy at short-window speed? (curve &le; &minus;0.001, instant &le; +0.0005)",
+   "decides": "",
    "why": "",
-   "job": "SM21 scale-w64kd-gate-sc-zero-cont epoch 11/12 (zero, chunk 2048 x 16, smoke first)",
-   "linked": true,
+   "job": "SM21 gate: score s-w64kd-gate-sc-zero-e11 on the 100 gate users",
+   "linked": false,
    "track": "small model",
-   "ticket": "000450-small-model",
-   "started": "10:43",
-   "elapsed": "0:28",
+   "ticket": "000451-small-model",
+   "started": "11:50",
+   "elapsed": "0:01",
    "progress": null,
-   "eta": "~12:03"
+   "eta": "~11:54"
   }
  ],
  "waiting": [],
  "recent": [
+  {
+   "ticket": "000450-small-model",
+   "id": "SM21",
+   "what": "SM21 scale-w64kd-gate-sc-zero-cont epoch 11/12 (zero, chunk 2048 x 16, smoke first)",
+   "ended": "11:50",
+   "date": "10-18",
+   "exit": 0,
+   "ran": "1:07"
+  },
   {
    "ticket": "000449-small-model",
    "id": "SM21",
@@ -137,15 +146,6 @@
    "date": "10-18",
    "exit": 0,
    "ran": "0:03"
-  },
-  {
-   "ticket": "000444-small-model",
-   "id": "SM21",
-   "what": "SM21 scale-w64kd-gate-sc-carry-cont epoch 11/12 (carry, chunk 2048 x 16, smoke first)",
-   "ended": "08:38",
-   "date": "10-18",
-   "exit": 0,
-   "ran": "1:06"
   }
  ],
  "plan": [
@@ -360,11 +360,12 @@
    "track": "small model",
    "decides": "Does carried state get long-window accuracy at short-window speed? (curve &le; &minus;0.001, instant &le; +0.0005)",
    "minutes": 440,
-   "state": "running",
+   "state": "done",
+   "ended": "11:50",
+   "exit": 0,
    "started": "10:43",
-   "ticket": "000450-small-model",
-   "started_at": "2026-10-18T10:21:05+02:00",
-   "ends_at": "2026-10-18T17:41:05+02:00"
+   "started_at": "2026-10-18T10:43:15+02:00",
+   "ended_at": "2026-10-18T11:50:36+02:00"
   },
   {
    "what": "Instant-weighted (x2) final decay at 32k from epoch 10 (retry: the 04:19 smoke caught a scripted-model bug, fixed and checked)",
