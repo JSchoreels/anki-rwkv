@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-10-18T15:17:17+02:00",
- "updated": "2026-10-18 15:17",
- "material": "91eb37aaf5136c59",
- "summary": "running 000458, finished 000457",
+ "generated_at": "2026-10-18T15:18:43+02:00",
+ "updated": "2026-10-18 15:18",
+ "material": "58cf5cf335f71269",
+ "summary": "running 000459, finished 000458",
  "headline": [
   {
    "k": "Best, 464 users (curve / instant)",
@@ -76,23 +76,32 @@
  ],
  "now": [
   {
-   "what": "Carried state v2: 2 epochs at 2,048 from epoch 10 + decay + 464-user scoring, same recipe as arms A and B",
-   "id": "SM21, ticket 000458",
+   "what": "Carried state v2: 2 epochs at 2,048 from epoch 10 + decay + 464-user scoring, same recipe as arms A and B. Epoch 11 gate: instant &minus;0.0011 vs no carry and &minus;0.0015 vs v1 (beats 32k e10 by &minus;0.0004); curve same as no carry (v1 was &minus;0.0004)",
+   "id": "SM21, ticket 000459",
    "kind": "gpu-train",
    "decides": "With exact carried state, does 2,048-window training beat 32k (dec10 +1.11% / +0.94%)? Paired with arm B (no carry)",
    "why": "",
-   "job": "SM21 gate: score s-w64kd-gate-sc-lanes-e11 on the 100 gate users",
+   "job": "SM21 scale-w64kd-gate-sc-lanes-cont epoch 12/12 (lanes, chunk 2048 x 16, smoke first)",
    "linked": true,
    "track": "small model",
-   "ticket": "000458-small-model",
-   "started": "15:14",
-   "elapsed": "0:03",
+   "ticket": "000459-small-model",
+   "started": "15:17",
+   "elapsed": "0:00",
    "progress": null,
-   "eta": "~15:18"
+   "eta": "~16:37"
   }
  ],
  "waiting": [],
  "recent": [
+  {
+   "ticket": "000458-small-model",
+   "id": "SM21",
+   "what": "SM21 gate: score s-w64kd-gate-sc-lanes-e11 on the 100 gate users",
+   "ended": "15:17",
+   "date": "10-18",
+   "exit": 0,
+   "ran": "0:03"
+  },
   {
    "ticket": "000457-small-model",
    "id": "SM21",
@@ -137,15 +146,6 @@
    "date": "10-18",
    "exit": 0,
    "ran": "0:01"
-  },
-  {
-   "ticket": "000452-small-model",
-   "id": "SM21",
-   "what": "SM21 scale-w64kd-gate-sc-zero-cont epoch 12/12 (zero, chunk 2048 x 16, smoke first)",
-   "ended": "13:05",
-   "date": "10-18",
-   "exit": 0,
-   "ran": "1:09"
   }
  ],
  "plan": [
@@ -382,17 +382,17 @@
    "ended_at": "2026-10-18T13:06:45+02:00"
   },
   {
-   "what": "Carried state v2: 2 epochs at 2,048 from epoch 10 + decay + 464-user scoring, same recipe as arms A and B",
+   "what": "Carried state v2: 2 epochs at 2,048 from epoch 10 + decay + 464-user scoring, same recipe as arms A and B. Epoch 11 gate: instant &minus;0.0011 vs no carry and &minus;0.0015 vs v1 (beats 32k e10 by &minus;0.0004); curve same as no carry (v1 was &minus;0.0004)",
    "id": "SM21",
    "kind": "gpu-train",
    "minutes": 230,
    "track": "small model",
    "decides": "With exact carried state, does 2,048-window training beat 32k (dec10 +1.11% / +0.94%)? Paired with arm B (no carry)",
    "state": "running",
-   "started": "15:14",
-   "ticket": "000458-small-model",
-   "started_at": "2026-10-18T14:03:52+02:00",
-   "ends_at": "2026-10-18T17:53:52+02:00"
+   "started": "15:17",
+   "ticket": "000459-small-model",
+   "started_at": "2026-10-18T15:14:13+02:00",
+   "ends_at": "2026-10-18T19:04:13+02:00"
   },
   {
    "what": "One-epoch final decay at 32k, on whichever base wins: dec10&rsquo;s epoch 10, or carried state v2 if it beats dec10 (held until then)",
