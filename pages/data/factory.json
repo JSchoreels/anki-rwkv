@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-10-18T07:15:55+02:00",
- "updated": "2026-10-18 07:15",
- "material": "3c97df810b7a5322",
- "summary": "running 000443, finished 000442",
+ "generated_at": "2026-10-18T07:30:58+02:00",
+ "updated": "2026-10-18 07:30",
+ "material": "6bba81f18bd10941",
+ "summary": "idle, finished 000443",
  "headline": [
   {
    "k": "Best, 464 users (curve / instant)",
@@ -74,25 +74,18 @@
    "track": "small model"
   }
  ],
- "now": [
-  {
-   "what": "Fork full-history replay on the 5,000 training users (probe: 37,460 reviews/s, 372 users done; ~3 h left, resumable, GPU memory capped at 80%)",
-   "id": "SM11, ticket 000443",
-   "kind": "gpu-score",
-   "decides": "Distillation targets for carried-state training (CPU checks passed: matches the full-history fork within float16 rounding)",
-   "why": "",
-   "job": "SM11 fork full-history replay targets, gate 5k users (ticket 3, resumable)",
-   "linked": true,
-   "track": "small model",
-   "ticket": "000443-small-model",
-   "started": "07:12",
-   "elapsed": "0:03",
-   "progress": null,
-   "eta": "~08:47"
-  }
- ],
+ "now": [],
  "waiting": [],
  "recent": [
+  {
+   "ticket": "000443-small-model",
+   "id": "SM11",
+   "what": "SM11 fork full-history replay targets, gate 5k users (ticket 3, resumable)",
+   "ended": "07:29",
+   "date": "10-18",
+   "exit": 0,
+   "ran": "0:17"
+  },
   {
    "ticket": "000442-small-model",
    "id": "SM11",
@@ -137,15 +130,6 @@
    "date": "10-18",
    "exit": 0,
    "ran": "0:23"
-  },
-  {
-   "ticket": "000437-small-model",
-   "id": "SM30",
-   "what": "SM30 scale-w64kd-gate-cached-ctx2048-cont-repflags: 0.25-epoch decay from e8 at chunk 2048 (smoke first)",
-   "ended": "02:35",
-   "date": "10-18",
-   "exit": 0,
-   "ran": "0:27"
   }
  ],
  "plan": [
@@ -346,11 +330,12 @@
    "minutes": 180,
    "track": "small model",
    "decides": "Distillation targets for carried-state training (CPU checks passed: matches the full-history fork within float16 rounding)",
-   "state": "running",
+   "state": "done",
+   "ended": "07:29",
+   "exit": 0,
    "started": "07:12",
-   "ticket": "000443-small-model",
-   "started_at": "2026-10-18T05:46:54+02:00",
-   "ends_at": "2026-10-18T08:46:54+02:00"
+   "started_at": "2026-10-18T07:12:13+02:00",
+   "ended_at": "2026-10-18T07:29:12+02:00"
   },
   {
    "what": "Carried state: 2 epochs at 2,048 from epoch 10 + decay + 464-user scoring, carry vs zero start (both with full-history targets); starts after the replay if its runbook passes a dry run",
