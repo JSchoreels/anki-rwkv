@@ -1,9 +1,9 @@
 """Small-model track: full-history held-out scoring of the fork's 2.76M RWKV and our smaller checkpoints on the same
 users, inputs and labels (docs/SMALL_MODEL.md).
 
-Users: the accuracy-loop screen tier's evaluation users the fork never saw (artifacts/accuracy/tiers.json, user id
+Users (--pool 464, default): the accuracy-loop screen tier's evaluation users the fork never saw (artifacts/accuracy/tiers.json, user id
 < 5000: 464 validation users of the 8k/2k run, so unseen by the full run, the screens and the fork). Ordered
-round-robin over history-length deciles, so any prefix is stratified (a time limit truncates evenly).
+round-robin over history-length deciles (--pool 732 / 2225: larger sets, scripts/eval_pools.py), so any prefix is stratified (a time limit truncates evenly).
 Protocol: whole history as one sequence (the fork's replay; compress_heldout_b's protocol), upstream get_stats on the
 run's label DB, curve (ahead) and instant heads, FSRS-6 benchmark test reviews.
 
@@ -46,12 +46,15 @@ TIERS = ROOT / "artifacts" / "accuracy" / "tiers.json"
 STATE_MODULES = (0, 2)  # card, note (rwkv_modules order card, deck, note, preset, user)
 
 
-def heldout_users(counts):
-    tiers = json.loads(TIERS.read_text())
-    users = sorted(u for u in tiers["tiers"]["screen"]["eval_users_list"] if u < 5000) if "eval_users_list" in \
-        tiers["tiers"]["screen"] else None
-    if users is None:
-        users = sorted(u for u in _screen_eval_users(tiers) if u < 5000)
+def heldout_users(counts, pool=464):
+    if pool != 464:  # 732 / 2225: scripts/eval_pools.py
+        from scripts.eval_pools import pool_users
+        users = pool_users(pool)
+    else:
+        tiers = json.loads(TIERS.read_text())
+        users = sorted(u for u in tiers["tiers"]["screen"]["eval_users_list"] if u < 5000) if "eval_users_list" in tiers["tiers"]["screen"] else None
+        if users is None:
+            users = sorted(u for u in _screen_eval_users(tiers) if u < 5000)
     users.sort(key=lambda u: (counts[str(u)], u))
     deciles = [users[len(users) * d // 10: len(users) * (d + 1) // 10] for d in range(10)]
     order = []
@@ -158,7 +161,10 @@ def main():
     parser.add_argument("--variants", default="fp32")
     parser.add_argument("--only", action="append", default=[], help="TAG/VARIANT labels to score instead of the grid")
     parser.add_argument("--start", type=int, default=0)
-    parser.add_argument("--count", type=int, default=0, help="0 = all 464 users")
+    parser.add_argument("--count", type=int, default=0, help="0 = all users of the pool")
+    parser.add_argument("--pool", type=int, choices=(464, 732, 2225), default=464, help="base user set: 464 screen "
+                        "eval users (default), 732 validation users with id < 5000, 2225 = 732 + gate-unseen train users "
+                        "(invalid for models trained on the final tier); --users-file still filters on top")
     parser.add_argument("--workers", type=int, default=4)
     parser.add_argument("--time-limit", type=float, default=3000, help="stop starting new users after N seconds")
     parser.add_argument("--device", choices=("cuda", "cpu"), default="cuda")
@@ -187,9 +193,11 @@ def main():
     from scripts.full_run_metrics import evaluate_with_predictions
 
     device = torch.device(args.device)
+    if not cpu:
+        torch.cuda.set_per_process_memory_fraction(float(os.environ.get("HELDOUT_GPU_MEMORY_FRACTION", "0.8")))
     run = cc.run_info()
     counts = run["review_counts"]
-    users = heldout_users(counts)
+    users = heldout_users(counts, args.pool)
     if args.users_file:
         wanted = set(json.loads(Path(args.users_file).read_text())["users"])
         users = [u for u in users if u in wanted]
