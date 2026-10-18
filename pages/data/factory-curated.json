@@ -295,7 +295,7 @@
    "decides": "Exact on the GPU; speed per update vs v1"
   },
   {
-   "what": "Carried state v2: 2 epochs at 2,048 from epoch 10 + decay + 464-user scoring, same recipe as arms A and B. Gate users, epoch 12: &minus;0.0023 / &minus;0.0015 vs no carry, &minus;0.0010 / &minus;0.0010 vs v1, &minus;0.0007 / &minus;0.0010 vs 32k e10 (epoch 11: instant only)",
+   "what": "Carried state v2: 2 epochs at 2,048 from epoch 10 + decay + 464-user scoring: +1.20% / +1.10% (no carry +1.51% / +1.56%; 32k dec10 +1.11% / +0.94%)",
    "id": "SM21",
    "kind": "gpu-train",
    "minutes": 230,
@@ -303,7 +303,9 @@
    "match": [
     "sc-lanes"
    ],
-   "decides": "With exact carried state, does 2,048-window training beat 32k (dec10 +1.11% / +0.94%)? Paired with arm B (no carry)"
+   "decides": "With exact carried state, does 2,048-window training beat 32k (dec10 +1.11% / +0.94%)? Paired with arm B (no carry)",
+   "state": "done",
+   "ended_at": "2026-10-18T17:24:19+02:00"
   },
   {
    "what": "Bigger evaluation sets, code (CPU): 732 users (all fork-unseen validation users) as the new standard, 2,225 (+ training users our models never used) for decisive checks; checks ALL OK, dry runs OK",
@@ -627,6 +629,21 @@
   "s-w64kd-gate-ctx2048c-dec8-1ep/w8+s8"
  ],
  "results": [
+  {
+   "date": "10-18",
+   "kind": "gpu-train",
+   "name": "Carried state v2 (strided lanes, exact state): 2 epochs at 2,048 from epoch 10 + decay at 2,048, full-history targets",
+   "id": "SM21",
+   "curve": 0.30124,
+   "instant": 0.27514,
+   "curve_pct": 1.2,
+   "instant_pct": 1.1,
+   "eval": "464 users, 22.66M reviews",
+   "fork": "fork 0.29766 / 0.27216; 32k dec10 0.30096 / 0.27471; no carry (arm B) 0.30214 / 0.27640; v1 carry 0.30213 / 0.27620",
+   "takeaway": "Best 2,048-window model by far: &minus;0.0009 / &minus;0.0013 vs no carry, &minus;0.0009 / &minus;0.0011 vs v1. Before decay it beats 32k e10 (&minus;0.0002 / &minus;0.0011); after decay it trails 32k dec10 by +0.0003 [&minus;0.0001, +0.0007] / +0.0004: the 2,048 decay gains less than the 32k one. Next: decay v2 at 32k",
+   "track": "small model",
+   "label": "s-w64kd-gate-sc-lanes-dec12/w8+s8"
+  },
   {
    "date": "10-18",
    "kind": "gpu-train",

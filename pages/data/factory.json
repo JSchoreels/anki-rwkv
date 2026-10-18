@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-10-18T17:02:30+02:00",
- "updated": "2026-10-18 17:02",
- "material": "f8ce9ab57f509379",
- "summary": "running 000462, finished 000461",
+ "generated_at": "2026-10-18T17:26:01+02:00",
+ "updated": "2026-10-18 17:26",
+ "material": "93485a9b2d55f9fc",
+ "summary": "running 000463, finished 000462",
  "headline": [
   {
    "k": "Best, 464 users (curve / instant)",
@@ -76,23 +76,32 @@
  ],
  "now": [
   {
-   "what": "Carried state v2: 2 epochs at 2,048 from epoch 10 + decay + 464-user scoring, same recipe as arms A and B. Gate users, epoch 12: &minus;0.0023 / &minus;0.0015 vs no carry, &minus;0.0010 / &minus;0.0010 vs v1, &minus;0.0007 / &minus;0.0010 vs 32k e10 (epoch 11: instant only)",
-   "id": "SM21, ticket 000462",
-   "kind": "gpu-train",
-   "decides": "With exact carried state, does 2,048-window training beat 32k (dec10 +1.11% / +0.94%)? Paired with arm B (no carry)",
+   "what": "Score the 268 new users of the 732-user set: fork, 32k dec10, carried state arms A / B and v2 (starts when the v2 runbook ends)",
+   "id": "EVAL, ticket 000463",
+   "kind": "gpu-score",
+   "decides": "732-user readout for v2 vs 32k and for the bar",
    "why": "",
-   "job": "SM21 scale-w64kd-gate-sc-lanes-cont: full-history scoring of e12 and dec12 (464 users, lanes)",
+   "job": "pool 732 full-history scoring of fork/w8+s8 (268 users, pass 1)",
    "linked": true,
    "track": "small model",
-   "ticket": "000462-small-model",
-   "started": "17:01",
-   "elapsed": "0:00",
+   "ticket": "000463-small-model",
+   "started": "17:24",
+   "elapsed": "0:01",
    "progress": null,
-   "eta": "~17:26"
+   "eta": "~17:42"
   }
  ],
  "waiting": [],
  "recent": [
+  {
+   "ticket": "000462-small-model",
+   "id": "SM21",
+   "what": "SM21 scale-w64kd-gate-sc-lanes-cont: full-history scoring of e12 and dec12 (464 users, lanes)",
+   "ended": "17:24",
+   "date": "10-18",
+   "exit": 0,
+   "ran": "0:22"
+  },
   {
    "ticket": "000461-small-model",
    "id": "SM21",
@@ -137,15 +146,6 @@
    "date": "10-18",
    "exit": 0,
    "ran": "1:10"
-  },
-  {
-   "ticket": "000456-small-model",
-   "id": "SM21",
-   "what": "SM21 scale-w64kd-gate-sc-zero-cont: full-history scoring of e12 and dec12 (464 users, zero)",
-   "ended": "14:01",
-   "date": "10-18",
-   "exit": 0,
-   "ran": "0:22"
   }
  ],
  "plan": [
@@ -382,17 +382,18 @@
    "ended_at": "2026-10-18T13:06:45+02:00"
   },
   {
-   "what": "Carried state v2: 2 epochs at 2,048 from epoch 10 + decay + 464-user scoring, same recipe as arms A and B. Gate users, epoch 12: &minus;0.0023 / &minus;0.0015 vs no carry, &minus;0.0010 / &minus;0.0010 vs v1, &minus;0.0007 / &minus;0.0010 vs 32k e10 (epoch 11: instant only)",
+   "what": "Carried state v2: 2 epochs at 2,048 from epoch 10 + decay + 464-user scoring: +1.20% / +1.10% (no carry +1.51% / +1.56%; 32k dec10 +1.11% / +0.94%)",
    "id": "SM21",
    "kind": "gpu-train",
    "minutes": 230,
    "track": "small model",
    "decides": "With exact carried state, does 2,048-window training beat 32k (dec10 +1.11% / +0.94%)? Paired with arm B (no carry)",
-   "state": "running",
+   "state": "done",
+   "ended_at": "2026-10-18T17:24:16+02:00",
+   "ended": "17:24",
+   "exit": 0,
    "started": "17:01",
-   "ticket": "000462-small-model",
-   "started_at": "2026-10-18T16:31:24+02:00",
-   "ends_at": "2026-10-18T20:21:24+02:00"
+   "started_at": "2026-10-18T17:01:50+02:00"
   },
   {
    "what": "Bigger evaluation sets, code (CPU): 732 users (all fork-unseen validation users) as the new standard, 2,225 (+ training users our models never used) for decisive checks; checks ALL OK, dry runs OK",
@@ -411,7 +412,11 @@
    "minutes": 50,
    "track": "small model",
    "decides": "732-user readout for v2 vs 32k and for the bar",
-   "state": "planned"
+   "state": "running",
+   "started": "17:24",
+   "ticket": "000463-small-model",
+   "started_at": "2026-10-18T17:24:45+02:00",
+   "ends_at": "2026-10-18T18:14:45+02:00"
   },
   {
    "what": "Score the 2,225-user set (fork, 32k dec10, best carried-state model), when the GPU is otherwise free",
@@ -693,6 +698,21 @@
   }
  ],
  "results": [
+  {
+   "date": "10-18",
+   "kind": "gpu-train",
+   "name": "Carried state v2 (strided lanes, exact state): 2 epochs at 2,048 from epoch 10 + decay at 2,048, full-history targets",
+   "id": "SM21",
+   "curve": 0.30124,
+   "instant": 0.27514,
+   "curve_pct": 1.2,
+   "instant_pct": 1.1,
+   "eval": "464 users, 22.66M reviews",
+   "fork": "fork 0.29766 / 0.27216; 32k dec10 0.30096 / 0.27471; no carry (arm B) 0.30214 / 0.27640; v1 carry 0.30213 / 0.27620",
+   "takeaway": "Best 2,048-window model by far: &minus;0.0009 / &minus;0.0013 vs no carry, &minus;0.0009 / &minus;0.0011 vs v1. Before decay it beats 32k e10 (&minus;0.0002 / &minus;0.0011); after decay it trails 32k dec10 by +0.0003 [&minus;0.0001, +0.0007] / +0.0004: the 2,048 decay gains less than the 32k one. Next: decay v2 at 32k",
+   "track": "small model",
+   "label": "s-w64kd-gate-sc-lanes-dec12/w8+s8"
+  },
   {
    "date": "10-18",
    "kind": "gpu-train",
