@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-10-18T16:51:04+02:00",
- "updated": "2026-10-18 16:51",
- "material": "fa8d8e171eee1785",
- "summary": "running 000461",
+ "generated_at": "2026-10-18T17:02:30+02:00",
+ "updated": "2026-10-18 17:02",
+ "material": "f8ce9ab57f509379",
+ "summary": "running 000462, finished 000461",
  "headline": [
   {
    "k": "Best, 464 users (curve / instant)",
@@ -77,22 +77,31 @@
  "now": [
   {
    "what": "Carried state v2: 2 epochs at 2,048 from epoch 10 + decay + 464-user scoring, same recipe as arms A and B. Gate users, epoch 12: &minus;0.0023 / &minus;0.0015 vs no carry, &minus;0.0010 / &minus;0.0010 vs v1, &minus;0.0007 / &minus;0.0010 vs 32k e10 (epoch 11: instant only)",
-   "id": "SM21, ticket 000461",
+   "id": "SM21, ticket 000462",
    "kind": "gpu-train",
    "decides": "With exact carried state, does 2,048-window training beat 32k (dec10 +1.11% / +0.94%)? Paired with arm B (no carry)",
    "why": "",
-   "job": "SM21 scale-w64kd-gate-sc-lanes-cont: 0.25-epoch decay from e12 (lanes, chunk 2048, smoke first)",
+   "job": "SM21 scale-w64kd-gate-sc-lanes-cont: full-history scoring of e12 and dec12 (464 users, lanes)",
    "linked": true,
    "track": "small model",
-   "ticket": "000461-small-model",
-   "started": "16:31",
-   "elapsed": "0:19",
+   "ticket": "000462-small-model",
+   "started": "17:01",
+   "elapsed": "0:00",
    "progress": null,
-   "eta": "~16:56"
+   "eta": "~17:26"
   }
  ],
  "waiting": [],
  "recent": [
+  {
+   "ticket": "000461-small-model",
+   "id": "SM21",
+   "what": "SM21 scale-w64kd-gate-sc-lanes-cont: 0.25-epoch decay from e12 (lanes, chunk 2048, smoke first)",
+   "ended": "17:01",
+   "date": "10-18",
+   "exit": 0,
+   "ran": "0:30"
+  },
   {
    "ticket": "000460-small-model",
    "id": "SM21",
@@ -137,15 +146,6 @@
    "date": "10-18",
    "exit": 0,
    "ran": "0:22"
-  },
-  {
-   "ticket": "000455-small-model",
-   "id": "SM21",
-   "what": "SM21 scale-w64kd-gate-sc-zero-cont: 0.25-epoch decay from e12 (zero, chunk 2048, smoke first)",
-   "ended": "13:38",
-   "date": "10-18",
-   "exit": 0,
-   "ran": "0:28"
   }
  ],
  "plan": [
@@ -389,10 +389,10 @@
    "track": "small model",
    "decides": "With exact carried state, does 2,048-window training beat 32k (dec10 +1.11% / +0.94%)? Paired with arm B (no carry)",
    "state": "running",
-   "started": "16:31",
-   "ticket": "000461-small-model",
-   "started_at": "2026-10-18T16:27:54+02:00",
-   "ends_at": "2026-10-18T20:17:54+02:00"
+   "started": "17:01",
+   "ticket": "000462-small-model",
+   "started_at": "2026-10-18T16:31:24+02:00",
+   "ends_at": "2026-10-18T20:21:24+02:00"
   },
   {
    "what": "Bigger evaluation sets, code (CPU): 732 users (all fork-unseen validation users) as the new standard, 2,225 (+ training users our models never used) for decisive checks; checks ALL OK, dry runs OK",
