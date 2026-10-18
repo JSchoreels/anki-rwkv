@@ -1,0 +1,14 @@
+[launcher 10-18 12:48:00] waiting for the v1 runbook (arms A and B) and the v2 GPU check
+[launcher 10-18 14:02:03] [orchestrate 10-18 14:01:05] SM21 runbook exit 0; [sm21v2-gpu-check] exit 0
+[launcher 10-18 14:02:03] v2 GPU check did not pass: v2 run not started
+[sm21v2 14:03:46] started: 69a318b SM21 v2 GPU check (ticket 000453): ALL OK; v2 +1.4% per update vs v1 (+11.6% vs stock); largest user 6810 table 2.17 GB, peak 10.5 GiB (v1 7.4) under the 0.8 cap (DRYRUN=0)
+{"out": "C:\\Users\\jonat\\workspace\\anki-rwkv\\artifacts\\cache\\kd-replay\\fork-fp32-gate5k", "users": 5000, "complete_users": 5000, "missing_users": 0, "missing_sample": [], "reviews_done": 369477375, "reviews_total": 369477375, "bytes": 3699355129, "bytes_per_review": 10.012, "complete": true, "errors": 0}
+[sm21v2 14:03:48] replay export complete
+[sm21v2 14:03:48] === arm lanes: scale-w64kd-gate-sc-lanes-cont (state_carry {"lanes": "strided"}) ===
+[sm21-copy] C:\Users\jonat\workspace\wt\sm21v2\artifacts\accuracy\experiments\scale-w64kd-gate-sc-lanes-cont.partial: epochs 1..10 stubs, epoch 10 checkpoint, chunk 2048 x 16, state_carry {'lanes': 'strided'}, replay distillation {'teacher': 'C:/Users/jonat/workspace/anki/qt/aqt/rwkv_inference/RWKV_trained_on_5000_10000.pth', 'alpha': 0.9, 'decay_alpha': 0.5, 'kd_source': 'replay', 'replay': 'C:/Users/jonat/workspace/anki-rwkv/artifacts/cache/kd-replay/fork-fp32-gate5k'}, epochs 12
+[sm21-check] replay spec valid: teacher sha256 8fb7fea081b3
+[sm21-check] OK: epoch 11 resumes from epoch-10 (update_offset 139640, LR 7e-4, AdamW state copied), 2048 x 16, options = source + state_carry {'lanes': 'strided'} + replay spec (42 keys, all in the prefetch allowlist)
+[sm21v2 14:03:50] created C:/Users/jonat/workspace/wt/sm21v2/artifacts/accuracy/experiments/scale-w64kd-gate-sc-lanes-cont
+[sm21v2 14:03:52] enqueue: SM21 scale-w64kd-gate-sc-lanes-cont epoch 11/12 (lanes, chunk 2048 x 16, smoke first) (expected 80 min)
+[queue] 000457-small-model registered for gpu: small-model: SM21 scale-w64kd-gate-sc-lanes-cont epoch 11/12 (lanes, chunk 2048 x 16, smoke first)
+[queue] 000457-small-model started after 0:00:00; holds gpu

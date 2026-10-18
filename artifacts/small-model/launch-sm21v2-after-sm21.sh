@@ -3,7 +3,7 @@
 # Waits for the orchestrator's "SM21 runbook exit" and for the v2 GPU check ticket to end; runs the v2 runbook only if the
 # check report passed (the runbook re-checks it).
 O=/c/Users/jonat/workspace/wt/small-model/artifacts/small-model/orchestrate-after-sm26.log
-SM=/c/Users/jonat/workspace/wt/sm21v2/artifacts/small-model
+SM=C:/Users/jonat/workspace/wt/sm21v2/artifacts/small-model  # Windows Python opens the report: no /c/ path
 log() { echo "[launcher $(date '+%m-%d %H:%M:%S')] $*" >> $SM/runbook-2026-10-18-sm21v2.log; }
 log "waiting for the v1 runbook (arms A and B) and the v2 GPU check"
 until grep -qE "SM21 runbook exit" $O 2>/dev/null && grep -q "sm21v2-gpu-check\] exit" $SM/sm21v2-gpu-check.log 2>/dev/null; do sleep 120; done
