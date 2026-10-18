@@ -3,7 +3,7 @@ weight 2.0 adds exactly one more instant average. (check_instant_loss_weight.py 
 the 2026-10-18 04:19 failure: a None attribute cannot be set to a float on a ScriptModule.)"""
 import os, sys
 from pathlib import Path
-ROOT = Path(r"C:\Users\jonat\workspace\wt\small-model"); sys.path.insert(0, str(ROOT)); os.chdir(ROOT)
+ROOT = Path(__file__).resolve().parents[1]; sys.path.insert(0, str(ROOT)); os.chdir(ROOT)
 os.environ["GPU_BATCH1_DATA_PATH"] = r"C:\Users\jonat\workspace\anki-rwkv\data\anki-revlogs-10k-original-20261011"
 os.environ.pop("RWKV_NO_JIT", None)
 import torch; torch.set_num_threads(4)
