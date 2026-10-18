@@ -1,7 +1,7 @@
 {
- "generated_at": "2026-10-18T16:32:27+02:00",
- "updated": "2026-10-18 16:32",
- "material": "7f5e356b47e6c1e3",
+ "generated_at": "2026-10-18T16:47:04+02:00",
+ "updated": "2026-10-18 16:47",
+ "material": "70bbc0b6133d826d",
  "summary": "running 000461",
  "headline": [
   {
@@ -86,7 +86,7 @@
    "track": "small model",
    "ticket": "000461-small-model",
    "started": "16:31",
-   "elapsed": "0:01",
+   "elapsed": "0:15",
    "progress": null,
    "eta": "~16:56"
   }
@@ -393,6 +393,33 @@
    "ticket": "000461-small-model",
    "started_at": "2026-10-18T16:27:54+02:00",
    "ends_at": "2026-10-18T20:17:54+02:00"
+  },
+  {
+   "what": "Bigger evaluation sets, code (CPU): 732 users (all fork-unseen validation users) as the new standard, 2,225 (+ training users our models never used) for decisive checks",
+   "id": "EVAL",
+   "kind": "cpu",
+   "track": "small model",
+   "state": "running",
+   "started_at": "2026-10-18T16:55:00+02:00",
+   "decides": "User 10-18: tighter confidence intervals (about 20% narrower at 732, about half at 2,225)"
+  },
+  {
+   "what": "Score the 268 new users of the 732-user set: fork, 32k dec10, carried state arms A / B and v2",
+   "id": "EVAL",
+   "kind": "gpu-score",
+   "minutes": 60,
+   "track": "small model",
+   "decides": "732-user readout for v2 vs 32k and for the bar",
+   "state": "planned"
+  },
+  {
+   "what": "Score the 2,225-user set (fork, 32k dec10, best carried-state model), when the GPU is otherwise free",
+   "id": "EVAL",
+   "kind": "gpu-score",
+   "minutes": 300,
+   "track": "small model",
+   "decides": "Reference rows for future decisive checks (not valid for models trained on all 8,000 users)",
+   "state": "planned"
   },
   {
    "what": "One-epoch final decay at 32k, on whichever base wins: dec10&rsquo;s epoch 10, or carried state v2 if it beats dec10 (held until then)",

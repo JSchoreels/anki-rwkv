@@ -306,6 +306,37 @@
    "decides": "With exact carried state, does 2,048-window training beat 32k (dec10 +1.11% / +0.94%)? Paired with arm B (no carry)"
   },
   {
+   "what": "Bigger evaluation sets, code (CPU): 732 users (all fork-unseen validation users) as the new standard, 2,225 (+ training users our models never used) for decisive checks",
+   "id": "EVAL",
+   "kind": "cpu",
+   "track": "small model",
+   "state": "running",
+   "started_at": "2026-10-18T16:55:00+02:00",
+   "decides": "User 10-18: tighter confidence intervals (about 20% narrower at 732, about half at 2,225)"
+  },
+  {
+   "what": "Score the 268 new users of the 732-user set: fork, 32k dec10, carried state arms A / B and v2",
+   "id": "EVAL",
+   "kind": "gpu-score",
+   "minutes": 60,
+   "track": "small model",
+   "match": [
+    "eval pool 732"
+   ],
+   "decides": "732-user readout for v2 vs 32k and for the bar"
+  },
+  {
+   "what": "Score the 2,225-user set (fork, 32k dec10, best carried-state model), when the GPU is otherwise free",
+   "id": "EVAL",
+   "kind": "gpu-score",
+   "minutes": 300,
+   "track": "small model",
+   "match": [
+    "eval pool 2225"
+   ],
+   "decides": "Reference rows for future decisive checks (not valid for models trained on all 8,000 users)"
+  },
+  {
    "what": "One-epoch final decay at 32k, on whichever base wins: dec10&rsquo;s epoch 10, or carried state v2 if it beats dec10 (held until then)",
    "id": "SM40",
    "kind": "gpu-train",
