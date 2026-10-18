@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-10-18T14:02:08+02:00",
- "updated": "2026-10-18 14:02",
- "material": "a7407cfbff2ff6cc",
- "summary": "idle, finished 000456",
+ "generated_at": "2026-10-18T14:04:39+02:00",
+ "updated": "2026-10-18 14:04",
+ "material": "172daab26b3f6cee",
+ "summary": "running 000457",
  "headline": [
   {
    "k": "Best, 464 users (curve / instant)",
@@ -74,7 +74,23 @@
    "track": "small model"
   }
  ],
- "now": [],
+ "now": [
+  {
+   "what": "Carried state v2: 2 epochs at 2,048 from epoch 10 + decay + 464-user scoring, same recipe as arms A and B",
+   "id": "SM21, ticket 000457",
+   "kind": "gpu-train",
+   "decides": "With exact carried state, does 2,048-window training beat 32k (dec10 +1.11% / +0.94%)? Paired with arm B (no carry)",
+   "why": "",
+   "job": "SM21 scale-w64kd-gate-sc-lanes-cont epoch 11/12 (lanes, chunk 2048 x 16, smoke first)",
+   "linked": true,
+   "track": "small model",
+   "ticket": "000457-small-model",
+   "started": "14:03",
+   "elapsed": "0:00",
+   "progress": null,
+   "eta": "~15:23"
+  }
+ ],
  "waiting": [],
  "recent": [
   {
@@ -338,18 +354,18 @@
    "started": "07:12"
   },
   {
-   "what": "Carried state: arm A (carry, done: +1.50% / +1.48%) then arm B (zero start, running; at epoch 11 carry was &minus;0.0004 curve / +0.0004 instant vs zero), each 2 epochs at 2,048 from epoch 10 + decay + 464-user scoring, both with full-history targets",
+   "what": "Carried state v1: arm A (carry) +1.50% / +1.48%, arm B (zero start) +1.50% / +1.56% (464 users after decay); each 2 epochs at 2,048 from epoch 10 + decay, full-history targets",
    "id": "SM21",
    "kind": "gpu-train",
    "track": "small model",
    "decides": "Does carried state get long-window accuracy at short-window speed? (curve &le; &minus;0.001, instant &le; +0.0005)",
    "minutes": 440,
    "state": "done",
+   "ended_at": "2026-10-18T14:01:02+02:00",
    "ended": "14:01",
    "exit": 0,
    "started": "10:21",
-   "started_at": "2026-10-18T10:21:05+02:00",
-   "ended_at": "2026-10-18T14:01:02+02:00"
+   "started_at": "2026-10-18T10:21:05+02:00"
   },
   {
    "what": "Carried state v2 (strided lanes): GPU check vs the CPU reference: ALL OK, +1.4% per update vs v1; largest user peak 10.5 GiB (v1 7.4) under the 0.8 cap",
@@ -372,7 +388,11 @@
    "minutes": 230,
    "track": "small model",
    "decides": "With exact carried state, does 2,048-window training beat 32k (dec10 +1.11% / +0.94%)? Paired with arm B (no carry)",
-   "state": "planned"
+   "state": "running",
+   "started": "14:03",
+   "ticket": "000457-small-model",
+   "started_at": "2026-10-18T14:03:52+02:00",
+   "ends_at": "2026-10-18T17:53:52+02:00"
   },
   {
    "what": "One-epoch final decay at 32k, on whichever base wins: dec10&rsquo;s epoch 10, or carried state v2 if it beats dec10 (held until then)",
@@ -648,6 +668,21 @@
   {
    "date": "10-18",
    "kind": "gpu-train",
+   "name": "Carried state v1, arm B (control, no carry): 2 epochs at 2,048 from epoch 10 + decay, full-history targets",
+   "id": "SM21",
+   "curve": 0.30214,
+   "instant": 0.2764,
+   "curve_pct": 1.5,
+   "instant_pct": 1.56,
+   "eval": "464 users, 22.66M reviews",
+   "fork": "fork 0.29766 / 0.27216; arm A (carry) 0.30213 / 0.27620; 32k dec10 0.30096 / 0.27471",
+   "takeaway": "Gate users at e12: carry beat it by &minus;0.0013 / &minus;0.0005 (CIs below zero); on 464 users after decay only the instant gain holds (&minus;0.0002)",
+   "track": "small model",
+   "label": "s-w64kd-gate-sc-zero-dec12/w8+s8"
+  },
+  {
+   "date": "10-18",
+   "kind": "gpu-train",
    "name": "Carried state v1, arm A (carry): 2 epochs at 2,048 from epoch 10 + decay, full-history targets",
    "id": "SM21",
    "curve": 0.30213,
@@ -656,7 +691,7 @@
    "instant_pct": 1.48,
    "eval": "464 users, 22.66M reviews",
    "fork": "fork 0.29766 / 0.27216; 32k windows dec10 0.30096 / 0.27471 (+1.11% / +0.94%); 2,048 windows dec8 0.30259 / 0.27668 (+1.66% / +1.66%)",
-   "takeaway": "Between the two: &minus;0.0005 / &minus;0.0005 vs 2,048 windows, +0.0012 / +0.0015 vs 32k. Gate users: e11 curve matched 32k, e12 slipped (+0.0003). Expected with v1&rsquo;s stale state; the paired arm B (no carry) is running, v2 (exact state) is coded next",
+   "takeaway": "Paired with arm B (same recipe, no carry), 464 users: &minus;0.00001 / &minus;0.00020 after decay [curve CI &minus;0.0003, +0.0003; instant &minus;0.00033, &minus;0.00007]; before decay (e12) &minus;0.00056 / &minus;0.00041. The decay erased most of the curve gain. Both 2,048-window arms stay behind 32k (+0.0012 / +0.0015). v2 (exact state) is running",
    "track": "small model",
    "label": "s-w64kd-gate-sc-carry-dec12/w8+s8"
   },
