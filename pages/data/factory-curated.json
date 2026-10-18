@@ -270,40 +270,41 @@
    "ended_at": "2026-10-18T07:31:11+02:00"
   },
   {
-   "what": "Carried state: arm A (carry, done: +1.50% / +1.48%) then arm B (zero start, running), each 2 epochs at 2,048 from epoch 10 + decay + 464-user scoring, both with full-history targets",
+   "what": "Carried state: arm A (carry, done: +1.50% / +1.48%) then arm B (zero start, running; at epoch 11 carry was &minus;0.0004 curve / +0.0004 instant vs zero), each 2 epochs at 2,048 from epoch 10 + decay + 464-user scoring, both with full-history targets",
    "id": "SM21",
    "kind": "gpu-train",
    "track": "small model",
    "decides": "Does carried state get long-window accuracy at short-window speed? (curve &le; &minus;0.001, instant &le; +0.0005)",
    "minutes": 440,
    "match": [
-    "SM21 scale-w64kd-gate-sc-"
+    "SM21 scale-w64kd-gate-sc-carry",
+    "SM21 scale-w64kd-gate-sc-zero"
    ]
   },
   {
-   "what": "Instant-weighted (x2) final decay at 32k from epoch 10 (retry: the 04:19 smoke caught a scripted-model bug, fixed and checked)",
-   "id": "SM26",
+   "what": "Carried state v2 (strided lanes): GPU check vs the CPU reference, before training",
+   "id": "SM21",
    "kind": "gpu-train",
-   "minutes": 100,
-   "decides": "Does weighting the instant loss close the instant gap without hurting the curve? Paired with dec10",
+   "minutes": 15,
    "track": "small model",
    "match": [
-    "SM26 instant-weighted"
-   ]
+    "SM21 v2 GPU parity"
+   ],
+   "decides": "Exact on the GPU; speed per update vs v1"
   },
   {
-   "what": "Score the instant-weighted decay on all 464 users",
-   "id": "SM26",
-   "kind": "gpu-score",
-   "minutes": 25,
-   "decides": "Its 464-user number",
+   "what": "Carried state v2: 2 epochs at 2,048 from epoch 10 + decay + 464-user scoring, same recipe as arms A and B",
+   "id": "SM21",
+   "kind": "gpu-train",
+   "minutes": 230,
    "track": "small model",
    "match": [
-    "SM26 scoring"
-   ]
+    "sc-lanes"
+   ],
+   "decides": "With exact carried state, does 2,048-window training beat 32k (dec10 +1.11% / +0.94%)? Paired with arm B (no carry)"
   },
   {
-   "what": "One-epoch final decay at 32k from epoch 10 (vs the quarter-epoch dec10)",
+   "what": "One-epoch final decay at 32k, on whichever base wins: dec10&rsquo;s epoch 10, or carried state v2 if it beats dec10 (held until then)",
    "id": "SM40",
    "kind": "gpu-train",
    "minutes": 290,
@@ -311,7 +312,7 @@
    "match": [
     "SM40 1-epoch decay"
    ],
-   "decides": "The one-epoch decay gained &minus;0.00033 curve at 2,048 (SM35); here that would bring the curve to about the +1.0% bar (moved after carried state, 10-18)"
+   "decides": "The one-epoch decay gained &minus;0.00033 curve at 2,048 (SM35); on dec10 that is about the +1.0% bar (needs &minus;0.0003). Run after v2 so its 5 h go on the better base (10-18 reorder)"
   },
   {
    "what": "Score the one-epoch 32k decay on all 464 users",
@@ -322,7 +323,7 @@
    "match": [
     "SM40 scoring"
    ],
-   "decides": "Bar met or not (paired with dec10)"
+   "decides": "Bar met or not (paired with its base)"
   },
   {
    "what": "Carried state, code (CPU): full-history targets (SM11, 18/18 checks) + kernels with a starting state and the trainer option (SM21, all checks bit for bit); merged together",
@@ -396,6 +397,13 @@
    "item": "Training with carried state between a user&rsquo;s windows",
    "id": "SM21",
    "why": "Moved up 10-18 (user): full-history context at short-window speed (2,048 windows ~5x faster than 32k). Designed, CPU prototype exact; code started 10-18",
+   "track": "small model"
+  },
+  {
+   "status": "later",
+   "item": "Instant-weighted (x2) final decay (fixed and checked, ready to run)",
+   "id": "SM26",
+   "why": "Moved back 10-18: instant already passes the bar (+0.94%) and the weighting likely costs curve, the failing head. Insurance if a later model slips on instant",
    "track": "small model"
   },
   {
