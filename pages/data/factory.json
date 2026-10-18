@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-10-18T15:18:43+02:00",
- "updated": "2026-10-18 15:18",
- "material": "58cf5cf335f71269",
- "summary": "running 000459, finished 000458",
+ "generated_at": "2026-10-18T16:32:25+02:00",
+ "updated": "2026-10-18 16:32",
+ "material": "90301ecd714acdd0",
+ "summary": "running 000461, finished 000460",
  "headline": [
   {
    "k": "Best, 464 users (curve / instant)",
@@ -77,22 +77,40 @@
  "now": [
   {
    "what": "Carried state v2: 2 epochs at 2,048 from epoch 10 + decay + 464-user scoring, same recipe as arms A and B. Epoch 11 gate: instant &minus;0.0011 vs no carry and &minus;0.0015 vs v1 (beats 32k e10 by &minus;0.0004); curve same as no carry (v1 was &minus;0.0004)",
-   "id": "SM21, ticket 000459",
+   "id": "SM21, ticket 000461",
    "kind": "gpu-train",
    "decides": "With exact carried state, does 2,048-window training beat 32k (dec10 +1.11% / +0.94%)? Paired with arm B (no carry)",
    "why": "",
-   "job": "SM21 scale-w64kd-gate-sc-lanes-cont epoch 12/12 (lanes, chunk 2048 x 16, smoke first)",
+   "job": "SM21 scale-w64kd-gate-sc-lanes-cont: 0.25-epoch decay from e12 (lanes, chunk 2048, smoke first)",
    "linked": true,
    "track": "small model",
-   "ticket": "000459-small-model",
-   "started": "15:17",
-   "elapsed": "0:00",
+   "ticket": "000461-small-model",
+   "started": "16:31",
+   "elapsed": "0:01",
    "progress": null,
-   "eta": "~16:37"
+   "eta": "~16:56"
   }
  ],
  "waiting": [],
  "recent": [
+  {
+   "ticket": "000460-small-model",
+   "id": "SM21",
+   "what": "SM21 gate: score s-w64kd-gate-sc-lanes-e12 on the 100 gate users",
+   "ended": "16:31",
+   "date": "10-18",
+   "exit": 0,
+   "ran": "0:03"
+  },
+  {
+   "ticket": "000459-small-model",
+   "id": "SM21",
+   "what": "SM21 scale-w64kd-gate-sc-lanes-cont epoch 12/12 (lanes, chunk 2048 x 16, smoke first)",
+   "ended": "16:27",
+   "date": "10-18",
+   "exit": 0,
+   "ran": "1:10"
+  },
   {
    "ticket": "000458-small-model",
    "id": "SM21",
@@ -128,24 +146,6 @@
    "date": "10-18",
    "exit": 0,
    "ran": "0:28"
-  },
-  {
-   "ticket": "000454-small-model",
-   "id": "",
-   "what": "SM21 gate: score s-w64kd-gate-sc-zero-e12 on the 100 gate users",
-   "ended": "13:10",
-   "date": "10-18",
-   "exit": 0,
-   "ran": "0:03"
-  },
-  {
-   "ticket": "000453-small-model",
-   "id": "SM21",
-   "what": "SM21 v2 GPU parity: strided-lane carry check (P/X/T/M)",
-   "ended": "13:06",
-   "date": "10-18",
-   "exit": 0,
-   "ran": "0:01"
   }
  ],
  "plan": [
@@ -389,10 +389,10 @@
    "track": "small model",
    "decides": "With exact carried state, does 2,048-window training beat 32k (dec10 +1.11% / +0.94%)? Paired with arm B (no carry)",
    "state": "running",
-   "started": "15:17",
-   "ticket": "000459-small-model",
-   "started_at": "2026-10-18T15:14:13+02:00",
-   "ends_at": "2026-10-18T19:04:13+02:00"
+   "started": "16:31",
+   "ticket": "000461-small-model",
+   "started_at": "2026-10-18T16:27:54+02:00",
+   "ends_at": "2026-10-18T20:17:54+02:00"
   },
   {
    "what": "One-epoch final decay at 32k, on whichever base wins: dec10&rsquo;s epoch 10, or carried state v2 if it beats dec10 (held until then)",
