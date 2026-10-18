@@ -356,13 +356,14 @@
    "ended_at": "2026-10-18T07:15:00+02:00"
   },
   {
-   "what": "Carried state v2 (strided lanes: each update takes windows u, u+U, u+2U&hellip; so every window starts from its predecessor&rsquo;s exact end state), code + CPU checks",
+   "what": "Carried state v2 (strided lanes: each update takes windows u, u+U, u+2U&hellip; so every window starts from its predecessor&rsquo;s exact end state), code + CPU checks: ALL OK",
    "id": "SM21",
    "kind": "cpu",
-   "state": "running",
+   "state": "done",
    "started_at": "2026-10-18T09:05:00+02:00",
-   "decides": "v1 measured stale: 29% of card reviews and 92% of windows&rsquo; user state start from a stale point (likely the +0.0011 instant loss)",
-   "track": "small model"
+   "decides": "Stale card states 29.4% &rarr; 0%; exact carry 8.9% &rarr; 19.2%; 19.1% now start from zero at the 16 lane cuts (arm B: all cross-window states start from zero)",
+   "track": "small model",
+   "ended_at": "2026-10-18T12:40:00+02:00"
   },
   {
    "what": "Own collection + spaced-slice breakdown for the night&rsquo;s decays (compression-in-training, instant-weighted, one-epoch 32k) as they land",

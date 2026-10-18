@@ -1,7 +1,7 @@
 {
- "generated_at": "2026-10-18T12:06:39+02:00",
- "updated": "2026-10-18 12:06",
- "material": "d81cb079ad6a0a21",
+ "generated_at": "2026-10-18T12:48:12+02:00",
+ "updated": "2026-10-18 12:48",
+ "material": "7a508e81150a77e3",
  "summary": "running 000452",
  "headline": [
   {
@@ -86,12 +86,19 @@
    "track": "small model",
    "ticket": "000452-small-model",
    "started": "11:56",
-   "elapsed": "0:10",
+   "elapsed": "0:51",
    "progress": null,
    "eta": "~13:16"
   }
  ],
- "waiting": [],
+ "waiting": [
+  {
+   "ticket": "000453-small-model",
+   "id": "SM21",
+   "what": "SM21 v2 GPU parity: strided-lane carry check (P/X/T/M)",
+   "flags": "expected 15 min"
+  }
+ ],
  "recent": [
   {
    "ticket": "000451-small-model",
@@ -373,7 +380,8 @@
    "minutes": 15,
    "track": "small model",
    "decides": "Exact on the GPU; speed per update vs v1",
-   "state": "planned"
+   "state": "waiting",
+   "ticket": "000453-small-model"
   },
   {
    "what": "Carried state v2: 2 epochs at 2,048 from epoch 10 + decay + 464-user scoring, same recipe as arms A and B",
@@ -433,13 +441,14 @@
    "ended_at": "2026-10-18T07:15:00+02:00"
   },
   {
-   "what": "Carried state v2 (strided lanes: each update takes windows u, u+U, u+2U&hellip; so every window starts from its predecessor&rsquo;s exact end state), code + CPU checks",
+   "what": "Carried state v2 (strided lanes: each update takes windows u, u+U, u+2U&hellip; so every window starts from its predecessor&rsquo;s exact end state), code + CPU checks: ALL OK",
    "id": "SM21",
    "kind": "cpu",
-   "state": "running",
+   "state": "done",
    "started_at": "2026-10-18T09:05:00+02:00",
-   "decides": "v1 measured stale: 29% of card reviews and 92% of windows&rsquo; user state start from a stale point (likely the +0.0011 instant loss)",
-   "track": "small model"
+   "decides": "Stale card states 29.4% &rarr; 0%; exact carry 8.9% &rarr; 19.2%; 19.1% now start from zero at the 16 lane cuts (arm B: all cross-window states start from zero)",
+   "track": "small model",
+   "ended_at": "2026-10-18T12:40:00+02:00"
   },
   {
    "what": "Own collection + spaced-slice breakdown for the night&rsquo;s decays (compression-in-training, instant-weighted, one-epoch 32k) as they land",
