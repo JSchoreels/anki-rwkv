@@ -63,3 +63,18 @@ Branch `state-carry`, worktree `C:/Users/jonat/workspace/wt/state-carry`. Design
 - Rows and windows: one update = 16 consecutive 2,048-review windows of one user, so v1 only carries across updates. For users with ≤ 32,768 training reviews (one update) carry changes nothing except the consistent inputs.
 - Table size measured on CPU: user 8254 (10k reviews) 52 MB fp32 / 16 MB deploy. The design's maximum is ≈ 0.4 GB int8 for the largest user.
 - Commit identity: `git -c user.name="Jonathan Schoreels" -c user.email=jonathan.schoreels@gmail.com commit`; push `origin state-carry`.
+
+## Experiment runbook (written 2026-10-18, NOT launched)
+
+`artifacts/small-model/runbook-2026-10-18-sm21.sh` (dry run log: `artifacts/small-model/runbook-2026-10-18-sm21-dryrun.log`, ends with `DRYRUN OK`). Arm A (carry, `"state_carry": true`) runs completely first, then arm B (control, `{"carry": false}`); both continue from epoch 10 of `scale-w64kd-gate-cached-ctx32768-cont` at 2,048 x 16 with SM11 replay targets, epochs 11-12, 0.25-epoch decay, 464-user scoring. About 436 GPU minutes in total (218 per arm). Launch only after the SM11 replay export is complete:
+
+```
+# 1. export complete? (exit 0 = yes)
+C:/Users/jonat/workspace/anki-rwkv/.venv/Scripts/python.exe -X utf8 C:/Users/jonat/workspace/wt/state-carry/scripts/sm11_replay_export.py status --out C:/Users/jonat/workspace/anki-rwkv/artifacts/cache/kd-replay/fork-fp32-gate5k --run C:/Users/jonat/workspace/wt/sm11/artifacts/accuracy/experiments/scale-w64kd-gate/run/run.json
+# 2. dry run (CPU, ~20 s; the export warning is expected until it is complete)
+DRYRUN=1 bash C:/Users/jonat/workspace/wt/state-carry/artifacts/small-model/runbook-2026-10-18-sm21.sh
+# 3. launch (detached; rerun the same command to resume; ONLY_ARM=carry|zero for one arm)
+nohup bash C:/Users/jonat/workspace/wt/state-carry/artifacts/small-model/runbook-2026-10-18-sm21.sh > C:/Users/jonat/workspace/wt/state-carry/artifacts/small-model/runbook-2026-10-18-sm21.log 2>&1 & disown
+```
+
+Verify: log lines `[sm21 HH:MM:SS]`, last line `done`; results `artifacts/small-model/sm21-summary.json` / `.md` (decision rule A - B: curve <= -0.001 with upper95 < 0 and instant <= +0.0005), new score rows in `artifacts/small-model/heldout-sm21.jsonl` (commit it afterwards). Do not edit this worktree while it runs. Real run refuses uncommitted source in scripts/ expertium/ rwkv/.
