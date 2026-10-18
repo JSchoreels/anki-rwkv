@@ -149,6 +149,8 @@ class Exporter:
             os.replace(temporary, manifest)
         base = {k: v.float() for k, v in torch.load(teacher, map_location="cpu", weights_only=True).items()}
         if self.device.type == "cuda":
+            # Leave room for the desktop (the probe reached 15.3 of 16 GB uncapped); an OOM halves the pass and retries.
+            torch.cuda.set_per_process_memory_fraction(float(os.environ.get("SM11_GPU_MEMORY_FRACTION", "0.8")))
             from scripts import compress_wkv_cuda
             compress_wkv_cuda.register_cuda()
             errors = {f"fork/bits{b}": e for b, e in compress_wkv_cuda.self_test().items()}
