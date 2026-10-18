@@ -33,7 +33,7 @@ def ranges_from_log(after):
     out = []
     for line in LOG.read_text(encoding="utf-8").splitlines() if LOG.exists() else []:
         e = json.loads(line)
-        if e["time"] <= after or e.get("blocked"):
+        if e["time"] <= after or e.get("blocked") or not e.get("remote"):  # manual --range runs are not pushes
             continue
         for r in e["ranges"]:
             if r["commits"]:
