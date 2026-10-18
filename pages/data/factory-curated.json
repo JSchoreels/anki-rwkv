@@ -208,7 +208,10 @@
     "cont-repflags: 0.25-epoch decay",
     "cont-repflags: full-history scoring"
    ],
-   "minutes": 200
+   "minutes": 200,
+   "state": "done",
+   "ended_at": "2026-10-18T02:58:26+02:00",
+   "started_at": "2026-10-17T23:50:34+02:00"
   },
   {
    "what": "GPU probe of the full-history export: a 10-min slice (kept, the export resumes)",
@@ -517,6 +520,13 @@
    "id": "SM12",
    "why": "Measured 10-18: closes nothing (+1.11% to +1.10% curve, instant unchanged)",
    "track": "small model"
+  },
+  {
+   "status": "dropped",
+   "item": "Review-number flags as inputs",
+   "id": "SM30",
+   "why": "Measured 10-18: curve +0.00003, instant &minus;0.00004 vs the same run without them (464 users)",
+   "track": "small model"
   }
  ],
  "known_labels": [
@@ -536,6 +546,21 @@
   "s-w64kd-gate-ctx2048c-dec8-1ep/w8+s8"
  ],
  "results": [
+  {
+   "date": "10-18",
+   "kind": "gpu-train",
+   "name": "Review-number flags as inputs (2nd / 3rd / 4th+ review), 2 epochs at 2,048 + decay",
+   "id": "SM30",
+   "curve": 0.30261,
+   "instant": 0.27663,
+   "curve_pct": 1.66,
+   "instant_pct": 1.64,
+   "eval": "464 users, 22.66M reviews",
+   "fork": "fork 0.29766 / 0.27216; same run without flags 0.30259 / 0.27667",
+   "takeaway": "No gain: curve +0.00003 [&minus;0.00005, +0.00012], instant &minus;0.00004 [&minus;0.00006, &minus;0.00003] (233 / 256 of 464 users better). Instant gain real but ~1/10 of what would matter. Dropped; at 32k the model can count reviews itself anyway",
+   "track": "small model",
+   "label": "s-w64kd-gate-ctx2048crf-dec8"
+  },
   {
    "date": "10-18",
    "kind": "cpu",
