@@ -239,7 +239,12 @@ class Exporter:
                 prepared = None
                 continue
             try:
-                return self.write(user, frame, masks, passes, prepare_seconds, prepared)
+                try:
+                    return self.write(user, frame, masks, passes, prepare_seconds, prepared)
+                except RuntimeError as error:  # TorchScript wraps a CUDA OOM in a plain RuntimeError (user 2247, ticket 000441)
+                    if isinstance(error, torch.OutOfMemoryError) or "out of memory" not in str(error).lower():
+                        raise
+                    raise torch.OutOfMemoryError(str(error)[:300]) from error
             except torch.OutOfMemoryError as error:
                 prepared = None
                 torch.cuda.empty_cache()
