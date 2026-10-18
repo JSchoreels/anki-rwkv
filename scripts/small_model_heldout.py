@@ -219,8 +219,9 @@ def main():
     done = {}
     if out.exists():
         for row in map(json.loads, out.read_text().splitlines()):
-            done.setdefault(row["user_id"], set()).add(row["label"])
-    todo = [u for u in users if not set(grid) <= done.get(u, set())]
+            if "error" not in row:  # an OOM row is retried (e.g. with more memory or expandable segments)
+                done.setdefault(row["user_id"], set()).add(row["label"])
+    todo =[u for u in users if not set(grid) <= done.get(u, set())]
 
     models, states = {}, {}
     for label in grid:
@@ -280,7 +281,9 @@ def main():
                 try:
                     with torch.inference_mode():
                         values, predictions = evaluate_with_predictions(model, [{"batch": gpu_batch}])
-                except torch.OutOfMemoryError as oom:
+                except (torch.OutOfMemoryError, RuntimeError) as oom:
+                    if not isinstance(oom, torch.OutOfMemoryError) and "out of memory" not in str(oom):
+                        raise  # TorchScript wraps a CUDA OOM in a plain RuntimeError
                     torch.cuda.empty_cache()
                     rows.append({"user_id": user, "label": label, "error": f"OOM: {oom}"[:300]})
                     continue
