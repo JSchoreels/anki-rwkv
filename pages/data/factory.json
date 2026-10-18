@@ -1,7 +1,7 @@
 {
- "generated_at": "2026-10-18T16:47:04+02:00",
- "updated": "2026-10-18 16:47",
- "material": "70bbc0b6133d826d",
+ "generated_at": "2026-10-18T16:51:04+02:00",
+ "updated": "2026-10-18 16:51",
+ "material": "fa8d8e171eee1785",
  "summary": "running 000461",
  "headline": [
   {
@@ -86,7 +86,7 @@
    "track": "small model",
    "ticket": "000461-small-model",
    "started": "16:31",
-   "elapsed": "0:15",
+   "elapsed": "0:19",
    "progress": null,
    "eta": "~16:56"
   }
@@ -395,19 +395,20 @@
    "ends_at": "2026-10-18T20:17:54+02:00"
   },
   {
-   "what": "Bigger evaluation sets, code (CPU): 732 users (all fork-unseen validation users) as the new standard, 2,225 (+ training users our models never used) for decisive checks",
+   "what": "Bigger evaluation sets, code (CPU): 732 users (all fork-unseen validation users) as the new standard, 2,225 (+ training users our models never used) for decisive checks; checks ALL OK, dry runs OK",
    "id": "EVAL",
    "kind": "cpu",
    "track": "small model",
-   "state": "running",
+   "state": "done",
    "started_at": "2026-10-18T16:55:00+02:00",
-   "decides": "User 10-18: tighter confidence intervals (about 20% narrower at 732, about half at 2,225)"
+   "decides": "User 10-18: tighter confidence intervals (about 20% narrower at 732, about half at 2,225)",
+   "ended_at": "2026-10-18T16:55:00+02:00"
   },
   {
-   "what": "Score the 268 new users of the 732-user set: fork, 32k dec10, carried state arms A / B and v2",
+   "what": "Score the 268 new users of the 732-user set: fork, 32k dec10, carried state arms A / B and v2 (starts when the v2 runbook ends)",
    "id": "EVAL",
    "kind": "gpu-score",
-   "minutes": 60,
+   "minutes": 50,
    "track": "small model",
    "decides": "732-user readout for v2 vs 32k and for the bar",
    "state": "planned"
@@ -416,7 +417,7 @@
    "what": "Score the 2,225-user set (fork, 32k dec10, best carried-state model), when the GPU is otherwise free",
    "id": "EVAL",
    "kind": "gpu-score",
-   "minutes": 300,
+   "minutes": 295,
    "track": "small model",
    "decides": "Reference rows for future decisive checks (not valid for models trained on all 8,000 users)",
    "state": "planned"
