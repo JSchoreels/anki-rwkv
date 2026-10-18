@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-10-18T07:30:58+02:00",
- "updated": "2026-10-18 07:30",
- "material": "6bba81f18bd10941",
- "summary": "idle, finished 000443",
+ "generated_at": "2026-10-18T07:36:01+02:00",
+ "updated": "2026-10-18 07:36",
+ "material": "b0adf1059f37aa46",
+ "summary": "running 000444",
  "headline": [
   {
    "k": "Best, 464 users (curve / instant)",
@@ -74,7 +74,23 @@
    "track": "small model"
   }
  ],
- "now": [],
+ "now": [
+  {
+   "what": "Carried state: arm A (carry) then arm B (zero start), each 2 epochs at 2,048 from epoch 10 + decay + 464-user scoring, both with full-history targets",
+   "id": "SM21, ticket 000444",
+   "kind": "gpu-train",
+   "decides": "Does carried state get long-window accuracy at short-window speed? (curve &le; &minus;0.001, instant &le; +0.0005)",
+   "why": "",
+   "job": "SM21 scale-w64kd-gate-sc-carry-cont epoch 11/12 (carry, chunk 2048 x 16, smoke first)",
+   "linked": true,
+   "track": "small model",
+   "ticket": "000444-small-model",
+   "started": "07:31",
+   "elapsed": "0:04",
+   "progress": null,
+   "eta": "~08:51"
+  }
+ ],
  "waiting": [],
  "recent": [
   {
@@ -324,26 +340,31 @@
    "started": "02:59"
   },
   {
-   "what": "Fork full-history replay on the 5,000 training users (probe: 37,460 reviews/s, 372 users done; ~3 h left, resumable, GPU memory capped at 80%)",
+   "what": "Fork full-history replay on the 5,000 training users: done (369M reviews, 3 tickets, 8/8 sampled users verified on CPU)",
    "id": "SM11",
    "kind": "gpu-score",
    "minutes": 180,
    "track": "small model",
    "decides": "Distillation targets for carried-state training (CPU checks passed: matches the full-history fork within float16 rounding)",
    "state": "done",
+   "started_at": "2026-10-18T07:12:13+02:00",
+   "ended_at": "2026-10-18T07:29:12+02:00",
    "ended": "07:29",
    "exit": 0,
-   "started": "07:12",
-   "started_at": "2026-10-18T07:12:13+02:00",
-   "ended_at": "2026-10-18T07:29:12+02:00"
+   "started": "07:12"
   },
   {
-   "what": "Carried state: 2 epochs at 2,048 from epoch 10 + decay + 464-user scoring, carry vs zero start (both with full-history targets); starts after the replay if its runbook passes a dry run",
+   "what": "Carried state: arm A (carry) then arm B (zero start), each 2 epochs at 2,048 from epoch 10 + decay + 464-user scoring, both with full-history targets",
    "id": "SM21",
    "kind": "gpu-train",
    "track": "small model",
    "decides": "Does carried state get long-window accuracy at short-window speed? (curve &le; &minus;0.001, instant &le; +0.0005)",
-   "minutes": 440
+   "minutes": 440,
+   "state": "running",
+   "started": "07:31",
+   "ticket": "000444-small-model",
+   "started_at": "2026-10-18T07:31:17+02:00",
+   "ends_at": "2026-10-18T14:51:17+02:00"
   },
   {
    "what": "Instant-weighted (x2) final decay at 32k from epoch 10 (retry: the 04:19 smoke caught a scripted-model bug, fixed and checked)",
