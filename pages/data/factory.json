@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-10-18T09:51:19+02:00",
- "updated": "2026-10-18 09:51",
- "material": "8a430a6d76c5d3b1",
- "summary": "running 000447, finished 000446",
+ "generated_at": "2026-10-18T09:56:22+02:00",
+ "updated": "2026-10-18 09:56",
+ "material": "5f158031459d9b73",
+ "summary": "running 000448, finished 000447",
  "headline": [
   {
    "k": "Best, 464 users (curve / instant)",
@@ -76,23 +76,32 @@
  ],
  "now": [
   {
-   "what": "SM21 gate: score s-w64kd-gate-sc-carry-e12 on the 100 gate users",
-   "id": "000447-small-model",
+   "what": "Carried state: arm A (carry) then arm B (zero start), each 2 epochs at 2,048 from epoch 10 + decay + 464-user scoring, both with full-history targets",
+   "id": "SM21, ticket 000448",
    "kind": "gpu-train",
-   "decides": "",
+   "decides": "Does carried state get long-window accuracy at short-window speed? (curve &le; &minus;0.001, instant &le; +0.0005)",
    "why": "",
-   "job": "SM21 gate: score s-w64kd-gate-sc-carry-e12 on the 100 gate users",
-   "linked": false,
+   "job": "SM21 scale-w64kd-gate-sc-carry-cont: 0.25-epoch decay from e12 (carry, chunk 2048, smoke first)",
+   "linked": true,
    "track": "small model",
-   "ticket": "000447-small-model",
-   "started": "09:48",
-   "elapsed": "0:02",
+   "ticket": "000448-small-model",
+   "started": "09:52",
+   "elapsed": "0:04",
    "progress": null,
-   "eta": "~09:52"
+   "eta": "~10:17"
   }
  ],
  "waiting": [],
  "recent": [
+  {
+   "ticket": "000447-small-model",
+   "id": "",
+   "what": "SM21 gate: score s-w64kd-gate-sc-carry-e12 on the 100 gate users",
+   "ended": "09:52",
+   "date": "10-18",
+   "exit": 0,
+   "ran": "0:03"
+  },
   {
    "ticket": "000446-small-model",
    "id": "SM21",
@@ -134,15 +143,6 @@
    "id": "SM11",
    "what": "SM11 fork full-history replay targets, gate 5k users (ticket 2, resumable)",
    "ended": "07:12",
-   "date": "10-18",
-   "exit": 3,
-   "ran": "1:25"
-  },
-  {
-   "ticket": "000441-small-model",
-   "id": "SM11",
-   "what": "SM11 fork full-history replay targets, gate 5k users (ticket 1, resumable)",
-   "ended": "05:46",
    "date": "10-18",
    "exit": 3,
    "ran": "1:25"
@@ -360,12 +360,11 @@
    "track": "small model",
    "decides": "Does carried state get long-window accuracy at short-window speed? (curve &le; &minus;0.001, instant &le; +0.0005)",
    "minutes": 440,
-   "state": "done",
-   "ended": "09:48",
-   "exit": 0,
-   "started": "08:41",
+   "state": "running",
+   "started": "09:52",
+   "ticket": "000448-small-model",
    "started_at": "2026-10-18T08:41:46+02:00",
-   "ended_at": "2026-10-18T09:48:36+02:00"
+   "ends_at": "2026-10-18T16:01:46+02:00"
   },
   {
    "what": "Instant-weighted (x2) final decay at 32k from epoch 10 (retry: the 04:19 smoke caught a scripted-model bug, fixed and checked)",
