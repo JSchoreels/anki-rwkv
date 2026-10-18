@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-10-18T12:48:12+02:00",
- "updated": "2026-10-18 12:48",
- "material": "7a508e81150a77e3",
- "summary": "running 000452",
+ "generated_at": "2026-10-18T13:06:56+02:00",
+ "updated": "2026-10-18 13:06",
+ "material": "437657dbf1b4b408",
+ "summary": "running 000454, finished 000453",
  "headline": [
   {
    "k": "Best, 464 users (curve / instant)",
@@ -76,30 +76,41 @@
  ],
  "now": [
   {
-   "what": "Carried state: arm A (carry, done: +1.50% / +1.48%) then arm B (zero start, running; at epoch 11 carry was &minus;0.0004 curve / +0.0004 instant vs zero), each 2 epochs at 2,048 from epoch 10 + decay + 464-user scoring, both with full-history targets",
-   "id": "SM21, ticket 000452",
+   "what": "SM21 gate: score s-w64kd-gate-sc-zero-e12 on the 100 gate users",
+   "id": "000454-small-model",
    "kind": "gpu-train",
-   "decides": "Does carried state get long-window accuracy at short-window speed? (curve &le; &minus;0.001, instant &le; +0.0005)",
+   "decides": "",
    "why": "",
-   "job": "SM21 scale-w64kd-gate-sc-zero-cont epoch 12/12 (zero, chunk 2048 x 16, smoke first)",
-   "linked": true,
+   "job": "SM21 gate: score s-w64kd-gate-sc-zero-e12 on the 100 gate users",
+   "linked": false,
    "track": "small model",
-   "ticket": "000452-small-model",
-   "started": "11:56",
-   "elapsed": "0:51",
+   "ticket": "000454-small-model",
+   "started": "13:06",
+   "elapsed": "0:00",
    "progress": null,
-   "eta": "~13:16"
+   "eta": "~13:10"
   }
  ],
- "waiting": [
+ "waiting": [],
+ "recent": [
   {
    "ticket": "000453-small-model",
    "id": "SM21",
    "what": "SM21 v2 GPU parity: strided-lane carry check (P/X/T/M)",
-   "flags": "expected 15 min"
-  }
- ],
- "recent": [
+   "ended": "13:06",
+   "date": "10-18",
+   "exit": 0,
+   "ran": "0:01"
+  },
+  {
+   "ticket": "000452-small-model",
+   "id": "SM21",
+   "what": "SM21 scale-w64kd-gate-sc-zero-cont epoch 12/12 (zero, chunk 2048 x 16, smoke first)",
+   "ended": "13:05",
+   "date": "10-18",
+   "exit": 0,
+   "ran": "1:09"
+  },
   {
    "ticket": "000451-small-model",
    "id": "",
@@ -135,24 +146,6 @@
    "date": "10-18",
    "exit": 0,
    "ran": "0:28"
-  },
-  {
-   "ticket": "000447-small-model",
-   "id": "",
-   "what": "SM21 gate: score s-w64kd-gate-sc-carry-e12 on the 100 gate users",
-   "ended": "09:52",
-   "date": "10-18",
-   "exit": 0,
-   "ran": "0:03"
-  },
-  {
-   "ticket": "000446-small-model",
-   "id": "SM21",
-   "what": "SM21 scale-w64kd-gate-sc-carry-cont epoch 12/12 (carry, chunk 2048 x 16, smoke first)",
-   "ended": "09:48",
-   "date": "10-18",
-   "exit": 0,
-   "ran": "1:06"
   }
  ],
  "plan": [
@@ -367,11 +360,12 @@
    "track": "small model",
    "decides": "Does carried state get long-window accuracy at short-window speed? (curve &le; &minus;0.001, instant &le; +0.0005)",
    "minutes": 440,
-   "state": "running",
-   "started": "11:56",
-   "ticket": "000452-small-model",
+   "state": "done",
+   "ended": "13:05",
+   "exit": 0,
+   "started": "10:21",
    "started_at": "2026-10-18T10:21:05+02:00",
-   "ends_at": "2026-10-18T17:41:05+02:00"
+   "ended_at": "2026-10-18T13:05:44+02:00"
   },
   {
    "what": "Carried state v2 (strided lanes): GPU check vs the CPU reference, before training",
@@ -380,8 +374,12 @@
    "minutes": 15,
    "track": "small model",
    "decides": "Exact on the GPU; speed per update vs v1",
-   "state": "waiting",
-   "ticket": "000453-small-model"
+   "state": "done",
+   "ended": "13:06",
+   "exit": 0,
+   "started": "13:05",
+   "started_at": "2026-10-18T13:05:44+02:00",
+   "ended_at": "2026-10-18T13:06:45+02:00"
   },
   {
    "what": "Carried state v2: 2 epochs at 2,048 from epoch 10 + decay + 464-user scoring, same recipe as arms A and B",
