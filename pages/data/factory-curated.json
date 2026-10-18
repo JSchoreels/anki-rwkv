@@ -219,10 +219,13 @@
    "match": [
     "SM11 replay probe"
    ],
-   "decides": "GPU memory and speed of the export before the 5-h run"
+   "decides": "GPU memory and speed of the export before the 5-h run",
+   "state": "done",
+   "started_at": "2026-10-18T01:52:30+02:00",
+   "ended_at": "2026-10-18T02:02:45+02:00"
   },
   {
-   "what": "Carried-state GPU check: new kernels vs the reference, trainer carry path on the GPU, cost per update",
+   "what": "Carried-state GPU check: ALL OK (bit for bit with an empty state; matches full history to 5e-7); carry costs +9% per update",
    "id": "SM21",
    "kind": "gpu-speed",
    "minutes": 15,
@@ -230,7 +233,10 @@
    "match": [
     "SM21 GPU parity"
    ],
-   "decides": "Kernels and trainer correct on the GPU; how much the carry costs per update (CPU checks all passed)"
+   "decides": "Kernels and trainer correct on the GPU; how much the carry costs per update (CPU checks all passed)",
+   "state": "done",
+   "started_at": "2026-10-18T02:02:50+02:00",
+   "ended_at": "2026-10-18T02:04:05+02:00"
   },
   {
    "what": "Final decay at 32k from epoch 10 with the state compression trained in (~400/400 bits), then CPU scoring on 34 users (CPU part runs next to SM26)",
@@ -266,6 +272,25 @@
    ]
   },
   {
+   "what": "Fork full-history replay on the 5,000 training users (probe: 37,460 reviews/s, 372 users done; ~3 h left, resumable, GPU memory capped at 80%)",
+   "id": "SM11",
+   "kind": "gpu-score",
+   "minutes": 180,
+   "track": "small model",
+   "match": [
+    "SM11 fork full-history replay targets"
+   ],
+   "decides": "Distillation targets for carried-state training (CPU checks passed: matches the full-history fork within float16 rounding)"
+  },
+  {
+   "what": "Carried state: 2 epochs at 2,048 from epoch 10 + decay + 464-user scoring, carry vs zero start (both with full-history targets); starts after the replay if its runbook passes a dry run",
+   "id": "SM21",
+   "kind": "gpu-train",
+   "track": "small model",
+   "decides": "Does carried state get long-window accuracy at short-window speed? (curve &le; &minus;0.001, instant &le; +0.0005)",
+   "minutes": 440
+  },
+  {
    "what": "One-epoch final decay at 32k from epoch 10 (vs the quarter-epoch dec10)",
    "id": "SM40",
    "kind": "gpu-train",
@@ -274,7 +299,7 @@
    "match": [
     "SM40 1-epoch decay"
    ],
-   "decides": "The one-epoch decay gained &minus;0.00033 curve at 2,048 (SM35); here that would bring the curve to about the +1.0% bar"
+   "decides": "The one-epoch decay gained &minus;0.00033 curve at 2,048 (SM35); here that would bring the curve to about the +1.0% bar (moved after carried state, 10-18)"
   },
   {
    "what": "Score the one-epoch 32k decay on all 464 users",
@@ -286,17 +311,6 @@
     "SM40 scoring"
    ],
    "decides": "Bar met or not (paired with dec10)"
-  },
-  {
-   "what": "Fork full-history replay on the 5,000 training users (probe: 37,460 reviews/s, 372 users done; ~3 h left, resumable, GPU memory capped at 80%)",
-   "id": "SM11",
-   "kind": "gpu-score",
-   "minutes": 180,
-   "track": "small model",
-   "match": [
-    "SM11 fork full-history replay targets"
-   ],
-   "decides": "Distillation targets for carried-state training (CPU checks passed: matches the full-history fork within float16 rounding)"
   },
   {
    "what": "Carried state, code (CPU): full-history targets (SM11, 18/18 checks) + kernels with a starting state and the trainer option (SM21, all checks bit for bit); merged together",
@@ -315,14 +329,6 @@
    "track": "small model",
    "when": "10-18 morning, next to the GPU",
    "decides": "Same tables as dec10 for each new candidate"
-  },
-  {
-   "what": "Carried state: 2 epochs at 2,048 from epoch 10 + decay + 464-user scoring, carry vs the same run with zero start (both with full-history targets); runbook to write",
-   "id": "SM21",
-   "kind": "gpu-train",
-   "track": "small model",
-   "when": "after the replay, ~3 h GPU",
-   "decides": "Does carried state get long-window accuracy at short-window speed? (curve &le; &minus;0.001, instant &le; +0.0005)"
   },
   {
    "what": "Calibration temperature fitted offline on the per-review dumps (CPU, user-split cross-validation)",
