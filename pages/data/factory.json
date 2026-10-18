@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-10-18T01:54:59+02:00",
- "updated": "2026-10-18 01:54",
- "material": "b3839820bc3d7788",
- "summary": "running 000434, finished 000433",
+ "generated_at": "2026-10-18T02:05:02+02:00",
+ "updated": "2026-10-18 02:05",
+ "material": "c3242d7486f434ee",
+ "summary": "running 000436, finished 000435",
  "headline": [
   {
    "k": "Best, 464 users (curve / instant)",
@@ -76,36 +76,41 @@
  ],
  "now": [
   {
-   "what": "GPU probe of the full-history export: a 10-min slice (kept, the export resumes)",
-   "id": "SM11, ticket 000434",
-   "kind": "gpu-score",
-   "decides": "GPU memory and speed of the export before the 5-h run",
+   "what": "Review-number flags as inputs: 2 epochs at 2,048 windows + decay + 464-user scoring (started 23:50; the break was cancelled)",
+   "id": "SM30, ticket 000436",
+   "kind": "gpu-train",
+   "decides": "Do explicit 2nd / 3rd / 4th+ review inputs help, paired against the same run without them (0.30259 / 0.27668)?",
    "why": "",
-   "job": "SM11 replay probe (10-min slice of the fork full-history export)",
+   "job": "SM30 gate: score s-w64kd-gate-ctx2048crf-e8 on the 100 gate users",
    "linked": true,
    "track": "small model",
-   "ticket": "000434-small-model",
-   "started": "01:52",
-   "elapsed": "0:02",
+   "ticket": "000436-small-model",
+   "started": "02:04",
+   "elapsed": "0:01",
    "progress": null,
-   "eta": "~02:04"
+   "eta": "~02:08"
   }
  ],
- "waiting": [
+ "waiting": [],
+ "recent": [
   {
    "ticket": "000435-small-model",
    "id": "SM21",
    "what": "SM21 GPU parity: S0/S_T kernels + trainer carry path",
-   "flags": "expected 15 min"
+   "ended": "02:04",
+   "date": "10-18",
+   "exit": 0,
+   "ran": "0:01"
   },
   {
-   "ticket": "000436-small-model",
-   "id": "SM30",
-   "what": "SM30 gate: score s-w64kd-gate-ctx2048crf-e8 on the 100 gate users",
-   "flags": "expected 4 min"
-  }
- ],
- "recent": [
+   "ticket": "000434-small-model",
+   "id": "SM11",
+   "what": "SM11 replay probe (10-min slice of the fork full-history export)",
+   "ended": "02:02",
+   "date": "10-18",
+   "exit": 3,
+   "ran": "0:10"
+  },
   {
    "ticket": "000433-small-model",
    "id": "SM30",
@@ -140,24 +145,6 @@
    "ended": "21:43",
    "date": "10-17",
    "exit": 143,
-   "ran": "0:15"
-  },
-  {
-   "ticket": "000429-small-model",
-   "id": "SM32b",
-   "what": "S09 state-VQ QAT micro-benchmark (kernel correctness + per-update timing, no training)",
-   "ended": "21:27",
-   "date": "10-17",
-   "exit": 0,
-   "ran": "0:00"
-  },
-  {
-   "ticket": "000428-small-model",
-   "id": "SM35",
-   "what": "SM35 scoring s-w64kd-gate-ctx2048c-dec8-1ep, 464 users (pass 1)",
-   "ended": "21:26",
-   "date": "10-17",
-   "exit": 0,
    "ran": "0:15"
   }
  ],
@@ -303,8 +290,11 @@
    "decides": "Do explicit 2nd / 3rd / 4th+ review inputs help, paired against the same run without them (0.30259 / 0.27668)?",
    "track": "small model",
    "minutes": 200,
-   "state": "waiting",
-   "ticket": "000436-small-model"
+   "state": "running",
+   "started": "02:04",
+   "ticket": "000436-small-model",
+   "started_at": "2026-10-18T00:48:26+02:00",
+   "ends_at": "2026-10-18T04:08:26+02:00"
   },
   {
    "what": "GPU probe of the full-history export: a 10-min slice (kept, the export resumes)",
@@ -313,11 +303,12 @@
    "minutes": 12,
    "track": "small model",
    "decides": "GPU memory and speed of the export before the 5-h run",
-   "state": "running",
+   "state": "done",
+   "ended": "02:02",
+   "exit": 3,
    "started": "01:52",
-   "ticket": "000434-small-model",
    "started_at": "2026-10-18T01:52:39+02:00",
-   "ends_at": "2026-10-18T02:04:39+02:00"
+   "ended_at": "2026-10-18T02:02:47+02:00"
   },
   {
    "what": "Carried-state GPU check: new kernels vs the reference, trainer carry path on the GPU, cost per update",
@@ -326,8 +317,12 @@
    "minutes": 15,
    "track": "small model",
    "decides": "Kernels and trainer correct on the GPU; how much the carry costs per update (CPU checks all passed)",
-   "state": "waiting",
-   "ticket": "000435-small-model"
+   "state": "done",
+   "ended": "02:04",
+   "exit": 0,
+   "started": "02:02",
+   "started_at": "2026-10-18T02:02:47+02:00",
+   "ended_at": "2026-10-18T02:04:02+02:00"
   },
   {
    "what": "Final decay at 32k from epoch 10 with the state compression trained in (~400/400 bits), then CPU scoring on 34 users (CPU part runs next to SM26)",
@@ -375,10 +370,10 @@
    "state": "planned"
   },
   {
-   "what": "Fork full-history replay on the 5,000 training users (4&ndash;5 resumable tickets of 95 min; can stop at any time)",
+   "what": "Fork full-history replay on the 5,000 training users (probe: 37,460 reviews/s, 372 users done; ~3 h left, resumable, GPU memory capped at 80%)",
    "id": "SM11",
    "kind": "gpu-score",
-   "minutes": 315,
+   "minutes": 180,
    "track": "small model",
    "decides": "Distillation targets for carried-state training (CPU checks passed: matches the full-history fork within float16 rounding)",
    "state": "planned"
