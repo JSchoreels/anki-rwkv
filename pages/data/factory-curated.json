@@ -340,15 +340,15 @@
    "decides": "Reference rows for future decisive checks (not valid for models trained on all 8,000 users)"
   },
   {
-   "what": "One-epoch final decay at 32k, on whichever base wins: dec10&rsquo;s epoch 10, or carried state v2 if it beats dec10 (held until then)",
+   "what": "One-epoch final decay at 32k windows from carried state v2&rsquo;s epoch 12, carry on (each 32k window starts from the previous one&rsquo;s exact state)",
    "id": "SM40",
    "kind": "gpu-train",
-   "minutes": 290,
+   "minutes": 460,
    "track": "small model",
    "match": [
-    "SM40 1-epoch decay"
+    "SM40v2"
    ],
-   "decides": "The one-epoch decay gained &minus;0.00033 curve at 2,048 (SM35); on dec10 that is about the +1.0% bar (needs &minus;0.0003). Run after v2 so its 5 h go on the better base (10-18 reorder)"
+   "decides": "v2 beats 32k before decay (&minus;0.0002 / &minus;0.0011) but trails after the 2,048 decay (+0.0003 / +0.0004): does a long 32k decay put it past dec10 and near the bar? ~7&ndash;8 h; after the user&rsquo;s evening (user 10-18)"
   },
   {
    "what": "Score the one-epoch 32k decay on all 464 users",
@@ -357,9 +357,9 @@
    "minutes": 25,
    "track": "small model",
    "match": [
-    "SM40 scoring"
+    "SM40v2 scoring"
    ],
-   "decides": "Bar met or not (paired with its base)"
+   "decides": "Bar met or not, on 464 and 732 users (paired with dec10 and v2 dec12)"
   },
   {
    "what": "Carried state, code (CPU): full-history targets (SM11, 18/18 checks) + kernels with a starting state and the trainer option (SM21, all checks bit for bit); merged together",
@@ -1244,5 +1244,10 @@
    "track": "small model"
   }
  ],
- "gpu_break": null
+ "gpu_break": {
+  "start": "19:00",
+  "end": "23:59",
+  "until": "2026-10-18T23:59",
+  "label": "Break: user playing from ~19:00 (ends when the user says)"
+ }
 }

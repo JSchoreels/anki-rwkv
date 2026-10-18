@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-10-18T18:02:47+02:00",
- "updated": "2026-10-18 18:02",
- "material": "84e55ac4e9da1a71",
- "summary": "idle, finished 000487",
+ "generated_at": "2026-10-18T18:06:01+02:00",
+ "updated": "2026-10-18 18:06",
+ "material": "f960c0fd8c04c27b",
+ "summary": "idle",
  "headline": [
   {
    "k": "Best, 464 users (curve / instant)",
@@ -413,12 +413,12 @@
    "state": "planned"
   },
   {
-   "what": "One-epoch final decay at 32k, on whichever base wins: dec10&rsquo;s epoch 10, or carried state v2 if it beats dec10 (held until then)",
+   "what": "One-epoch final decay at 32k windows from carried state v2&rsquo;s epoch 12, carry on (each 32k window starts from the previous one&rsquo;s exact state)",
    "id": "SM40",
    "kind": "gpu-train",
-   "minutes": 290,
+   "minutes": 460,
    "track": "small model",
-   "decides": "The one-epoch decay gained &minus;0.00033 curve at 2,048 (SM35); on dec10 that is about the +1.0% bar (needs &minus;0.0003). Run after v2 so its 5 h go on the better base (10-18 reorder)",
+   "decides": "v2 beats 32k before decay (&minus;0.0002 / &minus;0.0011) but trails after the 2,048 decay (+0.0003 / +0.0004): does a long 32k decay put it past dec10 and near the bar? ~7&ndash;8 h; after the user&rsquo;s evening (user 10-18)",
    "state": "planned"
   },
   {
@@ -427,7 +427,7 @@
    "kind": "gpu-score",
    "minutes": 25,
    "track": "small model",
-   "decides": "Bar met or not (paired with its base)",
+   "decides": "Bar met or not, on 464 and 732 users (paired with dec10 and v2 dec12)",
    "state": "planned"
   },
   {
@@ -497,7 +497,12 @@
    "when": "tomorrow, day"
   }
  ],
- "gpu_break": null,
+ "gpu_break": {
+  "start": "19:00",
+  "end": "23:59",
+  "until": "2026-10-18T23:59",
+  "label": "Break: user playing from ~19:00 (ends when the user says)"
+ },
  "backlog": [
   {
    "status": "next",
