@@ -184,7 +184,7 @@
   <section class="panel prose">
     <h2>How to read this</h2>
     <ul>
-      <li><strong>Reviews/s</strong> is training throughput on a fixed cohort of 80 users (7,654,975 review presentations), including data loading, worker start-up, transfers and updates. Model: Expertium (light). The original Alex/default model was only measured in early iterations and is not plotted.</li>
+      <li><strong>Reviews/s</strong> is training throughput on a fixed cohort of 80 users (7,654,975 review presentations), including data loading, worker start-up, transfers and updates. Model: compact model (outside research). The original Alex/default model was only measured in early iterations and is not plotted.</li>
       <li><strong>Exact parity gate.</strong> A candidate must reproduce the accepted run&rsquo;s four loss values, every update, gradient norms and final weights bit for bit. Faster-but-different variants are kept separately (&ldquo;fastmode&rdquo;) and never become the reference.</li>
       <li><strong>Machine-state noise.</strong> Identical single runs differ by roughly 5&ndash;10% depending on GPU clocks, background load and Windows scheduling, so a single full run can go <em>down</em> even when a change helps. That is why the accepted line is not monotonic (for example, around 0072).</li>
       <li><strong>Replicated blocks.</strong> From iteration 0048 onward, candidates are measured in interleaved reference/candidate blocks. A block records the per-update gain; the campaign promotes only when the lower confidence bound is positive, marks a <em>stack candidate</em> when the mean is promising but not proven, <em>extends</em> with more blocks when undecided, and rejects otherwise.</li>

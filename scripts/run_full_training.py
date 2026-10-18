@@ -369,7 +369,7 @@ def page_state(run):
     reviews = config["training_reviews_per_epoch"]
     rate = rates[-1] if rates else 206_800
     full_eval_reviews = sum(config["review_counts"][str(u)] for u in config["validation_users"] + config["final_test_users"])
-    return {"mock": False, "model": f"Expertium, accepted R01 configuration 0090 ({config['track']}), BF16",
+    return {"mock": False, "model": f"Compact model (outside research), accepted R01 configuration 0090 ({config['track']}), BF16",
             "status": status, "training_users": n, "evaluation_users": len(config["validation_users"]) + len(config["final_test_users"]),
             "validation_users": len(config["validation_users"]), "final_test_users": len(config["final_test_users"]),
             "quick_validation_users": len(config["quick_validation_users"]),

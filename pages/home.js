@@ -288,7 +288,7 @@
   const total = () => weights.reduce((a, b) => a + b, 0) || 1;
   const basisMix = (t) => weights.reduce((a, w, i) => a + w * R(t, i), 0) / total();
 
-  // Expertium's GRU-style head (run 110, commit 1f2e6b0) (RWKV_GRU_HEAD=N): N curves whose weight, stability S and
+  // The outside-research GRU-style head (run 110, commit 1f2e6b0) (RWKV_GRU_HEAD=N): N curves whose weight, stability S and
   // decay d are all predicted per review. R(t) = sum_i w_i * (1 + t / S_i)^(-d_i).
   let mode = 'basis';
   const GRU = [{ w: 0.3, S: 10 * MIN, d: 0.5 }, { w: 0.4, S: 3 * DAY, d: 0.5 }, { w: 0.3, S: 180 * DAY, d: 0.5 }];
