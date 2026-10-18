@@ -28,6 +28,8 @@ log "started: $(git -C $WT log --oneline -1)"
 if [ -n "$(git -C $WT status --porcelain -- scripts expertium rwkv)" ]; then log "uncommitted source changes; stop"; exit 2; fi
 "$PY" -X utf8 $WT/scripts/check_instant_loss_weight.py > $SM/check-instant-loss-weight-night.txt 2>&1
 grep -q "ALL OK" $SM/check-instant-loss-weight-night.txt || { log "SM26 check did not print ALL OK; stop"; exit 2; }
+"$PY" -X utf8 $WT/scripts/check_instant_loss_weight_jit.py > $SM/check-instant-loss-weight-jit.txt 2>&1
+grep -q "JIT OK" $SM/check-instant-loss-weight-jit.txt || { log "SM26 scripted-model check failed; stop"; exit 2; }
 log "SM26 check passed"
 D2=$SM/scale-w64kd-gate-cached-ctx32768-cont-decay-ilw2; L2=s-w64kd-gate-ctx32768c-dec10-ilw2
 [ -d "$D2" ] || "$PY" -X utf8 $DEC_PY prepare --source-run $EXPS/scale-w64kd-gate-cached-ctx32768-cont/run --epoch 10 \
