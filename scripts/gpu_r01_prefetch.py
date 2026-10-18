@@ -3,6 +3,8 @@
 from collections import deque
 import time
 
+import numpy as np
+
 from scripts.gpu_batch1 import frame_stream, prepare_job, split_frame
 
 
@@ -15,11 +17,16 @@ def training_batches(rows, span, seed, pool, options, cache_paths=None, depth=8)
             or bool(options.get("preprocessing_cache")) != (cache_paths is not None) or depth < 1):
         raise ValueError("Unsupported R01 ordered-prefetch preparation options")
     carry = bool(options.get("state_carry"))
-    universes = {}
+    universes, lanes = {}, {}
     if carry:
         # SM21: day features relative to the user's whole training section and the user's entity ids.
-        from scripts.state_carry_train import entity_universe, user_segment_features, validate_options
+        from scripts.state_carry_train import (entity_universe, lane_universe, strided, strided_layout,
+                                               user_segment_features, validate_options)
         validate_options(options)
+        laned = strided(options["state_carry"])
+        chunk = options.get("chunk_reviews", 128)
+        if laned and span % chunk:
+            raise ValueError("state_carry strided lanes need span = batch_chunks x chunk_reviews")
 
     def jobs():
         # F93a: with worker_frames each worker loads and splits its own user history, so the main
@@ -31,8 +38,20 @@ def training_batches(rows, span, seed, pool, options, cache_paths=None, depth=8)
             section = split_frame(frame, row, "train") if frame is not None else None
             if carry:
                 section = user_segment_features(section)
-                universes[row["user_id"]] = entity_universe(section)
             length = row["train_range"][1] - row["train_range"][0]
+            if carry and laned:
+                # SM21 v2: update u holds window u of every lane (scripts/state_carry_train.py docstring); its
+                # offset (seed, dropout, logs) stays u x span as today, its section is the selected windows.
+                layout = strided_layout(-(-length // chunk), span // chunk)
+                universes[row["user_id"]] = lane_universe(section, layout, chunk)
+                for u, update in enumerate(layout):
+                    picked = np.concatenate([np.arange(w * chunk, min(length, (w + 1) * chunk)) for _, w in update])
+                    lanes[row["user_id"], u * span] = [lane for lane, _ in update]
+                    yield row, (row, u * span, u * span + len(picked), seed + row["user_id"] + u * span,
+                                options, section.iloc[picked], None)
+                continue
+            if carry:
+                universes[row["user_id"]] = entity_universe(section)
             for offset in range(0, length, span):
                 end = min(length, offset + span)
                 yield row, (row, offset, end, seed + row["user_id"] + offset,
@@ -71,6 +90,8 @@ def training_batches(rows, span, seed, pool, options, cache_paths=None, depth=8)
             item.wait_seconds = time.perf_counter() - started
             if carry and item.offset == 0:
                 item.carry_universe = universes.pop(row["user_id"])
+            if carry and laned:
+                item.carry_lanes = lanes.pop((row["user_id"], item.offset))
             entry = next(iterator, None)
             if entry is not None:
                 next_row, args = entry

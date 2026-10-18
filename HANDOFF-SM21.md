@@ -1,3 +1,78 @@
+# HANDOFF SM21 v2: strided lanes (2026-10-18, branch `sm21v2`)
+
+Branch `sm21v2` (cut from `state-carry` at 5a2455e), worktree `C:/Users/jonat/workspace/wt/sm21v2`. CPU only: nothing run on the GPU, nothing enqueued. The v1 handoff below still describes the shared code; arms A (v1 carry) and B (zero) run from the `state-carry` worktree.
+
+## Done
+
+- **Option** `"state_carry": {"lanes": "strided"}` (with `precision` / `carry` as in v1). `"lanes": "update"` or absent = v1, unchanged bit for bit; option absent = unchanged bit for bit. Code: `scripts/state_carry_train.py` (`strided_layout`, `lane_universe`, laned `CarryTable`, `StateCarry.attach` lane offset; module docstring has the rule), `scripts/gpu_r01_prefetch.py` (v2 job layout).
+- **Layout.** A user's N windows (2,048 each, the last one possibly short) form 16 lanes of consecutive windows. Update u holds window u of every lane, in lane order, so a window's lane predecessor ran in update u - 1.
+  - Ragged rule: U = ceil(N / 16) (today's update count) and N = 16 (U - 1) + m. The first 16 - m lanes hold U - 1 windows and the last m lanes hold U.
+  - So every update has today's window count and review count (same LR schedule). The final short window is the last slot of the last update.
+  - `item.offset` = u x 32,768 as today, so seeds, dropout and log offsets are unchanged.
+  - Users with N <= 16 have one update, and their v2 batch is the v1 batch.
+- **Table.** One slot per (lane, stream, layer, entity), only for the (lane, entity) pairs that occur.
+  - Codes = searchsorted into the user's entities, then into the sorted lane keys `lane x E + code`. The lane of slot b is b + a Python offset.
+  - No new transfers, no host sync, deterministic. Deploy precision is unchanged (int8 card/note, fp16 others).
+  - Reset at the user's first update. Lane starts (update 0), and entities first seen in a lane after its start, begin from zero.
+  - Alternative, not implemented: seed lane j from lane j - 1's end states of the previous epoch (option 3).
+- **CPU check** `scripts/check_state_carry_lanes.py` -> `artifacts/small-model/check-state-carry-lanes.json`. It uses users 1340 / 8254 at 2 and 3 lanes (they have 3 / 5 windows).
+  - A0: option absent = the pre-SM21 tree.
+  - A1: v1 (`true` and fp32, 2 windows/update, every update with loss + gradients + describe) = the 5a2455e tree, sha256 equal.
+  - L: same updates/offsets/seeds/reviews as v1, layout = strided_layout, slot rows = full-history rows bitwise; at L16, v2 batch = v1 batch.
+  - B: first update = stock, bitwise.
+  - D: fp32 v2 carry vs full history. Lane-0 rows max |dp| 8.3e-7. With lane starts seeded with exact full-history states, every row is at most 8.3e-7 (deploy 1.4e-3). With zero lane starts, the other lanes are off by up to 0.65 in lane-start windows and 0.17–0.46 in continuation windows.
+  - F: user boundary.
+  - G: JIT hand-over at 2 lanes.
+- **Stale share v2** (`artifacts/small-model/feature-screen/sm21_stale_share_v2.py` -> `sm21-stale-share-v2.txt`, same 295 users as v1). Card reviews by class:
+
+  | Class | v2 | v1 |
+  |---|---:|---:|
+  | new | 13.1% | 13.1% |
+  | in-window | 48.6% | 48.6% |
+  | exact carry | **19.2%** | 8.9% |
+  | **stale** | **0.0%** | 29.4% |
+  | lane cut, zero state | **19.1%** | — |
+
+  - The lane cut splits into 9.4% in lane-start windows and 9.7% in later windows (entities first seen in the lane).
+  - Notes: exact 14.5% (v1 6.5%), stale 0 (v1 21.2%), cut 13.2%.
+  - User stream: 31.0% of windows (the lane starts of lanes 1–15) enter with a zero state. All other windows continue their lane exactly; in v1, 92% skipped ~15k reviews.
+  - 33.7% of reviews sit in update 0 (159 of the 295 users have a single update).
+  - Table size vs v1: card slots 2.46x, note slots 2.71x (median user 2.1x, max 9.9x / 16x).
+- **GPU check script** (not run): `artifacts/small-model/jobs/sm21v2-gpu-check.sh` -> `scripts/check_state_carry_lanes_gpu.py` -> `artifacts/small-model/check-state-carry-lanes-gpu.json`.
+  - P: first update vs stock, bf16.
+  - X: zero and seeded exact carry vs full history, fp32 (8254 at 2 lanes, 8745 at 16 lanes).
+  - T: stock / v1 / v2 seconds per update.
+  - M: v1 / v2 table bytes and peak memory on the largest training user (6810, 3.9M reviews; an OOM is recorded, not fatal).
+  - `--cpu-smoke` (CPU, 2 lanes, small users, every code path): ALL OK. Do not run the full-size check on CPU: the CPU WKV reference keeps per-step states, so it reached 17 GB of RAM before it was stopped.
+- **Runbook** `artifacts/small-model/runbook-2026-10-18-sm21v2.sh`: experiment `scale-w64kd-gate-sc-lanes-cont`, labels `s-w64kd-gate-sc-lanes-e11/-e12/-dec12`.
+  - Same recipe as the v1 runbook: from e10 of `scale-w64kd-gate-cached-ctx32768-cont`, e11–e12 at 2,048 x 16, 0.25-epoch decay, 464-user scoring, SM11 replay targets.
+  - Rows go to `artifacts/small-model/heldout-sm21v2.jsonl`. Arms A and B are read from `wt/state-carry/artifacts/small-model/heldout-sm21.jsonl`.
+  - Decision: C - B, with the Q6 rule. C - A is informational.
+  - Dry run: `artifacts/small-model/runbook-2026-10-18-sm21v2-dryrun.log` ends with `DRYRUN OK`.
+
+## Left
+
+1. **GPU check ticket** (~15 min; never outside the queue):
+
+   ```
+   C:/Users/jonat/workspace/anki-rwkv/.venv/Scripts/python.exe C:/Users/jonat/workspace/anki-rwkv/scripts/r01_queue.py run --owner small-model --purpose "SM21 v2 GPU check: strided-lane carry (P/X/T/M)" --claim gpu --expected-minutes 15 -- "C:\Program Files\Git\usr\bin\bash.exe" C:/Users/jonat/workspace/wt/sm21v2/artifacts/small-model/jobs/sm21v2-gpu-check.sh
+   ```
+
+   - Pass: `ALL OK` (P and X). Then commit the json.
+   - Record T (v2/stock, v2/v1) and M (largest-user table and peak) in `docs/GPU_OPTIMIZATIONS.md` row S09.
+   - If M is near 16 GB, allocate lane slots lazily or move finished lanes to host before the experiment.
+2. **Experiment** (after the GPU check passes; can run while or after arm B finishes, one arm, about 218 GPU minutes):
+
+   ```
+   DRYRUN=1 bash C:/Users/jonat/workspace/wt/sm21v2/artifacts/small-model/runbook-2026-10-18-sm21v2.sh
+   nohup bash C:/Users/jonat/workspace/wt/sm21v2/artifacts/small-model/runbook-2026-10-18-sm21v2.sh > C:/Users/jonat/workspace/wt/sm21v2/artifacts/small-model/runbook-2026-10-18-sm21v2.log 2>&1 & disown
+   ```
+
+   - The summary goes to `artifacts/small-model/sm21v2-summary.json/.md`.
+   - Rerun with `SUMMARY_ONLY=1` once arm B's dec12 rows exist.
+   - Do not edit this worktree while it runs.
+3. Expectation and caveat: v2 removes the stale class, but 19% of card reviews (13% of notes) start from zero at lane cuts. In v1 those reviews had a stale but informative state. If C does not beat A, the next step is stale lane-start seeding (option 3).
+
 # HANDOFF SM21 v1: training with carried state (2026-10-18)
 
 Branch `state-carry`, worktree `C:/Users/jonat/workspace/wt/state-carry`. Design: `docs/SMALL_MODEL.md`, "Design 2026-10-16: training with carried state (SM21)" and its status note of 2026-10-18. Nothing has run on the GPU; nothing is enqueued.

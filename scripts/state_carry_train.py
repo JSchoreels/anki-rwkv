@@ -1,12 +1,28 @@
-"""SM21 v1 in the R01 trainer: training with carried recurrent state (docs/SMALL_MODEL.md, "Design 2026-10-16:
-training with carried state (SM21)", "Recommended design (v1): fresh carry at update granularity").
+"""SM21 v1 and v2 in the R01 trainer: training with carried recurrent state (docs/SMALL_MODEL.md, "Design 2026-10-16:
+training with carried state (SM21)", "Recommended design (v1): fresh carry at update granularity", "v2: strided lanes").
 
 Opt-in track option (absent = today's batches, losses and gradients bit for bit; nothing in this file runs):
 
-    "state_carry": true | {"precision": "deploy" | "fp32", "carry": true | false}
+    "state_carry": true | {"precision": "deploy" | "fp32", "carry": true | false, "lanes": "update" | "strided"}
 
 "carry": false is the paired control: the same per-user inputs (consistent encodings, user-level day features) and the
 same code path, but every window starts from zero state (the table is never read or written).
+
+"lanes": "update" (default, v1): update u holds the 16 consecutive windows 16u .. 16u + 15 of the user (today's layout).
+"lanes": "strided" (v2): the user's N windows (chunk_reviews each, the last one possibly short) are cut into L lanes
+(L = batch_chunks, 16) of consecutive windows, and update u holds window u of every lane, so lane j's window at update u
+continues lane j's window at update u - 1 and reads its end state fresh (no stale state inside a lane). Ragged rule:
+U = ceil(N / L) updates (the same count as today), N = L (U - 1) + m with 1 <= m <= L; the first L - m lanes hold U - 1
+windows and the last m lanes hold U, so updates 0 .. U - 2 hold L full windows and the last update holds m windows
+(lanes L - m .. L - 1) whose last one is the user's final, possibly short, window: every update has today's window
+count and review count, hence the same LR schedule. The batch slots of an update are in lane order (slot b = lane
+L - n + b for an update of n windows). Users with N <= L have U = 1 (every window is a lane start = v1 = zero carry).
+Lane starts (the first window of every lane = all of update 0) start from zero state, and so does every entity whose
+first review in the lane comes later but which has history in earlier lanes. Alternative, not implemented: seed each
+lane from stale states (option 3: lane j - 1's end states from the previous epoch, <= 140 GB int8 per epoch; the CPU
+check seeds lane starts with exact full-history states to show the mechanism). The table holds one state per (lane,
+stream, layer, entity) for the (lane, entity) pairs that occur (lane universe, sum over lanes of the entities of each
+lane, <= L x the user's entities). item.offset of update u is u x span (as today), so seeds and dropout are unchanged.
 
 * Worker side (CPU preparation, `scripts/gpu_preprocessing_stage.prepare_job` via `gpu_r01_prefetch`):
   - `user_segment_features`: day_offset / day_offset_first / day_of_week relative to the user's training section
@@ -52,7 +68,7 @@ def parse(spec):
         spec = {}
     if not isinstance(spec, dict):
         raise ValueError(f"state_carry must be true or a dict, got {spec!r}")
-    unknown = set(spec) - {"precision", "carry"}
+    unknown = set(spec) - {"precision", "carry", "lanes"}
     if unknown:
         raise ValueError(f"Unknown state_carry keys {sorted(unknown)}")
     precision = spec.get("precision", "deploy")
@@ -60,7 +76,28 @@ def parse(spec):
         raise ValueError("state_carry precision must be 'deploy' (int8 card/note, fp16 others) or 'fp32'")
     if not isinstance(spec.get("carry", True), bool):
         raise ValueError("state_carry carry must be true or false")
-    return {"precision": precision, "carry": spec.get("carry", True)}
+    lanes = spec.get("lanes", "update")
+    if lanes not in ("update", "strided"):
+        raise ValueError("state_carry lanes must be 'update' (v1) or 'strided' (v2)")
+    out = {"precision": precision, "carry": spec.get("carry", True)}
+    if lanes == "strided":  # v1 specs keep their exact parsed form (describe() of v1 runs is unchanged)
+        out["lanes"] = "strided"
+    return out
+
+
+def strided(spec):
+    return bool(spec) and parse(spec).get("lanes") == "strided"
+
+
+def strided_layout(windows, lanes):
+    """v2: per update, the (lane, window) pairs it holds, in lane order (see the module docstring for the rule)."""
+    if windows < 1 or lanes < 1:
+        raise ValueError("strided_layout needs at least one window and one lane")
+    updates = -(-windows // lanes)
+    full = windows - lanes * (updates - 1)  # m, 1 <= m <= lanes
+    lengths = [updates - 1] * (lanes - full) + [updates] * full
+    starts = np.concatenate([[0], np.cumsum(lengths)[:-1]]).astype(int).tolist()
+    return [[(j, starts[j] + u) for j in range(lanes) if u < lengths[j]] for u in range(updates)]
 
 
 def validate_options(options):
@@ -89,6 +126,22 @@ def user_segment_features(section):
 def entity_universe(section):
     """Per batch stream: the sorted int64 entity ids of the user's training section."""
     return {stream: np.unique(section[stream].to_numpy().astype(np.int64)) for stream in BATCH_STREAMS}
+
+
+def lane_universe(section, layout, chunk):
+    """v2: per batch stream, (sorted entity ids of the section, sorted keys lane x E + entity code of every (lane,
+    entity) pair that occurs). `layout` = strided_layout(...) of the section's chunk-review windows."""
+    lane_of_row = np.empty(len(section), dtype=np.int64)
+    for update in layout:
+        for lane, window in update:
+            lane_of_row[window * chunk:(window + 1) * chunk] = lane
+    out = {}
+    for stream in BATCH_STREAMS:
+        values = section[stream].to_numpy().astype(np.int64)
+        entities = np.unique(values)
+        keys = np.unique(lane_of_row * len(entities) + np.searchsorted(entities, values))
+        out[stream] = (entities, keys)
+    return out
 
 
 def _mix(x):
@@ -158,15 +211,26 @@ class CarryTable:
     def __init__(self, precision="deploy"):
         self.precision = precision
         self.universe = None
+        self.keys = None
+        self.size = None
         self.slots = {}
 
     def reset(self, universe, device):
-        """New user: drop every state; `universe` = entity_universe(section) of that user."""
+        """New user: drop every state; `universe` = entity_universe(section) of that user (v1: one slot per entity)
+        or lane_universe(...) (v2: one slot per (lane, entity) pair that occurs)."""
         self.slots = {}
-        self.universe = [torch.as_tensor(universe[stream], dtype=torch.long).to(device) for stream in BATCH_STREAMS]
+        laned = isinstance(universe[BATCH_STREAMS[0]], tuple)
+        entities = [universe[stream][0] if laned else universe[stream] for stream in BATCH_STREAMS]
+        self.universe = [torch.as_tensor(values, dtype=torch.long).to(device) for values in entities]
+        self.keys = ([torch.as_tensor(universe[stream][1], dtype=torch.long).to(device) for stream in BATCH_STREAMS]
+                     if laned else None)
+        self.size = [int((self.keys or self.universe)[stream].numel()) for stream in range(len(BATCH_STREAMS))]
 
-    def codes(self, stream, entity):
-        return torch.searchsorted(self.universe[stream], entity)
+    def codes(self, stream, entity, lane=None):
+        code = torch.searchsorted(self.universe[stream], entity)
+        if self.keys is None:
+            return code
+        return torch.searchsorted(self.keys[stream], lane * self.universe[stream].numel() + code)
 
     def lookup(self, stream, layer, codes, dtype):
         """(has [n], tm_shift [n, C], S [n, H, K, K] float32, cm_shift [n, C] or None), or None before any commit."""
@@ -189,7 +253,7 @@ class CarryTable:
         tm = torch.cat([r[2][0] for r in records])
         S = torch.cat([r[2][1] for r in records])
         cm = torch.cat([r[2][2] for r in records]) if records[0][2][2] is not None else None
-        E = self.universe[stream].numel()
+        E = self.size[stream]
         order = torch.argsort(codes * windows_per_update + windows, stable=True)
         sorted_codes = codes.index_select(0, order)
         slots = torch.arange(E, device=codes.device)
@@ -356,6 +420,7 @@ class StateCarry:
         self.entities = None
         self.global_T = None
         self.windows = None
+        self.lane_offset = 0
         self.stats = {"users": 0, "updates": 0, "streams_calls": 0, "peak_table_bytes": 0}
 
     def attach(self, item, batch, user):
@@ -364,6 +429,8 @@ class StateCarry:
             if item.offset != 0 or getattr(item, "carry_universe", None) is None:
                 raise RuntimeError(f"state_carry: user {user} must start at offset 0 with its entity universe")
             device = batch.labels.device
+            if isinstance(item.carry_universe[BATCH_STREAMS[0]], tuple) != (self.spec.get("lanes") == "strided"):
+                raise RuntimeError("state_carry: the item's entity universe does not match the lanes option")
             self.table.reset(item.carry_universe, device)
             self.user = user
             self.stats["users"] += 1
@@ -371,6 +438,13 @@ class StateCarry:
         self.entities = [ids.to(device, non_blocking=True) for ids in item.carry]
         self.global_T = int(batch.labels.shape[1])
         self.windows = int(batch.labels.shape[0])
+        if self.spec.get("lanes") == "strided":
+            # v2: slots are in lane order and hold consecutive lanes (L - n .. L - 1 in the last update), so the lane
+            # of slot b is b + lane_offset: no lane tensor and no transfer.
+            lanes = list(getattr(item, "carry_lanes", None) or ())
+            if len(lanes) != self.windows or lanes != list(range(lanes[0], lanes[0] + self.windows)):
+                raise RuntimeError(f"state_carry lanes: update of user {user} needs consecutive lanes, got {lanes}")
+            self.lane_offset = lanes[0]
         self.batch = batch
         self.stats["updates"] += 1
 
@@ -444,8 +518,10 @@ class StateCarry:
             stream_codes, stream_windows = [], []
             for s, canonical in enumerate(gathers[i]):
                 head_rows = canonical.view(-1, batch_sub_gather_lens[i][s])[:, 0]
-                stream_codes.append(self.table.codes(i, self.entities[i].index_select(0, head_rows)))
-                stream_windows.append(torch.div(head_rows, self.global_T, rounding_mode="floor"))
+                window = torch.div(head_rows, self.global_T, rounding_mode="floor")
+                lane = window + self.lane_offset if self.table.keys is not None else None  # v1: no lanes
+                stream_codes.append(self.table.codes(i, self.entities[i].index_select(0, head_rows), lane))
+                stream_windows.append(window)
             codes.append(stream_codes)
             windows.append(stream_windows)
         records = {}
@@ -472,10 +548,14 @@ class StateCarry:
             else:
                 x = x.index_copy(0, fused_targets[i], flat.index_select(0, fused_positions[i]))
         # every window read the table as of the update start; now each entity's latest window writes back
+        # (v2: each (lane, entity) occurs in one window of the update, so every touched pair writes back)
         for (i, layer), stream_records in records.items() if self.spec["carry"] else ():
             self.table.commit(i, layer, stream_records, self.windows)
         return x
 
     def describe(self):
         # stats is the live dict: result.json snapshots carry the current counters
+        if self.spec.get("lanes") == "strided":
+            return {**self.spec, "mode": "strided lanes (v2): update u holds window u of every lane; lane starts from "
+                    "zero", "stats": self.stats}
         return {**self.spec, "mode": "fresh carry at update granularity (v1)", "stats": self.stats}
