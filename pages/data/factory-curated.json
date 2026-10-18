@@ -86,6 +86,14 @@
    "kind": "gpu-speed",
    "why": "Where training time goes, and the cost of the label-free reference. Runs alone so the timings are clean.",
    "track": "small model"
+  },
+  {
+   "match": "SM40v2",
+   "what": "One-epoch final decay at 32k windows from carried state v2&rsquo;s epoch 12, carry on",
+   "id": "SM40",
+   "kind": "gpu-train",
+   "why": "~24,500 reviews/s, training ~4.1 h (to ~04:45), then 464 + 732-user scoring (~06:00). Started 00:31 on the user&rsquo;s go.",
+   "track": "small model"
   }
  ],
  "plan": [
@@ -137,7 +145,7 @@
    "decides": "Spaced-review slice next to the official bar",
    "track": "small model",
    "match": [
-    "SM24 per-review dumps"
+    "SM24 per-review dumps, fork"
    ],
    "minutes": 60
   },
@@ -324,7 +332,7 @@
    "minutes": 50,
    "track": "small model",
    "match": [
-    "pool 732 full-history"
+    "pool 732 full-history scoring of fork/w8+s8 (268"
    ],
    "decides": "732-user readout for v2 vs 32k and for the bar",
    "state": "done",
@@ -332,37 +340,76 @@
    "ended_at": "2026-10-18T18:27:16+02:00"
   },
   {
-   "what": "Score the 2,225-user set (fork, 32k dec10, best carried-state model), when the GPU is otherwise free",
-   "id": "EVAL",
-   "kind": "gpu-score",
-   "minutes": 295,
-   "track": "small model",
-   "match": [
-    "pool 2225 full-history"
-   ],
-   "decides": "Reference rows for future decisive checks (not valid for models trained on all 8,000 users)"
-  },
-  {
    "what": "One-epoch final decay at 32k windows from carried state v2&rsquo;s epoch 12, carry on (each 32k window starts from the previous one&rsquo;s exact state)",
    "id": "SM40",
    "kind": "gpu-train",
-   "minutes": 460,
+   "minutes": 250,
    "track": "small model",
    "match": [
     "SM40v2"
    ],
-   "decides": "v2 beats 32k before decay (&minus;0.0002 / &minus;0.0011) but trails after the 2,048 decay (+0.0003 / +0.0004): does a long 32k decay put it past dec10 and near the bar? ~7&ndash;8 h; after the user&rsquo;s evening (user 10-18)"
+   "decides": "v2 beats 32k before decay (&minus;0.0002 / &minus;0.0011) but trails after the 2,048 decay (+0.0003 / +0.0004): does a long 32k decay put it past dec10 and near the bar? Started 10-19 00:31."
   },
   {
-   "what": "Score the one-epoch 32k decay on all 464 users",
+   "what": "Score the one-epoch 32k decay on all 464 users, then the 732 users",
    "id": "SM40",
    "kind": "gpu-score",
-   "minutes": 25,
+   "minutes": 70,
    "track": "small model",
    "match": [
     "SM40v2 scoring"
    ],
    "decides": "Bar met or not, on 464 and 732 users (paired with dec10 and v2 dec12)"
+  },
+  {
+   "what": "732 users: retry the 3 long users (1534, 1601, 4625) at a 0.92 memory cap, one try per model",
+   "id": "EVAL",
+   "kind": "gpu-score",
+   "minutes": 20,
+   "track": "small model",
+   "match": [
+    "pool 732 full-history"
+   ],
+   "decides": "Complete 732-user rows for every model"
+  },
+  {
+   "what": "Spaced-review slice for the one-epoch 32k decay and v2: per-review dumps on 464 users + breakdown by review type / same-day / stage",
+   "id": "SM24",
+   "kind": "gpu-score",
+   "minutes": 60,
+   "track": "small model",
+   "match": [
+    "SM24 per-review dumps, sm40v2",
+    "SM24 per-review dumps, v2dec12"
+   ],
+   "decides": "The spaced-review slice beside the bar for the new candidates (fork dumps reused)"
+  },
+  {
+   "what": "Score the 2,225-user set (fork, 32k dec10, v2 dec12, one-epoch 32k decay) at the 0.8 cap, then one 0.92 retry for users that do not fit",
+   "id": "EVAL",
+   "kind": "gpu-score",
+   "minutes": 260,
+   "track": "small model",
+   "match": [
+    "pool 2225 full-history"
+   ],
+   "decides": "Decisive check of the new candidate; reference rows for later (not valid for models trained on all 8,000 users)"
+  },
+  {
+   "what": "Own collection for the one-epoch 32k decay (CPU, ~11 min) as it lands",
+   "id": "SM07",
+   "kind": "cpu",
+   "track": "small model",
+   "when": "10-19 morning, next to the GPU",
+   "decides": "Same table as dec10"
+  },
+  {
+   "what": "Review results; afternoon / evening GPU: pruning (SM15) if the bar is met on 732 users, else the Muon test (SM36) or a longer 32k carry decay",
+   "id": "SM15, SM36",
+   "kind": "next",
+   "decides": "Chosen on the morning&rsquo;s numbers",
+   "track": "small model",
+   "when": "10-19 ~12:00"
   },
   {
    "what": "Carried state, code (CPU): full-history targets (SM11, 18/18 checks) + kernels with a starting state and the trainer option (SM21, all checks bit for bit); merged together",
@@ -405,14 +452,6 @@
    "ended_at": "2026-10-18T12:40:00+02:00"
   },
   {
-   "what": "Own collection + spaced-slice breakdown for the night&rsquo;s decays (compression-in-training, instant-weighted, one-epoch 32k) as they land",
-   "id": "SM07, SM24",
-   "kind": "cpu",
-   "track": "small model",
-   "when": "10-18 morning, next to the GPU",
-   "decides": "Same tables as dec10 for each new candidate"
-  },
-  {
    "what": "Calibration temperature fitted offline on the per-review dumps (CPU, user-split cross-validation)",
    "id": "SM12",
    "kind": "cpu",
@@ -421,14 +460,6 @@
    "state": "done",
    "started_at": "2026-10-17T23:58:00+02:00",
    "ended_at": "2026-10-18T00:02:00+02:00"
-  },
-  {
-   "what": "Review results; then Muon test and the label-free fork fine-tune (fit around the carried-state work)",
-   "id": "SM36, SM38",
-   "kind": "next",
-   "decides": "Order decided on the night&rsquo;s results",
-   "track": "small model",
-   "when": "tomorrow, day"
   }
  ],
  "backlog": [
@@ -1261,11 +1292,5 @@
    "takeaway": "Starting point",
    "track": "small model"
   }
- ],
- "gpu_break": {
-  "start": "19:00",
-  "end": "23:59",
-  "until": "2026-10-18T23:59",
-  "label": "Break: user playing from ~19:00 (ends when the user says)"
- }
+ ]
 }
