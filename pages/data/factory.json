@@ -1,7 +1,7 @@
 {
- "generated_at": "2026-10-18T04:25:28+02:00",
- "updated": "2026-10-18 04:25",
- "material": "f304ec5b4b0f4966",
+ "generated_at": "2026-10-18T05:00:34+02:00",
+ "updated": "2026-10-18 05:00",
+ "material": "efd922b0643400fb",
  "summary": "running 000441",
  "headline": [
   {
@@ -86,7 +86,7 @@
    "track": "small model",
    "ticket": "000441-small-model",
    "started": "04:21",
-   "elapsed": "0:03",
+   "elapsed": "0:38",
    "progress": null,
    "eta": "~05:56"
   }
@@ -326,7 +326,7 @@
    "started": "02:02"
   },
   {
-   "what": "Final decay at 32k from epoch 10 with the state compression trained in (~400/400 bits): GPU done (19,577 reviews/s); CPU scoring on 34 users running",
+   "what": "Final decay at 32k from epoch 10 with the state compression trained in (~400/400 bits) + CPU scoring on 34 users: done",
    "id": "SM32b",
    "kind": "gpu-train",
    "minutes": 110,
@@ -410,6 +410,15 @@
    "started_at": "2026-10-18T00:55:00+02:00",
    "decides": "Ready to train with full-history context at 2,048-window speed (~1.5 days of work per the design)",
    "ended_at": "2026-10-18T01:40:00+02:00"
+  },
+  {
+   "what": "Codebooks refitted on the compression-trained model&rsquo;s states, rescored on the 34 users (CPU)",
+   "id": "SM32b",
+   "kind": "cpu",
+   "state": "running",
+   "started_at": "2026-10-18T05:05:00+02:00",
+   "decides": "Was the loss from stale codebooks or from training with compression itself?",
+   "track": "small model"
   },
   {
    "what": "Own collection + spaced-slice breakdown for the night&rsquo;s decays (compression-in-training, instant-weighted, one-epoch 32k) as they land",
@@ -617,6 +626,21 @@
   }
  ],
  "results": [
+  {
+   "date": "10-18",
+   "kind": "gpu-train",
+   "name": "State compression (~400/400 bits per card/note) trained into the final decay, scored compressed",
+   "id": "SM32b",
+   "curve": 0.32434,
+   "instant": 0.29041,
+   "curve_pct": 0.94,
+   "instant_pct": 1.91,
+   "eval": "34 users (CPU)",
+   "fork": "fork 0.32132 / 0.28497 on the same users; compressed after training (dec10) 0.32314 / 0.28946; uncompressed dec10 0.32194 / 0.28716",
+   "takeaway": "Worse than compressing after training (+0.0012 / +0.0010). Not a codec mismatch (checked). Suspect: codebooks frozen on dec10 states while the model&rsquo;s states drift; a refit on the new model&rsquo;s states is running on CPU",
+   "track": "small model",
+   "label": "qat/w8+vq378x412"
+  },
   {
    "date": "10-18",
    "kind": "gpu-train",
