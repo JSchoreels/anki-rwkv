@@ -2,7 +2,7 @@
  "headline": [
   {
    "k": "Best, 464 users (curve / instant)",
-   "v": "0.30066 / 0.27490",
+   "v": "0.30004 / 0.27416",
    "compare": [
     {
      "variant": "Fork reference (w8+s8)",
@@ -12,15 +12,23 @@
      "eval": "464 users, 22.66M reviews"
     },
     {
-     "variant": "Best: epoch 9 + decay at 16k, scored at 32k (Q11)",
-     "curve": 0.30066,
-     "instant": 0.2749,
-     "curve_pct": 1.01,
-     "instant_pct": 1.01,
+     "variant": "Best: carried state v2 + one-epoch 32k decay (SM40)",
+     "curve": 0.30004,
+     "instant": 0.27416,
+     "curve_pct": 0.8,
+     "instant_pct": 0.73,
      "eval": "464 users, 22.66M reviews"
     },
     {
-     "variant": "Epoch 10 + decay at 32k (Q12)",
+     "variant": "Same model, 730 users (standard set)",
+     "curve": 0.30653,
+     "instant": 0.28142,
+     "curve_pct": 0.71,
+     "instant_pct": 0.71,
+     "eval": "730 users, 33.77M reviews (fork 0.30437 / 0.27943)"
+    },
+    {
+     "variant": "Previous best: epoch 10 + decay at 32k (Q12)",
      "curve": 0.30096,
      "instant": 0.27471,
      "curve_pct": 1.11,
@@ -405,12 +413,12 @@
    "decides": "Same table as dec10"
   },
   {
-   "what": "Review results; afternoon / evening GPU: pruning (SM15) if the bar is met on 732 users, else the Muon test (SM36) or a longer 32k carry decay",
-   "id": "SM15, SM36",
+   "what": "Bar met (SM40): pruning first step = depth cut of the deck / preset / user streams; code + free CPU screen this morning, GPU arm (~3&ndash;5 h) after the 2,225 check",
+   "id": "SM15",
    "kind": "next",
-   "decides": "Chosen on the morning&rsquo;s numbers",
+   "decides": "How much of the &minus;26% to &minus;38% parameter cut the fine-tune recovers (design: docs/SMALL_MODEL_PRUNING.md)",
    "track": "small model",
-   "when": "10-19 ~12:00"
+   "when": "10-19 code now, GPU ~12:00"
   },
   {
    "what": "Carried state, code (CPU): full-history targets (SM11, 18/18 checks) + kernels with a starting state and the trainer option (SM21, all checks bit for bit); merged together",
@@ -664,6 +672,36 @@
   "s-w64kd-gate-ctx2048c-dec8-1ep/w8+s8"
  ],
  "results": [
+  {
+   "date": "10-19",
+   "kind": "gpu-score",
+   "name": "732-user readout: one-epoch 32k decay of carried state v2",
+   "id": "SM40",
+   "curve": 0.30653,
+   "instant": 0.28142,
+   "curve_pct": 0.71,
+   "instant_pct": 0.71,
+   "eval": "730 users, 33.77M reviews",
+   "fork": "fork 0.30437 / 0.27943; 32k dec10 0.30746 / 0.28197 (+1.02% / +0.91%); v2 dec12 +1.11% / +1.06%",
+   "takeaway": "<strong>Bar met on the standard set too.</strong> vs dec10 &minus;0.00093 [&minus;0.00142, &minus;0.00056] / &minus;0.00055 [&minus;0.00061, &minus;0.00049]. Users 1534 and 4625 do not fit in memory even at a 0.92 cap (small models)",
+   "track": "small model",
+   "label": "s-w64kd-gate-sc-lanes-dec12-1ep32k/w8+s8 (732 pool)"
+  },
+  {
+   "date": "10-19",
+   "kind": "gpu-train",
+   "name": "One-epoch final decay at 32k windows from carried state v2&rsquo;s epoch 12, carry on (each window starts from the previous one&rsquo;s exact state)",
+   "id": "SM40",
+   "curve": 0.30004,
+   "instant": 0.27416,
+   "curve_pct": 0.8,
+   "instant_pct": 0.73,
+   "eval": "464 users, 22.66M reviews",
+   "fork": "fork 0.29766 / 0.27216; 32k dec10 0.30096 / 0.27471 (+1.11% / +0.94%); v2 dec12 0.30124 / 0.27514",
+   "takeaway": "<strong>First model under the &le; +1.0% bar on both heads.</strong> vs dec10 &minus;0.00091 [&minus;0.00160, &minus;0.00044] / &minus;0.00055 [&minus;0.00061, &minus;0.00049]; vs v2 dec12 &minus;0.00119 / &minus;0.00098. ~24,500 reviews/s, 5.4 h training",
+   "track": "small model",
+   "label": "s-w64kd-gate-sc-lanes-dec12-1ep32k/w8+s8"
+  },
   {
    "date": "10-18",
    "kind": "gpu-score",
