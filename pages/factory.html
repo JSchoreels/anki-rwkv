@@ -175,12 +175,13 @@
     const num = (v) => (none(v) ? '&ndash;' : v.toFixed(v < 0.4 ? 5 : 4));
     const pc = (p, isRef) => (isRef ? '<td class="n">&ndash;</td>' : none(p) ? '<td class="n">&ndash;</td>'
       : `<td class="n${p <= 1.0 ? ' good' : ''}">${p > 0 ? '+' : ''}${p.toFixed(2)}%</td>`);
+    const dated = rows.some((r) => r.date);  // date column only when a row carries one
     const trs = rows.map((r, i) => `<tr class="${r.ref ? 'ref' : i === rows.findIndex((x) => !x.ref) ? 'top' : ''}"><td>${r.variant}</td>`
       + `<td class="n">${num(r.curve)}</td><td class="n">${num(r.instant)}</td>`
       + pc(gap(r.curve, r.curve_pct, ref.curve), r.ref) + pc(gap(r.instant, r.instant_pct, ref.instant), r.ref)
-      + `<td class="n ev">${r.eval || ''}</td></tr>`).join('');
+      + `<td class="n ev">${r.eval || ''}</td>` + (dated ? `<td class="n ev">${r.date || ''}</td>` : '') + '</tr>').join('');
     return `<div class="cmp"><table><thead><tr><th>Variant</th><th class="n">Curve</th><th class="n">Instant</th>`
-      + `<th class="n">&Delta; curve</th><th class="n">&Delta; instant</th><th class="n">Eval</th></tr></thead><tbody>${trs}</tbody></table></div>`;
+      + `<th class="n">&Delta; curve</th><th class="n">&Delta; instant</th><th class="n">Eval</th>` + (dated ? '<th class="n">Date</th>' : '') + `</tr></thead><tbody>${trs}</tbody></table></div>`;
   };
   const exitTag = (x) => (x === 0 ? '<span class="tag ok">ok</span>' : none(x) ? '<span class="tag">?</span>'
     : `<span class="tag fail">${x === 143 ? 'stopped' : 'failed'}, exit ${x}</span>`);
