@@ -561,7 +561,10 @@
    "match": [
     "SM36"
    ],
-   "decides": "First GPU test of the optimizer from outside research (largest instant gain there); toward +0.5%"
+   "decides": "First GPU test of the optimizer from outside research (largest instant gain there); toward +0.5%",
+   "state": "running",
+   "started_at": "2026-10-20T01:01:33+02:00",
+   "when": "10-20 01:01 &rarr; ~07:45"
   },
   {
    "id": "SM32c",
@@ -582,8 +585,10 @@
     "SM32c GPU check"
    ],
    "what": "GPU check of the learned-codebook kernels (no training)",
-   "when": "10-20 01:00, just before the Muon test",
-   "decides": "Kernels correct on the GPU, and the extra cost of learning the codebooks"
+   "decides": "Passed: kernels match the CPU codec exactly (0 pick mismatches); learning the codebooks costs +6&ndash;9% time on the state kernels",
+   "state": "done",
+   "started_at": "2026-10-20T01:00:08+02:00",
+   "ended_at": "2026-10-20T01:00:22+02:00"
   },
   {
    "what": "State compression (~400 bits per card/note) with codebooks learned during training, in the one-epoch 32k decay of the best model (with carried state) + CPU scoring on 68 users",
@@ -592,7 +597,7 @@
    "minutes": 420,
    "track": "small model",
    "match": [
-    "SM32c"
+    "SM32c 1-epoch decay"
    ],
    "when": "10-20 after the Muon test (~07:45&ndash;14:45); code written and CPU-checked 10-20 00:20",
    "decides": "Does compression trained in properly remove its cost (now +0.4% / +0.9% after training)? If yes: ~45&times; smaller state than int8, any collection size on any phone"
@@ -1644,11 +1649,5 @@
    "takeaway": "Starting point",
    "track": "small model"
   }
- ],
- "gpu_break": {
-  "start": "21:00",
-  "end": "01:00",
-  "until": "2026-10-20T01:00",
-  "label": "Break: no GPU work (user); the control starts only if it ends before 21:00, else after 01:00"
- }
+ ]
 }
