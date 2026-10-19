@@ -157,6 +157,14 @@
    "kind": "gpu-train",
    "why": "~24,500 reviews/s, training ~4.1 h (to ~04:45), then 464 + 732-user scoring (~06:00). Started 00:31 on the user&rsquo;s go.",
    "track": "small model"
+  },
+  {
+   "match": "SM42",
+   "what": "Control: the best model&rsquo;s one-epoch 32k decay from the plain 32k epoch 10 (no carried-state epochs)",
+   "id": "SM42",
+   "kind": "gpu-train",
+   "why": "Did the 2 carried-state epochs matter? Training ~5.5 h to ~18:40, then scoring; the Muon test (SM36) follows after the 01:00 end of the break",
+   "track": "small model"
   }
  ],
  "plan": [
@@ -489,7 +497,10 @@
    "match": [
     "SM15 fine-tune"
    ],
-   "decides": ""
+   "decides": "",
+   "state": "done",
+   "started_at": "2026-10-19T09:51:42+02:00",
+   "ended_at": "2026-10-19T10:22:19+02:00"
   },
   {
    "what": "Pruning arm: the same one-epoch 32k decay as the best model",
@@ -501,7 +512,10 @@
     "SM15 decay",
     "SM15 32k decay"
    ],
-   "decides": "Pre-registered: keep the cut if it costs &le; +0.25% vs the parent on both heads (upper 95% bound)"
+   "decides": "Pre-registered: keep the cut if it costs &le; +0.25% vs the parent on both heads (upper 95% bound)",
+   "state": "done",
+   "started_at": "2026-10-19T10:22:24+02:00",
+   "ended_at": "2026-10-19T12:33:17+02:00"
   },
   {
    "what": "Pruning arm: score on 464 and 732 users",
@@ -513,7 +527,10 @@
     "SM15 scoring",
     "SM15 score"
    ],
-   "decides": "PASS / EXTEND / FAIL vs the parent"
+   "decides": "FAIL: +0.36% / +0.42% vs the best (459 users), above the +0.25% limit",
+   "state": "done",
+   "started_at": "2026-10-19T12:33:17+02:00",
+   "ended_at": "2026-10-19T13:04:31+02:00"
   },
   {
    "what": "Control: the same one-epoch 32k decay from the plain 32k epoch 10 (no carried-state epochs) + scoring",
@@ -524,7 +541,10 @@
    "match": [
     "SM42"
    ],
-   "decides": "Did the 2 carried-state epochs matter, or does the long 32k decay alone give the gain? Sets the recipe"
+   "decides": "Did the 2 carried-state epochs matter, or does the long 32k decay alone give the gain? Sets the recipe",
+   "state": "running",
+   "started_at": "2026-10-19T13:06:21+02:00",
+   "when": "10-19 13:06, ends ~18:40 (before the 21:00 break)"
   },
   {
    "what": "Muon instead of AdamW for the one-epoch 32k decay (paired with the best model, everything else equal) + scoring",
@@ -591,11 +611,12 @@
    "what": "State compression (~400 bits per card/note): compression trained into the decay vs applied after training, on 34 more users (CPU)",
    "id": "SM32b",
    "kind": "cpu",
-   "state": "running",
+   "state": "done",
    "started_at": "2026-10-19T12:06:00+02:00",
    "minutes": 45,
    "track": "small model",
-   "decides": "Sample size or method? On the first 34 users the trained-in version was worse: +0.0012 [+0.0006, +0.0019] curve / +0.0010 [+0.0006, +0.0014] instant"
+   "decides": "Method, not sample size: the new 34 users agree. On all 68: trained-in vs after-training +0.0014 [+0.0005, +0.0023] curve / +0.0010 [+0.0007, +0.0013] instant",
+   "ended_at": "2026-10-19T12:40:11+02:00"
   }
  ],
  "backlog": [
@@ -632,13 +653,13 @@
    "id": "SM32c",
    "track": "small model",
    "item": "State compression (~400 bits per card/note) with codebooks learned during training, in the one-epoch 32k decay of the best model",
-   "why": "Why we do not compress yet: after training it costs +0.4% / +0.8% (34 users), which breaks the &le; +1.0% bar; training with frozen codebooks made it worse. Outside research removes the cost with learned codebooks and a full decay. Payoff: ~45&times; smaller state than int8 (4.6 KB &rarr; ~0.1 KB per card), any collection size on any phone. ~2 h GPU + CPU scoring, after the Muon test; then codebook state in the fork runtime (with SM08)"
+   "why": "Why we do not compress yet: after training it costs +0.4% / +0.9% (68 users), which breaks the &le; +1.0% bar; training with frozen codebooks made it worse (confirmed on 68 users). Outside research removes the cost with learned codebooks and a full decay. Payoff: ~45&times; smaller state than int8 (4.6 KB &rarr; ~0.1 KB per card), any collection size on any phone. ~2 h GPU + CPU scoring, after the Muon test; then codebook state in the fork runtime (with SM08)"
   },
   {
    "status": "done",
    "item": "State compression trained in (QAT) at ~400/400 bits per card/note, during the final decay only",
    "id": "SM32b",
-   "why": "Done 10-18: worse than compressing after training (+0.0012 [+0.0006, +0.0019] curve / +0.0010 [+0.0006, +0.0014] instant, 34 users, frozen k-means codebooks, 0.25-epoch decay). Re-check on 34 more users running (CPU, 10-19)",
+   "why": "Done 10-18, re-checked 10-19 on 68 users: worse than compressing after training (+0.0014 [+0.0005, +0.0023] curve / +0.0010 [+0.0007, +0.0013] instant; frozen k-means codebooks, 0.25-epoch decay). The new 34 users agree with the first 34, so it is the method, not the sample: the short decay with frozen books makes the model itself worse (uncompressed +1.8% / +2.3%)",
    "track": "small model"
   },
   {
@@ -733,10 +754,10 @@
    "track": "small model"
   },
   {
-   "status": "parked",
+   "status": "done",
    "item": "Pruning: depth cut of the deck / preset / user streams (&minus;38% params)",
    "id": "SM15",
-   "why": "Design written; deprioritised 10-17 in favour of accuracy and speed",
+   "why": "Tried 10-19: the 7-layer cut (204,782 params, &minus;38%) with the best model&rsquo;s recipe costs +0.36% / +0.42% vs the best (459 users), +1.1% / +1.1% vs the big model. Fails; the full 13 layers stay",
    "track": "small model"
   },
   {
@@ -820,6 +841,34 @@
   "s-w64kd-gate-ctx2048c-dec8-1ep/w8+s8"
  ],
  "results": [
+  {
+   "date": "10-19",
+   "kind": "gpu-train",
+   "name": "Pruning: 7-layer cut (2+1+1 layers in the deck / preset / user streams, 204,782 params, &minus;38%), fine-tuned, then the best model&rsquo;s one-epoch 32k decay",
+   "id": "SM15",
+   "curve": 0.29949,
+   "instant": 0.27583,
+   "curve_pct": 1.07,
+   "instant_pct": 1.11,
+   "eval": "459 users, w8+s8",
+   "fork": "big model 0.29632 / 0.27281 on the same users; best (SM40) 0.29843 / 0.27469",
+   "takeaway": "<strong>Fails.</strong> vs the best +0.36% [+0.16, +0.54] / +0.42% [+0.37, +0.46] (limit +0.25%); on 724 users +0.44% / +0.43% (+1.10% / +1.11% vs the big model). The cut streams carry real signal; the 331k model stays the smallest that meets the bar",
+   "track": "small model"
+  },
+  {
+   "date": "10-19",
+   "kind": "cpu",
+   "name": "State compression (~400 bits per card/note): trained in vs applied after training, re-checked on 34 more users",
+   "id": "SM32b",
+   "curve": null,
+   "instant": null,
+   "curve_pct": 0.44,
+   "instant_pct": 0.35,
+   "eval": "68 users (34 + 34 new, CPU)",
+   "fork": "Δ% = trained-in vs after-training compression, paired",
+   "takeaway": "Same answer on the new 34 users (+0.0015 / +0.0010) as on the first 34 (+0.0012 / +0.0010). All 68: +0.0014 [+0.0005, +0.0023] / +0.0010 [+0.0007, +0.0013]. After-training compression costs +0.37% / +0.86% vs uncompressed. Not a sample-size issue: the short decay with frozen codebooks hurts. Next try: codebooks learned in the full decay (SM32c)",
+   "track": "small model"
+  },
   {
    "date": "10-19",
    "kind": "collection",
