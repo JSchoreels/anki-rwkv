@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-10-19T13:08:42+02:00",
- "updated": "2026-10-19 13:08",
- "material": "38f25d67d28b2928",
- "summary": "running 000541, finished 000540",
+ "generated_at": "2026-10-19T13:31:37+02:00",
+ "updated": "2026-10-19 13:31",
+ "material": "39caeffb6cc22dc4",
+ "summary": "running 000541",
  "headline": [
   {
    "k": "Best, 464 users (curve / instant)",
@@ -149,7 +149,7 @@
    "track": "small model",
    "ticket": "000541-small-model",
    "started": "13:06",
-   "elapsed": "0:02",
+   "elapsed": "0:25",
    "progress": null,
    "eta": "~18:36"
   }
@@ -632,6 +632,16 @@
    "state": "planned"
   },
   {
+   "what": "State compression with codebooks learned during training (~400 bits per card/note), in the one-epoch 32k decay of the best model (or of the Muon version if it wins) + CPU scoring",
+   "id": "SM32c",
+   "kind": "gpu-train",
+   "minutes": 120,
+   "track": "small model",
+   "when": "10-20 from ~08:00, after the Muon test; code written and CPU-checked before",
+   "decides": "Does compression trained in properly remove its cost (now +0.4% / +0.9%)? If yes: ~45&times; smaller state than int8, any collection size on any phone",
+   "state": "planned"
+  },
+  {
    "what": "Carried state, code (CPU): full-history targets (SM11, 18/18 checks) + kernels with a starting state and the trainer option (SM21, all checks bit for bit); merged together",
    "id": "SM21, SM11",
    "kind": "cpu",
@@ -733,7 +743,7 @@
    "id": "SM32c",
    "track": "small model",
    "item": "State compression (~400 bits per card/note) with codebooks learned during training, in the one-epoch 32k decay of the best model",
-   "why": "Why we do not compress yet: after training it costs +0.4% / +0.9% (68 users), which breaks the &le; +1.0% bar; training with frozen codebooks made it worse (confirmed on 68 users). Outside research removes the cost with learned codebooks and a full decay. Payoff: ~45&times; smaller state than int8 (4.6 KB &rarr; ~0.1 KB per card), any collection size on any phone. ~2 h GPU + CPU scoring, after the Muon test; then codebook state in the fork runtime (with SM08)"
+   "why": "Why we do not compress yet: after training it costs +0.4% / +0.9% (68 users), which breaks the &le; +1.0% bar; training with frozen codebooks made it worse (confirmed on 68 users). Outside research removes the cost with learned codebooks and a full decay. Payoff: ~45&times; smaller state than int8 (4.6 KB &rarr; ~0.1 KB per card), any collection size on any phone. Planned 10-20 from ~08:00 (~2 h GPU + CPU scoring), after the Muon test; then codebook state in the fork runtime (with SM08)"
   },
   {
    "status": "done",
