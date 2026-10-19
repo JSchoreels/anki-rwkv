@@ -157,14 +157,6 @@
    "kind": "gpu-train",
    "why": "~24,500 reviews/s, training ~4.1 h (to ~04:45), then 464 + 732-user scoring (~06:00). Started 00:31 on the user&rsquo;s go.",
    "track": "small model"
-  },
-  {
-   "match": "SM42",
-   "what": "Control: the best model&rsquo;s one-epoch 32k decay from the plain 32k epoch 10 (no carried-state epochs)",
-   "id": "SM42",
-   "kind": "gpu-train",
-   "why": "Did the 2 carried-state epochs matter? Training ~5.5 h to ~18:40, then scoring; the Muon test (SM36) follows after the 01:00 end of the break",
-   "track": "small model"
   }
  ],
  "plan": [
@@ -541,10 +533,10 @@
    "match": [
     "SM42"
    ],
-   "decides": "Did the 2 carried-state epochs matter, or does the long 32k decay alone give the gain? Sets the recipe",
-   "state": "running",
+   "decides": "Tie with the best: the 2 carried-state epochs do not matter, the one-epoch 32k decay with carry gives the gain",
+   "state": "done",
    "started_at": "2026-10-19T13:06:21+02:00",
-   "when": "10-19 13:06, ends ~18:40 (before the 21:00 break)"
+   "ended_at": "2026-10-19T18:35:30+02:00"
   },
   {
    "what": "Data diversity vs epochs, mini: 1,000 users &times; 1 epoch vs 100 of them &times; 10 epochs (73.7M vs 73.4M reviews seen), from scratch, 2,048-window KD recipe, both scored on 732 users",
@@ -884,6 +876,20 @@
   "s-w64kd-gate-ctx2048c-dec8-1ep/w8+s8"
  ],
  "results": [
+  {
+   "date": "10-19",
+   "kind": "gpu-train",
+   "name": "Control: the best model&rsquo;s one-epoch 32k decay (carry on), from the plain 32k epoch 10 (no carried-state epochs before it)",
+   "id": "SM42",
+   "curve": 0.30004,
+   "instant": 0.2742,
+   "curve_pct": 0.8,
+   "instant_pct": 0.75,
+   "eval": "464 users, 22.66M reviews",
+   "fork": "big model 0.29766 / 0.27216; best (SM40) 0.30004 / 0.27416; 723 users: 0.30350 / 0.27980 (+0.70% / +0.70%) vs best 0.30340 / 0.27976",
+   "takeaway": "<strong>Ties the best.</strong> vs best &minus;0.00000 [&minus;0.00014, +0.00014] / +0.00004 [+0.00001, +0.00007] (464 users). The 2 epochs with carried state before the decay add nothing; the gain is the one-epoch 32k decay with carry itself (vs dec10 &minus;0.00091 / &minus;0.00051). Simpler recipe: plain 32k training, then that decay",
+   "track": "small model"
+  },
   {
    "date": "10-19",
    "kind": "gpu-train",
