@@ -171,7 +171,7 @@
   // Headline comparison: rows {variant, curve, instant, curve_pct, instant_pct, eval, ref}; the `ref` row is the big model.
   // `quant` per row: one shared value becomes a footnote under the table, mixed values get a Quant. column.
   // Missing gaps are computed against the ref row (positive = worse than the big model).
-  const QUANT = { 'w8+s8': '8-bit weights and 8-bit card/note state (w8+s8), as the app runs the big model',
+  const QUANT = { 'w8+s8': '8-bit weights and 8-bit card/note state (w8+s8). The app runs the big model with full-precision weights and 8-bit state; 8-bit weights change its LogLoss by &le; 0.01%',
     'fp32': 'none, full precision (fp32)' };
   const cmpTable = (rows) => {
     const ref = rows.find((r) => r.ref) || {};

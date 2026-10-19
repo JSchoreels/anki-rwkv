@@ -42,6 +42,8 @@ Metric: LogLoss (lower is better), review-weighted over the held-out users, on t
 "Curve" = `p_curve` at the true elapsed time to the next review (scored on answered rows). "Instant" = `p_imm` on query rows.
 Reference = the fork's 2.76M model with int8 weights and int8 card/note state ("fork w8+s8"). "w8+s8" for the small model
 means the same compression: int8 per-output-channel weights (`weights.int8.bin`) and int8 card/note state (section 8.4).
+The fork's app runs the big model with f32 weights and int8 card/note state (its default); on 430 of the 464 users
+the big model's int8 weights change its LogLoss by -0.01% (curve) / +0.01% (instant), so the reference is the same either way.
 
 | Held-out set | Δ LogLoss curve vs fork w8+s8 | Δ LogLoss instant vs fork w8+s8 |
 |---|---:|---:|
