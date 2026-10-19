@@ -65,6 +65,12 @@ def clock(moment):
     return moment.strftime("%H:%M")
 
 
+def public(text):
+    """Queue text as published: HTML-escaped, and the outside researcher's name (in config names such as
+    expertium-iter53) replaced, since published pages never name them."""
+    return html.escape(re.sub(r"(?i)expertium", "outside-research", text))
+
+
 def clean(purpose):
     purpose = purpose.strip()
     return purpose[len(OWNER) + 2:] if purpose.startswith(OWNER + ": ") else purpose
@@ -200,7 +206,7 @@ def new_result_rows(curated, previous):
         reviews = sum(per[label][u]["ahead"][1] for u in users)
         first = seen.get(label) or now().isoformat(timespec="seconds")
         rows.append({
-            "date": local(first).strftime("%m-%d"), "kind": "gpu-score", "name": html.escape(label[:-len("/w8+s8")]), "id": "",
+            "date": local(first).strftime("%m-%d"), "kind": "gpu-score", "name": public(label[:-len("/w8+s8")]), "id": "",
             "label": label, "auto": True, "first_seen": first,
             "curve": round(c[0], 5), "instant": round(c[1], 5),
             "curve_pct": round((c[0] / f[0] - 1) * 100, 2), "instant_pct": round((c[1] / f[1] - 1) * 100, 2),
@@ -284,10 +290,10 @@ def build(previous):
         src = plan_for(t["purpose"], curated["plan"]) or {}
         linked = bool(note or src)
         ident = note.get("id") or (f"{src['id']}, ticket {t['ticket'][:6]}" if src.get("id") else t["ticket"])
-        row = {"what": note.get("what") or src.get("what") or html.escape(t["purpose"]), "id": ident,
+        row = {"what": note.get("what") or src.get("what") or public(t["purpose"]), "id": ident,
                "kind": note.get("kind") or src.get("kind") or "gpu-train",
                "decides": note.get("decides") or src.get("decides") or "", "why": note.get("why") or src.get("why") or "",
-               "job": html.escape(t["purpose"]), "linked": linked, "track": note.get("track") or src.get("track") or TRACK,
+               "job": public(t["purpose"]), "linked": linked, "track": note.get("track") or src.get("track") or TRACK,
                "ticket": t["ticket"], "started": clock(t["started"]), "elapsed": hms(t["elapsed"]), "progress": None}
         end = None
         if len(running) == 1 and prog:
@@ -312,11 +318,11 @@ def build(previous):
     def plan_id(purpose):
         return (plan_for(purpose, curated["plan"]) or {}).get("id", "")
 
-    recent = [{"ticket": t["ticket"], "id": plan_id(t["purpose"]), "what": html.escape(t["purpose"]),
+    recent = [{"ticket": t["ticket"], "id": plan_id(t["purpose"]), "what": public(t["purpose"]),
                "ended": clock(t["finished"]), "date": t["finished"].strftime("%m-%d"), "exit": t["exit"],
                "ran": hms(t["ran"]) if t["ran"] else ""}
               for t in reversed(finished[-RECENT:])]
-    waiting_rows = [{"ticket": t["ticket"], "id": plan_id(t["purpose"]), "what": html.escape(t["purpose"]),
+    waiting_rows = [{"ticket": t["ticket"], "id": plan_id(t["purpose"]), "what": public(t["purpose"]),
                      "flags": t["flags"]} for t in waiting]
 
     results = new_result_rows(curated, previous) + curated["results"]
