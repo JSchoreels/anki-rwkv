@@ -68,7 +68,7 @@ Small model alone: AUC curve 0.8018, instant 0.8406 (review-weighted).
 Caveats on these numbers:
 
 - They come from the training repository's PyTorch scorer, which feeds stored review durations of answered reviews and the
-  training pipeline's feature encodings (section 6.5). Deployment-realistic inputs may cost about +0.0002 (curve) and
+  training pipeline's feature encodings (section 6.6). Deployment-realistic inputs may cost about +0.0002 (curve) and
   +0.0004 (instant) LogLoss on top (owner's estimate; not part of the table).
 - Nothing was measured in Rust.
 
@@ -271,7 +271,47 @@ For each review there are two rows with different roles. The test vectors contai
 In the training data each query row sits just before the update row of the same review (same `th`; query first). A card's first review
 has no query row. The query row's shift state (time shift) comes from the last non-skipped row of the entity, so queries never disturb the stream.
 
-### 6.4 The 24 deterministic features (indices 0..23)
+### 6.4 All 92 inputs at a glance
+
+One row per feature; a sin/cos pair or a multi-dim code is one row. The `Dims` column sums to 92. Exact formulas follow in
+6.5 (indices 0..23) and 6.6 (indices 24..91). "log-z" = a log transform, then minus a mean and divided by a standard
+deviation (the constants in 6.5). Every input reaches the model as a float.
+
+| # | Feature | Dims | Indices | Type before scaling | What it is | Encoding |
+|---:|---|---:|---|---|---|---|
+| 1 | Elapsed days | 1 | 0 | int (days) | Days since **this card's** previous review (the interval) | `ln(1+1e-5+x)` log-z; log term 0 on the card's first review |
+| 2 | Elapsed days, cumulative | 1 | 1 | int (days) | Running sum of the card's intervals (the card's calendar age) | log-z |
+| 3 | Elapsed seconds | 1 | 2 | int (s) | Seconds since this card's previous review | log-z |
+| 4 | Elapsed-seconds sub-day phase | 2 | 3, 4 | float x2 | Where the interval falls within 24 h (tells a 1.0-day gap from a 1.5-day gap) | sin, cos of `2 pi (x mod 86400) / 86400` |
+| 5 | Elapsed seconds, cumulative | 1 | 5 | int (s) | Running sum of the card's elapsed seconds | log-z |
+| 6 | Cumulative-seconds sub-day phase | 2 | 6, 7 | float x2 | 24 h phase of the cumulative clock | sin, cos |
+| 7 | Review duration | 1 | 8 | int (ms) | Answer time of this review | `ln(10+x)` log-z; **0 on a query row** (the answer does not exist yet) |
+| 8 | Rating | 4 | 9..12 | one-hot | Again / Hard / Good / Easy | 0/1; **all 0 on a query row** |
+| 9 | Missing-ID flags | 3 | 13, 14, 15 | bool x3 | The card's note / deck / preset id is missing (deleted card or deck) | 0/1 each |
+| 10 | Days since any review | 1 | 16 | int (days) | Days since the user's previous review of **any** card | `ln(ln(e+x))` |
+| 11 | Day of week (pseudo) | 1 | 17 | int (0..6) | Position in a 7-day cycle counted from the user's first day (the true weekday is unknown in the data) | `((day_offset mod 7) - 3) / 3` |
+| 12 | New cards since the card's last review | 1 | 18 | int | New cards the user started between this card's previous review and now | `ln(3+x)` log-z |
+| 13 | Reviews since the card's last review | 1 | 19 | int | Reviews of other cards in that same window | `ln(3+x)` log-z |
+| 14 | New cards today | 1 | 20 | int | New cards started so far on this day | `ln(3+x)` log-z |
+| 15 | Reviews today | 1 | 21 | int | Reviews done so far on this day | `ln(3+x)` log-z |
+| 16 | Card state (**ignored**) | 1 | 22 | int (0..3) | Anki card state (new / learning / review / relearning) | `state - 2`; **zeroed inside the model** (`zero_features`), so you may send 0 |
+| 17 | Query flag | 1 | 23 | bool | 1 on the query row of a review (6.3) | 0/1 |
+| 18 | Card code | 12 | 24..35 | code | Identity of this card | random per-entity code, values in {-1.5, -0.5, 0.5, 1.5} (6.6, 6.8) |
+| 19 | Note code | 12 | 36..47 | code | Identity of the note: sibling cards share it | same |
+| 20 | Deck code | 8 | 48..55 | code | Identity of the deck | same |
+| 21 | Preset code | 8 | 56..63 | code | Identity of the deck-options preset | same |
+| 22 | 3-day cycle | 4 | 64..67 | float x4 | Two clocks with a 3-day period: today's day, and the day of this card's first review (a fixed property of the card) | sin, cos x {review day, first-review day} |
+| 23 | 7-day cycle | 4 | 68..71 | float x4 | Same two clocks, 7-day period | same |
+| 24 | 30-day cycle | 4 | 72..75 | float x4 | Same, 30 days | same |
+| 25 | 100-day cycle | 4 | 76..79 | float x4 | Same, 100 days | same |
+| 26 | 365-day cycle | 4 | 80..83 | float x4 | Same, 365 days | same |
+| 27 | 3650-day cycle | 4 | 84..87 | float x4 | Same, 3,650 days | same |
+| 28 | 36500-day cycle | 4 | 88..91 | float x4 | Same, 36,500 days | same |
+| | **Total** | **92** | | | | |
+
+The user stream gets no code: one sequence is always one user (one collection).
+
+### 6.5 The 24 deterministic features (indices 0..23)
 
 `ln` = natural log. "First" = the card's first review (`elapsed = -1`).
 
@@ -304,7 +344,7 @@ review contributes -1 to them; a sum that equals exactly -1 is treated like a fi
 Constants as written above are the normalisation statistics (means and standard deviations) from `rwkv/data_processing.py` `STATISTICS`.
 The fork has the same values (`ELAPSED_DAYS_MEAN`, ... at `mod.rs:388-405`).
 
-### 6.5 Entity codes and calendar encodings (indices 24..91)
+### 6.6 Entity codes and calendar encodings (indices 24..91)
 
 | Indices | Count | Content |
 |---|---:|---|
@@ -327,10 +367,31 @@ from the `raw_*` arrays (section 13). The fork already generates codes in first-
 (`TorchIdRng`, `mod.rs:2993`) and `b = 0`; it differs from the scorer's codes. The accuracy in section 2 was not re-measured with
 the fork's code assignment (known gap).
 
-### 6.6 What changes compared with the fork's model
+### 6.7 What changes compared with the big model (the fork's model)
 
 Nothing in the feature builder, except that input 22 is ignored. The fork's `features_for` (`mod.rs:2659`) and `CARD_FEATURES = 92`
 (`mod.rs:58`) can stay as they are.
+
+### 6.8 Notes on the inputs
+
+- **Query rows (6.3).** Every answer-derived input is zeroed on a query row: rating (9..12) and duration (8). Timing,
+  counters, flags, codes and cycles are kept, computed for the moment of asking. So `p_imm` and `p_rating` see only what is
+  known before the card is answered.
+- **Entity codes are not learned embeddings.** Training re-draws them at random for every batch, so the model can only use
+  them to match ("same code as an earlier row" = same card / note / deck / preset). Any fixed random code per entity works
+  at deployment; it must not change once the entity has state. Identity enters the model twice: through these codes and
+  through the per-entity recurrent state of the five streams (6.1, section 8).
+- **Cycle baselines.** In training each period's phase gets a random offset per batch (augmentation: the model cannot
+  learn absolute positions in a cycle, only relative ones). At deployment use offset 0, as the fork does (6.6).
+- **Labels are not inputs.** Training targets (`label_y`, `label_rating`, the next interval) come from the card's next
+  review. A deployment never builds them; the test vectors carry them only to score the outputs.
+- **Where the 92 inputs are computed:**
+
+| Path | Computes the 92 inputs? |
+|---|---|
+| Training and scoring (`rwkv/data_processing.py`, `rwkv/prepare_batch.py`) | yes (source of truth for the formulas in 6.5 and 6.6) |
+| NumPy reference in this package (`reference/`) | no: it reads them from the test vectors; indices 0..23 can be rebuilt from the `raw_*` arrays (section 13) |
+| Anki fork (`features_for`, `rslib/src/rwkv/mod.rs:2659`) | yes, the same 92 for the big model; codes from its own seeded generator and cycle offset 0 (6.6) |
 
 ---
 
@@ -590,7 +651,7 @@ shape-dependent constants run-time values. The first target is correctness again
    - `predict_curve` (5432): evaluate section 9.1. The caller `current_curve_retrievability` (5420) and `interval_for_curve` (5194) need no change.
    - `button_probabilities_head` (3690) and `retrievability_head` stay (`head_p.0` 128 wide).
 6. **Input switches.** Zero input 22 before `features_0` (either in `SrsModel::feature_mlp` 3659 and the bulk `feature_mlp_rows`, or in
-   `features_for` 2659 where the value is produced). No other feature change (section 6.6).
+   `features_for` 2659 where the value is produced). No other feature change (section 6.7).
 7. **State store.**
    - Per-entity state sizes change (section 8.1): wherever `D_MODEL`, `HEADS`, `HEAD_SIZE` size a state blob (`TimeState`, `LayerState`, the
      cache writers around 4160-4230 and 5071-5100) use the spec.
@@ -607,7 +668,7 @@ shape-dependent constants run-time values. The first target is correctness again
 10. **Acceptance.**
     - Rust replay of the two `testvectors/user_*.npz` histories (convert the arrays to a flat binary or JSON for the Rust test): per-row `p_imm`,
       `p_rating`, `p_curve` at the label time and the 6 sweep times must match to 1e-5 for f32 weights and for int8 weights (dequantised at load).
-    - Unit test for the feature builder against the `raw_*` columns of the vectors for features 0..23 (columns 24..91 are random, section 6.5).
+    - Unit test for the feature builder against the `raw_*` columns of the vectors for features 0..23 (columns 24..91 are random, section 6.6).
     - Then the fork's collection replay against the 2.76M int8 baseline (LogLoss on the user's own collection; expected about +0.7 %).
     - Then the same with int8 state; the expected effect of int8 state is on the order of 1e-3 in probability (section 12).
 
