@@ -19,6 +19,12 @@ Speed (S09, docs/GPU_OPTIMIZATIONS.md): a codec with `.kernel` (scripts/state_vq
 install_training for impl "cuda" / "hybrid") runs on CUDA through fused kernels: impl "cuda" = `VQStateWKVKernel`
 (one forward launch per split for all steps + the plain WKV backward kernel along the stored trajectory), impl
 "hybrid" = this file's torch forward + that backward kernel. Same forward value and STE gradient as VQStateWKV.
+SM32c (option "learn": true, scripts/state_vq.LearnedBooks): the catalogs are trainable. `VQStateWKVLearned` records
+the stage picks and q(n)^2 of every coded step; its backward also returns dL/d(stored state) per coded step (the
+dstored copy of the backward kernel, or `ste_backward(..., dstored=)` on the torch path) and turns it into centroid
+gradients (scripts/state_vq_cuda.codebook_grad). The shift codec's reconstruction is differentiable in its catalog
+(StateCodec.shift_learned). `vq_wkv_state` / `vq_shift_mask` are the carried-state entry points (SM21 carry_layer):
+the recurrence starts from a carried (already coded) state and returns the last stored state.
 Both functions are @torch.jit.ignore: the scripted mixers call them through the Python fallback (the
 `quant_aware_rwkv7` pattern), so the default JIT path stays scripted.
 """
@@ -36,10 +42,11 @@ CODECS: Dict[int, Any] = {}
 KERNELS_ON_CPU = False
 
 
-def ste_backward(r, k, v, w, a, kd, skip, before, grad_out):
+def ste_backward(r, k, v, w, a, kd, skip, before, grad_out, dstored=None):
     """Straight-through WKV gradients along a stored trajectory: before[t] [B, H, K, K] = the state step t starts
     from (any layout that indexes that way, e.g. a [B, T, ...] tensor transposed). The plain WKV backward with the
-    quantizer as identity (dq/dnxt = I on non-skipped steps)."""
+    quantizer as identity (dq/dnxt = I on non-skipped steps). dstored (optional, [T, B, H, K, K] layout, zeros) receives
+    dL/d(stored state after t) on every non-skipped step (SM32c)."""
     grad_out = grad_out.to(r.dtype)
     B, T, H, K = r.shape
     dr, dk, dv, dw, da, dkd = (torch.empty_like(r) for _ in range(6))
@@ -52,6 +59,8 @@ def ste_backward(r, k, v, w, a, kd, skip, before, grad_out):
         p = S @ kdt.unsqueeze(-1)                                              # S kd        [B, H, K, 1]
         nxt = S * wt.unsqueeze(-2) - p @ akd.unsqueeze(-2) + vt.unsqueeze(-1) @ kt.unsqueeze(-2)
         sk = skip[:, t, None, None, None]
+        if dstored is not None:
+            dstored[t] = torch.where(sk, zero, dS)
         g = grad_out[:, t]
         # out_t = nxt r_t; the stored state is q(nxt) on non-skipped rows (STE: dq/dnxt = I), else S.
         dn = g.unsqueeze(-1) * rt.unsqueeze(-2) + torch.where(sk, zero, dS)
@@ -120,6 +129,95 @@ class VQStateWKVKernel(torch.autograd.Function):
         return (*ctx.kernel.backward(r, k, v, w, a, kd, skip, before, grad_out), None, None)
 
 
+class VQStateWKVLearned(torch.autograd.Function):
+    """SM32c: VQStateWKV / VQStateWKVKernel from a carried state `s0` [B, H, K, K] (None = zeros) that also returns the
+    last stored state (detached) and, when `books` (the learned [S, M, 32] WKV catalog) is given, its gradient. Kernel
+    path when the codec has a `.kernel` with record support (impl "cuda"); otherwise the per-step torch loop."""
+
+    @staticmethod
+    def forward(ctx, r, k, v, w, a, kd, skip, s0, books, codec):
+        codec.sync()
+        kernel = getattr(codec, "kernel", None) if (r.is_cuda or KERNELS_ON_CPU) else None
+        if kernel is not None and getattr(codec, "impl", "torch") == "cuda":
+            out, before, final, picks, cscale = kernel.forward(r, k, v, w, a, kd, skip, s0=s0, record=True)
+            layout = "BT"
+        else:
+            kernel = None
+            B, T, H, K = r.shape
+            state = r.new_zeros(B, H, K, K) if s0 is None else s0.float().clone()
+            before = r.new_empty(T, B, H, K, K)
+            stages = codec.rec.stages[0]
+            picks = torch.full((T, B, H, stages), -1, dtype=torch.int32, device=r.device)
+            cscale = r.new_zeros(T, B, H)
+            outs = []
+            for t in range(T):
+                before[t] = state
+                out_t, nxt = single_timestep(r[:, t], k[:, t], v[:, t], w[:, t], a[:, t], kd[:, t], state)
+                outs.append(out_t)
+                rows = torch.nonzero(~skip[:, t]).flatten()
+                if rows.numel():
+                    rec, pk, cs = codec.encode_wkv(nxt.index_select(0, rows))
+                    state = state.clone()
+                    state[rows] = rec.to(state.dtype)
+                    picks[t, rows] = pk.to(torch.int32)
+                    cscale[t, rows] = cs
+            out = torch.stack(outs, dim=1)
+            final = state
+            layout = "TB"
+        ctx.kernel, ctx.layout, ctx.has_books = kernel, layout, books is not None
+        ctx.save_for_backward(r, k, v, w, a, kd, skip, before, picks, cscale, books if books is not None else r.new_zeros(0))
+        ctx.mark_non_differentiable(final)
+        return out, final
+
+    @staticmethod
+    def backward(ctx, grad_out, grad_final):
+        from scripts.state_vq_cuda import codebook_grad
+        r, k, v, w, a, kd, skip, before, picks, cscale, books = ctx.saved_tensors
+        if ctx.kernel is not None:
+            grads, ds = ctx.kernel.backward(r, k, v, w, a, kd, skip, before, grad_out, dstored=True)
+        else:
+            ds = r.new_zeros(before.shape)
+            grads = ste_backward(r, k, v, w, a, kd, skip, before, grad_out, dstored=ds)
+        gbooks = codebook_grad(books, picks, cscale, ds) if ctx.has_books else None
+        return (*grads, None, None, gbooks, None)
+
+
+def _learned_books(codec):
+    lb = getattr(codec, "learned", None)
+    return None if lb is None else lb.wkv
+
+
+@torch.jit.ignore
+def vq_wkv_state(r_BTHK: Tensor, k_BTHK: Tensor, v_BTHK: Tensor, w_BTHK: Tensor, a_BTHK: Tensor,
+                 k_deformed_BTHK: Tensor, skip_BT: Tensor, s0, slot: int):
+    """SM32c carried-state QAT WKV (scripts/state_carry_train.carry_layer): (out, last stored state [B, H, K, K])."""
+    out_dtype = k_BTHK.dtype
+    args = [t.float().contiguous() for t in (r_BTHK, k_BTHK, v_BTHK, w_BTHK, a_BTHK, k_deformed_BTHK)]
+    codec = CODECS[slot]
+    s0 = None if s0 is None else s0.detach().float().contiguous()
+    out, final = VQStateWKVLearned.apply(*args, skip_BT.contiguous(), s0, _learned_books(codec), codec)
+    return out.to(out_dtype), final
+
+
+def vq_shift_mask(x_shift_BTC: Tensor, stored_BT: Tensor, slot: int, role: int) -> Tensor:
+    """Token-shift QAT on the rows `stored_BT` (vectors read from an earlier review, in this window or carried): the
+    codec's reconstruction there (STE to x; with learned catalogs also gradients into the picked centroids), x
+    elsewhere."""
+    B, T, C = x_shift_BTC.shape
+    base = x_shift_BTC.detach()
+    codec = CODECS[slot]
+    name = "t" if role == 0 else "c"
+    if getattr(codec, "learned", None) is not None:
+        codec.sync()
+        coded = codec.shift_learned(base.reshape(B * T, C).float(), name).reshape(B, T, C).to(base.dtype)
+        coded = torch.where(stored_BT.unsqueeze(-1), coded, base)
+    else:
+        with torch.no_grad():
+            coded = codec.shift(base.reshape(B * T, C).float(), name)
+            coded = torch.where(stored_BT.unsqueeze(-1), coded.reshape(B, T, C).to(base.dtype), base)
+    return coded + (x_shift_BTC - base)
+
+
 @torch.jit.ignore
 def vq_wkv(r_BTHK: Tensor, k_BTHK: Tensor, v_BTHK: Tensor, w_BTHK: Tensor, a_BTHK: Tensor, k_deformed_BTHK: Tensor,
            skip_BT: Tensor, slot: int) -> Tensor:
@@ -127,6 +225,8 @@ def vq_wkv(r_BTHK: Tensor, k_BTHK: Tensor, v_BTHK: Tensor, w_BTHK: Tensor, a_BTH
     out_dtype = k_BTHK.dtype
     args = [t.float().contiguous() for t in (r_BTHK, k_BTHK, v_BTHK, w_BTHK, a_BTHK, k_deformed_BTHK)]
     codec = CODECS[slot]
+    if getattr(codec, "learned", None) is not None:   # SM32c
+        return VQStateWKVLearned.apply(*args, skip_BT.contiguous(), None, codec.learned.wkv, codec)[0].to(out_dtype)
     on_kernel_device = r_BTHK.is_cuda or KERNELS_ON_CPU
     fn = VQStateWKVKernel if (on_kernel_device and getattr(codec, "impl", "torch") == "cuda") else VQStateWKV
     return fn.apply(*args, skip_BT.contiguous(), codec).to(out_dtype)
@@ -138,6 +238,8 @@ def vq_shift(x_shift_BTC: Tensor, time_shift_select_BT: Tensor, slot: int, role:
     1 = channel mixer."""
     B, T, C = x_shift_BTC.shape
     stored = time_shift_select_BT.long() != torch.arange(T, device=x_shift_BTC.device).unsqueeze(0)
+    if getattr(CODECS[slot], "learned", None) is not None:   # SM32c
+        return vq_shift_mask(x_shift_BTC, stored, slot, role)
     base = x_shift_BTC.detach()
     with torch.no_grad():
         coded = CODECS[slot].shift(base.reshape(B * T, C).float(), "t" if role == 0 else "c")

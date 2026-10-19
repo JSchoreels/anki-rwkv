@@ -11,6 +11,11 @@
 //     acc += c; norm n = sqrt(sigma) on the uniform log2 grid; S = valid ? q(n)^2 acc_u acc_v^T : 0.
 // Writes out [B, T, H, 16] and the state BEFORE every step [B, T, H, 16, 16]: the backward is the plain WKV backward
 // along that (quantized) trajectory = rwkv7_wkv_backward_kernel<1, float> of rwkv/model/nvrtc.py (checkpoint every step).
+// SM32c (learned codebooks, carried state): four optional pointers, nullptr = the SM32b kernel exactly (same arithmetic,
+// same writes). s0_ [B, H, 16, 16]: the state step 0 starts from (a carried, already coded state; nullptr = zeros).
+// final_ [B, H, 16, 16]: the stored state after the last step. picks_ [B, T, H, stages] int32: stage picks of every
+// coded step (untouched on skipped steps, the caller fills -1). cscale_ [B, T, H]: q(n)^2 of every coded step, 0 when
+// the factorization is invalid (stored state 0); the codebook gradient is cscale (G acc_v, G^T acc_u) per pick.
 // FT = factorization type (float, or double with -DFACTOR_DOUBLE); the VQ search is float32 as in the torch codec.
 #define KD 16
 #define NT 256
@@ -76,7 +81,11 @@ extern "C" __global__ void __launch_bounds__(NT) state_vq_wkv_forward(
     const float* __restrict__ cn2_,    // [stages, M]: squared centroid norms (the codec's wkv_n2)
     const int stages, const int M,
     const int norm_mode,           // 1 = uniform log2 grid (norm_lo, norm_span, norm_levels), 0 = fixed norm_fixed
-    const float norm_lo, const float norm_span, const float norm_levels, const float norm_fixed) {
+    const float norm_lo, const float norm_span, const float norm_levels, const float norm_fixed,
+    const float* __restrict__ s0_,     // [B, H, KD, KD] or nullptr (zeros)
+    float* __restrict__ final_,        // [B, H, KD, KD] or nullptr
+    int* __restrict__ picks_,          // [B, T, H, stages] or nullptr
+    float* __restrict__ cscale_) {     // [B, T, H] or nullptr
     __shared__ FT sN[KD][KD + 1];   // nxt
     __shared__ FT sA[KD][KD + 1];   // nxt / amax
     __shared__ FT sG[KD][KD + 1];   // Gram
@@ -87,7 +96,7 @@ extern "C" __global__ void __launch_bounds__(NT) state_vq_wkv_forward(
     __shared__ int sRedI[NT / 32];
     const int b = blockIdx.x, h = blockIdx.y;
     const int x = threadIdx.y, y = threadIdx.x, tid = x * KD + y;
-    float state = 0.0f;
+    float state = s0_ ? s0_[(((i64)b * H + h) * KD + x) * KD + y] : 0.0f;
     for (int t = 0; t < T; t++) {
         const i64 base = (((i64)b * T + t) * H + h) * KD;
         before_[(base + x) * KD + y] = state;
@@ -179,6 +188,7 @@ extern "C" __global__ void __launch_bounds__(NT) state_vq_wkv_forward(
                 if (dist < bv) { bv = dist; bi = c; }
             }
             const int pick = block_argmin(bv, bi, sRedV, sRedI, tid);
+            if (picks_ && tid == 0) picks_[((((i64)b * T + t) * H + h) * stages) + s] = pick;
             if (tid < 2 * KD) sAcc[tid] += book[(i64)tid * M + pick];
             __syncthreads();
         }
@@ -195,6 +205,8 @@ extern "C" __global__ void __launch_bounds__(NT) state_vq_wkv_forward(
         }
         const FT nq2 = (FT)nq * (FT)nq;
         state = valid ? (float)(nq2 * (FT)sAcc[x] * (FT)sAcc[KD + y]) : 0.0f;
+        if (cscale_ && tid == 0) cscale_[((i64)b * T + t) * H + h] = valid ? (float)nq2 : 0.0f;
         __syncthreads();   // the shared buffers are rewritten by the next coded step
     }
+    if (final_) final_[(((i64)b * H + h) * KD + x) * KD + y] = state;
 }

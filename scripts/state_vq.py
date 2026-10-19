@@ -143,6 +143,17 @@ def rvq(x, books, norms2=None, chunk=4096):
     return acc
 
 
+def rvq_picks(x, books, norms2=None, chunk=4096):
+    """rvq with the picks: (acc [N, D], picks [N, S] long). Same picks and sums as rvq."""
+    acc = torch.zeros_like(x)
+    picks = []
+    for s, cb in enumerate(books):
+        idx = nearest(x - acc, cb, None if norms2 is None else norms2[s], chunk)
+        acc = acc + cb[idx]
+        picks.append(idx)
+    return acc, (torch.stack(picks, -1) if picks else torch.zeros(x.shape[0], 0, dtype=torch.long, device=x.device))
+
+
 @dataclass
 class NormQuant:
     bits: object = None
@@ -324,6 +335,76 @@ class StateCodec:
                     self.shift_n2[role] = [[(cb * cb).sum(-1) for cb in st] for st in self.shift_books[role]]
                 self.shift_nq[role] = (NormQuant(rec.shift_norm_bits, *books.shift_norm[(role, rec.shift_norm_bits)])
                                        if rec.shift_norm_bits is not None else NormQuant())
+
+    learned = None   # SM32c: the LearnedBooks whose current values this codec codes with (sync() before each use)
+
+    def sync(self):
+        """SM32c: take the learned catalogs' current values (detached) as this codec's books; no-op when frozen."""
+        lb = self.learned
+        if lb is None:
+            return
+        with torch.no_grad():
+            if self.rec.rank:
+                stages = [lb.wkv[s].detach() for s in range(self.rec.stages[0])]
+                self.wkv_books[0] = stages
+                self.wkv_n2[0] = [(cb * cb).sum(-1) for cb in stages]
+                kernel = getattr(self, "kernel", None)
+                if kernel is not None and hasattr(kernel, "refresh"):
+                    kernel.refresh(lb.wkv[:self.rec.stages[0]])
+            if self.rec.shift_m and self.rec.shift_stages:
+                for role in ("t", "c"):
+                    param = lb.shift[role]
+                    self.shift_books[role] = [[param[p, st].detach() for st in range(self.rec.shift_stages)]
+                                              for p in range(self.rec.shift_m)]
+                    self.shift_n2[role] = [[(cb * cb).sum(-1) for cb in pos] for pos in self.shift_books[role]]
+
+    def encode_wkv(self, S):
+        """SM32c torch path (rank 1): S [N, H, K, K] -> (reconstruction float32 [N, H, K, K], picks [N, H, stages]
+        long, cscale [N, H] = q(n)^2, 0 where the factorization is invalid). Same value as wkv()."""
+        if self.rec.rank != 1 or not self.wkv_books[0]:
+            raise ValueError("encode_wkv needs a rank-1 recipe with coded directions")
+        N, H = S.shape[:2]
+        A = S.reshape(N * H, K, K)
+        fd = self.factor_dtype
+        if self.rec.factor == "sq":
+            u, v, sigma, valid = factorize_sq(A, fd)
+        else:
+            u, v, sigma, valid = factorize(A, 1, fd)
+        q = torch.cat([u[:, 0], v[:, 0]], dim=-1).float()
+        acc, picks = rvq_picks(q, self.wkv_books[0], self.wkv_n2[0], self.wkv_chunk)
+        acc = acc.to(fd)
+        n = torch.sqrt(torch.where(valid[:, 0], sigma[:, 0], torch.ones_like(sigma[:, 0])))
+        nq = self.wkv_nq[0](n.float()).to(fd) if self.rec.norm_bits is not None else n
+        c = torch.where(valid[:, 0], nq * nq, torch.zeros_like(nq))
+        out = c[:, None, None] * acc[:, :K, None] * acc[:, None, K:]
+        return (out.float().reshape(N, H, K, K), picks.reshape(N, H, -1),
+                c.float().reshape(N, H))
+
+    def shift_learned(self, x, role):
+        """SM32c: shift() whose reconstruction is differentiable in the learned shift catalog (picks frozen,
+        embedding-style gradients into the picked rows); x [N, C] detached. Same value as shift()."""
+        lb = self.learned
+        if lb is None or not self.rec.shift_m or not self.rec.shift_stages:
+            return self.shift(x, role)
+        with torch.no_grad():
+            n = x.norm(dim=-1)
+            valid = torch.isfinite(n) & (n > 1e-20)
+            n1 = torch.where(valid, n, torch.ones_like(n))
+            unit = x / n1[:, None]
+            m = self.rec.shift_m
+            sub = x.shape[1] // m
+            picks = [rvq_picks(unit[:, p * sub:(p + 1) * sub].contiguous(), self.shift_books[role][p],
+                               self.shift_n2[role][p], self.shift_chunk)[1] for p in range(m)]
+            scale = self.shift_nq[role](n1)
+        param = lb.shift[role]
+        parts = []
+        for p in range(m):
+            acc = param[p, 0].index_select(0, picks[p][:, 0])
+            for st in range(1, self.rec.shift_stages):
+                acc = acc + param[p, st].index_select(0, picks[p][:, st])
+            parts.append(acc)
+        rec = torch.cat(parts, dim=-1) * scale[:, None]
+        return torch.where(valid[:, None], rec, x)
 
     def to(self, device):
         """Move the codebooks (and their squared norms) to `device`; returns self."""
@@ -537,6 +618,53 @@ def file_sha256(path):
 IMPLS = ("torch", "hybrid", "cuda")
 
 
+class LearnedBooks(torch.nn.Module):
+    """SM32c: the codec catalogs as trainable parameters (the outside research's learnable QAT catalogs: gradient
+    into the picked centroids, picks frozen per step). One joint (u, v) WKV catalog `wkv` [S, M, 32] shared by the card
+    and note streams (each uses its first `stages` stages), and per shift role a product catalog `shift[role]`
+    [m, S_shift, M_shift, sub] shared by the streams. Norm grids stay fixed. Initialised from the k-means file."""
+
+    def __init__(self, books, recs, device):
+        super().__init__()
+        ranks = {rec.rank for rec in recs}
+        if ranks != {1}:
+            raise ValueError("learned state_vq catalogs are rank 1 only")
+        S = max(rec.stages[0] for rec in recs)
+        self.wkv = torch.nn.Parameter(torch.stack([cb.float() for cb in books.wkv[0][:S]]).to(device))
+        ms = {rec.shift_m for rec in recs}
+        if len(ms) != 1:
+            raise ValueError("learned shift catalogs need one shift_m for both streams")
+        self.shift_m = ms.pop()
+        S_shift = max(rec.shift_stages for rec in recs)
+        self.shift = torch.nn.ParameterDict({
+            role: torch.nn.Parameter(torch.stack([torch.stack([cb.float() for cb in pos[:S_shift]])
+                                                  for pos in books.shift[(role, self.shift_m)]]).to(device))
+            for role in ("t", "c")})
+        self.source = books
+
+    def export(self, path):
+        """Write the current catalogs as a Codebooks .npz (the scorer's --vq-codebooks format): the learned stages
+        replace the first stages of the source file, every other entry (more stages, other m, norm ranges) is kept."""
+        src = self.source
+        out = Codebooks(wkv=[list(stages) for stages in src.wkv], shift={k: [list(st) for st in v] for k, v in src.shift.items()},
+                        wkv_norm=dict(src.wkv_norm), shift_norm=dict(src.shift_norm))
+        with torch.no_grad():
+            for s in range(self.wkv.shape[0]):
+                out.wkv[0][s] = self.wkv[s].detach().float().cpu()
+            for role, param in self.shift.items():
+                for p in range(param.shape[0]):
+                    for st in range(param.shape[1]):
+                        out.shift[(role, self.shift_m)][p][st] = param[p, st].detach().float().cpu()
+        Path(path).parent.mkdir(parents=True, exist_ok=True)
+        tmp = Path(str(path) + ".tmp.npz")
+        out.save(tmp)
+        tmp.replace(path)
+        return file_sha256(path)
+
+
+LEARNED = None   # SM32c: the LearnedBooks of the running training (install_training with "learn": true), else None
+
+
 def training_spec(value):
     """The `state_vq` training option: a recipe name ("vq378x412") or {"recipe": ..., "codebooks": <.npz>,
     "sha256": <hex of the .npz, checked when given>, "factor_dtype": "float64" (default, = the CPU scorer) | "float32"
@@ -545,7 +673,7 @@ def training_spec(value):
     forward and backward kernels on CUDA, scripts/state_vq_cuda.py; needs a factor "sq" recipe such as vq378x412p)}.
     On a CPU device every impl runs the torch path. Codebooks default to this checkout's SM32 k-means file."""
     spec = {"recipe": value} if isinstance(value, str) else dict(value)
-    unknown = set(spec) - {"recipe", "codebooks", "sha256", "factor_dtype", "impl"}
+    unknown = set(spec) - {"recipe", "codebooks", "sha256", "factor_dtype", "impl", "learn"}
     if unknown or "recipe" not in spec:
         raise ValueError(f"state_vq option needs a recipe; unknown keys {sorted(unknown)}")
     recs = recipe(spec["recipe"])
@@ -567,6 +695,10 @@ def training_spec(value):
            "factor_dtype": spec.get("factor_dtype", "float64")}
     if impl != "torch":   # the key is absent for the default, so earlier option dicts describe themselves unchanged
         out["impl"] = impl
+    if spec.get("learn"):   # SM32c; absent = frozen catalogs (SM32b dicts describe themselves unchanged)
+        if any(rec.rank != 1 for rec in recs):
+            raise ValueError("state_vq learn: rank-1 recipes only")
+        out["learn"] = True
     return out
 
 
@@ -598,15 +730,19 @@ def training_layout(model):
 def install_training(model, value, device, wkv_chunk=1 << 20, shift_chunk=8192):
     """Route the card/note mixers of `model` through the QAT hooks (expertium/model/state_vq_hooks.py) with the
     recipe's codecs on `device`. Returns the description written into the training result."""
+    global LEARNED
     from expertium.model import state_vq_hooks as hooks
     spec = training_spec(value)
     books = Codebooks.load(spec["codebooks"])
     layout = training_layout(model)
     hooks.CODECS.clear()
     impl = spec.get("impl", "torch") if torch.device(device).type == "cuda" else "torch"
+    LEARNED = LearnedBooks(books, recipe(spec["recipe"]), device) if spec.get("learn") else None
     for (stream, info), rec in zip(layout.items(), recipe(spec["recipe"])):
         codec = StateCodec(rec, books, wkv_chunk, shift_chunk, getattr(torch, spec["factor_dtype"])).to(device)
         attach_kernel(codec, impl, device)
+        codec.learned = LEARNED
+        codec.sync()
         hooks.CODECS[stream] = codec
         for module in info["time"] + info["channel"]:
             if getattr(module, "fused_shift", False):
@@ -615,7 +751,9 @@ def install_training(model, value, device, wkv_chunk=1 << 20, shift_chunk=8192):
     plain = {s: {k: v for k, v in info.items() if k in ("wkv_layers", "heads", "shift_vectors")}
              for s, info in layout.items()}
     return {**spec, "impl_on_device": impl, "streams": describe(spec["recipe"], plain),
-            "codebook_handling": "frozen (k-means, no gradient)",
+            "codebook_handling": ("learned (SM32c: gradient into the picked centroids, picks frozen per step; AdamW "
+                                  "group at the schedule LR, weight decay 0; norm grids fixed)" if LEARNED is not None
+                                  else "frozen (k-means, no gradient)"),
             "mixers": {str(s): len(info["time"]) + len(info["channel"]) for s, info in layout.items()}}
 
 
@@ -632,6 +770,8 @@ def attach_kernel(codec, impl, device):
 
 
 def uninstall_training(model):
+    global LEARNED
+    LEARNED = None
     from expertium.model import state_vq_hooks as hooks
     for info in training_layout(model).values():
         for module in info["time"] + info["channel"]:

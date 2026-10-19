@@ -210,6 +210,9 @@ def quantize_rows(S):
 class CarryTable:
     def __init__(self, precision="deploy"):
         self.precision = precision
+        # SM32c: streams whose WKV state is VQ-coded (state_vq): their stored S is the codec's reconstruction, kept in
+        # float32 (the deployed code reconstructs exactly; int8 rows on top would add a rounding the phone never does)
+        self.fp32_streams = set()
         self.universe = None
         self.keys = None
         self.size = None
@@ -260,10 +263,13 @@ class CarryTable:
         last = torch.searchsorted(sorted_codes, slots, right=True) - 1
         touched = (last >= 0) & (sorted_codes.index_select(0, last.clamp(min=0)) == slots)
         source = order.index_select(0, last.clamp(min=0))
-        int8 = self.precision == "deploy" and BATCH_STREAMS[stream] in INT8_STREAMS
+        int8 = (self.precision == "deploy" and BATCH_STREAMS[stream] in INT8_STREAMS
+                and stream not in self.fp32_streams)
         if self.precision == "fp32":
             store, half = S.float(), torch.float32
             scale = None
+        elif stream in self.fp32_streams:
+            store, scale, half = S.float(), None, torch.float16
         elif int8:
             store, scale = quantize_rows(S.float())
             half = torch.float16
@@ -308,9 +314,14 @@ def carry_layer(block, in_BTC, v0_BTC, select, skip, init):
     """VariantRWKV7Layer.forward from `init` = (has [B], tm_shift [B, C], S [B, H, K, K], cm_shift [B, C] or None)
     or None (zero state). Returns (x, v0, final) with final = (tm_shift [B, C], S [B, H, K, K], cm_shift or None),
     detached. With init None (or nothing carried) the arithmetic is the stock module's except the recurrence kernel
-    (the S0 variant of the same kernel; CPU: the same per-step reference)."""
+    (the S0 variant of the same kernel; CPU: the same per-step reference).
+    SM32c: a mixer with state_vq_slot >= 0 codes what the entity stores (expertium/model/state_vq_hooks.py): the
+    token-shift vectors read from an earlier review (in this window, or carried: the carried vector is coded on read
+    with the current catalog) and the WKV state after every non-skipped step (from the carried, already coded S0); the
+    returned final S is the last stored (coded) state."""
     from rwkv.model.wkv_state import wkv_state
     tm = block.time_mixer
+    vq_t = getattr(tm, "state_vq_slot", -1)
     if (tm.fused_shift or tm.native_shift or tm.native_wkv or tm.native_group_norm or tm.native_glue
             or tm.state_qmax != float("inf") or tm.state_lowrank_rank > 0):
         raise NotImplementedError("state_carry: fused/native kernels and state-QAT streams are not covered")
@@ -328,6 +339,13 @@ def carry_layer(block, in_BTC, v0_BTC, select, skip, init):
     x_shift = _shift(x_BTC, select, tm.exact_shift)
     if head is not None:
         x_shift = torch.where(head.unsqueeze(-1), init[1].unsqueeze(1).to(x_shift.dtype), x_shift)
+    stored = None
+    if vq_t >= 0:
+        from expertium.model.state_vq_hooks import vq_shift_mask
+        stored = select.long() != t_index
+        if head is not None:
+            stored = stored | head
+        x_shift = vq_shift_mask(x_shift, stored, vq_t, 0)
     rkvdag = torch.lerp(x_BTC.unsqueeze(0), x_shift.unsqueeze(0), tm.rkvdag_lerp)
     r_BTC, k_BTC, v_BTC, d_BTC, a_BTC, g_BTC, k_scale_BTC, v_scale_BTC = rkvdag.unbind(dim=0)
     r_BTC = tm.W_r(r_BTC)
@@ -357,7 +375,11 @@ def carry_layer(block, in_BTC, v0_BTC, select, skip, init):
         state0 = torch.zeros(B, H, K, K, dtype=torch.float32, device=in_BTC.device)
     else:
         state0 = None
-    out_BTHK, state_T = wkv_state(r_BTHK, k_BTHK, v_BTHK, w_BTHK, a_BTHK, kd_BTHK, skip, state0)
+    if vq_t >= 0:
+        from expertium.model.state_vq_hooks import vq_wkv_state
+        out_BTHK, state_T = vq_wkv_state(r_BTHK, k_BTHK, v_BTHK, w_BTHK, a_BTHK, kd_BTHK, skip, state0, vq_t)
+    else:
+        out_BTHK, state_T = wkv_state(r_BTHK, k_BTHK, v_BTHK, w_BTHK, a_BTHK, kd_BTHK, skip, state0)
     if tm.exact_group_norm and cuda:
         from rwkv.model.exact_group_norm import ExactGroupNorm
         out_BTC = ExactGroupNorm.apply(out_BTHK.view(B * T, C), tm.out_group_norm.weight, tm.out_group_norm.bias,
@@ -387,6 +409,13 @@ def carry_layer(block, in_BTC, v0_BTC, select, skip, init):
     xc_shift = _shift(xc, select, cm.exact_shift)
     if head is not None and init[3] is not None:
         xc_shift = torch.where(head.unsqueeze(-1), init[3].unsqueeze(1).to(xc_shift.dtype), xc_shift)
+    vq_c = getattr(cm, "state_vq_slot", -1)
+    if vq_c >= 0:
+        from expertium.model.state_vq_hooks import vq_shift_mask
+        stored_c = select.long() != t_index
+        if head is not None and init[3] is not None:
+            stored_c = stored_c | head
+        xc_shift = vq_shift_mask(xc_shift, stored_c, vq_c, 1)
     kc = cm.W_k(torch.lerp(xc, xc_shift, cm.lerp_k))
     if cm.exact_channel_glue and cuda:
         from rwkv.model.exact_glue import ExactChannelGlue
@@ -525,6 +554,10 @@ class StateCarry:
             codes.append(stream_codes)
             windows.append(stream_windows)
         records = {}
+        # SM32c: VQ-coded streams keep their stored S in float32 (CarryTable.fp32_streams)
+        self.table.fp32_streams = {i for i, layer in model.layer_steps
+                                   if getattr(getattr(getattr(model.rwkv_modules, str(i)).blocks, str(layer)).time_mixer,
+                                              "state_vq_slot", -1) >= 0}
         for i, layer in model.layer_steps:
             block = getattr(getattr(model.rwkv_modules, str(i)).blocks, str(layer))
             if exact:

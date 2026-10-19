@@ -92,10 +92,10 @@ ENTRY = r"""
 EXPORT void emu_forward(int B, int T, int H, const float* r, const float* k, const float* v, const float* w,
                         const float* a, const float* kd, const bool* skip, float* out, float* before,
                         const float* books, const float* cn2, int stages, int M, int norm_mode, float lo, float span,
-                        float levels, float fixed) {
+                        float levels, float fixed, const float* s0, float* final_state, int* picks, float* cscale) {
     emu_launch(dim3{(unsigned)B, (unsigned)H, 1}, dim3{16, 16, 1}, [&] {
         state_vq_wkv_forward(B, T, H, r, k, v, w, a, kd, skip, out, before, books, cn2, stages, M, norm_mode, lo, span,
-                             levels, fixed);
+                             levels, fixed, s0, final_state, picks, cscale);
     });
 }
 EXPORT void emu_backward(int B, int T, int H, const float* r, const float* k, const float* v, const float* w,
@@ -104,6 +104,15 @@ EXPORT void emu_backward(int B, int T, int H, const float* r, const float* k, co
     emu_launch(dim3{(unsigned)B, (unsigned)H, 1}, dim3{16, 16, 1}, [&] {
         rwkv::rwkv7_wkv_backward_kernel<1, float>(B, T, H, r, k, v, w, a, kd, skip, grad, T, states, dr, dk, dv, dw,
                                                     da, dkd);
+    });
+}
+EXPORT void emu_backward_dstored(int B, int T, int H, const float* r, const float* k, const float* v, const float* w,
+                                 const float* a, const float* kd, const bool* skip, const float* grad,
+                                 const float* states, float* dr, float* dk, float* dv, float* dw, float* da, float* dkd,
+                                 float* dstored) {
+    emu_launch(dim3{(unsigned)B, (unsigned)H, 1}, dim3{16, 16, 1}, [&] {
+        rwkv::rwkv7_wkv_backward_dstored_kernel<1, float>(B, T, H, r, k, v, w, a, kd, skip, grad, T, states, dr, dk, dv,
+                                                            dw, da, dkd, dstored);
     });
 }
 """
@@ -129,9 +138,10 @@ def library(factor_double=False):
     vcvars = _vcvars()
     if vcvars is None:
         raise RuntimeError("no MSVC Build Tools (vcvars64.bat) for the CPU kernel emulation")
-    from scripts.state_vq_cuda import backward_source
+    from scripts.state_vq_cuda import backward_dstored_source
     folder = Path(tempfile.mkdtemp(prefix="state-vq-emu-"))
-    backward = backward_source().replace("typedef long long int64_t;", "")
+    # the original backward kernel plus its dstored copy (SM32c); the original is the one emu_backward runs
+    backward = backward_dstored_source().replace("typedef long long int64_t;", "")
     defines = "#define FACTOR_DOUBLE\n" if factor_double else ""
     source = SHIM + defines + FORWARD.read_text() + "\n" + backward + "\n" + ENTRY
     (folder / "emu.cpp").write_text(source, encoding="utf-8")
@@ -149,8 +159,9 @@ def _ptr(t):
     return ctypes.c_void_p(t.data_ptr())
 
 
-def forward(kernel_codec, r, k, v, w, a, kd, skip, factor_double=False):
-    """CPU run of state_vq_wkv_forward with the KernelCodec's tensors (moved to CPU): (out, before)."""
+def forward(kernel_codec, r, k, v, w, a, kd, skip, factor_double=False, s0=None, record=False):
+    """CPU run of state_vq_wkv_forward with the KernelCodec's tensors (moved to CPU): (out, before), or with
+    record=True (out, before, final, picks, cscale) as KernelCodec.forward; s0 [B, H, 16, 16] or None."""
     lib = library(factor_double)
     r, k, v, w, a, kd = (t.detach().float().contiguous().cpu() for t in (r, k, v, w, a, kd))
     skip = skip.contiguous().cpu()
@@ -159,10 +170,20 @@ def forward(kernel_codec, r, k, v, w, a, kd, skip, factor_double=False):
     before = torch.zeros(B, T, H, K, K)
     books, cn2 = kernel_codec.books.cpu().contiguous(), kernel_codec.cn2.cpu().contiguous()
     mode, lo, span, levels, fixed = kernel_codec.norm
+    s0 = None if s0 is None else s0.detach().float().contiguous().cpu()
+    final = picks = cscale = None
+    if record:
+        final = s0.clone() if s0 is not None else torch.zeros(B, H, K, K)
+        picks = torch.full((B, T, H, kernel_codec.stages), -1, dtype=torch.int32)
+        cscale = torch.zeros(B, T, H)
+    null = ctypes.c_void_p(0)
     lib.emu_forward(ctypes.c_int(B), ctypes.c_int(T), ctypes.c_int(H), *map(_ptr, (r, k, v, w, a, kd, skip, out, before,
                                                                                 books, cn2)),
                     ctypes.c_int(kernel_codec.stages), ctypes.c_int(kernel_codec.M), ctypes.c_int(int(mode)),
-                    *(ctypes.c_float(float(x)) for x in (lo, span, levels, fixed)))
+                    *(ctypes.c_float(float(x)) for x in (lo, span, levels, fixed)),
+                    *(null if t is None else _ptr(t) for t in (s0, final, picks, cscale)))
+    if record:
+        return out, before, final, picks, cscale
     return out, before
 
 
@@ -176,6 +197,19 @@ def backward(r, k, v, w, a, kd, skip, before, grad):
     lib.emu_backward(ctypes.c_int(B), ctypes.c_int(T), ctypes.c_int(H),
                      *map(_ptr, (r, k, v, w, a, kd, skip, grad, before, *grads)))
     return tuple(grads)
+
+
+def backward_dstored(r, k, v, w, a, kd, skip, before, grad):
+    """CPU run of the dstored copy of the backward kernel: ((dr, dk, dv, dw, da, dkd), dstored [B, T, H, 16, 16])."""
+    lib = library(False)
+    r, k, v, w, a, kd, grad = (t.detach().float().contiguous().cpu() for t in (r, k, v, w, a, kd, grad))
+    skip, before = skip.contiguous().cpu(), before.float().contiguous().cpu()
+    B, T, H, K = r.shape
+    grads = [torch.zeros_like(r) for _ in range(6)]
+    ds = torch.zeros(B, T, H, K, K)
+    lib.emu_backward_dstored(ctypes.c_int(B), ctypes.c_int(T), ctypes.c_int(H),
+                             *map(_ptr, (r, k, v, w, a, kd, skip, grad, before, *grads, ds)))
+    return tuple(grads), ds
 
 
 if __name__ == "__main__":

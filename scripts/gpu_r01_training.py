@@ -440,6 +440,17 @@ def run_case(args):
             # Load on CPU: load_state_dict moves moments to the parameters' device but keeps AdamW's `step` where it
             # is, and a CUDA `step` makes non-capturable AdamW sync once per parameter (429 per update).
             optimizer.load_state_dict(torch.load(ROOT / full_run["init_optimizer"], map_location="cpu", weights_only=True))
+        learned_books = None
+        if options.get("state_vq") is not None:
+            from scripts import state_vq
+            learned_books = state_vq.LEARNED
+            if learned_books is not None:
+                # SM32c: the learned catalogs train in their own AdamW group (after the source optimizer state is
+                # loaded, so that file keeps its group layout); the loop sets every group's LR to the schedule.
+                if not isinstance(optimizer, torch.optim.AdamW):
+                    raise ValueError("state_vq learn: the catalog group needs an AdamW optimizer")
+                optimizer.add_param_group({"params": list(learned_books.parameters()), "weight_decay": 0.0})
+                report["state_vq"]["learned_parameters"] = sum(p.numel() for p in learned_books.parameters())
         update_offset = int(full_run.get("update_offset", 0))
         if options.get("group_adam"):
             from scripts.gpu_r01_group_adam import install_group_adam
@@ -627,6 +638,8 @@ def run_case(args):
                 folder.mkdir(parents=True, exist_ok=True)
                 torch.save(master.state_dict(), folder / "master.pth")
                 torch.save(optimizer.state_dict(), folder / "optimizer.pth")
+                if learned_books is not None:
+                    learned_books.export(folder / "state-vq-books.npz")
                 done = sorted(int(user) for user, record in coverage.items() if record["reviews"] == row_end[int(user)])
                 meta = {"reason": reason, "utc": datetime.now(timezone.utc).isoformat(), "progress_users": report["progress_users"],
                         "updates": report["updates"], "update_offset_end": update_offset + report["updates"],
@@ -832,6 +845,9 @@ def run_case(args):
         watch.check()
         # Preserve weights in a new experiment location, never the existing trial.
         torch.save(master.state_dict(), path / "master.pth")
+        if learned_books is not None:
+            report["state_vq"]["learned_books"] = {"file": "state-vq-books.npz",
+                                                   "sha256": learned_books.export(path / "state-vq-books.npz")}
         if full_run:
             torch.save(optimizer.state_dict(), path / "optimizer.pth")
             report["update_offset_end"] = update_offset + report["updates"]

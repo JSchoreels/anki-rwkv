@@ -1,0 +1,216 @@
+{
+ "recipe": "vq378x412p",
+ "checks": {
+  "card": {
+   "K1_forward_kernel": {
+    "record_off_equals_on_bitwise": true,
+    "s0_one_step_mismatch": 0,
+    "pick_or_scale_mismatch": 0,
+    "coded_head_steps": 70,
+    "s0_used": true,
+    "ok": true
+   },
+   "K2_dstored_backward": {
+    "grads_bitwise_original": true,
+    "dstored_rel_diff": 9.793759403464719e-08,
+    "dstored_zero_on_skipped": true,
+    "ok": true
+   },
+   "G_torch_from_zero": {
+    "out_rel_diff": 0.0,
+    "input_grad_rel_diff": 1.1473924388383239e-07,
+    "catalog_grad_rel_diff": 1.208730964208371e-07,
+    "catalog_grad_rows": 183,
+    "unused_stages_zero": true,
+    "ok": true
+   },
+   "G_kernel_from_zero": {
+    "out_rel_diff": 1.7728885381984583e-07,
+    "input_grad_rel_diff": 1.7210886937846226e-07,
+    "catalog_grad_rel_diff": 1.208730964208371e-07,
+    "catalog_grad_rows": 183,
+    "unused_stages_zero": true,
+    "ok": true
+   },
+   "G_torch_from_s0": {
+    "out_rel_diff": 0.0,
+    "input_grad_rel_diff": 1.2100636581635626e-07,
+    "catalog_grad_rel_diff": 1.208730964208371e-07,
+    "catalog_grad_rows": 185,
+    "unused_stages_zero": true,
+    "ok": true
+   },
+   "G_kernel_from_s0": {
+    "out_rel_diff": 1.7440297028770146e-07,
+    "input_grad_rel_diff": 2.1176114728405082e-07,
+    "catalog_grad_rel_diff": 1.208730964208371e-07,
+    "catalog_grad_rows": 185,
+    "unused_stages_zero": true,
+    "ok": true
+   },
+   "S1_shift": {
+    "value_bitwise_frozen": true,
+    "x_grad_identity": true,
+    "catalog_grad_rel_diff": 0.0,
+    "other_role_untouched": true,
+    "ok": true
+   }
+  },
+  "note": {
+   "K1_forward_kernel": {
+    "record_off_equals_on_bitwise": true,
+    "s0_one_step_mismatch": 0,
+    "pick_or_scale_mismatch": 0,
+    "coded_head_steps": 58,
+    "s0_used": true,
+    "ok": true
+   },
+   "K2_dstored_backward": {
+    "grads_bitwise_original": true,
+    "dstored_rel_diff": 1.0941057837499102e-07,
+    "dstored_zero_on_skipped": true,
+    "ok": true
+   },
+   "G_torch_from_zero": {
+    "out_rel_diff": 0.0,
+    "input_grad_rel_diff": 1.6120335999403324e-07,
+    "catalog_grad_rel_diff": 2.3661064574298507e-07,
+    "catalog_grad_rows": 338,
+    "unused_stages_zero": true,
+    "ok": true
+   },
+   "G_kernel_from_zero": {
+    "out_rel_diff": 1.0992042831503568e-07,
+    "input_grad_rel_diff": 2.2165463064993673e-07,
+    "catalog_grad_rel_diff": 1.47881650036652e-07,
+    "catalog_grad_rows": 338,
+    "unused_stages_zero": true,
+    "ok": true
+   },
+   "G_torch_from_s0": {
+    "out_rel_diff": 0.0,
+    "input_grad_rel_diff": 1.4642023415945005e-07,
+    "catalog_grad_rel_diff": 2.3661064574298507e-07,
+    "catalog_grad_rows": 343,
+    "unused_stages_zero": true,
+    "ok": true
+   },
+   "G_kernel_from_s0": {
+    "out_rel_diff": 1.174116164293082e-07,
+    "input_grad_rel_diff": 1.8343644114793278e-07,
+    "catalog_grad_rel_diff": 1.1830532287149254e-07,
+    "catalog_grad_rows": 343,
+    "unused_stages_zero": true,
+    "ok": true
+   },
+   "S1_shift": {
+    "value_bitwise_frozen": true,
+    "x_grad_identity": true,
+    "catalog_grad_rel_diff": 0.0,
+    "other_role_untouched": true,
+    "ok": true
+   }
+  },
+  "E1_export": {
+   "values_round_trip": true,
+   "norm_ranges_kept": true,
+   "changed_catalog_changes_file": true,
+   "ok": true
+  },
+  "T1_trainer": {
+   "users": [
+    1340
+   ],
+   "checkpoint": "C:\\Users\\jonat\\workspace\\wt\\small-model\\artifacts\\accuracy\\experiments\\scale-w64kd-gate-cached-ctx32768-cont\\run\\epoch-10\\expertium\\E89-F65e-F77a\\master.pth",
+   "chunk": "2,048 x 2",
+   "runs": {
+    "learned": {
+     "codebook_handling": "learned (SM32c: gradient into the picked centroids, picks frozen per step; AdamW group at the schedule LR, weight decay 0; norm grids fixed)",
+     "updates": [
+      {
+       "user": 1340,
+       "offset": 0,
+       "loss": 0.8066318035125732,
+       "seconds": 18.0,
+       "catalog_grad_norm": {
+        "wkv": 0.4893133044242859,
+        "shift_t": 0.02168581262230873,
+        "shift_c": 0.022098325192928314
+       },
+       "catalog_grad_rows": {
+        "wkv": 6559,
+        "shift_t": 5691,
+        "shift_c": 5062
+       },
+       "catalog_moved": true,
+       "fp32_streams": [
+        0,
+        2
+       ],
+       "slot_dtypes": {
+        "0/0": "torch.float32",
+        "2/0": "torch.float32",
+        "0/1": "torch.float32"
+       },
+       "max_second_singular_ratio": 2.8972812748915004e-08
+      },
+      {
+       "user": 1340,
+       "offset": 4096,
+       "loss": 1.1692978143692017,
+       "seconds": 8.3,
+       "catalog_grad_norm": {
+        "wkv": 0.7671188116073608,
+        "shift_t": 0.03263663128018379,
+        "shift_c": 0.036039043217897415
+       },
+       "catalog_grad_rows": {
+        "wkv": 5902,
+        "shift_t": 3160,
+        "shift_c": 2885
+       },
+       "catalog_moved": true,
+       "fp32_streams": [
+        0,
+        2
+       ],
+       "slot_dtypes": {
+        "0/0": "torch.float32",
+        "2/0": "torch.float32",
+        "0/1": "torch.float32"
+       },
+       "max_second_singular_ratio": 2.7699084801220723e-08
+      }
+     ]
+    },
+    "frozen": {
+     "codebook_handling": "frozen (k-means, no gradient)",
+     "updates": [
+      {
+       "user": 1340,
+       "offset": 0,
+       "loss": 0.8066318035125732,
+       "seconds": 18.3,
+       "fp32_streams": [
+        0,
+        2
+       ],
+       "slot_dtypes": {
+        "0/0": "torch.float32",
+        "2/0": "torch.float32",
+        "0/1": "torch.float32"
+       },
+       "max_second_singular_ratio": 2.8972812748915004e-08
+      }
+     ]
+    }
+   },
+   "first_update_loss_learned_minus_frozen": 0.0,
+   "ok": true
+  }
+ },
+ "emulated_kernels": true,
+ "fails": [],
+ "passed": true,
+ "seconds": 76.5
+}
