@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-10-19T18:36:34+02:00",
- "updated": "2026-10-19 18:36",
- "material": "6346f79f4f7e1bf4",
- "summary": "running 000545, finished 000544",
+ "generated_at": "2026-10-19T19:34:33+02:00",
+ "updated": "2026-10-19 19:34",
+ "material": "b9d0f32902f50100",
+ "summary": "idle, finished 000548",
  "headline": [
   {
    "k": "Best, 464 users (curve / instant)",
@@ -137,25 +137,45 @@
    "track": "small model"
   }
  ],
- "now": [
-  {
-   "what": "Data diversity vs epochs, mini: 1,000 users &times; 1 epoch vs 100 of them &times; 10 epochs (73.7M vs 73.4M reviews seen), from scratch, 2,048-window KD recipe, both scored on 732 users",
-   "id": "SM43, ticket 000545",
-   "kind": "gpu-train",
-   "decides": "First read on more users vs more passes, before the full-size run",
-   "why": "",
-   "job": "SM43 mini A: 1,000 users x 1 epoch (2,048 KD recipe)",
-   "linked": true,
-   "track": "small model",
-   "ticket": "000545-small-model",
-   "started": "18:36",
-   "elapsed": "0:00",
-   "progress": null,
-   "eta": "~18:52"
-  }
- ],
+ "now": [],
  "waiting": [],
  "recent": [
+  {
+   "ticket": "000548-small-model",
+   "id": "SM43",
+   "what": "SM43 mini scoring A and B, 732 pool (pass 2)",
+   "ended": "19:32",
+   "date": "10-19",
+   "exit": 0,
+   "ran": "0:01"
+  },
+  {
+   "ticket": "000547-small-model",
+   "id": "SM43",
+   "what": "SM43 mini scoring A and B, 732 pool (pass 1)",
+   "ended": "19:30",
+   "date": "10-19",
+   "exit": 0,
+   "ran": "0:26"
+  },
+  {
+   "ticket": "000546-small-model",
+   "id": "SM43",
+   "what": "SM43 mini B: 100 users x 10 epochs (same reviews seen)",
+   "ended": "19:03",
+   "date": "10-19",
+   "exit": 0,
+   "ran": "0:14"
+  },
+  {
+   "ticket": "000545-small-model",
+   "id": "SM43",
+   "what": "SM43 mini A: 1,000 users x 1 epoch (2,048 KD recipe)",
+   "ended": "18:48",
+   "date": "10-19",
+   "exit": 0,
+   "ran": "0:12"
+  },
   {
    "ticket": "000544-small-model",
    "id": "SM42",
@@ -173,42 +193,6 @@
    "date": "10-19",
    "exit": 0,
    "ran": "0:18"
-  },
-  {
-   "ticket": "000542-small-model",
-   "id": "SM42",
-   "what": "SM42 scoring s-w64kd-gate-ctx32768c-dec10-1ep32k-lanes, 464 users (pass 1)",
-   "ended": "18:15",
-   "date": "10-19",
-   "exit": 0,
-   "ran": "0:15"
-  },
-  {
-   "ticket": "000541-small-model",
-   "id": "SM42",
-   "what": "SM42 1-epoch decay at 32k, lanes carry, from the plain 32k e10 (no carry in the source) (smoke first)",
-   "ended": "18:00",
-   "date": "10-19",
-   "exit": 0,
-   "ran": "4:54"
-  },
-  {
-   "ticket": "000540-small-model",
-   "id": "SM15",
-   "what": "SM15 scoring s-w64kd-gate-prune-w64-d2p1u1-dec, 732 pool (pass 2)",
-   "ended": "13:04",
-   "date": "10-19",
-   "exit": 0,
-   "ran": "0:01"
-  },
-  {
-   "ticket": "000539-small-model",
-   "id": "SM15",
-   "what": "SM15 scoring s-w64kd-gate-prune-w64-d2p1u1-dec, 732 pool (pass 1)",
-   "ended": "13:03",
-   "date": "10-19",
-   "exit": 0,
-   "ran": "0:15"
   }
  ],
  "plan": [
@@ -628,13 +612,13 @@
    "kind": "gpu-train",
    "minutes": 65,
    "track": "small model",
-   "when": "10-19 after SM42 (~19:05), ends before 20:55; a step that does not fit waits until 01:00",
-   "decides": "First read on more users vs more passes, before the full-size run",
-   "state": "running",
-   "started": "18:36",
-   "ticket": "000545-small-model",
-   "started_at": "2026-10-19T18:36:30+02:00",
-   "ends_at": "2026-10-19T19:41:30+02:00"
+   "decides": "More users win, mostly on instant: 10 passes over 100 users +0.36% / +0.46% worse than 1 pass over 1,000 (723 users)",
+   "state": "done",
+   "started_at": "2026-10-19T19:30:28+02:00",
+   "ended_at": "2026-10-19T19:32:24+02:00",
+   "ended": "19:32",
+   "exit": 0,
+   "started": "19:30"
   },
   {
    "what": "Muon instead of AdamW for the one-epoch 32k decay (paired with the best model, everything else equal) + scoring",
@@ -662,12 +646,13 @@
    "minutes": 330,
    "track": "small model",
    "when": "10-20 after SM32c (~10:30&ndash;16:00)",
-   "decides": "Confirms the mini at 1.25&times; more data per arm and 11 epochs; run only if the mini is interesting",
-   "state": "running",
-   "started": "18:36",
-   "ticket": "000545-small-model",
-   "started_at": "2026-10-19T18:36:30+02:00",
-   "ends_at": "2026-10-20T00:06:30+02:00"
+   "decides": "Does the gap from the mini (+0.36% / +0.46% for fewer users, more passes) grow or shrink once both arms are trained much longer?",
+   "state": "done",
+   "ended": "19:32",
+   "exit": 0,
+   "started": "19:30",
+   "started_at": "2026-10-19T19:30:28+02:00",
+   "ended_at": "2026-10-19T19:32:24+02:00"
   },
   {
    "what": "Carried state, code (CPU): full-history targets (SM11, 18/18 checks) + kernels with a starting state and the trainer option (SM21, all checks bit for bit); merged together",
@@ -950,6 +935,20 @@
   }
  ],
  "results": [
+  {
+   "date": "10-19",
+   "kind": "gpu-train",
+   "name": "Data diversity vs epochs, mini: 100 users &times; 10 epochs vs 1,000 users &times; 1 epoch (same 73.5M reviews seen, from scratch, 2,048 windows, constant LR)",
+   "id": "SM43",
+   "curve": 0.32894,
+   "instant": 0.30449,
+   "curve_pct": 9.14,
+   "instant_pct": 9.59,
+   "eval": "723 users (732 set)",
+   "fork": "1,000 users &times; 1 epoch: 0.32774 / 0.30309 (+8.74% / +9.08% vs the big model)",
+   "takeaway": "<strong>More users win, mostly on instant</strong>: fewer users, more passes +0.36% [&minus;0.06, +0.82] curve / +0.46% [+0.25, +0.69] instant; calibration worse too (RMSE(bins) 0.0687 vs 0.0642). By history length the loss is all on heavy users (+0.53% / +0.64%); light users gain slightly (&minus;0.25% / &minus;0.41%). Both arms are early in training (+9% vs the big model); the full-size run tells whether this holds",
+   "track": "small model"
+  },
   {
    "date": "10-19",
    "kind": "gpu-train",
