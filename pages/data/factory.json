@@ -1,7 +1,7 @@
 {
- "generated_at": "2026-10-19T16:33:28+02:00",
- "updated": "2026-10-19 16:33",
- "material": "176ec4859551f96f",
+ "generated_at": "2026-10-19T16:57:48+02:00",
+ "updated": "2026-10-19 16:57",
+ "material": "408352d0052e35e6",
  "summary": "running 000541",
  "headline": [
   {
@@ -149,7 +149,7 @@
    "track": "small model",
    "ticket": "000541-small-model",
    "started": "13:06",
-   "elapsed": "3:27",
+   "elapsed": "3:51",
    "progress": null,
    "eta": "~18:36"
   }
@@ -623,6 +623,16 @@
    "ends_at": "2026-10-19T19:46:21+02:00"
   },
   {
+   "what": "Data diversity vs epochs, mini: 1,000 users &times; 1 epoch vs 100 of them &times; 10 epochs (73.7M vs 73.4M reviews seen), from scratch, 2,048-window KD recipe, both scored on 732 users",
+   "id": "SM43",
+   "kind": "gpu-train",
+   "minutes": 65,
+   "track": "small model",
+   "when": "10-19 after SM42 (~19:05), ends before 20:55; a step that does not fit waits until 01:00",
+   "decides": "First read on more users vs more passes, before the full-size run",
+   "state": "planned"
+  },
+  {
    "what": "Muon instead of AdamW for the one-epoch 32k decay (paired with the best model, everything else equal) + scoring",
    "id": "SM36",
    "kind": "gpu-train",
@@ -642,13 +652,13 @@
    "state": "planned"
   },
   {
-   "what": "Data diversity vs epochs: 1,250 users &times; (10+1) epochs vs 125 users &times; (100+10), same reviews seen, fast 2,048-window recipe, both scored on 732 users",
+   "what": "Data diversity vs epochs, full size: 1,250 users &times; (10+1) epochs vs 125 users &times; (100+10), same reviews seen, fast 2,048-window recipe, both scored on 732 users",
    "id": "SM43",
    "kind": "gpu-train",
    "minutes": 330,
    "track": "small model",
    "when": "10-20 after SM32c (~10:30&ndash;16:00)",
-   "decides": "More users or more passes over the same users: which helps the small model more?",
+   "decides": "Confirms the mini at 1.25&times; more data per arm and 11 epochs; run only if the mini is interesting",
    "state": "planned"
   },
   {
