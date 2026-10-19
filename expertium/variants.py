@@ -8,12 +8,15 @@ A variant is selected by ONE key, the R01 track option `"architecture"`:
     "architecture": "w80-sequential"            # same without the round-robin layer schedule
     "architecture": "w64"                       # s64h, his shipped d=64 trunk (w80 recipe, 4 heads, mults 2)
     "architecture": "iter36"                    # the default model through the variant class (KD-capable)
+    "architecture": "w64-d2p1u1"                # w64 with the trailing deck/preset/user layers dropped (SM15 depth cut;
+                                                # "-nocmix" also strips the card:0, deck:0, note:0 channel mixers)
     "architecture": {"base": "iter36", "zero_features": [22]}   # any preset plus field overrides
 
 Each field below mirrors one upstream environment switch, named in its comment. Upstream sources are pinned
 in expertium/upstream.json ("catch_up").
 """
 from dataclasses import dataclass, field, fields, replace
+import re
 
 from expertium.architecture import AnkiRWKVConfig, DEFAULT_ANKI_RWKV_CONFIG
 from expertium.model.rwkv_model import RWKV7Config
@@ -77,7 +80,32 @@ W64_PARAMETERS = 331_511  # 332,922 upstream at 103 inputs, minus 11 x 128 input
 ITER36_PARAMETERS = 192_800
 
 
+# SM15 (docs/SMALL_MODEL_PRUNING.md 2.4): depth cuts of the context streams. `w64-d{D}p{P}u{U}[-nocmix]` keeps D deck,
+# P preset and U user layers (the LEADING ones: interleave_schedule runs layer r of every stream in round r, so the
+# survivors are an exact subsequence of w64's execution order); card (2) and note (1) stay intact. Width, heads,
+# mults, LoRAs, GRU head, interleave and zero_features are w64's. strip_cmix keeps only entries of surviving layers.
+PRUNED_W64 = re.compile(r"^w64-d([1-4])p([1-3])u([1-3])(-nocmix)?$")
+PRUNED_STRIP_CMIX = ("card_id:0", "deck_id:0", "note_id:0")  # the channel mixers w64 still has below the last deck layer
+# asserted by the self-test / CPU counts: w64-d2p2u2 244,232; d2p1u2 and d2p2u1 224,507; d2p1u1 204,782; d2p1u1-nocmix 179,645
+PRUNED_PARAMETERS = {"w64-d2p2u2": 244_232, "w64-d2p1u2": 224_507, "w64-d2p2u1": 224_507, "w64-d2p1u1": 204_782,
+                     "w64-d2p1u1-nocmix": 179_645}
+
+
+def pruned_w64(name, decks, presets, users, nocmix):
+    parent = preset("w64")
+    depths = {"card_id": 2, "deck_id": decks, "note_id": 1, "preset_id": presets, "user_id": users}
+    modules = [(stream, replace(config, n_layers=depths[stream], total_layers=depths[stream]))
+               for stream, config in parent.base.modules]
+    strip = [entry for entry in parent.strip_cmix if int(entry.partition(":")[2]) < depths[entry.partition(":")[0]]]
+    if nocmix:
+        strip += [entry for entry in PRUNED_STRIP_CMIX if entry not in strip]
+    return replace(parent, name=name, base=replace(parent.base, modules=modules), strip_cmix=tuple(strip))
+
+
 def preset(name):
+    pruned = PRUNED_W64.match(name) if isinstance(name, str) else None
+    if pruned:
+        return pruned_w64(name, int(pruned[1]), int(pruned[2]), int(pruned[3]), bool(pruned[4]))
     if name == "iter36":
         return VariantConfig(name="iter36", base=DEFAULT_ANKI_RWKV_CONFIG)
     if name in ("w80", "w80-sequential"):
@@ -86,8 +114,8 @@ def preset(name):
     if name in ("w64", "w64-sequential"):
         return VariantConfig(name=name, base=w64_config(), gru_head=3, no_ahead_residual=True, zero_features=(22,),
                              interleave=name == "w64", strip_l0_vlora=True, strip_cmix=W80_STRIP_CMIX)
-    raise ValueError(f"Unknown Expertium architecture preset {name!r}; expected iter36, w64, w64-sequential, w80 or "
-                     "w80-sequential")
+    raise ValueError(f"Unknown Expertium architecture preset {name!r}; expected iter36, w64, w64-sequential, w80, "
+                     "w80-sequential or w64-d{1-4}p{1-3}u{1-3}[-nocmix]")
 
 
 def variant(spec):

@@ -1,0 +1,223 @@
+{
+ "parent_experiment": "C:\\Users\\jonat\\workspace\\wt\\sm21v2\\artifacts\\accuracy\\experiments\\scale-w64kd-gate-sc-lanes-cont",
+ "parent_epoch": 12,
+ "parent_checkpoint": "C:\\Users\\jonat\\workspace\\wt\\sm21v2\\artifacts\\small-model\\scale-w64kd-gate-sc-lanes-cont-decay1ep32k\\expertium\\E89-F65e-F77a\\master.pth",
+ "checks": {
+  "strict_loads_and_counts": {
+   "pass": true,
+   "w64": 331511,
+   "archs": {
+    "w64-d2p2u2": {
+     "parameters": 244232,
+     "expected": 244232,
+     "dropped_layers": {
+      "deck_id": [
+       2,
+       3
+      ],
+      "preset_id": [
+       2
+      ],
+      "user_id": [
+       2
+      ]
+     },
+     "reinitialised_dummies": 0
+    },
+    "w64-d2p1u2": {
+     "parameters": 224507,
+     "expected": 224507,
+     "dropped_layers": {
+      "deck_id": [
+       2,
+       3
+      ],
+      "preset_id": [
+       1,
+       2
+      ],
+      "user_id": [
+       2
+      ]
+     },
+     "reinitialised_dummies": 0
+    },
+    "w64-d2p2u1": {
+     "parameters": 224507,
+     "expected": 224507,
+     "dropped_layers": {
+      "deck_id": [
+       2,
+       3
+      ],
+      "preset_id": [
+       2
+      ],
+      "user_id": [
+       1,
+       2
+      ]
+     },
+     "reinitialised_dummies": 0
+    },
+    "w64-d2p1u1": {
+     "parameters": 204782,
+     "expected": 204782,
+     "dropped_layers": {
+      "deck_id": [
+       2,
+       3
+      ],
+      "preset_id": [
+       1,
+       2
+      ],
+      "user_id": [
+       1,
+       2
+      ]
+     },
+     "reinitialised_dummies": 0
+    },
+    "w64-d2p1u1-nocmix": {
+     "parameters": 179645,
+     "expected": 179645,
+     "dropped_layers": {
+      "deck_id": [
+       2,
+       3
+      ],
+      "preset_id": [
+       1,
+       2
+      ],
+      "user_id": [
+       1,
+       2
+      ]
+     },
+     "reinitialised_dummies": 15
+    }
+   }
+  },
+  "forward_equals_parent_with_identity_blocks": {
+   "pass": true,
+   "user": 948,
+   "reviews": 2803,
+   "w64-d2p1u1": {
+    "max_abs_diff_vs_parent_with_identity": 0.0,
+    "max_abs_diff_vs_full_parent (informational)": 4.783578872680664,
+    "layer_steps": 7,
+    "parent_steps": 13
+   },
+   "w64-d2p2u2": {
+    "max_abs_diff_vs_parent_with_identity": 0.0,
+    "max_abs_diff_vs_full_parent (informational)": 3.945308208465576,
+    "layer_steps": 9,
+    "parent_steps": 13
+   }
+  },
+  "fresh_optimizer_first_step_equals_fresh_adamw": {
+   "pass": true,
+   "saved_state_entries": 0,
+   "param_groups": 5,
+   "step_equal": true
+  },
+  "ft_prepare_constant_lr_kd_alpha_09": {
+   "pass": true,
+   "seen": {
+    "decaying": false,
+    "kd_mix": "mix"
+   },
+   "alpha": 0.9,
+   "decay_alpha": 0.5,
+   "warmup_lr_update0": 0.00014000000000000001,
+   "lr_update10": 0.0007,
+   "training_users": 2425,
+   "training_reviews": 184921377
+  },
+  "options_carried_into_child_and_decay": {
+   "pass": true,
+   "state_carry": {
+    "lanes": "strided"
+   },
+   "chunk_reviews": 32768,
+   "batch_chunks": 1,
+   "architecture": "w64-d2p1u1",
+   "differing_keys": []
+  },
+  "lanes_carry_runs_on_pruned_arch_cpu": {
+   "pass": true,
+   "user": 3358,
+   "updates": 2,
+   "losses": [
+    0.728908896446228,
+    0.5737003684043884
+   ],
+   "gradients_finite": true,
+   "carry": {
+    "precision": "deploy",
+    "carry": true,
+    "lanes": "strided",
+    "mode": "strided lanes (v2): update u holds window u of every lane; lane starts from zero",
+    "stats": {
+     "users": 1,
+     "updates": 2,
+     "streams_calls": 2,
+     "peak_table_bytes": 6564620
+    }
+   }
+  },
+  "zero_features_22_and_input_92_128": {
+   "pass": true,
+   "w64-d2p2u2": {
+    "zero_features": [
+     22
+    ],
+    "input": [
+     92,
+     128
+    ]
+   },
+   "w64-d2p1u2": {
+    "zero_features": [
+     22
+    ],
+    "input": [
+     92,
+     128
+    ]
+   },
+   "w64-d2p2u1": {
+    "zero_features": [
+     22
+    ],
+    "input": [
+     92,
+     128
+    ]
+   },
+   "w64-d2p1u1": {
+    "zero_features": [
+     22
+    ],
+    "input": [
+     92,
+     128
+    ]
+   },
+   "w64-d2p1u1-nocmix": {
+    "zero_features": [
+     22
+    ],
+    "input": [
+     92,
+     128
+    ]
+   }
+  }
+ },
+ "passed": true,
+ "fails": [],
+ "seconds": 29.1
+}
