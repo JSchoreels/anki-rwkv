@@ -629,9 +629,16 @@
   },
   {
    "status": "next",
+   "id": "SM32c",
+   "track": "small model",
+   "item": "State compression (~400 bits per card/note) with codebooks learned during training, in the one-epoch 32k decay of the best model",
+   "why": "Why we do not compress yet: after training it costs +0.4% / +0.8% (34 users), which breaks the &le; +1.0% bar; training with frozen codebooks made it worse. Outside research removes the cost with learned codebooks and a full decay. Payoff: ~45&times; smaller state than int8 (4.6 KB &rarr; ~0.1 KB per card), any collection size on any phone. ~2 h GPU + CPU scoring, after the Muon test; then codebook state in the fork runtime (with SM08)"
+  },
+  {
+   "status": "done",
    "item": "State compression trained in (QAT) at ~400/400 bits per card/note, during the final decay only",
    "id": "SM32b",
-   "why": "Post-training test: 60&times; smaller state than int8 for +0.0012 / +0.0023 nats. Redo only the final decay from epoch 10 with the compression in the loop. Sped up: fused GPU kernel, no eigensolver (same codec, bitwise on real states); CPU projection 75&ndash;80 min. A 10-min GPU benchmark decides the launch",
+   "why": "Done 10-18: worse than compressing after training (+0.0012 [+0.0006, +0.0019] curve / +0.0010 [+0.0006, +0.0014] instant, 34 users, frozen k-means codebooks, 0.25-epoch decay). Re-check on 34 more users running (CPU, 10-19)",
    "track": "small model"
   },
   {
@@ -715,7 +722,7 @@
    "status": "idea",
    "item": "Fork runtime port of the exported format",
    "id": "SM08",
-   "why": "Specified; Rust vs NumPy within 1e-5",
+   "why": "Specified (manual section 10, released 10-19); Rust vs NumPy within 1e-5. Needed before any phone or desktop measurement",
    "track": "small model"
   },
   {
