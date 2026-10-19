@@ -550,7 +550,7 @@ calls `predict_curve(curve, seconds)`.
 
 ## 10. Port plan for the fork's Rust runtime
 
-The fork is `C:\Users\jonat\workspace\anki` (read-only for this work). File: `rslib/src/rwkv/mod.rs` unless noted. Line numbers are
+The fork is the Anki RWKV fork checkout (`<workspace>/anki`). File: `rslib/src/rwkv/mod.rs` unless noted. Line numbers are
 from the checkout read for this manual; search by the names if they drift.
 
 Strategy: keep the 2.76M path working (it is the default when no `architecture.json` sits next to the weights file) and make the
