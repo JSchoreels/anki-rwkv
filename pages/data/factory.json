@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-10-19T06:29:09+02:00",
- "updated": "2026-10-19 06:29",
- "material": "4f975b9b92a16943",
- "summary": "running 000531, finished 000530",
+ "generated_at": "2026-10-19T06:34:12+02:00",
+ "updated": "2026-10-19 06:34",
+ "material": "366d66837eb105eb",
+ "summary": "running 000532, finished 000531",
  "headline": [
   {
    "k": "Best, 464 users (curve / instant)",
@@ -119,23 +119,32 @@
  ],
  "now": [
   {
-   "what": "Spaced-review slice for the one-epoch 32k decay and v2: per-review dumps on 464 users + breakdown by review type / same-day / stage",
-   "id": "SM24, ticket 000531",
+   "what": "Score the 2,225-user set (fork, 32k dec10, v2 dec12, one-epoch 32k decay) at the 0.8 cap, then one 0.92 retry for users that do not fit",
+   "id": "EVAL, ticket 000532",
    "kind": "gpu-score",
-   "decides": "The spaced-review slice beside the bar for the new candidates (fork dumps reused)",
+   "decides": "Decisive check of the new candidate; reference rows for later (not valid for models trained on all 8,000 users)",
    "why": "",
-   "job": "SM24 per-review dumps, v2dec12, 464 users (pass 2)",
+   "job": "pool 2225 full-history scoring of fork/w8+s8 (1494 users, pass 1)",
    "linked": true,
    "track": "small model",
-   "ticket": "000531-small-model",
-   "started": "06:28",
-   "elapsed": "0:00",
+   "ticket": "000532-small-model",
+   "started": "06:29",
+   "elapsed": "0:04",
    "progress": null,
-   "eta": "~06:58"
+   "eta": "~07:29"
   }
  ],
  "waiting": [],
  "recent": [
+  {
+   "ticket": "000531-small-model",
+   "id": "SM24",
+   "what": "SM24 per-review dumps, v2dec12, 464 users (pass 2)",
+   "ended": "06:29",
+   "date": "10-19",
+   "exit": 0,
+   "ran": "0:01"
+  },
   {
    "ticket": "000530-small-model",
    "id": "SM24",
@@ -177,15 +186,6 @@
    "id": "EVAL",
    "what": "pool 732 full-history scoring at cap 0.92 of s-w64kd-gate-sc-lanes-dec12/w8+s8 (3 users, pass 1)",
    "ended": "06:00",
-   "date": "10-19",
-   "exit": 0,
-   "ran": "0:00"
-  },
-  {
-   "ticket": "000525-small-model",
-   "id": "EVAL",
-   "what": "pool 732 full-history scoring at cap 0.92 of s-w64kd-gate-sc-zero-dec12/w8+s8 (3 users, pass 1)",
-   "ended": "05:59",
    "date": "10-19",
    "exit": 0,
    "ran": "0:00"
@@ -511,11 +511,12 @@
    "minutes": 60,
    "track": "small model",
    "decides": "The spaced-review slice beside the bar for the new candidates (fork dumps reused)",
-   "state": "running",
-   "started": "06:28",
-   "ticket": "000531-small-model",
+   "state": "done",
+   "ended": "06:29",
+   "exit": 0,
+   "started": "06:12",
    "started_at": "2026-10-19T06:12:50+02:00",
-   "ends_at": "2026-10-19T07:12:50+02:00"
+   "ended_at": "2026-10-19T06:29:38+02:00"
   },
   {
    "what": "Score the 2,225-user set (fork, 32k dec10, v2 dec12, one-epoch 32k decay) at the 0.8 cap, then one 0.92 retry for users that do not fit",
@@ -524,7 +525,11 @@
    "minutes": 260,
    "track": "small model",
    "decides": "Decisive check of the new candidate; reference rows for later (not valid for models trained on all 8,000 users)",
-   "state": "planned"
+   "state": "running",
+   "started": "06:29",
+   "ticket": "000532-small-model",
+   "started_at": "2026-10-19T06:29:57+02:00",
+   "ends_at": "2026-10-19T10:49:57+02:00"
   },
   {
    "what": "Own collection for the one-epoch 32k decay (CPU, ~11 min) as it lands",
