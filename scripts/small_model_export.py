@@ -161,7 +161,7 @@ def architecture(arch):
     steps = layer_steps(interleave_schedule(depths)) if v.interleave else \
         [(i, layer) for i, depth in enumerate(depths) for layer in range(depth)]
     return {
-        "format": "anki-rwkv expertium export", "spec_version": SPEC_VERSION, "architecture": v.name,
+        "format": "anki-rwkv small-model export", "spec_version": SPEC_VERSION, "architecture": v.name,
         "d_model": d, "card_features": 92, "features_fc_dim": base.features_fc_mult * d,
         "head_fc_dim": base.head_fc_mult * d,
         "curve_head": "power_mixture" if v.gru_head else "softmax_mixture",
