@@ -547,8 +547,10 @@
    "match": [
     "SM43 mini"
    ],
-   "when": "10-19 after SM42 (~19:05), ends before 20:55; a step that does not fit waits until 01:00",
-   "decides": "First read on more users vs more passes, before the full-size run"
+   "decides": "More users win, mostly on instant: 10 passes over 100 users +0.36% / +0.46% worse than 1 pass over 1,000 (723 users)",
+   "state": "done",
+   "started_at": "2026-10-19T18:36:30+02:00",
+   "ended_at": "2026-10-19T19:32:24+02:00"
   },
   {
    "what": "Muon instead of AdamW for the one-epoch 32k decay (paired with the best model, everything else equal) + scoring",
@@ -583,7 +585,7 @@
     "SM43"
    ],
    "when": "10-20 after SM32c (~10:30&ndash;16:00)",
-   "decides": "Confirms the mini at 1.25&times; more data per arm and 11 epochs; run only if the mini is interesting"
+   "decides": "Does the gap from the mini (+0.36% / +0.46% for fewer users, more passes) grow or shrink once both arms are trained much longer?"
   },
   {
    "what": "Carried state, code (CPU): full-history targets (SM11, 18/18 checks) + kernels with a starting state and the trainer option (SM21, all checks bit for bit); merged together",
@@ -876,6 +878,20 @@
   "s-w64kd-gate-ctx2048c-dec8-1ep/w8+s8"
  ],
  "results": [
+  {
+   "date": "10-19",
+   "kind": "gpu-train",
+   "name": "Data diversity vs epochs, mini: 100 users &times; 10 epochs vs 1,000 users &times; 1 epoch (same 73.5M reviews seen, from scratch, 2,048 windows, constant LR)",
+   "id": "SM43",
+   "curve": 0.32894,
+   "instant": 0.30449,
+   "curve_pct": 9.14,
+   "instant_pct": 9.59,
+   "eval": "723 users (732 set)",
+   "fork": "1,000 users &times; 1 epoch: 0.32774 / 0.30309 (+8.74% / +9.08% vs the big model)",
+   "takeaway": "<strong>More users win, mostly on instant</strong>: fewer users, more passes +0.36% [&minus;0.06, +0.82] curve / +0.46% [+0.25, +0.69] instant; calibration worse too (RMSE(bins) 0.0687 vs 0.0642). By history length the loss is all on heavy users (+0.53% / +0.64%); light users gain slightly (&minus;0.25% / &minus;0.41%). Both arms are early in training (+9% vs the big model); the full-size run tells whether this holds",
+   "track": "small model"
+  },
   {
    "date": "10-19",
    "kind": "gpu-train",
