@@ -696,6 +696,71 @@ more than arithmetic. The reference in `reference/` is written for clarity, not 
 
 Memory per 100,000 cards: about 1.36 GB f32 or 0.46 GB int8 for card + note state, against 8.7 GB and 2.6 GB for the fork's model.
 
+### 11.1 Storage and RAM, every precision computed the same way
+
+Example collection: 13,973 cards and 13,198 notes (224k reviews), the collection the fork measured on 2026-10-14 (Apple M1 Max).
+"Big model" = the fork's 2,762,884-parameter RWKV; "small model" = this package.
+
+- **Card/note state** = bytes per card x 13,973 + bytes per note x 13,198, with the fork's state format
+  (`rslib/src/rwkv/precision.rs`: 19-byte header; per layer an f16 shift, the matrix as rows of a 4-byte scale plus 8- or 4-bit
+  codes, an optional f16 channel shift; f32 = 18-byte header plus 12 bytes and the floats per layer). This formula reproduces the
+  fork's measured bytes exactly at f32, int8 and int4.
+- **Storage** (the state cache file) = weights + card/note state + 20.4 MB of other state (feature builder, decks, presets, user;
+  the same in all three fork measurements).
+- **RAM** = 129 MB fixed + weights + card/note state. The 129 MB is the mean non-state memory of the fork's four measurements
+  (101 to 144 MB). For the big model this lands within 28 MB of the measured values; the small-model rows are estimates.
+
+| Model | Weights | Card/note state | Bytes per card + its note (serialized) | Weights | Card/note state | Storage | RAM, estimated | RAM, measured |
+|---|---|---|---:|---:|---:|---:|---:|---:|
+| Big | f32 | f32 | 87,136 | 11.1 MB | 1,190 MB | 1,222 MB | 1,330 MB | 1,302 MB |
+| Big | f32 | int8 (fork default) | 25,698 | 11.1 MB | 351 MB | 383 MB | 491 MB | 506 MB |
+| Big | f32 | int4 | 15,458 | 11.1 MB | 211 MB | 243 MB | 351 MB | 353 MB |
+| Big | int4 | int8 | 25,698 | 1.9 MB | 351 MB | 373 MB | 482 MB | 491 MB |
+| Small | f32 | f32 | 13,640 | 1.35 MB | 187 MB | 209 MB | 317 MB | |
+| Small | f32 | int8 | 4,554 | 1.35 MB | 62 MB | 84 MB | 192 MB | |
+| Small | int8 | int8 (as scored) | 4,554 | 0.44 MB | 62 MB | 83 MB | 191 MB | |
+| Small | f32 | int4 | 3,018 | 1.35 MB | 41 MB | 63 MB | 171 MB | |
+| Small | f32 | compressed, ~400 bits (not released) | ~99 | 1.35 MB | 1.3 MB | 23 MB | 131 MB | |
+
+Accuracy at these settings: the small model is scored with int8 weights and int8 state only. Its int4 state is not scored. The
+compressed state (a few codebook indices per card and per note, ~400 bits each) costs about +0.4% curve / +0.8% instant on 34
+test users. On the 14k-card collection, int4 state makes the big model slightly worse (LogLoss 0.45615 vs 0.45583 at int8).
+
+### 11.2 Which phones can run it
+
+What limits phones is memory, not speed. Both models keep a state for every card and every note; it grows with the collection and
+has to fit in RAM. At int8 state: big model 25.7 KB per card (with its own note), small model 4.6 KB, compressed state (not
+released) ~0.1 KB.
+
+Largest collection that fits, by phone year. Assumptions: the model may use about 1/4 of the phone's RAM, plus ~30 MB fixed for its
+weights and other state.
+
+| Year | Budget phone (RAM) | Flagship examples | Max cards, big model | Max cards, small model | Max cards, small + compressed (not released) | Small model full rebuild (224k reviews) |
+|---|---|---|---:|---:|---:|---:|
+| 2014 | Moto G 2nd gen (1 GB) | Galaxy S5 (2 GB), iPhone 6 (1 GB) | ~9k | ~48k | 2M+ | ~1-2 min |
+| 2015 | Moto G 3rd gen (1-2 GB) | Galaxy S6 (3 GB), iPhone 6s (2 GB) | ~9-18k | ~48-100k | 2M+ | ~40-80 s |
+| 2016 | Galaxy J5 2016 (2 GB) | Galaxy S7 (4 GB), iPhone 7 (2 GB) | ~18k | ~100k | 4M+ | ~40-80 s |
+| 2017 | Moto G5 (2 GB) | Galaxy S8 (4 GB), iPhone 8 (2 GB) | ~18k | ~100k | 4M+ | ~30-60 s |
+| 2018 | Redmi 6A (2 GB) | Galaxy S9 (4 GB), iPhone XR (3 GB) | ~18k | ~100k | 4M+ | ~30-60 s |
+| 2019 | Galaxy A10 (2 GB) | Galaxy S10 (8 GB), iPhone 11 (4 GB) | ~18k | ~100k | 4M+ | ~20-40 s |
+| 2020 | Galaxy A21s (3 GB) | Galaxy S20 (8 GB), iPhone SE 2 (3 GB) | ~28k | ~160k | 7M+ | ~15-30 s |
+| 2021 | Galaxy A12 (3-4 GB) | iPhone 13 (4 GB), Pixel 6 (8 GB) | ~28-38k | ~160-210k | 7M+ | ~15-30 s |
+| 2022+ | Galaxy A13 / A14 (4 GB) | iPhone 14 (6 GB), Galaxy S22 (8 GB) | ~38k | ~210k | 9M+ | ~10-20 s |
+
+A full rebuild recomputes every card's state from the whole review history; it is only needed after a reset. Daily use is fast on
+every phone listed: about 2-10 ms per answer and about a second to score a 4,096-card queue (the fork's M1 Max timings scaled by
+per-core phone speed, 2-25x slower, and by 8.5x fewer multiply-adds for the small model).
+
+In short: the small model runs on any 2 GB phone from about 2016 with collections up to ~100k cards. The big model needs about
+3-4 GB (2020+ budget phones) and stays under ~40k cards even on 4 GB. With compressed state, collection size would no longer
+matter on any phone.
+
+Caveats: estimates, not phone measurements. The state sizes are exact (the fork's format, checked against the 14k-card
+collection); the RAM budget, the per-core phone speeds and the phone specs (typical configurations) are approximations.
+Collections where several cards share a note need less, so the maximums are conservative. No phone build of either model exists
+yet: the fork's Rust runtime, which AnkiDroid and AnkiMobile could share through Anki's Rust backend, needs the port in section 10,
+then one run on an actual 2 GB phone (rebuild time, peak RAM).
+
 ---
 
 ## 12. Known gaps ("Verified vs not")
