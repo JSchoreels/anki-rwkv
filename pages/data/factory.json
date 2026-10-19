@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-10-19T07:34:23+02:00",
- "updated": "2026-10-19 07:34",
- "material": "ece9b24461f18c7a",
- "summary": "running 000534, finished 000533",
+ "generated_at": "2026-10-19T09:53:01+02:00",
+ "updated": "2026-10-19 09:53",
+ "material": "b13d82e289933f62",
+ "summary": "running 000535",
  "headline": [
   {
    "k": "Best, 464 users (curve / instant)",
@@ -129,19 +129,19 @@
  ],
  "now": [
   {
-   "what": "Score the 2,225-user set (fork, 32k dec10, v2 dec12, one-epoch 32k decay) at the 0.8 cap, then one 0.92 retry for users that do not fit",
-   "id": "EVAL, ticket 000534",
-   "kind": "gpu-score",
-   "decides": "Decisive check of the new candidate; reference rows for later (not valid for models trained on all 8,000 users)",
+   "what": "Pruning arm: fine-tune the 7-layer cut 0.5 epoch at 2,048 with carry",
+   "id": "SM15, ticket 000535",
+   "kind": "gpu-train",
+   "decides": "",
    "why": "",
-   "job": "pool 2225 full-history scoring of fork/w8+s8 (1494 users, pass 3)",
+   "job": "SM15 fine-tune w64-d2p1u1 0.5 epoch at 2048x16 lanes carry from sc-lanes e12 (smoke first)",
    "linked": true,
    "track": "small model",
-   "ticket": "000534-small-model",
-   "started": "07:32",
+   "ticket": "000535-small-model",
+   "started": "09:51",
    "elapsed": "0:01",
    "progress": null,
-   "eta": "~08:32"
+   "eta": "~10:51"
   }
  ],
  "waiting": [],
@@ -529,17 +529,18 @@
    "ended_at": "2026-10-19T06:29:38+02:00"
   },
   {
-   "what": "Score the 2,225-user set (fork, 32k dec10, v2 dec12, one-epoch 32k decay) at the 0.8 cap, then one 0.92 retry for users that do not fit",
+   "what": "2,225-user set: stopped, its 1,493 extra training users have no benchmark labels (0 scored)",
    "id": "EVAL",
    "kind": "gpu-score",
    "minutes": 260,
    "track": "small model",
-   "decides": "Decisive check of the new candidate; reference rows for later (not valid for models trained on all 8,000 users)",
-   "state": "running",
-   "started": "07:32",
-   "ticket": "000534-small-model",
-   "started_at": "2026-10-19T07:01:27+02:00",
-   "ends_at": "2026-10-19T11:21:27+02:00"
+   "decides": "Needs a label build for those users before it can be used",
+   "state": "done",
+   "ended_at": "2026-10-19T07:32:51+02:00",
+   "ended": "07:32",
+   "exit": 0,
+   "started": "07:01",
+   "started_at": "2026-10-19T07:01:27+02:00"
   },
   {
    "what": "Own collection for the one-epoch 32k decay (CPU, ~11 min) as it lands",
@@ -550,12 +551,64 @@
    "decides": "Same table as dec10"
   },
   {
-   "what": "Bar met (SM40): pruning first step = depth cut of the deck / preset / user streams; code + free CPU screen this morning, GPU arm (~3&ndash;5 h) after the 2,225 check",
+   "what": "Pruning code (CPU, done): depth-cut presets, self-test ALL OK, dry run OK; free CPU screen picked 2+1+1 layers (D7, &minus;38% params, 13 &rarr; 7 layers): +4.7% / +3.5% before fine-tuning",
    "id": "SM15",
-   "kind": "next",
-   "decides": "How much of the &minus;26% to &minus;38% parameter cut the fine-tune recovers (design: docs/SMALL_MODEL_PRUNING.md)",
+   "kind": "cpu",
+   "decides": "Which cut the GPU arm trains (fallback 9 layers: +0.7% / +0.9% before fine-tuning)",
    "track": "small model",
-   "when": "10-19 code now, GPU ~12:00"
+   "when": "10-19 code now, GPU ~12:00",
+   "state": "done",
+   "started_at": "2026-10-19T06:20:00+02:00",
+   "ended_at": "2026-10-19T07:44:00+02:00"
+  },
+  {
+   "what": "Pruning arm: fine-tune the 7-layer cut 0.5 epoch at 2,048 with carry",
+   "id": "SM15",
+   "kind": "gpu-train",
+   "minutes": 60,
+   "track": "small model",
+   "decides": "",
+   "state": "running",
+   "started": "09:51",
+   "ticket": "000535-small-model",
+   "started_at": "2026-10-19T09:51:42+02:00",
+   "ends_at": "2026-10-19T10:51:42+02:00"
+  },
+  {
+   "what": "Pruning arm: the same one-epoch 32k decay as the best model",
+   "id": "SM15",
+   "kind": "gpu-train",
+   "minutes": 240,
+   "track": "small model",
+   "decides": "Pre-registered: keep the cut if it costs &le; +0.25% vs the parent on both heads (upper 95% bound)",
+   "state": "planned"
+  },
+  {
+   "what": "Pruning arm: score on 464 and 732 users",
+   "id": "SM15",
+   "kind": "gpu-score",
+   "minutes": 65,
+   "track": "small model",
+   "decides": "PASS / EXTEND / FAIL vs the parent",
+   "state": "planned"
+  },
+  {
+   "what": "Control: the same one-epoch 32k decay from the plain 32k epoch 10 (no carried-state epochs) + scoring",
+   "id": "SM42",
+   "kind": "gpu-train",
+   "minutes": 400,
+   "track": "small model",
+   "decides": "Did the 2 carried-state epochs matter, or does the long 32k decay alone give the gain? Sets the recipe",
+   "state": "planned"
+  },
+  {
+   "what": "Muon instead of AdamW for the one-epoch 32k decay (paired with the best model, everything else equal) + scoring",
+   "id": "SM36",
+   "kind": "gpu-train",
+   "minutes": 400,
+   "track": "small model",
+   "decides": "First GPU test of the optimizer from outside research (largest instant gain there); toward +0.5%",
+   "state": "planned"
   },
   {
    "what": "Carried state, code (CPU): full-history targets (SM11, 18/18 checks) + kernels with a starting state and the trainer option (SM21, all checks bit for bit); merged together",
@@ -612,6 +665,13 @@
  "backlog": [
   {
    "status": "next",
+   "item": "Benchmark labels for the 1,493 training users of the 2,225-user set",
+   "id": "EVAL",
+   "why": "The label database only covers validation and test users; the 2,225 set scored nothing (10-19)",
+   "track": "small model"
+  },
+  {
+   "status": "next",
    "item": "Training with carried state between a user&rsquo;s windows",
    "id": "SM21",
    "why": "Moved up 10-18 (user): full-history context at short-window speed (2,048 windows ~5x faster than 32k). Designed, CPU prototype exact; code started 10-18",
@@ -642,7 +702,7 @@
    "status": "next",
    "item": "Muon optimizer for the student",
    "id": "SM36",
-   "why": "Outside pointer: largest instant gains (&minus;0.0005 instant at d=32); our student is AdamW only",
+   "why": "Queued 10-19 as a one-epoch 32k decay with Muon, paired with the best model (AdamW)",
    "track": "small model"
   },
   {
