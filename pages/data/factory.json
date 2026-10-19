@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-10-19T19:34:33+02:00",
- "updated": "2026-10-19 19:34",
- "material": "b9d0f32902f50100",
- "summary": "idle, finished 000548",
+ "generated_at": "2026-10-20T00:20:22+02:00",
+ "updated": "2026-10-20 00:20",
+ "material": "034e12f23c06adae",
+ "summary": "idle",
  "headline": [
   {
    "k": "Best, 464 users (curve / instant)",
@@ -630,13 +630,33 @@
    "state": "planned"
   },
   {
-   "what": "State compression with codebooks learned during training (~400 bits per card/note), in the one-epoch 32k decay of the best model (or of the Muon version if it wins) + CPU scoring",
+   "id": "SM32c",
+   "kind": "cpu",
+   "minutes": 70,
+   "track": "small model",
+   "state": "running",
+   "started_at": "2026-10-20T00:14:54+02:00",
+   "what": "Reference for SM32c: the best model with codebooks fitted after training, and with int8 state, on the same 68 users (CPU)",
+   "decides": "The baseline the learned-codebook run is compared with"
+  },
+  {
+   "id": "SM32c",
+   "kind": "gpu-check",
+   "minutes": 10,
+   "track": "small model",
+   "what": "GPU check of the learned-codebook kernels (no training)",
+   "when": "10-20 01:00, just before the Muon test",
+   "decides": "Kernels correct on the GPU, and the extra cost of learning the codebooks",
+   "state": "planned"
+  },
+  {
+   "what": "State compression (~400 bits per card/note) with codebooks learned during training, in the one-epoch 32k decay of the best model (with carried state) + CPU scoring on 68 users",
    "id": "SM32c",
    "kind": "gpu-train",
-   "minutes": 120,
+   "minutes": 420,
    "track": "small model",
-   "when": "10-20 from ~08:00, after the Muon test; code written and CPU-checked before",
-   "decides": "Does compression trained in properly remove its cost (now +0.4% / +0.9%)? If yes: ~45&times; smaller state than int8, any collection size on any phone",
+   "when": "10-20 after the Muon test (~07:45&ndash;14:45); code written and CPU-checked 10-20 00:20",
+   "decides": "Does compression trained in properly remove its cost (now +0.4% / +0.9% after training)? If yes: ~45&times; smaller state than int8, any collection size on any phone",
    "state": "planned"
   },
   {
@@ -645,7 +665,7 @@
    "kind": "gpu-train",
    "minutes": 330,
    "track": "small model",
-   "when": "10-20 after SM32c (~10:30&ndash;16:00)",
+   "when": "10-20 after SM32c (~15:00&ndash;20:30)",
    "decides": "Does the gap from the mini (+0.36% / +0.46% for fewer users, more passes) grow or shrink once both arms are trained much longer?",
    "state": "done",
    "ended": "19:32",
@@ -756,7 +776,7 @@
    "id": "SM32c",
    "track": "small model",
    "item": "State compression (~400 bits per card/note) with codebooks learned during training, in the one-epoch 32k decay of the best model",
-   "why": "Why we do not compress yet: after training it costs +0.4% / +0.9% (68 users), which breaks the &le; +1.0% bar; training with frozen codebooks made it worse (confirmed on 68 users). Outside research removes the cost with learned codebooks and a full decay. Payoff: ~45&times; smaller state than int8 (4.6 KB &rarr; ~0.1 KB per card), any collection size on any phone. Planned 10-20 from ~08:00 (~2 h GPU + CPU scoring), after the Muon test; then codebook state in the fork runtime (with SM08)"
+   "why": "Why we do not compress yet: after training it costs +0.4% / +0.9% (68 users), which breaks the &le; +1.0% bar; training with frozen codebooks made it worse (confirmed on 68 users). Outside research removes the cost with learned codebooks and a full decay. Payoff: ~45&times; smaller state than int8 (4.6 KB &rarr; ~0.1 KB per card), any collection size on any phone. Code ready 10-20 00:20 (CPU-checked); runs after the Muon test, ~7 h GPU (a full one-epoch decay with carried state, like the best model) + CPU scoring; then codebook state in the fork runtime (with SM08)"
   },
   {
    "status": "done",
