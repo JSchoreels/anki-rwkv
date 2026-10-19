@@ -186,7 +186,7 @@ For a stripped layer these tensors exist as 1-element dummies (`lerp_k` 1x1x1, `
 
 | Field | Value here | Meaning |
 |---|---|---|
-| `format`, `spec_version` | "anki-rwkv expertium export", 1 | Bump of `spec_version` = incompatible change. |
+| `format`, `spec_version` | "anki-rwkv small-model export", 1 | Bump of `spec_version` = incompatible change. |
 | `architecture` | "w64" | Preset name in the training repo. |
 | `d_model` | 64 | Width of the trunk. |
 | `card_features` | 92 | Input size. |
@@ -400,7 +400,7 @@ Nothing in the feature builder, except that input 22 is ignored. The fork's `fea
 ## 7. Forward pass for ONE review (recurrent form)
 
 Executable spec: `reference/small_model_recurrent.py` (`RecurrentModel.step`). Training-side equivalent:
-`expertium/model/variant_rnn.py` (`VariantSrsRWKVRnn.step`). Notation: `lerp(a, b, w) = a + w (b - a)`, `sigmoid`, `SiLU(x) = x sigmoid(x)`.
+the training code's one-review step (`VariantSrsRWKVRnn.step`). Notation: `lerp(a, b, w) = a + w (b - a)`, `sigmoid`, `SiLU(x) = x sigmoid(x)`.
 All math is float32.
 
 ### 7.1 Trunk
