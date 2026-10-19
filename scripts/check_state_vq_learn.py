@@ -341,10 +341,99 @@ def trainer_check(report, fails, users):
         fails.append("T1")
 
 
+def gpu_checks(report, fails):
+    """GPU ticket (short): the real CUDA kernels. Per stream: forward with s0 + record vs the torch codec one step at a
+    time (picks, q(n)^2, stored states; float32 near-ties may flip a pick, allowed at <= 0.1% of coded steps); the
+    dstored backward copy: input gradients bitwise the original kernel's, dstored vs the explicit straight-through
+    backward along the kernel's trajectory (rel < 1e-4); VQStateWKVLearned on CUDA finite with a non-zero catalog
+    gradient. Timing (CUDA events, scheduling estimate only, not a benchmark): forward+backward of the SM32b kernel path
+    vs the learned path (record + dstored + codebook_grad) on 64 rows x 2,048 steps x 4 heads."""
+    import torch
+    from expertium.model.rwkv_ops import single_timestep
+    from expertium.model.state_vq_hooks import VQStateWKVLearned, ste_backward, VQStateWKVKernel
+    from scripts import state_vq, state_vq_cuda
+    dev = torch.device("cuda")
+    books = state_vq.Codebooks.load(state_vq.DEFAULT_CODEBOOKS)
+    recs = state_vq.recipe(RECIPE)
+    learned = state_vq.LearnedBooks(books, recs, dev)
+    gen = torch.Generator().manual_seed(33)
+    out = {"device": torch.cuda.get_device_name(0)}
+    for name, rec in zip(("card", "note"), recs):
+        codec = state_vq.StateCodec(rec, books, 1 << 20, 8192, torch.float32).to(dev)
+        state_vq.attach_kernel(codec, "cuda", dev)
+        codec.learned = learned
+        codec.sync()
+        kc = codec.kernel
+        B, T, H = 8, 256, 4
+        inputs, skip = synthetic(gen, B, T, H)
+        inputs, skip = tuple(t.to(dev) for t in inputs), skip.to(dev)
+        s0 = codec.encode_wkv((torch.randn(B, H, 16, 16, generator=gen) * 0.3).to(dev))[0].contiguous()
+        G = torch.randn(B, T, H, 16, generator=gen).to(dev)
+        o, before, final, picks, cs = kc.forward(*inputs, skip, s0=s0, record=True)
+        o0, before0 = kc.forward(*inputs, skip, s0=s0)
+        r, k, v, w, a, kd = inputs
+        mism = pick_mism = coded = 0
+        for t in range(T):
+            _, nxt = single_timestep(r[:, t], k[:, t], v[:, t], w[:, t], a[:, t], kd[:, t], before[:, t])
+            rec_t, pk, c = codec.encode_wkv(nxt)
+            nxt_state = before[:, t + 1] if t + 1 < T else final
+            m = ~skip[:, t]
+            coded += int(m.sum()) * H
+            mism += int(((rec_t[m] - nxt_state[m]).flatten(2).abs().amax(-1) > 1e-4).sum())
+            pick_mism += int((pk[m].to(torch.int32) != picks[m, t]).any(-1).sum())
+        grads_old = state_vq_cuda.wkv_backward(*inputs, skip, before, G)
+        grads_new, ds = state_vq_cuda.wkv_backward(*inputs, skip, before, G, dstored=True)
+        ds_ref = torch.zeros(T, B, H, 16, 16, device=dev)
+        ste_backward(*inputs, skip, before.transpose(0, 1), G, dstored=ds_ref)
+        leaves = [t.clone().requires_grad_(True) for t in inputs]
+        learned.wkv.grad = None
+        y, _ = VQStateWKVLearned.apply(*leaves, skip, s0, learned.wkv, codec)
+        (y * G).sum().backward()
+        e = {"coded_head_steps": coded, "one_step_state_mismatch": mism, "pick_mismatch": pick_mism,
+             "record_off_equals_on_bitwise": bool(torch.equal(o, o0) and torch.equal(before, before0)),
+             "s0_used": bool(torch.equal(before[:, 0], s0)),
+             "grads_bitwise_original": all(torch.equal(x, y_) for x, y_ in zip(grads_old, grads_new)),
+             "dstored_rel_diff": rel(ds, ds_ref.transpose(0, 1)),
+             "learned_catalog_grad_norm": float(learned.wkv.grad.norm()),
+             "learned_input_grads_finite": all(bool(torch.isfinite(t.grad).all()) for t in leaves)}
+        e["ok"] = (e["record_off_equals_on_bitwise"] and e["s0_used"] and e["grads_bitwise_original"]
+                   and mism <= max(1, coded // 1000) and pick_mism <= max(1, coded // 1000) and e["dstored_rel_diff"] < 1e-4
+                   and e["learned_catalog_grad_norm"] > 0 and e["learned_input_grads_finite"])
+        # timing
+        B2, T2 = 64, 2048
+        big, skip2 = synthetic(gen, B2, T2, H)
+        big, skip2 = tuple(t.to(dev) for t in big), skip2.to(dev)
+        G2 = torch.randn(B2, T2, H, 16, generator=gen).to(dev)
+        times = {}
+        for label in ("sm32b_kernel", "learned"):
+            for rep_ in range(3):
+                leaves = [t.clone().requires_grad_(True) for t in big]
+                learned.wkv.grad = None
+                start, end = torch.cuda.Event(enable_timing=True), torch.cuda.Event(enable_timing=True)
+                start.record()
+                if label == "learned":
+                    y, _ = VQStateWKVLearned.apply(*leaves, skip2, None, learned.wkv, codec)
+                else:
+                    y = VQStateWKVKernel.apply(*leaves, skip2, codec)
+                (y * G2).sum().backward()
+                end.record()
+                torch.cuda.synchronize()
+                if rep_:
+                    times.setdefault(label, []).append(start.elapsed_time(end))
+        e["ms_fwd_bwd_64x2048x4"] = {k: round(min(v), 2) for k, v in times.items()}
+        e["learned_over_sm32b"] = round(min(times["learned"]) / min(times["sm32b_kernel"]), 3)
+        out[name] = e
+        if not e["ok"]:
+            fails.append(f"gpu:{name}")
+    out["peak_memory_mib"] = round(torch.cuda.max_memory_allocated() / 2**20)
+    report["checks"]["GPU"] = out
+
+
 def main():
     parser = ArgumentParser(description=__doc__)
     parser.add_argument("--users", default="1340")
     parser.add_argument("--skip-trainer", action="store_true")
+    parser.add_argument("--gpu", action="store_true", help="GPU ticket: the CUDA kernels only (gpu_checks)")
     parser.add_argument("--output", type=Path, default=Path("artifacts/small-model/check-state-vq-learn.json"))
     args = parser.parse_args()
     os.environ["RWKV_NO_JIT"] = "1"
@@ -355,11 +444,16 @@ def main():
     started = time.perf_counter()
     report = {"recipe": RECIPE, "checks": {}}
     fails = []
-    unit_checks(report, fails)
+    if args.gpu:
+        gpu_checks(report, fails)
+        args.skip_trainer = True
+        report["passed"] = not fails
+    else:
+        unit_checks(report, fails)
     if not args.skip_trainer:
         trainer_check(report, fails, [int(u) for u in args.users.split(",")])
     report["fails"] = fails
-    report["passed"] = not fails and not args.skip_trainer
+    report["passed"] = not fails and (args.gpu or not args.skip_trainer)
     report["seconds"] = round(time.perf_counter() - started, 1)
     path = ROOT / args.output
     path.parent.mkdir(parents=True, exist_ok=True)
