@@ -207,6 +207,26 @@ def quantize_rows(S):
     return torch.clamp(torch.round(S / scale), -127.0, 127.0).to(torch.int8), scale.to(torch.float16)
 
 
+def rank1_pack(S):
+    """SM32c: a VQ-coded state is exactly rank 1 (q(n)^2 u v^T) or zero. Pack S [n, H, K, K] as [n, H, 2, K] float32:
+    the column and the row through its largest |entry| (column scaled by 1 / that entry); unpack = outer product.
+    Exact up to float rounding for rank-1 states, zero stays zero; 8x smaller than float32 rows, half the int8 rows."""
+    S = S.float()
+    n, H, K, _ = S.shape
+    flat = S.reshape(n, H, K * K)
+    j = flat.abs().argmax(-1)
+    pivot = torch.gather(flat, -1, j.unsqueeze(-1)).squeeze(-1)                       # S[i*, j*]
+    row = torch.gather(S, 2, (j // K)[..., None, None].expand(n, H, 1, K)).squeeze(2)   # S[i*, :]
+    col = torch.gather(S, 3, (j % K)[..., None, None].expand(n, H, K, 1)).squeeze(3)    # S[:, j*]
+    safe = torch.where(pivot != 0, pivot, torch.ones_like(pivot))
+    col = torch.where((pivot != 0).unsqueeze(-1), col / safe.unsqueeze(-1), torch.zeros_like(col))
+    return torch.stack([col, row], dim=2)
+
+
+def rank1_unpack(P):
+    return P[:, :, 0, :, None] * P[:, :, 1, None, :]
+
+
 class CarryTable:
     def __init__(self, precision="deploy"):
         self.precision = precision
@@ -240,7 +260,9 @@ class CarryTable:
         slot = self.slots.get((stream, layer))
         if slot is None:
             return None
-        if slot["scale"] is not None:
+        if slot.get("rank1"):
+            S = rank1_unpack(slot["S"].index_select(0, codes))
+        elif slot["scale"] is not None:
             S = slot["S"].index_select(0, codes).float() * slot["scale"].index_select(0, codes).float()
         else:
             S = slot["S"].index_select(0, codes).float()
@@ -269,7 +291,7 @@ class CarryTable:
             store, half = S.float(), torch.float32
             scale = None
         elif stream in self.fp32_streams:
-            store, scale, half = S.float(), None, torch.float16
+            store, scale, half = rank1_pack(S), None, torch.float16
         elif int8:
             store, scale = quantize_rows(S.float())
             half = torch.float16
@@ -282,7 +304,8 @@ class CarryTable:
                 "tm": torch.zeros((E, *tm.shape[1:]), dtype=half, device=codes.device),
                 "S": torch.zeros((E, *store.shape[1:]), dtype=store.dtype, device=codes.device),
                 "scale": None if scale is None else torch.ones((E, *scale.shape[1:]), dtype=scale.dtype, device=codes.device),
-                "cm": None if cm is None else torch.zeros((E, *cm.shape[1:]), dtype=half, device=codes.device)}
+                "cm": None if cm is None else torch.zeros((E, *cm.shape[1:]), dtype=half, device=codes.device),
+                "rank1": stream in self.fp32_streams and self.precision != "fp32"}
 
         def update(name, values):
             target = slot[name]
@@ -299,7 +322,8 @@ class CarryTable:
             update("cm", cm)
 
     def nbytes(self):
-        return sum(t.numel() * t.element_size() for slot in self.slots.values() for t in slot.values() if t is not None)
+        return sum(t.numel() * t.element_size() for slot in self.slots.values() for t in slot.values()
+                   if isinstance(t, torch.Tensor))
 
 
 # ------------------------------------------------------------------ one layer with carried state

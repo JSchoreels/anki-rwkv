@@ -111,6 +111,12 @@
     "ok": true
    }
   },
+  "R1_rank1_carry_storage": {
+   "max_rel_err": 5.885567233576694e-08,
+   "zeros_stay_zero": true,
+   "bytes_per_head": 128,
+   "ok": true
+  },
   "E1_export": {
    "values_round_trip": true,
    "norm_ranges_kept": true,
@@ -131,7 +137,7 @@
        "user": 1340,
        "offset": 0,
        "loss": 0.8066318035125732,
-       "seconds": 18.0,
+       "seconds": 27.5,
        "catalog_grad_norm": {
         "wkv": 0.4893133044242859,
         "shift_t": 0.02168581262230873,
@@ -152,17 +158,39 @@
         "2/0": "torch.float32",
         "0/1": "torch.float32"
        },
-       "max_second_singular_ratio": 2.8972812748915004e-08
+       "slot_shapes": {
+        "0/0": [
+         4,
+         2,
+         16
+        ],
+        "2/0": [
+         4,
+         2,
+         16
+        ],
+        "0/1": [
+         4,
+         2,
+         16
+        ]
+       },
+       "slot_rank1": {
+        "0/0": true,
+        "2/0": true,
+        "0/1": true
+       },
+       "filled_factor_share": 1.0
       },
       {
        "user": 1340,
        "offset": 4096,
        "loss": 1.1692978143692017,
-       "seconds": 8.3,
+       "seconds": 13.9,
        "catalog_grad_norm": {
-        "wkv": 0.7671188116073608,
-        "shift_t": 0.03263663128018379,
-        "shift_c": 0.036039043217897415
+        "wkv": 0.7671188712120056,
+        "shift_t": 0.03263663500547409,
+        "shift_c": 0.036039046943187714
        },
        "catalog_grad_rows": {
         "wkv": 5902,
@@ -179,7 +207,29 @@
         "2/0": "torch.float32",
         "0/1": "torch.float32"
        },
-       "max_second_singular_ratio": 2.7699084801220723e-08
+       "slot_shapes": {
+        "0/0": [
+         4,
+         2,
+         16
+        ],
+        "2/0": [
+         4,
+         2,
+         16
+        ],
+        "0/1": [
+         4,
+         2,
+         16
+        ]
+       },
+       "slot_rank1": {
+        "0/0": true,
+        "2/0": true,
+        "0/1": true
+       },
+       "filled_factor_share": 1.0
       }
      ]
     },
@@ -190,7 +240,7 @@
        "user": 1340,
        "offset": 0,
        "loss": 0.8066318035125732,
-       "seconds": 18.3,
+       "seconds": 25.9,
        "fp32_streams": [
         0,
         2
@@ -200,7 +250,29 @@
         "2/0": "torch.float32",
         "0/1": "torch.float32"
        },
-       "max_second_singular_ratio": 2.8972812748915004e-08
+       "slot_shapes": {
+        "0/0": [
+         4,
+         2,
+         16
+        ],
+        "2/0": [
+         4,
+         2,
+         16
+        ],
+        "0/1": [
+         4,
+         2,
+         16
+        ]
+       },
+       "slot_rank1": {
+        "0/0": true,
+        "2/0": true,
+        "0/1": true
+       },
+       "filled_factor_share": 1.0
       }
      ]
     }
@@ -212,5 +284,5 @@
  "emulated_kernels": true,
  "fails": [],
  "passed": true,
- "seconds": 76.5
+ "seconds": 102.3
 }

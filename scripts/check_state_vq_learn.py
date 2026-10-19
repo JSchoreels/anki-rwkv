@@ -205,6 +205,18 @@ def unit_checks(report, fails):
         for key, value in entry.items():
             if not value["ok"]:
                 fails.append(f"{name}:{key}")
+    # ---- R1: rank-1 carry storage (CarryTable for VQ-coded streams)
+    from scripts.state_carry_train import rank1_pack, rank1_unpack
+    codec = state_vq.StateCodec(recs[0], books, 1 << 20, 8192, torch.float32)
+    S = codec.encode_wkv(torch.randn(64, 4, 16, 16, generator=gen) * 0.3)[0]
+    S[:5] = 0
+    back = rank1_unpack(rank1_pack(S))
+    r1 = {"max_rel_err": rel(back, S), "zeros_stay_zero": bool((back[:5] == 0).all()),
+          "bytes_per_head": 2 * 16 * 4}
+    r1["ok"] = r1["max_rel_err"] < 1e-6 and r1["zeros_stay_zero"]
+    report["checks"]["R1_rank1_carry_storage"] = r1
+    if not r1["ok"]:
+        fails.append("R1")
     # ---- E1: export round trip
     with tempfile.TemporaryDirectory() as tmp:
         path = Path(tmp) / "books.npz"
@@ -306,12 +318,11 @@ def trainer_check(report, fails, users):
             ranks = []
             for (stream, layer), slot in table.slots.items():
                 if stream in table.fp32_streams:
-                    S = slot["S"][slot["has"]]
-                    if S.numel():
-                        sv = torch.linalg.svdvals(S.flatten(0, 1).double())
-                        ranks.append(float((sv[:, 1] / sv[:, 0].clamp_min(1e-30)).max()))
                     u.setdefault("slot_dtypes", {})[f"{stream}/{layer}"] = str(slot["S"].dtype)
-            u["max_second_singular_ratio"] = max(ranks) if ranks else None
+                    u.setdefault("slot_shapes", {})[f"{stream}/{layer}"] = list(slot["S"].shape[1:])
+                    u.setdefault("slot_rank1", {})[f"{stream}/{layer}"] = bool(slot.get("rank1"))
+                    ranks.append(float((slot["S"][slot["has"]].abs().sum(-1) > 0).float().mean()) if slot["has"].any() else 1.0)
+            u["filled_factor_share"] = min(ranks) if ranks else None
             run["updates"].append(u)
         out["runs"]["learned" if learn else "frozen"] = run
         state_vq.uninstall_training(model)
@@ -320,7 +331,8 @@ def trainer_check(report, fails, users):
     ok = ok and all(all(v and v > 0 and v == v for v in u["catalog_grad_norm"].values()) and u["catalog_moved"] for u in lr_)
     ok = ok and all(u["fp32_streams"] == [0, 2] and all(d == "torch.float32" for d in u.get("slot_dtypes", {}).values())
                     for u in lr_)
-    ok = ok and all(u["max_second_singular_ratio"] is not None and u["max_second_singular_ratio"] < 1e-3 for u in lr_)
+    ok = ok and all(all(u["slot_rank1"].values()) and all(sh[-2:] == [2, 16] for sh in u["slot_shapes"].values())
+                    for u in lr_)
     out["first_update_loss_learned_minus_frozen"] = first_losses[True] - first_losses[False]
     ok = ok and abs(out["first_update_loss_learned_minus_frozen"]) < 1e-6
     out["ok"] = ok
