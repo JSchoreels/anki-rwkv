@@ -76,7 +76,7 @@
   },
   {
    "k": "Own collection (curve / instant)",
-   "v": "0.4423 / 0.4375",
+   "v": "0.4419 / 0.4373",
    "compare": [
     {
      "variant": "Fork reference",
@@ -86,12 +86,22 @@
      "eval": "173,690 reviews"
     },
     {
-     "variant": "Epoch 10 + decay at 32k (Q12)",
+     "variant": "Best: carried state v2 + one-epoch 32k decay (SM40)",
+     "curve": 0.4419,
+     "instant": 0.4373,
+     "curve_pct": 0.06,
+     "instant_pct": 0.14,
+     "eval": "173,690 reviews",
+     "date": "10-19"
+    },
+    {
+     "variant": "Previous best: epoch 10 + decay at 32k (Q12)",
      "curve": 0.4423,
      "instant": 0.4375,
      "curve_pct": 0.14,
      "instant_pct": 0.18,
-     "eval": "173,690 reviews"
+     "eval": "173,690 reviews",
+     "date": "10-17"
     }
    ],
    "track": "small model"
@@ -714,6 +724,35 @@
   "s-w64kd-gate-ctx2048c-dec8-1ep/w8+s8"
  ],
  "results": [
+  {
+   "date": "10-19",
+   "kind": "collection",
+   "name": "One-epoch 32k decay of carried state v2 (SM40) on your collection",
+   "id": "SM07",
+   "curve": 0.44193,
+   "instant": 0.43728,
+   "curve_pct": 0.06,
+   "instant_pct": 0.14,
+   "eval": "173,690 reviews",
+   "fork": "fork 0.44165 / 0.43668; dec10 0.44225 / 0.43747 (+0.14% / +0.18%)",
+   "takeaway": "Nearly level with the fork on curve. Calibration RMSE(bins) 0.0256 / 0.0209 (dec10 0.0286 / 0.0207, fork 0.0224 / 0.0200)",
+   "track": "small model"
+  },
+  {
+   "date": "10-19",
+   "kind": "gpu-score",
+   "name": "Where SM40&rsquo;s gap sits, by inferred stage (paired on 458 users)",
+   "id": "SM24",
+   "curve": null,
+   "instant": null,
+   "curve_pct": 0.74,
+   "instant_pct": 0.7,
+   "eval": "458 users (6 longest do not fit in memory with dumps)",
+   "fork": "dec10 on the same users +0.96% / +0.88%; v2 dec12 +1.04% / +1.03%",
+   "takeaway": "Spaced reviews (71%): <strong>+0.60% / +0.61%</strong> (dec10 +0.85% / +0.79%). Same-day (27%): +1.07% / +0.91% (dec10 +1.22% / +1.10%). The remaining curve gap is mostly learning steps",
+   "track": "small model",
+   "label": "s-w64kd-gate-sc-lanes-dec12-1ep32k/w8+s8"
+  },
   {
    "date": "10-19",
    "kind": "gpu-score",
