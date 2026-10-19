@@ -1,7 +1,7 @@
 {
- "generated_at": "2026-10-19T13:31:37+02:00",
- "updated": "2026-10-19 13:31",
- "material": "39caeffb6cc22dc4",
+ "generated_at": "2026-10-19T16:33:28+02:00",
+ "updated": "2026-10-19 16:33",
+ "material": "176ec4859551f96f",
  "summary": "running 000541",
  "headline": [
   {
@@ -149,7 +149,7 @@
    "track": "small model",
    "ticket": "000541-small-model",
    "started": "13:06",
-   "elapsed": "0:25",
+   "elapsed": "3:27",
    "progress": null,
    "eta": "~18:36"
   }
@@ -642,6 +642,16 @@
    "state": "planned"
   },
   {
+   "what": "Data diversity vs epochs: 1,250 users &times; (10+1) epochs vs 125 users &times; (100+10), same reviews seen, fast 2,048-window recipe, both scored on 732 users",
+   "id": "SM43",
+   "kind": "gpu-train",
+   "minutes": 330,
+   "track": "small model",
+   "when": "10-20 after SM32c (~10:30&ndash;16:00)",
+   "decides": "More users or more passes over the same users: which helps the small model more?",
+   "state": "planned"
+  },
+  {
    "what": "Carried state, code (CPU): full-history targets (SM11, 18/18 checks) + kernels with a starting state and the trainer option (SM21, all checks bit for bit); merged together",
    "id": "SM21, SM11",
    "kind": "cpu",
@@ -912,6 +922,13 @@
    "id": "SM30",
    "why": "Measured 10-18: curve +0.00003, instant &minus;0.00004 vs the same run without them (464 users)",
    "track": "small model"
+  },
+  {
+   "status": "next",
+   "id": "SM43",
+   "track": "small model",
+   "item": "Data diversity vs epochs: many users few epochs (10+1 epochs) vs 10&times; fewer users 10&times; more epochs (100+10), same number of gradient steps, both scored on the 732-user set",
+   "why": "User idea 10-19, not urgent. Does the small model gain more from more users or from more passes? Full size (5k users &times; 11 epochs) would take ~10.5 h per arm, so scaled to fit 5&ndash;6 h: 1,250 users &times; (10+1) vs 125 users &times; (100+10), the fast 2,048-window KD recipe (~108k reviews/s), equal reviews seen. Slot: 10-20 after SM32c"
   }
  ],
  "results": [
