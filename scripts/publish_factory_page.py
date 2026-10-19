@@ -204,7 +204,7 @@ def new_result_rows(curated, previous):
             "label": label, "auto": True, "first_seen": first,
             "curve": round(c[0], 5), "instant": round(c[1], 5),
             "curve_pct": round((c[0] / f[0] - 1) * 100, 2), "instant_pct": round((c[1] / f[1] - 1) * 100, 2),
-            "eval": f"{USERS} users, {reviews / 1e6:.2f}M reviews", "fork": f"fork {f[0]:.5f} / {f[1]:.5f}",
+            "eval": f"{USERS} users, {reviews / 1e6:.2f}M reviews", "fork": f"big model {f[0]:.5f} / {f[1]:.5f}",
             "takeaway": "pending", "track": TRACK})
     rows.sort(key=lambda r: r["first_seen"], reverse=True)
     return rows

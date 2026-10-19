@@ -49,6 +49,7 @@
   .card .s a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
   .card .k a { color: var(--accent); }
   .cmp { overflow-x: auto; margin-top: 6px; }
+  .cmp .foot { color: var(--muted); font-size: 12px; margin-top: 4px; }
   .cmp table, .mini { font-size: 13px; }
   .cmp th, .cmp td { padding: 4px 8px; }
   .cmp th:first-child, .cmp td:first-child { padding-left: 0; }
@@ -93,7 +94,7 @@
       <div>
         <p class="eyebrow"><a href="./">anki-rwkv</a> &middot; factory overview &middot; <a href="models.html">model architectures</a> &middot; <a href="campaign.html">R01 campaign</a> &middot; <a href="train.html">8k/2k run</a> &middot; <a href="docs/data-quality/">data quality</a></p>
         <h1>Factory overview: what runs, what is planned, what is done</h1>
-        <p class="lede">The whole anki-rwkv work in one place. The page updates itself from the job queue and the scoring files; takeaways and the backlog are edited by hand. Today it holds one track, the <b>small model</b>: a 331,511-parameter student (64 channels, distilled from the fork&rsquo;s 2,762,884-parameter RWKV) trained on 5,000 dataset users and scored on users it never saw, full history, both models with int8 weights and int8 state. LogLoss is lower-is-better; the % is the gap to the fork on the same reviews (positive = student worse). Target: &le; +1.0% on both heads over the 464 held-out users.</p>
+        <p class="lede">The whole anki-rwkv work in one place. The page updates itself from the job queue and the scoring files; takeaways and the backlog are edited by hand. Today it holds one track, the <b>small model</b>: a 331,511-parameter student (64 channels, distilled from the <b>big model</b>, the fork&rsquo;s 2,762,884-parameter RWKV) trained on 5,000 dataset users and scored on users it never saw, full history, both models with int8 weights and int8 state. LogLoss is lower-is-better; the % is the gap to the big model on the same reviews (positive = student worse). Target: &le; +1.0% on both heads over the 464 held-out users.</p>
       </div>
       <button id="theme" class="btn" type="button" aria-label="Toggle light and dark theme">Theme</button>
     </div>
@@ -130,7 +131,7 @@
   <section class="panel">
     <div class="panel-head">
       <h2>4. Results</h2>
-      <p class="hint">Newest first, GPU and CPU work together. Each row gives the absolute LogLoss (curve / instant), the gap to the fork on the same reviews, and the evaluation size. &ldquo;Decay&rdquo; = the final pass with the learning rate brought to zero; &ldquo;window&rdquo; = consecutive reviews of one user per training sample.</p>
+      <p class="hint">Newest first, GPU and CPU work together. Each row gives the absolute LogLoss (curve / instant), the gap to the big model on the same reviews, and the evaluation size. &ldquo;Decay&rdquo; = the final pass with the learning rate brought to zero; &ldquo;window&rdquo; = consecutive reviews of one user per training sample.</p>
     </div>
     <div class="filters" id="kinds" role="group" aria-label="Filter by kind"></div>
     <div class="table-wrap free tablewrap-sm"><table class="sm-table" id="results"></table></div>
@@ -167,8 +168,11 @@
     : `${none(v) ? '' : v.toFixed(v < 0.4 ? 5 : 4)}${none(p) ? '' : ` <span class="pct${p <= 1.0 ? ' good' : ''}">${p > 0 ? '+' : ''}${p.toFixed(2)}%</span>`}`;
 
 
-  // Headline comparison: rows {variant, curve, instant, curve_pct, instant_pct, eval, ref}; the `ref` row is the fork.
-  // Missing gaps are computed against the ref row (positive = worse than the fork).
+  // Headline comparison: rows {variant, curve, instant, curve_pct, instant_pct, eval, ref}; the `ref` row is the big model.
+  // `quant` per row: one shared value becomes a footnote under the table, mixed values get a Quant. column.
+  // Missing gaps are computed against the ref row (positive = worse than the big model).
+  const QUANT = { 'w8+s8': '8-bit weights and 8-bit card/note state (w8+s8), as the app runs the big model',
+    'fp32': 'none, full precision (fp32)' };
   const cmpTable = (rows) => {
     const ref = rows.find((r) => r.ref) || {};
     const gap = (v, p, f) => (!none(p) ? p : (none(v) || none(f) ? null : (v / f - 1) * 100));
@@ -176,12 +180,17 @@
     const pc = (p, isRef) => (isRef ? '<td class="n">&ndash;</td>' : none(p) ? '<td class="n">&ndash;</td>'
       : `<td class="n${p <= 1.0 ? ' good' : ''}">${p > 0 ? '+' : ''}${p.toFixed(2)}%</td>`);
     const dated = rows.some((r) => r.date);  // date column only when a row carries one
+    const quants = [...new Set(rows.map((r) => r.quant || ''))];
+    const qcol = quants.length > 1;
     const trs = rows.map((r, i) => `<tr class="${r.ref ? 'ref' : i === rows.findIndex((x) => !x.ref) ? 'top' : ''}"><td>${r.variant}</td>`
       + `<td class="n">${num(r.curve)}</td><td class="n">${num(r.instant)}</td>`
       + pc(gap(r.curve, r.curve_pct, ref.curve), r.ref) + pc(gap(r.instant, r.instant_pct, ref.instant), r.ref)
+      + (qcol ? `<td class="n ev">${QUANT[r.quant] ? r.quant : (r.quant || '&ndash;')}</td>` : '')
       + `<td class="n ev">${r.eval || ''}</td>` + (dated ? `<td class="n ev">${r.date || ''}</td>` : '') + '</tr>').join('');
     return `<div class="cmp"><table><thead><tr><th>Variant</th><th class="n">Curve</th><th class="n">Instant</th>`
-      + `<th class="n">&Delta; curve</th><th class="n">&Delta; instant</th><th class="n">Eval</th>` + (dated ? '<th class="n">Date</th>' : '') + `</tr></thead><tbody>${trs}</tbody></table></div>`;
+      + `<th class="n">&Delta; curve</th><th class="n">&Delta; instant</th>` + (qcol ? '<th class="n">Quant.</th>' : '')
+      + '<th class="n">Eval</th>' + (dated ? '<th class="n">Date</th>' : '') + `</tr></thead><tbody>${trs}</tbody></table>`
+      + (!qcol && quants[0] ? `<div class="foot">All rows quantized: ${QUANT[quants[0]] || quants[0]}.</div>` : '') + '</div>';
   };
   const exitTag = (x) => (x === 0 ? '<span class="tag ok">ok</span>' : none(x) ? '<span class="tag">?</span>'
     : `<span class="tag fail">${x === 143 ? 'stopped' : 'failed'}, exit ${x}</span>`);

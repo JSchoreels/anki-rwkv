@@ -1,19 +1,20 @@
 {
- "generated_at": "2026-10-19T10:05:48+02:00",
- "updated": "2026-10-19 10:05",
- "material": "09a160386f65955e",
- "summary": "running 000535",
+ "generated_at": "2026-10-19T11:55:42+02:00",
+ "updated": "2026-10-19 11:55",
+ "material": "d49300e8ef4ff74b",
+ "summary": "running 000536, finished 000535",
  "headline": [
   {
    "k": "Best, 464 users (curve / instant)",
    "v": "0.30004 / 0.27416",
    "compare": [
     {
-     "variant": "Fork reference (w8+s8)",
+     "variant": "Big model (reference)",
      "curve": 0.29766,
      "instant": 0.27216,
      "ref": true,
-     "eval": "464 users, 22.66M reviews"
+     "eval": "464 users, 22.66M reviews",
+     "quant": "w8+s8"
     },
     {
      "variant": "Best: carried state v2 + one-epoch 32k decay (SM40)",
@@ -22,7 +23,8 @@
      "curve_pct": 0.8,
      "instant_pct": 0.73,
      "eval": "464 users, 22.66M reviews",
-     "date": "10-19"
+     "date": "10-19",
+     "quant": "w8+s8"
     },
     {
      "variant": "Previous best: epoch 10 + decay at 32k (Q12)",
@@ -31,7 +33,8 @@
      "curve_pct": 1.11,
      "instant_pct": 0.94,
      "eval": "464 users, 22.66M reviews",
-     "date": "10-17"
+     "date": "10-17",
+     "quant": "w8+s8"
     },
     {
      "variant": "Best before that: epoch 9 + decay at 16k, scored at 32k (Q11)",
@@ -40,7 +43,8 @@
      "curve_pct": 1.01,
      "instant_pct": 1.01,
      "eval": "464 users, 22.66M reviews",
-     "date": "10-17"
+     "date": "10-17",
+     "quant": "w8+s8"
     }
    ],
    "big": true,
@@ -51,11 +55,12 @@
    "v": "0.30653 / 0.28142",
    "compare": [
     {
-     "variant": "Fork reference (w8+s8)",
+     "variant": "Big model (reference)",
      "curve": 0.30437,
      "instant": 0.27943,
      "ref": true,
-     "eval": "730 users, 33.77M reviews"
+     "eval": "730 users, 33.77M reviews",
+     "quant": "w8+s8"
     },
     {
      "variant": "Best: carried state v2 + one-epoch 32k decay (SM40)",
@@ -64,7 +69,8 @@
      "curve_pct": 0.71,
      "instant_pct": 0.71,
      "eval": "730 users, 33.77M reviews",
-     "date": "10-19"
+     "date": "10-19",
+     "quant": "w8+s8"
     },
     {
      "variant": "Previous best: epoch 10 + decay at 32k (Q12)",
@@ -73,7 +79,8 @@
      "curve_pct": 1.02,
      "instant_pct": 0.91,
      "eval": "730 users, 33.77M reviews",
-     "date": "10-17 (scored 10-18)"
+     "date": "10-17 (scored 10-18)",
+     "quant": "w8+s8"
     }
    ],
    "track": "small model"
@@ -83,11 +90,12 @@
    "v": "0.4419 / 0.4373",
    "compare": [
     {
-     "variant": "Fork reference",
+     "variant": "Big model (reference)",
      "curve": 0.4417,
      "instant": 0.4367,
      "ref": true,
-     "eval": "173,690 reviews"
+     "eval": "173,690 reviews",
+     "quant": "w8+s8"
     },
     {
      "variant": "Best: carried state v2 + one-epoch 32k decay (SM40)",
@@ -96,7 +104,8 @@
      "curve_pct": 0.06,
      "instant_pct": 0.14,
      "eval": "173,690 reviews",
-     "date": "10-19"
+     "date": "10-19",
+     "quant": "w8+s8"
     },
     {
      "variant": "Previous best: epoch 10 + decay at 32k (Q12)",
@@ -105,7 +114,8 @@
      "curve_pct": 0.14,
      "instant_pct": 0.18,
      "eval": "173,690 reviews",
-     "date": "10-17"
+     "date": "10-17",
+     "quant": "w8+s8"
     }
    ],
    "track": "small model"
@@ -116,7 +126,7 @@
    "s": "331,511 vs 2,762,884 parameters",
    "link": {
     "href": "models.html",
-    "text": "Model architectures: Alex&rsquo;s model (the fork) vs ours, side by side"
+    "text": "Model architectures: Alex&rsquo;s model (the big model) vs ours, side by side"
    },
    "track": "small model"
   },
@@ -129,23 +139,32 @@
  ],
  "now": [
   {
-   "what": "Pruning arm: fine-tune the 7-layer cut 0.5 epoch at 2,048 with carry",
-   "id": "SM15, ticket 000535",
+   "what": "SM15 1-epoch decay w64-d2p1u1 at 32k with strided-lane carry from the fine-tuned e13 (smoke first)",
+   "id": "000536-small-model",
    "kind": "gpu-train",
    "decides": "",
    "why": "",
-   "job": "SM15 fine-tune w64-d2p1u1 0.5 epoch at 2048x16 lanes carry from sc-lanes e12 (smoke first)",
-   "linked": true,
+   "job": "SM15 1-epoch decay w64-d2p1u1 at 32k with strided-lane carry from the fine-tuned e13 (smoke first)",
+   "linked": false,
    "track": "small model",
-   "ticket": "000535-small-model",
-   "started": "09:51",
-   "elapsed": "0:14",
+   "ticket": "000536-small-model",
+   "started": "10:22",
+   "elapsed": "1:33",
    "progress": null,
-   "eta": "~10:51"
+   "eta": "~14:22"
   }
  ],
  "waiting": [],
  "recent": [
+  {
+   "ticket": "000535-small-model",
+   "id": "SM15",
+   "what": "SM15 fine-tune w64-d2p1u1 0.5 epoch at 2048x16 lanes carry from sc-lanes e12 (smoke first)",
+   "ended": "10:22",
+   "date": "10-19",
+   "exit": 0,
+   "ran": "0:30"
+  },
   {
    "ticket": "000533-small-model",
    "id": "EVAL",
@@ -190,15 +209,6 @@
    "date": "10-19",
    "exit": 0,
    "ran": "0:01"
-  },
-  {
-   "ticket": "000528-small-model",
-   "id": "SM24",
-   "what": "SM24 per-review dumps, sm40v2, 464 users (pass 1)",
-   "ended": "06:12",
-   "date": "10-19",
-   "exit": 0,
-   "ran": "0:11"
   }
  ],
  "plan": [
@@ -253,7 +263,7 @@
    "started_at": "2026-10-17T18:00:00+02:00"
   },
   {
-   "what": "Per-review scores of fork + new model on 464 users, gap by review type and by inferred stage",
+   "what": "Per-review scores of big model + new model on 464 users, gap by review type and by inferred stage",
    "id": "SM24",
    "kind": "gpu-score",
    "decides": "Spaced-review slice next to the official bar",
@@ -267,10 +277,10 @@
    "ended_at": "2026-10-17T18:33:50+02:00"
   },
   {
-   "what": "Fork with first-review-rule labels on all 464 users",
+   "what": "Big model with first-review-rule labels on all 464 users",
    "id": "SM25",
    "kind": "gpu-score",
-   "decides": "A label-free fork reference for free",
+   "decides": "A label-free big-model reference for free",
    "track": "small model",
    "minutes": 40,
    "state": "done",
@@ -281,7 +291,7 @@
    "ended_at": "2026-10-17T18:52:07+02:00"
   },
   {
-   "what": "Speed profile: w64 at 2,048 / 8,192 / 16,384 / 32,768 windows + fork-size model",
+   "what": "Speed profile: w64 at 2,048 / 8,192 / 16,384 / 32,768 windows + big-model-size model",
    "id": "",
    "kind": "gpu-speed",
    "decides": "Where training time goes; cost of the label-free reference",
@@ -393,12 +403,12 @@
    "started": "02:59"
   },
   {
-   "what": "Fork full-history replay on the 5,000 training users: done (369M reviews, 3 tickets, 8/8 sampled users verified on CPU)",
+   "what": "Big model full-history replay on the 5,000 training users: done (369M reviews, 3 tickets, 8/8 sampled users verified on CPU)",
    "id": "SM11",
    "kind": "gpu-score",
    "minutes": 180,
    "track": "small model",
-   "decides": "Distillation targets for carried-state training (CPU checks passed: matches the full-history fork within float16 rounding)",
+   "decides": "Distillation targets for carried-state training (CPU checks passed: matches the full-history big model within float16 rounding)",
    "state": "done",
    "started_at": "2026-10-18T07:12:13+02:00",
    "ended_at": "2026-10-18T07:29:12+02:00",
@@ -449,7 +459,7 @@
    "started_at": "2026-10-18T16:27:54+02:00"
   },
   {
-   "what": "Bigger evaluation sets, code (CPU): 732 users (all fork-unseen validation users) as the new standard, 2,225 (+ training users our models never used) for decisive checks; checks ALL OK, dry runs OK",
+   "what": "Bigger evaluation sets, code (CPU): 732 users (all big-model-unseen validation users) as the new standard, 2,225 (+ training users our models never used) for decisive checks; checks ALL OK, dry runs OK",
    "id": "EVAL",
    "kind": "cpu",
    "track": "small model",
@@ -459,7 +469,7 @@
    "ended_at": "2026-10-18T16:55:00+02:00"
   },
   {
-   "what": "Score the new users of the 732-user set (fork, 32k dec10, carried state A / B / v2): 729 of 732 users done; 3 long users ran out of memory at the 0.8 cap (retry at 0.92 later)",
+   "what": "Score the new users of the 732-user set (big model, 32k dec10, carried state A / B / v2): 729 of 732 users done; 3 long users ran out of memory at the 0.8 cap (retry at 0.92 later)",
    "id": "EVAL",
    "kind": "gpu-score",
    "minutes": 50,
@@ -520,7 +530,7 @@
    "kind": "gpu-score",
    "minutes": 60,
    "track": "small model",
-   "decides": "The spaced-review slice beside the bar for the new candidates (fork dumps reused)",
+   "decides": "The spaced-review slice beside the bar for the new candidates (big model dumps reused)",
    "state": "done",
    "ended": "06:29",
    "exit": 0,
@@ -568,11 +578,12 @@
    "minutes": 60,
    "track": "small model",
    "decides": "",
-   "state": "running",
+   "state": "done",
+   "ended": "10:22",
+   "exit": 0,
    "started": "09:51",
-   "ticket": "000535-small-model",
    "started_at": "2026-10-19T09:51:42+02:00",
-   "ends_at": "2026-10-19T10:51:42+02:00"
+   "ended_at": "2026-10-19T10:22:19+02:00"
   },
   {
    "what": "Pruning arm: the same one-epoch 32k decay as the best model",
@@ -691,7 +702,7 @@
   },
   {
    "status": "next",
-   "item": "Teacher targets from the fork&rsquo;s full-history replay",
+   "item": "Teacher targets from the big model&rsquo;s full-history replay",
    "id": "SM11",
    "why": "Needed with carried state; 5.2 h GPU, 3.7 GB",
    "track": "small model"
@@ -712,9 +723,9 @@
   },
   {
    "status": "next",
-   "item": "Label-free reference: the fork fine-tuned with review type switched off",
+   "item": "Label-free reference: the big model fine-tuned with review type switched off",
    "id": "SM38",
-   "why": "Honest best a big model can do without review type. Fine-tune first: a cheap from-scratch fork-size retrain lost +0.0037 / +0.0043 in outside runs",
+   "why": "Honest best a big model can do without review type. Fine-tune first: a cheap from-scratch big-model-size retrain lost +0.0037 / +0.0043 in outside runs",
    "track": "small model"
   },
   {
@@ -775,7 +786,7 @@
   },
   {
    "status": "idea",
-   "item": "Distill only on users the fork never trained on",
+   "item": "Distill only on users the big model never trained on",
    "id": "SM05",
    "why": "Needs a per-user distillation mask",
    "track": "small model"
@@ -876,8 +887,8 @@
    "curve_pct": 0.06,
    "instant_pct": 0.14,
    "eval": "173,690 reviews",
-   "fork": "fork 0.44165 / 0.43668; dec10 0.44225 / 0.43747 (+0.14% / +0.18%)",
-   "takeaway": "Nearly level with the fork on curve. Calibration RMSE(bins) 0.0256 / 0.0209 (dec10 0.0286 / 0.0207, fork 0.0224 / 0.0200)",
+   "fork": "big model 0.44165 / 0.43668; dec10 0.44225 / 0.43747 (+0.14% / +0.18%)",
+   "takeaway": "Nearly level with the big model on curve. Calibration RMSE(bins) 0.0256 / 0.0209 (dec10 0.0286 / 0.0207, big model 0.0224 / 0.0200)",
    "track": "small model"
   },
   {
@@ -905,7 +916,7 @@
    "curve_pct": 0.71,
    "instant_pct": 0.71,
    "eval": "730 users, 33.77M reviews",
-   "fork": "fork 0.30437 / 0.27943; 32k dec10 0.30746 / 0.28197 (+1.02% / +0.91%); v2 dec12 +1.11% / +1.06%",
+   "fork": "big model 0.30437 / 0.27943; 32k dec10 0.30746 / 0.28197 (+1.02% / +0.91%); v2 dec12 +1.11% / +1.06%",
    "takeaway": "<strong>Bar met on the standard set too.</strong> vs dec10 &minus;0.00093 [&minus;0.00142, &minus;0.00056] / &minus;0.00055 [&minus;0.00061, &minus;0.00049]. Users 1534 and 4625 do not fit in memory even at a 0.92 cap (small models)",
    "track": "small model",
    "label": "s-w64kd-gate-sc-lanes-dec12-1ep32k/w8+s8 (732 pool)"
@@ -920,7 +931,7 @@
    "curve_pct": 0.8,
    "instant_pct": 0.73,
    "eval": "464 users, 22.66M reviews",
-   "fork": "fork 0.29766 / 0.27216; 32k dec10 0.30096 / 0.27471 (+1.11% / +0.94%); v2 dec12 0.30124 / 0.27514",
+   "fork": "big model 0.29766 / 0.27216; 32k dec10 0.30096 / 0.27471 (+1.11% / +0.94%); v2 dec12 0.30124 / 0.27514",
    "takeaway": "<strong>First model under the &le; +1.0% bar on both heads.</strong> vs dec10 &minus;0.00091 [&minus;0.00160, &minus;0.00044] / &minus;0.00055 [&minus;0.00061, &minus;0.00049]; vs v2 dec12 &minus;0.00119 / &minus;0.00098. ~24,500 reviews/s, 5.4 h training",
    "track": "small model",
    "label": "s-w64kd-gate-sc-lanes-dec12-1ep32k/w8+s8"
@@ -935,7 +946,7 @@
    "curve_pct": 1.03,
    "instant_pct": 0.9,
    "eval": "729 users, 33.30M reviews",
-   "fork": "fork 0.30215 / 0.27733; v2 0.30553 / 0.28026 (+1.12% / +1.05%); v1 +1.38% / +1.42%; no carry +1.43% / +1.50%",
+   "fork": "big model 0.30215 / 0.27733; v2 0.30553 / 0.28026 (+1.12% / +1.05%); v1 +1.38% / +1.42%; no carry +1.43% / +1.50%",
    "takeaway": "Same order as on 464 users. dec10 is 0.03 pp from the curve bar on this set; v2 vs dec10 +0.00028 [+0.00003, +0.00054] / +0.00042 [+0.00036, +0.00048]",
    "track": "small model",
    "label": "s-w64kd-gate-ctx32768c-dec10/w8+s8 (732 pool)"
@@ -950,7 +961,7 @@
    "curve_pct": 1.2,
    "instant_pct": 1.1,
    "eval": "464 users, 22.66M reviews",
-   "fork": "fork 0.29766 / 0.27216; 32k dec10 0.30096 / 0.27471; no carry (arm B) 0.30214 / 0.27640; v1 carry 0.30213 / 0.27620",
+   "fork": "big model 0.29766 / 0.27216; 32k dec10 0.30096 / 0.27471; no carry (arm B) 0.30214 / 0.27640; v1 carry 0.30213 / 0.27620",
    "takeaway": "Best 2,048-window model by far: &minus;0.0009 / &minus;0.0013 vs no carry, &minus;0.0009 / &minus;0.0011 vs v1. Before decay it beats 32k e10 (&minus;0.0002 / &minus;0.0011); after decay it trails 32k dec10 by +0.0003 [&minus;0.0001, +0.0007] / +0.0004: the 2,048 decay gains less than the 32k one. Next: decay v2 at 32k",
    "track": "small model",
    "label": "s-w64kd-gate-sc-lanes-dec12/w8+s8"
@@ -965,7 +976,7 @@
    "curve_pct": 1.5,
    "instant_pct": 1.56,
    "eval": "464 users, 22.66M reviews",
-   "fork": "fork 0.29766 / 0.27216; arm A (carry) 0.30213 / 0.27620; 32k dec10 0.30096 / 0.27471",
+   "fork": "big model 0.29766 / 0.27216; arm A (carry) 0.30213 / 0.27620; 32k dec10 0.30096 / 0.27471",
    "takeaway": "Gate users at e12: carry beat it by &minus;0.0013 / &minus;0.0005 (CIs below zero); on 464 users after decay only the instant gain holds (&minus;0.0002)",
    "track": "small model",
    "label": "s-w64kd-gate-sc-zero-dec12/w8+s8"
@@ -980,7 +991,7 @@
    "curve_pct": 1.5,
    "instant_pct": 1.48,
    "eval": "464 users, 22.66M reviews",
-   "fork": "fork 0.29766 / 0.27216; 32k windows dec10 0.30096 / 0.27471 (+1.11% / +0.94%); 2,048 windows dec8 0.30259 / 0.27668 (+1.66% / +1.66%)",
+   "fork": "big model 0.29766 / 0.27216; 32k windows dec10 0.30096 / 0.27471 (+1.11% / +0.94%); 2,048 windows dec8 0.30259 / 0.27668 (+1.66% / +1.66%)",
    "takeaway": "Paired with arm B (same recipe, no carry), 464 users: &minus;0.00001 / &minus;0.00020 after decay [curve CI &minus;0.0003, +0.0003; instant &minus;0.00033, &minus;0.00007]; before decay (e12) &minus;0.00056 / &minus;0.00041. The decay erased most of the curve gain. Both 2,048-window arms stay behind 32k (+0.0012 / +0.0015). v2 (exact state) is running",
    "track": "small model",
    "label": "s-w64kd-gate-sc-carry-dec12/w8+s8"
@@ -995,7 +1006,7 @@
    "curve_pct": 0.59,
    "instant_pct": 1.58,
    "eval": "34 users (CPU)",
-   "fork": "fork 0.32132 / 0.28497; dec10 uncompressed 0.32194 / 0.28716; original codebooks 0.32314 / 0.28946",
+   "fork": "big model 0.32132 / 0.28497; dec10 uncompressed 0.32194 / 0.28716; original codebooks 0.32314 / 0.28946",
    "takeaway": "Same cost as the codebooks from the earlier model (+0.00127 / +0.00231 vs +0.00120 / +0.00231). The cost is the bit budget, not the codebook fit",
    "track": "small model",
    "label": "dec10/w8+vq378x412 (dec10 books)"
@@ -1010,7 +1021,7 @@
    "curve_pct": 0.94,
    "instant_pct": 1.91,
    "eval": "34 users (CPU)",
-   "fork": "fork 0.32132 / 0.28497 on the same users; compressed after training (dec10) 0.32314 / 0.28946; uncompressed dec10 0.32194 / 0.28716",
+   "fork": "big model 0.32132 / 0.28497 on the same users; compressed after training (dec10) 0.32314 / 0.28946; uncompressed dec10 0.32194 / 0.28716",
    "takeaway": "Worse than compressing after training (+0.0012 / +0.0010). Not a codec mismatch, not stale codebooks (refitting them on the new model&rsquo;s states: 0.32799 / 0.29382, worse still; it learned around the frozen books). Training with the compression in the loop hurts here; dropped for now",
    "track": "small model",
    "label": "qat/w8+vq378x412"
@@ -1025,7 +1036,7 @@
    "curve_pct": 1.66,
    "instant_pct": 1.64,
    "eval": "464 users, 22.66M reviews",
-   "fork": "fork 0.29766 / 0.27216; same run without flags 0.30259 / 0.27667",
+   "fork": "big model 0.29766 / 0.27216; same run without flags 0.30259 / 0.27667",
    "takeaway": "No gain: curve +0.00003 [&minus;0.00005, +0.00012], instant &minus;0.00004 [&minus;0.00006, &minus;0.00003] (233 / 256 of 464 users better). Instant gain real but ~1/10 of what would matter. Dropped; at 32k the model can count reviews itself anyway",
    "track": "small model",
    "label": "s-w64kd-gate-ctx2048crf-dec8"
@@ -1040,7 +1051,7 @@
    "curve_pct": 1.1,
    "instant_pct": 0.94,
    "eval": "464 users, 22.7M reviews",
-   "fork": "fork 0.29766 / 0.27216 (calibrated the same way: 0.29761 / 0.27214); uncalibrated student 0.30096 / 0.27471",
+   "fork": "big model 0.29766 / 0.27216 (calibrated the same way: 0.29761 / 0.27214); uncalibrated student 0.30096 / 0.27471",
    "takeaway": "Nothing to fold into the export: both models are equally (and barely) miscalibrated, gains are ~5e-5. Spaced slice unchanged: +0.79% / +0.84%.",
    "track": "small model",
    "label": "sm12-calib"
@@ -1055,7 +1066,7 @@
    "curve_pct": 1.54,
    "instant_pct": 1.59,
    "eval": "464 users, 22.66M reviews",
-   "fork": "fork 0.29766 / 0.27216; same start with a quarter-epoch decay 0.30259 / 0.27668",
+   "fork": "big model 0.29766 / 0.27216; same start with a quarter-epoch decay 0.30259 / 0.27668",
    "takeaway": "Longer decay helps: &minus;0.00033 curve [&minus;0.00068, &minus;0.00008] / &minus;0.00019 instant [&minus;0.00025, &minus;0.00012] (292 / 351 of 464 users better). Smaller than the gain seen in outside runs; a 1-epoch decay at 32k would cost ~4&frac12; h",
    "track": "small model",
    "label": "s-w64kd-gate-ctx2048c-dec8-1ep/w8+s8"
@@ -1073,11 +1084,11 @@
   {
    "date": "10-17",
    "kind": "gpu-speed",
-   "name": "Training speed profile (quiet GPU): student at 2,048 / 8,192 / 16,384 / 32,768 windows and the fork-size model",
+   "name": "Training speed profile (quiet GPU): student at 2,048 / 8,192 / 16,384 / 32,768 windows and the big-model-size model",
    "id": "speed-20261018",
    "eval": "160 training users, 12.4M reviews per case",
-   "fork": "reviews/s: student 97.7k / 49.3k / 31.9k / 19.9k; fork-size 40.8k (batch 128), 35.7k (batch 64)",
-   "takeaway": "Long windows cost the student a lot (5&times; slower at 32k than at 2,048). The fork-size model at batch 128 trains faster than the student at 16k+ windows, so a label-free fork-size reference is affordable",
+   "fork": "reviews/s: student 97.7k / 49.3k / 31.9k / 19.9k; big-model-size 40.8k (batch 128), 35.7k (batch 64)",
+   "takeaway": "Long windows cost the student a lot (5&times; slower at 32k than at 2,048). The big-model-size model at batch 128 trains faster than the student at 16k+ windows, so a label-free big-model-size reference is affordable",
    "track": "small model"
   },
   {
@@ -1090,20 +1101,20 @@
    "curve_pct": 0.14,
    "instant_pct": 0.18,
    "eval": "own collection, 173,690 reviews",
-   "fork": "fork 0.4417 / 0.4367",
-   "takeaway": "Slightly better than the previous best (+0.18% / +0.21%). Calibration RMSE(bins) 0.0286 / 0.0207 vs fork 0.0224 / 0.0200",
+   "fork": "big model 0.4417 / 0.4367",
+   "takeaway": "Slightly better than the previous best (+0.18% / +0.21%). Calibration RMSE(bins) 0.0286 / 0.0207 vs big model 0.0224 / 0.0200",
    "track": "small model"
   },
   {
    "date": "10-17",
    "kind": "gpu-score",
-   "name": "Fork with review types relabelled by the first-review rule (no learning steps)",
+   "name": "Big model with review types relabelled by the first-review rule (no learning steps)",
    "id": "SM25",
    "curve_pct": 0.46,
    "instant_pct": 0.45,
    "eval": "464 users, 22.66M reviews",
-   "fork": "vs the real fork; new student vs this relabelled fork: +0.65% / +0.48%",
-   "takeaway": "Without the SM-2 learning-step labels the fork loses about half of its lead over the student",
+   "fork": "vs the real big model; new student vs this relabelled big model: +0.65% / +0.48%",
+   "takeaway": "Without the SM-2 learning-step labels the big model loses about half of its lead over the student",
    "track": "small model"
   },
   {
@@ -1128,7 +1139,7 @@
    "curve_pct": 1.11,
    "instant_pct": 0.94,
    "eval": "464 users, 22.66M reviews",
-   "fork": "fork 0.29766 / 0.27216",
+   "fork": "big model 0.29766 / 0.27216",
    "takeaway": "Instant now meets the target (better than the previous best for 341/464 users). Curve slightly worse than the previous best (+0.0003, not significant; 288/464 users better)",
    "track": "small model",
    "label": "s-w64kd-gate-ctx32768c-dec10/w8+s8"
@@ -1143,7 +1154,7 @@
    "curve_pct": 1.95,
    "instant_pct": 1.96,
    "eval": "464 users, 22.66M reviews",
-   "fork": "fork 0.29766 / 0.27216",
+   "fork": "big model 0.29766 / 0.27216",
    "takeaway": "Undecayed; judge after decay",
    "track": "small model",
    "label": "s-w64kd-gate-ctx32768c-e10/w8+s8"
@@ -1156,7 +1167,7 @@
    "curve_pct": 0.37,
    "instant_pct": 1.31,
    "eval": "34 users, 1.21M reviews",
-   "fork": "fork 0.32132 / 0.28497; uncompressed student (int8 state, 959 MB) 0.32183 / 0.28734",
+   "fork": "big model 0.32132 / 0.28497; uncompressed student (int8 state, 959 MB) 0.32183 / 0.28734",
    "takeaway": "Near the uncompressed student: +0.0007 / +0.0014 nats. Post-training only; training with it (QAT) should cost less",
    "track": "small model",
    "curve": 0.32251,
@@ -1170,7 +1181,7 @@
    "curve_pct": 0.53,
    "instant_pct": 1.63,
    "eval": "34 users, 1.21M reviews",
-   "fork": "fork 0.32132 / 0.28497; uncompressed student (int8 state, 959 MB) 0.32183 / 0.28734",
+   "fork": "big model 0.32132 / 0.28497; uncompressed student (int8 state, 959 MB) 0.32183 / 0.28734",
    "takeaway": "Best size/accuracy point: +0.0012 / +0.0023 vs uncompressed (959 MB). Post-training only; training with it (QAT) should cost less",
    "track": "small model",
    "curve": 0.32303,
@@ -1184,7 +1195,7 @@
    "curve_pct": 1.78,
    "instant_pct": 3.72,
    "eval": "34 users, 1.21M reviews",
-   "fork": "fork 0.32132 / 0.28497; uncompressed student (int8 state, 959 MB) 0.32183 / 0.28734",
+   "fork": "big model 0.32132 / 0.28497; uncompressed student (int8 state, 959 MB) 0.32183 / 0.28734",
    "takeaway": "The 1-bit norms cost most of it; with 4-bit norms +0.0012 / +0.0025. Post-training only; training with it (QAT) should cost less",
    "track": "small model",
    "curve": 0.32702,
@@ -1200,7 +1211,7 @@
    "curve_pct": 1.75,
    "instant_pct": 2.1,
    "eval": "100 users, 5.02M reviews",
-   "fork": "fork 0.28665 / 0.26105",
+   "fork": "big model 0.28665 / 0.26105",
    "takeaway": "Better than epoch 9 before decay on the same users (+2.68% / +2.51%). The decay result decides",
    "track": "small model",
    "label": "s-w64kd-gate-ctx32768c-e10/w8+s8"
@@ -1215,49 +1226,49 @@
    "curve_pct": 0.18,
    "instant_pct": 0.21,
    "eval": "own collection, 173,690 reviews",
-   "fork": "fork 0.4417 / 0.4367",
-   "takeaway": "Almost level with the fork where the SM-2 label is absent. Calibration a bit worse on curve (RMSE(bins) 0.0274 vs 0.0224)",
+   "fork": "big model 0.4417 / 0.4367",
+   "takeaway": "Almost level with the big model where the SM-2 label is absent. Calibration a bit worse on curve (RMSE(bins) 0.0274 vs 0.0224)",
    "track": "small model"
   },
   {
    "date": "10-17",
    "kind": "collection",
-   "name": "Fork with review type removed, on your collection",
+   "name": "Big model with review type removed, on your collection",
    "id": "",
    "curve": 0.4538,
    "instant": 0.4412,
    "curve_pct": 2.74,
    "instant_pct": 1.03,
    "eval": "own collection, 173,690 reviews",
-   "fork": "fork 0.4417 / 0.4367",
-   "takeaway": "The fork leans on the labels your fork writes",
+   "fork": "big model 0.4417 / 0.4367",
+   "takeaway": "The big model leans on the labels your fork writes",
    "track": "small model"
   },
   {
    "date": "10-17",
    "kind": "collection",
-   "name": "Fork with first-review-rule labels, on your collection",
+   "name": "Big model with first-review-rule labels, on your collection",
    "id": "",
    "curve": 0.4414,
    "instant": 0.4369,
    "curve_pct": -0.06,
    "instant_pct": 0.04,
    "eval": "own collection, 173,690 reviews",
-   "fork": "fork 0.4417 / 0.4367",
+   "fork": "big model 0.4417 / 0.4367",
    "takeaway": "A simple rule costs nothing here",
    "track": "small model"
   },
   {
    "date": "10-17",
    "kind": "cpu",
-   "name": "Fork with history review types rewritten (no learning steps)",
+   "name": "Big model with history review types rewritten (no learning steps)",
    "id": "SM25",
    "curve": 0.31104,
    "instant": 0.28009,
    "curve_pct": 0.43,
    "instant_pct": 0.55,
    "eval": "68 users, 1.68M reviews",
-   "fork": "fork 0.30971 / 0.27856",
+   "fork": "big model 0.30971 / 0.27856",
    "takeaway": "Its curve lead on learning steps disappears: it came from the SM-2 label. Zeroed instead: 0.33569 / 0.28778 (+8.4% / +3.3%)",
    "track": "small model"
   },
@@ -1271,7 +1282,7 @@
    "curve_pct": null,
    "instant_pct": null,
    "eval": "68 users, 1.68M reviews",
-   "fork": "fork 0.30971 / 0.27856",
+   "fork": "big model 0.30971 / 0.27856",
    "takeaway": "No gain for the student on any slice; the correction model makes unseen users worse",
    "track": "small model"
   },
@@ -1285,7 +1296,7 @@
    "curve_pct": 0.49,
    "instant_pct": 0.93,
    "eval": "68 users, 1.68M reviews",
-   "fork": "fork 0.30971 / 0.27856",
+   "fork": "big model 0.30971 / 0.27856",
    "takeaway": "Curve: level on spaced reviews (&minus;0.03%), +1.0 to +1.2% on learning steps. Instant behind everywhere",
    "track": "small model"
   },
@@ -1299,7 +1310,7 @@
    "curve_pct": 1.01,
    "instant_pct": 1.01,
    "eval": "464 users, 22.66M reviews",
-   "fork": "fork 0.29766 / 0.27216",
+   "fork": "big model 0.29766 / 0.27216",
    "takeaway": "Best so far, 0.01 point from the target",
    "track": "small model",
    "flag": "best",
@@ -1315,7 +1326,7 @@
    "curve_pct": 1.03,
    "instant_pct": 1.04,
    "eval": "464 users, 22.66M reviews",
-   "fork": "fork 0.29766 / 0.27216",
+   "fork": "big model 0.29766 / 0.27216",
    "takeaway": "Training at 16k beats decay-only (300/464 users better on curve)",
    "track": "small model",
    "label": "s-w64kd-gate-ctx16384c-dec9/w8+s8"
@@ -1330,7 +1341,7 @@
    "curve_pct": 2.93,
    "instant_pct": 2.27,
    "eval": "464 users, 22.66M reviews",
-   "fork": "fork 0.29766 / 0.27216",
+   "fork": "big model 0.29766 / 0.27216",
    "takeaway": "Undecayed checkpoints are noisy; judge after decay",
    "track": "small model",
    "label": "s-w64kd-gate-ctx16384c-e9/w8+s8"
@@ -1345,7 +1356,7 @@
    "curve_pct": 1.15,
    "instant_pct": 1.12,
    "eval": "464 users, 22.66M reviews",
-   "fork": "fork 0.29766 / 0.27216",
+   "fork": "big model 0.29766 / 0.27216",
    "takeaway": "Diminishing returns from decay length alone",
    "track": "small model",
    "label": "s-w64kd-gate-ctx8192c-dec8-L32k/w8+s8"
@@ -1360,7 +1371,7 @@
    "curve_pct": 1.17,
    "instant_pct": 1.16,
    "eval": "464 users, 22.66M reviews",
-   "fork": "fork 0.29766 / 0.27216",
+   "fork": "big model 0.29766 / 0.27216",
    "takeaway": "",
    "track": "small model",
    "label": "s-w64kd-gate-ctx8192c-dec8-L16k/w8+s8"
@@ -1375,7 +1386,7 @@
    "curve_pct": 1.24,
    "instant_pct": 1.21,
    "eval": "464 users, 22.66M reviews",
-   "fork": "fork 0.29766 / 0.27216",
+   "fork": "big model 0.29766 / 0.27216",
    "takeaway": "Training at longer windows pays far more than more epochs",
    "track": "small model",
    "label": "s-w64kd-gate-ctx8192c-dec8/w8+s8"
@@ -1390,7 +1401,7 @@
    "curve_pct": 1.66,
    "instant_pct": 1.66,
    "eval": "464 users, 22.66M reviews",
-   "fork": "fork 0.29766 / 0.27216",
+   "fork": "big model 0.29766 / 0.27216",
    "takeaway": "Flattening at 2,048",
    "track": "small model",
    "label": "s-w64kd-gate-ctx2048c-dec8/w8+s8"
@@ -1405,7 +1416,7 @@
    "curve_pct": 1.68,
    "instant_pct": 1.69,
    "eval": "464 users, 22.66M reviews",
-   "fork": "fork 0.29766 / 0.27216",
+   "fork": "big model 0.29766 / 0.27216",
    "takeaway": "Real but tiny gain",
    "track": "small model",
    "label": "cal-ctx4096-e6/w8+s8"
@@ -1435,7 +1446,7 @@
    "instant_pct": null,
    "eval": "1 thread, batch 1",
    "fork": "",
-   "takeaway": "w64 NumPy step 7.8x faster than the eager fork, 1.84x faster than a NumPy fork (exact to 4e-7)",
+   "takeaway": "w64 NumPy step 7.8x faster than the eager big model, 1.84x faster than a NumPy big model (exact to 4e-7)",
    "track": "small model"
   },
   {
@@ -1448,7 +1459,7 @@
    "curve_pct": -0.34,
    "instant_pct": 0.48,
    "eval": "100 users, 5.02M reviews",
-   "fork": "fork 0.28665 / 0.26105",
+   "fork": "big model 0.28665 / 0.26105",
    "takeaway": "The gap was missing context, not capacity (full history: +1.98% / +2.40%)",
    "track": "small model"
   },
@@ -1462,7 +1473,7 @@
    "curve_pct": null,
    "instant_pct": null,
    "eval": "464 users, 22.66M reviews",
-   "fork": "fork 0.29766 / 0.27216",
+   "fork": "big model 0.29766 / 0.27216",
    "takeaway": "Curve gap on heavy users, closed by longer windows; instant a uniform ~+1.1% on all user sizes. Shared decks do not explain the gap",
    "track": "small model"
   },
@@ -1476,7 +1487,7 @@
    "curve_pct": 1.76,
    "instant_pct": 1.83,
    "eval": "464 users, 22.66M reviews",
-   "fork": "fork 0.29766 / 0.27216",
+   "fork": "big model 0.29766 / 0.27216",
    "takeaway": "Still improving",
    "track": "small model",
    "label": "s-w64kd-gate-ctx2048-dec6/w8+s8"
@@ -1491,7 +1502,7 @@
    "curve_pct": 2.16,
    "instant_pct": 2.16,
    "eval": "464 users, 22.66M reviews",
-   "fork": "fork 0.29766 / 0.27216",
+   "fork": "big model 0.29766 / 0.27216",
    "takeaway": "Context length is the lever",
    "track": "small model",
    "label": "s-w64kd-gate-ctx2048-dec/w8+s8"
@@ -1506,7 +1517,7 @@
    "curve_pct": 5.4,
    "instant_pct": 6.16,
    "eval": "464 users, 22.66M reviews",
-   "fork": "fork 0.29766 / 0.27216",
+   "fork": "big model 0.29766 / 0.27216",
    "takeaway": "Beats w32, far from the target",
    "track": "small model",
    "label": "scale-w64kd-dec/w8+s8"
@@ -1521,7 +1532,7 @@
    "curve_pct": 3.59,
    "instant_pct": 3.74,
    "eval": "464 users, 22.66M reviews",
-   "fork": "fork 0.29766 / 0.27216",
+   "fork": "big model 0.29766 / 0.27216",
    "takeaway": "First sign that window length matters: 128-review decays 0.31425 (+5.6%), 1,024 0.30929 (+3.9%)",
    "track": "small model",
    "label": "cal-ctx2048-s1/w8+s8"
@@ -1536,7 +1547,7 @@
    "curve_pct": 10.18,
    "instant_pct": 9.39,
    "eval": "430 users, 19.56M reviews",
-   "fork": "fork 0.29416 / 0.26921",
+   "fork": "big model 0.29416 / 0.26921",
    "takeaway": "Distillation helps (w64 alone 0.32758 / 0.30144, +11.4% / +12.0%)",
    "track": "small model"
   },
@@ -1550,7 +1561,7 @@
    "curve_pct": 6.69,
    "instant_pct": 7.3,
    "eval": "430 users, 19.56M reviews",
-   "fork": "fork 0.29416 / 0.26921",
+   "fork": "big model 0.29416 / 0.26921",
    "takeaway": "Starting point",
    "track": "small model"
   }
