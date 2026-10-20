@@ -35,6 +35,7 @@ in his engine), exact nearest-centroid search by matmul distances.
 from dataclasses import dataclass, field, replace
 from pathlib import Path
 import math
+import os
 
 import numpy as np
 import torch
@@ -278,6 +279,19 @@ class Codebooks:
 
 # ------------------------------------------------------------------------------------------------ state codecs
 
+EIGH_CUDA_CHUNK = 1024   # matrices per CUDA eigh call: cusolverDnXsyevBatched takes ~0.6 MB of workspace per 16 x 16
+                         # float64 matrix (SM46 OOM: 11.3 GiB for ~19,700 at once); chunked results are bitwise the
+                         # same (each matrix is solved on its own; checked on 5,000 random Grams, chunks 2048 .. 1)
+
+
+def _eigh(G):
+    """torch.linalg.eigh of a batch [N, K, K]; on CUDA in chunks of EIGH_CUDA_CHUNK (bounded workspace, same values)."""
+    if not G.is_cuda or G.shape[0] <= EIGH_CUDA_CHUNK:
+        return torch.linalg.eigh(G)
+    parts = [torch.linalg.eigh(G[i:i + EIGH_CUDA_CHUNK]) for i in range(0, G.shape[0], EIGH_CUDA_CHUNK)]
+    return torch.cat([p[0] for p in parts]), torch.cat([p[1] for p in parts])
+
+
 def factorize(A, rank, dtype=torch.float64):
     """Top-`rank` factors of A [N, K, K] (`dtype` inside, float64 for the scorer): unit u, unit v, sigma, valid mask,
     each [N, rank, (K)].
@@ -286,18 +300,25 @@ def factorize(A, rank, dtype=torch.float64):
     amax = A64.abs().amax(dim=(1, 2))
     scale = torch.where(torch.isfinite(amax) & (amax > 1e-30), amax, torch.ones_like(amax))
     an = A64 / scale[:, None, None]
-    evals, evecs = torch.linalg.eigh(an @ an.transpose(1, 2))       # ascending
+    evals, evecs = _eigh(an @ an.transpose(1, 2))                   # ascending
     order = torch.arange(K - 1, K - 1 - rank, -1, device=A.device)
     ev = evals[:, order]                                             # [N, r]
     u = evecs[:, :, order].transpose(1, 2)                           # [N, r, K]
     v_un = torch.einsum("nij,nri->nrj", A64, u)                      # (A^T u) per component
     sigma = v_un.norm(dim=-1)
     valid = torch.isfinite(ev) & (ev > 0) & torch.isfinite(sigma) & (sigma > 1e-20)
+    # SM44 fix: components j >= 1 below RANK_REL_TOL x sigma_0 are float32 rounding noise of a lower-rank state (every
+    # entity's first stored state is rank 1: sigma_1 / sigma_0 ~ 1e-8). Their direction is arbitrary (LAPACK and
+    # cuSOLVER return different null-space vectors) and the norm grid clamps their size up to its floor (6-bit comp-1
+    # grid: sigma ~ 6e-3, 1e5 x the true value), so coding them added an arbitrary, device-dependent rank-1 term.
+    valid = valid & (sigma > RANK_REL_TOL * sigma[:, :1])
     v = v_un / torch.where(valid, sigma, torch.ones_like(sigma))[..., None]
     lead = u.abs().argmax(dim=-1, keepdim=True)
     sign = torch.where(torch.gather(u, -1, lead) >= 0, 1.0, -1.0).to(u.dtype)
     return u * sign, v * sign, sigma, valid
 
+
+RANK_REL_TOL = float(os.environ.get("STATE_VQ_RANK_REL_TOL", "1e-4"))  # see factorize; no effect on rank-1 recipes
 
 SQ_SQUARINGS = 12   # P <- P @ P twelve times = G^4096: direction error ~ (lambda2 / lambda1)^4096
 SQ_RENORM = 4       # trace renormalisation before every 4th squaring (p1 >= 1/16 after it, p1^16 stays above 1e-20)

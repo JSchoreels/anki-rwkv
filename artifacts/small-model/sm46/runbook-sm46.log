@@ -1,2 +1,72 @@
 [sm46 10-20 17:26:21] start (053b5e34 SM46: large-budget state codec vq5902x3028 (5,902 / 3,028 bits, rank 6) for SM36, k-means books on SM36 states, CPU check bitwise, runbook and summary)
 [sm46 10-20 17:26:21] waiting for the SM44 runbook to end (C:/Users/jonat/workspace/wt/sm32c/artifacts/small-model/sm44/runbook-sm44.log: 'done' or 'STOP')
+[sm46 10-20 21:28:25] SM44: [sm44 10-20 21:28:23] STOP: GPU check failed (see C:/Users/jonat/workspace/wt/sm32c/artifacts/small-model/sm44/check-sm44-gpu.json and the queue output above)
+[sm46 10-20 21:28:25] enqueue: SM46 GPU check: GPU +vq5902x3028 scorer path (rank-6 torch loop) vs CPU scorer on 3 small users, reviews/s (expected 25 min)
+[queue] 000561-small-model registered for gpu: SM46 GPU check: GPU +vq5902x3028 scorer path (rank-6 torch loop) vs CPU scorer on 3 small users, reviews/s
+[queue] 000561-small-model started after 0:00:00; holds gpu
+[sm44-check] sm36/w8+vq5902x3028: {'card': 'torch step loop, eigh float64', 'note': 'torch step loop, eigh float64'}
+[sm44-check] sm36/w8+vq5902x3028 user 2388 (3685 reviews): (dLL curve, dLL instant, max|dp|, ok) {'gpu': (6.8569190969924865e-06, 3.2115567680512935e-06, 0.007616817951202393, True)}
+[sm44-check] sm36/w8+vq5902x3028 user 4676 (3716 reviews): (dLL curve, dLL instant, max|dp|, ok) {'gpu': (-8.28898622386165e-06, -5.82546204450779e-06, 0.01194906234741211, True)}
+[sm44-check] sm36/w8+vq5902x3028 user 1712 (4090 reviews): (dLL curve, dLL instant, max|dp|, ok) {'gpu': (-1.6203032973893805e-05, -0.0001399958463193518, 0.03160578012466431, False)}
+[sm44-check] base (float state) GPU vs CPU user 2388: {'ahead': {'d_exact_logloss': 3.858200758877217e-08, 'max_abs_dp': 1.430511474609375e-06}, 'instant': {'d_exact_logloss': -1.8400423823505818e-08, 'max_abs_dp': 1.6093254089355469e-06}}
+[sm44-check] base (float state) GPU vs CPU user 4676: {'ahead': {'d_exact_logloss': -2.828654657727192e-09, 'max_abs_dp': 6.556510925292969e-07}, 'instant': {'d_exact_logloss': 7.971427254394037e-09, 'max_abs_dp': 1.0132789611816406e-06}}
+[sm44-check] base (float state) GPU vs CPU user 1712: {'ahead': {'d_exact_logloss': 3.125122144398418e-08, 'max_abs_dp': 1.9371509552001953e-06}, 'instant': {'d_exact_logloss': 6.29941454555194e-09, 'max_abs_dp': 2.6226043701171875e-06}}
+[sm44-check] timing user 3016: {'reviews': 30099, 'w8+s8_seconds': 0.546, 'w8+vq5902x3028_seconds': 5.471}
+Traceback (most recent call last):
+  File "C:\Users\jonat\workspace\wt\sm46\scripts\check_state_vq_score_gpu.py", line 354, in <module>
+    main()
+  File "C:\Users\jonat\workspace\wt\sm46\scripts\check_state_vq_score_gpu.py", line 334, in main
+    cand = run_gpu_path(model, layout, codecs, batch, labels, u)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\jonat\workspace\wt\sm46\scripts\check_state_vq_score_gpu.py", line 157, in run_gpu_path
+    values, preds, bench = evaluate(model, batch, labels, user)
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\jonat\workspace\wt\sm46\scripts\check_state_vq_score_gpu.py", line 80, in evaluate
+    values, preds = evaluate_with_predictions(model, [{"batch": batch}])
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\jonat\workspace\wt\sm46\scripts\full_run_metrics.py", line 45, in evaluate_with_predictions
+    stats = model.get_loss(batch)
+            ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\jonat\workspace\wt\sm46\expertium\model\variant_model.py", line 574, in get_loss
+    return self._get_loss_variant(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\jonat\workspace\wt\sm46\expertium\model\variant_model.py", line 406, in _get_loss_variant
+    out_ahead_logits, out_w, out_w_log_p, out_p_logits, out_s_raw, out_d_raw = self.forward_batch_variant(
+                                                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\jonat\workspace\wt\sm46\expertium\model\variant_model.py", line 350, in forward_batch_variant
+    x = self._interleaved_streams(x, batch_sub_gather, batch_sub_gather_lens, batch_time_shift_selects,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\jonat\workspace\wt\sm46\expertium\model\variant_model.py", line 321, in _interleaved_streams
+    x_out, v0s[i][s] = block.forward(x_in, v0_in, batch_time_shift_selects[i][s].view(-1, length),
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\jonat\workspace\wt\sm46\expertium\model\variant_model.py", line 95, in forward
+    x_BTC, v0_BTC = self.time_mixer(in_BTC=in_BTC, v0_BTC=v0_BTC, time_shift_select_BT=time_shift_select_BT,
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\jonat\workspace\anki-rwkv\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1775, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\jonat\workspace\anki-rwkv\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1881, in _call_impl
+    return inner()
+           ^^^^^^^
+  File "C:\Users\jonat\workspace\anki-rwkv\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1829, in inner
+    result = forward_call(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\jonat\workspace\wt\sm46\expertium\model\rwkv_model.py", line 444, in forward
+    out_BTHK = vq_wkv(r_BTHK, k_BTHK, v_BTHK, w_BTHK, a_BTHK, k_deformed_BTHK, skip_BT, self.state_vq_slot)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\jonat\workspace\wt\sm46\scripts\check_state_vq_score_gpu.py", line 137, in inner
+    return fn(*a, **k)
+           ^^^^^^^^^^^
+  File "C:\Users\jonat\workspace\wt\sm46\scripts\state_vq.py", line 905, in score_wkv
+    state[rows] = codec.wkv(nxt[rows])
+                  ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\jonat\workspace\wt\sm46\scripts\state_vq.py", line 460, in wkv
+    u, v, sigma, valid = factorize(A, self.rec.rank, fd)
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\jonat\workspace\wt\sm46\scripts\state_vq.py", line 289, in factorize
+    evals, evecs = torch.linalg.eigh(an @ an.transpose(1, 2))       # ascending
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+torch.OutOfMemoryError: CUDA out of memory. Tried to allocate 11.32 GiB. GPU 0 has a total capacity of 15.89 GiB of which 12.58 GiB is free. 12.72 GiB allowed; Of the allocated memory 544.05 MiB is allocated by PyTorch, and 1.38 GiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)
+[queue] 000561-small-model finished with exit code 1 after 0:00:30; released gpu
+[sm46 10-20 21:28:55] exit 1: SM46 GPU check: GPU +vq5902x3028 scorer path (rank-6 torch loop) vs CPU scorer on 3 small users, reviews/s
+[sm46 10-20 21:28:55] STOP: GPU check failed (see C:/Users/jonat/workspace/wt/sm46/artifacts/small-model/sm46/check-sm46-gpu.json and the queue output above)
