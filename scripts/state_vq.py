@@ -777,3 +777,127 @@ def uninstall_training(model):
         for module in info["time"] + info["channel"]:
             module.state_vq_slot = -1
     hooks.CODECS.clear()
+
+
+# ------------------------------------------------------------------------------------------------ GPU scoring (SM44)
+#
+# The held-out scorer's `+vq<recipe>` variants on CUDA (scripts/small_model_heldout.py). Same placement as the CPU
+# Hooks path above: per card/note review the answer uses the float update, the STORED state is the codec's
+# reconstruction before that entity's next review; a review that reads its entity's previous review through the token
+# shift reads the coded vector; deck / preset / user state stays float (the scorer's long WKV kernel). The eager model's
+# own state-VQ slot (expertium/model/rwkv_model.py: `state_vq_slot >= 0` -> `vq_wkv` / `vq_shift`) routes the card/note
+# mixers here: install_scoring() points those two module globals of rwkv_model at score_wkv / score_shift (forward-only:
+# no straight-through Function, no per-step state record, so whole histories fit).
+#   WKV, rank-1 stream (every card recipe, the 412-bit note): the UNCHANGED fused kernel scripts/kernels/
+#     state_vq_wkv.cu (scripts/state_vq_cuda.KernelCodec), i.e. the Gram-squaring factorization (`...p`, factorize_sq)
+#     in `factor_dtype` (float64 by default, the CPU scorer's type). On the SM32 state corpus it stores bitwise the
+#     same states as the deployed eigh codec in float64 (docs/SMALL_MODEL.md SM32b, Speed). The kernel writes the state
+#     before every step, which the scorer does not need; rows of a split are independent sequences, so a split is run
+#     in row blocks of at most SCORE_KERNEL_POSITIONS (rows x steps) to bound that buffer.
+#   WKV, rank-2 stream (the 828-bit note): no fused kernel; the per-step torch loop of _reference_wkv_q on the device
+#     with the recipe's own (eigh, float64) codec.
+#   Token shift: StateCodec.shift on the device (any recipe).
+# On a CPU tensor (the CPU-first check, scripts/check_state_vq_score_gpu.py) the kernel streams run the same code as
+# the GPU through SCORE_EMULATE (scripts/state_vq_cuda_emu.forward) when set, else the torch loop with the same "sq"
+# codec (the kernel's arithmetic in torch).
+
+SCORE = {}                        # stream -> StateCodec with .score_kernel (KernelCodec or None)
+SCORE_EMULATE = None              # check only: fn(kernel_codec, r, k, v, w, a, kd, skip) -> out, for CPU tensors
+SCORE_KERNEL_POSITIONS = 1 << 17  # rows x steps per kernel launch (the kernel's state record: 4 KB per position)
+
+
+def score_codecs(name, books, device, factor_dtype=torch.float64, kernel=True):
+    """{stream: StateCodec} for GPU scoring of recipe `name`. Rank-1 streams with coded directions and quantized norms
+    get the fused kernel (their recipe with factor "sq"); others keep the recipe's codec (torch loop)."""
+    device = torch.device(device)
+    out = {}
+    for stream, rec in zip(STATE_STREAMS, recipe(name)):
+        fused = kernel and rec.rank == 1 and bool(rec.stages[0]) and rec.norm_bits is not None
+        if fused:
+            rec = replace(rec, factor="sq")
+        codec = StateCodec(rec, books, factor_dtype=factor_dtype).to(device)
+        codec.score_kernel = None
+        if fused:
+            from scripts import state_vq_cuda
+            codec.score_kernel = state_vq_cuda.KernelCodec(codec, device, factor_dtype)
+        out[stream] = codec
+    return out
+
+
+def score_path(codecs):
+    """Row metadata: which computation each stream's WKV codec ran."""
+    names = {0: "card", 2: "note"}
+    return {names[s]: (f"fused kernel, Gram squaring {str(c.factor_dtype).replace('torch.', '')}"
+                       if c.score_kernel is not None else
+                       f"torch step loop, {c.rec.factor} {str(c.factor_dtype).replace('torch.', '')}")
+            for s, c in codecs.items()}
+
+
+def _score_kernel(kc, r, k, v, w, a, kd, skip):
+    B, T = skip.shape
+    if not r.is_cuda:
+        return SCORE_EMULATE(kc, r, k, v, w, a, kd, skip)
+    rows = max(1, SCORE_KERNEL_POSITIONS // max(T, 1))
+    if B <= rows:
+        return kc.forward(r, k, v, w, a, kd, skip)[0]
+    out = torch.empty_like(r)
+    for i in range(0, B, rows):
+        part = slice(i, i + rows)
+        out[part] = kc.forward(*(x[part].contiguous() for x in (r, k, v, w, a, kd)), skip[part].contiguous())[0]
+    return out
+
+
+def score_wkv(r_BTHK, k_BTHK, v_BTHK, w_BTHK, a_BTHK, k_deformed_BTHK, skip_BT, slot):
+    """Forward-only card/note WKV with the stored state coded after every non-skipped step (scoring)."""
+    codec = SCORE[slot]
+    out_dtype = k_BTHK.dtype
+    r, k, v, w, a, kd = (x.float().contiguous() for x in (r_BTHK, k_BTHK, v_BTHK, w_BTHK, a_BTHK, k_deformed_BTHK))
+    skip = skip_BT.bool().contiguous()
+    kc = codec.score_kernel
+    if kc is not None and (r.is_cuda or SCORE_EMULATE is not None):
+        return _score_kernel(kc, r, k, v, w, a, kd, skip).to(out_dtype)
+    from expertium.model.rwkv_ops import single_timestep
+    B, T, H, Kh = r.shape
+    out = torch.empty(B, T, H, Kh, dtype=torch.float32, device=r.device)
+    state = torch.zeros(B, H, Kh, Kh, dtype=torch.float32, device=r.device)
+    for t in range(T):   # _reference_wkv_q on the device
+        out[:, t], nxt = single_timestep(r[:, t], k[:, t], v[:, t], w[:, t], a[:, t], kd[:, t], state)
+        rows = torch.nonzero(~skip[:, t]).flatten()
+        if rows.numel():
+            state = state.clone()
+            state[rows] = codec.wkv(nxt[rows])
+    return out.to(out_dtype)
+
+
+def score_shift(x_shift_BTC, time_shift_select_BT, slot, role):
+    """Token shift for scoring: vectors read from the entity's previous review (select != t) are coded (_TorchProxy)."""
+    T = x_shift_BTC.shape[1]
+    stored = time_shift_select_BT.long() != torch.arange(T, device=x_shift_BTC.device)[None, :]
+    if not bool(stored.any()):
+        return x_shift_BTC
+    out = x_shift_BTC.clone()
+    out[stored] = SCORE[slot].shift(x_shift_BTC[stored].float(), "t" if role == 0 else "c").to(out.dtype)
+    return out
+
+
+def install_scoring(model):
+    """Point the eager model's state-VQ slot functions at the scoring path; returns the card/note layout (with the
+    mixer modules) for set_scoring and describe."""
+    from expertium.model import rwkv_model as erm
+    erm.vq_wkv, erm.vq_shift = score_wkv, score_shift
+    layout = training_layout(model)
+    for info in layout.values():
+        for module in info["time"] + info["channel"]:
+            if getattr(module, "fused_shift", False):
+                raise ValueError("GPU +vq scoring cannot run with fused_shift (no shift hook)")
+    return layout
+
+
+def set_scoring(layout, codecs=None):
+    """Turn the card/note slots on with `codecs` ({stream: StateCodec} from score_codecs) or off (None)."""
+    SCORE.clear()
+    if codecs:
+        SCORE.update(codecs)
+    for stream, info in layout.items():
+        for module in info["time"] + info["channel"]:
+            module.state_vq_slot = stream if codecs else -1
