@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-10-20T17:28:03+02:00",
- "updated": "2026-10-20 17:28",
- "material": "82dfd56864974835",
- "summary": "running 000556",
+ "generated_at": "2026-10-20T17:32:49+02:00",
+ "updated": "2026-10-20 17:32",
+ "material": "87e192a5ae37c0d5",
+ "summary": "running 000557, finished 000556",
  "headline": [
   {
    "k": "Best, 464 users (curve / instant)",
@@ -139,30 +139,32 @@
  ],
  "now": [
   {
-   "what": "Muon instead of AdamW for the one-epoch 32k decay (paired with the best model, everything else equal) + scoring",
-   "id": "SM36, ticket 000556",
+   "what": "Data diversity vs epochs, full size: 1,250 users &times; (10 + 1 decay) epochs vs 125 of them &times; (100 + 10 decay), same reviews seen (~1.06B each), fast 2,048-window recipe, both scored on 732 users",
+   "id": "SM43, ticket 000557",
    "kind": "gpu-train",
-   "decides": "Small win on instant only: vs the best model (AdamW) curve tied (+0.00002 [-0.00034, +0.00046]), instant -0.00018 [-0.00022, -0.00013] on 464 users (+0.81% / +0.68% vs the big model); same on 723 users (-0.00017 / -0.00020). Not the road to +0.5% by itself",
+   "decides": "Does the gap from the mini (+0.36% / +0.46% for fewer users, more passes) grow or shrink once both arms are trained much longer?",
    "why": "",
-   "job": "SM45: int4 card + int8 note state for SM36, 732 pool (GPU check first)",
+   "job": "SM43 full B: 125 users x (100 + 10 decay) epochs (same reviews seen)",
    "linked": true,
    "track": "small model",
-   "ticket": "000556-small-model",
-   "started": "16:55",
-   "elapsed": "0:33",
-   "progress": null,
-   "eta": "~17:55"
-  }
- ],
- "waiting": [
-  {
    "ticket": "000557-small-model",
-   "id": "SM43",
-   "what": "SM43 full B: 125 users x (100 + 10 decay) epochs (same reviews seen)",
-   "flags": "expected 210 min"
+   "started": "17:30",
+   "elapsed": "0:02",
+   "progress": null,
+   "eta": "~21:00"
   }
  ],
+ "waiting": [],
  "recent": [
+  {
+   "ticket": "000556-small-model",
+   "id": "SM36",
+   "what": "SM45: int4 card + int8 note state for SM36, 732 pool (GPU check first)",
+   "ended": "17:30",
+   "date": "10-20",
+   "exit": 0,
+   "ran": "0:35"
+  },
   {
    "ticket": "000555-small-model",
    "id": "SM43",
@@ -207,15 +209,6 @@
    "date": "10-20",
    "exit": 0,
    "ran": "0:15"
-  },
-  {
-   "ticket": "000550-small-model",
-   "id": "SM36",
-   "what": "SM36 1-epoch decay at 32k, lanes carry, Muon outside-research-iter53 with a fresh state from sc-lanes e12 (smoke first)",
-   "ended": "06:07",
-   "date": "10-20",
-   "exit": 0,
-   "ran": "5:06"
   }
  ],
  "plan": [
@@ -645,12 +638,12 @@
    "minutes": 400,
    "track": "small model",
    "decides": "Small win on instant only: vs the best model (AdamW) curve tied (+0.00002 [-0.00034, +0.00046]), instant -0.00018 [-0.00022, -0.00013] on 464 users (+0.81% / +0.68% vs the big model); same on 723 users (-0.00017 / -0.00020). Not the road to +0.5% by itself",
-   "state": "running",
-   "started_at": "2026-10-20T06:41:00+02:00",
-   "ended_at": "2026-10-20T06:42:20+02:00",
-   "started": "16:55",
-   "ticket": "000556-small-model",
-   "ends_at": "2026-10-20T13:21:00+02:00"
+   "state": "done",
+   "started_at": "2026-10-20T16:55:02+02:00",
+   "ended_at": "2026-10-20T17:30:14+02:00",
+   "ended": "17:30",
+   "exit": 0,
+   "started": "16:55"
   },
   {
    "id": "SM32c",
@@ -697,13 +690,13 @@
    "kind": "gpu-check",
    "minutes": 60,
    "track": "small model",
-   "when": "10-20 ~17:00 (high priority: right after SM43 full A)",
-   "decides": "Is int4 card state free for the small model too (the fork-side test on 1,000 users: +0.68% &rarr; +0.70% instant)? Card state 26,624 &rarr; 18,432 bits (&minus;31%: the per-row scales and the float32 token-shift vectors stay as they are)",
-   "state": "running",
-   "started": "16:55",
-   "ticket": "000556-small-model",
+   "decides": "Nearly free: int4 cards + int8 notes cost +0.00005 curve [+0.00003, +0.00006] / +0.00005 instant [+0.00004, +0.00006] on 723 users (+0.64% &rarr; +0.66% / +0.63% &rarr; +0.64% vs the big model); int4 everywhere +0.00010 / +0.00017. Card state 26,624 &rarr; 18,432 bits (&minus;31%). GPU matches CPU to 2e-6",
+   "state": "done",
    "started_at": "2026-10-20T16:55:02+02:00",
-   "ends_at": "2026-10-20T17:55:02+02:00"
+   "ended_at": "2026-10-20T17:30:14+02:00",
+   "ended": "17:30",
+   "exit": 0,
+   "started": "16:55"
   },
   {
    "what": "Data diversity vs epochs, full size: 1,250 users &times; (10 + 1 decay) epochs vs 125 of them &times; (100 + 10 decay), same reviews seen (~1.06B each), fast 2,048-window recipe, both scored on 732 users",
@@ -711,11 +704,13 @@
    "kind": "gpu-train",
    "minutes": 410,
    "track": "small model",
-   "when": "10-20 13:59 &rarr; ~21:50 (A ~2.9 h, SM45 ~1 h, B ~3.4 h, scoring ~30 min; scoring waits for after the break if it would cross 22:00)",
+   "when": "10-20 13:59 &rarr; ~21:30 (A done 16:55, SM45 35 min, B from 17:30 ~3.4 h, scoring ~30 min)",
    "decides": "Does the gap from the mini (+0.36% / +0.46% for fewer users, more passes) grow or shrink once both arms are trained much longer?",
-   "state": "waiting",
+   "state": "running",
    "started_at": "2026-10-20T13:59:26+02:00",
-   "ticket": "000557-small-model"
+   "started": "17:30",
+   "ticket": "000557-small-model",
+   "ends_at": "2026-10-20T20:49:26+02:00"
   },
   {
    "what": "Compressed state in the GPU scorer (kernels from SM32c), 5-user GPU check, then scoring on 732 users: the best model at ~400 and ~800 bits per card/note, and the SM32c model at int8 and ~400 bits",
