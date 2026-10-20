@@ -922,6 +922,34 @@
    "track": "small model",
    "item": "Data diversity vs epochs: many users few epochs (10+1 epochs) vs 10&times; fewer users 10&times; more epochs (100+10), same number of gradient steps, both scored on the 732-user set",
    "why": "User idea 10-19, not urgent. Does the small model gain more from more users or from more passes? Full size (5k users &times; 11 epochs) would take ~10.5 h per arm, so scaled to fit 5&ndash;6 h: 1,250 users &times; (10+1) vs 125 users &times; (100+10), the fast 2,048-window KD recipe (~108k reviews/s), equal reviews seen. Slot: 10-20 after SM32c"
+  },
+  {
+   "status": "next",
+   "id": "ST00",
+   "track": "curve stability",
+   "item": "Measure first: the repeat stress test and a &ldquo;mature card, then rapid repeats&rdquo; slice, on the best small model (SM36) and the big model",
+   "why": "From an outside audit of SM40 (10-20): the curve is trained only at the next real review, so its long-term tail can change freely between answers; repeated rapid Goods on a mature card make the interval jump, then collapse (the big model jumps too). CPU only. Tells whether it matters on real histories or only in the stress test"
+  },
+  {
+   "status": "idea",
+   "id": "ST01a",
+   "track": "curve stability",
+   "item": "Consistency on real rapid Good pairs: compare the curve before and after the second Good at the same future dates (days, months, a year)",
+   "why": "Our simpler first version of ST01: ~5&ndash;6M real pairs in the training data, both curves already computed in the same pass, so almost no extra cost; a small penalty, only for short gaps where Good was expected. One-epoch decay like SM42, judged on 732 users (curve and instant must not get worse) plus the stress test"
+  },
+  {
+   "status": "idea",
+   "id": "ST01",
+   "track": "curve stability",
+   "item": "Consistency on made-up rapid Good sequences from real card histories (the audit&rsquo;s first proposal)",
+   "why": "Only if ST01a is not enough: inserted reviews also change what the deck, note and user memories see, so it is costly to build in our training"
+  },
+  {
+   "status": "idea",
+   "id": "ST02",
+   "track": "curve stability",
+   "item": "Separate short-term and long-term updates (a learned gate on the long-term curve)",
+   "why": "Architecture change; only if consistency losses fail the quality gate"
   }
  ],
  "known_labels": [
