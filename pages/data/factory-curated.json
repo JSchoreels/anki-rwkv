@@ -615,7 +615,7 @@
     "SM45"
    ],
    "when": "10-20 ~17:00 (high priority: right after SM43 full A)",
-   "decides": "Is int4 card state free for the small model too (the fork-side test on 1,000 users: +0.68% &rarr; +0.70% instant)? Card state ~40&ndash;50% smaller, ship-ready"
+   "decides": "Is int4 card state free for the small model too (the fork-side test on 1,000 users: +0.68% &rarr; +0.70% instant)? Card state 26,624 &rarr; 18,432 bits (&minus;31%: the per-row scales and the float32 token-shift vectors stay as they are)"
   },
   {
    "what": "Data diversity vs epochs, full size: 1,250 users &times; (10 + 1 decay) epochs vs 125 of them &times; (100 + 10 decay), same reviews seen (~1.06B each), fast 2,048-window recipe, both scored on 732 users",
@@ -711,7 +711,7 @@
    "id": "SM46",
    "track": "small model",
    "item": "State compression at a large budget: 6,000 bits per card, 3,000 per note (asked by outside research)",
-   "why": "Between int4 cards (~13,000 bits, SM45) and the ~400 / ~800-bit codebooks: is the compression cost small at ~4&times; smaller than int8? Our largest point so far is 1,506 / 828 bits (+0.00009 curve / +0.00058 instant after training, 8-user screen only). Needs a new recipe (rank 3&ndash;4 directions, more stages) and its codebooks fitted (~35 min CPU), then scoring on 732 users with the SM44 GPU scorer. Being prepared 10-20 evening (CPU); GPU scoring queued after SM44 (~10-21 04:00&ndash;05:00)"
+   "why": "Between int4 cards (18,432 bits, SM45; int8 is 26,624) and the ~400 / ~800-bit codebooks: is the compression cost small at ~4&times; smaller than int8? Our largest point so far is 1,506 / 828 bits (+0.00009 curve / +0.00058 instant after training, 8-user screen only). Needs a new recipe (rank 3&ndash;4 directions, more stages) and its codebooks fitted (~35 min CPU), then scoring on 732 users with the SM44 GPU scorer. Being prepared 10-20 evening (CPU); GPU scoring queued after SM44 (~10-21 04:00&ndash;05:00)"
   },
   {
    "status": "next",
