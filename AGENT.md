@@ -92,6 +92,12 @@ optimization tracks, including ideas that have not been implemented or tested.
 - Every evaluation result records its mode (`fast`/`reference`, batch chunks) and the commit; `--mode reference` and the exact one-section mode (`--batch-chunks 8`) stay available, and any claim of bit-identical scores uses one of them.
 - A new evaluation path, a changed batch size, precision, kernel or model architecture is re-checked against the reference before its numbers are used. Evidence and thresholds: [EVAL_SPEED.md](docs/EVAL_SPEED.md#evaluation-tolerance-rule).
 
+### Discrete state codecs (adopted 2026-10-20)
+
+- For +vq variants (discrete codeword choices) the GPU-vs-CPU check uses a looser rule than the strict one above; the base float state and the int8/int4 (+s) variants keep the strict 1e-5 rule.
+- A +vq GPU check passes when, over the check users: no predictions are missing and per-user |Δ benchmark LogLoss| ≤ 3e-4 on both heads (curve/ahead and instant); and the review-weighted mean of the signed Δ is ≤ 1e-4 in absolute value on both heads. Both thresholds are flags of the check script (`--discrete-tol`, `--discrete-mean-tol`); the check JSON records the rule, the per-user Δ and the weighted mean.
+- Why: bitwise GPU = CPU is impossible for discrete codecs. The float state already differs by about 2e-6 between devices, and that flips any nearest-codeword pick whose squared-distance gap is about 1e-7 or less (near ties). The recurrence amplifies a flip, but the flips have random sign and average out over users. No first-flip instrumentation is required.
+
 ## Validation requires an explicit user request
 
 - Before treating a set of changes as validated, run a matched multi-user quality
