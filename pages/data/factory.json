@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-10-20T17:32:49+02:00",
- "updated": "2026-10-20 17:32",
- "material": "87e192a5ae37c0d5",
- "summary": "running 000557, finished 000556",
+ "generated_at": "2026-10-20T19:20:27+02:00",
+ "updated": "2026-10-20 19:20",
+ "material": "4bb6a45045a5faa5",
+ "summary": "running 000557",
  "headline": [
   {
    "k": "Best, 464 users (curve / instant)",
@@ -149,7 +149,7 @@
    "track": "small model",
    "ticket": "000557-small-model",
    "started": "17:30",
-   "elapsed": "0:02",
+   "elapsed": "1:50",
    "progress": null,
    "eta": "~21:00"
   }
@@ -226,12 +226,7 @@
    "kind": "gpu-train",
    "decides": "",
    "track": "small model",
-   "state": "done",
-   "ended": "17:36",
-   "exit": 0,
-   "started": "16:31",
-   "started_at": "2026-10-17T16:31:24+02:00",
-   "ended_at": "2026-10-17T17:36:46+02:00"
+   "state": "planned"
   },
   {
    "what": "Score the decayed model on all 464 users",
@@ -239,12 +234,7 @@
    "kind": "gpu-score",
    "decides": "Target met or not; paired against the current best",
    "track": "small model",
-   "state": "done",
-   "ended": "17:59",
-   "exit": 0,
-   "started": "17:36",
-   "started_at": "2026-10-17T17:36:46+02:00",
-   "ended_at": "2026-10-17T17:59:32+02:00"
+   "state": "planned"
   },
   {
    "what": "Score it on your own collection (CPU, ~11 min)",
@@ -264,12 +254,7 @@
    "decides": "Spaced-review slice next to the official bar",
    "track": "small model",
    "minutes": 60,
-   "state": "done",
-   "ended": "18:33",
-   "exit": 0,
-   "started": "18:00",
-   "started_at": "2026-10-17T18:00:08+02:00",
-   "ended_at": "2026-10-17T18:33:50+02:00"
+   "state": "planned"
   },
   {
    "what": "Big model with first-review-rule labels on all 464 users",
@@ -278,12 +263,7 @@
    "decides": "A label-free big-model reference for free",
    "track": "small model",
    "minutes": 40,
-   "state": "done",
-   "ended": "18:52",
-   "exit": 0,
-   "started": "18:34",
-   "started_at": "2026-10-17T18:34:12+02:00",
-   "ended_at": "2026-10-17T18:52:07+02:00"
+   "state": "planned"
   },
   {
    "what": "Speed profile: w64 at 2,048 / 8,192 / 16,384 / 32,768 windows + big-model-size model",
@@ -730,6 +710,16 @@
    "track": "small model",
    "when": "after SM44 (~10-21 04:00&ndash;05:00), ~1.2&ndash;2.5 h (464 users first, then the rest of the 732 if fast enough); code ready 17:26 (CPU check: identical to the CPU scorer)",
    "decides": "Is compression nearly free at ~4.5&times; smaller than int8? 8-user screen: +0.00006 curve / +0.00014 instant",
+   "state": "planned"
+  },
+  {
+   "what": "Compress the rest of the card/note state: 16-bit row scales and int8 short-term (token-shift) vectors, alone and together, on top of int8 and of int4 cards + int8 notes; best model (SM36), 732 users",
+   "id": "SM47",
+   "kind": "gpu-check",
+   "minutes": 115,
+   "track": "small model",
+   "when": "after SM46 (10-21 morning), ~2 h; code ready 19:19 (CPU check: old results reproduce exactly)",
+   "decides": "Smallest no-retraining format: int4 cards + int8 notes + 16-bit scales + int8 short-term vectors = 11,824 / 10,272 bits per card / note (&minus;46% vs today&rsquo;s int8, ~38 MB vs ~70 MB for 13,973 cards / 13,198 notes). Is it still nearly free?",
    "state": "planned"
   },
   {
