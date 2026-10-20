@@ -16,6 +16,9 @@ max |dp| over all labelled predictions is reported (near-tie code flips move a f
 
   .venv/Scripts/python.exe -X utf8 scripts/check_state_vq_score_gpu.py cpu [--emulate-users 1]
   .venv/Scripts/python.exe -X utf8 scripts/check_state_vq_score_gpu.py gpu
+SM46: --cases <json> replaces CASES with [[case, checkpoint, codebooks, recipe, users], ...] (the first case's
+checkpoint is the base-numerics and timing model, timed with each of its cases' own codebooks); --output and --ref-dir
+then point at the experiment's folder, e.g. artifacts/small-model/sm46/check-sm46-cpu.json and sm46/check-ref.
 """
 from argparse import ArgumentParser
 import json
@@ -190,7 +193,13 @@ def main():
     parser.add_argument("--factor-dtype", choices=("float64", "float32"), default="float64")
     parser.add_argument("--ref-dir", default=str(OUT / "check-ref"))
     parser.add_argument("--output", default="")
+    parser.add_argument("--cases", default="", help="SM46: JSON file with the case list (default: the SM44 cases)")
     args = parser.parse_args()
+    global CASES
+    if args.cases:
+        CASES = [tuple(c) for c in json.loads(Path(args.cases).read_text())]
+    base_ckpt = CASES[0][1]
+    base_name = CASES[0][0].split("/")[0] + "/w8-float"
     cpu = args.mode == "cpu"
     device = torch.device("cpu" if cpu else "cuda")
     fd = getattr(torch, args.factor_dtype)
@@ -283,16 +292,16 @@ def main():
             print(f"[sm44-check] {case} user {u} ({counts[str(u)]} reviews): (dLL curve, dLL instant, max|dp|, ok) "
                   f"{summary}", flush=True)
         report["cases"][case] = entry
-    # base numerics (reported, not gated): float card/note state, no codec on either side, SM42 w8
-    model, layout = models[SM42]
+    # base numerics (reported, not gated): float card/note state, no codec on either side, first case's model, w8
+    model, layout = models[base_ckpt]
     base = {}
     for u in users:
         batch = batches[u].to(device)
         flt = run_float(model, layout, batch, label_cache[u], u)
         if cpu:
-            save_ref(ref_dir, "sm42/w8-float", u, flt)
+            save_ref(ref_dir, base_name, u, flt)
         else:
-            c = compare(load_ref(ref_dir, "sm42/w8-float", u), flt, args.tol)
+            c = compare(load_ref(ref_dir, base_name, u), flt, args.tol)
             base[str(u)] = {h: {"d_exact_logloss": c[h]["d_exact_logloss"], "max_abs_dp": c[h]["max_abs_dp"]}
                             for h in ("ahead", "instant")}
             print(f"[sm44-check] base (float state) GPU vs CPU user {u}: {base[str(u)]}", flush=True)
@@ -300,7 +309,11 @@ def main():
         report["base_float_state_gpu_vs_cpu"] = base
     if not cpu:   # timing on mid-size users: w8+s8 (the plain GPU scorer) vs each recipe
         t_users, _ = pool_users(args.timing_users, smallest=False)
-        model, layout = models[SM42]
+        model, layout = models[base_ckpt]
+        timed = {}
+        for _, ckpt, books_path, name, _ in CASES:
+            if ckpt == base_ckpt:
+                timed.setdefault(name, books_path)
         timing = {}
         for u in t_users:
             batch = cc.full_history_batch(data, u).to(device)
@@ -316,8 +329,8 @@ def main():
             torch.cuda.synchronize()
             row["w8+s8_seconds"] = round(time.perf_counter() - t0, 3)
             smh.set_expertium_state_bits(model, 0)
-            for name in sorted({c[3] for c in CASES}):
-                codecs = state_vq.score_codecs(name, state_vq.Codebooks.load(KMEANS), device, fd)
+            for name in sorted(timed):
+                codecs = state_vq.score_codecs(name, state_vq.Codebooks.load(timed[name]), device, fd)
                 cand = run_gpu_path(model, layout, codecs, batch, labels, u)
                 row[f"w8+{name}_seconds"] = round(cand["seconds"], 3)
             timing[str(u)] = row
