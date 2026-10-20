@@ -658,6 +658,18 @@
    "decides": "Is compression nearly free at ~4.5&times; smaller than int8? 8-user screen: +0.00006 curve / +0.00014 instant"
   },
   {
+   "what": "Compress the rest of the card/note state: 16-bit row scales and int8 short-term (token-shift) vectors, alone and together, on top of int8 and of int4 cards + int8 notes; best model (SM36), 732 users",
+   "id": "SM47",
+   "kind": "gpu-check",
+   "minutes": 115,
+   "track": "small model",
+   "match": [
+    "SM47"
+   ],
+   "when": "after SM46 (10-21 morning), ~2 h; code ready 19:19 (CPU check: old results reproduce exactly)",
+   "decides": "Smallest no-retraining format: int4 cards + int8 notes + 16-bit scales + int8 short-term vectors = 11,824 / 10,272 bits per card / note (&minus;46% vs today&rsquo;s int8, ~38 MB vs ~70 MB for 13,973 cards / 13,198 notes). Is it still nearly free?"
+  },
+  {
    "what": "Carried state, code (CPU): full-history targets (SM11, 18/18 checks) + kernels with a starting state and the trainer option (SM21, all checks bit for bit); merged together",
    "id": "SM21, SM11",
    "kind": "cpu",
