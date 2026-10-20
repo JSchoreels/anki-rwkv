@@ -606,16 +606,18 @@
    "ended_at": "2026-10-20T13:48:07+02:00"
   },
   {
-   "what": "Data diversity vs epochs, full size: 1,250 users &times; (10+1) epochs vs 125 users &times; (100+10), same reviews seen, fast 2,048-window recipe, both scored on 732 users",
+   "what": "Data diversity vs epochs, full size: 1,250 users &times; (10 + 1 decay) epochs vs 125 of them &times; (100 + 10 decay), same reviews seen (~1.06B each), fast 2,048-window recipe, both scored on 732 users",
    "id": "SM43",
    "kind": "gpu-train",
-   "minutes": 330,
+   "minutes": 410,
    "track": "small model",
    "match": [
-    "SM43"
+    "SM43 full"
    ],
-   "when": "10-20 ~15:00&ndash;20:30 (launcher being built)",
-   "decides": "Does the gap from the mini (+0.36% / +0.46% for fewer users, more passes) grow or shrink once both arms are trained much longer?"
+   "when": "10-20 13:59 &rarr; ~20:50 (A ~2.9 h, B ~3.4 h, scoring ~30 min)",
+   "decides": "Does the gap from the mini (+0.36% / +0.46% for fewer users, more passes) grow or shrink once both arms are trained much longer?",
+   "state": "running",
+   "started_at": "2026-10-20T13:59:26+02:00"
   },
   {
    "what": "Carried state, code (CPU): full-history targets (SM11, 18/18 checks) + kernels with a starting state and the trainer option (SM21, all checks bit for bit); merged together",
