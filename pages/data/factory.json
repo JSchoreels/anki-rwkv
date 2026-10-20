@@ -1,7 +1,7 @@
 {
- "generated_at": "2026-10-20T19:20:27+02:00",
- "updated": "2026-10-20 19:20",
- "material": "4bb6a45045a5faa5",
+ "generated_at": "2026-10-20T19:33:27+02:00",
+ "updated": "2026-10-20 19:33",
+ "material": "1f500b5d6f277736",
  "summary": "running 000557",
  "headline": [
   {
@@ -149,7 +149,7 @@
    "track": "small model",
    "ticket": "000557-small-model",
    "started": "17:30",
-   "elapsed": "1:50",
+   "elapsed": "2:03",
    "progress": null,
    "eta": "~21:00"
   }
@@ -272,12 +272,7 @@
    "decides": "Where training time goes; cost of the label-free reference",
    "track": "small model",
    "minutes": 50,
-   "state": "done",
-   "ended": "19:28",
-   "exit": 0,
-   "started": "18:52",
-   "started_at": "2026-10-17T18:52:08+02:00",
-   "ended_at": "2026-10-17T19:28:24+02:00"
+   "state": "planned"
   },
   {
    "what": "One-epoch final decay at 2,048 windows",
@@ -720,6 +715,16 @@
    "track": "small model",
    "when": "after SM46 (10-21 morning), ~2 h; code ready 19:19 (CPU check: old results reproduce exactly)",
    "decides": "Smallest no-retraining format: int4 cards + int8 notes + 16-bit scales + int8 short-term vectors = 11,824 / 10,272 bits per card / note (&minus;46% vs today&rsquo;s int8, ~38 MB vs ~70 MB for 13,973 cards / 13,198 notes). Is it still nearly free?",
+   "state": "planned"
+  },
+  {
+   "what": "Faster held-out scoring: benchmark metrics computed on arrays instead of Python loops (same results bit for bit), and scoring 2 or 4 users at once on the GPU",
+   "id": "SM48",
+   "kind": "gpu-speed",
+   "minutes": 30,
+   "track": "small model",
+   "when": "after SM47 (10-21 morning), one timing run of ~12&ndash;20 min on 40 users; code ready 19:31 (CPU checks: identical results)",
+   "decides": "How much faster pool scoring gets. Profile: only half of scoring time is the model; the other half is Python bookkeeping (metrics alone ~10&times; cheaper now, ~1.5&times; projected overall), and the model call keeps 4 of the GPU&rsquo;s 84 compute units busy, hence several users at once. Projections only until the timing run.",
    "state": "planned"
   },
   {
