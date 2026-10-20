@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-10-20T16:57:10+02:00",
- "updated": "2026-10-20 16:57",
- "material": "77da9f8ecf858ff3",
- "summary": "running 000556, finished 000555",
+ "generated_at": "2026-10-20T17:28:03+02:00",
+ "updated": "2026-10-20 17:28",
+ "material": "82dfd56864974835",
+ "summary": "running 000556",
  "headline": [
   {
    "k": "Best, 464 users (curve / instant)",
@@ -149,7 +149,7 @@
    "track": "small model",
    "ticket": "000556-small-model",
    "started": "16:55",
-   "elapsed": "0:02",
+   "elapsed": "0:33",
    "progress": null,
    "eta": "~17:55"
   }
@@ -728,6 +728,16 @@
    "state": "planned"
   },
   {
+   "what": "State compression at a large budget: 5,902 bits per card, 3,028 per note (asked by outside research; int8 is 26,624 / 14,336), codebooks fitted on the best model&rsquo;s own states, scored after training on the best model (SM36)",
+   "id": "SM46",
+   "kind": "gpu-check",
+   "minutes": 150,
+   "track": "small model",
+   "when": "after SM44 (~10-21 04:00&ndash;05:00), ~1.2&ndash;2.5 h (464 users first, then the rest of the 732 if fast enough); code ready 17:26 (CPU check: identical to the CPU scorer)",
+   "decides": "Is compression nearly free at ~4.5&times; smaller than int8? 8-user screen: +0.00006 curve / +0.00014 instant",
+   "state": "planned"
+  },
+  {
    "what": "Carried state, code (CPU): full-history targets (SM11, 18/18 checks) + kernels with a starting state and the trainer option (SM21, all checks bit for bit); merged together",
    "id": "SM21, SM11",
    "kind": "cpu",
@@ -796,13 +806,6 @@
   "label": "Break: no GPU work 22:00&ndash;01:00 (user, games; may end earlier). Jobs that would run into it wait"
  },
  "backlog": [
-  {
-   "status": "next",
-   "id": "SM46",
-   "track": "small model",
-   "item": "State compression at a large budget: 6,000 bits per card, 3,000 per note (asked by outside research)",
-   "why": "Between int4 cards (18,432 bits, SM45; int8 is 26,624) and the ~400 / ~800-bit codebooks: is the compression cost small at ~4&times; smaller than int8? Our largest point so far is 1,506 / 828 bits (+0.00009 curve / +0.00058 instant after training, 8-user screen only). Needs a new recipe (rank 3&ndash;4 directions, more stages) and its codebooks fitted (~35 min CPU), then scoring on 732 users with the SM44 GPU scorer. Being prepared 10-20 evening (CPU); GPU scoring queued after SM44 (~10-21 04:00&ndash;05:00)"
-  },
   {
    "status": "next",
    "item": "Benchmark labels for the 1,493 training users of the 2,225-user set",

@@ -644,6 +644,18 @@
    "decides": "Compression checks in minutes instead of 1 h on 68 users, on the standard 732 users; does ~800 bits get close enough to the &le; +1.0% bar?"
   },
   {
+   "what": "State compression at a large budget: 5,902 bits per card, 3,028 per note (asked by outside research; int8 is 26,624 / 14,336), codebooks fitted on the best model&rsquo;s own states, scored after training on the best model (SM36)",
+   "id": "SM46",
+   "kind": "gpu-check",
+   "minutes": 150,
+   "track": "small model",
+   "match": [
+    "SM46"
+   ],
+   "when": "after SM44 (~10-21 04:00&ndash;05:00), ~1.2&ndash;2.5 h (464 users first, then the rest of the 732 if fast enough); code ready 17:26 (CPU check: identical to the CPU scorer)",
+   "decides": "Is compression nearly free at ~4.5&times; smaller than int8? 8-user screen: +0.00006 curve / +0.00014 instant"
+  },
+  {
    "what": "Carried state, code (CPU): full-history targets (SM11, 18/18 checks) + kernels with a starting state and the trainer option (SM21, all checks bit for bit); merged together",
    "id": "SM21, SM11",
    "kind": "cpu",
@@ -706,13 +718,6 @@
   }
  ],
  "backlog": [
-  {
-   "status": "next",
-   "id": "SM46",
-   "track": "small model",
-   "item": "State compression at a large budget: 6,000 bits per card, 3,000 per note (asked by outside research)",
-   "why": "Between int4 cards (18,432 bits, SM45; int8 is 26,624) and the ~400 / ~800-bit codebooks: is the compression cost small at ~4&times; smaller than int8? Our largest point so far is 1,506 / 828 bits (+0.00009 curve / +0.00058 instant after training, 8-user screen only). Needs a new recipe (rank 3&ndash;4 directions, more stages) and its codebooks fitted (~35 min CPU), then scoring on 732 users with the SM44 GPU scorer. Being prepared 10-20 evening (CPU); GPU scoring queued after SM44 (~10-21 04:00&ndash;05:00)"
-  },
   {
    "status": "next",
    "item": "Benchmark labels for the 1,493 training users of the 2,225-user set",
