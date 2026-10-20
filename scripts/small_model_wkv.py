@@ -7,6 +7,10 @@ protocol of the fork's 2.76M comparison (artifacts/compression/heldout-b-final.m
 (batch row, head); thread i holds state row i. Same arithmetic as compress_wkv_cuda (summation order aside).
 
     wkv_long(r, k, v, w, a, kd, skip, bits) -> out      # tensors [B, T, H, K], skip [B, T]; bits 0 / 8 / 4
+
+SM47: `bits | F16_SCALE` (8 | 256, 4 | 256) rounds every row scale (absmax / qmax) to IEEE float16 before the codes
+are computed with it (round to nearest even, subnormals kept, clamped to the float16 maximum 65504; a scale that is 0,
+or underflows to 0, or is NaN becomes 1 like the float32 path). Without the flag the kernel is unchanged.
 """
 import os
 from pathlib import Path
@@ -18,11 +22,41 @@ from scripts import compress_wkv_cuda as _base
 _kernels = {}
 _handles = []
 
+F16_SCALE = 256   # flag on `bits`: float16 row scales (SM47)
+F16_MAX = 65504.0
+
+# The f32 -> f16 -> f32 rounding of a non-negative scale in the kernel: RNE to 10 mantissa bits in the normal range,
+# to multiples of 2^-24 below 2^-14 (the float16 subnormals); NaN passes through (then becomes 1).
+_F16_DEVICE = r"""
+__device__ __forceinline__ float f16_round_scale(float x) {
+    if (!(x < 65504.0f)) return x >= 65504.0f ? 65504.0f : x;
+    if (x < 6.103515625e-05f) return rintf(x * 16777216.0f) * 5.9604644775390625e-08f;
+    unsigned int u = __float_as_uint(x);
+    u += 0x0FFFu + ((u >> 13) & 1u);
+    return __uint_as_float(u & 0xFFFFE000u);
+}
+"""
+
+
+def round_scale_f16(scale):
+    """Torch twin of the kernel's f16_round_scale (CPU reference, scripts/state_vq.int_row_quant)."""
+    return torch.clamp(scale, max=F16_MAX).half().float()
+
 
 def _source(K):
     text = _base.SOURCE.replace("32", str(K))
     mask = "0xffffffffu" if K == 32 else f"0x{(1 << K) - 1:x}u"
-    return text.replace("__syncwarp()", f"__syncwarp({mask})")
+    text = text.replace("__syncwarp()", f"__syncwarp({mask})")
+    # SM47: the F16_SCALE flag (bits 0 / 4 / 8 keep the exact old arithmetic)
+    for old, new in (('extern "C"', _F16_DEVICE + 'extern "C"'),
+                     ("const float qmax = bits == 8 ? 127.0f : 7.0f;",
+                      "const float qmax = (bits & 255) == 8 ? 127.0f : 7.0f;"),
+                     ("float scale = m / qmax;\n",
+                      "float scale = m / qmax;\n                if (bits & 256) scale = f16_round_scale(scale);\n")):
+        if text.count(old) != 1:
+            raise RuntimeError(f"kernel source changed: {old!r}")
+        text = text.replace(old, new)
+    return text
 
 
 def _kernel(K):
@@ -66,8 +100,10 @@ def reference(r, k, v, w, a, kd, skip, bits=0):
         o, nxt = single_timestep(r[:, t], k[:, t], v[:, t], w[:, t], a[:, t], kd[:, t], state)
         out[:, t] = o
         if bits:
-            qmax = 127.0 if bits == 8 else 7.0
+            qmax = 127.0 if (bits & 255) == 8 else 7.0
             scale = nxt.abs().amax(-1, keepdim=True) / qmax
+            if bits & F16_SCALE:
+                scale = round_scale_f16(scale)
             scale = torch.where(scale > 0, scale, torch.ones_like(scale))
             nxt = torch.clamp(torch.round(nxt / scale), -qmax, qmax) * scale
         state = torch.where(skip[:, t, None, None, None].bool(), state, nxt)
@@ -85,10 +121,11 @@ def self_test(device="cuda", seed=0):
         a = torch.sigmoid(a)
         w = torch.exp(-torch.exp(-0.5 - torch.rand(B, T, H, K, generator=g)))
         skip = torch.rand(B, T, generator=g) < 0.3
-        for bits in (0, 8):
+        for bits in (0, 8, 8 | F16_SCALE, 4 | F16_SCALE):
             ref = reference(r, k * a, v, w, a, kd, skip, bits)
             got = wkv_long(*(x.to(device) for x in (r, k * a, v, w, a, kd)), skip.to(device), bits).cpu()
-            results[f"K{K}/bits{bits}"] = float((got - ref).abs().max())
+            name = f"{bits & 255}h" if bits & F16_SCALE else f"{bits}"
+            results[f"K{K}/bits{name}"] = float((got - ref).abs().max())
     return results
 
 

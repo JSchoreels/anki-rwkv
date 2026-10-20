@@ -459,11 +459,17 @@ class StateCodec:
 
 
 def int_row_quant(bits):
-    """The fork's int8/int4 per-row WKV state rounding (`+s8`/`+s4`), as scripts/small_model_wkv.reference."""
-    qmax = 127.0 if bits == 8 else 7.0
+    """The fork's int8/int4 per-row WKV state rounding (`+s8`/`+s4`), as scripts/small_model_wkv.reference.
+    SM47: `bits | small_model_wkv.F16_SCALE` rounds the row scale to float16 first (the kernel's f16_round_scale).
+    Also the per-vector int8 token-shift rounding (rows = the stored 64-float shift vectors)."""
+    from scripts.small_model_wkv import F16_SCALE, round_scale_f16
+    qmax = 127.0 if (bits & 255) == 8 else 7.0
+    f16 = bool(bits & F16_SCALE)
 
     def quant(nxt):
         scale = nxt.abs().amax(-1, keepdim=True) / qmax
+        if f16:
+            scale = round_scale_f16(scale)
         scale = torch.where(scale > 0, scale, torch.ones_like(scale))
         return torch.clamp(torch.round(nxt / scale), -qmax, qmax) * scale
     return quant
@@ -567,8 +573,10 @@ def _naming_hook(name, time_mixer=False):
     return hook
 
 
-def configure(layout, codecs=None, int_bits=0):
-    """Set the active quantizers. codecs: {stream: StateCodec} (VQ) or None; int_bits 8/4 = `+s8`/`+s4` on CPU."""
+def configure(layout, codecs=None, int_bits=0, shift_bits=0):
+    """Set the active quantizers. codecs: {stream: StateCodec} (VQ) or None; int_bits 8/4 = `+s8`/`+s4` on CPU
+    (| F16_SCALE: float16 row scales); shift_bits (SM47, with int_bits): the card/note stored token-shift vectors
+    through int_row_quant(shift_bits) (8 | F16_SCALE = int8 codes, float16 per-vector scale)."""
     Hooks.wkv, Hooks.shift = {}, {}
     for stream, info in layout.items():
         for layer in range(info["wkv_layers"]):
@@ -585,6 +593,10 @@ def configure(layout, codecs=None, int_bits=0):
         if codecs is not None:
             for layer, role in info["shift_vectors"]:
                 Hooks.shift[(stream, layer, role)] = lambda x, cur, c=codecs[stream], r=role: c.shift(x, r)
+        elif shift_bits:
+            q = int_row_quant(shift_bits)
+            for layer, role in info["shift_vectors"]:
+                Hooks.shift[(stream, layer, role)] = lambda x, cur, q=q: q(x)
 
 
 def entity_bits(rec, info):
@@ -828,9 +840,32 @@ def score_codecs(name, books, device, factor_dtype=torch.float64, kernel=True):
     return out
 
 
+class IntScoreCodec:
+    """SM47 GPU scoring of the int state variants through the state-VQ slots: WKV = scripts/small_model_wkv.wkv_long
+    with `wkv_bits` (the int kernel on CUDA, its float32 reference on CPU; | F16_SCALE = float16 row scales), token
+    shift = int_row_quant(shift_bits) per stored vector (0 = float)."""
+    score_kernel = None
+
+    def __init__(self, wkv_bits, shift_bits=0):
+        self.wkv_bits = wkv_bits
+        self.shift_bits = shift_bits
+        self._shift = int_row_quant(shift_bits) if shift_bits else None
+
+    def shift(self, x, role):
+        return self._shift(x) if self._shift is not None else x
+
+
+def int_score_codecs(wkv_bits, shift_bits=0):
+    """{stream: IntScoreCodec}; wkv_bits an int (both streams) or a (card, note) tuple."""
+    per = dict(zip(STATE_STREAMS, wkv_bits)) if isinstance(wkv_bits, tuple) else dict.fromkeys(STATE_STREAMS, wkv_bits)
+    return {s: IntScoreCodec(per[s], shift_bits) for s in STATE_STREAMS}
+
+
 def score_path(codecs):
     """Row metadata: which computation each stream's WKV codec ran."""
     names = {0: "card", 2: "note"}
+    if all(isinstance(c, IntScoreCodec) for c in codecs.values()):
+        return {names[s]: f"int kernel bits {c.wkv_bits}, shift bits {c.shift_bits}" for s, c in codecs.items()}
     return {names[s]: (f"fused kernel, Gram squaring {str(c.factor_dtype).replace('torch.', '')}"
                        if c.score_kernel is not None else
                        f"torch step loop, {c.rec.factor} {str(c.factor_dtype).replace('torch.', '')}")
@@ -855,6 +890,9 @@ def score_wkv(r_BTHK, k_BTHK, v_BTHK, w_BTHK, a_BTHK, k_deformed_BTHK, skip_BT, 
     """Forward-only card/note WKV with the stored state coded after every non-skipped step (scoring)."""
     codec = SCORE[slot]
     out_dtype = k_BTHK.dtype
+    if isinstance(codec, IntScoreCodec):   # SM47: the int kernel (scripts/small_model_wkv), any device
+        from scripts.small_model_wkv import wkv_long
+        return wkv_long(r_BTHK, k_BTHK, v_BTHK, w_BTHK, a_BTHK, k_deformed_BTHK, skip_BT, codec.wkv_bits).to(out_dtype)
     r, k, v, w, a, kd = (x.float().contiguous() for x in (r_BTHK, k_BTHK, v_BTHK, w_BTHK, a_BTHK, k_deformed_BTHK))
     skip = skip_BT.bool().contiguous()
     kc = codec.score_kernel

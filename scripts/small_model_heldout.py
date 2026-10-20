@@ -17,6 +17,10 @@ like the fork's runtime int8), +vq<recipe> (expertium models: Expertium-style VQ
 scripts/state_vq.py recipes, codebooks from --vq-codebooks; SM32 on CPU, SM44 on CUDA: rank-1 streams on the fused
 kernel scripts/kernels/state_vq_wkv.cu with the Gram-squaring factorization in --vq-factor-dtype, rank-2 streams on a
 per-step torch loop; see scripts/state_vq.py "GPU scoring"). Example: fp32,w8+s8,w8+vq403x214.
++s4c8n (SM45, expertium): int4 card / int8 note WKV rows. SM47 suffixes on +s8 / +s4c8n (expertium): h = float16 row
+scales instead of float32, x8 = the card/note stored token-shift vectors as int8 codes + one per-vector scale (float16
+with h, else float32), e.g. w8+s8h, w8+s8x8, w8+s4c8nhx8; on CUDA they run through the state-VQ slots
+(scripts/state_vq.IntScoreCodec: the int WKV kernel with the F16_SCALE flag + the shift hook).
 On CPU the expertium models route their WKV recurrence through scripts/state_vq.py (before SM32, +s8 was silently
 ignored on the CPU path: RWKV7TimeMixer calls reference_rwkv7, not the patched RWKV7_WKV, for CPU tensors).
 Resumable JSONL, one row per (user, tag/variant).
@@ -155,16 +159,44 @@ class WindowBatches(UserBatches):
         return user, batch, None, time.perf_counter() - started
 
 
+class IntState(tuple):
+    """SM47 int state variant: (wkv_bits, shift_bits, scale_bits). wkv_bits = int or (card, note) tuple, F16_SCALE
+    flag set for float16 row scales; shift_bits = 0 (float shift vectors) or 8 (| F16_SCALE); scale_bits 16 / 32."""
+    __slots__ = ()
+    wkv_bits = property(lambda self: self[0])
+    shift_bits = property(lambda self: self[1])
+    scale_bits = property(lambda self: self[2])
+
+
 def parse_variant(name):
     weights, _, state = name.partition("+")
     scheme = {"fp32": "fp32", "w8": "w8-pc", "w4": "w4-g32"}.get(weights)
     if state.startswith("vq") and scheme is not None:
         return scheme, state
+    import re
+    m = re.fullmatch(r"(s8|s4c8n)(h?)(x8)?", state)
+    if scheme is not None and m and (m.group(2) or m.group(3)):   # SM47: f16 row scales (h), int8 shift vectors (x8)
+        from scripts.small_model_wkv import F16_SCALE
+        flag = F16_SCALE if m.group(2) else 0
+        wkv = 8 | flag if m.group(1) == "s8" else (4 | flag, 8 | flag)
+        return scheme, IntState((wkv, (8 | flag) if m.group(3) else 0, 16 if flag else 32))
     if scheme is not None and state == "s4c8n":   # SM45: int4 card state, int8 note state
         return scheme, (4, 8)
     if scheme is None or state not in ("", "s8", "s4"):
         raise SystemExit(f"unknown variant {name}")
     return scheme, {"": 0, "s8": 8, "s4": 4}[state]
+
+
+def state_fields(state_bits):
+    """Row fields describing the state precision (SM47 rows add scale / shift precision and bits per entity)."""
+    if isinstance(state_bits, IntState):
+        from scripts.state_vq_report import int_entity_bits
+        wkv = state_bits.wkv_bits
+        plain = [b & 255 for b in wkv] if isinstance(wkv, tuple) else wkv & 255
+        card, note = int_entity_bits(plain, state_bits.scale_bits, state_bits.shift_bits & 255)
+        return {"state_bits": plain, "state_scale_bits": state_bits.scale_bits,
+                "state_shift_bits": state_bits.shift_bits & 255 or 32, "state_entity_bits": {"card": card, "note": note}}
+    return {"state_bits": list(state_bits) if isinstance(state_bits, tuple) else state_bits or 32}
 
 
 def main():
@@ -189,6 +221,8 @@ def main():
                         help="scripts/state_vq.py codebooks for +vq variants (scripts/state_vq_fit.py)")
     parser.add_argument("--vq-factor-dtype", choices=("float64", "float32"), default="float64",
                         help="CUDA +vq: factorization type of the fused kernel (float64 = the CPU scorer's)")
+    parser.add_argument("--emulate-gpu-path", action="store_true", help="check only (SM47, --device cpu, int "
+                        "variants with h/x8): run the CUDA dispatch (state-VQ slots, IntScoreCodec) on CPU tensors")
     parser.add_argument("--dump", default="", help="also write per-review benchmark predictions (review_th, bin, y, "
                         "p_ahead, p_instant) to DIR/<user>_<tag>_<variant>.npz, for calibration diagnostics")
     args = parser.parse_args()
@@ -255,7 +289,8 @@ def main():
                 model = build_expertium(arch, base)
                 from scripts import state_vq
                 # CPU: the Hooks path (reference WKV + shift gather); CUDA: the eager model's state-VQ slots (SM44)
-                layouts[tag] = state_vq.install(model) if cpu else state_vq.install_scoring(model)
+                layouts[tag] = (state_vq.install(model) if cpu and not args.emulate_gpu_path
+                                else state_vq.install_scoring(model))
             models[tag] = (kind, model.to(device), base, cq.linear_weight_names(base))
         kind, model, base, names = models[tag]
         if (tag, scheme) not in states:
@@ -297,6 +332,17 @@ def main():
                     if isinstance(state_bits, tuple):
                         raise SystemExit("per-stream state bits are for expertium-kind models only")
                     cq.set_state_bits(model, state_bits)
+                elif isinstance(state_bits, IntState):   # SM47
+                    from scripts import state_vq
+                    set_expertium_state_bits(model, 0)
+                    if cpu and not args.emulate_gpu_path:
+                        state_vq.configure(layouts[tag], None, state_bits.wkv_bits, state_bits.shift_bits)
+                    else:
+                        codecs_int = state_vq.int_score_codecs(state_bits.wkv_bits, state_bits.shift_bits)
+                        state_vq.set_scoring(layouts[tag], codecs_int)
+                        vq_path = state_vq.score_path(codecs_int)
+                elif cpu and args.emulate_gpu_path:
+                    raise SystemExit("--emulate-gpu-path is for the SM47 int variants (h / x8) only")
                 elif cpu:
                     from scripts import state_vq
                     set_expertium_state_bits(model, 0)  # the GPU kernel's bits; CPU state goes through state_vq
@@ -345,7 +391,7 @@ def main():
                     torch.cuda.synchronize()
                 rows.append({"user_id": user, "label": label, "tag": tag, "variant": variant, "kind": kind,
                              "arch": specs[tag][1], "checkpoint": specs[tag][2], "parameters": params,
-                             "weight_bytes": nbytes, "state_bits": list(state_bits) if isinstance(state_bits, tuple) else state_bits or 32, "reviews": counts[str(user)],
+                             "weight_bytes": nbytes, **state_fields(state_bits), "reviews": counts[str(user)],
                              **({"state_vq": vq_info, "vq_codebooks": args.vq_codebooks,
                                  "vq_codebooks_sha256": codecs.get("sha256")} if vq_info else {}),
                              **({"state_vq_path": vq_path} if vq_path else {}),
