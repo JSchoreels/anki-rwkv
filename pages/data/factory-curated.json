@@ -606,6 +606,18 @@
    "ended_at": "2026-10-20T13:48:07+02:00"
   },
   {
+   "what": "int4 card state + int8 note state for the best model (SM36), and int4 everywhere, on 732 users with curve and instant (3-user GPU-vs-CPU check first)",
+   "id": "SM45",
+   "kind": "gpu-check",
+   "minutes": 60,
+   "track": "small model",
+   "match": [
+    "SM45"
+   ],
+   "when": "10-20 ~17:00 (high priority: right after SM43 full A)",
+   "decides": "Is int4 card state free for the small model too (the fork-side test on 1,000 users: +0.68% &rarr; +0.70% instant)? Card state ~40&ndash;50% smaller, ship-ready"
+  },
+  {
    "what": "Data diversity vs epochs, full size: 1,250 users &times; (10 + 1 decay) epochs vs 125 of them &times; (100 + 10 decay), same reviews seen (~1.06B each), fast 2,048-window recipe, both scored on 732 users",
    "id": "SM43",
    "kind": "gpu-train",
@@ -614,7 +626,7 @@
    "match": [
     "SM43 full"
    ],
-   "when": "10-20 13:59 &rarr; ~20:50 (A ~2.9 h, B ~3.4 h, scoring ~30 min)",
+   "when": "10-20 13:59 &rarr; ~21:50 (A ~2.9 h, then SM45 jumps in for ~1 h, B ~3.4 h, scoring ~30 min)",
    "decides": "Does the gap from the mini (+0.36% / +0.46% for fewer users, more passes) grow or shrink once both arms are trained much longer?",
    "state": "running",
    "started_at": "2026-10-20T13:59:26+02:00"
@@ -628,7 +640,7 @@
    "match": [
     "SM44"
    ],
-   "when": "10-20 after SM43 full (~20:50), ~2.5&ndash;4 h; code ready 15:45 (CPU check: identical to the CPU scorer)",
+   "when": "10-20 after SM43 full (~21:50), ~2.5&ndash;4 h; code ready 15:45 (CPU check: identical to the CPU scorer)",
    "decides": "Compression checks in minutes instead of 1 h on 68 users, on the standard 732 users; does ~800 bits get close enough to the &le; +1.0% bar?"
   },
   {
