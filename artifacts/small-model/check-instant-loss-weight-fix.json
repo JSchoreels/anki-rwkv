@@ -1,0 +1,63 @@
+{
+  "ok": true,
+  "seconds": 16.317745200009085,
+  "checks": {
+    "plain: option absent == code before SM26 (5c826c8a), loss + loss tensor + gradients bitwise": {
+      "value": 2.323317050933838,
+      "ok": true
+    },
+    "plain: weight 1.0 == option absent bitwise": {
+      "value": 2.323317050933838,
+      "ok": true
+    },
+    "plain: weight 2.0 loss = loss(1.0) + instant average (curve + 2 x instant + regularizers)": {
+      "value": {
+        "w1": 2.323317050933838,
+        "w2": 4.021217346191406,
+        "instant": 1.697900414466858,
+        "abs_gap": 0.0
+      },
+      "ok": true
+    },
+    "plain: weight 2.0 gradients differ": {
+      "value": "342/354 tensors",
+      "ok": true
+    },
+    "plain: weight 2.0 reported predictions and instant average unchanged": {
+      "value": true,
+      "ok": true
+    },
+    "kd + sync_free_loss: option absent == code before SM26 (5c826c8a), loss + loss tensor + gradients bitwise": {
+      "value": 2.296367883682251,
+      "ok": true
+    },
+    "kd + sync_free_loss: weight 1.0 == option absent bitwise": {
+      "value": 2.296367883682251,
+      "ok": true
+    },
+    "kd + sync_free_loss: weight 2.0 loss = loss(1.0) + instant average (curve + 2 x instant + regularizers)": {
+      "value": {
+        "w1": 2.296367883682251,
+        "w2": 3.9682698249816895,
+        "instant": 1.671902060508728,
+        "abs_gap": 0.0
+      },
+      "ok": true
+    },
+    "kd + sync_free_loss: weight 2.0 gradients differ": {
+      "value": "342/354 tensors",
+      "ok": true
+    },
+    "kd + sync_free_loss: weight 2.0 reported predictions and instant average unchanged": {
+      "value": true,
+      "ok": true
+    },
+    "KD cache digest identical with and without instant_loss_weight": {
+      "value": [
+        "batches-2a514e9af643",
+        "batches-2a514e9af643"
+      ],
+      "ok": true
+    }
+  }
+}

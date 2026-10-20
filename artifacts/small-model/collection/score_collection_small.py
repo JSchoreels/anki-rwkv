@@ -43,7 +43,7 @@ from scripts import small_model_heldout as sm  # noqa: E402
 _run_info = cc.run_info
 cc.run_info = lambda: dict(_run_info(), review_counts={"1": 223670}, dataset_path=str(COLL / "collection-dataset"))
 cc.data_path = lambda run=None: COLL / "collection-dataset"
-sm.heldout_users = lambda counts: [1]
+sm.heldout_users = lambda counts, *pool: [1]  # the scorer now also passes --pool
 _open = lmdb.open
 lmdb.open = lambda path, *a, **k: _open(str(COLL / "collection-label-db") if str(path).endswith("label-db") else path, *a, **k)
 
