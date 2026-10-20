@@ -19,6 +19,16 @@ CARDS, NOTES = 246_801, 76_887
 FLOAT_BITS = {"card": 2 * 4 * 256 * 32 + 3 * 64 * 32, "note": 4 * 256 * 32 + 2 * 64 * 32}
 # +s8: int8 codes + one f32 scale per 16-element WKV row; shift vectors stay f32 on the student path.
 S8_BITS = {"card": 2 * 64 * (16 * 8 + 32) + 3 * 64 * 32, "note": 64 * (16 * 8 + 32) + 2 * 64 * 32}
+STUDENT = {"card": (2, 3), "note": (1, 2)}   # (WKV layers, token-shift vectors); 4 heads x 16 rows of 16, d_model 64
+
+
+def int_entity_bits(wkv_bits, scale_bits=32, shift_bits=0):
+    """(card, note) bits of the int state variants (SM45/SM47): per WKV row 16 codes of wkv_bits + one scale of
+    scale_bits; per shift vector 64 float32 (shift_bits 0 / 32) or 64 codes of shift_bits + one scale of scale_bits.
+    wkv_bits = int or (card, note). int8 card = 2*64*(16*8+32) + 3*64*32 = 26,624."""
+    per = dict(zip(("card", "note"), wkv_bits)) if isinstance(wkv_bits, (tuple, list)) else dict.fromkeys(STUDENT, wkv_bits)
+    vec = 64 * 32 if shift_bits in (0, 32) else 64 * shift_bits + scale_bits
+    return tuple(layers * 64 * (16 * per[e] + scale_bits) + shifts * vec for e, (layers, shifts) in STUDENT.items())
 
 
 def load(paths):
@@ -39,8 +49,10 @@ def bits_of(row):
     if row.get("kind") == "fork":  # fork runtime state (scripts/compress_quant.state_bytes; card 3, note 2 layers)
         precision = "int8" if row.get("state_bits") == 8 else "f32"
         return 8 * cq.state_bytes(3, precision=precision), 8 * cq.state_bytes(2, precision=precision)
-    if row.get("state_bits") == 8:
-        return S8_BITS["card"], S8_BITS["note"]
+    if "state_entity_bits" in row:   # SM47 rows
+        return row["state_entity_bits"]["card"], row["state_entity_bits"]["note"]
+    if row.get("state_bits") in (8, 4, [4, 8]):
+        return int_entity_bits(row["state_bits"])
     return FLOAT_BITS["card"], FLOAT_BITS["note"]
 
 
