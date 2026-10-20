@@ -670,6 +670,18 @@
    "decides": "Smallest no-retraining format: int4 cards + int8 notes + 16-bit scales + int8 short-term vectors = 11,824 / 10,272 bits per card / note (&minus;46% vs today&rsquo;s int8, ~38 MB vs ~70 MB for 13,973 cards / 13,198 notes). Is it still nearly free?"
   },
   {
+   "what": "Faster held-out scoring: benchmark metrics computed on arrays instead of Python loops (same results bit for bit), and scoring 2 or 4 users at once on the GPU",
+   "id": "SM48",
+   "kind": "gpu-speed",
+   "minutes": 30,
+   "track": "small model",
+   "match": [
+    "SM48"
+   ],
+   "when": "after SM47 (10-21 morning), one timing run of ~12&ndash;20 min on 40 users; code ready 19:31 (CPU checks: identical results)",
+   "decides": "How much faster pool scoring gets. Profile: only half of scoring time is the model; the other half is Python bookkeeping (metrics alone ~10&times; cheaper now, ~1.5&times; projected overall), and the model call keeps 4 of the GPU&rsquo;s 84 compute units busy, hence several users at once. Projections only until the timing run."
+  },
+  {
    "what": "Carried state, code (CPU): full-history targets (SM11, 18/18 checks) + kernels with a starting state and the trainer option (SM21, all checks bit for bit); merged together",
    "id": "SM21, SM11",
    "kind": "cpu",
