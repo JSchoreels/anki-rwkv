@@ -249,6 +249,19 @@ class Codebooks:
 
 # ------------------------------------------------------------------------------------------------ state codecs
 
+EIGH_CUDA_CHUNK = 1024   # matrices per CUDA eigh call: cusolverDnXsyevBatched takes ~0.6 MB of workspace per 16 x 16
+                         # float64 matrix (SM46 OOM: 11.3 GiB for ~19,700 at once); chunked results are bitwise the
+                         # same (each matrix is solved on its own; checked on 5,000 random Grams, chunks 2048 .. 1)
+
+
+def _eigh(G):
+    """torch.linalg.eigh of a batch [N, K, K]; on CUDA in chunks of EIGH_CUDA_CHUNK (bounded workspace, same values)."""
+    if not G.is_cuda or G.shape[0] <= EIGH_CUDA_CHUNK:
+        return torch.linalg.eigh(G)
+    parts = [torch.linalg.eigh(G[i:i + EIGH_CUDA_CHUNK]) for i in range(0, G.shape[0], EIGH_CUDA_CHUNK)]
+    return torch.cat([p[0] for p in parts]), torch.cat([p[1] for p in parts])
+
+
 def factorize(A, rank, dtype=torch.float64):
     """Top-`rank` factors of A [N, K, K] (`dtype` inside, float64 for the scorer): unit u, unit v, sigma, valid mask,
     each [N, rank, (K)].
@@ -257,7 +270,7 @@ def factorize(A, rank, dtype=torch.float64):
     amax = A64.abs().amax(dim=(1, 2))
     scale = torch.where(torch.isfinite(amax) & (amax > 1e-30), amax, torch.ones_like(amax))
     an = A64 / scale[:, None, None]
-    evals, evecs = torch.linalg.eigh(an @ an.transpose(1, 2))       # ascending
+    evals, evecs = _eigh(an @ an.transpose(1, 2))                   # ascending
     order = torch.arange(K - 1, K - 1 - rank, -1, device=A.device)
     ev = evals[:, order]                                             # [N, r]
     u = evecs[:, :, order].transpose(1, 2)                           # [N, r, K]
