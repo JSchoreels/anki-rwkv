@@ -629,9 +629,10 @@
     "SM43 full"
    ],
    "when": "10-20 13:59 &rarr; ~21:30 (A done 16:55, SM45 35 min, B from 17:30 ~3.4 h, scoring ~30 min)",
-   "decides": "Does the gap from the mini (+0.36% / +0.46% for fewer users, more passes) grow or shrink once both arms are trained much longer?",
-   "state": "running",
-   "started_at": "2026-10-20T13:59:26+02:00"
+   "decides": "More users win, and the gap grows: 125 users &times; 110 epochs +0.77% curve / +0.55% instant worse than 1,250 &times; 11 (723 users)",
+   "state": "done",
+   "started_at": "2026-10-20T13:59:26+02:00",
+   "ended_at": "2026-10-20T21:26:38+02:00"
   },
   {
    "what": "Compressed state in the GPU scorer (kernels from SM32c), 5-user GPU check, then scoring on 732 users: the best model at ~400 and ~800 bits per card/note, and the SM32c model at int8 and ~400 bits",
@@ -642,7 +643,7 @@
    "match": [
     "SM44"
    ],
-   "when": "10-21 01:00 (after the GPU break), ~2.5&ndash;4 h; code ready 15:45 (CPU check: identical to the CPU scorer)",
+   "when": "GPU check failed 21:28: the GPU path disagrees with the CPU scorer on the best model (up to 0.0008 LogLoss on one user at ~800 bits; the SM32c model matches). Being diagnosed; rerun after the break once fixed",
    "decides": "Compression checks in minutes instead of 1 h on 68 users, on the standard 732 users; does ~800 bits get close enough to the &le; +1.0% bar?"
   },
   {
@@ -654,7 +655,7 @@
    "match": [
     "SM46"
    ],
-   "when": "after SM44 (~10-21 04:00&ndash;05:00), ~1.2&ndash;2.5 h (464 users first, then the rest of the 732 if fast enough); code ready 17:26 (CPU check: identical to the CPU scorer)",
+   "when": "GPU check failed 21:28: out of GPU memory in the codec (an 11 GB step). Being fixed; rerun after the break once fixed",
    "decides": "Is compression nearly free at ~4.5&times; smaller than int8? 8-user screen: +0.00006 curve / +0.00014 instant"
   },
   {
@@ -666,7 +667,7 @@
    "match": [
     "SM47"
    ],
-   "when": "after SM46 (10-21 morning), ~2 h; code ready 19:19 (CPU check: old results reproduce exactly)",
+   "when": "queued, starts 01:00 (after the GPU break; now ahead of SM44 / SM46), ~2 h; code ready 19:19 (CPU check: old results reproduce exactly)",
    "decides": "Smallest no-retraining format: int4 cards + int8 notes + 16-bit scales + int8 short-term vectors = 11,824 / 10,272 bits per card / note (&minus;46% vs today&rsquo;s int8, ~38 MB vs ~70 MB for 13,973 cards / 13,198 notes). Is it still nearly free?"
   },
   {
@@ -678,7 +679,7 @@
    "match": [
     "SM48"
    ],
-   "when": "after SM47 (10-21 morning), one timing run of ~12&ndash;20 min on 40 users; code ready 19:31 (CPU checks: identical results)",
+   "when": "after SM47 (~03:00), one timing run of ~12&ndash;20 min on 40 users; code ready 19:31 (CPU checks: identical results)",
    "decides": "How much faster pool scoring gets. Profile: only half of scoring time is the model; the other half is Python bookkeeping (metrics alone ~10&times; cheaper now, ~1.5&times; projected overall), and the model call keeps 4 of the GPU&rsquo;s 84 compute units busy, hence several users at once. Projections only until the timing run."
   },
   {
@@ -1000,6 +1001,20 @@
   "s-w64kd-gate-ctx2048c-dec8-1ep/w8+s8"
  ],
  "results": [
+  {
+   "date": "10-20",
+   "kind": "gpu-train",
+   "name": "Data diversity vs epochs, full size: 125 users &times; (100 + 10 decay) epochs vs 1,250 users &times; (10 + 1 decay), same ~1.06B reviews seen, from scratch, 2,048 windows",
+   "id": "SM43",
+   "curve": 0.31102,
+   "instant": 0.28619,
+   "curve_pct": 3.19,
+   "instant_pct": 3.0,
+   "eval": "723 users (732 set), 30.48M reviews",
+   "fork": "1,250 users &times; 11 epochs: 0.30863 / 0.28462 (+2.40% / +2.43% vs the big model)",
+   "takeaway": "<strong>More users win, and the gap grows with training</strong>: fewer users, more passes +0.77% [+0.58, +1.00] curve / +0.55% [+0.47, +0.65] instant (mini: +0.36% / +0.46%). Worse in every size band (light / mid / heavy +0.97 / +0.76 / +0.76% curve). Keep training on as many users as possible",
+   "track": "small model"
+  },
   {
    "date": "10-19",
    "kind": "gpu-train",
