@@ -2,7 +2,7 @@
  "headline": [
   {
    "k": "Best, 464 users (curve / instant)",
-   "v": "0.30004 / 0.27416",
+   "v": "0.30006 / 0.27402",
    "compare": [
     {
      "variant": "Big model (reference)",
@@ -13,7 +13,17 @@
      "quant": "w8+s8"
     },
     {
-     "variant": "Best: carried state v2 + one-epoch 32k decay (SM40)",
+     "variant": "Best: same, with Muon instead of AdamW for the decay (SM36); curve tied, instant better",
+     "curve": 0.30006,
+     "instant": 0.27402,
+     "curve_pct": 0.81,
+     "instant_pct": 0.68,
+     "eval": "464 users, 22.66M reviews",
+     "date": "10-20",
+     "quant": "w8+s8"
+    },
+    {
+     "variant": "Previous best: carried state v2 + one-epoch 32k decay (SM40)",
      "curve": 0.30004,
      "instant": 0.27416,
      "curve_pct": 0.8,
@@ -28,16 +38,6 @@
      "instant": 0.27471,
      "curve_pct": 1.11,
      "instant_pct": 0.94,
-     "eval": "464 users, 22.66M reviews",
-     "date": "10-17",
-     "quant": "w8+s8"
-    },
-    {
-     "variant": "Best before that: epoch 9 + decay at 16k, scored at 32k (Q11)",
-     "curve": 0.30066,
-     "instant": 0.2749,
-     "curve_pct": 1.01,
-     "instant_pct": 1.01,
      "eval": "464 users, 22.66M reviews",
      "date": "10-17",
      "quant": "w8+s8"
@@ -561,10 +561,10 @@
    "match": [
     "SM36"
    ],
-   "decides": "First GPU test of the optimizer from outside research (largest instant gain there); toward +0.5%",
-   "state": "running",
+   "decides": "Small win on instant only: vs the best model (AdamW) curve tied (+0.00002 [-0.00034, +0.00046]), instant -0.00018 [-0.00022, -0.00013] on 464 users (+0.81% / +0.68% vs the big model); same on 723 users (-0.00017 / -0.00020). Not the road to +0.5% by itself",
+   "state": "done",
    "started_at": "2026-10-20T01:01:33+02:00",
-   "when": "10-20 01:01 &rarr; ~07:45"
+   "ended_at": "2026-10-20T06:42:20+02:00"
   },
   {
    "id": "SM32c",
@@ -600,8 +600,10 @@
    "match": [
     "SM32c 1-epoch decay"
    ],
-   "when": "10-20 after the Muon test (~07:45&ndash;14:45); code written and CPU-checked 10-20 00:20",
-   "decides": "Does compression trained in properly remove its cost (now +0.4% / +0.9% after training)? If yes: ~45&times; smaller state than int8, any collection size on any phone"
+   "when": "10-20 06:42 &rarr; ~13:30 (GPU), then CPU scoring ~1 h",
+   "decides": "Does compression trained in properly remove its cost (now +0.4% / +0.9% after training)? If yes: ~45&times; smaller state than int8, any collection size on any phone",
+   "state": "running",
+   "started_at": "2026-10-20T06:42:35+02:00"
   },
   {
    "what": "Data diversity vs epochs, full size: 1,250 users &times; (10+1) epochs vs 125 users &times; (100+10), same reviews seen, fast 2,048-window recipe, both scored on 732 users",
@@ -612,7 +614,7 @@
    "match": [
     "SM43"
    ],
-   "when": "10-20 after SM32c (~15:00&ndash;20:30)",
+   "when": "10-20 after SM32c (~14:30&ndash;20:00)",
    "decides": "Does the gap from the mini (+0.36% / +0.46% for fewer users, more passes) grow or shrink once both arms are trained much longer?"
   },
   {
@@ -711,7 +713,7 @@
    "id": "SM32c",
    "track": "small model",
    "item": "State compression (~400 bits per card/note) with codebooks learned during training, in the one-epoch 32k decay of the best model",
-   "why": "Why we do not compress yet: after training it costs +0.4% / +0.9% (68 users), which breaks the &le; +1.0% bar; training with frozen codebooks made it worse (confirmed on 68 users). Outside research removes the cost with learned codebooks and a full decay. Payoff: ~45&times; smaller state than int8 (4.6 KB &rarr; ~0.1 KB per card), any collection size on any phone. Code ready 10-20 00:20 (CPU-checked); runs after the Muon test, ~7 h GPU (a full one-epoch decay with carried state, like the best model) + CPU scoring; then codebook state in the fork runtime (with SM08)"
+   "why": "Why we do not compress yet: after training it costs +0.4% / +0.9% (68 users), which breaks the &le; +1.0% bar; training with frozen codebooks made it worse (confirmed on 68 users). Outside research removes the cost with learned codebooks and a full decay. Payoff: ~45&times; smaller state than int8 (4.6 KB &rarr; ~0.1 KB per card), any collection size on any phone. Code ready 10-20 00:20 (CPU-checked); running since 10-20 06:42, ~7 h GPU (a full one-epoch decay with carried state, like the best model) + CPU scoring; then codebook state in the fork runtime (with SM08)"
   },
   {
    "status": "done",
@@ -721,10 +723,10 @@
    "track": "small model"
   },
   {
-   "status": "next",
+   "status": "done",
    "item": "Muon optimizer for the student",
    "id": "SM36",
-   "why": "Queued 10-19 as a one-epoch 32k decay with Muon, paired with the best model (AdamW)",
+   "why": "Done 10-20: Muon for the one-epoch 32k decay ties the best model on curve and is a little better on instant (-0.00018, about -0.05 points; 464 users: +0.81% / +0.68% vs the big model). Kept as the new best; outside research also tunes its learning rate (open tuning queue)",
    "track": "small model"
   },
   {
