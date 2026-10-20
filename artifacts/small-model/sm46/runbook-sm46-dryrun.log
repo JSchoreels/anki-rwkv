@@ -1,0 +1,9 @@
+[sm46 10-20 17:26:10] start (053b5e34 SM46: large-budget state codec vq5902x3028 (5,902 / 3,028 bits, rank 6) for SM36, k-means books on SM36 states, CPU check bitwise, runbook and summary)
+[sm46 10-20 17:26:10] DRYRUN enqueue: SM46 GPU check: GPU +vq5902x3028 scorer path (rank-6 torch loop) vs CPU scorer on 3 small users, reviews/s (expected 25 min)
+    cmd: C:/Users/jonat/workspace/anki-rwkv/.venv/Scripts/python.exe -X utf8 C:/Users/jonat/workspace/wt/sm46/scripts/check_state_vq_score_gpu.py gpu --cases C:/Users/jonat/workspace/wt/sm46/artifacts/small-model/sm46/check-cases.json --users 3 --ref-dir C:/Users/jonat/workspace/wt/sm46/artifacts/small-model/sm46/check-ref --output C:/Users/jonat/workspace/wt/sm46/artifacts/small-model/sm46/check-sm46-gpu.json
+[sm46 10-20 17:26:12] 732 pool projects 332 min (> 240): scoring only the 464 pool
+[sm46 10-20 17:26:13] pool 464 pass 1: 464 users / 31869859 reviews to score, ~216 min at the check's rate; ticket 110 min, user start limit 101 min (largest user ~8 min)
+[sm46 10-20 17:26:13] DRYRUN enqueue: SM46: pool 464 scoring of SM36 w8+vq5902x3028 (464 users, pass 1) (expected 110 min)
+    cmd: C:/Users/jonat/workspace/anki-rwkv/.venv/Scripts/python.exe -X utf8 C:/Users/jonat/workspace/wt/sm46/scripts/small_model_heldout.py --model s-w64kd-gate-sc-lanes-dec12-1ep32k-muon=expertium:w64:C:/Users/jonat/workspace/wt/sm42/artifacts/small-model/scale-w64kd-gate-sc-lanes-cont-decay1ep32k-muon/expertium/E89-F65e-F77a/master.pth --only s-w64kd-gate-sc-lanes-dec12-1ep32k-muon/w8+vq5902x3028 --pool 464 --vq-codebooks C:/Users/jonat/workspace/wt/sm46/artifacts/small-model/sm46/books/codebooks-sm46.npz --time-limit 6060 --out C:/Users/jonat/workspace/wt/sm46/artifacts/small-model/sm46/heldout-sm46.jsonl
+[sm46 10-20 17:26:13] DRYRUN summary: C:/Users/jonat/workspace/anki-rwkv/.venv/Scripts/python.exe -X utf8 C:/Users/jonat/workspace/wt/sm46/artifacts/small-model/sm46/sm46_summary.py
+[sm46 10-20 17:26:13] DRYRUN OK
