@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-10-20T06:47:30+02:00",
- "updated": "2026-10-20 06:47",
- "material": "ae9d0f3f3086fd07",
- "summary": "running 000554, finished 000553",
+ "generated_at": "2026-10-20T13:50:54+02:00",
+ "updated": "2026-10-20 13:50",
+ "material": "be416c11e4cadafe",
+ "summary": "idle, finished 000554",
  "headline": [
   {
    "k": "Best, 464 users (curve / instant)",
@@ -137,25 +137,18 @@
    "track": "small model"
   }
  ],
- "now": [
-  {
-   "what": "State compression (~400 bits per card/note) with codebooks learned during training, in the one-epoch 32k decay of the best model (with carried state) + CPU scoring on 68 users",
-   "id": "SM32c, ticket 000554",
-   "kind": "gpu-train",
-   "decides": "Does compression trained in properly remove its cost (now +0.4% / +0.9% after training)? If yes: ~45&times; smaller state than int8, any collection size on any phone",
-   "why": "",
-   "job": "SM32c 1-epoch decay at 32k, lanes carry, learned state compression ~400 bits (smoke first)",
-   "linked": true,
-   "track": "small model",
-   "ticket": "000554-small-model",
-   "started": "06:42",
-   "elapsed": "0:04",
-   "progress": null,
-   "eta": "~13:42"
-  }
- ],
+ "now": [],
  "waiting": [],
  "recent": [
+  {
+   "ticket": "000554-small-model",
+   "id": "SM32c",
+   "what": "SM32c 1-epoch decay at 32k, lanes carry, learned state compression ~400 bits (smoke first)",
+   "ended": "12:50",
+   "date": "10-20",
+   "exit": 0,
+   "ran": "6:08"
+  },
   {
    "ticket": "000553-small-model",
    "id": "SM36",
@@ -200,15 +193,6 @@
    "date": "10-20",
    "exit": 0,
    "ran": "0:00"
-  },
-  {
-   "ticket": "000548-small-model",
-   "id": "SM43",
-   "what": "SM43 mini scoring A and B, 732 pool (pass 2)",
-   "ended": "19:32",
-   "date": "10-19",
-   "exit": 0,
-   "ran": "0:01"
   }
  ],
  "plan": [
@@ -681,13 +665,13 @@
    "kind": "gpu-train",
    "minutes": 420,
    "track": "small model",
-   "when": "10-20 06:42 &rarr; ~13:30 (GPU), then CPU scoring ~1 h",
-   "decides": "Does compression trained in properly remove its cost (now +0.4% / +0.9% after training)? If yes: ~45&times; smaller state than int8, any collection size on any phone",
-   "state": "running",
+   "decides": "Only a small gain: learned codebooks cut the compression cost from +0.42% / +0.93% to +0.38% [+0.18, +0.56] / +0.79% [+0.62, +0.97] vs the best model with int8 state (68 users); the &le; +1.0% bar still breaks. The model trained this way is worse with int8 state (+0.98% / +1.30%). Training took 6.1 h + 1 h CPU scoring",
+   "state": "done",
    "started_at": "2026-10-20T06:42:35+02:00",
-   "started": "06:42",
-   "ticket": "000554-small-model",
-   "ends_at": "2026-10-20T13:42:35+02:00"
+   "ended_at": "2026-10-20T12:50:42+02:00",
+   "ended": "12:50",
+   "exit": 0,
+   "started": "06:42"
   },
   {
    "what": "Data diversity vs epochs, full size: 1,250 users &times; (10+1) epochs vs 125 users &times; (100+10), same reviews seen, fast 2,048-window recipe, both scored on 732 users",
@@ -695,7 +679,7 @@
    "kind": "gpu-train",
    "minutes": 330,
    "track": "small model",
-   "when": "10-20 after SM32c (~14:30&ndash;20:00)",
+   "when": "10-20 ~15:00&ndash;20:30 (launcher being built)",
    "decides": "Does the gap from the mini (+0.36% / +0.46% for fewer users, more passes) grow or shrink once both arms are trained much longer?",
    "state": "done",
    "ended": "19:32",
@@ -797,11 +781,11 @@
    "track": "small model"
   },
   {
-   "status": "next",
+   "status": "done",
    "id": "SM32c",
    "track": "small model",
    "item": "State compression (~400 bits per card/note) with codebooks learned during training, in the one-epoch 32k decay of the best model",
-   "why": "Why we do not compress yet: after training it costs +0.4% / +0.9% (68 users), which breaks the &le; +1.0% bar; training with frozen codebooks made it worse (confirmed on 68 users). Outside research removes the cost with learned codebooks and a full decay. Payoff: ~45&times; smaller state than int8 (4.6 KB &rarr; ~0.1 KB per card), any collection size on any phone. Code ready 10-20 00:20 (CPU-checked); running since 10-20 06:42, ~7 h GPU (a full one-epoch decay with carried state, like the best model) + CPU scoring; then codebook state in the fork runtime (with SM08)"
+   "why": "Done 10-20: learned codebooks during the one-epoch 32k decay (outside research&rsquo;s method) only cut the compression cost from +0.42% / +0.93% to +0.38% / +0.79% (68 users) vs int8 state. Not enough for the &le; +1.0% bar on top of the best model; int8 state stays the standard. Payoff would have been ~45&times; smaller state (4.6 KB &rarr; ~0.1 KB per card)"
   },
   {
    "status": "done",
@@ -992,7 +976,8 @@
    "eval": "723 users (732 set)",
    "fork": "1,000 users &times; 1 epoch: 0.32774 / 0.30309 (+8.74% / +9.08% vs the big model)",
    "takeaway": "<strong>More users win, mostly on instant</strong>: fewer users, more passes +0.36% [&minus;0.06, +0.82] curve / +0.46% [+0.25, +0.69] instant; calibration worse too (RMSE(bins) 0.0687 vs 0.0642). By history length the loss is all on heavy users (+0.53% / +0.64%); light users gain slightly (&minus;0.25% / &minus;0.41%). Both arms are early in training (+9% vs the big model); the full-size run tells whether this holds",
-   "track": "small model"
+   "track": "small model",
+   "when": "10-20 ~15:00&ndash;20:30 (launcher being built)"
   },
   {
    "date": "10-19",
