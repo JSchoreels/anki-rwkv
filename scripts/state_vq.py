@@ -112,6 +112,29 @@ RECIPES.update({name + "p": tuple(replace(rec, factor="sq") for rec in RECIPES[n
                 for name in ("vq378x412", "vq770x412")})
 
 
+# SM46 (2026-10-20): the large budget asked by the outside researcher, ~6,000 bits per card and ~3,000 per note (int8
+# card state is 26,624 bits). Picked with the model-free held-out proxy (artifacts/small-model/sm46/alloc_proxy.py) and
+# a training-user screen (state_vq_fit.py tune, 8 users, model-side loss vs w8+s8): rank 6 per 16 x 16 head (rank 6
+# keeps 99.8% of the head energy on SM36's states, rank 4 98.9%; rank-6 truncation alone costs nothing measurable),
+# stages spread so the components' coding errors are about equal, 10-bit norms on a full-range log2 grid
+# (fit_norm_range, bits >= 10), token shift m4 x 8 stages (12-bit codes) + 10-bit norm = 394 bits per vector.
+# The screen had the two splits of the budget level (vq5902x3028, ~1,200 card bits on the shift: +0.000058 curve /
+# +0.000141 instant; vq5934x2996, ~900 on the shift and more WKV stages: +0.000048 / +0.000152); instant is the binding
+# head, so the shift-heavier one is the SM46 recipe. Codebooks: artifacts/small-model/sm46/books/codebooks-sm46.npz
+# (k-means on SM36's states of 45 training users).
+_S46 = dict(norm_bits=10, shift_m=4, shift_stages=8, shift_norm_bits=10)
+RECIPES.update({
+    # card: 8 heads x 590 (rank 6, 53 stages) + 3 x 394 = 5,902; note: 4 x 560 (50 stages) + 2 x 394 = 3,028
+    "vq5902x3028": (_r(rank=6, stages=(15, 13, 10, 7, 5, 3), **_S46), _r(rank=6, stages=(15, 12, 9, 7, 4, 3), **_S46)),
+    # screen: more WKV stages, shift m4 x 6 (298 bits): card 8 x 630 + 3 x 298 = 5,934, note 4 x 600 + 2 x 298 = 2,996
+    "vq5934x2996": (_r(rank=6, stages=(16, 14, 11, 8, 5, 3), **{**_S46, "shift_stages": 6}),
+                    _r(rank=6, stages=(16, 13, 10, 7, 5, 3), **{**_S46, "shift_stages": 6})),
+    # screen: rank-6 truncation only (float shift, exact norms)
+    "vqr6exact": (_r(rank=6, stages=(0,) * 6, norm_bits=None, shift_m=0),) * 2,
+})
+RECIPES["vqS46sh"] = RECIPES["vq5902x3028"]   # its screen name (state_vq_fit.py tune rows)
+
+
 def recipe(name):
     if name not in RECIPES:
         raise SystemExit(f"unknown VQ recipe {name}; known: {sorted(RECIPES)}")
@@ -185,6 +208,13 @@ def fit_norm_range(log2n, bits, weights=None, grid=41):
     if bits == 0:
         mid = float((w * x).sum())
         return mid, mid
+    if bits >= 10:
+        # SM46: at 10+ bits the grid is fine enough (20 / 1023 ~ 0.02 in log2) to span the whole sample: hi = the
+        # largest norm, lo 20 octaves below (no clipping of large norms; smaller ones are clamped up). The quantile
+        # search below clips the top 1% of norms, which dominated the norm error at 10 bits (SM46 proxy, rank-6 heads
+        # with exact directions: relative error 2.60e-3 -> 2.07e-3; exact norms 2.06e-3).
+        hi = float(np.max(x))
+        return max(float(np.min(x)), hi - 20.0), hi
     levels = 2 ** bits - 1
     cdf = np.cumsum(w)
     cand = np.interp(np.linspace(0.01, 0.99, grid), cdf, x)
@@ -808,6 +838,8 @@ def uninstall_training(model):
 SCORE = {}                        # stream -> StateCodec with .score_kernel (KernelCodec or None)
 SCORE_EMULATE = None              # check only: fn(kernel_codec, r, k, v, w, a, kd, skip) -> out, for CPU tensors
 SCORE_KERNEL_POSITIONS = 1 << 17  # rows x steps per kernel launch (the kernel's state record: 4 KB per position)
+SCORE_TORCH_CHUNK = 1 << 15       # SM46: CUDA torch-loop streams: rows per nearest-centroid distance matrix (128 MB);
+                                  # rows are independent, so only the launch count changes (the CPU keeps 4096)
 
 
 def score_codecs(name, books, device, factor_dtype=torch.float64, kernel=True):
@@ -819,7 +851,8 @@ def score_codecs(name, books, device, factor_dtype=torch.float64, kernel=True):
         fused = kernel and rec.rank == 1 and bool(rec.stages[0]) and rec.norm_bits is not None
         if fused:
             rec = replace(rec, factor="sq")
-        codec = StateCodec(rec, books, factor_dtype=factor_dtype).to(device)
+        chunk = SCORE_TORCH_CHUNK if device.type == "cuda" and not fused else 4096
+        codec = StateCodec(rec, books, wkv_chunk=chunk, shift_chunk=chunk, factor_dtype=factor_dtype).to(device)
         codec.score_kernel = None
         if fused:
             from scripts import state_vq_cuda
