@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-10-20T21:32:38+02:00",
- "updated": "2026-10-20 21:32",
- "material": "624727c38b98cbfb",
- "summary": "idle, finished 000561",
+ "generated_at": "2026-10-20T22:00:55+02:00",
+ "updated": "2026-10-20 22:00",
+ "material": "4faaf27c8220dae0",
+ "summary": "idle",
  "headline": [
   {
    "k": "Best, 464 users (curve / instant)",
@@ -144,6 +144,12 @@
    "id": "SM36",
    "what": "SM47: f16 row scales + int8 shift vectors (6 int-state variants) for SM36, 732 pool (GPU check first)",
    "flags": "expected 115 min"
+  },
+  {
+   "ticket": "000563-small-model",
+   "id": "SM44",
+   "what": "SM44 GPU check: GPU +vq scorer path vs CPU scorer on 5 small users, reviews/s",
+   "flags": "expected 10 min"
   }
  ],
  "recent": [
@@ -668,14 +674,10 @@
    "kind": "gpu-check",
    "minutes": 200,
    "track": "small model",
-   "when": "GPU check failed 21:28: the GPU path disagrees with the CPU scorer on the best model (up to 0.0008 LogLoss on one user at ~800 bits; the SM32c model matches). Being diagnosed; rerun after the break once fixed",
+   "when": "after SM47 (~03:00), ~2.5 h. First check failed 21:28: a real bug at ~800 bits (fixed) plus near-ties (two codebook entries almost equally close, CPU and GPU pick differently); now checked with a looser rule for codebook formats (&le; 0.0003 per user, average &le; 0.0001)",
    "decides": "Compression checks in minutes instead of 1 h on 68 users, on the standard 732 users; does ~800 bits get close enough to the &le; +1.0% bar?",
-   "state": "done",
-   "ended": "21:28",
-   "exit": 1,
-   "started": "21:27",
-   "started_at": "2026-10-20T21:27:55+02:00",
-   "ended_at": "2026-10-20T21:28:23+02:00"
+   "state": "waiting",
+   "ticket": "000563-small-model"
   },
   {
    "what": "State compression at a large budget: 5,902 bits per card, 3,028 per note (asked by outside research; int8 is 26,624 / 14,336), codebooks fitted on the best model&rsquo;s own states, scored after training on the best model (SM36)",
@@ -683,7 +685,7 @@
    "kind": "gpu-check",
    "minutes": 150,
    "track": "small model",
-   "when": "GPU check failed 21:28: out of GPU memory in the codec (an 11 GB step). Being fixed; rerun after the break once fixed",
+   "when": "after SM44 (~05:45), ~3.4 h at ~4,000 reviews/s. First check ran out of GPU memory (fixed: done in chunks, same numbers); same looser rule for codebook formats",
    "decides": "Is compression nearly free at ~4.5&times; smaller than int8? 8-user screen: +0.00006 curve / +0.00014 instant",
    "state": "done",
    "ended": "21:28",
