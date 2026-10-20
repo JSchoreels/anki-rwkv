@@ -13,8 +13,10 @@ Models (repeatable --model TAG=KIND:ARCH:PATH):
                    anything else = expertium.variants.build(ARCH) (w64, w80, ...). Eager mode (RWKV_NO_JIT), WKV via
                    scripts/small_model_wkv.py (any length, head size 16/32).
 Variants (--variants, applied to every model): fp32, w8 (int8 per-channel weights), +s8 (int8 card/note state rows,
-like the fork's runtime int8), +vq<recipe> (expertium models, CPU only: Expertium-style VQ of the card/note state,
-scripts/state_vq.py recipes, codebooks from --vq-codebooks; SM32). Example: fp32,w8+s8,w8+vq403x214.
+like the fork's runtime int8), +vq<recipe> (expertium models: Expertium-style VQ of the card/note state,
+scripts/state_vq.py recipes, codebooks from --vq-codebooks; SM32 on CPU, SM44 on CUDA: rank-1 streams on the fused
+kernel scripts/kernels/state_vq_wkv.cu with the Gram-squaring factorization in --vq-factor-dtype, rank-2 streams on a
+per-step torch loop; see scripts/state_vq.py "GPU scoring"). Example: fp32,w8+s8,w8+vq403x214.
 On CPU the expertium models route their WKV recurrence through scripts/state_vq.py (before SM32, +s8 was silently
 ignored on the CPU path: RWKV7TimeMixer calls reference_rwkv7, not the patched RWKV7_WKV, for CPU tensors).
 Resumable JSONL, one row per (user, tag/variant).
@@ -180,6 +182,8 @@ def main():
     parser.add_argument("--window", type=int, default=0, help="diagnostic: score independent W-review samples")
     parser.add_argument("--vq-codebooks", default="artifacts/small-model/state-vq/codebooks.npz",
                         help="scripts/state_vq.py codebooks for +vq variants (scripts/state_vq_fit.py)")
+    parser.add_argument("--vq-factor-dtype", choices=("float64", "float32"), default="float64",
+                        help="CUDA +vq: factorization type of the fused kernel (float64 = the CPU scorer's)")
     parser.add_argument("--dump", default="", help="also write per-review benchmark predictions (review_th, bin, y, "
                         "p_ahead, p_instant) to DIR/<user>_<tag>_<variant>.npz, for calibration diagnostics")
     args = parser.parse_args()
@@ -244,9 +248,9 @@ def main():
                         block.time_mixer.use_reference_wkv = True
             else:
                 model = build_expertium(arch, base)
-                if cpu:
-                    from scripts import state_vq
-                    layouts[tag] = state_vq.install(model)
+                from scripts import state_vq
+                # CPU: the Hooks path (reference WKV + shift gather); CUDA: the eager model's state-VQ slots (SM44)
+                layouts[tag] = state_vq.install(model) if cpu else state_vq.install_scoring(model)
             models[tag] = (kind, model.to(device), base, cq.linear_weight_names(base))
         kind, model, base, names = models[tag]
         if (tag, scheme) not in states:
@@ -283,7 +287,7 @@ def main():
                 scheme, state_bits = parse_variant(variant)
                 state, nbytes, params = states[(tag, scheme)]
                 model.load_state_dict(state)
-                vq_info = None
+                vq_info = vq_path = None
                 if kind == "fork":
                     cq.set_state_bits(model, state_bits)
                 elif cpu:
@@ -303,9 +307,23 @@ def main():
                     else:
                         state_vq.configure(layouts[tag], None, state_bits)
                 else:
-                    if isinstance(state_bits, str):
-                        raise SystemExit("+vq variants run on CPU only (--device cpu)")
-                    set_expertium_state_bits(model, state_bits)
+                    from scripts import state_vq
+                    if isinstance(state_bits, str):   # SM44: GPU +vq
+                        set_expertium_state_bits(model, 0)
+                        if state_bits not in codecs:
+                            path = ROOT / args.vq_codebooks
+                            books = state_vq.Codebooks.load(path)
+                            codecs["sha256"] = state_vq.file_sha256(path)
+                            codecs[state_bits] = state_vq.score_codecs(state_bits, books, device,
+                                                                       getattr(torch, args.vq_factor_dtype))
+                            print(f"[small-model] {state_bits}: {state_vq.describe(state_bits, layouts[tag])}; "
+                                  f"{state_vq.score_path(codecs[state_bits])}", flush=True)
+                        state_vq.set_scoring(layouts[tag], codecs[state_bits])
+                        vq_info = state_vq.describe(state_bits, layouts[tag])
+                        vq_path = state_vq.score_path(codecs[state_bits])
+                    else:
+                        state_vq.set_scoring(layouts[tag], None)
+                        set_expertium_state_bits(model, state_bits)
                 t0 = time.perf_counter()
                 try:
                     with torch.inference_mode():
@@ -323,6 +341,7 @@ def main():
                              "weight_bytes": nbytes, "state_bits": state_bits or 32, "reviews": counts[str(user)],
                              **({"state_vq": vq_info, "vq_codebooks": args.vq_codebooks,
                                  "vq_codebooks_sha256": codecs.get("sha256")} if vq_info else {}),
+                             **({"state_vq_path": vq_path} if vq_path else {}),
                              "prepare_seconds": round(prep_seconds, 2),
                              "model_seconds": round(time.perf_counter() - t0, 3), **values,
                              "benchmark": metrics(user, labels, predictions)})
