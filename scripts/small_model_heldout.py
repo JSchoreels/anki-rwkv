@@ -111,7 +111,10 @@ def build_expertium(arch, state):
 
 
 def _set_bits(module, _inputs):
-    LongWKV.bits = module._small_model_bits if module._small_model_stream in STATE_MODULES else 0
+    bits = module._small_model_bits
+    if isinstance(bits, tuple):   # SM45: per-stream bits (card, note), e.g. +s4c8n
+        bits = dict(zip(STATE_MODULES, bits)).get(module._small_model_stream, 0)
+    LongWKV.bits = bits if module._small_model_stream in STATE_MODULES else 0
 
 
 def set_expertium_state_bits(model, bits):
@@ -157,6 +160,8 @@ def parse_variant(name):
     scheme = {"fp32": "fp32", "w8": "w8-pc", "w4": "w4-g32"}.get(weights)
     if state.startswith("vq") and scheme is not None:
         return scheme, state
+    if scheme is not None and state == "s4c8n":   # SM45: int4 card state, int8 note state
+        return scheme, (4, 8)
     if scheme is None or state not in ("", "s8", "s4"):
         raise SystemExit(f"unknown variant {name}")
     return scheme, {"": 0, "s8": 8, "s4": 4}[state]
@@ -289,6 +294,8 @@ def main():
                 model.load_state_dict(state)
                 vq_info = vq_path = None
                 if kind == "fork":
+                    if isinstance(state_bits, tuple):
+                        raise SystemExit("per-stream state bits are for expertium-kind models only")
                     cq.set_state_bits(model, state_bits)
                 elif cpu:
                     from scripts import state_vq
@@ -338,7 +345,7 @@ def main():
                     torch.cuda.synchronize()
                 rows.append({"user_id": user, "label": label, "tag": tag, "variant": variant, "kind": kind,
                              "arch": specs[tag][1], "checkpoint": specs[tag][2], "parameters": params,
-                             "weight_bytes": nbytes, "state_bits": state_bits or 32, "reviews": counts[str(user)],
+                             "weight_bytes": nbytes, "state_bits": list(state_bits) if isinstance(state_bits, tuple) else state_bits or 32, "reviews": counts[str(user)],
                              **({"state_vq": vq_info, "vq_codebooks": args.vq_codebooks,
                                  "vq_codebooks_sha256": codecs.get("sha256")} if vq_info else {}),
                              **({"state_vq_path": vq_path} if vq_path else {}),
