@@ -1059,6 +1059,15 @@ State = card + note state of the largest dataset user (246,801 cards, 76,887 not
 - **CPU check** (`sm46/check-sm46-cpu.json`, ALL OK): the GPU scorer's code on CPU tensors (both streams on the torch step loop with the eigh codec; rank >= 2 has no fused kernel) reproduces the CPU scorer bitwise on the 3 smallest pool users (max |dp| = 0, dLogLoss = 0); the codec is active (float state moves p by up to 0.04). CPU cost: 3.5 ms per review on those users (4 threads), 134 reviews/s at 2 threads in the screen (w8+s8: 1,020/s).
 - **GPU run**: detached runbook `sm46/runbook-sm46.sh` waits for the SM44 runbook to end, then a GPU check ticket and time-capped scoring tickets (464 pool first, then the rest of 732; only 464 if 732 projects above 4 h at the check's rate). Estimate from the step profile: ~0.95M codec steps on the 732 pool, ~1.2-2.5 h. Results: pending (`sm46/sm46-summary.md`).
 
+### Faster held-out scoring (SM48)
+
+2026-10-20, user request (focus on scoring speed). Branch `sm48` (from `sm46`). Profile: [sm48/profile.md](../artifacts/small-model/sm48/profile.md).
+
+- **Where the time went** (SM45's 732-pool pass, 726 users x 2 variants, 1,978 s): 51% model call, 49% outside it (~10.8 µs per review-evaluation, flat across user sizes); preparation is overlapped by the 4 workers. Outside the model, the Python loops over labelled reviews (`collect_predictions`, upstream `get_stats`) cost 8.70 µs per review and variant on CPU. Inside the model, the preset/user/deck WKV recurrences are serial chains on 4 blocks of 16 threads (B = 1, 4 heads), ~13-19 dependent steps per review on 4 of the GPU's 84 SMs.
+- **Implemented**: (1) numpy metrics (`scripts/heldout_fast_metrics.py`, default; `--legacy-metrics` = old path): bitwise equal, 0.85 µs per review and variant; (2) `--lanes N`: N users at once, threads with their own model copies and CUDA streams, in-flight reviews capped by `--lane-review-budget` (400k default, ~25 KB of GPU memory per review); +vq variants run one at a time.
+- **CPU checks**: numpy vs dict metrics on real labels of 7 users bitwise (`sm48/check-fast-metrics.json`); the scorer with both paths vs the pre-SM48 scorer, 4 users x (w8+s8, w8+s4c8n), 8/8 rows bitwise (`check-cpu-orig-vs-array.json`, `check-cpu-orig-vs-dict.json`); lanes 2 vs 1 on CPU (fp32/w8; scheduler logic only) 8/8 bitwise.
+- **GPU timing ticket** (`--timing`, ~30 min): detached launcher `sm48/launch-sm48.sh` waits for the SM47 ticket to end and for `HOLD-chain` to be absent; job `sm48/job-sm48.sh`: 40 users of the 732 pool (2.26M reviews), SM36 w8+s8 + w8+s4c8n, arms old / numpy / lanes 2 / lanes 4 in order old arr l2 l4 l4 l2 arr old, rows compared with the first old run (stop on a tolerance failure). Results: `sm48/timing/summary.md` (pending). Follow-up: `sm48/HANDOFF-sm48.md`.
+
 ## Backlog
 
 | ID | Idea | Status | Next step |
