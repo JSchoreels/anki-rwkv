@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-10-20T22:00:55+02:00",
- "updated": "2026-10-20 22:00",
- "material": "4faaf27c8220dae0",
- "summary": "idle",
+ "generated_at": "2026-10-21T00:47:22+02:00",
+ "updated": "2026-10-21 00:47",
+ "material": "71d5c20bb1cbb849",
+ "summary": "running 000562",
  "headline": [
   {
    "k": "Best, 464 users (curve / instant)",
@@ -137,14 +137,24 @@
    "track": "small model"
   }
  ],
- "now": [],
- "waiting": [
+ "now": [
   {
+   "what": "Muon instead of AdamW for the one-epoch 32k decay (paired with the best model, everything else equal) + scoring",
+   "id": "SM36, ticket 000562",
+   "kind": "gpu-train",
+   "decides": "Small win on instant only: vs the best model (AdamW) curve tied (+0.00002 [-0.00034, +0.00046]), instant -0.00018 [-0.00022, -0.00013] on 464 users (+0.81% / +0.68% vs the big model); same on 723 users (-0.00017 / -0.00020). Not the road to +0.5% by itself",
+   "why": "",
+   "job": "SM47: f16 row scales + int8 shift vectors (6 int-state variants) for SM36, 732 pool (GPU check first)",
+   "linked": true,
+   "track": "small model",
    "ticket": "000562-small-model",
-   "id": "SM36",
-   "what": "SM47: f16 row scales + int8 shift vectors (6 int-state variants) for SM36, 732 pool (GPU check first)",
-   "flags": "expected 115 min"
-  },
+   "started": "00:47",
+   "elapsed": "0:00",
+   "progress": null,
+   "eta": "~02:42"
+  }
+ ],
+ "waiting": [
   {
    "ticket": "000563-small-model",
    "id": "SM44",
@@ -595,10 +605,12 @@
    "minutes": 400,
    "track": "small model",
    "decides": "Small win on instant only: vs the best model (AdamW) curve tied (+0.00002 [-0.00034, +0.00046]), instant -0.00018 [-0.00022, -0.00013] on 464 users (+0.81% / +0.68% vs the big model); same on 723 users (-0.00017 / -0.00020). Not the road to +0.5% by itself",
-   "state": "waiting",
-   "started_at": "2026-10-20T01:01:33+02:00",
+   "state": "running",
+   "started_at": "2026-10-20T16:55:02+02:00",
    "ended_at": "2026-10-20T06:42:20+02:00",
-   "ticket": "000562-small-model"
+   "started": "00:47",
+   "ticket": "000562-small-model",
+   "ends_at": "2026-10-20T23:35:02+02:00"
   },
   {
    "id": "SM32c",
@@ -702,8 +714,11 @@
    "track": "small model",
    "when": "queued, starts 01:00 (after the GPU break; now ahead of SM44 / SM46), ~2 h; code ready 19:19 (CPU check: old results reproduce exactly)",
    "decides": "Smallest no-retraining format: int4 cards + int8 notes + 16-bit scales + int8 short-term vectors = 11,824 / 10,272 bits per card / note (&minus;46% vs today&rsquo;s int8, ~38 MB vs ~70 MB for 13,973 cards / 13,198 notes). Is it still nearly free?",
-   "state": "waiting",
-   "ticket": "000562-small-model"
+   "state": "running",
+   "started": "00:47",
+   "ticket": "000562-small-model",
+   "started_at": "2026-10-21T00:47:01+02:00",
+   "ends_at": "2026-10-21T02:42:01+02:00"
   },
   {
    "what": "Faster held-out scoring: benchmark metrics computed on arrays instead of Python loops (same results bit for bit), and scoring 2 or 4 users at once on the GPU",
@@ -777,12 +792,7 @@
    "ended_at": "2026-10-19T12:40:11+02:00"
   }
  ],
- "gpu_break": {
-  "start": "22:00",
-  "end": "01:00",
-  "until": "2026-10-21T01:00",
-  "label": "Break: no GPU work 22:00&ndash;01:00 (user, games; may end earlier). Jobs that would run into it wait"
- },
+ "gpu_break": null,
  "backlog": [
   {
    "status": "next",
