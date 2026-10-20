@@ -35,6 +35,7 @@ in his engine), exact nearest-centroid search by matmul distances.
 from dataclasses import dataclass, field, replace
 from pathlib import Path
 import math
+import os
 
 import numpy as np
 import torch
@@ -263,11 +264,18 @@ def factorize(A, rank, dtype=torch.float64):
     v_un = torch.einsum("nij,nri->nrj", A64, u)                      # (A^T u) per component
     sigma = v_un.norm(dim=-1)
     valid = torch.isfinite(ev) & (ev > 0) & torch.isfinite(sigma) & (sigma > 1e-20)
+    # SM44 fix: components j >= 1 below RANK_REL_TOL x sigma_0 are float32 rounding noise of a lower-rank state (every
+    # entity's first stored state is rank 1: sigma_1 / sigma_0 ~ 1e-8). Their direction is arbitrary (LAPACK and
+    # cuSOLVER return different null-space vectors) and the norm grid clamps their size up to its floor (6-bit comp-1
+    # grid: sigma ~ 6e-3, 1e5 x the true value), so coding them added an arbitrary, device-dependent rank-1 term.
+    valid = valid & (sigma > RANK_REL_TOL * sigma[:, :1])
     v = v_un / torch.where(valid, sigma, torch.ones_like(sigma))[..., None]
     lead = u.abs().argmax(dim=-1, keepdim=True)
     sign = torch.where(torch.gather(u, -1, lead) >= 0, 1.0, -1.0).to(u.dtype)
     return u * sign, v * sign, sigma, valid
 
+
+RANK_REL_TOL = float(os.environ.get("STATE_VQ_RANK_REL_TOL", "1e-4"))  # see factorize; no effect on rank-1 recipes
 
 SQ_SQUARINGS = 12   # P <- P @ P twelve times = G^4096: direction error ~ (lambda2 / lambda1)^4096
 SQ_RENORM = 4       # trace renormalisation before every 4th squaring (p1 >= 1/16 after it, p1^16 stays above 1e-20)
