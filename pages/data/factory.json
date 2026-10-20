@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-10-20T16:10:45+02:00",
- "updated": "2026-10-20 16:10",
- "material": "269fe21eafda6d04",
- "summary": "running 000555",
+ "generated_at": "2026-10-20T16:57:10+02:00",
+ "updated": "2026-10-20 16:57",
+ "material": "77da9f8ecf858ff3",
+ "summary": "running 000556, finished 000555",
  "headline": [
   {
    "k": "Best, 464 users (curve / instant)",
@@ -139,30 +139,39 @@
  ],
  "now": [
   {
-   "what": "Data diversity vs epochs, full size: 1,250 users &times; (10 + 1 decay) epochs vs 125 of them &times; (100 + 10 decay), same reviews seen (~1.06B each), fast 2,048-window recipe, both scored on 732 users",
-   "id": "SM43, ticket 000555",
+   "what": "Muon instead of AdamW for the one-epoch 32k decay (paired with the best model, everything else equal) + scoring",
+   "id": "SM36, ticket 000556",
    "kind": "gpu-train",
-   "decides": "Does the gap from the mini (+0.36% / +0.46% for fewer users, more passes) grow or shrink once both arms are trained much longer?",
+   "decides": "Small win on instant only: vs the best model (AdamW) curve tied (+0.00002 [-0.00034, +0.00046]), instant -0.00018 [-0.00022, -0.00013] on 464 users (+0.81% / +0.68% vs the big model); same on 723 users (-0.00017 / -0.00020). Not the road to +0.5% by itself",
    "why": "",
-   "job": "SM43 full A: 1,250 users x (10 + 1 decay) epochs (2,048 KD recipe)",
+   "job": "SM45: int4 card + int8 note state for SM36, 732 pool (GPU check first)",
    "linked": true,
    "track": "small model",
-   "ticket": "000555-small-model",
-   "started": "13:59",
-   "elapsed": "2:11",
+   "ticket": "000556-small-model",
+   "started": "16:55",
+   "elapsed": "0:02",
    "progress": null,
-   "eta": "~16:59"
+   "eta": "~17:55"
   }
  ],
  "waiting": [
   {
-   "ticket": "000556-small-model",
-   "id": "SM36",
-   "what": "SM45: int4 card + int8 note state for SM36, 732 pool (GPU check first)",
-   "flags": "expected 60 min"
+   "ticket": "000557-small-model",
+   "id": "SM43",
+   "what": "SM43 full B: 125 users x (100 + 10 decay) epochs (same reviews seen)",
+   "flags": "expected 210 min"
   }
  ],
  "recent": [
+  {
+   "ticket": "000555-small-model",
+   "id": "SM43",
+   "what": "SM43 full A: 1,250 users x (10 + 1 decay) epochs (2,048 KD recipe)",
+   "ended": "16:55",
+   "date": "10-20",
+   "exit": 0,
+   "ran": "2:55"
+  },
   {
    "ticket": "000554-small-model",
    "id": "SM32c",
@@ -207,15 +216,6 @@
    "date": "10-20",
    "exit": 0,
    "ran": "5:06"
-  },
-  {
-   "ticket": "000549-small-model",
-   "id": "SM32c",
-   "what": "SM32c GPU check: learned-codebook kernels (record + dstored) vs torch codec, timing",
-   "ended": "01:00",
-   "date": "10-20",
-   "exit": 0,
-   "ran": "0:00"
   }
  ],
  "plan": [
@@ -225,12 +225,7 @@
    "kind": "gpu-score",
    "decides": "Sanity check only (undecayed checkpoints are noisy)",
    "track": "small model",
-   "state": "done",
-   "ended": "16:31",
-   "exit": 0,
-   "started": "16:26",
-   "started_at": "2026-10-17T16:26:34+02:00",
-   "ended_at": "2026-10-17T16:31:21+02:00"
+   "state": "planned"
   },
   {
    "what": "Final decay at 32k windows from the new epoch",
@@ -650,10 +645,12 @@
    "minutes": 400,
    "track": "small model",
    "decides": "Small win on instant only: vs the best model (AdamW) curve tied (+0.00002 [-0.00034, +0.00046]), instant -0.00018 [-0.00022, -0.00013] on 464 users (+0.81% / +0.68% vs the big model); same on 723 users (-0.00017 / -0.00020). Not the road to +0.5% by itself",
-   "state": "waiting",
-   "started_at": "2026-10-20T01:01:33+02:00",
+   "state": "running",
+   "started_at": "2026-10-20T06:41:00+02:00",
    "ended_at": "2026-10-20T06:42:20+02:00",
-   "ticket": "000556-small-model"
+   "started": "16:55",
+   "ticket": "000556-small-model",
+   "ends_at": "2026-10-20T13:21:00+02:00"
   },
   {
    "id": "SM32c",
@@ -702,8 +699,11 @@
    "track": "small model",
    "when": "10-20 ~17:00 (high priority: right after SM43 full A)",
    "decides": "Is int4 card state free for the small model too (the fork-side test on 1,000 users: +0.68% &rarr; +0.70% instant)? Card state 26,624 &rarr; 18,432 bits (&minus;31%: the per-row scales and the float32 token-shift vectors stay as they are)",
-   "state": "waiting",
-   "ticket": "000556-small-model"
+   "state": "running",
+   "started": "16:55",
+   "ticket": "000556-small-model",
+   "started_at": "2026-10-20T16:55:02+02:00",
+   "ends_at": "2026-10-20T17:55:02+02:00"
   },
   {
    "what": "Data diversity vs epochs, full size: 1,250 users &times; (10 + 1 decay) epochs vs 125 of them &times; (100 + 10 decay), same reviews seen (~1.06B each), fast 2,048-window recipe, both scored on 732 users",
@@ -713,11 +713,9 @@
    "track": "small model",
    "when": "10-20 13:59 &rarr; ~21:50 (A ~2.9 h, SM45 ~1 h, B ~3.4 h, scoring ~30 min; scoring waits for after the break if it would cross 22:00)",
    "decides": "Does the gap from the mini (+0.36% / +0.46% for fewer users, more passes) grow or shrink once both arms are trained much longer?",
-   "state": "running",
+   "state": "waiting",
    "started_at": "2026-10-20T13:59:26+02:00",
-   "started": "13:59",
-   "ticket": "000555-small-model",
-   "ends_at": "2026-10-20T20:49:26+02:00"
+   "ticket": "000557-small-model"
   },
   {
    "what": "Compressed state in the GPU scorer (kernels from SM32c), 5-user GPU check, then scoring on 732 users: the best model at ~400 and ~800 bits per card/note, and the SM32c model at int8 and ~400 bits",
@@ -1014,6 +1012,34 @@
    "track": "small model",
    "item": "Data diversity vs epochs: many users few epochs (10+1 epochs) vs 10&times; fewer users 10&times; more epochs (100+10), same number of gradient steps, both scored on the 732-user set",
    "why": "User idea 10-19, not urgent. Does the small model gain more from more users or from more passes? Full size (5k users &times; 11 epochs) would take ~10.5 h per arm, so scaled to fit 5&ndash;6 h: 1,250 users &times; (10+1) vs 125 users &times; (100+10), the fast 2,048-window KD recipe (~108k reviews/s), equal reviews seen. Slot: 10-20 after SM32c"
+  },
+  {
+   "status": "next",
+   "id": "ST00",
+   "track": "curve stability",
+   "item": "Measure first: the repeat stress test and a &ldquo;mature card, then rapid repeats&rdquo; slice, on the best small model (SM36) and the big model",
+   "why": "From an outside audit of SM40 (10-20): the curve is trained only at the next real review, so its long-term tail can change freely between answers; repeated rapid Goods on a mature card make the interval jump, then collapse (the big model jumps too). CPU only. Tells whether it matters on real histories or only in the stress test"
+  },
+  {
+   "status": "idea",
+   "id": "ST01a",
+   "track": "curve stability",
+   "item": "Consistency on real rapid Good pairs: compare the curve before and after the second Good at the same future dates (days, months, a year)",
+   "why": "Our simpler first version of ST01: ~5&ndash;6M real pairs in the training data, both curves already computed in the same pass, so almost no extra cost; a small penalty, only for short gaps where Good was expected. One-epoch decay like SM42, judged on 732 users (curve and instant must not get worse) plus the stress test"
+  },
+  {
+   "status": "idea",
+   "id": "ST01",
+   "track": "curve stability",
+   "item": "Consistency on made-up rapid Good sequences from real card histories (the audit&rsquo;s first proposal)",
+   "why": "Only if ST01a is not enough: inserted reviews also change what the deck, note and user memories see, so it is costly to build in our training"
+  },
+  {
+   "status": "idea",
+   "id": "ST02",
+   "track": "curve stability",
+   "item": "Separate short-term and long-term updates (a learned gate on the long-term curve)",
+   "why": "Architecture change; only if consistency losses fail the quality gate"
   }
  ],
  "results": [
