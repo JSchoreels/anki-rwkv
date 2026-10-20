@@ -576,7 +576,11 @@ def configure(layout, codecs=None, int_bits=0):
                 codec = codecs[stream]
                 Hooks.wkv[(stream, layer)] = lambda s, cur, rows, t, c=codec: c.wkv(s)
             elif int_bits:
-                q = int_row_quant(int_bits)
+                # SM45: int_bits may be a (card, note) tuple of per-stream bits
+                bits = dict(zip((0, 2), int_bits)).get(stream, 0) if isinstance(int_bits, tuple) else int_bits
+                if not bits:
+                    continue
+                q = int_row_quant(bits)
                 Hooks.wkv[(stream, layer)] = lambda s, cur, rows, t, q=q: q(s)
         if codecs is not None:
             for layer, role in info["shift_vectors"]:
