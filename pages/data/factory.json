@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-10-21T20:59:31+02:00",
- "updated": "2026-10-21 20:59",
- "material": "b028913c671bbfa7",
- "summary": "idle",
+ "generated_at": "2026-10-22T01:28:03+02:00",
+ "updated": "2026-10-22 01:28",
+ "material": "dcc83fce0361c9f1",
+ "summary": "running 000602",
  "headline": [
   {
    "k": "Best, 464 users (curve / instant)",
@@ -137,7 +137,23 @@
    "track": "small model"
   }
  ],
- "now": [],
+ "now": [
+  {
+   "what": "The best recipe (SM36) on 8,000 training users instead of 5,000 (581.9M vs 369.5M reviews), one change: full-history teacher targets for the 3,000 extra users (~1 h 45), then the one-epoch 32k decay over 8k users (~8 h), scored on 723 users",
+   "id": "SM55, ticket 000602",
+   "kind": "gpu-train",
+   "decides": "SM43 says more users win and the gap grows with training: how much does 8k gain over 5k?",
+   "why": "",
+   "job": "SM55 1-epoch decay at 32k on the 8k final tier (581.9M reviews), lanes carry, Muon fresh, from sc-lanes e12 (smoke first)",
+   "linked": true,
+   "track": "small model",
+   "ticket": "000602-small-model",
+   "started": "01:01",
+   "elapsed": "0:27",
+   "progress": null,
+   "eta": "~08:01"
+  }
+ ],
  "waiting": [],
  "recent": [
   {
@@ -788,6 +804,16 @@
    "state": "planned"
   },
   {
+   "what": "Better distillation, step 1: fine-tunes of SM36 with more weight on the big model&rsquo;s predictions (control at today&rsquo;s weight, 0.9, 1.0), same setup as SM50 (81M reviews, ~110 min per arm with scoring), scored on 732 users",
+   "id": "SM59",
+   "kind": "gpu-train",
+   "minutes": 330,
+   "track": "small model",
+   "when": "Being prepared; its launcher waits for SM50 to finish: Thu ~12:15 &rarr; ~18:00&ndash;19:00",
+   "decides": "Does a heavier big-model weight help? Never tested since full-history distillation. If yes: step 2 (learn the big model&rsquo;s whole curve) and use the weight in SM56. The control also reads SM50 against a plain fine-tune",
+   "state": "planned"
+  },
+  {
    "what": "Muon tuning, arm 1: SM36&rsquo;s one-epoch 32k decay with the learning rate &times;0.5 (pointer from outside research), saving 4 snapshots along the decay for SM51",
    "id": "SM39",
    "kind": "gpu-train",
@@ -810,12 +836,11 @@
    "track": "small model",
    "when": "Teacher targets done (09:00-10:45). The 8k training crashed at 12:59 after 2 h 14 min: one user (5599) ends with 14 first reviews of new cards, which have no label, and that tail formed a window of its own. Fixed by dropping such unlabelled tails (only this user, 14 reviews); a check now runs before training. Restart Thu 01:01 &rarr; ~07:05 (27k reviews/s), scoring on 723 users &rarr; ~08:00",
    "decides": "SM43 says more users win and the gap grows with training: how much does 8k gain over 5k?",
-   "state": "done",
-   "ended": "19:48",
-   "exit": 0,
-   "started": "19:47",
+   "state": "running",
+   "started": "01:01",
+   "ticket": "000602-small-model",
    "started_at": "2026-10-21T19:47:35+02:00",
-   "ended_at": "2026-10-21T19:48:31+02:00"
+   "ends_at": "2026-10-22T06:17:35+02:00"
   },
   {
    "what": "Checkpoint averaging: average the last 2, 3 or 4 SM39 decay snapshots, scored with the final weights on 723 users",
@@ -1187,6 +1212,13 @@
    "track": "small model",
    "item": "UM+ small vs big model with each model&rsquo;s slope, in the Search Stats Extended conventions (5-point disagreement bins, bins under 200 reviews hidden for slopes but counted in UM+). The slope closer to 0 is the more right model; the two slopes always differ by exactly 1, so &minus;0.5 for the small model would mean a tie. Curve and instant, SM36 (and SM55 if it wins), 723 users and the own collection (aggregate only)",
    "why": "LogLoss says how far the small model is behind, not where. Reference: the user&rsquo;s chart on the own collection, instant, big (legacy) +0.425 vs SM40 &minus;0.575 (UM+ 0.0155 vs 0.0180). Thu 10-22 after SM55: ~1 h GPU to save both models&rsquo; predictions, the rest on the CPU"
+  },
+  {
+   "status": "idea",
+   "id": "SM59",
+   "track": "small model",
+   "item": "Better distillation, step 2: also learn the big model&rsquo;s whole forgetting curve (its predictions at fixed intervals, e.g. 1 d / 7 d / 30 d / 180 d), not one point per review",
+   "why": "Only if step 1 shows a gain (user, 10-22). Needs new code and a new export of the big model&rsquo;s predictions (GPU, a few hours, +~16 B per review). Step 3 (copy the big model&rsquo;s internal state) only if 1&ndash;2 show the small model can&rsquo;t follow"
   }
  ],
  "results": [

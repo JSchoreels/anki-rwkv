@@ -799,6 +799,19 @@
    "state": "planned"
   },
   {
+   "what": "Better distillation, step 1: fine-tunes of SM36 with more weight on the big model&rsquo;s predictions (control at today&rsquo;s weight, 0.9, 1.0), same setup as SM50 (81M reviews, ~110 min per arm with scoring), scored on 732 users",
+   "id": "SM59",
+   "kind": "gpu-train",
+   "minutes": 330,
+   "track": "small model",
+   "match": [
+    "SM59"
+   ],
+   "when": "Being prepared; its launcher waits for SM50 to finish: Thu ~12:15 &rarr; ~18:00&ndash;19:00",
+   "decides": "Does a heavier big-model weight help? Never tested since full-history distillation. If yes: step 2 (learn the big model&rsquo;s whole curve) and use the weight in SM56. The control also reads SM50 against a plain fine-tune",
+   "state": "planned"
+  },
+  {
    "what": "Muon tuning, arm 1: SM36&rsquo;s one-epoch 32k decay with the learning rate &times;0.5 (pointer from outside research), saving 4 snapshots along the decay for SM51",
    "id": "SM39",
    "kind": "gpu-train",
@@ -1201,6 +1214,13 @@
    "track": "small model",
    "item": "UM+ small vs big model with each model&rsquo;s slope, in the Search Stats Extended conventions (5-point disagreement bins, bins under 200 reviews hidden for slopes but counted in UM+). The slope closer to 0 is the more right model; the two slopes always differ by exactly 1, so &minus;0.5 for the small model would mean a tie. Curve and instant, SM36 (and SM55 if it wins), 723 users and the own collection (aggregate only)",
    "why": "LogLoss says how far the small model is behind, not where. Reference: the user&rsquo;s chart on the own collection, instant, big (legacy) +0.425 vs SM40 &minus;0.575 (UM+ 0.0155 vs 0.0180). Thu 10-22 after SM55: ~1 h GPU to save both models&rsquo; predictions, the rest on the CPU"
+  },
+  {
+   "status": "idea",
+   "id": "SM59",
+   "track": "small model",
+   "item": "Better distillation, step 2: also learn the big model&rsquo;s whole forgetting curve (its predictions at fixed intervals, e.g. 1 d / 7 d / 30 d / 180 d), not one point per review",
+   "why": "Only if step 1 shows a gain (user, 10-22). Needs new code and a new export of the big model&rsquo;s predictions (GPU, a few hours, +~16 B per review). Step 3 (copy the big model&rsquo;s internal state) only if 1&ndash;2 show the small model can&rsquo;t follow"
   }
  ],
  "known_labels": [
