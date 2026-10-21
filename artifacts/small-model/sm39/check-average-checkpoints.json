@@ -1,0 +1,43 @@
+{
+ "input": "C:\\Users\\jonat\\workspace\\wt\\sm42\\artifacts\\small-model\\scale-w64kd-gate-sc-lanes-cont-decay1ep32k-muon\\expertium\\E89-F65e-F77a\\master.pth",
+ "checks": {
+  "mean of 2 identical copies == input bitwise (keys, order, dtypes, shapes)": {
+   "value": 420,
+   "ok": true
+  },
+  "mean of 3 identical copies == input bitwise (keys, order, dtypes, shapes)": {
+   "value": 420,
+   "ok": true
+  },
+  "mean of 4 identical copies == input bitwise (keys, order, dtypes, shapes)": {
+   "value": 420,
+   "ok": true
+  },
+  "2-point mean = the exact midpoint rounded once to the tensor dtype (bitwise)": {
+   "value": {
+    "max_abs_vs_float64": 9.5367431640625e-07
+   },
+   "ok": true
+  },
+  "non-float tensors untouched": {
+   "value": [],
+   "ok": true
+  },
+  "dtypes": {
+   "value": [
+    "torch.float32"
+   ],
+   "ok": true
+  },
+  "averaged state loads strictly into the w64 model (what the scorer builds)": {
+   "value": "w64",
+   "ok": true
+  },
+  "file round trip: average([A, A, A]) file == A tensors": {
+   "value": "artifacts\\small-model\\sm39\\average-check-tmp\\master.pth",
+   "ok": true
+  }
+ },
+ "passed": true,
+ "fails": []
+}

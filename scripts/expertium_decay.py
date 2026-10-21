@@ -8,7 +8,10 @@ reviews, with the learning rate decaying from 7e-4 to 0 over exactly those revie
 
   prepare --source-run DIR --epoch N --out artifacts/... [--fraction 0.25 --shape one_minus_sin
           --evaluate quick|validation|validation+final_test|none --seed 1 --extra-options JSON
-          --fresh-optimizer]   (fresh: start with an empty optimizer state instead of the source optimizer.pth)
+          --fresh-optimizer --snapshot-users N]   (fresh: start with an empty optimizer state instead of the source
+          optimizer.pth; snapshot-users: the trainer's existing full-run snapshots, master.pth + optimizer.pth every N
+          users under <out>/expertium/<track>/snapshots/users-NNNNN/, e.g. 1250 of 5,000 users = 4 points with the final
+          weights; opt-in, read-only for training: scripts/check_decay_snapshots.py)
   run     --out artifacts/...        (one GPU process; submit through scripts/r01_queue.py)
   auto    <prepare arguments>         (prepare unless --out exists, then run; lets a queued job wait for the epoch)
   compare --out artifacts/...        (decayed vs the source epoch on the same held-out users; summary.md/json)
@@ -43,7 +46,8 @@ def source_case(source_run, config, epoch):
     return folder, result
 
 
-def prepare(source_run, epoch, out, fraction, shape, evaluate, seed, extra_options, final, fresh_optimizer=False):
+def prepare(source_run, epoch, out, fraction, shape, evaluate, seed, extra_options, final, fresh_optimizer=False,
+            snapshot_users=0):
     if out.exists():
         raise FileExistsError(f"{out} exists; pick a new output")
     config = json.loads((source_run / "run.json").read_text())
@@ -74,6 +78,9 @@ def prepare(source_run, epoch, out, fraction, shape, evaluate, seed, extra_optio
         # The source optimizer state is of another kind (AdamW vs Muon): start the decay from a new, empty state.
         full_run.pop("init_optimizer")
         full_run["optimizer_state"] = "fresh"
+    if snapshot_users:
+        # SM39/SM51: weight snapshots along the decay (the trainer saves them at user boundaries; training unchanged).
+        full_run["snapshot_users"] = int(snapshot_users)
     protocol = {"rows": rows_for(users, counts), "evaluation_rows": rows_for(evaluation, counts),
                 "dataset_path": str(dataset), "dataset_revision": config["dataset_revision"],
                 "training": {"epochs": 1, "chunk_reviews": options.get("chunk_reviews", 128), "gpu_memory_fraction": 0.95},
@@ -85,6 +92,13 @@ def prepare(source_run, epoch, out, fraction, shape, evaluate, seed, extra_optio
              "shuffle_seed": seed, "lr": f"7e-4 -> {final * 7e-4:g}, shape {shape}, over all {reviews:,} reviews",
              "evaluation_set": evaluate, "evaluation_users": len(evaluation),
              "control": f"epoch-{epoch:02d} scores of the same users in {folder / 'result.json'}"}
+    if snapshot_users:
+        done, marks = 0, []
+        for index, user in enumerate(users, 1):
+            done += counts[str(user)]
+            if index % snapshot_users == 0 and index < len(users):
+                marks.append({"users": index, "review_fraction": round(done / reviews, 4)})
+        decay["snapshots"] = {"snapshot_users": int(snapshot_users), "points": marks + [{"users": len(users), "review_fraction": 1.0}]}
     out.mkdir(parents=True)
     atomic_json(out / "decay.json", decay)
     atomic_json(out / "protocol.json", protocol)
@@ -240,6 +254,8 @@ def main():
     parser.add_argument("--extra-options", type=json.loads, default=None)
     parser.add_argument("--fresh-optimizer", action="store_true",
                         help="do not load the source epoch's optimizer.pth (needed when --extra-options changes the optimizer kind)")
+    parser.add_argument("--snapshot-users", type=int, default=0,
+                        help="save master.pth + optimizer.pth every N users along the decay (0 = off, the default)")
     args = parser.parse_args()
     out = (ROOT / args.out).resolve()
     if not out.is_relative_to(ROOT / "artifacts"):
@@ -252,7 +268,7 @@ def main():
         if args.source_run is None or args.epoch is None or not 0 < args.fraction <= 1:
             parser.error("prepare needs --source-run, --epoch and 0 < --fraction <= 1")
         code = prepare(args.source_run.resolve(), args.epoch, out, args.fraction, args.shape, args.evaluate, args.seed,
-                       args.extra_options, args.final, args.fresh_optimizer)
+                       args.extra_options, args.final, args.fresh_optimizer, args.snapshot_users)
         if args.command == "prepare" or code:
             return code
     code = run(out)
