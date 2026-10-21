@@ -21,6 +21,9 @@ per-step torch loop; see scripts/state_vq.py "GPU scoring"). Example: fp32,w8+s8
 scales instead of float32, x8 = the card/note stored token-shift vectors as int8 codes + one per-vector scale (float16
 with h, else float32), e.g. w8+s8h, w8+s8x8, w8+s4c8nhx8; on CUDA they run through the state-VQ slots
 (scripts/state_vq.IntScoreCodec: the int WKV kernel with the F16_SCALE flag + the shift hook).
+SM49 (expertium): +s4 with the same suffixes (int4 card and note rows), x4 = int4 shift vectors, g = one scale per head
+(16 rows) instead of per row (kernel flag HEAD_SCALE), e.g. w8+s4hx8, w8+s4hx4, w8+s4hgx4; per-stream form card spec + c,
+note spec + n (as in s4c8n), e.g. w8+s4hgx4c8hx8n = w8+s4hgx4 cards with SM47's w8+s4c8nhx8 notes.
 On CPU the expertium models route their WKV recurrence through scripts/state_vq.py (before SM32, +s8 was silently
 ignored on the CPU path: RWKV7TimeMixer calls reference_rwkv7, not the patched RWKV7_WKV, for CPU tensors).
 Resumable JSONL, one row per (user, tag/variant).
@@ -166,7 +169,8 @@ class WindowBatches(UserBatches):
 
 class IntState(tuple):
     """SM47 int state variant: (wkv_bits, shift_bits, scale_bits). wkv_bits = int or (card, note) tuple, F16_SCALE
-    flag set for float16 row scales; shift_bits = 0 (float shift vectors) or 8 (| F16_SCALE); scale_bits 16 / 32."""
+    flag set for float16 row scales (SM49: HEAD_SCALE flag = one scale per head); shift_bits = 0 (float shift vectors)
+    or 8 / 4 (| F16_SCALE), SM49 also a (card, note) tuple; scale_bits 16 / 32."""
     __slots__ = ()
     wkv_bits = property(lambda self: self[0])
     shift_bits = property(lambda self: self[1])
@@ -179,12 +183,28 @@ def parse_variant(name):
     if state.startswith("vq") and scheme is not None:
         return scheme, state
     import re
-    m = re.fullmatch(r"(s8|s4c8n)(h?)(x8)?", state)
-    if scheme is not None and m and (m.group(2) or m.group(3)):   # SM47: f16 row scales (h), int8 shift vectors (x8)
-        from scripts.small_model_wkv import F16_SCALE
-        flag = F16_SCALE if m.group(2) else 0
-        wkv = 8 | flag if m.group(1) == "s8" else (4 | flag, 8 | flag)
-        return scheme, IntState((wkv, (8 | flag) if m.group(3) else 0, 16 if flag else 32))
+    from scripts.small_model_wkv import F16_SCALE, HEAD_SCALE
+
+    def stream_bits(wkv, h, g, x):   # SM49: (wkv bits with flags, shift bits with flags)
+        flag = F16_SCALE if h else 0
+        return int(wkv) | flag | (HEAD_SCALE if g else 0), (int(x[1:]) | flag) if x else 0
+    # SM47: f16 row scales (h), int8 shift vectors (x8); SM49: s4 (int4 card and note rows), per-head scales (g),
+    # int4 shift vectors (x4), e.g. w8+s4hx8, w8+s4hx4, w8+s4hgx4
+    m = re.fullmatch(r"(s8|s4c8n|s4)(h?)(g?)(x8|x4)?", state)
+    if scheme is not None and m and (m.group(2) or m.group(3) or m.group(4)):
+        h, g, x = m.group(2), m.group(3), m.group(4)
+        streams = [stream_bits(b, h, g, x) for b in ((4, 8) if m.group(1) == "s4c8n" else (m.group(1)[1],))]
+        wkv = tuple(s[0] for s in streams) if len(streams) == 2 else streams[0][0]
+        return scheme, IntState((wkv, streams[0][1], 16 if h else 32))
+    # SM49: per-stream specs, card spec + "c", note spec + "n" (as in s4c8n), e.g. w8+s4hgx4c8hx8n = int4 card rows with
+    # one f16 scale per head and int4 shift vectors, SM47's int8 notes (f16 row scales, int8 shift vectors)
+    m = re.fullmatch(r"s(8|4)(h?)(g?)(x8|x4)?c(8|4)(h?)(g?)(x8|x4)?n", state)
+    if scheme is not None and m and state != "s4c8n":
+        if m.group(2) != m.group(6):
+            raise SystemExit(f"{name}: card and note need the same scale precision (h on both or neither)")
+        card, note = stream_bits(*m.group(1, 2, 3, 4)), stream_bits(*m.group(5, 6, 7, 8))
+        shift = (card[1], note[1]) if card[1] != note[1] else card[1]
+        return scheme, IntState(((card[0], note[0]), shift, 16 if m.group(2) else 32))
     if scheme is not None and state == "s4c8n":   # SM45: int4 card state, int8 note state
         return scheme, (4, 8)
     if scheme is None or state not in ("", "s8", "s4"):
@@ -198,9 +218,16 @@ def state_fields(state_bits):
         from scripts.state_vq_report import int_entity_bits
         wkv = state_bits.wkv_bits
         plain = [b & 255 for b in wkv] if isinstance(wkv, tuple) else wkv & 255
-        card, note = int_entity_bits(plain, state_bits.scale_bits, state_bits.shift_bits & 255)
-        return {"state_bits": plain, "state_scale_bits": state_bits.scale_bits,
-                "state_shift_bits": state_bits.shift_bits & 255 or 32, "state_entity_bits": {"card": card, "note": note}}
+        from scripts.small_model_wkv import HEAD_SCALE
+        shift = state_bits.shift_bits
+        shift = [b & 255 or 32 for b in shift] if isinstance(shift, tuple) else shift & 255 or 32
+        head = [bool(b & HEAD_SCALE) for b in wkv] if isinstance(wkv, tuple) else bool(wkv & HEAD_SCALE)
+        card, note = int_entity_bits(plain, state_bits.scale_bits, shift, head)
+        fields = {"state_bits": plain, "state_scale_bits": state_bits.scale_bits,
+                  "state_shift_bits": shift, "state_entity_bits": {"card": card, "note": note}}
+        if any(head) if isinstance(head, list) else head:   # SM49 (older rows keep their fields)
+            fields["state_scale_per"] = ["head" if x else "row" for x in head] if isinstance(head, list) else "head"
+        return fields
     return {"state_bits": list(state_bits) if isinstance(state_bits, tuple) else state_bits or 32}
 
 

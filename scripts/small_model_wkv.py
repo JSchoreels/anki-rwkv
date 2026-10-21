@@ -11,6 +11,9 @@ protocol of the fork's 2.76M comparison (artifacts/compression/heldout-b-final.m
 SM47: `bits | F16_SCALE` (8 | 256, 4 | 256) rounds every row scale (absmax / qmax) to IEEE float16 before the codes
 are computed with it (round to nearest even, subnormals kept, clamped to the float16 maximum 65504; a scale that is 0,
 or underflows to 0, or is NaN becomes 1 like the float32 path). Without the flag the kernel is unchanged.
+
+SM49: `bits | HEAD_SCALE` (512) uses one scale per head (the absmax of the whole K x K head state, a warp max over the
+K rows) instead of one per row; with F16_SCALE that head scale is rounded to float16. Without the flag nothing changes.
 """
 import os
 from pathlib import Path
@@ -24,6 +27,7 @@ _handles = []
 
 F16_SCALE = 256   # flag on `bits`: float16 row scales (SM47)
 F16_MAX = 65504.0
+HEAD_SCALE = 512  # flag on `bits`: one scale per head shared by its K rows (SM49)
 
 # The f32 -> f16 -> f32 rounding of a non-negative scale in the kernel: RNE to 10 mantissa bits in the normal range,
 # to multiples of 2^-24 below 2^-14 (the float16 subnormals); NaN passes through (then becomes 1).
@@ -56,6 +60,16 @@ def _source(K):
         if text.count(old) != 1:
             raise RuntimeError(f"kernel source changed: {old!r}")
         text = text.replace(old, new)
+    # SM49: the HEAD_SCALE flag; m = the head's absmax (max over the K lanes, exact), before the skip branch so every
+    # lane of the warp takes part (bits is uniform)
+    old = "        out[here] = o;\n"
+    if text.count(old) != 1:
+        raise RuntimeError(f"kernel source changed: {old!r}")
+    text = text.replace(old, old + (
+        "        if (bits & 512) {\n"
+        "            #pragma unroll\n"
+        f"            for (int off = {K // 2}; off > 0; off >>= 1) m = fmaxf(m, __shfl_xor_sync({mask}, m, off));\n"
+        "        }\n"))
     return text
 
 
@@ -101,7 +115,7 @@ def reference(r, k, v, w, a, kd, skip, bits=0):
         out[:, t] = o
         if bits:
             qmax = 127.0 if (bits & 255) == 8 else 7.0
-            scale = nxt.abs().amax(-1, keepdim=True) / qmax
+            scale = nxt.abs().amax((-2, -1) if bits & HEAD_SCALE else -1, keepdim=True) / qmax
             if bits & F16_SCALE:
                 scale = round_scale_f16(scale)
             scale = torch.where(scale > 0, scale, torch.ones_like(scale))
@@ -121,10 +135,11 @@ def self_test(device="cuda", seed=0):
         a = torch.sigmoid(a)
         w = torch.exp(-torch.exp(-0.5 - torch.rand(B, T, H, K, generator=g)))
         skip = torch.rand(B, T, generator=g) < 0.3
-        for bits in (0, 8, 8 | F16_SCALE, 4 | F16_SCALE):
+        for bits in (0, 8, 8 | F16_SCALE, 4 | F16_SCALE, 4 | F16_SCALE | HEAD_SCALE):
             ref = reference(r, k * a, v, w, a, kd, skip, bits)
             got = wkv_long(*(x.to(device) for x in (r, k * a, v, w, a, kd)), skip.to(device), bits).cpu()
             name = f"{bits & 255}h" if bits & F16_SCALE else f"{bits}"
+            name += "g" if bits & HEAD_SCALE else ""
             results[f"K{K}/bits{name}"] = float((got - ref).abs().max())
     return results
 
