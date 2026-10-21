@@ -430,6 +430,12 @@ def run_case(args):
                 raise ValueError("state_vq needs the Expertium model without fused_shift")
             from scripts.state_vq import install_training
             report["state_vq"] = install_training(base, options["state_vq"], device)
+        if options.get("head_only") is not None:
+            # SM50: train one head only; every other child parameter gets no gradient (AdamW/Muon skip it).
+            if not variant:
+                raise ValueError("head_only needs the Expertium variant model")
+            from scripts.expertium_options import freeze_except_head
+            report["head_only"] = freeze_except_head(base, options["head_only"])
         optimizer = catch_up.optimizer(master) if catch_up else get_optimizer(Namespace(PEAK_LR=7e-4), master)
         if catch_up:
             catch_up.load_teacher(device, dtype)

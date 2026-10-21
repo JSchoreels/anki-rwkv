@@ -35,7 +35,8 @@ E2S_ENV = "EXPERTIUM_END_TO_START"
 # Track options that cannot change which batches are built or what the teacher sees: the optimizer only updates the
 # student from gradients, so an AdamW and a Muon run share the same teacher targets (SM20).
 # The SM32b state-VQ QAT (state_vq) only changes the student's forward, never the batch or the teacher input.
-TEACHER_BLIND = ("distillation", "optimizer", "instant_loss_weight", "state_vq")
+# SM50 head_only only freezes student parameters.
+TEACHER_BLIND = ("distillation", "optimizer", "instant_loss_weight", "state_vq", "head_only")
 # Accepted R01 switches whose kernels assume d_model 32 / head size 32 (or need one that does). A variant of
 # another width runs the generic PyTorch or NVRTC path for these; `compatible_options` drops them.
 WIDTH32_ONLY = ("row_tiles_exact", "native_wkv", "wkv_tile", "wkv_rows", "exact_index", "skip_padding_sources",
@@ -339,6 +340,41 @@ def _same_dataset(a, b):
     manifests = [p / "download_manifest.json" for p in (a, b)]
     return all(m.exists() for m in manifests) and manifests[0].read_bytes() == manifests[1].read_bytes()
 
+
+# SM50: head-only fine-tunes ("head_only": "curve" | "instant"). The Expertium model's two outputs read the shared
+# trunk (features2card, the five RWKV streams) through the shared prehead_norm; past it the heads share nothing:
+#   curve   = head_w (MLP to the curve features) + the curve parameters it feeds: the GRU curve head gru_{w,s,d}_*,
+#             w_linear, and the ahead-residual branch head_ahead_logits / ahead_linear (1x1 dummies when the GRU head is on);
+#   instant = head_p + p_linear (the four-rating logits; the binary instant prediction is 1 - p(again)).
+# Every parameter outside the chosen head (trunk, prehead_norm, the other head) gets requires_grad False on the
+# training (child) model, so it never gets a gradient: AdamW and Muon skip parameters whose grad is None, and the
+# stored card/note state (a function of the trunk only) is unchanged. The other head's loss terms then have no path
+# to a trainable parameter, so the gradient equals that of the chosen head's loss alone (scripts/check_head_only.py).
+HEAD_PREFIXES = {
+    "curve": ("head_w.", "gru_w_", "gru_s_", "gru_d_", "w_linear.", "head_ahead_logits.", "ahead_linear."),
+    "instant": ("head_p.", "p_linear."),
+}
+
+
+def head_parameter_names(model, head):
+    if head not in HEAD_PREFIXES:
+        raise ValueError(f"head_only must be one of {sorted(HEAD_PREFIXES)}, not {head!r}")
+    names = [name for name, _ in model.named_parameters() if name.startswith(HEAD_PREFIXES[head])]
+    others = tuple(prefix for name, prefixes in HEAD_PREFIXES.items() if name != head for prefix in prefixes)
+    if not names or any(name.startswith(others) for name in names):
+        raise ValueError(f"head_only {head!r}: no head parameters found, or they overlap the other head")
+    return names
+
+
+def freeze_except_head(model, head):
+    """requires_grad False on every parameter of `model` outside `head` (SM50); returns a short report."""
+    keep = set(head_parameter_names(model, head))
+    counts = {True: 0, False: 0}
+    for name, parameter in model.named_parameters():
+        parameter.requires_grad_(name in keep)
+        counts[name in keep] += parameter.numel()
+    return {"head": head, "trainable_parameters": counts[True], "frozen_parameters": counts[False],
+            "trainable_tensors": sorted(keep)}
 
 def make_optimizer(spec, master):
     from scripts.muon_optimizer import expertium_iter53, get_hybrid_optimizer

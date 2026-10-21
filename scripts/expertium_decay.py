@@ -9,6 +9,8 @@ reviews, with the learning rate decaying from 7e-4 to 0 over exactly those revie
   prepare --source-run DIR --epoch N --out artifacts/... [--fraction 0.25 --shape one_minus_sin
           --evaluate quick|validation|validation+final_test|none --seed 1 --extra-options JSON
           --fresh-optimizer]   (fresh: start with an empty optimizer state instead of the source optimizer.pth)
+          [--init-case DIR --peak LR]  (SM50: start from another finished case's master/optimizer/update offset, e.g. a
+                                        decay's output, still on the source run's users; peak LR instead of 7e-4)
   run     --out artifacts/...        (one GPU process; submit through scripts/r01_queue.py)
   auto    <prepare arguments>         (prepare unless --out exists, then run; lets a queued job wait for the epoch)
   compare --out artifacts/...        (decayed vs the source epoch on the same held-out users; summary.md/json)
@@ -43,7 +45,8 @@ def source_case(source_run, config, epoch):
     return folder, result
 
 
-def prepare(source_run, epoch, out, fraction, shape, evaluate, seed, extra_options, final, fresh_optimizer=False):
+def prepare(source_run, epoch, out, fraction, shape, evaluate, seed, extra_options, final, fresh_optimizer=False,
+            init_case=None, peak=None):
     if out.exists():
         raise FileExistsError(f"{out} exists; pick a new output")
     config = json.loads((source_run / "run.json").read_text())
@@ -67,6 +70,14 @@ def prepare(source_run, epoch, out, fraction, shape, evaluate, seed, extra_optio
     dataset = Path(config["dataset_path"])
     dataset = dataset if dataset.is_absolute() else source_run.parents[2] / dataset
     schedule = {"decay_start": 0.0, "decay_end": 1.0, "shape": shape, "final": final}
+    if peak is not None:
+        schedule["peak"] = peak
+    if init_case is not None:
+        # SM50: continue another finished case (its weights, optimizer state and update offset) on these users.
+        init_result = json.loads((init_case / "result.json").read_text())
+        if init_result.get("status") != "complete" or not (init_case / "master.pth").exists():
+            raise RuntimeError(f"{init_case} is not a finished case (status {init_result.get('status')})")
+        folder, result = init_case, init_result
     full_run = {"epoch": epoch, "evaluate": evaluate != "none", "init_master": str(folder / "master.pth"),
                 "init_optimizer": str(folder / "optimizer.pth"), "update_offset": result["update_offset_end"],
                 "lr_schedule": schedule, "benchmark_db": str(source_run / "label-db"), "evaluation_set": evaluate}
@@ -82,7 +93,8 @@ def prepare(source_run, epoch, out, fraction, shape, evaluate, seed, extra_optio
              "source_case": str(folder), "source_update_offset_end": result["update_offset_end"], "model": MODEL,
              "track": config["track"], "options": options, "dropped_width32_options": dropped,
              "fraction_of_epoch_reviews": fraction, "training_users": len(users), "training_reviews": reviews,
-             "shuffle_seed": seed, "lr": f"7e-4 -> {final * 7e-4:g}, shape {shape}, over all {reviews:,} reviews",
+             "shuffle_seed": seed, "lr": (f"7e-4 -> {final * 7e-4:g}" if peak is None else f"{peak:g} -> {final * peak:g}")
+             + f", shape {shape}, over all {reviews:,} reviews",
              "evaluation_set": evaluate, "evaluation_users": len(evaluation),
              "control": f"epoch-{epoch:02d} scores of the same users in {folder / 'result.json'}"}
     out.mkdir(parents=True)
@@ -238,6 +250,9 @@ def main():
     parser.add_argument("--evaluate", default="quick", choices=("quick", "validation", "validation+final_test", "none"))
     parser.add_argument("--seed", type=int, default=1)
     parser.add_argument("--extra-options", type=json.loads, default=None)
+    parser.add_argument("--init-case", type=Path, default=None, help="SM50: start from this finished case folder "
+                        "(master.pth, optimizer.pth, result.json) instead of the source epoch's")
+    parser.add_argument("--peak", type=float, default=None, help="peak learning rate of the decay (default 7e-4)")
     parser.add_argument("--fresh-optimizer", action="store_true",
                         help="do not load the source epoch's optimizer.pth (needed when --extra-options changes the optimizer kind)")
     args = parser.parse_args()
@@ -252,7 +267,8 @@ def main():
         if args.source_run is None or args.epoch is None or not 0 < args.fraction <= 1:
             parser.error("prepare needs --source-run, --epoch and 0 < --fraction <= 1")
         code = prepare(args.source_run.resolve(), args.epoch, out, args.fraction, args.shape, args.evaluate, args.seed,
-                       args.extra_options, args.final, args.fresh_optimizer)
+                       args.extra_options, args.final, args.fresh_optimizer,
+                       args.init_case.resolve() if args.init_case else None, args.peak)
         if args.command == "prepare" or code:
             return code
     code = run(out)
