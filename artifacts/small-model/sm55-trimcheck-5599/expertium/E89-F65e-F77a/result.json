@@ -1,0 +1,302 @@
+{
+  "model": "expertium",
+  "track": "E89-F65e-F77a",
+  "options": {
+    "prefetch_users": true,
+    "preparation_workers": 5,
+    "gpu_packed_features": true,
+    "packed_ipc": true,
+    "async_transfer": true,
+    "batched_id_encodings": true,
+    "grouped_sync": true,
+    "main_threads": 1,
+    "bulk_transfer": true,
+    "parallel_evaluation": true,
+    "exact_shift": true,
+    "batch_chunks": 1,
+    "gpu_memory_fraction": 0.8,
+    "fast_samples": true,
+    "prestart_pool": true,
+    "deferred_reads": true,
+    "shared_shift_orders": true,
+    "stream_launches": true,
+    "sync_free_loss": true,
+    "columnar_samples": true,
+    "skip_uninitialized_fill": true,
+    "host_placement": "physical",
+    "process_qos": true,
+    "deferred_read_depth": 2,
+    "bookkeeping_stride": 8,
+    "lean_step_reset": true,
+    "wddm_flush": true,
+    "architecture": "w64",
+    "distillation": {
+      "teacher": "C:/Users/jonat/workspace/anki/qt/aqt/rwkv_inference/RWKV_trained_on_5000_10000.pth",
+      "alpha": 0.9,
+      "decay_alpha": 0.5,
+      "kd_source": "replay",
+      "replay": "C:/Users/jonat/workspace/anki-rwkv/artifacts/cache/kd-replay/fork-fp32-final8k"
+    },
+    "chunk_reviews": 32768,
+    "training_seed": 2025,
+    "state_carry": {
+      "lanes": "strided"
+    },
+    "optimizer": "expertium-iter53"
+  },
+  "config": {
+    "MODEL": "expertium",
+    "DTYPE": "bfloat16",
+    "WKV_BACKEND": "nvrtc",
+    "SEED": 2025,
+    "BATCH_CHUNKS": 1,
+    "CHUNK_REVIEWS": 32768,
+    "PREFETCH_WORKERS": 5,
+    "PREFETCH_BATCHES": 10,
+    "CPU_THREADS": 4,
+    "EPOCHS": 1,
+    "DATA_PATH": "C:\\Users\\jonat\\workspace\\anki-rwkv\\data\\anki-revlogs-10k-original-20261011",
+    "DATASET_REVISION": "75299740cff05894ef42d7ad990666691efdd2da",
+    "GPU_MEMORY_FRACTION": 0.8,
+    "PEAK_LR": 0.0007,
+    "WARMUP_STEPS": 5
+  },
+  "torch": "2.9.1+cu128",
+  "cuda": "12.8",
+  "gpu": "NVIDIA GeForce RTX 5080",
+  "training_dropout": "enabled",
+  "device_used_at_start_mib": 1290.4375,
+  "master_dtype": "float32",
+  "float32_matmul_precision": "highest",
+  "cuda_matmul_allow_tf32": false,
+  "rss_sampling": "process tree at user transitions; sampled maximum, not continuous peak",
+  "provenance": {
+    "captured_utc": "2026-10-21T17:47:53.540352+00:00",
+    "git_commit": "902572f462f2f06058850331a38c189d6622ea1f",
+    "git_dirty": true,
+    "git_status_porcelain_z": " M artifacts/small-model/check-muon-fresh-decay-sm55.json\u0000?? scripts/check_replay_label_windows.py\u0000",
+    "source_tree_sha256": "e537e05163414b96ed09d66c34c2171defbd448798b50d8deddf3fb9337f14f5",
+    "source_archive": "artifacts/sources/experiment-sources/e537e05163414b96ed09d66c34c2171defbd448798b50d8deddf3fb9337f14f5/source.zip",
+    "source_paths": [
+      "rwkv",
+      "expertium",
+      "scripts",
+      "configs",
+      "pyproject.toml",
+      "uv.lock",
+      "justfile",
+      "upstream.json"
+    ]
+  },
+  "status": "complete",
+  "smoke_only": false,
+  "implementation_sha256": "0348fb6709a7c41a7344ff0129c440180eeeadf8babc0587e2ae6bc377d4c06a",
+  "started_utc": "2026-10-21T17:47:55.526854+00:00",
+  "training_users": 1,
+  "evaluation_users": 0,
+  "progress_users": 1,
+  "updates": 1,
+  "review_presentations": 32768,
+  "training_curve_labels": 23896,
+  "training_instant_labels": 23896,
+  "hierarchical_padded_positions": 361896,
+  "peak_process_tree_rss_mib": 4762.48828125,
+  "gpu_copy_milliseconds": 40.71826171875,
+  "gpu_copy_overlap_training_milliseconds": 0.0,
+  "initial_parameter_sha256": "bf98d96064e9a279bcd4195b65eb5f3f33fc2befe52bd956bdead26629188b45",
+  "expertium_catch_up": {
+    "keys": [
+      "architecture",
+      "distillation",
+      "optimizer"
+    ],
+    "architecture": {
+      "name": "w64",
+      "parameters": 331511
+    },
+    "lr_schedule": {
+      "decay_start": 0.0,
+      "decay_end": 1.0,
+      "shape": "one_minus_sin",
+      "final": 0.0,
+      "total_reviews": 32768
+    },
+    "optimizer": "expertium-iter53",
+    "distillation": {
+      "teacher": "C:\\Users\\jonat\\workspace\\anki\\qt\\aqt\\rwkv_inference\\RWKV_trained_on_5000_10000.pth",
+      "teacher_sha256": "8fb7fea081b38623ffc0d84ed18303cf5d62b42b9105e91112264a34286beeeb",
+      "teacher_parameters": null,
+      "alpha": 0.9,
+      "decay_alpha": 0.5,
+      "kd_source": "replay",
+      "replay": "C:\\Users\\jonat\\workspace\\anki-rwkv\\artifacts\\cache\\kd-replay\\fork-fp32-final8k",
+      "replay_manifest_sha256": "0a2e8be8b1c43582d0964454964505ac4a3b2c9ac2b39aeb34ea4df27c5899c4",
+      "replay_teacher_precision": "float32 weights, float32 state (compress_quant fork path, state_bits 0)"
+    },
+    "state_carry": {
+      "precision": "deploy",
+      "carry": true,
+      "lanes": "strided",
+      "mode": "strided lanes (v2): update u holds window u of every lane; lane starts from zero",
+      "stats": {
+        "users": 1,
+        "updates": 1,
+        "streams_calls": 1,
+        "peak_table_bytes": 24084966
+      }
+    }
+  },
+  "discarded_primer_seconds": 22.44254739995813,
+  "model_setup_seconds": 9.418695400003344,
+  "warmup_job_workers": 5,
+  "prestarted_worker_pids": [
+    7744,
+    39104,
+    39600,
+    45484,
+    49892
+  ],
+  "prestarted_workers": 5,
+  "pool_ready_wait_seconds": 0.0004156999639235437,
+  "pool_prestart_seconds": 22.50851790001616,
+  "host_placement": {
+    "mode": "physical",
+    "main_process_cpus": [
+      2,
+      3,
+      6,
+      7,
+      10,
+      11
+    ],
+    "worker_cpus": [
+      0,
+      4,
+      8,
+      14,
+      12
+    ],
+    "workers": 5,
+    "physical_cores": 8,
+    "main_core_scheduling_classes": [
+      6,
+      6,
+      5
+    ],
+    "restored_main_process_cpus": 16
+  },
+  "process_qos": {
+    "mode": "above_normal_unthrottled",
+    "processes": [
+      {
+        "pid": 44880,
+        "role": "main",
+        "previous_throttling": {
+          "control_mask": 0,
+          "state_mask": 0
+        },
+        "previous_priority_class": 32,
+        "priority_class": 32768
+      },
+      {
+        "pid": 7744,
+        "role": "worker",
+        "previous_throttling": {
+          "control_mask": 0,
+          "state_mask": 0
+        },
+        "previous_priority_class": 32,
+        "priority_class": 32768
+      },
+      {
+        "pid": 39104,
+        "role": "worker",
+        "previous_throttling": {
+          "control_mask": 0,
+          "state_mask": 0
+        },
+        "previous_priority_class": 32,
+        "priority_class": 32768
+      },
+      {
+        "pid": 39600,
+        "role": "worker",
+        "previous_throttling": {
+          "control_mask": 0,
+          "state_mask": 0
+        },
+        "previous_priority_class": 32,
+        "priority_class": 32768
+      },
+      {
+        "pid": 45484,
+        "role": "worker",
+        "previous_throttling": {
+          "control_mask": 0,
+          "state_mask": 0
+        },
+        "previous_priority_class": 32,
+        "priority_class": 32768
+      },
+      {
+        "pid": 49892,
+        "role": "worker",
+        "previous_throttling": {
+          "control_mask": 0,
+          "state_mask": 0
+        },
+        "previous_priority_class": 32,
+        "priority_class": 32768
+      }
+    ],
+    "timer_resolution_100ns": {
+      "coarsest": 156250,
+      "finest": 5000,
+      "current": 5000
+    }
+  },
+  "training_started_utc": "2026-10-21T17:48:23.115619+00:00",
+  "nvrtc_max_timesteps": 131072,
+  "deferred_read_depth": 2,
+  "lean_step_reset": {
+    "master_parameters": 420,
+    "child_parameters": 420
+  },
+  "bookkeeping_stride": 8,
+  "rss_sampling_skipped_processes": 0,
+  "training_seconds": 7.159409399959259,
+  "training_gc": {
+    "generation_0": {
+      "collections": 7,
+      "seconds": 0.0012929000076837838
+    },
+    "generation_1": {
+      "collections": 0,
+      "seconds": 0.0
+    },
+    "generation_2": {
+      "collections": 0,
+      "seconds": 0.0
+    }
+  },
+  "cold_training_seconds": 7.159409399959259,
+  "reviews_per_second": 4576.913844343986,
+  "cold_reviews_per_second": 4576.913844343986,
+  "coverage": {
+    "5599": {
+      "reviews": 32768,
+      "updates": 1
+    }
+  },
+  "peak_allocated_mib": 4277.50830078125,
+  "peak_reserved_mib": 5352.0,
+  "allocator_stats": {
+    "num_alloc_retries": 0,
+    "num_ooms": 0,
+    "num_device_alloc": 369,
+    "num_device_free": 47
+  },
+  "trained_parameter_sha256": "cc925562935db1ef08d2b9c237be69e2f053d1933a2da3287594d200234c0dda",
+  "update_offset_end": 167569,
+  "case_elapsed_seconds": 39.319912699982524
+}
