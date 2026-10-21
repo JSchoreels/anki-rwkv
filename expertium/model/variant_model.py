@@ -19,6 +19,9 @@ from expertium.model.srs_model import (DTYPE_EXCLUDE, ExactIndexSelect, ExactPad
 
 # The GRU head's root parameters stay float32 like the linears they replace (upstream DTYPE_EXCLUDE "gru_").
 VARIANT_DTYPE_EXCLUDE = DTYPE_EXCLUDE + ["gru_"]
+# SM21 (scripts/state_carry_train.py): while a StateCarry is active for a model object, that model's interleaved
+# streams run with carried state. None (the default, always outside the opt-in `state_carry` option) = stock path.
+CARRY_HOOK = [None]
 
 
 def is_excluded(name):
@@ -256,6 +259,9 @@ class VariantSrsRWKV(SrsRWKV):
         so x stays canonical and each layer-step is gather -> one layer -> scatter-back of the non-padding rows.
         v0 (value residual) stays stream-local: set by the stream's layer 0, reused by its later layers.
         """
+        carry = CARRY_HOOK[0]
+        if carry is not None and carry.owns(self):
+            return carry.streams(self, x, batch_sub_gather, batch_sub_gather_lens, batch_time_shift_selects, batch_skips)
         cur = torch.arange(x.size(0), dtype=torch.long, device=x.device)
         gathers, positions, targets = [], [], []
         for splits in batch_sub_gather:

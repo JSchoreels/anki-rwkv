@@ -1,0 +1,102 @@
+{
+ "device": "NVIDIA GeForce RTX 5080",
+ "users": [
+  1340,
+  8254
+ ],
+ "long_user": 8745,
+ "options": {
+  "prefetch_users": true,
+  "preparation_workers": 5,
+  "gpu_packed_features": true,
+  "async_transfer": true,
+  "batched_id_encodings": true,
+  "grouped_sync": true,
+  "main_threads": 1,
+  "bulk_transfer": true,
+  "parallel_evaluation": true,
+  "exact_shift": true,
+  "exact_index": true,
+  "batch_chunks": 16,
+  "gpu_memory_fraction": 0.8,
+  "fast_samples": true,
+  "prestart_pool": true,
+  "row_tiles_exact": 4,
+  "exact_group_norm": true,
+  "deferred_reads": true,
+  "shared_shift_orders": true,
+  "stream_launches": true,
+  "prefetch_rows": true,
+  "sync_free_loss": true,
+  "columnar_samples": true,
+  "skip_uninitialized_fill": true,
+  "skip_padding_sources": true,
+  "native_wkv": false,
+  "host_placement": "physical",
+  "process_qos": true,
+  "native_group_norm": false,
+  "native_index": false,
+  "deferred_read_depth": 2,
+  "bookkeeping_stride": 8,
+  "wkv_tile": false,
+  "lean_step_reset": true,
+  "native_glue": false,
+  "wddm_flush": true,
+  "architecture": "w64",
+  "chunk_reviews": 2048,
+  "training_seed": 2025
+ },
+ "checks": {
+  "P_empty_table_vs_stock": {
+   "pass": true,
+   "rows": [
+    {
+     "user": 1340,
+     "bitwise": true,
+     "loss_rel_diff": 0.0,
+     "grad_rel_diff": 0.0
+    },
+    {
+     "user": 8254,
+     "bitwise": true,
+     "loss_rel_diff": 0.0,
+     "grad_rel_diff": 0.0
+    }
+   ]
+  },
+  "X_exact_carry_vs_full_history": {
+   "pass": true,
+   "rows": [
+    {
+     "user": 1340,
+     "windows": 3,
+     "fp32_max_abs_dp": 5.364418029785156e-07,
+     "deploy_max_abs_dp": 0.0014003515243530273
+    },
+    {
+     "user": 8254,
+     "windows": 5,
+     "fp32_max_abs_dp": 5.066394805908203e-07,
+     "deploy_max_abs_dp": 0.0007876753807067871
+    }
+   ]
+  },
+  "T_update_cost": {
+   "stock": {
+    "median_seconds": 0.2996001999999862,
+    "peak_memory_mib": 6390.87744140625,
+    "reviews": 32768
+   },
+   "carry": {
+    "median_seconds": 0.32696199999190867,
+    "peak_memory_mib": 6654.5751953125,
+    "reviews": 32768,
+    "table_bytes": 24598334
+   },
+   "carry_over_stock": 1.0913277093670957
+  }
+ },
+ "fails": [],
+ "passed": true,
+ "seconds": 29.7
+}

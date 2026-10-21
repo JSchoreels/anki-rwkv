@@ -39,7 +39,7 @@ def _matrix(columns, direct=False):
 
 
 def create_sample_fast(user_id, section_df, equalize_review_ths, dtype, device, column_arrays=None,
-                       segment_features_precomputed=False, direct_matrix=False):
+                       segment_features_precomputed=False, direct_matrix=False, int64_ids=False):
     if column_arrays is None:
         frame = add_segment_features(section_df.copy()).reset_index(drop=True)
         data = {name: frame[name].to_numpy() for name in frame.columns}
@@ -82,7 +82,9 @@ def create_sample_fast(user_id, section_df, equalize_review_ths, dtype, device, 
         raise AssertionError("label_rating outside 1-4")
     length = len(data["review_th"])
 
-    ids = {name: torch.tensor(data[name], dtype=torch.int32, device=device, requires_grad=False) for name in RWKV_SUBMODULES}
+    # SM21 state carry keys entities by int64 ids (the int32 ids collide for placeholder note ids).
+    id_dtype = torch.int64 if int64_ids else torch.int32
+    ids = {name: torch.tensor(data[name], dtype=id_dtype, device=device, requires_grad=False) for name in RWKV_SUBMODULES}
     modules = {}
     for submodule in RWKV_SUBMODULES:
         values = data[submodule]
@@ -122,6 +124,12 @@ def samples_for(section, user, options, chunk=128):
     """F30 when the frozen options select it; otherwise the original per-chunk construction.
     The track option "chunk_reviews" (long-context training, docs/SMALL_MODEL.md 5.3) overrides the chunk length."""
     chunk = options.get("chunk_reviews", chunk)
+    if options.get("state_carry"):
+        # SM21: the section already holds user-level segment features (gpu_r01_prefetch); int64 entity ids.
+        if not (options.get("fast_samples") and options.get("columnar_samples")) or options.get("batch_segment_features"):
+            raise ValueError("state_carry needs fast columnar samples without F44 batch segment features")
+        return make_samples_fast(section, user, chunk, columnar=True, user_segment_features=True,
+                                 direct_matrix=options.get("direct_sample_matrix", False))
     if options.get("fast_samples"):
         return make_samples_fast(section, user, chunk, columnar=options.get("columnar_samples", False),
                                  batch_segment_features=options.get("batch_segment_features", False),
@@ -132,9 +140,20 @@ def samples_for(section, user, options, chunk=128):
     return make_samples(section, user, chunk)
 
 
-def make_samples_fast(section, user, chunk, *, columnar=False, batch_segment_features=False, direct_matrix=False):
+def make_samples_fast(section, user, chunk, *, columnar=False, batch_segment_features=False, direct_matrix=False,
+                      user_segment_features=False):
     if batch_segment_features and not columnar:
         raise ValueError("F44 requires columnar samples")
+    if user_segment_features:
+        # SM21: day_offset, day_offset_first and day_of_week were computed over the user's whole training section
+        # (scripts.state_carry_train.user_segment_features), so windows keep them; ids are int64.
+        if not columnar or batch_segment_features:
+            raise ValueError("user-level segment features need columnar samples without F44")
+        columns = {name: section[name].to_numpy() for name in section.columns}
+        return [create_sample_fast(user, section.iloc[i:i + chunk], [], torch.float32, torch.device("cpu"),
+                                   column_arrays={name: values[i:i + chunk] for name, values in columns.items()},
+                                   segment_features_precomputed=True, direct_matrix=direct_matrix, int64_ids=True)
+                for i in range(0, len(section), chunk)]
     if columnar:
         columns = {name: section[name].to_numpy() for name in section.columns}
         if batch_segment_features and len(section):

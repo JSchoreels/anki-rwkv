@@ -33,7 +33,30 @@ def head16_source(text):
     return text
 
 
-def source_options(dtype, exact=False, compact_previous=False, next_step_prefetch=False, load_pipeline=0, head=32):
+# SM21 (docs/SMALL_MODEL.md, carried state): the exact forward started from an initial state S0 [B, H, K, K] (float32)
+# and writing the final state, as rwkv.model.nvrtc.STATE_REWRITES does for the generic kernel. Applied after the K=16
+# rewrite ({K} = head size) and only when `state` is requested, so the stock text and its modules are unchanged.
+STATE_REWRITES = (("    F* out, int L, float* checkpoints) {",
+                   "    F* out, int L, float* checkpoints, const float* state0, float* state_final) {", 1),
+                  ("    for (int q = 0; q < ROWS; ++q) state[q] = 0.0f;\n",
+                   "    for (int q = 0; q < ROWS; ++q)\n"
+                   "        state[q] = state0[get_index4(b, 0, h, threadIdx.y + q * WARPS, y, 1, H, {K}, {K})];\n", 1),
+                  ("            if (skipped) state[q] = previous;\n        }\n    }\n}",
+                   "            if (skipped) state[q] = previous;\n        }\n    }\n    #pragma unroll\n"
+                   "    for (int q = 0; q < ROWS; ++q)\n"
+                   "        state_final[get_index4(b, 0, h, threadIdx.y + q * WARPS, y, 1, H, {K}, {K})] = state[q];\n}", 1))
+
+
+def state_source(text, head=32):
+    for old, new, count in STATE_REWRITES:
+        if text.count(old) != count:
+            raise RuntimeError(f"row-tile state rewrite expected {count}x {old!r}, found {text.count(old)}")
+        text = text.replace(old, new.replace("{K}", str(head)))
+    return text
+
+
+def source_options(dtype, exact=False, compact_previous=False, next_step_prefetch=False, load_pipeline=0, head=32,
+                   state=False):
     if dtype not in (torch.float32, torch.bfloat16):
         raise ValueError("Row-tiled recurrence supports float32 or BF16")
     prefix = nvrtc.kernel_source(dtype).split("namespace rwkv {")[0]
@@ -46,6 +69,10 @@ def source_options(dtype, exact=False, compact_previous=False, next_step_prefetc
         text = head16_source(text)
     elif head != 32:
         raise ValueError("Row-tiled recurrence supports head sizes 16 and 32")
+    if state:
+        if not exact:
+            raise ValueError("SM21 initial/final state exists only for the exact row-tiled kernel")
+        text = state_source(text, head)
     source = prefix + text
     options = ["--std=c++17"]
     if dtype == torch.bfloat16:
@@ -78,15 +105,17 @@ def source_options(dtype, exact=False, compact_previous=False, next_step_prefetc
 
 
 def compile_module(device, dtype, rows, tile, exact=False, compact_previous=False, next_step_prefetch=False, load_pipeline=0,
-                   head=32):
+                   head=32, state=False):
     if rows not in (1, 2, 4, 8) or tile not in (8, 16, 32):
         raise ValueError("Rows must be 1, 2, 4 or 8; checkpoint tile must be 8, 16 or 32")
     index = device.index if device.index is not None else torch.cuda.current_device()
     key = index, dtype, rows, tile, exact, compact_previous, next_step_prefetch, load_pipeline
     if head != 32:
         key += (head,)
+    if state:
+        key += ("state",)
     if key not in _modules:
-        source, options = source_options(dtype, exact, compact_previous, next_step_prefetch, load_pipeline, head)
+        source, options = source_options(dtype, exact, compact_previous, next_step_prefetch, load_pipeline, head, state)
         scalar = "float" if dtype == torch.float32 else "__nv_bfloat16"
         namespace = "rwkv_exact" if exact else "rwkv_future"
         names = tuple(f"{namespace}::{name}_kernel<{tile}, {rows}, {scalar}>" for name in ("forward", "backward"))
@@ -104,6 +133,7 @@ def row_tiled_backend(rows=4, tile=8, exact=False, compact_previous=False, next_
     nvrtc.register()
     original_module, original_launch = nvrtc.module, nvrtc.launch
     original_tile = nvrtc._checkpoint_length
+    original_state_module = nvrtc.state_module
 
     def module(device, dtype, head=32):
         if wave_aware or load_pipeline in (7, 8):
@@ -112,6 +142,13 @@ def row_tiled_backend(rows=4, tile=8, exact=False, compact_previous=False, next_
             # Forward remains at the accepted layout; launch chooses backward by B.
             return tuple((device, dtype, i) for i in (0, 1))
         return compile_module(device, dtype, rows, tile, exact, compact_previous, next_step_prefetch, load_pipeline, head)
+
+    def state_module(device, dtype, head=32):
+        # SM21: the forward with initial/final state in this backend's layout; the backward stays module()[1].
+        if wave_aware or load_pipeline in (7, 8):
+            raise NotImplementedError("SM21 state carry supports the fixed row-tile layouts only")
+        return compile_module(device, dtype, rows, tile, exact, compact_previous, next_step_prefetch, load_pipeline,
+                              head, state=True)[0]
 
     def launch(kernel, device, shape, args, head=32):
         import numpy as np
@@ -137,6 +174,7 @@ def row_tiled_backend(rows=4, tile=8, exact=False, compact_previous=False, next_
 
     nvrtc.set_checkpoint_length(tile)
     nvrtc.module, nvrtc.launch = module, launch
+    nvrtc.state_module = state_module
     try:
         yield {"rows_per_thread": rows, "checkpoint_tile": tile, "threads_per_block": 1024 // rows,
                "compact_previous_state": compact_previous, "recurrence_prefetch": next_step_prefetch, "wave_aware_backward": wave_aware, "recurrence_load_pipeline": load_pipeline}
@@ -146,4 +184,5 @@ def row_tiled_backend(rows=4, tile=8, exact=False, compact_previous=False, next_
         finally:
             # CUDA errors must not leave the experimental backend installed.
             nvrtc.module, nvrtc.launch = original_module, original_launch
+            nvrtc.state_module = original_state_module
             nvrtc.set_checkpoint_length(original_tile)

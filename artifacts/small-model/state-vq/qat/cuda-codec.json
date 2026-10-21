@@ -1,0 +1,117 @@
+{
+ "device": "NVIDIA GeForce RTX 5080",
+ "recipe": "vq378x412p",
+ "factor_dtype": "float32",
+ "impl": "cuda",
+ "chunking": "32k",
+ "correctness": {
+  "card": {
+   "vs_torch_cuda": {
+    "rows": 64,
+    "T": 24,
+    "heads": 4,
+    "coded_head_steps": 4784,
+    "one_step_mismatch_above_1e-5": {
+     "torch": 0
+    },
+    "one_step_max_abs_diff": {
+     "torch": 1.4901161193847656e-07
+    },
+    "trajectory_heads_diverged_above_1e-5": 0,
+    "heads_total": 256,
+    "out_max_abs_diff": 3.5762786865234375e-07,
+    "backward_max_rel_diff": 2.5863801056402735e-07,
+    "ok": true
+   },
+   "vs_torch_cpu_and_deployed": {
+    "rows": 64,
+    "T": 24,
+    "heads": 4,
+    "coded_head_steps": 4784,
+    "one_step_mismatch_above_1e-5": {
+     "torch": 0,
+     "deployed": 0
+    },
+    "one_step_max_abs_diff": {
+     "torch": 8.940696716308594e-08,
+     "deployed": 5.960464477539063e-08
+    },
+    "trajectory_heads_diverged_above_1e-5": 0,
+    "heads_total": 256,
+    "out_max_abs_diff": 2.384185791015625e-07,
+    "backward_max_rel_diff": 2.737738213909324e-07,
+    "ok": true
+   },
+   "shift_rows_above_1e-4": {
+    "t": 0,
+    "c": 0
+   },
+   "ok": true
+  },
+  "note": {
+   "vs_torch_cuda": {
+    "rows": 64,
+    "T": 24,
+    "heads": 4,
+    "coded_head_steps": 4860,
+    "one_step_mismatch_above_1e-5": {
+     "torch": 0
+    },
+    "one_step_max_abs_diff": {
+     "torch": 1.1920928955078125e-07
+    },
+    "trajectory_heads_diverged_above_1e-5": 0,
+    "heads_total": 256,
+    "out_max_abs_diff": 3.5762786865234375e-07,
+    "backward_max_rel_diff": 2.8234103410795797e-07,
+    "ok": true
+   },
+   "vs_torch_cpu_and_deployed": {
+    "rows": 64,
+    "T": 24,
+    "heads": 4,
+    "coded_head_steps": 4860,
+    "one_step_mismatch_above_1e-5": {
+     "torch": 0,
+     "deployed": 0
+    },
+    "one_step_max_abs_diff": {
+     "torch": 8.940696716308594e-08,
+     "deployed": 5.960464477539063e-08
+    },
+    "trajectory_heads_diverged_above_1e-5": 0,
+    "heads_total": 256,
+    "out_max_abs_diff": 2.980232238769531e-07,
+    "backward_max_rel_diff": 2.421131171104207e-07,
+    "ok": true
+   },
+   "shift_rows_above_1e-4": {
+    "t": 0,
+    "c": 0
+   },
+   "ok": true
+  },
+  "ok": true
+ },
+ "estimate": {
+  "updates_total": 3465,
+  "plain_decay_seconds_per_update": 1.1154112554112554,
+  "steps_per_update": {
+   "card": 143.575,
+   "note": 843.675
+  },
+  "paths": {
+   "cuda": {
+    "seconds_per_update": 0.0993341999965196,
+    "timed_updates": 4,
+    "warmup_seconds": 0.08902749999833759,
+    "added_seconds_per_update": 0.2887621999907424,
+    "peak_allocated_mib": 1127.62109375,
+    "projected_ticket_minutes": 86.09101704946536
+   }
+  },
+  "plain_seconds": 0.015874575005000224,
+  "shift_seconds": 0.205302574999223
+ },
+ "ok": true
+}
