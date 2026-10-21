@@ -49,6 +49,4 @@ Daily use (2-10 ms per answer) is fast on all of them. Details, flagship example
 - Compressed state (a few hundred bits per card instead of int8) is not part of this release; it currently costs too much accuracy.
 - No license is set yet. Check the terms of the training data (anki-revlogs-10k) and the teacher model before redistributing.
 
-sha256 of `sm36-package.zip`: `9bc1e3e4040ce9693f230e905abb5c925b1102f787424b9059543ae900f1e2a2`
-
 sha256 of `sm36-package.zip`: `866166e30bf76b8f40bfeaca4bcc0bc542983a6a8663c9d01f8a69cb225105a8`
