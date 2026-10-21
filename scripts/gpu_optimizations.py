@@ -49,7 +49,9 @@ class DeferredPreparedBatch(PreparedBatch):
 
 def prepare_fast(data_list: list[RWKVSample], target_len=None, seed=None, gpu_encodings=False,
                  batched_id_encodings=False, layout=None, padding_factor=0.9,
-                 allowed_excess_in_one_step=20000) -> PreparedBatch:
+                 allowed_excess_in_one_step=20000, consistent_seed=None) -> PreparedBatch:
+    # consistent_seed (SM21 state carry): id encodings and day baselines are functions of (user seed, stream, id),
+    # identical in every window of the user (scripts.state_carry_train); None = the per-sample draws below.
     if seed is not None:
         if batched_id_encodings or layout is not None:
             # These preparation extensions operate on CPU workers only.
@@ -81,7 +83,11 @@ def prepare_fast(data_list: list[RWKVSample], target_len=None, seed=None, gpu_en
                     continue
                 values = ids[submodule].numpy()
                 # Preserve the original set order and per-ID RNG draws.
-                if batched_id_encodings:
+                if consistent_seed is not None:
+                    from scripts.state_carry_train import consistent_id_table
+                    table, indices = consistent_id_table(ids[submodule], ID_ENCODE_DIMS[submodule], card_features.dtype,
+                                                         consistent_seed, submodule)
+                elif batched_id_encodings:
                     from scripts.gpu_id_encodings import batched_id_table
                     table, indices = batched_id_table(ids[submodule], ID_ENCODE_DIMS[submodule], card_features.dtype)
                 else:
@@ -96,7 +102,11 @@ def prepare_fast(data_list: list[RWKVSample], target_len=None, seed=None, gpu_en
                     gather.append(table[indices])
             baselines = []
             for period in DAY_OFFSET_ENCODE_PERIODS:
-                baseline = torch.randint(low=0, high=period, size=(1,))
+                if consistent_seed is not None:
+                    from scripts.state_carry_train import consistent_baseline
+                    baseline = consistent_baseline(consistent_seed, period)
+                else:
+                    baseline = torch.randint(low=0, high=period, size=(1,))
                 baselines.append(baseline)
                 if not gpu_encodings:
                     f = 2 * np.pi / period

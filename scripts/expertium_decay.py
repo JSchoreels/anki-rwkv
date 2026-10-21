@@ -7,7 +7,8 @@ LR from peak to 0). This does the same on the R01 trainer: it starts from an epo
 reviews, with the learning rate decaying from 7e-4 to 0 over exactly those reviews, then scores held-out users.
 
   prepare --source-run DIR --epoch N --out artifacts/... [--fraction 0.25 --shape one_minus_sin
-          --evaluate quick|validation|validation+final_test|none --seed 1 --extra-options JSON]
+          --evaluate quick|validation|validation+final_test|none --seed 1 --extra-options JSON
+          --fresh-optimizer]   (fresh: start with an empty optimizer state instead of the source optimizer.pth)
   run     --out artifacts/...        (one GPU process; submit through scripts/r01_queue.py)
   auto    <prepare arguments>         (prepare unless --out exists, then run; lets a queued job wait for the epoch)
   compare --out artifacts/...        (decayed vs the source epoch on the same held-out users; summary.md/json)
@@ -42,7 +43,7 @@ def source_case(source_run, config, epoch):
     return folder, result
 
 
-def prepare(source_run, epoch, out, fraction, shape, evaluate, seed, extra_options, final):
+def prepare(source_run, epoch, out, fraction, shape, evaluate, seed, extra_options, final, fresh_optimizer=False):
     if out.exists():
         raise FileExistsError(f"{out} exists; pick a new output")
     config = json.loads((source_run / "run.json").read_text())
@@ -69,6 +70,10 @@ def prepare(source_run, epoch, out, fraction, shape, evaluate, seed, extra_optio
     full_run = {"epoch": epoch, "evaluate": evaluate != "none", "init_master": str(folder / "master.pth"),
                 "init_optimizer": str(folder / "optimizer.pth"), "update_offset": result["update_offset_end"],
                 "lr_schedule": schedule, "benchmark_db": str(source_run / "label-db"), "evaluation_set": evaluate}
+    if fresh_optimizer:
+        # The source optimizer state is of another kind (AdamW vs Muon): start the decay from a new, empty state.
+        full_run.pop("init_optimizer")
+        full_run["optimizer_state"] = "fresh"
     protocol = {"rows": rows_for(users, counts), "evaluation_rows": rows_for(evaluation, counts),
                 "dataset_path": str(dataset), "dataset_revision": config["dataset_revision"],
                 "training": {"epochs": 1, "chunk_reviews": options.get("chunk_reviews", 128), "gpu_memory_fraction": 0.95},
@@ -233,6 +238,8 @@ def main():
     parser.add_argument("--evaluate", default="quick", choices=("quick", "validation", "validation+final_test", "none"))
     parser.add_argument("--seed", type=int, default=1)
     parser.add_argument("--extra-options", type=json.loads, default=None)
+    parser.add_argument("--fresh-optimizer", action="store_true",
+                        help="do not load the source epoch's optimizer.pth (needed when --extra-options changes the optimizer kind)")
     args = parser.parse_args()
     out = (ROOT / args.out).resolve()
     if not out.is_relative_to(ROOT / "artifacts"):
@@ -245,7 +252,7 @@ def main():
         if args.source_run is None or args.epoch is None or not 0 < args.fraction <= 1:
             parser.error("prepare needs --source-run, --epoch and 0 < --fraction <= 1")
         code = prepare(args.source_run.resolve(), args.epoch, out, args.fraction, args.shape, args.evaluate, args.seed,
-                       args.extra_options, args.final)
+                       args.extra_options, args.final, args.fresh_optimizer)
         if args.command == "prepare" or code:
             return code
     code = run(out)

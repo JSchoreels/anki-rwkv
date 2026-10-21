@@ -5,6 +5,7 @@ import os
 import torch
 
 from expertium.model.rwkv_ops import RWKV7_WKV, reference_rwkv7, quant_aware_rwkv7
+from expertium.model.state_vq_hooks import vq_shift, vq_wkv
 from rwkv.model.fused_shift import FusedShiftLerp
 from rwkv.model.exact_index import ExactShiftGather, shift_order
 from rwkv.model.exact_group_norm import ExactGroupNorm
@@ -137,6 +138,8 @@ class RWKV7ChannelMixer(ModuleType):
         self.exact_shift = False
         self.native_shift = False  # F65d
         self.native_shift_handle = 0
+        # SM32b state-VQ QAT (expertium/model/state_vq_hooks.py): stream index of the codec, -1 = off.
+        self.state_vq_slot = -1
         assert config.d_model // config.n_heads in (16, 32)  # 16: expertium.variants w80 (NVRTC K=16 kernel)
         self.d_model = config.d_model
         with torch.no_grad():
@@ -176,6 +179,8 @@ class RWKV7ChannelMixer(ModuleType):
                 dim=1,
                 index=time_shift_select_BT.unsqueeze(-1).expand(-1, -1, self.d_model),
             )
+        if self.state_vq_slot >= 0:
+            x_shift_BTC = vq_shift(x_shift_BTC, time_shift_select_BT, self.state_vq_slot, 1)
         k_BTK = self.W_k(torch.lerp(x_BTC, x_shift_BTC, self.lerp_k))
         if self.native_glue and k_BTK.requires_grad and k_BTK.is_cuda:
             hidden = torch.ops.rwkv_native.channel_glue(k_BTK, self.native_channel_forward_handle)
@@ -272,6 +277,8 @@ class RWKV7TimeMixer(ModuleType):
         self.native_group_norm = False
         self.native_group_chains_handle = 0
         self.native_group_tree_handle = 0
+        # SM32b state-VQ QAT (expertium/model/state_vq_hooks.py): stream index of the codec, -1 = off.
+        self.state_vq_slot = -1
         assert config.d_model % config.n_heads == 0
         self.layer_id = layer_id
         C = config.d_model
@@ -394,6 +401,8 @@ class RWKV7TimeMixer(ModuleType):
                     x_BTC, dim=1,
                     index=time_shift_select_BT.unsqueeze(-1).expand(-1, -1, self.d_model),
                 )
+            if self.state_vq_slot >= 0:
+                x_shift_BTC = vq_shift(x_shift_BTC, time_shift_select_BT, self.state_vq_slot, 0)
             rkvdag_8BTC = torch.lerp(
                 x_BTC.unsqueeze(0), x_shift_BTC.unsqueeze(0), self.rkvdag_lerp
             )
@@ -430,7 +439,10 @@ class RWKV7TimeMixer(ModuleType):
         k_deformed_BTHK = k_BTHK
         k_BTHK = k_BTHK * a_BTHK
 
-        if self.state_qmax != float("inf") or self.state_lowrank_rank > 0:
+        if self.state_vq_slot >= 0:
+            # SM32b: card/note state through the VQ codec at every stored step (STE), float32 per-step recurrence.
+            out_BTHK = vq_wkv(r_BTHK, k_BTHK, v_BTHK, w_BTHK, a_BTHK, k_deformed_BTHK, skip_BT, self.state_vq_slot)
+        elif self.state_qmax != float("inf") or self.state_lowrank_rank > 0:
             # QAT: simulate per-step deploy state storage for this stream (card/note) -- low-rank
             # truncation if configured, else int-N quant. Runs the quant-aware per-step reference
             # (requires RWKV_NO_JIT). deck/preset/global stay off and keep the fast kernel.

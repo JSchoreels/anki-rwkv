@@ -1,0 +1,55 @@
+[sm21v2 11:49:09] started: 5a2455e SM21 v1 stale-state share (CPU): 29.4% of card reviews and 21.2% of note reviews start from a stale carried state (vs 8.9% / 6.5% exact); the user stream skips ~15k reviews at 92% of windows (DRYRUN=1)
+[sm21v2 11:49:09] DRYRUN warning (would stop): uncommitted source changes in scripts/ expertium/ rwkv/ (SourceWatch / the orchestrator refuse them)
+[sm21v2 11:49:10] DRYRUN warning (would stop): check report check-state-carry-lanes-gpu.json has not passed (or is missing)
+{"out": "C:\\Users\\jonat\\workspace\\anki-rwkv\\artifacts\\cache\\kd-replay\\fork-fp32-gate5k", "users": 5000, "complete_users": 5000, "missing_users": 0, "missing_sample": [], "reviews_done": 369477375, "reviews_total": 369477375, "bytes": 3699355129, "bytes_per_review": 10.012, "complete": true, "errors": 0}
+[sm21v2 11:49:12] replay export complete
+[sm21v2 11:49:12] === arm lanes: scale-w64kd-gate-sc-lanes-cont (state_carry {"lanes": "strided"}) ===
+[sm21-copy] C:\Users\jonat\workspace\wt\sm21v2\artifacts\small-model\cont-check-scale-w64kd-gate-sc-lanes-cont: epochs 1..10 stubs, epoch 10 checkpoint, chunk 2048 x 16, state_carry {'lanes': 'strided'}, replay distillation {'teacher': 'C:/Users/jonat/workspace/anki/qt/aqt/rwkv_inference/RWKV_trained_on_5000_10000.pth', 'alpha': 0.9, 'decay_alpha': 0.5, 'kd_source': 'replay', 'replay': 'C:/Users/jonat/workspace/anki-rwkv/artifacts/cache/kd-replay/fork-fp32-gate5k'}, epochs 12
+[sm21-check] replay spec valid: teacher sha256 8fb7fea081b3
+[sm21-check] OK: epoch 11 resumes from epoch-10 (update_offset 139640, LR 7e-4, AdamW state copied), 2048 x 16, options = source + state_carry {'lanes': 'strided'} + replay spec (42 keys, all in the prefetch allowlist)
+[sm21-check] decay prepare options: chunk_reviews 2048 batch_chunks 16 state_carry {'lanes': 'strided'} kd_source replay
+[sm21v2 11:49:18] DRYRUN enqueue: SM21 scale-w64kd-gate-sc-lanes-cont epoch 11/12 (lanes, chunk 2048 x 16, smoke first) (expected 80 min)
+    cmd: C:/Program Files/Git/usr/bin/bash.exe -c 'C:/Users/jonat/workspace/anki-rwkv/.venv/Scripts/python.exe' -X utf8 'C:/Users/jonat/workspace/wt/sm21v2/scripts/expertium_decay.py' smoke --out 'C:/Users/jonat/workspace/wt/sm21v2/artifacts/small-model/smoke-prep-scale-w64kd-gate-sc-lanes-cont' && 'C:/Users/jonat/workspace/anki-rwkv/.venv/Scripts/python.exe' -X utf8 'C:/Users/jonat/workspace/wt/sm21v2/scripts/accuracy_loop.py' train 'scale-w64kd-gate-sc-lanes-cont' --epochs-per-job 1
+[sm21v2 11:49:18] DRYRUN warning (would stop): no epoch-11 checkpoint after training
+[sm21v2 11:49:18] DRYRUN enqueue: SM21 gate: score s-w64kd-gate-sc-lanes-e11 on the 100 gate users (expected 4 min)
+    cmd: C:/Users/jonat/workspace/anki-rwkv/.venv/Scripts/python.exe -X utf8 C:/Users/jonat/workspace/wt/sm21v2/scripts/small_model_heldout.py --users-file C:/Users/jonat/workspace/wt/sm21v2/artifacts/small-model/gate-users.json --model s-w64kd-gate-sc-lanes-e11=expertium:w64:C:/Users/jonat/workspace/wt/sm21v2/artifacts/accuracy/experiments/scale-w64kd-gate-sc-lanes-cont/run/epoch-11/expertium/E89-F65e-F77a/master.pth --only s-w64kd-gate-sc-lanes-e11/w8+s8 --time-limit 600 --out C:/Users/jonat/workspace/wt/sm21v2/artifacts/small-model/heldout-sm21v2.jsonl
+[sm21-compare] incomplete rows {'s-w64kd-gate-ctx32768c-e10/w8+s8': 0, 's-w64kd-gate-sc-lanes-e11/w8+s8': 100, 'fork/w8+s8': 0}
+[sm21v2 11:49:19] DRYRUN: no rows for the e11 gate comparison
+[sm21-compare] incomplete rows {'s-w64kd-gate-sc-zero-e11/w8+s8': 100, 's-w64kd-gate-sc-lanes-e11/w8+s8': 100, 'fork/w8+s8': 0}
+[sm21v2 11:49:19] e11 lanes-vs-zero gate comparison incomplete (arm rows missing; continuing)
+[sm21-compare] incomplete rows {'s-w64kd-gate-sc-carry-e11/w8+s8': 0, 's-w64kd-gate-sc-lanes-e11/w8+s8': 100, 'fork/w8+s8': 0}
+[sm21v2 11:49:19] e11 lanes-vs-carry gate comparison incomplete (arm rows missing; continuing)
+[sm21v2 11:49:19] DRYRUN enqueue: SM21 scale-w64kd-gate-sc-lanes-cont epoch 12/12 (lanes, chunk 2048 x 16, smoke first) (expected 80 min)
+    cmd: C:/Program Files/Git/usr/bin/bash.exe -c 'C:/Users/jonat/workspace/anki-rwkv/.venv/Scripts/python.exe' -X utf8 'C:/Users/jonat/workspace/wt/sm21v2/scripts/expertium_decay.py' smoke --out 'C:/Users/jonat/workspace/wt/sm21v2/artifacts/small-model/smoke-prep-scale-w64kd-gate-sc-lanes-cont' && 'C:/Users/jonat/workspace/anki-rwkv/.venv/Scripts/python.exe' -X utf8 'C:/Users/jonat/workspace/wt/sm21v2/scripts/accuracy_loop.py' train 'scale-w64kd-gate-sc-lanes-cont' --epochs-per-job 1
+[sm21v2 11:49:20] DRYRUN warning (would stop): no epoch-12 checkpoint after training
+[sm21v2 11:49:20] DRYRUN enqueue: SM21 gate: score s-w64kd-gate-sc-lanes-e12 on the 100 gate users (expected 4 min)
+    cmd: C:/Users/jonat/workspace/anki-rwkv/.venv/Scripts/python.exe -X utf8 C:/Users/jonat/workspace/wt/sm21v2/scripts/small_model_heldout.py --users-file C:/Users/jonat/workspace/wt/sm21v2/artifacts/small-model/gate-users.json --model s-w64kd-gate-sc-lanes-e12=expertium:w64:C:/Users/jonat/workspace/wt/sm21v2/artifacts/accuracy/experiments/scale-w64kd-gate-sc-lanes-cont/run/epoch-12/expertium/E89-F65e-F77a/master.pth --only s-w64kd-gate-sc-lanes-e12/w8+s8 --time-limit 600 --out C:/Users/jonat/workspace/wt/sm21v2/artifacts/small-model/heldout-sm21v2.jsonl
+[sm21-compare] incomplete rows {'s-w64kd-gate-ctx32768c-e10/w8+s8': 0, 's-w64kd-gate-sc-lanes-e12/w8+s8': 100, 'fork/w8+s8': 0}
+[sm21v2 11:49:20] DRYRUN: no rows for the e12 gate comparison
+[sm21-compare] incomplete rows {'s-w64kd-gate-sc-zero-e12/w8+s8': 100, 's-w64kd-gate-sc-lanes-e12/w8+s8': 100, 'fork/w8+s8': 0}
+[sm21v2 11:49:20] e12 lanes-vs-zero gate comparison incomplete (arm rows missing; continuing)
+[sm21-compare] incomplete rows {'s-w64kd-gate-sc-carry-e12/w8+s8': 0, 's-w64kd-gate-sc-lanes-e12/w8+s8': 100, 'fork/w8+s8': 0}
+[sm21v2 11:49:21] e12 lanes-vs-carry gate comparison incomplete (arm rows missing; continuing)
+[sm21v2 11:49:21] DRYRUN: would prepare C:/Users/jonat/workspace/wt/sm21v2/artifacts/small-model/scale-w64kd-gate-sc-lanes-cont-decay (--source-run C:/Users/jonat/workspace/wt/sm21v2/artifacts/accuracy/experiments/scale-w64kd-gate-sc-lanes-cont/run --epoch 12 --fraction 0.25 --shape one_minus_sin --evaluate none --seed 1)
+[sm21v2 11:49:21] DRYRUN enqueue: SM21 scale-w64kd-gate-sc-lanes-cont: 0.25-epoch decay from e12 (lanes, chunk 2048, smoke first) (expected 25 min)
+    cmd: C:/Program Files/Git/usr/bin/bash.exe -c 'C:/Users/jonat/workspace/anki-rwkv/.venv/Scripts/python.exe' -X utf8 'C:/Users/jonat/workspace/wt/sm21v2/scripts/expertium_decay.py' smoke --out 'C:/Users/jonat/workspace/wt/sm21v2/artifacts/small-model/scale-w64kd-gate-sc-lanes-cont-decay' && 'C:/Users/jonat/workspace/anki-rwkv/.venv/Scripts/python.exe' -X utf8 'C:/Users/jonat/workspace/wt/sm21v2/scripts/expertium_decay.py' run --out 'C:/Users/jonat/workspace/wt/sm21v2/artifacts/small-model/scale-w64kd-gate-sc-lanes-cont-decay'
+[sm21v2 11:49:21] DRYRUN enqueue: SM21 scale-w64kd-gate-sc-lanes-cont: full-history scoring of e12 and dec12 (464 users, lanes) (expected 25 min)
+    cmd: C:/Users/jonat/workspace/anki-rwkv/.venv/Scripts/python.exe -X utf8 C:/Users/jonat/workspace/wt/sm21v2/scripts/small_model_heldout.py --model s-w64kd-gate-sc-lanes-e12=expertium:w64:C:/Users/jonat/workspace/wt/sm21v2/artifacts/accuracy/experiments/scale-w64kd-gate-sc-lanes-cont/run/epoch-12/expertium/E89-F65e-F77a/master.pth --model s-w64kd-gate-sc-lanes-dec12=expertium:w64:C:/Users/jonat/workspace/wt/sm21v2/artifacts/small-model/scale-w64kd-gate-sc-lanes-cont-decay/expertium/E89-F65e-F77a/master.pth --only s-w64kd-gate-sc-lanes-e12/w8+s8 --only s-w64kd-gate-sc-lanes-dec12/w8+s8 --time-limit 3000 --out C:/Users/jonat/workspace/wt/sm21v2/artifacts/small-model/heldout-sm21v2.jsonl
+[sm21v2 11:49:21] users still unscored after the scoring ticket (vs the fork's users): 464
+[sm21v2 11:49:21] DRYRUN enqueue: SM21 scale-w64kd-gate-sc-lanes-cont: scoring resume (only if users remain, lanes) (expected 15 min)
+    cmd: C:/Users/jonat/workspace/anki-rwkv/.venv/Scripts/python.exe -X utf8 C:/Users/jonat/workspace/wt/sm21v2/scripts/small_model_heldout.py --model s-w64kd-gate-sc-lanes-e12=expertium:w64:C:/Users/jonat/workspace/wt/sm21v2/artifacts/accuracy/experiments/scale-w64kd-gate-sc-lanes-cont/run/epoch-12/expertium/E89-F65e-F77a/master.pth --model s-w64kd-gate-sc-lanes-dec12=expertium:w64:C:/Users/jonat/workspace/wt/sm21v2/artifacts/small-model/scale-w64kd-gate-sc-lanes-cont-decay/expertium/E89-F65e-F77a/master.pth --only s-w64kd-gate-sc-lanes-e12/w8+s8 --only s-w64kd-gate-sc-lanes-dec12/w8+s8 --time-limit 1200 --out C:/Users/jonat/workspace/wt/sm21v2/artifacts/small-model/heldout-sm21v2.jsonl
+[sm21-compare] incomplete rows {'s-w64kd-gate-sc-zero-dec12/w8+s8': 0, 's-w64kd-gate-sc-lanes-dec12/w8+s8': 0, 'fork/w8+s8': 0}
+[sm21v2 11:49:21] lanes-vs-zero dec12 incomplete (arm B rows missing?)
+[sm21-compare] incomplete rows {'s-w64kd-gate-sc-carry-dec12/w8+s8': 0, 's-w64kd-gate-sc-lanes-dec12/w8+s8': 0, 'fork/w8+s8': 0}
+[sm21v2 11:49:22] lanes-vs-carry dec12 incomplete (arm A rows missing?)
+[sm21-compare] incomplete rows {'s-w64kd-gate-ctx32768c-dec10/w8+s8': 0, 's-w64kd-gate-sc-lanes-dec12/w8+s8': 0, 'fork/w8+s8': 0}
+[sm21v2 11:49:22] lanes-vs-source dec12 incomplete
+[sm21-compare] incomplete rows {'s-w64kd-gate-sc-zero-e12/w8+s8': 0, 's-w64kd-gate-sc-lanes-e12/w8+s8': 0, 'fork/w8+s8': 0}
+[sm21v2 11:49:22] lanes-vs-zero e12 incomplete (arm B rows missing?)
+[sm21-compare] incomplete rows {'s-w64kd-gate-sc-carry-e12/w8+s8': 0, 's-w64kd-gate-sc-lanes-e12/w8+s8': 0, 'fork/w8+s8': 0}
+[sm21v2 11:49:23] lanes-vs-carry e12 incomplete (arm A rows missing?)
+[sm21-compare] incomplete rows {'s-w64kd-gate-ctx32768c-e10/w8+s8': 0, 's-w64kd-gate-sc-lanes-e12/w8+s8': 0, 'fork/w8+s8': 0}
+[sm21v2 11:49:23] lanes-vs-source e12 incomplete
+[sm21v2-summary] dec12: lanes vs B (zero): rows missing | dec12: lanes vs A (v1 carry): rows missing | e12: lanes vs B (zero): rows missing | e12: lanes vs A (v1 carry): rows missing
+[sm21v2 11:49:23] done
+DRYRUN OK

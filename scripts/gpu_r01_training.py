@@ -423,6 +423,13 @@ def run_case(args):
             if not hasattr(base, "concurrent_splits"):
                 raise ValueError("F49 requires Expertium")
             base.concurrent_splits = True
+        if options.get("state_vq") is not None:
+            # SM32b: card/note state through the SM32 VQ codec at every stored step (fake-quant, STE, frozen
+            # codebooks); absent = no mixer is touched.
+            if options.get("fused_shift") or not hasattr(base, "rwkv_modules"):
+                raise ValueError("state_vq needs the Expertium model without fused_shift")
+            from scripts.state_vq import install_training
+            report["state_vq"] = install_training(base, options["state_vq"], device)
         optimizer = catch_up.optimizer(master) if catch_up else get_optimizer(Namespace(PEAK_LR=7e-4), master)
         if catch_up:
             catch_up.load_teacher(device, dtype)
@@ -433,6 +440,17 @@ def run_case(args):
             # Load on CPU: load_state_dict moves moments to the parameters' device but keeps AdamW's `step` where it
             # is, and a CUDA `step` makes non-capturable AdamW sync once per parameter (429 per update).
             optimizer.load_state_dict(torch.load(ROOT / full_run["init_optimizer"], map_location="cpu", weights_only=True))
+        learned_books = None
+        if options.get("state_vq") is not None:
+            from scripts import state_vq
+            learned_books = state_vq.LEARNED
+            if learned_books is not None:
+                # SM32c: the learned catalogs train in their own AdamW group (after the source optimizer state is
+                # loaded, so that file keeps its group layout); the loop sets every group's LR to the schedule.
+                if not isinstance(optimizer, torch.optim.AdamW):
+                    raise ValueError("state_vq learn: the catalog group needs an AdamW optimizer")
+                optimizer.add_param_group({"params": list(learned_books.parameters()), "weight_decay": 0.0})
+                report["state_vq"]["learned_parameters"] = sum(p.numel() for p in learned_books.parameters())
         update_offset = int(full_run.get("update_offset", 0))
         if options.get("group_adam"):
             from scripts.gpu_r01_group_adam import install_group_adam
@@ -620,6 +638,8 @@ def run_case(args):
                 folder.mkdir(parents=True, exist_ok=True)
                 torch.save(master.state_dict(), folder / "master.pth")
                 torch.save(optimizer.state_dict(), folder / "optimizer.pth")
+                if learned_books is not None:
+                    learned_books.export(folder / "state-vq-books.npz")
                 done = sorted(int(user) for user, record in coverage.items() if record["reviews"] == row_end[int(user)])
                 meta = {"reason": reason, "utc": datetime.now(timezone.utc).isoformat(), "progress_users": report["progress_users"],
                         "updates": report["updates"], "update_offset_end": update_offset + report["updates"],
@@ -714,6 +734,8 @@ def run_case(args):
                             torch.cuda.synchronize()
                             graphs.metrics["capture_seconds"] += time.perf_counter() - capture_start
                     else:
+                        if catch_up is not None and catch_up.carry is not None:
+                            catch_up.carry.attach(item, batch, user)  # SM21: entity rows; table reset per user
                         stats = (reduced.get_loss(batch) if reduced else
                                  catch_up.loss(active, batch, report["review_presentations"],
                                                (user, item.offset, item.reviews, item.seed) if len(parts) == 1 else None,
@@ -823,6 +845,9 @@ def run_case(args):
         watch.check()
         # Preserve weights in a new experiment location, never the existing trial.
         torch.save(master.state_dict(), path / "master.pth")
+        if learned_books is not None:
+            report["state_vq"]["learned_books"] = {"file": "state-vq-books.npz",
+                                                   "sha256": learned_books.export(path / "state-vq-books.npz")}
         if full_run:
             torch.save(optimizer.state_dict(), path / "optimizer.pth")
             report["update_offset_end"] = update_offset + report["updates"]

@@ -1,0 +1,163 @@
+{
+ "mode": "cpu",
+ "torch": "2.9.1+cu128",
+ "tolerance": {
+  "float32": {
+   "out": 0.0002,
+   "state": 0.0002,
+   "grad": 0.0002
+  },
+  "bfloat16": {
+   "out": 0.03,
+   "state": 0.0002,
+   "grad": 0.03
+  }
+ },
+ "provenance": {
+  "captured_utc": "2026-10-17T23:03:15.985406+00:00",
+  "git_commit": "7fada06ba1dc77d7760a67beeb25c55efe09b562",
+  "git_dirty": true,
+  "git_status_porcelain_z": " M rwkv/model/nvrtc.py\u0000 M scripts/gpu_row_tiles.py\u0000?? rwkv/model/wkv_state.py\u0000?? scripts/check_state_carry_kernels.py\u0000",
+  "source_tree_sha256": "efd170cfba1001b20432063940f7008c73d4774b51c49a7e2890ac09e2bc2b23",
+  "source_archive": "artifacts/sources/experiment-sources/efd170cfba1001b20432063940f7008c73d4774b51c49a7e2890ac09e2bc2b23/source.zip",
+  "source_paths": [
+   "rwkv",
+   "expertium",
+   "scripts",
+   "configs",
+   "pyproject.toml",
+   "uv.lock",
+   "justfile",
+   "upstream.json"
+  ]
+ },
+ "checks": {
+  "nvrtc_compile": [
+   {
+    "kernel": "generic",
+    "dtype": "float",
+    "head": 32,
+    "compiled": true,
+    "log": "",
+    "state_pointers": 2,
+    "seconds": 0.1
+   },
+   {
+    "kernel": "row_tiles_exact",
+    "dtype": "float",
+    "head": 32,
+    "compiled": true,
+    "log": "",
+    "state_pointers": 2,
+    "seconds": 0.5
+   },
+   {
+    "kernel": "generic",
+    "dtype": "float",
+    "head": 16,
+    "compiled": true,
+    "log": "",
+    "state_pointers": 2,
+    "seconds": 0.1
+   },
+   {
+    "kernel": "row_tiles_exact",
+    "dtype": "float",
+    "head": 16,
+    "compiled": true,
+    "log": "",
+    "state_pointers": 2,
+    "seconds": 0.4
+   },
+   {
+    "kernel": "generic",
+    "dtype": "__nv_bfloat16",
+    "head": 32,
+    "compiled": true,
+    "log": "",
+    "state_pointers": 2,
+    "seconds": 0.1
+   },
+   {
+    "kernel": "row_tiles_exact",
+    "dtype": "__nv_bfloat16",
+    "head": 32,
+    "compiled": true,
+    "log": "",
+    "state_pointers": 2,
+    "seconds": 0.5
+   },
+   {
+    "kernel": "generic",
+    "dtype": "__nv_bfloat16",
+    "head": 16,
+    "compiled": true,
+    "log": "",
+    "state_pointers": 2,
+    "seconds": 0.1
+   },
+   {
+    "kernel": "row_tiles_exact",
+    "dtype": "__nv_bfloat16",
+    "head": 16,
+    "compiled": true,
+    "log": "",
+    "state_pointers": 2,
+    "seconds": 0.5
+   }
+  ],
+  "cpu_reference": [
+   {
+    "batch": 3,
+    "timesteps": 1,
+    "heads": 4,
+    "head": 16,
+    "skip": "none",
+    "zero_state_equals_reference_rwkv7": true,
+    "chain_bitwise": true,
+    "max_abs_vs_float64_out": 8.295554110304693e-07,
+    "max_abs_vs_float64_state": 1.2987388076091122e-07,
+    "no_gradient_into_state0": true
+   },
+   {
+    "batch": 5,
+    "timesteps": 37,
+    "heads": 4,
+    "head": 16,
+    "skip": "random",
+    "zero_state_equals_reference_rwkv7": true,
+    "chain_bitwise": true,
+    "max_abs_vs_float64_out": 1.6159401940996077e-06,
+    "max_abs_vs_float64_state": 1.3060480008597608e-07,
+    "no_gradient_into_state0": true
+   },
+   {
+    "batch": 4,
+    "timesteps": 100,
+    "heads": 2,
+    "head": 32,
+    "skip": "first",
+    "zero_state_equals_reference_rwkv7": true,
+    "chain_bitwise": true,
+    "max_abs_vs_float64_out": 2.853525001178525e-06,
+    "max_abs_vs_float64_state": 1.942336782523313e-07,
+    "no_gradient_into_state0": true
+   },
+   {
+    "batch": 2,
+    "timesteps": 64,
+    "heads": 4,
+    "head": 16,
+    "skip": "tail",
+    "zero_state_equals_reference_rwkv7": true,
+    "chain_bitwise": true,
+    "max_abs_vs_float64_out": 1.2360417578349825e-06,
+    "max_abs_vs_float64_state": 2.1793493532040742e-07,
+    "no_gradient_into_state0": true
+   }
+  ]
+ },
+ "fails": [],
+ "passed": true,
+ "seconds": 3.9
+}

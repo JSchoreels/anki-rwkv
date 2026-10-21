@@ -9,7 +9,7 @@ Nothing here is wired into the R01 trainer yet; the default training path is unt
   the channel-mixer token-shift vector (the deployment RNN state, expertium/model/variant_rnn.py). It returns the
   head outputs of `forward_batch_variant` and the final state of every row. CPU eager arithmetic, op for op the
   stock CPU path (`reference_rwkv7` per-step WKV), so with no carried state it equals the stock forward bit for bit.
-  The GPU kernels (nvrtc RWKV7_WKV, row tiles) have no initial/final state yet: see the design.
+  GPU kernels with initial/final state: rwkv/model/wkv_state.py; trainer integration: scripts/state_carry_train.py.
 * State sources (`source.lookup` before the forward, `source.commit` after it):
   - `FreshCarry`: the latest state per (stream, entity) in memory, written by the training pass itself (no extra
     forward, no disk). All rows of one batch read the state as of the batch start; later windows win on commit.
@@ -25,7 +25,7 @@ import bisect
 import torch
 
 from expertium.variants import BATCH_STREAMS
-from rwkv.model.rwkv_ops import single_timestep
+from rwkv.model.wkv_state import wkv_with_state  # noqa: F401  (moved to the model package for the GPU path)
 
 
 # ---------------------------------------------------------------- bookkeeping
@@ -69,20 +69,6 @@ def _canonical_gathers(x_rows, batch_sub_gather):
 
 
 # ---------------------------------------------------------------- one layer with carried state
-def wkv_with_state(r, k, v, w, a, kd, skip, state0):
-    """`reference_rwkv7` started from `state0` [B, H, K, K] (None = zeros); returns (out [B, T, H, K], final state)."""
-    out_dtype = k.dtype
-    r, k, v, w, a, kd = (x.float() for x in (r, k, v, w, a, kd))
-    B, T, H, K = r.shape
-    out = torch.empty(B, T, H, K, dtype=torch.float32)
-    state = torch.zeros(B, H, K, K, dtype=torch.float32) if state0 is None else state0.float().clone()
-    skip4 = skip.unsqueeze(-1).unsqueeze(-1).unsqueeze(-1)
-    for t in range(T):
-        out[:, t], nxt = single_timestep(r[:, t], k[:, t], v[:, t], w[:, t], a[:, t], kd[:, t], state)
-        state = torch.where(skip4[:, t], state, nxt)
-    return out.to(out_dtype), state
-
-
 def _shift(x, select, head, shift0):
     """Stock token shift (gather of the last non-skipped row), with the carried vector where nothing precedes."""
     shifted = torch.gather(x, dim=1, index=select.unsqueeze(-1).expand(-1, -1, x.size(-1)))
