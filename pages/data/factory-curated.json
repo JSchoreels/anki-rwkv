@@ -774,14 +774,16 @@
    "what": "Smaller int state, round 2 (no retraining, SM36): A = 4-bit notes too, B = A + 4-bit short-term vectors, C = B + one scale per head instead of per row; 732 users. Plus (CPU) lossless compression of the stored codes on the collection copy",
    "id": "SM49",
    "kind": "gpu-check",
-   "minutes": 60,
+   "minutes": 28,
    "track": "small model",
    "match": [
     "SM49"
    ],
-   "when": "Wed 10-21: approved with the looser codebook check rule for the three 4-bit short-term-vector formats (rounding flips, not a bug). Queues behind SM55&rsquo;s 8k training (~19:00 &rarr; ~20:00), or this afternoon if that training moves to 01:00",
-   "decides": "How far below 37.6 MB is still nearly free? A 30.8 MB, B 28.7 MB, C 23.7 MB for 13,973 cards / 13,198 notes. Own collection so far (CPU): C +0.31% curve / +0.48% instant vs big; lossless compression shrinks C to 13.6 MB",
-   "state": "planned"
+   "when": "Wed 10-21 13:00-13:28",
+   "decides": "On 723 users, curve / instant LogLoss and % vs big (current best 37.6 MB: +0.64% / +0.63%): A 30.8 MB 0.30343 / 0.27976 (+0.68% / +0.69%); B 28.7 MB 0.30346 / 0.27990 (+0.69% / +0.73%); C 23.7 MB 0.30401 / 0.28068 (+0.87% / +1.02%, instant just over the bar); C&prime; 32.9 MB +0.74% / +0.78%. B is the smallest format clearly inside the bar. Lossless compression: C 23.7 &rarr; 13.6 MB on the own collection",
+   "state": "done",
+   "started_at": "2026-10-21T13:00:00+02:00",
+   "ended_at": "2026-10-21T13:28:19+02:00"
   },
   {
    "what": "Head-only fine-tunes: trunk frozen, the curve head alone on its loss, then the instant head alone (SM36 start), scored on 732 users",
@@ -800,14 +802,16 @@
    "what": "Muon tuning, arm 1: SM36&rsquo;s one-epoch 32k decay with the learning rate &times;0.5 (pointer from outside research), saving 4 snapshots along the decay for SM51",
    "id": "SM39",
    "kind": "gpu-train",
-   "minutes": 335,
+   "minutes": 260,
    "track": "small model",
    "match": [
     "SM39 arm 1"
    ],
-   "when": "Ready; its launcher starts it when SM55 is done: Thu 01:00 &rarr; ~06:35 if SM55 trains today, else Thu ~09:50 &rarr; ~15:25",
-   "decides": "Muon was the last win (~&minus;0.0002); is its learning rate right?",
-   "state": "planned"
+   "when": "Wed 10-21 13:28-17:48 (ran early: SM55 stopped), 23.9k reviews/s",
+   "decides": "Muon learning rate &times;0.5 ties the best model: 723 users curve 0.30330 / instant 0.27962 (+0.63% / +0.64% vs big); vs SM36 curve &minus;0.00003 [&minus;0.00021, +0.00012], instant +0.00003 [+0.00001, +0.00004]. The learning rate is not the lever",
+   "state": "done",
+   "started_at": "2026-10-21T13:28:00+02:00",
+   "ended_at": "2026-10-21T17:47:49+02:00"
   },
   {
    "what": "The best recipe (SM36) on 8,000 training users instead of 5,000 (581.9M vs 369.5M reviews), one change: full-history teacher targets for the 3,000 extra users (~1 h 45), then the one-epoch 32k decay over 8k users (~8 h), scored on 723 users",
@@ -818,22 +822,23 @@
    "match": [
     "SM55"
    ],
-   "when": "Wed 10-21: teacher targets queued (~10:00-11:50, behind SM48b and SM49); decay starts ~12:00 if it can end before the 22:00 break (~20:10), otherwise 01:00 &rarr; Thu ~09:05; scoring after (~45 min)",
+   "when": "Teacher targets done (09:00-10:45). The 8k training crashed at 12:59 after 2 h 14 min (no teacher targets found for one of the new users, user 5599, after its first 32k reviews); being fixed, restart Thu 01:00 &rarr; ~09:00, scoring after",
    "decides": "SM43 says more users win and the gap grows with training: how much does 8k gain over 5k?",
-   "state": "queued"
+   "state": "planned"
   },
   {
    "what": "Checkpoint averaging: average the last 2, 3 or 4 SM39 decay snapshots, scored with the final weights on 723 users",
    "id": "SM51",
    "kind": "gpu-check",
-   "minutes": 70,
+   "minutes": 32,
    "track": "small model",
    "match": [
     "SM51"
    ],
-   "when": "Right after SM39 arm 1 (same chain)",
-   "decides": "A free gain from weight averaging? Expected &minus;0.0001 to &minus;0.0003",
-   "state": "planned"
+   "when": "Wed 10-21 17:48-18:20",
+   "decides": "No free gain: averaging the last 2 snapshots ties (instant +0.00004); 3 or 4 snapshots make instant worse (+0.00012 / +0.00016, 723 users)",
+   "state": "done",
+   "ended_at": "2026-10-21T18:20:02+02:00"
   },
   {
    "what": "Muon tuning, arm 2: learning rate &times;2, or a head-weighted decay instead if SM50 found head slack",
