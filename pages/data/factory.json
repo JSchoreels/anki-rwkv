@@ -1,7 +1,7 @@
 {
- "generated_at": "2026-10-21T08:48:02+02:00",
- "updated": "2026-10-21 08:48",
- "material": "fd38997108bb8097",
+ "generated_at": "2026-10-21T08:53:00+02:00",
+ "updated": "2026-10-21 08:53",
+ "material": "17852867b1766795",
  "summary": "running 000592",
  "headline": [
   {
@@ -149,12 +149,25 @@
    "track": "small model",
    "ticket": "000592-small-model",
    "started": "08:46",
-   "elapsed": "0:01",
+   "elapsed": "0:06",
    "progress": null,
    "eta": "~09:21"
   }
  ],
- "waiting": [],
+ "waiting": [
+  {
+   "ticket": "000593-small-model",
+   "id": "SM36",
+   "what": "SM49: int4 notes, int4 shift vectors, per-head scales (4 int-state variants) for SM36, 732 pool (GPU check first)",
+   "flags": "expected 60 min"
+  },
+  {
+   "ticket": "000594-small-model",
+   "id": "SM55",
+   "what": "SM55 replay targets, 3,000 final-tier users outside the 5k export (ticket 1, resumable)",
+   "flags": "expected 95 min"
+  }
+ ],
  "recent": [
   {
    "ticket": "000591-small-model",
@@ -797,11 +810,12 @@
    "what": "Smaller int state, round 2 (no retraining, SM36): A = 4-bit notes too, B = A + 4-bit short-term vectors, C = B + one scale per head instead of per row; 732 users. Plus (CPU) lossless compression of the stored codes on the collection copy",
    "id": "SM49",
    "kind": "gpu-check",
-   "minutes": 70,
+   "minutes": 60,
    "track": "small model",
-   "when": "Wed 10-21 (today), being prepared",
+   "when": "Wed 10-21, queued behind SM48b (~09:25-10:25)",
    "decides": "How far below 37.6 MB is still nearly free? A 30.8 MB, B 28.7 MB, C 23.7 MB for 13,973 cards / 13,198 notes",
-   "state": "planned"
+   "state": "waiting",
+   "ticket": "000593-small-model"
   },
   {
    "what": "Head-only fine-tunes: trunk frozen, the curve head alone on its loss, then the instant head alone (SM36 start), scored on 732 users",
@@ -824,14 +838,15 @@
    "state": "planned"
   },
   {
-   "what": "The best recipe (SM36) on 8,000 training users instead of 5,000 (581.9M vs 369.5M reviews), one change: full-history teacher targets for the 3,000 extra users (~3 h), then the one-epoch 32k decay over 8k users (~6.6 h), scored on 732 users",
+   "what": "The best recipe (SM36) on 8,000 training users instead of 5,000 (581.9M vs 369.5M reviews), one change: full-history teacher targets for the 3,000 extra users (~1 h 45), then the one-epoch 32k decay over 8k users (~8 h), scored on 723 users",
    "id": "SM55",
    "kind": "gpu-train",
-   "minutes": 600,
+   "minutes": 630,
    "track": "small model",
-   "when": "Wed 10-21: teacher targets for the extra users today; decay from 01:00 &rarr; Thu ~08:00; scoring after",
+   "when": "Wed 10-21: teacher targets queued (~10:00-11:50, behind SM48b and SM49); decay starts ~12:00 if it can end before the 22:00 break (~20:10), otherwise 01:00 &rarr; Thu ~09:05; scoring after (~45 min)",
    "decides": "SM43 says more users win and the gap grows with training: how much does 8k gain over 5k?",
-   "state": "planned"
+   "state": "waiting",
+   "ticket": "000594-small-model"
   },
   {
    "what": "Checkpoint averaging: average the SM39 decay snapshots, scored on 732 users",
