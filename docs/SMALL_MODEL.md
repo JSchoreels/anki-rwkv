@@ -1066,7 +1066,16 @@ State = card + note state of the largest dataset user (246,801 cards, 76,887 not
 - **Where the time went** (SM45's 732-pool pass, 726 users x 2 variants, 1,978 s): 51% model call, 49% outside it (~10.8 µs per review-evaluation, flat across user sizes); preparation is overlapped by the 4 workers. Outside the model, the Python loops over labelled reviews (`collect_predictions`, upstream `get_stats`) cost 8.70 µs per review and variant on CPU. Inside the model, the preset/user/deck WKV recurrences are serial chains on 4 blocks of 16 threads (B = 1, 4 heads), ~13-19 dependent steps per review on 4 of the GPU's 84 SMs.
 - **Implemented**: (1) numpy metrics (`scripts/heldout_fast_metrics.py`, default; `--legacy-metrics` = old path): bitwise equal, 0.85 µs per review and variant; (2) `--lanes N`: N users at once, threads with their own model copies and CUDA streams, in-flight reviews capped by `--lane-review-budget` (400k default, ~25 KB of GPU memory per review); +vq variants run one at a time.
 - **CPU checks**: numpy vs dict metrics on real labels of 7 users bitwise (`sm48/check-fast-metrics.json`); the scorer with both paths vs the pre-SM48 scorer, 4 users x (w8+s8, w8+s4c8n), 8/8 rows bitwise (`check-cpu-orig-vs-array.json`, `check-cpu-orig-vs-dict.json`); lanes 2 vs 1 on CPU (fp32/w8; scheduler logic only) 8/8 bitwise.
-- **GPU timing ticket** (`--timing`, ~30 min): detached launcher `sm48/launch-sm48.sh` waits for the SM47 ticket to end and for `HOLD-chain` to be absent; job `sm48/job-sm48.sh`: 40 users of the 732 pool (2.26M reviews), SM36 w8+s8 + w8+s4c8n, arms old / numpy / lanes 2 / lanes 4 in order old arr l2 l4 l4 l2 arr old, rows compared with the first old run (stop on a tolerance failure). Results: `sm48/timing/summary.md` (pending). Follow-up: `sm48/HANDOFF-sm48.md`.
+- **GPU timing result** (2026-10-21, `--timing` ticket; launcher `sm48/launch-sm48.sh`, job `sm48/job-sm48.sh`; 40 users of the 732 pool, SM36 w8+s8 + w8+s4c8n, 4,511,064 review-evals per run, 2 runs per arm; [summary](../artifacts/small-model/sm48/timing/summary.md)):
+
+| Arm | Flags | review-evals/s | vs old | GPU util % | GPU mem max | 732-pool ETA (98.4M) |
+|---|---|---:|---:|---:|---:|---:|
+| old | `--legacy-metrics` | 46,144 | 1.00x | ~45 | ~13.1 GB | ~35.5 min |
+| numpy | default | 61,430 | 1.33x | ~55 | ~13.1 GB | ~26.7 min |
+| lanes 2 | `--lanes 2` | 66,484 | 1.44x | ~61 | ~14.5 GB | ~24.7 min |
+| lanes 4 | `--lanes 4` | 72,074 | 1.56x | ~67 | ~14.5 GB | ~22.8 min |
+
+  All 7 later runs match the first old run bitwise (80/80 row pairs each, no error rows). Memory: lanes raise the peak by about 1.4 GB (default `--lane-review-budget` 400k), above the ~0.8 cap (~13 GB of the 16.3 GB card) for new GPU jobs; for pool scoring use a lower budget or note the overshoot. Implementation commit be20647f; follow-up in `sm48/HANDOFF-sm48.md`.
 
 ## Backlog
 
