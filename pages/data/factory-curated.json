@@ -658,9 +658,11 @@
    "match": [
     "SM46"
    ],
-   "when": "running since 05:00, 464 users only (all 732 would take ~4 h), ~2.7 h (~07:45). 3-user GPU check passed 05:00 with the looser rule for codebook formats",
-   "decides": "Is compression nearly free at ~4.5&times; smaller than int8? 8-user screen: +0.00006 curve / +0.00014 instant",
-   "state": "running"
+   "when": "10-21 05:00 &rarr; 07:07, 464 users only (all 732 would take ~4 h)",
+   "decides": "Nearly free, but not cheaper than the int formats in practice: +0.00009 curve / +0.00015 instant (+0.77% / +0.70% vs the big model, 458 users), state 15.3 MB vs 37.6 MB for the smallest int format, but ~30 MB of codebooks to ship and ~11&times; slower scoring (5,005 vs ~56k reviews/s)",
+   "state": "done",
+   "started_at": "2026-10-21T05:00:40+02:00",
+   "ended_at": "2026-10-21T07:06:56+02:00"
   },
   {
    "what": "Compress the rest of the card/note state: 16-bit row scales and int8 short-term (token-shift) vectors, alone and together, on top of int8 and of int4 cards + int8 notes; best model (SM36), 732 users",
@@ -959,7 +961,7 @@
    "track": "small model"
   },
   {
-   "status": "next",
+   "status": "done",
    "id": "SM43",
    "track": "small model",
    "item": "Data diversity vs epochs: many users few epochs (10+1 epochs) vs 10&times; fewer users 10&times; more epochs (100+10), same number of gradient steps, both scored on the 732-user set",
@@ -1011,6 +1013,20 @@
   "s-w64kd-gate-ctx2048c-dec8-1ep/w8+s8"
  ],
  "results": [
+  {
+   "date": "10-21",
+   "kind": "gpu-check",
+   "name": "State compression at a large budget: 5,902 bits per card, 3,028 per note (codebooks fitted after training on the best model&rsquo;s own states, no retraining), best model (SM36), w8 weights",
+   "id": "SM46",
+   "curve": 0.29813,
+   "instant": 0.27412,
+   "curve_pct": 0.77,
+   "instant_pct": 0.7,
+   "eval": "458 users (464 set), 19.83M reviews",
+   "fork": "SM36 int8 state: 0.29804 / 0.27397 (+0.74% / +0.64% vs the big model)",
+   "takeaway": "<strong>Nearly free at 4.5&times; smaller than int8</strong>: +0.00009 [+0.00006, +0.00012] curve / +0.00015 [+0.00012, +0.00018] instant. 15.3 MB of state for 13,973 cards / 13,198 notes (int8 70.2 MB, smallest int format 37.6 MB at +0.00004 / +0.00005), but the codebooks add ~30 MB and scoring is ~11&times; slower (5,005 reviews/s on the GPU). Only the 464 set: all 732 users would take ~4 h",
+   "track": "small model"
+  },
   {
    "date": "10-21",
    "kind": "gpu-check",
