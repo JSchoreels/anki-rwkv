@@ -1077,6 +1077,17 @@ State = card + note state of the largest dataset user (246,801 cards, 76,887 not
 
   All 7 later runs match the first old run bitwise (80/80 row pairs each, no error rows). Memory: lanes raise the peak by about 1.4 GB (default `--lane-review-budget` 400k), above the ~0.8 cap (~13 GB of the 16.3 GB card) for new GPU jobs; for pool scoring use a lower budget or note the overshoot. Implementation commit be20647f; follow-up in `sm48/HANDOFF-sm48.md`.
 
+### SM39 arm 1 (Muon LR x0.5) and SM51 (snapshot averaging), prepared 2026-10-21
+
+Branch `sm39` (from `small-model`). Handoff: [sm39/HANDOFF-sm39.md](../artifacts/small-model/sm39/HANDOFF-sm39.md). Not run yet (queued behind SM55).
+
+- **Arm 1**: SM36's decay (v2 e12, one epoch at 32,768 x 1, strided-lane carry, replay KD targets, fresh optimizer) with one change: `"optimizer"` = the dict form of `expertium-iter53` with `lr_scale` x0.5 (Muon effective peak 0.0025 -> 0.00125). The AdamW part (21,623 parameters) does not depend on `lr_scale` and is unchanged. The Muon weight decay is stored as wd / lr_scale (`wd_at_adamw_rate`), so the decay per step stays at the AdamW rate as in SM36; only the orthogonalised step is halved.
+- **Snapshots** (opt-in): `expertium_decay.py prepare --snapshot-users 1250` sets `full_run.snapshot_users`, the trainer's existing full-run snapshots (master.pth + optimizer.pth at user boundaries): users 1,250 / 2,500 / 3,750 = 26.2% / 50.3% / 77.2% of the reviews, plus the final weights.
+- **SM51**: `scripts/average_checkpoints.py` (uniform mean, float64 accumulation, cast back; non-float tensors copied) -> avg2 / avg3 / avg4 = mean of the last 2 / 3 / 4 points.
+- **CPU checks** (passed): `scripts/check_decay_snapshots.py cpu` ([report](../artifacts/small-model/sm39/check-decay-snapshots-cpu.json)): options and protocol equal SM36's except the optimizer and `snapshot_users`; the dict spec at SM36's scale builds exactly `expertium-iter53`; arm 1 has the same groups with `lr_scale` exactly half; one step leaves every AdamW parameter bitwise equal to SM36's step and halves the Muon updates (ratio 0.4998-0.5002); on a short real CPU run (2 users, 8 updates, lanes 2) snapshots on vs off are bitwise equal in inputs, losses, gradient norms, final weights and optimizer state. `average_checkpoints.py check` ([report](../artifacts/small-model/sm39/check-average-checkpoints.json)): the mean of 2/3/4 copies of SM36 is SM36 bitwise; keys, order and dtypes intact; loads strictly into w64; the CPU scorer gives identical rows for avg(SM36, SM36) and SM36.
+- **GPU check** in the decay ticket: three trainer smokes (snapshots off, off, on) must agree bitwise before the decay starts.
+- **Readout**: 732 pool minus the 9 never-fit users (723), final + avg2/3/4 at w8+s8, paired vs SM36 w8+s8; the 464 readout is the 458-user subset of the same rows (the 464 pool lies inside the 732 pool; SM36's 464 and pool rows are identical on common users). On these sets SM36 is +0.64% / +0.63% (723) and +0.74% / +0.64% (458) vs fork w8+s8.
+
 ## Backlog
 
 | ID | Idea | Status | Next step |
