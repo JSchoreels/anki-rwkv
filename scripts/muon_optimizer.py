@@ -33,7 +33,13 @@ MATRIX_GROUPS = (0, 1, 2, 3)  # decay, channel mixer, head, features2card: Exper
 class HybridOptimizer:
     def __init__(self, adamw, muon):
         self.adamw, self.muon = adamw, muon
-        self.param_groups = adamw.param_groups + muon.param_groups
+
+    @property
+    def param_groups(self):
+        # SM50: a property, not a list built once. torch's load_state_dict replaces each optimizer's param_groups
+        # with new dicts, so a stored list would keep the pre-load dicts: the trainer's per-update LR would then
+        # never reach a loaded optimizer, which kept the saved (final) LR. Same dicts as before when nothing is loaded.
+        return self.adamw.param_groups + self.muon.param_groups
 
     def zero_grad(self, set_to_none=True):
         self.adamw.zero_grad(set_to_none=set_to_none)
