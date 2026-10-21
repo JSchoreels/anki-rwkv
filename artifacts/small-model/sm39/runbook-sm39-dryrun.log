@@ -1,0 +1,36 @@
+[sm39 10-21 08:56:12] started: f8005ce5 SM39 arm 1 + SM51: Muon LR x0.5 decay with opt-in weight snapshots, snapshot averaging, checks, runbook and launcher (DRYRUN=1)
+{"training_users": 5000, "training_reviews": 369477375, "evaluation_users": 0, "lr": "7e-4 -> 0, shape one_minus_sin, over all 369,477,375 reviews"}
+PASS A reference optimizer is expertium-iter53: "expertium-iter53"
+PASS A optimizer is the Muon x0.5 spec: {"kind": "muon", "lr_scale": 1.7857142857142858, "momentum": 0.95, "adjust_lr_fn": "original", "groups": "matrices", "include_lora": true, "lora_weight_decay": 0.0, "wd_at_adamw_rate": true}
+PASS A options identical except optimizer: {}
+PASS A decay fields equal (source, users, reviews, seed, LR): {"source_run": true, "source_epoch": true, "source_update_offset_end": true, "fraction_of_epoch_reviews": true, "training_users": true, "training_reviews": true, "shuffle_seed": true, "lr": true, "evaluation_set": true, "track": true}
+PASS A protocol full_run equal except snapshot_users: {"snapshot_users": 1250, "equal_rest": true}
+PASS A protocol rows/dataset/training equal: {"rows": true, "evaluation_rows": true, "dataset_path": true, "dataset_revision": true, "training": true, "execution_mode": true}
+PASS A snapshot points (users, review fraction): {"snapshot_users": 1250, "points": [{"users": 1250, "review_fraction": 0.2622}, {"users": 2500, "review_fraction": 0.5031}, {"users": 3750, "review_fraction": 0.7723}, {"users": 5000, "review_fraction": 1.0}]}
+PASS B dict spec at SM36's lr_scale == expertium-iter53 (all groups and hyperparameters): 6
+PASS B Muon / AdamW parameters: [309888, 21623]
+PASS B fresh state empty: [0, 0]
+PASS B AdamW groups identical to SM36: 1
+PASS B Muon lr_scale exactly x0.5 (effective peak 0.00125): [[1.7857142857142858, 3.5714285714285716], [1.7857142857142858, 3.5714285714285716], [1.7857142857142858, 3.5714285714285716], [1.7857142857142858, 3.5714285714285716], [1.7857142857142858, 3.5714285714285716]]
+PASS B Muon weight decay per written LR unchanged (lr_scale * wd): {"pairs": [[0.01, 0.01], [0.01, 0.01], [0.01, 0.01], [0.01, 0.01], [0.0, 0.0]], "max_rel_diff": 0.0}
+PASS B Muon groups otherwise identical (momentum, nesterov, adjust_lr_fn, lr): [true, true, true, true, true]
+PASS B one step: AdamW parameters bitwise equal to SM36: 257
+PASS B one step: Muon update norm ratio arm / SM36 (expect ~0.5): {"min": 0.4997922480106354, "max": 0.5002066493034363, "n": 163}
+PASS C trainer save_snapshot touches model/optimizer only via state_dict() saves: {"lines": ["torch.save(master.state_dict(), folder / \"master.pth\")", "torch.save(optimizer.state_dict(), folder / \"optimizer.pth\")"], "sha256": "291864f552adf186a10846cfc04c15b41de59389b377f149468bc94380f3f02c"}
+PASS C users / updates of the short run: {"users": [9328, 7643], "reviews": [3665, 3613], "chunk": 512, "lanes": 2, "updates": 8, "snapshots_saved": 9}
+PASS C inputs, losses, gradient norms, LRs bitwise equal (off vs on): [1.1568018198013306, 1.1767953634262085, 1.027762532234192, 1.0636980533599854, 0.7789809107780457, 0.8901230692863464, 0.900941014289856, 0.9854936003684998]
+PASS C final weights bitwise equal: ["379f119f19aa760f", "379f119f19aa760f"]
+PASS C final optimizer state bitwise equal: ["1ef3c1d11b42a058", "1ef3c1d11b42a058"]
+PASS C every snapshot reloads to the weights it was taken from; optimizer.pth has adamw/muon: {"snapshots": 9, "optimizer_keys": ["adamw", "muon"]}
+PASS C snapshot state_dict keys/dtypes = model's: 420
+ALL OK
+[check] state_carry options valid, replay spec valid (teacher sha256 8fb7fea081b3), 33 option keys allowlisted
+[sm39 10-21 08:57:54] DRYRUN enqueue: SM39 arm 1: SM36 Muon decay with Muon LR x0.5 + 4 weight snapshots (snapshot smokes first) (expected 335 min)
+    cmd: C:/Program Files/Git/usr/bin/bash.exe -c 'C:/Users/jonat/workspace/anki-rwkv/.venv/Scripts/python.exe' -X utf8 'C:/Users/jonat/workspace/wt/sm39/scripts/check_decay_snapshots.py' gpu --decay 'C:/Users/jonat/workspace/wt/sm39/artifacts/small-model/scale-w64kd-gate-sc-lanes-cont-decay1ep32k-muon0p5' --out 'C:/Users/jonat/workspace/wt/sm39/artifacts/small-model/sm39/check-decay-snapshots-gpu.json' && 'C:/Users/jonat/workspace/anki-rwkv/.venv/Scripts/python.exe' -X utf8 'C:/Users/jonat/workspace/wt/sm39/scripts/expertium_decay.py' run --out 'C:/Users/jonat/workspace/wt/sm39/artifacts/small-model/scale-w64kd-gate-sc-lanes-cont-decay1ep32k-muon0p5'
+[sm39 10-21 08:57:54] DRYRUN: C:/Users/jonat/workspace/anki-rwkv/.venv/Scripts/python.exe C:/Users/jonat/workspace/wt/sm39/scripts/average_checkpoints.py decay --case C:/Users/jonat/workspace/wt/sm39/artifacts/small-model/scale-w64kd-gate-sc-lanes-cont-decay1ep32k-muon0p5/expertium/E89-F65e-F77a --out-dir C:/Users/jonat/workspace/wt/sm39/artifacts/small-model/sm39/avg --last 2,3,4
+[sm39 10-21 08:57:54] DRYRUN enqueue: SM39 scoring arm 1 final + avg2/3/4 (SM51), 732 pool minus never-fit (pass 1) (expected 70 min)
+    cmd: C:/Users/jonat/workspace/anki-rwkv/.venv/Scripts/python.exe -X utf8 C:/Users/jonat/workspace/wt/sm39/scripts/small_model_heldout.py --pool 732 --users-file C:/Users/jonat/workspace/wt/sm39/artifacts/small-model/sm39/users-732-fit.json --variants w8+s8 --time-limit 5400 --out C:/Users/jonat/workspace/wt/sm39/artifacts/small-model/heldout-sm39-pools.jsonl --model s-w64kd-gate-sc-lanes-dec12-1ep32k-muon0p5=expertium:w64:C:/Users/jonat/workspace/wt/sm39/artifacts/small-model/scale-w64kd-gate-sc-lanes-cont-decay1ep32k-muon0p5/expertium/E89-F65e-F77a/master.pth --model s-w64kd-gate-sc-lanes-dec12-1ep32k-muon0p5-avg2=expertium:w64:C:/Users/jonat/workspace/wt/sm39/artifacts/small-model/sm39/avg/avg2/master.pth --model s-w64kd-gate-sc-lanes-dec12-1ep32k-muon0p5-avg3=expertium:w64:C:/Users/jonat/workspace/wt/sm39/artifacts/small-model/sm39/avg/avg3/master.pth --model s-w64kd-gate-sc-lanes-dec12-1ep32k-muon0p5-avg4=expertium:w64:C:/Users/jonat/workspace/wt/sm39/artifacts/small-model/sm39/avg/avg4/master.pth
+[sm39 10-21 08:57:54] DRYRUN enqueue: SM39 scoring arm 1 final + avg2/3/4 (SM51), 732 pool minus never-fit (pass 2) (expected 25 min)
+    cmd: C:/Users/jonat/workspace/anki-rwkv/.venv/Scripts/python.exe -X utf8 C:/Users/jonat/workspace/wt/sm39/scripts/small_model_heldout.py --pool 732 --users-file C:/Users/jonat/workspace/wt/sm39/artifacts/small-model/sm39/users-732-fit.json --variants w8+s8 --time-limit 5400 --out C:/Users/jonat/workspace/wt/sm39/artifacts/small-model/heldout-sm39-pools.jsonl --model s-w64kd-gate-sc-lanes-dec12-1ep32k-muon0p5=expertium:w64:C:/Users/jonat/workspace/wt/sm39/artifacts/small-model/scale-w64kd-gate-sc-lanes-cont-decay1ep32k-muon0p5/expertium/E89-F65e-F77a/master.pth --model s-w64kd-gate-sc-lanes-dec12-1ep32k-muon0p5-avg2=expertium:w64:C:/Users/jonat/workspace/wt/sm39/artifacts/small-model/sm39/avg/avg2/master.pth --model s-w64kd-gate-sc-lanes-dec12-1ep32k-muon0p5-avg3=expertium:w64:C:/Users/jonat/workspace/wt/sm39/artifacts/small-model/sm39/avg/avg3/master.pth --model s-w64kd-gate-sc-lanes-dec12-1ep32k-muon0p5-avg4=expertium:w64:C:/Users/jonat/workspace/wt/sm39/artifacts/small-model/sm39/avg/avg4/master.pth
+[sm39 10-21 08:57:54] done
+DRYRUN OK
