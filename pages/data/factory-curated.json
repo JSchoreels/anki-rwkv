@@ -47,34 +47,44 @@
    "track": "small model"
   },
   {
-   "k": "Best, 732-user standard set (curve / instant)",
-   "v": "0.30653 / 0.28142",
+   "k": "Best, 732-user standard set (curve / instant), on the 729 users all models have so far",
+   "v": "0.30426 / 0.27915",
    "compare": [
     {
      "variant": "Big model (reference)",
-     "curve": 0.30437,
-     "instant": 0.27943,
+     "curve": 0.30215,
+     "instant": 0.27733,
      "ref": true,
-     "eval": "730 users, 33.77M reviews",
+     "eval": "729 users, 33.30M reviews",
      "quant": "w8+s8"
     },
     {
-     "variant": "Best: carried state v2 + one-epoch 32k decay (SM40)",
-     "curve": 0.30653,
-     "instant": 0.28142,
-     "curve_pct": 0.71,
+     "variant": "Best: same, with Muon instead of AdamW for the decay (SM36); vs previous best: curve &minus;0.00007 [&minus;0.00028, +0.00020] tied, instant &minus;0.00016 [&minus;0.00019, &minus;0.00013] better",
+     "curve": 0.30426,
+     "instant": 0.27915,
+     "curve_pct": 0.7,
+     "instant_pct": 0.66,
+     "eval": "729 users, 33.30M reviews",
+     "date": "10-20",
+     "quant": "w8+s8"
+    },
+    {
+     "variant": "Previous best: carried state v2 + one-epoch 32k decay (SM40)",
+     "curve": 0.30433,
+     "instant": 0.27931,
+     "curve_pct": 0.72,
      "instant_pct": 0.71,
-     "eval": "730 users, 33.77M reviews",
+     "eval": "729 users, 33.30M reviews",
      "date": "10-19",
      "quant": "w8+s8"
     },
     {
-     "variant": "Previous best: epoch 10 + decay at 32k (Q12)",
-     "curve": 0.30746,
-     "instant": 0.28197,
-     "curve_pct": 1.02,
-     "instant_pct": 0.91,
-     "eval": "730 users, 33.77M reviews",
+     "variant": "Older best: epoch 10 + decay at 32k (Q12)",
+     "curve": 0.30525,
+     "instant": 0.27984,
+     "curve_pct": 1.03,
+     "instant_pct": 0.9,
+     "eval": "729 users, 33.30M reviews",
      "date": "10-17 (scored 10-18)",
      "quant": "w8+s8"
     }
@@ -559,7 +569,8 @@
    "minutes": 400,
    "track": "small model",
    "match": [
-    "SM36"
+    "SM36 1-epoch",
+    "SM36 scoring"
    ],
    "decides": "Small win on instant only: vs the best model (AdamW) curve tied (+0.00002 [-0.00034, +0.00046]), instant -0.00018 [-0.00022, -0.00013] on 464 users (+0.81% / +0.68% vs the big model); same on 723 users (-0.00017 / -0.00020). Not the road to +0.5% by itself",
    "state": "done",
@@ -784,6 +795,19 @@
    "state": "done",
    "started_at": "2026-10-21T13:00:00+02:00",
    "ended_at": "2026-10-21T13:28:19+02:00"
+  },
+  {
+   "id": "SM36",
+   "kind": "gpu-score",
+   "minutes": 10,
+   "track": "small model",
+   "what": "Muon best model (SM36) on the 732-user set: score the one long user (1601) that ran out of memory at the 0.8 cap, at 0.92, so it reads on the same 730 users as the previous best (SM40)",
+   "when": "Queued now, right after the 8k training (SM55) ticket, ~10 min",
+   "decides": "Puts the Muon best model on the same 730 users as the table&rsquo;s other rows",
+   "state": "planned",
+   "match": [
+    "long user 1601"
+   ]
   },
   {
    "what": "Head-only fine-tunes: trunk frozen, the curve head alone on its loss, then the instant head alone (SM36 start), scored on 732 users",
