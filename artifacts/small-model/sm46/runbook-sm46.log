@@ -1,72 +1,593 @@
-[sm46 10-20 17:26:21] start (053b5e34 SM46: large-budget state codec vq5902x3028 (5,902 / 3,028 bits, rank 6) for SM36, k-means books on SM36 states, CPU check bitwise, runbook and summary)
-[sm46 10-20 17:26:21] waiting for the SM44 runbook to end (C:/Users/jonat/workspace/wt/sm32c/artifacts/small-model/sm44/runbook-sm44.log: 'done' or 'STOP')
-[sm46 10-20 21:28:25] SM44: [sm44 10-20 21:28:23] STOP: GPU check failed (see C:/Users/jonat/workspace/wt/sm32c/artifacts/small-model/sm44/check-sm44-gpu.json and the queue output above)
-[sm46 10-20 21:28:25] enqueue: SM46 GPU check: GPU +vq5902x3028 scorer path (rank-6 torch loop) vs CPU scorer on 3 small users, reviews/s (expected 25 min)
-[queue] 000561-small-model registered for gpu: SM46 GPU check: GPU +vq5902x3028 scorer path (rank-6 torch loop) vs CPU scorer on 3 small users, reviews/s
-[queue] 000561-small-model started after 0:00:00; holds gpu
+[sm46 10-20 22:00:00] start (acfaece7 Check scripts and AGENT.md: discrete codec tolerance for +vq GPU checks (per-user 3e-4, weighted mean 1e-4))
+[sm46 10-20 22:00:00] waiting for the SM44 runbook to end (C:/Users/jonat/workspace/wt/sm32c/artifacts/small-model/sm44/runbook-sm44.log: 'done' or 'STOP')
+[sm46 10-21 05:00:06] SM44: [sm44 10-21 04:59:26] done
+[sm46 10-21 05:00:06] enqueue: SM46 GPU check: GPU +vq5902x3028 scorer path (rank-6 torch loop) vs CPU scorer on 3 small users, reviews/s (expected 25 min)
+[queue] 000585-small-model registered for gpu: SM46 GPU check: GPU +vq5902x3028 scorer path (rank-6 torch loop) vs CPU scorer on 3 small users, reviews/s
+[queue] 000585-small-model started after 0:00:00; holds gpu
 [sm44-check] sm36/w8+vq5902x3028: {'card': 'torch step loop, eigh float64', 'note': 'torch step loop, eigh float64'}
-[sm44-check] sm36/w8+vq5902x3028 user 2388 (3685 reviews): (dLL curve, dLL instant, max|dp|, ok) {'gpu': (6.8569190969924865e-06, 3.2115567680512935e-06, 0.007616817951202393, True)}
-[sm44-check] sm36/w8+vq5902x3028 user 4676 (3716 reviews): (dLL curve, dLL instant, max|dp|, ok) {'gpu': (-8.28898622386165e-06, -5.82546204450779e-06, 0.01194906234741211, True)}
-[sm44-check] sm36/w8+vq5902x3028 user 1712 (4090 reviews): (dLL curve, dLL instant, max|dp|, ok) {'gpu': (-1.6203032973893805e-05, -0.0001399958463193518, 0.03160578012466431, False)}
+[sm44-check] sm36/w8+vq5902x3028 user 2388 (3685 reviews): (dLL curve, dLL instant, max|dp|, ok) {'gpu': (1.694964817680611e-05, -6.485125495628297e-06, 0.007616877555847168, True)}
+[sm44-check] sm36/w8+vq5902x3028 user 4676 (3716 reviews): (dLL curve, dLL instant, max|dp|, ok) {'gpu': (-2.3979655656813925e-05, 1.2140032646726362e-05, 0.013094842433929443, True)}
+[sm44-check] sm36/w8+vq5902x3028 user 1712 (4090 reviews): (dLL curve, dLL instant, max|dp|, ok) {'gpu': (6.119329825637898e-07, -0.00022122053741563397, 0.04443812370300293, True)}
+[sm44-check] sm36/w8+vq5902x3028 discrete rule: weighted mean d {'ahead': -1.9536158733061437e-06, 'instant': -7.738081977199833e-05} (tol 0.0001)
 [sm44-check] base (float state) GPU vs CPU user 2388: {'ahead': {'d_exact_logloss': 3.858200758877217e-08, 'max_abs_dp': 1.430511474609375e-06}, 'instant': {'d_exact_logloss': -1.8400423823505818e-08, 'max_abs_dp': 1.6093254089355469e-06}}
 [sm44-check] base (float state) GPU vs CPU user 4676: {'ahead': {'d_exact_logloss': -2.828654657727192e-09, 'max_abs_dp': 6.556510925292969e-07}, 'instant': {'d_exact_logloss': 7.971427254394037e-09, 'max_abs_dp': 1.0132789611816406e-06}}
 [sm44-check] base (float state) GPU vs CPU user 1712: {'ahead': {'d_exact_logloss': 3.125122144398418e-08, 'max_abs_dp': 1.9371509552001953e-06}, 'instant': {'d_exact_logloss': 6.29941454555194e-09, 'max_abs_dp': 2.6226043701171875e-06}}
-[sm44-check] timing user 3016: {'reviews': 30099, 'w8+s8_seconds': 0.546, 'w8+vq5902x3028_seconds': 5.471}
-Traceback (most recent call last):
-  File "C:\Users\jonat\workspace\wt\sm46\scripts\check_state_vq_score_gpu.py", line 354, in <module>
-    main()
-  File "C:\Users\jonat\workspace\wt\sm46\scripts\check_state_vq_score_gpu.py", line 334, in main
-    cand = run_gpu_path(model, layout, codecs, batch, labels, u)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\jonat\workspace\wt\sm46\scripts\check_state_vq_score_gpu.py", line 157, in run_gpu_path
-    values, preds, bench = evaluate(model, batch, labels, user)
-                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\jonat\workspace\wt\sm46\scripts\check_state_vq_score_gpu.py", line 80, in evaluate
-    values, preds = evaluate_with_predictions(model, [{"batch": batch}])
-                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\jonat\workspace\wt\sm46\scripts\full_run_metrics.py", line 45, in evaluate_with_predictions
-    stats = model.get_loss(batch)
-            ^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\jonat\workspace\wt\sm46\expertium\model\variant_model.py", line 574, in get_loss
-    return self._get_loss_variant(
-           ^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\jonat\workspace\wt\sm46\expertium\model\variant_model.py", line 406, in _get_loss_variant
-    out_ahead_logits, out_w, out_w_log_p, out_p_logits, out_s_raw, out_d_raw = self.forward_batch_variant(
-                                                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\jonat\workspace\wt\sm46\expertium\model\variant_model.py", line 350, in forward_batch_variant
-    x = self._interleaved_streams(x, batch_sub_gather, batch_sub_gather_lens, batch_time_shift_selects,
-        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\jonat\workspace\wt\sm46\expertium\model\variant_model.py", line 321, in _interleaved_streams
-    x_out, v0s[i][s] = block.forward(x_in, v0_in, batch_time_shift_selects[i][s].view(-1, length),
-                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\jonat\workspace\wt\sm46\expertium\model\variant_model.py", line 95, in forward
-    x_BTC, v0_BTC = self.time_mixer(in_BTC=in_BTC, v0_BTC=v0_BTC, time_shift_select_BT=time_shift_select_BT,
-                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\jonat\workspace\anki-rwkv\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1775, in _wrapped_call_impl
-    return self._call_impl(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\jonat\workspace\anki-rwkv\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1881, in _call_impl
-    return inner()
-           ^^^^^^^
-  File "C:\Users\jonat\workspace\anki-rwkv\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1829, in inner
-    result = forward_call(*args, **kwargs)
-             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\jonat\workspace\wt\sm46\expertium\model\rwkv_model.py", line 444, in forward
-    out_BTHK = vq_wkv(r_BTHK, k_BTHK, v_BTHK, w_BTHK, a_BTHK, k_deformed_BTHK, skip_BT, self.state_vq_slot)
-               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\jonat\workspace\wt\sm46\scripts\check_state_vq_score_gpu.py", line 137, in inner
-    return fn(*a, **k)
-           ^^^^^^^^^^^
-  File "C:\Users\jonat\workspace\wt\sm46\scripts\state_vq.py", line 905, in score_wkv
-    state[rows] = codec.wkv(nxt[rows])
-                  ^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\jonat\workspace\wt\sm46\scripts\state_vq.py", line 460, in wkv
-    u, v, sigma, valid = factorize(A, self.rec.rank, fd)
-                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\jonat\workspace\wt\sm46\scripts\state_vq.py", line 289, in factorize
-    evals, evecs = torch.linalg.eigh(an @ an.transpose(1, 2))       # ascending
-                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-torch.OutOfMemoryError: CUDA out of memory. Tried to allocate 11.32 GiB. GPU 0 has a total capacity of 15.89 GiB of which 12.58 GiB is free. 12.72 GiB allowed; Of the allocated memory 544.05 MiB is allocated by PyTorch, and 1.38 GiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)
-[queue] 000561-small-model finished with exit code 1 after 0:00:30; released gpu
-[sm46 10-20 21:28:55] exit 1: SM46 GPU check: GPU +vq5902x3028 scorer path (rank-6 torch loop) vs CPU scorer on 3 small users, reviews/s
-[sm46 10-20 21:28:55] STOP: GPU check failed (see C:/Users/jonat/workspace/wt/sm46/artifacts/small-model/sm46/check-sm46-gpu.json and the queue output above)
+[sm44-check] timing user 3016: {'reviews': 30099, 'w8+s8_seconds': 0.524, 'w8+vq5902x3028_seconds': 5.35}
+[sm44-check] timing user 170: {'reviews': 30372, 'w8+s8_seconds': 0.53, 'w8+vq5902x3028_seconds': 9.376}
+[sm44-check] reviews/s: {'w8+s8': 57372.9, 'w8+vq5902x3028': 4106.4}
+[sm44-check] ALL OK -> C:\Users\jonat\workspace\wt\sm46\artifacts\small-model\sm46\check-sm46-gpu.json
+[queue] 000585-small-model finished with exit code 0 after 0:00:30; released gpu
+[sm46 10-21 05:00:37] exit 0: SM46 GPU check: GPU +vq5902x3028 scorer path (rank-6 torch loop) vs CPU scorer on 3 small users, reviews/s
+[gpu-check] reviews/s {'w8+s8': 57372.9, 'w8+vq5902x3028': 4106.4}
+[sm46 10-21 05:00:38] 732 pool projects 243 min (> 240): scoring only the 464 pool
+[sm46 10-21 05:00:40] pool 464 pass 1: 464 users / 31869859 reviews to score, ~159 min at the check's rate; ticket 110 min, user start limit 102 min (largest user ~7 min)
+[sm46 10-21 05:00:40] enqueue: SM46: pool 464 scoring of SM36 w8+vq5902x3028 (464 users, pass 1) (expected 110 min)
+[queue] 000586-small-model registered for gpu: SM46: pool 464 scoring of SM36 w8+vq5902x3028 (464 users, pass 1)
+[queue] 000586-small-model started after 0:00:00; holds gpu
+[small-model] CUDA recurrences vs float32 reference, max abs error: {'fork/bits0': 1.7881393432617188e-07, 'fork/bits8': 0.00021678954362869263, 'fork/bits4': 1.4901161193847656e-07, 'K16/bits0': 8.940696716308594e-08, 'K16/bits8': 0.00042257457971572876, 'K32/bits0': 1.1920928955078125e-07, 'K32/bits8': 0.001328926533460617}
+[small-model] 464 users, 464 to score, grid ['s-w64kd-gate-sc-lanes-dec12-1ep32k-muon/w8+vq5902x3028']
+[small-model] vq5902x3028: {'card': {'bits': 5902, 'wkv_layers': 2, 'heads': 4, 'shift_vectors': 3, 'rank': 6, 'stages': [15, 13, 10, 7, 5, 3], 'index_bits': 10, 'norm_bits': 10, 'shift': 'm4b12x8', 'shift_norm_bits': 10}, 'note': {'bits': 3028, 'wkv_layers': 1, 'heads': 4, 'shift_vectors': 2, 'rank': 6, 'stages': [15, 12, 9, 7, 4, 3], 'index_bits': 10, 'norm_bits': 10, 'shift': 'm4b12x8', 'shift_norm_bits': 10}}; {'card': 'torch step loop, eigh float64', 'note': 'torch step loop, eigh float64'}
+[small-model] 1/464 user 4676 (3716 reviews) | 9s, 422 review-evals/s
+[small-model] 2/464 user 2093 (6918 reviews) | 12s, 904 review-evals/s
+[small-model] 3/464 user 1425 (11158 reviews) | 18s, 1,191 review-evals/s
+[small-model] 4/464 user 722 (15248 reviews) | 20s, 1,831 review-evals/s
+[small-model] 5/464 user 1655 (21373 reviews) | 27s, 2,198 review-evals/s
+[small-model] 6/464 user 170 (30372 reviews) | 37s, 2,423 review-evals/s
+[small-model] 7/464 user 1442 (41393 reviews) | 43s, 3,009 review-evals/s
+[small-model] 8/464 user 1331 (58699 reviews) | 54s, 3,505 review-evals/s
+[small-model] 9/464 user 3229 (92611 reviews) | 71s, 3,980 review-evals/s
+[small-model] 10/464 user 730 (174273 reviews) | 104s, 4,376 review-evals/s
+[small-model] 11/464 user 1745 (4144 reviews) | 106s, 4,326 review-evals/s
+[small-model] 12/464 user 79 (7070 reviews) | 110s, 4,240 review-evals/s
+[small-model] 13/464 user 213 (11239 reviews) | 125s, 3,821 review-evals/s
+[small-model] 14/464 user 3014 (15382 reviews) | 129s, 3,836 review-evals/s
+[small-model] 15/464 user 1684 (21411 reviews) | 139s, 3,717 review-evals/s
+[small-model] 16/464 user 1687 (30578 reviews) | 144s, 3,796 review-evals/s
+[small-model] 17/464 user 3718 (41770 reviews) | 163s, 3,592 review-evals/s
+[small-model] 18/464 user 3839 (58861 reviews) | 178s, 3,627 review-evals/s
+[small-model] 19/464 user 4790 (95611 reviews) | 191s, 3,878 review-evals/s
+[small-model] 20/464 user 2332 (177719 reviews) | 223s, 4,124 review-evals/s
+[small-model] 21/464 user 516 (4601 reviews) | 227s, 4,075 review-evals/s
+[small-model] 22/464 user 4289 (7102 reviews) | 229s, 4,061 review-evals/s
+[small-model] 23/464 user 4770 (11522 reviews) | 232s, 4,072 review-evals/s
+[small-model] 24/464 user 4843 (15435 reviews) | 235s, 4,076 review-evals/s
+[small-model] 25/464 user 2949 (21580 reviews) | 241s, 4,072 review-evals/s
+[small-model] 26/464 user 4964 (30648 reviews) | 248s, 4,078 review-evals/s
+[small-model] 27/464 user 2039 (41993 reviews) | 258s, 4,085 review-evals/s
+[small-model] 28/464 user 1250 (58881 reviews) | 273s, 4,071 review-evals/s
+[small-model] 29/464 user 4028 (95843 reviews) | 304s, 3,966 review-evals/s
+[small-model] 30/464 user 764 (179030 reviews) | 329s, 4,219 review-evals/s
+[small-model] 31/464 user 1736 (4629 reviews) | 330s, 4,216 review-evals/s
+[small-model] 32/464 user 977 (7434 reviews) | 337s, 4,148 review-evals/s
+[small-model] 33/464 user 2776 (11532 reviews) | 339s, 4,153 review-evals/s
+[small-model] 34/464 user 2942 (15450 reviews) | 345s, 4,126 review-evals/s
+[small-model] 35/464 user 4326 (21702 reviews) | 350s, 4,137 review-evals/s
+[small-model] 36/464 user 1620 (30807 reviews) | 359s, 4,121 review-evals/s
+[small-model] 37/464 user 3152 (42469 reviews) | 370s, 4,107 review-evals/s
+[small-model] 38/464 user 4173 (59435 reviews) | 382s, 4,137 review-evals/s
+[small-model] 39/464 user 2581 (96043 reviews) | 398s, 4,206 review-evals/s
+[small-model] 40/464 user 2368 (179238 reviews) | 432s, 4,292 review-evals/s
+[small-model] 41/464 user 2851 (4799 reviews) | 433s, 4,294 review-evals/s
+[small-model] 42/464 user 3856 (7464 reviews) | 437s, 4,274 review-evals/s
+[small-model] 43/464 user 4054 (11544 reviews) | 439s, 4,282 review-evals/s
+[small-model] 44/464 user 4 (15509 reviews) | 444s, 4,267 review-evals/s
+[small-model] 45/464 user 4199 (21964 reviews) | 450s, 4,254 review-evals/s
+[small-model] 46/464 user 1070 (30900 reviews) | 464s, 4,197 review-evals/s
+[small-model] 47/464 user 3176 (42984 reviews) | 474s, 4,197 review-evals/s
+[small-model] 48/464 user 3518 (59527 reviews) | 484s, 4,236 review-evals/s
+[small-model] 49/464 user 726 (97553 reviews) | 500s, 4,290 review-evals/s
+[small-model] 50/464 user 4310 (182001 reviews) | 538s, 4,332 review-evals/s
+[small-model] 51/464 user 260 (5083 reviews) | 539s, 4,328 review-evals/s
+[small-model] 52/464 user 1178 (7491 reviews) | 545s, 4,293 review-evals/s
+[small-model] 53/464 user 3425 (11649 reviews) | 549s, 4,290 review-evals/s
+[small-model] 54/464 user 1782 (15982 reviews) | 555s, 4,270 review-evals/s
+[small-model] 55/464 user 4093 (22240 reviews) | 563s, 4,246 review-evals/s
+[small-model] 56/464 user 320 (31055 reviews) | 574s, 4,220 review-evals/s
+[small-model] 57/464 user 2789 (44264 reviews) | 581s, 4,248 review-evals/s
+[small-model] 58/464 user 1686 (61058 reviews) | 592s, 4,267 review-evals/s
+[small-model] 59/464 user 1224 (97559 reviews) | 606s, 4,331 review-evals/s
+[small-model] 60/464 user 986 (182430 reviews) | 642s, 4,375 review-evals/s
+[small-model] 61/464 user 2090 (5093 reviews) | 644s, 4,368 review-evals/s
+[small-model] 62/464 user 1949 (7518 reviews) | 646s, 4,369 review-evals/s
+[small-model] 63/464 user 1772 (11659 reviews) | 649s, 4,362 review-evals/s
+[small-model] 64/464 user 4685 (16188 reviews) | 654s, 4,358 review-evals/s
+[small-model] 65/464 user 54 (22862 reviews) | 664s, 4,325 review-evals/s
+[small-model] 66/464 user 1510 (31086 reviews) | 669s, 4,338 review-evals/s
+[small-model] 67/464 user 4169 (44279 reviews) | 679s, 4,342 review-evals/s
+[small-model] 68/464 user 1246 (61342 reviews) | 695s, 4,330 review-evals/s
+[small-model] 69/464 user 3175 (97663 reviews) | 712s, 4,364 review-evals/s
+[small-model] 70/464 user 3288 (183960 reviews) | 740s, 4,443 review-evals/s
+[small-model] 71/464 user 4789 (5102 reviews) | 747s, 4,409 review-evals/s
+[small-model] 72/464 user 2341 (7582 reviews) | 753s, 4,386 review-evals/s
+[small-model] 73/464 user 2074 (11935 reviews) | 756s, 4,383 review-evals/s
+[small-model] 74/464 user 1207 (16413 reviews) | 762s, 4,371 review-evals/s
+[small-model] 75/464 user 832 (22962 reviews) | 766s, 4,377 review-evals/s
+[small-model] 76/464 user 3486 (31369 reviews) | 771s, 4,389 review-evals/s
+[small-model] 77/464 user 2991 (44416 reviews) | 779s, 4,401 review-evals/s
+[small-model] 78/464 user 3048 (61369 reviews) | 791s, 4,412 review-evals/s
+[small-model] 79/464 user 2919 (97712 reviews) | 807s, 4,446 review-evals/s
+[small-model] 80/464 user 856 (184433 reviews) | 832s, 4,534 review-evals/s
+[small-model] 81/464 user 4221 (5103 reviews) | 833s, 4,534 review-evals/s
+[small-model] 82/464 user 2345 (7592 reviews) | 837s, 4,523 review-evals/s
+[small-model] 83/464 user 4217 (11956 reviews) | 840s, 4,520 review-evals/s
+[small-model] 84/464 user 2503 (16466 reviews) | 844s, 4,521 review-evals/s
+[small-model] 85/464 user 3567 (22964 reviews) | 848s, 4,526 review-evals/s
+[small-model] 86/464 user 4081 (31519 reviews) | 852s, 4,541 review-evals/s
+[small-model] 87/464 user 3207 (44487 reviews) | 860s, 4,548 review-evals/s
+[small-model] 88/464 user 3392 (61416 reviews) | 874s, 4,547 review-evals/s
+[small-model] 89/464 user 1847 (99351 reviews) | 898s, 4,537 review-evals/s
+[small-model] 90/464 user 1759 (186503 reviews) | 935s, 4,558 review-evals/s
+[small-model] 91/464 user 4043 (5144 reviews) | 941s, 4,534 review-evals/s
+[small-model] 92/464 user 1579 (7672 reviews) | 942s, 4,537 review-evals/s
+[small-model] 93/464 user 3069 (11977 reviews) | 944s, 4,540 review-evals/s
+[small-model] 94/464 user 339 (16502 reviews) | 949s, 4,532 review-evals/s
+[small-model] 95/464 user 2725 (23045 reviews) | 954s, 4,534 review-evals/s
+[small-model] 96/464 user 1793 (31598 reviews) | 964s, 4,521 review-evals/s
+[small-model] 97/464 user 4184 (44658 reviews) | 972s, 4,529 review-evals/s
+[small-model] 98/464 user 4343 (61569 reviews) | 983s, 4,540 review-evals/s
+[small-model] 99/464 user 1015 (102545 reviews) | 1002s, 4,554 review-evals/s
+[small-model] 100/464 user 4810 (193715 reviews) | 1035s, 4,599 review-evals/s
+[small-model] 101/464 user 330 (5169 reviews) | 1036s, 4,600 review-evals/s
+[small-model] 102/464 user 94 (7696 reviews) | 1037s, 4,601 review-evals/s
+[small-model] 103/464 user 100 (12094 reviews) | 1039s, 4,604 review-evals/s
+[small-model] 104/464 user 2377 (16567 reviews) | 1046s, 4,590 review-evals/s
+[small-model] 105/464 user 2566 (23051 reviews) | 1052s, 4,586 review-evals/s
+[small-model] 106/464 user 4835 (32154 reviews) | 1061s, 4,576 review-evals/s
+[small-model] 107/464 user 1529 (45228 reviews) | 1071s, 4,576 review-evals/s
+[small-model] 108/464 user 695 (62128 reviews) | 1092s, 4,543 review-evals/s
+[small-model] 109/464 user 4566 (102807 reviews) | 1122s, 4,515 review-evals/s
+[small-model] 110/464 user 851 (198643 reviews) | 1152s, 4,569 review-evals/s
+[small-model] 111/464 user 3903 (5205 reviews) | 1154s, 4,566 review-evals/s
+[small-model] 112/464 user 862 (7851 reviews) | 1156s, 4,565 review-evals/s
+[small-model] 113/464 user 1845 (12104 reviews) | 1160s, 4,560 review-evals/s
+[small-model] 114/464 user 451 (16572 reviews) | 1170s, 4,536 review-evals/s
+[small-model] 115/464 user 2627 (23115 reviews) | 1179s, 4,520 review-evals/s
+[small-model] 116/464 user 896 (32302 reviews) | 1188s, 4,514 review-evals/s
+[small-model] 117/464 user 3593 (46588 reviews) | 1198s, 4,512 review-evals/s
+[small-model] 118/464 user 2348 (62501 reviews) | 1220s, 4,484 review-evals/s
+[small-model] 119/464 user 111 (102867 reviews) | 1241s, 4,493 review-evals/s
+[small-model] 120/464 user 90 (202045 reviews) | 1268s, 4,554 review-evals/s
+[small-model] 121/464 user 1058 (5224 reviews) | 1271s, 4,549 review-evals/s
+[small-model] 122/464 user 1590 (7910 reviews) | 1276s, 4,538 review-evals/s
+[small-model] 123/464 user 3489 (12237 reviews) | 1278s, 4,538 review-evals/s
+[small-model] 124/464 user 648 (16811 reviews) | 1283s, 4,534 review-evals/s
+[small-model] 125/464 user 2413 (23145 reviews) | 1291s, 4,525 review-evals/s
+[small-model] 126/464 user 1309 (32535 reviews) | 1298s, 4,523 review-evals/s
+[small-model] 127/464 user 2755 (47202 reviews) | 1311s, 4,515 review-evals/s
+[small-model] 128/464 user 3161 (64017 reviews) | 1323s, 4,525 review-evals/s
+[small-model] 129/464 user 68 (102876 reviews) | 1342s, 4,537 review-evals/s
+[small-model] 130/464 user 583 (203996 reviews) | 1378s, 4,567 review-evals/s
+[small-model] 131/464 user 2650 (5235 reviews) | 1380s, 4,563 review-evals/s
+[small-model] 132/464 user 2263 (7980 reviews) | 1381s, 4,564 review-evals/s
+[small-model] 133/464 user 2978 (12291 reviews) | 1385s, 4,560 review-evals/s
+[small-model] 134/464 user 65 (17121 reviews) | 1396s, 4,537 review-evals/s
+[small-model] 135/464 user 234 (23292 reviews) | 1403s, 4,532 review-evals/s
+[small-model] 136/464 user 3759 (32738 reviews) | 1408s, 4,540 review-evals/s
+[small-model] 137/464 user 3673 (47213 reviews) | 1415s, 4,550 review-evals/s
+[small-model] 138/464 user 3237 (64962 reviews) | 1431s, 4,545 review-evals/s
+[small-model] 139/464 user 736 (103986 reviews) | 1451s, 4,554 review-evals/s
+[small-model] 140/464 user 1363 (204965 reviews) | 1478s, 4,607 review-evals/s
+[small-model] 141/464 user 3872 (5268 reviews) | 1482s, 4,599 review-evals/s
+[small-model] 142/464 user 1277 (7984 reviews) | 1484s, 4,599 review-evals/s
+[small-model] 143/464 user 1606 (12375 reviews) | 1487s, 4,598 review-evals/s
+[small-model] 144/464 user 4826 (17202 reviews) | 1491s, 4,597 review-evals/s
+[small-model] 145/464 user 313 (23318 reviews) | 1495s, 4,599 review-evals/s
+[small-model] 146/464 user 4845 (32983 reviews) | 1506s, 4,588 review-evals/s
+[small-model] 147/464 user 3023 (47968 reviews) | 1516s, 4,590 review-evals/s
+[small-model] 148/464 user 601 (67742 reviews) | 1529s, 4,594 review-evals/s
+[small-model] 149/464 user 2031 (104389 reviews) | 1545s, 4,616 review-evals/s
+[small-model] 150/464 user 1545 (205916 reviews) | 1577s, 4,653 review-evals/s
+[small-model] 151/464 user 1952 (5433 reviews) | 1578s, 4,653 review-evals/s
+[small-model] 152/464 user 3908 (8125 reviews) | 1579s, 4,653 review-evals/s
+[small-model] 153/464 user 1673 (12444 reviews) | 1582s, 4,654 review-evals/s
+[small-model] 154/464 user 3065 (17286 reviews) | 1584s, 4,658 review-evals/s
+[small-model] 155/464 user 4423 (23350 reviews) | 1590s, 4,656 review-evals/s
+[small-model] 156/464 user 4627 (33237 reviews) | 1598s, 4,655 review-evals/s
+[small-model] 157/464 user 4321 (48045 reviews) | 1604s, 4,667 review-evals/s
+[small-model] 158/464 user 270 (68991 reviews) | 1615s, 4,677 review-evals/s
+[small-model] 159/464 user 2119 (107589 reviews) | 1639s, 4,675 review-evals/s
+[small-model] 160/464 user 1260 (207760 reviews) | 1681s, 4,682 review-evals/s
+[small-model] 161/464 user 3054 (5457 reviews) | 1682s, 4,681 review-evals/s
+[small-model] 162/464 user 4605 (8189 reviews) | 1683s, 4,682 review-evals/s
+[small-model] 163/464 user 3711 (12481 reviews) | 1687s, 4,679 review-evals/s
+[small-model] 164/464 user 840 (17365 reviews) | 1690s, 4,683 review-evals/s
+[small-model] 165/464 user 1380 (23527 reviews) | 1700s, 4,669 review-evals/s
+[small-model] 166/464 user 548 (33361 reviews) | 1711s, 4,657 review-evals/s
+[small-model] 167/464 user 1906 (48207 reviews) | 1722s, 4,655 review-evals/s
+[small-model] 168/464 user 4898 (69185 reviews) | 1736s, 4,658 review-evals/s
+[small-model] 169/464 user 2334 (110699 reviews) | 1755s, 4,671 review-evals/s
+[small-model] 170/464 user 1701 (211650 reviews) | 1783s, 4,715 review-evals/s
+[small-model] 171/464 user 4186 (5470 reviews) | 1785s, 4,713 review-evals/s
+[small-model] 172/464 user 608 (8195 reviews) | 1793s, 4,696 review-evals/s
+[small-model] 173/464 user 751 (12500 reviews) | 1802s, 4,682 review-evals/s
+[small-model] 174/464 user 1215 (17626 reviews) | 1809s, 4,673 review-evals/s
+[small-model] 175/464 user 1899 (23680 reviews) | 1814s, 4,672 review-evals/s
+[small-model] 176/464 user 1119 (33508 reviews) | 1826s, 4,661 review-evals/s
+[small-model] 177/464 user 760 (48298 reviews) | 1833s, 4,669 review-evals/s
+[small-model] 178/464 user 1376 (69351 reviews) | 1848s, 4,668 review-evals/s
+[small-model] 179/464 user 3273 (112624 reviews) | 1867s, 4,682 review-evals/s
+[small-model] 180/464 user 3020 (222309 reviews) | 1902s, 4,712 review-evals/s
+[small-model] 181/464 user 2534 (5508 reviews) | 1905s, 4,708 review-evals/s
+[small-model] 182/464 user 1112 (8262 reviews) | 1907s, 4,707 review-evals/s
+[small-model] 183/464 user 4828 (12512 reviews) | 1909s, 4,709 review-evals/s
+[small-model] 184/464 user 2328 (17646 reviews) | 1913s, 4,708 review-evals/s
+[small-model] 185/464 user 3502 (23883 reviews) | 1919s, 4,706 review-evals/s
+[small-model] 186/464 user 2347 (33963 reviews) | 1933s, 4,689 review-evals/s
+[small-model] 187/464 user 2785 (48806 reviews) | 1946s, 4,683 review-evals/s
+[small-model] 188/464 user 738 (69482 reviews) | 1958s, 4,690 review-evals/s
+[small-model] 189/464 user 2461 (118036 reviews) | 1981s, 4,694 review-evals/s
+[small-model] 190/464 user 1766 (245662 reviews) | 2008s, 4,753 review-evals/s
+[small-model] 191/464 user 2598 (5636 reviews) | 2012s, 4,747 review-evals/s
+[small-model] 192/464 user 2672 (8289 reviews) | 2016s, 4,742 review-evals/s
+[small-model] 193/464 user 3004 (12567 reviews) | 2020s, 4,740 review-evals/s
+[small-model] 194/464 user 1869 (17805 reviews) | 2029s, 4,726 review-evals/s
+[small-model] 195/464 user 1721 (23960 reviews) | 2038s, 4,717 review-evals/s
+[small-model] 196/464 user 2169 (34003 reviews) | 2047s, 4,713 review-evals/s
+[small-model] 197/464 user 4635 (49119 reviews) | 2060s, 4,708 review-evals/s
+[small-model] 198/464 user 1505 (69490 reviews) | 2072s, 4,714 review-evals/s
+[small-model] 199/464 user 3752 (119903 reviews) | 2089s, 4,733 review-evals/s
+[small-model] 200/464 user 775 (247748 reviews) | 2127s, 4,766 review-evals/s
+[small-model] 201/464 user 4483 (5658 reviews) | 2131s, 4,757 review-evals/s
+[small-model] 202/464 user 1857 (8328 reviews) | 2133s, 4,757 review-evals/s
+[small-model] 203/464 user 2316 (12625 reviews) | 2139s, 4,751 review-evals/s
+[small-model] 204/464 user 4904 (18328 reviews) | 2143s, 4,751 review-evals/s
+[small-model] 205/464 user 4696 (24086 reviews) | 2146s, 4,755 review-evals/s
+[small-model] 206/464 user 1901 (34149 reviews) | 2160s, 4,739 review-evals/s
+[small-model] 207/464 user 1658 (49139 reviews) | 2172s, 4,737 review-evals/s
+[small-model] 208/464 user 1214 (70043 reviews) | 2184s, 4,742 review-evals/s
+[small-model] 209/464 user 4912 (120123 reviews) | 2203s, 4,756 review-evals/s
+[small-model] 210/464 user 325 (250140 reviews) | 2235s, 4,800 review-evals/s
+[small-model] 211/464 user 1866 (5673 reviews) | 2238s, 4,796 review-evals/s
+[small-model] 212/464 user 2206 (8378 reviews) | 2240s, 4,795 review-evals/s
+[small-model] 213/464 user 2985 (12802 reviews) | 2251s, 4,777 review-evals/s
+[small-model] 214/464 user 4269 (18410 reviews) | 2258s, 4,770 review-evals/s
+[small-model] 215/464 user 365 (24137 reviews) | 2271s, 4,755 review-evals/s
+[small-model] 216/464 user 4424 (34588 reviews) | 2279s, 4,752 review-evals/s
+[small-model] 217/464 user 3416 (49145 reviews) | 2289s, 4,753 review-evals/s
+[small-model] 218/464 user 2194 (71143 reviews) | 2302s, 4,756 review-evals/s
+[small-model] 219/464 user 4503 (120306 reviews) | 2324s, 4,764 review-evals/s
+[small-model] 220/464 user 4655 (257111 reviews) | 2374s, 4,771 review-evals/s
+[small-model] 221/464 user 4853 (5731 reviews) | 2382s, 4,759 review-evals/s
+[small-model] 222/464 user 2830 (8411 reviews) | 2384s, 4,757 review-evals/s
+[small-model] 223/464 user 2124 (12827 reviews) | 2388s, 4,755 review-evals/s
+[small-model] 224/464 user 3296 (18533 reviews) | 2393s, 4,754 review-evals/s
+[small-model] 225/464 user 4262 (24346 reviews) | 2397s, 4,755 review-evals/s
+[small-model] 226/464 user 1471 (34643 reviews) | 2409s, 4,746 review-evals/s
+[small-model] 227/464 user 3888 (49207 reviews) | 2416s, 4,753 review-evals/s
+[small-model] 228/464 user 3287 (73075 reviews) | 2431s, 4,753 review-evals/s
+[small-model] 229/464 user 4485 (122228 reviews) | 2447s, 4,772 review-evals/s
+[small-model] 230/464 user 4577 (261415 reviews) | 2485s, 4,804 review-evals/s
+[small-model] 231/464 user 2641 (5751 reviews) | 2487s, 4,804 review-evals/s
+[small-model] 232/464 user 4131 (8430 reviews) | 2491s, 4,799 review-evals/s
+[small-model] 233/464 user 1237 (13094 reviews) | 2494s, 4,798 review-evals/s
+[small-model] 234/464 user 4762 (18670 reviews) | 2503s, 4,788 review-evals/s
+[small-model] 235/464 user 966 (24396 reviews) | 2511s, 4,783 review-evals/s
+[small-model] 236/464 user 900 (34701 reviews) | 2524s, 4,772 review-evals/s
+[small-model] 237/464 user 892 (50164 reviews) | 2532s, 4,777 review-evals/s
+[small-model] 238/464 user 4380 (73553 reviews) | 2547s, 4,777 review-evals/s
+[small-model] 239/464 user 849 (122444 reviews) | 2567s, 4,787 review-evals/s
+[small-model] 240/464 user 2912 (267770 reviews) | 2607s, 4,818 review-evals/s
+[small-model] 241/464 user 3922 (5773 reviews) | 2609s, 4,816 review-evals/s
+[small-model] 242/464 user 4563 (8432 reviews) | 2611s, 4,814 review-evals/s
+[small-model] 243/464 user 874 (13159 reviews) | 2619s, 4,806 review-evals/s
+[small-model] 244/464 user 1415 (18802 reviews) | 2622s, 4,807 review-evals/s
+[small-model] 245/464 user 2746 (25019 reviews) | 2646s, 4,774 review-evals/s
+[small-model] 246/464 user 1895 (34707 reviews) | 2653s, 4,774 review-evals/s
+[small-model] 247/464 user 263 (50312 reviews) | 2662s, 4,777 review-evals/s
+[small-model] 248/464 user 3544 (73664 reviews) | 2673s, 4,785 review-evals/s
+[small-model] 249/464 user 4004 (124457 reviews) | 2699s, 4,784 review-evals/s
+[small-model] 250/464 user 1830 (289998 reviews) | 2753s, 4,796 review-evals/s
+[small-model] 251/464 user 2551 (5913 reviews) | 2754s, 4,795 review-evals/s
+[small-model] 252/464 user 1362 (8562 reviews) | 2759s, 4,791 review-evals/s
+[small-model] 253/464 user 578 (13562 reviews) | 2764s, 4,787 review-evals/s
+[small-model] 254/464 user 2626 (18808 reviews) | 2771s, 4,782 review-evals/s
+[small-model] 255/464 user 2957 (25273 reviews) | 2774s, 4,785 review-evals/s
+[small-model] 256/464 user 3210 (35292 reviews) | 2783s, 4,782 review-evals/s
+[small-model] 257/464 user 1463 (50425 reviews) | 2791s, 4,787 review-evals/s
+[small-model] 258/464 user 1480 (73718 reviews) | 2809s, 4,783 review-evals/s
+[small-model] 259/464 user 4025 (125084 reviews) | 2834s, 4,785 review-evals/s
+[small-model] 260/464 user 3301 (290671 reviews) | 2884s, 4,802 review-evals/s
+[small-model] 261/464 user 1174 (5915 reviews) | 2885s, 4,802 review-evals/s
+[small-model] 262/464 user 3926 (8733 reviews) | 2889s, 4,799 review-evals/s
+[small-model] 263/464 user 1382 (13739 reviews) | 2892s, 4,798 review-evals/s
+[small-model] 264/464 user 711 (19191 reviews) | 2909s, 4,777 review-evals/s
+[small-model] 265/464 user 1342 (25556 reviews) | 2919s, 4,770 review-evals/s
+[small-model] 266/464 user 4727 (35610 reviews) | 2928s, 4,767 review-evals/s
+[small-model] 267/464 user 2017 (50765 reviews) | 2937s, 4,770 review-evals/s
+[small-model] 268/464 user 4989 (76072 reviews) | 2950s, 4,775 review-evals/s
+[small-model] 269/464 user 2393 (125447 reviews) | 2971s, 4,784 review-evals/s
+[small-model] 270/464 user 551 (291734 reviews) | 3038s, 4,773 review-evals/s
+[small-model] 271/464 user 4446 (5928 reviews) | 3040s, 4,772 review-evals/s
+[small-model] 272/464 user 3457 (8766 reviews) | 3042s, 4,772 review-evals/s
+[small-model] 273/464 user 712 (13839 reviews) | 3044s, 4,773 review-evals/s
+[small-model] 274/464 user 4207 (19228 reviews) | 3048s, 4,773 review-evals/s
+[small-model] 275/464 user 1829 (25680 reviews) | 3056s, 4,769 review-evals/s
+[small-model] 276/464 user 1098 (35703 reviews) | 3071s, 4,758 review-evals/s
+[small-model] 277/464 user 1352 (50819 reviews) | 3085s, 4,753 review-evals/s
+[small-model] 278/464 user 3220 (76630 reviews) | 3102s, 4,752 review-evals/s
+[small-model] 279/464 user 596 (125767 reviews) | 3145s, 4,726 review-evals/s
+[small-model] 280/464 user 3289 (291782 reviews) | 3187s, 4,755 review-evals/s
+[small-model] 281/464 user 936 (5934 reviews) | 3189s, 4,755 review-evals/s
+[small-model] 282/464 user 2802 (8818 reviews) | 3194s, 4,750 review-evals/s
+[small-model] 283/464 user 214 (13959 reviews) | 3197s, 4,750 review-evals/s
+[small-model] 284/464 user 4368 (19374 reviews) | 3200s, 4,752 review-evals/s
+[small-model] 285/464 user 1096 (25734 reviews) | 3205s, 4,752 review-evals/s
+[small-model] 286/464 user 4962 (36000 reviews) | 3212s, 4,753 review-evals/s
+[small-model] 287/464 user 4896 (50907 reviews) | 3229s, 4,744 review-evals/s
+[small-model] 288/464 user 2014 (76704 reviews) | 3240s, 4,751 review-evals/s
+[small-model] 289/464 user 1399 (126540 reviews) | 3266s, 4,752 review-evals/s
+[small-model] 290/464 user 2423 (303232 reviews) | 3329s, 4,753 review-evals/s
+[small-model] 291/464 user 4015 (5974 reviews) | 3331s, 4,753 review-evals/s
+[small-model] 292/464 user 994 (9017 reviews) | 3333s, 4,751 review-evals/s
+[small-model] 293/464 user 1446 (14072 reviews) | 3342s, 4,744 review-evals/s
+[small-model] 294/464 user 1266 (19592 reviews) | 3348s, 4,741 review-evals/s
+[small-model] 295/464 user 4170 (25858 reviews) | 3358s, 4,735 review-evals/s
+[small-model] 296/464 user 1894 (36201 reviews) | 3363s, 4,738 review-evals/s
+[small-model] 297/464 user 621 (51031 reviews) | 3376s, 4,735 review-evals/s
+[small-model] 298/464 user 3982 (76880 reviews) | 3393s, 4,734 review-evals/s
+[small-model] 299/464 user 2705 (126635 reviews) | 3417s, 4,738 review-evals/s
+[small-model] 300/464 user 499 (314164 reviews) | 3464s, 4,765 review-evals/s
+[small-model] 301/464 user 2051 (5976 reviews) | 3466s, 4,763 review-evals/s
+[small-model] 302/464 user 3338 (9075 reviews) | 3476s, 4,752 review-evals/s
+[small-model] 303/464 user 921 (14143 reviews) | 3481s, 4,749 review-evals/s
+[small-model] 304/464 user 1481 (19641 reviews) | 3487s, 4,747 review-evals/s
+[small-model] 305/464 user 3517 (26096 reviews) | 3494s, 4,744 review-evals/s
+[small-model] 306/464 user 2681 (36810 reviews) | 3503s, 4,743 review-evals/s
+[small-model] 307/464 user 1464 (51035 reviews) | 3511s, 4,747 review-evals/s
+[small-model] 308/464 user 931 (77203 reviews) | 3526s, 4,749 review-evals/s
+[small-model] 309/464 user 1714 (131660 reviews) | 3562s, 4,737 review-evals/s
+[small-model] 310/464 user 1870 (318812 reviews) | 3614s, 4,758 review-evals/s
+[small-model] 311/464 user 1440 (6015 reviews) | 3617s, 4,755 review-evals/s
+[small-model] 312/464 user 2098 (9126 reviews) | 3619s, 4,755 review-evals/s
+[small-model] 313/464 user 4931 (14231 reviews) | 3628s, 4,748 review-evals/s
+[small-model] 314/464 user 117 (19653 reviews) | 3632s, 4,748 review-evals/s
+[small-model] 315/464 user 196 (26174 reviews) | 3637s, 4,748 review-evals/s
+[small-model] 316/464 user 1800 (36883 reviews) | 3647s, 4,745 review-evals/s
+[small-model] 317/464 user 3635 (51076 reviews) | 3659s, 4,743 review-evals/s
+[small-model] 318/464 user 1980 (78250 reviews) | 3671s, 4,749 review-evals/s
+[small-model] 319/464 user 1707 (134977 reviews) | 3700s, 4,749 review-evals/s
+[small-model] 320/464 user 4390 (319822 reviews) | 3740s, 4,783 review-evals/s
+[small-model] 321/464 user 1914 (6221 reviews) | 3746s, 4,777 review-evals/s
+[small-model] 322/464 user 1501 (9385 reviews) | 3749s, 4,777 review-evals/s
+[small-model] 323/464 user 2529 (14311 reviews) | 3753s, 4,774 review-evals/s
+[small-model] 324/464 user 3467 (20145 reviews) | 3757s, 4,775 review-evals/s
+[small-model] 325/464 user 2660 (26182 reviews) | 3761s, 4,777 review-evals/s
+[small-model] 326/464 user 4374 (37342 reviews) | 3773s, 4,771 review-evals/s
+[small-model] 327/464 user 2330 (51166 reviews) | 3790s, 4,764 review-evals/s
+[small-model] 328/464 user 3339 (80106 reviews) | 3805s, 4,766 review-evals/s
+[small-model] 329/464 user 938 (135767 reviews) | 3825s, 4,777 review-evals/s
+[small-model] 330/464 user 4071 (330385 reviews) | 3875s, 4,800 review-evals/s
+[small-model] 331/464 user 3008 (6226 reviews) | 3883s, 4,791 review-evals/s
+[small-model] 332/464 user 2266 (9415 reviews) | 3891s, 4,785 review-evals/s
+[small-model] 333/464 user 4970 (14356 reviews) | 3895s, 4,784 review-evals/s
+[small-model] 334/464 user 2310 (20316 reviews) | 3903s, 4,779 review-evals/s
+[small-model] 335/464 user 4643 (26534 reviews) | 3913s, 4,774 review-evals/s
+[small-model] 336/464 user 310 (37692 reviews) | 3922s, 4,771 review-evals/s
+[small-model] 337/464 user 2878 (51518 reviews) | 3936s, 4,769 review-evals/s
+[small-model] 338/464 user 4780 (81448 reviews) | 3950s, 4,771 review-evals/s
+[small-model] 339/464 user 628 (139720 reviews) | 3979s, 4,772 review-evals/s
+[small-model] 340/464 user 1125 (385675 reviews) | 4034s, 4,802 review-evals/s
+[small-model] 341/464 user 71 (6233 reviews) | 4036s, 4,802 review-evals/s
+[small-model] 342/464 user 2612 (9426 reviews) | 4037s, 4,803 review-evals/s
+[small-model] 343/464 user 3285 (14470 reviews) | 4041s, 4,802 review-evals/s
+[small-model] 344/464 user 3878 (20385 reviews) | 4047s, 4,800 review-evals/s
+[small-model] 345/464 user 4976 (26578 reviews) | 4053s, 4,799 review-evals/s
+[small-model] 346/464 user 1648 (37962 reviews) | 4066s, 4,793 review-evals/s
+[small-model] 347/464 user 1292 (51652 reviews) | 4076s, 4,794 review-evals/s
+[small-model] 348/464 user 4256 (81948 reviews) | 4093s, 4,795 review-evals/s
+[small-model] 349/464 user 2425 (146908 reviews) | 4111s, 4,809 review-evals/s
+[small-model] 350/464 user 4661 (387442 reviews) | 4176s, 4,827 review-evals/s
+[small-model] 351/464 user 1242 (6261 reviews) | 4177s, 4,827 review-evals/s
+[small-model] 352/464 user 3789 (9753 reviews) | 4181s, 4,825 review-evals/s
+[small-model] 353/464 user 2433 (14639 reviews) | 4184s, 4,825 review-evals/s
+[small-model] 354/464 user 4100 (20395 reviews) | 4191s, 4,821 review-evals/s
+[small-model] 355/464 user 4813 (27357 reviews) | 4198s, 4,821 review-evals/s
+[small-model] 356/464 user 3050 (38017 reviews) | 4210s, 4,816 review-evals/s
+[small-model] 357/464 user 3853 (52159 reviews) | 4219s, 4,818 review-evals/s
+[small-model] 358/464 user 1907 (82539 reviews) | 4231s, 4,823 review-evals/s
+[small-model] 359/464 user 4704 (147293 reviews) | 4255s, 4,831 review-evals/s
+[small-model] 360/464 user 276 (394561 reviews) | 4319s, 4,851 review-evals/s
+[small-model] 361/464 user 2550 (6281 reviews) | 4320s, 4,851 review-evals/s
+[small-model] 362/464 user 2531 (10009 reviews) | 4322s, 4,851 review-evals/s
+[small-model] 363/464 user 1651 (14778 reviews) | 4327s, 4,848 review-evals/s
+[small-model] 364/464 user 244 (20424 reviews) | 4346s, 4,832 review-evals/s
+[small-model] 365/464 user 4458 (27787 reviews) | 4354s, 4,830 review-evals/s
+[small-model] 366/464 user 1143 (38347 reviews) | 4363s, 4,829 review-evals/s
+[small-model] 367/464 user 2477 (52180 reviews) | 4383s, 4,818 review-evals/s
+[small-model] 368/464 user 1977 (82987 reviews) | 4400s, 4,819 review-evals/s
+[small-model] 369/464 user 610 (152244 reviews) | 4422s, 4,829 review-evals/s
+[small-model] 370/464 user 2594 (423043 reviews) | 4482s, 4,859 review-evals/s
+[small-model] 371/464 user 4935 (6323 reviews) | 4484s, 4,858 review-evals/s
+[small-model] 372/464 user 148 (10301 reviews) | 4487s, 4,857 review-evals/s
+[small-model] 373/464 user 1072 (14826 reviews) | 4491s, 4,857 review-evals/s
+[small-model] 374/464 user 407 (20426 reviews) | 4502s, 4,849 review-evals/s
+[small-model] 375/464 user 2762 (27838 reviews) | 4508s, 4,849 review-evals/s
+[small-model] 376/464 user 454 (38476 reviews) | 4528s, 4,836 review-evals/s
+[small-model] 377/464 user 4406 (52381 reviews) | 4535s, 4,840 review-evals/s
+[small-model] 378/464 user 1497 (83887 reviews) | 4565s, 4,827 review-evals/s
+[small-model] 379/464 user 1211 (156937 reviews) | 4588s, 4,837 review-evals/s
+[small-model] 380/464 user 510 (435615 reviews) | 4647s, 4,869 review-evals/s
+[small-model] 381/464 user 2418 (6340 reviews) | 4648s, 4,869 review-evals/s
+[small-model] 382/464 user 141 (10320 reviews) | 4650s, 4,869 review-evals/s
+[small-model] 383/464 user 997 (14840 reviews) | 4657s, 4,865 review-evals/s
+[small-model] 384/464 user 3089 (20436 reviews) | 4665s, 4,861 review-evals/s
+[small-model] 385/464 user 1452 (27880 reviews) | 4672s, 4,860 review-evals/s
+[small-model] 386/464 user 2105 (39319 reviews) | 4681s, 4,859 review-evals/s
+[small-model] 387/464 user 436 (52632 reviews) | 4693s, 4,857 review-evals/s
+[small-model] 388/464 user 3337 (84130 reviews) | 4713s, 4,855 review-evals/s
+[small-model] 389/464 user 4871 (157196 reviews) | 4745s, 4,856 review-evals/s
+[small-model] 390/464 user 481 (450701 reviews) | 4821s, 4,872 review-evals/s
+[small-model] 391/464 user 1350 (6362 reviews) | 4823s, 4,872 review-evals/s
+[small-model] 392/464 user 2470 (10384 reviews) | 4828s, 4,869 review-evals/s
+[small-model] 393/464 user 3070 (14846 reviews) | 4831s, 4,869 review-evals/s
+[small-model] 394/464 user 3793 (20486 reviews) | 4835s, 4,869 review-evals/s
+[small-model] 395/464 user 31 (28045 reviews) | 4843s, 4,867 review-evals/s
+[small-model] 396/464 user 391 (40089 reviews) | 4850s, 4,868 review-evals/s
+[small-model] 397/464 user 844 (52811 reviews) | 4860s, 4,869 review-evals/s
+[small-model] 398/464 user 954 (85171 reviews) | 4888s, 4,858 review-evals/s
+[small-model] 399/464 user 1987 (159388 reviews) | 4911s, 4,868 review-evals/s
+[small-model] 400/464 user 2267 (488983 reviews) | 4994s, 4,885 review-evals/s
+[small-model] 401/464 user 4956 (6513 reviews) | 5001s, 4,879 review-evals/s
+[small-model] 402/464 user 526 (10526 reviews) | 5003s, 4,880 review-evals/s
+[small-model] 403/464 user 1007 (14900 reviews) | 5009s, 4,877 review-evals/s
+[small-model] 404/464 user 2767 (20885 reviews) | 5027s, 4,864 review-evals/s
+[small-model] 405/464 user 1528 (28203 reviews) | 5034s, 4,862 review-evals/s
+[small-model] 406/464 user 3076 (40299 reviews) | 5045s, 4,859 review-evals/s
+[small-model] 407/464 user 3190 (53612 reviews) | 5055s, 4,860 review-evals/s
+[small-model] 408/464 user 3962 (85201 reviews) | 5069s, 4,864 review-evals/s
+[small-model] 409/464 user 1957 (160625 reviews) | 5097s, 4,868 review-evals/s
+[small-model] 410/464 user 3735 (531091 reviews) | 5169s, 4,903 review-evals/s
+[small-model] 411/464 user 1716 (6606 reviews) | 5175s, 4,899 review-evals/s
+[small-model] 412/464 user 27 (10539 reviews) | 5177s, 4,899 review-evals/s
+[small-model] 413/464 user 662 (14912 reviews) | 5182s, 4,897 review-evals/s
+[small-model] 414/464 user 3969 (20935 reviews) | 5187s, 4,897 review-evals/s
+[small-model] 415/464 user 3817 (28700 reviews) | 5192s, 4,898 review-evals/s
+[small-model] 416/464 user 2922 (40390 reviews) | 5208s, 4,890 review-evals/s
+[small-model] 417/464 user 3027 (55547 reviews) | 5218s, 4,891 review-evals/s
+[small-model] 418/464 user 408 (85905 reviews) | 5234s, 4,894 review-evals/s
+[small-model] 419/464 user 3447 (160984 reviews) | 5265s, 4,895 review-evals/s
+[small-model] 420/464 user 650 (568206 reviews) | 5330s, 4,835 review-evals/s
+[small-model] 421/464 user 311 (6635 reviews) | 5337s, 4,830 review-evals/s
+[small-model] 422/464 user 4474 (10540 reviews) | 5342s, 4,827 review-evals/s
+[small-model] 423/464 user 1827 (14921 reviews) | 5347s, 4,826 review-evals/s
+[small-model] 424/464 user 5 (21113 reviews) | 5353s, 4,824 review-evals/s
+[small-model] 425/464 user 4433 (28783 reviews) | 5358s, 4,826 review-evals/s
+[small-model] 426/464 user 446 (40443 reviews) | 5375s, 4,818 review-evals/s
+[small-model] 427/464 user 3208 (55775 reviews) | 5392s, 4,813 review-evals/s
+[small-model] 428/464 user 4688 (87288 reviews) | 5401s, 4,820 review-evals/s
+[small-model] 429/464 user 2366 (162475 reviews) | 5449s, 4,808 review-evals/s
+[small-model] 430/464 user 4501 (599569 reviews) | 5518s, 4,748 review-evals/s
+[small-model] 431/464 user 1697 (6656 reviews) | 5524s, 4,744 review-evals/s
+[small-model] 432/464 user 2873 (10894 reviews) | 5528s, 4,742 review-evals/s
+[small-model] 433/464 user 4742 (14961 reviews) | 5538s, 4,737 review-evals/s
+[small-model] 434/464 user 166 (21183 reviews) | 5546s, 4,734 review-evals/s
+[small-model] 435/464 user 501 (28810 reviews) | 5554s, 4,732 review-evals/s
+[small-model] 436/464 user 4175 (40817 reviews) | 5565s, 4,730 review-evals/s
+[small-model] 437/464 user 2552 (56479 reviews) | 5576s, 4,731 review-evals/s
+[small-model] 438/464 user 3811 (89730 reviews) | 5590s, 4,735 review-evals/s
+[small-model] 439/464 user 1523 (163374 reviews) | 5620s, 4,739 review-evals/s
+[small-model] 440/464 user 70 (720110 reviews) | 5648s, 4,716 review-evals/s
+[small-model] 441/464 user 2282 (6697 reviews) | 5649s, 4,715 review-evals/s
+[small-model] 442/464 user 2948 (11028 reviews) | 5662s, 4,707 review-evals/s
+[small-model] 443/464 user 4994 (15020 reviews) | 5673s, 4,700 review-evals/s
+[small-model] 444/464 user 4547 (21202 reviews) | 5680s, 4,698 review-evals/s
+[small-model] 445/464 user 1926 (29025 reviews) | 5688s, 4,697 review-evals/s
+[small-model] 446/464 user 951 (40915 reviews) | 5704s, 4,691 review-evals/s
+[small-model] 447/464 user 4877 (57605 reviews) | 5712s, 4,694 review-evals/s
+[small-model] 448/464 user 4620 (91079 reviews) | 5729s, 4,696 review-evals/s
+[small-model] 449/464 user 2806 (163673 reviews) | 5754s, 4,705 review-evals/s
+[small-model] 450/464 user 4922 (733759 reviews) | 5777s, 4,686 review-evals/s
+[small-model] 451/464 user 116 (6762 reviews) | 5782s, 4,683 review-evals/s
+[small-model] 452/464 user 4603 (11086 reviews) | 5784s, 4,683 review-evals/s
+[small-model] 453/464 user 1537 (15123 reviews) | 5787s, 4,683 review-evals/s
+[small-model] 454/464 user 1427 (21340 reviews) | 5790s, 4,685 review-evals/s
+[small-model] 455/464 user 3067 (29116 reviews) | 5794s, 4,687 review-evals/s
+[small-model] 456/464 user 1212 (40952 reviews) | 5803s, 4,686 review-evals/s
+[small-model] 457/464 user 1624 (58353 reviews) | 5819s, 4,683 review-evals/s
+[small-model] 458/464 user 3260 (92013 reviews) | 5851s, 4,674 review-evals/s
+[small-model] 459/464 user 4759 (166824 reviews) | 5881s, 4,678 review-evals/s
+[small-model] 460/464 user 4379 (739704 reviews) | 5946s, 4,627 review-evals/s
+[small-model] 461/464 user 4137 (15235 reviews) | 5949s, 4,627 review-evals/s
+[small-model] 462/464 user 2024 (30048 reviews) | 5958s, 4,625 review-evals/s
+[small-model] 463/464 user 1458 (92307 reviews) | 5976s, 4,627 review-evals/s
+[small-model] 464/464 user 1479 (860510 reviews) | 5989s, 4,617 review-evals/s
+[queue] 000586-small-model finished with exit code 0 after 1:39:52; released gpu
+[sm46 10-21 06:40:32] exit 0: SM46: pool 464 scoring of SM36 w8+vq5902x3028 (464 users, pass 1)
+[sm46 10-21 06:40:34] pool 464 pass 2: 6 users / 4221858 reviews to score, ~24 min at the check's rate; ticket 24 min, user start limit 16 min (largest user ~7 min)
+[sm46 10-21 06:40:34] enqueue: SM46: pool 464 scoring of SM36 w8+vq5902x3028 (6 users, pass 2) (expected 24 min)
+[queue] 000587-small-model registered for gpu: SM46: pool 464 scoring of SM36 w8+vq5902x3028 (6 users, pass 2)
+[queue] 000587-small-model started after 0:00:00; holds gpu
+[small-model] CUDA recurrences vs float32 reference, max abs error: {'fork/bits0': 1.7881393432617188e-07, 'fork/bits8': 0.00021678954362869263, 'fork/bits4': 1.4901161193847656e-07, 'K16/bits0': 8.940696716308594e-08, 'K16/bits8': 0.00042257457971572876, 'K32/bits0': 1.1920928955078125e-07, 'K32/bits8': 0.001328926533460617}
+[small-model] 464 users, 6 to score, grid ['s-w64kd-gate-sc-lanes-dec12-1ep32k-muon/w8+vq5902x3028']
+[small-model] vq5902x3028: {'card': {'bits': 5902, 'wkv_layers': 2, 'heads': 4, 'shift_vectors': 3, 'rank': 6, 'stages': [15, 13, 10, 7, 5, 3], 'index_bits': 10, 'norm_bits': 10, 'shift': 'm4b12x8', 'shift_norm_bits': 10}, 'note': {'bits': 3028, 'wkv_layers': 1, 'heads': 4, 'shift_vectors': 2, 'rank': 6, 'stages': [15, 12, 9, 7, 4, 3], 'index_bits': 10, 'norm_bits': 10, 'shift': 'm4b12x8', 'shift_norm_bits': 10}}; {'card': 'torch step loop, eigh float64', 'note': 'torch step loop, eigh float64'}
+[small-model] 1/6 user 650 (568206 reviews) | 111s, 0 review-evals/s
+[small-model] 2/6 user 4501 (599569 reviews) | 181s, 0 review-evals/s
+[small-model] 3/6 user 70 (720110 reviews) | 210s, 0 review-evals/s
+[small-model] 4/6 user 4922 (733759 reviews) | 234s, 0 review-evals/s
+[small-model] 5/6 user 4379 (739704 reviews) | 299s, 0 review-evals/s
+[small-model] 6/6 user 1479 (860510 reviews) | 311s, 0 review-evals/s
+[queue] 000587-small-model finished with exit code 0 after 0:05:14; released gpu
+[sm46 10-21 06:45:48] exit 0: SM46: pool 464 scoring of SM36 w8+vq5902x3028 (6 users, pass 2)
+[sm46 10-21 06:45:50] pool 464 pass 3: 6 users / 4221858 reviews to score, ~24 min at the check's rate; ticket 24 min, user start limit 16 min (largest user ~7 min)
+[sm46 10-21 06:45:50] enqueue: SM46: pool 464 scoring of SM36 w8+vq5902x3028 (6 users, pass 3) (expected 24 min)
+[queue] 000588-small-model registered for gpu: SM46: pool 464 scoring of SM36 w8+vq5902x3028 (6 users, pass 3)
+[queue] 000588-small-model started after 0:00:00; holds gpu
+[small-model] CUDA recurrences vs float32 reference, max abs error: {'fork/bits0': 1.7881393432617188e-07, 'fork/bits8': 0.00021678954362869263, 'fork/bits4': 1.4901161193847656e-07, 'K16/bits0': 8.940696716308594e-08, 'K16/bits8': 0.00042257457971572876, 'K32/bits0': 1.1920928955078125e-07, 'K32/bits8': 0.001328926533460617}
+[small-model] 464 users, 6 to score, grid ['s-w64kd-gate-sc-lanes-dec12-1ep32k-muon/w8+vq5902x3028']
+[small-model] vq5902x3028: {'card': {'bits': 5902, 'wkv_layers': 2, 'heads': 4, 'shift_vectors': 3, 'rank': 6, 'stages': [15, 13, 10, 7, 5, 3], 'index_bits': 10, 'norm_bits': 10, 'shift': 'm4b12x8', 'shift_norm_bits': 10}, 'note': {'bits': 3028, 'wkv_layers': 1, 'heads': 4, 'shift_vectors': 2, 'rank': 6, 'stages': [15, 12, 9, 7, 4, 3], 'index_bits': 10, 'norm_bits': 10, 'shift': 'm4b12x8', 'shift_norm_bits': 10}}; {'card': 'torch step loop, eigh float64', 'note': 'torch step loop, eigh float64'}
+[small-model] 1/6 user 650 (568206 reviews) | 111s, 0 review-evals/s
+[small-model] 2/6 user 4501 (599569 reviews) | 181s, 0 review-evals/s
+[small-model] 3/6 user 70 (720110 reviews) | 210s, 0 review-evals/s
+[small-model] 4/6 user 4922 (733759 reviews) | 233s, 0 review-evals/s
+[small-model] 5/6 user 4379 (739704 reviews) | 299s, 0 review-evals/s
+[small-model] 6/6 user 1479 (860510 reviews) | 312s, 0 review-evals/s
+[queue] 000588-small-model finished with exit code 0 after 0:05:15; released gpu
+[sm46 10-21 06:51:05] exit 0: SM46: pool 464 scoring of SM36 w8+vq5902x3028 (6 users, pass 3)
+[sm46 10-21 06:51:06] pool 464 pass 4: 6 users / 4221858 reviews to score, ~24 min at the check's rate; ticket 24 min, user start limit 16 min (largest user ~7 min)
+[sm46 10-21 06:51:06] enqueue: SM46: pool 464 scoring of SM36 w8+vq5902x3028 (6 users, pass 4) (expected 24 min)
+[queue] 000589-small-model registered for gpu: SM46: pool 464 scoring of SM36 w8+vq5902x3028 (6 users, pass 4)
+[queue] 000589-small-model started after 0:00:00; holds gpu
+[small-model] CUDA recurrences vs float32 reference, max abs error: {'fork/bits0': 1.7881393432617188e-07, 'fork/bits8': 0.00021678954362869263, 'fork/bits4': 1.4901161193847656e-07, 'K16/bits0': 8.940696716308594e-08, 'K16/bits8': 0.00042257457971572876, 'K32/bits0': 1.1920928955078125e-07, 'K32/bits8': 0.001328926533460617}
+[small-model] 464 users, 6 to score, grid ['s-w64kd-gate-sc-lanes-dec12-1ep32k-muon/w8+vq5902x3028']
+[small-model] vq5902x3028: {'card': {'bits': 5902, 'wkv_layers': 2, 'heads': 4, 'shift_vectors': 3, 'rank': 6, 'stages': [15, 13, 10, 7, 5, 3], 'index_bits': 10, 'norm_bits': 10, 'shift': 'm4b12x8', 'shift_norm_bits': 10}, 'note': {'bits': 3028, 'wkv_layers': 1, 'heads': 4, 'shift_vectors': 2, 'rank': 6, 'stages': [15, 12, 9, 7, 4, 3], 'index_bits': 10, 'norm_bits': 10, 'shift': 'm4b12x8', 'shift_norm_bits': 10}}; {'card': 'torch step loop, eigh float64', 'note': 'torch step loop, eigh float64'}
+[small-model] 1/6 user 650 (568206 reviews) | 112s, 0 review-evals/s
+[small-model] 2/6 user 4501 (599569 reviews) | 182s, 0 review-evals/s
+[small-model] 3/6 user 70 (720110 reviews) | 210s, 0 review-evals/s
+[small-model] 4/6 user 4922 (733759 reviews) | 234s, 0 review-evals/s
+[small-model] 5/6 user 4379 (739704 reviews) | 299s, 0 review-evals/s
+[small-model] 6/6 user 1479 (860510 reviews) | 312s, 0 review-evals/s
+[queue] 000589-small-model finished with exit code 0 after 0:05:15; released gpu
+[sm46 10-21 06:56:22] exit 0: SM46: pool 464 scoring of SM36 w8+vq5902x3028 (6 users, pass 4)
+[sm46 10-21 06:56:23] pool 464 pass 5: 6 users / 4221858 reviews to score, ~24 min at the check's rate; ticket 24 min, user start limit 16 min (largest user ~7 min)
+[sm46 10-21 06:56:23] enqueue: SM46: pool 464 scoring of SM36 w8+vq5902x3028 (6 users, pass 5) (expected 24 min)
+[queue] 000590-small-model registered for gpu: SM46: pool 464 scoring of SM36 w8+vq5902x3028 (6 users, pass 5)
+[queue] 000590-small-model started after 0:00:00; holds gpu
+[small-model] CUDA recurrences vs float32 reference, max abs error: {'fork/bits0': 1.7881393432617188e-07, 'fork/bits8': 0.00021678954362869263, 'fork/bits4': 1.4901161193847656e-07, 'K16/bits0': 8.940696716308594e-08, 'K16/bits8': 0.00042257457971572876, 'K32/bits0': 1.1920928955078125e-07, 'K32/bits8': 0.001328926533460617}
+[small-model] 464 users, 6 to score, grid ['s-w64kd-gate-sc-lanes-dec12-1ep32k-muon/w8+vq5902x3028']
+[small-model] vq5902x3028: {'card': {'bits': 5902, 'wkv_layers': 2, 'heads': 4, 'shift_vectors': 3, 'rank': 6, 'stages': [15, 13, 10, 7, 5, 3], 'index_bits': 10, 'norm_bits': 10, 'shift': 'm4b12x8', 'shift_norm_bits': 10}, 'note': {'bits': 3028, 'wkv_layers': 1, 'heads': 4, 'shift_vectors': 2, 'rank': 6, 'stages': [15, 12, 9, 7, 4, 3], 'index_bits': 10, 'norm_bits': 10, 'shift': 'm4b12x8', 'shift_norm_bits': 10}}; {'card': 'torch step loop, eigh float64', 'note': 'torch step loop, eigh float64'}
+[small-model] 1/6 user 650 (568206 reviews) | 111s, 0 review-evals/s
+[small-model] 2/6 user 4501 (599569 reviews) | 181s, 0 review-evals/s
+[small-model] 3/6 user 70 (720110 reviews) | 209s, 0 review-evals/s
+[small-model] 4/6 user 4922 (733759 reviews) | 233s, 0 review-evals/s
+[small-model] 5/6 user 4379 (739704 reviews) | 298s, 0 review-evals/s
+[small-model] 6/6 user 1479 (860510 reviews) | 311s, 0 review-evals/s
+[queue] 000590-small-model finished with exit code 0 after 0:05:14; released gpu
+[sm46 10-21 07:01:37] exit 0: SM46: pool 464 scoring of SM36 w8+vq5902x3028 (6 users, pass 5)
+[sm46 10-21 07:01:39] pool 464 pass 6: 6 users / 4221858 reviews to score, ~24 min at the check's rate; ticket 24 min, user start limit 16 min (largest user ~7 min)
+[sm46 10-21 07:01:39] enqueue: SM46: pool 464 scoring of SM36 w8+vq5902x3028 (6 users, pass 6) (expected 24 min)
+[queue] 000591-small-model registered for gpu: SM46: pool 464 scoring of SM36 w8+vq5902x3028 (6 users, pass 6)
+[queue] 000591-small-model started after 0:00:00; holds gpu
+[small-model] CUDA recurrences vs float32 reference, max abs error: {'fork/bits0': 1.7881393432617188e-07, 'fork/bits8': 0.00021678954362869263, 'fork/bits4': 1.4901161193847656e-07, 'K16/bits0': 8.940696716308594e-08, 'K16/bits8': 0.00042257457971572876, 'K32/bits0': 1.1920928955078125e-07, 'K32/bits8': 0.001328926533460617}
+[small-model] 464 users, 6 to score, grid ['s-w64kd-gate-sc-lanes-dec12-1ep32k-muon/w8+vq5902x3028']
+[small-model] vq5902x3028: {'card': {'bits': 5902, 'wkv_layers': 2, 'heads': 4, 'shift_vectors': 3, 'rank': 6, 'stages': [15, 13, 10, 7, 5, 3], 'index_bits': 10, 'norm_bits': 10, 'shift': 'm4b12x8', 'shift_norm_bits': 10}, 'note': {'bits': 3028, 'wkv_layers': 1, 'heads': 4, 'shift_vectors': 2, 'rank': 6, 'stages': [15, 12, 9, 7, 4, 3], 'index_bits': 10, 'norm_bits': 10, 'shift': 'm4b12x8', 'shift_norm_bits': 10}}; {'card': 'torch step loop, eigh float64', 'note': 'torch step loop, eigh float64'}
+[small-model] 1/6 user 650 (568206 reviews) | 112s, 0 review-evals/s
+[small-model] 2/6 user 4501 (599569 reviews) | 183s, 0 review-evals/s
+[small-model] 3/6 user 70 (720110 reviews) | 211s, 0 review-evals/s
+[small-model] 4/6 user 4922 (733759 reviews) | 235s, 0 review-evals/s
+[small-model] 5/6 user 4379 (739704 reviews) | 300s, 0 review-evals/s
+[small-model] 6/6 user 1479 (860510 reviews) | 313s, 0 review-evals/s
+[queue] 000591-small-model finished with exit code 0 after 0:05:16; released gpu
+[sm46 10-21 07:06:55] exit 0: SM46: pool 464 scoring of SM36 w8+vq5902x3028 (6 users, pass 6)
+# SM46: codebook state compression at ~6,000 / ~3,000 bits (`vq5902x3028`), SM36, w8 weights
+
+Card 5,902 bits, note 3,028 bits per entity (int8 state: 26,624 / 14,336). Codebooks fitted after training on SM36's own states (k-means, no retraining). Full-history held-out protocol; review-weighted benchmark LogLoss; delta = vq - SM36 w8+s8; [ ] = 95% paired user bootstrap (2,000 resamples, seed 0, 2.5/97.5 percentiles); % vs the big model (fork w8+s8) on the same users; curve = ahead head.
+
+## Pool 732: 458 of 732 users
+
+| Head | Test reviews | vq LogLoss | SM36 w8+s8 | delta vs s8 | % vs s8 | vq % vs fork | s8 % vs fork | fork |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| curve | 19,833,530 | 0.29813 | 0.29804 | +0.00009 [+0.00006, +0.00012] | +0.030% [+0.021, +0.039] | +0.77% [+0.49, +1.15] | +0.74% [+0.46, +1.12] | 0.29584 |
+| instant | 19,833,530 | 0.27412 | 0.27397 | +0.00015 [+0.00012, +0.00018] | +0.055% [+0.047, +0.063] | +0.70% [+0.62, +0.77] | +0.64% [+0.57, +0.72] | 0.27223 |
+
+## Pool 464: 458 of 464 users
+
+| Head | Test reviews | vq LogLoss | SM36 w8+s8 | delta vs s8 | % vs s8 | vq % vs fork | s8 % vs fork | fork |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| curve | 19,833,530 | 0.29813 | 0.29804 | +0.00009 [+0.00006, +0.00012] | +0.030% [+0.021, +0.039] | +0.77% [+0.49, +1.15] | +0.74% [+0.46, +1.12] | 0.29584 |
+| instant | 19,833,530 | 0.27412 | 0.27397 | +0.00015 [+0.00012, +0.00018] | +0.055% [+0.047, +0.063] | +0.70% [+0.62, +0.77] | +0.64% [+0.57, +0.72] | 0.27223 |
+
+- GPU scorer: 458 users, 1.53 h of model time, 5,005 reviews/s; path {'card': 'torch step loop, eigh float64', 'note': 'torch step loop, eigh float64'}.
+- GPU check: passed True, fails [].
+- Codebooks sha256 af46e6a253c4f18e349792527c815860006924c301f70c3924a4872c38cf81f7.
+
+[sm46 10-21 07:06:56] done
