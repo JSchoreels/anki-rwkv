@@ -221,6 +221,9 @@ def main():
     parser.add_argument("--max-reviews", type=int, default=0, help="CPU smoke: skip users above this many reviews")
     parser.add_argument("--users-file", default="", help="JSON with a 'users' list (e.g. artifacts/small-model/"
                         "gate-users.json): score only these users, in the usual stratified order")
+    parser.add_argument("--exclude-users-file", default="", help="JSON with a 'users' list (see "
+                        "artifacts/small-model/never-fit-users.json): skip these users, e.g. the ones that "
+                        "can never fit this GPU; the rows of the other users are unchanged")
     parser.add_argument("--window", type=int, default=0, help="diagnostic: score independent W-review samples")
     parser.add_argument("--vq-codebooks", default="artifacts/small-model/state-vq/codebooks.npz",
                         help="scripts/state_vq.py codebooks for +vq variants (scripts/state_vq_fit.py)")
@@ -262,6 +265,11 @@ def main():
     if args.users_file:
         wanted = set(json.loads(Path(args.users_file).read_text())["users"])
         users = [u for u in users if u in wanted]
+    if args.exclude_users_file:
+        spec = json.loads(Path(args.exclude_users_file).read_text())
+        skip = set(spec["users"])
+        print(f"[small-model] --exclude-users-file: skipping {len(skip & set(users))} of {len(users)} users", flush=True)
+        users = [u for u in users if u not in skip]
     if args.max_reviews:
         users = [u for u in users if counts[str(u)] <= args.max_reviews]
     users = users[args.start:args.start + args.count] if args.count else users[args.start:]
@@ -320,8 +328,11 @@ def main():
     if cpu and os.environ.get("HELDOUT_CPU_LANES_TEST"):
         # scheduler logic check only: the CPU state path (state_vq.Hooks) is process-global, so only variants without
         # state quantization are thread-safe here
-        if any(parse_variant(label.split("@")[0].split("/", 1)[1])[1] for label in grid):
-            raise SystemExit("HELDOUT_CPU_LANES_TEST: variants without state quantization only (fp32, w8, w4)")
+        if any(parse_variant(label.split("@")[0].split("/", 1)[1])[1] and not (
+                args.emulate_gpu_path and isinstance(parse_variant(label.split("@")[0].split("/", 1)[1])[1], IntState))
+               for label in grid):
+            raise SystemExit("HELDOUT_CPU_LANES_TEST: variants without state quantization only (fp32, w8, w4), or "
+                             "SM47 int variants with --emulate-gpu-path")
         n_lanes = max(1, args.lanes)
     lanes = [{"models": models, "layouts": layouts, "stream": None}]
     for _ in range(n_lanes - 1):
@@ -331,7 +342,7 @@ def main():
     if n_lanes > 1 and not cpu:
         for lane in lanes:
             lane["stream"] = torch.cuda.Stream(device)
-    vq_lock = threading.Lock()   # lanes: +vq runs one at a time (state_vq.SCORE is process-global)
+    vq_lock = threading.Lock()   # lanes: +vq runs one at a time (shared codecs / kernel buffers); int variants run free
     if args.legacy_metrics:
         evaluate, bench_metrics = evaluate_with_predictions, metrics
     else:
@@ -374,7 +385,8 @@ def main():
                 if cpu and not args.emulate_gpu_path:
                     state_vq.configure(lane_layouts[tag], None, state_bits.wkv_bits, state_bits.shift_bits)
                 else:
-                    if n_lanes > 1 and not cpu:   # state_vq.SCORE is process-global: one at a time, like +vq
+                    # SM48b: state_vq.SCORE is per thread and the codecs are stateless, so lanes need no lock here
+                    if n_lanes > 1 and not cpu and os.environ.get("HELDOUT_INT_LANE_LOCK"):   # A/B of the SM47 lock
                         vq_lock.acquire()
                         vq_held = True
                     codecs_int = state_vq.int_score_codecs(state_bits.wkv_bits, state_bits.shift_bits)
@@ -530,6 +542,9 @@ def main():
             while pending:
                 collect(True)
     env.close()
+    if not cpu:
+        print(f"[small-model] peak torch allocated {torch.cuda.max_memory_allocated() / 2**30:.2f} GiB, reserved "
+              f"{torch.cuda.max_memory_reserved() / 2**30:.2f} GiB", flush=True)
 
 
 def _vq_slots_off(layout):
