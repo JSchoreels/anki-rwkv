@@ -1,5 +1,26 @@
 # HANDOFF: SM55 (SM36's recipe on the 8k final tier), launched 2026-10-21
 
+## Relaunch 2026-10-21 19:50 (current): runbook `runbook-2026-10-21-sm55b.sh`, log `artifacts/small-model/runbook-2026-10-21-sm55b.log`
+- First decay (ticket 000596) stopped after 2 h 14 min (12:59): `Unlabelled batch user 5599, offset 32768`. Cause: user 5599
+  (32,782 reviews) ends with 14 first reviews (no label); with 32,768-review updates its 2nd update had no label. The replay
+  export is complete and correct: all 8,000 files have rows == reviews and label counts == the export records; 5599 is the only
+  user with an unlabelled update (`check-replay-label-windows-sm55.json`).
+- Fix: `scripts/check_replay_label_windows.py` cuts an unlabelled LAST window from train_range (5599: [0, 32768], -14 reviews,
+  no loss lost); recorded in decay.json `trimmed_unlabelled_tails`, original rows in `protocol.untrimmed.json`. One-user GPU run
+  of the cut row passed (trim check ticket 000601, `sm55-trimcheck-5599/`). The failed attempt is in
+  `scale-w64kd-gate-sc-lanes-cont-decay1ep32k-muon-final8k/failed-000596-E89-F65e-F77a/` (215.9M reviews at 26,946 reviews/s).
+- sm55b ran status + label-window check + SM36 equivalence + Muon check at 19:51 (all OK) and sleeps to 01:01; then decay
+  (expected 420 min, ~6 h at 000596's speed, ~01:01-07:05 10-22), 723-user scoring (~45 min), summary; `done` ~08:00.
+- Watch in `runbook-2026-10-21-sm55b.log`: done `[sm55 10-22 HH:MM:SS] done` after the `[sm55-summary]` block; failure any
+  `[sm55 ...] STOP: ...` line.
+- Resume after a stop/crash: `nohup bash C:/Users/jonat/workspace/wt/sm55/artifacts/small-model/runbook-2026-10-21-sm55b.sh >> C:/Users/jonat/workspace/wt/sm55/artifacts/small-model/runbook-2026-10-21-sm55b.log 2>&1 & disown`
+  (the finished decay and scored users are skipped; the decay itself restarts from fresh weights). Summary again:
+  `SUMMARY_ONLY=1 bash C:/Users/jonat/workspace/wt/sm55/artifacts/small-model/runbook-2026-10-21-sm55b.sh`.
+- Stop between tickets: `touch artifacts/small-model/sm55-STOP`. Do not edit `scripts/ expertium/ rwkv/` in wt/sm55 while it runs.
+- The original section below is history (runbook-2026-10-21-sm55.sh is finished; do not rerun it).
+
+## Original launch (morning 10-21)
+
 Worktree `C:/Users/jonat/workspace/wt/sm55` (branch `sm55`, from `small-model`). One detached chain:
 `artifacts/small-model/runbook-2026-10-21-sm55.sh`, log `artifacts/small-model/runbook-2026-10-21-sm55.log` (dry run: `runbook-2026-10-21-sm55-dryrun.log`, ends `DRYRUN OK`).
 Do not edit `scripts/ expertium/ rwkv/` in wt/sm55 while it runs (SourceWatch). Stop between tickets: `touch artifacts/small-model/sm55-STOP`.
