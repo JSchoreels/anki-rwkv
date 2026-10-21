@@ -822,7 +822,7 @@
    "match": [
     "SM55"
    ],
-   "when": "Teacher targets done (09:00-10:45). The 8k training crashed at 12:59 after 2 h 14 min (no teacher targets found for one of the new users, user 5599, after its first 32k reviews); being fixed, restart Thu 01:00 &rarr; ~09:00, scoring after",
+   "when": "Teacher targets done (09:00-10:45). The 8k training crashed at 12:59 after 2 h 14 min: one user (5599) ends with 14 first reviews of new cards, which have no label, and that tail formed a window of its own. Fixed by dropping such unlabelled tails (only this user, 14 reviews); a check now runs before training. Restart Thu 01:01 &rarr; ~07:05 (27k reviews/s), scoring on 723 users &rarr; ~08:00",
    "decides": "SM43 says more users win and the gap grows with training: how much does 8k gain over 5k?",
    "state": "planned"
   },

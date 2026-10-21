@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-10-21T19:42:04+02:00",
- "updated": "2026-10-21 19:42",
- "material": "867316a909914cbd",
- "summary": "idle, finished 000600",
+ "generated_at": "2026-10-21T19:52:05+02:00",
+ "updated": "2026-10-21 19:52",
+ "material": "45667e5448670dc6",
+ "summary": "idle, finished 000601",
  "headline": [
   {
    "k": "Best, 464 users (curve / instant)",
@@ -141,6 +141,15 @@
  "waiting": [],
  "recent": [
   {
+   "ticket": "000601-small-model",
+   "id": "SM55",
+   "what": "SM55 trim check, user 5599 alone with the 14 unlabelled tail reviews cut (1 update)",
+   "ended": "19:48",
+   "date": "10-21",
+   "exit": 0,
+   "ran": "0:00"
+  },
+  {
    "ticket": "000600-small-model",
    "id": "SM51",
    "what": "SM39 scoring arm 1 final + avg2/3/4 (SM51), 732 pool minus never-fit (pass 2)",
@@ -184,15 +193,6 @@
    "date": "10-21",
    "exit": 1,
    "ran": "2:14"
-  },
-  {
-   "ticket": "000595-small-model",
-   "id": "SM55",
-   "what": "SM55 replay targets, 3,000 final-tier users outside the 5k export (ticket 2, resumable)",
-   "ended": "10:44",
-   "date": "10-21",
-   "exit": 0,
-   "ran": "0:19"
   }
  ],
  "plan": [
@@ -808,14 +808,14 @@
    "kind": "gpu-train",
    "minutes": 630,
    "track": "small model",
-   "when": "Teacher targets done (09:00-10:45). The 8k training crashed at 12:59 after 2 h 14 min (no teacher targets found for one of the new users, user 5599, after its first 32k reviews); being fixed, restart Thu 01:00 &rarr; ~09:00, scoring after",
+   "when": "Teacher targets done (09:00-10:45). The 8k training crashed at 12:59 after 2 h 14 min: one user (5599) ends with 14 first reviews of new cards, which have no label, and that tail formed a window of its own. Fixed by dropping such unlabelled tails (only this user, 14 reviews); a check now runs before training. Restart Thu 01:01 &rarr; ~07:05 (27k reviews/s), scoring on 723 users &rarr; ~08:00",
    "decides": "SM43 says more users win and the gap grows with training: how much does 8k gain over 5k?",
    "state": "done",
-   "ended": "12:59",
-   "exit": 1,
-   "started": "10:45",
-   "started_at": "2026-10-21T10:45:41+02:00",
-   "ended_at": "2026-10-21T12:59:58+02:00"
+   "ended": "19:48",
+   "exit": 0,
+   "started": "19:47",
+   "started_at": "2026-10-21T19:47:35+02:00",
+   "ended_at": "2026-10-21T19:48:31+02:00"
   },
   {
    "what": "Checkpoint averaging: average the last 2, 3 or 4 SM39 decay snapshots, scored with the final weights on 723 users",
