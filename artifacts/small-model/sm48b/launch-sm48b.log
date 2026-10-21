@@ -1,0 +1,48 @@
+[sm48b 10-21 08:46:27] enqueue
+[queue] 000592-small-model registered for gpu, cpu-heavy: SM48b: --lanes 1/2/4 + lane review budgets with SM47 int state variants (no lock), 40 users of the 732 pool, SM36
+[queue] 000592-small-model started after 0:00:00; holds gpu, cpu-heavy
+[sm48b 10-21 08:46:27] run 1-l1 (lanes 1)
+[sm48b 10-21 08:48:18] run 1-l1 exit 0, 110.6s; [small-model] 40/40 user 3260 (92013 reviews) | 107s, 84,535 review-evals/s
+[sm48b 10-21 08:48:18] run 2-l2 (--lanes 2)
+[sm48b 10-21 08:49:57] run 2-l2 exit 0, 99.3s; [small-model] 40/40 user 3260 (92013 reviews) | 95s, 94,576 review-evals/s
+{"pairs": 160, "bitwise_equal_pairs": 160, "only_a": 0, "only_b": 0, "passed": true} max deltas: {}
+[sm48b 10-21 08:49:58] run 3-l4 (--lanes 4)
+[sm48b 10-21 08:51:33] run 3-l4 exit 0, 95.3s; [small-model] 40/40 user 1211 (156937 reviews) | 92s, 98,355 review-evals/s
+{"pairs": 160, "bitwise_equal_pairs": 160, "only_a": 0, "only_b": 0, "passed": true} max deltas: {}
+[sm48b 10-21 08:51:33] run 4-l4b250 (--lanes 4 --lane-review-budget 250000)
+[sm48b 10-21 08:53:18] run 4-l4b250 exit 0, 104.4s; [small-model] 40/40 user 3260 (92013 reviews) | 100s, 89,919 review-evals/s
+{"pairs": 160, "bitwise_equal_pairs": 160, "only_a": 0, "only_b": 0, "passed": true} max deltas: {}
+[sm48b 10-21 08:53:18] run 5-l4b150 (--lanes 4 --lane-review-budget 150000)
+[sm48b 10-21 08:55:04] run 5-l4b150 exit 0, 106.2s; [small-model] 40/40 user 3260 (92013 reviews) | 102s, 88,190 review-evals/s
+{"pairs": 160, "bitwise_equal_pairs": 160, "only_a": 0, "only_b": 0, "passed": true} max deltas: {}
+[sm48b 10-21 08:55:04] run 6-l4lock (--lanes 4, int-variant lock)
+[sm48b 10-21 08:56:56] run 6-l4lock exit 0, 111.2s; [small-model] 40/40 user 3260 (92013 reviews) | 106s, 85,111 review-evals/s
+{"pairs": 160, "bitwise_equal_pairs": 160, "only_a": 0, "only_b": 0, "passed": true} max deltas: {}
+[sm48b 10-21 08:56:56] run 7-l1 (lanes 1)
+[sm48b 10-21 08:59:34] run 7-l1 exit 0, 157.3s; [small-model] 40/40 user 3260 (92013 reviews) | 150s, 60,258 review-evals/s
+{"pairs": 160, "bitwise_equal_pairs": 160, "only_a": 0, "only_b": 0, "passed": true} max deltas: {}
+# SM48b timing: lanes with int state variants
+
+40 users of the 732 pool, SM36 w8+s8, w8+s4c8n, w8+s8hx8, w8+s4c8nhx8 = 9,022,128 review-evals per run; rate = scorer counter; mem = nvidia-smi max / torch peak allocated, reserved.
+
+| Run | Flags | review-evals/s | vs lanes 1 | process s | GPU util % | nvidia-smi max MiB | torch alloc / reserved GiB | rows | err |
+|---|---|---:|---:|---:|---:|---:|---|---:|---:|
+| 1-l1 | `default` | 84,535 | 1.17x | 110.6 | 65.5 | 13853 | 6.81 / 11.33 | 160 | 0 |
+| 2-l2 | `--lanes 2` | 94,576 | 1.31x | 99.3 | 72.0 | 14608 | 6.82 / 12.07 | 160 | 0 |
+| 3-l4 | `--lanes 4` | 98,355 | 1.36x | 95.3 | 74.8 | 15248 | 6.86 / 12.71 | 160 | 0 |
+| 4-l4b250 | `--lanes 4 --lane-review-budget 250000` | 89,919 | 1.24x | 104.4 | 69.5 | 15179 | 6.88 / 12.71 | 160 | 0 |
+| 5-l4b150 | `--lanes 4 --lane-review-budget 150000` | 88,190 | 1.22x | 106.2 | 67.5 | 15045 | 6.88 / 12.64 | 160 | 0 |
+| 6-l4lock | `--lanes 4` (lock) | 85,111 | 1.18x | 111.2 | 69.3 | 14861 | 6.86 / 12.71 | 160 | 0 |
+| 7-l1 | `default` | 60,258 | 0.83x | 157.3 | 55.3 | 13539 | 6.81 / 11.33 | 160 | 0 |
+
+Row compare vs run 1 (AGENT.md evaluation tolerance):
+
+- 2-l2: 160/160 pairs bitwise, passed True, only_a 0 only_b 0
+- 3-l4: 160/160 pairs bitwise, passed True, only_a 0 only_b 0
+- 4-l4b250: 160/160 pairs bitwise, passed True, only_a 0 only_b 0
+- 5-l4b150: 160/160 pairs bitwise, passed True, only_a 0 only_b 0
+- 6-l4lock: 160/160 pairs bitwise, passed True, only_a 0 only_b 0
+- 7-l1: 160/160 pairs bitwise, passed True, only_a 0 only_b 0
+[sm48b 10-21 08:59:34] done
+[queue] 000592-small-model finished with exit code 0 after 0:13:07; released gpu, cpu-heavy
+[sm48b 10-21 08:59:34] queue exit 0
