@@ -96,6 +96,7 @@ optimization tracks, including ideas that have not been implemented or tested.
 
 - For +vq variants (discrete codeword choices) the GPU-vs-CPU check uses a looser rule than the strict one above; the base float state and the int8/int4 (+s) variants keep the strict 1e-5 rule.
 - A +vq GPU check passes when, over the check users: no predictions are missing and per-user |Δ benchmark LogLoss| ≤ 3e-4 on both heads (curve/ahead and instant); and the review-weighted mean of the signed Δ is ≤ 1e-4 in absolute value on both heads. Both thresholds are flags of the check script (`--discrete-tol`, `--discrete-mean-tol`); the check JSON records the rule, the per-user Δ and the weighted mean.
+- Extended 2026-10-21 (user approved, SM49): the coarse int formats with int4 note rows or int4 shift vectors (`s4` notes, `x4`, per-head scales `g`, e.g. w8+s4hx8, w8+s4hx4, w8+s4hgx4, w8+s4hgx4c8hx8n) also use this rule. With 15 levels, float noise of one ulp (±2^-23) before the rounding already moves their CPU results by 1.6e-5 to 2.9e-5 (the older int variants: 1e-6 to 3e-6), so the strict 1e-5 rule cannot hold. Every other int variant keeps the strict rule.
 - Why: bitwise GPU = CPU is impossible for discrete codecs. The float state already differs by about 2e-6 between devices, and that flips any nearest-codeword pick whose squared-distance gap is about 1e-7 or less (near ties). The recurrence amplifies a flip, but the flips have random sign and average out over users. No first-flip instrumentation is required.
 
 ## Validation requires an explicit user request
