@@ -140,9 +140,12 @@ def run_probes(jobs, tmp):
         spec_file.write_text(json.dumps(spec), encoding="utf-8")
         running.append((tree, subprocess.Popen([sys.executable, "-X", "utf8", str(probe), str(tree), str(spec_file)], cwd=tree,
                                                stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, env=env)))
+        if os.environ.get("HEAD_ONLY_CHECK_SEQUENTIAL") == "1":  # low-memory machines: one probe at a time
+            running[-1] += (running[-1][1].communicate(),)
     results = []
-    for tree, process in running:
-        stdout, stderr = process.communicate()
+    for item in running:
+        tree, process = item[:2]
+        stdout, stderr = item[2] if len(item) > 2 else process.communicate()
         line = next((x for x in stdout.splitlines() if x.startswith("PROBE ")), None)
         if line is None:
             raise RuntimeError(f"probe failed in {tree}: {stderr[-3000:]}")
