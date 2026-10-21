@@ -799,12 +799,12 @@
    "what": "Muon tuning, arm 1: SM36&rsquo;s one-epoch 32k decay with the learning rate &times;0.5 (pointer from outside research), saving 4 snapshots along the decay for SM51",
    "id": "SM39",
    "kind": "gpu-train",
-   "minutes": 360,
+   "minutes": 335,
    "track": "small model",
    "match": [
     "SM39 arm 1"
    ],
-   "when": "Thu 10-22 after SM55 (~09:00 &rarr; ~15:00)",
+   "when": "Ready; its launcher starts it when SM55 is done: Thu 01:00 &rarr; ~06:35 if SM55 trains today, else Thu ~09:50 &rarr; ~15:25",
    "decides": "Muon was the last win (~&minus;0.0002); is its learning rate right?",
    "state": "planned"
   },
@@ -822,15 +822,15 @@
    "state": "queued"
   },
   {
-   "what": "Checkpoint averaging: average the SM39 decay snapshots, scored on 732 users",
+   "what": "Checkpoint averaging: average the last 2, 3 or 4 SM39 decay snapshots, scored with the final weights on 723 users",
    "id": "SM51",
    "kind": "gpu-check",
-   "minutes": 40,
+   "minutes": 70,
    "track": "small model",
    "match": [
     "SM51"
    ],
-   "when": "Thu 10-22 after SM39 arm 1",
+   "when": "Right after SM39 arm 1 (same chain)",
    "decides": "A free gain from weight averaging? Expected &minus;0.0001 to &minus;0.0003",
    "state": "planned"
   },
