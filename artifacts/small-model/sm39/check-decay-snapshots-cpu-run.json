@@ -1,0 +1,253 @@
+{
+ "mode": "cpu",
+ "decay": "C:\\Users\\jonat\\workspace\\wt\\sm39\\artifacts\\small-model\\scale-w64kd-gate-sc-lanes-cont-decay1ep32k-muon0p5",
+ "reference": "C:\\Users\\jonat\\workspace\\wt\\sm42\\artifacts\\small-model\\scale-w64kd-gate-sc-lanes-cont-decay1ep32k-muon",
+ "torch": "2.9.1+cu128",
+ "checks": {
+  "A reference optimizer is expertium-iter53": {
+   "value": "expertium-iter53",
+   "ok": true
+  },
+  "A optimizer is the Muon x0.5 spec": {
+   "value": {
+    "kind": "muon",
+    "lr_scale": 1.7857142857142858,
+    "momentum": 0.95,
+    "adjust_lr_fn": "original",
+    "groups": "matrices",
+    "include_lora": true,
+    "lora_weight_decay": 0.0,
+    "wd_at_adamw_rate": true
+   },
+   "ok": true
+  },
+  "A options identical except optimizer": {
+   "value": {},
+   "ok": true
+  },
+  "A decay fields equal (source, users, reviews, seed, LR)": {
+   "value": {
+    "source_run": true,
+    "source_epoch": true,
+    "source_update_offset_end": true,
+    "fraction_of_epoch_reviews": true,
+    "training_users": true,
+    "training_reviews": true,
+    "shuffle_seed": true,
+    "lr": true,
+    "evaluation_set": true,
+    "track": true
+   },
+   "ok": true
+  },
+  "A protocol full_run equal except snapshot_users": {
+   "value": {
+    "snapshot_users": 1250,
+    "equal_rest": true
+   },
+   "ok": true
+  },
+  "A protocol rows/dataset/training equal": {
+   "value": {
+    "rows": true,
+    "evaluation_rows": true,
+    "dataset_path": true,
+    "dataset_revision": true,
+    "training": true,
+    "execution_mode": true
+   },
+   "ok": true
+  },
+  "A snapshot points (users, review fraction)": {
+   "value": {
+    "snapshot_users": 1250,
+    "points": [
+     {
+      "users": 1250,
+      "review_fraction": 0.2622
+     },
+     {
+      "users": 2500,
+      "review_fraction": 0.5031
+     },
+     {
+      "users": 3750,
+      "review_fraction": 0.7723
+     },
+     {
+      "users": 5000,
+      "review_fraction": 1.0
+     }
+    ]
+   },
+   "ok": true
+  },
+  "B dict spec at SM36's lr_scale == expertium-iter53 (all groups and hyperparameters)": {
+   "value": 6,
+   "ok": true
+  },
+  "B Muon / AdamW parameters": {
+   "value": [
+    309888,
+    21623
+   ],
+   "ok": true
+  },
+  "B fresh state empty": {
+   "value": [
+    0,
+    0
+   ],
+   "ok": true
+  },
+  "B AdamW groups identical to SM36": {
+   "value": 1,
+   "ok": true
+  },
+  "B Muon lr_scale exactly x0.5 (effective peak 0.00125)": {
+   "value": [
+    [
+     1.7857142857142858,
+     3.5714285714285716
+    ],
+    [
+     1.7857142857142858,
+     3.5714285714285716
+    ],
+    [
+     1.7857142857142858,
+     3.5714285714285716
+    ],
+    [
+     1.7857142857142858,
+     3.5714285714285716
+    ],
+    [
+     1.7857142857142858,
+     3.5714285714285716
+    ]
+   ],
+   "ok": true
+  },
+  "B Muon weight decay per written LR unchanged (lr_scale * wd)": {
+   "value": {
+    "pairs": [
+     [
+      0.01,
+      0.01
+     ],
+     [
+      0.01,
+      0.01
+     ],
+     [
+      0.01,
+      0.01
+     ],
+     [
+      0.01,
+      0.01
+     ],
+     [
+      0.0,
+      0.0
+     ]
+    ],
+    "max_rel_diff": 0.0
+   },
+   "ok": true
+  },
+  "B Muon groups otherwise identical (momentum, nesterov, adjust_lr_fn, lr)": {
+   "value": [
+    true,
+    true,
+    true,
+    true,
+    true
+   ],
+   "ok": true
+  },
+  "B one step: AdamW parameters bitwise equal to SM36": {
+   "value": 257,
+   "ok": true
+  },
+  "B one step: Muon update norm ratio arm / SM36 (expect ~0.5)": {
+   "value": {
+    "min": 0.4997922480106354,
+    "max": 0.5002066493034363,
+    "n": 163
+   },
+   "ok": true
+  },
+  "C trainer save_snapshot touches model/optimizer only via state_dict() saves": {
+   "value": {
+    "lines": [
+     "torch.save(master.state_dict(), folder / \"master.pth\")",
+     "torch.save(optimizer.state_dict(), folder / \"optimizer.pth\")"
+    ],
+    "sha256": "291864f552adf186a10846cfc04c15b41de59389b377f149468bc94380f3f02c"
+   },
+   "ok": true
+  },
+  "C users / updates of the short run": {
+   "value": {
+    "users": [
+     9328,
+     7643
+    ],
+    "reviews": [
+     3665,
+     3613
+    ],
+    "chunk": 512,
+    "lanes": 2,
+    "updates": 8,
+    "snapshots_saved": 9
+   },
+   "ok": true
+  },
+  "C inputs, losses, gradient norms, LRs bitwise equal (off vs on)": {
+   "value": [
+    1.1568018198013306,
+    1.1767953634262085,
+    1.027762532234192,
+    1.0636980533599854,
+    0.7789809107780457,
+    0.8901230692863464,
+    0.900941014289856,
+    0.9854936003684998
+   ],
+   "ok": true
+  },
+  "C final weights bitwise equal": {
+   "value": [
+    "379f119f19aa760f",
+    "379f119f19aa760f"
+   ],
+   "ok": true
+  },
+  "C final optimizer state bitwise equal": {
+   "value": [
+    "1ef3c1d11b42a058",
+    "1ef3c1d11b42a058"
+   ],
+   "ok": true
+  },
+  "C every snapshot reloads to the weights it was taken from; optimizer.pth has adamw/muon": {
+   "value": {
+    "snapshots": 9,
+    "optimizer_keys": [
+     "adamw",
+     "muon"
+    ]
+   },
+   "ok": true
+  },
+  "C snapshot state_dict keys/dtypes = model's": {
+   "value": 420,
+   "ok": true
+  }
+ },
+ "passed": true,
+ "fails": []
+}

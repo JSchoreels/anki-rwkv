@@ -1,0 +1,171 @@
+{
+ "mode": "gpu",
+ "decay": "C:\\Users\\jonat\\workspace\\wt\\sm39\\artifacts\\small-model\\scale-w64kd-gate-sc-lanes-cont-decay1ep32k-muon0p5",
+ "runs": {
+  "off_a": {
+   "exit": 0,
+   "status": "complete",
+   "sha": "0daec630e123e3090e1f301b14be549909f620b0c23dead42366cf59b778e8bc",
+   "steps": [
+    [
+     1,
+     2337,
+     0,
+     512,
+     4362,
+     1.0903390645980835,
+     0.138361394405365,
+     0.0007
+    ],
+    [
+     2,
+     5690,
+     0,
+     512,
+     7715,
+     0.5111018419265747,
+     0.08017466962337494,
+     0.00020502525316941678
+    ]
+   ],
+   "snapshots": []
+  },
+  "off_b": {
+   "exit": 0,
+   "status": "complete",
+   "sha": "0daec630e123e3090e1f301b14be549909f620b0c23dead42366cf59b778e8bc",
+   "steps": [
+    [
+     1,
+     2337,
+     0,
+     512,
+     4362,
+     1.0903390645980835,
+     0.138361394405365,
+     0.0007
+    ],
+    [
+     2,
+     5690,
+     0,
+     512,
+     7715,
+     0.5111018419265747,
+     0.08017466962337494,
+     0.00020502525316941678
+    ]
+   ],
+   "snapshots": []
+  },
+  "on": {
+   "exit": 0,
+   "status": "complete",
+   "sha": "0daec630e123e3090e1f301b14be549909f620b0c23dead42366cf59b778e8bc",
+   "steps": [
+    [
+     1,
+     2337,
+     0,
+     512,
+     4362,
+     1.0903390645980835,
+     0.138361394405365,
+     0.0007
+    ],
+    [
+     2,
+     5690,
+     0,
+     512,
+     7715,
+     0.5111018419265747,
+     0.08017466962337494,
+     0.00020502525316941678
+    ]
+   ],
+   "snapshots": [
+    "users-00001"
+   ]
+  }
+ },
+ "checks": {
+  "run off_a complete": {
+   "value": {
+    "exit": 0,
+    "status": "complete",
+    "snapshots": [],
+    "updates": 2
+   },
+   "ok": true
+  },
+  "run off_b complete": {
+   "value": {
+    "exit": 0,
+    "status": "complete",
+    "snapshots": [],
+    "updates": 2
+   },
+   "ok": true
+  },
+  "run on complete": {
+   "value": {
+    "exit": 0,
+    "status": "complete",
+    "snapshots": [
+     "users-00001"
+    ],
+    "updates": 2
+   },
+   "ok": true
+  },
+  "off vs off bitwise (trainer determinism)": {
+   "value": "0daec630e123e3090e1f301b14be549909f620b0c23dead42366cf59b778e8bc",
+   "ok": true
+  },
+  "on vs off bitwise: final weights": {
+   "value": [
+    "0daec630e123e3090e1f301b14be549909f620b0c23dead42366cf59b778e8bc",
+    "0daec630e123e3090e1f301b14be549909f620b0c23dead42366cf59b778e8bc"
+   ],
+   "ok": true
+  },
+  "on vs off bitwise: every loss, gradient norm, LR": {
+   "value": [
+    [
+     1,
+     2337,
+     0,
+     512,
+     4362,
+     1.0903390645980835,
+     0.138361394405365,
+     0.0007
+    ],
+    [
+     2,
+     5690,
+     0,
+     512,
+     7715,
+     0.5111018419265747,
+     0.08017466962337494,
+     0.00020502525316941678
+    ]
+   ],
+   "ok": true
+  },
+  "on run saved a snapshot between the updates; off runs none": {
+   "value": [
+    [],
+    [],
+    [
+     "users-00001"
+    ]
+   ],
+   "ok": true
+  }
+ },
+ "passed": true,
+ "fails": []
+}
