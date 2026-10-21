@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-10-21T00:47:22+02:00",
- "updated": "2026-10-21 00:47",
- "material": "71d5c20bb1cbb849",
- "summary": "running 000562",
+ "generated_at": "2026-10-21T02:09:13+02:00",
+ "updated": "2026-10-21 02:09",
+ "material": "2806c90be1875a09",
+ "summary": "running 000564, finished 000563",
  "headline": [
   {
    "k": "Best, 464 users (curve / instant)",
@@ -139,30 +139,48 @@
  ],
  "now": [
   {
-   "what": "Muon instead of AdamW for the one-epoch 32k decay (paired with the best model, everything else equal) + scoring",
-   "id": "SM36, ticket 000562",
-   "kind": "gpu-train",
-   "decides": "Small win on instant only: vs the best model (AdamW) curve tied (+0.00002 [-0.00034, +0.00046]), instant -0.00018 [-0.00022, -0.00013] on 464 users (+0.81% / +0.68% vs the big model); same on 723 users (-0.00017 / -0.00020). Not the road to +0.5% by itself",
+   "what": "Compressed state in the GPU scorer (kernels from SM32c), 5-user GPU check, then scoring on 732 users: the best model at ~400 and ~800 bits per card/note, and the SM32c model at int8 and ~400 bits",
+   "id": "SM44, ticket 000564",
+   "kind": "gpu-check",
+   "decides": "Compression checks in minutes instead of 1 h on 68 users, on the standard 732 users; does ~800 bits get close enough to the &le; +1.0% bar?",
    "why": "",
-   "job": "SM47: f16 row scales + int8 shift vectors (6 int-state variants) for SM36, 732 pool (GPU check first)",
+   "job": "SM44: pool 732 scoring of s-w64kd-gate-ctx32768c-dec10-1ep32k-lanes/w8+vq378x412 (732 users, pass 1)",
    "linked": true,
    "track": "small model",
-   "ticket": "000562-small-model",
-   "started": "00:47",
-   "elapsed": "0:00",
+   "ticket": "000564-small-model",
+   "started": "02:06",
+   "elapsed": "0:02",
    "progress": null,
-   "eta": "~02:42"
+   "eta": "~02:36"
   }
  ],
  "waiting": [
   {
-   "ticket": "000563-small-model",
-   "id": "SM44",
-   "what": "SM44 GPU check: GPU +vq scorer path vs CPU scorer on 5 small users, reviews/s",
-   "flags": "expected 10 min"
+   "ticket": "000565-small-model",
+   "id": "SM36",
+   "what": "SM48: held-out scoring speed A/B (dict vs numpy metrics, --lanes 2/4), 40 users of the 732 pool, SM36 w8+s8/w8+s4c8n",
+   "flags": "timing, expected 30 min"
   }
  ],
  "recent": [
+  {
+   "ticket": "000563-small-model",
+   "id": "SM44",
+   "what": "SM44 GPU check: GPU +vq scorer path vs CPU scorer on 5 small users, reviews/s",
+   "ended": "02:06",
+   "date": "10-21",
+   "exit": 0,
+   "ran": "0:00"
+  },
+  {
+   "ticket": "000562-small-model",
+   "id": "SM36",
+   "what": "SM47: f16 row scales + int8 shift vectors (6 int-state variants) for SM36, 732 pool (GPU check first)",
+   "ended": "02:06",
+   "date": "10-21",
+   "exit": 0,
+   "ran": "1:19"
+  },
   {
    "ticket": "000561-small-model",
    "id": "SM46",
@@ -198,24 +216,6 @@
    "date": "10-20",
    "exit": 0,
    "ran": "0:28"
-  },
-  {
-   "ticket": "000557-small-model",
-   "id": "SM43",
-   "what": "SM43 full B: 125 users x (100 + 10 decay) epochs (same reviews seen)",
-   "ended": "20:56",
-   "date": "10-20",
-   "exit": 0,
-   "ran": "3:26"
-  },
-  {
-   "ticket": "000556-small-model",
-   "id": "SM36",
-   "what": "SM45: int4 card + int8 note state for SM36, 732 pool (GPU check first)",
-   "ended": "17:30",
-   "date": "10-20",
-   "exit": 0,
-   "ran": "0:35"
   }
  ],
  "plan": [
@@ -315,12 +315,10 @@
    "decides": "Do explicit 2nd / 3rd / 4th+ review inputs help, paired against the same run without them (0.30259 / 0.27668)?",
    "track": "small model",
    "minutes": 200,
-   "state": "done",
+   "state": "partial",
    "ended_at": "2026-10-18T02:58:26+02:00",
-   "started_at": "2026-10-18T00:52:48+02:00",
-   "ended": "02:58",
-   "exit": 0,
-   "started": "00:52"
+   "started_at": "2026-10-17T23:50:34+02:00",
+   "ended": "02:58"
   },
   {
    "what": "GPU probe of the full-history export: a 10-min slice (kept, the export resumes)",
@@ -329,12 +327,9 @@
    "minutes": 12,
    "track": "small model",
    "decides": "GPU memory and speed of the export before the 5-h run",
-   "state": "done",
-   "started_at": "2026-10-18T01:52:39+02:00",
-   "ended_at": "2026-10-18T02:02:47+02:00",
-   "ended": "02:02",
-   "exit": 3,
-   "started": "01:52"
+   "state": "planned",
+   "started_at": "2026-10-18T01:52:30+02:00",
+   "ended_at": "2026-10-18T02:02:45+02:00"
   },
   {
    "what": "Carried-state GPU check: ALL OK (bit for bit with an empty state; matches full history to 5e-7); carry costs +9% per update",
@@ -343,12 +338,9 @@
    "minutes": 15,
    "track": "small model",
    "decides": "Kernels and trainer correct on the GPU; how much the carry costs per update (CPU checks all passed)",
-   "state": "done",
-   "started_at": "2026-10-18T02:02:47+02:00",
-   "ended_at": "2026-10-18T02:04:02+02:00",
-   "ended": "02:04",
-   "exit": 0,
-   "started": "02:02"
+   "state": "planned",
+   "started_at": "2026-10-18T02:02:50+02:00",
+   "ended_at": "2026-10-18T02:04:05+02:00"
   },
   {
    "what": "Final decay at 32k from epoch 10 with the state compression trained in (~400/400 bits) + CPU scoring on 34 users: done",
@@ -605,12 +597,10 @@
    "minutes": 400,
    "track": "small model",
    "decides": "Small win on instant only: vs the best model (AdamW) curve tied (+0.00002 [-0.00034, +0.00046]), instant -0.00018 [-0.00022, -0.00013] on 464 users (+0.81% / +0.68% vs the big model); same on 723 users (-0.00017 / -0.00020). Not the road to +0.5% by itself",
-   "state": "running",
-   "started_at": "2026-10-20T16:55:02+02:00",
+   "state": "waiting",
+   "started_at": "2026-10-20T01:01:33+02:00",
    "ended_at": "2026-10-20T06:42:20+02:00",
-   "started": "00:47",
-   "ticket": "000562-small-model",
-   "ends_at": "2026-10-20T23:35:02+02:00"
+   "ticket": "000565-small-model"
   },
   {
    "id": "SM32c",
@@ -686,10 +676,13 @@
    "kind": "gpu-check",
    "minutes": 200,
    "track": "small model",
-   "when": "after SM47 (~03:00), ~2.5 h. First check failed 21:28: a real bug at ~800 bits (fixed) plus near-ties (two codebook entries almost equally close, CPU and GPU pick differently); now checked with a looser rule for codebook formats (&le; 0.0003 per user, average &le; 0.0001)",
+   "when": "running since 02:07, ~2.5 h with SM48 in between (~05:00). 5-user GPU check passed 02:07 with the looser rule for codebook formats; GPU speed int8 55k, ~400 bits 36k, ~800 bits 10.6k reviews/s",
    "decides": "Compression checks in minutes instead of 1 h on 68 users, on the standard 732 users; does ~800 bits get close enough to the &le; +1.0% bar?",
-   "state": "waiting",
-   "ticket": "000563-small-model"
+   "state": "running",
+   "started": "02:06",
+   "ticket": "000564-small-model",
+   "started_at": "2026-10-21T02:06:33+02:00",
+   "ends_at": "2026-10-21T05:26:33+02:00"
   },
   {
    "what": "State compression at a large budget: 5,902 bits per card, 3,028 per note (asked by outside research; int8 is 26,624 / 14,336), codebooks fitted on the best model&rsquo;s own states, scored after training on the best model (SM36)",
@@ -697,7 +690,7 @@
    "kind": "gpu-check",
    "minutes": 150,
    "track": "small model",
-   "when": "after SM44 (~05:45), ~3.4 h at ~4,000 reviews/s. First check ran out of GPU memory (fixed: done in chunks, same numbers); same looser rule for codebook formats",
+   "when": "after SM44 (~05:00), ~3.4 h at ~4,000 reviews/s (~08:30). First check ran out of GPU memory (fixed: done in chunks, same numbers); same looser rule for codebook formats",
    "decides": "Is compression nearly free at ~4.5&times; smaller than int8? 8-user screen: +0.00006 curve / +0.00014 instant",
    "state": "done",
    "ended": "21:28",
@@ -712,13 +705,14 @@
    "kind": "gpu-check",
    "minutes": 115,
    "track": "small model",
-   "when": "queued, starts 01:00 (after the GPU break; now ahead of SM44 / SM46), ~2 h; code ready 19:19 (CPU check: old results reproduce exactly)",
-   "decides": "Smallest no-retraining format: int4 cards + int8 notes + 16-bit scales + int8 short-term vectors = 11,824 / 10,272 bits per card / note (&minus;46% vs today&rsquo;s int8, ~38 MB vs ~70 MB for 13,973 cards / 13,198 notes). Is it still nearly free?",
-   "state": "running",
-   "started": "00:47",
-   "ticket": "000562-small-model",
+   "when": "10-21 00:47 &rarr; 02:07 (break lifted early)",
+   "decides": "Nearly free: 16-bit scales and int8 short-term vectors cost nothing (&plusmn;0.00000); the smallest format (11,824 / 10,272 bits, 37.6 MB, &minus;46% vs int8) costs only the int4-card +0.00005 / +0.00005 already known from SM45",
+   "state": "done",
    "started_at": "2026-10-21T00:47:01+02:00",
-   "ends_at": "2026-10-21T02:42:01+02:00"
+   "ended_at": "2026-10-21T02:06:33+02:00",
+   "ended": "02:06",
+   "exit": 0,
+   "started": "00:47"
   },
   {
    "what": "Faster held-out scoring: benchmark metrics computed on arrays instead of Python loops (same results bit for bit), and scoring 2 or 4 users at once on the GPU",
@@ -726,9 +720,10 @@
    "kind": "gpu-speed",
    "minutes": 30,
    "track": "small model",
-   "when": "after SM47 (~03:00), one timing run of ~12&ndash;20 min on 40 users; code ready 19:31 (CPU checks: identical results)",
+   "when": "queued, runs after the current SM44 ticket (~02:40), one timing run of ~12&ndash;20 min on 40 users; code ready 19:31 (CPU checks: identical results)",
    "decides": "How much faster pool scoring gets. Profile: only half of scoring time is the model; the other half is Python bookkeeping (metrics alone ~10&times; cheaper now, ~1.5&times; projected overall), and the model call keeps 4 of the GPU&rsquo;s 84 compute units busy, hence several users at once. Projections only until the timing run.",
-   "state": "planned"
+   "state": "waiting",
+   "ticket": "000565-small-model"
   },
   {
    "what": "Carried state, code (CPU): full-history targets (SM11, 18/18 checks) + kernels with a starting state and the trainer option (SM21, all checks bit for bit); merged together",
@@ -1034,6 +1029,20 @@
   }
  ],
  "results": [
+  {
+   "date": "10-21",
+   "kind": "gpu-check",
+   "name": "Smallest int state without retraining: int4 cards + int8 notes + 16-bit row scales + int8 short-term vectors (11,824 / 10,272 bits per card / note, 37.6 MB for 13,973 cards / 13,198 notes), best model (SM36), w8 weights",
+   "id": "SM47",
+   "curve": 0.30338,
+   "instant": 0.27965,
+   "curve_pct": 0.66,
+   "instant_pct": 0.64,
+   "eval": "723 users (732 set), 30.48M reviews",
+   "fork": "SM36 int8 state (26,624 / 14,336 bits, 70.2 MB): 0.30333 / 0.27960 (+0.64% / +0.63% vs the big model)",
+   "takeaway": "<strong>&minus;46% state size for +0.00005</strong>: 16-bit scales and int8 short-term vectors are free (&plusmn;0.00000 alone, together, and on top of int4 cards); the only cost is the int4 cards (+0.00005 [+0.00003, +0.00006] curve / +0.00005 [+0.00004, +0.00006] instant). Without int4 cards: 51.9 MB (&minus;26%) at zero cost. Same on 458 users (464 set): +0.76% / +0.66%",
+   "track": "small model"
+  },
   {
    "date": "10-20",
    "kind": "gpu-train",
