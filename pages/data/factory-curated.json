@@ -756,17 +756,18 @@
    "ended_at": "2026-10-19T12:40:11+02:00"
   },
   {
-   "what": "Several users at once (SM48 lanes) with the SM47 int formats: exact vs one-at-a-time, and GPU memory under the ~0.8 cap",
+   "what": "Several users at once (SM48 lanes) with the SM47 int formats, now without the lock: exact vs one-at-a-time, speed and GPU memory under the ~0.8 cap. Also: the 9 users that never fit in memory are now skipped by pool scorings (723 of 732 users)",
    "id": "SM48b",
    "kind": "gpu-check",
-   "minutes": 10,
+   "minutes": 35,
    "track": "small model",
    "match": [
     "SM48b"
    ],
-   "when": "Wed 10-21 (today), being prepared",
+   "when": "Wed 10-21, running since 08:46 (35 min timing run, 7 runs on 40 users)",
    "decides": "Can every pool scoring from now on run ~1.5&times; faster?",
-   "state": "planned"
+   "state": "running",
+   "started_at": "2026-10-21T08:46:27+02:00"
   },
   {
    "what": "Smaller int state, round 2 (no retraining, SM36): A = 4-bit notes too, B = A + 4-bit short-term vectors, C = B + one scale per head instead of per row; 732 users. Plus (CPU) lossless compression of the stored codes on the collection copy",
