@@ -24,6 +24,9 @@ with h, else float32), e.g. w8+s8h, w8+s8x8, w8+s4c8nhx8; on CUDA they run throu
 On CPU the expertium models route their WKV recurrence through scripts/state_vq.py (before SM32, +s8 was silently
 ignored on the CPU path: RWKV7TimeMixer calls reference_rwkv7, not the patched RWKV7_WKV, for CPU tensors).
 Resumable JSONL, one row per (user, tag/variant).
+SM48 speed (artifacts/small-model/sm48/profile.md): benchmark metrics and prediction collection run on numpy arrays
+(scripts/heldout_fast_metrics.py, bitwise equal; --legacy-metrics = the old dict path), and --lanes N (CUDA) scores N
+users at once in threads with their own model copies and CUDA streams, within --lane-review-budget reviews in flight.
 --window W (diagnostic): the training protocol instead, i.e. the same history cut into independent W-review samples
 (state reset at every sample start); labels get the suffix "@wW" so they never mix with full-history rows.
 
@@ -34,6 +37,7 @@ import argparse
 import json
 import os
 import sys
+import threading
 import time
 from pathlib import Path
 
@@ -81,13 +85,14 @@ def _screen_eval_users(tiers):
 
 
 class LongWKV:
-    """Stand-in for expertium.model.rwkv_model.RWKV7_WKV: any-length forward, per-mixer state bits."""
-    bits = 0
+    """Stand-in for expertium.model.rwkv_model.RWKV7_WKV: any-length forward, per-mixer state bits (per thread, for
+    SM48's --lanes: each lane thread runs its own model copy)."""
+    _local = threading.local()
 
     @staticmethod
     def apply(r, k, v, w, a, kd, skip):
         from scripts.small_model_wkv import wkv_long
-        return wkv_long(r, k, v, w, a, kd, skip, LongWKV.bits).to(k.dtype)
+        return wkv_long(r, k, v, w, a, kd, skip, getattr(LongWKV._local, "bits", 0)).to(k.dtype)
 
 
 def build_expertium(arch, state):
@@ -118,7 +123,7 @@ def _set_bits(module, _inputs):
     bits = module._small_model_bits
     if isinstance(bits, tuple):   # SM45: per-stream bits (card, note), e.g. +s4c8n
         bits = dict(zip(STATE_MODULES, bits)).get(module._small_model_stream, 0)
-    LongWKV.bits = bits if module._small_model_stream in STATE_MODULES else 0
+    LongWKV._local.bits = bits if module._small_model_stream in STATE_MODULES else 0
 
 
 def set_expertium_state_bits(model, bits):
@@ -223,6 +228,12 @@ def main():
                         help="CUDA +vq: factorization type of the fused kernel (float64 = the CPU scorer's)")
     parser.add_argument("--emulate-gpu-path", action="store_true", help="check only (SM47, --device cpu, int "
                         "variants with h/x8): run the CUDA dispatch (state-VQ slots, IntScoreCodec) on CPU tensors")
+    parser.add_argument("--legacy-metrics", action="store_true", help="SM48 A/B: the dict path (collect_predictions + "
+                        "upstream get_stats) instead of the bitwise-equal numpy path scripts/heldout_fast_metrics.py")
+    parser.add_argument("--lanes", type=int, default=1, help="SM48, CUDA: score N users concurrently (threads with "
+                        "their own model copies and CUDA streams; per-user arithmetic unchanged)")
+    parser.add_argument("--lane-review-budget", type=int, default=400_000, help="--lanes: start a user only while "
+                        "the reviews in flight stay <= this (~25 KB GPU memory per review; a larger user runs alone)")
     parser.add_argument("--dump", default="", help="also write per-review benchmark predictions (review_th, bin, y, "
                         "p_ahead, p_instant) to DIR/<user>_<tag>_<variant>.npz, for calibration diagnostics")
     args = parser.parse_args()
@@ -273,144 +284,259 @@ def main():
                 done.setdefault(row["user_id"], set()).add(row["label"])
     todo =[u for u in users if not set(grid) <= done.get(u, set())]
 
+    def make_model(tag):
+        """(kind, model on device, base state, linear names), layout: one lane's copy of model `tag`."""
+        kind, arch, path = specs[tag]
+        base = {k: v.float() for k, v in torch.load(path, map_location="cpu", weights_only=True).items()}
+        layout = None
+        if kind == "fork":
+            model = cq.load_model(state=base, reference_wkv=cpu)
+            for module in model.rwkv_modules:
+                for block in module.blocks:
+                    block.time_mixer.use_reference_wkv = True
+        else:
+            model = build_expertium(arch, base)
+            from scripts import state_vq
+            # CPU: the Hooks path (reference WKV + shift gather); CUDA: the eager model's state-VQ slots (SM44)
+            layout = (state_vq.install(model) if cpu and not args.emulate_gpu_path
+                      else state_vq.install_scoring(model))
+        return (kind, model.to(device), base, cq.linear_weight_names(base)), layout
+
     models, states, layouts, codecs = {}, {}, {}, {}
     for label in grid:
         tag, variant = label.split("@")[0].split("/", 1)
-        kind, arch, path = specs[tag]
         scheme, _ = parse_variant(variant)
         if tag not in models:
-            base = {k: v.float() for k, v in torch.load(path, map_location="cpu", weights_only=True).items()}
-            if kind == "fork":
-                model = cq.load_model(state=base, reference_wkv=cpu)
-                for module in model.rwkv_modules:
-                    for block in module.blocks:
-                        block.time_mixer.use_reference_wkv = True
-            else:
-                model = build_expertium(arch, base)
-                from scripts import state_vq
-                # CPU: the Hooks path (reference WKV + shift gather); CUDA: the eager model's state-VQ slots (SM44)
-                layouts[tag] = (state_vq.install(model) if cpu and not args.emulate_gpu_path
-                                else state_vq.install_scoring(model))
-            models[tag] = (kind, model.to(device), base, cq.linear_weight_names(base))
+            models[tag], layouts[tag] = make_model(tag)
         kind, model, base, names = models[tag]
         if (tag, scheme) not in states:
             bits, group = cq.WEIGHT_SCHEMES[scheme]
             states[(tag, scheme)] = (cq.quantize_state_dict(base, names, bits, group),
                                      cq.weight_bytes(base, names, bits, group)["total"],
                                      sum(t.numel() for t in base.values()))
+    # SM48 --lanes N: N users scored concurrently, each lane a thread with its own model copies and CUDA stream (the
+    # per-user arithmetic is unchanged); lane 0 holds the models built above.
+    n_lanes = 1 if cpu else max(1, args.lanes)
+    if cpu and os.environ.get("HELDOUT_CPU_LANES_TEST"):
+        # scheduler logic check only: the CPU state path (state_vq.Hooks) is process-global, so only variants without
+        # state quantization are thread-safe here
+        if any(parse_variant(label.split("@")[0].split("/", 1)[1])[1] for label in grid):
+            raise SystemExit("HELDOUT_CPU_LANES_TEST: variants without state quantization only (fp32, w8, w4)")
+        n_lanes = max(1, args.lanes)
+    lanes = [{"models": models, "layouts": layouts, "stream": None}]
+    for _ in range(n_lanes - 1):
+        built = {tag: make_model(tag) for tag in models}
+        lanes.append({"models": {t: m for t, (m, _) in built.items()},
+                      "layouts": {t: lay for t, (_, lay) in built.items()}, "stream": None})
+    if n_lanes > 1 and not cpu:
+        for lane in lanes:
+            lane["stream"] = torch.cuda.Stream(device)
+    vq_lock = threading.Lock()   # lanes: +vq runs one at a time (state_vq.SCORE is process-global)
+    if args.legacy_metrics:
+        evaluate, bench_metrics = evaluate_with_predictions, metrics
+    else:
+        from scripts.heldout_fast_metrics import evaluate_with_arrays as evaluate
+        from scripts.heldout_fast_metrics import metrics_arrays as bench_metrics
+    scorer_mode = {"metrics": "dict" if args.legacy_metrics else "array", "lanes": n_lanes}
     env = lmdb.open(str(cc.RUN / "label-db"), readonly=True, lock=False, map_size=10_000_000_000)
     prov = process_provenance()
-    print(f"[small-model] {len(users)} users, {len(todo)} to score, grid {grid}", flush=True)
+    print(f"[small-model] {len(users)} users, {len(todo)} to score, grid {grid}, scorer {scorer_mode}", flush=True)
     WindowBatches.window = args.window
     dataset = (WindowBatches if args.window else UserBatches)(todo, cc.data_path(run), counts)
     loader = torch.utils.data.DataLoader(dataset, batch_size=1,
                                          num_workers=args.workers, collate_fn=first,
                                          prefetch_factor=1 if args.workers else None)
+
+    def score_user(lane, user, batch, error, prep_seconds, labels):
+        """Rows for one user (every grid label not done yet) and the review-evaluations scored."""
+        rows, scored = [], 0
+        if batch is None or labels is None:
+            return [{"user_id": user, "label": "error", "error": error or "no labels"}], 0
+        gpu_batch = batch.to(device)
+        for label in grid:
+            if label in done.get(user, set()):
+                continue
+            tag, variant = label.split("@")[0].split("/", 1)
+            kind, model, _, _ = lane["models"][tag]
+            lane_layouts = lane["layouts"]
+            scheme, state_bits = parse_variant(variant)
+            state, nbytes, params = states[(tag, scheme)]
+            model.load_state_dict(state)
+            vq_info = vq_path = None
+            vq_held = False
+            if kind == "fork":
+                if isinstance(state_bits, tuple):
+                    raise SystemExit("per-stream state bits are for expertium-kind models only")
+                cq.set_state_bits(model, state_bits)
+            elif isinstance(state_bits, IntState):   # SM47
+                from scripts import state_vq
+                set_expertium_state_bits(model, 0)
+                if cpu and not args.emulate_gpu_path:
+                    state_vq.configure(lane_layouts[tag], None, state_bits.wkv_bits, state_bits.shift_bits)
+                else:
+                    if n_lanes > 1 and not cpu:   # state_vq.SCORE is process-global: one at a time, like +vq
+                        vq_lock.acquire()
+                        vq_held = True
+                    codecs_int = state_vq.int_score_codecs(state_bits.wkv_bits, state_bits.shift_bits)
+                    state_vq.set_scoring(lane_layouts[tag], codecs_int)
+                    vq_path = state_vq.score_path(codecs_int)
+            elif cpu and args.emulate_gpu_path:
+                raise SystemExit("--emulate-gpu-path is for the SM47 int variants (h / x8) only")
+            elif cpu:
+                from scripts import state_vq
+                set_expertium_state_bits(model, 0)  # the GPU kernel's bits; CPU state goes through state_vq
+                if isinstance(state_bits, str):
+                    if state_bits not in codecs:
+                        path = ROOT / args.vq_codebooks
+                        books = state_vq.Codebooks.load(path) if path.exists() else state_vq.Codebooks()
+                        codecs["sha256"] = state_vq.file_sha256(path) if path.exists() else None
+                        codecs[state_bits] = {s: state_vq.StateCodec(rec, books)
+                                              for s, rec in zip(lane_layouts[tag], state_vq.recipe(state_bits))}
+                        print(f"[small-model] {state_bits}: {state_vq.describe(state_bits, lane_layouts[tag])}",
+                              flush=True)
+                    state_vq.configure(lane_layouts[tag], codecs[state_bits])
+                    vq_info = state_vq.describe(state_bits, lane_layouts[tag])
+                else:
+                    state_vq.configure(lane_layouts[tag], None, state_bits)
+            else:
+                from scripts import state_vq
+                if isinstance(state_bits, str):   # SM44: GPU +vq
+                    if n_lanes > 1:
+                        vq_lock.acquire()
+                        vq_held = True
+                    set_expertium_state_bits(model, 0)
+                    if state_bits not in codecs:
+                        path = ROOT / args.vq_codebooks
+                        books = state_vq.Codebooks.load(path)
+                        codecs["sha256"] = state_vq.file_sha256(path)
+                        codecs[state_bits] = state_vq.score_codecs(state_bits, books, device,
+                                                                   getattr(torch, args.vq_factor_dtype))
+                        print(f"[small-model] {state_bits}: {state_vq.describe(state_bits, lane_layouts[tag])}; "
+                              f"{state_vq.score_path(codecs[state_bits])}", flush=True)
+                    state_vq.set_scoring(lane_layouts[tag], codecs[state_bits])
+                    vq_info = state_vq.describe(state_bits, lane_layouts[tag])
+                    vq_path = state_vq.score_path(codecs[state_bits])
+                else:
+                    if n_lanes > 1:   # this lane's slots only: another lane may be running +vq on state_vq.SCORE
+                        _vq_slots_off(lane_layouts[tag])
+                    else:
+                        state_vq.set_scoring(lane_layouts[tag], None)
+                    set_expertium_state_bits(model, state_bits)
+            t0 = time.perf_counter()
+            try:
+                with torch.inference_mode():
+                    values, predictions = evaluate(model, [{"batch": gpu_batch}])
+                if vq_held:   # the lane's own work must be finished before another lane changes state_vq.SCORE
+                    torch.cuda.current_stream(device).synchronize()
+            except (torch.OutOfMemoryError, RuntimeError) as oom:
+                if not isinstance(oom, torch.OutOfMemoryError) and "out of memory" not in str(oom):
+                    raise  # TorchScript wraps a CUDA OOM in a plain RuntimeError
+                torch.cuda.empty_cache()
+                rows.append({"user_id": user, "label": label, "error": f"OOM: {oom}"[:300]})
+                continue
+            finally:
+                if vq_held:
+                    _vq_slots_off(lane_layouts[tag])
+                    vq_lock.release()
+            if not cpu:
+                if n_lanes > 1:
+                    torch.cuda.current_stream(device).synchronize()   # this lane only
+                else:
+                    torch.cuda.synchronize()
+            model_seconds = round(time.perf_counter() - t0, 3)
+            rows.append({"user_id": user, "label": label, "tag": tag, "variant": variant, "kind": kind,
+                         "arch": specs[tag][1], "checkpoint": specs[tag][2], "parameters": params,
+                         "weight_bytes": nbytes, **state_fields(state_bits), "reviews": counts[str(user)],
+                         **({"state_vq": vq_info, "vq_codebooks": args.vq_codebooks,
+                             "vq_codebooks_sha256": codecs.get("sha256")} if vq_info else {}),
+                         **({"state_vq_path": vq_path} if vq_path else {}),
+                         "prepare_seconds": round(prep_seconds, 2),
+                         "model_seconds": model_seconds, **values,
+                         "benchmark": bench_metrics(user, labels, predictions), "scorer": scorer_mode})
+            if args.dump:
+                dump_predictions(ROOT / args.dump, user, label, labels,
+                                 predictions if args.legacy_metrics else predictions.to_dicts())
+            scored += counts[str(user)]
+        del gpu_batch
+        return rows, scored
+
     started = time.perf_counter()
     scored = 0
-    for index, (user, batch, error, prep_seconds) in enumerate(loader):
-        if time.perf_counter() - started > args.time_limit:
-            print(f"[small-model] time limit reached after {index} users", flush=True)
-            break
-        with env.begin() as txn:
-            labels = read_labels(txn, user)
-        rows = []
-        if batch is None or labels is None:
-            rows.append({"user_id": user, "label": "error", "error": error or "no labels"})
-        else:
-            gpu_batch = batch.to(device)
-            for label in grid:
-                if label in done.get(user, set()):
-                    continue
-                tag, variant = label.split("@")[0].split("/", 1)
-                kind, model, _, _ = models[tag]
-                scheme, state_bits = parse_variant(variant)
-                state, nbytes, params = states[(tag, scheme)]
-                model.load_state_dict(state)
-                vq_info = vq_path = None
-                if kind == "fork":
-                    if isinstance(state_bits, tuple):
-                        raise SystemExit("per-stream state bits are for expertium-kind models only")
-                    cq.set_state_bits(model, state_bits)
-                elif isinstance(state_bits, IntState):   # SM47
-                    from scripts import state_vq
-                    set_expertium_state_bits(model, 0)
-                    if cpu and not args.emulate_gpu_path:
-                        state_vq.configure(layouts[tag], None, state_bits.wkv_bits, state_bits.shift_bits)
-                    else:
-                        codecs_int = state_vq.int_score_codecs(state_bits.wkv_bits, state_bits.shift_bits)
-                        state_vq.set_scoring(layouts[tag], codecs_int)
-                        vq_path = state_vq.score_path(codecs_int)
-                elif cpu and args.emulate_gpu_path:
-                    raise SystemExit("--emulate-gpu-path is for the SM47 int variants (h / x8) only")
-                elif cpu:
-                    from scripts import state_vq
-                    set_expertium_state_bits(model, 0)  # the GPU kernel's bits; CPU state goes through state_vq
-                    if isinstance(state_bits, str):
-                        if state_bits not in codecs:
-                            path = ROOT / args.vq_codebooks
-                            books = state_vq.Codebooks.load(path) if path.exists() else state_vq.Codebooks()
-                            codecs["sha256"] = state_vq.file_sha256(path) if path.exists() else None
-                            codecs[state_bits] = {s: state_vq.StateCodec(rec, books)
-                                                  for s, rec in zip(layouts[tag], state_vq.recipe(state_bits))}
-                            print(f"[small-model] {state_bits}: {state_vq.describe(state_bits, layouts[tag])}",
-                                  flush=True)
-                        state_vq.configure(layouts[tag], codecs[state_bits])
-                        vq_info = state_vq.describe(state_bits, layouts[tag])
-                    else:
-                        state_vq.configure(layouts[tag], None, state_bits)
-                else:
-                    from scripts import state_vq
-                    if isinstance(state_bits, str):   # SM44: GPU +vq
-                        set_expertium_state_bits(model, 0)
-                        if state_bits not in codecs:
-                            path = ROOT / args.vq_codebooks
-                            books = state_vq.Codebooks.load(path)
-                            codecs["sha256"] = state_vq.file_sha256(path)
-                            codecs[state_bits] = state_vq.score_codecs(state_bits, books, device,
-                                                                       getattr(torch, args.vq_factor_dtype))
-                            print(f"[small-model] {state_bits}: {state_vq.describe(state_bits, layouts[tag])}; "
-                                  f"{state_vq.score_path(codecs[state_bits])}", flush=True)
-                        state_vq.set_scoring(layouts[tag], codecs[state_bits])
-                        vq_info = state_vq.describe(state_bits, layouts[tag])
-                        vq_path = state_vq.score_path(codecs[state_bits])
-                    else:
-                        state_vq.set_scoring(layouts[tag], None)
-                        set_expertium_state_bits(model, state_bits)
-                t0 = time.perf_counter()
-                try:
-                    with torch.inference_mode():
-                        values, predictions = evaluate_with_predictions(model, [{"batch": gpu_batch}])
-                except (torch.OutOfMemoryError, RuntimeError) as oom:
-                    if not isinstance(oom, torch.OutOfMemoryError) and "out of memory" not in str(oom):
-                        raise  # TorchScript wraps a CUDA OOM in a plain RuntimeError
-                    torch.cuda.empty_cache()
-                    rows.append({"user_id": user, "label": label, "error": f"OOM: {oom}"[:300]})
-                    continue
-                if not cpu:
-                    torch.cuda.synchronize()
-                rows.append({"user_id": user, "label": label, "tag": tag, "variant": variant, "kind": kind,
-                             "arch": specs[tag][1], "checkpoint": specs[tag][2], "parameters": params,
-                             "weight_bytes": nbytes, **state_fields(state_bits), "reviews": counts[str(user)],
-                             **({"state_vq": vq_info, "vq_codebooks": args.vq_codebooks,
-                                 "vq_codebooks_sha256": codecs.get("sha256")} if vq_info else {}),
-                             **({"state_vq_path": vq_path} if vq_path else {}),
-                             "prepare_seconds": round(prep_seconds, 2),
-                             "model_seconds": round(time.perf_counter() - t0, 3), **values,
-                             "benchmark": metrics(user, labels, predictions)})
-                if args.dump:
-                    dump_predictions(ROOT / args.dump, user, label, labels, predictions)
-                scored += counts[str(user)]
-            del gpu_batch
+    completed = 0
+
+    def write(user, rows, n):
+        nonlocal scored, completed
         with out.open("a", encoding="utf-8") as f:
             for row in rows:
                 row["provenance_commit"] = prov["git_commit"]
                 row["provenance_dirty"] = prov["git_dirty"]
                 f.write(json.dumps(row) + "\n")
+        scored += n
+        completed += 1
         elapsed = time.perf_counter() - started
-        print(f"[small-model] {index + 1}/{len(todo)} user {user} ({counts[str(user)]} reviews) | {elapsed:.0f}s, "
+        print(f"[small-model] {completed}/{len(todo)} user {user} ({counts[str(user)]} reviews) | {elapsed:.0f}s, "
               f"{scored / max(elapsed, 1e-9):,.0f} review-evals/s", flush=True)
+
+    if n_lanes == 1:
+        for index, (user, batch, error, prep_seconds) in enumerate(loader):
+            if time.perf_counter() - started > args.time_limit:
+                print(f"[small-model] time limit reached after {index} users", flush=True)
+                break
+            with env.begin() as txn:
+                labels = read_labels(txn, user)
+            write(user, *score_user(lanes[0], user, batch, error, prep_seconds, labels))
+    else:
+        import queue
+        from concurrent.futures import FIRST_COMPLETED, ThreadPoolExecutor, wait
+        free = queue.Queue()
+        for lane in lanes:
+            free.put(lane)
+        pending = {}   # future -> (user, reviews held against the in-flight budget)
+
+        def run_lane(lane, *item):
+            try:
+                with torch.cuda.stream(lane["stream"]):
+                    return score_user(lane, *item)
+            finally:
+                free.put(lane)
+
+        def collect(block):
+            if not pending:
+                return
+            finished, _ = wait(list(pending), timeout=None if block else 0, return_when=FIRST_COMPLETED)
+            for future in finished:
+                user, _ = pending.pop(future)
+                write(user, *future.result())
+
+        def inflight():
+            return sum(reviews for _, reviews in pending.values())
+
+        with ThreadPoolExecutor(n_lanes, thread_name_prefix="lane") as executor:
+            for index, (user, batch, error, prep_seconds) in enumerate(loader):
+                if time.perf_counter() - started > args.time_limit:
+                    print(f"[small-model] time limit reached after {index} users", flush=True)
+                    break
+                with env.begin() as txn:
+                    labels = read_labels(txn, user)
+                reviews = counts[str(user)]
+                collect(False)
+                # GPU memory: start a user only while the reviews in flight stay within the budget (a user above
+                # the budget runs alone), and only on a free lane
+                while pending and (inflight() + reviews > args.lane_review_budget or len(pending) >= n_lanes):
+                    collect(True)
+                lane = free.get()
+                pending[executor.submit(run_lane, lane, user, batch, error, prep_seconds, labels)] = (user, reviews)
+                del batch
+            while pending:
+                collect(True)
     env.close()
+
+
+def _vq_slots_off(layout):
+    """state_vq.set_scoring(layout, None) for one model's card/note slots, without clearing the global SCORE."""
+    for info in layout.values():
+        for module in info["time"] + info["channel"]:
+            module.state_vq_slot = -1
 
 
 if __name__ == "__main__":
