@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # SM59 detached launcher: waits for SM50's launcher to finish (or fail), then runs kd-control, kd-090, kd-100 (runbook-sm59.sh),
 # one queue ticket each (110 expected min). Before each arm it checks quiet.json via quiet_wait.py (a 110-min arm must not reach a
-# quiet window); if it would, it logs "deferred: <arm>" and stops cleanly (the main session reschedules). Check D must have passed.
+# quiet window); if it would, it logs "deferred: <arm>" and stops cleanly (the main session reschedules). Check D (option absent == old code) runs first here (sequential, CPU) unless check-head-only-d.json already passed; if it fails no arm is queued.
 #   nohup bash launch-sm59.sh > launch-sm59.log 2>&1 & disown
 # Done lines: "[sm59-<arm> ...] done" in runbook-sm59-<arm>.log and here "[sm59-launch ...] <arm> done"; final "all arms finished".
 # STOP file artifacts/small-model/sm59/STOP: exit without enqueuing. A failed arm stops the chain (STOP line).
@@ -20,8 +20,21 @@ while :; do
   [ $((n % 36)) -eq 0 ] && log "waiting for SM50 ($(tail -1 "$SM50LOG" 2>/dev/null | cut -c1-120))"
   n=$((n + 1)); sleep 300
 done
-"$PY" -c "import json,sys; sys.exit(0 if json.load(open(r'$S/check-head-only-d.json')).get('passed') else 1)" \
-  || { log "STOP: check D has not passed"; exit 2; }
+d_passed() { "$PY" -c "import json,sys; sys.exit(0 if json.load(open(r'$S/check-head-only-d.json')).get('passed') else 1)" 2>/dev/null; }
+if ! d_passed; then
+  # Check D (CPU, ~70+ min, peak ~17 GB RAM): sequential; needs >= 12 GB free RAM and no quiet window. Skipped if the main session already ran it.
+  while :; do
+    [ -f "$S/STOP" ] && { log "STOP file found"; exit 0; }
+    qw=$("$PY" "$S/quiet_wait.py" 100); [ "${qw%% *}" -gt 0 ] 2>/dev/null && { log "deferred: check D would reach a quiet window (${qw#* })"; exit 0; }
+    free=$(powershell -NoProfile -c "[int]((Get-CimInstance Win32_OperatingSystem).FreePhysicalMemory/1MB)" | tr -dc '0-9')
+    [ "${free:-0}" -ge 12 ] && break
+    log "check D waits for RAM (free ${free:-?} GB < 12)"; sleep 300
+  done
+  log "running check D (free RAM $free GB)"
+  (cd C:/Users/jonat/workspace/wt/sm59 && HEAD_ONLY_CHECK_SEQUENTIAL=1 "$PY" -X utf8 scripts/check_head_only.py --decay artifacts/small-model/sm59/probe-curve      --out artifacts/small-model/sm59/check-head-only-d.json --parts D > "$S/check-head-only-d.log" 2>&1)
+  d_passed || { log "STOP: check D failed or has not passed (see check-head-only-d.log); arms not queued"; exit 1; }
+  log "check D passed"
+fi
 for arm in kd-control kd-090 kd-100; do
   [ -f "$S/STOP" ] && { log "STOP file found"; exit 0; }
   qw=$("$PY" "$S/quiet_wait.py" "$MIN"); wait=${qw%% *}; reason=${qw#* }
