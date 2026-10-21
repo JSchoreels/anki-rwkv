@@ -1173,6 +1173,13 @@
    "track": "small model",
    "item": "Runbooks skip the users that never fit in GPU memory instead of retrying them 3&times;",
    "why": "~35 min of GPU lost on 10-21 (SM44, SM46); no GPU needed"
+  },
+  {
+   "status": "idea",
+   "id": "SM56",
+   "track": "small model",
+   "item": "Full retrain from scratch with carried state at 2,048 windows (every epoch, not just the decay), on 8k users if SM55 wins",
+   "why": "Never tested: SM42 showed 2 late carried epochs add nothing before the decay, so the gain may be small. ~22 h GPU on 8k users (~15 h on 5k). Decide after SM55 (user, 10-21)"
   }
  ],
  "known_labels": [
