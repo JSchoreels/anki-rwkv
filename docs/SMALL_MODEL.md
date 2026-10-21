@@ -1049,6 +1049,34 @@ State = card + note state of the largest dataset user (246,801 cards, 76,887 not
 - **Same picks as the deployed eigh codec**: on the CPU, the GPU path's code (slots + the "sq" codec in torch) reproduces the CPU scorer (deployed eigh codec) bitwise: max |dp| = 0 and dLogLoss = 0 on every head for SM42 `+vq378x412` (the 5 smallest pool users, 3,685-4,311 reviews), SM42 `+vq770x828` (3 users) and SM32c `+vq378x412` with its learned books (2 users), see `sm44/check-sm44-cpu.json`. The codec was active (float state moves p by up to 0.19 on the same users) and the slot path ran (9-13 WKV and 15-22 shift calls per user). The GPU check ticket compares the CUDA run with those stored CPU predictions (gate: benchmark LogLoss within 1e-5 per user and head) and measures reviews/s. The MSVC emulation of the kernel was not run here: it spins 256 threads and loaded the CPU to 94% next to the SM43 training.
 - **Results**: pending (`sm44/sm44-summary.md`; follow-up in `sm44/HANDOFF-sm44.md`).
 
+### Large-budget compressed state (SM46, ~6,000 / ~3,000 bits)
+
+2026-10-20, asked by the outside researcher whose codec we reimplemented: the same codebook compression (post-training, no retraining) at about 6,000 bits per card and 3,000 per note (int8 card state: 26,624 bits, so ~4.5x smaller), on SM36 (`s-w64kd-gate-sc-lanes-dec12-1ep32k-muon`). Branch `sm46`, folder `artifacts/small-model/sm46/` (`HANDOFF-sm46.md`).
+
+- **Recipe `vq5902x3028`** (`scripts/state_vq.py`): card 5,902 bits = 8 heads x 590 + 3 shift vectors x 394; note 3,028 bits = 4 x 560 + 2 x 394. Per 16 x 16 head: rank 6 (rank 6 keeps 99.8% of the head energy, rank 4 98.9%), joint (u, v) residual VQ stages (15, 13, 10, 7, 5, 3) for the card and (15, 12, 9, 7, 4, 3) for the note, 10-bit log2 norms. Shift: m4 sub-vectors x 8 stages of 12-bit codes + 10-bit norm.
+- **Codebooks** fitted on SM36's own states: corpus from 50 SM36 training users (none of the 732 pool; 1,500 samples per stream-layer and user, 918 MB, not committed), k-means on 45 of them (5 held out for the proxy), WKV ranks 1-6 with (32, 24, 16, 12, 8, 6) stages and shift m4 x 8 stages; 10-bit norm ranges span the whole corpus (`fit_norm_range` for bits >= 10: the 1-99% quantile search clipped the largest norms, which dominated the norm error). `books/codebooks-sm46.npz`, 29.7 MB (not committed; sha256 and regeneration commands in the handoff).
+- **How it was chosen**: a model-free held-out proxy (`sm46/alloc_proxy.py`, relative squared reconstruction error on the 5 held-out users) picked rank 6 with equalised per-component coding errors (relative WKV error 1.04e-2 at 630 bits per head; rank 4 at 600 bits 1.45e-2, rank 3 2.87e-2). A training-user screen (`state_vq_fit.py tune`, 8 SM36 training users, 115k reviews, model-side LogLoss vs w8+s8) then compared two splits of the budget: `vq5902x3028` (more shift bits) +0.000058 curve / +0.000141 instant, `vq5934x2996` (shift m4 x 6, more WKV stages) +0.000048 / +0.000152; rank-6 truncation alone (`vqr6exact`) -0.000015 / -0.000001. A tie within noise; instant is the binding head, so `vq5902x3028`. For scale: the 1,506 / 828-bit point of the SM32 screen cost +0.00009 / +0.00058 (other model and users).
+- **CPU check** (`sm46/check-sm46-cpu.json`, ALL OK): the GPU scorer's code on CPU tensors (both streams on the torch step loop with the eigh codec; rank >= 2 has no fused kernel) reproduces the CPU scorer bitwise on the 3 smallest pool users (max |dp| = 0, dLogLoss = 0); the codec is active (float state moves p by up to 0.04). CPU cost: 3.5 ms per review on those users (4 threads), 134 reviews/s at 2 threads in the screen (w8+s8: 1,020/s).
+- **GPU run**: detached runbook `sm46/runbook-sm46.sh` waits for the SM44 runbook to end, then a GPU check ticket and time-capped scoring tickets (464 pool first, then the rest of 732; only 464 if 732 projects above 4 h at the check's rate). Estimate from the step profile: ~0.95M codec steps on the 732 pool, ~1.2-2.5 h. Results: pending (`sm46/sm46-summary.md`).
+
+### Faster held-out scoring (SM48)
+
+2026-10-20, user request (focus on scoring speed). Branch `sm48` (from `sm46`). Profile: [sm48/profile.md](../artifacts/small-model/sm48/profile.md).
+
+- **Where the time went** (SM45's 732-pool pass, 726 users x 2 variants, 1,978 s): 51% model call, 49% outside it (~10.8 µs per review-evaluation, flat across user sizes); preparation is overlapped by the 4 workers. Outside the model, the Python loops over labelled reviews (`collect_predictions`, upstream `get_stats`) cost 8.70 µs per review and variant on CPU. Inside the model, the preset/user/deck WKV recurrences are serial chains on 4 blocks of 16 threads (B = 1, 4 heads), ~13-19 dependent steps per review on 4 of the GPU's 84 SMs.
+- **Implemented**: (1) numpy metrics (`scripts/heldout_fast_metrics.py`, default; `--legacy-metrics` = old path): bitwise equal, 0.85 µs per review and variant; (2) `--lanes N`: N users at once, threads with their own model copies and CUDA streams, in-flight reviews capped by `--lane-review-budget` (400k default, ~25 KB of GPU memory per review); +vq variants run one at a time.
+- **CPU checks**: numpy vs dict metrics on real labels of 7 users bitwise (`sm48/check-fast-metrics.json`); the scorer with both paths vs the pre-SM48 scorer, 4 users x (w8+s8, w8+s4c8n), 8/8 rows bitwise (`check-cpu-orig-vs-array.json`, `check-cpu-orig-vs-dict.json`); lanes 2 vs 1 on CPU (fp32/w8; scheduler logic only) 8/8 bitwise.
+- **GPU timing result** (2026-10-21, `--timing` ticket; launcher `sm48/launch-sm48.sh`, job `sm48/job-sm48.sh`; 40 users of the 732 pool, SM36 w8+s8 + w8+s4c8n, 4,511,064 review-evals per run, 2 runs per arm; [summary](../artifacts/small-model/sm48/timing/summary.md)):
+
+| Arm | Flags | review-evals/s | vs old | GPU util % | GPU mem max | 732-pool ETA (98.4M) |
+|---|---|---:|---:|---:|---:|---:|
+| old | `--legacy-metrics` | 46,144 | 1.00x | ~45 | ~13.1 GB | ~35.5 min |
+| numpy | default | 61,430 | 1.33x | ~55 | ~13.1 GB | ~26.7 min |
+| lanes 2 | `--lanes 2` | 66,484 | 1.44x | ~61 | ~14.5 GB | ~24.7 min |
+| lanes 4 | `--lanes 4` | 72,074 | 1.56x | ~67 | ~14.5 GB | ~22.8 min |
+
+  All 7 later runs match the first old run bitwise (80/80 row pairs each, no error rows). Memory: lanes raise the peak by about 1.4 GB (default `--lane-review-budget` 400k), above the ~0.8 cap (~13 GB of the 16.3 GB card) for new GPU jobs; for pool scoring use a lower budget or note the overshoot. Implementation commit be20647f; follow-up in `sm48/HANDOFF-sm48.md`.
+
 ## Backlog
 
 | ID | Idea | Status | Next step |
