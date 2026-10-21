@@ -1077,6 +1077,13 @@ State = card + note state of the largest dataset user (246,801 cards, 76,887 not
 
   All 7 later runs match the first old run bitwise (80/80 row pairs each, no error rows). Memory: lanes raise the peak by about 1.4 GB (default `--lane-review-budget` 400k), above the ~0.8 cap (~13 GB of the 16.3 GB card) for new GPU jobs; for pool scoring use a lower budget or note the overshoot. Implementation commit be20647f; follow-up in `sm48/HANDOFF-sm48.md`.
 
+### Lanes with int state variants, and users that never fit (SM48b)
+
+2026-10-21, branch `sm48b`. Details and results: [sm48b/HANDOFF-sm48b.md](../artifacts/small-model/sm48b/HANDOFF-sm48b.md).
+
+- **Lane-safe int variants**: `state_vq.SCORE` (the stream -> codec table the SM47 int variants use) is now per thread, and the int codecs are stateless, so `--lanes N` no longer takes a lock for w8+s8hx8, w8+s4c8nhx8 and the other IntState variants. The lock stays for +vq variants (shared codecs and kernel buffers); `HELDOUT_INT_LANE_LOCK=1` brings back the SM47 lock for an A/B. CPU check: lanes 2 vs 1 with the emulated GPU path, 8/8 row pairs bitwise (`sm48b/check-cpu-int-lanes1-vs-lanes2.json`). GPU timing and exactness: pending, see the handoff (ticket 000592).
+- **Users that never fit**: nine users of the 732 pool (650, 4501, 1601, 1534, 70, 4922, 4379, 1479, 4625; 568k to 920k reviews; 650, 4501, 70, 4922, 4379 and 1479 are also in the 464 pool) run out of GPU memory at the scorer's default 0.8 cap for every variant. SM44 and SM46 retried them in 3 and 5 extra passes with no success (about 35 min wasted). The list and evidence are in `artifacts/small-model/never-fit-users.json`. **Pool runbooks pass `--exclude-users-file artifacts/small-model/never-fit-users.json` and must not retry these users**; a pool score then covers 723 of 732 (455 of 464) users, and the pool numbers say so. User 4852 (501,672 reviews) fits the plain int variants but not +vq: it is not on the list (`vq_only` in the JSON); +vq runbooks add it with `--exclude-users-file` plus `--users-file`, or just let it fail once and not retry. A change that fits the largest user (chunked or window scoring) lifts the exclusion.
+
 ## Backlog
 
 | ID | Idea | Status | Next step |
