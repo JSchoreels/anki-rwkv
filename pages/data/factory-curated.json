@@ -643,8 +643,9 @@
    "match": [
     "SM44"
    ],
-   "when": "after SM47 (~03:00), ~2.5 h. First check failed 21:28: a real bug at ~800 bits (fixed) plus near-ties (two codebook entries almost equally close, CPU and GPU pick differently); now checked with a looser rule for codebook formats (&le; 0.0003 per user, average &le; 0.0001)",
-   "decides": "Compression checks in minutes instead of 1 h on 68 users, on the standard 732 users; does ~800 bits get close enough to the &le; +1.0% bar?"
+   "when": "running since 02:07, ~2.5 h with SM48 in between (~05:00). 5-user GPU check passed 02:07 with the looser rule for codebook formats; GPU speed int8 55k, ~400 bits 36k, ~800 bits 10.6k reviews/s",
+   "decides": "Compression checks in minutes instead of 1 h on 68 users, on the standard 732 users; does ~800 bits get close enough to the &le; +1.0% bar?",
+   "state": "running"
   },
   {
    "what": "State compression at a large budget: 5,902 bits per card, 3,028 per note (asked by outside research; int8 is 26,624 / 14,336), codebooks fitted on the best model&rsquo;s own states, scored after training on the best model (SM36)",
@@ -655,7 +656,7 @@
    "match": [
     "SM46"
    ],
-   "when": "after SM44 (~05:45), ~3.4 h at ~4,000 reviews/s. First check ran out of GPU memory (fixed: done in chunks, same numbers); same looser rule for codebook formats",
+   "when": "after SM44 (~05:00), ~3.4 h at ~4,000 reviews/s (~08:30). First check ran out of GPU memory (fixed: done in chunks, same numbers); same looser rule for codebook formats",
    "decides": "Is compression nearly free at ~4.5&times; smaller than int8? 8-user screen: +0.00006 curve / +0.00014 instant"
   },
   {
@@ -667,8 +668,11 @@
    "match": [
     "SM47"
    ],
-   "when": "queued, starts 01:00 (after the GPU break; now ahead of SM44 / SM46), ~2 h; code ready 19:19 (CPU check: old results reproduce exactly)",
-   "decides": "Smallest no-retraining format: int4 cards + int8 notes + 16-bit scales + int8 short-term vectors = 11,824 / 10,272 bits per card / note (&minus;46% vs today&rsquo;s int8, ~38 MB vs ~70 MB for 13,973 cards / 13,198 notes). Is it still nearly free?"
+   "when": "10-21 00:47 &rarr; 02:07 (break lifted early)",
+   "decides": "Nearly free: 16-bit scales and int8 short-term vectors cost nothing (&plusmn;0.00000); the smallest format (11,824 / 10,272 bits, 37.6 MB, &minus;46% vs int8) costs only the int4-card +0.00005 / +0.00005 already known from SM45",
+   "state": "done",
+   "started_at": "2026-10-21T00:47:01+02:00",
+   "ended_at": "2026-10-21T02:06:33+02:00"
   },
   {
    "what": "Faster held-out scoring: benchmark metrics computed on arrays instead of Python loops (same results bit for bit), and scoring 2 or 4 users at once on the GPU",
@@ -679,7 +683,7 @@
    "match": [
     "SM48"
    ],
-   "when": "after SM47 (~03:00), one timing run of ~12&ndash;20 min on 40 users; code ready 19:31 (CPU checks: identical results)",
+   "when": "queued, runs after the current SM44 ticket (~02:40), one timing run of ~12&ndash;20 min on 40 users; code ready 19:31 (CPU checks: identical results)",
    "decides": "How much faster pool scoring gets. Profile: only half of scoring time is the model; the other half is Python bookkeeping (metrics alone ~10&times; cheaper now, ~1.5&times; projected overall), and the model call keeps 4 of the GPU&rsquo;s 84 compute units busy, hence several users at once. Projections only until the timing run."
   },
   {
@@ -1001,6 +1005,20 @@
   "s-w64kd-gate-ctx2048c-dec8-1ep/w8+s8"
  ],
  "results": [
+  {
+   "date": "10-21",
+   "kind": "gpu-check",
+   "name": "Smallest int state without retraining: int4 cards + int8 notes + 16-bit row scales + int8 short-term vectors (11,824 / 10,272 bits per card / note, 37.6 MB for 13,973 cards / 13,198 notes), best model (SM36), w8 weights",
+   "id": "SM47",
+   "curve": 0.30338,
+   "instant": 0.27965,
+   "curve_pct": 0.66,
+   "instant_pct": 0.64,
+   "eval": "723 users (732 set), 30.48M reviews",
+   "fork": "SM36 int8 state (26,624 / 14,336 bits, 70.2 MB): 0.30333 / 0.27960 (+0.64% / +0.63% vs the big model)",
+   "takeaway": "<strong>&minus;46% state size for +0.00005</strong>: 16-bit scales and int8 short-term vectors are free (&plusmn;0.00000 alone, together, and on top of int4 cards); the only cost is the int4 cards (+0.00005 [+0.00003, +0.00006] curve / +0.00005 [+0.00004, +0.00006] instant). Without int4 cards: 51.9 MB (&minus;26%) at zero cost. Same on 458 users (464 set): +0.76% / +0.66%",
+   "track": "small model"
+  },
   {
    "date": "10-20",
    "kind": "gpu-train",
