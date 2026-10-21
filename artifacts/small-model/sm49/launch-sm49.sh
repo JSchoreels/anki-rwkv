@@ -11,5 +11,5 @@ log "enqueue"
 "$PY" C:/Users/jonat/workspace/anki-rwkv/scripts/r01_queue.py run --owner small-model \
   --purpose "SM49: int4 notes, int4 shift vectors, per-head scales (4 int-state variants) for SM36, 732 pool (GPU check first)" \
   --claim gpu --expected-minutes 60 \
-  --launched-by "detached launcher sm49" -- bash C:/Users/jonat/workspace/wt/sm49/artifacts/small-model/sm49/job-sm49.sh
+  --launched-by "detached launcher sm49" -- "C:/Program Files/Git/usr/bin/bash.exe" C:/Users/jonat/workspace/wt/sm49/artifacts/small-model/sm49/job-sm49.sh
 log "queue exit $?"
