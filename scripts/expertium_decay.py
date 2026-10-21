@@ -8,7 +8,9 @@ reviews, with the learning rate decaying from 7e-4 to 0 over exactly those revie
 
   prepare --source-run DIR --epoch N --out artifacts/... [--fraction 0.25 --shape one_minus_sin
           --evaluate quick|validation|validation+final_test|none --seed 1 --extra-options JSON
-          --fresh-optimizer]   (fresh: start with an empty optimizer state instead of the source optimizer.pth)
+          --fresh-optimizer --train-tier gate|final]   (fresh: start with an empty optimizer state instead of the source
+          optimizer.pth; train-tier: train on that accuracy-loop tier's users from artifacts/accuracy/tiers.json instead of
+          the source run's train_users, e.g. the 8k final tier from a gate-tier checkpoint; SM55)
   run     --out artifacts/...        (one GPU process; submit through scripts/r01_queue.py)
   auto    <prepare arguments>         (prepare unless --out exists, then run; lets a queued job wait for the epoch)
   compare --out artifacts/...        (decayed vs the source epoch on the same held-out users; summary.md/json)
@@ -43,15 +45,34 @@ def source_case(source_run, config, epoch):
     return folder, result
 
 
-def prepare(source_run, epoch, out, fraction, shape, evaluate, seed, extra_options, final, fresh_optimizer=False):
+def tier_users(config, name):
+    """Training users and reviews per epoch of accuracy-loop tier `name`, refused unless the tier comes from the same
+    split file and dataset as the source run (so the review counts and the held-out pools stay those of the source)."""
+    tiers = json.loads((ROOT / "artifacts/accuracy/tiers.json").read_text())
+    if not str(config.get("split", "")).endswith(f" of {tiers['split']}"):
+        raise RuntimeError(f"source run split {config.get('split')!r} is not a tier of {tiers['split']}")
+    if Path(tiers["dataset_path"]).resolve() != Path(config["dataset_path"]).resolve()             or tiers["dataset_revision"] != config["dataset_revision"]:
+        raise RuntimeError("tiers.json and the source run read different datasets")
+    tier = tiers["tiers"][name]
+    counts = config["review_counts"]
+    if sum(counts[str(u)] for u in tier["train_users"]) != tier["train_reviews"]:
+        raise RuntimeError(f"tier {name} review count does not match the source run's review_counts")
+    return tier["train_users"][:], tier["train_reviews"]
+
+
+def prepare(source_run, epoch, out, fraction, shape, evaluate, seed, extra_options, final, fresh_optimizer=False,
+            train_tier=None):
     if out.exists():
         raise FileExistsError(f"{out} exists; pick a new output")
     config = json.loads((source_run / "run.json").read_text())
     folder, result = source_case(source_run, config, epoch)
     counts = config["review_counts"]
-    order = config["train_users"][:]
+    if train_tier:
+        order, epoch_reviews = tier_users(config, train_tier)
+    else:
+        order, epoch_reviews = config["train_users"][:], config["training_reviews_per_epoch"]
     random.Random(seed).shuffle(order)
-    budget = fraction * config["training_reviews_per_epoch"]
+    budget = fraction * epoch_reviews
     users, reviews = [], 0
     for user in order:
         if reviews >= budget:
@@ -82,6 +103,7 @@ def prepare(source_run, epoch, out, fraction, shape, evaluate, seed, extra_optio
              "source_case": str(folder), "source_update_offset_end": result["update_offset_end"], "model": MODEL,
              "track": config["track"], "options": options, "dropped_width32_options": dropped,
              "fraction_of_epoch_reviews": fraction, "training_users": len(users), "training_reviews": reviews,
+             "train_users_from": f"tier {train_tier} (artifacts/accuracy/tiers.json)" if train_tier else "source run.json",
              "shuffle_seed": seed, "lr": f"7e-4 -> {final * 7e-4:g}, shape {shape}, over all {reviews:,} reviews",
              "evaluation_set": evaluate, "evaluation_users": len(evaluation),
              "control": f"epoch-{epoch:02d} scores of the same users in {folder / 'result.json'}"}
@@ -240,6 +262,8 @@ def main():
     parser.add_argument("--extra-options", type=json.loads, default=None)
     parser.add_argument("--fresh-optimizer", action="store_true",
                         help="do not load the source epoch's optimizer.pth (needed when --extra-options changes the optimizer kind)")
+    parser.add_argument("--train-tier", choices=("screen", "gate", "final"), default=None,
+                        help="train on this accuracy-loop tier's users (artifacts/accuracy/tiers.json) instead of the source run's")
     args = parser.parse_args()
     out = (ROOT / args.out).resolve()
     if not out.is_relative_to(ROOT / "artifacts"):
@@ -252,7 +276,7 @@ def main():
         if args.source_run is None or args.epoch is None or not 0 < args.fraction <= 1:
             parser.error("prepare needs --source-run, --epoch and 0 < --fraction <= 1")
         code = prepare(args.source_run.resolve(), args.epoch, out, args.fraction, args.shape, args.evaluate, args.seed,
-                       args.extra_options, args.final, args.fresh_optimizer)
+                       args.extra_options, args.final, args.fresh_optimizer, args.train_tier)
         if args.command == "prepare" or code:
             return code
     code = run(out)

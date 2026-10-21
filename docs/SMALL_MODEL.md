@@ -1049,6 +1049,16 @@ State = card + note state of the largest dataset user (246,801 cards, 76,887 not
 - **Same picks as the deployed eigh codec**: on the CPU, the GPU path's code (slots + the "sq" codec in torch) reproduces the CPU scorer (deployed eigh codec) bitwise: max |dp| = 0 and dLogLoss = 0 on every head for SM42 `+vq378x412` (the 5 smallest pool users, 3,685-4,311 reviews), SM42 `+vq770x828` (3 users) and SM32c `+vq378x412` with its learned books (2 users), see `sm44/check-sm44-cpu.json`. The codec was active (float state moves p by up to 0.19 on the same users) and the slot path ran (9-13 WKV and 15-22 shift calls per user). The GPU check ticket compares the CUDA run with those stored CPU predictions (gate: benchmark LogLoss within 1e-5 per user and head) and measures reviews/s. The MSVC emulation of the kernel was not run here: it spins 256 threads and loaded the CPU to 94% next to the SM43 training.
 - **Results**: pending (`sm44/sm44-summary.md`; follow-up in `sm44/HANDOFF-sm44.md`).
 
+### 8k final-tier decay (SM55)
+
+2026-10-21. SM36's recipe (one-epoch 32k decay, strided-lane carry, replay KD targets, fresh Muon `expertium-iter53`, gpu_memory_fraction 0.8, from carried-state v2 epoch 12) with one change: the 8,000-user final tier (581,942,738 reviews, 1.575x SM36) instead of the 5,000-user gate tier. Question: do more distinct users help the final decay (SM43: more users beat more passes)? Runbook, checks and handoff: `artifacts/small-model/runbook-2026-10-21-sm55.sh`, `HANDOFF-sm55.md`.
+
+- **Tier**: `tiers.json` "final" = all 8,000 training users of the 8k split (gate + 3,000 more, 212.5M reviews). Disjoint from the 464 and 732 pools and the 500 sealed users; 1,493 of the 2,225 set are training users here, so the 2,225 pool is invalid for SM55 (as `eval_pools.py` says).
+- **Code**: `expertium_decay.py prepare --train-tier final` takes the tier's users instead of the source run's; `--train-tier gate` reproduces SM36's 5,000 rows (users, order, ranges) exactly (dry run). The options check against SM36's `decay.json`/`protocol.json` passes: identical except the users and `distillation.replay`.
+- **Replay targets**: new folder `artifacts/cache/kd-replay/fork-fp32-final8k` (main checkout) = hard links to the 5,000 files of `fork-fp32-gate5k` (that folder is untouched) + the 3,000 new users exported with the SM11 tool (same manifest; the 0.8 memory cap and OOM retry of the sm11 branch cherry-picked). Spot check: SM11 `verify` on 8 new users.
+- **Training code** differs from SM36's commit only by opt-in `state_vq` paths (off here) and `instant_loss_weight` None -> 1.0 (same value); not bit-checked across commits.
+- **Results**: pending (`artifacts/small-model/sm55-summary.md`): 732 pool minus the 9 never-fit users (723) and its 464 subset, paired vs SM36 w8+s8 and vs the fork.
+
 ### Large-budget compressed state (SM46, ~6,000 / ~3,000 bits)
 
 2026-10-20, asked by the outside researcher whose codec we reimplemented: the same codebook compression (post-training, no retraining) at about 6,000 bits per card and 3,000 per note (int8 card state: 26,624 bits, so ~4.5x smaller), on SM36 (`s-w64kd-gate-sc-lanes-dec12-1ep32k-muon`). Branch `sm46`, folder `artifacts/small-model/sm46/` (`HANDOFF-sm46.md`).

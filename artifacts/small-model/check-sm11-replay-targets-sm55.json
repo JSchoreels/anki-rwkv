@@ -1,0 +1,234 @@
+{
+ "ok": true,
+ "seconds": 81.5,
+ "users": [
+  793,
+  2188
+ ],
+ "info": {
+  "base_commit": "7fada06ba1dc77d7760a67beeb25c55efe09b562",
+  "window_local_vs_replay_training_batch_512x4": [
+   {
+    "chunk": 0,
+    "curve_mean_abs": 0.00152,
+    "curve_max_abs": 0.0194,
+    "rating_mean_abs": 0.00231
+   },
+   {
+    "chunk": 1,
+    "curve_mean_abs": 0.02811,
+    "curve_max_abs": 0.3217,
+    "rating_mean_abs": 0.04772
+   },
+   {
+    "chunk": 2,
+    "curve_mean_abs": 0.01118,
+    "curve_max_abs": 0.1498,
+    "rating_mean_abs": 0.04578
+   },
+   {
+    "chunk": 3,
+    "curve_mean_abs": 0.00889,
+    "curve_max_abs": 0.1038,
+    "rating_mean_abs": 0.05175
+   }
+  ],
+  "encoding_noise_floor_full_history_seed_2025_vs_2026": {
+   "793": {
+    "encoding_noise_curve_mean_abs": 0.00085,
+    "encoding_noise_curve_max_abs": 0.0153
+   },
+   "2188": {
+    "encoding_noise_curve_mean_abs": 0.00288,
+    "encoding_noise_curve_max_abs": 0.0248
+   }
+  }
+ },
+ "checks": {
+  "a. online targets (decaying=False): new == code before SM11 (7fada06b) == kd_source online, bitwise": {
+   "value": {
+    "alpha": 0.9
+   },
+   "ok": true
+  },
+  "a. online targets (decaying=True): new == code before SM11 (7fada06b) == kd_source online, bitwise": {
+   "value": {
+    "alpha": 0.5
+   },
+   "ok": true
+  },
+  "a. KD cache: same folder digest, miss and hit targets and stored file bitwise equal to the code before SM11": {
+   "value": {
+    "folder": "batches-029b8c90c12f",
+    "stats": {
+     "hits": 1,
+     "writes": 1,
+     "online": 1
+    }
+   },
+   "ok": true
+  },
+  "a. CatchUp loss and every student gradient bitwise equal to the code before SM11 (online teacher)": {
+   "value": {
+    "loss": 1.7724103927612305,
+    "gradients": 354
+   },
+   "ok": true
+  },
+  "a. CatchUp with a cache hit: loss and gradients bitwise equal to the online pass": {
+   "value": {
+    "hits": 1,
+    "writes": 0,
+    "online": 0
+   },
+   "ok": true
+  },
+  "b. CPU export of the check users completes (status exit 0)": {
+   "value": 0,
+   "ok": true
+  },
+  "b. `verify` (the post-GPU spot check) passes on the CPU export": {
+   "value": 0,
+   "ok": true
+  },
+  "b. user 793: stored targets = full-history forward (scorer path) within float16 bounds (curve 0.00012, rating 0.00025), NaN exactly where no label": {
+   "value": {
+    "reviews": 3463,
+    "curve_targets": 2143,
+    "rating_targets": 2143,
+    "curve_max_abs": 9.232759475708008e-05,
+    "rating_max_abs": 0.00024366378784179688,
+    "instant_max_abs": 0.000225067138671875,
+    "rating_sum_max_dev": 0.00037384033203125,
+    "model_seconds": 2.344
+   },
+   "ok": true
+  },
+  "b. user 793: window of 1024 reviews from the first review: online window teacher = full-history forward (float32, <= 2e-05); replay Teacher = window teacher within float16 bounds; zero at unlabelled rows": {
+   "value": {
+    "card_features_equal": true,
+    "window_vs_full_fp32_max_abs": 4.76837158203125e-07,
+    "replay_vs_window_curve_max_abs": 8.594989776611328e-05,
+    "replay_vs_window_rating_max_abs": 0.00024366378784179688,
+    "labelled": [
+     878,
+     687
+    ]
+   },
+   "ok": true
+  },
+  "b. user 2188: stored targets = full-history forward (scorer path) within float16 bounds (curve 0.00012, rating 0.00025), NaN exactly where no label": {
+   "value": {
+    "reviews": 3367,
+    "curve_targets": 2711,
+    "rating_targets": 2711,
+    "curve_max_abs": 9.948015213012695e-05,
+    "rating_max_abs": 0.00024402141571044922,
+    "instant_max_abs": 0.00024390220642089844,
+    "rating_sum_max_dev": 0.00036144256591796875,
+    "model_seconds": 2.707
+   },
+   "ok": true
+  },
+  "b. user 2188: window of 1024 reviews from the first review: online window teacher = full-history forward (float32, <= 2e-05); replay Teacher = window teacher within float16 bounds; zero at unlabelled rows": {
+   "value": {
+    "card_features_equal": true,
+    "window_vs_full_fp32_max_abs": 3.5762786865234375e-07,
+    "replay_vs_window_curve_max_abs": 9.399652481079102e-05,
+    "replay_vs_window_rating_max_abs": 0.00024366378784179688,
+    "labelled": [
+     1021,
+     761
+    ]
+   },
+   "ok": true
+  },
+  "b. replay Teacher through CatchUp.loss: finite loss, gradients, no teacher model loaded, decay_alpha on decay": {
+   "value": {
+    "loss": 1.7960596084594727,
+    "gradients": 354,
+    "alphas": [
+     0.9,
+     0.5
+    ],
+    "describe": "replay"
+   },
+   "ok": true
+  },
+  "b. refusals": {
+   "value": {
+    "cache with replay": true,
+    "unknown kd_source": true,
+    "another teacher": true,
+    "missing user": true,
+    "no batch key (multi-user batch)": true,
+    "labelled row without a stored target": true,
+    "another dataset": true
+   },
+   "ok": true
+  },
+  "c. resume: stopped pass exits 3, rerun (through a loader worker) skips the finished user, ignores the stale .tmp, targets byte-identical to one uninterrupted export": {
+   "value": {
+    "exit_codes": [
+     3,
+     0
+    ],
+    "exported_in_order": [
+     793,
+     2188
+    ],
+    "stale_tmp_left": false
+   },
+   "ok": true
+  },
+  "c. a folder written with other settings is refused": {
+   "value": true,
+   "ok": true
+  },
+  "c. multi-pass export (passes of 1,500 reviews, 500 burn-in): every review covered exactly once, same NaN pattern as one pass (values differ: burn-in context and encoding draws)": {
+   "value": {
+    "passes": [
+     [
+      0,
+      0,
+      1500
+     ],
+     [
+      1000,
+      1500,
+      2500
+     ],
+     [
+      2000,
+      2500,
+      3463
+     ]
+    ],
+    "curve_mean_abs_vs_single_pass": 0.00406,
+    "curve_max_abs_vs_single_pass": 0.0603
+   },
+   "ok": true
+  },
+  "c. pass plan tiles the history (production settings 600k / 300k)": {
+   "value": {
+    "599999": 1,
+    "600000": 1,
+    "600001": 2,
+    "3910718": 13
+   },
+   "ok": true
+  },
+  "d. disk per review (float16 [reviews, 5] + per-file npz header and meta)": {
+   "value": {
+    "bytes": 70119,
+    "reviews": 6830,
+    "per_review": 10.266,
+    "payload_per_review": 10,
+    "per_file_overhead_bytes": 910,
+    "gate_5k_GB": 3.699,
+    "final_8k_GB": 5.827
+   },
+   "ok": true
+  }
+ }
+}
