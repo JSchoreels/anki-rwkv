@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-10-21T19:52:05+02:00",
- "updated": "2026-10-21 19:52",
- "material": "45667e5448670dc6",
- "summary": "idle, finished 000601",
+ "generated_at": "2026-10-21T20:14:28+02:00",
+ "updated": "2026-10-21 20:14",
+ "material": "c27df64d9d92db2b",
+ "summary": "idle",
  "headline": [
   {
    "k": "Best, 464 users (curve / instant)",
@@ -1180,6 +1180,13 @@
    "track": "small model",
    "item": "Instant-only small model: retrain from scratch with only the instant head, against a matched joint baseline (same users, seeds, epochs); record training time, reviews/s, GPU memory and instant LogLoss on 723 users",
    "why": "Goal: better instant predictions, not less space. Does giving all of the model to instant beat sharing it with the curve, or does the curve task help instant learn? Many people mostly use instant; a second, curve-only model could cover the rest (both = double the state). No rush: later this week if a slot opens, else next week (user, 10-21)"
+  },
+  {
+   "status": "next",
+   "id": "SM58",
+   "track": "small model",
+   "item": "UM+ small vs big model, plus the disagreement slope: bucket reviews by how much the two predictions differ, and fit how much of the small model's deviation from the big one the outcomes confirm (slope 0 = the big model is right, 1 = the small one is). Curve and instant, 723 users and the own collection (aggregate only)",
+   "why": "LogLoss says how far the small model is behind, not where. UM+ is the metric the fork already reports; the slope tells whether the small model's disagreements are noise or real signal (user, 10-21). Thu 10-22 after SM55: ~1 h GPU to save both models' predictions, the rest on the CPU"
   }
  ],
  "results": [
