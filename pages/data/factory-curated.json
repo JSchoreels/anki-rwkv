@@ -643,9 +643,11 @@
    "match": [
     "SM44"
    ],
-   "when": "running since 02:07, ~2.5 h with SM48 in between (~05:00). 5-user GPU check passed 02:07 with the looser rule for codebook formats; GPU speed int8 55k, ~400 bits 36k, ~800 bits 10.6k reviews/s",
-   "decides": "Compression checks in minutes instead of 1 h on 68 users, on the standard 732 users; does ~800 bits get close enough to the &le; +1.0% bar?",
-   "state": "running"
+   "when": "10-21 02:07 &rarr; 04:59 (5-user GPU check passed with the looser rule for codebook formats)",
+   "decides": "Not close enough: ~800 bits costs +0.37% curve / +0.67% instant on top of int8 (+1.08% / +1.38% vs the big model), ~400 bits +0.72% / +1.18%. The 16&ndash;24k-bit int formats (SM45/SM47) stay the practical choice",
+   "state": "done",
+   "started_at": "2026-10-21T02:06:53+02:00",
+   "ended_at": "2026-10-21T04:59:26+02:00"
   },
   {
    "what": "State compression at a large budget: 5,902 bits per card, 3,028 per note (asked by outside research; int8 is 26,624 / 14,336), codebooks fitted on the best model&rsquo;s own states, scored after training on the best model (SM36)",
@@ -656,8 +658,9 @@
    "match": [
     "SM46"
    ],
-   "when": "after SM44 (~05:00), ~3.4 h at ~4,000 reviews/s (~08:30). First check ran out of GPU memory (fixed: done in chunks, same numbers); same looser rule for codebook formats",
-   "decides": "Is compression nearly free at ~4.5&times; smaller than int8? 8-user screen: +0.00006 curve / +0.00014 instant"
+   "when": "running since 05:00, 464 users only (all 732 would take ~4 h), ~2.7 h (~07:45). 3-user GPU check passed 05:00 with the looser rule for codebook formats",
+   "decides": "Is compression nearly free at ~4.5&times; smaller than int8? 8-user screen: +0.00006 curve / +0.00014 instant",
+   "state": "running"
   },
   {
    "what": "Compress the rest of the card/note state: 16-bit row scales and int8 short-term (token-shift) vectors, alone and together, on top of int8 and of int4 cards + int8 notes; best model (SM36), 732 users",
@@ -1008,6 +1011,20 @@
   "s-w64kd-gate-ctx2048c-dec8-1ep/w8+s8"
  ],
  "results": [
+  {
+   "date": "10-21",
+   "kind": "gpu-check",
+   "name": "Compressed card/note state at ~400 and ~800 bits (codebooks), scored on the GPU: SM42 model with codebooks fitted after training, and SM32c with codebooks learned in training",
+   "id": "SM44",
+   "curve": 0.30265,
+   "instant": 0.27964,
+   "curve_pct": 1.08,
+   "instant_pct": 1.38,
+   "eval": "722 users (732 set), 30.13M reviews",
+   "fork": "same model, int8 state: 0.30155 / 0.27777 (+0.71% / +0.70% vs the big model)",
+   "takeaway": "<strong>~800 bits is not free</strong> (row shown): +0.37% curve / +0.67% instant over int8, so +1.08% / +1.38% vs the big model, over the +1.0% bar. ~400 bits: +1.43% / +1.88%. Learned codebooks (SM32c) at ~400 bits: +1.35% / +1.71%; they help that model, but its int8 starts worse (+1.92% / +2.21%). GPU scorer: int8 92k, ~400 bits 47k, ~800 bits 14k reviews/s of model time. Same on 458 users (464 set)",
+   "track": "small model"
+  },
   {
    "date": "10-21",
    "kind": "gpu-speed",
