@@ -1,0 +1,29 @@
+[sm55 10-21 08:50:22] started: c0bc0f8a SM55: 8k final-tier decay runbook (expertium_decay prepare --train-tier, replay export for 3,000 more users, checks) (DRYRUN=1)
+[sm55-tier] OK: 8,000 final-tier users (581,942,738 reviews), disjoint from the 464 and 732 pools and the 500 sealed users; 1493 of the 2,225 set are training users here (2,225 invalid for SM55)
+[sm55 10-21 08:50:22] free disk: 2052 GB (need ~2.2 GB for 3,000 users)
+[sm55-link] C:\Users\jonat\workspace\anki-rwkv\artifacts\cache\kd-replay\fork-fp32-final8k: 0 new hard links, 5000 present, from C:\Users\jonat\workspace\anki-rwkv\artifacts\cache\kd-replay\fork-fp32-gate5k (manifest identical)
+{"training_users": 8000, "training_reviews": 581942738, "evaluation_users": 0, "lr": "7e-4 -> 0, shape one_minus_sin, over all 581,942,738 reviews"}
+[sm55-check] --train-tier gate reproduces SM36's 5,000 rows (users, order, ranges) exactly
+[sm55-check] OK vs SM36's decay.json/protocol.json: identical except the users (8,000 final tier, 581,942,738 reviews, 1.575x SM36) and distillation.replay (fork-fp32-final8k); same source e12, fresh Muon state, full_run/LR schedule/training/dataset identical, 7e-4 -> 0, shape one_minus_sin, over all 581,942,738 reviews
+[check] state_carry options valid, replay spec valid (fork-fp32-final8k, teacher sha256 8fb7fea081b3), 33 option keys allowlisted
+PASS protocol has no init_optimizer: ["benchmark_db", "epoch", "evaluate", "evaluation_set", "init_master", "lr_schedule", "optimizer_state", "update_offset"]
+PASS options optimizer: "expertium-iter53"
+PASS w64 parameters Muon / AdamW: [309888, 21623]
+PASS fresh state is empty: [0, 0]
+PASS source AdamW optimizer.pth cannot be loaded into Muon: "KeyError: 'adamw'"
+PASS one step finite, parameters changed, lr restored: [true, 397, 420, [0.00035]]
+PASS state round trip (muon, adamw entries): [163, 257]
+passed
+[sm55 10-21 08:50:35] export status: {"out": "C:\\Users\\jonat\\workspace\\anki-rwkv\\artifacts\\cache\\kd-replay\\fork-fp32-final8k", "users": 8000, "complete_users": 5000, "missing_users": 3000, "missing_sample": [3, 6, 8, 9, 12, 17, 18, 21, 25, 34, 37, 40, 42, 48, 55, 56, 57, 64, 67, 69], "reviews_done": 369477375, "reviews_total": 581942738, "bytes": 3699355129, "bytes_per_review": 10.012, "complete": false, "errors": 0}
+[sm55 10-21 08:50:35] DRYRUN enqueue: SM55 replay targets, 3,000 final-tier users outside the 5k export (ticket 1, resumable) (expected 95 min, max wait 634 min)
+    cmd: C:/Users/jonat/workspace/anki-rwkv/.venv/Scripts/python.exe -X utf8 C:/Users/jonat/workspace/wt/sm55/scripts/sm11_replay_export.py export --out C:/Users/jonat/workspace/anki-rwkv/artifacts/cache/kd-replay/fork-fp32-final8k --run C:/Users/jonat/workspace/wt/sm55/artifacts/small-model/sm55-final8k-run.json --device cuda --time-limit 5100
+[sm55 10-21 08:50:35] DRYRUN: export arguments validated by status (exit 3)
+[sm55 10-21 08:50:35] DRYRUN: would verify users 685,4840,5594,6977,7261,7522,8633,9157
+[sm55 10-21 08:50:35] DRYRUN enqueue: SM55 1-epoch decay at 32k on the 8k final tier (581.9M reviews), lanes carry, Muon fresh, from sc-lanes e12 (smoke first) (expected 530 min, max wait 199 min)
+    cmd: C:/Program Files/Git/usr/bin/bash.exe -c 'C:/Users/jonat/workspace/anki-rwkv/.venv/Scripts/python.exe' -X utf8 'C:/Users/jonat/workspace/wt/sm55/scripts/expertium_decay.py' smoke --out 'C:/Users/jonat/workspace/wt/sm55/artifacts/small-model/scale-w64kd-gate-sc-lanes-cont-decay1ep32k-muon-final8k' && 'C:/Users/jonat/workspace/anki-rwkv/.venv/Scripts/python.exe' -X utf8 'C:/Users/jonat/workspace/wt/sm55/scripts/expertium_decay.py' run --out 'C:/Users/jonat/workspace/wt/sm55/artifacts/small-model/scale-w64kd-gate-sc-lanes-cont-decay1ep32k-muon-final8k'
+[sm55 10-21 08:50:35] DRYRUN enqueue: SM55 scoring s-w64kd-final-sc-lanes-dec12-1ep32k-muon, 732 pool minus 9 never-fit (pass 1) (expected 45 min, max wait 684 min)
+    cmd: C:/Users/jonat/workspace/anki-rwkv/.venv/Scripts/python.exe -X utf8 C:/Users/jonat/workspace/wt/sm55/scripts/small_model_heldout.py --pool 732 --users-file C:/Users/jonat/workspace/wt/sm55/artifacts/small-model/sm55-eval-users-732-fit.json --model s-w64kd-final-sc-lanes-dec12-1ep32k-muon=expertium:w64:C:/Users/jonat/workspace/wt/sm55/artifacts/small-model/scale-w64kd-gate-sc-lanes-cont-decay1ep32k-muon-final8k/expertium/E89-F65e-F77a/master.pth --only s-w64kd-final-sc-lanes-dec12-1ep32k-muon/w8+s8 --time-limit 4800 --out C:/Users/jonat/workspace/wt/sm55/artifacts/small-model/heldout-sm55-pools.jsonl
+[sm55 10-21 08:50:35] DRYRUN enqueue: SM55 scoring s-w64kd-final-sc-lanes-dec12-1ep32k-muon, 732 pool minus 9 never-fit (pass 2) (expected 20 min, max wait 709 min)
+    cmd: C:/Users/jonat/workspace/anki-rwkv/.venv/Scripts/python.exe -X utf8 C:/Users/jonat/workspace/wt/sm55/scripts/small_model_heldout.py --pool 732 --users-file C:/Users/jonat/workspace/wt/sm55/artifacts/small-model/sm55-eval-users-732-fit.json --model s-w64kd-final-sc-lanes-dec12-1ep32k-muon=expertium:w64:C:/Users/jonat/workspace/wt/sm55/artifacts/small-model/scale-w64kd-gate-sc-lanes-cont-decay1ep32k-muon-final8k/expertium/E89-F65e-F77a/master.pth --only s-w64kd-final-sc-lanes-dec12-1ep32k-muon/w8+s8 --time-limit 4800 --out C:/Users/jonat/workspace/wt/sm55/artifacts/small-model/heldout-sm55-pools.jsonl
+[sm55 10-21 08:50:35] 732-pool users scored: 0 of 723
+DRYRUN OK
