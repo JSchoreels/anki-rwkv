@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-10-21T08:59:32+02:00",
- "updated": "2026-10-21 08:59",
- "material": "3a612eb52895bd4d",
- "summary": "running 000592",
+ "generated_at": "2026-10-21T09:00:22+02:00",
+ "updated": "2026-10-21 09:00",
+ "material": "d719138f4ede338c",
+ "summary": "running 000594, finished 000593",
  "headline": [
   {
    "k": "Best, 464 users (curve / instant)",
@@ -139,36 +139,41 @@
  ],
  "now": [
   {
-   "what": "Muon instead of AdamW for the one-epoch 32k decay (paired with the best model, everything else equal) + scoring",
-   "id": "SM36, ticket 000592",
+   "what": "The best recipe (SM36) on 8,000 training users instead of 5,000 (581.9M vs 369.5M reviews), one change: full-history teacher targets for the 3,000 extra users (~1 h 45), then the one-epoch 32k decay over 8k users (~8 h), scored on 723 users",
+   "id": "SM55, ticket 000594",
    "kind": "gpu-train",
-   "decides": "Small win on instant only: vs the best model (AdamW) curve tied (+0.00002 [-0.00034, +0.00046]), instant -0.00018 [-0.00022, -0.00013] on 464 users (+0.81% / +0.68% vs the big model); same on 723 users (-0.00017 / -0.00020). Not the road to +0.5% by itself",
+   "decides": "SM43 says more users win and the gap grows with training: how much does 8k gain over 5k?",
    "why": "",
-   "job": "SM48b: --lanes 1/2/4 + lane review budgets with SM47 int state variants (no lock), 40 users of the 732 pool, SM36",
+   "job": "SM55 replay targets, 3,000 final-tier users outside the 5k export (ticket 1, resumable)",
    "linked": true,
    "track": "small model",
-   "ticket": "000592-small-model",
-   "started": "08:46",
-   "elapsed": "0:13",
+   "ticket": "000594-small-model",
+   "started": "08:59",
+   "elapsed": "0:00",
    "progress": null,
-   "eta": "~09:21"
+   "eta": "~10:34"
   }
  ],
- "waiting": [
+ "waiting": [],
+ "recent": [
   {
    "ticket": "000593-small-model",
    "id": "SM36",
    "what": "SM49: int4 notes, int4 shift vectors, per-head scales (4 int-state variants) for SM36, 732 pool (GPU check first)",
-   "flags": "expected 60 min"
+   "ended": "08:59",
+   "date": "10-21",
+   "exit": 1,
+   "ran": "0:00"
   },
   {
-   "ticket": "000594-small-model",
-   "id": "SM55",
-   "what": "SM55 replay targets, 3,000 final-tier users outside the 5k export (ticket 1, resumable)",
-   "flags": "expected 95 min"
-  }
- ],
- "recent": [
+   "ticket": "000592-small-model",
+   "id": "SM36",
+   "what": "SM48b: --lanes 1/2/4 + lane review budgets with SM47 int state variants (no lock), 40 users of the 732 pool, SM36",
+   "ended": "08:59",
+   "date": "10-21",
+   "exit": 0,
+   "ran": "0:13"
+  },
   {
    "ticket": "000591-small-model",
    "id": "SM36",
@@ -204,24 +209,6 @@
    "date": "10-21",
    "exit": 0,
    "ran": "0:05"
-  },
-  {
-   "ticket": "000587-small-model",
-   "id": "SM36",
-   "what": "SM46: pool 464 scoring of SM36 w8+vq5902x3028 (6 users, pass 2)",
-   "ended": "06:45",
-   "date": "10-21",
-   "exit": 0,
-   "ran": "0:05"
-  },
-  {
-   "ticket": "000586-small-model",
-   "id": "SM36",
-   "what": "SM46: pool 464 scoring of SM36 w8+vq5902x3028 (464 users, pass 1)",
-   "ended": "06:40",
-   "date": "10-21",
-   "exit": 0,
-   "ran": "1:39"
   }
  ],
  "plan": [
@@ -596,12 +583,12 @@
    "minutes": 400,
    "track": "small model",
    "decides": "Small win on instant only: vs the best model (AdamW) curve tied (+0.00002 [-0.00034, +0.00046]), instant -0.00018 [-0.00022, -0.00013] on 464 users (+0.81% / +0.68% vs the big model); same on 723 users (-0.00017 / -0.00020). Not the road to +0.5% by itself",
-   "state": "running",
-   "started_at": "2026-10-21T07:01:39+02:00",
-   "ended_at": "2026-10-20T06:42:20+02:00",
-   "started": "08:46",
-   "ticket": "000592-small-model",
-   "ends_at": "2026-10-21T13:41:39+02:00"
+   "state": "done",
+   "started_at": "2026-10-21T08:59:34+02:00",
+   "ended_at": "2026-10-21T08:59:57+02:00",
+   "ended": "08:59",
+   "exit": 1,
+   "started": "08:59"
   },
   {
    "id": "SM32c",
@@ -709,12 +696,12 @@
    "track": "small model",
    "when": "10-21 00:47 &rarr; 02:07 (break lifted early)",
    "decides": "Nearly free: 16-bit scales and int8 short-term vectors cost nothing (&plusmn;0.00000); the smallest format (11,824 / 10,272 bits, 37.6 MB, &minus;46% vs int8) costs only the int4-card +0.00005 / +0.00005 already known from SM45",
-   "state": "running",
-   "started_at": "2026-10-21T00:47:01+02:00",
-   "ended_at": "2026-10-21T02:06:33+02:00",
-   "started": "08:46",
-   "ticket": "000592-small-model",
-   "ends_at": "2026-10-21T02:42:01+02:00"
+   "state": "done",
+   "started_at": "2026-10-21T08:46:27+02:00",
+   "ended_at": "2026-10-21T08:59:34+02:00",
+   "ended": "08:59",
+   "exit": 0,
+   "started": "08:46"
   },
   {
    "what": "Faster held-out scoring: benchmark metrics computed on arrays instead of Python loops (same results bit for bit), and scoring 2 or 4 users at once on the GPU",
@@ -724,12 +711,12 @@
    "track": "small model",
    "when": "10-21 02:30 &rarr; 02:40 (timing run, 40 users)",
    "decides": "1.33&times; from array metrics, 1.56&times; with 4 users at once (46k &rarr; 61k &rarr; 72k reviews/s), every arm bit-for-bit identical. Several users at once needs ~1.4 GB more GPU memory",
-   "state": "running",
-   "started_at": "2026-10-21T02:29:37+02:00",
-   "ended_at": "2026-10-21T02:40:07+02:00",
-   "started": "08:46",
-   "ticket": "000592-small-model",
-   "ends_at": "2026-10-21T02:59:37+02:00"
+   "state": "done",
+   "started_at": "2026-10-21T08:46:27+02:00",
+   "ended_at": "2026-10-21T08:59:34+02:00",
+   "ended": "08:59",
+   "exit": 0,
+   "started": "08:46"
   },
   {
    "what": "Carried state, code (CPU): full-history targets (SM11, 18/18 checks) + kernels with a starting state and the trainer option (SM21, all checks bit for bit); merged together",
@@ -796,15 +783,16 @@
    "what": "Several users at once (SM48 lanes) with the SM47 int formats, now without the lock: exact vs one-at-a-time, speed and GPU memory under the ~0.8 cap. Also: the 9 users that never fit in memory are now skipped by pool scorings (723 of 732 users)",
    "id": "SM48b",
    "kind": "gpu-check",
-   "minutes": 35,
+   "minutes": 13,
    "track": "small model",
-   "when": "Wed 10-21, running since 08:46 (35 min timing run, 7 runs on 40 users)",
-   "decides": "Can every pool scoring from now on run ~1.5&times; faster?",
-   "state": "running",
+   "when": "Wed 10-21 08:46-08:59",
+   "decides": "Yes, exact: several users at once now gives bit-identical rows for the int formats (160/160 in every run). 2 at a time ~1.3&times; faster with room under the memory cap (12.1 of ~12.8 GiB); 4 at a time only slightly faster and at the cap. Two identical runs differed by ~&plusmn;17%, so the speed figure is rough. Pool scorings now skip the 9 users that never fit (723 of 732)",
+   "state": "done",
    "started_at": "2026-10-21T08:46:27+02:00",
-   "started": "08:46",
-   "ticket": "000592-small-model",
-   "ends_at": "2026-10-21T09:21:27+02:00"
+   "ended_at": "2026-10-21T08:59:34+02:00",
+   "ended": "08:59",
+   "exit": 0,
+   "started": "08:46"
   },
   {
    "what": "Smaller int state, round 2 (no retraining, SM36): A = 4-bit notes too, B = A + 4-bit short-term vectors, C = B + one scale per head instead of per row; 732 users. Plus (CPU) lossless compression of the stored codes on the collection copy",
@@ -814,8 +802,12 @@
    "track": "small model",
    "when": "Wed 10-21, queued behind SM48b (~09:25-10:25)",
    "decides": "How far below 37.6 MB is still nearly free? A 30.8 MB, B 28.7 MB, C 23.7 MB for 13,973 cards / 13,198 notes",
-   "state": "waiting",
-   "ticket": "000593-small-model"
+   "state": "done",
+   "ended": "08:59",
+   "exit": 1,
+   "started": "08:59",
+   "started_at": "2026-10-21T08:59:34+02:00",
+   "ended_at": "2026-10-21T08:59:57+02:00"
   },
   {
    "what": "Head-only fine-tunes: trunk frozen, the curve head alone on its loss, then the instant head alone (SM36 start), scored on 732 users",
@@ -845,8 +837,11 @@
    "track": "small model",
    "when": "Wed 10-21: teacher targets queued (~10:00-11:50, behind SM48b and SM49); decay starts ~12:00 if it can end before the 22:00 break (~20:10), otherwise 01:00 &rarr; Thu ~09:05; scoring after (~45 min)",
    "decides": "SM43 says more users win and the gap grows with training: how much does 8k gain over 5k?",
-   "state": "waiting",
-   "ticket": "000594-small-model"
+   "state": "running",
+   "started": "08:59",
+   "ticket": "000594-small-model",
+   "started_at": "2026-10-21T08:59:57+02:00",
+   "ends_at": "2026-10-21T19:29:57+02:00"
   },
   {
    "what": "Checkpoint averaging: average the last 2, 3 or 4 SM39 decay snapshots, scored with the final weights on 723 users",
