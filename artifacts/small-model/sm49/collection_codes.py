@@ -55,7 +55,7 @@ def per_stream(x):
 
 WKV_BITS, SHIFT_BITS = per_stream(STATE.wkv_bits), per_stream(STATE.shift_bits)
 assert all(b & F16_SCALE for b in (*WKV_BITS.values(), *SHIFT_BITS.values())), "f16 scales only"
-SPLIT = {0: -1, 2: -1}
+CALLS = {}   # split id = the n-th call of a (stream, layer) WKV / (stream, layer, role) shift gather (one per split)
 WKV, SHIFT = {}, {}   # (stream, split, layer) -> [codes, scales, seen]; (stream, split, layer, role) -> (codes, scales, has)
 CHECKS = {"wkv_steps": 0, "shift_calls": 0}
 
@@ -75,17 +75,14 @@ _install = state_vq.install
 def install(model, streams=(0, 2)):
     layout = _install(model, streams)
     from expertium.model import rwkv_model as erm
-    for stream in (0, 2):   # split counter: the first block's time mixer starts every split of the stream
-        def hook(_module, _args, stream=stream):
-            SPLIT[stream] += 1
-        model.rwkv_modules[stream].blocks[0].time_mixer.register_forward_pre_hook(hook)
     ref = erm.reference_rwkv7
 
     def recording(r, k, v, w, a, kd, skip):
         cur = state_vq.Hooks.current
         if cur is not None and cur[2] == "t" and cur[:2] in state_vq.Hooks.wkv:
             B, T, H, K = r.shape
-            ACTIVE["key"] = key = (cur[0], SPLIT[cur[0]], cur[1])
+            n = CALLS[cur[:2]] = CALLS.get(cur[:2], -1) + 1
+            ACTIVE["key"] = key = (cur[0], n, cur[1])
             WKV[key] = [torch.zeros(B, H, K, K, dtype=torch.int8), None, torch.zeros(B, dtype=torch.bool)]
         else:
             ACTIVE["key"] = None
@@ -128,7 +125,8 @@ def record_shift(vecs, cur):
     q, scale = codes_of(final, SHIFT_BITS[stream], -1)
     fn = state_vq.Hooks.shift[cur]
     assert torch.equal(q * scale, fn(final, cur)), cur
-    SHIFT[(stream, SPLIT[stream], layer, role)] = (q.to(torch.int8), scale, has)
+    n = CALLS[cur] = CALLS.get(cur, -1) + 1
+    SHIFT[(stream, n, layer, role)] = (q.to(torch.int8), scale, has)
     CHECKS["shift_calls"] += 1
 
 
@@ -157,7 +155,8 @@ if (OUT / "collection-row.jsonl").exists():
     (OUT / "collection-row.jsonl").unlink()
 sm.main()
 
-meta = {"variant": variant, "checks": CHECKS, "entities": {}, "fields": {}}
+meta = {"variant": variant, "checks": CHECKS, "calls": {str(k): v + 1 for k, v in CALLS.items()}, "entities": {}, "fields": {}}
+print(meta["calls"], flush=True)
 for stream, entity in ((0, "card"), (2, "note")):
     splits = sorted({k[1] for k in WKV if k[0] == stream})
     layers = sorted({k[2] for k in WKV if k[0] == stream})
