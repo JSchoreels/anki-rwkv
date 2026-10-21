@@ -754,6 +754,136 @@
    "track": "small model",
    "decides": "Method, not sample size: the new 34 users agree. On all 68: trained-in vs after-training +0.0014 [+0.0005, +0.0023] curve / +0.0010 [+0.0007, +0.0013] instant",
    "ended_at": "2026-10-19T12:40:11+02:00"
+  },
+  {
+   "what": "Several users at once (SM48 lanes) with the SM47 int formats: exact vs one-at-a-time, and GPU memory under the ~0.8 cap",
+   "id": "SM48b",
+   "kind": "gpu-check",
+   "minutes": 10,
+   "track": "small model",
+   "match": [
+    "SM48b"
+   ],
+   "when": "Wed 10-21 (day 1)",
+   "decides": "Can every pool scoring from now on run ~1.5&times; faster?",
+   "state": "planned"
+  },
+  {
+   "what": "Smaller int state, round 2 (no retraining, SM36): A = 4-bit notes too, B = A + 4-bit short-term vectors, C = B + one scale per head instead of per row; 732 users. Plus (CPU) lossless compression of the stored codes on the collection copy",
+   "id": "SM49",
+   "kind": "gpu-check",
+   "minutes": 70,
+   "track": "small model",
+   "match": [
+    "SM49"
+   ],
+   "when": "Wed 10-21 (day 1)",
+   "decides": "How far below 37.6 MB is still nearly free? A 30.8 MB, B 28.7 MB, C 23.7 MB for 13,973 cards / 13,198 notes",
+   "state": "planned"
+  },
+  {
+   "what": "Head-only fine-tunes: trunk frozen, the curve head alone on its loss, then the instant head alone (SM36 start), scored on 732 users",
+   "id": "SM50",
+   "kind": "gpu-train",
+   "minutes": 180,
+   "track": "small model",
+   "match": [
+    "SM50"
+   ],
+   "when": "Wed 10-21 (day 1)",
+   "decides": "Is either head under-trained? Gains would be free at runtime and keep the stored state (and SM47/SM49 results) unchanged",
+   "state": "planned"
+  },
+  {
+   "what": "Muon tuning, arm 1: SM36&rsquo;s one-epoch 32k decay with the learning rate &times;0.5 (pointer from outside research), saving 4 snapshots along the decay for SM51",
+   "id": "SM39",
+   "kind": "gpu-train",
+   "minutes": 360,
+   "track": "small model",
+   "match": [
+    "SM39 arm 1"
+   ],
+   "when": "Wed 10-21 night (day 1&ndash;2)",
+   "decides": "Muon was the last win (~&minus;0.0002); is its learning rate right?",
+   "state": "planned"
+  },
+  {
+   "what": "Better teacher targets: replay the big model over each user&rsquo;s full history (5.2 h), then SM36&rsquo;s decay distilled on those targets",
+   "id": "SM11",
+   "kind": "gpu-train",
+   "minutes": 660,
+   "track": "small model",
+   "match": [
+    "SM11"
+   ],
+   "when": "Thu 10-22 day + night",
+   "decides": "Do full-history teacher targets beat window-only targets?",
+   "state": "planned"
+  },
+  {
+   "what": "Checkpoint averaging: average the SM39 decay snapshots, scored on 732 users",
+   "id": "SM51",
+   "kind": "gpu-check",
+   "minutes": 40,
+   "track": "small model",
+   "match": [
+    "SM51"
+   ],
+   "when": "Fri 10-23",
+   "decides": "A free gain from weight averaging? Expected &minus;0.0001 to &minus;0.0003",
+   "state": "planned"
+  },
+  {
+   "what": "Muon tuning, arm 2: learning rate &times;2, or a head-weighted decay instead if SM50 found head slack",
+   "id": "SM39",
+   "kind": "gpu-train",
+   "minutes": 360,
+   "track": "small model",
+   "match": [
+    "SM39 arm 2"
+   ],
+   "when": "Fri 10-23 night",
+   "decides": "Second point of the learning-rate check",
+   "state": "planned"
+  },
+  {
+   "what": "Real-timestamp inputs (card age, time since any review, creation batch): dataset build with timestamps (CPU, Thu&ndash;Fri), then a fine-tune from SM36 with the new inputs starting at zero (1 epoch + decay at 32k)",
+   "id": "SM37",
+   "kind": "gpu-train",
+   "minutes": 700,
+   "track": "small model",
+   "match": [
+    "SM37"
+   ],
+   "when": "Sat 10-24 &rarr; Sun 10-25",
+   "decides": "The big bet: outside research saw about &minus;0.0005 / &minus;0.0008, a third to nearly half of today&rsquo;s gap",
+   "state": "planned"
+  },
+  {
+   "what": "Deployment-realistic scoring without the review-duration leak, both the big model and SM36",
+   "id": "SM31",
+   "kind": "gpu-check",
+   "minutes": 60,
+   "track": "small model",
+   "match": [
+    "SM31"
+   ],
+   "when": "Sun 10-25 (alongside SM37 on CPU or between tickets)",
+   "decides": "Honest final numbers; outside runs: +0.0002 / +0.0004 for both models",
+   "state": "planned"
+  },
+  {
+   "what": "Stack the week&rsquo;s winners (learning rate, teacher targets, timestamps, head changes) into one decay; then the decisive 2,225-user check",
+   "id": "SM52",
+   "kind": "gpu-train",
+   "minutes": 360,
+   "track": "small model",
+   "match": [
+    "SM52"
+   ],
+   "when": "Mon 10-26 &rarr; Tue 10-27",
+   "decides": "New best small model, closer to the big model than +0.64% / +0.63%",
+   "state": "planned"
   }
  ],
  "backlog": [
@@ -775,14 +905,14 @@
    "status": "parked",
    "item": "Instant-weighted (x2) final decay (fixed and checked, ready to run)",
    "id": "SM26",
-   "why": "Moved back 10-18: instant already passes the bar (+0.94%) and the weighting likely costs curve, the failing head. Insurance if a later model slips on instant",
+   "why": "Moved back 10-18: instant already passes the bar (+0.94%) and the weighting likely costs curve, the failing head. Insurance if a later model slips on instant. Only if SM50 shows head slack",
    "track": "small model"
   },
   {
    "status": "next",
    "item": "Teacher targets from the big model&rsquo;s full-history replay",
    "id": "SM11",
-   "why": "Needed with carried state; 5.2 h GPU, 3.7 GB",
+   "why": "Needed with carried state; 5.2 h GPU, 3.7 GB. Week plan: Thu 10-22",
    "track": "small model"
   },
   {
@@ -817,7 +947,7 @@
    "status": "next",
    "item": "Deployment-realistic scoring without the duration leak",
    "id": "SM31",
-   "why": "Intervals as Anki knows them when it shows the card; both models, cheap. Outside runs: +0.0002 / +0.0004 cost",
+   "why": "Intervals as Anki knows them when it shows the card; both models, cheap. Outside runs: +0.0002 / +0.0004 cost. Week plan: Sun 10-25",
    "track": "small model"
   },
   {
@@ -835,10 +965,10 @@
    "track": "small model"
   },
   {
-   "status": "idea",
+   "status": "next",
    "item": "Real-timestamp inputs (card age, time since any review, creation batch)",
    "id": "SM37",
-   "why": "Outside pointer: about &minus;0.0005 / &minus;0.0008 net of the clock leak; needs the dataset build with timestamps",
+   "why": "Outside pointer: about &minus;0.0005 / &minus;0.0008 net of the clock leak; needs the dataset build with timestamps. Week plan: dataset Thu&ndash;Fri, fine-tune from SM36 Sat&ndash;Sun",
    "track": "small model"
   },
   {
@@ -863,10 +993,10 @@
    "track": "small model"
   },
   {
-   "status": "idea",
+   "status": "next",
    "item": "Open tuning queue from outside research (Muon learning rate x0.5 / x2, longer warmup)",
    "id": "SM39",
-   "why": "Pointers only: we keep our own training setup (decision 10-17)",
+   "why": "Pointers only: we keep our own training setup (decision 10-17). Week plan 10-21: arm 1 (&times;0.5) Wed night, arm 2 Fri night",
    "track": "small model"
   },
   {
@@ -994,6 +1124,55 @@
    "track": "curve stability",
    "item": "Separate short-term and long-term updates (a learned gate on the long-term curve)",
    "why": "Architecture change; only if consistency losses fail the quality gate"
+  },
+  {
+   "status": "next",
+   "id": "SM49",
+   "track": "small model",
+   "item": "Smaller int state round 2 + lossless compression of the stored codes",
+   "why": "See the week plan; no retraining"
+  },
+  {
+   "status": "next",
+   "id": "SM50",
+   "track": "small model",
+   "item": "Head-only fine-tunes (trunk frozen), one per head",
+   "why": "Cheapest head-specific test; state unchanged"
+  },
+  {
+   "status": "next",
+   "id": "SM51",
+   "track": "small model",
+   "item": "Checkpoint (weight) averaging over the final decay",
+   "why": "Needs snapshots: saved during the next decay (SM39 arm 1)"
+  },
+  {
+   "status": "next",
+   "id": "SM52",
+   "track": "small model",
+   "item": "Stacked decay of the week&rsquo;s winners, then 2,225-user check",
+   "why": "End of week 10-26/27"
+  },
+  {
+   "status": "idea",
+   "id": "SM53",
+   "track": "small model",
+   "item": "Per-head distillation weight (more teacher on one head, more real answers on the other)",
+   "why": "Cheap to add to a decay; small expected gain"
+  },
+  {
+   "status": "idea",
+   "id": "SM54",
+   "track": "small model",
+   "item": "Train on more users than the 5,000 used so far (SM43: more users win)",
+   "why": "First count how many benchmark users are not used for training or evaluation (CPU, minutes)"
+  },
+  {
+   "status": "next",
+   "id": "EVAL",
+   "track": "small model",
+   "item": "Runbooks skip the users that never fit in GPU memory instead of retrying them 3&times;",
+   "why": "~35 min of GPU lost on 10-21 (SM44, SM46); no GPU needed"
   }
  ],
  "known_labels": [
