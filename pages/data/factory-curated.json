@@ -683,8 +683,11 @@
    "match": [
     "SM48"
    ],
-   "when": "queued, runs after the current SM44 ticket (~02:40), one timing run of ~12&ndash;20 min on 40 users; code ready 19:31 (CPU checks: identical results)",
-   "decides": "How much faster pool scoring gets. Profile: only half of scoring time is the model; the other half is Python bookkeeping (metrics alone ~10&times; cheaper now, ~1.5&times; projected overall), and the model call keeps 4 of the GPU&rsquo;s 84 compute units busy, hence several users at once. Projections only until the timing run."
+   "when": "10-21 02:30 &rarr; 02:40 (timing run, 40 users)",
+   "decides": "1.33&times; from array metrics, 1.56&times; with 4 users at once (46k &rarr; 61k &rarr; 72k reviews/s), every arm bit-for-bit identical. Several users at once needs ~1.4 GB more GPU memory",
+   "state": "done",
+   "started_at": "2026-10-21T02:29:37+02:00",
+   "ended_at": "2026-10-21T02:40:07+02:00"
   },
   {
    "what": "Carried state, code (CPU): full-history targets (SM11, 18/18 checks) + kernels with a starting state and the trainer option (SM21, all checks bit for bit); merged together",
@@ -1005,6 +1008,16 @@
   "s-w64kd-gate-ctx2048c-dec8-1ep/w8+s8"
  ],
  "results": [
+  {
+   "date": "10-21",
+   "kind": "gpu-speed",
+   "name": "Faster held-out scoring: benchmark metrics on arrays instead of Python loops, and 2 or 4 users at once on the GPU (timing run, 40 users of the 732 set, SM36 int8 + int4-card state)",
+   "id": "SM48",
+   "eval": "40 users, 4.51M review-evals per run, 2 runs per arm",
+   "fork": "old path: 46,144 reviews/s",
+   "takeaway": "<strong>1.56&times; faster pool scoring, same numbers bit for bit</strong>: array metrics 61,430 reviews/s (1.33&times;), 2 users at once 66,484 (1.44&times;), 4 at once 72,074 (1.56&times;). Two state formats on the 732 set: ~36 min &rarr; ~23 min. GPU memory 13.1 &rarr; 14.5 GB with several users at once",
+   "track": "small model"
+  },
   {
    "date": "10-21",
    "kind": "gpu-check",
