@@ -764,7 +764,7 @@
    "match": [
     "SM48b"
    ],
-   "when": "Wed 10-21 (day 1)",
+   "when": "Wed 10-21 (today), being prepared",
    "decides": "Can every pool scoring from now on run ~1.5&times; faster?",
    "state": "planned"
   },
@@ -777,7 +777,7 @@
    "match": [
     "SM49"
    ],
-   "when": "Wed 10-21 (day 1)",
+   "when": "Wed 10-21 (today), being prepared",
    "decides": "How far below 37.6 MB is still nearly free? A 30.8 MB, B 28.7 MB, C 23.7 MB for 13,973 cards / 13,198 notes",
    "state": "planned"
   },
@@ -790,7 +790,7 @@
    "match": [
     "SM50"
    ],
-   "when": "Wed 10-21 (day 1)",
+   "when": "Wed 10-21 (today), being prepared",
    "decides": "Is either head under-trained? Gains would be free at runtime and keep the stored state (and SM47/SM49 results) unchanged",
    "state": "planned"
   },
@@ -803,21 +803,21 @@
    "match": [
     "SM39 arm 1"
    ],
-   "when": "Wed 10-21 night (day 1&ndash;2)",
+   "when": "Thu 10-22 after SM55 (~09:00 &rarr; ~15:00)",
    "decides": "Muon was the last win (~&minus;0.0002); is its learning rate right?",
    "state": "planned"
   },
   {
-   "what": "Better teacher targets: replay the big model over each user&rsquo;s full history (5.2 h), then SM36&rsquo;s decay distilled on those targets",
-   "id": "SM11",
+   "what": "The best recipe (SM36) on 8,000 training users instead of 5,000 (581.9M vs 369.5M reviews), one change: full-history teacher targets for the 3,000 extra users (~3 h), then the one-epoch 32k decay over 8k users (~6.6 h), scored on 732 users",
+   "id": "SM55",
    "kind": "gpu-train",
-   "minutes": 660,
+   "minutes": 600,
    "track": "small model",
    "match": [
-    "SM11"
+    "SM55"
    ],
-   "when": "Thu 10-22 day + night",
-   "decides": "Do full-history teacher targets beat window-only targets?",
+   "when": "Wed 10-21: teacher targets for the extra users today; decay from 01:00 &rarr; Thu ~08:00; scoring after",
+   "decides": "SM43 says more users win and the gap grows with training: how much does 8k gain over 5k?",
    "state": "planned"
   },
   {
@@ -829,7 +829,7 @@
    "match": [
     "SM51"
    ],
-   "when": "Fri 10-23",
+   "when": "Thu 10-22 after SM39 arm 1",
    "decides": "A free gain from weight averaging? Expected &minus;0.0001 to &minus;0.0003",
    "state": "planned"
   },
@@ -842,7 +842,7 @@
    "match": [
     "SM39 arm 2"
    ],
-   "when": "Fri 10-23 night",
+   "when": "Fri 10-23 from 01:00",
    "decides": "Second point of the learning-rate check",
    "state": "planned"
   },
@@ -855,7 +855,7 @@
    "match": [
     "SM37"
    ],
-   "when": "Sat 10-24 &rarr; Sun 10-25",
+   "when": "Fri 10-23 &rarr; Sat 10-24 (dataset on CPU Thu&ndash;Fri; starts from the 8k model if it wins)",
    "decides": "The big bet: outside research saw about &minus;0.0005 / &minus;0.0008, a third to nearly half of today&rsquo;s gap",
    "state": "planned"
   },
@@ -868,7 +868,7 @@
    "match": [
     "SM31"
    ],
-   "when": "Sun 10-25 (alongside SM37 on CPU or between tickets)",
+   "when": "Sat 10-24",
    "decides": "Honest final numbers; outside runs: +0.0002 / +0.0004 for both models",
    "state": "planned"
   },
@@ -881,7 +881,7 @@
    "match": [
     "SM52"
    ],
-   "when": "Mon 10-26 &rarr; Tue 10-27",
+   "when": "Sun 10-25 (before the 16:00 break) &rarr; Tue 10-27, then the 2,225-user check",
    "decides": "New best small model, closer to the big model than +0.64% / +0.63%",
    "state": "planned"
   }
@@ -912,7 +912,7 @@
    "status": "next",
    "item": "Teacher targets from the big model&rsquo;s full-history replay",
    "id": "SM11",
-   "why": "Needed with carried state; 5.2 h GPU, 3.7 GB. Week plan: Thu 10-22",
+   "why": "Needed with carried state; 5.2 h GPU, 3.7 GB. Already in use: the SM40v2 / SM36 final decays train on replay targets (5k users); 8k needs them for the 3,000 extra users (part of SM55)",
    "track": "small model"
   },
   {
@@ -2003,5 +2003,11 @@
    "takeaway": "Starting point",
    "track": "small model"
   }
- ]
+ ],
+ "gpu_break": {
+  "start": "21:00",
+  "end": "01:00",
+  "until": "2026-10-28T01:00",
+  "label": "Breaks this week: no GPU work 21:00&ndash;01:00 (tonight from 22:00; Sunday 10-25 from 16:00). Jobs that would run into a break wait for 01:00"
+ }
 }
