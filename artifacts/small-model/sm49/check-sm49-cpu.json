@@ -1,0 +1,163 @@
+{
+ "users": [
+  1425,
+  1893,
+  2388
+ ],
+ "metrics": [
+  "curve_log_loss",
+  "curve_raw_log_loss",
+  "instant_log_loss",
+  "instant_rating_cross_entropy",
+  "benchmark ahead/instant LogLoss, RMSE, RMSE(bins), AUC, size"
+ ],
+ "i_old_variants_reproduce_sm47": {
+  "w8+s8": true,
+  "w8+s4c8n": true,
+  "w8+s8hx8": true,
+  "w8+s4c8nhx8": true,
+  "emulated w8+s4c8nhx8": true
+ },
+ "ii_new_vs_sm47_smallest": {
+  "w8+s4hx8": {
+   "differs": true,
+   "benchmark_dlogloss_per_user_head": [
+    -0.00015900000000002024,
+    -0.0005600000000000049,
+    2.3999999999996247e-05,
+    2.0000000000002655e-06,
+    4.099999999998549e-05,
+    2.000000000002e-06
+   ],
+   "entity_bits": {
+    "card": 11824,
+    "note": 6176
+   },
+   "bits_as_expected": true,
+   "state_fields": {
+    "state_bits": 4,
+    "state_scale_bits": 16,
+    "state_shift_bits": 8,
+    "state_scale_per": null
+   }
+  },
+  "w8+s4hx4": {
+   "differs": true,
+   "benchmark_dlogloss_per_user_head": [
+    0.00017800000000001148,
+    -0.0006320000000000769,
+    -4.900000000000043e-05,
+    9.999999999999593e-06,
+    -0.0004119999999999957,
+    -4.500000000000337e-05
+   ],
+   "entity_bits": {
+    "card": 11056,
+    "note": 5664
+   },
+   "bits_as_expected": true,
+   "state_fields": {
+    "state_bits": 4,
+    "state_scale_bits": 16,
+    "state_shift_bits": 4,
+    "state_scale_per": null
+   }
+  },
+  "w8+s4hgx4": {
+   "differs": true,
+   "benchmark_dlogloss_per_user_head": [
+    0.0003529999999999367,
+    -0.0002870000000000372,
+    5.3999999999998494e-05,
+    2.3999999999999716e-05,
+    -0.00022099999999999898,
+    -0.00010100000000000386
+   ],
+   "entity_bits": {
+    "card": 9136,
+    "note": 4704
+   },
+   "bits_as_expected": true,
+   "state_fields": {
+    "state_bits": 4,
+    "state_scale_bits": 16,
+    "state_shift_bits": 4,
+    "state_scale_per": "head"
+   }
+  },
+  "w8+s4hgx4c8hx8n": {
+   "differs": true,
+   "benchmark_dlogloss_per_user_head": [
+    0.00024299999999999322,
+    0.00012000000000000899,
+    -7.700000000000068e-05,
+    2.000000000000092e-05,
+    -0.0003170000000000117,
+    -5.0000000000050004e-06
+   ],
+   "entity_bits": {
+    "card": 9136,
+    "note": 10272
+   },
+   "bits_as_expected": true,
+   "state_fields": {
+    "state_bits": [
+     4,
+     8
+    ],
+    "state_scale_bits": 16,
+    "state_shift_bits": [
+     4,
+     8
+    ],
+    "state_scale_per": [
+     "head",
+     "row"
+    ]
+   }
+  }
+ },
+ "iii_gpu_path_on_cpu_vs_cpu": {
+  "w8+s4hx8": {
+   "exact": true,
+   "max_abs_dlogloss_benchmark": 0.0,
+   "max_abs_d_curve_log_loss": 0.0,
+   "max_abs_d_instant_log_loss": 0.0,
+   "path": {
+    "card": "int kernel bits 260, shift bits 264",
+    "note": "int kernel bits 260, shift bits 264"
+   }
+  },
+  "w8+s4hx4": {
+   "exact": true,
+   "max_abs_dlogloss_benchmark": 0.0,
+   "max_abs_d_curve_log_loss": 0.0,
+   "max_abs_d_instant_log_loss": 0.0,
+   "path": {
+    "card": "int kernel bits 260, shift bits 260",
+    "note": "int kernel bits 260, shift bits 260"
+   }
+  },
+  "w8+s4hgx4": {
+   "exact": true,
+   "max_abs_dlogloss_benchmark": 0.0,
+   "max_abs_d_curve_log_loss": 0.0,
+   "max_abs_d_instant_log_loss": 0.0,
+   "path": {
+    "card": "int kernel bits 772, shift bits 260",
+    "note": "int kernel bits 772, shift bits 260"
+   }
+  },
+  "w8+s4hgx4c8hx8n": {
+   "exact": true,
+   "max_abs_dlogloss_benchmark": 0.0,
+   "max_abs_d_curve_log_loss": 0.0,
+   "max_abs_d_instant_log_loss": 0.0,
+   "path": {
+    "card": "int kernel bits 772, shift bits 260",
+    "note": "int kernel bits 264, shift bits 264"
+   }
+  }
+ },
+ "passed": true
+}

@@ -491,13 +491,17 @@ class StateCodec:
 def int_row_quant(bits):
     """The fork's int8/int4 per-row WKV state rounding (`+s8`/`+s4`), as scripts/small_model_wkv.reference.
     SM47: `bits | small_model_wkv.F16_SCALE` rounds the row scale to float16 first (the kernel's f16_round_scale).
-    Also the per-vector int8 token-shift rounding (rows = the stored 64-float shift vectors)."""
-    from scripts.small_model_wkv import F16_SCALE, round_scale_f16
+    Also the per-vector int8 token-shift rounding (rows = the stored 64-float shift vectors).
+    SM49: `bits | small_model_wkv.HEAD_SCALE` = one scale per head ([..., K, K] WKV state only), the kernel's warp max."""
+    from scripts.small_model_wkv import F16_SCALE, HEAD_SCALE, round_scale_f16
     qmax = 127.0 if (bits & 255) == 8 else 7.0
     f16 = bool(bits & F16_SCALE)
+    dims = (-2, -1) if bits & HEAD_SCALE else -1
 
     def quant(nxt):
-        scale = nxt.abs().amax(-1, keepdim=True) / qmax
+        if dims != -1 and nxt.dim() < 3:
+            raise ValueError("HEAD_SCALE is for [..., K, K] WKV states")
+        scale = nxt.abs().amax(dims, keepdim=True) / qmax
         if f16:
             scale = round_scale_f16(scale)
         scale = torch.where(scale > 0, scale, torch.ones_like(scale))
@@ -624,7 +628,11 @@ def configure(layout, codecs=None, int_bits=0, shift_bits=0):
             for layer, role in info["shift_vectors"]:
                 Hooks.shift[(stream, layer, role)] = lambda x, cur, c=codecs[stream], r=role: c.shift(x, r)
         elif shift_bits:
-            q = int_row_quant(shift_bits)
+            # SM49: shift_bits may be a (card, note) tuple of per-stream shift bits
+            bits = dict(zip((0, 2), shift_bits)).get(stream, 0) if isinstance(shift_bits, tuple) else shift_bits
+            if not bits:
+                continue
+            q = int_row_quant(bits)
             for layer, role in info["shift_vectors"]:
                 Hooks.shift[(stream, layer, role)] = lambda x, cur, q=q: q(x)
 
@@ -889,9 +897,11 @@ class IntScoreCodec:
 
 
 def int_score_codecs(wkv_bits, shift_bits=0):
-    """{stream: IntScoreCodec}; wkv_bits an int (both streams) or a (card, note) tuple."""
-    per = dict(zip(STATE_STREAMS, wkv_bits)) if isinstance(wkv_bits, tuple) else dict.fromkeys(STATE_STREAMS, wkv_bits)
-    return {s: IntScoreCodec(per[s], shift_bits) for s in STATE_STREAMS}
+    """{stream: IntScoreCodec}; wkv_bits / shift_bits an int (both streams) or a (card, note) tuple."""
+    def per(x):
+        return dict(zip(STATE_STREAMS, x)) if isinstance(x, tuple) else dict.fromkeys(STATE_STREAMS, x)
+    wkv, shift = per(wkv_bits), per(shift_bits)
+    return {s: IntScoreCodec(wkv[s], shift[s]) for s in STATE_STREAMS}
 
 
 def score_path(codecs):
