@@ -34,6 +34,7 @@ in his engine), exact nearest-centroid search by matmul distances.
 """
 from dataclasses import dataclass, field, replace
 from pathlib import Path
+import threading
 import math
 
 import numpy as np
@@ -847,7 +848,31 @@ def uninstall_training(model):
 # the GPU through SCORE_EMULATE (scripts/state_vq_cuda_emu.forward) when set, else the torch loop with the same "sq"
 # codec (the kernel's arithmetic in torch).
 
-SCORE = {}                        # stream -> StateCodec with .score_kernel (KernelCodec or None)
+class _ThreadSlots:
+    """stream -> codec, one table per thread (SM48b: --lanes N runs a model copy per lane thread, and a lane scoring an
+    int variant must not see or clear another lane's codecs). Supports what this module uses: [], clear, update."""
+
+    def __init__(self):
+        self._local = threading.local()
+
+    @property
+    def _table(self):
+        table = getattr(self._local, "table", None)
+        if table is None:
+            table = self._local.table = {}
+        return table
+
+    def __getitem__(self, slot):
+        return self._table[slot]
+
+    def clear(self):
+        self._table.clear()
+
+    def update(self, codecs):
+        self._table.update(codecs)
+
+
+SCORE = _ThreadSlots()            # stream -> StateCodec with .score_kernel (KernelCodec or None), per thread
 SCORE_EMULATE = None              # check only: fn(kernel_codec, r, k, v, w, a, kd, skip) -> out, for CPU tensors
 SCORE_KERNEL_POSITIONS = 1 << 17  # rows x steps per kernel launch (the kernel's state record: 4 KB per position)
 SCORE_TORCH_CHUNK = 1 << 15       # SM46: CUDA torch-loop streams: rows per nearest-centroid distance matrix (128 MB);

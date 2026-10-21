@@ -1,0 +1,16 @@
+{
+  "users": [650, 4501, 1601, 1534, 70, 4922, 4379, 1479, 4625],
+  "usage": "scripts/small_model_heldout.py --exclude-users-file artifacts/small-model/never-fit-users.json (pools 732 and 464 use the same file: the 464 pool is a subset of the 732 pool)",
+  "vq_only": [4852],
+  "in_464_pool": [650, 4501, 70, 4922, 4379, 1479],
+  "in_732_pool_only": [1601, 1534, 4625],
+  "reviews": {"650": 568206, "4501": 599569, "1601": 607427, "1534": 668023, "70": 720110, "4922": 733759, "4379": 739704, "1479": 860510, "4625": 919958},
+  "reason": "CUDA OOM on the 16.3 GB GPU at the scorer's default memory cap (HELDOUT_GPU_MEMORY_FRACTION 0.8): the 9 users with the most reviews (>= 568k) of the 732 pool. Users up to 531k reviews (3735) score; 4852 (501,672 reviews) scores the plain int variants (w8+s8) but not the +vq variants (not listed: do not exclude it for plain variants).",
+  "evidence": {
+    "sm44_runbook": "C:/Users/jonat/workspace/wt/sm32c/artifacts/small-model/sm44/runbook-sm44.log + heldout-sm44.jsonl: pool 732, all 9 users: only 'OOM: CUDA out of memory' rows (0 successes) for w8+vq378x412, w8+vq770x828 and w8+s8, retried as passes 2-4 (3 retries each, 9-10 users / 6.4-6.9M reviews per pass, ~35 min wasted).",
+    "sm46_runbook": "C:/Users/jonat/workspace/wt/sm46/artifacts/small-model/sm46/runbook-sm46.log + heldout-sm46.jsonl: pool 464, 6 users (650, 4501, 70, 4922, 4379, 1479): OOM rows only for w8+vq5902x3028, passes 2-6 (4.2M reviews each) never changed that.",
+    "sm40v2_sm42_pools": "artifacts/small-model/heldout-sm40v2-pools.jsonl and heldout-sm42-pools.jsonl: the same 9 users, error rows only.",
+    "older_rows": "artifacts/small-model/heldout.jsonl (commit 7bb16b6c era, other scorer/memory settings) holds fp32 rows for 650, 4501, 70, 4922, 4379, 1479 and heldout-pools.jsonl has fork/early small-model w8+s8 rows for 1601 and 1534; those predate the SM44+ scorer and are not reproduced at the 0.8 cap."
+  },
+  "rule": "Pool runbooks pass --exclude-users-file and do not retry these users. A pool score with this file covers 723 of 732 (455 of 464) users; say so when quoting pool numbers. Lift the exclusion only after a scorer change that fits the largest user (e.g. window/chunked scoring) and a check."
+}

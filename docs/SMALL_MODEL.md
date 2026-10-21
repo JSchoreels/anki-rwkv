@@ -1077,6 +1077,28 @@ State = card + note state of the largest dataset user (246,801 cards, 76,887 not
 
   All 7 later runs match the first old run bitwise (80/80 row pairs each, no error rows). Memory: lanes raise the peak by about 1.4 GB (default `--lane-review-budget` 400k), above the ~0.8 cap (~13 GB of the 16.3 GB card) for new GPU jobs; for pool scoring use a lower budget or note the overshoot. Implementation commit be20647f; follow-up in `sm48/HANDOFF-sm48.md`.
 
+### Lanes with int state variants, and users that never fit (SM48b)
+
+2026-10-21, branch `sm48b`. Details and results: [sm48b/HANDOFF-sm48b.md](../artifacts/small-model/sm48b/HANDOFF-sm48b.md).
+
+- **Lane-safe int variants**: `state_vq.SCORE` (the stream -> codec table the SM47 int variants use) is now per thread, and the int codecs are stateless, so `--lanes N` no longer takes a lock for w8+s8hx8, w8+s4c8nhx8 and the other IntState variants. The lock stays for +vq variants (shared codecs and kernel buffers); `HELDOUT_INT_LANE_LOCK=1` brings back the SM47 lock for an A/B. CPU check: lanes 2 vs 1 with the emulated GPU path, 8/8 row pairs bitwise (`sm48b/check-cpu-int-lanes1-vs-lanes2.json`). GPU timing: below.
+- **GPU timing (ticket 000592, `--timing`, finished 2026-10-21 08:59, [summary](../artifacts/small-model/sm48b/timing/summary.md))**: 40 mid-size users of the 732 pool, SM36, four int variants (w8+s8, w8+s4c8n, w8+s8hx8, w8+s4c8nhx8), 9,022,128 review-evals per run, 160 rows per run, 0 error rows. All 6 compares against run 1 are 160/160 pairs bitwise.
+
+  | Run | review-evals/s | vs mean of the two `--lanes 1` runs | torch reserved GiB |
+  |---|---:|---:|---:|
+  | `--lanes 1` (run 1) | 84,535 | 1.17x | 11.33 |
+  | `--lanes 1` (run 7, identical) | 60,258 | 0.83x | 11.33 |
+  | `--lanes 2` | 94,576 | 1.31x | 12.07 |
+  | `--lanes 4` | 98,355 | 1.36x | 12.71 |
+  | `--lanes 4 --lane-review-budget 250000` | 89,919 | 1.24x | 12.71 |
+  | `--lanes 4 --lane-review-budget 150000` | 88,190 | 1.22x | 12.64 |
+  | `--lanes 4` with the old lock | 85,111 | 1.18x | 12.71 |
+
+  Noise: the two identical `--lanes 1` runs differ by about +-17% (84,535 vs 60,258), so the speedups are relative to their mean (~72.4k) and **one repeat is not enough for a precise speed claim**; read 1.3x for lanes 2 as "clearly not slower, probably 1.2-1.4x". The lock run (85,111) sits between the two `--lanes 1` runs, so the lock A/B is inconclusive on speed; removing the lock is justified by the bitwise results, not by a measured gain.
+  Memory: the 0.8 cap is about 12.8 GiB of the 16 GiB card in torch terms. Torch reserved: lanes 1 11.33 GiB, lanes 2 12.07, lanes 4 12.71 (at the cap), with only these 40 mid-size users; larger users would not fit at 4 lanes. Lane review budgets 250k and 150k did not lower reserved memory and were slower than the default 400k. nvidia-smi max 13.5-15.2 GiB (adds context and per-stream workspaces).
+  **Recommendation**: `--lanes 2` for pool scorings (bitwise, ~1.3x, headroom under the cap). `--lanes 4` is not recommended: only slightly faster than lanes 2, sits at the cap, and larger users could OOM. The old lock is no longer needed for int variants.
+- **Users that never fit**: nine users of the 732 pool (650, 4501, 1601, 1534, 70, 4922, 4379, 1479, 4625; 568k to 920k reviews; 650, 4501, 70, 4922, 4379 and 1479 are also in the 464 pool) run out of GPU memory at the scorer's default 0.8 cap for every variant. SM44 and SM46 retried them in 3 and 5 extra passes with no success (about 35 min wasted). The list and evidence are in `artifacts/small-model/never-fit-users.json`. **Pool runbooks pass `--exclude-users-file artifacts/small-model/never-fit-users.json` and must not retry these users**; a pool score then covers 723 of 732 (455 of 464) users, and the pool numbers say so. User 4852 (501,672 reviews) fits the plain int variants but not +vq: it is not on the list (`vq_only` in the JSON); +vq runbooks add it with `--exclude-users-file` plus `--users-file`, or just let it fail once and not retry. A change that fits the largest user (chunked or window scoring) lifts the exclusion.
+
 ## Backlog
 
 | ID | Idea | Status | Next step |
