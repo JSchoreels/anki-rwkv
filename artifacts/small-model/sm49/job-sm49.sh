@@ -29,10 +29,11 @@ log "GPU check, 3 users"
 rm -f "$O/check-gpu.jsonl"
 "$PY" -X utf8 "$WT/scripts/small_model_heldout.py" --pool 732 --count 3 --lanes 1 --model "$L=expertium:w64:$CK" \
   $OLD $NEW --out artifacts/small-model/sm49/check-gpu.jsonl || { log "STOP: GPU check run failed"; exit 1; }
-"$PY" -X utf8 - "$O" "$SM47/check-gpu.jsonl" <<'PYEOF' || { log "STOP: GPU check mismatch"; exit 1; }
+"$PY" -X utf8 - "$O" "$SM47/check-gpu.jsonl" "${SM49_GPU_RULE:-strict}" <<'PYEOF' || { log "STOP: GPU check mismatch"; exit 1; }
 import json, sys
 from pathlib import Path
-o, sm47 = Path(sys.argv[1]), Path(sys.argv[2])
+o, sm47, rule = Path(sys.argv[1]), Path(sys.argv[2]), sys.argv[3]
+NEW = {"w8+s4hx8", "w8+s4hx4", "w8+s4hgx4", "w8+s4hgx4c8hx8n"}
 key = lambda r: (r["user_id"], r["variant"])
 rows = lambda p: {key(r): r for r in map(json.loads, open(p)) if "benchmark" in r}
 cpu, gpu, old = rows(o / "check-cpu.jsonl"), rows(o / "check-gpu.jsonl"), rows(sm47)
@@ -44,9 +45,20 @@ assert len(oldk) == 12, oldk
 vs47 = d(gpu, old, oldk)
 vs47_curve = max(abs(gpu[k]["curve_log_loss"] - old[k]["curve_log_loss"]) for k in oldk)
 worst = max(per.values())
-out = {"pairs": len(cpu), "rule": "strict: per user and head |dLogLoss| <= 1e-5", "max_abs_dlogloss": worst,
-       "per_variant": per, "old_variants_vs_sm47_gpu_benchmark": vs47, "old_variants_vs_sm47_gpu_curve_log_loss": vs47_curve,
-       "passed": worst <= 1e-5 and vs47 <= 1e-5}
+old_worst = max(x for v, x in per.items() if v not in NEW)
+# SM49_GPU_RULE=discrete (only with the user's approval): the new variants (int4 notes / int4 shift vectors) under the
+# +vq rule (per user |d| <= 3e-4, review-weighted mean |d| <= 1e-4 per head); the old variants stay strict
+wmean = {v: max(abs(sum((gpu[k]["benchmark"][h]["LogLoss"] - cpu[k]["benchmark"][h]["LogLoss"]) * gpu[k]["benchmark"][h]["size"]
+                        for k in cpu if k[1] == v) / sum(gpu[k]["benchmark"][h]["size"] for k in cpu if k[1] == v))
+                for h in ("ahead", "instant")) for v in per}
+if rule == "discrete":
+    ok = old_worst <= 1e-5 and all(per[v] <= 3e-4 and wmean[v] <= 1e-4 for v in NEW)
+else:
+    ok = worst <= 1e-5
+out = {"pairs": len(cpu), "rule": rule + (": new variants per user |d| <= 3e-4 and |weighted mean d| <= 1e-4, old strict"
+       if rule == "discrete" else ": per user and head |dLogLoss| <= 1e-5"), "max_abs_dlogloss": worst,
+       "per_variant": per, "weighted_mean_abs": wmean, "old_variants_vs_sm47_gpu_benchmark": vs47,
+       "old_variants_vs_sm47_gpu_curve_log_loss": vs47_curve, "passed": ok and vs47 <= 1e-5}
 json.dump(out, open(o / "check-gpu.json", "w"), indent=1)
 print(json.dumps(out, indent=1))
 sys.exit(0 if out["passed"] else 1)
