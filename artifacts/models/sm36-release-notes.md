@@ -7,12 +7,10 @@ LogLoss on held-out benchmark users (lower is better), weighted by reviews. Both
 | Evaluation | Big model (curve / instant) | Small model (curve / instant) | Difference |
 |---|---|---|---|
 | 464 users, 22.7M reviews | 0.29766 / 0.27216 | 0.30006 / 0.27402 | +0.81% / +0.68% |
-| 729 users, 33.3M reviews | 0.30215 / 0.27733 | 0.30426 / 0.27915 | +0.70% / +0.66% |
-
-One long user of the 730 the previous release used is still being scored; these notes will be updated with the 730-user row.
+| 730 users, 33.8M reviews | 0.30437 / 0.27943 | 0.30646 / 0.28126 | +0.69% / +0.65% |
 
 - **Curve** is the forgetting-curve head (probability of recall at any future time); **instant** is the next-review head.
-- Against the previous release (SM40) on the same 729 users: SM40 is +0.72% / +0.71% worse than the big model, this model +0.70% / +0.66%. Paired difference vs SM40: curve −0.00007 [−0.00028, +0.00020] (a tie), instant −0.00016 [−0.00019, −0.00013] (better).
+- Against the previous release (SM40) on the same 730 users: SM40 is +0.71% / +0.71% worse than the big model, this model +0.69% / +0.65%. Paired difference vs SM40: curve −0.00007 [−0.00029, +0.00019] (a tie), instant −0.00016 [−0.00019, −0.00013] (better).
 - Not measured for this model: the spaced-review slice and the result on the user's own collection.
 - Quantization costs the big model nothing measurable (−0.01% / +0.01%, measured on 430 of the 464 users).
 - Weights: 436 KB in int8 (the scored form) or 1.35 MB in fp32. The exported files reproduce the PyTorch model to 2.1e-6.

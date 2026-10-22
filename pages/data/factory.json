@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-10-22T01:36:08+02:00",
- "updated": "2026-10-22 01:36",
- "material": "43d8c65817befc8c",
- "summary": "running 000602",
+ "generated_at": "2026-10-22T09:23:39+02:00",
+ "updated": "2026-10-22 09:23",
+ "material": "5fccfdd226a8a63b",
+ "summary": "running 000604",
  "headline": [
   {
    "k": "Best, 464 users (curve / instant)",
@@ -51,44 +51,44 @@
    "track": "small model"
   },
   {
-   "k": "Best, 732-user standard set (curve / instant), on the 729 users all models have so far",
-   "v": "0.30426 / 0.27915",
+   "k": "Best, 732-user standard set (curve / instant)",
+   "v": "0.30646 / 0.28126",
    "compare": [
     {
      "variant": "Big model (reference)",
-     "curve": 0.30215,
-     "instant": 0.27733,
+     "curve": 0.30437,
+     "instant": 0.27943,
      "ref": true,
-     "eval": "729 users, 33.30M reviews",
+     "eval": "730 users, 33.77M reviews",
      "quant": "w8+s8"
     },
     {
-     "variant": "Best: same, with Muon instead of AdamW for the decay (SM36); vs previous best: curve &minus;0.00007 [&minus;0.00028, +0.00020] tied, instant &minus;0.00016 [&minus;0.00019, &minus;0.00013] better",
-     "curve": 0.30426,
-     "instant": 0.27915,
-     "curve_pct": 0.7,
-     "instant_pct": 0.66,
-     "eval": "729 users, 33.30M reviews",
+     "variant": "Best: same, with Muon instead of AdamW for the decay (SM36, released 10-22); vs previous best: curve &minus;0.00007 [&minus;0.00029, +0.00019] tied, instant &minus;0.00016 [&minus;0.00019, &minus;0.00013] better",
+     "curve": 0.30646,
+     "instant": 0.28126,
+     "curve_pct": 0.69,
+     "instant_pct": 0.65,
+     "eval": "730 users, 33.77M reviews",
      "date": "10-20",
      "quant": "w8+s8"
     },
     {
      "variant": "Previous best: carried state v2 + one-epoch 32k decay (SM40)",
-     "curve": 0.30433,
-     "instant": 0.27931,
-     "curve_pct": 0.72,
+     "curve": 0.30653,
+     "instant": 0.28142,
+     "curve_pct": 0.71,
      "instant_pct": 0.71,
-     "eval": "729 users, 33.30M reviews",
+     "eval": "730 users, 33.77M reviews",
      "date": "10-19",
      "quant": "w8+s8"
     },
     {
      "variant": "Older best: epoch 10 + decay at 32k (Q12)",
-     "curve": 0.30525,
-     "instant": 0.27984,
-     "curve_pct": 1.03,
-     "instant_pct": 0.9,
-     "eval": "729 users, 33.30M reviews",
+     "curve": 0.30746,
+     "instant": 0.28197,
+     "curve_pct": 1.02,
+     "instant_pct": 0.91,
+     "eval": "730 users, 33.77M reviews",
      "date": "10-17 (scored 10-18)",
      "quant": "w8+s8"
     }
@@ -149,30 +149,48 @@
  ],
  "now": [
   {
-   "what": "The best recipe (SM36) on 8,000 training users instead of 5,000 (581.9M vs 369.5M reviews), one change: full-history teacher targets for the 3,000 extra users (~1 h 45), then the one-epoch 32k decay over 8k users (~8 h), scored on 723 users",
-   "id": "SM55, ticket 000602",
+   "what": "Head-only fine-tunes: trunk frozen, the curve head alone on its loss, then the instant head alone (SM36 start), scored on 732 users",
+   "id": "SM50, ticket 000604",
    "kind": "gpu-train",
-   "decides": "SM43 says more users win and the gap grows with training: how much does 8k gain over 5k?",
+   "decides": "Is either head under-trained? Gains would be free at runtime and keep the stored state (and SM47/SM49 results) unchanged",
    "why": "",
-   "job": "SM55 1-epoch decay at 32k on the 8k final tier (581.9M reviews), lanes carry, Muon fresh, from sc-lanes e12 (smoke first)",
+   "job": "SM50 curve-head-only fine-tune from SM36 (smoke, train, score 723 users)",
    "linked": true,
    "track": "small model",
-   "ticket": "000602-small-model",
-   "started": "01:01",
-   "elapsed": "0:35",
+   "ticket": "000604-small-model",
+   "started": "09:18",
+   "elapsed": "0:05",
    "progress": null,
-   "eta": "~08:01"
+   "eta": "~11:08"
   }
  ],
  "waiting": [
   {
-   "ticket": "000603-small-model",
-   "id": "SM36",
-   "what": "Muon best model (SM36) 732 pool, long user 1601 retry at cap 0.92",
-   "flags": "expected 10 min"
+   "ticket": "000605-small-model",
+   "id": "SM55",
+   "what": "SM55 scoring s-w64kd-final-sc-lanes-dec12-1ep32k-muon, 732 pool minus 9 never-fit (pass 1)",
+   "flags": "expected 45 min"
   }
  ],
  "recent": [
+  {
+   "ticket": "000603-small-model",
+   "id": "SM36",
+   "what": "Muon best model (SM36) 732 pool, long user 1601 retry at cap 0.92",
+   "ended": "09:18",
+   "date": "10-22",
+   "exit": 0,
+   "ran": "0:01"
+  },
+  {
+   "ticket": "000602-small-model",
+   "id": "SM55",
+   "what": "SM55 1-epoch decay at 32k on the 8k final tier (581.9M reviews), lanes carry, Muon fresh, from sc-lanes e12 (smoke first)",
+   "ended": "09:17",
+   "date": "10-22",
+   "exit": 0,
+   "ran": "8:16"
+  },
   {
    "ticket": "000601-small-model",
    "id": "SM55",
@@ -208,24 +226,6 @@
    "date": "10-21",
    "exit": 0,
    "ran": "4:19"
-  },
-  {
-   "ticket": "000597-small-model",
-   "id": "SM49",
-   "what": "SM49: int4 notes, int4 shift vectors, per-head scales (4 int-state variants) for SM36, 732 pool (GPU check first)",
-   "ended": "13:28",
-   "date": "10-21",
-   "exit": 0,
-   "ran": "0:28"
-  },
-  {
-   "ticket": "000596-small-model",
-   "id": "SM55",
-   "what": "SM55 1-epoch decay at 32k on the 8k final tier (581.9M reviews), lanes carry, Muon fresh, from sc-lanes e12 (smoke first)",
-   "ended": "12:59",
-   "date": "10-21",
-   "exit": 1,
-   "ran": "2:14"
   }
  ],
  "plan": [
@@ -430,12 +430,7 @@
    "minutes": 250,
    "track": "small model",
    "decides": "v2 beats 32k before decay (&minus;0.0002 / &minus;0.0011) but trails after the 2,048 decay (+0.0003 / +0.0004): does a long 32k decay put it past dec10 and near the bar? Started 10-19 00:31.",
-   "state": "done",
-   "ended": "05:56",
-   "exit": 0,
-   "started": "05:54",
-   "started_at": "2026-10-19T05:54:55+02:00",
-   "ended_at": "2026-10-19T05:56:16+02:00"
+   "state": "planned"
   },
   {
    "what": "Score the one-epoch 32k decay on all 464 users, then the 732 users",
@@ -444,12 +439,7 @@
    "minutes": 70,
    "track": "small model",
    "decides": "Bar met or not, on 464 and 732 users (paired with dec10 and v2 dec12)",
-   "state": "done",
-   "ended": "05:56",
-   "exit": 0,
-   "started": "05:54",
-   "started_at": "2026-10-19T05:54:55+02:00",
-   "ended_at": "2026-10-19T05:56:16+02:00"
+   "state": "planned"
   },
   {
    "what": "732 users: retry the 3 long users (1534, 1601, 4625) at a 0.92 memory cap, one try per model",
@@ -458,12 +448,7 @@
    "minutes": 20,
    "track": "small model",
    "decides": "Complete 732-user rows for every model",
-   "state": "done",
-   "ended": "06:01",
-   "exit": 0,
-   "started": "06:00",
-   "started_at": "2026-10-19T06:00:19+02:00",
-   "ended_at": "2026-10-19T06:01:03+02:00"
+   "state": "planned"
   },
   {
    "what": "Spaced-review slice for the one-epoch 32k decay and v2: per-review dumps on 464 users + breakdown by review type / same-day / stage",
@@ -472,12 +457,7 @@
    "minutes": 60,
    "track": "small model",
    "decides": "The spaced-review slice beside the bar for the new candidates (big model dumps reused)",
-   "state": "done",
-   "ended": "06:29",
-   "exit": 0,
-   "started": "06:12",
-   "started_at": "2026-10-19T06:12:50+02:00",
-   "ended_at": "2026-10-19T06:29:38+02:00"
+   "state": "planned"
   },
   {
    "what": "2,225-user set: stopped, its 1,493 extra training users have no benchmark labels (0 scored)",
@@ -486,12 +466,8 @@
    "minutes": 260,
    "track": "small model",
    "decides": "Needs a label build for those users before it can be used",
-   "state": "done",
-   "ended_at": "2026-10-19T07:32:51+02:00",
-   "ended": "07:32",
-   "exit": 0,
-   "started": "07:01",
-   "started_at": "2026-10-19T07:01:27+02:00"
+   "state": "planned",
+   "ended_at": "2026-10-19T07:45:00+02:00"
   },
   {
    "what": "Own collection for the one-epoch 32k decay (CPU, ~11 min) as it lands",
@@ -816,10 +792,14 @@
    "minutes": 10,
    "track": "small model",
    "what": "Muon best model (SM36) on the 732-user set: score the one long user (1601) that ran out of memory at the 0.8 cap, at 0.92, so it reads on the same 730 users as the previous best (SM40)",
-   "when": "Queued now, right after the 8k training (SM55) ticket, ~10 min",
-   "decides": "Puts the Muon best model on the same 730 users as the table&rsquo;s other rows",
-   "state": "waiting",
-   "ticket": "000603-small-model"
+   "when": "Done 10-22 09:16 (1 min)",
+   "decides": "Done: the Muon best model on all 730 users, +0.69% / +0.65% vs the big model (previous best +0.71% / +0.71%)",
+   "state": "done",
+   "ended": "09:18",
+   "exit": 0,
+   "started": "09:17",
+   "started_at": "2026-10-22T09:17:36+02:00",
+   "ended_at": "2026-10-22T09:18:36+02:00"
   },
   {
    "what": "Head-only fine-tunes: trunk frozen, the curve head alone on its loss, then the instant head alone (SM36 start), scored on 732 users",
@@ -827,9 +807,13 @@
    "kind": "gpu-train",
    "minutes": 220,
    "track": "small model",
-   "when": "Prepared (curve-only and instant-only fine-tunes from SM36, 81M reviews each, ~110 min per arm with scoring); its launcher waits until SM55 is scored: Thu ~08:30 &rarr; ~12:15",
+   "when": "Curve-only fine-tune running since 09:18 (&rarr; ~11:10); the 8k model&rsquo;s scoring goes next (~45 min), then the instant-only fine-tune ~11:55 &rarr; ~13:45",
    "decides": "Is either head under-trained? Gains would be free at runtime and keep the stored state (and SM47/SM49 results) unchanged",
-   "state": "planned"
+   "state": "running",
+   "started": "09:18",
+   "ticket": "000604-small-model",
+   "started_at": "2026-10-22T09:18:36+02:00",
+   "ends_at": "2026-10-22T12:58:36+02:00"
   },
   {
    "what": "Better distillation, step 1: fine-tunes of SM36 with more weight on the big model&rsquo;s predictions (control at today&rsquo;s weight, 0.9, 1.0), same setup as SM50 (81M reviews, ~110 min per arm with scoring), scored on 732 users",
@@ -837,7 +821,7 @@
    "kind": "gpu-train",
    "minutes": 330,
    "track": "small model",
-   "when": "Being prepared; its launcher waits for SM50 to finish: Thu ~12:15 &rarr; ~18:00&ndash;19:00",
+   "when": "Prepared (three arms at weight 0.5 / 0.9 / 1.0); its launcher waits for the single-head fine-tunes to finish: Thu ~13:45 &rarr; ~19:15 (+~70 min if its code check must run first)",
    "decides": "Does a heavier big-model weight help? Never tested since full-history distillation. If yes: step 2 (learn the big model&rsquo;s whole curve) and use the weight in SM56. The control also reads SM50 against a plain fine-tune",
    "state": "planned"
   },
@@ -862,13 +846,10 @@
    "kind": "gpu-train",
    "minutes": 630,
    "track": "small model",
-   "when": "Teacher targets done (09:00-10:45). The 8k training crashed at 12:59 after 2 h 14 min: one user (5599) ends with 14 first reviews of new cards, which have no label, and that tail formed a window of its own. Fixed by dropping such unlabelled tails (only this user, 14 reviews); a check now runs before training. Restart Thu 01:01 &rarr; ~07:05 (27k reviews/s), scoring on 723 users &rarr; ~08:00",
+   "when": "Teacher targets done (09:00-10:45). The 8k training crashed at 12:59 on an unlabelled tail of user 5599 (fixed, checked before training). Restart Thu 01:01; training ended 09:17, 8 h 16 min (~19.6k reviews/s incl. smoke, slower than the 27k expected). Scoring on 723 users waits behind the curve-only fine-tune: ~11:10 &rarr; ~11:55",
    "decides": "SM43 says more users win and the gap grows with training: how much does 8k gain over 5k?",
-   "state": "running",
-   "started": "01:01",
-   "ticket": "000602-small-model",
-   "started_at": "2026-10-21T19:47:35+02:00",
-   "ends_at": "2026-10-22T06:17:35+02:00"
+   "state": "waiting",
+   "ticket": "000605-small-model"
   },
   {
    "what": "Checkpoint averaging: average the last 2, 3 or 4 SM39 decay snapshots, scored with the final weights on 723 users",
