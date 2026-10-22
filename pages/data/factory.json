@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-10-22T12:29:37+02:00",
- "updated": "2026-10-22 12:29",
- "material": "3bf17778a15f79a9",
- "summary": "idle, finished 000610",
+ "generated_at": "2026-10-22T12:31:03+02:00",
+ "updated": "2026-10-22 12:31",
+ "material": "f20794a5ee5b7866",
+ "summary": "idle",
  "headline": [
   {
    "k": "Best, 464 users (curve / instant)",
@@ -51,44 +51,54 @@
    "track": "small model"
   },
   {
-   "k": "Best, 732-user standard set (curve / instant)",
-   "v": "0.30646 / 0.28126",
+   "k": "Best, 732-user standard set (curve / instant), on the 726 users every model fits",
+   "v": "0.30464 / 0.28015",
    "compare": [
     {
      "variant": "Big model (reference)",
-     "curve": 0.30437,
-     "instant": 0.27943,
+     "curve": 0.303,
+     "instant": 0.27862,
      "ref": true,
-     "eval": "730 users, 33.77M reviews",
+     "eval": "726 users, 31.74M reviews",
      "quant": "w8+s8"
     },
     {
-     "variant": "Best: same, with Muon instead of AdamW for the decay (SM36, released 10-22); vs previous best: curve &minus;0.00007 [&minus;0.00029, +0.00019] tied, instant &minus;0.00016 [&minus;0.00019, &minus;0.00013] better",
-     "curve": 0.30646,
-     "instant": 0.28126,
-     "curve_pct": 0.69,
-     "instant_pct": 0.65,
-     "eval": "730 users, 33.77M reviews",
+     "variant": "Best: the Muon recipe with its decay on 8,000 training users instead of 5,000 (SM55, released 10-22); vs the Muon version (SM36): curve &minus;0.00048 [&minus;0.00089, &minus;0.00019], instant &minus;0.00025 [&minus;0.00029, &minus;0.00022], both better",
+     "curve": 0.30464,
+     "instant": 0.28015,
+     "curve_pct": 0.54,
+     "instant_pct": 0.55,
+     "eval": "726 users, 31.74M reviews",
+     "date": "10-22",
+     "quant": "w8+s8"
+    },
+    {
+     "variant": "Previous best: same with the decay on 5,000 users, Muon instead of AdamW (SM36, released 10-22)",
+     "curve": 0.30512,
+     "instant": 0.2804,
+     "curve_pct": 0.7,
+     "instant_pct": 0.64,
+     "eval": "726 users, 31.74M reviews",
      "date": "10-20",
      "quant": "w8+s8"
     },
     {
-     "variant": "Previous best: carried state v2 + one-epoch 32k decay (SM40)",
-     "curve": 0.30653,
-     "instant": 0.28142,
-     "curve_pct": 0.71,
-     "instant_pct": 0.71,
-     "eval": "730 users, 33.77M reviews",
+     "variant": "Older best: carried state v2 + one-epoch 32k decay, AdamW (SM40)",
+     "curve": 0.30518,
+     "instant": 0.28056,
+     "curve_pct": 0.72,
+     "instant_pct": 0.7,
+     "eval": "726 users, 31.74M reviews",
      "date": "10-19",
      "quant": "w8+s8"
     },
     {
-     "variant": "Older best: epoch 10 + decay at 32k (Q12)",
-     "curve": 0.30746,
-     "instant": 0.28197,
-     "curve_pct": 1.02,
-     "instant_pct": 0.91,
-     "eval": "730 users, 33.77M reviews",
+     "variant": "Oldest: epoch 10 + decay at 32k (Q12)",
+     "curve": 0.30614,
+     "instant": 0.28109,
+     "curve_pct": 1.04,
+     "instant_pct": 0.89,
+     "eval": "726 users, 31.74M reviews",
      "date": "10-17 (scored 10-18)",
      "quant": "w8+s8"
     }
@@ -796,8 +806,8 @@
    "minutes": 15,
    "track": "small model",
    "what": "8k model (SM55) on the 732-user set: the 7 long users it skipped, at the 0.92 cap, so it reads on the same 730 users as the table",
-   "when": "Killed at 10:18 before it ran; requeued 11:54, runs right after the instant-only fine-tune (~12:35, ~10 min)",
-   "decides": "Puts the 8k model in the 730-user table",
+   "when": "Done 12:27 (3 of 7 fit at the 0.92 cap); a retry of the other 4 at 12:29 also ran out of memory (the allocator option that might help is not available on Windows)",
+   "decides": "The 732 table now uses the 726 users every model fits (4 long users do not fit the 8k model&rsquo;s scorer; cause not known yet)",
    "state": "done",
    "ended": "12:27",
    "exit": 0,
