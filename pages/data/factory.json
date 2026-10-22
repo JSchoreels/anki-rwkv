@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-10-22T17:50:13+02:00",
- "updated": "2026-10-22 17:50",
- "material": "b6792a28a4f6cba3",
- "summary": "running 000616, finished 000615",
+ "generated_at": "2026-10-22T18:09:57+02:00",
+ "updated": "2026-10-22 18:09",
+ "material": "657f652405a39e28",
+ "summary": "running 000618, finished 000616",
  "headline": [
   {
    "k": "Best, 464 users (curve / instant)",
@@ -179,30 +179,39 @@
  ],
  "now": [
   {
-   "what": "Full retrain from scratch on all 8,000 users (581.9M reviews per epoch), carried state at 2,048 windows every epoch; epochs continue until the gain flattens (an epoch gains less than 5% of the total since epoch 1 on both heads, two epochs in a row; 5 to 14 epochs), then the same 8 h decay as the 8k model (SM55); 464-user read-out after every epoch",
-   "id": "SM56, ticket 000616",
+   "what": "Better distillation, step 1: fine-tunes of SM36 with more weight on the big model&rsquo;s predictions (control at today&rsquo;s weight, 0.9, 1.0), same setup as SM50 (81M reviews, ~110 min per arm with scoring), scored on 732 users",
+   "id": "SM59, ticket 000618",
    "kind": "gpu-train",
-   "decides": "Whether having all 8,000 users in every epoch (not only the decay) beats the 8k model (SM55)",
+   "decides": "Does a heavier big-model weight help? Never tested since full-history distillation. If yes: step 2 (learn the big model&rsquo;s whole curve) and use the weight in SM56. Control (weight 0.5, as SM36) on 723 users: 0.30329 / 0.27957 vs SM36 0.30333 / 0.27960, &minus;0.00004 [&minus;0.00016, +0.00006] / &minus;0.00003 [&minus;0.00005, &minus;0.00001]: a tie on curve, a tiny instant gain. The arms are read against this control",
    "why": "",
-   "job": "SM56 scoring s-w64kd-final-sc-lanes-e1 on the 464 set (458 fit users) (pass 1)",
+   "job": "SM59 kd-090: SM36 fine-tune, both heads, KD weight (smoke, train, score 723 users)",
    "linked": true,
    "track": "small model",
-   "ticket": "000616-small-model",
-   "started": "17:49",
+   "ticket": "000618-small-model",
+   "started": "18:08",
    "elapsed": "0:01",
    "progress": null,
-   "eta": "~18:01"
+   "eta": "~19:58"
   }
  ],
  "waiting": [
   {
-   "ticket": "000618-small-model",
-   "id": "SM59",
-   "what": "SM59 kd-090: SM36 fine-tune, both heads, KD weight (smoke, train, score 723 users)",
-   "flags": "expected 110 min"
+   "ticket": "000619-small-model",
+   "id": "SM56",
+   "what": "SM56 scale-w64kd-final-sc-lanes epoch 2/14 (8k final tier, 2048 x 16 lanes carry, replay KD, AdamW 7e-4)",
+   "flags": "expected 119 min"
   }
  ],
  "recent": [
+  {
+   "ticket": "000616-small-model",
+   "id": "SM56",
+   "what": "SM56 scoring s-w64kd-final-sc-lanes-e1 on the 464 set (458 fit users) (pass 1)",
+   "ended": "17:56",
+   "date": "10-22",
+   "exit": 0,
+   "ran": "0:07"
+  },
   {
    "ticket": "000615-small-model",
    "id": "SM59",
@@ -247,15 +256,6 @@
    "date": "10-22",
    "exit": 0,
    "ran": "0:01"
-  },
-  {
-   "ticket": "000608-small-model",
-   "id": "SM50",
-   "what": "SM50 instant-head-only fine-tune from SM36 (smoke, train, score 723 users)",
-   "ended": "12:26",
-   "date": "10-22",
-   "exit": 0,
-   "ran": "0:32"
   }
  ],
  "plan": [
@@ -865,8 +865,11 @@
    "track": "small model",
    "when": "Code check passed 14:27. Control arm: training OK, scoring failed on a missing users file, rescored after a relaunch at 15:48 &rarr; done 17:49. Arm 0.9 started 17:49 (~70 min), then arm 1.0; both before the 21:00 break",
    "decides": "Does a heavier big-model weight help? Never tested since full-history distillation. If yes: step 2 (learn the big model&rsquo;s whole curve) and use the weight in SM56. Control (weight 0.5, as SM36) on 723 users: 0.30329 / 0.27957 vs SM36 0.30333 / 0.27960, &minus;0.00004 [&minus;0.00016, +0.00006] / &minus;0.00003 [&minus;0.00005, &minus;0.00001]: a tie on curve, a tiny instant gain. The arms are read against this control",
-   "state": "waiting",
-   "ticket": "000618-small-model"
+   "state": "running",
+   "started": "18:08",
+   "ticket": "000618-small-model",
+   "started_at": "2026-10-22T17:37:59+02:00",
+   "ends_at": "2026-10-22T23:07:59+02:00"
   },
   {
    "id": "SM58",
@@ -874,8 +877,8 @@
    "minutes": 35,
    "track": "small model",
    "what": "Disagreement test: UM+ and each model&rsquo;s slope (Search Stats Extended conventions), Muon best small model (SM36) vs the big model, curve and instant, 729 users + own collection (aggregate); the 8k model (SM55) too if it wins",
-   "when": "Started 15:38 (after SM59&rsquo;s stop). Big-model dump complete (user 4852 fails); SM36 dump complete 17:38 (6 users fail, as in the 723 set); SM55 next, between the other GPU jobs",
-   "decides": "Whether the small model is more or less right than the big model where they disagree (a tie is +0.5 for the small model&rsquo;s slope)",
+   "when": "Done 18:09 (dumps 15:38&ndash;18:08, analysis on the CPU)",
+   "decides": "Where the small and big model disagree, which is more right? Slope closer to 0 = more right; a tie is +0.5 for the small model. 722 benchmark users: the big model is more right. Muon version (SM36) slope +0.72 curve / +0.80 instant (UM+ 0.0251 / 0.0219 vs big 0.0106 / 0.0059); 8k model (SM55) +0.68 / +0.77 (UM+ 0.0229 / 0.0205), so the 8k model closes part of the gap. Own collection (aggregate): near a tie, SM36 +0.53 / +0.58 (UM+ 0.0179 / 0.0189 vs big 0.0181 / 0.0157), SM55 +0.56 / +0.61. Graphs: graphs.html in the sm58 branch",
    "state": "planned"
   },
   {
@@ -886,11 +889,8 @@
    "what": "Full retrain from scratch on all 8,000 users (581.9M reviews per epoch), carried state at 2,048 windows every epoch; epochs continue until the gain flattens (an epoch gains less than 5% of the total since epoch 1 on both heads, two epochs in a row; 5 to 14 epochs), then the same 8 h decay as the 8k model (SM55); 464-user read-out after every epoch",
    "when": "Epoch 1 done 17:25: 582M reviews in 109.7 min (88,400 reviews/s); 464-user read-out next, then epochs interleave with better distillation&rsquo;s arms; continues Fri 01:00; decay at the next start that ends before a break; result Sat",
    "decides": "Whether having all 8,000 users in every epoch (not only the decay) beats the 8k model (SM55)",
-   "state": "running",
-   "started": "17:49",
-   "ticket": "000616-small-model",
-   "started_at": "2026-10-22T15:35:15+02:00",
-   "ends_at": "2026-10-23T21:35:15+02:00"
+   "state": "waiting",
+   "ticket": "000619-small-model"
   },
   {
    "what": "Muon tuning, arm 1: SM36&rsquo;s one-epoch 32k decay with the learning rate &times;0.5 (pointer from outside research), saving 4 snapshots along the decay for SM51",
