@@ -1,7 +1,7 @@
 {
- "generated_at": "2026-10-22T12:31:03+02:00",
- "updated": "2026-10-22 12:31",
- "material": "f20794a5ee5b7866",
+ "generated_at": "2026-10-22T12:52:01+02:00",
+ "updated": "2026-10-22 12:52",
+ "material": "65b53ebaddd3eee9",
  "summary": "idle",
  "headline": [
   {
@@ -938,6 +938,41 @@
   "label": "Breaks this week: no GPU work 21:00&ndash;01:00 (tonight from 22:00; Sunday 10-25 from 16:00). Jobs that would run into a break wait for 01:00"
  },
  "backlog": [
+  {
+   "status": "idea",
+   "id": "SM60",
+   "track": "small model",
+   "item": "Literature review: recent RWKV architecture papers (RWKV-7 variants, state-space / linear-attention improvements) for changes that fit a 331k model without more state",
+   "why": "Outside research (10-22): two roads to a better model are algorithmic improvements (like Muon, done) and scaling. A review turns papers into a short list of cheap tests on our recipe"
+  },
+  {
+   "status": "idea",
+   "id": "SM61",
+   "track": "small model",
+   "item": "More data: retrain on the 100k-user dataset when it is released",
+   "why": "Outside research (10-22): data is the scaling axis with the most potential; our own evidence agrees (8k-user decay beat 5k by &minus;0.00048 / &minus;0.00025, SM55). Waits for the dataset"
+  },
+  {
+   "status": "idea",
+   "id": "SM62",
+   "track": "small model",
+   "item": "More input features: card template and note type as a proxy for card content",
+   "why": "Outside research (10-22): all scheduling features are already in; content proxies are what is left, potential unclear without real card content. Waits for a dataset that has them"
+  },
+  {
+   "status": "idea",
+   "id": "SM63",
+   "track": "small model",
+   "item": "More epochs for the very last run: about 10&times; the epochs once the recipe is final",
+   "why": "Outside research (10-22): some potential, but training gets much slower, so only for the final model. The full retrain&rsquo;s plateau rule (SM56) measures how fast the gains flatten first"
+  },
+  {
+   "status": "idea",
+   "id": "SM64",
+   "track": "small model",
+   "item": "Find a new scaling axis (brainstorm): something other than data, features, epochs, parameters or state size that improves the model as it grows",
+   "why": "Outside research (10-22): more parameters or a larger state are undesirable (slower, bigger); a new axis would be the most valuable find and none is known yet"
+  },
   {
    "status": "next",
    "item": "Benchmark labels for the 1,493 training users of the 2,225-user set",
