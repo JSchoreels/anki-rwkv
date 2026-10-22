@@ -818,9 +818,22 @@
    "match": [
     "SM50"
    ],
-   "when": "Curve-only fine-tune running since 09:18 (&rarr; ~11:10); the 8k model&rsquo;s scoring goes next (~45 min), then the instant-only fine-tune ~11:55 &rarr; ~13:45",
-   "decides": "Is either head under-trained? Gains would be free at runtime and keep the stored state (and SM47/SM49 results) unchanged",
+   "when": "Curve-only 09:18 &rarr; 09:51 (33 min: 21 min training at 64.9k reviews/s, faster than planned); instant-only 10:02 &rarr; ~10:35",
+   "decides": "Curve head alone: no gain (curve +0.00001 [&minus;0.00003, +0.00005] vs SM36 on 723 users). Instant head alone: pending",
    "state": "planned"
+  },
+  {
+   "id": "SM55",
+   "kind": "gpu-score",
+   "minutes": 15,
+   "track": "small model",
+   "what": "8k model (SM55) on the 732-user set: the 7 long users it skipped, at the 0.92 cap, so it reads on the same 730 users as the table",
+   "when": "Queued after the instant-only fine-tune, ~10:35, ~10 min",
+   "decides": "Puts the 8k model in the 730-user table",
+   "state": "planned",
+   "match": [
+    "7 long users retry"
+   ]
   },
   {
    "what": "Better distillation, step 1: fine-tunes of SM36 with more weight on the big model&rsquo;s predictions (control at today&rsquo;s weight, 0.9, 1.0), same setup as SM50 (81M reviews, ~110 min per arm with scoring), scored on 732 users",
@@ -831,7 +844,7 @@
    "match": [
     "SM59"
    ],
-   "when": "Prepared (three arms at weight 0.5 / 0.9 / 1.0); its launcher waits for the single-head fine-tunes to finish: Thu ~13:45 &rarr; ~19:15 (+~70 min if its code check must run first)",
+   "when": "Launcher waits for the single-head fine-tunes: code check (CPU, ~70 min) ~10:35 &rarr; ~11:45, then three arms of ~35 min each &rarr; ~13:30",
    "decides": "Does a heavier big-model weight help? Never tested since full-history distillation. If yes: step 2 (learn the big model&rsquo;s whole curve) and use the weight in SM56. The control also reads SM50 against a plain fine-tune",
    "state": "planned"
   },
@@ -841,7 +854,7 @@
    "minutes": 35,
    "track": "small model",
    "what": "Disagreement test: UM+ and each model&rsquo;s slope (Search Stats Extended conventions), Muon best small model (SM36) vs the big model, curve and instant, 729 users + own collection (aggregate); the 8k model (SM55) too if it wins",
-   "when": "Prepared; its launcher waits for better distillation (SM59) to finish: ~20:25, 35 GPU min (+19 with the 8k model), else 01:00 after the break; analysis on CPU outside the break",
+   "when": "Prepared, the 8k model (SM55) included; its launcher waits for better distillation (SM59): ~13:30 &rarr; ~14:30 (~55 GPU min), analysis on CPU after",
    "decides": "Whether the small model is more or less right than the big model where they disagree (a tie is +0.5 for the small model&rsquo;s slope)",
    "state": "planned",
    "match": [
@@ -872,8 +885,8 @@
    "match": [
     "SM55"
    ],
-   "when": "Teacher targets done (09:00-10:45). The 8k training crashed at 12:59 on an unlabelled tail of user 5599 (fixed, checked before training). Restart Thu 01:01; training ended 09:17, 8 h 16 min (~19.6k reviews/s incl. smoke, slower than the 27k expected). Scoring on 723 users waits behind the curve-only fine-tune: ~11:10 &rarr; ~11:55",
-   "decides": "SM43 says more users win and the gap grows with training: how much does 8k gain over 5k?",
+   "when": "Training 01:01 &rarr; 09:17 (8 h 16, ~19.6k reviews/s), scored 09:51 &rarr; 10:02",
+   "decides": "The 8k model wins on both heads: 723 users curve 0.30286 / instant 0.27934 (+0.49% / +0.53% vs the big model); vs the Muon best model (SM36) curve &minus;0.00047 [&minus;0.00088, &minus;0.00017], instant &minus;0.00025 [&minus;0.00029, &minus;0.00022]. 464 users: +0.53% / +0.54%. More users is the strongest lever so far",
    "state": "planned"
   },
   {
