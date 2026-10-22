@@ -874,8 +874,8 @@
    "match": [
     "SM59"
    ],
-   "when": "Code check passed 14:27. Control arm: training OK, scoring failed on a missing users file, rescored after a relaunch at 15:48 &rarr; done 17:49. Arm 0.9 started 17:49 (~70 min), then arm 1.0; both before the 21:00 break",
-   "decides": "Does a heavier big-model weight help? Never tested since full-history distillation. If yes: step 2 (learn the big model&rsquo;s whole curve) and use the weight in SM56. Control (weight 0.5, as SM36) on 723 users: 0.30329 / 0.27957 vs SM36 0.30333 / 0.27960, &minus;0.00004 [&minus;0.00016, +0.00006] / &minus;0.00003 [&minus;0.00005, &minus;0.00001]: a tie on curve, a tiny instant gain. The arms are read against this control",
+   "when": "Code check passed 14:27. Control arm: training OK, scoring failed on a missing users file, rescored after a relaunch at 15:48 &rarr; done 17:49. Arm 0.9 done 19:27. Arm 1.0 started 19:28 (~80 min), ends before the 21:00 break",
+   "decides": "Does a heavier big-model weight help? Never tested since full-history distillation. If yes: step 2 (learn the big model&rsquo;s whole curve) and use the weight in SM56. Control (weight 0.5, as SM36) on 723 users: 0.30329 / 0.27957 vs SM36 0.30333 / 0.27960, &minus;0.00004 [&minus;0.00016, +0.00006] / &minus;0.00003 [&minus;0.00005, &minus;0.00001]: a tie on curve, a tiny instant gain. The arms are read against this control. Arm 0.9: 0.30358 / 0.27967, vs SM36 +0.00025 [+0.00008, +0.00040] / +0.00007 [+0.00005, +0.00009]: worse on both heads (+0.73% / +0.65% vs the big model, against +0.64% / +0.63%), so a heavier big-model weight does not help so far",
    "state": "planned"
   },
   {
@@ -897,7 +897,7 @@
    "minutes": 1800,
    "track": "small model",
    "what": "Full retrain from scratch on all 8,000 users (581.9M reviews per epoch), carried state at 2,048 windows every epoch; epochs continue until the gain flattens (an epoch gains less than 5% of the total since epoch 1 on both heads, two epochs in a row; 5 to 14 epochs), then the same 8 h decay as the 8k model (SM55); 464-user read-out after every epoch",
-   "when": "Epoch 1 done 17:25: 582M reviews in 109.7 min (88,400 reviews/s); 464-user read-out next, then epochs interleave with better distillation&rsquo;s arms; continues Fri 01:00; decay at the next start that ends before a break; result Sat",
+   "when": "Epoch 1 done 17:25: 582M reviews in 109.7 min (88,400 reviews/s); read-out on 458 users 0.30882 / 0.28201 (continue, minimum 5 epochs); epoch 2 did not fit before the 21:00 break and starts Fri 01:00; decay at the next start that ends before a break; result Sat",
    "decides": "Whether having all 8,000 users in every epoch (not only the decay) beats the 8k model (SM55)",
    "state": "planned",
    "match": [
