@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-10-22T15:38:22+02:00",
- "updated": "2026-10-22 15:38",
- "material": "5d645c0ca7de12d2",
- "summary": "running 000613, finished 000612",
+ "generated_at": "2026-10-22T15:48:26+02:00",
+ "updated": "2026-10-22 15:48",
+ "material": "2db1302b4f4d0446",
+ "summary": "running 000613",
  "headline": [
   {
    "k": "Best, 464 users (curve / instant)",
@@ -189,12 +189,19 @@
    "track": "small model",
    "ticket": "000613-small-model",
    "started": "15:35",
-   "elapsed": "0:03",
+   "elapsed": "0:13",
    "progress": null,
    "eta": "~17:35"
   }
  ],
- "waiting": [],
+ "waiting": [
+  {
+   "ticket": "000615-small-model",
+   "id": "SM59",
+   "what": "SM59 kd-control: SM36 fine-tune, both heads, KD weight (smoke, train, score 723 users)",
+   "flags": "expected 110 min"
+  }
+ ],
  "recent": [
   {
    "ticket": "000612-small-model",
@@ -858,12 +865,8 @@
    "track": "small model",
    "when": "Relaunched 11:54 (killed at 10:18 while waiting); code check (CPU, ~70 min) ~12:45 &rarr; ~13:55, then three arms of ~35 min &rarr; ~15:40",
    "decides": "Does a heavier big-model weight help? Never tested since full-history distillation. If yes: step 2 (learn the big model&rsquo;s whole curve) and use the weight in SM56. The control also reads SM50 against a plain fine-tune",
-   "state": "done",
-   "ended": "15:35",
-   "exit": 1,
-   "started": "14:27",
-   "started_at": "2026-10-22T14:27:44+02:00",
-   "ended_at": "2026-10-22T15:35:15+02:00"
+   "state": "waiting",
+   "ticket": "000615-small-model"
   },
   {
    "id": "SM58",
