@@ -42,7 +42,7 @@ if [ "$DRYRUN" != 1 ]; then
   n=0
   while :; do
     [ -f "$S/STOP" ] && { log "STOP file found; exiting"; exit 0; }
-    if grep -qE 'all arms finished|STOP:' "$SM59LOG" 2>/dev/null; then log "SM59 log: $(grep -E 'all arms finished|STOP:' "$SM59LOG" | tail -1 | cut -c1-120)"; break; fi
+    if grep -qE '\[sm59-launch [^]]*\] (all arms finished|STOP:)' "$SM59LOG" 2>/dev/null; then log "SM59 log: $(grep -E '\[sm59-launch [^]]*\] (all arms finished|STOP:)' "$SM59LOG" | tail -1 | cut -c1-120)"; break; fi
     [ $((n % 24)) -eq 0 ] && log "waiting for SM59 ($(tail -1 "$SM59LOG" 2>/dev/null | cut -c1-120))"
     n=$((n + 1)); sleep 300
   done
@@ -73,7 +73,7 @@ dump() {  # dump TAG KIND RATE CKPT   (KIND fork => --model fork=fork::CKPT)
     log "dump $tag pass $pass: $nusers users / $nrev reviews, $minutes min total, ticket $t min"
     wait_clear "$t" "GPU ticket dump-$tag"
     cmd=("$PY" -X utf8 "$WT/scripts/small_model_heldout.py" --model "$spec" --only "$tag/w8+s8" --pool 732 --users-file "$S/todo-$tag.json"
-         --time-limit $(( (t - 2) * 60 )) --out artifacts/small-model/sm58/heldout-sm58.jsonl --dump artifacts/small-model/sm58/dump)
+         --time-limit $(( (t - 2) * 60 )) --out "$S/heldout-sm58.jsonl" --dump "$S/dump")
     if [ "$DRYRUN" = 1 ]; then log "DRYRUN enqueue (expected $t min): ${cmd[*]}"; return 0; fi
     "$PY" "$QUEUE" run --owner sm58 --purpose "SM58 disagreement test: per-review dump of $tag, $nusers users (pass $pass), cap 0.8" \
       --claim gpu --expected-minutes "$t" --launched-by "detached launcher launch-sm58.sh" -- "${cmd[@]}"
