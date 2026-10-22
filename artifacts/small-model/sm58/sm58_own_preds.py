@@ -2,7 +2,7 @@
 CPU only, 2 threads, below-normal priority). Output: a parquet (review_th, rating, p_curve, p_instant) under
 collection-cache/ (NEVER committed: per-card rows of the user's own collection; only the aggregate summary is).
 
-  python sm58_collection.py --arch w64 --checkpoint master.pth --tag sm36
+  python sm58_own_preds.py --arch w64 --checkpoint master.pth --tag sm36
 The big model's predictions are reused read-only from anki-rwkv/artifacts/collection-eval/2026-10-14/preds-model-B-full-s0.parquet.
 Inputs are the same prepared batch as score_collection.py (prepared-full-s0.pt) in the main checkout.
 """
