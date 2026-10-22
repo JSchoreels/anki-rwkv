@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-10-22T19:29:04+02:00",
- "updated": "2026-10-22 19:29",
- "material": "11c9756abf92d822",
- "summary": "running 000620, finished 000618",
+ "generated_at": "2026-10-22T20:47:51+02:00",
+ "updated": "2026-10-22 20:47",
+ "material": "ed7e96b42a91b0ce",
+ "summary": "idle, finished 000620",
  "headline": [
   {
    "k": "Best, 464 users (curve / instant)",
@@ -177,25 +177,18 @@
    "track": "small model"
   }
  ],
- "now": [
-  {
-   "what": "Better distillation, step 1: fine-tunes of SM36 with more weight on the big model&rsquo;s predictions (control at today&rsquo;s weight, 0.9, 1.0), same setup as SM50 (81M reviews, ~110 min per arm with scoring), scored on 732 users",
-   "id": "SM59, ticket 000620",
-   "kind": "gpu-train",
-   "decides": "Does a heavier big-model weight help? Never tested since full-history distillation. If yes: step 2 (learn the big model&rsquo;s whole curve) and use the weight in SM56. Control (weight 0.5, as SM36) on 723 users: 0.30329 / 0.27957 vs SM36 0.30333 / 0.27960, &minus;0.00004 [&minus;0.00016, +0.00006] / &minus;0.00003 [&minus;0.00005, &minus;0.00001]: a tie on curve, a tiny instant gain. The arms are read against this control. Arm 0.9: 0.30358 / 0.27967, vs SM36 +0.00025 [+0.00008, +0.00040] / +0.00007 [+0.00005, +0.00009]: worse on both heads (+0.73% / +0.65% vs the big model, against +0.64% / +0.63%), so a heavier big-model weight does not help so far",
-   "why": "",
-   "job": "SM59 kd-100: SM36 fine-tune, both heads, KD weight (smoke, train, score 723 users)",
-   "linked": true,
-   "track": "small model",
-   "ticket": "000620-small-model",
-   "started": "19:28",
-   "elapsed": "0:00",
-   "progress": null,
-   "eta": "~20:53"
-  }
- ],
+ "now": [],
  "waiting": [],
  "recent": [
+  {
+   "ticket": "000620-small-model",
+   "id": "SM59",
+   "what": "SM59 kd-100: SM36 fine-tune, both heads, KD weight (smoke, train, score 723 users)",
+   "ended": "20:46",
+   "date": "10-22",
+   "exit": 0,
+   "ran": "1:18"
+  },
   {
    "ticket": "000618-small-model",
    "id": "SM59",
@@ -240,15 +233,6 @@
    "date": "10-22",
    "exit": 1,
    "ran": "1:07"
-  },
-  {
-   "ticket": "000610-small-model",
-   "id": "SM55",
-   "what": "8k model (SM55) 732 pool, 4 long users retry at cap 0.92, expandable segments",
-   "ended": "12:29",
-   "date": "10-22",
-   "exit": 0,
-   "ran": "0:00"
   }
  ],
  "plan": [
@@ -562,12 +546,9 @@
    "minutes": 65,
    "track": "small model",
    "decides": "More users win, mostly on instant: 10 passes over 100 users +0.36% / +0.46% worse than 1 pass over 1,000 (723 users)",
-   "state": "done",
-   "started_at": "2026-10-19T19:30:28+02:00",
-   "ended_at": "2026-10-19T19:32:24+02:00",
-   "ended": "19:32",
-   "exit": 0,
-   "started": "19:30"
+   "state": "planned",
+   "started_at": "2026-10-19T18:36:30+02:00",
+   "ended_at": "2026-10-19T19:32:24+02:00"
   },
   {
    "what": "Muon instead of AdamW for the one-epoch 32k decay (paired with the best model, everything else equal) + scoring",
@@ -853,13 +834,14 @@
    "kind": "gpu-train",
    "minutes": 330,
    "track": "small model",
-   "when": "Code check passed 14:27. Control arm: training OK, scoring failed on a missing users file, rescored after a relaunch at 15:48 &rarr; done 17:49. Arm 0.9 done 19:27. Arm 1.0 started 19:28 (~80 min), ends before the 21:00 break",
-   "decides": "Does a heavier big-model weight help? Never tested since full-history distillation. If yes: step 2 (learn the big model&rsquo;s whole curve) and use the weight in SM56. Control (weight 0.5, as SM36) on 723 users: 0.30329 / 0.27957 vs SM36 0.30333 / 0.27960, &minus;0.00004 [&minus;0.00016, +0.00006] / &minus;0.00003 [&minus;0.00005, &minus;0.00001]: a tie on curve, a tiny instant gain. The arms are read against this control. Arm 0.9: 0.30358 / 0.27967, vs SM36 +0.00025 [+0.00008, +0.00040] / +0.00007 [+0.00005, +0.00009]: worse on both heads (+0.73% / +0.65% vs the big model, against +0.64% / +0.63%), so a heavier big-model weight does not help so far",
-   "state": "running",
+   "when": "Code check passed 14:27. Control arm: training OK, scoring failed on a missing users file, rescored after a relaunch at 15:48 &rarr; done 17:49. Arm 0.9 done 19:27, arm 1.0 done 20:47 (each ~80 min on the GPU, 20,100 reviews/s training)",
+   "decides": "Does a heavier big-model weight help? Never tested since full-history distillation. If yes: step 2 (learn the big model&rsquo;s whole curve) and use the weight in SM56. Control (weight 0.5, as SM36) on 723 users: 0.30329 / 0.27957 vs SM36 0.30333 / 0.27960, &minus;0.00004 [&minus;0.00016, +0.00006] / &minus;0.00003 [&minus;0.00005, &minus;0.00001]: a tie on curve, a tiny instant gain. The arms are read against this control. Arm 0.9: 0.30358 / 0.27967, vs SM36 +0.00025 [+0.00008, +0.00040] / +0.00007 [+0.00005, +0.00009]: worse on both heads (+0.73% / +0.65% vs the big model, against +0.64% / +0.63%), so a heavier big-model weight does not help. Arm 1.0: 0.30365 / 0.27971, +0.00032 [+0.00013, +0.00050] / +0.00011 [+0.00009, +0.00014] (+0.75% / +0.67% vs the big model): worse again. Verdict: today&rsquo;s weight 0.5 stays; step 2 (whole curve) was conditional on a gain and is shelved. Tables: summary-table.md in the sm59 branch",
+   "state": "done",
+   "ended": "20:46",
+   "exit": 0,
    "started": "19:28",
-   "ticket": "000620-small-model",
-   "started_at": "2026-10-22T18:08:45+02:00",
-   "ends_at": "2026-10-22T23:38:45+02:00"
+   "started_at": "2026-10-22T19:28:10+02:00",
+   "ended_at": "2026-10-22T20:46:53+02:00"
   },
   {
    "id": "SM58",
@@ -1355,7 +1337,7 @@
    "id": "SM59",
    "track": "small model",
    "item": "Better distillation, step 2: also learn the big model&rsquo;s whole forgetting curve (its predictions at fixed intervals, e.g. 1 d / 7 d / 30 d / 180 d), not one point per review",
-   "why": "Only if step 1 shows a gain (user, 10-22). Needs new code and a new export of the big model&rsquo;s predictions (GPU, a few hours, +~16 B per review). Step 3 (copy the big model&rsquo;s internal state) only if 1&ndash;2 show the small model can&rsquo;t follow"
+   "why": "Shelved 10-22 20:47: step 1 showed no gain (weights 0.9 and 1.0 both worse than 0.5). Was: only if step 1 shows a gain (user, 10-22). Needs new code and a new export of the big model&rsquo;s predictions (GPU, a few hours, +~16 B per review). Step 3 (copy the big model&rsquo;s internal state) only if 1&ndash;2 show the small model can&rsquo;t follow"
   }
  ],
  "results": [
