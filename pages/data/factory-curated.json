@@ -874,8 +874,8 @@
    "match": [
     "SM59"
    ],
-   "when": "Relaunched 11:54 (killed at 10:18 while waiting); code check (CPU, ~70 min) ~12:45 &rarr; ~13:55, then three arms of ~35 min &rarr; ~15:40",
-   "decides": "Does a heavier big-model weight help? Never tested since full-history distillation. If yes: step 2 (learn the big model&rsquo;s whole curve) and use the weight in SM56. The control also reads SM50 against a plain fine-tune",
+   "when": "Code check passed 14:27. Control arm: training OK, scoring failed on a missing users file, rescored after a relaunch at 15:48 &rarr; done 17:49. Arm 0.9 started 17:49 (~70 min), then arm 1.0; both before the 21:00 break",
+   "decides": "Does a heavier big-model weight help? Never tested since full-history distillation. If yes: step 2 (learn the big model&rsquo;s whole curve) and use the weight in SM56. Control (weight 0.5, as SM36) on 723 users: 0.30329 / 0.27957 vs SM36 0.30333 / 0.27960, &minus;0.00004 [&minus;0.00016, +0.00006] / &minus;0.00003 [&minus;0.00005, &minus;0.00001]: a tie on curve, a tiny instant gain. The arms are read against this control",
    "state": "planned"
   },
   {
@@ -884,7 +884,7 @@
    "minutes": 35,
    "track": "small model",
    "what": "Disagreement test: UM+ and each model&rsquo;s slope (Search Stats Extended conventions), Muon best small model (SM36) vs the big model, curve and instant, 729 users + own collection (aggregate); the 8k model (SM55) too if it wins",
-   "when": "Relaunched 11:54; waits for better distillation (SM59): ~15:40, ~55 GPU min, between the full retrain&rsquo;s epochs",
+   "when": "Started 15:38 (after SM59&rsquo;s stop). Big-model dump complete (user 4852 fails); SM36 dump complete 17:38 (6 users fail, as in the 723 set); SM55 next, between the other GPU jobs",
    "decides": "Whether the small model is more or less right than the big model where they disagree (a tie is +0.5 for the small model&rsquo;s slope)",
    "state": "planned",
    "match": [
@@ -897,7 +897,7 @@
    "minutes": 1800,
    "track": "small model",
    "what": "Full retrain from scratch on all 8,000 users (581.9M reviews per epoch), carried state at 2,048 windows every epoch; epochs continue until the gain flattens (an epoch gains less than 5% of the total since epoch 1 on both heads, two epochs in a row; 5 to 14 epochs), then the same 8 h decay as the 8k model (SM55); 464-user read-out after every epoch",
-   "when": "Prepared and launched 11:59 (dry run OK); epoch 1 waits for better distillation&rsquo;s code check (~13:55), then its epochs interleave with that test&rsquo;s arms: ~2 epochs today (~2 h each), continues Fri 01:00; decay at the next start that ends before a break; result Sat",
+   "when": "Epoch 1 done 17:25: 582M reviews in 109.7 min (88,400 reviews/s); 464-user read-out next, then epochs interleave with better distillation&rsquo;s arms; continues Fri 01:00; decay at the next start that ends before a break; result Sat",
    "decides": "Whether having all 8,000 users in every epoch (not only the decay) beats the 8k model (SM55)",
    "state": "planned",
    "match": [
