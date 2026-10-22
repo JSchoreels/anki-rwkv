@@ -1016,6 +1016,34 @@
    "why": "Outside research (10-22): more parameters or a larger state are undesirable (slower, bigger); a new axis would be the most valuable find and none is known yet"
   },
   {
+   "status": "idea",
+   "id": "SM65",
+   "track": "small model",
+   "item": "New axis candidate: a better teacher (an ensemble of big models, or a big model trained on more users) to distill from",
+   "why": "The student learns the teacher&rsquo;s predictions, so the teacher is its ceiling; a stronger teacher raises it without touching the small model&rsquo;s size or state"
+  },
+  {
+   "status": "idea",
+   "id": "SM66",
+   "track": "small model",
+   "item": "New axis candidate: per-user adaptation at use time (a tiny per-user correction, e.g. calibration, learned from the user&rsquo;s own reviews)",
+   "why": "Scales with each user&rsquo;s history instead of model size; no extra parameters in the shared model"
+  },
+  {
+   "status": "idea",
+   "id": "SM67",
+   "track": "small model",
+   "item": "New axis candidate: data augmentation (sub-sampled or time-shifted copies of review histories)",
+   "why": "More training data without waiting for new users; to test on the 5k recipe first"
+  },
+  {
+   "status": "idea",
+   "id": "SM68",
+   "track": "small model",
+   "item": "Find why 4 long users (70, 1479, 4379, 4922) do not fit the 8k model&rsquo;s GPU scorer at the 0.92 cap while the other models fit them",
+   "why": "Same architecture, so memory should match; until then the 732 table uses the 726 users every model fits"
+  },
+  {
    "status": "next",
    "item": "Benchmark labels for the 1,493 training users of the 2,225-user set",
    "id": "EVAL",
