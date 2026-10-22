@@ -8,8 +8,9 @@ LogLoss on held-out benchmark users (lower is better), weighted by reviews. Both
 |---|---|---|---|
 | 464-user set (458 users scored by both) | 0.29584 / 0.27223 | 0.29741 / 0.27371 | +0.53% / +0.54% |
 | 732-user set (723 users) | 0.30139 / 0.27786 | 0.30286 / 0.27934 | +0.49% / +0.53% |
+| 732-user set, the 726 users every released model fits | 0.30300 / 0.27862 | 0.30464 / 0.28015 | +0.54% / +0.55% |
 
-7 long users of the 730 the previous releases used are still being scored; these notes will be updated with the 730-user row.
+4 long users of the 730 that the previous releases used (70, 1479, 4379, 4922) do not fit this model's GPU scorer even at a 0.92 memory cap, so the comparable row uses the 726 users all released models have. On those 726 users the previous release (SM36) is +0.70% / +0.64% and this model +0.54% / +0.55%; paired difference curve −0.00048 [−0.00089, −0.00019], instant −0.00025 [−0.00029, −0.00022].
 
 - **Curve** is the forgetting-curve head (probability of recall at any future time); **instant** is the next-review head.
 - Against the previous release (SM36) on the same users, this model is better. Paired difference (SM55 minus SM36, with interval): 723 users, curve -0.00047 [-0.00088, -0.00017], instant -0.00025 [-0.00029, -0.00022]; 458 users, curve -0.00063 [-0.00127, -0.00019], instant -0.00027 [-0.00032, -0.00022].
