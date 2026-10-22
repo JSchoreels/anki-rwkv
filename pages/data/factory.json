@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-10-22T18:13:07+02:00",
- "updated": "2026-10-22 18:13",
- "material": "f7646b6974515cc2",
- "summary": "running 000618",
+ "generated_at": "2026-10-22T19:29:04+02:00",
+ "updated": "2026-10-22 19:29",
+ "material": "11c9756abf92d822",
+ "summary": "running 000620, finished 000618",
  "headline": [
   {
    "k": "Best, 464 users (curve / instant)",
@@ -180,29 +180,31 @@
  "now": [
   {
    "what": "Better distillation, step 1: fine-tunes of SM36 with more weight on the big model&rsquo;s predictions (control at today&rsquo;s weight, 0.9, 1.0), same setup as SM50 (81M reviews, ~110 min per arm with scoring), scored on 732 users",
-   "id": "SM59, ticket 000618",
+   "id": "SM59, ticket 000620",
    "kind": "gpu-train",
-   "decides": "Does a heavier big-model weight help? Never tested since full-history distillation. If yes: step 2 (learn the big model&rsquo;s whole curve) and use the weight in SM56. Control (weight 0.5, as SM36) on 723 users: 0.30329 / 0.27957 vs SM36 0.30333 / 0.27960, &minus;0.00004 [&minus;0.00016, +0.00006] / &minus;0.00003 [&minus;0.00005, &minus;0.00001]: a tie on curve, a tiny instant gain. The arms are read against this control",
+   "decides": "Does a heavier big-model weight help? Never tested since full-history distillation. If yes: step 2 (learn the big model&rsquo;s whole curve) and use the weight in SM56. Control (weight 0.5, as SM36) on 723 users: 0.30329 / 0.27957 vs SM36 0.30333 / 0.27960, &minus;0.00004 [&minus;0.00016, +0.00006] / &minus;0.00003 [&minus;0.00005, &minus;0.00001]: a tie on curve, a tiny instant gain. The arms are read against this control. Arm 0.9: 0.30358 / 0.27967, vs SM36 +0.00025 [+0.00008, +0.00040] / +0.00007 [+0.00005, +0.00009]: worse on both heads (+0.73% / +0.65% vs the big model, against +0.64% / +0.63%), so a heavier big-model weight does not help so far",
    "why": "",
-   "job": "SM59 kd-090: SM36 fine-tune, both heads, KD weight (smoke, train, score 723 users)",
+   "job": "SM59 kd-100: SM36 fine-tune, both heads, KD weight (smoke, train, score 723 users)",
    "linked": true,
    "track": "small model",
-   "ticket": "000618-small-model",
-   "started": "18:08",
-   "elapsed": "0:04",
+   "ticket": "000620-small-model",
+   "started": "19:28",
+   "elapsed": "0:00",
    "progress": null,
-   "eta": "~19:58"
+   "eta": "~20:53"
   }
  ],
- "waiting": [
-  {
-   "ticket": "000619-small-model",
-   "id": "SM56",
-   "what": "SM56 scale-w64kd-final-sc-lanes epoch 2/14 (8k final tier, 2048 x 16 lanes carry, replay KD, AdamW 7e-4)",
-   "flags": "expected 119 min"
-  }
- ],
+ "waiting": [],
  "recent": [
+  {
+   "ticket": "000618-small-model",
+   "id": "SM59",
+   "what": "SM59 kd-090: SM36 fine-tune, both heads, KD weight (smoke, train, score 723 users)",
+   "ended": "19:27",
+   "date": "10-22",
+   "exit": 0,
+   "ran": "1:18"
+  },
   {
    "ticket": "000616-small-model",
    "id": "SM56",
@@ -247,15 +249,6 @@
    "date": "10-22",
    "exit": 0,
    "ran": "0:00"
-  },
-  {
-   "ticket": "000609-small-model",
-   "id": "SM55",
-   "what": "8k model (SM55) 732 pool, 7 long users retry at cap 0.92",
-   "ended": "12:27",
-   "date": "10-22",
-   "exit": 0,
-   "ran": "0:01"
   }
  ],
  "plan": [
@@ -558,12 +551,9 @@
    "minutes": 400,
    "track": "small model",
    "decides": "Tie with the best: the 2 carried-state epochs do not matter, the one-epoch 32k decay with carry gives the gain",
-   "state": "done",
-   "started_at": "2026-10-19T18:34:07+02:00",
-   "ended_at": "2026-10-19T18:35:29+02:00",
-   "ended": "18:35",
-   "exit": 0,
-   "started": "18:34"
+   "state": "planned",
+   "started_at": "2026-10-19T13:06:21+02:00",
+   "ended_at": "2026-10-19T18:35:30+02:00"
   },
   {
    "what": "Data diversity vs epochs, mini: 1,000 users &times; 1 epoch vs 100 of them &times; 10 epochs (73.7M vs 73.4M reviews seen), from scratch, 2,048-window KD recipe, both scored on 732 users",
@@ -863,13 +853,13 @@
    "kind": "gpu-train",
    "minutes": 330,
    "track": "small model",
-   "when": "Code check passed 14:27. Control arm: training OK, scoring failed on a missing users file, rescored after a relaunch at 15:48 &rarr; done 17:49. Arm 0.9 started 17:49 (~70 min), then arm 1.0; both before the 21:00 break",
-   "decides": "Does a heavier big-model weight help? Never tested since full-history distillation. If yes: step 2 (learn the big model&rsquo;s whole curve) and use the weight in SM56. Control (weight 0.5, as SM36) on 723 users: 0.30329 / 0.27957 vs SM36 0.30333 / 0.27960, &minus;0.00004 [&minus;0.00016, +0.00006] / &minus;0.00003 [&minus;0.00005, &minus;0.00001]: a tie on curve, a tiny instant gain. The arms are read against this control",
+   "when": "Code check passed 14:27. Control arm: training OK, scoring failed on a missing users file, rescored after a relaunch at 15:48 &rarr; done 17:49. Arm 0.9 done 19:27. Arm 1.0 started 19:28 (~80 min), ends before the 21:00 break",
+   "decides": "Does a heavier big-model weight help? Never tested since full-history distillation. If yes: step 2 (learn the big model&rsquo;s whole curve) and use the weight in SM56. Control (weight 0.5, as SM36) on 723 users: 0.30329 / 0.27957 vs SM36 0.30333 / 0.27960, &minus;0.00004 [&minus;0.00016, +0.00006] / &minus;0.00003 [&minus;0.00005, &minus;0.00001]: a tie on curve, a tiny instant gain. The arms are read against this control. Arm 0.9: 0.30358 / 0.27967, vs SM36 +0.00025 [+0.00008, +0.00040] / +0.00007 [+0.00005, +0.00009]: worse on both heads (+0.73% / +0.65% vs the big model, against +0.64% / +0.63%), so a heavier big-model weight does not help so far",
    "state": "running",
-   "started": "18:08",
-   "ticket": "000618-small-model",
-   "started_at": "2026-10-22T17:37:59+02:00",
-   "ends_at": "2026-10-22T23:07:59+02:00"
+   "started": "19:28",
+   "ticket": "000620-small-model",
+   "started_at": "2026-10-22T18:08:45+02:00",
+   "ends_at": "2026-10-22T23:38:45+02:00"
   },
   {
    "id": "SM58",
@@ -887,10 +877,14 @@
    "minutes": 1800,
    "track": "small model",
    "what": "Full retrain from scratch on all 8,000 users (581.9M reviews per epoch), carried state at 2,048 windows every epoch; epochs continue until the gain flattens (an epoch gains less than 5% of the total since epoch 1 on both heads, two epochs in a row; 5 to 14 epochs), then the same 8 h decay as the 8k model (SM55); 464-user read-out after every epoch",
-   "when": "Epoch 1 done 17:25: 582M reviews in 109.7 min (88,400 reviews/s); 464-user read-out next, then epochs interleave with better distillation&rsquo;s arms; continues Fri 01:00; decay at the next start that ends before a break; result Sat",
+   "when": "Epoch 1 done 17:25: 582M reviews in 109.7 min (88,400 reviews/s); read-out on 458 users 0.30882 / 0.28201 (continue, minimum 5 epochs); epoch 2 did not fit before the 21:00 break and starts Fri 01:00; decay at the next start that ends before a break; result Sat",
    "decides": "Whether having all 8,000 users in every epoch (not only the decay) beats the 8k model (SM55)",
-   "state": "waiting",
-   "ticket": "000619-small-model"
+   "state": "done",
+   "ended": "17:56",
+   "exit": 0,
+   "started": "17:49",
+   "started_at": "2026-10-22T17:49:02+02:00",
+   "ended_at": "2026-10-22T17:56:15+02:00"
   },
   {
    "what": "Muon tuning, arm 1: SM36&rsquo;s one-epoch 32k decay with the learning rate &times;0.5 (pointer from outside research), saving 4 snapshots along the decay for SM51",
