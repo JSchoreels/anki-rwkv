@@ -1,0 +1,3514 @@
+{
+ "definition": {
+  "buckets": "round(20*d), d = p_small - p_big, 41 buckets",
+  "UM+": "sqrt(sum n_b err_b^2 / N)",
+  "slope": "count-weighted regression of bucket error on disagreement, buckets >= 200 reviews",
+  "note": "slope_small = slope_big + 1 exactly in this construction: +0.5 for the small model (-0.5 for the big one) is a tie",
+  "logloss": "pooled review-weighted, p clipped to [1e-07, 1-1e-07]"
+ },
+ "utc": "2026-10-22T16:08:46Z",
+ "sets": {
+  "benchmark": {
+   "label": "732-user pool (benchmark users, w8+s8 deployed variants)",
+   "models": {
+    "sm36": {
+     "users_used": 722,
+     "users_skipped": {
+      "70": "no small dump",
+      "650": "no small dump",
+      "1479": "no small dump",
+      "4379": "no small dump",
+      "4501": "no small dump",
+      "4852": "no big dump",
+      "4922": "no small dump"
+     },
+     "heads": {
+      "curve": {
+       "all": {
+        "reviews": 30126145,
+        "small": {
+         "UM+": 0.025056711459556513,
+         "slope": 0.722997953179237,
+         "LogLoss": 0.3013764681220937
+        },
+        "big": {
+         "UM+": 0.010561448287525177,
+         "slope": -0.27700204682076285,
+         "LogLoss": 0.29943304028934653
+        },
+        "um_plus_diff_small_minus_big": 0.014495263172031337,
+        "logloss_delta_pct_small_vs_big": 0.6490358682091912,
+        "um_plus_bins": [
+         {
+          "index": 6,
+          "count": 1,
+          "disagreement": -0.680134,
+          "error_small": 0.042181,
+          "error_big": 0.722315
+         },
+         {
+          "index": 7,
+          "count": 7,
+          "disagreement": -0.641053,
+          "error_small": -0.542455,
+          "error_big": 0.098598
+         },
+         {
+          "index": 8,
+          "count": 61,
+          "disagreement": -0.595002,
+          "error_small": -0.46376,
+          "error_big": 0.131242
+         },
+         {
+          "index": 9,
+          "count": 274,
+          "disagreement": -0.546434,
+          "error_small": -0.381513,
+          "error_big": 0.164921
+         },
+         {
+          "index": 10,
+          "count": 705,
+          "disagreement": -0.496995,
+          "error_small": -0.274809,
+          "error_big": 0.222185
+         },
+         {
+          "index": 11,
+          "count": 1411,
+          "disagreement": -0.44723,
+          "error_small": -0.280159,
+          "error_big": 0.167071
+         },
+         {
+          "index": 12,
+          "count": 2679,
+          "disagreement": -0.396996,
+          "error_small": -0.246945,
+          "error_big": 0.150051
+         },
+         {
+          "index": 13,
+          "count": 5126,
+          "disagreement": -0.348043,
+          "error_small": -0.246891,
+          "error_big": 0.101152
+         },
+         {
+          "index": 14,
+          "count": 9178,
+          "disagreement": -0.297874,
+          "error_small": -0.237035,
+          "error_big": 0.060839
+         },
+         {
+          "index": 15,
+          "count": 16253,
+          "disagreement": -0.247533,
+          "error_small": -0.211702,
+          "error_big": 0.035832
+         },
+         {
+          "index": 16,
+          "count": 36244,
+          "disagreement": -0.194689,
+          "error_small": -0.178857,
+          "error_big": 0.015832
+         },
+         {
+          "index": 17,
+          "count": 101581,
+          "disagreement": -0.146997,
+          "error_small": -0.131478,
+          "error_big": 0.01552
+         },
+         {
+          "index": 18,
+          "count": 396060,
+          "disagreement": -0.093404,
+          "error_small": -0.072286,
+          "error_big": 0.021118
+         },
+         {
+          "index": 19,
+          "count": 2848050,
+          "disagreement": -0.041265,
+          "error_small": -0.033879,
+          "error_big": 0.007386
+         },
+         {
+          "index": 20,
+          "count": 22628317,
+          "disagreement": -0.00033,
+          "error_small": -0.003093,
+          "error_big": -0.002763
+         },
+         {
+          "index": 21,
+          "count": 3229953,
+          "disagreement": 0.042279,
+          "error_small": 0.024548,
+          "error_big": -0.017731
+         },
+         {
+          "index": 22,
+          "count": 588696,
+          "disagreement": 0.094284,
+          "error_small": 0.061422,
+          "error_big": -0.032861
+         },
+         {
+          "index": 23,
+          "count": 163118,
+          "disagreement": 0.14536,
+          "error_small": 0.096809,
+          "error_big": -0.048551
+         },
+         {
+          "index": 24,
+          "count": 57017,
+          "disagreement": 0.196075,
+          "error_small": 0.134526,
+          "error_big": -0.061549
+         },
+         {
+          "index": 25,
+          "count": 23509,
+          "disagreement": 0.246506,
+          "error_small": 0.168453,
+          "error_big": -0.078053
+         },
+         {
+          "index": 26,
+          "count": 9777,
+          "disagreement": 0.296391,
+          "error_small": 0.198539,
+          "error_big": -0.097852
+         },
+         {
+          "index": 27,
+          "count": 4312,
+          "disagreement": 0.346237,
+          "error_small": 0.241203,
+          "error_big": -0.105034
+         },
+         {
+          "index": 28,
+          "count": 2091,
+          "disagreement": 0.396596,
+          "error_small": 0.292907,
+          "error_big": -0.103689
+         },
+         {
+          "index": 29,
+          "count": 975,
+          "disagreement": 0.447408,
+          "error_small": 0.35003,
+          "error_big": -0.097378
+         },
+         {
+          "index": 30,
+          "count": 452,
+          "disagreement": 0.494864,
+          "error_small": 0.433958,
+          "error_big": -0.060906
+         },
+         {
+          "index": 31,
+          "count": 152,
+          "disagreement": 0.545663,
+          "error_small": 0.475372,
+          "error_big": -0.070291
+         },
+         {
+          "index": 32,
+          "count": 75,
+          "disagreement": 0.596374,
+          "error_small": 0.525667,
+          "error_big": -0.070707
+         },
+         {
+          "index": 33,
+          "count": 28,
+          "disagreement": 0.645257,
+          "error_small": 0.523565,
+          "error_big": -0.121692
+         },
+         {
+          "index": 34,
+          "count": 16,
+          "disagreement": 0.698889,
+          "error_small": 0.663934,
+          "error_big": -0.034955
+         },
+         {
+          "index": 35,
+          "count": 9,
+          "disagreement": 0.735651,
+          "error_small": 0.749069,
+          "error_big": 0.013417
+         },
+         {
+          "index": 36,
+          "count": 9,
+          "disagreement": 0.800457,
+          "error_small": 0.897228,
+          "error_big": 0.09677
+         },
+         {
+          "index": 37,
+          "count": 4,
+          "disagreement": 0.849668,
+          "error_small": 0.880685,
+          "error_big": 0.031017
+         },
+         {
+          "index": 38,
+          "count": 2,
+          "disagreement": 0.915044,
+          "error_small": 0.955551,
+          "error_big": 0.040508
+         },
+         {
+          "index": 39,
+          "count": 3,
+          "disagreement": 0.96623,
+          "error_small": 0.969678,
+          "error_big": 0.003448
+         }
+        ],
+        "bootstrap": {
+         "resamples": 2000,
+         "seed": 0,
+         "users": 722,
+         "um_plus_diff_ci95": [
+          0.010220264180192616,
+          0.01888116938058157
+         ],
+         "slope_small_ci95": [
+          0.6671765259954984,
+          0.7781528025802299
+         ],
+         "logloss_delta_pct_ci95": [
+          0.44430936194284953,
+          0.8910568733078471
+         ]
+        }
+       },
+       "cross_day": {
+        "reviews": 19287209,
+        "small": {
+         "UM+": 0.02420697343922558,
+         "slope": 0.6731856654713253,
+         "LogLoss": 0.29508722265871823
+        },
+        "big": {
+         "UM+": 0.012971230595436239,
+         "slope": -0.32681433452867464,
+         "LogLoss": 0.29347241236057003
+        },
+        "um_plus_diff_small_minus_big": 0.01123574284378934,
+        "logloss_delta_pct_small_vs_big": 0.5502426225209245,
+        "um_plus_bins": [
+         {
+          "index": 6,
+          "count": 1,
+          "disagreement": -0.680134,
+          "error_small": 0.042181,
+          "error_big": 0.722315
+         },
+         {
+          "index": 7,
+          "count": 3,
+          "disagreement": -0.630329,
+          "error_small": -0.802258,
+          "error_big": -0.171929
+         },
+         {
+          "index": 8,
+          "count": 45,
+          "disagreement": -0.594505,
+          "error_small": -0.403657,
+          "error_big": 0.190849
+         },
+         {
+          "index": 9,
+          "count": 245,
+          "disagreement": -0.546762,
+          "error_small": -0.357089,
+          "error_big": 0.189673
+         },
+         {
+          "index": 10,
+          "count": 663,
+          "disagreement": -0.496789,
+          "error_small": -0.259505,
+          "error_big": 0.237284
+         },
+         {
+          "index": 11,
+          "count": 1301,
+          "disagreement": -0.44748,
+          "error_small": -0.265606,
+          "error_big": 0.181874
+         },
+         {
+          "index": 12,
+          "count": 2389,
+          "disagreement": -0.397084,
+          "error_small": -0.229418,
+          "error_big": 0.167665
+         },
+         {
+          "index": 13,
+          "count": 4552,
+          "disagreement": -0.348027,
+          "error_small": -0.231072,
+          "error_big": 0.116954
+         },
+         {
+          "index": 14,
+          "count": 8052,
+          "disagreement": -0.29791,
+          "error_small": -0.2291,
+          "error_big": 0.06881
+         },
+         {
+          "index": 15,
+          "count": 13469,
+          "disagreement": -0.247828,
+          "error_small": -0.205668,
+          "error_big": 0.04216
+         },
+         {
+          "index": 16,
+          "count": 24140,
+          "disagreement": -0.197161,
+          "error_small": -0.176299,
+          "error_big": 0.020862
+         },
+         {
+          "index": 17,
+          "count": 56592,
+          "disagreement": -0.145888,
+          "error_small": -0.126117,
+          "error_big": 0.019771
+         },
+         {
+          "index": 18,
+          "count": 212012,
+          "disagreement": -0.093731,
+          "error_small": -0.068876,
+          "error_big": 0.024855
+         },
+         {
+          "index": 19,
+          "count": 1657491,
+          "disagreement": -0.040577,
+          "error_small": -0.032718,
+          "error_big": 0.007858
+         },
+         {
+          "index": 20,
+          "count": 14577827,
+          "disagreement": -0.000386,
+          "error_small": -0.003494,
+          "error_big": -0.003108
+         },
+         {
+          "index": 21,
+          "count": 2116196,
+          "disagreement": 0.042416,
+          "error_small": 0.02061,
+          "error_big": -0.021807
+         },
+         {
+          "index": 22,
+          "count": 412657,
+          "disagreement": 0.094571,
+          "error_small": 0.055641,
+          "error_big": -0.03893
+         },
+         {
+          "index": 23,
+          "count": 121683,
+          "disagreement": 0.14554,
+          "error_small": 0.088598,
+          "error_big": -0.056942
+         },
+         {
+          "index": 24,
+          "count": 44454,
+          "disagreement": 0.196251,
+          "error_small": 0.126289,
+          "error_big": -0.069962
+         },
+         {
+          "index": 25,
+          "count": 18945,
+          "disagreement": 0.246506,
+          "error_small": 0.160269,
+          "error_big": -0.086237
+         },
+         {
+          "index": 26,
+          "count": 7916,
+          "disagreement": 0.296316,
+          "error_small": 0.190328,
+          "error_big": -0.105987
+         },
+         {
+          "index": 27,
+          "count": 3468,
+          "disagreement": 0.346047,
+          "error_small": 0.229945,
+          "error_big": -0.116102
+         },
+         {
+          "index": 28,
+          "count": 1740,
+          "disagreement": 0.396573,
+          "error_small": 0.286739,
+          "error_big": -0.109834
+         },
+         {
+          "index": 29,
+          "count": 788,
+          "disagreement": 0.447249,
+          "error_small": 0.330574,
+          "error_big": -0.116675
+         },
+         {
+          "index": 30,
+          "count": 362,
+          "disagreement": 0.495063,
+          "error_small": 0.417906,
+          "error_big": -0.077157
+         },
+         {
+          "index": 31,
+          "count": 114,
+          "disagreement": 0.544511,
+          "error_small": 0.457319,
+          "error_big": -0.087192
+         },
+         {
+          "index": 32,
+          "count": 54,
+          "disagreement": 0.596429,
+          "error_small": 0.553019,
+          "error_big": -0.04341
+         },
+         {
+          "index": 33,
+          "count": 22,
+          "disagreement": 0.645928,
+          "error_small": 0.566882,
+          "error_big": -0.079047
+         },
+         {
+          "index": 34,
+          "count": 8,
+          "disagreement": 0.700861,
+          "error_small": 0.687616,
+          "error_big": -0.013245
+         },
+         {
+          "index": 35,
+          "count": 6,
+          "disagreement": 0.738544,
+          "error_small": 0.665418,
+          "error_big": -0.073126
+         },
+         {
+          "index": 36,
+          "count": 6,
+          "disagreement": 0.795066,
+          "error_small": 0.899109,
+          "error_big": 0.104043
+         },
+         {
+          "index": 37,
+          "count": 3,
+          "disagreement": 0.856333,
+          "error_small": 0.862413,
+          "error_big": 0.006081
+         },
+         {
+          "index": 38,
+          "count": 2,
+          "disagreement": 0.915044,
+          "error_small": 0.955551,
+          "error_big": 0.040508
+         },
+         {
+          "index": 39,
+          "count": 3,
+          "disagreement": 0.96623,
+          "error_small": 0.969678,
+          "error_big": 0.003448
+         }
+        ],
+        "bootstrap": {
+         "resamples": 2000,
+         "seed": 0,
+         "users": 722,
+         "um_plus_diff_ci95": [
+          0.005150678624225155,
+          0.017313779004839318
+         ],
+         "slope_small_ci95": [
+          0.5948605601897092,
+          0.7458155701982182
+         ],
+         "logloss_delta_pct_ci95": [
+          0.2714819768518645,
+          0.8794020890456977
+         ]
+        }
+       }
+      },
+      "instant": {
+       "all": {
+        "reviews": 30126145,
+        "small": {
+         "UM+": 0.021865380996663745,
+         "slope": 0.7961505381943673,
+         "LogLoss": 0.27757607686205704
+        },
+        "big": {
+         "UM+": 0.005934195131623221,
+         "slope": -0.20384946180563276,
+         "LogLoss": 0.27584389985682767
+        },
+        "um_plus_diff_small_minus_big": 0.015931185865040526,
+        "logloss_delta_pct_small_vs_big": 0.6279555234422141,
+        "um_plus_bins": [
+         {
+          "index": 3,
+          "count": 3,
+          "disagreement": -0.856521,
+          "error_small": -0.93327,
+          "error_big": -0.076749
+         },
+         {
+          "index": 4,
+          "count": 4,
+          "disagreement": -0.810259,
+          "error_small": -0.375935,
+          "error_big": 0.434324
+         },
+         {
+          "index": 5,
+          "count": 2,
+          "disagreement": -0.750334,
+          "error_small": -0.815207,
+          "error_big": -0.064873
+         },
+         {
+          "index": 6,
+          "count": 7,
+          "disagreement": -0.695767,
+          "error_small": -0.536573,
+          "error_big": 0.159193
+         },
+         {
+          "index": 7,
+          "count": 14,
+          "disagreement": -0.652819,
+          "error_small": -0.621028,
+          "error_big": 0.031791
+         },
+         {
+          "index": 8,
+          "count": 36,
+          "disagreement": -0.597099,
+          "error_small": -0.470141,
+          "error_big": 0.126958
+         },
+         {
+          "index": 9,
+          "count": 48,
+          "disagreement": -0.544553,
+          "error_small": -0.615924,
+          "error_big": -0.071371
+         },
+         {
+          "index": 10,
+          "count": 100,
+          "disagreement": -0.496421,
+          "error_small": -0.413739,
+          "error_big": 0.082682
+         },
+         {
+          "index": 11,
+          "count": 177,
+          "disagreement": -0.447249,
+          "error_small": -0.416381,
+          "error_big": 0.030868
+         },
+         {
+          "index": 12,
+          "count": 400,
+          "disagreement": -0.397531,
+          "error_small": -0.318087,
+          "error_big": 0.079444
+         },
+         {
+          "index": 13,
+          "count": 798,
+          "disagreement": -0.346102,
+          "error_small": -0.311065,
+          "error_big": 0.035038
+         },
+         {
+          "index": 14,
+          "count": 1833,
+          "disagreement": -0.296277,
+          "error_small": -0.253139,
+          "error_big": 0.043137
+         },
+         {
+          "index": 15,
+          "count": 4996,
+          "disagreement": -0.245918,
+          "error_small": -0.202696,
+          "error_big": 0.043222
+         },
+         {
+          "index": 16,
+          "count": 16276,
+          "disagreement": -0.194926,
+          "error_small": -0.165807,
+          "error_big": 0.029119
+         },
+         {
+          "index": 17,
+          "count": 66401,
+          "disagreement": -0.143966,
+          "error_small": -0.119448,
+          "error_big": 0.024518
+         },
+         {
+          "index": 18,
+          "count": 352891,
+          "disagreement": -0.092936,
+          "error_small": -0.076679,
+          "error_big": 0.016257
+         },
+         {
+          "index": 19,
+          "count": 2618767,
+          "disagreement": -0.041415,
+          "error_small": -0.034178,
+          "error_big": 0.007237
+         },
+         {
+          "index": 20,
+          "count": 23672462,
+          "disagreement": -0.000218,
+          "error_small": -0.001761,
+          "error_big": -0.001543
+         },
+         {
+          "index": 21,
+          "count": 2827703,
+          "disagreement": 0.042082,
+          "error_small": 0.029998,
+          "error_big": -0.012083
+         },
+         {
+          "index": 22,
+          "count": 443906,
+          "disagreement": 0.093263,
+          "error_small": 0.072879,
+          "error_big": -0.020385
+         },
+         {
+          "index": 23,
+          "count": 88604,
+          "disagreement": 0.143995,
+          "error_small": 0.116936,
+          "error_big": -0.027059
+         },
+         {
+          "index": 24,
+          "count": 21163,
+          "disagreement": 0.194403,
+          "error_small": 0.160561,
+          "error_big": -0.033841
+         },
+         {
+          "index": 25,
+          "count": 5888,
+          "disagreement": 0.245302,
+          "error_small": 0.213134,
+          "error_big": -0.032168
+         },
+         {
+          "index": 26,
+          "count": 2092,
+          "disagreement": 0.295912,
+          "error_small": 0.26229,
+          "error_big": -0.033622
+         },
+         {
+          "index": 27,
+          "count": 805,
+          "disagreement": 0.346615,
+          "error_small": 0.29358,
+          "error_big": -0.053035
+         },
+         {
+          "index": 28,
+          "count": 371,
+          "disagreement": 0.396352,
+          "error_small": 0.361875,
+          "error_big": -0.034477
+         },
+         {
+          "index": 29,
+          "count": 181,
+          "disagreement": 0.44782,
+          "error_small": 0.391955,
+          "error_big": -0.055865
+         },
+         {
+          "index": 30,
+          "count": 89,
+          "disagreement": 0.499299,
+          "error_small": 0.4562,
+          "error_big": -0.043099
+         },
+         {
+          "index": 31,
+          "count": 52,
+          "disagreement": 0.542809,
+          "error_small": 0.477502,
+          "error_big": -0.065306
+         },
+         {
+          "index": 32,
+          "count": 29,
+          "disagreement": 0.59513,
+          "error_small": 0.357809,
+          "error_big": -0.237321
+         },
+         {
+          "index": 33,
+          "count": 19,
+          "disagreement": 0.646511,
+          "error_small": 0.637412,
+          "error_big": -0.009099
+         },
+         {
+          "index": 34,
+          "count": 15,
+          "disagreement": 0.690383,
+          "error_small": 0.715418,
+          "error_big": 0.025035
+         },
+         {
+          "index": 35,
+          "count": 9,
+          "disagreement": 0.745763,
+          "error_small": 0.89395,
+          "error_big": 0.148187
+         },
+         {
+          "index": 36,
+          "count": 2,
+          "disagreement": 0.788417,
+          "error_small": 0.442069,
+          "error_big": -0.346348
+         },
+         {
+          "index": 37,
+          "count": 1,
+          "disagreement": 0.827625,
+          "error_small": 0.922238,
+          "error_big": 0.094613
+         },
+         {
+          "index": 38,
+          "count": 1,
+          "disagreement": 0.897839,
+          "error_small": -0.009412,
+          "error_big": -0.90725
+         }
+        ],
+        "bootstrap": {
+         "resamples": 2000,
+         "seed": 0,
+         "users": 722,
+         "um_plus_diff_ci95": [
+          0.014780687588506251,
+          0.01700401117887803
+         ],
+         "slope_small_ci95": [
+          0.7804082746260952,
+          0.8105167677834925
+         ],
+         "logloss_delta_pct_ci95": [
+          0.5764158266127878,
+          0.6809457669421143
+         ]
+        }
+       },
+       "cross_day": {
+        "reviews": 19287209,
+        "small": {
+         "UM+": 0.0195037971845964,
+         "slope": 0.7567184156465929,
+         "LogLoss": 0.26670699089385724
+        },
+        "big": {
+         "UM+": 0.006537637217433326,
+         "slope": -0.24328158435340708,
+         "LogLoss": 0.26527477240580505
+        },
+        "um_plus_diff_small_minus_big": 0.012966159967163073,
+        "logloss_delta_pct_small_vs_big": 0.5398999969214113,
+        "um_plus_bins": [
+         {
+          "index": 3,
+          "count": 3,
+          "disagreement": -0.856521,
+          "error_small": -0.93327,
+          "error_big": -0.076749
+         },
+         {
+          "index": 4,
+          "count": 3,
+          "disagreement": -0.806583,
+          "error_small": -0.536022,
+          "error_big": 0.270562
+         },
+         {
+          "index": 5,
+          "count": 2,
+          "disagreement": -0.750334,
+          "error_small": -0.815207,
+          "error_big": -0.064873
+         },
+         {
+          "index": 6,
+          "count": 5,
+          "disagreement": -0.696804,
+          "error_small": -0.425083,
+          "error_big": 0.271721
+         },
+         {
+          "index": 7,
+          "count": 10,
+          "disagreement": -0.653317,
+          "error_small": -0.661156,
+          "error_big": -0.007839
+         },
+         {
+          "index": 8,
+          "count": 30,
+          "disagreement": -0.59809,
+          "error_small": -0.545282,
+          "error_big": 0.052808
+         },
+         {
+          "index": 9,
+          "count": 33,
+          "disagreement": -0.54343,
+          "error_small": -0.575649,
+          "error_big": -0.032219
+         },
+         {
+          "index": 10,
+          "count": 65,
+          "disagreement": -0.497001,
+          "error_small": -0.336811,
+          "error_big": 0.16019
+         },
+         {
+          "index": 11,
+          "count": 112,
+          "disagreement": -0.447939,
+          "error_small": -0.367383,
+          "error_big": 0.080556
+         },
+         {
+          "index": 12,
+          "count": 239,
+          "disagreement": -0.397429,
+          "error_small": -0.305681,
+          "error_big": 0.091749
+         },
+         {
+          "index": 13,
+          "count": 493,
+          "disagreement": -0.346033,
+          "error_small": -0.292821,
+          "error_big": 0.053212
+         },
+         {
+          "index": 14,
+          "count": 1053,
+          "disagreement": -0.295975,
+          "error_small": -0.248151,
+          "error_big": 0.047825
+         },
+         {
+          "index": 15,
+          "count": 2834,
+          "disagreement": -0.245961,
+          "error_small": -0.210942,
+          "error_big": 0.035019
+         },
+         {
+          "index": 16,
+          "count": 9034,
+          "disagreement": -0.194938,
+          "error_small": -0.160536,
+          "error_big": 0.034402
+         },
+         {
+          "index": 17,
+          "count": 35783,
+          "disagreement": -0.144019,
+          "error_small": -0.116952,
+          "error_big": 0.027067
+         },
+         {
+          "index": 18,
+          "count": 191633,
+          "disagreement": -0.092834,
+          "error_small": -0.073099,
+          "error_big": 0.019735
+         },
+         {
+          "index": 19,
+          "count": 1556873,
+          "disagreement": -0.040937,
+          "error_small": -0.031818,
+          "error_big": 0.009119
+         },
+         {
+          "index": 20,
+          "count": 15480270,
+          "disagreement": -0.000202,
+          "error_small": -0.001592,
+          "error_big": -0.00139
+         },
+         {
+          "index": 21,
+          "count": 1702004,
+          "disagreement": 0.041614,
+          "error_small": 0.02791,
+          "error_big": -0.013703
+         },
+         {
+          "index": 22,
+          "count": 243043,
+          "disagreement": 0.093098,
+          "error_small": 0.06856,
+          "error_big": -0.024538
+         },
+         {
+          "index": 23,
+          "count": 47211,
+          "disagreement": 0.14396,
+          "error_small": 0.113168,
+          "error_big": -0.030792
+         },
+         {
+          "index": 24,
+          "count": 11291,
+          "disagreement": 0.194383,
+          "error_small": 0.151241,
+          "error_big": -0.043142
+         },
+         {
+          "index": 25,
+          "count": 3211,
+          "disagreement": 0.245107,
+          "error_small": 0.204946,
+          "error_big": -0.040161
+         },
+         {
+          "index": 26,
+          "count": 1134,
+          "disagreement": 0.295966,
+          "error_small": 0.268819,
+          "error_big": -0.027147
+         },
+         {
+          "index": 27,
+          "count": 427,
+          "disagreement": 0.346723,
+          "error_small": 0.311812,
+          "error_big": -0.034911
+         },
+         {
+          "index": 28,
+          "count": 192,
+          "disagreement": 0.3962,
+          "error_small": 0.373614,
+          "error_big": -0.022586
+         },
+         {
+          "index": 29,
+          "count": 95,
+          "disagreement": 0.449033,
+          "error_small": 0.403333,
+          "error_big": -0.0457
+         },
+         {
+          "index": 30,
+          "count": 47,
+          "disagreement": 0.500286,
+          "error_small": 0.437718,
+          "error_big": -0.062568
+         },
+         {
+          "index": 31,
+          "count": 26,
+          "disagreement": 0.542029,
+          "error_small": 0.436083,
+          "error_big": -0.105946
+         },
+         {
+          "index": 32,
+          "count": 19,
+          "disagreement": 0.594025,
+          "error_small": 0.405838,
+          "error_big": -0.188187
+         },
+         {
+          "index": 33,
+          "count": 13,
+          "disagreement": 0.64561,
+          "error_small": 0.684307,
+          "error_big": 0.038697
+         },
+         {
+          "index": 34,
+          "count": 9,
+          "disagreement": 0.692064,
+          "error_small": 0.710251,
+          "error_big": 0.018187
+         },
+         {
+          "index": 35,
+          "count": 8,
+          "disagreement": 0.745332,
+          "error_small": 0.904866,
+          "error_big": 0.159534
+         },
+         {
+          "index": 36,
+          "count": 2,
+          "disagreement": 0.788417,
+          "error_small": 0.442069,
+          "error_big": -0.346348
+         },
+         {
+          "index": 37,
+          "count": 1,
+          "disagreement": 0.827625,
+          "error_small": 0.922238,
+          "error_big": 0.094613
+         },
+         {
+          "index": 38,
+          "count": 1,
+          "disagreement": 0.897839,
+          "error_small": -0.009412,
+          "error_big": -0.90725
+         }
+        ],
+        "bootstrap": {
+         "resamples": 2000,
+         "seed": 0,
+         "users": 722,
+         "um_plus_diff_ci95": [
+          0.01183313521815947,
+          0.0139947421333937
+         ],
+         "slope_small_ci95": [
+          0.7388855755643162,
+          0.774815024855883
+         ],
+         "logloss_delta_pct_ci95": [
+          0.4854126691784971,
+          0.5960002399767816
+         ]
+        }
+       }
+      }
+     }
+    },
+    "sm55": {
+     "users_used": 722,
+     "users_skipped": {
+      "70": "no small dump",
+      "650": "no small dump",
+      "1479": "no small dump",
+      "4379": "no small dump",
+      "4501": "no small dump",
+      "4852": "no big dump",
+      "4922": "no small dump"
+     },
+     "heads": {
+      "curve": {
+       "all": {
+        "reviews": 30126145,
+        "small": {
+         "UM+": 0.022867336552088547,
+         "slope": 0.6826479437768728,
+         "LogLoss": 0.3009092414305325
+        },
+        "big": {
+         "UM+": 0.011405156611696984,
+         "slope": -0.3173520562231273,
+         "LogLoss": 0.29943304028934653
+        },
+        "um_plus_diff_small_minus_big": 0.011462179940391563,
+        "logloss_delta_pct_small_vs_big": 0.49299874848796055,
+        "um_plus_bins": [
+         {
+          "index": 6,
+          "count": 3,
+          "disagreement": -0.688224,
+          "error_small": -0.251226,
+          "error_big": 0.436998
+         },
+         {
+          "index": 7,
+          "count": 19,
+          "disagreement": -0.641231,
+          "error_small": -0.608709,
+          "error_big": 0.032522
+         },
+         {
+          "index": 8,
+          "count": 62,
+          "disagreement": -0.59573,
+          "error_small": -0.528608,
+          "error_big": 0.067122
+         },
+         {
+          "index": 9,
+          "count": 189,
+          "disagreement": -0.545713,
+          "error_small": -0.510724,
+          "error_big": 0.034989
+         },
+         {
+          "index": 10,
+          "count": 436,
+          "disagreement": -0.49704,
+          "error_small": -0.339707,
+          "error_big": 0.157333
+         },
+         {
+          "index": 11,
+          "count": 1064,
+          "disagreement": -0.446477,
+          "error_small": -0.299681,
+          "error_big": 0.146796
+         },
+         {
+          "index": 12,
+          "count": 1917,
+          "disagreement": -0.397395,
+          "error_small": -0.238117,
+          "error_big": 0.159278
+         },
+         {
+          "index": 13,
+          "count": 3662,
+          "disagreement": -0.347676,
+          "error_small": -0.200334,
+          "error_big": 0.147342
+         },
+         {
+          "index": 14,
+          "count": 6269,
+          "disagreement": -0.297645,
+          "error_small": -0.207656,
+          "error_big": 0.089989
+         },
+         {
+          "index": 15,
+          "count": 16184,
+          "disagreement": -0.242575,
+          "error_small": -0.205589,
+          "error_big": 0.036986
+         },
+         {
+          "index": 16,
+          "count": 41560,
+          "disagreement": -0.199903,
+          "error_small": -0.178727,
+          "error_big": 0.021176
+         },
+         {
+          "index": 17,
+          "count": 91683,
+          "disagreement": -0.144829,
+          "error_small": -0.113953,
+          "error_big": 0.030876
+         },
+         {
+          "index": 18,
+          "count": 400542,
+          "disagreement": -0.093399,
+          "error_small": -0.069978,
+          "error_big": 0.023421
+         },
+         {
+          "index": 19,
+          "count": 2873193,
+          "disagreement": -0.041305,
+          "error_small": -0.032992,
+          "error_big": 0.008313
+         },
+         {
+          "index": 20,
+          "count": 22857325,
+          "disagreement": -0.000305,
+          "error_small": -0.003186,
+          "error_big": -0.002881
+         },
+         {
+          "index": 21,
+          "count": 3070146,
+          "disagreement": 0.042091,
+          "error_small": 0.023142,
+          "error_big": -0.018949
+         },
+         {
+          "index": 22,
+          "count": 535177,
+          "disagreement": 0.094148,
+          "error_small": 0.056595,
+          "error_big": -0.037554
+         },
+         {
+          "index": 23,
+          "count": 143383,
+          "disagreement": 0.145228,
+          "error_small": 0.090308,
+          "error_big": -0.05492
+         },
+         {
+          "index": 24,
+          "count": 48650,
+          "disagreement": 0.195966,
+          "error_small": 0.122577,
+          "error_big": -0.073389
+         },
+         {
+          "index": 25,
+          "count": 19074,
+          "disagreement": 0.246448,
+          "error_small": 0.149815,
+          "error_big": -0.096632
+         },
+         {
+          "index": 26,
+          "count": 8504,
+          "disagreement": 0.29662,
+          "error_small": 0.178228,
+          "error_big": -0.118392
+         },
+         {
+          "index": 27,
+          "count": 3842,
+          "disagreement": 0.346132,
+          "error_small": 0.206129,
+          "error_big": -0.140002
+         },
+         {
+          "index": 28,
+          "count": 1695,
+          "disagreement": 0.397068,
+          "error_small": 0.278025,
+          "error_big": -0.119043
+         },
+         {
+          "index": 29,
+          "count": 864,
+          "disagreement": 0.446698,
+          "error_small": 0.327277,
+          "error_big": -0.119421
+         },
+         {
+          "index": 30,
+          "count": 424,
+          "disagreement": 0.496572,
+          "error_small": 0.392575,
+          "error_big": -0.103997
+         },
+         {
+          "index": 31,
+          "count": 151,
+          "disagreement": 0.545483,
+          "error_small": 0.442794,
+          "error_big": -0.102689
+         },
+         {
+          "index": 32,
+          "count": 61,
+          "disagreement": 0.597603,
+          "error_small": 0.485855,
+          "error_big": -0.111748
+         },
+         {
+          "index": 33,
+          "count": 29,
+          "disagreement": 0.645358,
+          "error_small": 0.467203,
+          "error_big": -0.178155
+         },
+         {
+          "index": 34,
+          "count": 11,
+          "disagreement": 0.697911,
+          "error_small": 0.598666,
+          "error_big": -0.099244
+         },
+         {
+          "index": 35,
+          "count": 11,
+          "disagreement": 0.748425,
+          "error_small": 0.874672,
+          "error_big": 0.126247
+         },
+         {
+          "index": 36,
+          "count": 5,
+          "disagreement": 0.795077,
+          "error_small": 0.906177,
+          "error_big": 0.1111
+         },
+         {
+          "index": 37,
+          "count": 3,
+          "disagreement": 0.848456,
+          "error_small": 0.925702,
+          "error_big": 0.077246
+         },
+         {
+          "index": 38,
+          "count": 4,
+          "disagreement": 0.899637,
+          "error_small": 0.921292,
+          "error_big": 0.021655
+         },
+         {
+          "index": 39,
+          "count": 3,
+          "disagreement": 0.968803,
+          "error_small": 0.97225,
+          "error_big": 0.003448
+         }
+        ],
+        "bootstrap": {
+         "resamples": 2000,
+         "seed": 0,
+         "users": 722,
+         "um_plus_diff_ci95": [
+          0.007248831610258006,
+          0.015469595106343274
+         ],
+         "slope_small_ci95": [
+          0.6220341108322837,
+          0.741726450486173
+         ],
+         "logloss_delta_pct_ci95": [
+          0.32641094746594435,
+          0.6740000292465781
+         ]
+        }
+       },
+       "cross_day": {
+        "reviews": 19287209,
+        "small": {
+         "UM+": 0.02099303505080195,
+         "slope": 0.613083581869644,
+         "LogLoss": 0.29446171106437014
+        },
+        "big": {
+         "UM+": 0.014099672308126993,
+         "slope": -0.3869164181303559,
+         "LogLoss": 0.29347241236057003
+        },
+        "um_plus_diff_small_minus_big": 0.006893362742674956,
+        "logloss_delta_pct_small_vs_big": 0.3371010909824834,
+        "um_plus_bins": [
+         {
+          "index": 6,
+          "count": 1,
+          "disagreement": -0.696208,
+          "error_small": 0.026106,
+          "error_big": 0.722315
+         },
+         {
+          "index": 7,
+          "count": 11,
+          "disagreement": -0.636823,
+          "error_small": -0.612215,
+          "error_big": 0.024608
+         },
+         {
+          "index": 8,
+          "count": 42,
+          "disagreement": -0.594598,
+          "error_small": -0.552428,
+          "error_big": 0.04217
+         },
+         {
+          "index": 9,
+          "count": 161,
+          "disagreement": -0.544546,
+          "error_small": -0.495402,
+          "error_big": 0.049144
+         },
+         {
+          "index": 10,
+          "count": 389,
+          "disagreement": -0.496746,
+          "error_small": -0.318419,
+          "error_big": 0.178327
+         },
+         {
+          "index": 11,
+          "count": 952,
+          "disagreement": -0.446653,
+          "error_small": -0.284479,
+          "error_big": 0.162174
+         },
+         {
+          "index": 12,
+          "count": 1611,
+          "disagreement": -0.397701,
+          "error_small": -0.204884,
+          "error_big": 0.192817
+         },
+         {
+          "index": 13,
+          "count": 3043,
+          "disagreement": -0.347585,
+          "error_small": -0.164802,
+          "error_big": 0.182782
+         },
+         {
+          "index": 14,
+          "count": 5138,
+          "disagreement": -0.297826,
+          "error_small": -0.189985,
+          "error_big": 0.107841
+         },
+         {
+          "index": 15,
+          "count": 9904,
+          "disagreement": -0.246808,
+          "error_small": -0.177744,
+          "error_big": 0.069064
+         },
+         {
+          "index": 16,
+          "count": 22285,
+          "disagreement": -0.196659,
+          "error_small": -0.14686,
+          "error_big": 0.049799
+         },
+         {
+          "index": 17,
+          "count": 57731,
+          "disagreement": -0.145579,
+          "error_small": -0.106551,
+          "error_big": 0.039028
+         },
+         {
+          "index": 18,
+          "count": 217867,
+          "disagreement": -0.093805,
+          "error_small": -0.066466,
+          "error_big": 0.027339
+         },
+         {
+          "index": 19,
+          "count": 1645855,
+          "disagreement": -0.040633,
+          "error_small": -0.031823,
+          "error_big": 0.00881
+         },
+         {
+          "index": 20,
+          "count": 14750104,
+          "disagreement": -0.000283,
+          "error_small": -0.003511,
+          "error_big": -0.003229
+         },
+         {
+          "index": 21,
+          "count": 2023962,
+          "disagreement": 0.042225,
+          "error_small": 0.019135,
+          "error_big": -0.02309
+         },
+         {
+          "index": 22,
+          "count": 376032,
+          "disagreement": 0.094385,
+          "error_small": 0.049716,
+          "error_big": -0.04467
+         },
+         {
+          "index": 23,
+          "count": 106337,
+          "disagreement": 0.145456,
+          "error_small": 0.080427,
+          "error_big": -0.065028
+         },
+         {
+          "index": 24,
+          "count": 37867,
+          "disagreement": 0.196132,
+          "error_small": 0.115047,
+          "error_big": -0.081085
+         },
+         {
+          "index": 25,
+          "count": 15263,
+          "disagreement": 0.246547,
+          "error_small": 0.139825,
+          "error_big": -0.106721
+         },
+         {
+          "index": 26,
+          "count": 6890,
+          "disagreement": 0.296746,
+          "error_small": 0.166817,
+          "error_big": -0.129929
+         },
+         {
+          "index": 27,
+          "count": 3119,
+          "disagreement": 0.346175,
+          "error_small": 0.188456,
+          "error_big": -0.157719
+         },
+         {
+          "index": 28,
+          "count": 1417,
+          "disagreement": 0.397204,
+          "error_small": 0.267762,
+          "error_big": -0.129442
+         },
+         {
+          "index": 29,
+          "count": 682,
+          "disagreement": 0.446571,
+          "error_small": 0.306527,
+          "error_big": -0.140044
+         },
+         {
+          "index": 30,
+          "count": 346,
+          "disagreement": 0.496706,
+          "error_small": 0.380295,
+          "error_big": -0.116411
+         },
+         {
+          "index": 31,
+          "count": 116,
+          "disagreement": 0.545002,
+          "error_small": 0.425382,
+          "error_big": -0.11962
+         },
+         {
+          "index": 32,
+          "count": 43,
+          "disagreement": 0.599136,
+          "error_small": 0.526595,
+          "error_big": -0.072541
+         },
+         {
+          "index": 33,
+          "count": 17,
+          "disagreement": 0.647154,
+          "error_small": 0.535304,
+          "error_big": -0.11185
+         },
+         {
+          "index": 34,
+          "count": 6,
+          "disagreement": 0.696286,
+          "error_small": 0.66465,
+          "error_big": -0.031636
+         },
+         {
+          "index": 35,
+          "count": 5,
+          "disagreement": 0.746806,
+          "error_small": 0.857218,
+          "error_big": 0.110412
+         },
+         {
+          "index": 36,
+          "count": 5,
+          "disagreement": 0.795077,
+          "error_small": 0.906177,
+          "error_big": 0.1111
+         },
+         {
+          "index": 37,
+          "count": 1,
+          "disagreement": 0.874634,
+          "error_small": 0.887272,
+          "error_big": 0.012638
+         },
+         {
+          "index": 38,
+          "count": 4,
+          "disagreement": 0.899637,
+          "error_small": 0.921292,
+          "error_big": 0.021655
+         },
+         {
+          "index": 39,
+          "count": 3,
+          "disagreement": 0.968803,
+          "error_small": 0.97225,
+          "error_big": 0.003448
+         }
+        ],
+        "bootstrap": {
+         "resamples": 2000,
+         "seed": 0,
+         "users": 722,
+         "um_plus_diff_ci95": [
+          0.0018349717754200523,
+          0.01205207578308692
+         ],
+         "slope_small_ci95": [
+          0.5377025986662292,
+          0.6865225712066189
+         ],
+         "logloss_delta_pct_ci95": [
+          0.1329024932093087,
+          0.5586596922019392
+         ]
+        }
+       }
+      },
+      "instant": {
+       "all": {
+        "reviews": 30126145,
+        "small": {
+         "UM+": 0.020450607189471996,
+         "slope": 0.7682279604329267,
+         "LogLoss": 0.2773209406089617
+        },
+        "big": {
+         "UM+": 0.006467930317009176,
+         "slope": -0.2317720395670732,
+         "LogLoss": 0.27584389985682767
+        },
+        "um_plus_diff_small_minus_big": 0.01398267687246282,
+        "logloss_delta_pct_small_vs_big": 0.5354625398280133,
+        "um_plus_bins": [
+         {
+          "index": 3,
+          "count": 3,
+          "disagreement": -0.84584,
+          "error_small": -0.580799,
+          "error_big": 0.265042
+         },
+         {
+          "index": 4,
+          "count": 1,
+          "disagreement": -0.788784,
+          "error_small": -0.888546,
+          "error_big": -0.099762
+         },
+         {
+          "index": 5,
+          "count": 2,
+          "disagreement": -0.76381,
+          "error_small": -0.814354,
+          "error_big": -0.050544
+         },
+         {
+          "index": 6,
+          "count": 4,
+          "disagreement": -0.697697,
+          "error_small": 0.081929,
+          "error_big": 0.779627
+         },
+         {
+          "index": 7,
+          "count": 9,
+          "disagreement": -0.640921,
+          "error_small": -0.687177,
+          "error_big": -0.046256
+         },
+         {
+          "index": 8,
+          "count": 21,
+          "disagreement": -0.603947,
+          "error_small": -0.509675,
+          "error_big": 0.094272
+         },
+         {
+          "index": 9,
+          "count": 34,
+          "disagreement": -0.546799,
+          "error_small": -0.520011,
+          "error_big": 0.026788
+         },
+         {
+          "index": 10,
+          "count": 51,
+          "disagreement": -0.497067,
+          "error_small": -0.374725,
+          "error_big": 0.122342
+         },
+         {
+          "index": 11,
+          "count": 125,
+          "disagreement": -0.446005,
+          "error_small": -0.341809,
+          "error_big": 0.104196
+         },
+         {
+          "index": 12,
+          "count": 286,
+          "disagreement": -0.396724,
+          "error_small": -0.302206,
+          "error_big": 0.094518
+         },
+         {
+          "index": 13,
+          "count": 652,
+          "disagreement": -0.346661,
+          "error_small": -0.265822,
+          "error_big": 0.080839
+         },
+         {
+          "index": 14,
+          "count": 1538,
+          "disagreement": -0.296458,
+          "error_small": -0.244307,
+          "error_big": 0.052151
+         },
+         {
+          "index": 15,
+          "count": 4354,
+          "disagreement": -0.245729,
+          "error_small": -0.197562,
+          "error_big": 0.048168
+         },
+         {
+          "index": 16,
+          "count": 14712,
+          "disagreement": -0.194801,
+          "error_small": -0.156192,
+          "error_big": 0.038609
+         },
+         {
+          "index": 17,
+          "count": 61859,
+          "disagreement": -0.143676,
+          "error_small": -0.11636,
+          "error_big": 0.027316
+         },
+         {
+          "index": 18,
+          "count": 334708,
+          "disagreement": -0.092862,
+          "error_small": -0.073709,
+          "error_big": 0.019153
+         },
+         {
+          "index": 19,
+          "count": 2510784,
+          "disagreement": -0.041428,
+          "error_small": -0.033224,
+          "error_big": 0.008204
+         },
+         {
+          "index": 20,
+          "count": 23852860,
+          "disagreement": 0.000125,
+          "error_small": -0.001388,
+          "error_big": -0.001512
+         },
+         {
+          "index": 21,
+          "count": 2818978,
+          "disagreement": 0.041847,
+          "error_small": 0.028932,
+          "error_big": -0.012915
+         },
+         {
+          "index": 22,
+          "count": 417830,
+          "disagreement": 0.093107,
+          "error_small": 0.070217,
+          "error_big": -0.02289
+         },
+         {
+          "index": 23,
+          "count": 79965,
+          "disagreement": 0.143884,
+          "error_small": 0.112744,
+          "error_big": -0.03114
+         },
+         {
+          "index": 24,
+          "count": 18761,
+          "disagreement": 0.194526,
+          "error_small": 0.153021,
+          "error_big": -0.041504
+         },
+         {
+          "index": 25,
+          "count": 5361,
+          "disagreement": 0.245528,
+          "error_small": 0.207511,
+          "error_big": -0.038018
+         },
+         {
+          "index": 26,
+          "count": 1788,
+          "disagreement": 0.296554,
+          "error_small": 0.246022,
+          "error_big": -0.050531
+         },
+         {
+          "index": 27,
+          "count": 743,
+          "disagreement": 0.346278,
+          "error_small": 0.285412,
+          "error_big": -0.060866
+         },
+         {
+          "index": 28,
+          "count": 337,
+          "disagreement": 0.397013,
+          "error_small": 0.323477,
+          "error_big": -0.073536
+         },
+         {
+          "index": 29,
+          "count": 171,
+          "disagreement": 0.449335,
+          "error_small": 0.436423,
+          "error_big": -0.012912
+         },
+         {
+          "index": 30,
+          "count": 74,
+          "disagreement": 0.498469,
+          "error_small": 0.443356,
+          "error_big": -0.055113
+         },
+         {
+          "index": 31,
+          "count": 54,
+          "disagreement": 0.543369,
+          "error_small": 0.399713,
+          "error_big": -0.143656
+         },
+         {
+          "index": 32,
+          "count": 30,
+          "disagreement": 0.594738,
+          "error_small": 0.483195,
+          "error_big": -0.111543
+         },
+         {
+          "index": 33,
+          "count": 23,
+          "disagreement": 0.642741,
+          "error_small": 0.429268,
+          "error_big": -0.213473
+         },
+         {
+          "index": 34,
+          "count": 16,
+          "disagreement": 0.689545,
+          "error_small": 0.661399,
+          "error_big": -0.028146
+         },
+         {
+          "index": 35,
+          "count": 7,
+          "disagreement": 0.752359,
+          "error_small": 0.736563,
+          "error_big": -0.015797
+         },
+         {
+          "index": 36,
+          "count": 2,
+          "disagreement": 0.799038,
+          "error_small": 0.44398,
+          "error_big": -0.355058
+         },
+         {
+          "index": 37,
+          "count": 1,
+          "disagreement": 0.864272,
+          "error_small": 0.958885,
+          "error_big": 0.094613
+         },
+         {
+          "index": 38,
+          "count": 1,
+          "disagreement": 0.884762,
+          "error_small": -0.022489,
+          "error_big": -0.90725
+         }
+        ],
+        "bootstrap": {
+         "resamples": 2000,
+         "seed": 0,
+         "users": 722,
+         "um_plus_diff_ci95": [
+          0.012911312554057999,
+          0.015010377782494751
+         ],
+         "slope_small_ci95": [
+          0.7524545853705541,
+          0.7829387502434041
+         ],
+         "logloss_delta_pct_ci95": [
+          0.489737510384029,
+          0.5820568962582168
+         ]
+        }
+       },
+       "cross_day": {
+        "reviews": 19287209,
+        "small": {
+         "UM+": 0.01804944469138305,
+         "slope": 0.723975729702177,
+         "LogLoss": 0.2664531021898449
+        },
+        "big": {
+         "UM+": 0.0070985221163128295,
+         "slope": -0.2760242702978229,
+         "LogLoss": 0.26527477240580505
+        },
+        "um_plus_diff_small_minus_big": 0.010950922575070219,
+        "logloss_delta_pct_small_vs_big": 0.4441921760420131,
+        "um_plus_bins": [
+         {
+          "index": 3,
+          "count": 2,
+          "disagreement": -0.850664,
+          "error_small": -0.915907,
+          "error_big": -0.065243
+         },
+         {
+          "index": 4,
+          "count": 1,
+          "disagreement": -0.788784,
+          "error_small": -0.888546,
+          "error_big": -0.099762
+         },
+         {
+          "index": 5,
+          "count": 2,
+          "disagreement": -0.76381,
+          "error_small": -0.814354,
+          "error_big": -0.050544
+         },
+         {
+          "index": 6,
+          "count": 3,
+          "disagreement": -0.699539,
+          "error_small": 0.092662,
+          "error_big": 0.792201
+         },
+         {
+          "index": 7,
+          "count": 6,
+          "disagreement": -0.639657,
+          "error_small": -0.615277,
+          "error_big": 0.02438
+         },
+         {
+          "index": 8,
+          "count": 16,
+          "disagreement": -0.602387,
+          "error_small": -0.622106,
+          "error_big": -0.019719
+         },
+         {
+          "index": 9,
+          "count": 21,
+          "disagreement": -0.545861,
+          "error_small": -0.387515,
+          "error_big": 0.158346
+         },
+         {
+          "index": 10,
+          "count": 34,
+          "disagreement": -0.497353,
+          "error_small": -0.401521,
+          "error_big": 0.095831
+         },
+         {
+          "index": 11,
+          "count": 81,
+          "disagreement": -0.448427,
+          "error_small": -0.339224,
+          "error_big": 0.109203
+         },
+         {
+          "index": 12,
+          "count": 173,
+          "disagreement": -0.395806,
+          "error_small": -0.3051,
+          "error_big": 0.090706
+         },
+         {
+          "index": 13,
+          "count": 377,
+          "disagreement": -0.346449,
+          "error_small": -0.239621,
+          "error_big": 0.106827
+         },
+         {
+          "index": 14,
+          "count": 887,
+          "disagreement": -0.296217,
+          "error_small": -0.229495,
+          "error_big": 0.066721
+         },
+         {
+          "index": 15,
+          "count": 2506,
+          "disagreement": -0.245485,
+          "error_small": -0.193104,
+          "error_big": 0.052381
+         },
+         {
+          "index": 16,
+          "count": 8080,
+          "disagreement": -0.194802,
+          "error_small": -0.15257,
+          "error_big": 0.042232
+         },
+         {
+          "index": 17,
+          "count": 33040,
+          "disagreement": -0.143819,
+          "error_small": -0.110272,
+          "error_big": 0.033547
+         },
+         {
+          "index": 18,
+          "count": 179361,
+          "disagreement": -0.092805,
+          "error_small": -0.070474,
+          "error_big": 0.022331
+         },
+         {
+          "index": 19,
+          "count": 1476596,
+          "disagreement": -0.04091,
+          "error_small": -0.030729,
+          "error_big": 0.010181
+         },
+         {
+          "index": 20,
+          "count": 15603361,
+          "disagreement": 0.00015,
+          "error_small": -0.001187,
+          "error_big": -0.001337
+         },
+         {
+          "index": 21,
+          "count": 1695907,
+          "disagreement": 0.041395,
+          "error_small": 0.02677,
+          "error_big": -0.014625
+         },
+         {
+          "index": 22,
+          "count": 229024,
+          "disagreement": 0.092967,
+          "error_small": 0.065826,
+          "error_big": -0.027142
+         },
+         {
+          "index": 23,
+          "count": 43035,
+          "disagreement": 0.143832,
+          "error_small": 0.10701,
+          "error_big": -0.036822
+         },
+         {
+          "index": 24,
+          "count": 10147,
+          "disagreement": 0.194694,
+          "error_small": 0.141707,
+          "error_big": -0.052986
+         },
+         {
+          "index": 25,
+          "count": 2858,
+          "disagreement": 0.245846,
+          "error_small": 0.202918,
+          "error_big": -0.042928
+         },
+         {
+          "index": 26,
+          "count": 960,
+          "disagreement": 0.296049,
+          "error_small": 0.240684,
+          "error_big": -0.055365
+         },
+         {
+          "index": 27,
+          "count": 363,
+          "disagreement": 0.34608,
+          "error_small": 0.299612,
+          "error_big": -0.046468
+         },
+         {
+          "index": 28,
+          "count": 159,
+          "disagreement": 0.395939,
+          "error_small": 0.358973,
+          "error_big": -0.036967
+         },
+         {
+          "index": 29,
+          "count": 86,
+          "disagreement": 0.447753,
+          "error_small": 0.427084,
+          "error_big": -0.020669
+         },
+         {
+          "index": 30,
+          "count": 37,
+          "disagreement": 0.497786,
+          "error_small": 0.48757,
+          "error_big": -0.010216
+         },
+         {
+          "index": 31,
+          "count": 32,
+          "disagreement": 0.544151,
+          "error_small": 0.407264,
+          "error_big": -0.136887
+         },
+         {
+          "index": 32,
+          "count": 21,
+          "disagreement": 0.594645,
+          "error_small": 0.533735,
+          "error_big": -0.060911
+         },
+         {
+          "index": 33,
+          "count": 12,
+          "disagreement": 0.640292,
+          "error_small": 0.486307,
+          "error_big": -0.153985
+         },
+         {
+          "index": 34,
+          "count": 12,
+          "disagreement": 0.690797,
+          "error_small": 0.671811,
+          "error_big": -0.018985
+         },
+         {
+          "index": 35,
+          "count": 5,
+          "disagreement": 0.755254,
+          "error_small": 0.681964,
+          "error_big": -0.073289
+         },
+         {
+          "index": 36,
+          "count": 2,
+          "disagreement": 0.799038,
+          "error_small": 0.44398,
+          "error_big": -0.355058
+         },
+         {
+          "index": 37,
+          "count": 1,
+          "disagreement": 0.864272,
+          "error_small": 0.958885,
+          "error_big": 0.094613
+         },
+         {
+          "index": 38,
+          "count": 1,
+          "disagreement": 0.884762,
+          "error_small": -0.022489,
+          "error_big": -0.90725
+         }
+        ],
+        "bootstrap": {
+         "resamples": 2000,
+         "seed": 0,
+         "users": 722,
+         "um_plus_diff_ci95": [
+          0.00989363194456063,
+          0.011948604160552599
+         ],
+         "slope_small_ci95": [
+          0.7046022303088666,
+          0.7434742236894497
+         ],
+         "logloss_delta_pct_ci95": [
+          0.397737551590589,
+          0.494272100046928
+         ]
+        }
+       }
+      }
+     }
+    }
+   },
+   "pool_users": 729
+  },
+  "collection": {
+   "label": "user's own collection (aggregate only; full history, float32 CPU)",
+   "models": {
+    "sm36": {
+     "heads": {
+      "curve": {
+       "all": {
+        "reviews": 173690,
+        "small": {
+         "UM+": 0.017934889613291673,
+         "slope": 0.5344117635921948,
+         "LogLoss": 0.4412150318898371
+        },
+        "big": {
+         "UM+": 0.01807323175284062,
+         "slope": -0.4655882364078051,
+         "LogLoss": 0.44165890958597487
+        },
+        "um_plus_diff_small_minus_big": -0.00013834213954894495,
+        "logloss_delta_pct_small_vs_big": -0.10050237558977271,
+        "um_plus_bins": [
+         {
+          "index": 10,
+          "count": 1,
+          "disagreement": -0.477728,
+          "error_small": 0.446706,
+          "error_big": 0.924434
+         },
+         {
+          "index": 12,
+          "count": 5,
+          "disagreement": -0.400195,
+          "error_small": -0.134895,
+          "error_big": 0.2653
+         },
+         {
+          "index": 13,
+          "count": 6,
+          "disagreement": -0.34942,
+          "error_small": -0.191195,
+          "error_big": 0.158226
+         },
+         {
+          "index": 14,
+          "count": 18,
+          "disagreement": -0.298023,
+          "error_small": -0.08204,
+          "error_big": 0.215983
+         },
+         {
+          "index": 15,
+          "count": 34,
+          "disagreement": -0.248669,
+          "error_small": -0.096314,
+          "error_big": 0.152355
+         },
+         {
+          "index": 16,
+          "count": 107,
+          "disagreement": -0.189919,
+          "error_small": -0.086688,
+          "error_big": 0.103231
+         },
+         {
+          "index": 17,
+          "count": 419,
+          "disagreement": -0.145018,
+          "error_small": -0.10535,
+          "error_big": 0.039668
+         },
+         {
+          "index": 18,
+          "count": 2347,
+          "disagreement": -0.093017,
+          "error_small": -0.068003,
+          "error_big": 0.025014
+         },
+         {
+          "index": 19,
+          "count": 19737,
+          "disagreement": -0.040656,
+          "error_small": -0.022589,
+          "error_big": 0.018068
+         },
+         {
+          "index": 20,
+          "count": 116713,
+          "disagreement": 0.000788,
+          "error_small": -0.001938,
+          "error_big": -0.002727
+         },
+         {
+          "index": 21,
+          "count": 27384,
+          "disagreement": 0.042567,
+          "error_small": 0.015872,
+          "error_big": -0.026695
+         },
+         {
+          "index": 22,
+          "count": 5732,
+          "disagreement": 0.093853,
+          "error_small": 0.043654,
+          "error_big": -0.0502
+         },
+         {
+          "index": 23,
+          "count": 1003,
+          "disagreement": 0.142475,
+          "error_small": 0.094424,
+          "error_big": -0.048051
+         },
+         {
+          "index": 24,
+          "count": 146,
+          "disagreement": 0.192194,
+          "error_small": 0.043407,
+          "error_big": -0.148787
+         },
+         {
+          "index": 25,
+          "count": 21,
+          "disagreement": 0.24288,
+          "error_small": 0.117294,
+          "error_big": -0.125586
+         },
+         {
+          "index": 26,
+          "count": 9,
+          "disagreement": 0.291263,
+          "error_small": -0.037751,
+          "error_big": -0.329013
+         },
+         {
+          "index": 27,
+          "count": 3,
+          "disagreement": 0.349848,
+          "error_small": -0.151576,
+          "error_big": -0.501423
+         },
+         {
+          "index": 28,
+          "count": 1,
+          "disagreement": 0.404049,
+          "error_small": 0.794245,
+          "error_big": 0.390196
+         },
+         {
+          "index": 29,
+          "count": 2,
+          "disagreement": 0.452581,
+          "error_small": -0.15854,
+          "error_big": -0.611121
+         },
+         {
+          "index": 30,
+          "count": 2,
+          "disagreement": 0.51036,
+          "error_small": -0.083061,
+          "error_big": -0.593421
+         }
+        ]
+       },
+       "cross_day": {
+        "reviews": 141775,
+        "small": {
+         "UM+": 0.017257106442081244,
+         "slope": 0.5044545924783451,
+         "LogLoss": 0.4601518661098084
+        },
+        "big": {
+         "UM+": 0.018357289874722786,
+         "slope": -0.49554540752165477,
+         "LogLoss": 0.460584126579704
+        },
+        "um_plus_diff_small_minus_big": -0.0011001834326415418,
+        "logloss_delta_pct_small_vs_big": -0.0938504922229022,
+        "um_plus_bins": [
+         {
+          "index": 12,
+          "count": 1,
+          "disagreement": -0.401335,
+          "error_small": -0.614061,
+          "error_big": -0.212727
+         },
+         {
+          "index": 13,
+          "count": 2,
+          "disagreement": -0.34105,
+          "error_small": -0.065303,
+          "error_big": 0.275747
+         },
+         {
+          "index": 14,
+          "count": 7,
+          "disagreement": -0.288511,
+          "error_small": 0.023307,
+          "error_big": 0.311817
+         },
+         {
+          "index": 15,
+          "count": 16,
+          "disagreement": -0.248368,
+          "error_small": -0.035848,
+          "error_big": 0.21252
+         },
+         {
+          "index": 16,
+          "count": 42,
+          "disagreement": -0.18636,
+          "error_small": -0.036219,
+          "error_big": 0.150141
+         },
+         {
+          "index": 17,
+          "count": 194,
+          "disagreement": -0.142886,
+          "error_small": -0.124549,
+          "error_big": 0.018337
+         },
+         {
+          "index": 18,
+          "count": 1485,
+          "disagreement": -0.092422,
+          "error_small": -0.063847,
+          "error_big": 0.028575
+         },
+         {
+          "index": 19,
+          "count": 15922,
+          "disagreement": -0.040005,
+          "error_small": -0.020925,
+          "error_big": 0.019079
+         },
+         {
+          "index": 20,
+          "count": 94023,
+          "disagreement": 0.000546,
+          "error_small": -0.000243,
+          "error_big": -0.000789
+         },
+         {
+          "index": 21,
+          "count": 23680,
+          "disagreement": 0.042863,
+          "error_small": 0.017219,
+          "error_big": -0.025644
+         },
+         {
+          "index": 22,
+          "count": 5297,
+          "disagreement": 0.093982,
+          "error_small": 0.040916,
+          "error_big": -0.053066
+         },
+         {
+          "index": 23,
+          "count": 941,
+          "disagreement": 0.142452,
+          "error_small": 0.098605,
+          "error_big": -0.043847
+         },
+         {
+          "index": 24,
+          "count": 138,
+          "disagreement": 0.191823,
+          "error_small": 0.046514,
+          "error_big": -0.145308
+         },
+         {
+          "index": 25,
+          "count": 13,
+          "disagreement": 0.241571,
+          "error_small": 0.133303,
+          "error_big": -0.108268
+         },
+         {
+          "index": 26,
+          "count": 9,
+          "disagreement": 0.291263,
+          "error_small": -0.037751,
+          "error_big": -0.329013
+         },
+         {
+          "index": 27,
+          "count": 2,
+          "disagreement": 0.353962,
+          "error_small": -0.184334,
+          "error_big": -0.538296
+         },
+         {
+          "index": 29,
+          "count": 2,
+          "disagreement": 0.452581,
+          "error_small": -0.15854,
+          "error_big": -0.611121
+         },
+         {
+          "index": 30,
+          "count": 1,
+          "disagreement": 0.524649,
+          "error_small": -0.133118,
+          "error_big": -0.657768
+         }
+        ]
+       }
+      },
+      "instant": {
+       "all": {
+        "reviews": 173690,
+        "small": {
+         "UM+": 0.01887705394756026,
+         "slope": 0.5773890015899225,
+         "LogLoss": 0.4369305839880605
+        },
+        "big": {
+         "UM+": 0.015716660177182883,
+         "slope": -0.42261099841007777,
+         "LogLoss": 0.43660338166608464
+        },
+        "um_plus_diff_small_minus_big": 0.0031603937703773774,
+        "logloss_delta_pct_small_vs_big": 0.0749426907155959,
+        "um_plus_bins": [
+         {
+          "index": 9,
+          "count": 1,
+          "disagreement": -0.539595,
+          "error_small": -0.799295,
+          "error_big": -0.2597
+         },
+         {
+          "index": 10,
+          "count": 2,
+          "disagreement": -0.500199,
+          "error_small": 0.322852,
+          "error_big": 0.823051
+         },
+         {
+          "index": 11,
+          "count": 2,
+          "disagreement": -0.457988,
+          "error_small": -0.230231,
+          "error_big": 0.227757
+         },
+         {
+          "index": 13,
+          "count": 6,
+          "disagreement": -0.338578,
+          "error_small": -0.466122,
+          "error_big": -0.127544
+         },
+         {
+          "index": 14,
+          "count": 19,
+          "disagreement": -0.291519,
+          "error_small": -0.235666,
+          "error_big": 0.055852
+         },
+         {
+          "index": 15,
+          "count": 28,
+          "disagreement": -0.247277,
+          "error_small": -0.279719,
+          "error_big": -0.032443
+         },
+         {
+          "index": 16,
+          "count": 66,
+          "disagreement": -0.195207,
+          "error_small": -0.210543,
+          "error_big": -0.015335
+         },
+         {
+          "index": 17,
+          "count": 306,
+          "disagreement": -0.145371,
+          "error_small": -0.111284,
+          "error_big": 0.034087
+         },
+         {
+          "index": 18,
+          "count": 2129,
+          "disagreement": -0.092412,
+          "error_small": -0.082061,
+          "error_big": 0.010351
+         },
+         {
+          "index": 19,
+          "count": 15456,
+          "disagreement": -0.041426,
+          "error_small": -0.030378,
+          "error_big": 0.011047
+         },
+         {
+          "index": 20,
+          "count": 120235,
+          "disagreement": 0.0021,
+          "error_small": -0.002003,
+          "error_big": -0.004103
+         },
+         {
+          "index": 21,
+          "count": 30086,
+          "disagreement": 0.041897,
+          "error_small": 0.017138,
+          "error_big": -0.024759
+         },
+         {
+          "index": 22,
+          "count": 4652,
+          "disagreement": 0.092708,
+          "error_small": 0.037029,
+          "error_big": -0.055679
+         },
+         {
+          "index": 23,
+          "count": 636,
+          "disagreement": 0.141144,
+          "error_small": 0.083901,
+          "error_big": -0.057243
+         },
+         {
+          "index": 24,
+          "count": 59,
+          "disagreement": 0.190612,
+          "error_small": 0.043157,
+          "error_big": -0.147455
+         },
+         {
+          "index": 25,
+          "count": 5,
+          "disagreement": 0.235204,
+          "error_small": 0.256367,
+          "error_big": 0.021163
+         },
+         {
+          "index": 26,
+          "count": 1,
+          "disagreement": 0.311423,
+          "error_small": 0.674225,
+          "error_big": 0.362802
+         },
+         {
+          "index": 30,
+          "count": 1,
+          "disagreement": 0.47533,
+          "error_small": -0.086764,
+          "error_big": -0.562094
+         }
+        ]
+       },
+       "cross_day": {
+        "reviews": 141775,
+        "small": {
+         "UM+": 0.016706704162716468,
+         "slope": 0.5330876891514864,
+         "LogLoss": 0.4555638578110257
+        },
+        "big": {
+         "UM+": 0.016630157721738398,
+         "slope": -0.4669123108485135,
+         "LogLoss": 0.4555062769178041
+        },
+        "um_plus_diff_small_minus_big": 7.654644097807028e-05,
+        "logloss_delta_pct_small_vs_big": 0.01264107568643702,
+        "um_plus_bins": [
+         {
+          "index": 9,
+          "count": 1,
+          "disagreement": -0.539595,
+          "error_small": -0.799295,
+          "error_big": -0.2597
+         },
+         {
+          "index": 10,
+          "count": 2,
+          "disagreement": -0.500199,
+          "error_small": 0.322852,
+          "error_big": 0.823051
+         },
+         {
+          "index": 11,
+          "count": 2,
+          "disagreement": -0.457988,
+          "error_small": -0.230231,
+          "error_big": 0.227757
+         },
+         {
+          "index": 13,
+          "count": 5,
+          "disagreement": -0.341168,
+          "error_small": -0.488886,
+          "error_big": -0.147718
+         },
+         {
+          "index": 14,
+          "count": 9,
+          "disagreement": -0.293405,
+          "error_small": -0.148724,
+          "error_big": 0.14468
+         },
+         {
+          "index": 15,
+          "count": 7,
+          "disagreement": -0.248409,
+          "error_small": -0.151552,
+          "error_big": 0.096856
+         },
+         {
+          "index": 16,
+          "count": 13,
+          "disagreement": -0.190803,
+          "error_small": -0.115228,
+          "error_big": 0.075574
+         },
+         {
+          "index": 17,
+          "count": 125,
+          "disagreement": -0.143472,
+          "error_small": -0.12648,
+          "error_big": 0.016992
+         },
+         {
+          "index": 18,
+          "count": 1320,
+          "disagreement": -0.091148,
+          "error_small": -0.074579,
+          "error_big": 0.016569
+         },
+         {
+          "index": 19,
+          "count": 11666,
+          "disagreement": -0.041021,
+          "error_small": -0.028724,
+          "error_big": 0.012297
+         },
+         {
+          "index": 20,
+          "count": 97339,
+          "disagreement": 0.002657,
+          "error_small": -0.00155,
+          "error_big": -0.004206
+         },
+         {
+          "index": 21,
+          "count": 26553,
+          "disagreement": 0.041898,
+          "error_small": 0.018119,
+          "error_big": -0.023779
+         },
+         {
+          "index": 22,
+          "count": 4126,
+          "disagreement": 0.092763,
+          "error_small": 0.03254,
+          "error_big": -0.060223
+         },
+         {
+          "index": 23,
+          "count": 550,
+          "disagreement": 0.141275,
+          "error_small": 0.081211,
+          "error_big": -0.060064
+         },
+         {
+          "index": 24,
+          "count": 52,
+          "disagreement": 0.190049,
+          "error_small": 0.036523,
+          "error_big": -0.153526
+         },
+         {
+          "index": 25,
+          "count": 4,
+          "disagreement": 0.233921,
+          "error_small": 0.336173,
+          "error_big": 0.102252
+         },
+         {
+          "index": 26,
+          "count": 1,
+          "disagreement": 0.311423,
+          "error_small": 0.674225,
+          "error_big": 0.362802
+         }
+        ]
+       }
+      }
+     }
+    },
+    "sm55": {
+     "heads": {
+      "curve": {
+       "all": {
+        "reviews": 173690,
+        "small": {
+         "UM+": 0.01993304751191434,
+         "slope": 0.5588477641141218,
+         "LogLoss": 0.4414400665077812
+        },
+        "big": {
+         "UM+": 0.0181431899409001,
+         "slope": -0.44115223588587826,
+         "LogLoss": 0.44165890958597487
+        },
+        "um_plus_diff_small_minus_big": 0.0017898575710142382,
+        "logloss_delta_pct_small_vs_big": -0.04955024645575401,
+        "um_plus_bins": [
+         {
+          "index": 10,
+          "count": 1,
+          "disagreement": -0.498095,
+          "error_small": 0.426339,
+          "error_big": 0.924434
+         },
+         {
+          "index": 12,
+          "count": 8,
+          "disagreement": -0.402787,
+          "error_small": -0.163046,
+          "error_big": 0.239741
+         },
+         {
+          "index": 13,
+          "count": 6,
+          "disagreement": -0.346961,
+          "error_small": -0.210523,
+          "error_big": 0.136438
+         },
+         {
+          "index": 14,
+          "count": 24,
+          "disagreement": -0.296072,
+          "error_small": -0.092765,
+          "error_big": 0.203307
+         },
+         {
+          "index": 15,
+          "count": 28,
+          "disagreement": -0.244707,
+          "error_small": -0.116026,
+          "error_big": 0.128681
+         },
+         {
+          "index": 16,
+          "count": 121,
+          "disagreement": -0.194703,
+          "error_small": -0.075859,
+          "error_big": 0.118843
+         },
+         {
+          "index": 17,
+          "count": 457,
+          "disagreement": -0.144986,
+          "error_small": -0.125769,
+          "error_big": 0.019217
+         },
+         {
+          "index": 18,
+          "count": 2293,
+          "disagreement": -0.093329,
+          "error_small": -0.077443,
+          "error_big": 0.015886
+         },
+         {
+          "index": 19,
+          "count": 19173,
+          "disagreement": -0.040717,
+          "error_small": -0.01997,
+          "error_big": 0.020747
+         },
+         {
+          "index": 20,
+          "count": 115009,
+          "disagreement": 0.000779,
+          "error_small": -0.001805,
+          "error_big": -0.002583
+         },
+         {
+          "index": 21,
+          "count": 27985,
+          "disagreement": 0.043294,
+          "error_small": 0.018055,
+          "error_big": -0.025239
+         },
+         {
+          "index": 22,
+          "count": 6906,
+          "disagreement": 0.094657,
+          "error_small": 0.050421,
+          "error_big": -0.044236
+         },
+         {
+          "index": 23,
+          "count": 1434,
+          "disagreement": 0.142441,
+          "error_small": 0.079953,
+          "error_big": -0.062488
+         },
+         {
+          "index": 24,
+          "count": 194,
+          "disagreement": 0.192366,
+          "error_small": 0.094637,
+          "error_big": -0.097728
+         },
+         {
+          "index": 25,
+          "count": 35,
+          "disagreement": 0.245537,
+          "error_small": 0.051973,
+          "error_big": -0.193564
+         },
+         {
+          "index": 26,
+          "count": 7,
+          "disagreement": 0.290767,
+          "error_small": 0.017873,
+          "error_big": -0.272895
+         },
+         {
+          "index": 27,
+          "count": 4,
+          "disagreement": 0.345584,
+          "error_small": -0.182352,
+          "error_big": -0.527937
+         },
+         {
+          "index": 28,
+          "count": 1,
+          "disagreement": 0.41016,
+          "error_small": -0.173003,
+          "error_big": -0.583164
+         },
+         {
+          "index": 29,
+          "count": 2,
+          "disagreement": 0.449009,
+          "error_small": 0.324567,
+          "error_big": -0.124442
+         },
+         {
+          "index": 30,
+          "count": 2,
+          "disagreement": 0.504381,
+          "error_small": -0.089039,
+          "error_big": -0.593421
+         }
+        ]
+       },
+       "cross_day": {
+        "reviews": 141775,
+        "small": {
+         "UM+": 0.019726990448253528,
+         "slope": 0.5410792714245465,
+         "LogLoss": 0.4603711046845177
+        },
+        "big": {
+         "UM+": 0.018599733063467013,
+         "slope": -0.4589207285754533,
+         "LogLoss": 0.460584126579704
+        },
+        "um_plus_diff_small_minus_big": 0.0011272573847865147,
+        "logloss_delta_pct_small_vs_big": -0.04625037705232593,
+        "um_plus_bins": [
+         {
+          "index": 12,
+          "count": 2,
+          "disagreement": -0.394374,
+          "error_small": -0.114754,
+          "error_big": 0.27962
+         },
+         {
+          "index": 13,
+          "count": 1,
+          "disagreement": -0.35533,
+          "error_small": -0.575803,
+          "error_big": -0.220473
+         },
+         {
+          "index": 14,
+          "count": 12,
+          "disagreement": -0.293548,
+          "error_small": -0.087222,
+          "error_big": 0.206326
+         },
+         {
+          "index": 15,
+          "count": 13,
+          "disagreement": -0.247923,
+          "error_small": 0.037599,
+          "error_big": 0.285522
+         },
+         {
+          "index": 16,
+          "count": 55,
+          "disagreement": -0.194034,
+          "error_small": 0.010415,
+          "error_big": 0.204448
+         },
+         {
+          "index": 17,
+          "count": 208,
+          "disagreement": -0.143663,
+          "error_small": -0.159767,
+          "error_big": -0.016104
+         },
+         {
+          "index": 18,
+          "count": 1436,
+          "disagreement": -0.092523,
+          "error_small": -0.070449,
+          "error_big": 0.022074
+         },
+         {
+          "index": 19,
+          "count": 15294,
+          "disagreement": -0.040111,
+          "error_small": -0.019214,
+          "error_big": 0.020897
+         },
+         {
+          "index": 20,
+          "count": 92261,
+          "disagreement": 0.000661,
+          "error_small": 0.000145,
+          "error_big": -0.000516
+         },
+         {
+          "index": 21,
+          "count": 24420,
+          "disagreement": 0.043602,
+          "error_small": 0.019721,
+          "error_big": -0.023881
+         },
+         {
+          "index": 22,
+          "count": 6477,
+          "disagreement": 0.094794,
+          "error_small": 0.049942,
+          "error_big": -0.044851
+         },
+         {
+          "index": 23,
+          "count": 1376,
+          "disagreement": 0.142363,
+          "error_small": 0.07841,
+          "error_big": -0.063953
+         },
+         {
+          "index": 24,
+          "count": 183,
+          "disagreement": 0.192292,
+          "error_small": 0.10543,
+          "error_big": -0.086862
+         },
+         {
+          "index": 25,
+          "count": 27,
+          "disagreement": 0.244875,
+          "error_small": 0.080951,
+          "error_big": -0.163924
+         },
+         {
+          "index": 26,
+          "count": 4,
+          "disagreement": 0.298033,
+          "error_small": -0.119937,
+          "error_big": -0.41797
+         },
+         {
+          "index": 27,
+          "count": 3,
+          "disagreement": 0.341045,
+          "error_small": -0.220312,
+          "error_big": -0.561356
+         },
+         {
+          "index": 28,
+          "count": 1,
+          "disagreement": 0.41016,
+          "error_small": -0.173003,
+          "error_big": -0.583164
+         },
+         {
+          "index": 29,
+          "count": 1,
+          "disagreement": 0.452936,
+          "error_small": -0.186143,
+          "error_big": -0.639079
+         },
+         {
+          "index": 30,
+          "count": 1,
+          "disagreement": 0.505431,
+          "error_small": -0.152336,
+          "error_big": -0.657768
+         }
+        ]
+       }
+      },
+      "instant": {
+       "all": {
+        "reviews": 173690,
+        "small": {
+         "UM+": 0.020091522785121965,
+         "slope": 0.6082082618305266,
+         "LogLoss": 0.437043599562948
+        },
+        "big": {
+         "UM+": 0.01496100898816668,
+         "slope": -0.39179173816947344,
+         "LogLoss": 0.43660338166608464
+        },
+        "um_plus_diff_small_minus_big": 0.0051305137969552845,
+        "logloss_delta_pct_small_vs_big": 0.10082787155323292,
+        "um_plus_bins": [
+         {
+          "index": 7,
+          "count": 1,
+          "disagreement": -0.627601,
+          "error_small": 0.157517,
+          "error_big": 0.785118
+         },
+         {
+          "index": 8,
+          "count": 2,
+          "disagreement": -0.588185,
+          "error_small": -0.287543,
+          "error_big": 0.300642
+         },
+         {
+          "index": 9,
+          "count": 1,
+          "disagreement": -0.547036,
+          "error_small": -0.723543,
+          "error_big": -0.176507
+         },
+         {
+          "index": 10,
+          "count": 1,
+          "disagreement": -0.50334,
+          "error_small": 0.12868,
+          "error_big": 0.632021
+         },
+         {
+          "index": 11,
+          "count": 2,
+          "disagreement": -0.453616,
+          "error_small": -0.682151,
+          "error_big": -0.228536
+         },
+         {
+          "index": 12,
+          "count": 6,
+          "disagreement": -0.396663,
+          "error_small": -0.28469,
+          "error_big": 0.111973
+         },
+         {
+          "index": 13,
+          "count": 7,
+          "disagreement": -0.353477,
+          "error_small": -0.321649,
+          "error_big": 0.031829
+         },
+         {
+          "index": 14,
+          "count": 21,
+          "disagreement": -0.294076,
+          "error_small": -0.324708,
+          "error_big": -0.030631
+         },
+         {
+          "index": 15,
+          "count": 28,
+          "disagreement": -0.247207,
+          "error_small": -0.239685,
+          "error_big": 0.007522
+         },
+         {
+          "index": 16,
+          "count": 90,
+          "disagreement": -0.194991,
+          "error_small": -0.186333,
+          "error_big": 0.008658
+         },
+         {
+          "index": 17,
+          "count": 357,
+          "disagreement": -0.143432,
+          "error_small": -0.159355,
+          "error_big": -0.015923
+         },
+         {
+          "index": 18,
+          "count": 2298,
+          "disagreement": -0.092495,
+          "error_small": -0.068377,
+          "error_big": 0.024118
+         },
+         {
+          "index": 19,
+          "count": 17067,
+          "disagreement": -0.041435,
+          "error_small": -0.033835,
+          "error_big": 0.0076
+         },
+         {
+          "index": 20,
+          "count": 121063,
+          "disagreement": 0.001657,
+          "error_small": -0.003126,
+          "error_big": -0.004784
+         },
+         {
+          "index": 21,
+          "count": 27853,
+          "disagreement": 0.041826,
+          "error_small": 0.017847,
+          "error_big": -0.023979
+         },
+         {
+          "index": 22,
+          "count": 4276,
+          "disagreement": 0.092832,
+          "error_small": 0.038335,
+          "error_big": -0.054497
+         },
+         {
+          "index": 23,
+          "count": 568,
+          "disagreement": 0.140735,
+          "error_small": 0.079349,
+          "error_big": -0.061386
+         },
+         {
+          "index": 24,
+          "count": 41,
+          "disagreement": 0.193628,
+          "error_small": 0.041933,
+          "error_big": -0.151695
+         },
+         {
+          "index": 25,
+          "count": 6,
+          "disagreement": 0.241645,
+          "error_small": 0.272451,
+          "error_big": 0.030806
+         },
+         {
+          "index": 27,
+          "count": 1,
+          "disagreement": 0.348463,
+          "error_small": 0.711265,
+          "error_big": 0.362802
+         },
+         {
+          "index": 29,
+          "count": 1,
+          "disagreement": 0.474146,
+          "error_small": -0.087948,
+          "error_big": -0.562094
+         }
+        ]
+       },
+       "cross_day": {
+        "reviews": 141775,
+        "small": {
+         "UM+": 0.01808119685679167,
+         "slope": 0.5567939970083577,
+         "LogLoss": 0.45571887378597375
+        },
+        "big": {
+         "UM+": 0.01596453466842606,
+         "slope": -0.4432060029916423,
+         "LogLoss": 0.4555062769178041
+        },
+        "um_plus_diff_small_minus_big": 0.0021166621883656096,
+        "logloss_delta_pct_small_vs_big": 0.04667265391120612,
+        "um_plus_bins": [
+         {
+          "index": 7,
+          "count": 1,
+          "disagreement": -0.627601,
+          "error_small": 0.157517,
+          "error_big": 0.785118
+         },
+         {
+          "index": 8,
+          "count": 2,
+          "disagreement": -0.588185,
+          "error_small": -0.287543,
+          "error_big": 0.300642
+         },
+         {
+          "index": 9,
+          "count": 1,
+          "disagreement": -0.547036,
+          "error_small": -0.723543,
+          "error_big": -0.176507
+         },
+         {
+          "index": 10,
+          "count": 1,
+          "disagreement": -0.50334,
+          "error_small": 0.12868,
+          "error_big": 0.632021
+         },
+         {
+          "index": 11,
+          "count": 2,
+          "disagreement": -0.453616,
+          "error_small": -0.682151,
+          "error_big": -0.228536
+         },
+         {
+          "index": 12,
+          "count": 6,
+          "disagreement": -0.396663,
+          "error_small": -0.28469,
+          "error_big": 0.111973
+         },
+         {
+          "index": 13,
+          "count": 5,
+          "disagreement": -0.359918,
+          "error_small": -0.306328,
+          "error_big": 0.05359
+         },
+         {
+          "index": 14,
+          "count": 9,
+          "disagreement": -0.293053,
+          "error_small": -0.274697,
+          "error_big": 0.018356
+         },
+         {
+          "index": 15,
+          "count": 7,
+          "disagreement": -0.249109,
+          "error_small": -0.031031,
+          "error_big": 0.218077
+         },
+         {
+          "index": 16,
+          "count": 22,
+          "disagreement": -0.190446,
+          "error_small": -0.248404,
+          "error_big": -0.057958
+         },
+         {
+          "index": 17,
+          "count": 153,
+          "disagreement": -0.14108,
+          "error_small": -0.167957,
+          "error_big": -0.026878
+         },
+         {
+          "index": 18,
+          "count": 1452,
+          "disagreement": -0.091504,
+          "error_small": -0.062815,
+          "error_big": 0.028689
+         },
+         {
+          "index": 19,
+          "count": 13355,
+          "disagreement": -0.04093,
+          "error_small": -0.032033,
+          "error_big": 0.008897
+         },
+         {
+          "index": 20,
+          "count": 98271,
+          "disagreement": 0.001948,
+          "error_small": -0.003212,
+          "error_big": -0.00516
+         },
+         {
+          "index": 21,
+          "count": 24220,
+          "disagreement": 0.041797,
+          "error_small": 0.019025,
+          "error_big": -0.022771
+         },
+         {
+          "index": 22,
+          "count": 3736,
+          "disagreement": 0.092932,
+          "error_small": 0.034161,
+          "error_big": -0.058771
+         },
+         {
+          "index": 23,
+          "count": 492,
+          "disagreement": 0.140611,
+          "error_small": 0.074275,
+          "error_big": -0.066336
+         },
+         {
+          "index": 24,
+          "count": 34,
+          "disagreement": 0.194128,
+          "error_small": -0.016993,
+          "error_big": -0.211121
+         },
+         {
+          "index": 25,
+          "count": 5,
+          "disagreement": 0.240306,
+          "error_small": 0.337913,
+          "error_big": 0.097607
+         },
+         {
+          "index": 27,
+          "count": 1,
+          "disagreement": 0.348463,
+          "error_small": 0.711265,
+          "error_big": 0.362802
+         }
+        ]
+       }
+      }
+     }
+    }
+   }
+  }
+ }
+}
