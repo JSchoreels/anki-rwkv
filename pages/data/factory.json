@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-10-22T10:06:24+02:00",
- "updated": "2026-10-22 10:06",
- "material": "cc7add4aefc49b2a",
- "summary": "running 000606, finished 000605",
+ "generated_at": "2026-10-22T11:55:49+02:00",
+ "updated": "2026-10-22 11:55",
+ "material": "e5062e61ead19ba1",
+ "summary": "running 000608",
  "headline": [
   {
    "k": "Best, 464 users (curve / instant)",
@@ -150,23 +150,23 @@
  "now": [
   {
    "what": "Head-only fine-tunes: trunk frozen, the curve head alone on its loss, then the instant head alone (SM36 start), scored on 732 users",
-   "id": "SM50, ticket 000606",
+   "id": "SM50, ticket 000608",
    "kind": "gpu-train",
    "decides": "Curve head alone: no gain (curve +0.00001 [&minus;0.00003, +0.00005] vs SM36 on 723 users). Instant head alone: pending",
    "why": "",
    "job": "SM50 instant-head-only fine-tune from SM36 (smoke, train, score 723 users)",
    "linked": true,
    "track": "small model",
-   "ticket": "000606-small-model",
-   "started": "10:02",
-   "elapsed": "0:03",
+   "ticket": "000608-small-model",
+   "started": "11:54",
+   "elapsed": "0:01",
    "progress": null,
-   "eta": "~11:52"
+   "eta": "~12:39"
   }
  ],
  "waiting": [
   {
-   "ticket": "000607-small-model",
+   "ticket": "000609-small-model",
    "id": "SM55",
    "what": "8k model (SM55) 732 pool, 7 long users retry at cap 0.92",
    "flags": "expected 15 min"
@@ -495,12 +495,9 @@
    "minutes": 60,
    "track": "small model",
    "decides": "",
-   "state": "done",
+   "state": "planned",
    "started_at": "2026-10-19T09:51:42+02:00",
-   "ended_at": "2026-10-19T10:22:19+02:00",
-   "ended": "10:22",
-   "exit": 0,
-   "started": "09:51"
+   "ended_at": "2026-10-19T10:22:19+02:00"
   },
   {
    "what": "Pruning arm: the same one-epoch 32k decay as the best model",
@@ -807,11 +804,11 @@
    "kind": "gpu-train",
    "minutes": 220,
    "track": "small model",
-   "when": "Curve-only 09:18 &rarr; 09:51 (33 min: 21 min training at 64.9k reviews/s, faster than planned); instant-only 10:02 &rarr; ~10:35",
+   "when": "Curve-only 09:18 &rarr; 09:51. Instant-only was killed at 10:18 (68.8%) when the session restarted with the other launchers; restarted 11:54 &rarr; ~12:35",
    "decides": "Curve head alone: no gain (curve +0.00001 [&minus;0.00003, +0.00005] vs SM36 on 723 users). Instant head alone: pending",
    "state": "running",
-   "started": "10:02",
-   "ticket": "000606-small-model",
+   "started": "11:54",
+   "ticket": "000608-small-model",
    "started_at": "2026-10-22T09:18:36+02:00",
    "ends_at": "2026-10-22T12:58:36+02:00"
   },
@@ -821,10 +818,10 @@
    "minutes": 15,
    "track": "small model",
    "what": "8k model (SM55) on the 732-user set: the 7 long users it skipped, at the 0.92 cap, so it reads on the same 730 users as the table",
-   "when": "Queued after the instant-only fine-tune, ~10:35, ~10 min",
+   "when": "Killed at 10:18 before it ran; requeued 11:54, runs right after the instant-only fine-tune (~12:35, ~10 min)",
    "decides": "Puts the 8k model in the 730-user table",
    "state": "waiting",
-   "ticket": "000607-small-model"
+   "ticket": "000609-small-model"
   },
   {
    "what": "Better distillation, step 1: fine-tunes of SM36 with more weight on the big model&rsquo;s predictions (control at today&rsquo;s weight, 0.9, 1.0), same setup as SM50 (81M reviews, ~110 min per arm with scoring), scored on 732 users",
@@ -832,7 +829,7 @@
    "kind": "gpu-train",
    "minutes": 330,
    "track": "small model",
-   "when": "Launcher waits for the single-head fine-tunes: code check (CPU, ~70 min) ~10:35 &rarr; ~11:45, then three arms of ~35 min each &rarr; ~13:30",
+   "when": "Relaunched 11:54 (killed at 10:18 while waiting); code check (CPU, ~70 min) ~12:45 &rarr; ~13:55, then three arms of ~35 min &rarr; ~15:40",
    "decides": "Does a heavier big-model weight help? Never tested since full-history distillation. If yes: step 2 (learn the big model&rsquo;s whole curve) and use the weight in SM56. The control also reads SM50 against a plain fine-tune",
    "state": "planned"
   },
@@ -842,8 +839,18 @@
    "minutes": 35,
    "track": "small model",
    "what": "Disagreement test: UM+ and each model&rsquo;s slope (Search Stats Extended conventions), Muon best small model (SM36) vs the big model, curve and instant, 729 users + own collection (aggregate); the 8k model (SM55) too if it wins",
-   "when": "Prepared, the 8k model (SM55) included; its launcher waits for better distillation (SM59): ~13:30 &rarr; ~14:30 (~55 GPU min), analysis on CPU after",
+   "when": "Relaunched 11:54; waits for better distillation (SM59): ~15:40, ~55 GPU min, between the full retrain&rsquo;s epochs",
    "decides": "Whether the small model is more or less right than the big model where they disagree (a tie is +0.5 for the small model&rsquo;s slope)",
+   "state": "planned"
+  },
+  {
+   "id": "SM56",
+   "kind": "gpu-train",
+   "minutes": 1800,
+   "track": "small model",
+   "what": "Full retrain from scratch on all 8,000 users (581.9M reviews per epoch), carried state at 2,048 windows every epoch; epochs continue until the gain flattens (an epoch gains less than 5% of the total since epoch 1 on both heads, two epochs in a row; 5 to 14 epochs), then the same 8 h decay as the 8k model (SM55); 464-user read-out after every epoch",
+   "when": "Being prepared; starts after better distillation (~15:40): ~2 epochs today (~2 h each), continues Fri 01:00; decay at the next start that ends before a break; result Sat",
+   "decides": "Whether having all 8,000 users in every epoch (not only the decay) beats the 8k model (SM55)",
    "state": "planned"
   },
   {
@@ -870,7 +877,7 @@
    "when": "Training 01:01 &rarr; 09:17 (8 h 16, ~19.6k reviews/s), scored 09:51 &rarr; 10:02",
    "decides": "The 8k model wins on both heads: 723 users curve 0.30286 / instant 0.27934 (+0.49% / +0.53% vs the big model); vs the Muon best model (SM36) curve &minus;0.00047 [&minus;0.00088, &minus;0.00017], instant &minus;0.00025 [&minus;0.00029, &minus;0.00022]. 464 users: +0.53% / +0.54%. More users is the strongest lever so far",
    "state": "waiting",
-   "ticket": "000607-small-model"
+   "ticket": "000609-small-model"
   },
   {
    "what": "Checkpoint averaging: average the last 2, 3 or 4 SM39 decay snapshots, scored with the final weights on 723 users",
