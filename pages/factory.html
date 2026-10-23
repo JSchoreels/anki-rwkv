@@ -14,10 +14,23 @@
   .sm-table td.when { white-space: nowrap; color: var(--muted); }
   .sm-table .id { color: var(--muted); font-size: 12.5px; }
   .sm-table .pct { color: var(--muted); font-size: 12.5px; }
-  .sm-table tr.best td { background: var(--accent-soft); }
+  .sm-table > tbody > tr.best > td { background: var(--accent-soft); }
   .sm-table tr.brk td { color: var(--muted); font-style: italic; }
-  .sm-table tr.res td { border-bottom: none; }
-  .sm-table tr.tkrow td { padding-top: 0; padding-bottom: 12px; }
+  .sm-table > tbody > tr.res > td { border-bottom: none; padding-top: 14px; }
+  .sm-table > tbody > tr.tkrow > td { padding-top: 0; padding-bottom: 14px; border-bottom: 2px solid var(--muted); }
+  .sm-table > tbody > tr.alt > td { background: var(--grid); }
+  .sm-table > tbody > tr.best > td { background: var(--accent-soft); }
+  .secnav { position: sticky; top: 0; z-index: 20; background: var(--bg); border-bottom: 1px solid var(--line); }
+  .secnav .wrap { display: flex; flex-wrap: wrap; gap: 4px 6px; padding-top: 8px; padding-bottom: 8px; }
+  .secnav a { padding: 4px 10px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); text-decoration: none; font-size: 14px; white-space: nowrap; }
+  .secnav a:hover { border-color: var(--accent); }
+  .secnav a[aria-current="true"] { background: var(--accent); border-color: var(--accent); color: var(--bg); }
+  .secnav .n { opacity: .75; font-size: 12.5px; }
+  main section[id] { scroll-margin-top: 56px; }
+  @media (max-width: 760px) {
+    .secnav .wrap { flex-wrap: nowrap; overflow-x: auto; }
+    .rc table.tk-table th, .rc table.tk-table td { white-space: nowrap; }
+  }
   .tk .verdict { font-weight: 600; margin: 0 0 4px; }
   .tk ul { margin: 4px 0 0; padding-left: 18px; }
   .tk li { margin: 2px 0; }
@@ -110,15 +123,19 @@
   </div>
 </header>
 
+<nav class="secnav" aria-label="Sections"><div class="wrap">
+  <a href="#headline">Top</a><a href="#sec-now">1. Running now <span class="n" id="n-now"></span></a><a href="#sec-plan">2. Planned <span class="n" id="n-plan"></span></a><a href="#sec-backlog">3. Backlog <span class="n" id="n-backlog"></span></a><a href="#sec-results">4. Results <span class="n" id="n-results"></span></a>
+</div></nav>
+
 <main class="wrap">
   <section class="cards hl" id="headline" aria-label="Headline"></section>
 
-  <section class="panel">
+  <section class="panel" id="sec-now">
     <div class="panel-head"><h2>1. Running now</h2><p class="hint" id="now-asof"></p></div>
     <div class="now" id="now"></div>
   </section>
 
-  <section class="panel">
+  <section class="panel" id="sec-plan">
     <div class="panel-head">
       <h2>2. Planned</h2>
       <p class="hint">Times marked ~ are estimates, laid out in your browser from the running job and each job&rsquo;s expected minutes. A GPU job starts only if it also ends before the break starts; otherwise it waits until the break ends.</p>
@@ -127,7 +144,7 @@
     <div class="cardlist" id="plan-cards"></div>
   </section>
 
-  <section class="panel">
+  <section class="panel" id="sec-backlog">
     <div class="panel-head">
       <h2>3. Backlog</h2>
       <p class="hint">Ideas and follow-ups with the reason they are there. Pointers from outside research are marked; we keep our own training setup.</p>
@@ -137,7 +154,7 @@
     <div class="cardlist" id="backlog-cards"></div>
   </section>
 
-  <section class="panel">
+  <section class="panel" id="sec-results">
     <div class="panel-head">
       <h2>4. Results</h2>
       <p class="hint">Newest first, GPU and CPU work together. Each row gives the absolute LogLoss (curve / instant), the gap to the big model on the same reviews, and the evaluation size. &ldquo;Decay&rdquo; = the final pass with the learning rate brought to zero; &ldquo;window&rdquo; = consecutive reviews of one user per training sample.</p>
@@ -359,8 +376,8 @@
       const ul = d.notes && d.notes.length ? `<ul>${d.notes.map((n) => `<li>${n}</li>`).join('')}</ul>` : '';
       return `<div class="tk"><p class="verdict">${d.verdict}</p>${tb}${ul}</div>`;
     };
-    const drawRes = (k) => T('results', ['Date', 'Took', 'Kind', 'Result', 'Curve LogLoss', 'Instant LogLoss', 'Evaluated on'], res.filter((x) => k === 'all' || x.kind === k).map((r) => {
-      const b = r.flag === 'best' ? ' best' : '';
+    const drawRes = (k) => T('results', ['Date', 'Took', 'Kind', 'Result', 'Curve LogLoss', 'Instant LogLoss', 'Evaluated on'], res.filter((x) => k === 'all' || x.kind === k).map((r, i) => {
+      const b = (r.flag === 'best' ? ' best' : '') + (i % 2 ? ' alt' : '');
       return `<tr class="res${b}"><td class="when">${r.date}${r.started_at ? `<br><span class="id">${ran(r)}</span>` : ''}</td><td class="num">${took(r)}</td><td>${tag(r.kind)}</td><td>${name(r.name, r.id, r.track)}</td><td class="num">${ll(r.curve, r.curve_pct)}</td><td class="num">${ll(r.instant, r.instant_pct)}</td><td>${r.eval}${r.fork ? `<br><span class="id">${r.fork}</span>` : ''}</td></tr>`
         + `<tr class="tkrow${b}"><td colspan="7">${take(r)}</td></tr>`;
     }));
@@ -374,6 +391,16 @@
     };
     chips('kinds', ['gpu-train', 'gpu-score', 'gpu-speed', 'cpu', 'collection'], res, 'kind', drawResAll); drawResAll('all');
 
+    // Section bar: item counts, and the section in view is highlighted.
+    [['n-now', D.now], ['n-plan', D.plan], ['n-backlog', D.backlog], ['n-results', D.results]].forEach(([id, xs]) => { $(id).textContent = `(${(xs || []).length})`; });
+    const navLinks = [...document.querySelectorAll('.secnav a')];
+    const seen = new Map();
+    const io = new IntersectionObserver((es) => {
+      es.forEach((e) => seen.set(e.target.id, e.isIntersecting));
+      const cur = navLinks.map((l) => l.getAttribute('href').slice(1)).find((id) => seen.get(id));
+      navLinks.forEach((l) => l.setAttribute('aria-current', String(l.getAttribute('href') === `#${cur}`)));
+    }, { rootMargin: '-60px 0px -55% 0px' });
+    navLinks.forEach((l) => io.observe($(l.getAttribute('href').slice(1))));
     $('updated').innerHTML = `Updated ${D.updated}. Sources: the R01 job queue, <code>artifacts/small-model/</code> on the <code>small-model</code> branch (<code>docs/SMALL_MODEL.md</code>) and <code>pages/data/factory-curated.json</code>. Own-collection figures are collection-level aggregates only.`;
   }
 
