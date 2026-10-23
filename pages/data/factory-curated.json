@@ -1397,6 +1397,107 @@
  ],
  "results": [
   {
+   "date": "10-23",
+   "kind": "cpu",
+   "name": "How big the R gap is between the small and big model: p50 / p90 / p95 / p99 of |R small &minus; R big| per review, the 8k model (SM55) and the Muon best model (SM36)",
+   "id": "SM58",
+   "curve": null,
+   "instant": null,
+   "curve_pct": null,
+   "instant_pct": null,
+   "eval": "722 users (732 set), 30.13M reviews + own collection (aggregate)",
+   "fork": "R = predicted recall probability; 0.01 = 1 point",
+   "takeaway": "<strong>Half of the reviews differ by under 1 point of R</strong>; 1 review in 10 by 4&ndash;5 points or more, 1 in 100 by 11&ndash;14 points. The 8k model (SM55), curve: p50 0.0096, p90 0.049, p95 0.071, p99 0.138; instant: 0.0074 / 0.043 / 0.062 / 0.110. Own collection (aggregate): p50 0.016 / 0.014, p99 0.133 / 0.114. The small model predicts slightly higher recall on average (+0.1 point on the benchmark, +0.5&ndash;0.6 on the own collection)",
+   "track": "small model",
+   "started_at": "2026-10-23T13:20+02:00",
+   "ended_at": "2026-10-23T13:21+02:00",
+   "gpu_minutes": 0,
+   "tickets": 0,
+   "detail": {
+    "verdict": "Half of the reviews differ by under 1 point of R; 1 in 100 by 11&ndash;14 points",
+    "table": {
+     "head": [
+      "Model",
+      "Head",
+      "p50",
+      "p90",
+      "p95",
+      "p99",
+      "Mean gap",
+      "Mean bias"
+     ],
+     "rows": [
+      [
+       "the 8k model (SM55)",
+       "curve",
+       "0.0096",
+       "0.0485",
+       "0.0706",
+       "0.1376",
+       "0.0194",
+       "+0.0009"
+      ],
+      [
+       "the 8k model (SM55)",
+       "instant",
+       "0.0074",
+       "0.0430",
+       "0.0617",
+       "0.1100",
+       "0.0161",
+       "+0.0009"
+      ],
+      [
+       "the Muon best model (SM36)",
+       "curve",
+       "0.0099",
+       "0.0499",
+       "0.0729",
+       "0.1443",
+       "0.0201",
+       "+0.0015"
+      ],
+      [
+       "the Muon best model (SM36)",
+       "instant",
+       "0.0076",
+       "0.0441",
+       "0.0633",
+       "0.1129",
+       "0.0166",
+       "+0.0006"
+      ],
+      [
+       "Own collection, the 8k model (SM55)",
+       "curve",
+       "0.0156",
+       "0.0614",
+       "0.0845",
+       "0.1332",
+       "0.0253",
+       "+0.0064"
+      ],
+      [
+       "Own collection, the 8k model (SM55)",
+       "instant",
+       "0.0144",
+       "0.0531",
+       "0.0717",
+       "0.1142",
+       "0.0223",
+       "+0.0049"
+      ]
+     ]
+    },
+    "notes": [
+     "Percentiles of |R small &minus; R big| per test review (w8+s8); mean bias &gt; 0 = the small model predicts higher recall",
+     "Reviews more than a day apart give nearly the same numbers",
+     "Own collection: the typical gap is larger (1.5 points vs 1) but the tail is similar",
+     "CPU only, from the disagreement test&rsquo;s saved predictions (23 s); files in the sm58 branch (disagreement-pct.md)"
+    ]
+   }
+  },
+  {
    "date": "10-22",
    "kind": "gpu-train",
    "name": "Better distillation, step 1: fine-tunes of the Muon best model (SM36) with more weight on the big model&rsquo;s predictions (0.9 and 1.0 against the control at 0.5), better distillation (SM59); arm 0.9 shown",
