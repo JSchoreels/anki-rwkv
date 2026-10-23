@@ -79,7 +79,7 @@ header { display: grid; gap: 12px; }
 .legend span { color: var(--muted); }
 
 .rows { display: grid; gap: 10px; }
-.rrow { display: grid; grid-template-columns: 8.5em 1fr; gap: 12px; align-items: center; }
+.rrow { display: grid; grid-template-columns: 9.5em 1fr; gap: 12px; align-items: center; }
 .rrow > * { min-width: 0; }
 .rlab { font-size: 15px; line-height: 1.25; }
 .rlab b { display: block; font-variant-numeric: tabular-nums; }
@@ -134,6 +134,7 @@ dl { margin: 0; }
 
   <section class="panel ruler" id="p-ruler" aria-labelledby="h-ruler">
     <h2 id="h-ruler">An example: the big model says 85%</h2>
+    <p class="note">Where does the small model land? Each bar counts reviews from the middle outwards.</p>
     <div class="rows" id="ruler" role="img" aria-label="Ranges where the small model's guess falls when the big model says 85%"></div>
     <p class="note" id="ruler-note"></p>
   </section>
@@ -194,7 +195,7 @@ function drawRuler(d) {
   const rows = [[d.p50, "--b1", 50], [d.p90, "--b2", 90], [d.p95, "--b3", 95], [d.p99, "--b4", 99]];
   let s = rows.map(([g, col, n]) => {
     const a = c - g, b = Math.min(100, c + g);
-    return `<div class="rrow"><div class="rlab"><b>${n} of 100</b><span>${f(a)}–${f(b)}%</span></div>` +
+    return `<div class="rrow"><div class="rlab"><b>${n} of 100 land in</b><span>${f(a)}–${f(b)}%</span></div>` +
       `<div class="track"><i class="bar" style="left:${P(a)};right:calc(100% - ${P(b)});background:var(${col})"></i><i class="mid" style="left:${P(c)}"></i></div></div>`;
   }).join("");
   let ticks = "";
@@ -203,7 +204,8 @@ function drawRuler(d) {
   document.getElementById("ruler").innerHTML = s;
   document.getElementById("ruler-note").textContent =
     `When the big model says 85%, the small model says between ${f(c - d.p50)}% and ${f(c + d.p50)}% half the time, ` +
-    `and between ${f(c - d.p90)}% and ${f(c + d.p90)}% nine times out of ten.`;
+    `and between ${f(c - d.p90)}% and ${f(c + d.p90)}% nine times out of ten. ` +
+    `Only 1 review in 100 lands outside ${f(c - d.p99)}–${f(c + d.p99)}%.`;
 }
 
 document.querySelectorAll(".tabs button").forEach((btn) => btn.addEventListener("click", () => render(btn.dataset.head)));
