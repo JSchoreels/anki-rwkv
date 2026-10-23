@@ -12,7 +12,8 @@ Rule (user 2026-10-22, plateau on 2 consecutive epochs): per head, gain_k = L_{k
 Stop after epoch k (k >= 5) when gain_k < 0.05 total_k AND gain_{k-1} < 0.05 total_{k-1} on BOTH heads; minimum 5
 epochs, hard cap 14. The decay starts from epoch k (the last one trained).
 User 2026-10-23 ("faisons au max"): while the file FULL-14 exists next to this script, the plateau stop is off and
-the run trains all 14 epochs (the cap still applies).
+the run trains all 14 epochs (the cap still applies). User 2026-10-23 11:30 ("ok" to stopping after epoch 10): while the
+file CAP-EPOCHS exists (one integer), it lowers the cap to that epoch.
 """
 import json
 import os
@@ -27,13 +28,14 @@ sys.path.insert(0, str(WT))
 SM = WT / "artifacts/small-model"
 EPOCHS = HERE / "epochs.jsonl"
 FULL = HERE / "FULL-14"   # user 2026-10-23: no plateau stop, train to the cap
+CAP = HERE / "CAP-EPOCHS"  # user 2026-10-23: lower cap (10), so the decay starts at 02:00 after the break
 OUT464 = SM / "heldout-sm56.jsonl"
 USERS464 = HERE / "eval-users-464-fit.json"
 MIN_EPOCHS, MAX_EPOCHS, FRACTION = 5, 14, 0.05
 HEADS = ("curve", "instant")
 
 
-def decide(L, k, full=False):
+def decide(L, k, full=False, cap=MAX_EPOCHS):
     """L: {epoch: {"curve": x, "instant": y}} for epochs 1..k. Returns (stop, reason, detail per head)."""
     detail = {}
     for head in HEADS:
@@ -43,12 +45,12 @@ def decide(L, k, full=False):
                 gain, total = L[j - 1][head] - L[j][head], L[1][head] - L[j][head]
                 rows[j] = {"gain": gain, "total": total, "plateau": gain < FRACTION * total}
         detail[head] = rows
-    if k >= MAX_EPOCHS:
-        return True, f"cap {MAX_EPOCHS} epochs", detail
+    if k >= cap:
+        return True, f"cap {cap} epochs" + ("" if cap == MAX_EPOCHS else " (CAP-EPOCHS, user 2026-10-23)"), detail
     if k < MIN_EPOCHS:
         return False, f"minimum {MIN_EPOCHS} epochs", detail
     if full:
-        return False, f"no plateau stop (FULL-14, user 2026-10-23: all {MAX_EPOCHS} epochs)", detail
+        return False, "no plateau stop (FULL-14, user 2026-10-23: train to the cap)", detail
     flat = all(detail[h].get(j, {}).get("plateau", False) for h in HEADS for j in (k, k - 1))
     if flat:
         return True, f"plateau: gain < {FRACTION:g} x total on epochs {k - 1} and {k}, both heads", detail
@@ -110,7 +112,8 @@ def record(k, label):
         print(f"[sm56-rule] epochs {missing} have no recorded loss")
         print("missing")
         return 2
-    stop, reason, detail = decide(L, k, FULL.exists())
+    cap = min(MAX_EPOCHS, int(CAP.read_text().split()[0])) if CAP.exists() else MAX_EPOCHS
+    stop, reason, detail = decide(L, k, FULL.exists(), cap)
     print(describe(k, L, stop, reason, detail))
     print("stop" if stop else "continue")
     return 0
