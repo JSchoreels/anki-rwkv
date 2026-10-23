@@ -1412,7 +1412,53 @@
    "started_at": "2026-10-22T14:27+02:00",
    "ended_at": "2026-10-22T20:46+02:00",
    "gpu_minutes": 236,
-   "tickets": 4
+   "tickets": 4,
+   "detail": {
+    "verdict": "A heavier big-model weight does not help; weight 0.5 stays",
+    "table": {
+     "head": [
+      "Arm",
+      "Curve",
+      "Instant",
+      "vs the Muon best model (SM36) curve",
+      "vs the Muon best model (SM36) instant"
+     ],
+     "rows": [
+      [
+       "the Muon best model (SM36)",
+       "0.30333 (+0.64%)",
+       "0.27960 (+0.63%)",
+       "&ndash;",
+       "&ndash;"
+      ],
+      [
+       "Arm 0.9",
+       "0.30358",
+       "0.27967",
+       "+0.00025 [+0.00008, +0.00040]",
+       "+0.00007 [+0.00005, +0.00009]"
+      ],
+      [
+       "Arm 1.0",
+       "0.30365 (+0.75%)",
+       "0.27971 (+0.67%)",
+       "+0.00032 [+0.00013, +0.00050]",
+       "+0.00011 [+0.00009, +0.00014]"
+      ],
+      [
+       "Control at 0.5",
+       "0.30329",
+       "0.27957",
+       "tie",
+       "tie"
+      ]
+     ]
+    },
+    "notes": [
+     "Step 2 (learn the big model&rsquo;s whole curve) shelved",
+     "Same direction on 458 users (464 set)"
+    ]
+   }
   },
   {
    "date": "10-22",
@@ -1430,7 +1476,56 @@
    "started_at": "2026-10-22T12:29+02:00",
    "ended_at": "2026-10-22T18:08+02:00",
    "gpu_minutes": 32,
-   "tickets": 3
+   "tickets": 3,
+   "detail": {
+    "verdict": "The big model is more right",
+    "table": {
+     "head": [
+      "Model",
+      "Slope curve",
+      "Slope instant",
+      "UM+ curve",
+      "UM+ instant",
+      "Own collection slope curve",
+      "Own collection slope instant"
+     ],
+     "rows": [
+      [
+       "the Muon best model (SM36)",
+       "+0.72",
+       "+0.80",
+       "0.0251",
+       "0.0219",
+       "+0.53",
+       "+0.58"
+      ],
+      [
+       "the 8k model (SM55)",
+       "+0.68",
+       "+0.77",
+       "0.0229",
+       "0.0205",
+       "+0.56",
+       "+0.61"
+      ],
+      [
+       "Big model",
+       "&ndash;",
+       "&ndash;",
+       "0.0106",
+       "0.0059",
+       "&ndash;",
+       "&ndash;"
+      ]
+     ]
+    },
+    "notes": [
+     "Slope closer to 0 = more right; a tie is +0.5 for the small model",
+     "The 8k model (SM55) closes part of the gap",
+     "Own collection (aggregate): near a tie",
+     "Disagreement is wide: 25% / 21% of reviews (curve / instant) sit outside the central 5-point bin"
+    ]
+   }
   },
   {
    "date": "10-22",
@@ -1448,7 +1543,34 @@
    "started_at": "2026-10-22T09:18+02:00",
    "ended_at": "2026-10-22T12:26+02:00",
    "gpu_minutes": 65,
-   "tickets": 2
+   "tickets": 2,
+   "detail": {
+    "verdict": "Neither head is under-trained",
+    "table": {
+     "head": [
+      "Arm",
+      "Curve",
+      "Instant"
+     ],
+     "rows": [
+      [
+       "Curve-only fine-tune vs the Muon best model (SM36)",
+       "+0.00001 [&minus;0.00003, +0.00005]",
+       "&ndash;"
+      ],
+      [
+       "Instant-only fine-tune vs the Muon best model (SM36)",
+       "&ndash;",
+       "&minus;0.000004 [&minus;0.00001, +0.00000]"
+      ]
+     ]
+    },
+    "notes": [
+     "The remaining gap is in the shared trunk and card/note state, not the heads",
+     "Drops the head-weighted option of Muon tuning arm 2 (SM39)",
+     "Same on 458 users (464 set)"
+    ]
+   }
   },
   {
    "date": "10-22",
@@ -1466,7 +1588,43 @@
    "started_at": "2026-10-21T08:59+02:00",
    "ended_at": "2026-10-22T12:29+02:00",
    "gpu_minutes": 749,
-   "tickets": 8
+   "tickets": 8,
+   "detail": {
+    "verdict": "The 8k model wins on both heads",
+    "table": {
+     "head": [
+      "Comparison",
+      "Curve",
+      "Instant"
+     ],
+     "rows": [
+      [
+       "vs the Muon best model (SM36)",
+       "&minus;0.00047 [&minus;0.00088, &minus;0.00017]",
+       "&minus;0.00025 [&minus;0.00029, &minus;0.00022]"
+      ],
+      [
+       "vs the big model, 726 users every released model fits",
+       "+0.54%",
+       "+0.55%"
+      ],
+      [
+       "Scores on those 726 users (big model)",
+       "0.30464 (0.30300)",
+       "0.28015 (0.27862)"
+      ],
+      [
+       "vs the big model, 464 set",
+       "+0.53%",
+       "+0.54%"
+      ]
+     ]
+    },
+    "notes": [
+     "More users is the strongest lever so far",
+     "4 long users do not fit this model&rsquo;s scorer"
+    ]
+   }
   },
   {
    "date": "10-22",
@@ -1484,7 +1642,29 @@
    "started_at": "2026-10-22T09:17+02:00",
    "ended_at": "2026-10-22T09:18+02:00",
    "gpu_minutes": 1,
-   "tickets": 1
+   "tickets": 1,
+   "detail": {
+    "verdict": "Done: the Muon best model (SM36) on all 730 users",
+    "table": {
+     "head": [
+      "Model",
+      "vs the big model curve",
+      "vs the big model instant"
+     ],
+     "rows": [
+      [
+       "the Muon best model (SM36)",
+       "+0.69%",
+       "+0.65%"
+      ],
+      [
+       "Previous best (SM40)",
+       "+0.71%",
+       "+0.71%"
+      ]
+     ]
+    }
+   }
   },
   {
    "date": "10-21",
@@ -1502,7 +1682,38 @@
    "started_at": "2026-10-21T17:47+02:00",
    "ended_at": "2026-10-21T18:20+02:00",
    "gpu_minutes": 32,
-   "tickets": 2
+   "tickets": 2,
+   "detail": {
+    "verdict": "No free gain",
+    "table": {
+     "head": [
+      "Averaging of",
+      "Curve",
+      "Instant"
+     ],
+     "rows": [
+      [
+       "Last 2 snapshots",
+       "&minus;0.00003 [&minus;0.00026, +0.00017]",
+       "+0.00004 [+0.00002, +0.00006]"
+      ],
+      [
+       "Last 3 snapshots",
+       "&ndash;",
+       "+0.00012"
+      ],
+      [
+       "Last 4 snapshots",
+       "&ndash;",
+       "+0.00016"
+      ]
+     ]
+    },
+    "notes": [
+     "Averaging the last 2 snapshots ties",
+     "3 snapshots make instant worse, 4 worse still"
+    ]
+   }
   },
   {
    "date": "10-21",
@@ -1520,7 +1731,28 @@
    "started_at": "2026-10-21T13:28+02:00",
    "ended_at": "2026-10-21T18:20+02:00",
    "gpu_minutes": 292,
-   "tickets": 3
+   "tickets": 3,
+   "detail": {
+    "verdict": "Ties the best model",
+    "table": {
+     "head": [
+      "Arm",
+      "Curve",
+      "Instant"
+     ],
+     "rows": [
+      [
+       "Learning rate &times;0.5 vs the Muon best model (SM36)",
+       "&minus;0.00003 [&minus;0.00021, +0.00012]",
+       "+0.00003 [+0.00001, +0.00004]"
+      ]
+     ]
+    },
+    "notes": [
+     "The learning rate is not the lever",
+     "458 users (464 set): 0.29794 / 0.27399"
+    ]
+   }
   },
   {
    "date": "10-21",
@@ -1538,7 +1770,67 @@
    "started_at": "2026-10-21T08:59+02:00",
    "ended_at": "2026-10-21T13:28+02:00",
    "gpu_minutes": 29,
-   "tickets": 2
+   "tickets": 2,
+   "detail": {
+    "verdict": "B is the smallest format clearly inside the bar",
+    "table": {
+     "head": [
+      "Format",
+      "State MB",
+      "Curve",
+      "Instant",
+      "vs the big model (curve / instant)",
+      "vs int8 state (curve / instant)"
+     ],
+     "rows": [
+      [
+       "the Muon best model (SM36) int8 state",
+       "70.15",
+       "0.30333",
+       "0.27960",
+       "+0.64% / +0.63%",
+       "&ndash;"
+      ],
+      [
+       "B",
+       "28.65 (&minus;59%)",
+       "0.30346",
+       "0.2799",
+       "&ndash;",
+       "+0.00012 [+0.00009, +0.00016] / +0.00030 [+0.00027, +0.00034]"
+      ],
+      [
+       "A",
+       "30.84",
+       "0.30343",
+       "0.27976",
+       "+0.68% / +0.69%",
+       "&ndash;"
+      ],
+      [
+       "C",
+       "23.72 (&minus;66%)",
+       "0.30401",
+       "0.28068",
+       "+0.87% / +1.02%",
+       "&ndash;"
+      ],
+      [
+       "C&prime;",
+       "32.90",
+       "&ndash;",
+       "&ndash;",
+       "+0.74% / +0.78%",
+       "&ndash;"
+      ]
+     ]
+    },
+    "notes": [
+     "Formats: A = 4-bit notes too, B = A + 4-bit short-term vectors, C = B + one scale per head",
+     "C: instant just over the bar",
+     "Lossless compression of the stored codes took C from 23.7 to 13.6 MB on the own collection"
+    ]
+   }
   },
   {
    "date": "10-21",
@@ -1556,7 +1848,33 @@
    "started_at": "2026-10-21T08:46+02:00",
    "ended_at": "2026-10-21T08:59+02:00",
    "gpu_minutes": 13,
-   "tickets": 1
+   "tickets": 1,
+   "detail": {
+    "verdict": "Exact: bit-identical rows for the int formats (160/160 in every run)",
+    "table": {
+     "head": [
+      "Users at once",
+      "Speed",
+      "GPU memory"
+     ],
+     "rows": [
+      [
+       "2",
+       "~1.3&times; faster",
+       "12.1 of ~12.8 GiB, room under the cap"
+      ],
+      [
+       "4",
+       "only slightly faster",
+       "at the cap"
+      ]
+     ]
+    },
+    "notes": [
+     "Two identical runs differed by ~&plusmn;17%, so the speed figure is rough",
+     "Pool scorings now skip the 9 users that never fit (723 of 732)"
+    ]
+   }
   },
   {
    "date": "10-21",
@@ -1574,7 +1892,43 @@
    "started_at": "2026-10-20T21:28+02:00",
    "ended_at": "2026-10-21T07:06+02:00",
    "gpu_minutes": 127,
-   "tickets": 8
+   "tickets": 8,
+   "detail": {
+    "verdict": "Nearly free at 4.5&times; smaller than int8",
+    "table": {
+     "head": [
+      "Format",
+      "State MB",
+      "Curve",
+      "Instant"
+     ],
+     "rows": [
+      [
+       "5,902 bits per card, 3,028 per note (codebooks)",
+       "15.3",
+       "+0.00009 [+0.00006, +0.00012]",
+       "+0.00015 [+0.00012, +0.00018]"
+      ],
+      [
+       "Smallest int format",
+       "37.6",
+       "+0.00004",
+       "+0.00005"
+      ],
+      [
+       "int8",
+       "70.2",
+       "&ndash;",
+       "&ndash;"
+      ]
+     ]
+    },
+    "notes": [
+     "State for 13,973 cards / 13,198 notes",
+     "The codebooks add ~30 MB and scoring is ~11&times; slower (5,005 reviews/s on the GPU)",
+     "Only the 464 set: all 732 users would take ~4 h"
+    ]
+   }
   },
   {
    "date": "10-21",
@@ -1592,7 +1946,55 @@
    "started_at": "2026-10-20T21:27+02:00",
    "ended_at": "2026-10-21T04:59+02:00",
    "gpu_minutes": 163,
-   "tickets": 22
+   "tickets": 22,
+   "detail": {
+    "verdict": "~800 bits is not free",
+    "table": {
+     "head": [
+      "Variant",
+      "vs the big model curve",
+      "vs the big model instant",
+      "GPU scorer reviews/s of model time"
+     ],
+     "rows": [
+      [
+       "Control model (SM42), int8 state",
+       "+0.71%",
+       "+0.70%",
+       "92k"
+      ],
+      [
+       "Control model (SM42), ~800 bits (row shown)",
+       "+1.08%",
+       "+1.38%",
+       "14k"
+      ],
+      [
+       "Control model (SM42), ~400 bits",
+       "+1.43%",
+       "+1.88%",
+       "47k"
+      ],
+      [
+       "Learned codebooks (SM32c), ~400 bits",
+       "+1.35%",
+       "+1.71%",
+       "&ndash;"
+      ],
+      [
+       "Learned codebooks (SM32c), int8 state",
+       "+1.92%",
+       "+2.21%",
+       "&ndash;"
+      ]
+     ]
+    },
+    "notes": [
+     "~800 bits costs +0.37% curve / +0.67% instant over int8, over the +1.0% bar",
+     "Learned codebooks help that model, but its int8 starts worse",
+     "Same on 458 users (464 set)"
+    ]
+   }
   },
   {
    "date": "10-21",
@@ -1606,7 +2008,43 @@
    "started_at": "2026-10-21T02:29+02:00",
    "ended_at": "2026-10-21T02:40+02:00",
    "gpu_minutes": 11,
-   "tickets": 1
+   "tickets": 1,
+   "detail": {
+    "verdict": "1.56&times; faster pool scoring, same numbers bit for bit",
+    "table": {
+     "head": [
+      "Path",
+      "Reviews/s",
+      "Speed-up"
+     ],
+     "rows": [
+      [
+       "Old path",
+       "46,144",
+       "&ndash;"
+      ],
+      [
+       "Array metrics",
+       "61,430",
+       "1.33&times;"
+      ],
+      [
+       "2 users at once",
+       "66,484",
+       "1.44&times;"
+      ],
+      [
+       "4 users at once",
+       "72,074",
+       "1.56&times;"
+      ]
+     ]
+    },
+    "notes": [
+     "Two state formats on the 732 set: ~36 min &rarr; ~23 min",
+     "GPU memory 13.1 &rarr; 14.5 GB with several users at once"
+    ]
+   }
   },
   {
    "date": "10-21",
@@ -1624,7 +2062,42 @@
    "started_at": "2026-10-21T00:47+02:00",
    "ended_at": "2026-10-21T02:06+02:00",
    "gpu_minutes": 80,
-   "tickets": 1
+   "tickets": 1,
+   "detail": {
+    "verdict": "&minus;46% state size for +0.00005",
+    "table": {
+     "head": [
+      "Format",
+      "State MB",
+      "Curve",
+      "Instant"
+     ],
+     "rows": [
+      [
+       "int8 state",
+       "70.2",
+       "&ndash;",
+       "&ndash;"
+      ],
+      [
+       "int4 cards + int8 notes + 16-bit row scales + int8 short-term vectors",
+       "37.6 (&minus;46%)",
+       "+0.00005 [+0.00003, +0.00006]",
+       "+0.00005 [+0.00004, +0.00006]"
+      ],
+      [
+       "Without int4 cards",
+       "51.9 (&minus;26%)",
+       "zero cost",
+       "zero cost"
+      ]
+     ]
+    },
+    "notes": [
+     "16-bit scales and int8 short-term vectors are free (&plusmn;0.00000 alone, together, and on top of int4 cards); the only cost is the int4 cards",
+     "Same on 458 users (464 set): +0.76% / +0.66%"
+    ]
+   }
   },
   {
    "date": "10-20",
@@ -1642,7 +2115,48 @@
    "started_at": "2026-10-20T13:59+02:00",
    "ended_at": "2026-10-20T21:26+02:00",
    "gpu_minutes": 412,
-   "tickets": 4
+   "tickets": 4,
+   "detail": {
+    "verdict": "More users win, and the gap grows with training",
+    "table": {
+     "head": [
+      "Scope (fewer users, more passes)",
+      "Curve",
+      "Instant"
+     ],
+     "rows": [
+      [
+       "Full size, overall",
+       "+0.77% [+0.58, +1.00]",
+       "+0.55% [+0.47, +0.65]"
+      ],
+      [
+       "Mini",
+       "+0.36%",
+       "+0.46%"
+      ],
+      [
+       "Light users",
+       "+0.97%",
+       "&ndash;"
+      ],
+      [
+       "Mid users",
+       "+0.76%",
+       "&ndash;"
+      ],
+      [
+       "Heavy users",
+       "+0.76%",
+       "&ndash;"
+      ]
+     ]
+    },
+    "notes": [
+     "Worse in every size band",
+     "Keep training on as many users as possible"
+    ]
+   }
   },
   {
    "date": "10-19",
@@ -1661,7 +2175,39 @@
    "started_at": "2026-10-19T18:36+02:00",
    "ended_at": "2026-10-19T19:32+02:00",
    "gpu_minutes": 56,
-   "tickets": 4
+   "tickets": 4,
+   "detail": {
+    "verdict": "More users win, mostly on instant",
+    "table": {
+     "head": [
+      "Scope (fewer users, more passes)",
+      "Curve",
+      "Instant"
+     ],
+     "rows": [
+      [
+       "Overall",
+       "+0.36% [&minus;0.06, +0.82]",
+       "+0.46% [+0.25, +0.69]"
+      ],
+      [
+       "Heavy users",
+       "+0.53%",
+       "+0.64%"
+      ],
+      [
+       "Light users",
+       "&minus;0.25%",
+       "&minus;0.41%"
+      ]
+     ]
+    },
+    "notes": [
+     "Calibration worse too (RMSE(bins) 0.0687 vs 0.0642)",
+     "By history length the loss is all on heavy users; light users gain slightly",
+     "Both arms are early in training (+9% vs the big model); the full-size run tells whether this holds"
+    ]
+   }
   },
   {
    "date": "10-19",
@@ -1679,7 +2225,34 @@
    "started_at": "2026-10-19T13:06+02:00",
    "ended_at": "2026-10-19T18:35+02:00",
    "gpu_minutes": 329,
-   "tickets": 4
+   "tickets": 4,
+   "detail": {
+    "verdict": "Ties the best",
+    "table": {
+     "head": [
+      "Comparison",
+      "Curve",
+      "Instant"
+     ],
+     "rows": [
+      [
+       "vs the previous best model (SM40), 464 users",
+       "&minus;0.00000 [&minus;0.00014, +0.00014]",
+       "+0.00004 [+0.00001, +0.00007]"
+      ],
+      [
+       "vs dec10",
+       "&minus;0.00091",
+       "&minus;0.00051"
+      ]
+     ]
+    },
+    "notes": [
+     "The 2 epochs with carried state before the decay add nothing; the gain is the one-epoch 32k decay with carry itself",
+     "Simpler recipe: plain 32k training, then that decay",
+     "On 723 users: 0.30350 / 0.27980 (+0.70% / +0.70%) vs the previous best model (SM40) 0.30340 / 0.27976"
+    ]
+   }
   },
   {
    "date": "10-19",
@@ -1697,7 +2270,38 @@
    "started_at": "2026-10-19T09:51+02:00",
    "ended_at": "2026-10-19T13:04+02:00",
    "gpu_minutes": 193,
-   "tickets": 6
+   "tickets": 6,
+   "detail": {
+    "verdict": "Fails.",
+    "table": {
+     "head": [
+      "Comparison",
+      "Curve",
+      "Instant"
+     ],
+     "rows": [
+      [
+       "vs the previous best model (SM40)",
+       "+0.36% [+0.16, +0.54]",
+       "+0.42% [+0.37, +0.46]"
+      ],
+      [
+       "On 724 users",
+       "+0.44%",
+       "+0.43%"
+      ],
+      [
+       "On 724 users, vs the big model",
+       "+1.10%",
+       "+1.11%"
+      ]
+     ]
+    },
+    "notes": [
+     "Limit +0.25%",
+     "The cut streams carry real signal; the 331k model stays the smallest that meets the bar"
+    ]
+   }
   },
   {
    "date": "10-19",
@@ -1711,7 +2315,39 @@
    "eval": "68 users (34 + 34 new, CPU)",
    "fork": "Δ% = trained-in vs after-training compression, paired",
    "takeaway": "Same answer on the new 34 users (+0.0015 / +0.0010) as on the first 34 (+0.0012 / +0.0010). All 68: +0.0014 [+0.0005, +0.0023] / +0.0010 [+0.0007, +0.0013]. After-training compression costs +0.37% / +0.86% vs uncompressed. Not a sample-size issue: the short decay with frozen codebooks hurts. Next try: codebooks learned in the full decay (SM32c)",
-   "track": "small model"
+   "track": "small model",
+   "detail": {
+    "verdict": "Same answer on the new 34 users as on the first 34",
+    "table": {
+     "head": [
+      "Users",
+      "Curve",
+      "Instant"
+     ],
+     "rows": [
+      [
+       "First 34",
+       "+0.0012",
+       "+0.0010"
+      ],
+      [
+       "New 34",
+       "+0.0015",
+       "+0.0010"
+      ],
+      [
+       "All 68",
+       "+0.0014 [+0.0005, +0.0023]",
+       "+0.0010 [+0.0007, +0.0013]"
+      ]
+     ]
+    },
+    "notes": [
+     "After-training compression costs +0.37% / +0.86% vs uncompressed",
+     "Not a sample-size issue: the short decay with frozen codebooks hurts",
+     "Next try: codebooks learned in the full decay (SM32c)"
+    ]
+   }
   },
   {
    "date": "10-19",
@@ -1725,7 +2361,42 @@
    "eval": "173,690 reviews",
    "fork": "big model 0.44165 / 0.43668; dec10 0.44225 / 0.43747 (+0.14% / +0.18%)",
    "takeaway": "Nearly level with the big model on curve. Calibration RMSE(bins) 0.0256 / 0.0209 (dec10 0.0286 / 0.0207, big model 0.0224 / 0.0200)",
-   "track": "small model"
+   "track": "small model",
+   "detail": {
+    "verdict": "Nearly level with the big model on curve",
+    "table": {
+     "head": [
+      "Model",
+      "Curve",
+      "Instant",
+      "RMSE(bins) curve",
+      "RMSE(bins) instant"
+     ],
+     "rows": [
+      [
+       "One-epoch 32k decay",
+       "0.44193",
+       "0.43728",
+       "0.0256",
+       "0.0209"
+      ],
+      [
+       "dec10",
+       "0.44225 (+0.14%)",
+       "0.43747 (+0.18%)",
+       "0.0286",
+       "0.0207"
+      ],
+      [
+       "Big model",
+       "0.44165",
+       "0.43668",
+       "0.0224",
+       "0.0200"
+      ]
+     ]
+    }
+   }
   },
   {
    "date": "10-19",
@@ -1744,7 +2415,39 @@
    "started_at": "2026-10-19T06:01+02:00",
    "ended_at": "2026-10-19T06:29+02:00",
    "gpu_minutes": 28,
-   "tickets": 4
+   "tickets": 4,
+   "detail": {
+    "verdict": "The remaining curve gap is mostly learning steps",
+    "table": {
+     "head": [
+      "Stage (share of reviews)",
+      "Previous best model (SM40) curve",
+      "Previous best model (SM40) instant",
+      "dec10 curve",
+      "dec10 instant"
+     ],
+     "rows": [
+      [
+       "Spaced reviews (71%)",
+       "+0.60%",
+       "+0.61%",
+       "+0.85%",
+       "+0.79%"
+      ],
+      [
+       "Same-day (27%)",
+       "+1.07%",
+       "+0.91%",
+       "+1.22%",
+       "+1.10%"
+      ]
+     ]
+    },
+    "notes": [
+     "Paired on 458 users; the 6 longest do not fit in memory with dumps",
+     "Overall on the same users: dec10 +0.96% / +0.88%; v2 dec12 +1.04% / +1.03%"
+    ]
+   }
   },
   {
    "date": "10-19",
@@ -1759,7 +2462,52 @@
    "fork": "big model 0.30437 / 0.27943; 32k dec10 0.30746 / 0.28197 (+1.02% / +0.91%); v2 dec12 +1.11% / +1.06%",
    "takeaway": "<strong>Bar met on the standard set too.</strong> vs dec10 &minus;0.00093 [&minus;0.00142, &minus;0.00056] / &minus;0.00055 [&minus;0.00061, &minus;0.00049]. Users 1534 and 4625 do not fit in memory even at a 0.92 cap (small models)",
    "track": "small model",
-   "label": "s-w64kd-gate-sc-lanes-dec12-1ep32k/w8+s8 (732 pool)"
+   "label": "s-w64kd-gate-sc-lanes-dec12-1ep32k/w8+s8 (732 pool)",
+   "detail": {
+    "verdict": "Bar met on the standard set too.",
+    "table": {
+     "head": [
+      "Model",
+      "Curve",
+      "Instant",
+      "vs dec10 curve",
+      "vs dec10 instant"
+     ],
+     "rows": [
+      [
+       "One-epoch 32k decay of carried state v2",
+       "0.30653",
+       "0.28142",
+       "&minus;0.00093 [&minus;0.00142, &minus;0.00056]",
+       "&minus;0.00055 [&minus;0.00061, &minus;0.00049]"
+      ],
+      [
+       "32k dec10",
+       "0.30746 (+1.02%)",
+       "0.28197 (+0.91%)",
+       "&ndash;",
+       "&ndash;"
+      ],
+      [
+       "v2 dec12",
+       "+1.11%",
+       "+1.06%",
+       "&ndash;",
+       "&ndash;"
+      ],
+      [
+       "Big model",
+       "0.30437",
+       "0.27943",
+       "&ndash;",
+       "&ndash;"
+      ]
+     ]
+    },
+    "notes": [
+     "Users 1534 and 4625 do not fit in memory even at a 0.92 cap (small models)"
+    ]
+   }
   },
   {
    "date": "10-19",
@@ -1774,7 +2522,57 @@
    "fork": "big model 0.29766 / 0.27216; 32k dec10 0.30096 / 0.27471 (+1.11% / +0.94%); v2 dec12 0.30124 / 0.27514",
    "takeaway": "<strong>First model under the &le; +1.0% bar on both heads.</strong> vs dec10 &minus;0.00091 [&minus;0.00160, &minus;0.00044] / &minus;0.00055 [&minus;0.00061, &minus;0.00049]; vs v2 dec12 &minus;0.00119 / &minus;0.00098. ~24,500 reviews/s, 5.4 h training",
    "track": "small model",
-   "label": "s-w64kd-gate-sc-lanes-dec12-1ep32k/w8+s8"
+   "label": "s-w64kd-gate-sc-lanes-dec12-1ep32k/w8+s8",
+   "detail": {
+    "verdict": "First model under the &le; +1.0% bar on both heads.",
+    "table": {
+     "head": [
+      "Model",
+      "Curve",
+      "Instant",
+      "vs dec10 curve",
+      "vs dec10 instant",
+      "vs v2 dec12 (curve / instant)"
+     ],
+     "rows": [
+      [
+       "One-epoch 32k decay of carried state v2",
+       "0.30004",
+       "0.27416",
+       "&minus;0.00091 [&minus;0.00160, &minus;0.00044]",
+       "&minus;0.00055 [&minus;0.00061, &minus;0.00049]",
+       "&minus;0.00119 / &minus;0.00098"
+      ],
+      [
+       "32k dec10",
+       "0.30096 (+1.11%)",
+       "0.27471 (+0.94%)",
+       "&ndash;",
+       "&ndash;",
+       "&ndash;"
+      ],
+      [
+       "v2 dec12",
+       "0.30124",
+       "0.27514",
+       "&ndash;",
+       "&ndash;",
+       "&ndash;"
+      ],
+      [
+       "Big model",
+       "0.29766",
+       "0.27216",
+       "&ndash;",
+       "&ndash;",
+       "&ndash;"
+      ]
+     ]
+    },
+    "notes": [
+     "~24,500 reviews/s, 5.4 h training"
+    ]
+   }
   },
   {
    "date": "10-18",
@@ -1789,7 +2587,59 @@
    "fork": "big model 0.30215 / 0.27733; v2 0.30553 / 0.28026 (+1.12% / +1.05%); v1 +1.38% / +1.42%; no carry +1.43% / +1.50%",
    "takeaway": "Same order as on 464 users. dec10 is 0.03 pp from the curve bar on this set; v2 vs dec10 +0.00028 [+0.00003, +0.00054] / +0.00042 [+0.00036, +0.00048]",
    "track": "small model",
-   "label": "s-w64kd-gate-ctx32768c-dec10/w8+s8 (732 pool)"
+   "label": "s-w64kd-gate-ctx32768c-dec10/w8+s8 (732 pool)",
+   "detail": {
+    "verdict": "Same order as on 464 users",
+    "table": {
+     "head": [
+      "Model",
+      "Curve",
+      "Instant",
+      "vs dec10 curve",
+      "vs dec10 instant"
+     ],
+     "rows": [
+      [
+       "32k dec10",
+       "0.30525",
+       "0.27984",
+       "&ndash;",
+       "&ndash;"
+      ],
+      [
+       "Carried state v2",
+       "0.30553 (+1.12%)",
+       "0.28026 (+1.05%)",
+       "+0.00028 [+0.00003, +0.00054]",
+       "+0.00042 [+0.00036, +0.00048]"
+      ],
+      [
+       "Carried state v1",
+       "+1.38%",
+       "+1.42%",
+       "&ndash;",
+       "&ndash;"
+      ],
+      [
+       "No carry",
+       "+1.43%",
+       "+1.50%",
+       "&ndash;",
+       "&ndash;"
+      ],
+      [
+       "Big model",
+       "0.30215",
+       "0.27733",
+       "&ndash;",
+       "&ndash;"
+      ]
+     ]
+    },
+    "notes": [
+     "dec10 is 0.03 pp from the curve bar on this set"
+    ]
+   }
   },
   {
    "date": "10-18",
@@ -1804,7 +2654,44 @@
    "fork": "big model 0.29766 / 0.27216; 32k dec10 0.30096 / 0.27471; no carry (arm B) 0.30214 / 0.27640; v1 carry 0.30213 / 0.27620",
    "takeaway": "Best 2,048-window model by far: &minus;0.0009 / &minus;0.0013 vs no carry, &minus;0.0009 / &minus;0.0011 vs v1. Before decay it beats 32k e10 (&minus;0.0002 / &minus;0.0011); after decay it trails 32k dec10 by +0.0003 [&minus;0.0001, +0.0007] / +0.0004: the 2,048 decay gains less than the 32k one. Next: decay v2 at 32k",
    "track": "small model",
-   "label": "s-w64kd-gate-sc-lanes-dec12/w8+s8"
+   "label": "s-w64kd-gate-sc-lanes-dec12/w8+s8",
+   "detail": {
+    "verdict": "Best 2,048-window model by far",
+    "table": {
+     "head": [
+      "Comparison",
+      "Curve",
+      "Instant"
+     ],
+     "rows": [
+      [
+       "vs no carry",
+       "&minus;0.0009",
+       "&minus;0.0013"
+      ],
+      [
+       "vs v1",
+       "&minus;0.0009",
+       "&minus;0.0011"
+      ],
+      [
+       "Before decay vs 32k e10",
+       "&minus;0.0002",
+       "&minus;0.0011"
+      ],
+      [
+       "After decay vs 32k dec10",
+       "+0.0003 [&minus;0.0001, +0.0007]",
+       "+0.0004"
+      ]
+     ]
+    },
+    "notes": [
+     "The 2,048 decay gains less than the 32k one",
+     "Scores: carried state v2 0.30124 / 0.27514; 32k dec10 0.30096 / 0.27471; no carry (arm B) 0.30214 / 0.27640; v1 carry 0.30213 / 0.27620; big model 0.29766 / 0.27216",
+     "Next: decay v2 at 32k"
+    ]
+   }
   },
   {
    "date": "10-18",
@@ -1819,7 +2706,33 @@
    "fork": "big model 0.29766 / 0.27216; arm A (carry) 0.30213 / 0.27620; 32k dec10 0.30096 / 0.27471",
    "takeaway": "Gate users at e12: carry beat it by &minus;0.0013 / &minus;0.0005 (CIs below zero); on 464 users after decay only the instant gain holds (&minus;0.0002)",
    "track": "small model",
-   "label": "s-w64kd-gate-sc-zero-dec12/w8+s8"
+   "label": "s-w64kd-gate-sc-zero-dec12/w8+s8",
+   "detail": {
+    "verdict": "After decay only the instant gain of carry holds",
+    "table": {
+     "head": [
+      "Check",
+      "Curve",
+      "Instant"
+     ],
+     "rows": [
+      [
+       "Gate users at e12, carry beat it by",
+       "&minus;0.0013",
+       "&minus;0.0005"
+      ],
+      [
+       "464 users after decay",
+       "gain gone",
+       "&minus;0.0002"
+      ]
+     ]
+    },
+    "notes": [
+     "CIs below zero at e12",
+     "Scores: arm A (carry) 0.30213 / 0.27620; 32k dec10 0.30096 / 0.27471; big model 0.29766 / 0.27216"
+    ]
+   }
   },
   {
    "date": "10-18",
@@ -1834,7 +2747,38 @@
    "fork": "big model 0.29766 / 0.27216; 32k windows dec10 0.30096 / 0.27471 (+1.11% / +0.94%); 2,048 windows dec8 0.30259 / 0.27668 (+1.66% / +1.66%)",
    "takeaway": "Paired with arm B (same recipe, no carry), 464 users: &minus;0.00001 / &minus;0.00020 after decay [curve CI &minus;0.0003, +0.0003; instant &minus;0.00033, &minus;0.00007]; before decay (e12) &minus;0.00056 / &minus;0.00041. The decay erased most of the curve gain. Both 2,048-window arms stay behind 32k (+0.0012 / +0.0015). v2 (exact state) is running",
    "track": "small model",
-   "label": "s-w64kd-gate-sc-carry-dec12/w8+s8"
+   "label": "s-w64kd-gate-sc-carry-dec12/w8+s8",
+   "detail": {
+    "verdict": "The decay erased most of the curve gain",
+    "table": {
+     "head": [
+      "Paired with arm B (same recipe, no carry), 464 users",
+      "Curve",
+      "Instant"
+     ],
+     "rows": [
+      [
+       "After decay",
+       "&minus;0.00001 [&minus;0.0003, +0.0003]",
+       "&minus;0.00020 [&minus;0.00033, &minus;0.00007]"
+      ],
+      [
+       "Before decay (e12)",
+       "&minus;0.00056",
+       "&minus;0.00041"
+      ],
+      [
+       "Both 2,048-window arms vs 32k",
+       "+0.0012",
+       "+0.0015"
+      ]
+     ]
+    },
+    "notes": [
+     "Scores: 32k windows dec10 0.30096 / 0.27471 (+1.11% / +0.94%); 2,048 windows dec8 0.30259 / 0.27668 (+1.66% / +1.66%); big model 0.29766 / 0.27216",
+     "v2 (exact state) is running"
+    ]
+   }
   },
   {
    "date": "10-18",
@@ -1849,7 +2793,33 @@
    "fork": "big model 0.32132 / 0.28497; dec10 uncompressed 0.32194 / 0.28716; original codebooks 0.32314 / 0.28946",
    "takeaway": "Same cost as the codebooks from the earlier model (+0.00127 / +0.00231 vs +0.00120 / +0.00231). The cost is the bit budget, not the codebook fit",
    "track": "small model",
-   "label": "dec10/w8+vq378x412 (dec10 books)"
+   "label": "dec10/w8+vq378x412 (dec10 books)",
+   "detail": {
+    "verdict": "Same cost as the codebooks from the earlier model",
+    "table": {
+     "head": [
+      "Codebooks",
+      "Curve",
+      "Instant"
+     ],
+     "rows": [
+      [
+       "Fitted on dec10&rsquo;s own states",
+       "+0.00127",
+       "+0.00231"
+      ],
+      [
+       "From the earlier model",
+       "+0.00120",
+       "+0.00231"
+      ]
+     ]
+    },
+    "notes": [
+     "The cost is the bit budget, not the codebook fit",
+     "Scores on 34 users (CPU): big model 0.32132 / 0.28497; dec10 uncompressed 0.32194 / 0.28716; original codebooks 0.32314 / 0.28946"
+    ]
+   }
   },
   {
    "date": "10-18",
@@ -1868,7 +2838,49 @@
    "started_at": "2026-10-18T02:59+02:00",
    "ended_at": "2026-10-18T04:19+02:00",
    "gpu_minutes": 80,
-   "tickets": 1
+   "tickets": 1,
+   "detail": {
+    "verdict": "Worse than compressing after training",
+    "table": {
+     "head": [
+      "Variant",
+      "Curve",
+      "Instant"
+     ],
+     "rows": [
+      [
+       "Trained into the final decay, scored compressed",
+       "0.32434",
+       "0.29041"
+      ],
+      [
+       "Compressed after training (dec10)",
+       "0.32314",
+       "0.28946"
+      ],
+      [
+       "Codebooks refit on the new model&rsquo;s states",
+       "0.32799",
+       "0.29382"
+      ],
+      [
+       "Uncompressed dec10",
+       "0.32194",
+       "0.28716"
+      ],
+      [
+       "Big model",
+       "0.32132",
+       "0.28497"
+      ]
+     ]
+    },
+    "notes": [
+     "Cost vs compressing after training: +0.0012 / +0.0010",
+     "Not a codec mismatch, not stale codebooks (refitting them was worse still; it learned around the frozen books)",
+     "Training with the compression in the loop hurts here; dropped for now"
+    ]
+   }
   },
   {
    "date": "10-18",
@@ -1887,7 +2899,34 @@
    "started_at": "2026-10-17T21:27+02:00",
    "ended_at": "2026-10-18T02:58+02:00",
    "gpu_minutes": 192,
-   "tickets": 7
+   "tickets": 7,
+   "detail": {
+    "verdict": "No gain",
+    "table": {
+     "head": [
+      "Head",
+      "Delta",
+      "Users better (of 464)"
+     ],
+     "rows": [
+      [
+       "Curve",
+       "+0.00003 [&minus;0.00005, +0.00012]",
+       "233"
+      ],
+      [
+       "Instant",
+       "&minus;0.00004 [&minus;0.00006, &minus;0.00003]",
+       "256"
+      ]
+     ]
+    },
+    "notes": [
+     "Instant gain real but ~1/10 of what would matter",
+     "Dropped; at 32k the model can count reviews itself anyway",
+     "Same run without flags: 0.30259 / 0.27667"
+    ]
+   }
   },
   {
    "date": "10-18",
@@ -1902,7 +2941,34 @@
    "fork": "big model 0.29766 / 0.27216 (calibrated the same way: 0.29761 / 0.27214); uncalibrated student 0.30096 / 0.27471",
    "takeaway": "Nothing to fold into the export: both models are equally (and barely) miscalibrated, gains are ~5e-5. Spaced slice unchanged: +0.79% / +0.84%.",
    "track": "small model",
-   "label": "sm12-calib"
+   "label": "sm12-calib",
+   "detail": {
+    "verdict": "Nothing to fold into the export",
+    "table": {
+     "head": [
+      "Big model",
+      "Curve",
+      "Instant"
+     ],
+     "rows": [
+      [
+       "Uncalibrated",
+       "0.29766",
+       "0.27216"
+      ],
+      [
+       "Calibrated the same way",
+       "0.29761",
+       "0.27214"
+      ]
+     ]
+    },
+    "notes": [
+     "Both models are equally (and barely) miscalibrated, gains are ~5e-5",
+     "Uncalibrated student: 0.30096 / 0.27471",
+     "Spaced slice unchanged: +0.79% / +0.84%"
+    ]
+   }
   },
   {
    "date": "10-17",
@@ -1921,7 +2987,34 @@
    "started_at": "2026-10-17T19:28+02:00",
    "ended_at": "2026-10-17T21:26+02:00",
    "gpu_minutes": 118,
-   "tickets": 2
+   "tickets": 2,
+   "detail": {
+    "verdict": "Longer decay helps",
+    "table": {
+     "head": [
+      "Head",
+      "Delta",
+      "Users better (of 464)"
+     ],
+     "rows": [
+      [
+       "Curve",
+       "&minus;0.00033 [&minus;0.00068, &minus;0.00008]",
+       "292"
+      ],
+      [
+       "Instant",
+       "&minus;0.00019 [&minus;0.00025, &minus;0.00012]",
+       "351"
+      ]
+     ]
+    },
+    "notes": [
+     "Smaller than the gain seen in outside runs",
+     "A 1-epoch decay at 32k would cost ~4&frac12; h",
+     "Same start with a quarter-epoch decay: 0.30259 / 0.27668"
+    ]
+   }
   },
   {
    "date": "10-17",
@@ -1931,7 +3024,35 @@
    "eval": "RTX 5080, 32k and 2,048 windows, no training",
    "fork": "seconds per update: plain 1.12, with compression 1.38 (fused kernels), 3.4&ndash;3.8 (PyTorch loop)",
    "takeaway": "Worse than compressing after training (+0.0012 / +0.0010). Not a codec mismatch, not stale codebooks (refitting them on the new model&rsquo;s states: 0.32799 / 0.29382, worse still; it learned around the frozen books). Training with the compression in the loop hurts here; dropped for now",
-   "track": "small model"
+   "track": "small model",
+   "detail": {
+    "verdict": "Worse than compressing after training (+0.0012 / +0.0010)",
+    "table": {
+     "head": [
+      "Update",
+      "Seconds per update"
+     ],
+     "rows": [
+      [
+       "Plain",
+       "1.12"
+      ],
+      [
+       "With compression (fused kernels)",
+       "1.38"
+      ],
+      [
+       "With compression (PyTorch loop)",
+       "3.4&ndash;3.8"
+      ]
+     ]
+    },
+    "notes": [
+     "Not a codec mismatch, not stale codebooks (refitting them on the new model&rsquo;s states: 0.32799 / 0.29382, worse still; it learned around the frozen books)",
+     "Training with the compression in the loop hurts here; dropped for now",
+     "Measured on an RTX 5080, 32k and 2,048 windows, no training"
+    ]
+   }
   },
   {
    "date": "10-17",
@@ -1941,7 +3062,45 @@
    "eval": "160 training users, 12.4M reviews per case",
    "fork": "reviews/s: student 97.7k / 49.3k / 31.9k / 19.9k; big-model-size 40.8k (batch 128), 35.7k (batch 64)",
    "takeaway": "Long windows cost the student a lot (5&times; slower at 32k than at 2,048). The big-model-size model at batch 128 trains faster than the student at 16k+ windows, so a label-free big-model-size reference is affordable",
-   "track": "small model"
+   "track": "small model",
+   "detail": {
+    "verdict": "Long windows cost the student a lot (5&times; slower at 32k than at 2,048)",
+    "table": {
+     "head": [
+      "Model",
+      "Reviews/s"
+     ],
+     "rows": [
+      [
+       "Student, 2,048 windows",
+       "97.7k"
+      ],
+      [
+       "Student, 8,192 windows",
+       "49.3k"
+      ],
+      [
+       "Student, 16,384 windows",
+       "31.9k"
+      ],
+      [
+       "Student, 32,768 windows",
+       "19.9k"
+      ],
+      [
+       "Big-model-size model, batch 128",
+       "40.8k"
+      ],
+      [
+       "Big-model-size model, batch 64",
+       "35.7k"
+      ]
+     ]
+    },
+    "notes": [
+     "The big-model-size model at batch 128 trains faster than the student at 16k+ windows, so a label-free big-model-size reference is affordable"
+    ]
+   }
   },
   {
    "date": "10-17",
@@ -1955,7 +3114,35 @@
    "eval": "own collection, 173,690 reviews",
    "fork": "big model 0.4417 / 0.4367",
    "takeaway": "Slightly better than the previous best (+0.18% / +0.21%). Calibration RMSE(bins) 0.0286 / 0.0207 vs big model 0.0224 / 0.0200",
-   "track": "small model"
+   "track": "small model",
+   "detail": {
+    "verdict": "Slightly better than the previous best (+0.18% / +0.21%)",
+    "table": {
+     "head": [
+      "Model",
+      "Curve",
+      "Instant",
+      "RMSE(bins) curve",
+      "RMSE(bins) instant"
+     ],
+     "rows": [
+      [
+       "Epoch 10 + decay at 32k",
+       "0.4423",
+       "0.4375",
+       "0.0286",
+       "0.0207"
+      ],
+      [
+       "Big model",
+       "0.4417",
+       "0.4367",
+       "0.0224",
+       "0.0200"
+      ]
+     ]
+    }
+   }
   },
   {
    "date": "10-17",
@@ -1971,7 +3158,24 @@
    "started_at": "2026-10-17T18:34+02:00",
    "ended_at": "2026-10-17T18:52+02:00",
    "gpu_minutes": 18,
-   "tickets": 1
+   "tickets": 1,
+   "detail": {
+    "verdict": "Without the SM-2 learning-step labels the big model loses about half of its lead over the student",
+    "table": {
+     "head": [
+      "Comparison",
+      "Curve",
+      "Instant"
+     ],
+     "rows": [
+      [
+       "New student vs this relabelled big model",
+       "+0.65%",
+       "+0.48%"
+      ]
+     ]
+    }
+   }
   },
   {
    "date": "10-17",
@@ -1983,7 +3187,37 @@
    "eval": "464 users, 22.66M reviews",
    "fork": "same-day 27% of reviews: +1.63% / +1.16%; after a fail 1.7%: +3.35% / +0.96%; spaced 71%: +0.79% / +0.84%",
    "takeaway": "Spaced reviews already meet the target on both heads; the curve gap is mostly learning steps (same-day 43% of the gap)",
-   "track": "small model"
+   "track": "small model",
+   "detail": {
+    "verdict": "Spaced reviews already meet the target on both heads",
+    "table": {
+     "head": [
+      "Stage (share of reviews)",
+      "Curve",
+      "Instant"
+     ],
+     "rows": [
+      [
+       "Same-day (27%)",
+       "+1.63%",
+       "+1.16%"
+      ],
+      [
+       "After a fail (1.7%)",
+       "+3.35%",
+       "+0.96%"
+      ],
+      [
+       "Spaced (71%)",
+       "+0.79%",
+       "+0.84%"
+      ]
+     ]
+    },
+    "notes": [
+     "The curve gap is mostly learning steps (same-day 43% of the gap)"
+    ]
+   }
   },
   {
    "date": "10-17",
@@ -1998,7 +3232,14 @@
    "fork": "big model 0.29766 / 0.27216",
    "takeaway": "Instant now meets the target (better than the previous best for 341/464 users). Curve slightly worse than the previous best (+0.0003, not significant; 288/464 users better)",
    "track": "small model",
-   "label": "s-w64kd-gate-ctx32768c-dec10/w8+s8"
+   "label": "s-w64kd-gate-ctx32768c-dec10/w8+s8",
+   "detail": {
+    "verdict": "Instant now meets the target",
+    "notes": [
+     "Better than the previous best for 341/464 users",
+     "Curve slightly worse than the previous best (+0.0003, not significant; 288/464 users better)"
+    ]
+   }
   },
   {
    "date": "10-17",
@@ -2013,7 +3254,10 @@
    "fork": "big model 0.29766 / 0.27216",
    "takeaway": "Undecayed; judge after decay",
    "track": "small model",
-   "label": "s-w64kd-gate-ctx32768c-e10/w8+s8"
+   "label": "s-w64kd-gate-ctx32768c-e10/w8+s8",
+   "detail": {
+    "verdict": "Undecayed; judge after decay"
+   }
   },
   {
    "date": "10-17",
@@ -2027,7 +3271,41 @@
    "takeaway": "Near the uncompressed student: +0.0007 / +0.0014 nats. Post-training only; training with it (QAT) should cost less",
    "track": "small model",
    "curve": 0.32251,
-   "instant": 0.2887
+   "instant": 0.2887,
+   "detail": {
+    "verdict": "Near the uncompressed student: +0.0007 / +0.0014 nats",
+    "table": {
+     "head": [
+      "Variant",
+      "State",
+      "Curve",
+      "Instant"
+     ],
+     "rows": [
+      [
+       "~800/800 bits per card/note",
+       "31.7 MB for the largest user",
+       "0.32251",
+       "0.2887"
+      ],
+      [
+       "Uncompressed student (int8 state)",
+       "959 MB",
+       "0.32183",
+       "0.28734"
+      ],
+      [
+       "Big model",
+       "&ndash;",
+       "0.32132",
+       "0.28497"
+      ]
+     ]
+    },
+    "notes": [
+     "Post-training only; training with it (QAT) should cost less"
+    ]
+   }
   },
   {
    "date": "10-17",
@@ -2041,7 +3319,41 @@
    "takeaway": "Best size/accuracy point: +0.0012 / +0.0023 vs uncompressed (959 MB). Post-training only; training with it (QAT) should cost less",
    "track": "small model",
    "curve": 0.32303,
-   "instant": 0.28962
+   "instant": 0.28962,
+   "detail": {
+    "verdict": "Best size/accuracy point: +0.0012 / +0.0023 vs uncompressed (959 MB)",
+    "table": {
+     "head": [
+      "Variant",
+      "State",
+      "Curve",
+      "Instant"
+     ],
+     "rows": [
+      [
+       "~400/400 bits",
+       "15.6 MB",
+       "0.32303",
+       "0.28962"
+      ],
+      [
+       "Uncompressed student (int8 state)",
+       "959 MB",
+       "0.32183",
+       "0.28734"
+      ],
+      [
+       "Big model",
+       "&ndash;",
+       "0.32132",
+       "0.28497"
+      ]
+     ]
+    },
+    "notes": [
+     "Post-training only; training with it (QAT) should cost less"
+    ]
+   }
   },
   {
    "date": "10-17",
@@ -2055,7 +3367,42 @@
    "takeaway": "The 1-bit norms cost most of it; with 4-bit norms +0.0012 / +0.0025. Post-training only; training with it (QAT) should cost less",
    "track": "small model",
    "curve": 0.32702,
-   "instant": 0.29556
+   "instant": 0.29556,
+   "detail": {
+    "verdict": "The 1-bit norms cost most of it",
+    "table": {
+     "head": [
+      "Variant",
+      "State",
+      "Curve",
+      "Instant"
+     ],
+     "rows": [
+      [
+       "Deployed 403/214-bit codec",
+       "14.5 MB",
+       "0.32702",
+       "0.29556"
+      ],
+      [
+       "Uncompressed student (int8 state)",
+       "959 MB",
+       "0.32183",
+       "0.28734"
+      ],
+      [
+       "Big model",
+       "&ndash;",
+       "0.32132",
+       "0.28497"
+      ]
+     ]
+    },
+    "notes": [
+     "With 4-bit norms +0.0012 / +0.0025",
+     "Post-training only; training with it (QAT) should cost less"
+    ]
+   }
   },
   {
    "date": "10-17",
@@ -2070,7 +3417,32 @@
    "fork": "big model 0.28665 / 0.26105",
    "takeaway": "Better than epoch 9 before decay on the same users (+2.68% / +2.51%). The decay result decides",
    "track": "small model",
-   "label": "s-w64kd-gate-ctx32768c-e10/w8+s8"
+   "label": "s-w64kd-gate-ctx32768c-e10/w8+s8",
+   "detail": {
+    "verdict": "Better than epoch 9 before decay on the same users (+2.68% / +2.51%)",
+    "table": {
+     "head": [
+      "Model",
+      "Curve",
+      "Instant"
+     ],
+     "rows": [
+      [
+       "Epoch 10 at 32k, before decay",
+       "0.29166",
+       "0.26654"
+      ],
+      [
+       "Big model",
+       "0.28665",
+       "0.26105"
+      ]
+     ]
+    },
+    "notes": [
+     "The decay result decides"
+    ]
+   }
   },
   {
    "date": "10-17",
@@ -2084,7 +3456,32 @@
    "eval": "own collection, 173,690 reviews",
    "fork": "big model 0.4417 / 0.4367",
    "takeaway": "Almost level with the big model where the SM-2 label is absent. Calibration a bit worse on curve (RMSE(bins) 0.0274 vs 0.0224)",
-   "track": "small model"
+   "track": "small model",
+   "detail": {
+    "verdict": "Almost level with the big model where the SM-2 label is absent",
+    "table": {
+     "head": [
+      "Model",
+      "Curve",
+      "Instant"
+     ],
+     "rows": [
+      [
+       "Best student",
+       "0.4424",
+       "0.4376"
+      ],
+      [
+       "Big model",
+       "0.4417",
+       "0.4367"
+      ]
+     ]
+    },
+    "notes": [
+     "Calibration a bit worse on curve (RMSE(bins) 0.0274 vs 0.0224)"
+    ]
+   }
   },
   {
    "date": "10-17",
@@ -2098,7 +3495,29 @@
    "eval": "own collection, 173,690 reviews",
    "fork": "big model 0.4417 / 0.4367",
    "takeaway": "The big model leans on the labels your fork writes",
-   "track": "small model"
+   "track": "small model",
+   "detail": {
+    "verdict": "The big model leans on the labels your fork writes",
+    "table": {
+     "head": [
+      "Model",
+      "Curve",
+      "Instant"
+     ],
+     "rows": [
+      [
+       "Big model with review type removed",
+       "0.4538",
+       "0.4412"
+      ],
+      [
+       "Big model",
+       "0.4417",
+       "0.4367"
+      ]
+     ]
+    }
+   }
   },
   {
    "date": "10-17",
@@ -2112,7 +3531,29 @@
    "eval": "own collection, 173,690 reviews",
    "fork": "big model 0.4417 / 0.4367",
    "takeaway": "A simple rule costs nothing here",
-   "track": "small model"
+   "track": "small model",
+   "detail": {
+    "verdict": "A simple rule costs nothing here",
+    "table": {
+     "head": [
+      "Model",
+      "Curve",
+      "Instant"
+     ],
+     "rows": [
+      [
+       "Big model with first-review-rule labels",
+       "0.4414",
+       "0.4369"
+      ],
+      [
+       "Big model",
+       "0.4417",
+       "0.4367"
+      ]
+     ]
+    }
+   }
   },
   {
    "date": "10-17",
@@ -2126,7 +3567,34 @@
    "eval": "68 users, 1.68M reviews",
    "fork": "big model 0.30971 / 0.27856",
    "takeaway": "Its curve lead on learning steps disappears: it came from the SM-2 label. Zeroed instead: 0.33569 / 0.28778 (+8.4% / +3.3%)",
-   "track": "small model"
+   "track": "small model",
+   "detail": {
+    "verdict": "Its curve lead on learning steps disappears: it came from the SM-2 label",
+    "table": {
+     "head": [
+      "Variant",
+      "Curve",
+      "Instant"
+     ],
+     "rows": [
+      [
+       "History review types rewritten (no learning steps)",
+       "0.31104",
+       "0.28009"
+      ],
+      [
+       "Zeroed instead",
+       "0.33569 (+8.4%)",
+       "0.28778 (+3.3%)"
+      ],
+      [
+       "Big model",
+       "0.30971",
+       "0.27856"
+      ]
+     ]
+    }
+   }
   },
   {
    "date": "10-17",
@@ -2140,7 +3608,13 @@
    "eval": "68 users, 1.68M reviews",
    "fork": "big model 0.30971 / 0.27856",
    "takeaway": "No gain for the student on any slice; the correction model makes unseen users worse",
-   "track": "small model"
+   "track": "small model",
+   "detail": {
+    "verdict": "No gain for the student on any slice",
+    "notes": [
+     "The correction model makes unseen users worse"
+    ]
+   }
   },
   {
    "date": "10-17",
@@ -2154,7 +3628,30 @@
    "eval": "68 users, 1.68M reviews",
    "fork": "big model 0.30971 / 0.27856",
    "takeaway": "Curve: level on spaced reviews (&minus;0.03%), +1.0 to +1.2% on learning steps. Instant behind everywhere",
-   "track": "small model"
+   "track": "small model",
+   "detail": {
+    "verdict": "Curve: level on spaced reviews",
+    "table": {
+     "head": [
+      "Slice",
+      "Curve"
+     ],
+     "rows": [
+      [
+       "Spaced reviews",
+       "&minus;0.03%"
+      ],
+      [
+       "Learning steps",
+       "+1.0 to +1.2%"
+      ]
+     ]
+    },
+    "notes": [
+     "Instant behind everywhere",
+     "Student (8k model decayed at 32k) 0.31122 / 0.28117 vs big model 0.30971 / 0.27856"
+    ]
+   }
   },
   {
    "date": "10-17",
@@ -2170,7 +3667,13 @@
    "takeaway": "Best so far, 0.01 point from the target",
    "track": "small model",
    "flag": "best",
-   "label": "s-w64kd-gate-ctx16384c-dec9-L32k/w8+s8"
+   "label": "s-w64kd-gate-ctx16384c-dec9-L32k/w8+s8",
+   "detail": {
+    "verdict": "Best so far, 0.01 point from the target",
+    "notes": [
+     "Epoch 9 at 16k windows + decay at 16k, scored at 32k decay"
+    ]
+   }
   },
   {
    "date": "10-17",
@@ -2185,7 +3688,13 @@
    "fork": "big model 0.29766 / 0.27216",
    "takeaway": "Training at 16k beats decay-only (300/464 users better on curve)",
    "track": "small model",
-   "label": "s-w64kd-gate-ctx16384c-dec9/w8+s8"
+   "label": "s-w64kd-gate-ctx16384c-dec9/w8+s8",
+   "detail": {
+    "verdict": "Training at 16k beats decay-only",
+    "notes": [
+     "300/464 users better on curve"
+    ]
+   }
   },
   {
    "date": "10-17",
@@ -2200,7 +3709,10 @@
    "fork": "big model 0.29766 / 0.27216",
    "takeaway": "Undecayed checkpoints are noisy; judge after decay",
    "track": "small model",
-   "label": "s-w64kd-gate-ctx16384c-e9/w8+s8"
+   "label": "s-w64kd-gate-ctx16384c-e9/w8+s8",
+   "detail": {
+    "verdict": "Undecayed checkpoints are noisy; judge after decay"
+   }
   },
   {
    "date": "10-16",
@@ -2215,7 +3727,10 @@
    "fork": "big model 0.29766 / 0.27216",
    "takeaway": "Diminishing returns from decay length alone",
    "track": "small model",
-   "label": "s-w64kd-gate-ctx8192c-dec8-L32k/w8+s8"
+   "label": "s-w64kd-gate-ctx8192c-dec8-L32k/w8+s8",
+   "detail": {
+    "verdict": "Diminishing returns from decay length alone"
+   }
   },
   {
    "date": "10-16",
@@ -2230,7 +3745,10 @@
    "fork": "big model 0.29766 / 0.27216",
    "takeaway": "",
    "track": "small model",
-   "label": "s-w64kd-gate-ctx8192c-dec8-L16k/w8+s8"
+   "label": "s-w64kd-gate-ctx8192c-dec8-L16k/w8+s8",
+   "detail": {
+    "verdict": "Epochs 7&ndash;8 at 8,192 windows, decay at 16k windows"
+   }
   },
   {
    "date": "10-16",
@@ -2245,7 +3763,10 @@
    "fork": "big model 0.29766 / 0.27216",
    "takeaway": "Training at longer windows pays far more than more epochs",
    "track": "small model",
-   "label": "s-w64kd-gate-ctx8192c-dec8/w8+s8"
+   "label": "s-w64kd-gate-ctx8192c-dec8/w8+s8",
+   "detail": {
+    "verdict": "Training at longer windows pays far more than more epochs"
+   }
   },
   {
    "date": "10-16",
@@ -2260,7 +3781,10 @@
    "fork": "big model 0.29766 / 0.27216",
    "takeaway": "Flattening at 2,048",
    "track": "small model",
-   "label": "s-w64kd-gate-ctx2048c-dec8/w8+s8"
+   "label": "s-w64kd-gate-ctx2048c-dec8/w8+s8",
+   "detail": {
+    "verdict": "Flattening at 2,048"
+   }
   },
   {
    "date": "10-16",
@@ -2279,7 +3803,10 @@
    "started_at": "2026-10-16T06:36+02:00",
    "ended_at": "2026-10-16T07:33+02:00",
    "gpu_minutes": 54,
-   "tickets": 2
+   "tickets": 2,
+   "detail": {
+    "verdict": "Real but tiny gain"
+   }
   },
   {
    "date": "10-16",
@@ -2297,7 +3824,49 @@
    "started_at": "2026-10-16T03:19+02:00",
    "ended_at": "2026-10-16T04:27+02:00",
    "gpu_minutes": 7,
-   "tickets": 2
+   "tickets": 2,
+   "detail": {
+    "verdict": "Training speed falls with window length",
+    "table": {
+     "head": [
+      "Windows &times; batch",
+      "Reviews/s",
+      "Source"
+     ],
+     "rows": [
+      [
+       "128 &times; 256",
+       "150,589",
+       "Speed run"
+      ],
+      [
+       "1,024 &times; 32",
+       "124,733",
+       "Speed run"
+      ],
+      [
+       "2,048 &times; 16",
+       "101,429",
+       "Speed run"
+      ],
+      [
+       "8,192 &times; 4",
+       "~32,500",
+       "Real runs"
+      ],
+      [
+       "16,384 &times; 2",
+       "~23,000",
+       "Real runs"
+      ],
+      [
+       "32,768 &times; 1",
+       "~15,000",
+       "Real runs"
+      ]
+     ]
+    }
+   }
   },
   {
    "date": "10-16",
@@ -2311,7 +3880,29 @@
    "eval": "1 thread, batch 1",
    "fork": "",
    "takeaway": "w64 NumPy step 7.8x faster than the eager big model, 1.84x faster than a NumPy big model (exact to 4e-7)",
-   "track": "small model"
+   "track": "small model",
+   "detail": {
+    "verdict": "w64 NumPy step 7.8x faster than the eager big model",
+    "table": {
+     "head": [
+      "Comparison",
+      "Speed-up"
+     ],
+     "rows": [
+      [
+       "vs the eager big model",
+       "7.8x"
+      ],
+      [
+       "vs a NumPy big model",
+       "1.84x"
+      ]
+     ]
+    },
+    "notes": [
+     "Exact to 4e-7"
+    ]
+   }
   },
   {
    "date": "10-16",
@@ -2329,7 +3920,13 @@
    "started_at": "2026-10-16T03:06+02:00",
    "ended_at": "2026-10-16T03:19+02:00",
    "gpu_minutes": 14,
-   "tickets": 1
+   "tickets": 1,
+   "detail": {
+    "verdict": "The gap was missing context, not capacity",
+    "notes": [
+     "Full history: +1.98% / +2.40%"
+    ]
+   }
   },
   {
    "date": "10-16",
@@ -2343,7 +3940,14 @@
    "eval": "464 users, 22.66M reviews",
    "fork": "big model 0.29766 / 0.27216",
    "takeaway": "Curve gap on heavy users, closed by longer windows; instant a uniform ~+1.1% on all user sizes. Shared decks do not explain the gap",
-   "track": "small model"
+   "track": "small model",
+   "detail": {
+    "verdict": "Curve gap on heavy users, closed by longer windows",
+    "notes": [
+     "Instant a uniform ~+1.1% on all user sizes",
+     "Shared decks do not explain the gap"
+    ]
+   }
   },
   {
    "date": "10-16",
@@ -2358,7 +3962,10 @@
    "fork": "big model 0.29766 / 0.27216",
    "takeaway": "Still improving",
    "track": "small model",
-   "label": "s-w64kd-gate-ctx2048-dec6/w8+s8"
+   "label": "s-w64kd-gate-ctx2048-dec6/w8+s8",
+   "detail": {
+    "verdict": "Still improving"
+   }
   },
   {
    "date": "10-16",
@@ -2373,7 +3980,10 @@
    "fork": "big model 0.29766 / 0.27216",
    "takeaway": "Context length is the lever",
    "track": "small model",
-   "label": "s-w64kd-gate-ctx2048-dec/w8+s8"
+   "label": "s-w64kd-gate-ctx2048-dec/w8+s8",
+   "detail": {
+    "verdict": "Context length is the lever"
+   }
   },
   {
    "date": "10-15",
@@ -2388,7 +3998,10 @@
    "fork": "big model 0.29766 / 0.27216",
    "takeaway": "Beats w32, far from the target",
    "track": "small model",
-   "label": "scale-w64kd-dec/w8+s8"
+   "label": "scale-w64kd-dec/w8+s8",
+   "detail": {
+    "verdict": "Beats w32, far from the target"
+   }
   },
   {
    "date": "10-15",
@@ -2403,7 +4016,30 @@
    "fork": "big model 0.29766 / 0.27216",
    "takeaway": "First sign that window length matters: 128-review decays 0.31425 (+5.6%), 1,024 0.30929 (+3.9%)",
    "track": "small model",
-   "label": "cal-ctx2048-s1/w8+s8"
+   "label": "cal-ctx2048-s1/w8+s8",
+   "detail": {
+    "verdict": "First sign that window length matters",
+    "table": {
+     "head": [
+      "Decay window",
+      "Curve"
+     ],
+     "rows": [
+      [
+       "128-review",
+       "0.31425 (+5.6%)"
+      ],
+      [
+       "1,024",
+       "0.30929 (+3.9%)"
+      ],
+      [
+       "2,048 (best of 3 seeds)",
+       "0.30834"
+      ]
+     ]
+    }
+   }
   },
   {
    "date": "10-15",
@@ -2417,7 +4053,29 @@
    "eval": "430 users, 19.56M reviews",
    "fork": "big model 0.29416 / 0.26921",
    "takeaway": "Distillation helps (w64 alone 0.32758 / 0.30144, +11.4% / +12.0%)",
-   "track": "small model"
+   "track": "small model",
+   "detail": {
+    "verdict": "Distillation helps",
+    "table": {
+     "head": [
+      "Model",
+      "Curve",
+      "Instant"
+     ],
+     "rows": [
+      [
+       "w64 + distillation (seed 0)",
+       "0.32412",
+       "0.29449"
+      ],
+      [
+       "w64 alone",
+       "0.32758 (+11.4%)",
+       "0.30144 (+12.0%)"
+      ]
+     ]
+    }
+   }
   },
   {
    "date": "10-15",
@@ -2435,7 +4093,10 @@
    "started_at": "2026-10-14T20:00+02:00",
    "ended_at": "2026-10-15T01:56+02:00",
    "gpu_minutes": 71,
-   "tickets": 4
+   "tickets": 4,
+   "detail": {
+    "verdict": "Starting point"
+   }
   }
  ],
  "gpu_break": {
