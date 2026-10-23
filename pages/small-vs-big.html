@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&display=swap">
 <style>
-/* Layout: one narrow reading column; a 100-dot "out of 100 reviews" grid beside its legend, then a ruler example */
+/* Layout: wide board, 3 columns on large screens (dots + legend | 85% example + notes | glossary), 2 on medium, 1 on phones */
 :root {
   --bg: #f6f8fb;
   --surface: #ffffff;
@@ -32,9 +32,9 @@
   --b1: #5d93f0; --b2: #3f6cb8; --b3: #2c4673; --b4: #e0a24a; --b5: #e2674d; color-scheme: dark }
 
 body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--body); font-size: 17px; line-height: 1.55; }
-.wrap { max-width: 760px; margin: 0 auto; padding-block: 40px 56px;
+.wrap { max-width: 1320px; margin: 0 auto; padding-block: 32px 40px;
   padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
-  display: grid; gap: 28px; }
+  display: grid; gap: 24px; }
 h1, h2 { font-family: var(--display); text-wrap: balance; margin: 0; line-height: 1.15; }
 h1 { font-size: clamp(30px, 6vw, 44px); font-weight: 700; letter-spacing: -0.01em; }
 h2 { font-size: 22px; font-weight: 700; }
@@ -43,15 +43,32 @@ p { margin: 0; max-width: 65ch; }
 .lede strong { color: var(--fg); }
 .eyebrow { font-size: 13px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); font-weight: 700; }
 header { display: grid; gap: 12px; }
+.board { display: grid; gap: 20px; align-items: start;
+  grid-template-columns: 1fr; grid-template-areas: "dots" "ruler" "terms" "notes"; }
+.board > * { min-width: 0; }
+#p-dots { grid-area: dots; } #p-ruler { grid-area: ruler; } #p-terms { grid-area: terms; } #p-notes { grid-area: notes; }
+.stack { display: grid; gap: 20px; align-content: start; min-width: 0; }
+@media (min-width: 760px) {
+  .board { grid-template-columns: 1fr 1fr; grid-template-areas: "dots dots" "ruler terms" "notes terms"; }
+}
+@media (min-width: 1180px) {
+  header { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); column-gap: 48px; align-items: end; }
+  header .eyebrow { grid-column: 1 / -1; }
+  .board { grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr) minmax(0, 0.8fr);
+    grid-template-areas: "dots ruler terms" "dots notes terms"; }
+  .board #p-dots, .board #p-terms { align-self: stretch; }
+  .terms { grid-template-columns: 1fr; }
+}
 
-.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 24px; display: grid; gap: 20px; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 22px; display: grid; gap: 18px; align-content: start; container-type: inline-size; }
 .tabs { display: flex; flex-wrap: wrap; gap: 8px; }
 .tabs button { font: inherit; font-size: 15px; padding: 7px 14px; border-radius: 999px; border: 1px solid var(--line);
   background: transparent; color: var(--fg); cursor: pointer; }
 .tabs button[aria-pressed="true"] { background: var(--fg); color: var(--bg); border-color: var(--fg); }
 .tabs button:focus-visible { outline: 3px solid var(--b2); outline-offset: 2px; }
 
-.split { display: grid; grid-template-columns: auto 1fr; gap: 28px; align-items: center; }
+.split { display: grid; grid-template-columns: auto 1fr; gap: 26px; align-items: center; }
+@container (max-width: 470px) { .split { grid-template-columns: 1fr; justify-items: start; } }
 .split > * { min-width: 0; }
 .dots { display: grid; grid-template-columns: repeat(10, 20px); gap: 5px; }
 .dots i { width: 20px; height: 20px; border-radius: 50%; display: block; }
@@ -80,10 +97,10 @@ header { display: grid; gap: 12px; }
 .terms dt { font-weight: 700; }
 .terms dd { margin: 0; color: var(--muted); font-size: 15px; }
 dl { margin: 0; }
-footer { font-size: 14px; color: var(--muted); display: grid; gap: 6px; border-top: 1px solid var(--line); padding-top: 18px; }
+.notes { font-size: 15px; color: var(--muted); }
+.notes strong { color: var(--fg); }
 
 @media (max-width: 560px) {
-  .split { grid-template-columns: 1fr; justify-items: start; }
   .dots { grid-template-columns: repeat(10, 18px); gap: 4px; }
   .dots i { width: 18px; height: 18px; }
   .panel { padding: 18px; }
@@ -99,7 +116,8 @@ footer { font-size: 14px; color: var(--muted); display: grid; gap: 6px; border-t
     <p class="lede">Both models guess <strong>how likely you are to remember a card</strong> when it comes up (its retrievability). On half of all reviews, the two guesses <strong>differ by less than 1%</strong>. Large differences are rare.</p>
   </header>
 
-  <section class="panel" aria-labelledby="h-dots">
+  <div class="board">
+  <section class="panel" id="p-dots" aria-labelledby="h-dots">
     <div style="display:grid;gap:12px">
       <h2 id="h-dots">Out of 100 reviews, how different are the two guesses?</h2>
       <div class="tabs" role="group" aria-label="Prediction type">
@@ -114,13 +132,13 @@ footer { font-size: 14px; color: var(--muted); display: grid; gap: 6px; border-t
     <p class="note">One dot = one review in a hundred. A difference of 1% means, for example, 85% for one model and 86% for the other.</p>
   </section>
 
-  <section class="panel ruler" aria-labelledby="h-ruler">
+  <section class="panel ruler" id="p-ruler" aria-labelledby="h-ruler">
     <h2 id="h-ruler">An example: the big model says 85%</h2>
     <div class="rows" id="ruler" role="img" aria-label="Ranges where the small model's guess falls when the big model says 85%"></div>
     <p class="note" id="ruler-note"></p>
   </section>
 
-  <section class="panel" aria-labelledby="h-terms">
+  <section class="panel" id="p-terms" aria-labelledby="h-terms">
     <h2 id="h-terms">What the words mean</h2>
     <dl class="terms">
       <div><dt>Retrievability</dt><dd>The chance you remember a card when it comes up, from 0% to 100%. Each model predicts it. Anki uses it to decide when to show the card again.</dd></div>
@@ -130,11 +148,13 @@ footer { font-size: 14px; color: var(--muted); display: grid; gap: 6px; border-t
     </dl>
   </section>
 
-  <footer>
+  <section class="panel notes" id="p-notes" aria-labelledby="h-notes">
+    <h2 id="h-notes">Good to know</h2>
     <p><strong>On average neither model leans one way.</strong> The small model's guess is only 0.1% higher than the big model's on average.</p>
     <p>A gap shows the two models disagree; it doesn't say which one is right. A separate check found the big model is usually closer to what really happened when they disagree.</p>
     <p>Based on 30.1 million reviews from 722 Anki users that neither model was trained on. Small model: the 8k model (SM55). Measured 23 October 2026.</p>
-  </footer>
+  </section>
+  </div>
 </div>
 
 <script>
