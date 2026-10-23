@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Small vs Big Model Gap</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&display=swap">
+<style>
+/* Layout: one narrow reading column; a 100-dot "out of 100 reviews" grid beside its legend, then a ruler example */
+:root {
+  --bg: #f6f8fb;
+  --surface: #ffffff;
+  --fg: #182133;
+  --muted: #5a6478;
+  --line: #dde3ec;
+  --b1: #1d5bbf;   /* within the p50 gap */
+  --b2: #6b97e0;   /* p50 - p90 */
+  --b3: #b5cbee;   /* p90 - p95 */
+  --b4: #e3a440;   /* p95 - p99 */
+  --b5: #c8452c;   /* above p99 */
+  --display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --body: "Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #11161f; --surface: #19202c; --fg: #e8edf5; --muted: #9aa5b8; --line: #2a3342;
+  --b1: #5d93f0; --b2: #3f6cb8; --b3: #2c4673; --b4: #e0a24a; --b5: #e2674d; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #11161f; --surface: #19202c; --fg: #e8edf5; --muted: #9aa5b8; --line: #2a3342;
+  --b1: #5d93f0; --b2: #3f6cb8; --b3: #2c4673; --b4: #e0a24a; --b5: #e2674d; color-scheme: dark }
+
+body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--body); font-size: 17px; line-height: 1.55; }
+.wrap { max-width: 760px; margin: 0 auto; padding-block: 40px 56px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: grid; gap: 28px; }
+h1, h2 { font-family: var(--display); text-wrap: balance; margin: 0; line-height: 1.15; }
+h1 { font-size: clamp(30px, 6vw, 44px); font-weight: 700; letter-spacing: -0.01em; }
+h2 { font-size: 22px; font-weight: 700; }
+p { margin: 0; max-width: 65ch; }
+.lede { font-size: 19px; color: var(--muted); }
+.lede strong { color: var(--fg); }
+.eyebrow { font-size: 13px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); font-weight: 700; }
+header { display: grid; gap: 12px; }
+
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 24px; display: grid; gap: 20px; }
+.tabs { display: flex; flex-wrap: wrap; gap: 8px; }
+.tabs button { font: inherit; font-size: 15px; padding: 7px 14px; border-radius: 999px; border: 1px solid var(--line);
+  background: transparent; color: var(--fg); cursor: pointer; }
+.tabs button[aria-pressed="true"] { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+.tabs button:focus-visible { outline: 3px solid var(--b2); outline-offset: 2px; }
+
+.split { display: grid; grid-template-columns: auto 1fr; gap: 28px; align-items: center; }
+.split > * { min-width: 0; }
+.dots { display: grid; grid-template-columns: repeat(10, 20px); gap: 5px; }
+.dots i { width: 20px; height: 20px; border-radius: 50%; display: block; }
+.legend { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+.legend li { display: grid; grid-template-columns: 16px 1fr; gap: 12px; align-items: start; }
+.legend .sw { width: 16px; height: 16px; border-radius: 50%; margin-top: 4px; }
+.legend b { font-variant-numeric: tabular-nums; }
+.legend span { color: var(--muted); }
+
+.rows { display: grid; gap: 10px; }
+.rrow { display: grid; grid-template-columns: 8.5em 1fr; gap: 12px; align-items: center; }
+.rrow > * { min-width: 0; }
+.rlab { font-size: 15px; line-height: 1.25; }
+.rlab b { display: block; font-variant-numeric: tabular-nums; }
+.rlab span { color: var(--muted); font-size: 14px; font-variant-numeric: tabular-nums; }
+.track { position: relative; height: 22px; }
+.track .bar { position: absolute; top: 0; bottom: 0; border-radius: 11px; }
+.track .mid { position: absolute; top: -6px; bottom: -6px; width: 2px; margin-left: -1px; background: var(--fg); }
+.axis { position: relative; height: 26px; border-top: 2px solid var(--line); }
+.axis span { position: absolute; top: 4px; transform: translateX(-50%); font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.axis span.c { color: var(--fg); font-weight: 700; }
+.note { font-size: 15px; color: var(--muted); }
+
+.terms { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 16px; }
+.terms div { display: grid; gap: 4px; }
+.terms dt { font-weight: 700; }
+.terms dd { margin: 0; color: var(--muted); font-size: 15px; }
+dl { margin: 0; }
+footer { font-size: 14px; color: var(--muted); display: grid; gap: 6px; border-top: 1px solid var(--line); padding-top: 18px; }
+
+@media (max-width: 560px) {
+  .split { grid-template-columns: 1fr; justify-items: start; }
+  .dots { grid-template-columns: repeat(10, 18px); gap: 4px; }
+  .dots i { width: 18px; height: 18px; }
+  .panel { padding: 18px; }
+}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Memory model · small vs big</div>
+    <h1>How close is the small model to the big one?</h1>
+    <p class="lede">Both models guess <strong>how likely you are to remember a card</strong> when it comes up (its retrievability). On half of all reviews, the two guesses <strong>differ by less than 1%</strong>. Large differences are rare.</p>
+  </header>
+
+  <section class="panel" aria-labelledby="h-dots">
+    <div style="display:grid;gap:12px">
+      <h2 id="h-dots">Out of 100 reviews, how different are the two guesses?</h2>
+      <div class="tabs" role="group" aria-label="Prediction type">
+        <button type="button" id="t-instant" aria-pressed="true" data-head="instant">Instant prediction</button>
+        <button type="button" id="t-curve" aria-pressed="false" data-head="curve">Curve prediction</button>
+      </div>
+    </div>
+    <div class="split">
+      <div class="dots" id="dots" role="img" aria-label="100 dots, one per review, coloured by how far apart the two models are"></div>
+      <ul class="legend" id="legend"></ul>
+    </div>
+    <p class="note">One dot = one review in a hundred. A difference of 1% means, for example, 85% for one model and 86% for the other.</p>
+  </section>
+
+  <section class="panel ruler" aria-labelledby="h-ruler">
+    <h2 id="h-ruler">An example: the big model says 85%</h2>
+    <div class="rows" id="ruler" role="img" aria-label="Ranges where the small model's guess falls when the big model says 85%"></div>
+    <p class="note" id="ruler-note"></p>
+  </section>
+
+  <section class="panel" aria-labelledby="h-terms">
+    <h2 id="h-terms">What the words mean</h2>
+    <dl class="terms">
+      <div><dt>Retrievability</dt><dd>The chance you remember a card when it comes up, from 0% to 100%. Each model predicts it. Anki uses it to decide when to show the card again.</dd></div>
+      <div><dt>Big model</dt><dd>The current, larger memory model. It is used as the reference here.</dd></div>
+      <div><dt>Small model</dt><dd>A compact version trained to copy the big one, so it runs faster and uses less space.</dd></div>
+      <div><dt>Curve vs instant</dt><dd>The models make two kinds of prediction. The gaps are similar for both; use the buttons to switch.</dd></div>
+    </dl>
+  </section>
+
+  <footer>
+    <p><strong>On average neither model leans one way.</strong> The small model's guess is only 0.1% higher than the big model's on average.</p>
+    <p>A gap shows the two models disagree; it doesn't say which one is right. A separate check found the big model is usually closer to what really happened when they disagree.</p>
+    <p>Based on 30.1 million reviews from 722 Anki users that neither model was trained on. Small model: the 8k model (SM55). Measured 23 October 2026.</p>
+  </footer>
+</div>
+
+<script>
+// |R small - R big| percentiles in % of retrievability, the 8k model (SM55) vs the big model, 722 benchmark users, 30.1M reviews
+const DATA = {
+  curve:   { p50: 0.96, p90: 4.85, p95: 7.06, p99: 13.76 },
+  instant: { p50: 0.74, p90: 4.30, p95: 6.17, p99: 11.00 },
+};
+const BANDS = ["--b1", "--b2", "--b3", "--b4", "--b5"];
+const COUNTS = [50, 40, 5, 4, 1];
+const f = (x) => x.toFixed(1);
+
+function legendRows(d) {
+  return [
+    [50, `Retrievability difference less than ${f(d.p50)}%`, "almost the same guess"],
+    [40, `Retrievability difference ${f(d.p50)}% to ${f(d.p90)}%`, "small difference"],
+    [5,  `Retrievability difference ${f(d.p90)}% to ${f(d.p95)}%`, "noticeable"],
+    [4,  `Retrievability difference ${f(d.p95)}% to ${f(d.p99)}%`, "clear disagreement"],
+    [1,  `Retrievability difference more than ${f(d.p99)}%`, "the rare big differences"],
+  ];
+}
+
+function render(head) {
+  const d = DATA[head];
+  const dots = document.getElementById("dots");
+  dots.innerHTML = "";
+  COUNTS.forEach((n, b) => { for (let i = 0; i < n; i++) { const el = document.createElement("i"); el.style.background = `var(${BANDS[b]})`; dots.appendChild(el); } });
+  document.getElementById("legend").innerHTML = legendRows(d).map(([n, what, word], b) =>
+    `<li><i class="sw" style="background:var(${BANDS[b]})"></i><div><b>${n} review${n === 1 ? "" : "s"}</b>: ${what}<br><span>${word}</span></div></li>`).join("");
+  drawRuler(d);
+  document.querySelectorAll(".tabs button").forEach((btn) => btn.setAttribute("aria-pressed", String(btn.dataset.head === head)));
+}
+
+function drawRuler(d) {
+  const lo = 60, hi = 100, c = 85;
+  const P = (v) => ((Math.min(hi, Math.max(lo, v)) - lo) / (hi - lo) * 100).toFixed(2) + "%";
+  const rows = [[d.p50, "--b1", 50], [d.p90, "--b2", 90], [d.p95, "--b3", 95], [d.p99, "--b4", 99]];
+  let s = rows.map(([g, col, n]) => {
+    const a = c - g, b = Math.min(100, c + g);
+    return `<div class="rrow"><div class="rlab"><b>${n} of 100</b><span>${f(a)}–${f(b)}%</span></div>` +
+      `<div class="track"><i class="bar" style="left:${P(a)};right:calc(100% - ${P(b)});background:var(${col})"></i><i class="mid" style="left:${P(c)}"></i></div></div>`;
+  }).join("");
+  let ticks = "";
+  for (let v = lo; v <= hi; v += 10) ticks += `<span style="left:${P(v)}">${v}%</span>`;
+  s += `<div class="rrow"><div></div><div class="axis">${ticks}</div></div>`;
+  document.getElementById("ruler").innerHTML = s;
+  document.getElementById("ruler-note").textContent =
+    `When the big model says 85%, the small model says between ${f(c - d.p50)}% and ${f(c + d.p50)}% half the time, ` +
+    `and between ${f(c - d.p90)}% and ${f(c + d.p90)}% nine times out of ten.`;
+}
+
+document.querySelectorAll(".tabs button").forEach((btn) => btn.addEventListener("click", () => render(btn.dataset.head)));
+render("instant");
+</script>
+</body>
+</html>
