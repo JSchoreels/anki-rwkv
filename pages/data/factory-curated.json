@@ -894,10 +894,10 @@
   {
    "id": "SM56",
    "kind": "gpu-train",
-   "minutes": 2118,
+   "minutes": 1680,
    "track": "small model",
-   "what": "Full retrain from scratch on all 8,000 users (581.9M reviews per epoch), carried state at 2,048 windows every epoch; all 14 epochs (user 10-23: no early stop on a plateau), then the same 8 h decay as the 8k model (SM55); 464-user read-out after every epoch",
-   "when": "Epochs 1&ndash;5 done (about 1 h 57 per epoch with its read-out, 88,150&ndash;88,400 reviews/s); read-outs on 458 users, curve / instant: e1 0.30882 / 0.28201, e2 0.30564 / 0.27862, e3 0.30336 / 0.27826, e4 0.30322 / 0.27695, e5 0.30124 / 0.27659. Epoch 6 runs now; epochs 7&ndash;10 today, 11&ndash;14 after tonight&rsquo;s 20:00&ndash;02:00 break (epoch 14 Sat ~08:00), then the decay; result Sat evening",
+   "what": "Full retrain from scratch on all 8,000 users (581.9M reviews per epoch), carried state at 2,048 windows every epoch; 10 epochs (user 10-23: no early stop on a plateau, stop after epoch 10 so the decay starts right after tonight&rsquo;s break; 5.8B reviews, the 8k model (SM55) saw 4.4B before its decay), then the same 8 h decay as the 8k model (SM55); 464-user read-out after every epoch",
+   "when": "Epochs 1&ndash;6 done (about 1 h 57 per epoch with its read-out, 88,150&ndash;88,400 reviews/s); read-outs on 458 users, curve / instant: e1 0.30882 / 0.28201, e2 0.30564 / 0.27862, e3 0.30336 / 0.27826, e4 0.30322 / 0.27695, e5 0.30124 / 0.27659, e6 0.30072 / 0.27655 (&minus;2.6% / &minus;1.9% since e1). Epochs 7&ndash;10 today (until ~19:00), the decay from 02:00 after tonight&rsquo;s 20:00&ndash;02:00 break (~8 h 30), result Sat ~12:00",
    "decides": "Whether having all 8,000 users in every epoch (not only the decay) beats the 8k model (SM55)",
    "state": "planned",
    "match": [
