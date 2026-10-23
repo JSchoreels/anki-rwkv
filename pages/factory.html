@@ -16,6 +16,15 @@
   .sm-table .pct { color: var(--muted); font-size: 12.5px; }
   .sm-table tr.best td { background: var(--accent-soft); }
   .sm-table tr.brk td { color: var(--muted); font-style: italic; }
+  .sm-table tr.res td { border-bottom: none; }
+  .sm-table tr.tkrow td { padding-top: 0; padding-bottom: 12px; }
+  .tk .verdict { font-weight: 600; margin: 0 0 4px; }
+  .tk ul { margin: 4px 0 0; padding-left: 18px; }
+  .tk li { margin: 2px 0; }
+  .tk-wrap { overflow-x: auto; margin: 4px 0; }
+  table.tk-table { width: auto; font-size: 13px; }
+  table.tk-table th { position: static; font-size: 12px; background: none; }
+  table.tk-table th, table.tk-table td { padding: 3px 14px 3px 0; white-space: normal; min-width: 64px; }
   .table-wrap.free { max-height: none; }
   .tag { display: inline-block; border-radius: 999px; padding: 1px 9px; font-size: 12.5px; border: 1px solid var(--line); white-space: nowrap; }
   .tag.running, .tag.gpu-train { border-color: var(--c-extend); color: var(--c-extend); }
@@ -335,15 +344,33 @@
     chips('filters', ['next', 'idea', 'parked', 'done', 'dropped'], back, 'status', drawBackAll); drawBackAll('all');
 
     const res = D.results || [];
-    const drawRes = (k) => T('results', ['Date', 'Kind', 'Result', 'Curve LogLoss', 'Instant LogLoss', 'Evaluated on', 'Takeaway'], res.filter((x) => k === 'all' || x.kind === k).map((r) =>
-      `<tr${r.flag === 'best' ? ' class="best"' : ''}><td class="when">${r.date}</td><td>${tag(r.kind)}</td><td>${name(r.name, r.id, r.track)}</td><td class="num">${ll(r.curve, r.curve_pct)}</td><td class="num">${ll(r.instant, r.instant_pct)}</td><td>${r.eval}${r.fork ? `<br><span class="id">${r.fork}</span>` : ''}</td><td>${r.takeaway === 'pending' ? '<span class="id">pending</span>' : r.takeaway}</td></tr>`));
+    // Times: started_at / ended_at / gpu_minutes / tickets come from the queue history (GPU rows only).
+    // Takeaway: `detail` {verdict, table {head, rows}, notes[]} when present, else the plain `takeaway` string.
+    const hm = (s) => s.slice(11, 16);
+    const dur = (m) => (m < 60 ? `${m} min` : `${Math.floor(m / 60)} h ${String(m % 60).padStart(2, '0')}`);
+    const ran = (r) => (r.started_at ? `${r.started_at.slice(5, 10)} ${hm(r.started_at)} &rarr; ${r.ended_at.slice(5, 10) === r.started_at.slice(5, 10) ? '' : `${r.ended_at.slice(5, 10)} `}${hm(r.ended_at)}` : '');
+    const took = (r) => (none(r.gpu_minutes) ? '&ndash;' : `${dur(r.gpu_minutes)} GPU${r.tickets > 1 ? `<br><span class="id">${r.tickets} jobs</span>` : ''}`);
+    const take = (r) => {
+      if (r.takeaway === 'pending') return '<span class="id">takeaway pending</span>';
+      const d = r.detail;
+      if (!d) return r.takeaway;
+      const tb = d.table ? `<div class="tk-wrap"><table class="tk-table"><thead><tr>${d.table.head.map((h) => `<th>${h}</th>`).join('')}</tr></thead>`
+        + `<tbody>${d.table.rows.map((row) => `<tr>${row.map((c) => `<td>${c}</td>`).join('')}</tr>`).join('')}</tbody></table></div>` : '';
+      const ul = d.notes && d.notes.length ? `<ul>${d.notes.map((n) => `<li>${n}</li>`).join('')}</ul>` : '';
+      return `<div class="tk"><p class="verdict">${d.verdict}</p>${tb}${ul}</div>`;
+    };
+    const drawRes = (k) => T('results', ['Date', 'Took', 'Kind', 'Result', 'Curve LogLoss', 'Instant LogLoss', 'Evaluated on'], res.filter((x) => k === 'all' || x.kind === k).map((r) => {
+      const b = r.flag === 'best' ? ' best' : '';
+      return `<tr class="res${b}"><td class="when">${r.date}${r.started_at ? `<br><span class="id">${ran(r)}</span>` : ''}</td><td class="num">${took(r)}</td><td>${tag(r.kind)}</td><td>${name(r.name, r.id, r.track)}</td><td class="num">${ll(r.curve, r.curve_pct)}</td><td class="num">${ll(r.instant, r.instant_pct)}</td><td>${r.eval}${r.fork ? `<br><span class="id">${r.fork}</span>` : ''}</td></tr>`
+        + `<tr class="tkrow${b}"><td colspan="7">${take(r)}</td></tr>`;
+    }));
     const drawResAll = (k) => {
       drawRes(k);
       $('results-cards').innerHTML = res.filter((x) => k === 'all' || x.kind === k).map((r) =>
         `<div class="rc${r.flag === 'best' ? ' best' : ''}"><div class="l1"><span class="t">${name(r.name, r.id, r.track)}</span></div>`
         + `<div class="ll"><span>Curve ${ll(r.curve, r.curve_pct)}</span><span>Instant ${ll(r.instant, r.instant_pct)}</span></div>`
-        + `<div class="sub">${r.date} &middot; ${r.eval}${r.fork ? ` &middot; ${r.fork}` : ''}</div>`
-        + `<div class="tx">${r.takeaway === 'pending' ? '<span class="id">takeaway pending</span>' : r.takeaway}</div><div class="tg">${tag(r.kind)}</div></div>`).join('');
+        + `<div class="sub">${r.date}${r.started_at ? ` &middot; ran ${ran(r)} &middot; ${took(r).replace('<br>', ', ')}` : ''} &middot; ${r.eval}${r.fork ? ` &middot; ${r.fork}` : ''}</div>`
+        + `<div class="tx">${take(r)}</div><div class="tg">${tag(r.kind)}</div></div>`).join('');
     };
     chips('kinds', ['gpu-train', 'gpu-score', 'gpu-speed', 'cpu', 'collection'], res, 'kind', drawResAll); drawResAll('all');
 
