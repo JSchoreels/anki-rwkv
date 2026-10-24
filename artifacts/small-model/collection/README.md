@@ -17,6 +17,7 @@ type-4 rows). Only aggregate metrics are kept (no `--dump`).
 | student w64, carried state v2 + one-epoch 32k decay (`sm40v2`, 10-19) | 0.4419 | **+0.06%** | 0.4373 | **+0.14%** | 0.0256 / 0.0209 |
 | Muon version: student w64, Muon optimizer + one-epoch 32k decay (`sm36`, 10-22) | 0.4412 | **−0.10%** | 0.4369 | **+0.06%** | 0.0250 / 0.0205 |
 | 8k model: Muon version trained on 8k users (`sm55`, 10-22) | 0.4414 | **−0.05%** | 0.4370 | **+0.08%** | 0.0259 / 0.0205 |
+| full retrain: all 8,000 users in every epoch, 10 epochs + one-epoch 32k Muon decay (`sm56`, 10-24) | 0.4415 | **−0.03%** | 0.4371 | **+0.10%** | 0.0252 / 0.0207 |
 
 Even on this non-SM-2 collection the fork reads its review types (zeroed: +2.74% / +1.03%); a consistent relabelling
 costs it nothing here. For comparison (docs/ACCURACY_LOG.md): the w32 full run at epoch 10 was +2.68% / +3.64% on this collection.
