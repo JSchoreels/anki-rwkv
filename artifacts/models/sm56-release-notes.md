@@ -8,9 +8,9 @@ LogLoss on held-out benchmark users (lower is better), weighted by reviews. Both
 |---|---|---|---|
 | 464-user set (458 users scored by both) | 0.29584 / 0.27223 | 0.29680 / 0.27351 | +0.32% / +0.47% |
 | 732-user set (723 users) | 0.30139 / 0.27786 | 0.30242 / 0.27917 | +0.34% / +0.47% |
-| Own collection (173,690 reviews, aggregate only) | not listed | 0.4415 / 0.4371 | -0.03% / +0.10% |
+| The author's own collection (one user, 173,690 test reviews, whole history as one sequence) | 0.4417 / 0.4367 | 0.4415 / 0.4371 | -0.03% / +0.10% |
 
-The 726-user row of the previous release (the users every released model fits) is not available for this model: 3 of those users (650, 1601, 4501) were not scored for it, so the comparison is on the 723 users that were scored. The own-collection row is aggregate only: no per-review data of it is included.
+The 726-user row of the previous release (the users every released model fits) is not available for this model: 3 of those users (650, 1601, 4501) were not scored for it, so the comparison is on the 723 users that were scored. The own-collection row is aggregate only: no per-review data of it is included. On that collection the previous release was -0.05% / +0.08%, so the two are tied there.
 
 - **Curve** is the forgetting-curve head (probability of recall at any future time); **instant** is the next-review head.
 - Against the previous release (8k model, SM55) on the same users, this model is better. Paired difference (SM56 minus SM55, with interval): 723 users, curve -0.00045 [-0.00079, -0.00017], instant -0.00017 [-0.00023, -0.00011]; 458 users, curve -0.00061 [-0.00117, -0.00022], instant -0.00020 [-0.00027, -0.00013]. On the 723 users SM55 is +0.49% / +0.53% against the big model, this model +0.34% / +0.47%.
