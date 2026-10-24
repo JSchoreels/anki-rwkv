@@ -74,7 +74,10 @@ def identity(teacher, teacher_sha, data, revision, max_pass, burn_in):
             "layout": {"file": "users/<user>.npz", "array": "targets", "dtype": "float16", "columns": list(COLUMNS),
                        "row": "review_th - 1", "missing": "NaN", "curve_clamp": CURVE_CLAMP},
             "encoding_seed": "2025 + user + first review index of the pass",
-            "max_pass_reviews": int(max_pass), "burn_in_reviews": int(burn_in)}
+            "max_pass_reviews": int(max_pass), "burn_in_reviews": int(burn_in),
+            # SM72: teacher inputs with the deleted-card transform (RWKV_DELETED_CARDS, rwkv/data_processing.py);
+            # the key is absent when unset, so earlier manifests still match.
+            **({"deleted_cards": os.environ["RWKV_DELETED_CARDS"]} if os.environ.get("RWKV_DELETED_CARDS") else {})}
 
 
 def plan_passes(reviews, max_pass, burn_in):

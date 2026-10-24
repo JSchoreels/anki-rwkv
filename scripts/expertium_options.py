@@ -284,6 +284,11 @@ class ReplayTargets:
         data = os.environ.get("GPU_BATCH1_DATA_PATH")
         if data and not _same_dataset(Path(data), Path(self.manifest["dataset_path"])):
             raise ValueError(f"replay targets were exported from {self.manifest['dataset_path']}, training reads {data}")
+        # SM72: the targets' teacher inputs must match the training inputs (deleted-card transform or none).
+        wanted, stored = os.environ.get("RWKV_DELETED_CARDS") or None, self.manifest.get("deleted_cards")
+        if wanted != stored:
+            raise ValueError(f"replay targets in {self.folder} have deleted_cards={stored}, training reads deleted_cards={wanted} "
+                             "(RWKV_DELETED_CARDS)")
         self.user, self.table = None, None
         self.stats = {"replay_batches": 0, "replay_users": 0}
 
@@ -439,6 +444,8 @@ class CatchUp:
             out["optimizer"] = self.options["optimizer"]
         if self.options.get("end_to_start_intervals"):
             out["end_to_start_intervals"] = True
+        if os.environ.get("RWKV_DELETED_CARDS"):
+            out["deleted_cards"] = os.environ["RWKV_DELETED_CARDS"]  # SM72 (rwkv/data_processing.py)
         if self.teacher is not None:
             out["distillation"] = self.teacher.describe()
         if self.carry is not None:

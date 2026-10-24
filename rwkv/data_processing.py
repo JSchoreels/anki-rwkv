@@ -204,6 +204,9 @@ def read_user_metadata(table_path, user_id):
     return pd.read_parquet(table_path, filters=[("user_id", "=", user_id)])
 
 
+DELETED_CARDS_ENV = "RWKV_DELETED_CARDS"
+
+
 def get_rwkv_data(data_path, user_id, equalize_review_ths=[]):
     df = pd.read_parquet(data_path / "revlogs" / f"{user_id=}")
     if __import__("os").environ.get("EXPERTIUM_END_TO_START") == "1":
@@ -324,7 +327,14 @@ def get_rwkv_data(data_path, user_id, equalize_review_ths=[]):
     assert df["review_th"].is_monotonic_increasing
 
     df = add_segment_features(df.reset_index(drop=True).copy())
-    return df.reset_index(drop=True)
+    df = df.reset_index(drop=True)
+    deleted_cards = __import__("os").environ.get(DELETED_CARDS_ENV)
+    if deleted_cards:
+        # SM72 opt-in: the SM71 deleted-card transform (scripts/sm71_leak.py, "flags" or "neighbour") on every frame of
+        # this process and of the workers it spawns (training, replay export, LMDB build). Unset = unchanged frame.
+        from scripts.sm71_leak import neutralise
+        df, _ = neutralise(df, deleted_cards, data_path, user_id)
+    return df
 
 
 @dataclass
