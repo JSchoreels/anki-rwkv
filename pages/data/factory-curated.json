@@ -59,7 +59,17 @@
      "quant": "w8+s8"
     },
     {
-     "variant": "Best: the Muon recipe with its decay on 8,000 training users instead of 5,000 (SM55, released 10-22); vs the Muon version (SM36): curve &minus;0.00048 [&minus;0.00089, &minus;0.00019], instant &minus;0.00025 [&minus;0.00029, &minus;0.00022], both better",
+     "variant": "Best: full retrain with all 8,000 users in every epoch (SM56), on the 723 users it fits (big model there 0.30139 / 0.27786)",
+     "curve": 0.30242,
+     "instant": 0.27917,
+     "curve_pct": 0.34,
+     "instant_pct": 0.47,
+     "eval": "723 users, 30.48M reviews",
+     "date": "10-24",
+     "quant": "w8+s8"
+    },
+    {
+     "variant": "Previous best: the Muon recipe with its decay on 8,000 training users instead of 5,000 (SM55, released 10-22); vs the Muon version (SM36): curve &minus;0.00048 [&minus;0.00089, &minus;0.00019], instant &minus;0.00025 [&minus;0.00029, &minus;0.00022], both better",
      "curve": 0.30464,
      "instant": 0.28015,
      "curve_pct": 0.54,
@@ -69,7 +79,7 @@
      "quant": "w8+s8"
     },
     {
-     "variant": "Previous best: same with the decay on 5,000 users, Muon instead of AdamW (SM36, released 10-22)",
+     "variant": "Older best: same with the decay on 5,000 users, Muon instead of AdamW (SM36, released 10-22)",
      "curve": 0.30512,
      "instant": 0.2804,
      "curve_pct": 0.7,
@@ -79,7 +89,7 @@
      "quant": "w8+s8"
     },
     {
-     "variant": "Older best: carried state v2 + one-epoch 32k decay, AdamW (SM40)",
+     "variant": "Older: carried state v2 + one-epoch 32k decay, AdamW (SM40)",
      "curve": 0.30518,
      "instant": 0.28056,
      "curve_pct": 0.72,
@@ -897,9 +907,9 @@
    "minutes": 1680,
    "track": "small model",
    "what": "Full retrain from scratch on all 8,000 users (581.9M reviews per epoch), carried state at 2,048 windows every epoch; 10 epochs (user 10-23: no early stop on a plateau, stop after epoch 10 so the decay starts right after tonight&rsquo;s break; 5.8B reviews, the 8k model (SM55) saw 4.4B before its decay), then the same 8 h decay as the 8k model (SM55); 464-user read-out after every epoch",
-   "when": "Epochs 1&ndash;6 done (about 1 h 57 per epoch with its read-out, 88,150&ndash;88,400 reviews/s); read-outs on 458 users, curve / instant: e1 0.30882 / 0.28201, e2 0.30564 / 0.27862, e3 0.30336 / 0.27826, e4 0.30322 / 0.27695, e5 0.30124 / 0.27659, e6 0.30072 / 0.27655 (&minus;2.6% / &minus;1.9% since e1). Epochs 7&ndash;10 today (until ~19:00), the decay from 02:00 after tonight&rsquo;s 20:00&ndash;02:00 break (~8 h 30), result Sat ~12:00",
+   "when": "Done Sat 10-24 10:14: +0.34% / +0.47% vs the big model on 723 users, new best",
    "decides": "Whether having all 8,000 users in every epoch (not only the decay) beats the 8k model (SM55)",
-   "state": "planned",
+   "state": "done",
    "match": [
     "SM56"
    ]
@@ -1410,6 +1420,71 @@
   "s-w64kd-gate-ctx2048c-dec8-1ep/w8+s8"
  ],
  "results": [
+  {
+   "date": "10-24",
+   "kind": "gpu-train",
+   "name": "Full retrain (SM56): the 8k model&rsquo;s recipe with all 8,000 training users in every epoch, from scratch, 10 epochs at 2,048 &times; 16 lanes + the same one-epoch 32k Muon decay, w8 weights, int8 state",
+   "id": "SM56",
+   "curve": 0.30242,
+   "instant": 0.27917,
+   "curve_pct": 0.34,
+   "instant_pct": 0.47,
+   "eval": "723 users (732 set minus 9 never-fit), 30.48M reviews",
+   "fork": "the big model on the same users: 0.30139 / 0.27786",
+   "takeaway": "<strong>New best, on both heads</strong>: +0.34% / +0.47% vs the big model on 723 users (the 8k model (SM55) +0.49% / +0.53%). vs the 8k model (SM55): curve &minus;0.00045 [&minus;0.00079, &minus;0.00017], instant &minus;0.00017 [&minus;0.00023, &minus;0.00011]. 464 set: +0.32% / +0.47%. Training all 8,000 users from the start beats adding them only in the decay. The decay brought &minus;0.98% curve / &minus;0.79% instant on top of epoch 10",
+   "track": "small model",
+   "started_at": "2026-10-22T13:05+02:00",
+   "ended_at": "2026-10-24T10:14+02:00",
+   "gpu_minutes": 1658,
+   "tickets": 22,
+   "detail": {
+    "verdict": "New best on both heads: +0.34% / +0.47% vs the big model",
+    "table": {
+     "head": [
+      "Comparison",
+      "Curve",
+      "Instant"
+     ],
+     "rows": [
+      [
+       "vs the big model, 723 users",
+       "+0.34%",
+       "+0.47%"
+      ],
+      [
+       "Scores on those 723 users (big model)",
+       "0.30242 (0.30139)",
+       "0.27917 (0.27786)"
+      ],
+      [
+       "vs the 8k model (SM55), 723 users",
+       "&minus;0.00045 [&minus;0.00079, &minus;0.00017]",
+       "&minus;0.00017 [&minus;0.00023, &minus;0.00011]"
+      ],
+      [
+       "vs the Muon version (SM36), 723 users",
+       "&minus;0.00091 [&minus;0.00150, &minus;0.00046]",
+       "&minus;0.00042 [&minus;0.00049, &minus;0.00036]"
+      ],
+      [
+       "vs the big model, 464 set (458 users)",
+       "+0.32%",
+       "+0.47%"
+      ],
+      [
+       "Epoch 10 before the decay, 458 users (vs big)",
+       "0.29973 (+1.31%)",
+       "0.27570 (+1.27%)"
+      ]
+     ]
+    },
+    "notes": [
+     "10 epochs at ~88,000 reviews/s (104&ndash;110 min each), decay 481 min at 20,165 reviews/s",
+     "Gains per epoch were still about &minus;0.6% on curve at epochs 5 and 9 before the decay: more epochs may still help",
+     "95% CI from a 2,000-sample user bootstrap; files in the sm56 branch (sm56-summary.md)"
+    ]
+   }
+  },
   {
    "date": "10-24",
    "kind": "cpu",
