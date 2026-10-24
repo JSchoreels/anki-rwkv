@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-10-24T16:50:06+02:00",
- "updated": "2026-10-24 16:50",
- "material": "925ebacf55102487",
- "summary": "running 000649, finished 000648",
+ "generated_at": "2026-10-24T16:55:09+02:00",
+ "updated": "2026-10-24 16:55",
+ "material": "cc055322423b87ec",
+ "summary": "running 000650, finished 000649",
  "headline": [
   {
    "k": "Best, 464 users (curve / instant)",
@@ -200,22 +200,31 @@
  "now": [
   {
    "what": "Full retrain from scratch on all 8,000 users (581.9M reviews per epoch), carried state at 2,048 windows every epoch; 10 epochs (user 10-23: no early stop on a plateau, stop after epoch 10 so the decay starts right after tonight&rsquo;s break; 5.8B reviews, the 8k model (SM55) saw 4.4B before its decay), then the same 8 h decay as the 8k model (SM55); 464-user read-out after every epoch",
-   "id": "SM56, ticket 000649",
+   "id": "SM56, ticket 000650",
    "kind": "gpu-train",
    "decides": "Whether having all 8,000 users in every epoch (not only the decay) beats the 8k model (SM55)",
    "why": "",
-   "job": "SM56 decay from e10 on the 3 long 732-pool users (650, 1601, 4501) at the 0.92 cap",
+   "job": "SM56 scale-w64kd-final-sc-lanes epoch 14/15 (8k final tier, 2048 x 16 lanes carry, replay KD, AdamW 7e-4)",
    "linked": true,
    "track": "small model",
-   "ticket": "000649-small-model",
-   "started": "16:49",
+   "ticket": "000650-small-model",
+   "started": "16:54",
    "elapsed": "0:00",
    "progress": null,
-   "eta": "~17:04"
+   "eta": "~18:59"
   }
  ],
  "waiting": [],
  "recent": [
+  {
+   "ticket": "000649-small-model",
+   "id": "SM56",
+   "what": "SM56 decay from e10 on the 3 long 732-pool users (650, 1601, 4501) at the 0.92 cap",
+   "ended": "16:50",
+   "date": "10-24",
+   "exit": 0,
+   "ran": "0:00"
+  },
   {
    "ticket": "000648-small-model",
    "id": "SM56",
@@ -260,15 +269,6 @@
    "date": "10-24",
    "exit": 0,
    "ran": "0:07"
-  },
-  {
-   "ticket": "000643-small-model",
-   "id": "SM56",
-   "what": "SM56 scale-w64kd-final-sc-lanes epoch 11/14 (8k final tier, 2048 x 16 lanes carry, replay KD, AdamW 7e-4)",
-   "ended": "12:37",
-   "date": "10-24",
-   "exit": 0,
-   "ran": "1:50"
   }
  ],
  "plan": [
@@ -865,10 +865,10 @@
    "when": "Done Sat 10-24 10:14: +0.34% / +0.47% vs the big model on 723 users, new best",
    "decides": "Whether having all 8,000 users in every epoch (not only the decay) beats the 8k model (SM55)",
    "state": "running",
-   "started": "16:49",
-   "ticket": "000649-small-model",
-   "started_at": "2026-10-24T16:41:28+02:00",
-   "ends_at": "2026-10-25T20:41:28+02:00"
+   "started": "16:54",
+   "ticket": "000650-small-model",
+   "started_at": "2026-10-24T16:49:51+02:00",
+   "ends_at": "2026-10-25T20:49:51+02:00"
   },
   {
    "what": "Muon tuning, arm 1: SM36&rsquo;s one-epoch 32k decay with the learning rate &times;0.5 (pointer from outside research), saving 4 snapshots along the decay for SM51",
@@ -953,11 +953,12 @@
    "track": "small model",
    "when": "Sat 10-24 after epoch 13 (~16:47 &rarr; ~17:20)",
    "decides": "Epoch 13 read-out; the decay from epoch 10 on the same 726 users as the previous release",
-   "state": "running",
-   "started": "16:49",
-   "ticket": "000649-small-model",
+   "state": "done",
+   "ended": "16:50",
+   "exit": 0,
+   "started": "16:41",
    "started_at": "2026-10-24T16:41:28+02:00",
-   "ends_at": "2026-10-24T17:11:28+02:00"
+   "ended_at": "2026-10-24T16:50:45+02:00"
   },
   {
    "what": "Full retrain (SM56), continued: epochs 11&ndash;15 from epoch 10 (before its decay), then the same one-epoch 32k Muon decay from epoch 15; compared with the decay from epoch 10",
@@ -967,9 +968,11 @@
    "track": "small model",
    "when": "Sat 10-24 10:47 &rarr; epochs 11&ndash;12 done; epoch 13 until ~16:47, then paused on the user&rsquo;s word (10-24 14:50); epochs 14&ndash;15 and the decay when the user says to resume",
    "decides": "Do 5 more epochs still help after the decay, or only before it? (decay from e10: +0.34% / +0.47% vs the big model). The user may stop the PC at any time: epochs and decay resume from snapshots",
-   "state": "partial",
-   "ended": "16:40",
-   "ended_at": "2026-10-24T16:40:50+02:00"
+   "state": "running",
+   "started": "16:54",
+   "ticket": "000650-small-model",
+   "started_at": "2026-10-24T14:45:24+02:00",
+   "ends_at": "2026-10-25T09:30:24+02:00"
   },
   {
    "what": "Resumable cool-down check: a small cool-down run straight through vs stopped halfway and resumed (same learning rate, loss and weights?)",
