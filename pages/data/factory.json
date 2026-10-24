@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-10-24T16:45:02+02:00",
- "updated": "2026-10-24 16:45",
- "material": "1f98f0b679c7ffa4",
- "summary": "running 000648, finished 000647",
+ "generated_at": "2026-10-24T16:50:06+02:00",
+ "updated": "2026-10-24 16:50",
+ "material": "925ebacf55102487",
+ "summary": "running 000649, finished 000648",
  "headline": [
   {
    "k": "Best, 464 users (curve / instant)",
@@ -200,22 +200,31 @@
  "now": [
   {
    "what": "Full retrain from scratch on all 8,000 users (581.9M reviews per epoch), carried state at 2,048 windows every epoch; 10 epochs (user 10-23: no early stop on a plateau, stop after epoch 10 so the decay starts right after tonight&rsquo;s break; 5.8B reviews, the 8k model (SM55) saw 4.4B before its decay), then the same 8 h decay as the 8k model (SM55); 464-user read-out after every epoch",
-   "id": "SM56, ticket 000648",
+   "id": "SM56, ticket 000649",
    "kind": "gpu-train",
    "decides": "Whether having all 8,000 users in every epoch (not only the decay) beats the 8k model (SM55)",
    "why": "",
-   "job": "SM56 scoring s-w64kd-final-sc-lanes-e13 on the 464 set (458 fit users), paused run",
+   "job": "SM56 decay from e10 on the 3 long 732-pool users (650, 1601, 4501) at the 0.92 cap",
    "linked": true,
    "track": "small model",
-   "ticket": "000648-small-model",
-   "started": "16:41",
-   "elapsed": "0:03",
+   "ticket": "000649-small-model",
+   "started": "16:49",
+   "elapsed": "0:00",
    "progress": null,
-   "eta": "~16:55"
+   "eta": "~17:04"
   }
  ],
  "waiting": [],
  "recent": [
+  {
+   "ticket": "000648-small-model",
+   "id": "SM56",
+   "what": "SM56 scoring s-w64kd-final-sc-lanes-e13 on the 464 set (458 fit users), paused run",
+   "ended": "16:49",
+   "date": "10-24",
+   "exit": 0,
+   "ran": "0:08"
+  },
   {
    "ticket": "000647-small-model",
    "id": "SM56",
@@ -260,15 +269,6 @@
    "date": "10-24",
    "exit": 0,
    "ran": "1:50"
-  },
-  {
-   "ticket": "000642-small-model",
-   "id": "SM69",
-   "what": "resumable decay GPU check (A uninterrupted vs B stop + resume, 20 users)",
-   "ended": "10:23",
-   "date": "10-24",
-   "exit": 0,
-   "ran": "0:03"
   }
  ],
  "plan": [
@@ -865,10 +865,10 @@
    "when": "Done Sat 10-24 10:14: +0.34% / +0.47% vs the big model on 723 users, new best",
    "decides": "Whether having all 8,000 users in every epoch (not only the decay) beats the 8k model (SM55)",
    "state": "running",
-   "started": "16:41",
-   "ticket": "000648-small-model",
-   "started_at": "2026-10-24T14:45:24+02:00",
-   "ends_at": "2026-10-25T18:45:24+02:00"
+   "started": "16:49",
+   "ticket": "000649-small-model",
+   "started_at": "2026-10-24T16:41:28+02:00",
+   "ends_at": "2026-10-25T20:41:28+02:00"
   },
   {
    "what": "Muon tuning, arm 1: SM36&rsquo;s one-epoch 32k decay with the learning rate &times;0.5 (pointer from outside research), saving 4 snapshots along the decay for SM51",
@@ -954,8 +954,8 @@
    "when": "Sat 10-24 after epoch 13 (~16:47 &rarr; ~17:20)",
    "decides": "Epoch 13 read-out; the decay from epoch 10 on the same 726 users as the previous release",
    "state": "running",
-   "started": "16:41",
-   "ticket": "000648-small-model",
+   "started": "16:49",
+   "ticket": "000649-small-model",
    "started_at": "2026-10-24T16:41:28+02:00",
    "ends_at": "2026-10-24T17:11:28+02:00"
   },
