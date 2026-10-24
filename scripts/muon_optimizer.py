@@ -33,7 +33,12 @@ MATRIX_GROUPS = (0, 1, 2, 3)  # decay, channel mixer, head, features2card: Exper
 class HybridOptimizer:
     def __init__(self, adamw, muon):
         self.adamw, self.muon = adamw, muon
-        self.param_groups = adamw.param_groups + muon.param_groups
+
+    @property
+    def param_groups(self):
+        # Read through every time: load_state_dict replaces the inner optimizers' group dicts, and a list built once
+        # would keep the old ones (the trainer's learning rate writes would then miss the groups that step).
+        return self.adamw.param_groups + self.muon.param_groups
 
     def zero_grad(self, set_to_none=True):
         self.adamw.zero_grad(set_to_none=set_to_none)
