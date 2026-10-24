@@ -993,6 +993,20 @@
    "state": "planned"
   },
   {
+   "what": "Full retrain (SM56), continued: epochs 11&ndash;14 from epoch 10 (before its decay), then the same one-epoch 32k Muon decay from epoch 14; compared with the decay from epoch 10",
+   "id": "SM56",
+   "kind": "gpu-train",
+   "minutes": 1060,
+   "track": "small model",
+   "match": [
+    "SM56 scale-w64kd-final-sc-lanes epoch 1",
+    "dec14"
+   ],
+   "when": "Sat 10-24 10:47 &rarr; epochs until ~19:00, decay from 01:30 after the break (resumable), result Sun ~10:00",
+   "decides": "Do 4 more epochs still help after the decay, or only before it? (decay from e10: +0.34% / +0.47% vs the big model). The user may stop the PC at any time: epochs and decay resume from snapshots",
+   "state": "running"
+  },
+  {
    "what": "Resumable cool-down check: a small cool-down run straight through vs stopped halfway and resumed (same learning rate, loss and weights?)",
    "id": "SM69",
    "kind": "gpu-check",
