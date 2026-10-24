@@ -31,7 +31,7 @@ def main():
         gap = nll(y, logit(df[pc].to_numpy(np.float64))) - nll(y, logit(df[fc].to_numpy(np.float64)))
         total = gap.sum()
         H = {"gap_mean": float(gap.mean()), "features": {}}
-        for name in FEATURES:
+        for name in [n for n in FEATURES if n in df.columns]:
             col = name + "@c" if head == "curve" and (name + "@c") in df.columns else name
             x = df[col].to_numpy(np.float64)
             ok = ~np.isnan(x)

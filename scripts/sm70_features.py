@@ -54,13 +54,21 @@ FEATURES = {
     "u_hard": ("user", "dyn"), "u_easy": ("user", "dyn"), "u_wd_ret": ("user", "dyn"),
     "u_dur_last": ("user", "dyn"), "u_dur_mean": ("user", "dyn"),
     # T: clock and session (from the -id export's review_time)
-    "t_tod": ("clock", "dyn"), "t_since_any": ("clock", "dyn"), "t_sess_pos": ("clock", "dyn"),
-    "t_sess_min": ("clock", "dyn"), "t_sess_fail": ("clock", "dyn"), "t_sib_gap_h": ("clock", "dyn"),
+    # review_time = answer time - recorded duration, and the recorded duration is capped (60 s by default): when the
+    # current review took longer than the cap, its estimated show time is late by the excess, so any gap ending at the
+    # current show time carries the current review's (uncapped) thinking time. Those instant-head versions are leaky
+    # ("clock-leaky"); the "@c" versions (as of the card's previous review) and the "_prev" ones are past information.
+    "t_tod": ("clock", "dyn"), "t_sib_gap_h": ("clock", "dyn"), "t_gap_prev": ("clock", "dyn"),
+    "t_break": ("clock", "dyn"), "t_sess_pos_prev": ("clock", "dyn"), "t_sess_min_prev": ("clock", "dyn"),
+    "t_sess_fail_prev": ("clock", "dyn"),
+    "t_since_any": ("clock-leaky", "dyn"), "t_sess_pos": ("clock-leaky", "dyn"),
+    "t_sess_min": ("clock-leaky", "dyn"), "t_sess_fail": ("clock-leaky", "dyn"),
     # R: real creation times (raw Anki ids of the -id export)
     "r_card_age": ("created", "interval"), "r_note_age": ("created", "interval"), "r_deck_age": ("created", "interval"),
     "r_wait_new": ("created", "card"), "r_batch": ("created", "card"),
 }
 SESSION_GAP_MS = 20 * 60 * 1000
+LEAKY_GROUPS = {"snapshot", "clock-leaky"}   # left out of the "all-deployable" bundles
 
 
 def _past(df, keys, col):
@@ -128,6 +136,12 @@ def build_clock(user, df):
     s_nf = sdf.groupby("s")["nf"].cumsum().values - sdf["nf"].values
     s_fail = sdf.groupby("s")["fail"].cumsum().values - sdf["fail"].values
     out["t_sess_fail"] = (s_fail + 0.2) / (s_nf + 2.0)
+    # past-only session state: the previous review's gap and session counters (no current show time involved), and a
+    # session-break flag whose threshold (30 min) is far above the duration-cap error of a normal review
+    out["t_gap_prev"] = np.concatenate([[np.nan], out["t_since_any"].values[:-1]])
+    out["t_break"] = np.where(np.isnan(gap), np.nan, np.where(gap > 30 * 60_000, np.log1p(gap / 3_600_000.0), 0.0))
+    for c in ("t_sess_pos", "t_sess_min", "t_sess_fail"):
+        out[c + "_prev"] = np.concatenate([[np.nan], out[c].values[:-1]])
     tmp = pd.DataFrame({"note_id": df["note_id"].values, "card_id": df["card_id"].values, "rt": rt.astype(float)})
     sib_rt = _carry_other(tmp, "note_id", "card_id", "rt")
     out["t_sib_gap_h"] = np.log1p(np.clip(rt - sib_rt.values, 0, None) / 3_600_000.0)
