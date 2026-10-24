@@ -1,7 +1,7 @@
 {
- "generated_at": "2026-10-24T02:02:30+02:00",
- "updated": "2026-10-24 02:02",
- "material": "85a8a29355d0a468",
+ "generated_at": "2026-10-24T02:12:35+02:00",
+ "updated": "2026-10-24 02:12",
+ "material": "ec125664c26c7400",
  "summary": "running 000639",
  "headline": [
   {
@@ -189,7 +189,7 @@
    "track": "small model",
    "ticket": "000639-small-model",
    "started": "02:00",
-   "elapsed": "0:01",
+   "elapsed": "0:11",
    "progress": null,
    "eta": "~10:30"
   }
@@ -1341,6 +1341,92 @@
   }
  ],
  "results": [
+  {
+   "date": "10-24",
+   "kind": "cpu",
+   "name": "Card order test: does the small model put the day&rsquo;s cards in a different order than the big model? The 8k model (SM55) and the Muon best model (SM36)",
+   "id": "SM58",
+   "curve": null,
+   "instant": null,
+   "curve_pct": null,
+   "instant_pct": null,
+   "eval": "722 users (732 set), 191,902 user-days, 19.15M cards (reviewed after &ge; 1 day away, days with &ge; 10 cards)",
+   "fork": "Kendall tau 1 = same order; flipped pair = the two models order two cards the other way",
+   "takeaway": "<strong>The order is mostly kept</strong>: the 8k model (SM55) flips 9.7% of card pairs on curve and 8.3% on instant (Kendall tau median 0.84 / 0.85, Spearman 0.96). The flips are almost all between cards the big model rates within 5% of each other (91% / 94% of flips); pairs 10% or more apart flip under 1% of the time. 80% / 82% of the day&rsquo;s most at-risk cards (lowest 10% R) are the same. On flipped pairs with one card forgotten, the big model is right a bit more often (the small model 48.7% / 47.2%). The Muon best model (SM36) is slightly worse on every number",
+   "track": "small model",
+   "started_at": "2026-10-24T02:00+02:00",
+   "ended_at": "2026-10-24T02:09+02:00",
+   "gpu_minutes": 0,
+   "tickets": 0,
+   "detail": {
+    "verdict": "The order is mostly kept: about 1 card pair in 10 flips, almost only between cards with near-equal R",
+    "table": {
+     "head": [
+      "Model",
+      "Head",
+      "Kendall tau median (p10)",
+      "Spearman median",
+      "Pairs flipped",
+      "Flips within 5% gap",
+      "Pairs &ge; 10% apart flipped",
+      "Risk top-10% overlap",
+      "Small model right on decided flips"
+     ],
+     "rows": [
+      [
+       "the 8k model (SM55)",
+       "curve",
+       "0.841 (0.677)",
+       "0.958",
+       "9.7%",
+       "91.5%",
+       "0.8%",
+       "79.5%",
+       "48.7%"
+      ],
+      [
+       "the 8k model (SM55)",
+       "instant",
+       "0.850 (0.723)",
+       "0.963",
+       "8.3%",
+       "94.1%",
+       "0.3%",
+       "81.9%",
+       "47.2%"
+      ],
+      [
+       "the Muon best model (SM36)",
+       "curve",
+       "0.837 (0.673)",
+       "0.957",
+       "9.9%",
+       "91.2%",
+       "0.8%",
+       "79.0%",
+       "48.5%"
+      ],
+      [
+       "the Muon best model (SM36)",
+       "instant",
+       "0.846 (0.718)",
+       "0.961",
+       "8.5%",
+       "93.8%",
+       "0.4%",
+       "81.5%",
+       "46.8%"
+      ]
+     ]
+    },
+    "notes": [
+     "Per user and day: the cards due that day (first review of the card, after at least one day away), ranked by predicted recall R under each model (w8+s8)",
+     "Pairs from at most 400 cards per day (seed 0); decided flip = flipped pair where one card was forgotten and the other recalled; 50% would be a coin toss",
+     "Benchmark users only; own collection not run yet",
+     "CPU only, from the disagreement test&rsquo;s saved predictions (9 min); files in the sm58 branch (ranking.md)"
+    ]
+   }
+  },
   {
    "date": "10-23",
    "kind": "cpu",
