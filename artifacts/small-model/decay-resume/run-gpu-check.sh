@@ -14,4 +14,4 @@ cd "$WT" || exit 1
 "$PY" "$QUEUE" run --owner small-model --purpose "small-model: resumable decay GPU check (A uninterrupted vs B stop + resume, 20 users)" \
   --claim gpu --expected-minutes 20 --max-wait-minutes 240 --launched-by "run-gpu-check.sh" -- \
   "$PY" -X utf8 "$WT/scripts/check_decay_resume_gpu.py" --source-run "$SRC" --epoch 10 \
-  --extra-options "$(cat "$D/extra-sm56-decay.json")" --out artifacts/small-model/decay-resume/check 2>&1 | tee "$D/run-gpu-check.log"
+  --extra-options "$(cat "$D/extra-sm56-decay.json")" --out "$D/check" 2>&1 | tee "$D/run-gpu-check.log"
