@@ -1,7 +1,7 @@
 {
- "generated_at": "2026-10-24T07:08:13+02:00",
- "updated": "2026-10-24 07:08",
- "material": "049b9386a4ea2f62",
+ "generated_at": "2026-10-24T09:03:28+02:00",
+ "updated": "2026-10-24 09:03",
+ "material": "f241d0445bf334ee",
  "summary": "running 000639",
  "headline": [
   {
@@ -189,7 +189,7 @@
    "track": "small model",
    "ticket": "000639-small-model",
    "started": "02:00",
-   "elapsed": "5:07",
+   "elapsed": "7:02",
    "progress": null,
    "eta": "~10:30"
   }
@@ -665,12 +665,9 @@
    "track": "small model",
    "when": "10-21 00:47 &rarr; 02:07 (break lifted early)",
    "decides": "Nearly free: 16-bit scales and int8 short-term vectors cost nothing (&plusmn;0.00000); the smallest format (11,824 / 10,272 bits, 37.6 MB, &minus;46% vs int8) costs only the int4-card +0.00005 / +0.00005 already known from SM45",
-   "state": "done",
-   "started_at": "2026-10-21T08:46:27+02:00",
-   "ended_at": "2026-10-21T08:59:34+02:00",
-   "ended": "08:59",
-   "exit": 0,
-   "started": "08:46"
+   "state": "planned",
+   "started_at": "2026-10-21T00:47:01+02:00",
+   "ended_at": "2026-10-21T02:06:33+02:00"
   },
   {
    "what": "Faster held-out scoring: benchmark metrics computed on arrays instead of Python loops (same results bit for bit), and scoring 2 or 4 users at once on the GPU",
@@ -680,12 +677,9 @@
    "track": "small model",
    "when": "10-21 02:30 &rarr; 02:40 (timing run, 40 users)",
    "decides": "1.33&times; from array metrics, 1.56&times; with 4 users at once (46k &rarr; 61k &rarr; 72k reviews/s), every arm bit-for-bit identical. Several users at once needs ~1.4 GB more GPU memory",
-   "state": "done",
-   "started_at": "2026-10-21T08:46:27+02:00",
-   "ended_at": "2026-10-21T08:59:34+02:00",
-   "ended": "08:59",
-   "exit": 0,
-   "started": "08:46"
+   "state": "planned",
+   "started_at": "2026-10-21T02:29:37+02:00",
+   "ended_at": "2026-10-21T02:40:07+02:00"
   },
   {
    "what": "Carried state, code (CPU): full-history targets (SM11, 18/18 checks) + kernels with a starting state and the trainer option (SM21, all checks bit for bit); merged together",
@@ -756,12 +750,9 @@
    "track": "small model",
    "when": "Wed 10-21 08:46-08:59",
    "decides": "Yes, exact: several users at once now gives bit-identical rows for the int formats (160/160 in every run). 2 at a time ~1.3&times; faster with room under the memory cap (12.1 of ~12.8 GiB); 4 at a time only slightly faster and at the cap. Two identical runs differed by ~&plusmn;17%, so the speed figure is rough. Pool scorings now skip the 9 users that never fit (723 of 732)",
-   "state": "done",
+   "state": "planned",
    "started_at": "2026-10-21T08:46:27+02:00",
-   "ended_at": "2026-10-21T08:59:34+02:00",
-   "ended": "08:59",
-   "exit": 0,
-   "started": "08:46"
+   "ended_at": "2026-10-21T08:59:34+02:00"
   },
   {
    "what": "Smaller int state, round 2 (no retraining, SM36): A = 4-bit notes too, B = A + 4-bit short-term vectors, C = B + one scale per head instead of per row; 732 users. Plus (CPU) lossless compression of the stored codes on the collection copy",
