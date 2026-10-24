@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-10-24T10:23:45+02:00",
- "updated": "2026-10-24 10:23",
- "material": "18b69a15c42e0922",
- "summary": "running 000642",
+ "generated_at": "2026-10-24T10:28:48+02:00",
+ "updated": "2026-10-24 10:28",
+ "material": "826f2b8d070dd075",
+ "summary": "idle, finished 000642",
  "headline": [
   {
    "k": "Best, 464 users (curve / instant)",
@@ -187,25 +187,18 @@
    "track": "small model"
   }
  ],
- "now": [
-  {
-   "what": "Resumable cool-down check: a small cool-down run straight through vs stopped halfway and resumed (same learning rate, loss and weights?)",
-   "id": "SM69, ticket 000642",
-   "kind": "gpu-check",
-   "decides": "Whether long cool-downs can be paused (snapshot every 400 users, ~25 min) and resumed without losing the hours already trained; built 10-24 night, CPU check all pass",
-   "why": "",
-   "job": "resumable decay GPU check (A uninterrupted vs B stop + resume, 20 users)",
-   "linked": true,
-   "track": "small model",
-   "ticket": "000642-small-model",
-   "started": "10:20",
-   "elapsed": "0:03",
-   "progress": null,
-   "eta": "~10:40"
-  }
- ],
+ "now": [],
  "waiting": [],
  "recent": [
+  {
+   "ticket": "000642-small-model",
+   "id": "SM69",
+   "what": "resumable decay GPU check (A uninterrupted vs B stop + resume, 20 users)",
+   "ended": "10:23",
+   "date": "10-24",
+   "exit": 0,
+   "ran": "0:03"
+  },
   {
    "ticket": "000641-small-model",
    "id": "SM69",
@@ -250,15 +243,6 @@
    "date": "10-23",
    "exit": 0,
    "ran": "1:50"
-  },
-  {
-   "ticket": "000636-small-model",
-   "id": "SM56",
-   "what": "SM56 scoring s-w64kd-final-sc-lanes-e9 on the 464 set (458 fit users) (pass 1)",
-   "ended": "17:01",
-   "date": "10-23",
-   "exit": 0,
-   "ran": "0:07"
   }
  ],
  "plan": [
@@ -935,13 +919,11 @@
    "kind": "gpu-check",
    "minutes": 20,
    "track": "small model",
-   "when": "Sat 10-24, after the full retrain (SM56) scoring",
+   "when": "Done Sat 10-24 10:24: bit for bit, all 11 checks pass",
    "decides": "Whether long cool-downs can be paused (snapshot every 400 users, ~25 min) and resumed without losing the hours already trained; built 10-24 night, CPU check all pass",
-   "state": "running",
-   "started": "10:20",
-   "ticket": "000642-small-model",
-   "started_at": "2026-10-24T10:14:29+02:00",
-   "ends_at": "2026-10-24T10:34:29+02:00"
+   "state": "partial",
+   "ended": "10:23",
+   "ended_at": "2026-10-24T10:23:58+02:00"
   },
   {
    "what": "Deployment-realistic scoring without the review-duration leak, both the big model and SM36",
@@ -1351,6 +1333,65 @@
   }
  ],
  "results": [
+  {
+   "date": "10-24",
+   "kind": "gpu-check",
+   "name": "Resumable cool-down check: a 20-user cool-down from the full retrain (SM56) epoch 10, run straight through (A) vs stopped at 13 of 20 users and resumed (B)",
+   "id": "SM69",
+   "curve": null,
+   "instant": null,
+   "curve_pct": null,
+   "instant_pct": null,
+   "eval": "20 training users, 1.80M reviews, the full retrain&rsquo;s cool-down options (32k windows, Muon, replay teacher, carried state)",
+   "fork": "bit for bit = same loss on every update and same final weights",
+   "takeaway": "<strong>Cool-downs can now be paused and resumed bit for bit</strong>: B&rsquo;s loss on every update and its final weights are identical to A&rsquo;s, and the learning rate ends at the same value. Snapshots every 400 users (~25 min, 4 MB each); a requested stop saves within seconds. The first try found a bug in the Muon optimizer wrapper: after loading a saved state, learning-rate changes went to stale copies (fixed; no past run loaded a saved Muon state, so no result was affected)",
+   "track": "small model",
+   "started_at": "2026-10-24T10:14+02:00",
+   "ended_at": "2026-10-24T10:24+02:00",
+   "gpu_minutes": 7,
+   "tickets": 2,
+   "detail": {
+    "verdict": "Paused and resumed cool-downs match an uninterrupted one bit for bit",
+    "table": {
+     "head": [
+      "Check",
+      "Result"
+     ],
+     "rows": [
+      [
+       "Stop on request with a snapshot",
+       "yes, at 13 of 20 users"
+      ],
+      [
+       "Resume skips finished users",
+       "13 done (66.9% of the reviews), 7 left"
+      ],
+      [
+       "Learning rate per update vs A",
+       "identical (max gap 0)"
+      ],
+      [
+       "Loss per update vs A",
+       "identical (bitwise)"
+      ],
+      [
+       "Final weights vs A",
+       "identical (bitwise)"
+      ],
+      [
+       "First try, before the optimizer fix",
+       "loss drifted from the 2nd resumed update, weights off by 0.02"
+      ]
+     ]
+    },
+    "notes": [
+     "Regular epochs already had this (snapshots every 400 users)",
+     "How to pause: expertium_decay.py stop --out FOLDER; resume: run the same cool-down command again",
+     "Two update log lines lag the stop (deferred reads); those updates are applied and in the snapshot",
+     "Files in the decay-resume branch (check/check.json)"
+    ]
+   }
+  },
   {
    "date": "10-24",
    "kind": "gpu-train",
