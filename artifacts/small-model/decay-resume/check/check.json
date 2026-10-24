@@ -1,0 +1,103 @@
+{
+ "source": "C:\\Users\\jonat\\workspace\\wt\\sm56\\artifacts\\accuracy\\experiments\\scale-w64kd-final-sc-lanes\\run epoch 10",
+ "fraction": 0.003,
+ "users": 20,
+ "minutes_A": 1.6,
+ "minutes_B_with_stop_and_resume": 1.8,
+ "minutes_total": 3.5,
+ "checks": [
+  {
+   "check": "A and B train the same rows",
+   "ok": true,
+   "detail": {
+    "users": 20
+   }
+  },
+  {
+   "check": "A runs uninterrupted",
+   "ok": true,
+   "detail": null
+  },
+  {
+   "check": "B stops on request with a snapshot",
+   "ok": true,
+   "detail": {
+    "exit": 1,
+    "status": "stopped",
+    "requested_at_users": 12,
+    "snapshot": {
+     "reason": "stop",
+     "utc": "2026-10-24T08:23:19.749449+00:00",
+     "progress_users": 13,
+     "folder": "artifacts/small-model/decay-resume/check/B/expertium/E89-F65e-F77a/snapshots/users-00013"
+    }
+   }
+  },
+  {
+   "check": "B resumes and completes",
+   "ok": true,
+   "detail": null
+  },
+  {
+   "check": "resume skipped the done users",
+   "ok": true,
+   "detail": {
+    "done": 13,
+    "left": 7,
+    "lr_resume": {
+     "total_reviews": 1803208,
+     "reviews_offset": 1206374
+    }
+   }
+  },
+  {
+   "check": "B's kept updates cover A's exactly once (applied but unlogged at the stop: done users only)",
+   "ok": true,
+   "detail": {
+    "A": 66,
+    "B kept": 64,
+    "unlogged": 2,
+    "snapshot_updates": 43,
+    "attempt_1_logged": 41,
+    "B retrained": 0
+   }
+  },
+  {
+   "check": "same batch seeds",
+   "ok": true,
+   "detail": null
+  },
+  {
+   "check": "same learning rate per update",
+   "ok": true,
+   "detail": {
+    "max_gap": 0.0
+   }
+  },
+  {
+   "check": "same final learning rate",
+   "ok": true,
+   "detail": {
+    "A": 2.90587221062788e-08,
+    "B": 2.90587221062788e-08
+   }
+  },
+  {
+   "check": "loss per update matches A",
+   "ok": true,
+   "detail": {
+    "max_gap": 0.0,
+    "bitwise": true
+   }
+  },
+  {
+   "check": "final weights match A",
+   "ok": true,
+   "detail": {
+    "max_abs_gap": 0.0,
+    "bitwise": true
+   }
+  }
+ ],
+ "all_pass": true
+}

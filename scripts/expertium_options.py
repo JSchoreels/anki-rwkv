@@ -372,6 +372,15 @@ class CatchUp:
                                      "use scripts.expertium_options.compatible_options")
         schedule = (full_run or {}).get("lr_schedule") or options.get("lr_schedule")
         total = sum(row["train_range"][1] - row["train_range"][0] for row in rows)
+        # A resumed decay (scripts/expertium_decay.py run) trains only the users left after its snapshot: the schedule keeps
+        # the whole decay's review total and starts at the reviews of the users already trained.
+        resume = (full_run or {}).get("lr_resume")
+        self.reviews_offset = 0
+        if resume:
+            self.reviews_offset = int(resume["reviews_offset"])
+            if self.reviews_offset + total != int(resume["total_reviews"]):
+                raise ValueError(f"lr_resume {resume} does not add up with the {total:,} reviews left to train")
+            total = int(resume["total_reviews"])
         self.schedule = LearningRate(schedule, total) if schedule else None
         self.teacher = None
         self.carry = None
@@ -409,7 +418,7 @@ class CatchUp:
     def learning_rate(self, updates_done, update_offset, reviews_done):
         if self.schedule is None:
             return default_learning_rate(updates_done, update_offset)
-        return self.schedule(updates_done, update_offset, reviews_done)
+        return self.schedule(updates_done, update_offset, reviews_done + self.reviews_offset)
 
     def loss(self, model, batch, reviews_done, key=None, labels=None):
         if self.carry is not None and self.carry.model is None:
@@ -417,7 +426,7 @@ class CatchUp:
                 return self.loss(model, batch, reviews_done, key, labels)
         if self.teacher is None:
             return model.get_loss(batch)
-        decaying = self.schedule is not None and self.schedule.decaying(reviews_done)
+        decaying = self.schedule is not None and self.schedule.decaying(reviews_done + self.reviews_offset)
         return model.get_loss(batch, kd_mix=self.teacher.targets(batch, decaying, key, labels))
 
     def describe(self, master):
