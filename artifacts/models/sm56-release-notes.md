@@ -14,7 +14,8 @@ The 726-user row of the previous release (the users every released model fits) i
 
 - **Curve** is the forgetting-curve head (probability of recall at any future time); **instant** is the next-review head.
 - Against the previous release (8k model, SM55) on the same users, this model is better. Paired difference (SM56 minus SM55, with interval): 723 users, curve -0.00045 [-0.00079, -0.00017], instant -0.00017 [-0.00023, -0.00011]; 458 users, curve -0.00061 [-0.00117, -0.00022], instant -0.00020 [-0.00027, -0.00013]. On the 723 users SM55 is +0.49% / +0.53% against the big model, this model +0.34% / +0.47%.
-- Not measured for this model: the spaced-review slice.
+- Smaller state: int4 card state + int8 note state is nearly free. It was measured on the release before last (Muon version, SM36) on the same 723 users: +0.00005 curve / +0.00005 instant (+0.64% to +0.66% / +0.63% to +0.64% vs the big model), for 31% less card state (26,624 to 18,432 bits). It is not measured on this model yet, and the reference code and test vectors in this package cover int8 state only.
+- Not measured for this model: the spaced-review slice, and int4 card state (see above).
 - Quantization costs the big model nothing measurable (-0.01% / +0.01%, measured on 430 of the 464 users).
 - Weights: 436 KB in int8 (the scored form) or 1.35 MB in fp32. The exported files reproduce the PyTorch model to 1.6e-6.
 
