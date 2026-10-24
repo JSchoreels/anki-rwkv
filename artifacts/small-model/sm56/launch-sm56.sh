@@ -66,7 +66,7 @@ SPEC='{"lanes": "strided"}'
 DIST="{\"teacher\": \"C:/Users/jonat/workspace/anki/qt/aqt/rwkv_inference/RWKV_trained_on_5000_10000.pth\", \"alpha\": 0.9, \"decay_alpha\": 0.5, \"kd_source\": \"replay\", \"replay\": \"$REPLAY8K\"}"
 EXTRA="{\"distillation\": $DIST, \"state_carry\": $SPEC, \"chunk_reviews\": 32768, \"batch_chunks\": 1, \"optimizer\": \"expertium-iter53\"}"  # = SM55's decay
 SMOKE_EXTRA="{\"distillation\": $DIST, \"state_carry\": $SPEC, \"chunk_reviews\": 2048, \"batch_chunks\": 16}"
-MAX_EPOCHS=14
+MAX_EPOCHS=15   # user 10-24: 15 (was 14); experiment.json / run.json raised with it
 MIN_EPOCH=${MIN_EPOCH:-120}   # sc-lanes-cont: 4,184 s per 5k epoch (88.5k reviews/s) x 1.575 = 110 min + smoke/setup; then measured
 MIN_SCORE464=12; MIN_SCORE464B=8   # 458 users; SM55's 723-user scoring took 11 min
 MIN_DECAY=510                      # SM55 measured 495 min training (19,578 reviews/s) + smoke/setup
@@ -216,7 +216,7 @@ want = {"architecture": "w64", "chunk_reviews": 2048, "batch_chunks": 16, "state
 fail += [f"option {k} = {o.get(k)}, want {w}" for k, w in want.items() if o.get(k) != w]
 if o.get("optimizer") or o["distillation"].get("kd_source") != "replay" or "cache" in o["distillation"]:
     fail.append(f"optimizer {o.get('optimizer')} / distillation {o['distillation']}")
-if (e["tier"], e["kind"], e["epochs"], e["init"], e["epoch_runner"]) != ("final", "train", 14, None, "scripts.sm56_epochs:run_epoch"):
+if (e["tier"], e["kind"], e["epochs"], e["init"], e["epoch_runner"]) != ("final", "train", 15, None, "scripts.sm56_epochs:run_epoch"):
     fail.append(f"experiment tier/kind/epochs/init/runner {e['tier']}/{e['kind']}/{e['epochs']}/{e['init']}/{e['epoch_runner']}")
 if run["train_users"] != final["train_users"] or len(run["train_users"]) != 8000 or run["training_reviews_per_epoch"] != final["train_reviews"]:
     fail.append("run.json train users are not the 8,000 final-tier users")
@@ -323,18 +323,20 @@ for k in ("options", "dropped_width32_options", "fraction_of_epoch_reviews", "tr
           "shuffle_seed", "lr", "evaluation_set", "evaluation_users", "model", "track", "trimmed_unlabelled_tails", "training_reviews_after_trims"):
     if a.get(k) != b.get(k):
         fail.append(f"{k}: {str(a.get(k))[:200]} vs {str(b.get(k))[:200]}")
+# a resumed decay (resumable decay, SM69) rewrote protocol.json; its prepared protocol is kept as protocol.prepared.json
+b_prot = "protocol.prepared.json" if (b_dir / "protocol.prepared.json").exists() else "protocol.json"
 for f in ("protocol.json", "protocol.untrimmed.json"):
-    pa, pb = json.loads((a_dir / f).read_text()), json.loads((b_dir / f).read_text())
+    pa, pb = json.loads((a_dir / f).read_text()), json.loads((b_dir / (b_prot if f == "protocol.json" else f)).read_text())
     for k in set(pa) | set(pb):
         if k == "full_run":
             fa, fb = dict(pa[k]), dict(pb[k])
-            for x in ("init_master", "update_offset", "benchmark_db", "epoch"):
+            for x in ("init_master", "update_offset", "benchmark_db", "epoch", "snapshot_users", "control_dir"):  # last two: SM69 snapshots
                 fa.pop(x, None); fb.pop(x, None)
             if fa != fb:
                 fail.append(f"{f} full_run differs: {fa} vs {fb}")
         elif pa.get(k) != pb.get(k):
             fail.append(f"{f} {k} differs")
-pb = json.loads((b_dir / "protocol.json").read_text())["full_run"]
+pb = json.loads((b_dir / b_prot).read_text())["full_run"]
 if pb.get("update_offset") != b["source_update_offset_end"] or not Path(pb["init_master"]).as_posix().endswith(f"epoch-{b['source_epoch']:02d}/expertium/E89-F65e-F77a/master.pth"):
     fail.append(f"decay does not start from the source epoch: {pb}")
 if fail:
