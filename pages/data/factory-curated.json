@@ -3299,10 +3299,10 @@
    "id": "SM32b",
    "eval": "RTX 5080, 32k and 2,048 windows, no training",
    "fork": "seconds per update: plain 1.12, with compression 1.38 (fused kernels), 3.4&ndash;3.8 (PyTorch loop)",
-   "takeaway": "Worse than compressing after training (+0.0012 / +0.0010). Not a codec mismatch, not stale codebooks (refitting them on the new model&rsquo;s states: 0.32799 / 0.29382, worse still; it learned around the frozen books). Training with the compression in the loop hurts here; dropped for now",
+   "takeaway": "<strong>The fused kernels make training with compression affordable</strong>: 1.38 s per update vs 1.12 s plain (+23%), where the PyTorch loop took 3.4&ndash;3.8 s (3&ndash;3.4&times; slower). This only measured speed; the accuracy of training with compression was tested afterwards (10-18 row: worse than compressing after training)",
    "track": "small model",
    "detail": {
-    "verdict": "Worse than compressing after training (+0.0012 / +0.0010)",
+    "verdict": "The fused kernels cost +23% per update, vs 3&ndash;3.4&times; for the PyTorch loop",
     "table": {
      "head": [
       "Update",
@@ -3324,8 +3324,7 @@
      ]
     },
     "notes": [
-     "Not a codec mismatch, not stale codebooks (refitting them on the new model&rsquo;s states: 0.32799 / 0.29382, worse still; it learned around the frozen books)",
-     "Training with the compression in the loop hurts here; dropped for now",
+     "Speed only: the accuracy result is the 10-18 row (state compression trained into the final decay)",
      "Measured on an RTX 5080, 32k and 2,048 windows, no training"
     ]
    }
