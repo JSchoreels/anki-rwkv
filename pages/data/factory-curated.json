@@ -1001,9 +1001,11 @@
    "match": [
     "SM70"
    ],
-   "when": "Sat 10-24 15:05 &rarr; ~20:50 (CPU only, before the break)",
-   "decides": "Which new inputs deserve a GPU test (as planned for real timestamps, SM37)",
-   "state": "running"
+   "when": "Done 10-24 15:05&ndash;17:05 (CPU, 200 held-out users, 7.06M test reviews)",
+   "decides": "Done: none of about 55 deployable inputs lowers LogLoss (instant: no interval below &minus;0.00002, 2% of the gap; control, the big model&rsquo;s own prediction: &minus;0.0011 / &minus;0.0014). The one gain (pause before the show time, instant &minus;0.00036) carries the review&rsquo;s own thinking time, so it is a leak. The gap sits in same-day re-reviews, just-failed cards and weak users: capacity, not inputs. Card template / note type not in the data. Open question: the deleted-card flag in the inputs is future information",
+   "state": "done",
+   "started_at": "2026-10-24T15:05:00+02:00",
+   "ended_at": "2026-10-24T17:05:00+02:00"
   },
   {
    "what": "Small jobs while the full retrain (SM56) is paused: score its epoch 13 on the 464 set, then its decay from epoch 10 on the 3 long users of the 732 pool (650, 1601, 4501) at the 0.92 memory cap",
