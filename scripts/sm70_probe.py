@@ -23,7 +23,7 @@ import pandas as pd
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
-from scripts.sm70_features import FEATURES  # noqa: E402
+from scripts.sm70_features import FEATURES, LEAKY_GROUPS  # noqa: E402
 
 EPS = 1e-6
 
@@ -47,6 +47,12 @@ def encode(x_tr, x_te, max_cat=12, nbins=10):
         edges = (vals[:-1] + vals[1:]) / 2
     else:
         edges = np.unique(np.quantile(x_tr[ok], np.linspace(0, 1, nbins + 1)[1:-1]))
+        # point masses (zero-inflated features such as same-day counts): an edge value carrying more than 1% of the
+        # training values gets a second edge just above it, so the mass point is a bin of its own
+        xs = np.sort(x_tr[ok])
+        mass = (np.searchsorted(xs, edges, side="right") - np.searchsorted(xs, edges, side="left")) / len(xs)
+        extra = np.array([np.nextafter(e, np.inf) for e, m in zip(edges, mass) if m > 0.01], dtype=np.float64)
+        edges = np.unique(np.concatenate([edges, extra]))
     k = len(edges) + 1
 
     def bins(x):
@@ -193,11 +199,12 @@ def main():
     n_u = pd.Series(np.ones(len(df))).groupby(users).sum().to_numpy()
 
     groups = {}
-    for name, (g, _) in FEATURES.items():
-        groups.setdefault(g, []).append(name)
-    cands = {name: [name] for name in FEATURES}
+    present = [n for n in FEATURES if n in df.columns]   # features built into this parquet
+    for name in present:
+        groups.setdefault(FEATURES[name][0], []).append(name)
+    cands = {name: [name] for name in present}
     cands.update({f"group:{g}": names for g, names in groups.items()})
-    deployable = [n for n, (g, _) in FEATURES.items() if g != "snapshot"]
+    deployable = [n for n in present if FEATURES[n][0] not in LEAKY_GROUPS]
     cands["all-deployable"] = deployable
     if "ctl_fork" in df.columns:
         cands["control:big-model-prediction"] = ["ctl_fork"]

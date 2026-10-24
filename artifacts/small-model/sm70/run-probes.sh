@@ -6,8 +6,8 @@ O=artifacts/small-model/sm70
 FORK=C:/Users/jonat/workspace/wt/small-model/artifacts/small-model/sm24-dump
 export OMP_NUM_THREADS=6 OPENBLAS_NUM_THREADS=6 MKL_NUM_THREADS=6
 set -e
-$P scripts/sm70_inventory.py --users @$O/dump --out $O/inventory.json
-$P scripts/sm70_features.py --dump $O/dump --fork-dump $FORK --out $O/features.parquet --workers 6
+[ -s $O/inventory.json ] || $P scripts/sm70_inventory.py --users @$O/dump --out $O/inventory.json
+[ -s $O/features.parquet ] || $P scripts/sm70_features.py --dump $O/dump --fork-dump $FORK --out $O/features.parquet --workers 6
 OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 $P scripts/sm70_within.py --features $O/features.parquet --model sm56 --out $O/within-sm56.json --workers 6 > $O/within-sm56.log 2>&1
 OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 $P scripts/sm70_within.py --features $O/features.parquet --model fork --out $O/within-fork.json --workers 6 > $O/within-fork.log 2>&1
 $P scripts/sm70_probe.py --features $O/features.parquet --model sm56 --bins 6 --fit-weight user --out $O/pooled-sm56.json > $O/pooled-sm56.log 2>&1

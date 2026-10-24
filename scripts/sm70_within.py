@@ -24,7 +24,7 @@ import pandas as pd
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
-from scripts.sm70_features import FEATURES  # noqa: E402
+from scripts.sm70_features import FEATURES, LEAKY_GROUPS  # noqa: E402
 from scripts.sm70_probe import bootstrap, encode, logit, nll  # noqa: E402
 
 RIDGE = 20.0
@@ -130,9 +130,10 @@ def main():
     pcols = {"sm56": ("p_a", "p_i"), "fork": ("f_a", "f_i")}[a.model]
     data = pd.read_parquet(a.features)
     groups = {}
-    for name, (g, _) in FEATURES.items():
-        groups.setdefault(g, []).append(name)
-    cands = {name: [name] for name in FEATURES}
+    present = [n for n in FEATURES if n in data.columns]   # features built into this parquet
+    for name in present:
+        groups.setdefault(FEATURES[name][0], []).append(name)
+    cands = {name: [name] for name in present}
     cands.update({f"group:{g}": names for g, names in groups.items() if len(names) <= 8})
     if a.model == "sm56":
         cands["control:big-model-prediction"] = ["ctl_fork"]
