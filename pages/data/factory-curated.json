@@ -993,6 +993,20 @@
    "state": "planned"
   },
   {
+   "what": "Small jobs while the full retrain (SM56) is paused: score its epoch 13 on the 464 set, then its decay from epoch 10 on the 3 long users of the 732 pool (650, 1601, 4501) at the 0.92 memory cap",
+   "id": "SM56",
+   "kind": "gpu-score",
+   "minutes": 30,
+   "track": "small model",
+   "match": [
+    "SM56 scoring s-w64kd-final-sc-lanes-e13",
+    "3 long 732-pool users"
+   ],
+   "when": "Sat 10-24 after epoch 13 (~16:47 &rarr; ~17:20)",
+   "decides": "Epoch 13 read-out; the decay from epoch 10 on the same 726 users as the previous release",
+   "state": "planned"
+  },
+  {
    "what": "Full retrain (SM56), continued: epochs 11&ndash;15 from epoch 10 (before its decay), then the same one-epoch 32k Muon decay from epoch 15; compared with the decay from epoch 10",
    "id": "SM56",
    "kind": "gpu-train",
@@ -1002,7 +1016,7 @@
     "SM56 scale-w64kd-final-sc-lanes epoch 1",
     "dec15"
    ],
-   "when": "Sat 10-24 10:47 &rarr; epoch 11 done 12:38; epochs 12&ndash;15 until ~21:00 (epoch 15 waits for 01:30 if it would end in the break), decay after the break (resumable), result Sun ~10:00&ndash;12:30",
+   "when": "Sat 10-24 10:47 &rarr; epochs 11&ndash;12 done; epoch 13 until ~16:47, then paused on the user&rsquo;s word (10-24 14:50); epochs 14&ndash;15 and the decay when the user says to resume",
    "decides": "Do 5 more epochs still help after the decay, or only before it? (decay from e10: +0.34% / +0.47% vs the big model). The user may stop the PC at any time: epochs and decay resume from snapshots",
    "state": "running"
   },
