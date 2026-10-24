@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-10-24T12:39:10+02:00",
- "updated": "2026-10-24 12:39",
- "material": "d8ffb35abd109616",
- "summary": "idle, finished 000643",
+ "generated_at": "2026-10-24T12:44:13+02:00",
+ "updated": "2026-10-24 12:44",
+ "material": "5921fd42db02a507",
+ "summary": "running 000644",
  "headline": [
   {
    "k": "Best, 464 users (curve / instant)",
@@ -197,7 +197,23 @@
    "track": "small model"
   }
  ],
- "now": [],
+ "now": [
+  {
+   "what": "Full retrain from scratch on all 8,000 users (581.9M reviews per epoch), carried state at 2,048 windows every epoch; 10 epochs (user 10-23: no early stop on a plateau, stop after epoch 10 so the decay starts right after tonight&rsquo;s break; 5.8B reviews, the 8k model (SM55) saw 4.4B before its decay), then the same 8 h decay as the 8k model (SM55); 464-user read-out after every epoch",
+   "id": "SM56, ticket 000644",
+   "kind": "gpu-train",
+   "decides": "Whether having all 8,000 users in every epoch (not only the decay) beats the 8k model (SM55)",
+   "why": "",
+   "job": "SM56 scoring s-w64kd-final-sc-lanes-e11 on the 464 set (458 fit users) (pass 1)",
+   "linked": true,
+   "track": "small model",
+   "ticket": "000644-small-model",
+   "started": "12:40",
+   "elapsed": "0:04",
+   "progress": null,
+   "eta": "~12:52"
+  }
+ ],
  "waiting": [],
  "recent": [
   {
@@ -851,12 +867,11 @@
    "what": "Full retrain from scratch on all 8,000 users (581.9M reviews per epoch), carried state at 2,048 windows every epoch; 10 epochs (user 10-23: no early stop on a plateau, stop after epoch 10 so the decay starts right after tonight&rsquo;s break; 5.8B reviews, the 8k model (SM55) saw 4.4B before its decay), then the same 8 h decay as the 8k model (SM55); 464-user read-out after every epoch",
    "when": "Done Sat 10-24 10:14: +0.34% / +0.47% vs the big model on 723 users, new best",
    "decides": "Whether having all 8,000 users in every epoch (not only the decay) beats the 8k model (SM55)",
-   "state": "done",
-   "ended": "12:37",
-   "exit": 0,
-   "started": "10:47",
+   "state": "running",
+   "started": "12:40",
+   "ticket": "000644-small-model",
    "started_at": "2026-10-24T10:47:09+02:00",
-   "ended_at": "2026-10-24T12:37:49+02:00"
+   "ends_at": "2026-10-25T14:47:09+02:00"
   },
   {
    "what": "Muon tuning, arm 1: SM36&rsquo;s one-epoch 32k decay with the learning rate &times;0.5 (pointer from outside research), saving 4 snapshots along the decay for SM51",
@@ -924,13 +939,13 @@
    "state": "planned"
   },
   {
-   "what": "Full retrain (SM56), continued: epochs 11&ndash;14 from epoch 10 (before its decay), then the same one-epoch 32k Muon decay from epoch 14; compared with the decay from epoch 10",
+   "what": "Full retrain (SM56), continued: epochs 11&ndash;15 from epoch 10 (before its decay), then the same one-epoch 32k Muon decay from epoch 15; compared with the decay from epoch 10",
    "id": "SM56",
    "kind": "gpu-train",
-   "minutes": 1060,
+   "minutes": 1125,
    "track": "small model",
-   "when": "Sat 10-24 10:47 &rarr; epochs until ~19:00, decay from 01:30 after the break (resumable), result Sun ~10:00",
-   "decides": "Do 4 more epochs still help after the decay, or only before it? (decay from e10: +0.34% / +0.47% vs the big model). The user may stop the PC at any time: epochs and decay resume from snapshots",
+   "when": "Sat 10-24 10:47 &rarr; epoch 11 done 12:38; epochs 12&ndash;15 until ~21:00 (epoch 15 waits for 01:30 if it would end in the break), decay after the break (resumable), result Sun ~10:00&ndash;12:30",
+   "decides": "Do 5 more epochs still help after the decay, or only before it? (decay from e10: +0.34% / +0.47% vs the big model). The user may stop the PC at any time: epochs and decay resume from snapshots",
    "state": "partial",
    "ended": "12:37",
    "ended_at": "2026-10-24T12:37:49+02:00"
