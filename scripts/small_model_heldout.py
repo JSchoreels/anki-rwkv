@@ -164,6 +164,30 @@ class WindowBatches(UserBatches):
         return user, batch, None, time.perf_counter() - started
 
 
+class LeakBatches(UserBatches):
+    """SM71: full-history batches with the deleted-card signals neutralised (scripts/sm71_leak.py) and/or the id/day
+    codes drawn with seed 2025 + user + seed_offset. Only used when --deleted-cards != keep or --seed-offset != 0."""
+
+    def __init__(self, users, data, counts, mode, seed_offset):
+        super().__init__(users, data, counts)
+        self.mode, self.seed_offset = mode, seed_offset
+
+    def __getitem__(self, index):
+        user = self.users[index]
+        started = time.perf_counter()
+        try:
+            from rwkv.data_processing import get_rwkv_data
+            from rwkv.prepare_batch import prepare
+            from scripts import sm71_leak
+            frame = get_rwkv_data(self.data, user)
+            if self.mode != "keep":
+                frame, _ = sm71_leak.neutralise(frame, self.mode, self.data, user)
+            batch = prepare(cc.make_samples(frame, user, len(frame)), seed=2025 + user + self.seed_offset)
+        except Exception as error:  # recorded, not fatal
+            return user, None, repr(error), time.perf_counter() - started
+        return user, batch, None, time.perf_counter() - started
+
+
 class IntState(tuple):
     """SM47 int state variant: (wkv_bits, shift_bits, scale_bits). wkv_bits = int or (card, note) tuple, F16_SCALE
     flag set for float16 row scales; shift_bits = 0 (float shift vectors) or 8 (| F16_SCALE); scale_bits 16 / 32."""
@@ -236,6 +260,15 @@ def main():
                         "the reviews in flight stay <= this (~25 KB GPU memory per review; a larger user runs alone)")
     parser.add_argument("--dump", default="", help="also write per-review benchmark predictions (review_th, bin, y, "
                         "p_ahead, p_instant) to DIR/<user>_<tag>_<variant>.npz, for calibration diagnostics")
+    parser.add_argument("--deleted-cards", choices=("keep", "flags", "neighbour"), default="keep",
+                        help="SM71: inputs of reviews of cards missing from the cards table (deleted before the export): "
+                        "keep = today's inputs; flags = *_is_nan flags 0; neighbour = flags 0 + deck/preset of the "
+                        "nearest existing card by card_id (scripts/sm71_leak.py)")
+    parser.add_argument("--seed-offset", type=int, default=0, help="SM71 noise control: id/day codes drawn with seed "
+                        "2025 + user + N (0 = today's seed)")
+    parser.add_argument("--split-existing", action="store_true", help="SM71: also store benchmark metrics restricted "
+                        "to reviews of cards in the cards table (benchmark_existing) and of deleted cards "
+                        "(benchmark_deleted)")
     args = parser.parse_args()
     cpu = args.device == "cpu"
     if cpu:
@@ -342,7 +375,14 @@ def main():
     prov = process_provenance()
     print(f"[small-model] {len(users)} users, {len(todo)} to score, grid {grid}, scorer {scorer_mode}", flush=True)
     WindowBatches.window = args.window
-    dataset = (WindowBatches if args.window else UserBatches)(todo, cc.data_path(run), counts)
+    if args.deleted_cards != "keep" or args.seed_offset:
+        if args.window:
+            raise SystemExit("--deleted-cards / --seed-offset are for full-history scoring")
+        dataset = LeakBatches(todo, cc.data_path(run), counts, args.deleted_cards, args.seed_offset)
+    else:
+        dataset = (WindowBatches if args.window else UserBatches)(todo, cc.data_path(run), counts)
+    sm71_fields = {**({"deleted_cards": args.deleted_cards} if args.deleted_cards != "keep" else {}),
+                   **({"seed_offset": args.seed_offset} if args.seed_offset else {})}
     loader = torch.utils.data.DataLoader(dataset, batch_size=1,
                                          num_workers=args.workers, collate_fn=first,
                                          prefetch_factor=1 if args.workers else None)
@@ -452,7 +492,16 @@ def main():
                          **({"state_vq_path": vq_path} if vq_path else {}),
                          "prepare_seconds": round(prep_seconds, 2),
                          "model_seconds": model_seconds, **values,
-                         "benchmark": bench_metrics(user, labels, predictions), "scorer": scorer_mode})
+                         "benchmark": bench_metrics(user, labels, predictions), "scorer": scorer_mode, **sm71_fields})
+            if args.split_existing:
+                import numpy as np
+                from scripts import sm71_leak
+                gone = sm71_leak.deleted_review_ths(cc.data_path(run), user)
+                ths = np.asarray(labels[0], dtype=np.int64)
+                is_gone = np.isin(ths, gone)
+                for key, keep in (("benchmark_existing", ~is_gone), ("benchmark_deleted", is_gone)):
+                    sub = ([t for t, k in zip(labels[0], keep) if k], [b for b, k in zip(labels[1], keep) if k])
+                    rows[-1][key] = bench_metrics(user, sub, predictions)
             if args.dump:
                 dump_predictions(ROOT / args.dump, user, label, labels,
                                  predictions if args.legacy_metrics else predictions.to_dicts())
