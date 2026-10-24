@@ -1,0 +1,82 @@
+{
+ "created_utc": "2026-10-23T16:59:08.009198+00:00",
+ "source_run": "C:\\Users\\jonat\\workspace\\wt\\sm56\\artifacts\\accuracy\\experiments\\scale-w64kd-final-sc-lanes\\run",
+ "source_epoch": 10,
+ "source_case": "C:\\Users\\jonat\\workspace\\wt\\sm56\\artifacts\\accuracy\\experiments\\scale-w64kd-final-sc-lanes\\run\\epoch-10\\expertium\\E89-F65e-F77a",
+ "source_update_offset_end": 220780,
+ "model": "expertium",
+ "track": "E89-F65e-F77a",
+ "options": {
+  "prefetch_users": true,
+  "preparation_workers": 5,
+  "gpu_packed_features": true,
+  "packed_ipc": true,
+  "async_transfer": true,
+  "batched_id_encodings": true,
+  "grouped_sync": true,
+  "main_threads": 1,
+  "bulk_transfer": true,
+  "parallel_evaluation": true,
+  "exact_shift": true,
+  "batch_chunks": 1,
+  "gpu_memory_fraction": 0.8,
+  "fast_samples": true,
+  "prestart_pool": true,
+  "deferred_reads": true,
+  "shared_shift_orders": true,
+  "stream_launches": true,
+  "sync_free_loss": true,
+  "columnar_samples": true,
+  "skip_uninitialized_fill": true,
+  "host_placement": "physical",
+  "process_qos": true,
+  "deferred_read_depth": 2,
+  "bookkeeping_stride": 8,
+  "lean_step_reset": true,
+  "wddm_flush": true,
+  "architecture": "w64",
+  "distillation": {
+   "teacher": "C:/Users/jonat/workspace/anki/qt/aqt/rwkv_inference/RWKV_trained_on_5000_10000.pth",
+   "alpha": 0.9,
+   "decay_alpha": 0.5,
+   "kd_source": "replay",
+   "replay": "C:/Users/jonat/workspace/anki-rwkv/artifacts/cache/kd-replay/fork-fp32-final8k"
+  },
+  "chunk_reviews": 32768,
+  "state_carry": {
+   "lanes": "strided"
+  },
+  "training_seed": 2025,
+  "optimizer": "expertium-iter53"
+ },
+ "dropped_width32_options": [
+  "exact_group_norm",
+  "exact_index",
+  "native_glue",
+  "native_group_norm",
+  "native_index",
+  "native_wkv",
+  "prefetch_rows",
+  "row_tiles_exact",
+  "skip_padding_sources",
+  "wkv_tile"
+ ],
+ "fraction_of_epoch_reviews": 1.0,
+ "training_users": 8000,
+ "training_reviews": 581942738,
+ "train_users_from": "tier final (artifacts/accuracy/tiers.json)",
+ "shuffle_seed": 1,
+ "lr": "7e-4 -> 0, shape one_minus_sin, over all 581,942,738 reviews",
+ "evaluation_set": "none",
+ "evaluation_users": 0,
+ "control": "epoch-10 scores of the same users in C:\\Users\\jonat\\workspace\\wt\\sm56\\artifacts\\accuracy\\experiments\\scale-w64kd-final-sc-lanes\\run\\epoch-10\\expertium\\E89-F65e-F77a\\result.json",
+ "trimmed_unlabelled_tails": [
+  {
+   "user_id": 5599,
+   "from": 32782,
+   "to": 32768,
+   "dropped_reviews": 14
+  }
+ ],
+ "training_reviews_after_trims": 581942724
+}
