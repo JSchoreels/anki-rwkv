@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-10-24T19:00:46+02:00",
- "updated": "2026-10-24 19:00",
- "material": "5cd256e222920db1",
- "summary": "running 000652, finished 000651",
+ "generated_at": "2026-10-24T20:36:00+02:00",
+ "updated": "2026-10-24 20:36",
+ "material": "c9c73c1d884b83f1",
+ "summary": "running 000652",
  "headline": [
   {
    "k": "Best, 464 users (curve / instant)",
@@ -209,7 +209,7 @@
    "track": "small model",
    "ticket": "000652-small-model",
    "started": "19:00",
-   "elapsed": "0:00",
+   "elapsed": "1:35",
    "progress": null,
    "eta": "~21:05"
   }
@@ -926,6 +926,16 @@
    "track": "small model",
    "when": "Fri 10-23 &rarr; Sat 10-24 (dataset on CPU Thu&ndash;Fri; starts from the 8k model if it wins)",
    "decides": "The big bet: outside research saw about &minus;0.0005 / &minus;0.0008, a third to nearly half of today&rsquo;s gap",
+   "state": "planned"
+  },
+  {
+   "what": "Leak-free retrain: train the small model again with the deleted-card information removed from its training inputs (flags at 0, deleted cards put in the deck of the nearest existing card), then score both models without it. Models trained on today&rsquo;s inputs are tagged &ldquo;(leak inputs)&rdquo;",
+   "id": "SM72",
+   "kind": "gpu-train",
+   "minutes": 2100,
+   "track": "small model",
+   "when": "Code + CPU check done Sat 10-24 20:31 (only deleted-card rows change, 4 users). GPU plan to be decided with the user: leak-free decays first (small ~8.5 h, big ~4 h), full retrain ~35 h incl. leak-free teacher targets (~4.8 h)",
+   "decides": "Whether the small model&rsquo;s gap to the big model changes once neither model learned from the leak, and how much of it a single leak-free decay recovers vs a full retrain",
    "state": "planned"
   },
   {
