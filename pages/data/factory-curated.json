@@ -993,6 +993,19 @@
    "state": "planned"
   },
   {
+   "what": "Leak-free retrain: train the small model again with the deleted-card information removed from its training inputs (flags at 0, deleted cards put in the deck of the nearest existing card), then score both models without it. Models trained on today&rsquo;s inputs are tagged &ldquo;(leak inputs)&rdquo;",
+   "id": "SM72",
+   "kind": "gpu-train",
+   "minutes": 2100,
+   "track": "small model",
+   "match": [
+    "SM72"
+   ],
+   "when": "Code + CPU check done Sat 10-24 20:31 (only deleted-card rows change, 4 users). GPU plan to be decided with the user: leak-free decays first (small ~8.5 h, big ~4 h), full retrain ~35 h incl. leak-free teacher targets (~4.8 h)",
+   "decides": "Whether the small model&rsquo;s gap to the big model changes once neither model learned from the leak, and how much of it a single leak-free decay recovers vs a full retrain",
+   "state": "planned"
+  },
+  {
    "what": "Deleted-card leak check: about 1 review in 5 is on a card deleted before the data export, and both models see that in their inputs (Anki never does). Score the big model and the best small model without it, and on the cards that still exist only",
    "id": "SM71",
    "kind": "gpu-score",
