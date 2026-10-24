@@ -112,7 +112,8 @@ def record(k, label):
         print(f"[sm56-rule] epochs {missing} have no recorded loss")
         print("missing")
         return 2
-    cap = min(MAX_EPOCHS, int(CAP.read_text().split()[0])) if CAP.exists() else MAX_EPOCHS
+    # user 10-24: CAP-EPOCHS may raise the cap above MAX_EPOCHS (15; the experiment's epochs were raised to match)
+    cap = int(CAP.read_text().split()[0]) if CAP.exists() else MAX_EPOCHS
     stop, reason, detail = decide(L, k, FULL.exists(), cap)
     print(describe(k, L, stop, reason, detail))
     print("stop" if stop else "continue")
