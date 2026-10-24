@@ -1,7 +1,7 @@
 {
- "generated_at": "2026-10-24T18:20:32+02:00",
- "updated": "2026-10-24 18:20",
- "material": "ab2bf569f38171b1",
+ "generated_at": "2026-10-24T18:45:39+02:00",
+ "updated": "2026-10-24 18:45",
+ "material": "569294d51e1b78af",
  "summary": "running 000650",
  "headline": [
   {
@@ -209,7 +209,7 @@
    "track": "small model",
    "ticket": "000650-small-model",
    "started": "16:54",
-   "elapsed": "1:25",
+   "elapsed": "1:51",
    "progress": null,
    "eta": "~18:59"
   }
@@ -934,8 +934,8 @@
    "kind": "gpu-score",
    "minutes": 90,
    "track": "small model",
-   "when": "Sat 10-24 17:05: preparation and CPU estimate; GPU scoring after epoch 14 (~19:20), before the break",
-   "decides": "Honest numbers for both models, and whether the small model&rsquo;s gap to the big model changes once the leak is gone",
+   "when": "Sat 10-24 17:05&ndash;18:41: preparation + CPU estimate done; GPU scoring (458 users ~140 min, then 732 pool ~70 min) moved after the SM56 decay, Sun ~10:15",
+   "decides": "CPU estimate (40 / 200 users): both models use the leak (3 deleted-card flags, own note, placeholder deck and preset; 21.4% of test reviews), the big model a bit more. Flags at 0: instant +0.08% big, +0.05% small; gap moves by at most ~0.2 points either way (existing cards only: curve gap +0.11% &rarr; +0.28%). GPU numbers pending",
    "state": "planned"
   },
   {
@@ -971,7 +971,7 @@
    "kind": "gpu-train",
    "minutes": 1125,
    "track": "small model",
-   "when": "Sat 10-24 10:47 &rarr; epochs 11&ndash;13 done; paused 16:41&ndash;16:54; epoch 14 on the user&rsquo;s word (16:54 &rarr; ~19:05, scored ~19:17), then paused again; epoch 15 and the decay when the user says",
+   "when": "Sat 10-24 10:47 &rarr; epochs 11&ndash;13 done; paused 16:41&ndash;16:54; epoch 14 16:54&ndash;~18:55, scored ~19:08; epoch 15 tonight on the user&rsquo;s word (~19:10 &rarr; ~21:15, break moved to 21:30 tonight); epoch-15 scoring + decay from 01:30, result Sun ~10:15",
    "decides": "Do 5 more epochs still help after the decay, or only before it? (decay from e10: +0.34% / +0.47% vs the big model). The user may stop the PC at any time: epochs and decay resume from snapshots",
    "state": "running",
    "started": "16:54",
