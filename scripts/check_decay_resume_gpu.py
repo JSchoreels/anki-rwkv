@@ -101,8 +101,15 @@ def main():
     done = set(resume["done_users"])
     kept = [u for u in first if u["user_id"] in done] + second  # updates of users in flight at the stop were retrained
     keys = [(u["user_id"], u["offset"]) for u in kept]
-    record("B's kept updates cover A's exactly once", sorted(keys) == sorted(ua) and len(set(keys)) == len(keys),
-           {"A": len(ua), "B kept": len(keys), "B retrained": len(first) - sum(u["user_id"] in done for u in first)})
+    # Deferred reads log an update only after the next ones are queued: the snapshot's last updates are applied but
+    # not in attempt 1's log. They must be exactly the snapshot's unlogged count, all of done users.
+    snap = json.loads((dirs["B"] / "attempts/attempt-1/expertium" / track / "snapshots/latest.json").read_text())
+    unlogged = [k for k in ua if k not in set(keys)]
+    record("B's kept updates cover A's exactly once (applied but unlogged at the stop: done users only)",
+           len(set(keys)) == len(keys) and set(keys) <= set(ua) and len(unlogged) == snap["updates"] - len(first)
+           and all(k[0] in done for k in unlogged),
+           {"A": len(ua), "B kept": len(keys), "unlogged": len(unlogged), "snapshot_updates": snap["updates"],
+            "attempt_1_logged": len(first), "B retrained": len(first) - sum(u["user_id"] in done for u in first)})
     common = [(u, ua[k]) for u, k in zip(kept, keys) if k in ua]
     lr_gap = max(abs(u["lr"] - a["lr"]) for u, a in common)
     record("same batch seeds", all(u["seed"] == a["seed"] for u, a in common))

@@ -117,6 +117,22 @@ def main():
     except RuntimeError:
         record("stopped in evaluation is refused", True)
 
+    import torch
+    from scripts.muon_optimizer import expertium_iter53
+
+    class Toy(torch.nn.Module):
+        def __init__(self):
+            super().__init__()
+            self.lora_weight = torch.nn.Parameter(torch.randn(4, 4))
+            self.bias = torch.nn.Parameter(torch.zeros(4))
+    optimizer = expertium_iter53(Toy())
+    optimizer.load_state_dict(optimizer.state_dict())
+    for group in optimizer.param_groups:
+        group["lr"] = 1.25e-4
+    inner = optimizer.adamw.param_groups + optimizer.muon.param_groups
+    record("Muon optimizer: lr writes reach the loaded groups", len(optimizer.muon.param_groups) > 0
+           and all(group["lr"] == 1.25e-4 for group in inner))
+
     rows = fake_decay(out, users)
     interrupt(out, [], 0, status="failed", snapshot=False)
     D.resume_point(out, {"track": TRACK})
