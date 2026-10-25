@@ -3,7 +3,15 @@ training with carried state (SM21)", "Recommended design (v1): fresh carry at up
 
 Opt-in track option (absent = today's batches, losses and gradients bit for bit; nothing in this file runs):
 
-    "state_carry": true | {"precision": "deploy" | "fp32", "carry": true | false, "lanes": "update" | "strided"}
+    "state_carry": true | {"precision": "deploy" | "fp32", "carry": true | false, "lanes": "update" | "strided",
+                           "table_gpu_mib": N}
+
+"table_gpu_mib" (SM72, absent = the table always lives on the GPU and commits as below): a user whose table would
+take more than N MiB keeps it in host memory (lookups gather the update's rows on the CPU and copy them over, commits
+copy the touched rows back); every user's commits write only the touched slots (index_copy_, no table-sized
+temporaries), each (stream, layer) commits right after its own forward (its slot is read once per update, before
+that forward, so the order of commits does not matter), and the CUDA cache is emptied at each new user. Stored and
+read values are the same as without the key, so losses and gradients are unchanged; only memory and speed differ.
 
 "carry": false is the paired control: the same per-user inputs (consistent encodings, user-level day features) and the
 same code path, but every window starts from zero state (the table is never read or written).
@@ -68,7 +76,7 @@ def parse(spec):
         spec = {}
     if not isinstance(spec, dict):
         raise ValueError(f"state_carry must be true or a dict, got {spec!r}")
-    unknown = set(spec) - {"precision", "carry", "lanes"}
+    unknown = set(spec) - {"precision", "carry", "lanes", "table_gpu_mib"}
     if unknown:
         raise ValueError(f"Unknown state_carry keys {sorted(unknown)}")
     precision = spec.get("precision", "deploy")
@@ -82,6 +90,11 @@ def parse(spec):
     out = {"precision": precision, "carry": spec.get("carry", True)}
     if lanes == "strided":  # v1 specs keep their exact parsed form (describe() of v1 runs is unchanged)
         out["lanes"] = "strided"
+    if "table_gpu_mib" in spec:  # SM72; absent keeps the parsed form of every earlier run
+        budget = spec["table_gpu_mib"]
+        if isinstance(budget, bool) or not isinstance(budget, int) or budget < 0:
+            raise ValueError("state_carry table_gpu_mib must be an integer >= 0")
+        out["table_gpu_mib"] = budget
     return out
 
 
@@ -228,8 +241,12 @@ def rank1_unpack(P):
 
 
 class CarryTable:
-    def __init__(self, precision="deploy"):
+    def __init__(self, precision="deploy", gpu_mib=None):
         self.precision = precision
+        # SM72: None = today's table (always on the GPU, table-wide where-merge on commit); an integer = the
+        # budgeted table (host memory above gpu_mib MiB, touched-slot commits); see the module docstring
+        self.gpu_mib = gpu_mib
+        self.host = False
         # SM32c: streams whose WKV state is VQ-coded (state_vq): their stored S is the codec's reconstruction, kept in
         # float32 (the deployed code reconstructs exactly; int8 rows on top would add a rounding the phone never does)
         self.fp32_streams = set()
@@ -242,6 +259,7 @@ class CarryTable:
         """New user: drop every state; `universe` = entity_universe(section) of that user (v1: one slot per entity)
         or lane_universe(...) (v2: one slot per (lane, entity) pair that occurs)."""
         self.slots = {}
+        self.host = False
         laned = isinstance(universe[BATCH_STREAMS[0]], tuple)
         entities = [universe[stream][0] if laned else universe[stream] for stream in BATCH_STREAMS]
         self.universe = [torch.as_tensor(values, dtype=torch.long).to(device) for values in entities]
@@ -255,11 +273,29 @@ class CarryTable:
             return code
         return torch.searchsorted(self.keys[stream], lane * self.universe[stream].numel() + code)
 
+    def place(self, nbytes):
+        """SM72 budgeted table: the new user's table goes to host memory when it would exceed the budget."""
+        self.host = nbytes > self.gpu_mib * 2 ** 20
+        return self.host
+
     def lookup(self, stream, layer, codes, dtype):
         """(has [n], tm_shift [n, C], S [n, H, K, K] float32, cm_shift [n, C] or None), or None before any commit."""
         slot = self.slots.get((stream, layer))
         if slot is None:
             return None
+        if self.host:  # the same rows, gathered on the CPU and copied to the update's device
+            device, rows = codes.device, codes.cpu()
+
+            def pick(name):
+                return slot[name].index_select(0, rows).to(device)
+            if slot.get("rank1"):
+                S = rank1_unpack(pick("S"))
+            elif slot["scale"] is not None:
+                S = pick("S").float() * pick("scale").float()
+            else:
+                S = pick("S").float()
+            cm = pick("cm").to(dtype) if slot["cm"] is not None else None
+            return pick("has"), pick("tm").to(dtype), S.contiguous(), cm
         if slot.get("rank1"):
             S = rank1_unpack(slot["S"].index_select(0, codes))
         elif slot["scale"] is not None:
@@ -299,13 +335,25 @@ class CarryTable:
             store, scale, half = S.to(torch.float16), None, torch.float16
         slot = self.slots.get((stream, layer))
         if slot is None:
+            where = "cpu" if self.host else codes.device
             slot = self.slots[(stream, layer)] = {
-                "has": torch.zeros(E, dtype=torch.bool, device=codes.device),
-                "tm": torch.zeros((E, *tm.shape[1:]), dtype=half, device=codes.device),
-                "S": torch.zeros((E, *store.shape[1:]), dtype=store.dtype, device=codes.device),
-                "scale": None if scale is None else torch.ones((E, *scale.shape[1:]), dtype=scale.dtype, device=codes.device),
-                "cm": None if cm is None else torch.zeros((E, *cm.shape[1:]), dtype=half, device=codes.device),
+                "has": torch.zeros(E, dtype=torch.bool, device=where),
+                "tm": torch.zeros((E, *tm.shape[1:]), dtype=half, device=where),
+                "S": torch.zeros((E, *store.shape[1:]), dtype=store.dtype, device=where),
+                "scale": None if scale is None else torch.ones((E, *scale.shape[1:]), dtype=scale.dtype, device=where),
+                "cm": None if cm is None else torch.zeros((E, *cm.shape[1:]), dtype=half, device=where),
                 "rank1": stream in self.fp32_streams and self.precision != "fp32"}
+
+        if self.gpu_mib is not None:  # SM72: write the touched slots only (the same values as the where-merge below)
+            hit = torch.nonzero(touched).squeeze(-1)
+            rows = source.index_select(0, hit)
+            target_rows = hit.cpu() if self.host else hit
+            slot["has"].index_fill_(0, target_rows, True)
+            for name, values in (("tm", tm), ("S", store), ("scale", scale), ("cm", cm)):
+                if values is not None:
+                    target = slot[name]
+                    target.index_copy_(0, target_rows, values.index_select(0, rows).to(target.dtype).to(target.device))
+            return
 
         def update(name, values):
             target = slot[name]
@@ -469,7 +517,8 @@ class StateCarry:
         self.spec = parse(spec)
         if options is not None:
             validate_options(options)
-        self.table = CarryTable(self.spec["precision"])
+        self.table = CarryTable(self.spec["precision"], self.spec.get("table_gpu_mib"))
+        self.place_pending = False
         self.user = None
         self.model = None
         self.model_key = None
@@ -479,6 +528,8 @@ class StateCarry:
         self.windows = None
         self.lane_offset = 0
         self.stats = {"users": 0, "updates": 0, "streams_calls": 0, "peak_table_bytes": 0}
+        if self.spec.get("table_gpu_mib") is not None:
+            self.stats["host_table_users"] = 0
 
     def attach(self, item, batch, user):
         """Before the update's loss: the item's entity rows, and the table reset at a new user's first update."""
@@ -489,6 +540,9 @@ class StateCarry:
             if isinstance(item.carry_universe[BATCH_STREAMS[0]], tuple) != (self.spec.get("lanes") == "strided"):
                 raise RuntimeError("state_carry: the item's entity universe does not match the lanes option")
             self.table.reset(item.carry_universe, device)
+            if self.table.gpu_mib is not None:  # SM72: drop the previous user's cached blocks; place at the first forward
+                torch.cuda.empty_cache()
+                self.place_pending = True
             self.user = user
             self.stats["users"] += 1
         device = batch.labels.device
@@ -586,6 +640,13 @@ class StateCarry:
         self.table.fp32_streams = {i for i, layer in model.layer_steps
                                    if getattr(getattr(getattr(model.rwkv_modules, str(i)).blocks, str(layer)).time_mixer,
                                               "state_vq_slot", -1) >= 0}
+        budgeted = self.table.gpu_mib is not None
+        if budgeted and self.place_pending:
+            self.place_pending = False
+            if self.table.place(self._table_bytes(model)):
+                self.stats["host_table_users"] += 1
+        if budgeted and len(set(model.layer_steps)) != len(model.layer_steps):
+            raise RuntimeError("state_carry table_gpu_mib: early commits need each (stream, layer) once per update")
         for i, layer in model.layer_steps:
             block = getattr(getattr(model.rwkv_modules, str(i)).blocks, str(layer))
             if exact:
@@ -602,6 +663,8 @@ class StateCarry:
                                                       batch_skips[i][s].view(-1, length), init)
                 records.setdefault((i, layer), []).append((codes[i][s], windows[i][s], final))
                 outputs.append(x_out.reshape(-1, model.d_model))
+            if budgeted and self.spec["carry"]:  # SM72: this slot was read for every split above; free the finals now
+                self.table.commit(i, layer, records.pop((i, layer)), self.windows)
             flat = torch.cat(outputs)
             if exact:
                 kept = OrderedIndexSelect.apply(flat, fused_positions[i], *position_orders[i])
@@ -613,6 +676,21 @@ class StateCarry:
         for (i, layer), stream_records in records.items() if self.spec["carry"] else ():
             self.table.commit(i, layer, stream_records, self.windows)
         return x
+
+    def _table_bytes(self, model):
+        """SM72: bytes the user's table will take (every (stream, layer) slot of model.layer_steps, as commit stores it)."""
+        total = 0
+        for i, layer in model.layer_steps:
+            tm = getattr(getattr(model.rwkv_modules, str(i)).blocks, str(layer)).time_mixer
+            H, K, C = int(tm.H), int(tm.K), int(model.d_model)
+            if self.table.precision == "fp32":
+                per = H * K * K * 4 + 2 * C * 4
+            elif BATCH_STREAMS[i] in INT8_STREAMS:
+                per = H * K * K + H * K * 2 + 2 * C * 2
+            else:
+                per = H * K * K * 2 + 2 * C * 2
+            total += self.table.size[i] * (per + 1)
+        return total
 
     def describe(self):
         # stats is the live dict: result.json snapshots carry the current counters

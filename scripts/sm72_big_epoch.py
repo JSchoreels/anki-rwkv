@@ -45,6 +45,9 @@ DATA = Path("C:/Users/jonat/workspace/anki-rwkv/data/anki-revlogs-10k-original-2
 USERS = range(5000, 10001)  # upstream TRAIN_USERS_START / TRAIN_USERS_END (inclusive)
 TRACK = "big-leakfree-1ep"
 MODE = "neighbour"
+# carry tables above this stay in host memory (state_carry table_gpu_mib): the first launch died at user 44 (9974,
+# 57k cards, a ~1.4 GB table + table-sized commit temporaries on top of ~9.6 GB of activations at the 12.7 GB cap)
+TABLE_GPU_MIB = 768
 PEAK = 3.5e-4  # user 10-25: half the upstream peak (the update holds ~half of upstream's 66k-review batch)
 # The full retrain's decay (read only): its R01 speed options are the carry recipe's base.
 SM56_DECAY = Path("C:/Users/jonat/workspace/wt/sm56/artifacts/small-model/scale-w64kd-final-sc-lanes-dec15-1ep32k-muon/decay.json")
@@ -106,7 +109,7 @@ def check(users):
     return 0 if report["pass"] else 1
 
 
-def carry_options(chunk, batch_chunks, memory):
+def carry_options(chunk, batch_chunks, memory, table_gpu_mib=TABLE_GPU_MIB):
     """SM72 carry recipe: the full retrain's decay options (SM56) without its teacher and Muon, the fork's architecture
     through the variant class ("fork": stream-major, so the carried-state hook applies), the switches that
     architecture cannot run removed, strided lanes with carried state."""
@@ -114,11 +117,13 @@ def carry_options(chunk, batch_chunks, memory):
     base = json.loads(SM56_DECAY.read_text())["options"]
     options = {k: v for k, v in base.items() if k not in ("distillation", "optimizer")}
     options.update(architecture="fork", chunk_reviews=chunk, batch_chunks=batch_chunks, gpu_memory_fraction=memory,
-                   state_carry={"lanes": "strided"}, training_seed=2025)
+                   state_carry={"lanes": "strided", **({} if table_gpu_mib < 0 else {"table_gpu_mib": table_gpu_mib})},
+                   training_seed=2025)
     return compatible_options(options)
 
 
-def prepare(out, warmup, chunk, batch_chunks, seed, snapshot_users, memory, probe, peak=PEAK, carry=True):
+def prepare(out, warmup, chunk, batch_chunks, seed, snapshot_users, memory, probe, peak=PEAK, carry=True,
+            table_gpu_mib=TABLE_GPU_MIB, probe_users=None):
     if out.exists():
         raise FileExistsError(f"{out} exists; pick a new output")
     run = json.loads(RUN8K.read_text())
@@ -128,12 +133,19 @@ def prepare(out, warmup, chunk, batch_chunks, seed, snapshot_users, memory, prob
     if probe:  # the 4 longest users, each cut to 131,072 reviews (2 updates at 2 x 32,768): memory and speed only
         users = sorted(users, key=lambda u: -counts[str(u)])[:4]
     cut = 131_072 if probe else None
-    rows = [{"user_id": u, "available_reviews": counts[str(u)], "train_range": [0, min(counts[str(u)], cut or counts[str(u)])],
+    cuts = {}
+    if probe_users:  # "user[:reviews],...": a memory probe on chosen users (0 / no cut = the whole history)
+        for part in probe_users.split(","):
+            user, _, n = part.partition(":")
+            cuts[int(user)] = int(n or 0) or None
+        users, probe = list(cuts), True
+    rows = [{"user_id": u, "available_reviews": counts[str(u)],
+             "train_range": [0, min(counts[str(u)], cuts.get(u, cut) or counts[str(u)])],
              "validation_range": [0, counts[str(u)]]} for u in users]
     reviews = sum(r["train_range"][1] for r in rows)
     dropped = []
     if carry:
-        options, dropped = carry_options(chunk, batch_chunks, memory)
+        options, dropped = carry_options(chunk, batch_chunks, memory, table_gpu_mib)
     else:  # fallback: fresh-state sections through the baseline class (the first prepared recipe)
         options = {"prefetch_users": True, "preparation_workers": 5, "chunk_reviews": chunk, "batch_chunks": batch_chunks,
                    "gpu_memory_fraction": memory, "training_seed": 2025}
@@ -176,6 +188,9 @@ def main():
     parser.add_argument("--snapshot-users", type=int, default=SNAPSHOT_USERS)
     parser.add_argument("--memory", type=float, default=0.8)
     parser.add_argument("--probe", action="store_true")
+    parser.add_argument("--probe-users", help="user[:reviews],... memory probe on these users (implies --probe)")
+    parser.add_argument("--table-gpu-mib", type=int, default=TABLE_GPU_MIB,
+                        help="carry tables above this many MiB stay in host memory; -1 = always on the GPU (before SM72)")
     args = parser.parse_args()
     if args.command == "check":
         return check([int(u) for u in args.users.split(",")])
@@ -188,7 +203,7 @@ def main():
         parser.error(f"set RWKV_DELETED_CARDS={MODE} (leak-free training inputs)")
     if args.command == "prepare":
         return prepare(out, args.warmup_updates, args.chunk_reviews, args.batch_chunks, args.seed, args.snapshot_users,
-                       args.memory, args.probe, args.peak, not args.fresh_state)
+                       args.memory, args.probe, args.peak, not args.fresh_state, args.table_gpu_mib, args.probe_users)
     from scripts import expertium_decay
     if args.command in ("stop", "save"):
         (out / "control").mkdir(exist_ok=True)
