@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-10-25T08:57:43+01:00",
- "updated": "2026-10-25 08:57",
- "material": "e3b4b4e2f35e91d2",
- "summary": "running 000655, finished 000654",
+ "generated_at": "2026-10-25T09:12:48+01:00",
+ "updated": "2026-10-25 09:12",
+ "material": "8040fb610fe57a21",
+ "summary": "running 000656, finished 000655",
  "headline": [
   {
    "k": "Best, 464 users (curve / instant)",
@@ -63,7 +63,17 @@
      "quant": "w8+s8"
     },
     {
-     "variant": "Best: full retrain with all 8,000 users in every epoch (SM56), on the 723 users it fits (big model there 0.30139 / 0.27786)",
+     "variant": "Best: full retrain (SM56) with 5 more epochs, cool-down from epoch 15 (leak inputs), on the 723 users it fits (big model there 0.30139 / 0.27786); vs the cool-down from epoch 10: curve &minus;0.00022 [&minus;0.00035, &minus;0.00009], instant &minus;0.00030 [&minus;0.00034, &minus;0.00026]",
+     "curve": 0.3022,
+     "instant": 0.27887,
+     "curve_pct": 0.27,
+     "instant_pct": 0.37,
+     "eval": "723 users, 30.48M reviews",
+     "date": "10-25",
+     "quant": "w8+s8"
+    },
+    {
+     "variant": "Previous best: full retrain with all 8,000 users in every epoch (SM56), on the 723 users it fits (big model there 0.30139 / 0.27786)",
      "curve": 0.30242,
      "instant": 0.27917,
      "curve_pct": 0.34,
@@ -199,23 +209,32 @@
  ],
  "now": [
   {
-   "what": "Full retrain from scratch on all 8,000 users (581.9M reviews per epoch), carried state at 2,048 windows every epoch; 10 epochs (user 10-23: no early stop on a plateau, stop after epoch 10 so the decay starts right after tonight&rsquo;s break; 5.8B reviews, the 8k model (SM55) saw 4.4B before its decay), then the same 8 h decay as the 8k model (SM55); 464-user read-out after every epoch",
-   "id": "SM56, ticket 000655",
-   "kind": "gpu-train",
-   "decides": "Whether having all 8,000 users in every epoch (not only the decay) beats the 8k model (SM55)",
+   "what": "Deleted-card leak check: about 1 review in 5 is on a card deleted before the data export, and both models see that in their inputs (Anki never does). Score the big model and the best small model without it, and on the cards that still exist only",
+   "id": "SM71, ticket 000656",
+   "kind": "gpu-score",
+   "decides": "CPU estimate (40 / 200 users): both models use the leak (3 deleted-card flags, own note, placeholder deck and preset; 21.4% of test reviews), the big model a bit more. Flags at 0: instant +0.08% big, +0.05% small; gap moves by at most ~0.2 points either way (existing cards only: curve gap +0.11% &rarr; +0.28%). GPU numbers pending",
    "why": "",
-   "job": "SM56 scoring s-w64kd-final-sc-lanes-dec15-1ep32k-muon on the 732 pool minus 9 never-fit (723; includes the 464 set) (pass 1)",
+   "job": "SM71 deleted-card leak: big (fork/w8+s8) inputs=keep, 464 users, split existing/deleted",
    "linked": true,
    "track": "small model",
-   "ticket": "000655-small-model",
-   "started": "08:57",
-   "elapsed": "0:00",
+   "ticket": "000656-small-model",
+   "started": "09:10",
+   "elapsed": "0:02",
    "progress": null,
-   "eta": "~09:17"
+   "eta": "~09:30"
   }
  ],
  "waiting": [],
  "recent": [
+  {
+   "ticket": "000655-small-model",
+   "id": "SM56",
+   "what": "SM56 scoring s-w64kd-final-sc-lanes-dec15-1ep32k-muon on the 732 pool minus 9 never-fit (723; includes the 464 set) (pass 1)",
+   "ended": "09:08",
+   "date": "10-25",
+   "exit": 0,
+   "ran": "0:11"
+  },
   {
    "ticket": "000654-small-model",
    "id": "SM56",
@@ -260,15 +279,6 @@
    "date": "10-24",
    "exit": 0,
    "ran": "1:57"
-  },
-  {
-   "ticket": "000649-small-model",
-   "id": "SM56",
-   "what": "SM56 decay from e10 on the 3 long 732-pool users (650, 1601, 4501) at the 0.92 cap",
-   "ended": "16:50",
-   "date": "10-24",
-   "exit": 0,
-   "ran": "0:00"
   }
  ],
  "plan": [
@@ -859,11 +869,12 @@
    "what": "Full retrain from scratch on all 8,000 users (581.9M reviews per epoch), carried state at 2,048 windows every epoch; 10 epochs (user 10-23: no early stop on a plateau, stop after epoch 10 so the decay starts right after tonight&rsquo;s break; 5.8B reviews, the 8k model (SM55) saw 4.4B before its decay), then the same 8 h decay as the 8k model (SM55); 464-user read-out after every epoch",
    "when": "Done Sat 10-24 10:14: +0.34% / +0.47% vs the big model on 723 users, new best",
    "decides": "Whether having all 8,000 users in every epoch (not only the decay) beats the 8k model (SM55)",
-   "state": "running",
+   "state": "done",
+   "ended": "09:08",
+   "exit": 0,
    "started": "08:57",
-   "ticket": "000655-small-model",
-   "started_at": "2026-10-25T02:01:26+02:00",
-   "ends_at": "2026-10-26T06:01:26+02:00"
+   "started_at": "2026-10-25T08:57:07+01:00",
+   "ended_at": "2026-10-25T09:08:25+01:00"
   },
   {
    "what": "Muon tuning, arm 1: SM36&rsquo;s one-epoch 32k decay with the learning rate &times;0.5 (pointer from outside research), saving 4 snapshots along the decay for SM51",
@@ -939,9 +950,13 @@
    "kind": "gpu-score",
    "minutes": 90,
    "track": "small model",
-   "when": "Sat 10-24 17:05&ndash;18:41: preparation + CPU estimate done; GPU scoring (458 users ~140 min, then 732 pool ~70 min) moved after the SM56 decay, Sun ~10:15",
+   "when": "Sat 10-24 17:05&ndash;18:41: preparation + CPU estimate done; GPU scoring started Sun 10-25 09:10 (458 users ~140 min, then the 732 pool ~70 min), ~12:45",
    "decides": "CPU estimate (40 / 200 users): both models use the leak (3 deleted-card flags, own note, placeholder deck and preset; 21.4% of test reviews), the big model a bit more. Flags at 0: instant +0.08% big, +0.05% small; gap moves by at most ~0.2 points either way (existing cards only: curve gap +0.11% &rarr; +0.28%). GPU numbers pending",
-   "state": "planned"
+   "state": "running",
+   "started": "09:10",
+   "ticket": "000656-small-model",
+   "started_at": "2026-10-25T09:10:11+01:00",
+   "ends_at": "2026-10-25T10:40:11+01:00"
   },
   {
    "what": "Feature discovery (CPU): which extra inputs (user habits, time of day, session position, card and deck fields, features built from the history) would the best small model still gain from? Measured on held-out users from its own predictions, deployable inputs only",
@@ -976,13 +991,14 @@
    "kind": "gpu-train",
    "minutes": 1125,
    "track": "small model",
-   "when": "Sat 10-24 10:47 &rarr; epochs 11&ndash;13 done; paused 16:41&ndash;16:54; epoch 14 16:54&ndash;~18:55, scored ~19:08; epoch 15 19:10&ndash;20:45, scored 20:53 (0.29952 / 0.27532, cap reached); decay from epoch 15 from 02:00 (break end moved to 02:00), result Sun ~10:35",
-   "decides": "Do 5 more epochs still help after the decay, or only before it? (decay from e10: +0.34% / +0.47% vs the big model). The user may stop the PC at any time: epochs and decay resume from snapshots",
-   "state": "running",
-   "started": "08:57",
-   "ticket": "000655-small-model",
+   "when": "Sat 10-24 10:47 &rarr; Sun 10-25 09:08: epochs 11&ndash;15 (scored after each), cool-down from epoch 15 02:01&ndash;08:57, scored 09:08",
+   "decides": "Done: the 5 extra epochs help after the cool-down: +0.27% / +0.37% vs the big model on 723 users (from epoch 10: +0.34% / +0.47%), &minus;0.00022 / &minus;0.00030, both significant",
+   "state": "done",
+   "ended": "09:08",
+   "exit": 0,
+   "started": "19:00",
    "started_at": "2026-10-24T19:00:11+02:00",
-   "ends_at": "2026-10-25T13:45:11+02:00"
+   "ended_at": "2026-10-25T09:08:25+01:00"
   },
   {
    "what": "Resumable cool-down check: a small cool-down run straight through vs stopped halfway and resumed (same learning rate, loss and weights?)",
@@ -1404,6 +1420,76 @@
   }
  ],
  "results": [
+  {
+   "date": "10-25",
+   "kind": "gpu-train",
+   "name": "Full retrain (SM56), longer: epochs 11&ndash;15 from epoch 10, then the same one-epoch 32k Muon cool-down from epoch 15 (leak inputs), compared with the cool-down from epoch 10 (the released version)",
+   "id": "SM56",
+   "curve": 0.3022,
+   "instant": 0.27887,
+   "curve_pct": 0.27,
+   "instant_pct": 0.37,
+   "eval": "723 users (732 set minus 9 never-fit), 30.48M reviews",
+   "fork": "the big model on the same users: 0.30139 / 0.27786",
+   "takeaway": "<strong>New best, on both heads</strong>: +0.27% / +0.37% vs the big model on 723 users (cool-down from epoch 10: +0.34% / +0.47%). vs the cool-down from epoch 10: curve &minus;0.00022 [&minus;0.00035, &minus;0.00009], instant &minus;0.00030 [&minus;0.00034, &minus;0.00026], better for 489 / 593 of 723 users. 464 set: +0.26% / +0.36%. Epochs 11&ndash;15 looked flat before the cool-down (0.2991&ndash;0.3001) but still help after it. Trained on the deleted-card leak inputs, like the big model",
+   "track": "small model",
+   "started_at": "2026-10-24T10:47+02:00",
+   "ended_at": "2026-10-25T09:08+01:00",
+   "gpu_minutes": 1080,
+   "tickets": 12,
+   "detail": {
+    "verdict": "5 more epochs before the cool-down help: &minus;0.00022 curve / &minus;0.00030 instant, both significant",
+    "table": {
+     "head": [
+      "Comparison",
+      "Curve",
+      "Instant"
+     ],
+     "rows": [
+      [
+       "vs the big model, 723 users",
+       "+0.27%",
+       "+0.37%"
+      ],
+      [
+       "Scores on those 723 users (big model)",
+       "0.30220 (0.30139)",
+       "0.27887 (0.27786)"
+      ],
+      [
+       "vs the cool-down from epoch 10, 723 users",
+       "&minus;0.00022 [&minus;0.00035, &minus;0.00009]",
+       "&minus;0.00030 [&minus;0.00034, &minus;0.00026]"
+      ],
+      [
+       "vs the big model, 464 set (458 users)",
+       "+0.26%",
+       "+0.36%"
+      ],
+      [
+       "vs the cool-down from epoch 10, 458 users",
+       "&minus;0.00019 [&minus;0.00039, &minus;0.00001]",
+       "&minus;0.00029 [&minus;0.00034, &minus;0.00024]"
+      ],
+      [
+       "Users better than with the cool-down from epoch 10 (723)",
+       "489",
+       "593"
+      ],
+      [
+       "Epoch 15 before the cool-down (458 users)",
+       "0.29952",
+       "0.27532"
+      ],
+      [
+       "Cool-down training",
+       "581.9M reviews, ~7 h 56 min wall",
+       "20,484 reviews/s"
+      ]
+     ]
+    }
+   }
+  },
   {
    "date": "10-24",
    "kind": "gpu-check",
