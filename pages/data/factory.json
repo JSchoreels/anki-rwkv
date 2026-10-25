@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-10-25T09:38:00+01:00",
- "updated": "2026-10-25 09:38",
- "material": "0c3275ca30fa1a44",
- "summary": "running 000661, finished 000660",
+ "generated_at": "2026-10-25T09:43:03+01:00",
+ "updated": "2026-10-25 09:43",
+ "material": "307012ec821a7d49",
+ "summary": "running 000661",
  "headline": [
   {
    "k": "Best, 464 users (curve / instant)",
@@ -219,12 +219,19 @@
    "track": "small model",
    "ticket": "000661-small-model",
    "started": "09:37",
-   "elapsed": "0:00",
+   "elapsed": "0:05",
    "progress": null,
    "eta": "~09:47"
   }
  ],
- "waiting": [],
+ "waiting": [
+  {
+   "ticket": "000662-small-model",
+   "id": "SM72",
+   "what": "SM72 big-model leak-free epoch: GPU memory/speed probe 3 (4 users x 131k reviews, 1 x 16,384 per update)",
+   "flags": "expected 8 min"
+  }
+ ],
  "recent": [
   {
    "ticket": "000660-small-model",
@@ -942,12 +949,8 @@
    "track": "small model",
    "when": "Code + CPU check done Sat 10-24 20:31 (only deleted-card rows change, 4 users). Plan agreed 20:40: (1) the big model gets one added leak-free epoch from its shipped weights, Sun 10-25 from ~13:45 (~3.6 h); (2) its predictions exported once as the leak-free teacher (~4.8 h); (3) the small model retrained leak-free, 10 epochs + decay (~29 h)",
    "decides": "Whether the small model&rsquo;s gap to the big model changes once neither model learned from the leak, and how much of it a single leak-free decay recovers vs a full retrain",
-   "state": "done",
-   "ended": "09:37",
-   "exit": 1,
-   "started": "09:37",
-   "started_at": "2026-10-25T09:37:24+01:00",
-   "ended_at": "2026-10-25T09:37:50+01:00"
+   "state": "waiting",
+   "ticket": "000662-small-model"
   },
   {
    "what": "Deleted-card leak check: about 1 review in 5 is on a card deleted before the data export, and both models see that in their inputs (Anki never does). Score the big model and the best small model without it, and on the cards that still exist only",
