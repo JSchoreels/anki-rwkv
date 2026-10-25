@@ -3,6 +3,49 @@
 Branch `sm72` (worktree `C:/Users/jonat/workspace/wt/sm72`), cut from `sm71`. Write-up with the check, the estimates, the
 big-model facts and the open decisions: `artifacts/small-model/sm72/README.md`. No GPU job was launched; nothing queued.
 
+## State 2026-10-25 ~10:00: steps 1 (big model leak-free epoch) and 2 (teacher targets) ready, NOT launched
+
+Plan (user 10-24 ~20:40): (1) the big model gets ONE leak-free epoch from its shipped weights, (2) leak-free teacher
+targets are exported once from that model, (3) the small model is retrained leak-free on them (sections below).
+
+- `scripts/sm72_big_epoch.py` (4c0c63f4): `check` / `prepare` / `run` / `smoke` / `stop` / `save`. The fork's
+  architecture is the R01 trainer's "baseline" model (`SrsRWKV(DEFAULT_ANKI_RWKV_CONFIG)`, the scorer's fork class); the
+  run folder is a `scripts/expertium_decay.py` folder with `"model": "baseline"` (that script now reads the model from
+  decay.json; every earlier decay says expertium), so the epoch is resumable from snapshots every 400 users.
+- CPU check PASS (`artifacts/small-model/sm72/check-big-load-sm72.json`): 2,762,884 parameters, the shipped state dict
+  loads into the trainer's model bit for bit, and the scorer gives identical rows (fp32 and w8+s8, users 2388 and 4676)
+  for the shipped file and the trainer's re-saved copy.
+- Prepared run: `artifacts/small-model/sm72-big-leakfree-1ep` (users 5000-10000 shuffled seed 1, 5,001 users, 370,299,909
+  reviews, fresh AdamW, LR 7e-4 x linear warmup 200 updates x one_minus_sin (upstream TRAIN_MODE "D") to 0 over the
+  epoch's reviews, 1 x 16,384 reviews per update = 25,065 updates, cap 0.8, RWKV_DELETED_CARDS=neighbour).
+- GPU probes (`artifacts/small-model/sm72/probe-big-sm72.json`; the 4 longest users x 131,072 reviews): 2 x 32,768 and
+  1 x 32,768 per update run out of memory at the 0.8 cap (12.7 GB); 1 x 16,384: 7,572 reviews/s, 9.0 GB, mean loss
+  0.6377; 2 x 8,192: 12,248/s, 0.6438; 4 x 4,096: 16,051/s, 0.6508; 8 x 2,048: 17,781/s, 0.6604. Each window is one
+  sequence from a fresh state and the recurrence is sequential in the window length: longer windows are slower but
+  closer to upstream (32,768-review sections) and to scoring (whole history); the loss rises as windows shorten.
+  At 1 x 16,384 the epoch is **~13.6 h GPU**, not the 3.6 h estimated from R01's 128-review windows. Faster choice:
+  `--batch-chunks 2 --chunk-reviews 8192` (~8.4 h). To switch: delete the prepared folder, re-run `prepare`
+  (with `RWKV_DELETED_CARDS=neighbour`) with the new values, and set `RATE` in the launcher.
+- Launcher `artifacts/small-model/sm72/launch-sm72-big.sh` (DRYRUN=1 checked): waits for SM71's runbook "done" (or its
+  process gone); trains in segments, each queue ticket ending at the next quiet window (a watcher requests a snapshot
+  stop 2 min before or inside a window; the next segment resumes after it); then scores `big-leakfree-1ep/w8+s8` with
+  `--split-existing`, keep and neighbour inputs, 464 set, 732 pool, 3 long users (0.92 cap), into
+  `artifacts/small-model/sm72/gpu-big/bigleak-{keep,neighbour}.jsonl` (scorers run with `env -u RWKV_DELETED_CARDS`);
+  then exports the teacher targets from the new `master.pth` (`--teacher`) into the NEW folder
+  `C:/Users/jonat/workspace/anki-rwkv/artifacts/cache/kd-replay/big-leakfree-1ep-final8k-neighbour` (the 8,000
+  final-tier users of `sm55-final8k-run.json`, ~4.8 h, tickets cut at windows with `--time-limit`), status, CPU verify.
+  Log `artifacts/small-model/sm72/gpu-big/launch-sm72-big.log`; stop: `touch artifacts/small-model/sm72/gpu-big/STOP`.
+- Launch (hidden, survives session restarts), PowerShell:
+  ```
+  $si = New-CimInstance -ClassName Win32_ProcessStartup -ClientOnly -Property @{ShowWindow=[uint16]0}
+  Invoke-CimMethod -ClassName Win32_Process -MethodName Create -Arguments @{CommandLine='"C:\Program Files\Git\usr\bin\bash.exe" -c "export PATH=/usr/bin:/mingw64/bin:$PATH; bash C:/Users/jonat/workspace/wt/sm72/artifacts/small-model/sm72/launch-sm72-big.sh >> C:/Users/jonat/workspace/wt/sm72/artifacts/small-model/sm72/launch-sm72-big.nohup 2>&1"'; ProcessStartupInformation=$si}
+  ```
+- ETA at 1 x 16,384 if SM71 ends ~11:30: training 11:30-16:00 (~4.5 h), break, 02:00-~11:10 Mon; scoring ~1 h;
+  export ~4.8 h -> Mon ~17:00. Step 3 (small model) then needs the distillation `teacher` set to the new master.pth
+  (ReplayTargets checks the teacher sha256 against the manifest) and `replay` to the new folder.
+- Checks after training: its all-card score should meet its existing-card score (neighbour inputs);
+  `scripts/sm71_report.py` against SM71's `fork` rows.
+
 ## State (2026-10-24 ~20:40)
 - Code done, default off: `RWKV_DELETED_CARDS=neighbour|flags` in the environment makes `rwkv/data_processing.get_rwkv_data`
   apply `scripts/sm71_leak.neutralise` to every frame (trainer, its workers, replay exporter, upstream LMDB builder).
