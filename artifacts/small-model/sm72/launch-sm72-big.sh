@@ -133,6 +133,10 @@ log "started (commit $(git -C $WT rev-parse --short HEAD)); SM71: $(tail -1 "$SM
 
 # ---- 1. training, in segments that end at the next quiet window
 [ -e "$OUT/decay.json" ] || { log "no prepared run in $OUT"; exit 1; }
+# every update needs a labelled review (11:45 stop at user 8279's 3-review final window): CPU pre-flight, trims tails
+grep -q '"label_windows"' "$OUT/decay.json" || [ "$DRYRUN" = 1 ] || {
+  env RWKV_DELETED_CARDS=neighbour "$PY" -X utf8 $WT/scripts/sm72_label_windows.py --decay "$OUT" --trim     --out $S/check-label-windows-sm72-big.json >> "$LOG" 2>&1 || { log "label-window pre-flight failed"; exit 1; }
+  log "label-window pre-flight: $("$PY" -c "import json; print(json.load(open(r'$OUT/decay.json'))['label_windows'])")"; }
 # expertium (carried state, variant class "fork") or baseline (the --fresh-state fallback)
 CK=$OUT/$("$PY" -c "import json; print(json.load(open(r'$OUT/decay.json')).get('model', 'expertium'))")/big-leakfree-1ep/master.pth
 log "prepared: $("$PY" -c "import json; d = json.load(open(r'$OUT/decay.json')); print(d['model'], '|', d['batches'], '|', d['lr'])"); checkpoint $CK"

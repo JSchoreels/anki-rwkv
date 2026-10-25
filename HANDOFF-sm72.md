@@ -3,6 +3,25 @@
 Branch `sm72` (worktree `C:/Users/jonat/workspace/wt/sm72`), cut from `sm71`. Write-up with the check, the estimates, the
 big-model facts and the open decisions: `artifacts/small-model/sm72/README.md`. No GPU job was launched; nothing queued.
 
+## State 2026-10-25 ~11:50: second launch stopped on an unlabelled tail; pre-flight + trims; relaunched
+
+- 11:33 relaunch (budgeted table) ran 134 users in 11 min (12,900 reviews/s, no OOM), then stopped at 11:45:01:
+  "Unlabelled batch user 8279, offset 16384" (`artifacts/small-model/sm72/gpu-big/train-unlabelled-1133.out`).
+  8279 has 16,387 reviews = 8,192 + 8,192 + 3; with 2 lanes its update 1 holds only the final 3-review window, and all
+  3 are their card's last review (get_rwkv_data: has_label = 0 exactly at a card's last review). Same case as SM55
+  (user 5599); the small model's runs trim such tails in their pre-flight (check_replay_label_windows /
+  sm56_epochs check), which this run (no replay targets) did not have.
+- `scripts/sm72_label_windows.py` (CPU, 12 s for 5,001 users): labels from the revlogs (each card's last review),
+  the trainer's strided layout; also revlog rows == available_reviews, day_offset order, duration, rating. Result:
+  no error; 27 users end in an unlabelled last update made of their final window only -> `--trim` cuts their
+  train_range to that window's start (7,470 reviews; protocol.untrimmed.json kept; decay.json records
+  `trimmed_unlabelled_tails`, `training_reviews_after_trims` 370,292,439 and `label_windows`). A trimmed window feeds
+  no later window, so no carried state is lost. Re-scan after the trims: 0 unlabelled updates. Any unlabelled update
+  that is not such a tail fails the check (none found).
+- The launcher now runs this pre-flight (with --trim) before training when decay.json has no `label_windows`.
+- Re-prepared again (the stopped folder had 134 users, no snapshot), trims applied, dry run: first segment 126 min,
+  ends before the 14:00 window. Relaunched ~11:50.
+
 ## State 2026-10-25 ~11:35: first launch OOM'd; budgeted carry table; relaunched
 
 - 11:13:58 first launch; the training segment died at 11:17:59 at user 44 of 5,001 (9974: 612k reviews, 57k cards):
