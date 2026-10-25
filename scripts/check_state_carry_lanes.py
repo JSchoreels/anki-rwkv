@@ -104,7 +104,9 @@ def seed_lane_starts(table, snapshots):
         lane = torch.div(keys, E, rounding_mode="floor")
         code = keys - lane * E
         template = next(slots[(stream, layer)] for slots in snapshots.values() if (stream, layer) in slots)
-        slot = {name: None if t is None else torch.zeros((keys.numel(), *t.shape[1:]), dtype=t.dtype, device=t.device)
+        # non-tensor entries (the SM32c "rank1" flag) are copied as they are
+        slot = {name: t if not torch.is_tensor(t) else torch.zeros((keys.numel(), *t.shape[1:]), dtype=t.dtype,
+                                                                  device=t.device)
                 for name, t in template.items()}
         if slot["scale"] is not None:
             slot["scale"].fill_(1)
@@ -113,13 +115,14 @@ def seed_lane_starts(table, snapshots):
                 continue
             mask = lane == j
             for name, t in slots[(stream, layer)].items():
-                if t is not None:
+                if torch.is_tensor(t):
                     slot[name][mask] = t.index_select(0, code[mask])
         table.slots[(stream, layer)] = slot
 
 
 def clone_slots(table):
-    return {key: {name: None if t is None else t.clone() for name, t in slot.items()} for key, slot in table.slots.items()}
+    return {key: {name: t.clone() if hasattr(t, "clone") else t for name, t in slot.items()}
+            for key, slot in table.slots.items()}
 
 
 def digest(batch):
@@ -140,6 +143,10 @@ def main():
     parser.add_argument("--output", type=Path, default=Path("artifacts/small-model/check-state-carry-lanes.json"))
     parser.add_argument("--skip-base", action="store_true", help="skip A0/A1 (the comparisons with other trees)")
     parser.add_argument("--jit-probe", action="store_true", help=__import__("argparse").SUPPRESS)
+    # SM72: another architecture and checkpoint (e.g. --architecture fork --checkpoint <the fork .pth>); the run's
+    # options get that architecture with the switches it cannot run removed (compatible_options). Defaults = w64 e6.
+    parser.add_argument("--architecture", default="w64")
+    parser.add_argument("--checkpoint", default=None)
     args = parser.parse_args()
     if args.jit_probe:
         return jit_probe(args)
@@ -162,13 +169,19 @@ def main():
     protocol = json.loads((RUN / "run" / "epoch-01" / "protocol.json").read_text())
     run_options = dict(json.loads((RUN / "experiment.json").read_text())["options"])
     plain = {k: v for k, v in run_options.items() if k not in ("packed_ipc", "distillation")}
+    ckpt = args.checkpoint or str(CKPT)
+    if args.architecture != "w64":
+        from scripts.expertium_options import compatible_options
+        plain, dropped = compatible_options(dict(plain, architecture=args.architecture))
     rows = [next(r for r in protocol["rows"] if r["user_id"] == u) for u in users]
     W = plain["chunk_reviews"]
     span = plain["batch_chunks"] * W
-    model = build("w64").float()
-    model.load_state_dict(torch.load(CKPT, map_location="cpu", weights_only=True), strict=True)
+    model = build(args.architecture).float()
+    model.load_state_dict(torch.load(ckpt, map_location="cpu", weights_only=True), strict=True)
     report = {"users": users, "reviews": {r["user_id"]: r["train_range"][1] - r["train_range"][0] for r in rows},
-              "checkpoint": str(CKPT), "v1_revision": V1_REVISION, "checks": {}}
+              "checkpoint": ckpt, "architecture": args.architecture, "v1_revision": V1_REVISION, "checks": {}}
+    if args.architecture != "w64":
+        report["options_dropped"] = dropped
     fails = []
 
     def items(options, user_rows=rows):
@@ -398,7 +411,8 @@ def main():
     env = dict(os.environ, GPU_BATCH1_DATA_PATH=DATA, CUDA_VISIBLE_DEVICES="")
     env.pop("RWKV_NO_JIT", None)
     result = subprocess.run([sys.executable, "-X", "utf8", str(Path(__file__).resolve()), "--jit-probe",
-                             "--users", str(users[0])], cwd=ROOT, capture_output=True, text=True, env=env)
+                             "--users", str(users[0]), "--architecture", args.architecture, "--checkpoint", ckpt],
+                            cwd=ROOT, capture_output=True, text=True, env=env)
     line = next((x for x in result.stdout.splitlines() if x.startswith("JIT ")), None)
     g_info = json.loads(line[4:]) if line else {"error": result.stderr[-2000:]}
     g = bool(line) and g_info["scripted"] and g_info["streams_calls"] == 2 and g_info["teacher_calls"] == 0 \
@@ -438,12 +452,16 @@ def jit_probe(args):
     options = {k: v for k, v in json.loads((RUN / "experiment.json").read_text())["options"].items()
                if k not in ("packed_ipc", "distillation")}
     options = dict(options, batch_chunks=2, state_carry={"precision": "fp32", "lanes": "strided"})
+    if args.architecture != "w64":
+        from scripts.expertium_options import compatible_options
+        options, _ = compatible_options(dict(options, architecture=args.architecture))
+    ckpt = args.checkpoint or str(CKPT)
     row = next(r for r in protocol["rows"] if r["user_id"] == int(args.users))
-    model = build("w64").float()
-    model.load_state_dict(torch.load(CKPT, map_location="cpu", weights_only=True), strict=True)
+    model = build(args.architecture).float()
+    model.load_state_dict(torch.load(ckpt, map_location="cpu", weights_only=True), strict=True)
     model.eval()
-    teacher = build("w64").float()
-    teacher.load_state_dict(torch.load(CKPT, map_location="cpu", weights_only=True), strict=True)
+    teacher = build(args.architecture).float()
+    teacher.load_state_dict(torch.load(ckpt, map_location="cpu", weights_only=True), strict=True)
     teacher.eval()
     catch_up = CatchUp(options, {}, [row])
     with ThreadPoolExecutor(max_workers=1) as pool:

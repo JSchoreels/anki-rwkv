@@ -1,24 +1,28 @@
 #!/usr/bin/env python
 """SM72 step 1: one leak-free epoch for the big model (the fork's 2,762,884-parameter RWKV) from its shipped weights.
 
-The R01 trainer's "baseline" model is the fork's architecture (rwkv.model.srs_model.SrsRWKV with
-rwkv.architecture.DEFAULT_ANKI_RWKV_CONFIG, the class the scorer's fork path builds), so the shipped .pth loads into it
-as is. This writes a scripts/expertium_decay.py output folder (decay.json + protocol.json, "model": "baseline") and runs
-it through that script's run/smoke/stop/save, so the epoch is resumable from snapshots exactly like the SM56 decays:
+The shipped .pth loads as is into the variant class with architecture "fork" (expertium.variants: the fork's
+rwkv.architecture config, stream-major layer order on the canonical gather/scatter path; the scorer gives identical
+rows for "fork::" and "expertium:fork:" on users 4676 and 516), which is where the trainer's carried state hooks in
+(scripts/state_carry_train.py; CPU check: scripts/check_state_carry_lanes.py --architecture fork). This writes a
+scripts/expertium_decay.py output folder (decay.json + protocol.json, "model": "expertium") and runs it through that
+script's run/smoke/stop/save, so the epoch is resumable from snapshots exactly like the SM56 decays:
 
 - weights: the shipped checkpoint; optimizer: a fresh AdamW (upstream rwkv.train_rwkv.get_optimizer groups);
 - learning rate: linear warmup over --warmup-updates updates, times upstream's decay shape (TRAIN_MODE "D",
-  `1 + cos(pi/2 (1 + t))`, our one_minus_sin) from 7e-4 to 0 over the epoch's reviews;
+  `1 + cos(pi/2 (1 + t))`, our one_minus_sin) from --peak (3.5e-4, user 10-25) to 0 over the epoch's reviews;
 - users: the fork's own training users 5000-10000 (5,001 users, 370.3M reviews), shuffled with --seed, whole histories;
-- batches: --chunk-reviews independent sections (upstream data_processing cuts 32,768-review sections, each from a
-  fresh state) and --batch-chunks of them per update (upstream packs sections up to 66,000 reviews per batch); unlike
-  upstream, one update holds one user's sections only (the R01 trainer does not mix users at this chunk length);
+- batches: --batch-chunks strided lanes of --chunk-reviews windows per update with carried state (the full retrain's
+  recipe, SM56: each lane continues from its previous window's end state; lane starts from zero), so the model trains
+  on whole histories in short windows. --fresh-state = the earlier recipe: independent fresh-state sections through
+  the baseline class (upstream data_processing cuts 32,768-review sections, each from a fresh state);
 - inputs: the process must have RWKV_DELETED_CARDS=neighbour (checked), so get_rwkv_data applies the SM71 transform.
 
   check   [--users 4676,516]          CPU: the shipped weights load into the trainer's model bit for bit, and the
                                        scorer gives identical rows for the shipped file and the trainer's re-saved copy
-  prepare --out DIR [--warmup-updates 200 --chunk-reviews 32768 --batch-chunks 2 --seed 1 --snapshot-users 400
-                     --memory 0.8 --probe]   (--probe: 4 users cut to 131,072 reviews each, a GPU memory/speed probe)
+  prepare --out DIR [--warmup-updates 200 --chunk-reviews 2048 --batch-chunks 16 --peak 3.5e-4 --fresh-state
+                     --seed 1 --snapshot-users 400 --memory 0.8 --probe]
+                     (--probe: 4 users cut to 131,072 reviews each, a GPU memory/speed probe)
   run | smoke | stop | save --out DIR  (scripts/expertium_decay.py commands on that folder)
 """
 from argparse import ArgumentParser
@@ -41,6 +45,9 @@ DATA = Path("C:/Users/jonat/workspace/anki-rwkv/data/anki-revlogs-10k-original-2
 USERS = range(5000, 10001)  # upstream TRAIN_USERS_START / TRAIN_USERS_END (inclusive)
 TRACK = "big-leakfree-1ep"
 MODE = "neighbour"
+PEAK = 3.5e-4  # user 10-25: half the upstream peak (the update holds ~half of upstream's 66k-review batch)
+# The full retrain's decay (read only): its R01 speed options are the carry recipe's base.
+SM56_DECAY = Path("C:/Users/jonat/workspace/wt/sm56/artifacts/small-model/scale-w64kd-final-sc-lanes-dec15-1ep32k-muon/decay.json")
 
 
 def sha256(path):
@@ -99,7 +106,19 @@ def check(users):
     return 0 if report["pass"] else 1
 
 
-def prepare(out, warmup, chunk, batch_chunks, seed, snapshot_users, memory, probe):
+def carry_options(chunk, batch_chunks, memory):
+    """SM72 carry recipe: the full retrain's decay options (SM56) without its teacher and Muon, the fork's architecture
+    through the variant class ("fork": stream-major, so the carried-state hook applies), the switches that
+    architecture cannot run removed, strided lanes with carried state."""
+    from scripts.expertium_options import compatible_options
+    base = json.loads(SM56_DECAY.read_text())["options"]
+    options = {k: v for k, v in base.items() if k not in ("distillation", "optimizer")}
+    options.update(architecture="fork", chunk_reviews=chunk, batch_chunks=batch_chunks, gpu_memory_fraction=memory,
+                   state_carry={"lanes": "strided"}, training_seed=2025)
+    return compatible_options(options)
+
+
+def prepare(out, warmup, chunk, batch_chunks, seed, snapshot_users, memory, probe, peak=PEAK, carry=True):
     if out.exists():
         raise FileExistsError(f"{out} exists; pick a new output")
     run = json.loads(RUN8K.read_text())
@@ -112,9 +131,14 @@ def prepare(out, warmup, chunk, batch_chunks, seed, snapshot_users, memory, prob
     rows = [{"user_id": u, "available_reviews": counts[str(u)], "train_range": [0, min(counts[str(u)], cut or counts[str(u)])],
              "validation_range": [0, counts[str(u)]]} for u in users]
     reviews = sum(r["train_range"][1] for r in rows)
-    options = {"prefetch_users": True, "preparation_workers": 5, "chunk_reviews": chunk, "batch_chunks": batch_chunks,
-               "gpu_memory_fraction": memory, "training_seed": 2025}
-    schedule = {"warmup_updates": warmup, "decay_start": 0.0, "decay_end": 1.0, "shape": "one_minus_sin", "final": 0.0}
+    dropped = []
+    if carry:
+        options, dropped = carry_options(chunk, batch_chunks, memory)
+    else:  # fallback: fresh-state sections through the baseline class (the first prepared recipe)
+        options = {"prefetch_users": True, "preparation_workers": 5, "chunk_reviews": chunk, "batch_chunks": batch_chunks,
+                   "gpu_memory_fraction": memory, "training_seed": 2025}
+    schedule = {"peak": peak, "warmup_updates": warmup, "decay_start": 0.0, "decay_end": 1.0, "shape": "one_minus_sin",
+                "final": 0.0}
     full_run = {"epoch": 0, "evaluate": False, "init_master": str(FORK), "update_offset": 0, "lr_schedule": schedule,
                 "evaluation_set": "none", "snapshot_users": snapshot_users, "optimizer_state": "fresh",
                 "control_dir": (out / "control").relative_to(ROOT).as_posix()}
@@ -122,12 +146,15 @@ def prepare(out, warmup, chunk, batch_chunks, seed, snapshot_users, memory, prob
                 "training": {"epochs": 1, "chunk_reviews": chunk, "gpu_memory_fraction": memory},
                 "execution_mode": {"CUBLAS_WORKSPACE_CONFIG": ":4096:8"}, "full_run": full_run}
     decay = {"created_utc": datetime.now(timezone.utc).isoformat(), "kind": "sm72-big-leakfree-epoch",
-             "source_case": str(FORK), "source_sha256": sha256(FORK), "model": "baseline", "track": TRACK,
-             "options": options, "deleted_cards": MODE, "probe": probe, "training_users": len(rows),
-             "training_reviews": reviews, "train_users_from": "5000-10000 (upstream train_rwkv_config.toml)",
-             "shuffle_seed": seed, "lr": f"7e-4 -> 0, warmup {warmup} updates, shape one_minus_sin, over all {reviews:,} reviews",
+             "source_case": str(FORK), "source_sha256": sha256(FORK), "model": "expertium" if carry else "baseline",
+             "track": TRACK, "options": options, "options_dropped": dropped, "deleted_cards": MODE, "probe": probe,
+             "training_users": len(rows), "training_reviews": reviews,
+             "train_users_from": "5000-10000 (upstream train_rwkv_config.toml)", "shuffle_seed": seed,
+             "lr": f"{peak:g} -> 0, warmup {warmup} updates, shape one_minus_sin, over all {reviews:,} reviews",
              "optimizer": "fresh AdamW (rwkv.train_rwkv.get_optimizer)",
-             "batches": f"{batch_chunks} x {chunk:,} reviews per update, one user per update"}
+             "batches": (f"{batch_chunks} strided lanes x {chunk:,}-review windows per update, carried state, one user "
+                         "per update" if carry else
+                         f"{batch_chunks} x {chunk:,} reviews per update, fresh state, one user per update")}
     out.mkdir(parents=True)
     atomic_json(out / "decay.json", decay)
     atomic_json(out / "protocol.json", protocol)
@@ -141,8 +168,10 @@ def main():
     parser.add_argument("--out", type=Path)
     parser.add_argument("--users", default="4676,516")
     parser.add_argument("--warmup-updates", type=int, default=200)
-    parser.add_argument("--chunk-reviews", type=int, default=32768)
-    parser.add_argument("--batch-chunks", type=int, default=2)
+    parser.add_argument("--chunk-reviews", type=int, default=2048)
+    parser.add_argument("--batch-chunks", type=int, default=16)
+    parser.add_argument("--peak", type=float, default=PEAK)
+    parser.add_argument("--fresh-state", action="store_true", help="fallback: fresh-state sections, baseline class")
     parser.add_argument("--seed", type=int, default=1)
     parser.add_argument("--snapshot-users", type=int, default=SNAPSHOT_USERS)
     parser.add_argument("--memory", type=float, default=0.8)
@@ -159,7 +188,7 @@ def main():
         parser.error(f"set RWKV_DELETED_CARDS={MODE} (leak-free training inputs)")
     if args.command == "prepare":
         return prepare(out, args.warmup_updates, args.chunk_reviews, args.batch_chunks, args.seed, args.snapshot_users,
-                       args.memory, args.probe)
+                       args.memory, args.probe, args.peak, not args.fresh_state)
     from scripts import expertium_decay
     if args.command in ("stop", "save"):
         (out / "control").mkdir(exist_ok=True)
