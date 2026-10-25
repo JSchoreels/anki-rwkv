@@ -3,6 +3,30 @@
 Branch `sm72` (worktree `C:/Users/jonat/workspace/wt/sm72`), cut from `sm71`. Write-up with the check, the estimates, the
 big-model facts and the open decisions: `artifacts/small-model/sm72/README.md`. No GPU job was launched; nothing queued.
 
+## State 2026-10-25 ~11:35: first launch OOM'd; budgeted carry table; relaunched
+
+- 11:13:58 first launch; the training segment died at 11:17:59 at user 44 of 5,001 (9974: 612k reviews, 57k cards):
+  CUDA OOM at the 12.72 GiB cap (11.38 GiB allocated + 1.20 GiB reserved-unallocated), log
+  `artifacts/small-model/sm72/gpu-big/train-oom-1113.out`. Cause: the carry table lives on the GPU and grows with the
+  user's (lane, card/note) pairs at the big model's 14.6 KB per card / 9.7 KB per note (int8): 153 users of 5000-10000
+  need > ~2 GB, user 8902 ~9 GB (exact lane-pair counts for the top 40); commits also built table-sized temporaries
+  (`torch.where` over the whole slot) and the update held every layer's fp32 final states (~1.3 GB) until the end.
+- Fix (opt-in `state_carry` key `"table_gpu_mib"`, absent = unchanged for every earlier run): a user whose table would
+  exceed the budget (768 MiB) keeps it in host memory (rows gathered on the CPU per lookup, touched rows copied back);
+  commits write touched slots only (`index_copy_`); each (stream, layer) commits right after its own forward (its slot
+  is read once per update, before that forward); `torch.cuda.empty_cache()` at each new user.
+- Checks: `scripts/check_carry_table_budget.py` (CPU): lookups bit-identical for no budget / budget on device / host,
+  int8, rank-1 and fp32 slots (`artifacts/small-model/sm72/check-carry-table-budget.json`). GPU probe
+  (`sm72/probe-big-table.sh`, log `probe-big-table.log`): the 4-user 131k probe at 2 x 8,192: per-update loss and
+  gradient norm bit-identical for no budget, budget 0 (all host) and 768, and identical to the 10:45 probe;
+  10,141 / 9,540 / 11,172 reviews/s, peak allocated 10.2 / 9.4 / 9.7 GB. Worst users (9974 whole, 6433 whole,
+  8431 cut 500k, 8902 cut 700k; 2.42M reviews) at 768: complete, 12,561 reviews/s, peak allocated 10.15 GB (reserved
+  12.9 GB at the 13.0 GB cap), process RSS 6.1 GB. User 8902 (position 3,626) will hold ~9 GB of host table.
+- Re-prepared `artifacts/small-model/sm72-big-leakfree-1ep` (the OOM'd folder had 43 users, no snapshot, no
+  checkpoint): `prepare --out artifacts/small-model/sm72-big-leakfree-1ep --chunk-reviews 8192 --batch-chunks 2`
+  (default `--table-gpu-mib 768`; `-1` = the old always-on-GPU table). Dry run: first segment 142 min, ends before
+  the 14:00 window. Relaunched ~11:35 with the command below.
+
 ## State 2026-10-25 ~10:50: step 1 switched to carried state, LR 3.5e-4; ready, NOT launched
 
 User 10-25 ~10:05: peak LR 3.5e-4 (not 7e-4), and "are we not doing a state save/load between those windows?" -> the
