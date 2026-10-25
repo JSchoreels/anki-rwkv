@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-10-25T11:08:49+01:00",
- "updated": "2026-10-25 11:08",
- "material": "74b760ff1120e4e9",
- "summary": "running 000678, finished 000677",
+ "generated_at": "2026-10-25T11:13:52+01:00",
+ "updated": "2026-10-25 11:13",
+ "material": "1e298c9c6d692182",
+ "summary": "idle, finished 000679",
  "headline": [
   {
    "k": "Best, 464 users (curve / instant)",
@@ -207,25 +207,27 @@
    "track": "small model"
   }
  ],
- "now": [
-  {
-   "what": "Deleted-card leak check: about 1 review in 5 is on a card deleted before the data export, and both models see that in their inputs (Anki never does). Score the big model and the best small model without it, and on the cards that still exist only",
-   "id": "SM71, ticket 000678",
-   "kind": "gpu-score",
-   "decides": "CPU estimate (40 / 200 users): both models use the leak (3 deleted-card flags, own note, placeholder deck and preset; 21.4% of test reviews), the big model a bit more. Flags at 0: instant +0.08% big, +0.05% small; gap moves by at most ~0.2 points either way (existing cards only: curve gap +0.11% &rarr; +0.28%). GPU numbers pending",
-   "why": "",
-   "job": "SM71 deleted-card leak: small (sm56/w8+s8) inputs=neighbour, 732 users, split existing/deleted",
-   "linked": true,
-   "track": "small model",
-   "ticket": "000678-small-model",
-   "started": "11:03",
-   "elapsed": "0:04",
-   "progress": null,
-   "eta": "~11:11"
-  }
- ],
+ "now": [],
  "waiting": [],
  "recent": [
+  {
+   "ticket": "000679-small-model",
+   "id": "SM71",
+   "what": "SM71 deleted-card leak: small (sm56/w8+s8) inputs=neighbour, long users, split existing/deleted",
+   "ended": "11:12",
+   "date": "10-25",
+   "exit": 0,
+   "ran": "0:01"
+  },
+  {
+   "ticket": "000678-small-model",
+   "id": "SM71",
+   "what": "SM71 deleted-card leak: small (sm56/w8+s8) inputs=neighbour, 732 users, split existing/deleted",
+   "ended": "11:11",
+   "date": "10-25",
+   "exit": 0,
+   "ran": "0:07"
+  },
   {
    "ticket": "000677-small-model",
    "id": "SM71",
@@ -261,24 +263,6 @@
    "date": "10-25",
    "exit": 0,
    "ran": "0:04"
-  },
-  {
-   "ticket": "000673-small-model",
-   "id": "SM71",
-   "what": "SM71 deleted-card leak: big (fork/w8+s8) inputs=keep, long users, split existing/deleted",
-   "ended": "10:51",
-   "date": "10-25",
-   "exit": 0,
-   "ran": "0:01"
-  },
-  {
-   "ticket": "000672-small-model",
-   "id": "SM71",
-   "what": "SM71 deleted-card leak: big (fork/w8+s8) inputs=keep, 732 users, split existing/deleted",
-   "ended": "10:50",
-   "date": "10-25",
-   "exit": 0,
-   "ran": "0:05"
   }
  ],
  "plan": [
@@ -957,11 +941,12 @@
    "track": "small model",
    "when": "Sat 10-24 17:05&ndash;18:41: preparation + CPU estimate done; GPU scoring started Sun 10-25 09:10 (458 users ~140 min, then the 732 pool ~70 min), ~12:45",
    "decides": "CPU estimate (40 / 200 users): both models use the leak (3 deleted-card flags, own note, placeholder deck and preset; 21.4% of test reviews), the big model a bit more. Flags at 0: instant +0.08% big, +0.05% small; gap moves by at most ~0.2 points either way (existing cards only: curve gap +0.11% &rarr; +0.28%). GPU numbers pending",
-   "state": "running",
-   "started": "11:03",
-   "ticket": "000678-small-model",
-   "started_at": "2026-10-25T11:02:48+01:00",
-   "ends_at": "2026-10-25T12:32:48+01:00"
+   "state": "done",
+   "ended": "11:12",
+   "exit": 0,
+   "started": "11:11",
+   "started_at": "2026-10-25T11:11:36+01:00",
+   "ended_at": "2026-10-25T11:12:41+01:00"
   },
   {
    "what": "Feature discovery (CPU): which extra inputs (user habits, time of day, session position, card and deck fields, features built from the history) would the best small model still gain from? Measured on held-out users from its own predictions, deployable inputs only",
