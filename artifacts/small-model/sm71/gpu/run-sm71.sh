@@ -5,7 +5,7 @@
 #   reseed (keep with --seed-offset 1: noise floor of the random id/day codes, which neighbour re-draws).
 # 464 set (458 fit users) first, in priority order; then the 732 pool (723 fit users, the 458 already done are skipped)
 # + the 3 long users (650, 1601, 4501) at the 0.92 memory cap, for keep and neighbour (big + SM56).
-# Waits for the SM56 launcher's epoch-14 scoring to finish (or 20:30), checks quiet.json itself before every enqueue
+# Starts only once the SM56 launcher logged done (rerun 10-25 after its decay from epoch 15), checks quiet.json itself before every enqueue
 # (no new ticket into a break; the queue also holds a ticket whose expected end reaches a window). CANCEL file stops it.
 export PATH=/usr/bin:/mingw64/bin:$PATH
 WT=C:/Users/jonat/workspace/wt/sm71; O=$WT/artifacts/small-model/sm71/gpu; LOG=$O/run-sm71.log
@@ -54,12 +54,7 @@ ticket() {  # ticket MODEL COND POOLTAG [extra env]
   local rc=$?; log "exit $rc: $purpose"
 }
 log "started (commit $(git -C $WT rev-parse --short HEAD))"
-n0=$(wc -l < "$L56")
-until tail -n +"$n0" "$L56" | grep -q -E "exit [0-9]+: SM56 scoring s-w64kd-final-sc-lanes-e14|STOP:"; do
-  [ -e "$O/CANCEL" ] && { log "CANCEL"; exit 1; }
-  [ "$(date +%H%M)" -ge 2030 ] && { log "SM56 e14 scoring not seen by 20:30; going ahead (queue order decides)"; break; }
-  sleep 60; done
-log "SM56 epoch-14 scoring done or launcher stopped: $(tail -n +"$n0" "$L56" | grep -E 'exit [0-9]+: SM56 scoring|STOP:' | head -1)"
+grep -q "\] done$" "$L56" || { log "SM56 launcher not done; refusing to start"; exit 1; }  # rerun 10-25 after the SM56 decay
 for mc in big:keep small:keep big:neighbour small:neighbour big:flags small:flags big:reseed small:reseed \
           small8k:keep small8k:neighbour; do ticket ${mc%%:*} ${mc##*:} 464; done
 log "464 set done"
