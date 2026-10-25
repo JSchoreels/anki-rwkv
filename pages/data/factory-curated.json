@@ -1011,9 +1011,9 @@
    "match": [
     "SM72"
    ],
-   "when": "Code + CPU check done Sat 10-24 20:31 (only deleted-card rows change, 4 users). Plan agreed 20:40: (1) the big model gets one added leak-free epoch from its shipped weights, Sun 10-25 from ~13:45 (~3.6 h); (2) its predictions exported once as the leak-free teacher (~4.8 h); (3) the small model retrained leak-free, 10 epochs + decay (~29 h)",
+   "when": "Code + CPU check done Sat 10-24 20:31. Step 1 (big model, one leak-free epoch from its shipped weights): runbook launched Sun 10-25 10:48, starts after the leak check (SM71, ~12:15). Its 32k windows don&rsquo;t fit in memory, so it trains with carried state (as the small model) at 2 lanes &times; 8,192 reviews, peak LR 3.5e-4 &rarr; 0 (user), ~9.5 h: until 14:00, then from 02:00, done Mon ~09:15, scored ~10:15. Step 2: leak-free teacher export from it (~4.8 h, Mon ~15:15). Step 3: small model retrained leak-free (~29 h+). Carried-state check on the big model: max difference 8e-7 vs the full history",
    "decides": "Whether the small model&rsquo;s gap to the big model changes once neither model learned from the leak, and how much of it a single leak-free decay recovers vs a full retrain",
-   "state": "planned"
+   "state": "running"
   },
   {
    "what": "Deleted-card leak check: about 1 review in 5 is on a card deleted before the data export, and both models see that in their inputs (Anki never does). Score the big model and the best small model without it, and on the cards that still exist only",
