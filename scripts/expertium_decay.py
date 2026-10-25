@@ -150,7 +150,7 @@ def smoke(out):
     shutil.copy(out / "protocol.json", scratch / "protocol.json")
     started = time.perf_counter()
     code = run(scratch, smoke=True)
-    result_path = scratch / MODEL / decay["track"] / "result.json"
+    result_path = scratch / decay.get("model", MODEL) / decay["track"] / "result.json"
     result = json.loads(result_path.read_text()) if result_path.exists() else {}
     print(json.dumps({"smoke": out.name, "exit": code, "status": result.get("status"), "updates": result.get("updates"),
                       "reviews": result.get("review_presentations"), "error": result.get("error"),
@@ -166,7 +166,8 @@ def resume_point(out, decay):
     train only the users not finished yet, from the snapshot's weights and optimizer state, with the learning rate
     continuing where the snapshot left it. Returns "complete" when the decay already finished, else None."""
     import shutil
-    case = out / MODEL / decay["track"]
+    model = decay.get("model", MODEL)  # SM72: "baseline" (the big model's architecture); earlier decays say expertium
+    case = out / model / decay["track"]
     result = json.loads((case / "result.json").read_text()) if (case / "result.json").exists() else None
     if result is None:
         return None
@@ -182,9 +183,9 @@ def resume_point(out, decay):
         attempt += 1
     moved = out / "attempts" / f"attempt-{attempt}"
     moved.mkdir(parents=True)
-    shutil.move(str(out / MODEL), str(moved / MODEL))
+    shutil.move(str(out / model), str(moved / model))
     shutil.copy(out / "protocol.json", moved / "protocol.json")
-    latest = moved / MODEL / decay["track"] / "snapshots" / "latest.json"
+    latest = moved / model / decay["track"] / "snapshots" / "latest.json"
     resume_file = out / "resume.json"
     previous = json.loads(resume_file.read_text()) if resume_file.exists() else {"done_users": [], "attempts": []}
     if latest.exists():
@@ -248,7 +249,7 @@ def run(out, smoke=False):
     elif case.get("prefetch_users"):
         from scripts.gpu_r01_prefetch import training_batches
         gpu_batch1.training_batches = training_batches
-    args = Namespace(model=MODEL, track=decay["track"], smoke=smoke, expected_source=None,
+    args = Namespace(model=decay.get("model", MODEL), track=decay["track"], smoke=smoke, expected_source=None,
                      output=out.relative_to(ROOT).as_posix())
     return gpu_r01_training.run_case(args)
 
@@ -270,7 +271,7 @@ def summarize(per_user, users):
 
 def compare(out):
     decay = json.loads((out / "decay.json").read_text())
-    result = json.loads((out / MODEL / decay["track"] / "result.json").read_text())
+    result = json.loads((out / decay.get("model", MODEL) / decay["track"] / "result.json").read_text())
     if "per_user" not in result:  # trained with --evaluate none: nothing to compare, the checkpoint is the output
         print(f"[decay] {out}: no evaluation in result.json (--evaluate none); skipping compare")
         return 0
