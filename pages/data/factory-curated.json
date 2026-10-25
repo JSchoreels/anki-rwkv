@@ -1024,9 +1024,9 @@
    "match": [
     "SM71"
    ],
-   "when": "Sat 10-24 17:05&ndash;18:41: preparation + CPU estimate done; GPU scoring started Sun 10-25 09:10 (458 users ~140 min, then the 732 pool ~70 min), ~12:45",
-   "decides": "CPU estimate (40 / 200 users): both models use the leak (3 deleted-card flags, own note, placeholder deck and preset; 21.4% of test reviews), the big model a bit more. Flags at 0: instant +0.08% big, +0.05% small; gap moves by at most ~0.2 points either way (existing cards only: curve gap +0.11% &rarr; +0.28%). GPU numbers pending",
-   "state": "running"
+   "when": "Done Sun 10-25 09:10&ndash;11:12 (18 tickets)",
+   "decides": "Done: gap unchanged without the leak at scoring time (+0.33% / +0.45% vs +0.34% / +0.47%, 722 users); see the results row",
+   "state": "done"
   },
   {
    "what": "Feature discovery (CPU): which extra inputs (user habits, time of day, session position, card and deck fields, features built from the history) would the best small model still gain from? Measured on held-out users from its own predictions, deployable inputs only",
@@ -1511,6 +1511,71 @@
   "s-w64kd-gate-ctx2048c-dec8-1ep/w8+s8"
  ],
  "results": [
+  {
+   "date": "10-25",
+   "kind": "gpu-score",
+   "name": "Deleted-card leak check: the big model and the released small model (full retrain, cool-down from epoch 10, SM56) scored with the deleted-card inputs removed (flags 0, nearest existing card&rsquo;s deck and preset), and on the cards that still exist only",
+   "id": "SM71",
+   "curve": null,
+   "instant": null,
+   "curve_pct": 0.33,
+   "instant_pct": 0.45,
+   "eval": "722 users (732 set), 30.13M test reviews, 20% on deleted cards",
+   "fork": "the big model with the same leak-free inputs: 0.29966 / 0.27620",
+   "takeaway": "<strong>The gap to the big model does not depend on the leak at scoring time</strong>: small vs big +0.34% / +0.47% with today&rsquo;s inputs, +0.33% / +0.45% with the leak removed, +0.37% / +0.49% on existing cards only. Removing the leak costs both models about the same (big +0.08% / +0.13%, small +0.07% / +0.11%), almost all on deleted-card reviews. Both models were trained on the leak, so the real test is the leak-free retrain (SM72)",
+   "track": "small model",
+   "started_at": "2026-10-25T09:10+01:00",
+   "ended_at": "2026-10-25T11:12+01:00",
+   "gpu_minutes": 122,
+   "tickets": 18,
+   "detail": {
+    "verdict": "Gap unchanged without the leak at scoring time (both models trained on it)",
+    "table": {
+     "head": [
+      "722 users (732 set)",
+      "Curve",
+      "Instant"
+     ],
+     "rows": [
+      [
+       "Small vs big, today&rsquo;s inputs",
+       "+0.34%",
+       "+0.47%"
+      ],
+      [
+       "Small vs big, leak removed",
+       "+0.33%",
+       "+0.45%"
+      ],
+      [
+       "Small vs big, existing cards only",
+       "+0.37%",
+       "+0.49%"
+      ],
+      [
+       "Small vs big, deleted cards only",
+       "+0.23%",
+       "+0.39%"
+      ],
+      [
+       "Big model: leak removed vs today",
+       "+0.000228 [&minus;0.000062, +0.000485]",
+       "+0.000359 [+0.000292, +0.000437]"
+      ],
+      [
+       "Small model: leak removed vs today",
+       "+0.000211 [+0.000082, +0.000354]",
+       "+0.000305 [+0.000242, +0.000379]"
+      ],
+      [
+       "458 users (464 set): small vs big, today / leak removed",
+       "+0.32% / +0.38%",
+       "+0.47% / +0.45%"
+      ]
+     ]
+    }
+   }
+  },
   {
    "date": "10-25",
    "kind": "gpu-train",
