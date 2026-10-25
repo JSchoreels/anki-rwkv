@@ -454,7 +454,11 @@ def carry_layer(block, in_BTC, v0_BTC, select, skip, init):
 
 # ------------------------------------------------------------------ the trainer adapter
 def _identity(model):
-    parameter = next(model.parameters())
+    parameter = next(model.parameters(), None)
+    if parameter is None:
+        # SM72: the scripted wrapper lists root-level parameters only, and the fork architecture has none (w64's GRU
+        # head has some); its first parameter, features2card.0.weight, is reachable through the C++ module.
+        parameter = model._c.getattr("features2card").getattr("0").getattr("weight")
     return parameter.data_ptr(), parameter.device, parameter.dtype, parameter.shape
 
 

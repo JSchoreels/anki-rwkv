@@ -134,11 +134,13 @@ class VariantSrsRWKV(SrsRWKV):
         self.no_ahead_residual = bool(variant.no_ahead_residual or self.gru_on)
         self.zero_features_on = len(variant.zero_features) > 0
         self.zero_features: List[int] = [int(i) for i in variant.zero_features] or [-1]
-        self.interleave_on = bool(variant.interleave)
+        self.interleave_on = bool(variant.interleave or variant.stream_major)
         self.stream_depths: List[int] = [config.n_layers for _, config in anki_rwkv_config.modules]
         # (stream, layer) execution order, round-major; check_expertium_catch_up.py swaps in stream-major order to
         # prove the canonical gather/scatter path reproduces the sequential forward.
         self.layer_steps: List[Tuple[int, int]] = layer_steps(interleave_schedule(self.stream_depths))
+        if variant.stream_major:  # SM72: the sequential order on the canonical path (where state carry hooks in)
+            self.layer_steps = [(i, layer) for i, depth in enumerate(self.stream_depths) for layer in range(depth)]
 
         self.card_features_dim = 92
         self.d_model = anki_rwkv_config.d_model

@@ -3,7 +3,54 @@
 Branch `sm72` (worktree `C:/Users/jonat/workspace/wt/sm72`), cut from `sm71`. Write-up with the check, the estimates, the
 big-model facts and the open decisions: `artifacts/small-model/sm72/README.md`. No GPU job was launched; nothing queued.
 
-## State 2026-10-25 ~10:00: steps 1 (big model leak-free epoch) and 2 (teacher targets) ready, NOT launched
+## State 2026-10-25 ~10:50: step 1 switched to carried state, LR 3.5e-4; ready, NOT launched
+
+User 10-25 ~10:05: peak LR 3.5e-4 (not 7e-4), and "are we not doing a state save/load between those windows?" -> the
+epoch now trains with the full retrain's carried state (strided lanes, `"state_carry": {"lanes": "strided"}`), so a
+window's start continues its lane's previous window instead of starting fresh.
+
+- Code: `expertium/variants.py` preset `"fork"` = the fork's `rwkv.architecture` config in the variant class, with the
+  new `VariantConfig.stream_major` (default False = unchanged): the sequential (stream-major) layer order run through
+  the canonical gather/scatter path `_interleaved_streams`, where `scripts/state_carry_train.StateCarry` hooks in.
+  `state_carry_train._identity` falls back to `features2card.0.weight` through the C++ module when a scripted wrapper
+  lists no root-level parameter (the fork has none; w64's GRU head has some, so w64 is unchanged).
+  `scripts/sm72_big_epoch.py prepare` defaults: carried state, `"architecture": "fork"`, SM56's decay R01 options
+  (minus teacher and Muon; width-32-only switches dropped by `compatible_options`, none in that set), `--peak 3.5e-4`;
+  `--fresh-state` = the earlier recipe (baseline class, fresh sections).
+- Checks (CPU): scorer rows for `fork::<shipped>` and `expertium:fork:<shipped>` identical on users 4676 and 516 (fp32;
+  `sm72/carry-check/fork-vs-variant.jsonl`). `scripts/check_state_carry_lanes.py --skip-base --architecture fork
+  --checkpoint <shipped>` ALL OK (`sm72/check-state-carry-lanes-fork.json`): L layout, B first update = stock bitwise,
+  D exact carry (seeded lane starts vs full history: max |dp| 8e-7, |dw| 7e-7; lane 0 with zero starts <= 5e-7),
+  F user boundary, G scripted model (after the `_identity` fix; w64's G re-run: same numbers as before). The check
+  script's `clone_slots` / `seed_lane_starts` now skip SM32c's non-tensor `rank1` slot entry (it failed for any model).
+- GPU probe (`sm72/probe-big-carry-sm72.json`, 4 longest users x 131,072 reviews, 32 updates each):
+
+  | Layout (carried) | Reviews/s | Peak alloc | Mean loss | Epoch |
+  |---|---|---|---|---|
+  | 1 lane x 16,384 | 7,287 | 10.1 GB | 0.6283 | 14.1 h |
+  | 2 lanes x 8,192 (chosen) | 10,821 | 10.2 GB | 0.6278 | 9.5 h |
+  | 4 lanes x 4,096 | 14,121 | 11.1 GB | 0.6302 | 7.3 h |
+  | 8 lanes x 2,048 | 16,796 | 11.7 GB | 0.6358 | 6.1 h |
+  | 16 lanes x 2,048 | out of memory (0.8 cap) | | | |
+
+  Lane starts begin from zero state, so L lanes = L fresh starts per user: the loss rises with the lane count (8 lanes
+  is as bad as the fresh-state 1 x 16,384 run, 0.6377). 2 x 8,192 matches the whole-history single lane at 2/3 of its
+  time. Faster alternative: 4 x 4,096 (7.3 h, +0.002 loss in the probe).
+- Prepared run (re-prepared; the earlier folder had never run): `artifacts/small-model/sm72-big-leakfree-1ep`,
+  `"model": "expertium"`, 2 x 8,192 carried, 3.5e-4 -> 0, warmup 200 updates (~22,600 updates), 5,001 users, 370.3M reviews.
+  Checkpoint: `sm72-big-leakfree-1ep/expertium/big-leakfree-1ep/master.pth` (same state-dict keys and dtypes as the
+  shipped .pth, checked on a probe checkpoint), so the scorer (`fork::`) and the exporter (`--teacher`) read it as before.
+  To switch to 4 x 4,096: `rm -rf` that folder (only if it never ran) and
+  `RWKV_DELETED_CARDS=neighbour $PY -X utf8 scripts/sm72_big_epoch.py prepare --out artifacts/small-model/sm72-big-leakfree-1ep --chunk-reviews 4096 --batch-chunks 4`,
+  then `RATE=14000` in the launcher. Fallback if carry misbehaves: `... prepare --out ... --fresh-state --chunk-reviews 16384 --batch-chunks 1` (13.6 h, `RATE=7500`).
+- Launcher: `RATE=10800`; the checkpoint path follows decay.json's model. Dry run 10:46: first training segment expected
+  188 min, ending before the Sunday quiet window (14:00 -> Mon 02:00, quiet.json); a snapshot stop is requested 2 min
+  before it (at the next user boundary), the next segment resumes at 02:00.
+- Launch command: unchanged (below).
+- ETA if SM71 ends ~11:30: train 11:30-14:00 (~95M reviews), 02:00 -> Mon ~09:15 (~275M), scoring ~1 h -> ~10:15,
+  teacher export ~4.8 h -> Mon ~15:15.
+
+## Earlier state 2026-10-25 ~10:00 (superseded: fresh-state sections, 7e-4; launch command still valid)
 
 Plan (user 10-24 ~20:40): (1) the big model gets ONE leak-free epoch from its shipped weights, (2) leak-free teacher
 targets are exported once from that model, (3) the small model is retrained leak-free on them (sections below).

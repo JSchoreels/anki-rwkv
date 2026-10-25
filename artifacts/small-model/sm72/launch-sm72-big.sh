@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 # SM72 steps 1 and 2 (user 10-24 ~20:40, "faisons comme ça"): the big model (fork RWKV, 2,762,884 parameters) gets ONE
 # leak-free epoch from its shipped weights, is scored, then exports the leak-free teacher targets for the small model.
-#   1. train  scripts/sm72_big_epoch.py run (users 5000-10000, 370.3M reviews, fresh AdamW, warmup 200 updates, 7e-4 -> 0
-#             one_minus_sin, 1 x 16,384 reviews per update (32,768 does not fit the 0.8 cap;
-#             probe-big-sm72.json), RWKV_DELETED_CARDS=neighbour), in segments: each ticket ends
+#   1. train  scripts/sm72_big_epoch.py run (users 5000-10000, 370.3M reviews, fresh AdamW, warmup 200 updates,
+#             3.5e-4 -> 0 one_minus_sin (user 10-25), carried state in strided lanes through the variant class "fork"
+#             (layout in decay.json; probe-big-carry-sm72.json), RWKV_DELETED_CARDS=neighbour), in segments: each ticket ends
 #             at the next quiet window (the watcher below requests a snapshot stop when a window starts or is 2 min
 #             away); the next ticket resumes from the snapshot after the window (scripts/expertium_decay.py resume)
 #   2. score  scripts/small_model_heldout.py --split-existing, label big-leakfree-1ep/w8+s8, inputs keep and neighbour,
@@ -26,14 +26,14 @@ OUT=$SM/sm72-big-leakfree-1ep
 EPOCH="$PY -X utf8 $WT/scripts/sm72_big_epoch.py"
 SC=$WT/scripts/small_model_heldout.py
 EXPORT=$WT/scripts/sm11_replay_export.py
-CK=$OUT/baseline/big-leakfree-1ep/master.pth
+CK=   # set from decay.json below ($OUT/<model>/big-leakfree-1ep/master.pth, the shipped .pth's state-dict keys)
 TAG=big-leakfree-1ep; LABEL=$TAG/w8+s8
 R8N=C:/Users/jonat/workspace/anki-rwkv/artifacts/cache/kd-replay/big-leakfree-1ep-final8k-neighbour
 RUN8K=C:/Users/jonat/workspace/wt/sm55/artifacts/small-model/sm55-final8k-run.json            # read only
 S56=C:/Users/jonat/workspace/wt/sm56/artifacts/small-model                                    # read only
 U464=$S56/sm56/eval-users-464-fit.json; U732=$S56/sm56/eval-users-732-fit.json; ULONG=$S56/sm56/smalljobs/users-732-retry3.json
 SM71LOG=C:/Users/jonat/workspace/wt/sm71/artifacts/small-model/sm71/gpu/run-sm71.log           # read only
-RATE=${RATE:-7500}       # training reviews/s for ticket lengths: probe 7,572 at 1 x 16,384 (probe-big-sm72.json)
+RATE=${RATE:-10800}      # training reviews/s for ticket lengths: probe 10,821 at 8,192 x 2 carried (probe-big-carry-sm72.json)
 EXPORT_RATE=34000        # fork-fp32-final8k export, measured
 export DRYRUN=${DRYRUN:-0}
 export OMP_NUM_THREADS=4 MKL_NUM_THREADS=4
@@ -105,7 +105,8 @@ train_state() {  # -> "complete" | "<reviews left>" (from the run folder; protoc
   O="$OUT" "$PY" -X utf8 - <<'PYEOF'
 import json, os
 from pathlib import Path
-out = Path(os.environ["O"]); case = out / "baseline" / "big-leakfree-1ep"
+out = Path(os.environ["O"])
+case = out / json.loads((out / "decay.json").read_text()).get("model", "expertium") / "big-leakfree-1ep"
 r = json.loads((case / "result.json").read_text()) if (case / "result.json").exists() else {}
 if r.get("status") == "complete":
     print("complete"); raise SystemExit
@@ -132,6 +133,9 @@ log "started (commit $(git -C $WT rev-parse --short HEAD)); SM71: $(tail -1 "$SM
 
 # ---- 1. training, in segments that end at the next quiet window
 [ -e "$OUT/decay.json" ] || { log "no prepared run in $OUT"; exit 1; }
+# expertium (carried state, variant class "fork") or baseline (the --fresh-state fallback)
+CK=$OUT/$("$PY" -c "import json; print(json.load(open(r'$OUT/decay.json')).get('model', 'expertium'))")/big-leakfree-1ep/master.pth
+log "prepared: $("$PY" -c "import json; d = json.load(open(r'$OUT/decay.json')); print(d['model'], '|', d['batches'], '|', d['lr'])"); checkpoint $CK"
 while true; do
   stopped && exit 1
   st=$(train_state); [ "$st" = complete ] && { log "training complete"; break; }

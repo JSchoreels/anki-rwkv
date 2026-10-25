@@ -8,6 +8,7 @@ A variant is selected by ONE key, the R01 track option `"architecture"`:
     "architecture": "w80-sequential"            # same without the round-robin layer schedule
     "architecture": "w64"                       # s64h, his shipped d=64 trunk (w80 recipe, 4 heads, mults 2)
     "architecture": "iter36"                    # the default model through the variant class (KD-capable)
+    "architecture": "fork"                      # the fork's 2.76M RWKV (rwkv.architecture), stream-major (SM72)
     "architecture": {"base": "iter36", "zero_features": [22]}   # any preset plus field overrides
 
 Each field below mirrors one upstream environment switch, named in its comment. Upstream sources are pinned
@@ -29,6 +30,10 @@ class VariantConfig:
     interleave: bool = False          # RWKV_INTERLEAVE=1: round-robin layer schedule (front-loaded, iter 41)
     strip_l0_vlora: bool = False      # RWKV_STRIP_L0_VLORA=1: layer 0's dead value-residual LoRA becomes a 1x1 dummy
     strip_cmix: tuple = ()            # RWKV_STRIP_CMIX="<stream>:<layer>,...": channel mixers removed
+    # SM72: run the sequential (stream-major) layer order through the canonical gather/scatter path, so
+    # scripts/state_carry_train.py can carry state for a sequential model (stream-major == sequential exactly,
+    # scripts/check_expertium_catch_up.py). False = today's behaviour.
+    stream_major: bool = False
     extra: dict = field(default_factory=dict)
 
     def stream_names(self):
@@ -77,9 +82,24 @@ W64_PARAMETERS = 331_511  # 332,922 upstream at 103 inputs, minus 11 x 128 input
 ITER36_PARAMETERS = 192_800
 
 
+def fork_config():
+    # SM72: the fork's 2,762,884-parameter RWKV (rwkv.architecture.DEFAULT_ANKI_RWKV_CONFIG, the shipped
+    # RWKV_trained_on_5000_10000.pth) in this package's config types; heads 128/128 and multipliers 4 = that class.
+    from dataclasses import asdict
+    from rwkv import architecture as fork
+    keep = {f.name for f in fields(RWKV7Config)}
+    modules = [(name, RWKV7Config(**{k: v for k, v in asdict(c).items() if k in keep}))
+               for name, c in fork.DEFAULT_ANKI_RWKV_CONFIG.modules]
+    return AnkiRWKVConfig(d_model=fork.DEFAULT_ANKI_RWKV_CONFIG.d_model, modules=modules,
+                          dropout=fork.DEFAULT_ANKI_RWKV_CONFIG.dropout, num_curves=128, num_points=128,
+                          head_fc_mult=4, features_fc_mult=4)
+
+
 def preset(name):
     if name == "iter36":
         return VariantConfig(name="iter36", base=DEFAULT_ANKI_RWKV_CONFIG)
+    if name == "fork":
+        return VariantConfig(name="fork", base=fork_config(), stream_major=True)
     if name in ("w80", "w80-sequential"):
         return VariantConfig(name=name, base=w80_config(), gru_head=3, no_ahead_residual=True, zero_features=(22,),
                              interleave=name == "w80", strip_l0_vlora=True, strip_cmix=W80_STRIP_CMIX)
