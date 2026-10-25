@@ -1011,7 +1011,7 @@
    "match": [
     "SM72"
    ],
-   "when": "Code + CPU check done Sat 10-24 20:31. Step 1 (big model, one leak-free epoch from its shipped weights): Its 32k windows don&rsquo;t fit in memory, so it trains with carried state (as the small model) at 2 lanes &times; 8,192 reviews, peak LR 3.5e-4 &rarr; 0 (user). Two early stops fixed (memory, then a window with no labels); running since Sun 11:49, paused cleanly at 13:57 at 1,286 / 5,001 users (24.8%, 11,940 reviews/s), resumes 02:00, done Mon ~08:30, scored ~09:30. Step 2: leak-free teacher export from it (~4.8 h, Mon ~14:20). Step 3: small model retrained leak-free (~29 h+). Carried-state check on the big model: max difference 8e-7 vs the full history",
+   "when": "Code + CPU check done Sat 10-24 20:31. Step 1 (big model, one leak-free epoch from its shipped weights): Its 32k windows don&rsquo;t fit in memory, so it trains with carried state (as the small model) at 2 lanes &times; 8,192 reviews, peak LR 3.5e-4 &rarr; 0 (user). Two early stops fixed (memory, then a window with no labels); running since Sun 11:49, paused cleanly at 13:57 at 1,286 / 5,001 users (24.8%, 11,940 reviews/s), resumed 18:33 in 2 h the user gave (to 20:30), then from 02:00, done Mon ~06:40, scored ~07:40. Step 2: leak-free teacher export from it (~4.8 h, Mon ~12:30). Step 3: small model retrained leak-free (~29 h+). Carried-state check on the big model: max difference 8e-7 vs the full history",
    "decides": "Whether the small model&rsquo;s gap to the big model changes once neither model learned from the leak, and how much of it a single leak-free decay recovers vs a full retrain",
    "state": "running"
   },
