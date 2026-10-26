@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-10-26T05:26:29+01:00",
- "updated": "2026-10-26 05:26",
- "material": "56041cfc0d481f74",
- "summary": "running 000689, finished 000688",
+ "generated_at": "2026-10-26T05:36:33+01:00",
+ "updated": "2026-10-26 05:36",
+ "material": "d9a6434709a0d643",
+ "summary": "running 000690, finished 000689",
  "headline": [
   {
    "k": "Best, 464 users (curve / instant)",
@@ -210,22 +210,31 @@
  "now": [
   {
    "what": "Leak-free retrain: train the small model again with the deleted-card information removed from its training inputs (flags at 0, deleted cards put in the deck of the nearest existing card), then score both models without it. Models trained on today&rsquo;s inputs are tagged &ldquo;(leak inputs)&rdquo;",
-   "id": "SM72, ticket 000689",
+   "id": "SM72, ticket 000690",
    "kind": "gpu-train",
    "decides": "Whether the small model&rsquo;s gap to the big model changes once neither model learned from the leak, and how much of it a single leak-free decay recovers vs a full retrain",
    "why": "",
-   "job": "SM72 big model leak-free epoch (big-leakfree-1ep/w8+s8), inputs=keep, 464 users, split existing/deleted",
+   "job": "SM72 big model leak-free epoch (big-leakfree-1ep/w8+s8), inputs=neighbour, 464 users, split existing/deleted",
    "linked": true,
    "track": "small model",
-   "ticket": "000689-small-model",
-   "started": "05:24",
+   "ticket": "000690-small-model",
+   "started": "05:33",
    "elapsed": "0:02",
    "progress": null,
-   "eta": "~05:36"
+   "eta": "~05:45"
   }
  ],
  "waiting": [],
  "recent": [
+  {
+   "ticket": "000689-small-model",
+   "id": "SM72",
+   "what": "SM72 big model leak-free epoch (big-leakfree-1ep/w8+s8), inputs=keep, 464 users, split existing/deleted",
+   "ended": "05:33",
+   "date": "10-26",
+   "exit": 0,
+   "ran": "0:09"
+  },
   {
    "ticket": "000688-small-model",
    "id": "SM72",
@@ -270,15 +279,6 @@
    "date": "10-25",
    "exit": 1,
    "ran": "2:08"
-  },
-  {
-   "ticket": "000683-small-model",
-   "id": "SM72",
-   "what": "SM72 big model (fork RWKV) leak-free epoch from the shipped weights, users 5000-10000, 370M reviews left (segment to the next window or the end)",
-   "ended": "11:44",
-   "date": "10-25",
-   "exit": 1,
-   "ran": "0:11"
   }
  ],
  "plan": [
@@ -923,10 +923,10 @@
    "when": "Code + CPU check done Sat 10-24 20:31. Step 1 (big model, one leak-free epoch from its shipped weights): Its 32k windows don&rsquo;t fit in memory, so it trains with carried state (as the small model) at 2 lanes &times; 8,192 reviews, peak LR 3.5e-4 &rarr; 0 (user). Two early stops fixed (memory, then a window with no labels); running since Sun 11:49, paused cleanly at 13:57 at 1,286 / 5,001 users (24.8%, 11,940 reviews/s), resumed 18:33 in extra GPU time the user gave (to 21:30), then from 02:00, done Mon ~05:50, scored ~06:50. Step 2: leak-free teacher export from it (~4.8 h, Mon ~11:40). Step 3: small model retrained leak-free (~29 h+). Carried-state check on the big model: max difference 8e-7 vs the full history",
    "decides": "Whether the small model&rsquo;s gap to the big model changes once neither model learned from the leak, and how much of it a single leak-free decay recovers vs a full retrain",
    "state": "running",
-   "started": "05:24",
-   "ticket": "000689-small-model",
-   "started_at": "2026-10-26T02:00:59+01:00",
-   "ends_at": "2026-10-27T13:00:59+01:00"
+   "started": "05:33",
+   "ticket": "000690-small-model",
+   "started_at": "2026-10-26T05:24:00+01:00",
+   "ends_at": "2026-10-27T16:24:00+01:00"
   },
   {
    "what": "Deleted-card leak check: about 1 review in 5 is on a card deleted before the data export, and both models see that in their inputs (Anki never does). Score the big model and the best small model without it, and on the cards that still exist only",
