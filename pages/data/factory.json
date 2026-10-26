@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-10-26T12:12:53+01:00",
- "updated": "2026-10-26 12:12",
- "material": "2d892d748de0cca7",
- "summary": "running 000701, finished 000700",
+ "generated_at": "2026-10-26T14:03:08+01:00",
+ "updated": "2026-10-26 14:03",
+ "material": "845904c461b3084f",
+ "summary": "running 000702, finished 000701",
  "headline": [
   {
    "k": "Best, 464 users (curve / instant)",
@@ -210,22 +210,31 @@
  "now": [
   {
    "what": "Leak-free retrain: train the small model again with the deleted-card information removed from its training inputs (flags at 0, deleted cards put in the deck of the nearest existing card), then score both models without it. Models trained on today&rsquo;s inputs are tagged &ldquo;(leak inputs)&rdquo;",
-   "id": "SM72, ticket 000701",
+   "id": "SM72, ticket 000702",
    "kind": "gpu-train",
    "decides": "Whether the small model&rsquo;s gap to the big model changes once neither model learned from the leak, and how much of it a single leak-free decay recovers vs a full retrain",
    "why": "",
-   "job": "SM72 small model leak-free (sm72s) epoch 2/15 (8k final tier, 2048 x 16 lanes carry, leak-free replay KD, AdamW 7e-4)",
+   "job": "SM72 leak-free scoring s-w64kd-final-sc-lanes-leakfree-e2 on the 464 set (458 fit users) (pass 1)",
    "linked": true,
    "track": "small model",
-   "ticket": "000701-small-model",
-   "started": "12:10",
+   "ticket": "000702-small-model",
+   "started": "14:00",
    "elapsed": "0:02",
    "progress": null,
-   "eta": "~14:08"
+   "eta": "~14:12"
   }
  ],
  "waiting": [],
  "recent": [
+  {
+   "ticket": "000701-small-model",
+   "id": "SM72",
+   "what": "SM72 small model leak-free (sm72s) epoch 2/15 (8k final tier, 2048 x 16 lanes carry, leak-free replay KD, AdamW 7e-4)",
+   "ended": "14:00",
+   "date": "10-26",
+   "exit": 0,
+   "ran": "1:50"
+  },
   {
    "ticket": "000700-small-model",
    "id": "SM72",
@@ -270,15 +279,6 @@
    "date": "10-26",
    "exit": 0,
    "ran": "0:11"
-  },
-  {
-   "ticket": "000695-small-model",
-   "id": "SM72",
-   "what": "SM72 leak-free teacher targets from the big model&#x27;s leak-free epoch (8,000 final-tier users, ~4.8 h total, this ticket stops starting users after 360 min)",
-   "ended": "09:56",
-   "date": "10-26",
-   "exit": 0,
-   "ran": "3:59"
   }
  ],
  "plan": [
@@ -923,10 +923,10 @@
    "when": "Code + CPU check done Sat 10-24 20:31. Step 1 (big model, one leak-free epoch from its shipped weights, tagged &ldquo;(1 leak-free epoch)&rdquo;): Its 32k windows don&rsquo;t fit in memory, so it trains with carried state (as the small model) at 2 lanes &times; 8,192 reviews, peak LR 3.5e-4 &rarr; 0 (user). Step 1 done Mon 05:24 (scored 05:57): &minus;0.23% / &minus;0.16% vs the shipped big model on leak-free inputs, see the results row. Step 2: leak-free teacher export from the big model (1 leak-free epoch), running since Mon 05:57 (~4.8 h, ~10:45). Step 3: small model retrained leak-free (sm72s): the full retrain&rsquo;s recipe with the leak-free inputs, teacher and targets, 15 fixed epochs (~2 h each), then the 32k cool-down from epoch 15 (main result) and from epoch 10 (comparison with the released version); launcher waiting for step 2 since Mon 08:10, epoch 1 ~10:20&rarr;12:15, epoch 5 ~20:20, epoch 15 Wed ~03:55, cool-down from 15 scored Wed ~12:50, from 10 Thu ~02:40. Carried-state check on the big model: max difference 8e-7 vs the full history",
    "decides": "Whether the small model&rsquo;s gap to the big model changes once neither model learned from the leak, and how much of it a single leak-free decay recovers vs a full retrain",
    "state": "running",
-   "started": "12:10",
-   "ticket": "000701-small-model",
-   "started_at": "2026-10-26T12:02:24+01:00",
-   "ends_at": "2026-10-27T23:02:24+01:00"
+   "started": "14:00",
+   "ticket": "000702-small-model",
+   "started_at": "2026-10-26T12:10:09+01:00",
+   "ends_at": "2026-10-27T23:10:09+01:00"
   },
   {
    "what": "Deleted-card leak check: about 1 review in 5 is on a card deleted before the data export, and both models see that in their inputs (Anki never does). Score the big model and the best small model without it, and on the cards that still exist only",
