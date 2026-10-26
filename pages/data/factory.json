@@ -1,7 +1,7 @@
 {
- "generated_at": "2026-10-26T08:12:04+01:00",
- "updated": "2026-10-26 08:12",
- "material": "356215508ac3d98a",
+ "generated_at": "2026-10-26T09:32:16+01:00",
+ "updated": "2026-10-26 09:32",
+ "material": "2440e535816a25e6",
  "summary": "running 000695",
  "headline": [
   {
@@ -219,7 +219,7 @@
    "track": "small model",
    "ticket": "000695-small-model",
    "started": "05:56",
-   "elapsed": "2:15",
+   "elapsed": "3:35",
    "progress": null,
    "eta": "~12:11"
   }
@@ -920,7 +920,7 @@
    "kind": "gpu-train",
    "minutes": 2100,
    "track": "small model",
-   "when": "Code + CPU check done Sat 10-24 20:31. Step 1 (big model, one leak-free epoch from its shipped weights): Its 32k windows don&rsquo;t fit in memory, so it trains with carried state (as the small model) at 2 lanes &times; 8,192 reviews, peak LR 3.5e-4 &rarr; 0 (user). Step 1 done Mon 05:24 (scored 05:57): &minus;0.23% / &minus;0.16% vs the shipped big model leak-free, see the results row. Step 2: leak-free teacher export from it, running since Mon 05:57 (~4.8 h, ~10:45). Step 3: small model retrained leak-free (sm72s): the full retrain&rsquo;s recipe with the leak-free inputs, teacher and targets, 15 fixed epochs (~2 h each), then the 32k cool-down from epoch 15 (main result) and from epoch 10 (comparison with the released version); launcher waiting for step 2 since Mon 08:10, epoch 1 ~10:20&rarr;12:15, epoch 5 ~20:20, epoch 15 Wed ~03:55, cool-down from 15 scored Wed ~12:50, from 10 Thu ~02:40. Carried-state check on the big model: max difference 8e-7 vs the full history",
+   "when": "Code + CPU check done Sat 10-24 20:31. Step 1 (big model, one leak-free epoch from its shipped weights, tagged &ldquo;(1 leak-free epoch)&rdquo;): Its 32k windows don&rsquo;t fit in memory, so it trains with carried state (as the small model) at 2 lanes &times; 8,192 reviews, peak LR 3.5e-4 &rarr; 0 (user). Step 1 done Mon 05:24 (scored 05:57): &minus;0.23% / &minus;0.16% vs the shipped big model on leak-free inputs, see the results row. Step 2: leak-free teacher export from the big model (1 leak-free epoch), running since Mon 05:57 (~4.8 h, ~10:45). Step 3: small model retrained leak-free (sm72s): the full retrain&rsquo;s recipe with the leak-free inputs, teacher and targets, 15 fixed epochs (~2 h each), then the 32k cool-down from epoch 15 (main result) and from epoch 10 (comparison with the released version); launcher waiting for step 2 since Mon 08:10, epoch 1 ~10:20&rarr;12:15, epoch 5 ~20:20, epoch 15 Wed ~03:55, cool-down from 15 scored Wed ~12:50, from 10 Thu ~02:40. Carried-state check on the big model: max difference 8e-7 vs the full history",
    "decides": "Whether the small model&rsquo;s gap to the big model changes once neither model learned from the leak, and how much of it a single leak-free decay recovers vs a full retrain",
    "state": "running",
    "started": "05:56",
@@ -1408,7 +1408,7 @@
   {
    "date": "10-26",
    "kind": "gpu-train",
-   "name": "Big model (fork RWKV) leak-free: one added epoch from its shipped weights on its own users 5000&ndash;10000 with the deleted-card inputs removed (flags 0, nearest existing card&rsquo;s deck and preset), carried state 2 lanes &times; 8,192 reviews, peak LR 3.5e-4 &rarr; 0, then scored with and without the leak",
+   "name": "Big model (fork RWKV) (1 leak-free epoch): one added epoch from its shipped weights on its own users 5000&ndash;10000 with the deleted-card inputs removed (flags 0, nearest existing card&rsquo;s deck and preset), carried state 2 lanes &times; 8,192 reviews, peak LR 3.5e-4 &rarr; 0, then scored with and without the leak",
    "id": "SM72",
    "curve": 0.29897,
    "instant": 0.27576,
@@ -1416,14 +1416,14 @@
    "instant_pct": -0.16,
    "eval": "722 users (732 set), 30.13M test reviews, 20% on deleted cards; scored leak-free",
    "fork": "the shipped big model with the same leak-free inputs: 0.29966 / 0.27620",
-   "takeaway": "<strong>The big model gets better leak-free, not worse</strong>: &minus;0.23% / &minus;0.16% vs the shipped big model on leak-free inputs (both significant), and it no longer cares whether the leak is there (leak removed vs kept: &minus;0.02% / +0.03%; the shipped model loses +0.08% / +0.13%, the deleted-card reviews +0.34% / +0.51%). Part of the gain is just one more epoch with a cool-down; a leaky control epoch would split the two. <strong>The bar moves</strong>: the released small model (SM56, cool-down from epoch 10, leak inputs) is +0.57% / +0.61% behind this model on leak-free inputs (was +0.33% / +0.45% vs the shipped one), still inside +1.0%. Next: leak-free teacher targets from it, then the small model retrained leak-free",
+   "takeaway": "<strong>One leak-free epoch makes the big model better, not worse</strong>: &minus;0.23% / &minus;0.16% vs the shipped big model on leak-free inputs (both significant), and it no longer cares whether the leak is there (leak removed vs kept: &minus;0.02% / +0.03%; the shipped model loses +0.08% / +0.13%, the deleted-card reviews +0.34% / +0.51%). Its earlier training saw the leak, so it is tagged &ldquo;(1 leak-free epoch)&rdquo;, not leak-free; part of the gain is just one more epoch with a cool-down, and a control epoch on the leak inputs would split the two. <strong>The bar moves</strong>: the released small model (SM56, cool-down from epoch 10, leak inputs) is +0.57% / +0.61% behind this model on leak-free inputs (was +0.33% / +0.45% vs the shipped one), still inside +1.0%. Next: leak-free teacher targets from it, then the small model retrained leak-free",
    "track": "small model",
    "started_at": "2026-10-25T11:49+01:00",
    "ended_at": "2026-10-26T05:57+01:00",
    "gpu_minutes": 558,
    "tickets": 11,
    "detail": {
-    "verdict": "Leak-free big model: &minus;0.23% / &minus;0.16% vs the shipped one; small model now +0.57% / +0.61% behind it",
+    "verdict": "Big model (1 leak-free epoch): &minus;0.23% / &minus;0.16% vs the shipped one; small model now +0.57% / +0.61% behind it",
     "table": {
      "head": [
       "722 users (732 set)",
@@ -1432,7 +1432,7 @@
      ],
      "rows": [
       [
-       "Big leak-free (SM72), leak-free inputs",
+       "Big model (1 leak-free epoch) (SM72), leak-free inputs",
        "0.298966",
        "0.275757"
       ],
@@ -1447,32 +1447,32 @@
        "0.275844"
       ],
       [
-       "Big leak-free vs shipped, leak-free inputs",
+       "Big model (1 leak-free epoch) vs shipped, leak-free inputs",
        "&minus;0.23% [&minus;0.37, &minus;0.07]",
        "&minus;0.16% [&minus;0.18, &minus;0.14]"
       ],
       [
-       "Big leak-free vs shipped, today&rsquo;s inputs",
+       "Big model (1 leak-free epoch) vs shipped, today&rsquo;s inputs",
        "&minus;0.13% [&minus;0.29, +0.06]",
        "&minus;0.06% [&minus;0.07, &minus;0.05]"
       ],
       [
-       "Big leak-free: leak removed vs kept",
+       "Big model (1 leak-free epoch): leak removed vs kept",
        "&minus;0.02%",
        "+0.03%"
       ],
       [
-       "Big leak-free: existing / deleted cards, leak removed",
+       "Big model (1 leak-free epoch): existing / deleted cards, leak removed",
        "0.294579 / 0.316264",
        "0.271698 / 0.291764"
       ],
       [
-       "Released small (SM56, leak inputs) vs big leak-free, leak-free inputs",
+       "Released small (SM56, leak inputs) vs big model (1 leak-free epoch), leak-free inputs",
        "+0.57%",
        "+0.61%"
       ],
       [
-       "458 users (464 set): big leak-free vs shipped / small vs big leak-free, leak-free inputs",
+       "458 users (464 set): big leak-free vs shipped / small vs big model (1 leak-free epoch), leak-free inputs",
        "&minus;0.21% / +0.59%",
        "&minus;0.17% / +0.62%"
       ],
