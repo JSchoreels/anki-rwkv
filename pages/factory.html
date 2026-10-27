@@ -238,6 +238,8 @@
     done: (r) => `<span class="tag done">${r.exit ? 'failed, exit ' + r.exit : 'done'}</span>`,
     partial: () => '<span class="tag idea">partly done</span>',
     planned: () => '<span class="tag idea">planned</span>',
+    hold: () => '<span class="tag parked">on hold</span>',
+    dropped: () => '<span class="tag dropped">dropped</span>',
   };
 
   // Break config {start:"22:00", end:"02:00", until:"2026-10-18T02:00", label}: no GPU job starts unless it also ends before
@@ -260,7 +262,7 @@
         let e = r.ends_at ? new Date(r.ends_at) : null;
         if (e && e < nowD) e = new Date(nowD.getTime() + 5 * 60000); // overrun: assume a few more minutes
         running.push(Object.assign({}, r, { s: new Date(r.started_at), e }));
-      } else if (r.when && !r.minutes) fixed.push(r);
+      } else if (r.state === 'hold' || r.state === 'dropped' || (r.when && !r.minutes)) fixed.push(r);
       else pending.push(r);
     });
     done.sort((a, b) => a.e - b.e);
@@ -283,7 +285,7 @@
   function whenText(r, nowD) {
     if (r.state === 'done') return `${r.s ? at(r.s, nowD, false) + ' &ndash; ' : 'ended '}${hm(r.e)}`;
     if (r.state === 'running') return `since ${at(r.s, nowD, false)}${r.e ? `, ends ${at(r.e, nowD, true)}` : ''}`;
-    if (r.when && !r.minutes) return r.when;
+    if (r.state === 'hold' || r.state === 'dropped' || (r.when && !r.minutes)) return r.when || '';
     return `${at(r.s, nowD, true)} &ndash; ${sameDay(r.s, r.e) ? '' : dayWord(r.e, nowD)}~${hm(r.e)}`;
   }
 
