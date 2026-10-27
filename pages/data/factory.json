@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-10-27T16:12:21+01:00",
- "updated": "2026-10-27 16:12",
- "material": "974ca5713976a826",
- "summary": "running 000725, finished 000724",
+ "generated_at": "2026-10-27T16:52:28+01:00",
+ "updated": "2026-10-27 16:52",
+ "material": "37c3ad00182d5cac",
+ "summary": "running 000725",
  "headline": [
   {
    "k": "Best, 464 users (curve / instant)",
@@ -51,8 +51,8 @@
    "track": "small model"
   },
   {
-   "k": "Best, 732-user standard set (curve / instant), on the 726 users every model fits",
-   "v": "0.30464 / 0.28015",
+   "k": "Best, 732-user standard set (curve / instant)",
+   "v": "0.30220 / 0.27887",
    "compare": [
     {
      "variant": "Big model (reference)",
@@ -202,24 +202,24 @@
   },
   {
    "k": "Training speed now",
-   "v": "~15k",
-   "s": "reviews/s at 32k-review windows (101k at 2,048)",
+   "v": "~90k",
+   "s": "reviews/s, 8k-user training at 2,048-review windows &times; 16 lanes (leak-free retrain, SM72s); cool-downs at 32k windows ~19.5k",
    "track": "small model"
   }
  ],
  "now": [
   {
-   "what": "Leak-free retrain: train the small model again with the deleted-card information removed from its training inputs (flags at 0, deleted cards put in the deck of the nearest existing card), then score both models without it. Models trained on today&rsquo;s inputs are tagged &ldquo;(leak inputs)&rdquo;",
+   "what": "New small model (leak-free) (SM72s): 15 epochs from scratch on all 8,000 users (581.9M reviews each), each epoch scored on the 464 set (458 users it fits)",
    "id": "SM72, ticket 000725",
    "kind": "gpu-train",
-   "decides": "Whether the small model&rsquo;s gap to the big model changes once neither model learned from the leak, and how much of it a single leak-free decay recovers vs a full retrain",
+   "decides": "Epoch read-outs only (checkpoints before the cool-down zig-zag); the cool-down decides",
    "why": "",
    "job": "SM72 small model leak-free (sm72s) epoch 14/15 (8k final tier, 2048 x 16 lanes carry, leak-free replay KD, AdamW 7e-4)",
    "linked": true,
    "track": "small model",
    "ticket": "000725-small-model",
    "started": "16:10",
-   "elapsed": "0:02",
+   "elapsed": "0:42",
    "progress": null,
    "eta": "~18:09"
   }
@@ -288,7 +288,12 @@
    "kind": "gpu-score",
    "decides": "Sanity check only (undecayed checkpoints are noisy)",
    "track": "small model",
-   "state": "planned"
+   "state": "done",
+   "ended": "16:31",
+   "exit": 0,
+   "started": "16:26",
+   "started_at": "2026-10-17T16:26:34+02:00",
+   "ended_at": "2026-10-17T16:31:21+02:00"
   },
   {
    "what": "Final decay at 32k windows from the new epoch",
@@ -296,7 +301,12 @@
    "kind": "gpu-train",
    "decides": "",
    "track": "small model",
-   "state": "planned"
+   "state": "done",
+   "ended": "17:36",
+   "exit": 0,
+   "started": "16:31",
+   "started_at": "2026-10-17T16:31:24+02:00",
+   "ended_at": "2026-10-17T17:36:46+02:00"
   },
   {
    "what": "Score the decayed model on all 464 users",
@@ -304,7 +314,12 @@
    "kind": "gpu-score",
    "decides": "Target met or not; paired against the current best",
    "track": "small model",
-   "state": "planned"
+   "state": "done",
+   "ended": "17:59",
+   "exit": 0,
+   "started": "17:36",
+   "started_at": "2026-10-17T17:36:46+02:00",
+   "ended_at": "2026-10-17T17:59:32+02:00"
   },
   {
    "what": "Score it on your own collection (CPU, ~11 min)",
@@ -324,7 +339,12 @@
    "decides": "Spaced-review slice next to the official bar",
    "track": "small model",
    "minutes": 60,
-   "state": "planned"
+   "state": "done",
+   "ended": "18:33",
+   "exit": 0,
+   "started": "18:00",
+   "started_at": "2026-10-17T18:00:08+02:00",
+   "ended_at": "2026-10-17T18:33:50+02:00"
   },
   {
    "what": "Big model with first-review-rule labels on all 464 users",
@@ -333,7 +353,12 @@
    "decides": "A label-free big-model reference for free",
    "track": "small model",
    "minutes": 40,
-   "state": "planned"
+   "state": "done",
+   "ended": "18:52",
+   "exit": 0,
+   "started": "18:34",
+   "started_at": "2026-10-17T18:34:12+02:00",
+   "ended_at": "2026-10-17T18:52:07+02:00"
   },
   {
    "what": "Speed profile: w64 at 2,048 / 8,192 / 16,384 / 32,768 windows + big-model-size model",
@@ -342,7 +367,12 @@
    "decides": "Where training time goes; cost of the label-free reference",
    "track": "small model",
    "minutes": 50,
-   "state": "planned"
+   "state": "done",
+   "ended": "19:28",
+   "exit": 0,
+   "started": "18:52",
+   "started_at": "2026-10-17T18:52:08+02:00",
+   "ended_at": "2026-10-17T19:28:24+02:00"
   },
   {
    "what": "One-epoch final decay at 2,048 windows",
@@ -351,7 +381,12 @@
    "decides": "Does a 1-epoch decay beat our quarter epoch (a big gain in outside runs)?",
    "track": "small model",
    "minutes": 125,
-   "state": "planned"
+   "state": "done",
+   "ended": "21:11",
+   "exit": 0,
+   "started": "19:28",
+   "started_at": "2026-10-17T19:28:57+02:00",
+   "ended_at": "2026-10-17T21:11:06+02:00"
   },
   {
    "what": "Score the one-epoch decay on all 464 users",
@@ -360,7 +395,12 @@
    "decides": "The 464-user number for the one-epoch decay",
    "track": "small model",
    "minutes": 25,
-   "state": "planned"
+   "state": "done",
+   "ended": "21:26",
+   "exit": 0,
+   "started": "21:11",
+   "started_at": "2026-10-17T21:11:07+02:00",
+   "ended_at": "2026-10-17T21:26:46+02:00"
   },
   {
    "what": "Speed and correctness check of the faster training-time compression (no training)",
@@ -369,7 +409,12 @@
    "minutes": 10,
    "decides": "Whether the compression-in-training decay fits in ~2 h (CPU projection: 75&ndash;80 min vs 65 plain)",
    "track": "small model",
-   "state": "planned"
+   "state": "done",
+   "ended": "21:27",
+   "exit": 0,
+   "started": "21:26",
+   "started_at": "2026-10-17T21:26:54+02:00",
+   "ended_at": "2026-10-17T21:27:38+02:00"
   },
   {
    "what": "Review-number flags as inputs: 2 epochs at 2,048 windows + decay + 464-user scoring (started 23:50; the break was cancelled)",
@@ -378,7 +423,7 @@
    "decides": "Do explicit 2nd / 3rd / 4th+ review inputs help, paired against the same run without them (0.30259 / 0.27668)?",
    "track": "small model",
    "minutes": 200,
-   "state": "planned",
+   "state": "done",
    "ended_at": "2026-10-18T02:58:26+02:00",
    "started_at": "2026-10-17T23:50:34+02:00"
   },
@@ -389,7 +434,7 @@
    "minutes": 12,
    "track": "small model",
    "decides": "GPU memory and speed of the export before the 5-h run",
-   "state": "planned",
+   "state": "done",
    "started_at": "2026-10-18T01:52:30+02:00",
    "ended_at": "2026-10-18T02:02:45+02:00"
   },
@@ -400,7 +445,7 @@
    "minutes": 15,
    "track": "small model",
    "decides": "Kernels and trainer correct on the GPU; how much the carry costs per update (CPU checks all passed)",
-   "state": "planned",
+   "state": "done",
    "started_at": "2026-10-18T02:02:50+02:00",
    "ended_at": "2026-10-18T02:04:05+02:00"
   },
@@ -411,7 +456,7 @@
    "minutes": 110,
    "decides": "How much of the +0.0012 / +0.0023 compression cost training removes",
    "track": "small model",
-   "state": "planned",
+   "state": "done",
    "started_at": "2026-10-18T02:59:30+02:00",
    "ended_at": "2026-10-18T04:19:07+02:00"
   },
@@ -422,7 +467,7 @@
    "minutes": 180,
    "track": "small model",
    "decides": "Distillation targets for carried-state training (CPU checks passed: matches the full-history big model within float16 rounding)",
-   "state": "planned",
+   "state": "done",
    "started_at": "2026-10-18T04:20:30+02:00",
    "ended_at": "2026-10-18T07:31:11+02:00"
   },
@@ -433,7 +478,7 @@
    "track": "small model",
    "decides": "Does carried state get long-window accuracy at short-window speed? (curve &le; &minus;0.001, instant &le; +0.0005)",
    "minutes": 440,
-   "state": "planned",
+   "state": "done",
    "ended_at": "2026-10-18T14:01:05+02:00"
   },
   {
@@ -443,7 +488,12 @@
    "minutes": 15,
    "track": "small model",
    "decides": "Exact on the GPU; speed per update vs v1",
-   "state": "planned"
+   "state": "done",
+   "ended": "13:06",
+   "exit": 0,
+   "started": "13:05",
+   "started_at": "2026-10-18T13:05:44+02:00",
+   "ended_at": "2026-10-18T13:06:45+02:00"
   },
   {
    "what": "Carried state v2: 2 epochs at 2,048 from epoch 10 + decay + 464-user scoring: +1.20% / +1.10% (no carry +1.51% / +1.56%; 32k dec10 +1.11% / +0.94%)",
@@ -452,7 +502,7 @@
    "minutes": 230,
    "track": "small model",
    "decides": "With exact carried state, does 2,048-window training beat 32k (dec10 +1.11% / +0.94%)? Paired with arm B (no carry)",
-   "state": "planned",
+   "state": "done",
    "ended_at": "2026-10-18T17:24:19+02:00"
   },
   {
@@ -472,7 +522,7 @@
    "minutes": 50,
    "track": "small model",
    "decides": "732-user readout for v2 vs 32k and for the bar",
-   "state": "planned",
+   "state": "done",
    "started_at": "2026-10-18T17:24:45+02:00",
    "ended_at": "2026-10-18T18:27:16+02:00"
   },
@@ -483,7 +533,12 @@
    "minutes": 250,
    "track": "small model",
    "decides": "v2 beats 32k before decay (&minus;0.0002 / &minus;0.0011) but trails after the 2,048 decay (+0.0003 / +0.0004): does a long 32k decay put it past dec10 and near the bar? Started 10-19 00:31.",
-   "state": "planned"
+   "state": "done",
+   "ended": "05:56",
+   "exit": 0,
+   "started": "00:31",
+   "started_at": "2026-10-19T00:31:19+02:00",
+   "ended_at": "2026-10-19T05:56:16+02:00"
   },
   {
    "what": "Score the one-epoch 32k decay on all 464 users, then the 732 users",
@@ -492,7 +547,12 @@
    "minutes": 70,
    "track": "small model",
    "decides": "Bar met or not, on 464 and 732 users (paired with dec10 and v2 dec12)",
-   "state": "planned"
+   "state": "done",
+   "ended": "05:56",
+   "exit": 0,
+   "started": "05:21",
+   "started_at": "2026-10-19T05:21:51+02:00",
+   "ended_at": "2026-10-19T05:56:16+02:00"
   },
   {
    "what": "732 users: retry the 3 long users (1534, 1601, 4625) at a 0.92 memory cap, one try per model",
@@ -501,7 +561,12 @@
    "minutes": 20,
    "track": "small model",
    "decides": "Complete 732-user rows for every model",
-   "state": "planned"
+   "state": "done",
+   "ended": "06:01",
+   "exit": 0,
+   "started": "05:56",
+   "started_at": "2026-10-19T05:56:31+02:00",
+   "ended_at": "2026-10-19T06:01:03+02:00"
   },
   {
    "what": "Spaced-review slice for the one-epoch 32k decay and v2: per-review dumps on 464 users + breakdown by review type / same-day / stage",
@@ -510,7 +575,12 @@
    "minutes": 60,
    "track": "small model",
    "decides": "The spaced-review slice beside the bar for the new candidates (big model dumps reused)",
-   "state": "planned"
+   "state": "done",
+   "ended": "06:29",
+   "exit": 0,
+   "started": "06:01",
+   "started_at": "2026-10-19T06:01:03+02:00",
+   "ended_at": "2026-10-19T06:29:38+02:00"
   },
   {
    "what": "2,225-user set: stopped, its 1,493 extra training users have no benchmark labels (0 scored)",
@@ -519,7 +589,7 @@
    "minutes": 260,
    "track": "small model",
    "decides": "Needs a label build for those users before it can be used",
-   "state": "planned",
+   "state": "done",
    "ended_at": "2026-10-19T07:45:00+02:00"
   },
   {
@@ -527,8 +597,11 @@
    "id": "SM07",
    "kind": "cpu",
    "track": "small model",
-   "when": "10-19 morning, next to the GPU",
-   "decides": "Same table as dec10"
+   "when": "Done 10-19 (CPU)",
+   "decides": "Same table as dec10",
+   "state": "done",
+   "started_at": "2026-10-19T08:00:00+02:00",
+   "ended_at": "2026-10-19T08:11:00+02:00"
   },
   {
    "what": "Pruning code (CPU, done): depth-cut presets, self-test ALL OK, dry run OK; free CPU screen picked 2+1+1 layers (D7, &minus;38% params, 13 &rarr; 7 layers): +4.7% / +3.5% before fine-tuning",
@@ -548,7 +621,7 @@
    "minutes": 60,
    "track": "small model",
    "decides": "",
-   "state": "planned",
+   "state": "done",
    "started_at": "2026-10-19T09:51:42+02:00",
    "ended_at": "2026-10-19T10:22:19+02:00"
   },
@@ -559,7 +632,7 @@
    "minutes": 240,
    "track": "small model",
    "decides": "Pre-registered: keep the cut if it costs &le; +0.25% vs the parent on both heads (upper 95% bound)",
-   "state": "planned",
+   "state": "done",
    "started_at": "2026-10-19T10:22:24+02:00",
    "ended_at": "2026-10-19T12:33:17+02:00"
   },
@@ -570,7 +643,7 @@
    "minutes": 65,
    "track": "small model",
    "decides": "FAIL: +0.36% / +0.42% vs the best (459 users), above the +0.25% limit",
-   "state": "planned",
+   "state": "done",
    "started_at": "2026-10-19T12:33:17+02:00",
    "ended_at": "2026-10-19T13:04:31+02:00"
   },
@@ -581,7 +654,7 @@
    "minutes": 400,
    "track": "small model",
    "decides": "Tie with the best: the 2 carried-state epochs do not matter, the one-epoch 32k decay with carry gives the gain",
-   "state": "planned",
+   "state": "done",
    "started_at": "2026-10-19T13:06:21+02:00",
    "ended_at": "2026-10-19T18:35:30+02:00"
   },
@@ -592,7 +665,7 @@
    "minutes": 65,
    "track": "small model",
    "decides": "More users win, mostly on instant: 10 passes over 100 users +0.36% / +0.46% worse than 1 pass over 1,000 (723 users)",
-   "state": "planned",
+   "state": "done",
    "started_at": "2026-10-19T18:36:30+02:00",
    "ended_at": "2026-10-19T19:32:24+02:00"
   },
@@ -603,7 +676,7 @@
    "minutes": 400,
    "track": "small model",
    "decides": "Small win on instant only: vs the best model (AdamW) curve tied (+0.00002 [-0.00034, +0.00046]), instant -0.00018 [-0.00022, -0.00013] on 464 users (+0.81% / +0.68% vs the big model); same on 723 users (-0.00017 / -0.00020). Not the road to +0.5% by itself",
-   "state": "planned",
+   "state": "done",
    "started_at": "2026-10-20T01:01:33+02:00",
    "ended_at": "2026-10-20T06:42:20+02:00"
   },
@@ -625,7 +698,7 @@
    "track": "small model",
    "what": "GPU check of the learned-codebook kernels (no training)",
    "decides": "Passed: kernels match the CPU codec exactly (0 pick mismatches); learning the codebooks costs +6&ndash;9% time on the state kernels",
-   "state": "planned",
+   "state": "done",
    "started_at": "2026-10-20T01:00:08+02:00",
    "ended_at": "2026-10-20T01:00:22+02:00"
   },
@@ -636,7 +709,7 @@
    "minutes": 420,
    "track": "small model",
    "decides": "Only a small gain: learned codebooks cut the compression cost from +0.42% / +0.93% to +0.38% [+0.18, +0.56] / +0.79% [+0.62, +0.97] vs the best model with int8 state (68 users); the &le; +1.0% bar still breaks. The model trained this way is worse with int8 state (+0.98% / +1.30%). Training took 6.1 h + 1 h CPU scoring",
-   "state": "planned",
+   "state": "done",
    "started_at": "2026-10-20T06:42:35+02:00",
    "ended_at": "2026-10-20T13:48:07+02:00"
   },
@@ -647,7 +720,7 @@
    "minutes": 60,
    "track": "small model",
    "decides": "Nearly free: int4 cards + int8 notes cost +0.00005 curve [+0.00003, +0.00006] / +0.00005 instant [+0.00004, +0.00006] on 723 users (+0.64% &rarr; +0.66% / +0.63% &rarr; +0.64% vs the big model); int4 everywhere +0.00010 / +0.00017. Card state 26,624 &rarr; 18,432 bits (&minus;31%). GPU matches CPU to 2e-6",
-   "state": "planned",
+   "state": "done",
    "started_at": "2026-10-20T16:55:02+02:00",
    "ended_at": "2026-10-20T17:30:14+02:00"
   },
@@ -659,7 +732,7 @@
    "track": "small model",
    "when": "10-20 13:59 &rarr; ~21:30 (A done 16:55, SM45 35 min, B from 17:30 ~3.4 h, scoring ~30 min)",
    "decides": "More users win, and the gap grows: 125 users &times; 110 epochs +0.77% curve / +0.55% instant worse than 1,250 &times; 11 (723 users)",
-   "state": "planned",
+   "state": "done",
    "started_at": "2026-10-20T13:59:26+02:00",
    "ended_at": "2026-10-20T21:26:38+02:00"
   },
@@ -671,7 +744,7 @@
    "track": "small model",
    "when": "10-21 02:07 &rarr; 04:59 (5-user GPU check passed with the looser rule for codebook formats)",
    "decides": "Not close enough: ~800 bits costs +0.37% curve / +0.67% instant on top of int8 (+1.08% / +1.38% vs the big model), ~400 bits +0.72% / +1.18%. The 16&ndash;24k-bit int formats (SM45/SM47) stay the practical choice",
-   "state": "planned",
+   "state": "done",
    "started_at": "2026-10-21T02:06:53+02:00",
    "ended_at": "2026-10-21T04:59:26+02:00"
   },
@@ -683,7 +756,7 @@
    "track": "small model",
    "when": "10-21 05:00 &rarr; 07:07, 464 users only (all 732 would take ~4 h)",
    "decides": "Nearly free, but not cheaper than the int formats in practice: +0.00009 curve / +0.00015 instant (+0.77% / +0.70% vs the big model, 458 users), state 15.3 MB vs 37.6 MB for the smallest int format, but ~30 MB of codebooks to ship and ~11&times; slower scoring (5,005 vs ~56k reviews/s)",
-   "state": "planned",
+   "state": "done",
    "started_at": "2026-10-21T05:00:40+02:00",
    "ended_at": "2026-10-21T07:06:56+02:00"
   },
@@ -695,7 +768,7 @@
    "track": "small model",
    "when": "10-21 00:47 &rarr; 02:07 (break lifted early)",
    "decides": "Nearly free: 16-bit scales and int8 short-term vectors cost nothing (&plusmn;0.00000); the smallest format (11,824 / 10,272 bits, 37.6 MB, &minus;46% vs int8) costs only the int4-card +0.00005 / +0.00005 already known from SM45",
-   "state": "planned",
+   "state": "done",
    "started_at": "2026-10-21T00:47:01+02:00",
    "ended_at": "2026-10-21T02:06:33+02:00"
   },
@@ -707,7 +780,7 @@
    "track": "small model",
    "when": "10-21 02:30 &rarr; 02:40 (timing run, 40 users)",
    "decides": "1.33&times; from array metrics, 1.56&times; with 4 users at once (46k &rarr; 61k &rarr; 72k reviews/s), every arm bit-for-bit identical. Several users at once needs ~1.4 GB more GPU memory",
-   "state": "planned",
+   "state": "done",
    "started_at": "2026-10-21T02:29:37+02:00",
    "ended_at": "2026-10-21T02:40:07+02:00"
   },
@@ -780,7 +853,7 @@
    "track": "small model",
    "when": "Wed 10-21 08:46-08:59",
    "decides": "Yes, exact: several users at once now gives bit-identical rows for the int formats (160/160 in every run). 2 at a time ~1.3&times; faster with room under the memory cap (12.1 of ~12.8 GiB); 4 at a time only slightly faster and at the cap. Two identical runs differed by ~&plusmn;17%, so the speed figure is rough. Pool scorings now skip the 9 users that never fit (723 of 732)",
-   "state": "planned",
+   "state": "done",
    "started_at": "2026-10-21T08:46:27+02:00",
    "ended_at": "2026-10-21T08:59:34+02:00"
   },
@@ -792,7 +865,7 @@
    "track": "small model",
    "when": "Wed 10-21 13:00-13:28",
    "decides": "On 723 users, curve / instant LogLoss and % vs big (current best 37.6 MB: +0.64% / +0.63%): A 30.8 MB 0.30343 / 0.27976 (+0.68% / +0.69%); B 28.7 MB 0.30346 / 0.27990 (+0.69% / +0.73%); C 23.7 MB 0.30401 / 0.28068 (+0.87% / +1.02%, instant just over the bar); C&prime; 32.9 MB +0.74% / +0.78%. B is the smallest format clearly inside the bar. Lossless compression: C 23.7 &rarr; 13.6 MB on the own collection",
-   "state": "planned",
+   "state": "done",
    "started_at": "2026-10-21T13:00:00+02:00",
    "ended_at": "2026-10-21T13:28:19+02:00"
   },
@@ -804,7 +877,12 @@
    "what": "Muon best model (SM36) on the 732-user set: score the one long user (1601) that ran out of memory at the 0.8 cap, at 0.92, so it reads on the same 730 users as the previous best (SM40)",
    "when": "Done 10-22 09:16 (1 min)",
    "decides": "Done: the Muon best model on all 730 users, +0.69% / +0.65% vs the big model (previous best +0.71% / +0.71%)",
-   "state": "planned"
+   "state": "done",
+   "ended": "09:18",
+   "exit": 0,
+   "started": "09:17",
+   "started_at": "2026-10-22T09:17:36+02:00",
+   "ended_at": "2026-10-22T09:18:36+02:00"
   },
   {
    "what": "Head-only fine-tunes: trunk frozen, the curve head alone on its loss, then the instant head alone (SM36 start), scored on 732 users",
@@ -814,7 +892,12 @@
    "track": "small model",
    "when": "Curve-only 09:18 &rarr; 09:51; instant-only killed at 10:18, rerun 11:54 &rarr; 12:26 (~21 min training each, ~65k reviews/s)",
    "decides": "Neither head is under-trained: curve-only +0.00001 [&minus;0.00003, +0.00005], instant-only &minus;0.000004 [&minus;0.00001, +0.00000] vs SM36 (723 users). The remaining gap is in the shared trunk / card-note state, not the heads; drops the head-weighted option of Muon tuning arm 2 (SM39)",
-   "state": "planned"
+   "state": "done",
+   "ended": "12:26",
+   "exit": 0,
+   "started": "09:18",
+   "started_at": "2026-10-22T09:18:36+02:00",
+   "ended_at": "2026-10-22T12:26:41+02:00"
   },
   {
    "id": "SM55",
@@ -824,7 +907,12 @@
    "what": "8k model (SM55) on the 732-user set: the 7 long users it skipped, at the 0.92 cap, so it reads on the same 730 users as the table",
    "when": "Done 12:27 (3 of 7 fit at the 0.92 cap); a retry of the other 4 at 12:29 also ran out of memory (the allocator option that might help is not available on Windows)",
    "decides": "The 732 table now uses the 726 users every model fits (4 long users do not fit the 8k model&rsquo;s scorer; cause not known yet)",
-   "state": "planned"
+   "state": "done",
+   "ended": "12:27",
+   "exit": 0,
+   "started": "12:26",
+   "started_at": "2026-10-22T12:26:41+02:00",
+   "ended_at": "2026-10-22T12:27:44+02:00"
   },
   {
    "what": "Better distillation, step 1: fine-tunes of SM36 with more weight on the big model&rsquo;s predictions (control at today&rsquo;s weight, 0.9, 1.0), same setup as SM50 (81M reviews, ~110 min per arm with scoring), scored on 732 users",
@@ -834,7 +922,12 @@
    "track": "small model",
    "when": "Code check passed 14:27. Control arm: training OK, scoring failed on a missing users file, rescored after a relaunch at 15:48 &rarr; done 17:49. Arm 0.9 done 19:27, arm 1.0 done 20:47 (each ~80 min on the GPU, 20,100 reviews/s training)",
    "decides": "Does a heavier big-model weight help? Never tested since full-history distillation. If yes: step 2 (learn the big model&rsquo;s whole curve) and use the weight in SM56. Control (weight 0.5, as SM36) on 723 users: 0.30329 / 0.27957 vs SM36 0.30333 / 0.27960, &minus;0.00004 [&minus;0.00016, +0.00006] / &minus;0.00003 [&minus;0.00005, &minus;0.00001]: a tie on curve, a tiny instant gain. The arms are read against this control. Arm 0.9: 0.30358 / 0.27967, vs SM36 +0.00025 [+0.00008, +0.00040] / +0.00007 [+0.00005, +0.00009]: worse on both heads (+0.73% / +0.65% vs the big model, against +0.64% / +0.63%), so a heavier big-model weight does not help. Arm 1.0: 0.30365 / 0.27971, +0.00032 [+0.00013, +0.00050] / +0.00011 [+0.00009, +0.00014] (+0.75% / +0.67% vs the big model): worse again. Verdict: today&rsquo;s weight 0.5 stays; step 2 (whole curve) was conditional on a gain and is shelved. Tables: summary-table.md in the sm59 branch",
-   "state": "planned"
+   "state": "done",
+   "ended": "20:46",
+   "exit": 0,
+   "started": "14:27",
+   "started_at": "2026-10-22T14:27:44+02:00",
+   "ended_at": "2026-10-22T20:46:53+02:00"
   },
   {
    "id": "SM58",
@@ -844,7 +937,9 @@
    "what": "Disagreement test: UM+ and each model&rsquo;s slope (Search Stats Extended conventions), Muon best small model (SM36) vs the big model, curve and instant, 729 users + own collection (aggregate); the 8k model (SM55) too if it wins",
    "when": "Done 18:09 (dumps 15:38&ndash;18:08, analysis on the CPU)",
    "decides": "Where the small and big model disagree, which is more right? Slope closer to 0 = more right; a tie is +0.5 for the small model. 722 benchmark users: the big model is more right. Muon version (SM36) slope +0.72 curve / +0.80 instant (UM+ 0.0251 / 0.0219 vs big 0.0106 / 0.0059); 8k model (SM55) +0.68 / +0.77 (UM+ 0.0229 / 0.0205), so the 8k model closes part of the gap. Own collection (aggregate): near a tie, SM36 +0.53 / +0.58 (UM+ 0.0179 / 0.0189 vs big 0.0181 / 0.0157), SM55 +0.56 / +0.61. How much they disagree (|p small &minus; p big|, curve / instant, SM36): benchmark 25% / 21% of reviews outside the central 5-point bin (&ge; 0.025), p66 0.018 / 0.015, p95 0.073 / 0.063, p99 0.144 / 0.113; own collection 33% / 31%, p66 0.024 / 0.023, p95 0.079 / 0.072, p99 0.126 / 0.114. Graphs: graphs.html in the sm58 branch",
-   "state": "planned"
+   "state": "done",
+   "started_at": "2026-10-22T15:38:00+02:00",
+   "ended_at": "2026-10-22T18:09:00+02:00"
   },
   {
    "id": "SM56",
@@ -857,8 +952,8 @@
    "state": "done",
    "ended": "09:08",
    "exit": 0,
-   "started": "08:57",
-   "started_at": "2026-10-25T08:57:07+01:00",
+   "started": "15:35",
+   "started_at": "2026-10-22T15:35:15+02:00",
    "ended_at": "2026-10-25T09:08:25+01:00"
   },
   {
@@ -869,7 +964,7 @@
    "track": "small model",
    "when": "Wed 10-21 13:28-17:48 (ran early: SM55 stopped), 23.9k reviews/s",
    "decides": "Muon learning rate &times;0.5 ties the best model: 723 users curve 0.30330 / instant 0.27962 (+0.63% / +0.64% vs big); vs SM36 curve &minus;0.00003 [&minus;0.00021, +0.00012], instant +0.00003 [+0.00001, +0.00004]. The learning rate is not the lever",
-   "state": "planned",
+   "state": "done",
    "started_at": "2026-10-21T13:28:00+02:00",
    "ended_at": "2026-10-21T17:47:49+02:00"
   },
@@ -881,7 +976,12 @@
    "track": "small model",
    "when": "Training 01:01 &rarr; 09:17 (8 h 16, ~19.6k reviews/s), scored 09:51 &rarr; 10:02",
    "decides": "The 8k model wins on both heads: 723 users curve 0.30286 / instant 0.27934 (+0.49% / +0.53% vs the big model); vs the Muon best model (SM36) curve &minus;0.00047 [&minus;0.00088, &minus;0.00017], instant &minus;0.00025 [&minus;0.00029, &minus;0.00022]. 464 users: +0.53% / +0.54%. More users is the strongest lever so far",
-   "state": "planned"
+   "state": "done",
+   "ended": "12:29",
+   "exit": 0,
+   "started": "08:59",
+   "started_at": "2026-10-21T08:59:57+02:00",
+   "ended_at": "2026-10-22T12:29:34+02:00"
   },
   {
    "what": "Checkpoint averaging: average the last 2, 3 or 4 SM39 decay snapshots, scored with the final weights on 723 users",
@@ -891,7 +991,7 @@
    "track": "small model",
    "when": "Wed 10-21 17:48-18:20",
    "decides": "No free gain: averaging the last 2 snapshots ties (instant +0.00004); 3 or 4 snapshots make instant worse (+0.00012 / +0.00016, 723 users)",
-   "state": "planned",
+   "state": "done",
    "ended_at": "2026-10-21T18:20:02+02:00"
   },
   {
@@ -900,9 +1000,9 @@
    "kind": "gpu-train",
    "minutes": 360,
    "track": "small model",
-   "when": "After the full retrain (SM56), which has the GPU from Fri 01:30",
+   "when": "On hold: not started; the deleted-card leak check and the leak-free retrain (SM71, SM72) took the GPU",
    "decides": "Second point of the learning-rate check",
-   "state": "planned"
+   "state": "hold"
   },
   {
    "what": "Real-timestamp inputs (card age, time since any review, creation batch): dataset build with timestamps (CPU, Thu&ndash;Fri), then a fine-tune from SM36 with the new inputs starting at zero (1 epoch + decay at 32k)",
@@ -910,23 +1010,108 @@
    "kind": "gpu-train",
    "minutes": 700,
    "track": "small model",
-   "when": "Fri 10-23 &rarr; Sat 10-24 (dataset on CPU Thu&ndash;Fri; starts from the 8k model if it wins)",
+   "when": "On hold: not started; the deleted-card leak check and the leak-free retrain (SM71, SM72) took the GPU",
    "decides": "The big bet: outside research saw about &minus;0.0005 / &minus;0.0008, a third to nearly half of today&rsquo;s gap",
-   "state": "planned"
+   "state": "hold"
   },
   {
-   "what": "Leak-free retrain: train the small model again with the deleted-card information removed from its training inputs (flags at 0, deleted cards put in the deck of the nearest existing card), then score both models without it. Models trained on today&rsquo;s inputs are tagged &ldquo;(leak inputs)&rdquo;",
    "id": "SM72",
-   "kind": "gpu-train",
-   "minutes": 2100,
    "track": "small model",
-   "when": "Code + CPU check done Sat 10-24 20:31. Step 1 (big model, one leak-free epoch from its shipped weights, tagged &ldquo;(1 leak-free epoch)&rdquo;): Its 32k windows don&rsquo;t fit in memory, so it trains with carried state (as the small model) at 2 lanes &times; 8,192 reviews, peak LR 3.5e-4 &rarr; 0 (user). Step 1 done Mon 05:24 (scored 05:57): &minus;0.23% / &minus;0.16% vs the shipped big model on leak-free inputs, see the results row. Step 2: leak-free teacher export from the big model (1 leak-free epoch), running since Mon 05:57 (~4.8 h, ~10:45). Step 3: small model retrained leak-free (sm72s): the full retrain&rsquo;s recipe with the leak-free inputs, teacher and targets, 15 fixed epochs (~2 h each), then the 32k cool-down from epoch 15 (main result) and from epoch 10 (comparison with the released version); launcher waiting for step 2 since Mon 08:10, epoch 1 ~10:20&rarr;12:15, epoch 5 ~20:20, epoch 15 Wed ~03:55, cool-down from 15 scored Wed ~12:50, from 10 Thu ~02:40. Carried-state check on the big model: max difference 8e-7 vs the full history",
-   "decides": "Whether the small model&rsquo;s gap to the big model changes once neither model learned from the leak, and how much of it a single leak-free decay recovers vs a full retrain",
+   "since": "10-25",
+   "what": "Big model (fork RWKV) (1 leak-free epoch): one added epoch from its shipped weights with the deleted-card inputs removed, then scored with and without the leak",
+   "kind": "gpu-train",
+   "minutes": 900,
+   "decides": "The reference for leak-free scores: &minus;0.23% / &minus;0.16% vs the shipped big model on 722 users",
+   "state": "done",
+   "ended": "05:56",
+   "exit": 0,
+   "started": "11:13",
+   "started_at": "2026-10-25T11:13:59+01:00",
+   "ended_at": "2026-10-26T05:56:55+01:00"
+  },
+  {
+   "id": "SM72",
+   "track": "small model",
+   "since": "10-25",
+   "what": "Leak-free teacher targets from the big model (1 leak-free epoch) on the 8,000 training users",
+   "kind": "gpu-score",
+   "minutes": 240,
+   "decides": "",
+   "state": "done",
+   "ended": "09:56",
+   "exit": 0,
+   "started": "05:56",
+   "started_at": "2026-10-26T05:56:56+01:00",
+   "ended_at": "2026-10-26T09:56:02+01:00"
+  },
+  {
+   "id": "SM72",
+   "track": "small model",
+   "since": "10-25",
+   "what": "Released small model (leak inputs) (SM56) scored without the leak on the 732 set",
+   "kind": "gpu-score",
+   "minutes": 13,
+   "decides": "The bar for the new model: +0.51% / +0.50% vs the big model (1 leak-free epoch), 722 users",
+   "state": "done",
+   "ended": "10:13",
+   "exit": 0,
+   "started": "10:01",
+   "started_at": "2026-10-26T10:01:05+01:00",
+   "ended_at": "2026-10-26T10:13:27+01:00"
+  },
+  {
+   "id": "SM72",
+   "track": "small model",
+   "since": "10-25",
+   "what": "New small model (leak-free) (SM72s): 15 epochs from scratch on all 8,000 users (581.9M reviews each), each epoch scored on the 464 set (458 users it fits)",
+   "kind": "gpu-train",
+   "minutes": 2050,
+   "decides": "Epoch read-outs only (checkpoints before the cool-down zig-zag); the cool-down decides",
    "state": "running",
    "started": "16:10",
    "ticket": "000725-small-model",
-   "started_at": "2026-10-27T16:02:37+01:00",
-   "ends_at": "2026-10-29T03:02:37+01:00"
+   "started_at": "2026-10-26T10:13:28+01:00",
+   "ends_at": "2026-10-27T20:23:28+01:00"
+  },
+  {
+   "id": "SM72",
+   "track": "small model",
+   "since": "10-27",
+   "what": "Cool-down of the new small model (leak-free) (SM72s) from epoch 15: one epoch at 32k-review windows with Muon, as for the released model",
+   "kind": "gpu-train",
+   "minutes": 520,
+   "decides": "Whether the leak-free small model stays within +1.0% of the big model (1 leak-free epoch) on both heads; the bar is the released small model (leak inputs) (SM56) at +0.51% / +0.50% on leak-free inputs",
+   "state": "planned"
+  },
+  {
+   "id": "SM72",
+   "track": "small model",
+   "since": "10-27",
+   "what": "Score that cool-down on the 732 set (723 users it fits, then the 3 long users)",
+   "kind": "gpu-score",
+   "minutes": 18,
+   "decides": "Whether the leak-free small model stays within +1.0% of the big model (1 leak-free epoch) on both heads; the bar is the released small model (leak inputs) (SM56) at +0.51% / +0.50% on leak-free inputs",
+   "state": "planned"
+  },
+  {
+   "id": "SM72",
+   "track": "small model",
+   "since": "10-27",
+   "what": "Cool-down from epoch 10 instead, same recipe (the released version was cooled from epoch 10)",
+   "kind": "gpu-train",
+   "minutes": 520,
+   "decides": "Whether 5 more epochs before the cool-down still help without the leak",
+   "state": "planned"
+  },
+  {
+   "id": "SM72",
+   "track": "small model",
+   "since": "10-27",
+   "what": "Score the epoch-10 cool-down on the 732 set",
+   "kind": "gpu-score",
+   "minutes": 18,
+   "decides": "",
+   "state": "planned"
   },
   {
    "what": "Deleted-card leak check: about 1 review in 5 is on a card deleted before the data export, and both models see that in their inputs (Anki never does). Score the big model and the best small model without it, and on the cards that still exist only",
@@ -939,8 +1124,8 @@
    "state": "done",
    "ended": "11:12",
    "exit": 0,
-   "started": "11:11",
-   "started_at": "2026-10-25T11:11:36+01:00",
+   "started": "09:10",
+   "started_at": "2026-10-25T09:10:11+01:00",
    "ended_at": "2026-10-25T11:12:41+01:00"
   },
   {
@@ -951,7 +1136,7 @@
    "track": "small model",
    "when": "Done 10-24 14:59&ndash;16:58 (CPU, 2 h, 200 held-out users, 7.06M test reviews)",
    "decides": "Done: none of about 55 deployable inputs lowers LogLoss (instant: no interval below &minus;0.00002, 2% of the gap; control, the big model&rsquo;s own prediction: &minus;0.0011 / &minus;0.0014). The one gain (pause before the show time, instant &minus;0.00036) carries the review&rsquo;s own thinking time, so it is a leak. The gap sits in same-day re-reviews, just-failed cards and weak users: capacity, not inputs. Card template / note type not in the data. Open question: the deleted-card flag in the inputs is future information",
-   "state": "planned",
+   "state": "done",
    "started_at": "2026-10-24T14:59:00+02:00",
    "ended_at": "2026-10-24T16:58:00+02:00"
   },
@@ -963,7 +1148,7 @@
    "track": "small model",
    "when": "Done 10-24 16:41&ndash;16:51 (epoch 13 scoring 8 min, the 3 long users 1 min, all 3 fit at the 0.92 cap)",
    "decides": "Done: epoch 13 curve 0.29988 / instant 0.27575 (458 users, flat since epoch 9). Decay from epoch 10 on 726 users: +0.45% / +0.49% vs the big model (8k model, SM55: +0.54% / +0.55%); difference to SM55 curve &minus;0.00027 [&minus;0.00069, +0.00018], instant &minus;0.00016 [&minus;0.00021, &minus;0.00011]",
-   "state": "planned",
+   "state": "done",
    "started_at": "2026-10-24T16:41:28+02:00",
    "ended_at": "2026-10-24T16:50:45+02:00"
   },
@@ -976,11 +1161,8 @@
    "when": "Sat 10-24 10:47 &rarr; Sun 10-25 09:08: epochs 11&ndash;15 (scored after each), cool-down from epoch 15 02:01&ndash;08:57, scored 09:08",
    "decides": "Done: the 5 extra epochs help after the cool-down: +0.27% / +0.37% vs the big model on 723 users (from epoch 10: +0.34% / +0.47%), &minus;0.00022 / &minus;0.00030, both significant",
    "state": "done",
-   "ended": "10:13",
-   "exit": 0,
-   "started": "19:00",
-   "started_at": "2026-10-24T19:00:11+02:00",
-   "ended_at": "2026-10-26T10:13:27+01:00"
+   "started_at": "2026-10-24T10:47:00+02:00",
+   "ended_at": "2026-10-25T09:08:00+01:00"
   },
   {
    "what": "Resumable cool-down check: a small cool-down run straight through vs stopped halfway and resumed (same learning rate, loss and weights?)",
@@ -990,7 +1172,12 @@
    "track": "small model",
    "when": "Done Sat 10-24 10:24: bit for bit, all 11 checks pass",
    "decides": "Whether long cool-downs can be paused (snapshot every 400 users, ~25 min) and resumed without losing the hours already trained; built 10-24 night, CPU check all pass",
-   "state": "planned"
+   "state": "done",
+   "ended": "10:23",
+   "exit": 0,
+   "started": "10:14",
+   "started_at": "2026-10-24T10:14:29+02:00",
+   "ended_at": "2026-10-24T10:23:58+02:00"
   },
   {
    "what": "Deployment-realistic scoring without the review-duration leak, both the big model and SM36",
@@ -998,9 +1185,9 @@
    "kind": "gpu-check",
    "minutes": 60,
    "track": "small model",
-   "when": "Sat 10-24",
+   "when": "On hold: not started; the deleted-card leak check and the leak-free retrain (SM71, SM72) took the GPU",
    "decides": "Honest final numbers; outside runs: +0.0002 / +0.0004 for both models",
-   "state": "planned"
+   "state": "hold"
   },
   {
    "what": "Stack the week&rsquo;s winners (learning rate, teacher targets, timestamps, head changes) into one decay; then the decisive 2,225-user check",
@@ -1008,9 +1195,9 @@
    "kind": "gpu-train",
    "minutes": 360,
    "track": "small model",
-   "when": "Sun 10-25 (before the 16:00 break) &rarr; Tue 10-27, then the 2,225-user check",
+   "when": "On hold: not started; the deleted-card leak check and the leak-free retrain (SM71, SM72) took the GPU",
    "decides": "New best small model, closer to the big model than +0.64% / +0.63%",
-   "state": "planned"
+   "state": "hold"
   }
  ],
  "gpu_break": {
@@ -1088,13 +1275,14 @@
    "item": "Benchmark labels for the 1,493 training users of the 2,225-user set",
    "id": "EVAL",
    "why": "The label database only covers validation and test users; the 2,225 set scored nothing (10-19)",
-   "track": "small model"
+   "track": "small model",
+   "since": "10-27"
   },
   {
-   "status": "next",
+   "status": "done",
    "item": "Training with carried state between a user&rsquo;s windows",
    "id": "SM21",
-   "why": "Moved up 10-18 (user): full-history context at short-window speed (2,048 windows ~5x faster than 32k). Designed, CPU prototype exact; code started 10-18",
+   "why": "Done 10-18: carried state v2 (strided lanes) is in every model since (SM40, SM36, SM55, SM56, SM72)",
    "track": "small model"
   },
   {
@@ -1189,11 +1377,12 @@
    "track": "small model"
   },
   {
-   "status": "next",
+   "status": "parked",
    "item": "Open tuning queue from outside research (Muon learning rate x0.5 / x2, longer warmup)",
    "id": "SM39",
-   "why": "Pointers only: we keep our own training setup (decision 10-17). Week plan 10-21: arm 1 (&times;0.5) Wed night, arm 2 Fri night",
-   "track": "small model"
+   "why": "Arm 1 (learning rate &times;0.5) done 10-21, see its results row; arm 2 on hold since the full retrain (SM56). Pointers only: we keep our own training setup (decision 10-17). Week plan 10-21: arm 1 (&times;0.5) Wed night, arm 2 Fri night",
+   "track": "small model",
+   "since": "10-27"
   },
   {
    "status": "idea",
@@ -1322,25 +1511,25 @@
    "why": "Architecture change; only if consistency losses fail the quality gate"
   },
   {
-   "status": "next",
+   "status": "done",
    "id": "SM49",
    "track": "small model",
    "item": "Smaller int state round 2 + lossless compression of the stored codes",
-   "why": "See the week plan; no retraining"
+   "why": "Done 10-21: see the results row (SM49)"
   },
   {
-   "status": "next",
+   "status": "done",
    "id": "SM50",
    "track": "small model",
    "item": "Head-only fine-tunes (trunk frozen), one per head",
-   "why": "Cheapest head-specific test; state unchanged"
+   "why": "Done 10-22: see the results row (SM50)"
   },
   {
-   "status": "next",
+   "status": "done",
    "id": "SM51",
    "track": "small model",
    "item": "Checkpoint (weight) averaging over the final decay",
-   "why": "Needs snapshots: saved during the next decay (SM39 arm 1)"
+   "why": "Done 10-21: see the results row (SM51)"
   },
   {
    "status": "next",
@@ -1364,18 +1553,18 @@
    "why": "First count how many benchmark users are not used for training or evaluation (CPU, minutes)"
   },
   {
-   "status": "next",
+   "status": "done",
    "id": "EVAL",
    "track": "small model",
    "item": "Runbooks skip the users that never fit in GPU memory instead of retrying them 3&times;",
-   "why": "~35 min of GPU lost on 10-21 (SM44, SM46); no GPU needed"
+   "why": "Done: runbooks score the fit lists (732 set minus 9 never-fit users, long users at the 0.92 cap)"
   },
   {
-   "status": "idea",
+   "status": "done",
    "id": "SM56",
    "track": "small model",
    "item": "Full retrain from scratch with carried state at 2,048 windows (every epoch, not just the decay), on 8k users if SM55 wins",
-   "why": "Never tested: SM42 showed 2 late carried epochs add nothing before the decay, so the gain may be small. ~22 h GPU on 8k users (~15 h on 5k). Decide after SM55 (user, 10-21)"
+   "why": "Done 10-24 / 10-25: the released small model (leak inputs) (SM56); see its results rows"
   },
   {
    "status": "idea",
@@ -1385,18 +1574,19 @@
    "why": "Goal: better instant predictions, not less space. Does giving all of the model to instant beat sharing it with the curve, or does the curve task help instant learn? Many people mostly use instant; a second, curve-only model could cover the rest (both = double the state). No rush: later this week if a slot opens, else next week (user, 10-21)"
   },
   {
-   "status": "next",
+   "status": "done",
    "id": "SM58",
    "track": "small model",
    "item": "UM+ small vs big model with each model&rsquo;s slope, in the Search Stats Extended conventions (5-point disagreement bins, bins under 200 reviews hidden for slopes but counted in UM+). The slope closer to 0 is the more right model; the two slopes always differ by exactly 1, so a tie is +0.5 for the small model (and &minus;0.5 for the big model). Curve and instant, SM36 (and SM55 if it wins), 723 users and the own collection (aggregate only)",
-   "why": "LogLoss says how far the small model is behind, not where. Reference: the user&rsquo;s chart on the own collection, instant, big (legacy) +0.425 vs SM40 &minus;0.575 (UM+ 0.0155 vs 0.0180). Thu 10-22 after SM55: ~1 h GPU to save both models&rsquo; predictions, the rest on the CPU"
+   "why": "Done 10-22 to 10-24: see the results rows (SM58)"
   },
   {
-   "status": "idea",
+   "status": "parked",
    "id": "SM59",
    "track": "small model",
    "item": "Better distillation, step 2: also learn the big model&rsquo;s whole forgetting curve (its predictions at fixed intervals, e.g. 1 d / 7 d / 30 d / 180 d), not one point per review",
-   "why": "Shelved 10-22 20:47: step 1 showed no gain (weights 0.9 and 1.0 both worse than 0.5). Was: only if step 1 shows a gain (user, 10-22). Needs new code and a new export of the big model&rsquo;s predictions (GPU, a few hours, +~16 B per review). Step 3 (copy the big model&rsquo;s internal state) only if 1&ndash;2 show the small model can&rsquo;t follow"
+   "why": "Shelved 10-22: step 1 (more teacher weight) was worse than SM36 at 0.9 and 1.0. Shelved 10-22 20:47: step 1 showed no gain (weights 0.9 and 1.0 both worse than 0.5). Was: only if step 1 shows a gain (user, 10-22). Needs new code and a new export of the big model&rsquo;s predictions (GPU, a few hours, +~16 B per review). Step 3 (copy the big model&rsquo;s internal state) only if 1&ndash;2 show the small model can&rsquo;t follow",
+   "since": "10-27"
   }
  ],
  "results": [
@@ -1614,6 +1804,24 @@
      ]
     }
    }
+  },
+  {
+   "date": "10-24",
+   "kind": "cpu",
+   "name": "Feature discovery: which extra inputs (user habits, time of day, session position, card and deck fields, features built from the history) the full retrain (SM56) would still gain from, on held-out users, deployable inputs only",
+   "id": "SM70",
+   "curve": null,
+   "instant": null,
+   "curve_pct": null,
+   "instant_pct": null,
+   "eval": "200 held-out users, 7.06M test reviews",
+   "fork": "control: the big model&rsquo;s own prediction as an input, &minus;0.0011 / &minus;0.0014",
+   "takeaway": "<strong>No deployable input helps</strong>: none of about 55 deployable inputs lowers LogLoss (instant: no interval below &minus;0.00002, 2% of the gap; control, the big model&rsquo;s own prediction: &minus;0.0011 / &minus;0.0014). The one gain (pause before the show time, instant &minus;0.00036) carries the review&rsquo;s own thinking time, so it is a leak. The gap sits in same-day re-reviews, just-failed cards and weak users: capacity, not inputs. Card template / note type not in the data. Open question: the deleted-card flag in the inputs is future information",
+   "track": "small model",
+   "started_at": "2026-10-24T14:59+02:00",
+   "ended_at": "2026-10-24T16:58+02:00",
+   "gpu_minutes": 0,
+   "tickets": 0
   },
   {
    "date": "10-24",
