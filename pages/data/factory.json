@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-10-27T19:58:23+01:00",
- "updated": "2026-10-27 19:58",
- "material": "ed8f3f665cae7fc4",
- "summary": "running 000728, finished 000727",
+ "generated_at": "2026-10-27T20:05:57+01:00",
+ "updated": "2026-10-27 20:05",
+ "material": "efbe9c70c1808276",
+ "summary": "running 000729, finished 000728",
  "headline": [
   {
    "k": "Best, 464 users (curve / instant)",
@@ -209,23 +209,32 @@
  ],
  "now": [
   {
-   "what": "New small model (leak-free) (SM72s): 15 epochs from scratch on all 8,000 users (581.9M reviews each), each epoch scored on the 464 set (458 users it fits)",
-   "id": "SM72, ticket 000728",
+   "what": "Cool-down of the new small model (leak-free) (SM72s) from epoch 15: one epoch at 32k-review windows with Muon, as for the released model",
+   "id": "SM72, ticket 000729",
    "kind": "gpu-train",
-   "decides": "Epoch read-outs only (checkpoints before the cool-down zig-zag); the cool-down decides",
+   "decides": "Whether the leak-free small model stays within +1.0% of the big model (1 leak-free epoch) on both heads; the bar is the released small model (leak inputs) (SM56) at +0.51% / +0.50% on leak-free inputs",
    "why": "",
-   "job": "SM72 leak-free scoring s-w64kd-final-sc-lanes-leakfree-e15 on the 464 set (458 fit users) (pass 1)",
+   "job": "SM72 small model leak-free (sm72s): 1-epoch 32k Muon cool-down from e15 (8k final tier, 581.9M reviews, lanes carry, leak-free replay KD) (segment to the next window or the end)",
    "linked": true,
    "track": "small model",
-   "ticket": "000728-small-model",
-   "started": "19:57",
+   "ticket": "000729-small-model",
+   "started": "20:05",
    "elapsed": "0:00",
    "progress": null,
-   "eta": "~20:09"
+   "eta": "~20:54"
   }
  ],
  "waiting": [],
  "recent": [
+  {
+   "ticket": "000728-small-model",
+   "id": "SM72",
+   "what": "SM72 leak-free scoring s-w64kd-final-sc-lanes-leakfree-e15 on the 464 set (458 fit users) (pass 1)",
+   "ended": "20:05",
+   "date": "10-27",
+   "exit": 0,
+   "ran": "0:07"
+  },
   {
    "ticket": "000727-small-model",
    "id": "SM72",
@@ -270,15 +279,6 @@
    "date": "10-27",
    "exit": 0,
    "ran": "1:50"
-  },
-  {
-   "ticket": "000722-small-model",
-   "id": "SM72",
-   "what": "SM72 leak-free scoring s-w64kd-final-sc-lanes-leakfree-e12 on the 464 set (458 fit users) (pass 1)",
-   "ended": "14:12",
-   "date": "10-27",
-   "exit": 0,
-   "ran": "0:07"
   }
  ],
  "plan": [
@@ -1067,11 +1067,12 @@
    "kind": "gpu-train",
    "minutes": 2050,
    "decides": "Epoch read-outs only (checkpoints before the cool-down zig-zag); the cool-down decides",
-   "state": "running",
-   "started": "19:57",
-   "ticket": "000728-small-model",
+   "state": "done",
+   "ended": "20:05",
+   "exit": 0,
+   "started": "10:13",
    "started_at": "2026-10-26T10:13:28+01:00",
-   "ends_at": "2026-10-27T20:23:28+01:00"
+   "ended_at": "2026-10-27T20:05:35+01:00"
   },
   {
    "id": "SM72",
@@ -1081,7 +1082,11 @@
    "kind": "gpu-train",
    "minutes": 520,
    "decides": "Whether the leak-free small model stays within +1.0% of the big model (1 leak-free epoch) on both heads; the bar is the released small model (leak inputs) (SM56) at +0.51% / +0.50% on leak-free inputs",
-   "state": "planned"
+   "state": "running",
+   "started": "20:05",
+   "ticket": "000729-small-model",
+   "started_at": "2026-10-27T20:05:52+01:00",
+   "ends_at": "2026-10-28T04:45:52+01:00"
   },
   {
    "id": "SM72",
