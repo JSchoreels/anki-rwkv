@@ -30,6 +30,7 @@ TICKETS = QUEUE / "tickets"
 STALE = QUEUE / "stale"
 HISTORY = QUEUE / "history.jsonl"
 COUNTER = QUEUE / "next-seq"
+CHANGED = QUEUE / "changed"  # touched on every ticket state change; scripts/publish_factory_loop.sh wakes on it
 EXIT_WAIT_EXPIRED = 75  # EX_TEMPFAIL: the ticket gave up waiting; nothing ran
 EXIT_CANCELLED = 76  # the ticket was cancelled (or otherwise removed) while waiting; nothing ran
 CANCEL_GRACE_SECONDS = 5.0  # how long `cancel` lets a waiting wrapper notice before terminating it
@@ -91,6 +92,15 @@ def _append_history(record):
 
     try:
         _retry(append)
+    except OSError:
+        pass
+    _changed()
+
+
+def _changed():
+    """Mark that a ticket changed state (registered, started, finished, retired). Best effort: never fails the queue."""
+    try:
+        CHANGED.touch()
     except OSError:
         pass
 
@@ -316,6 +326,7 @@ def _retire(record, reason):
             path.unlink()
         except OSError:
             pass
+    _changed()
 
 
 def _stale_reason(record, now):
@@ -447,6 +458,7 @@ def _try_start(me):
         return None
     me.update(state="running", started=_iso(), held=held, heartbeat=_iso())
     _write_ticket(me)
+    _changed()
     return True
 
 
@@ -501,6 +513,7 @@ def hold(owner, purpose, claims, heartbeat=60.0, max_wait_minutes=None, ticket=N
     if launcher:
         me["launcher"] = launcher
     _write_ticket(me)
+    _changed()
     print(f"[queue] {me['ticket']} registered for {', '.join(claims)}: {purpose}", flush=True)
     waiting_since = time.monotonic()
     deadline = None if max_wait_minutes is None else waiting_since + max_wait_minutes * 60.0
