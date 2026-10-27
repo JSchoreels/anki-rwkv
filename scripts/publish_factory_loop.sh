@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
-# Every 5 minutes: rebuild pages/data/factory.json (scripts/publish_factory_page.py); when it changed materially,
-# commit that one file and push, which deploys the GitHub Page. Runs until killed.
+# On every queue change (scripts/r01_queue.py touches artifacts/coordination/queue/changed when a ticket is registered,
+# starts, finishes or is removed; checked every 10 s, then DEBOUNCE s so a finish and the next start land in one cycle),
+# and at least every 5 minutes: rebuild pages/data/factory.json (scripts/publish_factory_page.py); when it changed
+# materially, commit that one file and push, which deploys the GitHub Page. Runs until killed.
 #   start:  nohup bash scripts/publish_factory_loop.sh > /dev/null 2>&1 &
 #   stop:   kill "$(cat artifacts/factory-page/loop.pid)"
 # A cycle is skipped when .git/index.lock exists, when anything is staged (never commits other paths), or when the
@@ -11,6 +13,10 @@ LOGDIR=artifacts/factory-page
 LOG=$LOGDIR/loop.log
 FILE=pages/data/factory.json
 INTERVAL=${INTERVAL:-300}
+POLL=${POLL:-10}
+DEBOUNCE=${DEBOUNCE:-20}
+CHANGED=artifacts/coordination/queue/changed
+MARK=$LOGDIR/last-cycle
 mkdir -p "$LOGDIR"
 echo $$ > "$LOGDIR/loop.pid"
 log() { echo "[$(date '+%Y-%m-%d %H:%M:%S')] $*" >> "$LOG"; }
@@ -38,8 +44,24 @@ cycle() {
   else log "push failed (will retry next cycle)"; git rebase --abort >> "$LOG" 2>&1; fi
 }
 
+# Sleep until INTERVAL has passed or the queue marker is newer than the start of the last cycle.
+pause() {
+  local waited=0
+  while [ "$waited" -lt "$INTERVAL" ]; do
+    sleep "$POLL" &
+    wait $!
+    waited=$((waited + POLL))
+    if [ "$CHANGED" -nt "$MARK" ]; then
+      sleep "$DEBOUNCE" &
+      wait $!
+      log "queue changed"
+      return
+    fi
+  done
+}
+
 while true; do
+  touch "$MARK"
   cycle
-  sleep "$INTERVAL" &
-  wait $!
+  pause
 done
