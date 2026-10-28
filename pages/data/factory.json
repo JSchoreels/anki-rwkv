@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-10-28T18:32:08+01:00",
- "updated": "2026-10-28 18:32",
- "material": "16cc164f9d108997",
- "summary": "running 000746, finished 000745",
+ "generated_at": "2026-10-28T18:33:11+01:00",
+ "updated": "2026-10-28 18:33",
+ "material": "463c36244c0d189f",
+ "summary": "running 000746",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring (curve / instant)",
@@ -229,7 +229,7 @@
    "track": "small model",
    "ticket": "000746-small-model",
    "started": "18:32",
-   "elapsed": "0:00",
+   "elapsed": "0:01",
    "progress": null,
    "eta": "~20:24"
   }
@@ -358,7 +358,14 @@
    ]
   }
  ],
- "waiting": [],
+ "waiting": [
+  {
+   "ticket": "000747-small-model",
+   "id": "SM74",
+   "what": "SM74 epoch weight averaging, leak-free scoring on the 458-user set (pass 1)",
+   "flags": "expected 27 min"
+  }
+ ],
  "recent": [
   {
    "ticket": "000745-small-model",
@@ -1278,7 +1285,8 @@
    "minutes": 27,
    "what": "Epoch weight averaging (SM74): the plain average of the new small model&rsquo;s (leak-free) (SM72s) epochs 15&ndash;20, and of epochs 10&ndash;20, scored on the 464 set (458 users it fits), right after epoch 20",
    "decides": "Whether the late epochs sit in one valley: since epoch 12 the weights move ~11% per epoch in no consistent direction while curve swings &plusmn;0.001. An average better than every single epoch means one valley, and gives a free candidate next to the cool-down from epoch 20",
-   "state": "planned"
+   "state": "waiting",
+   "ticket": "000747-small-model"
   },
   {
    "id": "SM72",
