@@ -1,11 +1,112 @@
 {
- "generated_at": "2026-10-28T12:35:43+01:00",
- "updated": "2026-10-28 12:35",
- "material": "f530d15d3a6ca4ba",
- "summary": "running 000740, finished 000739",
+ "generated_at": "2026-10-28T14:26:08+01:00",
+ "updated": "2026-10-28 14:26",
+ "material": "611c1f79465cfb99",
+ "summary": "running 000740",
  "headline": [
   {
-   "k": "Best, 464 users (curve / instant)",
+   "k": "Best, 732-user standard set, leak-free scoring (curve / instant)",
+   "v": "0.30038 / 0.27687",
+   "compare": [
+    {
+     "variant": "Big model (1 leak-free epoch) (reference)",
+     "curve": 0.29897,
+     "instant": 0.27576,
+     "eval": "722 users (732 set), 30.13M reviews, leak-free inputs",
+     "quant": "w8+s8",
+     "ref": true
+    },
+    {
+     "variant": "Best: small model (leak-free), cool-down from epoch 15 (SM72), released 10-28 and now the Anki fork&rsquo;s default; vs the released SM56: curve &minus;0.00028 [&minus;0.00055, +0.00006], instant &minus;0.00058 [&minus;0.00066, &minus;0.00050]",
+     "curve": 0.30038,
+     "instant": 0.27687,
+     "eval": "722 users (732 set), 30.13M reviews, leak-free inputs",
+     "quant": "w8+s8",
+     "curve_pct": 0.47,
+     "instant_pct": 0.4,
+     "date": "10-28"
+    },
+    {
+     "variant": "Shipped big model (fork RWKV, its training saw the leak)",
+     "curve": 0.29966,
+     "instant": 0.2762,
+     "eval": "722 users (732 set), 30.13M reviews, leak-free inputs",
+     "quant": "w8+s8",
+     "curve_pct": 0.23,
+     "instant_pct": 0.16,
+     "date": "10-28"
+    },
+    {
+     "variant": "Small model, cool-down from epoch 15 (SM56, leak inputs)",
+     "curve": 0.30048,
+     "instant": 0.27714,
+     "eval": "722 users (732 set), 30.13M reviews, leak-free inputs",
+     "quant": "w8+s8",
+     "curve_pct": 0.51,
+     "instant_pct": 0.5,
+     "date": "10-25"
+    },
+    {
+     "variant": "Previous release: small model, cool-down from epoch 10 (SM56, leak inputs)",
+     "curve": 0.30066,
+     "instant": 0.27745,
+     "eval": "722 users (732 set), 30.13M reviews, leak-free inputs",
+     "quant": "w8+s8",
+     "curve_pct": 0.57,
+     "instant_pct": 0.61,
+     "date": "10-24"
+    }
+   ],
+   "big": true,
+   "track": "small model"
+  },
+  {
+   "k": "Best, 464 users, leak-free scoring (curve / instant)",
+   "v": "0.29681 / 0.27326",
+   "compare": [
+    {
+     "variant": "Big model (1 leak-free epoch) (reference)",
+     "curve": 0.2953,
+     "instant": 0.27215,
+     "eval": "458 users (464 set), leak-free inputs",
+     "quant": "w8+s8",
+     "ref": true
+    },
+    {
+     "variant": "Best: small model (leak-free), cool-down from epoch 15 (SM72)",
+     "curve": 0.29681,
+     "instant": 0.27326,
+     "eval": "458 users (464 set), leak-free inputs",
+     "quant": "w8+s8",
+     "curve_pct": 0.51,
+     "instant_pct": 0.41,
+     "date": "10-28"
+    },
+    {
+     "variant": "Shipped big model (fork RWKV, its training saw the leak)",
+     "curve": 0.29591,
+     "instant": 0.2726,
+     "eval": "458 users (464 set), leak-free inputs",
+     "quant": "w8+s8",
+     "curve_pct": 0.21,
+     "instant_pct": 0.17,
+     "date": "10-28"
+    },
+    {
+     "variant": "Previous release: small model, cool-down from epoch 10 (SM56, leak inputs)",
+     "curve": 0.29704,
+     "instant": 0.27384,
+     "eval": "458 users (464 set), leak-free inputs",
+     "quant": "w8+s8",
+     "curve_pct": 0.59,
+     "instant_pct": 0.62,
+     "date": "10-24"
+    }
+   ],
+   "track": "small model"
+  },
+  {
+   "k": "Older scoring with the leak in the inputs, 464 users (curve / instant; not comparable with leak-free scoring)",
    "v": "0.30006 / 0.27402",
    "compare": [
     {
@@ -47,11 +148,10 @@
      "quant": "w8+s8"
     }
    ],
-   "big": true,
    "track": "small model"
   },
   {
-   "k": "Best, 732-user standard set (curve / instant)",
+   "k": "Older scoring with the leak in the inputs, 732-user set (curve / instant; not comparable with leak-free scoring)",
    "v": "0.30220 / 0.27887",
    "compare": [
     {
@@ -219,7 +319,7 @@
    "track": "small model",
    "ticket": "000740-small-model",
    "started": "12:35",
-   "elapsed": "0:00",
+   "elapsed": "1:50",
    "progress": null,
    "eta": "~14:36"
   }
