@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-10-28T07:38:33+01:00",
- "updated": "2026-10-28 07:38",
- "material": "0749b4449da17c68",
- "summary": "running 000735, finished 000734",
+ "generated_at": "2026-10-28T07:43:37+01:00",
+ "updated": "2026-10-28 07:43",
+ "material": "94447b950b608c94",
+ "summary": "running 000735",
  "headline": [
   {
    "k": "Best, 464 users (curve / instant)",
@@ -219,7 +219,7 @@
    "track": "small model",
    "ticket": "000735-small-model",
    "started": "07:38",
-   "elapsed": "0:00",
+   "elapsed": "0:05",
    "progress": null,
    "eta": "~16:18"
   }
@@ -1107,7 +1107,7 @@
   {
    "id": "SM72",
    "track": "small model",
-   "since": "10-27",
+   "since": "10-28T07:39",
    "what": "Cool-down from epoch 10 instead, same recipe (the released version was cooled from epoch 10)",
    "kind": "gpu-train",
    "minutes": 520,
@@ -1121,7 +1121,7 @@
   {
    "id": "SM72",
    "track": "small model",
-   "since": "10-27",
+   "since": "10-28T07:39",
    "what": "Score the epoch-10 cool-down on the 732 set",
    "kind": "gpu-score",
    "minutes": 18,
@@ -1605,6 +1605,74 @@
   }
  ],
  "results": [
+  {
+   "date": "10-28",
+   "kind": "gpu-train",
+   "name": "Small model (leak-free) retrained from scratch: 15 constant-LR epochs on the 8,000-user final tier with the deleted-card inputs removed and leak-free teacher targets from the big model (1 leak-free epoch), then a 1-epoch Muon cool-down from epoch 15 (LR 7e-4 &rarr; 0, same recipe as the released small model)",
+   "id": "SM72",
+   "curve": 0.30038,
+   "instant": 0.27687,
+   "curve_pct": 0.24,
+   "instant_pct": 0.24,
+   "eval": "722 users (732 set), 30.13M test reviews, 20% on deleted cards; scored leak-free",
+   "fork": "the shipped big model with the same leak-free inputs: 0.29966 / 0.27620",
+   "takeaway": "<strong>The leak-free small model is the best small model so far</strong>: +0.47% / +0.40% behind the big model (1 leak-free epoch), inside the +1.0% target, and +0.24% / +0.24% vs the shipped big model. It beats the released small model (cool-down from epoch 10, leak inputs; +0.57% / +0.61%) on both, and the same recipe&rsquo;s cool-down from epoch 15 with leak inputs (+0.51% / +0.50%) on instant (significant) and ties it on curve. Removing the leak cost nothing. Next: the cool-down from epoch 10 for the release-recipe comparison",
+   "track": "small model",
+   "started_at": "2026-10-26T10:13+01:00",
+   "ended_at": "2026-10-28T07:38+01:00",
+   "gpu_minutes": 2246,
+   "tickets": 36,
+   "detail": {
+    "verdict": "Small model (leak-free), cool-down from epoch 15: +0.47% / +0.40% vs the big model (1 leak-free epoch); better than the released small model on both",
+    "table": {
+     "head": [
+      "722 users (732 set), leak-free scoring",
+      "Curve",
+      "Instant",
+      "vs big model (1 leak-free epoch)"
+     ],
+     "rows": [
+      [
+       "Big model (1 leak-free epoch) (SM72)",
+       "0.29897",
+       "0.27576",
+       "&ndash;"
+      ],
+      [
+       "Shipped big model (fork RWKV)",
+       "0.29966",
+       "0.27620",
+       "+0.23% / +0.16%"
+      ],
+      [
+       "<strong>Small model (leak-free), cool-down from epoch 15 (SM72)</strong>",
+       "<strong>0.30038</strong>",
+       "<strong>0.27687</strong>",
+       "<strong>+0.47% / +0.40%</strong>"
+      ],
+      [
+       "Small model, cool-down from epoch 15 (SM56, leak inputs)",
+       "0.30048",
+       "0.27714",
+       "+0.51% / +0.50%"
+      ],
+      [
+       "Released small model, cool-down from epoch 10 (SM56, leak inputs)",
+       "0.30066",
+       "0.27745",
+       "+0.57% / +0.61%"
+      ]
+     ]
+    },
+    "notes": [
+     "Leak-free vs the same recipe with leak inputs (cool-down from epoch 15): curve &minus;0.000092 [&minus;0.000417, +0.000290] (tie), instant &minus;0.000274 [&minus;0.000348, &minus;0.000202] (better); 437 / 469 of 722 users better.",
+     "Leak-free vs the released small model: curve &minus;0.000276 [&minus;0.000547, +0.000062], instant &minus;0.000575 [&minus;0.000655, &minus;0.000501]; 488 / 585 of 722 users better.",
+     "464 set (458 users): +0.51% / +0.41% vs the big model (1 leak-free epoch); 732 + 3 long users (725): +0.36% / +0.42%.",
+     "Cool-down: 470 GPU min in two parts (paused for the 10-27 break, resumed from its snapshot at 00:26), ~20.7k reviews/s.",
+     "Bootstrap over users (2,000 resamples, seed 0), 95% CI, review-weighted."
+    ]
+   }
+  },
   {
    "date": "10-26",
    "kind": "gpu-train",
