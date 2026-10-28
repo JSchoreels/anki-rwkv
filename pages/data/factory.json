@@ -1,7 +1,7 @@
 {
- "generated_at": "2026-10-28T08:42:28+01:00",
- "updated": "2026-10-28 08:42",
- "material": "d09be69b9abb91bb",
+ "generated_at": "2026-10-28T09:07:38+01:00",
+ "updated": "2026-10-28 09:07",
+ "material": "2c49ea807c8a9650",
  "summary": "running 000736",
  "headline": [
   {
@@ -219,7 +219,7 @@
    "track": "small model",
    "ticket": "000736-small-model",
    "started": "08:36",
-   "elapsed": "0:05",
+   "elapsed": "0:30",
    "progress": null,
    "eta": "~10:35"
   }
@@ -1299,7 +1299,7 @@
    "why": "Next big lever after more epochs: one leak-free epoch made the big model &minus;0.23% / &minus;0.16% better, and the small model learns from it (priority review 10-28: the factory looks for more accurate or smaller models, not more measurements)"
   },
   {
-   "status": "next",
+   "status": "done",
    "id": "SM66",
    "track": "small model",
    "item": "New axis candidate: per-user adaptation at use time (a tiny per-user correction, e.g. calibration, learned from the user&rsquo;s own reviews)",
@@ -1639,6 +1639,59 @@
   }
  ],
  "results": [
+  {
+   "date": "10-28",
+   "kind": "cpu",
+   "name": "Per-user adaptation: a tiny per-user correction (bias + temperature) learned from each user&rsquo;s own reviews, on the released small model (SM56) and the big model",
+   "id": "SM66",
+   "curve": null,
+   "instant": null,
+   "curve_pct": null,
+   "instant_pct": null,
+   "eval": "200 benchmark users, 7.06M test reviews (w8+s8)",
+   "fork": "LogLoss change vs no correction; negative = better",
+   "takeaway": "<strong>Does not close the gap</strong>: refit online every 500 reviews, the curve head gains 0.00101 (about 0.3%) for the small model but 0.00071 for the big model too (gap change &minus;0.00030 [&minus;0.00145, +0.00044], not significant); instant gains are tiny (&minus;0.00003) and the instant gap widens slightly. Only 52% of users improve. A modest bonus for both models, not a path to a smaller or more accurate small model",
+   "track": "small model",
+   "started_at": "2026-10-28T08:40+01:00",
+   "ended_at": "2026-10-28T09:04+01:00",
+   "gpu_minutes": 0,
+   "tickets": 0,
+   "detail": {
+    "verdict": "Not worth building for the small model: the curve gain is real but the big model gets almost the same, and instant barely moves",
+    "table": {
+     "head": [
+      "Scheme",
+      "Small model, curve",
+      "Big model, curve",
+      "Small model, instant",
+      "Big model, instant"
+     ],
+     "rows": [
+      [
+       "Offline (fit on first half, score second half)",
+       "&minus;0.00016 [&minus;0.00069, +0.00023]",
+       "+0.00005 [&minus;0.00028, +0.00047]",
+       "&minus;0.00002 [&minus;0.00003, &minus;0.00000]",
+       "&minus;0.00005 [&minus;0.00008, &minus;0.00002]"
+      ],
+      [
+       "Online (refit every 500 reviews)",
+       "&minus;0.00101 [&minus;0.00226, &minus;0.00020]",
+       "&minus;0.00071 [&minus;0.00114, &minus;0.00033]",
+       "&minus;0.00003 [&minus;0.00005, &minus;0.00002]",
+       "&minus;0.00007 [&minus;0.00011, &minus;0.00003]"
+      ]
+     ]
+    },
+    "notes": [
+     "Correction: logit bias + temperature with an L2 prior toward no change, prior strength chosen by 5-fold cross-validation across users",
+     "Global-calibration control (one correction for everyone): about zero (curve &minus;0.00005, instant &minus;0.00001); per-user beats it only on the online curve head",
+     "No clear user-size effect (online curve, small model: &minus;0.00095 / &minus;0.00057 / &minus;0.00111 by size tier, wide intervals)",
+     "Limit: only each user&rsquo;s benchmark test reviews were available, not the full history",
+     "95% intervals: review-weighted user bootstrap, 2,000 resamples. CPU only (~10 min); files in the sm66 branch (artifacts/small-model/sm66/)"
+    ]
+   }
+  },
   {
    "date": "10-28",
    "kind": "gpu-train",
