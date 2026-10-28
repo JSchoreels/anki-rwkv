@@ -5116,6 +5116,73 @@
   {
    "date": "10-28",
    "kind": "cpu",
+   "id": "SM76",
+   "track": "small model",
+   "name": "Time-of-day probe of the shipped model (SM76): does a card&rsquo;s predicted R change with the hour its review is planned?",
+   "curve": null,
+   "instant": null,
+   "curve_pct": null,
+   "instant_pct": null,
+   "eval": "6 held-out users, 1,800 sampled reviews (elapsed &ge; 1 day); big model (fork RWKV) as shipped in the fork",
+   "fork": "Spread of predicted R over the same review moved &minus;8 h to +8 h on the same day, in R points",
+   "takeaway": "<strong>Small for intervals, a little noise in displayed R</strong>: the forgetting curve that sets intervals moves 0.17 points (median) over &plusmn;8 h, and only for 1&ndash;3 day cards (1.0 point), where 8 hours is real forgetting. The displayed R (query row) moves about 0.5 points (median, p90 2 points) from the elapsed-time sin/cos phase alone, with no average direction, including on cards due in over 100 days",
+   "started_at": "2026-10-28T20:05+01:00",
+   "ended_at": "2026-10-28T20:27+01:00",
+   "gpu_minutes": 0,
+   "tickets": 0,
+   "detail": {
+    "verdict": "No action needed for scheduling; the displayed-R wobble is a clock-phase artefact worth knowing about, not fixing now",
+    "table": {
+     "head": [
+      "What moves",
+      "Median spread",
+      "p90",
+      "1&ndash;3 d",
+      "4&ndash;20 d",
+      "21&ndash;100 d",
+      "&gt;100 d"
+     ],
+     "rows": [
+      [
+       "Curve R (sets intervals)",
+       "0.17",
+       "1.52",
+       "0.99",
+       "0.18",
+       "0.07",
+       "0.02"
+      ],
+      [
+       "Displayed R, hour moved (query row)",
+       "0.53",
+       "2.16",
+       "1.03",
+       "0.37",
+       "0.46",
+       "0.78"
+      ],
+      [
+       "Displayed R, sin/cos phase only",
+       "0.50",
+       "1.92",
+       "0.75",
+       "0.36",
+       "0.44",
+       "0.77"
+      ]
+     ]
+    },
+    "notes": [
+     "Each sampled review is re-asked with the review time moved by &minus;8, &minus;6, &hellip;, +8 hours on the same Anki day; day number, interval in days and the day&rsquo;s review counts stay the same; spread = max &minus; min over the 9 times, in R points",
+     "Curve R: the card&rsquo;s stored curve read at elapsed time + shift (what the fork uses for intervals); it falls on average 0.28 points at +8 h earlier&hellip;0.12 later, i.e. ordinary forgetting",
+     "Phase only: just the daily sin/cos of elapsed seconds is shifted; its mean change is ~0 at every shift (&minus;0.03 to 0.00 points), so it is jitter, not a time-of-day bias",
+     "Users 71, 79, 94, 116, 260, 311 (held out from the shipped model&rsquo;s 5000&ndash;10000 training users); 300 samples each"
+    ]
+   }
+  },
+  {
+   "date": "10-28",
+   "kind": "cpu",
    "id": "SM75",
    "track": "small model",
    "name": "Time of day and weekday check (SM75): does the clock carry recall information the model does not use?",
