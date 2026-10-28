@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-10-28T07:37:50+01:00",
- "updated": "2026-10-28 07:37",
- "material": "82d6a5e61f117b9d",
- "summary": "running 000734, finished 000733",
+ "generated_at": "2026-10-28T07:38:33+01:00",
+ "updated": "2026-10-28 07:38",
+ "material": "0749b4449da17c68",
+ "summary": "running 000735, finished 000734",
  "headline": [
   {
    "k": "Best, 464 users (curve / instant)",
@@ -209,23 +209,32 @@
  ],
  "now": [
   {
-   "what": "Score that cool-down on the 732 set (723 users it fits, then the 3 long users)",
-   "id": "SM72, ticket 000734",
-   "kind": "gpu-score",
-   "decides": "Whether the leak-free small model stays within +1.0% of the big model (1 leak-free epoch) on both heads; the bar is the released small model (leak inputs) (SM56) at +0.51% / +0.50% on leak-free inputs",
+   "what": "Cool-down from epoch 10 instead, same recipe (the released version was cooled from epoch 10)",
+   "id": "SM72, ticket 000735",
+   "kind": "gpu-train",
+   "decides": "Whether 5 more epochs before the cool-down still help without the leak",
    "why": "",
-   "job": "SM72 leak-free scoring s-w64kd-final-sc-lanes-leakfree-dec15-1ep32k-muon on the 3 long users of the 732 pool (cap 0.92)",
+   "job": "SM72 small model leak-free (sm72s): 1-epoch 32k Muon cool-down from e10 (8k final tier, 581.9M reviews, lanes carry, leak-free replay KD) (segment to the next window or the end)",
    "linked": true,
    "track": "small model",
-   "ticket": "000734-small-model",
-   "started": "07:37",
+   "ticket": "000735-small-model",
+   "started": "07:38",
    "elapsed": "0:00",
    "progress": null,
-   "eta": "~07:43"
+   "eta": "~16:18"
   }
  ],
  "waiting": [],
  "recent": [
+  {
+   "ticket": "000734-small-model",
+   "id": "SM72",
+   "what": "SM72 leak-free scoring s-w64kd-final-sc-lanes-leakfree-dec15-1ep32k-muon on the 3 long users of the 732 pool (cap 0.92)",
+   "ended": "07:38",
+   "date": "10-28",
+   "exit": 0,
+   "ran": "0:00"
+  },
   {
    "ticket": "000733-small-model",
    "id": "SM72",
@@ -270,15 +279,6 @@
    "date": "10-27",
    "exit": 1,
    "ran": "0:51"
-  },
-  {
-   "ticket": "000728-small-model",
-   "id": "SM72",
-   "what": "SM72 leak-free scoring s-w64kd-final-sc-lanes-leakfree-e15 on the 464 set (458 fit users) (pass 1)",
-   "ended": "20:05",
-   "date": "10-27",
-   "exit": 0,
-   "ran": "0:07"
   }
  ],
  "plan": [
@@ -1097,11 +1097,12 @@
    "kind": "gpu-score",
    "minutes": 18,
    "decides": "Whether the leak-free small model stays within +1.0% of the big model (1 leak-free epoch) on both heads; the bar is the released small model (leak inputs) (SM56) at +0.51% / +0.50% on leak-free inputs",
-   "state": "running",
-   "started": "07:37",
-   "ticket": "000734-small-model",
+   "state": "done",
+   "ended": "07:38",
+   "exit": 0,
+   "started": "07:25",
    "started_at": "2026-10-28T07:25:07+01:00",
-   "ends_at": "2026-10-28T07:43:07+01:00"
+   "ended_at": "2026-10-28T07:38:08+01:00"
   },
   {
    "id": "SM72",
@@ -1111,7 +1112,11 @@
    "kind": "gpu-train",
    "minutes": 520,
    "decides": "Whether 5 more epochs before the cool-down still help without the leak",
-   "state": "planned"
+   "state": "running",
+   "started": "07:38",
+   "ticket": "000735-small-model",
+   "started_at": "2026-10-28T07:38:29+01:00",
+   "ends_at": "2026-10-28T16:18:29+01:00"
   },
   {
    "id": "SM72",
@@ -1170,12 +1175,9 @@
    "track": "small model",
    "when": "Sat 10-24 10:47 &rarr; Sun 10-25 09:08: epochs 11&ndash;15 (scored after each), cool-down from epoch 15 02:01&ndash;08:57, scored 09:08",
    "decides": "Done: the 5 extra epochs help after the cool-down: +0.27% / +0.37% vs the big model on 723 users (from epoch 10: +0.34% / +0.47%), &minus;0.00022 / &minus;0.00030, both significant",
-   "state": "running",
-   "started_at": "2026-10-22T15:35:15+02:00",
-   "ended_at": "2026-10-25T09:08:00+01:00",
-   "started": "07:37",
-   "ticket": "000734-small-model",
-   "ends_at": "2026-10-23T10:20:15+02:00"
+   "state": "done",
+   "started_at": "2026-10-24T10:47:00+02:00",
+   "ended_at": "2026-10-25T09:08:00+01:00"
   },
   {
    "what": "Resumable cool-down check: a small cool-down run straight through vs stopped halfway and resumed (same learning rate, loss and weights?)",
