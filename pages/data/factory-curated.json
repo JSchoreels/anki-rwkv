@@ -1140,7 +1140,10 @@
     "SM74 epoch weight averaging"
    ],
    "what": "Epoch weight averaging (SM74): the plain average of the new small model&rsquo;s (leak-free) (SM72s) epochs 15&ndash;20, and of epochs 10&ndash;20, scored on the 464 set (458 users it fits), right after epoch 20",
-   "decides": "Whether the late epochs sit in one valley: since epoch 12 the weights move ~11% per epoch in no consistent direction while curve swings &plusmn;0.001. An average better than every single epoch means one valley, and gives a free candidate next to the cool-down from epoch 20"
+   "decides": "Whether the late epochs sit in one valley: since epoch 12 the weights move ~11% per epoch in no consistent direction while curve swings &plusmn;0.001. An average better than every single epoch means one valley, and gives a free candidate next to the cool-down from epoch 20",
+   "state": "done",
+   "started_at": "2026-10-28T18:34+01:00",
+   "ended_at": "2026-10-28T18:46+01:00"
   },
   {
    "id": "SM72",
@@ -5040,6 +5043,75 @@
    "detail": {
     "verdict": "Starting point"
    }
+  },
+  {
+   "date": "10-28",
+   "kind": "gpu-score",
+   "id": "SM74",
+   "track": "small model",
+   "name": "Epoch weight averaging (SM74): the plain average of the new small model&rsquo;s (leak-free) (SM72s) epochs 15&ndash;20, no extra training",
+   "curve": 0.29806,
+   "instant": 0.2746,
+   "curve_pct": 0.93,
+   "instant_pct": 0.9,
+   "eval": "464 set, 458 users it fits (leak-free scoring, w8+s8)",
+   "fork": "vs the big model (1 leak-free epoch), 458 users",
+   "takeaway": "<strong>One valley, confirmed</strong>: the average beats every single epoch on both heads (vs epoch 20 &minus;0.00236 / &minus;0.00117, vs the best epoch 18 &minus;0.00074 / &minus;0.00085, all significant), so the late epochs bounce around one basin rather than hop between minima. It reaches +0.93% / +0.90% vs the big model (1 leak-free epoch) for free, but the cool-down from epoch 15 is still clearly better (+0.51% / +0.41%)",
+   "started_at": "2026-10-28T18:34+01:00",
+   "ended_at": "2026-10-28T18:46+01:00",
+   "gpu_minutes": 12,
+   "tickets": 1,
+   "detail": {
+    "verdict": "The constant-LR epochs sit in one valley; averaging is a free +0.4&ndash;0.8 point gain over a single epoch but does not replace the cool-down",
+    "table": {
+     "head": [
+      "Model (458 users)",
+      "Curve",
+      "Instant",
+      "vs big model (1 leak-free epoch)"
+     ],
+     "rows": [
+      [
+       "Average of epochs 15&ndash;20",
+       "0.29806",
+       "0.27460",
+       "+0.93% / +0.90%"
+      ],
+      [
+       "Average of epochs 10&ndash;20",
+       "0.29826",
+       "0.27466",
+       "+1.00% / +0.92%"
+      ],
+      [
+       "Best single epoch (18)",
+       "0.29880",
+       "0.27545",
+       "+1.18% / +1.21%"
+      ],
+      [
+       "Epoch 20",
+       "0.30042",
+       "0.27577",
+       "+1.73% / +1.33%"
+      ],
+      [
+       "Cool-down from epoch 15",
+       "0.29681",
+       "0.27326",
+       "+0.51% / +0.41%"
+      ]
+     ]
+    },
+    "notes": [
+     "Average minus epoch 20: curve &minus;0.00236 [&minus;0.00292, &minus;0.00177], instant &minus;0.00117 [&minus;0.00129, &minus;0.00106]; 86% / 96% of users better",
+     "Average minus epoch 18: curve &minus;0.00074 [&minus;0.00102, &minus;0.00047], instant &minus;0.00085 [&minus;0.00101, &minus;0.00071]; 74% / 84% of users better",
+     "Averaging from epoch 10 is slightly worse than from epoch 15 (+0.00020 / +0.00006): epochs 10&ndash;14 are still a little behind",
+     "Why it was tried: since epoch 12 the weights move ~11% of their size per epoch in no consistent direction (cosine with the previous step about &minus;0.05) while curve swings &plusmn;0.001",
+     "Cost: 12 GPU minutes; the cool-down from epoch 20 was paused 12 minutes for it (snapshot stop, resumed)",
+     "95% intervals: review-weighted user bootstrap"
+    ]
+   }
   }
  ],
  "gpu_break": {
@@ -5067,6 +5139,12 @@
      "epoch": 15,
      "curve": 0.29681,
      "instant": 0.27326
+    },
+    {
+     "label": "average of epochs 15&ndash;20 (no training)",
+     "epoch": 20,
+     "curve": 0.29806,
+     "instant": 0.2746
     }
    ],
    "note": "Constant-learning-rate epochs; the cool-down from epoch 20 (learning rate down to 0) runs after epoch 20, paused for the 20:30&ndash;02:00 break."
