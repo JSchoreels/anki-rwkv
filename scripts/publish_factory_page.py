@@ -473,7 +473,11 @@ def sync_issues(curated, data, running, waiting, finished):
         if len(shown) < 2 or abs(shown[0] - best["curve"]) > 5e-6 or abs(shown[1] - best["instant"]) > 5e-6:
             issues.append(f'headline "{plain(h["k"])[:50]}" shows {h.get("v")}, its Best row is {best["curve"]} / {best["instant"]}')
         key = eval_key(best.get("eval"))
+        # the card's reference (e.g. the big model (1 leak-free epoch)) may itself be a results row: not a better small model
+        refs = {(c.get("curve"), c.get("instant")) for c in h.get("compare") or [] if c.get("ref")}
         for r in data["results"]:
+            if (r.get("curve"), r.get("instant")) in refs:
+                continue
             if (key and r.get("curve") is not None and r.get("instant") is not None and eval_key(r.get("eval")) == key
                     and r["curve"] < best["curve"] - 1e-5 and r["instant"] < best["instant"] - 1e-5):
                 issues.append(f'headline "{plain(h["k"])[:50]}": results row {r.get("id") or r.get("label")} ({r.get("date")}) '
