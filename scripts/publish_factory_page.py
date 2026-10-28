@@ -275,11 +275,12 @@ def plan_state(row, running, waiting, finished):
 
 
 def since_of(row):
-    """A row's `since` ("10-26" = this year, or "2026-10-26") as local midnight, else None."""
+    """A row's `since` ("10-26" = this year, or "2026-10-26", optionally with "T07:38") as local time (midnight
+    without a time), else None."""
     text = row.get("since")
     if not text:
         return None
-    if len(text) == 5:
+    if not re.match(r"\d{4}-", text):
         text = f"{now().year}-{text}"
     return datetime.fromisoformat(text).replace(tzinfo=now().tzinfo)
 
@@ -412,16 +413,16 @@ def sync_issues(curated, data, running, waiting, finished):
     - a pending (auto) result row older than a day
     """
     stamp = now()
-    dated = {}
+    dated = {}  # "MM-DDTHH:MM" from ended_at when the row has one, else its "MM-DD" date
     for r in data["results"]:
         for i in ids_of(r.get("id")):
-            dated.setdefault(i, []).append(r.get("date", ""))
+            dated.setdefault(i, []).append(r["ended_at"][5:16] if r.get("ended_at") else r.get("date", ""))
 
     def latest(ident, since):
         return max((d for d in dated.get(ident, []) if not since or d >= since), default=None)
 
-    def mmdd(text):
-        return text[-5:] if text else ""
+    def mmdd(text):  # a `since` as "MM-DD" or "MM-DDTHH:MM" (a time keeps an earlier step's same-day result out)
+        return re.sub(r"^\d{4}-", "", text) if text else ""
 
     issues = []
     live = [t["purpose"] for t in running + waiting]
@@ -434,7 +435,7 @@ def sync_issues(curated, data, running, waiting, finished):
             for i in ids_of(p.get("id")):
                 d = latest(i, mmdd(p.get("since")))
                 if d:
-                    issues.append(f"{name} is {state}, but {i} has a results row dated {d}: close it "
+                    issues.append(f"{name} is {state}, but {i} has a results row dated {d.replace('T', ' ')}: close it "
                                   f"(state done / hold / dropped) or give it a since date")
         if state == "done" and not p.get("ended_at"):
             issues.append(f"{name} is done without ended_at")
@@ -453,7 +454,7 @@ def sync_issues(curated, data, running, waiting, finished):
                 d = latest(i, mmdd(b.get("since")))
                 if d:
                     issues.append(f'backlog {i} "{plain(b["item"])[:60]}" is still {b["status"]}, but has a results row '
-                                  f"dated {d}: mark it done or give it a since date")
+                                  f"dated {d.replace('T', ' ')}: mark it done or give it a since date")
     recent = [t["purpose"] for t in finished if stamp - t["finished"] < timedelta(days=2)]
     for n in curated.get("now_notes", []):
         if n.get("match") and not n.get("manual") and not any(n["match"] in s for s in live + recent):
