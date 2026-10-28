@@ -33,7 +33,7 @@ On the 732-user set SM56 scores 0.30066 / 0.27745 on these inputs, i.e. +0.57% /
 
 ## Important for anyone porting it
 
-The model must be fed leak-free inputs: **section 6.9 of `INTEGRATION.md`** describes exactly how. In short: the three missing-ID flags (features 13, 14, 15) are always 0; a card missing from the cards table keeps a note of its own, and takes the deck of the existing card with the nearest card id and that deck's preset (placeholder preset if the deck is unknown). A runtime that keeps the old behaviour (flags 1, shared placeholder deck and preset for deleted cards) feeds the model inputs it never saw in training. The fork's feature builder does not do this today.
+The model must be fed leak-free inputs: **section 6.9 of `INTEGRATION.md`** describes exactly how. In short: the three missing-ID flags (features 13, 14, 15) are always 0; a card missing from the cards table keeps a note of its own, and takes the deck of the existing card with the nearest card id and that deck's preset (placeholder preset if the deck is unknown). A runtime that keeps the old behaviour (flags 1, shared placeholder deck and preset for deleted cards) feeds the model inputs it never saw in training. The Anki RWKV fork does this since commit 587253fbc, where the leak-free small model (SM72) is the default small model (the fork never replays deleted cards' reviews, so only the zero flags apply there).
 
 ## Memory and phones
 
