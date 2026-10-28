@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-10-28T18:24:33+01:00",
- "updated": "2026-10-28 18:24",
- "material": "eab7db2478578a92",
- "summary": "running 000745, finished 000744",
+ "generated_at": "2026-10-28T18:32:08+01:00",
+ "updated": "2026-10-28 18:32",
+ "material": "16cc164f9d108997",
+ "summary": "running 000746, finished 000745",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring (curve / instant)",
@@ -219,19 +219,19 @@
  ],
  "now": [
   {
-   "what": "More epochs for the new small model (leak-free) (SM72s): epochs 16&ndash;20 at the same constant LR, each scored on the 464 set",
-   "id": "SM72, ticket 000745",
+   "what": "Cool-down of the new small model (leak-free) (SM72s) from epoch 20, same recipe (paused for the 20:30 break, resumes 02:00)",
+   "id": "SM72, ticket 000746",
    "kind": "gpu-train",
-   "decides": "Whether more epochs before the cool-down still help: the released model&rsquo;s cool-down from epoch 15 beat the one from epoch 10 (&minus;0.00022 / &minus;0.00030), and gains per epoch had not stopped",
+   "decides": "Whether 20 epochs beat 15 after the cool-down; if so it replaces the release (cool-down from epoch 15)",
    "why": "",
-   "job": "SM72 leak-free scoring s-w64kd-final-sc-lanes-leakfree-e20 on the 464 set (458 fit users) (pass 1)",
+   "job": "SM72 small model leak-free (sm72s): 1-epoch 32k Muon cool-down from e20 (8k final tier, 581.9M reviews, lanes carry, leak-free replay KD) (segment to the next window or the end)",
    "linked": true,
    "track": "small model",
-   "ticket": "000745-small-model",
-   "started": "18:24",
+   "ticket": "000746-small-model",
+   "started": "18:32",
    "elapsed": "0:00",
    "progress": null,
-   "eta": "~18:36"
+   "eta": "~20:24"
   }
  ],
  "charts": [
@@ -349,12 +349,26 @@
      19,
      0.30087,
      0.27576
+    ],
+    [
+     20,
+     0.30042,
+     0.27577
     ]
    ]
   }
  ],
  "waiting": [],
  "recent": [
+  {
+   "ticket": "000745-small-model",
+   "id": "SM72",
+   "what": "SM72 leak-free scoring s-w64kd-final-sc-lanes-leakfree-e20 on the 464 set (458 fit users) (pass 1)",
+   "ended": "18:31",
+   "date": "10-28",
+   "exit": 0,
+   "ran": "0:07"
+  },
   {
    "ticket": "000744-small-model",
    "id": "SM72",
@@ -399,15 +413,6 @@
    "date": "10-28",
    "exit": 0,
    "ran": "1:51"
-  },
-  {
-   "ticket": "000739-small-model",
-   "id": "SM72",
-   "what": "SM72 leak-free scoring s-w64kd-final-sc-lanes-leakfree-e17 on the 464 set (458 fit users) (pass 1)",
-   "ended": "12:35",
-   "date": "10-28",
-   "exit": 0,
-   "ran": "0:07"
   }
  ],
  "plan": [
@@ -1196,11 +1201,12 @@
    "minutes": 625,
    "decides": "Whether more epochs before the cool-down still help: the released model&rsquo;s cool-down from epoch 15 beat the one from epoch 10 (&minus;0.00022 / &minus;0.00030), and gains per epoch had not stopped",
    "what": "More epochs for the new small model (leak-free) (SM72s): epochs 16&ndash;20 at the same constant LR, each scored on the 464 set",
-   "state": "running",
-   "started": "18:24",
-   "ticket": "000745-small-model",
+   "state": "done",
+   "ended": "18:31",
+   "exit": 0,
+   "started": "08:36",
    "started_at": "2026-10-28T08:36:57+01:00",
-   "ends_at": "2026-10-28T19:01:57+01:00"
+   "ended_at": "2026-10-28T18:31:44+01:00"
   },
   {
    "id": "SM72",
@@ -1282,7 +1288,11 @@
    "minutes": 520,
    "decides": "Whether 20 epochs beat 15 after the cool-down; if so it replaces the release (cool-down from epoch 15)",
    "what": "Cool-down of the new small model (leak-free) (SM72s) from epoch 20, same recipe (paused for the 20:30 break, resumes 02:00)",
-   "state": "planned"
+   "state": "running",
+   "started": "18:32",
+   "ticket": "000746-small-model",
+   "started_at": "2026-10-28T18:32:01+01:00",
+   "ends_at": "2026-10-29T03:12:01+01:00"
   },
   {
    "id": "SM72",
