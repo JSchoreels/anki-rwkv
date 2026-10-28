@@ -5112,6 +5112,66 @@
      "95% intervals: review-weighted user bootstrap"
     ]
    }
+  },
+  {
+   "date": "10-28",
+   "kind": "cpu",
+   "id": "SM75",
+   "track": "small model",
+   "name": "Time of day and weekday check (SM75): does the clock carry recall information the model does not use?",
+   "curve": null,
+   "instant": null,
+   "curve_pct": null,
+   "instant_pct": null,
+   "eval": "599 training users, 39.4M labelled reviews; big model (1 leak-free epoch) per-review predictions",
+   "fork": "LogLoss change from a correction by clock bin; negative = better",
+   "takeaway": "<strong>No useful signal</strong>: raw recall does vary with the hour (about 86.5% at 5&ndash;7 am vs 83% in the afternoon and evening), but the model already predicts that variation from what is reviewed when. A correction by hour, weekday or hours since the day&rsquo;s first review changes LogLoss by at most 0.02%, about 30 times smaller than the small model&rsquo;s remaining gap to the big model",
+   "started_at": "2026-10-28T18:48+01:00",
+   "ended_at": "2026-10-28T18:50+01:00",
+   "gpu_minutes": 0,
+   "tickets": 0,
+   "detail": {
+    "verdict": "Not worth a model input: the clock adds almost nothing beyond the inputs the model already has",
+    "table": {
+     "head": [
+      "Grouping",
+      "Users",
+      "Global correction, curve",
+      "Global correction, instant",
+      "Per-user correction (clock part), curve"
+     ],
+     "rows": [
+      [
+       "Local hour (24 bins)",
+       "216",
+       "+0.004% [&minus;0.009%, +0.017%]",
+       "&minus;0.000% [&minus;0.003%, +0.002%]",
+       "&minus;0.013% [&minus;0.074%, +0.053%]"
+      ],
+      [
+       "Real weekday (7 bins)",
+       "599",
+       "&minus;0.005% [&minus;0.010%, +0.001%]",
+       "&minus;0.003% [&minus;0.004%, &minus;0.002%]",
+       "+0.023% [&minus;0.016%, +0.062%]"
+      ],
+      [
+       "Hours since the day&rsquo;s first review (6 bins)",
+       "599",
+       "&minus;0.016% [&minus;0.023%, &minus;0.009%]",
+       "&minus;0.002% [&minus;0.004%, &minus;0.001%]",
+       "&minus;0.047% [&minus;0.100%, &minus;0.005%]"
+      ]
+     ]
+    },
+    "notes": [
+     "Local clock: day_offset changes at the user&rsquo;s rollover, so its UTC time is recovered per user, assuming Anki&rsquo;s default 4 am rollover; the hour rows use the 216 users whose rollover is pinned within 3 hours",
+     "The model has no clock input: its day_of_week input is day_offset mod 7 counted from the first review, not the real weekday",
+     "Largest effect: the first 30 minutes of a day recall 85.8% vs 85.2% predicted (logit +0.05), later reviews slightly below prediction; the model counts reviews done today but not time since the first one",
+     "Global = one logit offset per bin fit on half the users, scored on the other half; per-user = offsets fit on each user&rsquo;s first 70% of reviews, scored on the last 30%, minus a per-user constant offset",
+     "Training users (the model was trained on them, but cannot see the clock); 95% intervals: user bootstrap"
+    ]
+   }
   }
  ],
  "gpu_break": {
