@@ -5035,5 +5035,29 @@
   "end": "02:00",
   "until": "2026-10-31T02:00",
   "label": "Breaks: no GPU work 21:00&ndash;02:00 (end 02:00 from 10-24; Sunday 10-25 from 14:00). Jobs that would run into a break wait for 02:00"
- }
+ },
+ "now_charts": [
+  {
+   "title": "Small model, leak-free (SM72s): LogLoss per epoch, 458-user set (lower is better)",
+   "id": "SM72",
+   "track": "small model",
+   "log": "C:/Users/jonat/workspace/wt/sm72s/artifacts/small-model/sm72s/launch-sm72s.log",
+   "pattern": "epoch (?P<epoch>\\d+)/\\d+: curve (?P<curve>0\\.\\d+) instant (?P<instant>0\\.\\d+)",
+   "epochs": 20,
+   "ref": {
+    "label": "Big model (1 leak-free epoch)",
+    "curve": 0.2953,
+    "instant": 0.27215
+   },
+   "marks": [
+    {
+     "label": "after the cool-down from epoch 15",
+     "epoch": 15,
+     "curve": 0.29681,
+     "instant": 0.27326
+    }
+   ],
+   "note": "Constant-learning-rate epochs; the cool-down from epoch 20 (learning rate down to 0) runs after epoch 20, paused for the 20:30&ndash;02:00 break."
+  }
+ ]
 }
