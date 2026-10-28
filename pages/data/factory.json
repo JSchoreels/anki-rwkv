@@ -1,7 +1,7 @@
 {
- "generated_at": "2026-10-28T08:37:24+01:00",
- "updated": "2026-10-28 08:37",
- "material": "d40bc0c65c9212d3",
+ "generated_at": "2026-10-28T08:42:28+01:00",
+ "updated": "2026-10-28 08:42",
+ "material": "d09be69b9abb91bb",
  "summary": "running 000736",
  "headline": [
   {
@@ -209,17 +209,17 @@
  ],
  "now": [
   {
-   "what": "New small model (leak-free) (SM72s): 15 epochs from scratch on all 8,000 users (581.9M reviews each), each epoch scored on the 464 set (458 users it fits)",
+   "what": "More epochs for the new small model (leak-free) (SM72s): epochs 16&ndash;20 at the same constant LR, each scored on the 464 set",
    "id": "SM72, ticket 000736",
    "kind": "gpu-train",
-   "decides": "Epoch read-outs only (checkpoints before the cool-down zig-zag); the cool-down decides",
+   "decides": "Whether more epochs before the cool-down still help: the released model&rsquo;s cool-down from epoch 15 beat the one from epoch 10 (&minus;0.00022 / &minus;0.00030), and gains per epoch had not stopped",
    "why": "",
    "job": "SM72 small model leak-free (sm72s) epoch 16/20 (8k final tier, 2048 x 16 lanes carry, leak-free replay KD, AdamW 7e-4)",
    "linked": true,
    "track": "small model",
    "ticket": "000736-small-model",
    "started": "08:36",
-   "elapsed": "0:00",
+   "elapsed": "0:05",
    "progress": null,
    "eta": "~10:35"
   }
@@ -1062,16 +1062,28 @@
   {
    "id": "SM72",
    "track": "small model",
+   "since": "10-28T08:30",
+   "kind": "gpu-train",
+   "minutes": 625,
+   "decides": "Whether more epochs before the cool-down still help: the released model&rsquo;s cool-down from epoch 15 beat the one from epoch 10 (&minus;0.00022 / &minus;0.00030), and gains per epoch had not stopped",
+   "what": "More epochs for the new small model (leak-free) (SM72s): epochs 16&ndash;20 at the same constant LR, each scored on the 464 set",
+   "state": "running",
+   "started": "08:36",
+   "ticket": "000736-small-model",
+   "started_at": "2026-10-28T08:36:57+01:00",
+   "ends_at": "2026-10-28T19:01:57+01:00"
+  },
+  {
+   "id": "SM72",
+   "track": "small model",
    "since": "10-25",
    "what": "New small model (leak-free) (SM72s): 15 epochs from scratch on all 8,000 users (581.9M reviews each), each epoch scored on the 464 set (458 users it fits)",
    "kind": "gpu-train",
    "minutes": 2050,
    "decides": "Epoch read-outs only (checkpoints before the cool-down zig-zag); the cool-down decides",
-   "state": "running",
-   "started": "08:36",
-   "ticket": "000736-small-model",
-   "started_at": "2026-10-26T10:13:28+01:00",
-   "ends_at": "2026-10-27T20:23:28+01:00"
+   "state": "done",
+   "started_at": "2026-10-26T10:13+01:00",
+   "ended_at": "2026-10-27T20:05+01:00"
   },
   {
    "id": "SM72",
@@ -1110,13 +1122,8 @@
    "what": "Cool-down from epoch 10 instead, same recipe (the released version was cooled from epoch 10)",
    "kind": "gpu-train",
    "minutes": 520,
-   "decides": "Whether 5 more epochs before the cool-down still help without the leak",
-   "state": "done",
-   "ended": "08:34",
-   "exit": 1,
-   "started": "07:38",
-   "started_at": "2026-10-28T07:38:29+01:00",
-   "ended_at": "2026-10-28T08:34:40+01:00"
+   "decides": "Whether 5 more epochs before the cool-down still help without the leak &mdash; dropped 10-28 08:34 (priority review): the released model already showed epoch 15 beats epoch 10; stopped with a snapshot, resumable",
+   "state": "dropped"
   },
   {
    "id": "SM72",
@@ -1125,7 +1132,27 @@
    "what": "Score the epoch-10 cool-down on the 732 set",
    "kind": "gpu-score",
    "minutes": 18,
+   "decides": "dropped 10-28 08:34 (priority review): the released model already showed epoch 15 beats epoch 10; stopped with a snapshot, resumable",
+   "state": "dropped"
+  },
+  {
+   "id": "SM72",
+   "track": "small model",
+   "since": "10-28T08:30",
+   "kind": "gpu-train",
+   "minutes": 520,
+   "decides": "Whether 20 epochs beat 15 after the cool-down; if so it replaces the release (cool-down from epoch 15)",
+   "what": "Cool-down of the new small model (leak-free) (SM72s) from epoch 20, same recipe (paused for the 20:30 break, resumes 02:00)",
+   "state": "planned"
+  },
+  {
+   "id": "SM72",
+   "track": "small model",
+   "since": "10-28T08:30",
+   "kind": "gpu-score",
+   "minutes": 18,
    "decides": "",
+   "what": "Score the epoch-20 cool-down on the 732 set, paired against the cool-down from epoch 15",
    "state": "planned"
   },
   {
@@ -1223,6 +1250,13 @@
  },
  "backlog": [
   {
+   "status": "next",
+   "id": "SM73",
+   "track": "small model",
+   "item": "Smaller model: a narrower small model on the leak-free recipe, spending the ~0.5 points of room left under the +1.0% bar",
+   "why": "The other half of the factory&rsquo;s goal; design first (width, layers, cost), then about 1.5 days of GPU"
+  },
+  {
    "status": "idea",
    "id": "SM60",
    "track": "small model",
@@ -1237,18 +1271,18 @@
    "why": "Outside research (10-22): data is the scaling axis with the most potential; our own evidence agrees (8k-user decay beat 5k by &minus;0.00048 / &minus;0.00025, SM55). Waits for the dataset"
   },
   {
-   "status": "idea",
+   "status": "dropped",
    "id": "SM62",
    "track": "small model",
    "item": "More input features: card template and note type as a proxy for card content",
-   "why": "Outside research (10-22): all scheduling features are already in; content proxies are what is left, potential unclear without real card content. Waits for a dataset that has them"
+   "why": "Card template and note type are not in the dataset; the input check (SM70) points at capacity, not inputs (priority review 10-28: the factory looks for more accurate or smaller models, not more measurements)"
   },
   {
-   "status": "idea",
+   "status": "next",
    "id": "SM63",
    "track": "small model",
    "item": "More epochs for the very last run: about 10&times; the epochs once the recipe is final",
-   "why": "Outside research (10-22): some potential, but training gets much slower, so only for the final model. The full retrain&rsquo;s plateau rule (SM56) measures how fast the gains flatten first"
+   "why": "Under way: epochs 16&ndash;20 for the new small model (leak-free) (SM72s), then a cool-down from epoch 20 (priority review 10-28: the factory looks for more accurate or smaller models, not more measurements)"
   },
   {
    "status": "idea",
@@ -1258,18 +1292,18 @@
    "why": "Outside research (10-22): more parameters or a larger state are undesirable (slower, bigger); a new axis would be the most valuable find and none is known yet"
   },
   {
-   "status": "idea",
+   "status": "next",
    "id": "SM65",
    "track": "small model",
    "item": "New axis candidate: a better teacher (an ensemble of big models, or a big model trained on more users) to distill from",
-   "why": "The student learns the teacher&rsquo;s predictions, so the teacher is its ceiling; a stronger teacher raises it without touching the small model&rsquo;s size or state"
+   "why": "Next big lever after more epochs: one leak-free epoch made the big model &minus;0.23% / &minus;0.16% better, and the small model learns from it (priority review 10-28: the factory looks for more accurate or smaller models, not more measurements)"
   },
   {
-   "status": "idea",
+   "status": "next",
    "id": "SM66",
    "track": "small model",
    "item": "New axis candidate: per-user adaptation at use time (a tiny per-user correction, e.g. calibration, learned from the user&rsquo;s own reviews)",
-   "why": "Scales with each user&rsquo;s history instead of model size; no extra parameters in the shared model"
+   "why": "A new axis that runs on CPU from saved predictions: a tiny per-user correction fitted on earlier reviews, tested on later ones (priority review 10-28: the factory looks for more accurate or smaller models, not more measurements)"
   },
   {
    "status": "idea",
@@ -1279,11 +1313,11 @@
    "why": "More training data without waiting for new users; to test on the 5k recipe first"
   },
   {
-   "status": "idea",
+   "status": "parked",
    "id": "SM68",
    "track": "small model",
    "item": "Find why 4 long users (70, 1479, 4379, 4922) do not fit the 8k model&rsquo;s GPU scorer at the 0.92 cap while the other models fit them",
-   "why": "Same architecture, so memory should match; until then the 732 table uses the 726 users every model fits"
+   "why": "Same architecture, so memory should match; until then the 732 table uses the 726 users every model fits &mdash; parked 10-28: a measurement, not a better model"
   },
   {
    "status": "next",
@@ -1301,10 +1335,10 @@
    "track": "small model"
   },
   {
-   "status": "parked",
+   "status": "dropped",
    "item": "Instant-weighted (x2) final decay (fixed and checked, ready to run)",
    "id": "SM26",
-   "why": "Moved back 10-18: instant already passes the bar (+0.94%) and the weighting likely costs curve, the failing head. Insurance if a later model slips on instant. Only if SM50 shows head slack",
+   "why": "Neither head is under-trained (SM50) (priority review 10-28: the factory looks for more accurate or smaller models, not more measurements)",
    "track": "small model"
   },
   {
@@ -1336,17 +1370,17 @@
    "track": "small model"
   },
   {
-   "status": "next",
+   "status": "parked",
    "item": "Label-free reference: the big model fine-tuned with review type switched off",
    "id": "SM38",
-   "why": "Honest best a big model can do without review type. Fine-tune first: a cheap from-scratch big-model-size retrain lost +0.0037 / +0.0043 in outside runs",
+   "why": "Honest best a big model can do without review type. Fine-tune first: a cheap from-scratch big-model-size retrain lost +0.0037 / +0.0043 in outside runs &mdash; parked 10-28: a measurement, not a better model",
    "track": "small model"
   },
   {
-   "status": "next",
+   "status": "parked",
    "item": "Deployment-realistic scoring without the duration leak",
    "id": "SM31",
-   "why": "Intervals as Anki knows them when it shows the card; both models, cheap. Outside runs: +0.0002 / +0.0004 cost. Week plan: Sun 10-25",
+   "why": "Intervals as Anki knows them when it shows the card; both models, cheap. Outside runs: +0.0002 / +0.0004 cost. Week plan: Sun 10-25 &mdash; parked 10-28: a measurement, not a better model",
    "track": "small model"
   },
   {
@@ -1364,10 +1398,10 @@
    "track": "small model"
   },
   {
-   "status": "next",
+   "status": "dropped",
    "item": "Real-timestamp inputs (card age, time since any review, creation batch)",
    "id": "SM37",
-   "why": "Outside pointer: about &minus;0.0005 / &minus;0.0008 net of the clock leak; needs the dataset build with timestamps. Week plan: dataset Thu&ndash;Fri, fine-tune from SM36 Sat&ndash;Sun",
+   "why": "The input check (SM70) found no deployable input that helps; the gap is capacity, not inputs (priority review 10-28: the factory looks for more accurate or smaller models, not more measurements)",
    "track": "small model"
   },
   {
@@ -1392,10 +1426,10 @@
    "track": "small model"
   },
   {
-   "status": "parked",
+   "status": "dropped",
    "item": "Open tuning queue from outside research (Muon learning rate x0.5 / x2, longer warmup)",
    "id": "SM39",
-   "why": "Arm 1 (learning rate &times;0.5) done 10-21, see its results row; arm 2 on hold since the full retrain (SM56). Pointers only: we keep our own training setup (decision 10-17). Week plan 10-21: arm 1 (&times;0.5) Wed night, arm 2 Fri night",
+   "why": "Arm 1 only tied the best model; learning-rate tuning is noise-level (priority review 10-28: the factory looks for more accurate or smaller models, not more measurements)",
    "track": "small model",
    "since": "10-27"
   },
@@ -1498,11 +1532,11 @@
    "why": "User idea 10-19, not urgent. Does the small model gain more from more users or from more passes? Full size (5k users &times; 11 epochs) would take ~10.5 h per arm, so scaled to fit 5&ndash;6 h: 1,250 users &times; (10+1) vs 125 users &times; (100+10), the fast 2,048-window KD recipe (~108k reviews/s), equal reviews seen. Slot: 10-20 after SM32c"
   },
   {
-   "status": "next",
+   "status": "parked",
    "id": "ST00",
    "track": "curve stability",
    "item": "Measure first: the repeat stress test and a &ldquo;mature card, then rapid repeats&rdquo; slice, on the best small model (SM36) and the big model",
-   "why": "From an outside audit of SM40 (10-20): the curve is trained only at the next real review, so its long-term tail can change freely between answers; repeated rapid Goods on a mature card make the interval jump, then collapse (the big model jumps too). CPU only. Tells whether it matters on real histories or only in the stress test"
+   "why": "From an outside audit of SM40 (10-20): the curve is trained only at the next real review, so its long-term tail can change freely between answers; repeated rapid Goods on a mature card make the interval jump, then collapse (the big model jumps too). CPU only. Tells whether it matters on real histories or only in the stress test &mdash; parked 10-28: a measurement, not a better model"
   },
   {
    "status": "idea",
@@ -1547,25 +1581,25 @@
    "why": "Done 10-21: see the results row (SM51)"
   },
   {
-   "status": "next",
+   "status": "dropped",
    "id": "SM52",
    "track": "small model",
    "item": "Stacked decay of the week&rsquo;s winners, then 2,225-user check",
-   "why": "End of week 10-26/27"
+   "why": "The winners (8,000 users, more epochs, leak-free inputs) are already in the new small model (leak-free) (SM72s) (priority review 10-28: the factory looks for more accurate or smaller models, not more measurements)"
   },
   {
-   "status": "idea",
+   "status": "dropped",
    "id": "SM53",
    "track": "small model",
    "item": "Per-head distillation weight (more teacher on one head, more real answers on the other)",
-   "why": "Cheap to add to a decay; small expected gain"
+   "why": "A heavier big-model weight did not help (SM59) (priority review 10-28: the factory looks for more accurate or smaller models, not more measurements)"
   },
   {
-   "status": "idea",
+   "status": "done",
    "id": "SM54",
    "track": "small model",
    "item": "Train on more users than the 5,000 used so far (SM43: more users win)",
-   "why": "First count how many benchmark users are not used for training or evaluation (CPU, minutes)"
+   "why": "Done: all 8,000 training users are used (8k model (SM55), full retrain (SM56), leak-free retrain (SM72s)) (priority review 10-28: the factory looks for more accurate or smaller models, not more measurements)"
   },
   {
    "status": "done",
@@ -1582,11 +1616,11 @@
    "why": "Done 10-24 / 10-25: the released small model (leak inputs) (SM56); see its results rows"
   },
   {
-   "status": "idea",
+   "status": "parked",
    "id": "SM57",
    "track": "small model",
    "item": "Instant-only small model: retrain from scratch with only the instant head, against a matched joint baseline (same users, seeds, epochs); record training time, reviews/s, GPU memory and instant LogLoss on 723 users",
-   "why": "Goal: better instant predictions, not less space. Does giving all of the model to instant beat sharing it with the curve, or does the curve task help instant learn? Many people mostly use instant; a second, curve-only model could cover the rest (both = double the state). No rush: later this week if a slot opens, else next week (user, 10-21)"
+   "why": "Goal: better instant predictions, not less space. Does giving all of the model to instant beat sharing it with the curve, or does the curve task help instant learn? Many people mostly use instant; a second, curve-only model could cover the rest (both = double the state). No rush: later this week if a slot opens, else next week (user, 10-21) &mdash; parked 10-28: a measurement, not a better model"
   },
   {
    "status": "done",
