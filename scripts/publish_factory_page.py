@@ -296,6 +296,22 @@ def plan_for(purpose, plan_rows):
     return None
 
 
+def now_charts(curated):
+    """Epoch charts for the Now section: each curated now_charts entry names a launcher log and a regex with named
+    groups epoch / curve / instant; the last value per epoch wins (relaunches replay the epoch lines)."""
+    out = []
+    for c in curated.get("now_charts", []):
+        try:
+            text = Path(c["log"]).read_text(encoding="utf-8", errors="replace")
+        except OSError:
+            continue
+        pts = {int(m["epoch"]): (float(m["curve"]), float(m["instant"])) for m in re.finditer(c["pattern"], text)}
+        if pts:
+            out.append({k: c[k] for k in ("title", "id", "track", "ref", "marks", "note", "epochs") if k in c}
+                       | {"points": [[e, *pts[e]] for e in sorted(pts)]})
+    return out
+
+
 def build(previous):
     curated = json.loads(CURATED.read_text(encoding="utf-8"))
     queue = queue_state()
@@ -349,7 +365,9 @@ def build(previous):
                      "flags": t["flags"]} for t in waiting]
 
     results = new_result_rows(curated, previous) + curated["results"]
+    charts = now_charts(curated)
     material_src = {
+        "charts": [(c.get("title"), c["points"]) for c in charts],
         "running": [(t["ticket"], "running") for t in running], "waiting": [(t["ticket"], "waiting") for t in waiting],
         "finished": [(t["ticket"], t["exit"]) for t in finished[-RECENT:]],
         "plan": [(p.get("what"), p.get("state"), p.get("exit"), p.get("started_at"), p.get("ended_at")) for p in plan],
@@ -372,8 +390,8 @@ def build(previous):
     return {
         "generated_at": stamp.isoformat(timespec="seconds"), "updated": stamp.strftime("%Y-%m-%d %H:%M"),
         "material": material, "summary": ", ".join(parts),
-        "headline": curated.get("headline", []), "now": now_rows, "waiting": waiting_rows, "recent": recent,
-        "plan": plan, "gpu_break": curated.get("gpu_break"), "backlog": curated["backlog"], "results": results,
+        "headline": curated.get("headline", []), "now": now_rows, "charts": charts, "waiting": waiting_rows,
+        "recent": recent, "plan": plan, "gpu_break": curated.get("gpu_break"), "backlog": curated["backlog"], "results": results,
         "_sync": sync,
     }
 
