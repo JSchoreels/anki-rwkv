@@ -21,6 +21,14 @@ Dry run 10-29 09:19: `DRYRUN OK` (`sm73/launch-sm73-dryrun.log`). Rule self-test
 readout (722 users, 0.30019 / 0.27664, +0.41% / +0.32%). CPU smoke of the int4 path with the leak-free flags on user
 2388: int4 vs int8 +0.00006 / +0.00002.
 
+## 10-29 ~10:00: int4 (w8+s4) diverged, relaunched for w8+s4c8n
+Ticket 000754 (w8+s4) stopped after 37 users: `Non-finite evaluation loss` on user 3876. Not a quantizer bug (scales
+are clamped to 1 when 0/NaN): the int4 note state grows geometrically on a 9,539-step note sequence (WKV output ~1e32
+by step 6000, inf at 6843; float 5, int8 6.5). With int4 card + int8 note (w8+s4c8n) the user is finite. Recorded as
+FAIL with `sm73_rule.py diverged` (line in `sm73-formats.jsonl`, summary row "diverged on user 3876"); the launcher
+skips w8+s4 as decided and scores w8+s4c8n. The 37 partial w8+s4 rows stay in `gpu/sm73-formats-732.jsonl` (own label,
+not counted for w8+s4c8n).
+
 ## Launch (PowerShell, hidden WMI process)
 `$si = New-CimInstance -ClassName Win32_ProcessStartup -ClientOnly -Property @{ShowWindow=[uint16]0}; Invoke-CimMethod -ClassName Win32_Process -MethodName Create -Arguments @{CommandLine='"C:\Program Files\Git\usr\bin\bash.exe" -c "export PATH=/usr/bin:/mingw64/bin:$PATH; bash C:/Users/jonat/workspace/wt/sm73/artifacts/small-model/sm73/launch-sm73.sh >> C:/Users/jonat/workspace/wt/sm73/artifacts/small-model/sm73/launch-sm73.nohup 2>&1"'; ProcessStartupInformation=$si}`
 
