@@ -1357,6 +1357,19 @@
    "what": "Better teacher (SM65) stage 1: the big model (1 leak-free epoch) trained one more leak-free epoch on the 3,969 final-tier training users it has never seen (ids below 5000, 285.9M reviews; disjoint from the 732 / 464 sets and the final test), same recipe as its leak-free epoch, then scored on the 732 set",
    "when": "Code ready and checked on CPU, launcher started Thu 10-29 15:13 and waiting for the leak-free small model&rsquo;s (SM72s) epochs 21&ndash;25 and cool-down (done ~13:00&ndash;15:00 Fri 10-30). Then a 5-min GPU smoke and ~7 h of training, paused at the 21:00 break and resumed at 02:00 from a snapshot, then 732-set scoring (~15 min). Decision ~20:40 Fri if the GPU frees at 13:00, ~03:45 Sat 10-31 if at 15:00",
    "decides": "Whether a better teacher exists at all: go on (teacher targets for the 8,000 users, ~4 h, then the same cool-down of the small model with only the targets swapped, ~8.5 h, paired against the existing one) if it beats the big model (1 leak-free epoch) by &ge; 0.20 points curve or &ge; 0.15 instant on 722 users; stop if both heads gain under 0.10. An average of the shipped and leak-free big models was checked on CPU first: only 0.03&ndash;0.09 points, dropped. Expected student gain about 0.03&ndash;0.13 points per head"
+  },
+  {
+   "id": "SM77",
+   "track": "small model",
+   "since": "10-29T17:30",
+   "kind": "gpu-train",
+   "minutes": 420,
+   "match": [
+    "tiny architecture additions (SM77) stage 1"
+   ],
+   "what": "Tiny architecture additions (SM77) stage 1: separate removal / insertion keys plus r/k biases in all 13 layers, and a learned starting state for the card and note streams (+6,720 parameters, +26.9 KB export, no extra stored state). Warm start from the leak-free small model&rsquo;s (SM72s) epoch 20 with the new parameters at zero (outputs bit-identical at the start, checked on CPU), one constant-LR epoch plus cool-down, against SM72s&rsquo;s own epoch 21 as the free reference; scored on the 732 set",
+   "when": "Code ready and checked on CPU; launcher started Thu 10-29 17:36 and waiting for the better teacher&rsquo;s (SM65) launcher to end (Fri night or Sat). First a ~15-min GPU check of the new kernels, then ~7 h, paused at the 21:00 break",
+   "decides": "Go if curve &ge; 0.20 points or instant &ge; 0.15 better on 722 users (CI clear of zero), other head no worse than +0.03%; stop if both under 0.10; in between, report. From the literature review (SM60)"
   }
  ],
  "backlog": [
@@ -1376,11 +1389,11 @@
    "why": "Done 10-29: ranked shortlist in artifacts/small-model/sm60/LITERATURE.md. Top picks: key-side micro-parameters and a learned initial state, together the tiny architecture additions (SM77), and an int4 state drift check (SM78); a two-step delta update (DeltaProduct) only if one of those lands. No 2026 RWKV-7 successor paper found."
   },
   {
-   "status": "next",
+   "status": "planned",
    "id": "SM77",
    "track": "small model",
    "item": "Tiny architecture additions from the literature review (SM60): separate removal / insertion keys plus learnable r/k biases, and a learned initial state for the card and note streams (zero today)",
-   "why": "Under way 10-29: implementation on CPU (branch sm77); first on the GPU after the better teacher (SM65) stage 1. About +3.3k and +3.5k parameters, no extra state, no extra CPU. Warm start from the leak-free small model (SM72s) with zero-initialized new parameters: one two-arm epoch plus short cool-downs, ~8 GPU h in all"
+   "why": "Ready 10-29, launcher waiting for the better teacher (SM65) (see the plan). About +3.3k and +3.5k parameters, no extra state, no extra CPU. Warm start from the leak-free small model (SM72s) with zero-initialized new parameters: one two-arm epoch plus short cool-downs, ~8 GPU h in all"
   },
   {
    "status": "done",
