@@ -1,7 +1,7 @@
 {
- "generated_at": "2026-10-29T14:56:03+01:00",
- "updated": "2026-10-29 14:56",
- "material": "4c0c84d3306b81c6",
+ "generated_at": "2026-10-29T15:16:10+01:00",
+ "updated": "2026-10-29 15:16",
+ "material": "6e839202a7288b05",
  "summary": "running 000757",
  "headline": [
   {
@@ -239,7 +239,7 @@
    "track": "small model",
    "ticket": "000757-small-model",
    "started": "14:45",
-   "elapsed": "0:10",
+   "elapsed": "0:30",
    "progress": null,
    "eta": "~16:45"
   }
@@ -1477,7 +1477,7 @@
    "kind": "gpu-train",
    "minutes": 440,
    "what": "Better teacher (SM65) stage 1: the big model (1 leak-free epoch) trained one more leak-free epoch on the 3,969 final-tier training users it has never seen (ids below 5000, 285.9M reviews; disjoint from the 732 / 464 sets and the final test), same recipe as its leak-free epoch, then scored on the 732 set",
-   "when": "Plan only: needs a small code change first (user list and start checkpoint in the big-model epoch script, ~1&ndash;2 h CPU work). Queued behind the leak-free small model&rsquo;s (SM72s) epochs 21&ndash;25 and cool-down (done ~13:00&ndash;15:00 Fri 10-30); ~7 h of GPU across the 21:00 break, decision ~04:00 Sat 10-31",
+   "when": "Code ready and checked on CPU, launcher started Thu 10-29 15:13 and waiting for the leak-free small model&rsquo;s (SM72s) epochs 21&ndash;25 and cool-down (done ~13:00&ndash;15:00 Fri 10-30). Then a 5-min GPU smoke and ~7 h of training, paused at the 21:00 break and resumed at 02:00 from a snapshot, then 732-set scoring (~15 min). Decision ~20:40 Fri if the GPU frees at 13:00, ~03:45 Sat 10-31 if at 15:00",
    "decides": "Whether a better teacher exists at all: go on (teacher targets for the 8,000 users, ~4 h, then the same cool-down of the small model with only the targets swapped, ~8.5 h, paired against the existing one) if it beats the big model (1 leak-free epoch) by &ge; 0.20 points curve or &ge; 0.15 instant on 722 users; stop if both heads gain under 0.10. An average of the shipped and leak-free big models was checked on CPU first: only 0.03&ndash;0.09 points, dropped. Expected student gain about 0.03&ndash;0.13 points per head",
    "state": "planned"
   }
