@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-10-29T09:42:48+01:00",
- "updated": "2026-10-29 09:42",
- "material": "b2b69efe3a08118f",
- "summary": "idle, finished 000756",
+ "generated_at": "2026-10-29T09:47:52+01:00",
+ "updated": "2026-10-29 09:47",
+ "material": "2f9b947b0e448270",
+ "summary": "idle",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring (curve / instant)",
@@ -1414,11 +1414,8 @@
    "when": "Ready, not launched (dry run OK 10-29 09:19); ~15 min of GPU (~30 min if the fallback runs), done ~30 min after launch",
    "decides": "Whether the released small model can store 34% less per card and stay within the new bar of +0.5% curve / +0.4% instant vs the big model (1 leak-free epoch), on 722 users. Today +0.41% / +0.32%; expected about +0.44% / +0.38% from the earlier int4 test (SM45), so the instant margin is thin. The design finds no shrink of the network itself likely to fit the ~0.09 / ~0.08 points of room (the depth cut (SM15) cost +0.36% / +0.42%); a better teacher (SM65) would have to buy accuracy back first",
    "state": "done",
-   "ended": "09:42",
-   "exit": 0,
-   "started": "09:30",
-   "started_at": "2026-10-29T09:30:02+01:00",
-   "ended_at": "2026-10-29T09:42:22+01:00"
+   "started_at": "2026-10-29T09:23:48+01:00",
+   "ended_at": "2026-10-29T09:42:23+01:00"
   }
  ],
  "gpu_break": {
@@ -1429,11 +1426,11 @@
  },
  "backlog": [
   {
-   "status": "planned",
+   "status": "next",
    "id": "SM73",
    "track": "small model",
    "item": "Smaller model: a smaller small model on the leak-free recipe within +0.5% curve / +0.4% instant vs the big model (1 leak-free epoch), only ~0.09 / ~0.08 points of room",
-   "why": "Design done 10-29 (artifacts/small-model/sm73/DESIGN.md): the phone limit is the card/note state, so stage 1 stores it at 4 bits (&minus;34%, ~15 min of GPU, ready). Shrinking the network itself (one card layer fewer: &minus;31% state) likely costs 0.1&ndash;0.3 points, more than the room; it waits until a better teacher (SM65) buys accuracy back"
+   "why": "Stage 1 done 10-29: the fork&rsquo;s default state (int4 cards + int8 notes) passes the +0.5% / +0.4% bar. A narrower network needs accuracy bought back first (a better teacher, SM65): see the design note"
   },
   {
    "status": "idea",
@@ -1818,6 +1815,69 @@
   }
  ],
  "results": [
+  {
+   "date": "10-29",
+   "kind": "gpu-score",
+   "id": "SM73",
+   "track": "small model",
+   "name": "Smaller model (SM73) stage 1: the new small model (leak-free) (SM72s, cool-down from epoch 20) with smaller stored state per card and note, no retraining",
+   "curve": 0.30023,
+   "instant": 0.27669,
+   "curve_pct": 0.42,
+   "instant_pct": 0.34,
+   "eval": "722 users (732 set), leak-free scoring, int8 weights",
+   "fork": "vs the big model (1 leak-free epoch): 0.29897 / 0.27576",
+   "takeaway": "<strong>The fork&rsquo;s default state passes the new bar</strong>: int4 cards + int8 notes (3,530 B per card + note, &minus;22% vs int8) costs only +0.00004 / +0.00005 vs int8 state, landing at +0.42% / +0.34% (bar +0.50% / +0.40%). Full int4 (3,018 B) <strong>diverges</strong> on long note histories, so it was removed from the fork. No narrower network is likely to fit the bar without a better teacher first",
+   "started_at": "2026-10-29T09:23:48+01:00",
+   "ended_at": "2026-10-29T09:42:23+01:00",
+   "gpu_minutes": 13,
+   "tickets": 4,
+   "detail": {
+    "verdict": "int4 cards + int8 notes: PASS (+0.42% / +0.34%); full int4: diverges",
+    "table": {
+     "head": [
+      "State per card + note (732 set, 722 users)",
+      "Bytes",
+      "Curve",
+      "Instant",
+      "vs big model (1 leak-free epoch)",
+      "vs int8 state"
+     ],
+     "rows": [
+      [
+       "int8 (the scored reference)",
+       "4,554",
+       "0.30019",
+       "0.27664",
+       "+0.41% / +0.32%",
+       "&ndash;"
+      ],
+      [
+       "<strong>int4 cards + int8 notes (fork default)</strong>",
+       "<strong>3,530</strong>",
+       "<strong>0.30023</strong>",
+       "<strong>0.27669</strong>",
+       "<strong>+0.42% / +0.34%</strong>",
+       "+0.000039 / +0.000051"
+      ],
+      [
+       "int4 cards and notes",
+       "3,018",
+       "&ndash;",
+       "&ndash;",
+       "diverged",
+       "&ndash;"
+      ]
+     ]
+    },
+    "notes": [
+     "vs int8 state, 95% CI: curve +0.000039 [+0.000026, +0.000055], instant +0.000051 [+0.000039, +0.000065].",
+     "Full int4 diverged on held-out user 3876: in one 9,539-review note sequence the int4 note state grows geometrically (~1e32 by review 6,000, inf at 6,843; it stays near 5 in float and 6.5 in int8). Not a bad scale: the rounding error compounds. Removed from the fork 10-29 (a stored int4 setting falls back to the default).",
+     "Design note: artifacts/small-model/sm73/DESIGN.md. A narrower network costs more than the ~0.09 / ~0.08 points of room (the 7-layer cut (SM15) cost +0.36% / +0.42% on 10-19).",
+     "Bootstrap over users (2,000 resamples, seed 0), 95% CI, review-weighted."
+    ]
+   }
+  },
   {
    "date": "10-28",
    "kind": "cpu",
