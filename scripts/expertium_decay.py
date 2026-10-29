@@ -147,7 +147,10 @@ def smoke(out):
     if isinstance(distillation, dict):
         decay["options"]["distillation"] = {k: v for k, v in distillation.items() if k != "cache"}
     atomic_json(scratch / "decay.json", decay)
-    shutil.copy(out / "protocol.json", scratch / "protocol.json")
+    protocol = json.loads((out / "protocol.json").read_text())
+    # a resumed decay's protocol.json says how many reviews are left (lr_resume); the smoke trains 2 users, not those
+    protocol.get("full_run", {}).pop("lr_resume", None)
+    atomic_json(scratch / "protocol.json", protocol)
     started = time.perf_counter()
     code = run(scratch, smoke=True)
     result_path = scratch / decay.get("model", MODEL) / decay["track"] / "result.json"
