@@ -1407,7 +1407,7 @@
    "id": "SM79",
    "track": "small model",
    "item": "What makes cards stick (SM79): which patterns we can observe or change (note structure, sibling cards, early spacing, new-card load, session context, lapse handling) go with cards that stick with fewer reviews; then which cards will not stick, early",
-   "why": "Asked 10-29: learning faster means fewer reviews, and making cards easier, not only predicting them. CPU only, benchmark users. Levers: cards per note (cloze deletions, reverse cards), siblings reviewed the same day or apart, learning steps and first interval, new cards added that day, review position in a long session, relearning after a lapse. Confounding by user and difficulty is handled with within-user comparisons and natural experiments (interval fuzz, missed days, preset changes), and the small model&rsquo;s counterfactual answers are checked against them. Starts after the 02:00 break end"
+   "why": "Part 1 done 10-29 (see the results row): the worst 10% of cards take 27% of reviews; note structure and siblings are small levers. Next: interval fuzz and missed days as natural experiments, early spacing, then the early won&rsquo;t-stick flag. CPU only, benchmark users. Levers: cards per note (cloze deletions, reverse cards), siblings reviewed the same day or apart, learning steps and first interval, new cards added that day, review position in a long session, relearning after a lapse. Confounding by user and difficulty is handled with within-user comparisons and natural experiments (interval fuzz, missed days, preset changes), and the small model&rsquo;s counterfactual answers are checked against them. Starts after the 02:00 break end"
   },
   {
    "status": "idea",
@@ -1802,6 +1802,71 @@
   "s-w64kd-gate-ctx2048c-dec8-1ep/w8+s8"
  ],
  "results": [
+  {
+   "date": "10-29",
+   "kind": "cpu",
+   "id": "SM79",
+   "track": "small model",
+   "name": "What makes cards stick (SM79), part 1: note structure, same-day siblings, new-card load",
+   "curve": null,
+   "instant": null,
+   "curve_pct": null,
+   "instant_pct": null,
+   "eval": "891 training users (none in the evaluation sets), 5.40M cards, 53.9M reviews; cards first seen at least 180 days before the user&rsquo;s last review; within user &times; deck, 95% CIs over users",
+   "fork": "Within-user differences in lapses (first 10 reviews), leech share and reviews spent",
+   "takeaway": "<strong>The prize is large, the levers found so far are small</strong>: the worst 5% of cards take 16.6% of all reviews, the worst 10% take 27.2%. Cards from 2&ndash;9-card notes lapse about 6&ndash;7% less than single-card notes (&minus;0.025 per card in the first 10 reviews); 10+ cards no gain. A sibling seen earlier the same day mostly tells the note&rsquo;s difficulty (a failed sibling: &minus;11 to &minus;13 points pass rate), not a memory boost; no lasting effect. All correlational",
+   "started_at": "2026-10-29T20:50+01:00",
+   "ended_at": "2026-10-29T21:40+01:00",
+   "gpu_minutes": 0,
+   "tickets": 0,
+   "detail": {
+    "verdict": "Nothing to change in scheduling yet; next are the natural experiments (interval fuzz, missed days) and early spacing, then the early won&rsquo;t-stick flag",
+    "table": {
+     "head": [
+      "Pattern",
+      "Effect (within user &times; deck)",
+      "Reading"
+     ],
+     "rows": [
+      [
+       "Worst 5% / 10% of cards",
+       "16.6% [15.8, 17.5] / 27.2% [26.1, 28.4] of reviews",
+       "The prize"
+      ],
+      [
+       "2&ndash;9 cards per note vs 1",
+       "lapses &minus;0.025 [&minus;0.031, &minus;0.020] on 0.40; leech &minus;0.1 pp; reviews &minus;2&ndash;3%",
+       "Small, plausibly real"
+      ],
+      [
+       "10+ cards per note vs 1",
+       "no gain",
+       "&mdash;"
+      ],
+      [
+       "Sibling reviewed earlier the same day",
+       "pass +1.0 pp [+0.5, +1.6]; if it failed &minus;11 to &minus;13 pp",
+       "Shared note difficulty, not memory"
+      ],
+      [
+       "First card of a same-day sibling pair",
+       "pass &minus;4.0 pp [&minus;5.0, &minus;3.1]",
+       "Review order / burying, can&rsquo;t separate"
+      ],
+      [
+       "11&ndash;100+ new cards that day vs 1&ndash;10",
+       "lapses &minus;0.02 to &minus;0.03",
+       "Probably selection (bulk imports)"
+      ]
+     ]
+    },
+    "notes": [
+     "Deleted cards are missing (note sizes undercounted); suspended or abandoned cards look cheap",
+     "Lapse = Again at &ge; 1 day elapsed, includes some next-day learning failures",
+     "Files: artifacts/small-model/sm79/PART1.md, part1.py, part1.json"
+    ]
+   }
+  },
   {
    "date": "10-29",
    "kind": "cpu",
