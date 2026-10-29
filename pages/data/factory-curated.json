@@ -2,7 +2,7 @@
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring (curve / instant)",
-   "v": "0.30038 / 0.27687",
+   "v": "0.30019 / 0.27664",
    "compare": [
     {
      "variant": "Big model (1 leak-free epoch) (reference)",
@@ -13,7 +13,17 @@
      "ref": true
     },
     {
-     "variant": "Best: small model (leak-free), cool-down from epoch 15 (SM72), released 10-28 and now the Anki fork&rsquo;s default; vs the released SM56: curve &minus;0.00028 [&minus;0.00055, +0.00006], instant &minus;0.00058 [&minus;0.00066, &minus;0.00050]",
+     "variant": "Best: small model (leak-free), 5 more epochs, cool-down from epoch 20 (SM72), not released yet; vs the released cool-down from epoch 15: curve &minus;0.00020 [&minus;0.00031, &minus;0.00010], instant &minus;0.00023 [&minus;0.00026, &minus;0.00020]",
+     "curve": 0.30019,
+     "instant": 0.27664,
+     "eval": "722 users (732 set), 30.13M reviews, leak-free inputs",
+     "quant": "w8+s8",
+     "curve_pct": 0.41,
+     "instant_pct": 0.32,
+     "date": "10-29"
+    },
+    {
+     "variant": "Released: small model (leak-free), cool-down from epoch 15 (SM72), released 10-28 and now the Anki fork&rsquo;s default; vs the released SM56: curve &minus;0.00028 [&minus;0.00055, +0.00006], instant &minus;0.00058 [&minus;0.00066, &minus;0.00050]",
      "curve": 0.30038,
      "instant": 0.27687,
      "eval": "722 users (732 set), 30.13M reviews, leak-free inputs",
@@ -1155,7 +1165,8 @@
     "cool-down from e20"
    ],
    "decides": "Whether 20 epochs beat 15 after the cool-down; if so it replaces the release (cool-down from epoch 15)",
-   "what": "Cool-down of the new small model (leak-free) (SM72s) from epoch 20, same recipe (paused for the 21:00 break, resumes 02:00)"
+   "what": "Cool-down of the new small model (leak-free) (SM72s) from epoch 20, same recipe (paused for the 10-28 break, resumed 01:04 from its snapshot)",
+   "state": "done"
   },
   {
    "id": "SM72",
@@ -1166,8 +1177,9 @@
    "match": [
     "leakfree-dec20-1ep32k-muon"
    ],
-   "decides": "",
-   "what": "Score the epoch-20 cool-down on the 732 set, paired against the cool-down from epoch 15"
+   "decides": "Cool-down from epoch 20 beats the one from epoch 15: &minus;0.00020 / &minus;0.00023, both significant (722 users)",
+   "what": "Score the epoch-20 cool-down on the 732 set, paired against the cool-down from epoch 15",
+   "state": "done"
   },
   {
    "what": "Deleted-card leak check: about 1 review in 5 is on a card deleted before the data export, and both models see that in their inputs (Anki never does). Score the big model and the best small model without it, and on the cards that still exist only",
@@ -1728,6 +1740,74 @@
      "No clear user-size effect (online curve, small model: &minus;0.00095 / &minus;0.00057 / &minus;0.00111 by size tier, wide intervals)",
      "Limit: only each user&rsquo;s benchmark test reviews were available, not the full history",
      "95% intervals: review-weighted user bootstrap, 2,000 resamples. CPU only (~10 min); files in the sm66 branch (artifacts/small-model/sm66/)"
+    ]
+   }
+  },
+  {
+   "date": "10-29",
+   "kind": "gpu-train",
+   "id": "SM72",
+   "track": "small model",
+   "name": "Small model (leak-free), 5 more epochs: the same retrain run to 20 constant-LR epochs, then the same 1-epoch Muon cool-down from epoch 20 (LR 7e-4 &rarr; 0)",
+   "curve": 0.30019,
+   "instant": 0.27664,
+   "curve_pct": 0.18,
+   "instant_pct": 0.16,
+   "eval": "722 users (732 set), 30.13M test reviews, 20% on deleted cards; scored leak-free",
+   "fork": "the shipped big model with the same leak-free inputs: 0.29966 / 0.27620",
+   "takeaway": "<strong>20 epochs beat 15 after the cool-down</strong>: +0.41% / +0.32% behind the big model (1 leak-free epoch), vs +0.47% / +0.40% for the released cool-down from epoch 15; better on both heads with intervals clear of zero, on all three sets. Only +0.18% / +0.16% vs the shipped big model. Not released yet",
+   "started_at": "2026-10-28T08:36+01:00",
+   "ended_at": "2026-10-29T07:07+01:00",
+   "gpu_minutes": 1089,
+   "tickets": 17,
+   "detail": {
+    "verdict": "Small model (leak-free), cool-down from epoch 20: +0.41% / +0.32% vs the big model (1 leak-free epoch); better than the cool-down from epoch 15 on both heads",
+    "table": {
+     "head": [
+      "722 users (732 set), leak-free scoring",
+      "Curve",
+      "Instant",
+      "vs big model (1 leak-free epoch)"
+     ],
+     "rows": [
+      [
+       "Big model (1 leak-free epoch) (SM72)",
+       "0.29897",
+       "0.27576",
+       "&ndash;"
+      ],
+      [
+       "Shipped big model (fork RWKV)",
+       "0.29966",
+       "0.27620",
+       "+0.23% / +0.16%"
+      ],
+      [
+       "<strong>Small model (leak-free), cool-down from epoch 20 (SM72)</strong>",
+       "<strong>0.30019</strong>",
+       "<strong>0.27664</strong>",
+       "<strong>+0.41% / +0.32%</strong>"
+      ],
+      [
+       "Released small model (leak-free), cool-down from epoch 15 (SM72)",
+       "0.30038",
+       "0.27687",
+       "+0.47% / +0.40%"
+      ],
+      [
+       "Previous release, cool-down from epoch 10 (SM56, leak inputs)",
+       "0.30066",
+       "0.27745",
+       "+0.57% / +0.61%"
+      ]
+     ]
+    },
+    "notes": [
+     "Epoch 20 vs epoch 15 cool-down, 732 set: curve &minus;0.000196 [&minus;0.000312, &minus;0.000100], instant &minus;0.000229 [&minus;0.000263, &minus;0.000199]; 423 / 567 of 722 users better.",
+     "464 set (458 users): +0.46% / +0.33% (epoch 15: +0.51% / +0.41%), pair &minus;0.000158 / &minus;0.000225, both significant; 732 + 3 long users (725): +0.27% / +0.34% (epoch 15: +0.36% / +0.42%).",
+     "Before the cool-down epoch 20 was not the best constant-LR epoch (curve 0.30042 vs 0.29880 at epoch 18, 458 users): the cool-down evens out the epoch-to-epoch swings.",
+     "Epochs 16&ndash;20: 111 min each, ~87.4k reviews/s (+8 min scoring each). Cool-down: 481 GPU min in three parts (paused for SM74 and the 10-28 break; a second-resume bug fixed at 01:03), ~20.2k reviews/s; then 13 min scoring.",
+     "Bootstrap over users (2,000 resamples, seed 0), 95% CI, review-weighted."
     ]
    }
   },
@@ -5272,9 +5352,15 @@
      "epoch": 20,
      "curve": 0.29806,
      "instant": 0.2746
+    },
+    {
+     "label": "after the cool-down from epoch 20",
+     "epoch": 20,
+     "curve": 0.29666,
+     "instant": 0.27303
     }
    ],
-   "note": "Constant-learning-rate epochs; the cool-down from epoch 20 (learning rate down to 0) runs after epoch 20, paused for the 21:00&ndash;02:00 break."
+   "note": "Constant-learning-rate epochs; dots: the cool-downs (learning rate down to 0) from epochs 15 and 20, and the plain average of epochs 15&ndash;20."
   }
  ]
 }
