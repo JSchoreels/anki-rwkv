@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-10-29T09:35:31+01:00",
- "updated": "2026-10-29 09:35",
- "material": "36556f0db0eafcaf",
- "summary": "running 000755",
+ "generated_at": "2026-10-29T09:42:15+01:00",
+ "updated": "2026-10-29 09:42",
+ "material": "8c081b29a3fa0f45",
+ "summary": "running 000756, finished 000755",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring (curve / instant)",
@@ -230,18 +230,18 @@
  "now": [
   {
    "what": "Smaller model (SM73) stage 1: the leak-free small model (SM72s, cool-down from epoch 20) with its card/note state stored at 4 bits instead of 8 (3,018 instead of 4,554 bytes per card + note, &minus;34%), scored on the 732 set; int4 cards + int8 notes (3,530 bytes, &minus;22%) only if that fails",
-   "id": "SM73, ticket 000755",
+   "id": "SM73, ticket 000756",
    "kind": "gpu-score",
    "decides": "Whether the released small model can store 34% less per card and stay within the new bar of +0.5% curve / +0.4% instant vs the big model (1 leak-free epoch), on 722 users. Today +0.41% / +0.32%; expected about +0.44% / +0.38% from the earlier int4 test (SM45), so the instant margin is thin. The design finds no shrink of the network itself likely to fit the ~0.09 / ~0.08 points of room (the depth cut (SM15) cost +0.36% / +0.42%); a better teacher (SM65) would have to buy accuracy back first",
    "why": "",
-   "job": "smaller model (SM73) stage 1: leak-free small model (SM72s, cool-down from epoch 20) at w8+s4c8n state on the 732 set (723 users, pass 1)",
+   "job": "smaller model (SM73) stage 1: leak-free small model (SM72s, cool-down from epoch 20) at w8+s4c8n state on the 732 set (723 users, pass 2)",
    "linked": true,
    "track": "small model",
-   "ticket": "000755-small-model",
-   "started": "09:30",
-   "elapsed": "0:05",
+   "ticket": "000756-small-model",
+   "started": "09:41",
+   "elapsed": "0:00",
    "progress": null,
-   "eta": "~09:45"
+   "eta": "~09:49"
   }
  ],
  "charts": [
@@ -383,6 +383,15 @@
  "waiting": [],
  "recent": [
   {
+   "ticket": "000755-small-model",
+   "id": "SM73",
+   "what": "smaller model (SM73) stage 1: leak-free small model (SM72s, cool-down from epoch 20) at w8+s4c8n state on the 732 set (723 users, pass 1)",
+   "ended": "09:41",
+   "date": "10-29",
+   "exit": 0,
+   "ran": "0:11"
+  },
+  {
    "ticket": "000754-small-model",
    "id": "SM73",
    "what": "smaller model (SM73) stage 1: leak-free small model (SM72s, cool-down from epoch 20) at w8+s4 state on the 732 set (723 users, pass 1)",
@@ -426,15 +435,6 @@
    "date": "10-29",
    "exit": 0,
    "ran": "5:49"
-  },
-  {
-   "ticket": "000749-small-model",
-   "id": "SM72",
-   "what": "SM72 small model leak-free (sm72s): 1-epoch 32k Muon cool-down from e20 (8k final tier, 581.9M reviews, lanes carry, leak-free replay KD) (segment to the next window or the end)",
-   "ended": "01:01",
-   "date": "10-29",
-   "exit": 1,
-   "ran": "0:00"
   }
  ],
  "plan": [
@@ -1430,8 +1430,8 @@
    "when": "Ready, not launched (dry run OK 10-29 09:19); ~15 min of GPU (~30 min if the fallback runs), done ~30 min after launch",
    "decides": "Whether the released small model can store 34% less per card and stay within the new bar of +0.5% curve / +0.4% instant vs the big model (1 leak-free epoch), on 722 users. Today +0.41% / +0.32%; expected about +0.44% / +0.38% from the earlier int4 test (SM45), so the instant margin is thin. The design finds no shrink of the network itself likely to fit the ~0.09 / ~0.08 points of room (the depth cut (SM15) cost +0.36% / +0.42%); a better teacher (SM65) would have to buy accuracy back first",
    "state": "running",
-   "started": "09:30",
-   "ticket": "000755-small-model",
+   "started": "09:41",
+   "ticket": "000756-small-model",
    "started_at": "2026-10-29T09:30:02+01:00",
    "ends_at": "2026-10-29T10:00:02+01:00"
   }
