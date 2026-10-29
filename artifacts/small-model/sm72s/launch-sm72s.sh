@@ -75,7 +75,7 @@ SPEC='{"lanes": "strided"}'
 DIST="{\"teacher\": \"$BIGCK\", \"alpha\": 0.9, \"decay_alpha\": 0.5, \"kd_source\": \"replay\", \"replay\": \"$REPLAY\"}"
 EXTRA="{\"distillation\": $DIST, \"state_carry\": $SPEC, \"chunk_reviews\": 32768, \"batch_chunks\": 1, \"optimizer\": \"expertium-iter53\"}"  # = SM56's cool-down
 SMOKE_EXTRA="{\"distillation\": $DIST, \"state_carry\": $SPEC, \"chunk_reviews\": 2048, \"batch_chunks\": 16}"
-MAX_EPOCHS=20   # user 10-28 ~08:30: 20 (was 15; cool-down from e15 scored); experiment.json / run.json raised with it; NO-DEC10 set
+MAX_EPOCHS=25   # user 10-28 ~08:30: 20 (was 15; cool-down from e15 scored); 10-29: 25 (cool-down from e20 scored, released); experiment.json / run.json raised with it; NO-DEC10 set
 SIDE_EPOCH=10
 MIN_EPOCH=${MIN_EPOCH:-125}   # SM56: 104.7-117.9 min wall per epoch (82-93k reviews/s); then 1.05 x the slowest of the last 3 + 3
 MIN_SCORE464=12; MIN_SCORE464B=8
@@ -250,7 +250,7 @@ if e.get("env") != {"RWKV_DELETED_CARDS": "neighbour"}:
     fail.append(f"experiment env {e.get('env')}")
 for k in ("seed", "order_seed", "model", "track", "dataset_path", "dataset_revision", "split", "split_sha256", "label_db", "tier", "kind",
           "epochs", "init", "epoch_runner", "train_users", "eval_users"):
-    if k == "epochs" and e.get(k) == 20 and v.get(k) == 15:  # user 10-28: epochs 16-20 added after SM56's 15
+    if k == "epochs" and e.get(k) in (20, 25) and v.get(k) == 15:  # user 10-28/29: epochs 16-25 added after SM56's 15
         continue
     if e.get(k) != v.get(k):
         fail.append(f"{k}: {str(e.get(k))[:80]} vs SM56 {str(v.get(k))[:80]}")
