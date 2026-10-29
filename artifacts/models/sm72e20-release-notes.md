@@ -15,6 +15,8 @@ LogLoss on held-out benchmark users (lower is better), weighted by reviews, leak
 | 732+long set (725 users) | 0.30123 / 0.27658 | 0.30142 / 0.27706 | 0.30204 / 0.27750 | +0.27% [-0.02, +0.52] / +0.34% [+0.29, +0.39] | +0.21% / +0.16% |
 | The author's own collection | not measured for this model | not measured | not measured | - | - |
 
+**At the fork's default state precision (int4 cards + int8 notes, int8 weights, 732-user set, 722 users).** The table above is the int8 state reference. The fork's default since 2026-10-20 is int4 card state with int8 note state. There this model scores 0.30023 / 0.27669 (curve / instant), i.e. +0.42% / +0.34% against the big model (1 leak-free epoch), versus +0.41% / +0.32% at int8 state. Paired difference against the same model at int8 state (95% interval; positive = slightly worse): curve +0.000039 [+0.000026, +0.000055], instant +0.000051 [+0.000039, +0.000065]. The other sets were not scored at this precision.
+
 The "shipped big model" is the fork's big model as shipped (its training saw the leak), here scored on leak-free inputs. The own-collection row was not measured for this model: no per-review data of that collection is included in this release.
 
 **Against the previous release (the leak-free small model, cool-down from epoch 15, SM72) on the same leak-free inputs.** Paired difference (this model minus the previous release, 95% interval; negative = this model better):
@@ -38,16 +40,17 @@ On the 732-user set the previous release scores 0.30038 / 0.27687, i.e. +0.47% /
 On the 732-user set SM56 scores 0.30066 / 0.27745 on these inputs, i.e. +0.57% / +0.61% against the big model (1 leak-free epoch). This model is better on instant (interval clear of 0 on all three sets) and on curve (clear of 0 on the last two sets).
 
 - **Curve** is the forgetting-curve head (probability of recall at any future time); **instant** is the next-review head.
-- Not measured for this model: the spaced-review slice, int4 card state (it was nearly free on an earlier model, +0.00005 LogLoss), and the own collection.
+- Not measured for this model: the spaced-review slice, the own collection, and the 464-user and 732+long sets at int4 card state (only the 732-user set was scored at the fork's default state).
+- **Full int4 state (int4 cards AND int4 notes) diverges** with this model on long note histories (held-out user 3876: a 9,539-step note sequence grows to ~1e32 by step 6000 and inf at step 6843; float ~5, int8 ~6.5), so scoring fails with a non-finite loss. The Anki fork removed the full int4 option (fork commit f967796bc); a stored "int4" profile falls back to int4 cards + int8 notes. Anyone porting it must keep the note state at int8 or better.
 - Weights: 436 KB in int8 (the scored form) or 1.35 MB in fp32. The exported files reproduce the PyTorch model to 2.0e-6 (parity.json, leak-free inputs).
 
 ## Important for anyone porting it
 
-The model must be fed leak-free inputs: **section 6.9 of `INTEGRATION.md`** describes exactly how. In short: the three missing-ID flags (features 13, 14, 15) are always 0; a card missing from the cards table keeps a note of its own, and takes the deck of the existing card with the nearest card id and that deck's preset (placeholder preset if the deck is unknown). A runtime that keeps the old behaviour (flags 1, shared placeholder deck and preset for deleted cards) feeds the model inputs it never saw in training. The Anki RWKV fork does this since commit 587253fbc, and it uses this model as its default small model (model key `sm72e20`; the fork never replays deleted cards' reviews, so only the zero flags apply there) (the fork never replays deleted cards' reviews, so only the zero flags apply there).
+The model must be fed leak-free inputs: **section 6.9 of `INTEGRATION.md`** describes exactly how. In short: the three missing-ID flags (features 13, 14, 15) are always 0; a card missing from the cards table keeps a note of its own, and takes the deck of the existing card with the nearest card id and that deck's preset (placeholder preset if the deck is unknown). A runtime that keeps the old behaviour (flags 1, shared placeholder deck and preset for deleted cards) feeds the model inputs it never saw in training. The Anki RWKV fork does this since commit 587253fbc, and it uses this model as its default small model (model key `sm72e20`; the fork never replays deleted cards' reviews, so only the zero flags apply there).
 
 ## Memory and phones
 
-What limits phones is memory, not speed: both models keep a state for every card and note. At the fork's default int8 state the big model needs 25.7 KB per card (with its own note), the small model 4.6 KB. On a 14k-card collection that is ~190 MB of RAM instead of 506 MB (measured for the big model), and an 83 MB state cache instead of 372 MB. Architecture and size are unchanged from the previous releases, so the figures are the same. Details and every precision: section 11 of `INTEGRATION.md`.
+What limits phones is memory, not speed: both models keep a state for every card and note. At int8 state the big model needs 25.7 KB per card (with its own note), the small model 4.6 KB. At the fork's default (int4 cards + int8 notes) the small model needs 3.5 KB per card + note (3,530 B; 4,554 B at int8, 3,018 B at full int4, which diverges). On a 14k-card collection that is ~178 MB of RAM and a 70 MB state cache at the fork's default (estimates), ~190 MB and 83 MB at int8, instead of 506 MB (measured for the big model at int8) and 372 MB. Architecture and size are unchanged from the previous releases, so the figures are the same. Details and every precision: section 11 of `INTEGRATION.md`.
 
 ## What is inside `sm72e20-package.zip`
 
@@ -61,7 +64,7 @@ What limits phones is memory, not speed: both models keep a state for every card
 - No Rust port: the fork's runtime needs the changes listed in section 12 of the manual (it rejects a 1-layer stream, and the layer order differs), plus the leak-free feature builder of section 6.9.
 - 8-bit card/note state works in the NumPy reference but has no reference outputs yet.
 - The fork builds the input features slightly differently from our scorer; the effect on accuracy is not measured.
-- The own collection, the spaced-review slice and int4 card state are not measured for this model.
+- The own collection and the spaced-review slice are not measured for this model; int4 card state is measured on the 732-user set only.
 - The big model (1 leak-free epoch) had only one epoch without the leak, so the "within 0.5% of the big model" claim compares against a teacher that is itself not fully leak-free; a from-scratch leak-free big model is not part of this release.
 - Compressed state (a few hundred bits per card instead of int8) is not part of this release; it currently costs too much accuracy.
 - No license is set yet. Check the terms of the training data (anki-revlogs-10k) and the teacher model before redistributing.

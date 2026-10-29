@@ -29,6 +29,7 @@ On the 732-user set SM56 scores 0.30066 / 0.27745 on these inputs, i.e. +0.57% /
 
 - **Curve** is the forgetting-curve head (probability of recall at any future time); **instant** is the next-review head.
 - Not measured for this model: the spaced-review slice, int4 card state (it was nearly free on an earlier model, +0.00005 LogLoss), and the own collection.
+- Full int4 state (int4 cards AND notes) diverges for these small models on long note histories (non-finite loss, measured on the later release with the cool-down from epoch 20) and was removed from the Anki fork (fork commit f967796bc); keep the note state at int8 or better.
 - Weights: 436 KB in int8 (the scored form) or 1.35 MB in fp32. The exported files reproduce the PyTorch model to 1.3e-6 (parity.json, leak-free inputs).
 
 ## Important for anyone porting it
@@ -37,7 +38,7 @@ The model must be fed leak-free inputs: **section 6.9 of `INTEGRATION.md`** desc
 
 ## Memory and phones
 
-What limits phones is memory, not speed: both models keep a state for every card and note. At the fork's default int8 state the big model needs 25.7 KB per card (with its own note), the small model 4.6 KB. On a 14k-card collection that is ~190 MB of RAM instead of 506 MB (measured for the big model), and an 83 MB state cache instead of 372 MB. Architecture and size are unchanged from the previous release (SM56), so the figures are the same. Details and every precision: section 11 of `INTEGRATION.md`.
+What limits phones is memory, not speed: both models keep a state for every card and note. At int8 state the big model needs 25.7 KB per card (with its own note), the small model 4.6 KB (the fork's default is now int4 cards + int8 notes: small model 3.5 KB per card + note). On a 14k-card collection that is ~190 MB of RAM instead of 506 MB (measured for the big model), and an 83 MB state cache instead of 372 MB. Architecture and size are unchanged from the previous release (SM56), so the figures are the same. Details and every precision: section 11 of `INTEGRATION.md`.
 
 ## What is inside `sm72-package.zip`
 
