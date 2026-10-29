@@ -1,7 +1,7 @@
 {
- "generated_at": "2026-10-29T14:45:55+01:00",
- "updated": "2026-10-29 14:45",
- "material": "fed53d7b2e011895",
+ "generated_at": "2026-10-29T14:50:59+01:00",
+ "updated": "2026-10-29 14:50",
+ "material": "1a3fcbf49c0d4c9e",
  "summary": "running 000757",
  "headline": [
   {
@@ -229,17 +229,17 @@
  ],
  "now": [
   {
-   "what": "SM72 small model leak-free (sm72s) epoch 21/25 (8k final tier, 2048 x 16 lanes carry, leak-free replay KD, AdamW 7e-4)",
-   "id": "000757-small-model",
+   "what": "More epochs for the very last run (SM63): epochs 21&ndash;25 of the new small model (leak-free) (SM72s) at the same constant LR, each scored on the 464 set",
+   "id": "SM63, ticket 000757",
    "kind": "gpu-train",
-   "decides": "",
+   "decides": "Whether the late epochs still gain before a second cool-down: epochs 16&ndash;20 gave no steady gain on the 464 set (curve swings &plusmn;0.001), the cool-down from epoch 20 beat the one from epoch 15 by &minus;0.00020 / &minus;0.00023",
    "why": "",
    "job": "SM72 small model leak-free (sm72s) epoch 21/25 (8k final tier, 2048 x 16 lanes carry, leak-free replay KD, AdamW 7e-4)",
-   "linked": false,
+   "linked": true,
    "track": "small model",
    "ticket": "000757-small-model",
    "started": "14:45",
-   "elapsed": "0:00",
+   "elapsed": "0:05",
    "progress": null,
    "eta": "~16:45"
   }
@@ -274,8 +274,8 @@
      "instant": 0.27303
     }
    ],
-   "note": "Constant-learning-rate epochs; dots: the cool-downs (learning rate down to 0) from epochs 15 and 20, and the plain average of epochs 15&ndash;20.",
-   "epochs": 20,
+   "note": "Constant-learning-rate epochs (21&ndash;25 under way since 10-29); dots: the cool-downs (learning rate down to 0) from epochs 15 and 20, and the plain average of epochs 15&ndash;20. The cool-down from epoch 25 will be added when it is scored.",
+   "epochs": 25,
    "points": [
     [
      1,
@@ -1432,6 +1432,43 @@
    "state": "done",
    "started_at": "2026-10-29T09:23:48+01:00",
    "ended_at": "2026-10-29T09:42:23+01:00"
+  },
+  {
+   "id": "SM63",
+   "track": "small model",
+   "since": "10-29T14:45",
+   "kind": "gpu-train",
+   "minutes": 625,
+   "what": "More epochs for the very last run (SM63): epochs 21&ndash;25 of the new small model (leak-free) (SM72s) at the same constant LR, each scored on the 464 set",
+   "when": "Started Thu 10-29 14:45 (epoch 21 ticket 000757); epochs 21&ndash;23 before the 21:00 break (epoch 23 scored ~20:45), epochs 24&ndash;25 after 02:00; done ~06:00 Fri 10-30",
+   "decides": "Whether the late epochs still gain before a second cool-down: epochs 16&ndash;20 gave no steady gain on the 464 set (curve swings &plusmn;0.001), the cool-down from epoch 20 beat the one from epoch 15 by &minus;0.00020 / &minus;0.00023",
+   "state": "running",
+   "started": "14:45",
+   "ticket": "000757-small-model",
+   "started_at": "2026-10-29T14:45:34+01:00",
+   "ends_at": "2026-10-30T01:10:34+01:00"
+  },
+  {
+   "id": "SM63",
+   "track": "small model",
+   "since": "10-29T14:45",
+   "kind": "gpu-train",
+   "minutes": 520,
+   "what": "Cool-down of the new small model (leak-free) (SM72s) from epoch 25, same recipe as from epoch 20: one epoch at 32k-review windows with Muon (segments across the nightly break)",
+   "when": "After epoch 25, ~06:15 Fri 10-30; ~6&ndash;8 h of GPU, done ~12:30&ndash;14:30",
+   "decides": "Whether 25 epochs beat 20 after the cool-down; if so it replaces the release (cool-down from epoch 20, +0.41% / +0.32% vs the big model (1 leak-free epoch))",
+   "state": "planned"
+  },
+  {
+   "id": "SM63",
+   "track": "small model",
+   "since": "10-29T14:45",
+   "kind": "gpu-score",
+   "minutes": 18,
+   "what": "Score the epoch-25 cool-down on the 732 set (723 users it fits, then the 3 long users), paired against the released cool-down from epoch 20",
+   "when": "Right after the cool-down, ~13:00&ndash;15:00 Fri 10-30",
+   "decides": "Whether 25 epochs beat 20 after the cool-down; if so it replaces the release (cool-down from epoch 20, +0.41% / +0.32% vs the big model (1 leak-free epoch))",
+   "state": "planned"
   }
  ],
  "gpu_break": {
@@ -1474,7 +1511,7 @@
    "id": "SM63",
    "track": "small model",
    "item": "More epochs for the very last run: about 10&times; the epochs once the recipe is final",
-   "why": "Under way: epochs 16&ndash;20 for the new small model (leak-free) (SM72s), then a cool-down from epoch 20 (priority review 10-28: the factory looks for more accurate or smaller models, not more measurements)"
+   "why": "Under way: epochs 21&ndash;25 for the new small model (leak-free) (SM72s) (started 10-29 14:45), then a cool-down from epoch 25 paired against the released cool-down from epoch 20; it replaces the release only if it wins (priority review 10-28: the factory looks for more accurate or smaller models, not more measurements)"
   },
   {
    "status": "idea",
