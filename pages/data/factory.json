@@ -1,7 +1,7 @@
 {
- "generated_at": "2026-10-29T21:45:09+01:00",
- "updated": "2026-10-29 21:45",
- "material": "ad32202cb1612cd8",
+ "generated_at": "2026-10-29T21:55:14+01:00",
+ "updated": "2026-10-29 21:55",
+ "material": "e1a38e1d7b579017",
  "summary": "idle",
  "headline": [
   {
@@ -1527,11 +1527,11 @@
    "why": "Done 10-29: see the results row (int4 drift check (SM78)). Mild instant drift on cards with 32+ reviews, not a blocker for the default"
   },
   {
-   "status": "next",
+   "status": "done",
    "id": "SM79",
    "track": "small model",
    "item": "What makes cards stick (SM79): which patterns we can observe or change (note structure, sibling cards, early spacing, new-card load, session context, lapse handling) go with cards that stick with fewer reviews; then which cards will not stick, early",
-   "why": "Part 2 under way 10-29 21:40. Part 1 done (see the results row): the worst 10% of cards take 27% of reviews; note structure and siblings are small levers. Next: interval fuzz and missed days as natural experiments, early spacing, then the early won&rsquo;t-stick flag. CPU only, benchmark users. Levers: cards per note (cloze deletions, reverse cards), siblings reviewed the same day or apart, learning steps and first interval, new cards added that day, review position in a long session, relearning after a lapse. Confounding by user and difficulty is handled with within-user comparisons and natural experiments (interval fuzz, missed days, preset changes), and the small model&rsquo;s counterfactual answers are checked against them. Starts after the 02:00 break end",
+   "why": "Done 10-29 (parts 1 and 2, see the results rows): the worst 10% of cards take 27% of reviews; 3 reviews are enough to flag a good share of them from their ratings; note structure, siblings and missed days are small levers; a same-day learning step looks worth keeping",
    "since": "10-29T21:37"
   },
   {
@@ -1910,6 +1910,66 @@
   }
  ],
  "results": [
+  {
+   "date": "10-29",
+   "kind": "cpu",
+   "id": "SM79",
+   "track": "small model",
+   "name": "What makes cards stick (SM79), part 2: early won&rsquo;t-stick flag, missed days, same-day learning steps",
+   "curve": null,
+   "instant": null,
+   "curve_pct": null,
+   "instant_pct": null,
+   "eval": "Same 891 training users as part 1 (448 train / 443 test users for the flag); 95% CIs over users",
+   "fork": "Share of all reviews taken by flagged cards; within-user effects of lateness and same-day steps",
+   "takeaway": "<strong>The card&rsquo;s own early ratings tell most</strong>: flagging 10% of cards after the 3rd review catches cards that take 17.4% of all reviews (AUC 0.80; random 10%, perfect 26.2%); counting Again answers does almost as well. Lateness from missed days costs little (&minus;0.5 to &minus;3.5 points pass rate) and a late success earns a correctly longer interval, no extra bonus. A same-day learning step on a new Good card goes with ~11% fewer lapses over 180 days at the same total reviews (slip design)",
+   "started_at": "2026-10-29T21:42+01:00",
+   "ended_at": "2026-10-29T21:48+01:00",
+   "gpu_minutes": 0,
+   "tickets": 0,
+   "detail": {
+    "verdict": "An early leech warning after 3 reviews is feasible and simple; a same-day step for new cards looks worth keeping; missed days are cheap",
+    "table": {
+     "head": [
+      "Test",
+      "Result",
+      "Reading"
+     ],
+     "rows": [
+      [
+       "Flag 10% after review 1 / 3 / 5",
+       "AUC 0.70 / 0.80 / 0.86; their reviews 14.6% / 17.4% / 18.9% of all",
+       "Card ratings carry it; siblings, deck-mates, answer times add nothing"
+      ],
+      [
+       "Late after 2&ndash;3 / 4&ndash;7 / 8&ndash;30 idle days",
+       "interval &times;1.24 / 1.42 / 1.81; pass &minus;0.5 / &minus;1.6 / &minus;3.5 pp",
+       "Causal-plausible"
+      ],
+      [
+       "Late success, next interval",
+       "&times;1.11&ndash;1.34, next pass &minus;0.5 to &minus;1.7 pp",
+       "Real extra stability, no spacing bonus"
+      ],
+      [
+       "Same-day step for a new Good card (slip design)",
+       "lapses &minus;0.050 [&minus;0.091, &minus;0.015] on 0.46 over 180 days; reviews +0.15 [&minus;0.01, +0.30]",
+       "Causal-plausible"
+      ],
+      [
+       "Interval fuzz",
+       "not measurable without replaying each user&rsquo;s scheduler",
+       "Skipped"
+      ]
+     ]
+    },
+    "notes": [
+     "Only the current preset is in the data, so preset changes can&rsquo;t be used",
+     "After a gap users are active 11&ndash;16 fewer days of the next 180, so 180-day costs there are confounded",
+     "Files: artifacts/small-model/sm79/PART2.md, part2.py, part2.json"
+    ]
+   }
+  },
   {
    "date": "10-29",
    "kind": "cpu",
