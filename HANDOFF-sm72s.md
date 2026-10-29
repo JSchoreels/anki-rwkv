@@ -56,3 +56,28 @@ start only if they end before the next window; cool-downs run in segments with a
 - Each epoch line: repost the epoch table (gain vs e1 and vs the big model leak-free, curve + instant); Factory row.
 - `done` or a summary line: report from `sm72s-summary.md`; Factory results row tagged "(leak-free)"; commit (git add -f)
   `sm72s/gpu/*.jsonl` (benchmark users only), `sm72s/epochs.jsonl`, the summary, the log; push.
+
+## Update 2026-10-29 14:45: epochs 21-25 and the cool-down from epoch 25 (SM63)
+
+Epochs 16-20 and the cool-down from e20 are done (released 10-29, summary in `sm72s-summary.md`). Launcher extended
+(commits 239bdda8 = how epochs 16-20 ran, 752b2b71 = this extension): `MAX_EPOCHS=25`, experiment.json / run.json `epochs` 25
+(backups of the 15-epoch versions: `*.e15.json.bak`), the cool-down step is now `decay_and_score 25` (the e20 cool-down is finished and
+is not rerun), rule script `epoch k/25` + `cool-down from epoch 25 (SM72)` series and pairs (e25 vs e20, e25 vs the released small
+model) in the summary. Dry run OK (10-29 14:44). Relaunched hidden (WMI, same command as below) at 14:45; epoch 21 = ticket 000757.
+Pairing: 732 set (723 + 3 long users), `sm72s-summary.md` row "Small leak-free, cool-down from epoch 25 (SM72) - ... epoch 20 (SM72)".
+Decision: the e25 cool-down replaces the release only if it beats the e20 one (significant on both heads) and still passes the SM73
+bar; otherwise the e20 release stays.
+
+| Stage | Expected (local, with the 21:00-02:00 break from quiet.json) |
+|---|---|
+| epoch 21 (~111 min) + 464 scoring | 14:45 -> ~16:35, scored ~16:45 |
+| epoch 22 | ~16:45 -> ~18:35, scored ~18:45 |
+| epoch 23 (fits before 21:00 only if it needs <= ~124 min) | ~18:45 -> ~20:40, scored ~20:50 (else waits to 02:00) |
+| epoch 24 | 02:00 -> ~03:50, scored ~04:00 |
+| epoch 25 | ~04:00 -> ~05:50, scored ~06:00 |
+| cool-down from e25 prepare + run (segmented, 349-419 min seen for e20/e15) | ~06:15 -> ~12:30-14:30 Fri 10-30 |
+| 732 scoring (12 + 6 min) + summary | ~13:00-15:00 Fri 10-30 |
+
+Follow-ups: per-epoch lines `epoch k/25: ...` in `launch-sm72s.log` (repost the epoch table, Factory plan rows match "epoch k/25");
+at `done`: report from `sm72s-summary.md`, Factory results row, commit (git add -f) `sm72s/gpu/*.jsonl`, `sm72s/epochs.jsonl`,
+summary, log; push.
