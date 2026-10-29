@@ -48,7 +48,9 @@ Metric: LogLoss (lower is better), review-weighted over the held-out users, on t
 "Curve" = `p_curve` at the true elapsed time to the next review (scored on answered rows). "Instant" = `p_imm` on query rows.
 Reference = the fork's 2.76M model with int8 weights and int8 card/note state ("fork w8+s8"). "w8+s8" for the small model
 means the same compression: int8 per-output-channel weights (`weights.int8.bin`) and int8 card/note state (section 8.4).
-The fork's app runs the big model with f32 weights and int8 card/note state (its default); on 430 of the 464 users
+The fork's app runs the models with f32 weights and, since 2026-10-20, **int4 card state + int8 note state** as its default
+state precision (`cards_int4_notes_int8`; the scored reference above stays int8 state, the small model at the fork's default is
+reported right below the results table); on 430 of the 464 users
 the big model's int8 weights change its LogLoss by -0.01% (curve) / +0.01% (instant), so the reference is the same either way.
 
 All scores in this section use **leak-free inputs for every model** (section 6.9), the big models included. Earlier releases were scored
@@ -64,6 +66,16 @@ with the leak in the inputs, so their published numbers are not directly compara
 is the fork's 2.76M model given one extra epoch with the leak removed from its inputs; "shipped big model" is the fork's model as shipped,
 scored on the same leak-free inputs. Both are compared at int8 weights and int8 card/note state like the small model. The small model is about
 0.3-0.5 % worse in LogLoss than the first and 8.3x smaller in parameters.)
+
+**At the fork's default state precision (int4 cards + int8 notes, weights int8, 732-user set, 722 users, leak-free inputs).** This small model
+scores 0.30023 / 0.27669 (curve / instant), i.e. +0.42 % / +0.34 % against the big model (1 leak-free epoch), versus +0.41 % / +0.32 % at
+int8 state. Paired difference against the same model at int8 state (95 % interval; positive = int4 cards are slightly worse): curve
++0.000039 [+0.000026, +0.000055], instant +0.000051 [+0.000039, +0.000065]. The other sets were not scored at this precision.
+
+**Warning: full int4 state (int4 cards AND int4 notes) diverges with this model.** On held-out user 3876, a 9,539-step note sequence makes the
+int4 note state grow geometrically (largest WKV output about 1e32 by review step 6000, inf at step 6843; float about 5, int8 about 6.5), so
+scoring fails with a non-finite loss. The Anki fork removed the full int4 option (fork commit f967796bc); a stored "int4" profile setting falls back to
+int4 cards + int8 notes. Anyone porting the model must keep the **note state at int8 or better**.
 
 Against the previous release (the leak-free small model, cool-down from epoch 15, SM72, same leak-free inputs), paired difference (this model minus the previous release, 95 % interval, negative = this model better):
 
@@ -84,7 +96,7 @@ Against the release before that (SM56, trained with the leak, scored here on the
 | 732+long set (725 users) | -0.000677 [-0.001162, -0.000250] | -0.000851 [-0.000964, -0.000748] |
 
 On the 732-user set SM56 scores 0.30066 / 0.27745 on these inputs. Not measured for this model: the spaced-review slice,
-the author's own collection, int4 card state. `manifest.json` → `evaluation` is empty (the held-out rows of this model are not in the package).
+the author's own collection, and the 464-user and 732+long sets at int4 card state (only the 732-user set was scored at the fork's default state). `manifest.json` → `evaluation` is empty (the held-out rows of this model are not in the package).
 
 Caveats on these numbers:
 
@@ -766,7 +778,9 @@ Example collection: 13,973 cards and 13,198 notes (224k reviews), the collection
 - **Card/note state** = bytes per card x 13,973 + bytes per note x 13,198, with the fork's state format
   (`rslib/src/rwkv/precision.rs`: 19-byte header; per layer an f16 shift, the matrix as rows of a 4-byte scale plus 8- or 4-bit
   codes, an optional f16 channel shift; f32 = 18-byte header plus 12 bytes and the floats per layer). This formula reproduces the
-  fork's measured bytes exactly at f32, int8 and int4.
+  fork's measured bytes exactly at f32, int8 and (full) int4. Card and note are sized separately: small model card 2,987 B and note 1,567 B at
+  int8, card 1,963 B and note 1,055 B at int4, so int4 cards + int8 notes = 1,963 + 1,567 = 3,530 B; big model card 15,415 B and note 10,283 B at
+  int8, card 9,271 B and note 6,187 B at int4, so int4 cards + int8 notes = 19,554 B.
 - **Storage** (the state cache file) = weights + card/note state + 20.4 MB of other state (feature builder, decks, presets, user;
   the same in all three fork measurements).
 - **RAM** = 129 MB fixed + weights + card/note state. The 129 MB is the mean non-state memory of the fork's four measurements
@@ -775,16 +789,24 @@ Example collection: 13,973 cards and 13,198 notes (224k reviews), the collection
 | Model | Weights | Card/note state | Bytes per card + its note (serialized) | Weights | Card/note state | Storage | RAM, estimated | RAM, measured |
 |---|---|---|---:|---:|---:|---:|---:|---:|
 | Big | f32 | f32 | 87,136 | 11.1 MB | 1,190 MB | 1,222 MB | 1,330 MB | 1,302 MB |
-| Big | f32 | int8 (fork default) | 25,698 | 11.1 MB | 351 MB | 383 MB | 491 MB | 506 MB |
-| Big | f32 | int4 | 15,458 | 11.1 MB | 211 MB | 243 MB | 351 MB | 353 MB |
+| Big | f32 | int8 | 25,698 | 11.1 MB | 351 MB | 383 MB | 491 MB | 506 MB |
+| Big | f32 | int4 cards + int8 notes (fork default) | 19,554 | 11.1 MB | 265 MB | 297 MB | 405 MB | |
+| Big | f32 | int4 (full; removed from the fork) | 15,458 | 11.1 MB | 211 MB | 243 MB | 351 MB | 353 MB |
 | Big | int4 | int8 | 25,698 | 1.9 MB | 351 MB | 373 MB | 482 MB | 491 MB |
 | Small | f32 | f32 | 13,640 | 1.35 MB | 187 MB | 209 MB | 317 MB | |
 | Small | f32 | int8 | 4,554 | 1.35 MB | 62 MB | 84 MB | 192 MB | |
 | Small | int8 | int8 (as scored) | 4,554 | 0.44 MB | 62 MB | 83 MB | 191 MB | |
-| Small | f32 | int4 | 3,018 | 1.35 MB | 41 MB | 63 MB | 171 MB | |
+| Small | f32 | int4 cards + int8 notes (fork default) | 3,530 | 1.35 MB | 48 MB | 70 MB | 178 MB | |
+| Small | f32 | int4 (full; diverges, removed from the fork) | 3,018 | 1.35 MB | 41 MB | 63 MB | 171 MB | |
 | Small | f32 | compressed, ~400 bits (not released) | ~99 | 1.35 MB | 1.3 MB | 23 MB | 131 MB | |
 
-Accuracy at these settings: the small model is scored with int8 weights and int8 state only. Its int4 state is not scored. The
+The fork's default state precision is int4 cards + int8 notes (since 2026-10-20); the full-int4 rows are kept for the arithmetic only: that
+precision was removed from the fork (commit f967796bc) because it diverges with this small model on long note histories (held-out user 3876,
+non-finite loss; see the warning in the evaluation section). The big-model rows other than the measured ones are estimates.
+
+Accuracy at these settings: the small model is scored with int8 weights and int8 state (the reference) and, on the 732-user set, with int4 cards +
+int8 notes (+0.42 % / +0.34 % against the big model (1 leak-free epoch), +0.000039 curve / +0.000051 instant against its own int8 state). Full int4 state is
+not scored: it diverges. The
 compressed state (a few codebook indices per card and per note, ~400 bits each) costs about +0.4% curve / +0.8% instant on 34
 test users. On the 14k-card collection, int4 state makes the big model slightly worse (LogLoss 0.45615 vs 0.45583 at int8).
 
@@ -792,7 +814,8 @@ test users. On the 14k-card collection, int4 state makes the big model slightly 
 
 What limits phones is memory, not speed. Both models keep a state for every card and every note; it grows with the collection and
 has to fit in RAM. At int8 state: big model 25.7 KB per card (with its own note), small model 4.6 KB, compressed state (not
-released) ~0.1 KB.
+released) ~0.1 KB. At the fork's default (int4 cards + int8 notes): big model 19.6 KB, small model 3.5 KB per card + note. The phone tables
+below were computed at int8 state; at the fork's default the small model fits about 1.3x more cards.
 
 Largest collection that fits, by phone year. Assumptions: the model may use about 1/4 of the phone's RAM, plus ~30 MB fixed for its
 weights and other state.
