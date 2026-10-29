@@ -1,7 +1,7 @@
 {
- "generated_at": "2026-10-29T16:54:35+01:00",
- "updated": "2026-10-29 16:54",
- "material": "c3bd05ddb0313149",
+ "generated_at": "2026-10-29T16:59:39+01:00",
+ "updated": "2026-10-29 16:59",
+ "material": "44d20716d03a67fa",
  "summary": "running 000759",
  "headline": [
   {
@@ -239,7 +239,7 @@
    "track": "small model",
    "ticket": "000759-small-model",
    "started": "16:38",
-   "elapsed": "0:15",
+   "elapsed": "0:20",
    "progress": null,
    "eta": "~18:38"
   }
@@ -1510,11 +1510,11 @@
    "why": "Done 10-29: ranked shortlist in artifacts/small-model/sm60/LITERATURE.md. Top picks: key-side micro-parameters and a learned initial state, together the tiny architecture additions (SM77), and an int4 state drift check (SM78); a two-step delta update (DeltaProduct) only if one of those lands. No 2026 RWKV-7 successor paper found."
   },
   {
-   "status": "idea",
+   "status": "next",
    "id": "SM77",
    "track": "small model",
    "item": "Tiny architecture additions from the literature review (SM60): separate removal / insertion keys plus learnable r/k biases, and a learned initial state for the card and note streams (zero today)",
-   "why": "About +3.3k and +3.5k parameters, no extra state, no extra CPU. Warm start from the leak-free small model (SM72s) with zero-initialized new parameters: one two-arm epoch plus short cool-downs, ~8 GPU h in all"
+   "why": "Under way 10-29: implementation on CPU (branch sm77); first on the GPU after the better teacher (SM65) stage 1. About +3.3k and +3.5k parameters, no extra state, no extra CPU. Warm start from the leak-free small model (SM72s) with zero-initialized new parameters: one two-arm epoch plus short cool-downs, ~8 GPU h in all"
   },
   {
    "status": "next",
@@ -1570,7 +1570,7 @@
    "id": "SM67",
    "track": "small model",
    "item": "New axis candidate: data augmentation (sub-sampled or time-shifted copies of review histories)",
-   "why": "Under way 10-29: design on CPU (augmentations, teacher targets, a cheap stage 1 for the GPU after the better teacher (SM65)). More training data without waiting for new users; to test on the 5k recipe first"
+   "why": "Design done 10-29 (artifacts/small-model/sm67/DESIGN.md): split large users into two pseudo-users by notes (each card keeps its full history; only the cross-card context changes), keep the original teacher targets. Stage 1: one augmented cool-down vs the existing one, ~9 GPU h, after the tiny architecture additions (SM77). Expected gain small (0 to 0.05 points). Side finding: every epoch sees bit-identical inputs (fixed seed); re-seeding per epoch is a free stage-2 arm"
   },
   {
    "status": "parked",
