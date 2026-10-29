@@ -1344,6 +1344,19 @@
    "what": "Score the epoch-25 cool-down on the 732 set (723 users it fits, then the 3 long users), paired against the released cool-down from epoch 20",
    "when": "Right after the cool-down, ~13:00&ndash;15:00 Fri 10-30",
    "decides": "Whether 25 epochs beat 20 after the cool-down; if so it replaces the release (cool-down from epoch 20, +0.41% / +0.32% vs the big model (1 leak-free epoch))"
+  },
+  {
+   "id": "SM65",
+   "track": "small model",
+   "since": "10-29T16:00",
+   "kind": "gpu-train",
+   "minutes": 440,
+   "match": [
+    "SM65"
+   ],
+   "what": "Better teacher (SM65) stage 1: the big model (1 leak-free epoch) trained one more leak-free epoch on the 3,969 final-tier training users it has never seen (ids below 5000, 285.9M reviews; disjoint from the 732 / 464 sets and the final test), same recipe as its leak-free epoch, then scored on the 732 set",
+   "when": "Plan only: needs a small code change first (user list and start checkpoint in the big-model epoch script, ~1&ndash;2 h CPU work). Queued behind the leak-free small model&rsquo;s (SM72s) epochs 21&ndash;25 and cool-down (done ~13:00&ndash;15:00 Fri 10-30); ~7 h of GPU across the 21:00 break, decision ~04:00 Sat 10-31",
+   "decides": "Whether a better teacher exists at all: go on (teacher targets for the 8,000 users, ~4 h, then the same cool-down of the small model with only the targets swapped, ~8.5 h, paired against the existing one) if it beats the big model (1 leak-free epoch) by &ge; 0.20 points curve or &ge; 0.15 instant on 722 users; stop if both heads gain under 0.10. An average of the shipped and leak-free big models was checked on CPU first: only 0.03&ndash;0.09 points, dropped. Expected student gain about 0.03&ndash;0.13 points per head"
   }
  ],
  "backlog": [
@@ -1390,11 +1403,11 @@
    "why": "Outside research (10-22): more parameters or a larger state are undesirable (slower, bigger); a new axis would be the most valuable find and none is known yet"
   },
   {
-   "status": "next",
+   "status": "planned",
    "id": "SM65",
    "track": "small model",
    "item": "New axis candidate: a better teacher (an ensemble of big models, or a big model trained on more users) to distill from",
-   "why": "Next big lever after more epochs: one leak-free epoch made the big model &minus;0.23% / &minus;0.16% better, and the small model learns from it (priority review 10-28: the factory looks for more accurate or smaller models, not more measurements)"
+   "why": "Design 10-29 (artifacts/small-model/sm65/DESIGN.md): the only teacher gain of the right size is more users &mdash; one more leak-free epoch of the big model on the 3,969 training users it never saw. More epochs on its own users should give less, and an average of the shipped and leak-free big models gives only 0.03&ndash;0.09 points (CPU check). Stage 1 (~7 h GPU) decides; expected student gain about 0.03&ndash;0.13 points. Was: next big lever after more epochs"
   },
   {
    "status": "done",
