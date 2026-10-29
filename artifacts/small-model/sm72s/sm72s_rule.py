@@ -85,7 +85,7 @@ def record(k, label):
                                 "big_leakfree_users": len(common), **{f"pct_vs_big_leakfree_{h}": (M[h] / B[h] - 1) * 100 for h in M}}) + "\n")
         epochs = read_epochs()
     first, prev = epochs.get(1), epochs.get(k - 1)
-    parts = [f"epoch {k}/15: curve {L['curve']:.5f} instant {L['instant']:.5f}"]
+    parts = [f"epoch {k}/20: curve {L['curve']:.5f} instant {L['instant']:.5f}"]
     if first and k > 1:
         parts.append(f"gain vs e1 curve {first['curve'] - L['curve']:+.5f} ({(first['curve'] - L['curve']) / first['curve']:+.2%}) "
                      f"instant {first['instant'] - L['instant']:+.5f} ({(first['instant'] - L['instant']) / first['instant']:+.2%})")
@@ -100,13 +100,16 @@ def summary():
     series = {
         "Big model leak-free (SM72 step 1)": BIG_LF,
         "Shipped big model (fork RWKV, leak inputs)": (SM71 / "big-neighbour.jsonl", "fork/w8+s8"),
+        "Small leak-free, cool-down from epoch 20 (SM72)": (OUTDEC, f"{LBL}-dec20-1ep32k-muon/w8+s8"),
         "Small leak-free, cool-down from epoch 15 (SM72)": (OUTDEC, f"{LBL}-dec15-1ep32k-muon/w8+s8"),
         "Small leak-free, cool-down from epoch 10 (SM72)": (OUTDEC, f"{LBL}-dec10-1ep32k-muon/w8+s8"),
         "Released small, cool-down from epoch 10 (SM56, leak inputs)": (SM71 / "small-neighbour.jsonl", "sm56/w8+s8"),
         "Small, cool-down from epoch 15 (SM56, leak inputs)": (OUTREF, "sm56dec15/w8+s8"),
     }
     ref = "Big model leak-free (SM72 step 1)"
-    pairs = [("Small leak-free, cool-down from epoch 15 (SM72)", "Small, cool-down from epoch 15 (SM56, leak inputs)"),
+    pairs = [("Small leak-free, cool-down from epoch 20 (SM72)", "Small leak-free, cool-down from epoch 15 (SM72)"),
+             ("Small leak-free, cool-down from epoch 20 (SM72)", "Released small, cool-down from epoch 10 (SM56, leak inputs)"),
+             ("Small leak-free, cool-down from epoch 15 (SM72)", "Small, cool-down from epoch 15 (SM56, leak inputs)"),
              ("Small leak-free, cool-down from epoch 10 (SM72)", "Released small, cool-down from epoch 10 (SM56, leak inputs)"),
              ("Small leak-free, cool-down from epoch 15 (SM72)", "Released small, cool-down from epoch 10 (SM56, leak inputs)"),
              ("Small leak-free, cool-down from epoch 15 (SM72)", "Small leak-free, cool-down from epoch 10 (SM72)")]
@@ -174,7 +177,7 @@ def summary():
         r = json.loads(line)
         if r.get("status") == "complete":
             train[f"epoch {r['epoch']}"] = {k: r.get(k) for k in ("training_seconds", "wall_seconds", "reviews_per_second", "review_presentations")}
-    for k in (15, 10):
+    for k in (20, 15, 10):
         result = WT / f"artifacts/small-model/scale-w64kd-final-sc-lanes-leakfree-dec{k}-1ep32k-muon/expertium/E89-F65e-F77a/result.json"
         if result.exists():
             r = json.loads(result.read_text())

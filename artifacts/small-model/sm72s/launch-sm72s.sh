@@ -75,7 +75,7 @@ SPEC='{"lanes": "strided"}'
 DIST="{\"teacher\": \"$BIGCK\", \"alpha\": 0.9, \"decay_alpha\": 0.5, \"kd_source\": \"replay\", \"replay\": \"$REPLAY\"}"
 EXTRA="{\"distillation\": $DIST, \"state_carry\": $SPEC, \"chunk_reviews\": 32768, \"batch_chunks\": 1, \"optimizer\": \"expertium-iter53\"}"  # = SM56's cool-down
 SMOKE_EXTRA="{\"distillation\": $DIST, \"state_carry\": $SPEC, \"chunk_reviews\": 2048, \"batch_chunks\": 16}"
-MAX_EPOCHS=15
+MAX_EPOCHS=20   # user 10-28 ~08:30: 20 (was 15; cool-down from e15 scored); experiment.json / run.json raised with it; NO-DEC10 set
 SIDE_EPOCH=10
 MIN_EPOCH=${MIN_EPOCH:-125}   # SM56: 104.7-117.9 min wall per epoch (82-93k reviews/s); then 1.05 x the slowest of the last 3 + 3
 MIN_SCORE464=12; MIN_SCORE464B=8
@@ -250,6 +250,8 @@ if e.get("env") != {"RWKV_DELETED_CARDS": "neighbour"}:
     fail.append(f"experiment env {e.get('env')}")
 for k in ("seed", "order_seed", "model", "track", "dataset_path", "dataset_revision", "split", "split_sha256", "label_db", "tier", "kind",
           "epochs", "init", "epoch_runner", "train_users", "eval_users"):
+    if k == "epochs" and e.get(k) == 20 and v.get(k) == 15:  # user 10-28: epochs 16-20 added after SM56's 15
+        continue
     if e.get(k) != v.get(k):
         fail.append(f"{k}: {str(e.get(k))[:80]} vs SM56 {str(v.get(k))[:80]}")
 for k in ("split_seed", "dataset_path", "dataset_revision", "snapshot_users", "lr", "slice_percent", "review_counts", "train_users",
@@ -425,6 +427,9 @@ run_decay() {  # run_decay DIR WHAT: segments to the next window or the end; sna
     local seg=$(( FREE - 5 )); [ "$seg" -gt "$MIN_DECAY" ] && seg=$MIN_DECAY
     if [ "$DRYRUN" = 1 ]; then log "DRYRUN enqueue: $what (segment to the next window or the end, expected $seg min of ~$MIN_DECAY)"
       echo "    cmd: $LF $PY -X utf8 $DEC_PY smoke --out $D && $LF $PY -X utf8 $DEC_PY run --out $D"; return 0; fi
+    # a stop flag left by the previous segment's stop request would stop the smoke at once: decay.json's control_dir
+    # points the smoke copy at this folder's control/, and only `run` (not `smoke`) clears it (10-28 00:21 failure)
+    rm -f "$D/control/STOP"
     log "enqueue: $what (expected $seg min of ~$MIN_DECAY, $FREE min to the next window)"
     "$PY" "$QUEUE" run --owner small-model --purpose "small-model: $what (segment to the next window or the end)" --claim gpu \
       --expected-minutes "$seg" --max-wait-minutes $(( FREE - 20 > 1 ? FREE - 20 : 1 )) --launched-by "detached launcher sm72s/launch-sm72s.sh" -- \
