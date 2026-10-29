@@ -95,9 +95,22 @@ class LongWKV:
         return wkv_long(r, k, v, w, a, kd, skip, getattr(LongWKV._local, "bits", 0)).to(k.dtype)
 
 
+def score_wkv_from_state(r, k, v, w, a, kd, skip, state0):
+    """SM77 (learned initial state): the card/note recurrence from the model's S0, with the same state rounding as the
+    stock scoring path: CUDA = the long kernel with an initial state at this mixer's bits (LongWKV), CPU = the Hooks
+    reference (scripts/state_vq._reference_wkv_q) from S0."""
+    if r.is_cuda:
+        from scripts.small_model_wkv import wkv_long
+        return wkv_long(r, k, v, w, a, kd, skip, getattr(LongWKV._local, "bits", 0), state0).to(k.dtype)
+    from scripts.state_vq import _reference_wkv_q
+    return _reference_wkv_q(r, k, v, w, a, kd, skip, state0=state0)
+
+
 def build_expertium(arch, state):
     from expertium.model import rwkv_model as erm
     erm.RWKV7_WKV = LongWKV
+    from expertium.model import sm77
+    sm77.wkv_from_state = score_wkv_from_state   # used only by models with init_state (SM77)
     if arch == "iter36":
         from expertium.architecture import DEFAULT_ANKI_RWKV_CONFIG
         from expertium.model.srs_model import SrsRWKV

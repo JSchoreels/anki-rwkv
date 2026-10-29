@@ -259,6 +259,44 @@ def state_module(device, dtype, head=32):
     return _modules[key]
 
 
+# SM77 (expertium/model/sm77.py, learned initial state): the production backward kernel that also writes dL/dS0
+# [B, H, K, K] (float32), the gradient of the initial state that forward_with_state started from. After the loop over
+# t = T-1 .. 0 the register dS_xy_contrib holds exactly that gradient (the contribution every step passes to the state
+# before it), so the rewrite only adds an output pointer and one store. Built into its own module (with STATE_REWRITES
+# for the forward), so the stock and SM21 modules keep their text, compilation and launches bit for bit.
+STATE_GRAD_REWRITES = (
+    ("    F* __restrict__ k_deformed_grad_BTHK\n    ) {",
+     "    F* __restrict__ k_deformed_grad_BTHK,\n    float* __restrict__ state0_grad_BHKK\n    ) {", 1),
+    ("            dS_xy_contrib += dS_xy_decay - dS_xy_remove * k_deformed_y;\n            __syncthreads();\n        }\n    }\n}",
+     "            dS_xy_contrib += dS_xy_decay - dS_xy_remove * k_deformed_y;\n            __syncthreads();\n        }\n    }\n"
+     "    state0_grad_BHKK[get_index4(b, 0, h, x, y, 1, H, K, K)] = dS_xy_contrib;\n}", 1),
+)
+
+
+def state_grad_source(text):
+    """Apply STATE_GRAD_REWRITES to the extracted kernel text (after the K=16 rewrite); each anchor must match once."""
+    for old, new, count in STATE_GRAD_REWRITES:
+        if text.count(old) != count:
+            raise RuntimeError(f"state-gradient rewrite expected {count}x {old!r}, found {text.count(old)}")
+        text = text.replace(old, new)
+    return text
+
+
+def state_grad_module(device, dtype, head=32):
+    """SM77: (forward with state, backward writing dS0) in the generic NVRTC layout; scripts/gpu_row_tiles replaces it."""
+    index = device.index if device.index is not None else torch.cuda.current_device()
+    key = (index, dtype, _checkpoint_length, head, "state-grad")
+    if key not in _modules:
+        with _cupy.cuda.Device(index):
+            scalar = "float" if dtype == torch.float32 else "__nv_bfloat16"
+            names = (f"rwkv::rwkv7_wkv_forward_kernel<{_checkpoint_length}, {scalar}>",
+                     f"rwkv::rwkv7_wkv_backward_kernel<{_checkpoint_length}, {scalar}>")
+            raw = _cupy.RawModule(code=state_grad_source(state_kernel_source(dtype, head)),
+                                  options=tuple(_compile_options(dtype)), name_expressions=names)
+            _modules[key] = tuple(raw.get_function(name) for name in names)
+    return _modules[key]
+
+
 def validate(inputs, skip):
     r = inputs[0]
     if r.ndim != 4 or r.shape[-1] not in (16, 32) or not 0 < r.shape[1] <= _max_timesteps:
@@ -341,6 +379,23 @@ def backward(r, k, v, w, a, kd, skip, states, grad):
     else:  # Expertium width-80 variant (K=16)
         launch(module(r.device, r.dtype, head=k)[1], r.device, shape, arguments, head=k)
     return gradients
+
+
+def backward_with_state_grad(r, k, v, w, a, kd, skip, states, grad):
+    """SM77: backward() from the checkpoints of forward_with_state, plus dL/dS0 [B, H, K, K] float32 (last element)."""
+    inputs = (r, k, v, w, a, kd)
+    b, t, h, k = shape = validate(inputs, skip)
+    grad = grad.contiguous()
+    if grad.shape != r.shape or grad.dtype != r.dtype or grad.device != r.device:
+        raise ValueError("Invalid NVRTC output gradient")
+    expected_states = (b, (t + _checkpoint_length - 1) // _checkpoint_length, h, k, k)
+    if states.shape != expected_states or states.device != r.device or states.dtype != torch.float32:
+        raise ValueError("Invalid NVRTC state checkpoints")
+    gradients = tuple(torch.empty_like(x) for x in inputs)
+    state0_grad = torch.empty((b, h, k, k), device=r.device, dtype=torch.float32)
+    arguments = (b, t, h, *inputs, skip, grad, states.shape[1], states, *gradients, state0_grad)
+    launch(state_grad_module(r.device, r.dtype, head=k)[1], r.device, shape, arguments, head=k)
+    return (*gradients, state0_grad)
 
 
 def register():

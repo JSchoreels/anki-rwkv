@@ -99,10 +99,53 @@ class VariantRWKV7Layer(RWKV7Layer):
         return self.dropout(self.channel_mixer(x_BTC, time_shift_select_BT=time_shift_select_BT)), v0_BTC
 
 
+class Sm77Layer(VariantRWKV7Layer):
+    """SM77 (expertium/model/sm77.py): VariantRWKV7Layer with the tiny-addition mixers; built only when a flag is on."""
+    __constants__ = ["sm77_cm"]
+
+    def __init__(self, config: RWKV7Config, layer_id, strip_cmix=False, strip_v_lora=False, key_extras=False,
+                 init_state=False):
+        from expertium.model.sm77 import Sm77ChannelMixer, Sm77TimeMixer
+        ModuleType.__init__(self)
+        if strip_v_lora:
+            assert layer_id == 0
+            with _stripped_value_lora():
+                self.time_mixer = Sm77TimeMixer(config, layer_id, key_extras, init_state)
+        else:
+            self.time_mixer = Sm77TimeMixer(config, layer_id, key_extras, init_state)
+        self.cmix_stripped = bool(strip_cmix)
+        # the channel mixer needs the skip mask only for its first-review shift offset (init_state)
+        self.sm77_cm = bool(init_state) and not strip_cmix
+        if strip_cmix:
+            self.channel_mixer = StrippedChannelMixer()
+        elif init_state:
+            self.channel_mixer = Sm77ChannelMixer(config, layer_id)
+        else:
+            self.channel_mixer = RWKV7ChannelMixer(config, layer_id)
+        self.dropout = torch.nn.Dropout(p=config.dropout_layer)
+
+    @FunctionType
+    def forward(self, in_BTC, v0_BTC, time_shift_select_BT, skip_BT):
+        x_BTC, v0_BTC = self.time_mixer(in_BTC=in_BTC, v0_BTC=v0_BTC, time_shift_select_BT=time_shift_select_BT,
+                                        skip_BT=skip_BT)
+        if self.cmix_stripped:
+            return x_BTC, v0_BTC
+        if self.sm77_cm:
+            return self.dropout(self.channel_mixer(x_BTC, time_shift_select_BT, skip_BT)), v0_BTC
+        return self.dropout(self.channel_mixer(x_BTC, time_shift_select_BT=time_shift_select_BT)), v0_BTC
+
+
 class VariantRWKV7(RWKV7):
-    def __init__(self, config: RWKV7Config, stream_name, strip_cmix=(), strip_l0_vlora=False):
+    def __init__(self, config: RWKV7Config, stream_name, strip_cmix=(), strip_l0_vlora=False, key_extras=False,
+                 init_state=False):
         ModuleType.__init__(self)
         stripped = {int(entry.partition(":")[2]) for entry in strip_cmix if entry.partition(":")[0] == stream_name}
+        if key_extras or init_state:  # SM77; with both off the blocks are today's VariantRWKV7Layer
+            self.blocks = torch.nn.ModuleList([
+                Sm77Layer(config, layer_id, strip_cmix=layer_id in stripped, strip_v_lora=strip_l0_vlora and layer_id == 0,
+                          key_extras=key_extras, init_state=init_state)
+                for layer_id in range(config.layer_offset, config.layer_offset + config.n_layers)])
+            return
         self.blocks = torch.nn.ModuleList([
             VariantRWKV7Layer(config, layer_id, strip_cmix=layer_id in stripped,
                               strip_v_lora=strip_l0_vlora and layer_id == 0)
@@ -159,7 +202,9 @@ class VariantSrsRWKV(SrsRWKV):
                 torch.nn.SiLU(),
             )
             self.rwkv_modules = torch.nn.ModuleList([
-                VariantRWKV7(config, name, variant.strip_cmix, variant.strip_l0_vlora)
+                VariantRWKV7(config, name, variant.strip_cmix, variant.strip_l0_vlora,
+                             **({"key_extras": bool(variant.key_extras), "init_state": name in variant.init_state}
+                                if variant.key_extras or variant.init_state else {}))
                 for name, config in anki_rwkv_config.modules])
             self.prehead_norm = torch.nn.LayerNorm(self.d_model)
             self.prehead_dropout = torch.nn.Dropout(p=anki_rwkv_config.dropout)

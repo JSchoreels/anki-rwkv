@@ -1,0 +1,435 @@
+{
+ "checks": {
+  "T0_flags_off_trainer_equals_sm72s_tree": {
+   "pass": true,
+   "updates": 8,
+   "losses": [
+    1.2290555238723755,
+    0.980423092842102,
+    0.6579121351242065,
+    0.6845848560333252,
+    0.9775263071060181,
+    0.5421062111854553,
+    0.8343666195869446,
+    0.7361736297607422
+   ]
+  },
+  "T1_zero_init_trainer_equals_w64": {
+   "pass": true,
+   "updates": 8,
+   "loss_and_outputs_bitwise_equal": true,
+   "old_gradients_bitwise_equal_per_update": [
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false
+   ],
+   "old_gradients_max_relative_diff": 2.840015131600621e-06,
+   "new_parameters_with_gradient_per_update": [
+    60,
+    57,
+    52,
+    60,
+    60,
+    60,
+    60,
+    60
+   ],
+   "new_grad_norm_sum": [
+    4.596946,
+    4.797258,
+    2.759318,
+    5.145855,
+    7.879877,
+    4.971519,
+    5.706865,
+    5.45004
+   ]
+  },
+  "T1j_zero_init_trainer_equals_w64_scripted": {
+   "pass": true,
+   "updates": 8,
+   "loss_and_outputs_bitwise_equal": true,
+   "old_gradients_max_relative_diff": 2.7785177803246587e-06
+  },
+  "S0_flags_off_scorer_equals_sm72s_tree": {
+   "pass": true,
+   "rows": 4,
+   "dumps": 4,
+   "users": [
+    2388,
+    4676
+   ]
+  },
+  "S1_zero_init_scorer_equals_w64": {
+   "pass": true,
+   "rows": 4,
+   "dumps": 4,
+   "reviews": [
+    3685,
+    3716
+   ],
+   "curve_log_loss": {
+    "2388/fp32": 0.1526973843574524,
+    "2388/w8+s8": 0.15284693241119385,
+    "4676/fp32": 0.08473129570484161,
+    "4676/w8+s8": 0.0847051814198494
+   },
+   "weight_bytes_w64": {
+    "fp32": 1326044,
+    "w8+s8": 410459
+   },
+   "weight_bytes_w64_sm77": {
+    "fp32": 1352924,
+    "w8+s8": 437339
+   },
+   "parameters": {
+    "w64": 331511,
+    "w64-sm77": 338231
+   }
+  }
+ },
+ "started": "2026-10-29 17:27:40",
+ "extend": {
+  "source_master": "C:/Users/jonat/workspace/wt/sm72s/artifacts/accuracy/experiments/scale-w64kd-final-sc-lanes-leakfree/run/epoch-20/expertium/E89-F65e-F77a/master.pth",
+  "source_master_sha256": "a26d45bec2afc7ccabc0d99ab61ff55d1a7b48b1a104668cd4c11d6690e878f1",
+  "architecture": "w64-sm77",
+  "added": {
+   "rwkv_modules.0.blocks.0.time_mixer.sm77_r_bias": [
+    64
+   ],
+   "rwkv_modules.0.blocks.0.time_mixer.sm77_k_bias": [
+    64
+   ],
+   "rwkv_modules.0.blocks.0.time_mixer.sm77_k_remove": [
+    64
+   ],
+   "rwkv_modules.0.blocks.0.time_mixer.sm77_k_insert": [
+    64
+   ],
+   "rwkv_modules.0.blocks.0.time_mixer.sm77_init_wkv": [
+    4,
+    16,
+    16
+   ],
+   "rwkv_modules.0.blocks.0.time_mixer.sm77_init_shift": [
+    64
+   ],
+   "rwkv_modules.0.blocks.0.channel_mixer.sm77_init_shift": [
+    64
+   ],
+   "rwkv_modules.0.blocks.1.time_mixer.sm77_r_bias": [
+    64
+   ],
+   "rwkv_modules.0.blocks.1.time_mixer.sm77_k_bias": [
+    64
+   ],
+   "rwkv_modules.0.blocks.1.time_mixer.sm77_k_remove": [
+    64
+   ],
+   "rwkv_modules.0.blocks.1.time_mixer.sm77_k_insert": [
+    64
+   ],
+   "rwkv_modules.0.blocks.1.time_mixer.sm77_init_wkv": [
+    4,
+    16,
+    16
+   ],
+   "rwkv_modules.0.blocks.1.time_mixer.sm77_init_shift": [
+    64
+   ],
+   "rwkv_modules.1.blocks.0.time_mixer.sm77_r_bias": [
+    64
+   ],
+   "rwkv_modules.1.blocks.0.time_mixer.sm77_k_bias": [
+    64
+   ],
+   "rwkv_modules.1.blocks.0.time_mixer.sm77_k_remove": [
+    64
+   ],
+   "rwkv_modules.1.blocks.0.time_mixer.sm77_k_insert": [
+    64
+   ],
+   "rwkv_modules.1.blocks.1.time_mixer.sm77_r_bias": [
+    64
+   ],
+   "rwkv_modules.1.blocks.1.time_mixer.sm77_k_bias": [
+    64
+   ],
+   "rwkv_modules.1.blocks.1.time_mixer.sm77_k_remove": [
+    64
+   ],
+   "rwkv_modules.1.blocks.1.time_mixer.sm77_k_insert": [
+    64
+   ],
+   "rwkv_modules.1.blocks.2.time_mixer.sm77_r_bias": [
+    64
+   ],
+   "rwkv_modules.1.blocks.2.time_mixer.sm77_k_bias": [
+    64
+   ],
+   "rwkv_modules.1.blocks.2.time_mixer.sm77_k_remove": [
+    64
+   ],
+   "rwkv_modules.1.blocks.2.time_mixer.sm77_k_insert": [
+    64
+   ],
+   "rwkv_modules.1.blocks.3.time_mixer.sm77_r_bias": [
+    64
+   ],
+   "rwkv_modules.1.blocks.3.time_mixer.sm77_k_bias": [
+    64
+   ],
+   "rwkv_modules.1.blocks.3.time_mixer.sm77_k_remove": [
+    64
+   ],
+   "rwkv_modules.1.blocks.3.time_mixer.sm77_k_insert": [
+    64
+   ],
+   "rwkv_modules.2.blocks.0.time_mixer.sm77_r_bias": [
+    64
+   ],
+   "rwkv_modules.2.blocks.0.time_mixer.sm77_k_bias": [
+    64
+   ],
+   "rwkv_modules.2.blocks.0.time_mixer.sm77_k_remove": [
+    64
+   ],
+   "rwkv_modules.2.blocks.0.time_mixer.sm77_k_insert": [
+    64
+   ],
+   "rwkv_modules.2.blocks.0.time_mixer.sm77_init_wkv": [
+    4,
+    16,
+    16
+   ],
+   "rwkv_modules.2.blocks.0.time_mixer.sm77_init_shift": [
+    64
+   ],
+   "rwkv_modules.2.blocks.0.channel_mixer.sm77_init_shift": [
+    64
+   ],
+   "rwkv_modules.3.blocks.0.time_mixer.sm77_r_bias": [
+    64
+   ],
+   "rwkv_modules.3.blocks.0.time_mixer.sm77_k_bias": [
+    64
+   ],
+   "rwkv_modules.3.blocks.0.time_mixer.sm77_k_remove": [
+    64
+   ],
+   "rwkv_modules.3.blocks.0.time_mixer.sm77_k_insert": [
+    64
+   ],
+   "rwkv_modules.3.blocks.1.time_mixer.sm77_r_bias": [
+    64
+   ],
+   "rwkv_modules.3.blocks.1.time_mixer.sm77_k_bias": [
+    64
+   ],
+   "rwkv_modules.3.blocks.1.time_mixer.sm77_k_remove": [
+    64
+   ],
+   "rwkv_modules.3.blocks.1.time_mixer.sm77_k_insert": [
+    64
+   ],
+   "rwkv_modules.3.blocks.2.time_mixer.sm77_r_bias": [
+    64
+   ],
+   "rwkv_modules.3.blocks.2.time_mixer.sm77_k_bias": [
+    64
+   ],
+   "rwkv_modules.3.blocks.2.time_mixer.sm77_k_remove": [
+    64
+   ],
+   "rwkv_modules.3.blocks.2.time_mixer.sm77_k_insert": [
+    64
+   ],
+   "rwkv_modules.4.blocks.0.time_mixer.sm77_r_bias": [
+    64
+   ],
+   "rwkv_modules.4.blocks.0.time_mixer.sm77_k_bias": [
+    64
+   ],
+   "rwkv_modules.4.blocks.0.time_mixer.sm77_k_remove": [
+    64
+   ],
+   "rwkv_modules.4.blocks.0.time_mixer.sm77_k_insert": [
+    64
+   ],
+   "rwkv_modules.4.blocks.1.time_mixer.sm77_r_bias": [
+    64
+   ],
+   "rwkv_modules.4.blocks.1.time_mixer.sm77_k_bias": [
+    64
+   ],
+   "rwkv_modules.4.blocks.1.time_mixer.sm77_k_remove": [
+    64
+   ],
+   "rwkv_modules.4.blocks.1.time_mixer.sm77_k_insert": [
+    64
+   ],
+   "rwkv_modules.4.blocks.2.time_mixer.sm77_r_bias": [
+    64
+   ],
+   "rwkv_modules.4.blocks.2.time_mixer.sm77_k_bias": [
+    64
+   ],
+   "rwkv_modules.4.blocks.2.time_mixer.sm77_k_remove": [
+    64
+   ],
+   "rwkv_modules.4.blocks.2.time_mixer.sm77_k_insert": [
+    64
+   ]
+  },
+  "added_values": 6720,
+  "init": "zeros",
+  "master_sha256": "20280c42434c75286fec7cc746d1f4462f7249018cd738ae4f26ef65adf64bfa",
+  "source_optimizer": "C:/Users/jonat/workspace/wt/sm72s/artifacts/accuracy/experiments/scale-w64kd-final-sc-lanes-leakfree/run/epoch-20/expertium/E89-F65e-F77a/optimizer.pth",
+  "source_optimizer_sha256": "f12dcc426de9b1080a9763502d6730ac2c79d15be1d086f90ace0a7564fb80a1",
+  "optimizer_sha256": "5b696683973d5837321417fa2a55146bc7c76bc22f4f02ea7d22778470aeca54",
+  "optimizer_states_moved": 354,
+  "optimizer_new_without_state": [
+   "rwkv_modules.0.blocks.0.time_mixer.sm77_r_bias",
+   "rwkv_modules.0.blocks.0.time_mixer.sm77_k_bias",
+   "rwkv_modules.0.blocks.0.time_mixer.sm77_k_remove",
+   "rwkv_modules.0.blocks.0.time_mixer.sm77_k_insert",
+   "rwkv_modules.0.blocks.0.time_mixer.sm77_init_wkv",
+   "rwkv_modules.0.blocks.0.time_mixer.sm77_init_shift",
+   "rwkv_modules.0.blocks.0.channel_mixer.sm77_init_shift",
+   "rwkv_modules.0.blocks.1.time_mixer.sm77_r_bias",
+   "rwkv_modules.0.blocks.1.time_mixer.sm77_k_bias",
+   "rwkv_modules.0.blocks.1.time_mixer.sm77_k_remove",
+   "rwkv_modules.0.blocks.1.time_mixer.sm77_k_insert",
+   "rwkv_modules.0.blocks.1.time_mixer.sm77_init_wkv",
+   "rwkv_modules.0.blocks.1.time_mixer.sm77_init_shift",
+   "rwkv_modules.1.blocks.0.time_mixer.sm77_r_bias",
+   "rwkv_modules.1.blocks.0.time_mixer.sm77_k_bias",
+   "rwkv_modules.1.blocks.0.time_mixer.sm77_k_remove",
+   "rwkv_modules.1.blocks.0.time_mixer.sm77_k_insert",
+   "rwkv_modules.1.blocks.1.time_mixer.sm77_r_bias",
+   "rwkv_modules.1.blocks.1.time_mixer.sm77_k_bias",
+   "rwkv_modules.1.blocks.1.time_mixer.sm77_k_remove",
+   "rwkv_modules.1.blocks.1.time_mixer.sm77_k_insert",
+   "rwkv_modules.1.blocks.2.time_mixer.sm77_r_bias",
+   "rwkv_modules.1.blocks.2.time_mixer.sm77_k_bias",
+   "rwkv_modules.1.blocks.2.time_mixer.sm77_k_remove",
+   "rwkv_modules.1.blocks.2.time_mixer.sm77_k_insert",
+   "rwkv_modules.1.blocks.3.time_mixer.sm77_r_bias",
+   "rwkv_modules.1.blocks.3.time_mixer.sm77_k_bias",
+   "rwkv_modules.1.blocks.3.time_mixer.sm77_k_remove",
+   "rwkv_modules.1.blocks.3.time_mixer.sm77_k_insert",
+   "rwkv_modules.2.blocks.0.time_mixer.sm77_r_bias",
+   "rwkv_modules.2.blocks.0.time_mixer.sm77_k_bias",
+   "rwkv_modules.2.blocks.0.time_mixer.sm77_k_remove",
+   "rwkv_modules.2.blocks.0.time_mixer.sm77_k_insert",
+   "rwkv_modules.2.blocks.0.time_mixer.sm77_init_wkv",
+   "rwkv_modules.2.blocks.0.time_mixer.sm77_init_shift",
+   "rwkv_modules.2.blocks.0.channel_mixer.sm77_init_shift",
+   "rwkv_modules.3.blocks.0.time_mixer.sm77_r_bias",
+   "rwkv_modules.3.blocks.0.time_mixer.sm77_k_bias",
+   "rwkv_modules.3.blocks.0.time_mixer.sm77_k_remove",
+   "rwkv_modules.3.blocks.0.time_mixer.sm77_k_insert",
+   "rwkv_modules.3.blocks.1.time_mixer.sm77_r_bias",
+   "rwkv_modules.3.blocks.1.time_mixer.sm77_k_bias",
+   "rwkv_modules.3.blocks.1.time_mixer.sm77_k_remove",
+   "rwkv_modules.3.blocks.1.time_mixer.sm77_k_insert",
+   "rwkv_modules.3.blocks.2.time_mixer.sm77_r_bias",
+   "rwkv_modules.3.blocks.2.time_mixer.sm77_k_bias",
+   "rwkv_modules.3.blocks.2.time_mixer.sm77_k_remove",
+   "rwkv_modules.3.blocks.2.time_mixer.sm77_k_insert",
+   "rwkv_modules.4.blocks.0.time_mixer.sm77_r_bias",
+   "rwkv_modules.4.blocks.0.time_mixer.sm77_k_bias",
+   "rwkv_modules.4.blocks.0.time_mixer.sm77_k_remove",
+   "rwkv_modules.4.blocks.0.time_mixer.sm77_k_insert",
+   "rwkv_modules.4.blocks.1.time_mixer.sm77_r_bias",
+   "rwkv_modules.4.blocks.1.time_mixer.sm77_k_bias",
+   "rwkv_modules.4.blocks.1.time_mixer.sm77_k_remove",
+   "rwkv_modules.4.blocks.1.time_mixer.sm77_k_insert",
+   "rwkv_modules.4.blocks.2.time_mixer.sm77_r_bias",
+   "rwkv_modules.4.blocks.2.time_mixer.sm77_k_bias",
+   "rwkv_modules.4.blocks.2.time_mixer.sm77_k_remove",
+   "rwkv_modules.4.blocks.2.time_mixer.sm77_k_insert"
+  ],
+  "optimizer_old_without_state": [
+   "rwkv_modules.0.blocks.0.time_mixer.v_lora_simple.A.weight",
+   "rwkv_modules.0.blocks.0.time_mixer.v_lora_simple.B_and_lamb.weight",
+   "rwkv_modules.0.blocks.0.time_mixer.v_lora_simple.B_and_lamb.bias",
+   "rwkv_modules.0.blocks.1.channel_mixer.lerp_k",
+   "rwkv_modules.0.blocks.1.channel_mixer.layer_norm.weight",
+   "rwkv_modules.0.blocks.1.channel_mixer.layer_norm.bias",
+   "rwkv_modules.0.blocks.1.channel_mixer.W_k.weight",
+   "rwkv_modules.0.blocks.1.channel_mixer.W_v.weight",
+   "rwkv_modules.1.blocks.0.time_mixer.v_lora_simple.A.weight",
+   "rwkv_modules.1.blocks.0.time_mixer.v_lora_simple.B_and_lamb.weight",
+   "rwkv_modules.1.blocks.0.time_mixer.v_lora_simple.B_and_lamb.bias",
+   "rwkv_modules.1.blocks.1.channel_mixer.lerp_k",
+   "rwkv_modules.1.blocks.1.channel_mixer.layer_norm.weight",
+   "rwkv_modules.1.blocks.1.channel_mixer.layer_norm.bias",
+   "rwkv_modules.1.blocks.1.channel_mixer.W_k.weight",
+   "rwkv_modules.1.blocks.1.channel_mixer.W_v.weight",
+   "rwkv_modules.1.blocks.2.channel_mixer.lerp_k",
+   "rwkv_modules.1.blocks.2.channel_mixer.layer_norm.weight",
+   "rwkv_modules.1.blocks.2.channel_mixer.layer_norm.bias",
+   "rwkv_modules.1.blocks.2.channel_mixer.W_k.weight",
+   "rwkv_modules.1.blocks.2.channel_mixer.W_v.weight",
+   "rwkv_modules.2.blocks.0.time_mixer.v_lora_simple.A.weight",
+   "rwkv_modules.2.blocks.0.time_mixer.v_lora_simple.B_and_lamb.weight",
+   "rwkv_modules.2.blocks.0.time_mixer.v_lora_simple.B_and_lamb.bias",
+   "rwkv_modules.3.blocks.0.time_mixer.v_lora_simple.A.weight",
+   "rwkv_modules.3.blocks.0.time_mixer.v_lora_simple.B_and_lamb.weight",
+   "rwkv_modules.3.blocks.0.time_mixer.v_lora_simple.B_and_lamb.bias",
+   "rwkv_modules.3.blocks.0.channel_mixer.lerp_k",
+   "rwkv_modules.3.blocks.0.channel_mixer.layer_norm.weight",
+   "rwkv_modules.3.blocks.0.channel_mixer.layer_norm.bias",
+   "rwkv_modules.3.blocks.0.channel_mixer.W_k.weight",
+   "rwkv_modules.3.blocks.0.channel_mixer.W_v.weight",
+   "rwkv_modules.3.blocks.1.channel_mixer.lerp_k",
+   "rwkv_modules.3.blocks.1.channel_mixer.layer_norm.weight",
+   "rwkv_modules.3.blocks.1.channel_mixer.layer_norm.bias",
+   "rwkv_modules.3.blocks.1.channel_mixer.W_k.weight",
+   "rwkv_modules.3.blocks.1.channel_mixer.W_v.weight",
+   "rwkv_modules.3.blocks.2.channel_mixer.lerp_k",
+   "rwkv_modules.3.blocks.2.channel_mixer.layer_norm.weight",
+   "rwkv_modules.3.blocks.2.channel_mixer.layer_norm.bias",
+   "rwkv_modules.3.blocks.2.channel_mixer.W_k.weight",
+   "rwkv_modules.3.blocks.2.channel_mixer.W_v.weight",
+   "rwkv_modules.4.blocks.0.time_mixer.v_lora_simple.A.weight",
+   "rwkv_modules.4.blocks.0.time_mixer.v_lora_simple.B_and_lamb.weight",
+   "rwkv_modules.4.blocks.0.time_mixer.v_lora_simple.B_and_lamb.bias",
+   "rwkv_modules.4.blocks.0.channel_mixer.lerp_k",
+   "rwkv_modules.4.blocks.0.channel_mixer.layer_norm.weight",
+   "rwkv_modules.4.blocks.0.channel_mixer.layer_norm.bias",
+   "rwkv_modules.4.blocks.0.channel_mixer.W_k.weight",
+   "rwkv_modules.4.blocks.0.channel_mixer.W_v.weight",
+   "rwkv_modules.4.blocks.1.channel_mixer.lerp_k",
+   "rwkv_modules.4.blocks.1.channel_mixer.layer_norm.weight",
+   "rwkv_modules.4.blocks.1.channel_mixer.layer_norm.bias",
+   "rwkv_modules.4.blocks.1.channel_mixer.W_k.weight",
+   "rwkv_modules.4.blocks.1.channel_mixer.W_v.weight",
+   "rwkv_modules.4.blocks.2.channel_mixer.lerp_k",
+   "rwkv_modules.4.blocks.2.channel_mixer.layer_norm.weight",
+   "rwkv_modules.4.blocks.2.channel_mixer.layer_norm.bias",
+   "rwkv_modules.4.blocks.2.channel_mixer.W_k.weight",
+   "rwkv_modules.4.blocks.2.channel_mixer.W_v.weight",
+   "head_ahead_logits.0.weight",
+   "head_ahead_logits.0.bias",
+   "ahead_linear.weight",
+   "ahead_linear.bias",
+   "w_linear.weight",
+   "w_linear.bias"
+  ],
+  "optimizer_states_equal_after_load": true
+ },
+ "users": {
+  "4745": 636,
+  "9037": 1231
+ },
+ "fails": [],
+ "ok": true,
+ "seconds": 184.8
+}

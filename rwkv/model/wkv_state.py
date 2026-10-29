@@ -56,3 +56,48 @@ def wkv_state(r, k, v, w, a, kd, skip, state0):
     if r.is_cuda:
         return RWKV7_WKV_State.apply(r, k, v, w, a, kd, skip, state0)
     return wkv_with_state(r, k, v, w, a, kd, skip, state0)
+
+
+# SM77 (expertium/model/sm77.py, learned initial state): the same recurrence, differentiable in the initial state.
+def wkv_with_state_grad(r, k, v, w, a, kd, skip, state0):
+    """CPU: `wkv_with_state` without detaching `state0` (autograd through the per-step loop reaches it); the final
+    state is returned detached, as there."""
+    out_dtype = k.dtype
+    r, k, v, w, a, kd = (x.float() for x in (r, k, v, w, a, kd))
+    B, T, H, K = r.shape
+    out = torch.empty(B, T, H, K, dtype=torch.float32, device=r.device)
+    state = state0.float()
+    skip4 = skip.unsqueeze(-1).unsqueeze(-1).unsqueeze(-1)
+    for t in range(T):
+        out[:, t], nxt = single_timestep(r[:, t], k[:, t], v[:, t], w[:, t], a[:, t], kd[:, t], state)
+        state = torch.where(skip4[:, t], state, nxt)
+    return out.to(out_dtype), state.detach()
+
+
+class RWKV7_WKV_StateGrad(torch.autograd.Function):
+    """CUDA WKV from an initial state with a gradient for it: the SM21 forward-with-state kernel and the backward kernel
+    rewritten to also write dL/dS0 (rwkv.model.nvrtc.backward_with_state_grad; row tiles: scripts/gpu_row_tiles)."""
+
+    @staticmethod
+    def forward(ctx, r, k, v, w, a, kd, skip, state0):
+        from rwkv.model import nvrtc
+        out, checkpoints, final = nvrtc.forward_with_state(r, k, v, w, a, kd, skip, state0.detach().float().contiguous())
+        ctx.save_for_backward(r, k, v, w, a, kd, skip, checkpoints)
+        ctx.state0_dtype = state0.dtype
+        ctx.mark_non_differentiable(final)
+        return out, final
+
+    @staticmethod
+    def backward(ctx, grad_out, grad_final):
+        from rwkv.model import nvrtc
+        r, k, v, w, a, kd, skip, checkpoints = ctx.saved_tensors
+        *gradients, state0_grad = nvrtc.backward_with_state_grad(r, k, v, w, a, kd, skip, checkpoints, grad_out)
+        return (*gradients, None, state0_grad.to(ctx.state0_dtype))
+
+
+def wkv_state_grad(r, k, v, w, a, kd, skip, state0):
+    """(out, final state) from `state0` [B, H, K, K] with dL/dstate0 (SM77); CUDA kernels or the CPU loop. The final
+    state is detached (truncated backpropagation through time, as wkv_state)."""
+    if r.is_cuda:
+        return RWKV7_WKV_StateGrad.apply(r, k, v, w, a, kd, skip, state0)
+    return wkv_with_state_grad(r, k, v, w, a, kd, skip, state0)

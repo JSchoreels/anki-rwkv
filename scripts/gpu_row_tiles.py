@@ -47,6 +47,25 @@ STATE_REWRITES = (("    F* out, int L, float* checkpoints) {",
                    "        state_final[get_index4(b, 0, h, threadIdx.y + q * WARPS, y, 1, H, {K}, {K})] = state[q];\n}", 1))
 
 
+# SM77 (learned initial state): the exact backward also writes dL/dS0 [B, H, K, K] (float32). After the loop the
+# registers carry[q] hold the gradient every step passed to the state before it, i.e. dL/dS0 of rows x = threadIdx.y
+# + q * WARPS; the rewrite adds an output pointer and one store per row. Applied after STATE_REWRITES, only when
+# `state_grad` is requested.
+STATE_GRAD_REWRITES = (("    float* dw, F* da, F* dkd) {", "    float* dw, F* da, F* dkd, float* state0_grad) {", 1),
+                       ("-__fmul_rn(kdy, remove[q])));\n            }\n            __syncthreads();\n        }\n    }\n}",
+                        "-__fmul_rn(kdy, remove[q])));\n            }\n            __syncthreads();\n        }\n    }\n"
+                        "    #pragma unroll\n    for (int q = 0; q < ROWS; ++q)\n"
+                        "        state0_grad[get_index4(b, 0, h, threadIdx.y + q * WARPS, y, 1, H, {K}, {K})] = carry[q];\n}", 1))
+
+
+def state_grad_source(text, head=32):
+    for old, new, count in STATE_GRAD_REWRITES:
+        if text.count(old) != count:
+            raise RuntimeError(f"row-tile state-gradient rewrite expected {count}x {old!r}, found {text.count(old)}")
+        text = text.replace(old, new.replace("{K}", str(head)))
+    return text
+
+
 def state_source(text, head=32):
     for old, new, count in STATE_REWRITES:
         if text.count(old) != count:
@@ -56,7 +75,7 @@ def state_source(text, head=32):
 
 
 def source_options(dtype, exact=False, compact_previous=False, next_step_prefetch=False, load_pipeline=0, head=32,
-                   state=False):
+                   state=False, state_grad=False):
     if dtype not in (torch.float32, torch.bfloat16):
         raise ValueError("Row-tiled recurrence supports float32 or BF16")
     prefix = nvrtc.kernel_source(dtype).split("namespace rwkv {")[0]
@@ -73,6 +92,10 @@ def source_options(dtype, exact=False, compact_previous=False, next_step_prefetc
         if not exact:
             raise ValueError("SM21 initial/final state exists only for the exact row-tiled kernel")
         text = state_source(text, head)
+    if state_grad:
+        if not state:
+            raise ValueError("SM77 state gradient needs the state forward")
+        text = state_grad_source(text, head)
     source = prefix + text
     options = ["--std=c++17"]
     if dtype == torch.bfloat16:
@@ -105,7 +128,7 @@ def source_options(dtype, exact=False, compact_previous=False, next_step_prefetc
 
 
 def compile_module(device, dtype, rows, tile, exact=False, compact_previous=False, next_step_prefetch=False, load_pipeline=0,
-                   head=32, state=False):
+                   head=32, state=False, state_grad=False):
     if rows not in (1, 2, 4, 8) or tile not in (8, 16, 32):
         raise ValueError("Rows must be 1, 2, 4 or 8; checkpoint tile must be 8, 16 or 32")
     index = device.index if device.index is not None else torch.cuda.current_device()
@@ -114,8 +137,11 @@ def compile_module(device, dtype, rows, tile, exact=False, compact_previous=Fals
         key += (head,)
     if state:
         key += ("state",)
+    if state_grad:
+        key += ("state-grad",)
     if key not in _modules:
-        source, options = source_options(dtype, exact, compact_previous, next_step_prefetch, load_pipeline, head, state)
+        source, options = source_options(dtype, exact, compact_previous, next_step_prefetch, load_pipeline, head, state,
+                                         state_grad)
         scalar = "float" if dtype == torch.float32 else "__nv_bfloat16"
         namespace = "rwkv_exact" if exact else "rwkv_future"
         names = tuple(f"{namespace}::{name}_kernel<{tile}, {rows}, {scalar}>" for name in ("forward", "backward"))
@@ -134,6 +160,7 @@ def row_tiled_backend(rows=4, tile=8, exact=False, compact_previous=False, next_
     original_module, original_launch = nvrtc.module, nvrtc.launch
     original_tile = nvrtc._checkpoint_length
     original_state_module = nvrtc.state_module
+    original_state_grad_module = nvrtc.state_grad_module
 
     def module(device, dtype, head=32):
         if wave_aware or load_pipeline in (7, 8):
@@ -149,6 +176,13 @@ def row_tiled_backend(rows=4, tile=8, exact=False, compact_previous=False, next_
             raise NotImplementedError("SM21 state carry supports the fixed row-tile layouts only")
         return compile_module(device, dtype, rows, tile, exact, compact_previous, next_step_prefetch, load_pipeline,
                               head, state=True)[0]
+
+    def state_grad_module(device, dtype, head=32):
+        # SM77: (forward with state, backward writing dS0) in this backend's layout
+        if wave_aware or load_pipeline in (7, 8):
+            raise NotImplementedError("SM77 state gradient supports the fixed row-tile layouts only")
+        return compile_module(device, dtype, rows, tile, exact, compact_previous, next_step_prefetch, load_pipeline,
+                              head, state=True, state_grad=True)
 
     def launch(kernel, device, shape, args, head=32):
         import numpy as np
@@ -175,6 +209,7 @@ def row_tiled_backend(rows=4, tile=8, exact=False, compact_previous=False, next_
     nvrtc.set_checkpoint_length(tile)
     nvrtc.module, nvrtc.launch = module, launch
     nvrtc.state_module = state_module
+    nvrtc.state_grad_module = state_grad_module
     try:
         yield {"rows_per_thread": rows, "checkpoint_tile": tile, "threads_per_block": 1024 // rows,
                "compact_previous_state": compact_previous, "recurrence_prefetch": next_step_prefetch, "wave_aware_backward": wave_aware, "recurrence_load_pipeline": load_pipeline}
@@ -185,4 +220,5 @@ def row_tiled_backend(rows=4, tile=8, exact=False, compact_previous=False, next_
             # CUDA errors must not leave the experimental backend installed.
             nvrtc.module, nvrtc.launch = original_module, original_launch
             nvrtc.state_module = original_state_module
+            nvrtc.state_grad_module = original_state_grad_module
             nvrtc.set_checkpoint_length(original_tile)
