@@ -1,0 +1,12 @@
+{
+ "what": "Better teacher (SM65) CPU proxy, 2026-10-29: teacher LogLoss of the existing replay caches on final-tier training users (binary recall labels; curve = curve head p, instant = 1 - p_again; review-weighted). ship = shipped big model (fork RWKV), leak inputs (fork-fp32-final8k); lf = big model (1 leak-free epoch), neighbour inputs (big-leakfree-1ep-final8k-neighbour); ens = their probability average. seen = users the big model trained on (5000-10000), unseen = users below 5000 (out-of-sample for both teachers). Users with <= 60,000 reviews, sampled with the given seed.",
+ "command": ".venv/Scripts/python.exe -X utf8 artifacts/small-model/sm65/teacher_proxy.py <seed> <users per group>  (run from wt/sm72s for the rwkv package)",
+ "runs": {
+  "seed1_n250": {"seen": {"ship_c": 0.28589, "ship_i": 0.26081, "lf_c": 0.28535, "lf_i": 0.26073, "ens_c": 0.28472, "ens_i": 0.26058, "users": 250, "rows_c": 4660214},
+                 "unseen": {"ship_c": 0.29858, "ship_i": 0.27015, "lf_c": 0.29833, "lf_i": 0.27003, "ens_c": 0.29806, "ens_i": 0.26988, "users": 250, "rows_c": 4574881}},
+  "seed2_n250": {"seen": {"ship_c": 0.288, "ship_i": 0.26194, "lf_c": 0.28708, "lf_i": 0.26188, "ens_c": 0.28705, "ens_i": 0.26171, "users": 250, "rows_c": 4673440},
+                 "unseen": {"ship_c": 0.29324, "ship_i": 0.26135, "lf_c": 0.29239, "lf_i": 0.26123, "ens_c": 0.29231, "ens_i": 0.26108, "users": 250, "rows_c": 4675435}}
+ },
+ "ensemble_vs_leakfree_unseen": {"curve": [-0.00027, -0.00008], "instant": [-0.00015, -0.00015], "points_curve": [-0.09, -0.03], "points_instant": [-0.06, -0.06]},
+ "reading": "The free ensemble gains 0.03-0.09 points curve and 0.06 instant where both teachers are out-of-sample, and part of it is the shipped model's leak inputs. At about 1/3 transfer that is <= 0.03 points for the student: not worth an export or a cool-down."
+}
