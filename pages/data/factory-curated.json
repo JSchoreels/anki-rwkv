@@ -1280,15 +1280,29 @@
    "when": "On hold: not started; the deleted-card leak check and the leak-free retrain (SM71, SM72) took the GPU",
    "decides": "New best small model, closer to the big model than +0.64% / +0.63%",
    "state": "hold"
+  },
+  {
+   "id": "SM73",
+   "track": "small model",
+   "since": "10-29T09:30",
+   "kind": "gpu-score",
+   "minutes": 30,
+   "match": [
+    "SM73"
+   ],
+   "what": "Smaller model (SM73) stage 1: the leak-free small model (SM72s, cool-down from epoch 20) with its card/note state stored at 4 bits instead of 8 (3,018 instead of 4,554 bytes per card + note, &minus;34%), scored on the 732 set; int4 cards + int8 notes (3,530 bytes, &minus;22%) only if that fails",
+   "when": "Ready, not launched (dry run OK 10-29 09:19); ~15 min of GPU (~30 min if the fallback runs), done ~30 min after launch",
+   "decides": "Whether the released small model can store 34% less per card and stay within the new bar of +0.5% curve / +0.4% instant vs the big model (1 leak-free epoch), on 722 users. Today +0.41% / +0.32%; expected about +0.44% / +0.38% from the earlier int4 test (SM45), so the instant margin is thin. The design finds no shrink of the network itself likely to fit the ~0.09 / ~0.08 points of room (the depth cut (SM15) cost +0.36% / +0.42%); a better teacher (SM65) would have to buy accuracy back first",
+   "state": "planned"
   }
  ],
  "backlog": [
   {
-   "status": "next",
+   "status": "planned",
    "id": "SM73",
    "track": "small model",
-   "item": "Smaller model: a narrower small model on the leak-free recipe, spending the ~0.5 points of room left under the +1.0% bar",
-   "why": "The other half of the factory&rsquo;s goal; design first (width, layers, cost), then about 1.5 days of GPU"
+   "item": "Smaller model: a smaller small model on the leak-free recipe within +0.5% curve / +0.4% instant vs the big model (1 leak-free epoch), only ~0.09 / ~0.08 points of room",
+   "why": "Design done 10-29 (artifacts/small-model/sm73/DESIGN.md): the phone limit is the card/note state, so stage 1 stores it at 4 bits (&minus;34%, ~15 min of GPU, ready). Shrinking the network itself (one card layer fewer: &minus;31% state) likely costs 0.1&ndash;0.3 points, more than the room; it waits until a better teacher (SM65) buys accuracy back"
   },
   {
    "status": "idea",
