@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-10-29T16:39:24+01:00",
- "updated": "2026-10-29 16:39",
- "material": "82007d2916933435",
- "summary": "running 000759, finished 000758",
+ "generated_at": "2026-10-29T16:44:28+01:00",
+ "updated": "2026-10-29 16:44",
+ "material": "f7f2b0049c890734",
+ "summary": "running 000759",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring (curve / instant)",
@@ -27,7 +27,7 @@
      "date": "10-29"
     },
     {
-     "variant": "Previous release: small model (leak-free), cool-down from epoch 15 (SM72), released 10-28 (the Anki fork&rsquo;s default until 10-29); vs the released SM56: curve &minus;0.00028 [&minus;0.00055, +0.00006], instant &minus;0.00058 [&minus;0.00066, &minus;0.00050]",
+     "variant": "Previous release: small model (leak-free), cool-down from epoch 15 (SM72), released 10-28 (the Anki fork&rsquo;s default until 10-29); vs the released small model (leak inputs) (SM56): curve &minus;0.00028 [&minus;0.00055, +0.00006], instant &minus;0.00058 [&minus;0.00066, &minus;0.00050]",
      "curve": 0.30038,
      "instant": 0.27687,
      "eval": "722 users (732 set), 30.13M reviews, leak-free inputs",
@@ -239,7 +239,7 @@
    "track": "small model",
    "ticket": "000759-small-model",
    "started": "16:38",
-   "elapsed": "0:00",
+   "elapsed": "0:05",
    "progress": null,
    "eta": "~18:38"
   }
@@ -1502,11 +1502,11 @@
    "why": "Stage 1 done 10-29: the fork&rsquo;s default state (int4 cards + int8 notes) passes the +0.5% / +0.4% bar. A narrower network needs accuracy bought back first (a better teacher, SM65): see the design note"
   },
   {
-   "status": "idea",
+   "status": "next",
    "id": "SM60",
    "track": "small model",
    "item": "Literature review: recent RWKV architecture papers (RWKV-7 variants, state-space / linear-attention improvements) for changes that fit a 331k model without more state",
-   "why": "Outside research (10-22): two roads to a better model are algorithmic improvements (like Muon, done) and scaling. A review turns papers into a short list of cheap tests on our recipe"
+   "why": "Under way 10-29: reading recent RWKV-7 / linear-attention papers for a ranked shortlist of GPU tests. Outside research (10-22): two roads to a better model are algorithmic improvements (like Muon, done) and scaling. A review turns papers into a short list of cheap tests on our recipe"
   },
   {
    "status": "idea",
@@ -1551,11 +1551,11 @@
    "why": "A new axis that runs on CPU from saved predictions: a tiny per-user correction fitted on earlier reviews, tested on later ones (priority review 10-28: the factory looks for more accurate or smaller models, not more measurements)"
   },
   {
-   "status": "idea",
+   "status": "next",
    "id": "SM67",
    "track": "small model",
    "item": "New axis candidate: data augmentation (sub-sampled or time-shifted copies of review histories)",
-   "why": "More training data without waiting for new users; to test on the 5k recipe first"
+   "why": "Under way 10-29: design on CPU (augmentations, teacher targets, a cheap stage 1 for the GPU after the better teacher (SM65)). More training data without waiting for new users; to test on the 5k recipe first"
   },
   {
    "status": "parked",
@@ -2063,7 +2063,7 @@
      "Epoch 20 vs epoch 15 cool-down, 732 set: curve &minus;0.000196 [&minus;0.000312, &minus;0.000100], instant &minus;0.000229 [&minus;0.000263, &minus;0.000199]; 423 / 567 of 722 users better.",
      "464 set (458 users): +0.46% / +0.33% (epoch 15: +0.51% / +0.41%), pair &minus;0.000158 / &minus;0.000225, both significant; 732 + 3 long users (725): +0.27% / +0.34% (epoch 15: +0.36% / +0.42%).",
      "Before the cool-down epoch 20 was not the best constant-LR epoch (curve 0.30042 vs 0.29880 at epoch 18, 458 users): the cool-down evens out the epoch-to-epoch swings.",
-     "Epochs 16&ndash;20: 111 min each, ~87.4k reviews/s (+8 min scoring each). Cool-down: 481 GPU min in three parts (paused for SM74 and the 10-28 break; a second-resume bug fixed at 01:03), ~20.2k reviews/s; then 13 min scoring.",
+     "Epochs 16&ndash;20: 111 min each, ~87.4k reviews/s (+8 min scoring each). Cool-down: 481 GPU min in three parts (paused for the checkpoint averaging test (SM74) and the 10-28 break; a second-resume bug fixed at 01:03), ~20.2k reviews/s; then 13 min scoring.",
      "Bootstrap over users (2,000 resamples, seed 0), 95% CI, review-weighted."
     ]
    }
