@@ -8,6 +8,10 @@ protocol of the fork's 2.76M comparison (artifacts/compression/heldout-b-final.m
 
     wkv_long(r, k, v, w, a, kd, skip, bits) -> out      # tensors [B, T, H, K], skip [B, T]; bits 0 / 8 / 4
 
+SM77: `wkv_long(..., state0=S0)` starts every (row, head) from S0 [B, H, K, K] (float32, row = value index) instead of
+zeros: a separate kernel "wkv_q_s0" built from the same text with the state load and one more pointer (_state_source);
+without state0 the stock kernel runs unchanged.
+
 SM47: `bits | F16_SCALE` (8 | 256, 4 | 256) rounds every row scale (absmax / qmax) to IEEE float16 before the codes
 are computed with it (round to nearest even, subnormals kept, clamped to the float16 maximum 65504; a scale that is 0,
 or underflows to 0, or is NaN becomes 1 like the float32 path). Without the flag the kernel is unchanged.
@@ -59,9 +63,31 @@ def _source(K):
     return text
 
 
-def _kernel(K):
+def _state_source(K):
+    """SM77: the kernel text with the state loaded from `state0` (one more pointer), renamed wkv_q_s0."""
+    text = _source(K)
+    for old, new in (('void wkv_q(', 'void wkv_q_s0('),
+                     ("const int B, const int T, const int H, const int bits) {",
+                      "const int B, const int T, const int H, const int bits,\n"
+                      "                                 const float* __restrict__ state0) {"),
+                     (f"for (int j = 0; j < {K}; j++) S[j] = 0.0f;",
+                      f"for (int j = 0; j < {K}; j++) S[j] = state0[((long long)bh * {K} + i) * {K} + j];")):
+        if text.count(old) != 1:
+            raise RuntimeError(f"kernel source changed (state rewrite): {old!r}")
+        text = text.replace(old, new)
+    return text
+
+
+def _kernel(K, state=False):
     if K not in (16, 32):
         raise ValueError(f"head size {K} not supported (16 or 32)")
+    if state:
+        key = (K, "state")
+        if key not in _kernels:
+            _kernel(K)  # the DLL directory set-up
+            import cupy
+            _kernels[key] = cupy.RawKernel(_state_source(K), "wkv_q_s0", options=("--std=c++14",))
+        return _kernels[key]
     if K not in _kernels:
         if os.name == "nt" and not _handles:
             directory = str(Path(torch.__file__).parent / "lib")
@@ -72,12 +98,12 @@ def _kernel(K):
     return _kernels[K]
 
 
-def wkv_long(r, k, v, w, a, kd, skip, bits=0):
+def wkv_long(r, k, v, w, a, kd, skip, bits=0, state0=None):
     B, T, H, K = r.shape
     if not r.is_cuda:
-        return reference(r, k, v, w, a, kd, skip, bits)
+        return reference(r, k, v, w, a, kd, skip, bits, state0)
     import cupy
-    kernel = _kernel(K)
+    kernel = _kernel(K, state=state0 is not None)
     tensors = [x.float().contiguous() for x in (r, k, v, w, a, kd)]
     skip = skip.to(torch.uint8).contiguous()
     out = torch.empty_like(tensors[0])
@@ -85,16 +111,24 @@ def wkv_long(r, k, v, w, a, kd, skip, bits=0):
         return out
     with cupy.cuda.Device(r.device.index), cupy.cuda.ExternalStream(torch.cuda.current_stream(r.device).cuda_stream):
         args = tuple(cupy.from_dlpack(x) for x in (*tensors, skip, out))
-        kernel((B * H,), (K,), (*args, cupy.int32(B), cupy.int32(T), cupy.int32(H), cupy.int32(bits)))
+        scalars = (cupy.int32(B), cupy.int32(T), cupy.int32(H), cupy.int32(bits))
+        if state0 is None:
+            kernel((B * H,), (K,), (*args, *scalars))
+        else:
+            s0 = state0.float().contiguous()
+            if s0.shape != (B, H, K, K) or s0.device != r.device:
+                raise ValueError(f"state0 must be {(B, H, K, K)} on {r.device}, got {tuple(s0.shape)} {s0.device}")
+            kernel((B * H,), (K,), (*args, *scalars, cupy.from_dlpack(s0)))
     return out
 
 
-def reference(r, k, v, w, a, kd, skip, bits=0):
+def reference(r, k, v, w, a, kd, skip, bits=0, state0=None):
     """Float32 per-step reference (CPU smoke and self-test); same update and rounding as the kernel."""
     from rwkv.model.rwkv_ops import single_timestep
     B, T, H, K = r.shape
     r, k, v, w, a, kd = (x.float() for x in (r, k, v, w, a, kd))
-    state = torch.zeros(B, H, K, K, dtype=torch.float32, device=r.device)
+    state = (torch.zeros(B, H, K, K, dtype=torch.float32, device=r.device) if state0 is None
+             else state0.float().clone())
     out = torch.empty(B, T, H, K, dtype=torch.float32, device=r.device)
     for t in range(T):
         o, nxt = single_timestep(r[:, t], k[:, t], v[:, t], w[:, t], a[:, t], kd[:, t], state)
@@ -126,6 +160,29 @@ def self_test(device="cuda", seed=0):
             got = wkv_long(*(x.to(device) for x in (r, k * a, v, w, a, kd)), skip.to(device), bits).cpu()
             name = f"{bits & 255}h" if bits & F16_SCALE else f"{bits}"
             results[f"K{K}/bits{name}"] = float((got - ref).abs().max())
+    return results
+
+
+def self_test_state(device="cuda", seed=0):
+    """SM77: max abs error of wkv_long(..., state0) vs the float32 reference from the same S0 (K 16 and 32, bits 0 / 8)."""
+    g = torch.Generator().manual_seed(seed)
+    results = {}
+    for K in (16, 32):
+        B, T, H = 3, 300, 4
+        r, k, v, a, kd = (torch.randn(B, T, H, K, generator=g) * 0.3 for _ in range(5))
+        kd = torch.nn.functional.normalize(kd, dim=-1)
+        a = torch.sigmoid(a)
+        w = torch.exp(-torch.exp(-0.5 - torch.rand(B, T, H, K, generator=g)))
+        skip = torch.rand(B, T, generator=g) < 0.3
+        state0 = torch.randn(B, H, K, K, generator=g) * 0.2
+        for bits in (0, 8):
+            ref = reference(r, k * a, v, w, a, kd, skip, bits, state0)
+            got = wkv_long(*(x.to(device) for x in (r, k * a, v, w, a, kd)), skip.to(device), bits, state0.to(device)).cpu()
+            zero = wkv_long(*(x.to(device) for x in (r, k * a, v, w, a, kd)), skip.to(device), bits,
+                            torch.zeros_like(state0).to(device)).cpu()
+            stock = wkv_long(*(x.to(device) for x in (r, k * a, v, w, a, kd)), skip.to(device), bits).cpu()
+            results[f"K{K}/bits{bits}"] = float((got - ref).abs().max())
+            results[f"K{K}/bits{bits}/zero_state_equals_stock_bitwise"] = bool(torch.equal(zero, stock))
     return results
 
 

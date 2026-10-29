@@ -517,7 +517,8 @@ class Hooks:
     record_shift = None  # corpus collection: fn(x_BTC[~skip] = the vectors that get stored, cur)
 
 
-def _reference_wkv_q(r, k, v, w, a, kd, skip):
+def _reference_wkv_q(r, k, v, w, a, kd, skip, state0=None):
+    """state0 (SM77, learned initial state): [B, H, K, K] start instead of zeros; None = today's path."""
     from expertium.model.rwkv_ops import single_timestep
     cur = Hooks.current
     quant = Hooks.wkv.get(cur[:2]) if cur is not None and cur[2] == "t" else None
@@ -525,7 +526,8 @@ def _reference_wkv_q(r, k, v, w, a, kd, skip):
     r, k, v, w, a, kd = (x.float() for x in (r, k, v, w, a, kd))
     B, T, H, Kh = r.shape
     out = torch.empty(B, T, H, Kh, dtype=torch.float32)
-    state = torch.zeros(B, H, Kh, Kh, dtype=torch.float32)
+    state = (torch.zeros(B, H, Kh, Kh, dtype=torch.float32) if state0 is None
+             else state0.detach().float().clone())
     for t in range(T):
         out[:, t], nxt = single_timestep(r[:, t], k[:, t], v[:, t], w[:, t], a[:, t], kd[:, t], state)
         keep = skip[:, t]

@@ -34,6 +34,14 @@ class VariantConfig:
     # scripts/state_carry_train.py can carry state for a sequential model (stream-major == sequential exactly,
     # scripts/check_expertium_catch_up.py). False = today's behaviour.
     stream_major: bool = False
+    # Tiny architecture additions (SM77, expertium/model/sm77.py), zero-initialised so a warm start is function
+    # preserving; False / () = today's model, bit for bit (no new parameter, module or branch is created).
+    # key_extras: every time mixer gets separate removal / insertion key vectors (as in the RWKV-7 paper) and learnable
+    # r / k biases (as in Mamba-3), 4 x d_model values per layer.
+    key_extras: bool = False
+    # init_state: streams whose layers learn the initial WKV state and token-shift offsets of a never-seen entity
+    # (zero today), e.g. ("card_id", "note_id"); H x K x K + 2 x d_model values per layer.
+    init_state: tuple = ()
     extra: dict = field(default_factory=dict)
 
     def stream_names(self):
@@ -71,6 +79,12 @@ def w64_config():
     return w80_config(heads=4, mult=2)
 
 
+# SM77 presets: both additions (the stage-1 arm), and each one alone (for a split after a positive stage 1)
+SM77_PRESETS = {"w64-sm77": {"key_extras": True, "init_state": ("card_id", "note_id")},
+                "w64-sm77-keys": {"key_extras": True},
+                "w64-sm77-init": {"init_state": ("card_id", "note_id")}}
+
+
 # rwkv.prepare_batch.prepare builds gathers in this order (rwkv.architecture.DEFAULT_ANKI_RWKV_CONFIG's tuples).
 BATCH_STREAMS = ["card_id", "deck_id", "note_id", "preset_id", "user_id"]
 # iter 53 runner (scratchpad/iter53_muonlora/run_iter53.cmd): RWKV_STRIP_CMIX value, verbatim.
@@ -106,8 +120,11 @@ def preset(name):
     if name in ("w64", "w64-sequential"):
         return VariantConfig(name=name, base=w64_config(), gru_head=3, no_ahead_residual=True, zero_features=(22,),
                              interleave=name == "w64", strip_l0_vlora=True, strip_cmix=W80_STRIP_CMIX)
-    raise ValueError(f"Unknown Expertium architecture preset {name!r}; expected iter36, w64, w64-sequential, w80 or "
-                     "w80-sequential")
+    if name in SM77_PRESETS:
+        # SM77: the small model (w64) plus the tiny additions; a preset name, so the scorer's TAG=KIND:ARCH:PATH takes it
+        return replace(preset("w64"), name=name, **SM77_PRESETS[name])
+    raise ValueError(f"Unknown Expertium architecture preset {name!r}; expected iter36, w64, w64-sequential, w80, "
+                     f"w80-sequential or one of {sorted(SM77_PRESETS)}")
 
 
 def variant(spec):
@@ -123,7 +140,7 @@ def variant(spec):
         unknown = set(overrides) - allowed
         if unknown:
             raise ValueError(f"Unknown architecture fields {sorted(unknown)}; allowed: {sorted(allowed)}")
-        for key in ("zero_features", "strip_cmix"):
+        for key in ("zero_features", "strip_cmix", "init_state"):
             if key in overrides:
                 overrides[key] = tuple(overrides[key])
         config = replace(config, name=config.name + "+" + ",".join(f"{k}={v}" for k, v in sorted(overrides.items())),
@@ -140,6 +157,9 @@ def variant(spec):
         depth = dict(config.base.modules)[stream].n_layers if stream in names else -1
         if not layer.isdigit() or not 0 <= int(layer) < depth:
             raise ValueError(f"strip_cmix entry {entry!r} names no layer of {names}")
+    for stream in config.init_state:
+        if stream not in names:
+            raise ValueError(f"init_state stream {stream!r} is not one of {names}")
     for index in config.zero_features:
         if not 0 <= int(index) < 92:
             raise ValueError(f"zero_features index {index} outside the 92 input dims")

@@ -58,6 +58,12 @@ lane, <= L x the user's entities). item.offset of update u is u x span (as today
     exact group norm, exact glue, row-tiled exact recurrence) and three changes: the token shift at rows with no
     earlier non-skipped row of the sequence takes the carried shift vector; the WKV starts from the carried S
     (`rwkv.model.wkv_state.wkv_state`, S0 detached); it returns the final (shift, S, channel shift) per row.
+  - SM77 (expertium/model/sm77.py; only for mixers built with its flags): key_extras = the module's removal / insertion
+    keys and r / k biases; init_state = an entity that is NEW in the window (its first review of the user's section is
+    in this window: the window's lane is the entity's first lane, CarryTable.fresh_of, and it has no committed state
+    in the lane) starts from the learned S0 (with a gradient, `rwkv.model.wkv_state.wkv_state_grad`) and its first-
+    review token shifts get the learned offsets. Lane-start entities with history in earlier lanes keep today's zero
+    start, so S0 learns only from real first reviews, as the scorer and the phone use it.
 """
 from contextlib import contextmanager
 
@@ -254,6 +260,8 @@ class CarryTable:
         self.keys = None
         self.size = None
         self.slots = {}
+        self._raw = None      # SM77: the user's universe as given (numpy), for fresh_of
+        self._fresh = {}
 
     def reset(self, universe, device):
         """New user: drop every state; `universe` = entity_universe(section) of that user (v1: one slot per entity)
@@ -266,6 +274,23 @@ class CarryTable:
         self.keys = ([torch.as_tensor(universe[stream][1], dtype=torch.long).to(device) for stream in BATCH_STREAMS]
                      if laned else None)
         self.size = [int((self.keys or self.universe)[stream].numel()) for stream in range(len(BATCH_STREAMS))]
+        self._raw = universe if laned else None
+        self._fresh = {}
+
+    def fresh_of(self, stream, slots):
+        """SM77 (strided lanes): bool [n], True where slot (lane, entity) is in the entity's first lane, i.e. the lane
+        that holds the entity's first review of the user's section. Computed once per (user, stream) on the CPU."""
+        if self._raw is None:  # v1: one slot per entity; an entity without committed state starts fresh (exact at one
+            return torch.ones(slots.numel(), dtype=torch.bool, device=slots.device)  # window per update)
+        if stream not in self._fresh:
+            entities, keys = self._raw[BATCH_STREAMS[stream]]
+            E = len(entities)
+            keys = np.asarray(keys, dtype=np.int64)
+            lane, code = keys // E, keys % E
+            first = np.full(E, np.iinfo(np.int64).max, dtype=np.int64)
+            np.minimum.at(first, code, lane)
+            self._fresh[stream] = torch.from_numpy(lane == first[code]).to(self.keys[stream].device)
+        return self._fresh[stream].index_select(0, slots)
 
     def codes(self, stream, entity, lane=None):
         code = torch.searchsorted(self.universe[stream], entity)
@@ -382,7 +407,7 @@ def _shift(x, select, exact):
     return torch.gather(x, dim=1, index=select.unsqueeze(-1).expand(-1, -1, x.size(-1)))
 
 
-def carry_layer(block, in_BTC, v0_BTC, select, skip, init):
+def carry_layer(block, in_BTC, v0_BTC, select, skip, init, fresh=None):
     """VariantRWKV7Layer.forward from `init` = (has [B], tm_shift [B, C], S [B, H, K, K], cm_shift [B, C] or None)
     or None (zero state). Returns (x, v0, final) with final = (tm_shift [B, C], S [B, H, K, K], cm_shift or None),
     detached. With init None (or nothing carried) the arithmetic is the stock module's except the recurrence kernel
@@ -390,10 +415,16 @@ def carry_layer(block, in_BTC, v0_BTC, select, skip, init):
     SM32c: a mixer with state_vq_slot >= 0 codes what the entity stores (expertium/model/state_vq_hooks.py): the
     token-shift vectors read from an earlier review (in this window, or carried: the carried vector is coded on read
     with the current catalog) and the WKV state after every non-skipped step (from the carried, already coded S0); the
-    returned final S is the last stored (coded) state."""
+    returned final S is the last stored (coded) state.
+    SM77: `fresh` [B] bool (CarryTable.fresh_of of each row's slot) for mixers with init_state; see the module docstring."""
     from rwkv.model.wkv_state import wkv_state
     tm = block.time_mixer
     vq_t = getattr(tm, "state_vq_slot", -1)
+    sm77_keys, sm77_init = bool(getattr(tm, "sm77_keys", False)), bool(getattr(tm, "sm77_init", False))
+    if (sm77_keys or sm77_init) and vq_t >= 0:
+        raise NotImplementedError("state_carry: SM77 mixers with state-VQ are not covered")
+    if sm77_init and fresh is None:
+        raise RuntimeError("state_carry: an SM77 init_state mixer needs the rows' fresh flags")
     if (tm.fused_shift or tm.native_shift or tm.native_wkv or tm.native_group_norm or tm.native_glue
             or tm.state_qmax != float("inf") or tm.state_lowrank_rank > 0):
         raise NotImplementedError("state_carry: fused/native kernels and state-QAT streams are not covered")
@@ -406,11 +437,16 @@ def carry_layer(block, in_BTC, v0_BTC, select, skip, init):
     last = torch.where(nonskip, t_index, torch.full_like(t_index, -1)).amax(dim=1).clamp(min=0)
     rows = torch.arange(B, device=in_BTC.device)
     head = None if init is None else (t_index <= first.unsqueeze(1)) & init[0].unsqueeze(1)
+    if sm77_init:  # entities whose first review of the section is in this window (no carried state)
+        new = fresh if init is None else fresh & ~init[0]
+        new_head = (t_index <= first.unsqueeze(1)) & new.unsqueeze(1)
 
     x_BTC = tm.layer_norm(in_BTC)
     x_shift = _shift(x_BTC, select, tm.exact_shift)
     if head is not None:
         x_shift = torch.where(head.unsqueeze(-1), init[1].unsqueeze(1).to(x_shift.dtype), x_shift)
+    if sm77_init:
+        x_shift = torch.where(new_head.unsqueeze(-1), x_shift + tm.sm77_init_shift.to(x_shift.dtype), x_shift)
     stored = None
     if vq_t >= 0:
         from expertium.model.state_vq_hooks import vq_shift_mask
@@ -421,6 +457,8 @@ def carry_layer(block, in_BTC, v0_BTC, select, skip, init):
     rkvdag = torch.lerp(x_BTC.unsqueeze(0), x_shift.unsqueeze(0), tm.rkvdag_lerp)
     r_BTC, k_BTC, v_BTC, d_BTC, a_BTC, g_BTC, k_scale_BTC, v_scale_BTC = rkvdag.unbind(dim=0)
     r_BTC = tm.W_r(r_BTC)
+    if sm77_keys:
+        r_BTC = r_BTC + tm.sm77_r_bias.to(r_BTC.dtype)
     k_BTC = tm.W_k(k_BTC)
     k_scale = torch.nn.functional.sigmoid(tm.k_scale_linear(k_scale_BTC))
     v_scale = torch.nn.functional.sigmoid(tm.v_scale_linear(v_scale_BTC))
@@ -434,13 +472,17 @@ def carry_layer(block, in_BTC, v0_BTC, select, skip, init):
     g_BTC = tm.lora_B_g(torch.nn.functional.sigmoid(tm.lora_A_g(g_BTC)))
     _d = -0.5 - torch.nn.functional.softplus(-tm.d_lora_mlp(d_BTC))
     w_BTC = torch.exp(-torch.exp(_d.float()))
-    k_BTHK = k_scale.unsqueeze(-1) * torch.nn.functional.normalize(k_BTC.view(B, T, H, K), dim=-1, p=2.0)
     r_BTHK = r_BTC.view(B, T, H, K)
     v_BTHK = v_scale.unsqueeze(-1) * torch.nn.functional.normalize(v_BTC.view(B, T, H, K), dim=-1, p=2.0)
     w_BTHK = w_BTC.view(B, T, H, K)
     a_BTHK = a_BTC.view(B, T, H, K)
-    kd_BTHK = k_BTHK
-    k_BTHK = k_BTHK * a_BTHK
+    if sm77_keys:
+        from expertium.model.sm77 import key_pair
+        kd_BTHK, k_BTHK = key_pair(k_BTC, k_scale, a_BTHK, tm.sm77_k_remove, tm.sm77_k_insert, tm.sm77_k_bias, B, T, H, K)
+    else:
+        k_BTHK = k_scale.unsqueeze(-1) * torch.nn.functional.normalize(k_BTC.view(B, T, H, K), dim=-1, p=2.0)
+        kd_BTHK = k_BTHK
+        k_BTHK = k_BTHK * a_BTHK
     if init is not None:
         state0 = init[2]
     elif cuda:
@@ -450,6 +492,11 @@ def carry_layer(block, in_BTC, v0_BTC, select, skip, init):
     if vq_t >= 0:
         from expertium.model.state_vq_hooks import vq_wkv_state
         out_BTHK, state_T = vq_wkv_state(r_BTHK, k_BTHK, v_BTHK, w_BTHK, a_BTHK, kd_BTHK, skip, state0, vq_t)
+    elif sm77_init:  # new entities start from the learned S0, with its gradient
+        from rwkv.model.wkv_state import wkv_state_grad
+        base0 = state0 if state0 is not None else torch.zeros(B, H, K, K, dtype=torch.float32, device=in_BTC.device)
+        state0 = torch.where(new.view(B, 1, 1, 1), tm.sm77_init_wkv.float().unsqueeze(0), base0)
+        out_BTHK, state_T = wkv_state_grad(r_BTHK, k_BTHK, v_BTHK, w_BTHK, a_BTHK, kd_BTHK, skip, state0)
     else:
         out_BTHK, state_T = wkv_state(r_BTHK, k_BTHK, v_BTHK, w_BTHK, a_BTHK, kd_BTHK, skip, state0)
     if tm.exact_group_norm and cuda:
@@ -481,6 +528,8 @@ def carry_layer(block, in_BTC, v0_BTC, select, skip, init):
     xc_shift = _shift(xc, select, cm.exact_shift)
     if head is not None and init[3] is not None:
         xc_shift = torch.where(head.unsqueeze(-1), init[3].unsqueeze(1).to(xc_shift.dtype), xc_shift)
+    if sm77_init and getattr(cm, "sm77_init_shift", None) is not None:
+        xc_shift = torch.where(new_head.unsqueeze(-1), xc_shift + cm.sm77_init_shift.to(xc_shift.dtype), xc_shift)
     vq_c = getattr(cm, "state_vq_slot", -1)
     if vq_c >= 0:
         from expertium.model.state_vq_hooks import vq_shift_mask
@@ -659,8 +708,10 @@ class StateCarry:
                 x_in = x_split.view(-1, length, model.d_model)
                 v0_in = torch.empty_like(x_in) if layer == 0 else v0s[i][s]
                 init = self.table.lookup(i, layer, codes[i][s], x.dtype) if self.spec["carry"] else None
+                fresh = (self.table.fresh_of(i, codes[i][s]) if getattr(block.time_mixer, "sm77_init", False)
+                         else None)  # SM77 learned initial state only
                 x_out, v0s[i][s], final = carry_layer(block, x_in, v0_in, batch_time_shift_selects[i][s].view(-1, length),
-                                                      batch_skips[i][s].view(-1, length), init)
+                                                      batch_skips[i][s].view(-1, length), init, fresh)
                 records.setdefault((i, layer), []).append((codes[i][s], windows[i][s], final))
                 outputs.append(x_out.reshape(-1, model.d_model))
             if budgeted and self.spec["carry"]:  # SM72: this slot was read for every split above; free the finals now
