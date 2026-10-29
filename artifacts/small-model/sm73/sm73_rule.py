@@ -8,6 +8,9 @@ epoch 20) with a smaller stored card/note state, against the bar +0.5% curve / +
                  leak-free scoring), % vs big, and the paired delta vs the int8-state release (TAG/w8+s8) with a
                  user bootstrap (2,000, seed 0, 95% CI). Appends one JSON line to sm73-formats.jsonl and prints one line.
                  exit 0 = PASS (both heads within the bar, point estimates), 1 = FAIL, 2 = users missing.
+  diverged LABEL USER NOTE
+                 records LABEL as FAIL without a LogLoss: its stored state blew up (non-finite loss) on USER, so the
+                 format cannot ship; the launcher then skips it as decided and moves on (stop rule). NOTE = one line.
   summary        sm73-formats.md from sm73-formats.jsonl.
 """
 import json
@@ -83,6 +86,15 @@ def decide(label):
     return 0 if ok else 1
 
 
+def diverged(label, user, note):
+    rec = {"label": label, "pass": False, "fork_bytes_per_card_and_note": FORK_BYTES.get(label.split("/")[-1]),
+           "diverged": {"user": int(user), "note": note}}
+    with RESULTS.open("a", encoding="utf-8") as f:
+        f.write(json.dumps(rec) + "\n")
+    print(f"{label} ({rec['fork_bytes_per_card_and_note']} B per card + note): diverged on user {user} ({note}); FAIL")
+    return 1
+
+
 def summary():
     rows = [json.loads(l) for l in RESULTS.read_text(encoding="utf-8").splitlines()] if RESULTS.exists() else []
     last = {r["label"]: r for r in rows}
@@ -92,6 +104,10 @@ def summary():
           "| state | bytes per card + note | users | curve | vs big | delta vs int8 | instant | vs big | delta vs int8 | bar |",
           "|---|---:|---:|---:|---:|---|---:|---:|---|---|"]
     for label, r in last.items():
+        if "diverged" in r:
+            md.append(f"| {label.split('/')[-1]} | {r['fork_bytes_per_card_and_note']:,} | - | diverged on user "
+                      f"{r['diverged']['user']}: {r['diverged']['note']} | | | | | | FAIL |")
+            continue
         c, i = r["curve"], r["instant"]
         md.append(f"| {label.split('/')[-1]} | {r['fork_bytes_per_card_and_note']:,} | {r['users']} | {c['logloss']:.5f} | "
                   f"{c['pct_vs_big_leakfree']:+.2f}% | {c['delta_vs_int8']:+.6f} [{c['delta_ci'][0]:+.6f}, {c['delta_ci'][1]:+.6f}] | "
@@ -105,6 +121,8 @@ def summary():
 if __name__ == "__main__":
     if sys.argv[1:2] == ["decide"]:
         sys.exit(decide(sys.argv[2]))
+    if sys.argv[1:2] == ["diverged"] and len(sys.argv) == 5:
+        sys.exit(diverged(*sys.argv[2:5]))
     if sys.argv[1:2] == ["summary"]:
         sys.exit(summary())
     sys.exit(__doc__)
