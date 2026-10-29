@@ -1,6 +1,6 @@
 # Literature review for the small-model factory (SM60), 2026-10-29
 
-Question: which recent RWKV / linear-attention / state-space ideas could make the small model (SM72s), 331,511
+Question: which recent RWKV / linear-attention / state-space ideas could make the small model (SM72s, 331,511
 parameters) more accurate, or the smaller model (SM73) smaller, without more card/note state bytes or much CPU time
 per review. Papers 2024-2026, summarized in my own words. I read abstracts and, for Mamba-3, the full text; anything
 seen only in secondary write-ups is flagged.
