@@ -15,7 +15,7 @@
 # Steps: wait for the better teacher's (SM65) launcher to end -> CPU preparation -> ticket 0 GPU check (new dS0
 #   backward kernel, scorer kernel from S0, trainer-path function preservation on 2 users x 512 reviews) + trainer
 #   smoke of the arm -> arm epoch -> [reference epoch] -> arm cool-down -> reference cool-down -> scoring -> rule.
-# Breaks: quiet.json (scope all/gpu) plus the daily 21:00-02:00 break as a safeguard, re-read at every check (<= 10
+# Breaks: quiet.json (scope all/gpu) plus the daily 20:00-01:00 break as a safeguard, re-read at every check (<= 10
 #   min). An epoch starts only when it fits before the next window (snapshot-resumable if one is cut anyway);
 #   cool-downs run in segments (snapshot stop <= 2 min before a window, resume after). CPU steps stay out of windows.
 #   dry run  DRYRUN=1 [START_EPOCH=K] bash C:/Users/jonat/workspace/wt/sm77/artifacts/small-model/sm77/launch-sm77.sh
@@ -94,7 +94,7 @@ except (ValueError, KeyError, TypeError):  # malformed JSON: take every start/en
     wins = re.findall(r'"start"\s*:\s*"([^"]+)"[^{}]*?"end"\s*:\s*"([^"]+)"', text, re.S)
 blocks = [(datetime.fromisoformat(s), datetime.fromisoformat(e)) for s, e in wins]
 day = now.replace(hour=0, minute=0, second=0, microsecond=0)
-blocks += [(day + timedelta(days=d, hours=21), day + timedelta(days=d + 1, hours=2)) for d in range(-1, 9)]  # daily break
+blocks += [(day + timedelta(days=d, hours=20), day + timedelta(days=d + 1, hours=1)) for d in range(-1, 9)]  # daily break
 blocks.sort()
 merged = []
 for s, e in blocks:
