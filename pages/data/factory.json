@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-10-30T13:09:05+01:00",
- "updated": "2026-10-30 13:09",
- "material": "6c483b807e9c3e49",
- "summary": "idle, finished 000770",
+ "generated_at": "2026-10-30T13:10:18+01:00",
+ "updated": "2026-10-30 13:10",
+ "material": "f0bade93f479eff1",
+ "summary": "running 000772, finished 000771",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring (curve / instant)",
@@ -227,7 +227,23 @@
    "track": "small model"
   }
  ],
- "now": [],
+ "now": [
+  {
+   "what": "Better teacher (SM65) stage 1: the big model (1 leak-free epoch) trained one more leak-free epoch on the 3,969 final-tier training users it has never seen (ids below 5000, 285.9M reviews; disjoint from the 732 / 464 sets and the final test), same recipe as its leak-free epoch, then scored on the 732 set",
+   "id": "SM65, ticket 000772",
+   "kind": "gpu-train",
+   "decides": "Whether a better teacher exists at all: go on (teacher targets for the 8,000 users, ~4 h, then the same cool-down of the small model with only the targets swapped, ~8.5 h, paired against the existing one) if it beats the big model (1 leak-free epoch) by &ge; 0.20 points curve or &ge; 0.15 instant on 722 users; stop if both heads gain under 0.10. An average of the shipped and leak-free big models was checked on CPU first: only 0.03&ndash;0.09 points, dropped. Expected student gain about 0.03&ndash;0.13 points per head",
+   "why": "",
+   "job": "better teacher (SM65) stage 1: big model (fork RWKV) one more leak-free epoch on the 3,969 new users (ids below 5000) from the big model (1 leak-free epoch), 285M reviews left (segment to the next window or the end)",
+   "linked": true,
+   "track": "small model",
+   "ticket": "000772-small-model",
+   "started": "13:10",
+   "elapsed": "0:00",
+   "progress": null,
+   "eta": "~20:19"
+  }
+ ],
  "charts": [
   {
    "title": "Small model, leak-free (SM72s): LogLoss per epoch, 458-user set (lower is better)",
@@ -392,6 +408,15 @@
  "waiting": [],
  "recent": [
   {
+   "ticket": "000771-small-model",
+   "id": "SM65",
+   "what": "better teacher (SM65) stage 1: GPU smoke of the big model&#x27;s epoch on the new users (2 users x 512 reviews, scratch copy)",
+   "ended": "13:10",
+   "date": "10-30",
+   "exit": 0,
+   "ran": "0:00"
+  },
+  {
    "ticket": "000770-small-model",
    "id": "SM63",
    "what": "SM72 leak-free scoring s-w64kd-final-sc-lanes-leakfree-dec25-1ep32k-muon on the 3 long users of the 732 pool (cap 0.92)",
@@ -435,15 +460,6 @@
    "date": "10-30",
    "exit": 0,
    "ran": "0:07"
-  },
-  {
-   "ticket": "000765-small-model",
-   "id": "SM63",
-   "what": "SM72 small model leak-free (sm72s) epoch 25/25 (8k final tier, 2048 x 16 lanes carry, leak-free replay KD, AdamW 7e-4)",
-   "ended": "04:49",
-   "date": "10-30",
-   "exit": 0,
-   "ran": "1:50"
   }
  ],
  "plan": [
@@ -1499,7 +1515,11 @@
    "what": "Better teacher (SM65) stage 1: the big model (1 leak-free epoch) trained one more leak-free epoch on the 3,969 final-tier training users it has never seen (ids below 5000, 285.9M reviews; disjoint from the 732 / 464 sets and the final test), same recipe as its leak-free epoch, then scored on the 732 set",
    "when": "Code ready and checked on CPU, launcher started Thu 10-29 15:13 and waiting for the leak-free small model&rsquo;s (SM72s) epochs 21&ndash;25 and cool-down (done ~13:00&ndash;15:00 Fri 10-30). Then a 5-min GPU smoke and ~7 h of training, paused at the 21:00 break and resumed at 02:00 from a snapshot, then 732-set scoring (~15 min). Decision ~20:40 Fri if the GPU frees at 13:00, ~03:45 Sat 10-31 if at 15:00",
    "decides": "Whether a better teacher exists at all: go on (teacher targets for the 8,000 users, ~4 h, then the same cool-down of the small model with only the targets swapped, ~8.5 h, paired against the existing one) if it beats the big model (1 leak-free epoch) by &ge; 0.20 points curve or &ge; 0.15 instant on 722 users; stop if both heads gain under 0.10. An average of the shipped and leak-free big models was checked on CPU first: only 0.03&ndash;0.09 points, dropped. Expected student gain about 0.03&ndash;0.13 points per head",
-   "state": "planned"
+   "state": "running",
+   "started": "13:10",
+   "ticket": "000772-small-model",
+   "started_at": "2026-10-30T13:09:52+01:00",
+   "ends_at": "2026-10-30T20:29:52+01:00"
   },
   {
    "id": "SM77",
