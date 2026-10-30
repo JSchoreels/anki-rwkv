@@ -1365,7 +1365,7 @@
     "better teacher (SM65) stage 1"
    ],
    "what": "Better teacher (SM65) stage 1: the big model (1 leak-free epoch) trained one more leak-free epoch on the 3,969 final-tier training users it has never seen (ids below 5000, 285.9M reviews; disjoint from the 732 / 464 sets and the final test), same recipe as its leak-free epoch, then scored on the 732 set",
-   "when": "Code ready and checked on CPU, launcher started Thu 10-29 15:13 and waiting for the leak-free small model&rsquo;s (SM72s) epochs 21&ndash;25 and cool-down (done ~13:00&ndash;15:00 Fri 10-30). Then a 5-min GPU smoke and ~7 h of training, paused at the 21:00 break and resumed at 02:00 from a snapshot, then 732-set scoring (~15 min). Decision ~20:40 Fri if the GPU frees at 13:00, ~03:45 Sat 10-31 if at 15:00",
+   "when": "Done Fri 10-30 20:27 (training 13:10&ndash;20:10, 732-set scoring 20:10&ndash;20:27): grey, between the go and stop bars; stage 2 waits for the user&rsquo;s call",
    "decides": "Whether a better teacher exists at all: go on (teacher targets for the 8,000 users, ~4 h, then the same cool-down of the small model with only the targets swapped, ~8.5 h, paired against the existing one) if it beats the big model (1 leak-free epoch) by &ge; 0.20 points curve or &ge; 0.15 instant on 722 users; stop if both heads gain under 0.10. An average of the shipped and leak-free big models was checked on CPU first: only 0.03&ndash;0.09 points, dropped. Expected student gain about 0.03&ndash;0.13 points per head"
   },
   {
@@ -1378,7 +1378,7 @@
     "tiny architecture additions (SM77) stage 1"
    ],
    "what": "Tiny architecture additions (SM77) stage 1: separate removal / insertion keys plus r/k biases in all 13 layers, and a learned starting state for the card and note streams (+6,720 parameters, +26.9 KB export, no extra stored state). Warm start from the leak-free small model&rsquo;s (SM72s) epoch 20 with the new parameters at zero (outputs bit-identical at the start, checked on CPU), one constant-LR epoch plus cool-down, against SM72s&rsquo;s own epoch 21 as the free reference; scored on the 732 set",
-   "when": "Code ready and checked on CPU; launcher started Thu 10-29 17:36 and waiting for the better teacher&rsquo;s (SM65) launcher to end (Fri night or Sat). First a ~15-min GPU check of the new kernels, then ~7 h, paused at the 21:00 break",
+   "when": "Code ready and checked on CPU; launcher restarted Fri 10-30 20:20 with the new 20:00&ndash;01:00 break, starts at 01:00 Sat 10-31: a ~15-min GPU check of the new kernels, then ~7 h (ends ~08:30 Sat)",
    "decides": "Go if curve &ge; 0.20 points or instant &ge; 0.15 better on 722 users (CI clear of zero), other head no worse than +0.03%; stop if both under 0.10; in between, report. From the literature review (SM60)"
   },
   {
@@ -1391,7 +1391,7 @@
     "data augmentation (SM67) stage 1"
    ],
    "what": "Data augmentation (SM67) stage 1: the leak-free small model&rsquo;s (SM72s) 1-epoch cool-down from epoch 25 again, with 959 large training users each split into two pseudo-users by a random half of their notes (32% of reviews in halves; every card keeps its full history, labels and teacher targets; only the cross-card context changes). Same reviews and labels as the control, 2.5% more updates; control = the existing cool-down from epoch 25; scored on the 732 set",
-   "when": "Code ready and checked on CPU (bit-identical with the option off; cards, labels and targets identical in the halves; no evaluation user). Launcher started Fri 10-30 11:23, waiting for the tiny architecture additions&rsquo; (SM77) launcher to end (~Sat midday). ~8.7 GPU h, paused at the 21:00 break",
+   "when": "Code ready and checked on CPU (bit-identical with the option off; cards, labels and targets identical in the halves; no evaluation user). Launcher restarted Fri 10-30 20:20, waiting for the tiny architecture additions&rsquo; (SM77) launcher to end (~08:30 Sat). ~8.7 GPU h (ends ~17:30 Sat)",
    "decides": "Go if curve &ge; 0.20 points or instant &ge; 0.15 better on 722 users (CI clear of zero), other head no worse than +0.03%; stop if both under 0.10; in between, report. The design expects a small gain (0 to 0.05 points)"
   }
  ],
@@ -1463,11 +1463,12 @@
    "why": "Outside research (10-22): more parameters or a larger state are undesirable (slower, bigger); a new axis would be the most valuable find and none is known yet"
   },
   {
-   "status": "planned",
+   "status": "parked",
    "id": "SM65",
    "track": "small model",
    "item": "New axis candidate: a better teacher (an ensemble of big models, or a big model trained on more users) to distill from",
-   "why": "Design 10-29 (artifacts/small-model/sm65/DESIGN.md): the only teacher gain of the right size is more users &mdash; one more leak-free epoch of the big model on the 3,969 training users it never saw. More epochs on its own users should give less, and an average of the shipped and leak-free big models gives only 0.03&ndash;0.09 points (CPU check). Stage 1 (~7 h GPU) decides; expected student gain about 0.03&ndash;0.13 points. Was: next big lever after more epochs"
+   "why": "Stage 1 done 10-30: the big model with one more leak-free epoch on 3,969 new users is &minus;0.17% curve / &minus;0.03% instant vs the big model (1 leak-free epoch), between the go and stop bars. Stage 2 (teacher targets, ~4 h GPU) and stage 3 (small-model cool-down, ~8.5 h) wait for the user&rsquo;s call; expected student gain about 0.03&ndash;0.08 points curve, ~0 instant. Design: artifacts/small-model/sm65/DESIGN.md",
+   "since": "10-30T20:40"
   },
   {
    "status": "done",
@@ -1827,6 +1828,76 @@
   "s-w64kd-gate-ctx2048c-dec8-1ep/w8+s8"
  ],
  "results": [
+  {
+   "date": "10-30",
+   "kind": "gpu-train",
+   "id": "SM65",
+   "track": "small model",
+   "name": "Better teacher (SM65) stage 1: the big model (1 leak-free epoch) trained one more leak-free epoch on the 3,969 training users it had never seen (285.9M reviews)",
+   "curve": 0.29845,
+   "instant": 0.27566,
+   "curve_pct": -0.17,
+   "instant_pct": -0.03,
+   "eval": "722 users (732 set), scored leak-free, w8+s8",
+   "fork": "vs the big model (1 leak-free epoch): 0.29897 / 0.27576",
+   "takeaway": "<strong>Between the go and stop bars</strong>: &minus;0.17% curve [&minus;0.29, &minus;0.05] but only &minus;0.03% instant vs the big model (1 leak-free epoch); go needed &minus;0.20% curve or &minus;0.15% instant. A real but small teacher gain; the student would get only part of it. Waiting for the user&rsquo;s call on stage 2 (teacher targets, ~4 h GPU, then a ~8.5-h cool-down of the small model)",
+   "started_at": "2026-10-30T13:09+01:00",
+   "ended_at": "2026-10-30T20:27+01:00",
+   "gpu_minutes": 437,
+   "tickets": 4,
+   "detail": {
+    "verdict": "Grey: a better big model on the curve head (&minus;0.17%, interval clear of zero), almost no change on instant (&minus;0.03%)",
+    "table": {
+     "head": [
+      "Users, leak-free scoring",
+      "Head",
+      "Better teacher (SM65)",
+      "Big model (1 leak-free epoch) (SM72)",
+      "Change [95% interval]",
+      "Users better"
+     ],
+     "rows": [
+      [
+       "722 users (732 set, decision)",
+       "Curve",
+       "0.29845",
+       "0.29897",
+       "&minus;0.17% [&minus;0.29, &minus;0.05]",
+       "409"
+      ],
+      [
+       "722 users (732 set, decision)",
+       "Instant",
+       "0.27566",
+       "0.27576",
+       "&minus;0.03% [&minus;0.04, &minus;0.03]",
+       "428"
+      ],
+      [
+       "725 users (732 set + 3 long users)",
+       "Curve",
+       "0.30045",
+       "0.30123",
+       "&minus;0.26% [&minus;0.44, &minus;0.09]",
+       "412"
+      ],
+      [
+       "725 users (732 set + 3 long users)",
+       "Instant",
+       "0.27649",
+       "0.27658",
+       "&minus;0.03% [&minus;0.04, &minus;0.02]",
+       "429"
+      ]
+     ]
+    },
+    "notes": [
+     "Pre-registered rule: go if curve &le; &minus;0.20% or instant &le; &minus;0.15% (interval clear of zero, other head &le; +0.03%); stop if both heads above &minus;0.10%; otherwise report and ask.",
+     "Same recipe as the big model&rsquo;s leak-free epoch: 2 strided lanes, fresh AdamW, 3.5e-4 &rarr; 0; users disjoint from the 732 / 464 sets and the final test.",
+     "Users 5,000+ only for evaluation; 95% intervals: paired user bootstrap (2,000, seed 0)."
+    ]
+   }
+  },
   {
    "date": "10-30",
    "kind": "gpu-train",
@@ -5846,10 +5917,10 @@
   }
  ],
  "gpu_break": {
-  "start": "21:00",
-  "end": "02:00",
-  "until": "2026-10-31T02:00",
-  "label": "Breaks: no GPU work 21:00&ndash;02:00 (end 02:00 from 10-24; Sunday 10-25 from 14:00). Jobs that would run into a break wait for 02:00"
+  "start": "20:00",
+  "end": "01:00",
+  "until": "2026-11-07T01:00",
+  "label": "Breaks: no GPU work 20:00&ndash;01:00 (from 10-30; tonight from 21:04; Sunday from 16:00). Jobs that would run into a break wait for 01:00"
  },
  "now_charts": [
   {
