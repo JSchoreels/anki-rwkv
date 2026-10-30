@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-10-30T04:57:38+01:00",
- "updated": "2026-10-30 04:57",
- "material": "41deb71f17ca625f",
- "summary": "running 000767, finished 000766",
+ "generated_at": "2026-10-30T11:28:59+01:00",
+ "updated": "2026-10-30 11:28",
+ "material": "08a7905b7c2fbd98",
+ "summary": "running 000767",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring (curve / instant)",
@@ -239,7 +239,7 @@
    "track": "small model",
    "ticket": "000767-small-model",
    "started": "04:57",
-   "elapsed": "0:00",
+   "elapsed": "6:31",
    "progress": null,
    "eta": "~13:37"
   }
@@ -1521,6 +1521,17 @@
    "when": "Code ready and checked on CPU; launcher started Thu 10-29 17:36 and waiting for the better teacher&rsquo;s (SM65) launcher to end (Fri night or Sat). First a ~15-min GPU check of the new kernels, then ~7 h, paused at the 21:00 break",
    "decides": "Go if curve &ge; 0.20 points or instant &ge; 0.15 better on 722 users (CI clear of zero), other head no worse than +0.03%; stop if both under 0.10; in between, report. From the literature review (SM60)",
    "state": "planned"
+  },
+  {
+   "id": "SM67",
+   "track": "small model",
+   "since": "10-30T11:20",
+   "kind": "gpu-train",
+   "minutes": 520,
+   "what": "Data augmentation (SM67) stage 1: the leak-free small model&rsquo;s (SM72s) 1-epoch cool-down from epoch 25 again, with 959 large training users each split into two pseudo-users by a random half of their notes (32% of reviews in halves; every card keeps its full history, labels and teacher targets; only the cross-card context changes). Same reviews and labels as the control, 2.5% more updates; control = the existing cool-down from epoch 25; scored on the 732 set",
+   "when": "Code ready and checked on CPU (bit-identical with the option off; cards, labels and targets identical in the halves; no evaluation user). Launcher started Fri 10-30 11:23, waiting for the tiny architecture additions&rsquo; (SM77) launcher to end (~Sat midday). ~8.7 GPU h, paused at the 21:00 break",
+   "decides": "Go if curve &ge; 0.20 points or instant &ge; 0.15 better on 722 users (CI clear of zero), other head no worse than +0.03%; stop if both under 0.10; in between, report. The design expects a small gain (0 to 0.05 points)",
+   "state": "planned"
   }
  ],
  "gpu_break": {
@@ -1610,11 +1621,11 @@
    "why": "A new axis that runs on CPU from saved predictions: a tiny per-user correction fitted on earlier reviews, tested on later ones (priority review 10-28: the factory looks for more accurate or smaller models, not more measurements)"
   },
   {
-   "status": "next",
+   "status": "planned",
    "id": "SM67",
    "track": "small model",
    "item": "New axis candidate: data augmentation (sub-sampled or time-shifted copies of review histories)",
-   "why": "Design done 10-29 (artifacts/small-model/sm67/DESIGN.md): split large users into two pseudo-users by notes (each card keeps its full history; only the cross-card context changes), keep the original teacher targets. Stage 1: one augmented cool-down vs the existing one, ~9 GPU h, after the tiny architecture additions (SM77). Expected gain small (0 to 0.05 points). Side finding: every epoch sees bit-identical inputs (fixed seed); re-seeding per epoch is a free stage-2 arm"
+   "why": "Ready 10-30, launcher waiting behind the tiny architecture additions (SM77) (see the plan). Design done 10-29 (artifacts/small-model/sm67/DESIGN.md): split large users into two pseudo-users by notes (each card keeps its full history; only the cross-card context changes), keep the original teacher targets. Stage 1: one augmented cool-down vs the existing one, ~9 GPU h, after the tiny architecture additions (SM77). Expected gain small (0 to 0.05 points). Side finding: every epoch sees bit-identical inputs (fixed seed); re-seeding per epoch is a free stage-2 arm"
   },
   {
    "status": "parked",
