@@ -16,7 +16,7 @@
 #   0.92 cap) -> wait for the control's 732 rows -> rule (scripts/sm67_rule.py decide, 722 users).
 # Rule (pre-registered): go if curve <= -0.20 or instant <= -0.15 points of % of the big model (1 leak-free epoch), that
 #   head's CI clear of zero, the other head <= +0.03; stop if both > -0.10; grey otherwise. Ship check separate.
-# Breaks: quiet.json (scope all/gpu) plus the daily 21:00-02:00 break as a safeguard, re-read at every check (<= 10
+# Breaks: quiet.json (scope all/gpu) plus the daily 20:00-01:00 break as a safeguard, re-read at every check (<= 10
 #   min). The cool-down runs in segments (snapshot stop <= 2 min before a window, resume after); CPU steps stay out of
 #   windows.
 #   dry run  DRYRUN=1 [START_EPOCH=K] bash C:/Users/jonat/workspace/wt/sm67/artifacts/small-model/sm67/launch-sm67.sh
@@ -94,7 +94,7 @@ except (ValueError, KeyError, TypeError):  # malformed JSON: take every start/en
     wins = re.findall(r'"start"\s*:\s*"([^"]+)"[^{}]*?"end"\s*:\s*"([^"]+)"', text, re.S)
 blocks = [(datetime.fromisoformat(s), datetime.fromisoformat(e)) for s, e in wins]
 day = now.replace(hour=0, minute=0, second=0, microsecond=0)
-blocks += [(day + timedelta(days=d, hours=21), day + timedelta(days=d + 1, hours=2)) for d in range(-1, 9)]  # daily break
+blocks += [(day + timedelta(days=d, hours=20), day + timedelta(days=d + 1, hours=1)) for d in range(-1, 9)]  # daily break
 blocks.sort()
 merged = []
 for s, e in blocks:
