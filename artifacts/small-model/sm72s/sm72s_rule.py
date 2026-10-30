@@ -100,6 +100,7 @@ def summary():
     series = {
         "Big model leak-free (SM72 step 1)": BIG_LF,
         "Shipped big model (fork RWKV, leak inputs)": (SM71 / "big-neighbour.jsonl", "fork/w8+s8"),
+        "Small leak-free, cool-down from epoch 25 (SM72)": (OUTDEC, f"{LBL}-dec25-1ep32k-muon/w8+s8"),
         "Small leak-free, cool-down from epoch 20 (SM72)": (OUTDEC, f"{LBL}-dec20-1ep32k-muon/w8+s8"),
         "Small leak-free, cool-down from epoch 15 (SM72)": (OUTDEC, f"{LBL}-dec15-1ep32k-muon/w8+s8"),
         "Small leak-free, cool-down from epoch 10 (SM72)": (OUTDEC, f"{LBL}-dec10-1ep32k-muon/w8+s8"),
