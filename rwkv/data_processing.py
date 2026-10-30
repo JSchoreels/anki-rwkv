@@ -207,8 +207,17 @@ def read_user_metadata(table_path, user_id):
 DELETED_CARDS_ENV = "RWKV_DELETED_CARDS"
 
 
-def get_rwkv_data(data_path, user_id, equalize_review_ths=[]):
+def get_rwkv_data(data_path, user_id, equalize_review_ths=[], keep=None):
     df = pd.read_parquet(data_path / "revlogs" / f"{user_id=}")
+    if keep is not None:
+        # Data augmentation (SM67, scripts/augment.py): a boolean mask over the raw revlog rows (one half of the user's
+        # notes), applied before every feature; orig_review_th keeps each kept review's number in the whole history.
+        # keep=None (the default) leaves the frame exactly as before.
+        keep = np.asarray(keep, dtype=bool)
+        if keep.shape != (len(df),):
+            raise ValueError(f"keep mask of shape {keep.shape} for {len(df)} reviews of user {user_id}")
+        orig_review_th = np.flatnonzero(keep) + 1
+        df = df[keep].reset_index(drop=True)
     if __import__("os").environ.get("EXPERTIUM_END_TO_START") == "1":
         # Opt-in end-to-start intervals (docs/EXPERTIUM_CATCH_UP.md item 4); unset leaves the frame untouched.
         from expertium.intervals import end_to_start_published
@@ -216,6 +225,8 @@ def get_rwkv_data(data_path, user_id, equalize_review_ths=[]):
     df_len = len(df)
     df["user_id"] = user_id
     df["review_th"] = range(1, df.shape[0] + 1)
+    if keep is not None:
+        df["orig_review_th"] = orig_review_th
     df_cards = read_user_metadata(data_path / "cards", user_id)
     df_cards.drop(columns=["user_id"], inplace=True)
     df_decks = read_user_metadata(data_path / "decks", user_id)

@@ -466,7 +466,8 @@ def run_case(args):
             warm_futures = [warm_pool.submit(worker_warmup) for _ in range(workers)]
         # Discarded forward/backward primes JIT without performing optimizer updates.
         prime_start = time.perf_counter()
-        first = split_frame(get_rwkv_data(DATA, rows[0]["user_id"]), rows[0], "train").iloc[:1024]
+        from scripts.gpu_batch1 import row_frame  # SM67: a pseudo row's half (get_rwkv_data otherwise)
+        first = split_frame(row_frame(rows[0]), rows[0], "train").iloc[:1024]
         prime = prepare(make_samples(first, rows[0]["user_id"], 128), seed=2025).to(device)
         prime.start = prime.start.to(dtype)
         # F74 T5 (pending approval, off): a frozen protocol may shorten the discarded primer.

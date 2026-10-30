@@ -77,18 +77,35 @@ def split_frame(frame, row, split):
     return section
 
 
+def row_frame(row, orig=False):
+    """The row's whole history frame: get_rwkv_data of the user, or, for a data-augmentation (SM67) pseudo row
+    (row["augment"], scripts/augment.py), the source user's frame restricted to the row's half of the notes. The
+    half's orig_review_th column is dropped (the sample builders take a fixed column set) unless orig=True."""
+    if "augment" not in row:
+        return get_rwkv_data(DATA, row["user_id"])
+    from scripts.augment import row_keep
+    frame = get_rwkv_data(DATA, row["augment"]["source_user"], keep=row_keep(DATA, row))
+    return frame if orig else frame.drop(columns=["orig_review_th"])
+
+
+def seed_user(row):
+    """The user id in the item seed (training_seed + user + offset): a pseudo row keeps its real user's id codes,
+    day baseline and dropout draws (SM67)."""
+    return row["augment"]["source_user"] if "augment" in row else row["user_id"]
+
+
 def frame_stream(rows, prefetch=False):
     """At most the current and next complete history are resident."""
     if not prefetch:
         for row in rows:
-            yield row, get_rwkv_data(DATA, row["user_id"])
+            yield row, row_frame(row)
         return
     with ThreadPoolExecutor(max_workers=1) as loader:
-        pending = loader.submit(get_rwkv_data, DATA, rows[0]["user_id"])
+        pending = loader.submit(row_frame, rows[0])
         for i, row in enumerate(rows):
             frame = pending.result()
             if i + 1 < len(rows):
-                pending = loader.submit(get_rwkv_data, DATA, rows[i + 1]["user_id"])
+                pending = loader.submit(row_frame, rows[i + 1])
             yield row, frame
 
 
@@ -132,7 +149,7 @@ def prepare_job(row, offset, end, seed, options, section=None, cache_path=None):
         if section is None:
             if user not in _WORKER_FRAMES:
                 _WORKER_FRAMES.clear()
-                _WORKER_FRAMES[user] = split_frame(get_rwkv_data(DATA, user), row, "train")
+                _WORKER_FRAMES[user] = split_frame(row_frame(row), row, "train")
             section = _WORKER_FRAMES[user].iloc[offset:end]
         from scripts.gpu_r01_samples import samples_for
         samples = samples_for(section, user, options)

@@ -102,7 +102,15 @@ def prepare(source_run, epoch, out, fraction, shape, evaluate, seed, extra_optio
         # The source optimizer state is of another kind (AdamW vs Muon): start the decay from a new, empty state.
         full_run.pop("init_optimizer")
         full_run["optimizer_state"] = "fresh"
-    protocol = {"rows": rows_for(users, counts), "evaluation_rows": rows_for(evaluation, counts),
+    rows, augment = rows_for(users, counts), None
+    if options.get("augment") is not None:
+        # Data augmentation (SM67, scripts/augment.py): the selected users' rows become their two note halves, in
+        # place; the same reviews, labels and order otherwise. Refuses held-out users; recorded in decay.json.
+        from scripts.augment import expand_rows, held_out_users
+        if evaluate != "none":
+            raise ValueError("augment cool-downs are prepared with --evaluate none (held-out scoring is separate)")
+        rows, augment = expand_rows(rows, options["augment"], dataset, held_out_users(), held_out_users(include_2225=True), workers=4)
+    protocol = {"rows": rows, "evaluation_rows": rows_for(evaluation, counts),
                 "dataset_path": str(dataset), "dataset_revision": config["dataset_revision"],
                 "training": {"epochs": 1, "chunk_reviews": options.get("chunk_reviews", 128), "gpu_memory_fraction": 0.95},
                 "execution_mode": {"CUBLAS_WORKSPACE_CONFIG": ":4096:8"}, "full_run": full_run}
@@ -114,6 +122,9 @@ def prepare(source_run, epoch, out, fraction, shape, evaluate, seed, extra_optio
              "shuffle_seed": seed, "lr": f"7e-4 -> {final * 7e-4:g}, shape {shape}, over all {reviews:,} reviews",
              "evaluation_set": evaluate, "evaluation_users": len(evaluation),
              "control": f"epoch-{epoch:02d} scores of the same users in {folder / 'result.json'}"}
+    if augment is not None:
+        decay["augment"] = augment
+        decay["training_rows"] = len(rows)
     out.mkdir(parents=True)
     atomic_json(out / "decay.json", decay)
     atomic_json(out / "protocol.json", protocol)
