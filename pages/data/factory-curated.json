@@ -1365,7 +1365,7 @@
     "better teacher (SM65) stage 1"
    ],
    "what": "Better teacher (SM65) stage 1: the big model (1 leak-free epoch) trained one more leak-free epoch on the 3,969 final-tier training users it has never seen (ids below 5000, 285.9M reviews; disjoint from the 732 / 464 sets and the final test), same recipe as its leak-free epoch, then scored on the 732 set",
-   "when": "Done Fri 10-30 20:27 (training 13:10&ndash;20:10, 732-set scoring 20:10&ndash;20:27): grey, between the go and stop bars; stage 2 waits for the user&rsquo;s call",
+   "when": "Done Fri 10-30 20:27 (training 13:10&ndash;20:10, 732-set scoring 20:10&ndash;20:27): grey, between the go and stop bars; parked by the user (checkpoint kept)",
    "decides": "Whether a better teacher exists at all: go on (teacher targets for the 8,000 users, ~4 h, then the same cool-down of the small model with only the targets swapped, ~8.5 h, paired against the existing one) if it beats the big model (1 leak-free epoch) by &ge; 0.20 points curve or &ge; 0.15 instant on 722 users; stop if both heads gain under 0.10. An average of the shipped and leak-free big models was checked on CPU first: only 0.03&ndash;0.09 points, dropped. Expected student gain about 0.03&ndash;0.13 points per head"
   },
   {
@@ -1467,8 +1467,8 @@
    "id": "SM65",
    "track": "small model",
    "item": "New axis candidate: a better teacher (an ensemble of big models, or a big model trained on more users) to distill from",
-   "why": "Stage 1 done 10-30: the big model with one more leak-free epoch on 3,969 new users is &minus;0.17% curve / &minus;0.03% instant vs the big model (1 leak-free epoch), between the go and stop bars. Stage 2 (teacher targets, ~4 h GPU) and stage 3 (small-model cool-down, ~8.5 h) wait for the user&rsquo;s call; expected student gain about 0.03&ndash;0.08 points curve, ~0 instant. Design: artifacts/small-model/sm65/DESIGN.md",
-   "since": "10-30T20:40"
+   "why": "Stage 1 done 10-30: the big model with one more leak-free epoch on 3,969 new users is &minus;0.17% curve / &minus;0.03% instant vs the big model (1 leak-free epoch), between the go and stop bars. Stage 2 (teacher targets, ~4 h GPU) and stage 3 (small-model cool-down, ~8.5 h) are parked (user 10-30 ~21:00); the checkpoint is kept in wt/sm65; expected student gain about 0.03&ndash;0.08 points curve, ~0 instant. Design: artifacts/small-model/sm65/DESIGN.md",
+   "since": "10-30T21:00"
   },
   {
    "status": "done",
@@ -1840,7 +1840,7 @@
    "instant_pct": -0.03,
    "eval": "722 users (732 set), scored leak-free, w8+s8",
    "fork": "vs the big model (1 leak-free epoch): 0.29897 / 0.27576",
-   "takeaway": "<strong>Between the go and stop bars</strong>: &minus;0.17% curve [&minus;0.29, &minus;0.05] but only &minus;0.03% instant vs the big model (1 leak-free epoch); go needed &minus;0.20% curve or &minus;0.15% instant. A real but small teacher gain; the student would get only part of it. Waiting for the user&rsquo;s call on stage 2 (teacher targets, ~4 h GPU, then a ~8.5-h cool-down of the small model)",
+   "takeaway": "<strong>Between the go and stop bars</strong>: &minus;0.17% curve [&minus;0.29, &minus;0.05] but only &minus;0.03% instant vs the big model (1 leak-free epoch); go needed &minus;0.20% curve or &minus;0.15% instant. A real but small teacher gain; the student would get only part of it. Parked by the user 10-30: stage 2 (teacher targets, ~4 h GPU, then a ~8.5-h cool-down of the small model) not worth it for an expected student gain of ~0.03&ndash;0.08 points; the checkpoint is kept",
    "started_at": "2026-10-30T13:09+01:00",
    "ended_at": "2026-10-30T20:27+01:00",
    "gpu_minutes": 437,
