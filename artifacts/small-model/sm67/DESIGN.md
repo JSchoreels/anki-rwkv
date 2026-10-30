@@ -16,8 +16,8 @@ Recomputing costs 4.0 GPU h per augmented copy. Stage 1 = **the 1-epoch cool-dow
 the leak-free small model's (SM72s) last cool-down, with half of the large users split, ~9 GPU h**. The control is
 that cool-down, which already exists (free). The split leaves every card's own sequence unchanged, so the expected
 gain is modest: **~0-0.05 points per head**. Stage 1 is built to stop cheaply, and its output is a release candidate
-if it wins. Code: ~400 lines on a new branch `sm67` cut from `sm72s` (CPU only, ~0.5 day of agent work). It is a plan
-only: no launcher yet.
+if it wins. Code: ~400 lines on a new branch `sm67` cut from `sm72s` (CPU only, ~0.5 day of agent work). Stage 1 is
+implemented and dry-run checked (section 8, 10-30); not launched.
 
 Side finding (section 1, (0)): the training inputs are **bit-identical in every epoch**. `training_seed` is 2025 in
 every epoch. Each window's seed is `training_seed + user + offset`, so the random id codes, the day baseline and the
@@ -241,3 +241,66 @@ written). It samples 25 training users stratified by size (2k-250k reviews, 1,31
 | 1. Augmented cool-down vs the existing one + 732 score | ~9 h | whether context augmentation helps at all (>= 0.20 / 0.15 points); a release candidate if it wins |
 | 2. Augmented constant-LR epochs (re-drawn splits + re-seed) + cool-down | ~18 h | whether augmentation in training buys the smaller model's (SM73) room |
 | If stage 1 stops | ~9 h | the augmentation axis is closed (only the split is valid) |
+
+## 8. Implementation (10-30, branch `sm67` c414bc83, worktree `wt/sm67`; CPU only, not launched)
+
+Code (flag off = today's training, bit for bit):
+- `scripts/augment.py` (new): spec check, pseudo ids `10,000,000 + 4 x user + part`, note hash
+  (seed, user, note; a deleted card by its card id), selection, row expansion, the kept review numbers, the GPU-smoke
+  folder.
+- `rwkv/data_processing.get_rwkv_data(..., keep=None)`: the mask over the raw revlog rows, applied before every
+  feature, adds `orig_review_th`.
+- Loaders (`scripts/gpu_batch1.py`: `row_frame`, `seed_user`; `gpu_r01_prefetch.py`, `gpu_preprocessing_stage.py`, the
+  trainer's primer):
+  - a pseudo row reads its real user's half;
+  - its item seed (id codes, day baseline, dropout) is the real user's;
+  - pseudo rows need the option, on the plain ordered-prefetch path.
+- `scripts/expertium_options.ReplayTargets`: a pseudo batch reads the real user's file. `label_review_th` is mapped
+  through the half's kept original review numbers.
+- `scripts/expertium_decay.py prepare`: `"augment"` in `--extra-options` expands the rows in place in the user order
+  and records the counts in decay.json (`augment`, `training_rows`).
+- `scripts/check_replay_label_windows.py`: pseudo rows checked on their half of the real user's file. The two halves'
+  label counts must sum to the export's record.
+- `scripts/check_augment.py` (new; `cpu`, `pair`), `scripts/sm67_rule.py` (new),
+  `artifacts/small-model/sm67/launch-sm67.sh`, `HANDOFF-sm67.md` (exact hidden launch command).
+
+One change from section 3: **the 2,225 pool's users are never split.** Its 1,493 extra users are final-tier training
+users, so they stay in training whole, exactly as in the control. No pseudo-user is ever built from a user of any
+evaluation set. That leaves 1,918 candidates (437 large users of the 2,225 pool excluded), of which **959 are split**:
+- 8,959 rows, 187.1M reviews (32.2%) in halves (section 4 assumed 38%);
+- smallest half 31,826 reviews (13 halves under 32,768);
+- 32k updates 22,079 -> 22,642 (+2.5%).
+
+CPU checks, **ALL OK** (`check-augment-cpu.json` on the branch, 87 s):
+
+| Check | Result |
+|---|---|
+| Flag off, loader | the frames of 2 users are bitwise equal to the `wt/sm72s` tree |
+| Flag off, trainer path (the cool-down options, replay KD, lanes carry, epoch-25 weights, 8 updates) | prepared batches, teacher targets, loss, outputs and every gradient bitwise equal to the `wt/sm72s` tree |
+| Option on, users that are not split | the same bits as the control |
+| 3 split users (65,560 / 115,853 / 248,965 reviews) | kept cards' own inputs, ids and labels identical on 100% of rows; each review in exactly one half; labelled reviews conserved; label review numbers map back to the whole user's |
+| Context columns (share of rows changed) | `cum_reviews_today` 97-100%, `diff_reviews` 82-89%, `diff_new_cards` 62-71%, `cum_new_cards_today` 45-71%, `day_offset_diff` 0.2-1.3% |
+| Teacher targets | trainer path: the remapped targets equal the direct lookup of the real user's file on every labelled row; frame level: the index remap is exact on every labelled row of the 3 users |
+| Seeds and id codes | pseudo item seeds are the real user's; a half's id codes equal the whole user's |
+| Held-out | 0 training rows in the 464 / 732 / validation / final-test sets; 0 pseudo-users from any evaluation user; a held-out row is refused; the scorer never reads `augment` |
+
+Dry run of the launcher (START_EPOCH=25) **OK**:
+- the real prepare, the label-window trims (only user 5599, as in the control) and the Muon fresh-state check;
+- the pair check against the leak-free small model's (SM72s) epoch-25 cool-down: identical options except
+  `augment`; the same start, schedule, users, order and reviews; labelled reviews 505,739,554 in both.
+
+Launcher steps:
+1. Wait for the tiny architecture additions' (SM77) launcher to end (its log's last line; `gpu/NO-WAIT` skips it).
+2. CPU prepare and checks.
+3. Ticket 0, ~15 min: GPU smoke of the pseudo-user path (the two halves of one split user).
+4. The cool-down in segments at the breaks (quiet.json plus the daily 21:00-02:00).
+5. 732 scoring: 723 users plus the 3 long users at the 0.92 cap.
+6. Wait for the control's 732 rows, then `sm67_rule.py decide` with the rule of section 4 (722 users).
+
+`START_EPOCH` (default 25) picks the start; the control is the leak-free small model's (SM72s) existing cool-down from
+that epoch. The rule script reproduces the leak-free small model's (SM72s) summary when given its rows (the e20
+cool-down vs the e15 one: 0.30019 / 0.30038, +0.41% / +0.47% vs the big model (1 leak-free epoch)).
+
+**GPU for stage 1: ~8.7 h** (smoke 0.2 h, cool-down ~8.2 h at ~20.2k reviews/s with +2.5% updates, scoring 0.3 h).
+The CPU proxy (section 2: the released model on whole users vs their halves) was not run. It does not gate the
+run.
