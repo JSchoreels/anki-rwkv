@@ -12,6 +12,7 @@
   .sm-table th, .sm-table td { white-space: normal; vertical-align: top; }
   .sm-table td.num { white-space: nowrap; font-variant-numeric: tabular-nums; }
   .sm-table td.when { white-space: nowrap; color: var(--muted); }
+  .sm-table td.when.note { white-space: normal; min-width: 11rem; max-width: 16rem; }
   .sm-table .id { color: var(--muted); font-size: 12.5px; }
   .sm-table .pct { color: var(--muted); font-size: 12.5px; }
   .sm-table > tbody > tr.best > td { background: var(--accent-soft); }
@@ -316,7 +317,7 @@
       } else {
         const r = it.r, when = whenText(r, nowD), st = (STATE[r.state] || (() => ''))(r);
         const old = it.old ? ' class="old" hidden' : '';
-        trs.push(`<tr${old}><td class="when">${when}</td><td>${st}</td><td>${tag(r.kind)}</td><td>${name(r.what, r.id, r.track)}</td><td>${r.decides || ''}</td></tr>`);
+        trs.push(`<tr${old}><td class="when${when.length > 32 ? ' note' : ''}">${when}</td><td>${st}</td><td>${tag(r.kind)}</td><td>${name(r.what, r.id, r.track)}</td><td>${r.decides || ''}</td></tr>`);
         cs.push(`<div class="rc${it.old ? ' old' : ''}"${it.old ? ' hidden' : ''}><div class="l1"><span class="t">${when}</span>${st}</div><div class="tx">${name(r.what, r.id, '')}</div>`
           + (r.decides ? `<div class="sub">${r.decides}</div>` : '') + `<div class="tg">${tag(r.kind)}${trk(r.track)}</div></div>`);
       }
