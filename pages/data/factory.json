@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-10-30T13:55:35+01:00",
- "updated": "2026-10-30 13:55",
- "material": "a12097bb0d4c4274",
- "summary": "running 000772",
+ "generated_at": "2026-10-30T20:10:48+01:00",
+ "updated": "2026-10-30 20:10",
+ "material": "192511d44281c3dd",
+ "summary": "running 000773, finished 000772",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring (curve / instant)",
@@ -240,18 +240,18 @@
  "now": [
   {
    "what": "Better teacher (SM65) stage 1: the big model (1 leak-free epoch) trained one more leak-free epoch on the 3,969 final-tier training users it has never seen (ids below 5000, 285.9M reviews; disjoint from the 732 / 464 sets and the final test), same recipe as its leak-free epoch, then scored on the 732 set",
-   "id": "SM65, ticket 000772",
+   "id": "SM65, ticket 000773",
    "kind": "gpu-train",
    "decides": "Whether a better teacher exists at all: go on (teacher targets for the 8,000 users, ~4 h, then the same cool-down of the small model with only the targets swapped, ~8.5 h, paired against the existing one) if it beats the big model (1 leak-free epoch) by &ge; 0.20 points curve or &ge; 0.15 instant on 722 users; stop if both heads gain under 0.10. An average of the shipped and leak-free big models was checked on CPU first: only 0.03&ndash;0.09 points, dropped. Expected student gain about 0.03&ndash;0.13 points per head",
    "why": "",
-   "job": "better teacher (SM65) stage 1: big model (fork RWKV) one more leak-free epoch on the 3,969 new users (ids below 5000) from the big model (1 leak-free epoch), 285M reviews left (segment to the next window or the end)",
+   "job": "better teacher (SM65) stage 1: score big-moreusers/w8+s8, leak-free inputs, 732 set (723 users), split existing/deleted",
    "linked": true,
    "track": "small model",
-   "ticket": "000772-small-model",
-   "started": "13:10",
-   "elapsed": "0:45",
+   "ticket": "000773-small-model",
+   "started": "20:10",
+   "elapsed": "0:00",
    "progress": null,
-   "eta": "~20:19"
+   "eta": "~20:22"
   }
  ],
  "charts": [
@@ -424,6 +424,15 @@
  "waiting": [],
  "recent": [
   {
+   "ticket": "000772-small-model",
+   "id": "SM65",
+   "what": "better teacher (SM65) stage 1: big model (fork RWKV) one more leak-free epoch on the 3,969 new users (ids below 5000) from the big model (1 leak-free epoch), 285M reviews left (segment to the next window or the end)",
+   "ended": "20:10",
+   "date": "10-30",
+   "exit": 0,
+   "ran": "7:00"
+  },
+  {
    "ticket": "000771-small-model",
    "id": "SM65",
    "what": "better teacher (SM65) stage 1: GPU smoke of the big model&#x27;s epoch on the new users (2 users x 512 reviews, scratch copy)",
@@ -467,15 +476,6 @@
    "date": "10-30",
    "exit": 0,
    "ran": "7:57"
-  },
-  {
-   "ticket": "000766-small-model",
-   "id": "SM63",
-   "what": "SM72 leak-free scoring s-w64kd-final-sc-lanes-leakfree-e25 on the 464 set (458 fit users) (pass 1)",
-   "ended": "04:57",
-   "date": "10-30",
-   "exit": 0,
-   "ran": "0:07"
   }
  ],
  "plan": [
@@ -1530,8 +1530,8 @@
    "when": "Code ready and checked on CPU, launcher started Thu 10-29 15:13 and waiting for the leak-free small model&rsquo;s (SM72s) epochs 21&ndash;25 and cool-down (done ~13:00&ndash;15:00 Fri 10-30). Then a 5-min GPU smoke and ~7 h of training, paused at the 21:00 break and resumed at 02:00 from a snapshot, then 732-set scoring (~15 min). Decision ~20:40 Fri if the GPU frees at 13:00, ~03:45 Sat 10-31 if at 15:00",
    "decides": "Whether a better teacher exists at all: go on (teacher targets for the 8,000 users, ~4 h, then the same cool-down of the small model with only the targets swapped, ~8.5 h, paired against the existing one) if it beats the big model (1 leak-free epoch) by &ge; 0.20 points curve or &ge; 0.15 instant on 722 users; stop if both heads gain under 0.10. An average of the shipped and leak-free big models was checked on CPU first: only 0.03&ndash;0.09 points, dropped. Expected student gain about 0.03&ndash;0.13 points per head",
    "state": "running",
-   "started": "13:10",
-   "ticket": "000772-small-model",
+   "started": "20:10",
+   "ticket": "000773-small-model",
    "started_at": "2026-10-30T13:09:52+01:00",
    "ends_at": "2026-10-30T20:29:52+01:00"
   },
