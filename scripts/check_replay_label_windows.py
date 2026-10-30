@@ -11,6 +11,8 @@ was reviews 32,768..32,781 with no label.
 
 Checks per user: replay file present, rows == available_reviews, 5 columns; train_range [0, n] (or a recorded trim);
 non-NaN curve/rating counts == the export's progress.jsonl record when there is one; no unlabelled window.
+Data augmentation (SM67) pseudo rows: the real user's file restricted to the half's kept reviews (the targets the
+trainer reads, scripts/expertium_options.ReplayTargets); the two halves' counts must sum to the export's record.
 
 --trim-unlabelled-tail: an unlabelled LAST window holds only first reviews at the end of the user's history; it
 carries no loss and feeds no later review, so the user's train_range is cut to the window's start. The original
@@ -24,15 +26,26 @@ from concurrent.futures import ProcessPoolExecutor
 import json
 from pathlib import Path
 
+import sys
+
 import numpy as np
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 
 def scan(job):
-    user, n, start, end, replay, span = job
-    path = Path(replay) / "users" / f"{user}.npz"
+    user, n, start, end, replay, span = job[:6]
+    augment, data = job[6] if len(job) > 6 else (None, None)
+    path = Path(replay) / "users" / f"{augment['source_user'] if augment else user}.npz"
     if not path.exists():
         return {"user_id": user, "error": "replay file missing"}
     targets = np.load(path)["targets"]
+    if augment:
+        from scripts.augment import kept_review_ths
+        kept = kept_review_ths(data, augment["source_user"], augment["part"], augment["seed"])
+        if targets.ndim != 2 or targets.shape[1] != 5 or kept.size != n or kept[-1] > targets.shape[0]:
+            return {"user_id": user, "error": f"replay shape {targets.shape} vs the half's {kept.size} kept reviews (row {n})"}
+        targets = targets[kept - 1]
     if targets.ndim != 2 or targets.shape != (n, 5):
         return {"user_id": user, "error": f"replay shape {targets.shape}, expected ({n}, 5)"}
     curve, rating = ~np.isnan(targets[:, 0]), ~np.isnan(targets[:, 1])
@@ -74,15 +87,20 @@ def main():
         allowed_end = trimmed[row["user_id"]]["to"] if row["user_id"] in trimmed else row["available_reviews"]
         if row["train_range"] != [0, allowed_end]:
             fail.append(f"user {row['user_id']}: train_range {row['train_range']}, expected [0, {allowed_end}]")
-    jobs = [(r["user_id"], r["available_reviews"], r["train_range"][0], r["train_range"][1], str(replay), span) for r in rows]
+    jobs = [(r["user_id"], r["available_reviews"], r["train_range"][0], r["train_range"][1], str(replay), span)
+            + (((r["augment"], protocol["dataset_path"]),) if "augment" in r else ()) for r in rows]
     with ProcessPoolExecutor(args.workers) as pool:
         results = list(pool.map(scan, jobs, chunksize=64))
-    tails = []
+    tails, halves = [], {}
+    source = {r["user_id"]: r["augment"]["source_user"] for r in rows if "augment" in r}
     for res in results:
         if "error" in res:
             fail.append(f"user {res['user_id']}: {res['error']}")
             continue
-        record = progress.get(res["user_id"])
+        if res["user_id"] in source:  # SM67: compare the halves' sum with the record below
+            pair = halves.setdefault(source[res["user_id"]], [0, 0, 0])
+            pair[0] += res["curve"]; pair[1] += res["rating"]; pair[2] += 1
+        record = progress.get(res["user_id"]) if res["user_id"] not in source else None
         if record and (record.get("curve_targets"), record.get("rating_targets")) != (res["curve"], res["rating"]):
             fail.append(f"user {res['user_id']}: label counts {res['curve']}/{res['rating']} vs export record "
                         f"{record.get('curve_targets')}/{record.get('rating_targets')}")
@@ -92,6 +110,13 @@ def main():
                               "dropped_reviews": res["train_range"][1] - offset})
             else:
                 fail.append(f"user {res['user_id']}: unlabelled window at offset {offset} (not a trimmable tail)")
+    for user, (curve, rating, parts) in sorted(halves.items()):
+        record = progress.get(user)
+        if parts != 2:
+            fail.append(f"user {user}: {parts} halves in the rows, expected 2")
+        elif record and (record.get("curve_targets"), record.get("rating_targets")) != (curve, rating):
+            fail.append(f"user {user}: halves' label counts {curve}/{rating} vs export record "
+                        f"{record.get('curve_targets')}/{record.get('rating_targets')}")
     applied = []
     if tails and args.trim_unlabelled_tail and not fail:
         untrimmed = args.decay / "protocol.untrimmed.json"
@@ -112,6 +137,7 @@ def main():
     report = {"decay": str(args.decay), "replay": str(replay), "span": span, "users": len(rows),
               "reviews_in_train_ranges": sum(r["train_range"][1] - r["train_range"][0] for r in rows),
               "labelled_reviews": sum(r.get("curve", 0) for r in results),
+              "rating_labelled_reviews": sum(r.get("rating", 0) for r in results), "pseudo_rows": len(source),
               "trims_recorded": sorted(trimmed), "trims_applied_now": applied, "failures": fail, "ok": not fail}
     if args.out:
         atomic_json(args.out, report)

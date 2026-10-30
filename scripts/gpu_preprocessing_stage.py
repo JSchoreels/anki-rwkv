@@ -22,9 +22,8 @@ def worker_history(row):
     key = json.dumps(row, sort_keys=True)
     if key not in _HISTORIES:
         _HISTORIES.clear()
-        from rwkv.data_processing import get_rwkv_data
-        from scripts.gpu_batch1 import DATA
-        _HISTORIES[key] = split_frame(get_rwkv_data(DATA, row["user_id"]), row, "train")
+        from scripts.gpu_batch1 import row_frame
+        _HISTORIES[key] = split_frame(row_frame(row), row, "train")
     return _HISTORIES[key]
 
 
@@ -76,6 +75,7 @@ def prepare_job(row, offset, end, seed, options, section=None, cache_path=None):
         samples = samples_for(section, row["user_id"], options)
     batched = options.get("batched_id_encodings", False)
     # SM21 state carry: one encoding draw per user (seed = training_seed + user + offset, so seed - offset).
+    # SM67: a pseudo row's seed is built from its real user (gpu_r01_prefetch), so this stays training_seed + real user.
     carry = {"consistent_seed": seed - offset} if options.get("state_carry") else {}
     if options.get("gpu_packed_features"):
         batch = prepare_gpu_packed(samples, seed, batched_id_encodings=batched, layout=layout, **carry)

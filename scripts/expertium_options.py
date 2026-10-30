@@ -160,7 +160,7 @@ class Teacher:
             raise ValueError("distillation alphas must lie in [0, 1]")
         self.replay = None
         if spec.get("kd_source", "online") != "online":  # SM11: stored full-history targets, no teacher model
-            self.replay = ReplayTargets(spec)
+            self.replay = ReplayTargets(spec, (batch_options or {}).get("augment"))
             self.sha256, self.parameters, self.cache = self.replay.teacher_sha256, None, None
             self.cache_stats = self.replay.stats
             return
@@ -266,9 +266,13 @@ class ReplayTargets:
     labelled rows are looked up by batch.label_review_th and scattered into zero tensors exactly like a cache hit, so
     the masked rows the loss ignores stay zero. A labelled row without a stored target is an error (wrong dataset or
     an incomplete export). The targets do not depend on the batch options, so no cache folder or digest is involved;
-    "cache" is refused with this source."""
+    "cache" is refused with this source.
 
-    def __init__(self, spec):
+    Data augmentation (SM67, scripts/augment.py): a pseudo-user's batch (key[0] = 10,000,000 + 4 x user + part) reads
+    its real user's file, its label_review_th (numbered within the half) mapped to the original review number through
+    the half's kept reviews: the original full-history target of the same card review. Needs the "augment" option."""
+
+    def __init__(self, spec, augment=None):
         if spec.get("kd_source") != "replay" or not spec.get("replay"):
             raise ValueError(f"distillation kd_source must be 'online' or 'replay' with a 'replay' folder: {spec}")
         if spec.get("cache"):
@@ -291,6 +295,12 @@ class ReplayTargets:
                              "(RWKV_DELETED_CARDS)")
         self.user, self.table = None, None
         self.stats = {"replay_batches": 0, "replay_users": 0}
+        self.augment, self.kept_key, self.kept = None, None, None
+        if augment is not None:
+            from scripts.augment import validate
+            self.augment = validate(augment)
+            self.data = Path(data or self.manifest["dataset_path"])
+            self.stats["replay_pseudo_batches"] = 0
 
     def _load(self, user):
         if user != self.user:
@@ -310,12 +320,21 @@ class ReplayTargets:
     def targets(self, batch, key, labels=None):
         if key is None:
             raise RuntimeError("kd_source replay needs single-user batches (a batch key)")
-        table = self._load(int(key[0]))
+        from scripts.augment import decode
+        user, part = decode(key[0])
+        table = self._load(user)
         cpu = (labels if labels is not None else batch.labels).detach().cpu()
         review_th = batch.label_review_th.detach().cpu().reshape(-1).long()
         curve_rows = torch.nonzero(((1 - cpu[:, :, 6]) * cpu[:, :, 4]).reshape(-1), as_tuple=True)[0]
         query_rows = torch.nonzero((cpu[:, :, 6] * cpu[:, :, 4]).reshape(-1), as_tuple=True)[0]
         curve_index, query_index = review_th[curve_rows] - 1, review_th[query_rows] - 1
+        if part is not None:
+            kept = self.kept_reviews(user, part)
+            for index in (curve_index, query_index):
+                if index.numel() and (int(index.min()) < 0 or int(index.max()) >= kept.numel()):
+                    raise RuntimeError(f"batch review_th outside pseudo-user {key[0]}'s {kept.numel()} reviews")
+            curve_index, query_index = kept[curve_index] - 1, kept[query_index] - 1
+            self.stats["replay_pseudo_batches"] += 1
         reviews = table.shape[0]
         if (curve_index.numel() and (int(curve_index.min()) < 0 or int(curve_index.max()) >= reviews)) or                 (query_index.numel() and (int(query_index.min()) < 0 or int(query_index.max()) >= reviews)):
             raise RuntimeError(f"batch review_th outside user {key[0]}'s {reviews} stored reviews")
@@ -330,6 +349,16 @@ class ReplayTargets:
         rating[query_rows.to(device)] = ratings.to(device)
         self.stats["replay_batches"] += 1
         return curve.view(rows, steps), rating.view(rows, steps, 4)
+
+    def kept_reviews(self, user, part):
+        """Original review numbers (1-based, int64) of pseudo-user (user, part)'s reviews; the last one is cached."""
+        if self.augment is None:
+            raise RuntimeError(f"pseudo-user batch of user {user} without the 'augment' option")
+        if self.kept_key != (user, part):
+            from scripts.augment import kept_review_ths
+            self.kept = torch.from_numpy(kept_review_ths(self.data, user, part, self.augment["seed"]).astype("int64"))
+            self.kept_key = (user, part)
+        return self.kept
 
     def describe(self):
         return {"kd_source": "replay", "replay": str(self.folder),

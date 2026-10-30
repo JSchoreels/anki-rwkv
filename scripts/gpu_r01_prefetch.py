@@ -5,7 +5,7 @@ import time
 
 import numpy as np
 
-from scripts.gpu_batch1 import frame_stream, prepare_job, split_frame
+from scripts.gpu_batch1 import frame_stream, prepare_job, seed_user, split_frame
 
 
 def training_batches(rows, span, seed, pool, options, cache_paths=None, depth=8):
@@ -13,9 +13,19 @@ def training_batches(rows, span, seed, pool, options, cache_paths=None, depth=8)
             or set(options) - {"prefetch_users", "reduced_sync", "preparation_workers", "fused_shift", "padding_factor", "async_transfer", "packed_ipc", "gpu_packed_features", "preprocessing_cache", "batched_id_encodings", "preprocessing_cache_bytes", "preprocessing_cache_mode",
                                           "split_excess", "batch_chunks", "gpu_memory_fraction", "grouped_sync", "main_threads", "driver_launch", "deferred_evaluation_metrics", "native_wkv", "native_group_norm",
                                          "bulk_transfer", "parallel_evaluation", "jit_optimize", "main_priority", "wddm_flush", "wddm_flush_streams", "wkv_rows", "lean_step_reset", "nondeterministic", "skip_uninitialized_fill", "skip_padding_sources", "concurrent_splits", "concurrent_split_limit", "exact_bonus_products", "batched_split_gather", "fused_padded_gather", "exact_gate_glue", "exact_channel_glue", "worker_scatter_orders", "recurrence_prefetch", "recurrence_load_pipeline", "wave_aware_backward", "flat_buffers", "group_adam", "partial_shift_lerp", "explicit_shift_lerp", "exact_shift_lerp", "compact_previous_state", "exact_shift", "exact_index", "shared_shift_orders", "stream_launches", "prefetch_rows", "prefetch_shift", "training_seed", "pack_users", "prestart_pool", "fast_samples", "columnar_samples", "batch_segment_features", "direct_sample_matrix", "row_tiles_exact", "exact_group_norm", "deferred_reads", "host_placement", "sync_free_loss", "process_qos", "native_index", "native_glue", "deferred_read_depth", "wkv_tile", "bookkeeping_stride", "worker_frames", "worker_qos",
-                                         "architecture", "lr_schedule", "optimizer", "end_to_start_intervals", "distillation", "chunk_reviews", "instant_loss_weight", "state_carry", "state_vq"}
+                                         "architecture", "lr_schedule", "optimizer", "end_to_start_intervals", "distillation", "chunk_reviews", "instant_loss_weight", "state_carry", "state_vq", "augment"}
             or bool(options.get("preprocessing_cache")) != (cache_paths is not None) or depth < 1):
         raise ValueError("Unsupported R01 ordered-prefetch preparation options")
+    augmented = [row for row in rows if "augment" in row]
+    if augmented:
+        # Data augmentation (SM67, scripts/augment.py): pseudo rows only with the "augment" option, on the plain
+        # ordered-prefetch path (history slices from the main process), each row consistent with the option's seed.
+        from scripts.augment import validate
+        spec = validate(options.get("augment"))
+        if options.get("pack_users") or options.get("worker_frames") or cache_paths is not None:
+            raise ValueError("augment rows need the plain ordered-prefetch path (no packing, worker frames or cache)")
+        if any(row["augment"]["seed"] != spec["seed"] or row["augment"]["kind"] != spec["kind"] for row in augmented):
+            raise ValueError("augment rows were prepared with another seed or kind than the option")
     carry = bool(options.get("state_carry"))
     universes, lanes = {}, {}
     if carry:
@@ -47,14 +57,14 @@ def training_batches(rows, span, seed, pool, options, cache_paths=None, depth=8)
                 for u, update in enumerate(layout):
                     picked = np.concatenate([np.arange(w * chunk, min(length, (w + 1) * chunk)) for _, w in update])
                     lanes[row["user_id"], u * span] = [lane for lane, _ in update]
-                    yield row, (row, u * span, u * span + len(picked), seed + row["user_id"] + u * span,
+                    yield row, (row, u * span, u * span + len(picked), seed + seed_user(row) + u * span,
                                 options, section.iloc[picked], None)
                 continue
             if carry:
                 universes[row["user_id"]] = entity_universe(section)
             for offset in range(0, length, span):
                 end = min(length, offset + span)
-                yield row, (row, offset, end, seed + row["user_id"] + offset,
+                yield row, (row, offset, end, seed + seed_user(row) + offset,
                             options, section.iloc[offset:end] if section is not None else None,
                             cache_paths[row["user_id"], offset] if cache_paths is not None else None)
 
