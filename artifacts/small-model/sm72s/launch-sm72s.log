@@ -499,3 +499,69 @@
 - cool-down from e10: 69,478,198 reviews, 0 min, 0 reviews/s
 [sm72s 10-29 07:07:20] summary written: C:/Users/jonat/workspace/wt/sm72s/artifacts/small-model/sm72s/sm72s-summary.md (cool-down from e20)
 [sm72s 10-29 07:07:20] done
+[sm72s 10-29 14:45:01] started: 752b2b71 SM72s: epochs 21-25 then the 1-epoch 32k Muon cool-down from epoch 25 (replaces the one from epoch 20 as the last step); dry run OK (DRYRUN=0)
+[sm72s 10-29 14:45:01] teacher export verified: [sm72-big 10-26 09:57:28] verify exit 0; manifest deleted_cards: "deleted_cards": "neighbour"
+[sm72s-replay] OK: deleted_cards neighbour, teacher = the big model's leak-free epoch (ac7f0d8a96cb), same dataset/layout/passes as fork-fp32-final8k
+[sm72s-exp] OK: scale-w64kd-final-sc-lanes-leakfree = SM56's experiment (options, seeds 2025/20261013, AdamW R01 schedule (AdamW peak 7e-4, 5-update warmup, constant) unless an option hook changes it, 8,000 final-tier users / 581,942,738 reviews per epoch, 25 epochs, from scratch, epoch hook) except distillation teacher/replay = leak-free (big-leakfree-1ep-final8k-neighbour) and env RWKV_DELETED_CARDS=neighbour; disjoint from the 464/732 pools and the sealed users
+{"experiment": "C:\\Users\\jonat\\workspace\\wt\\sm72s\\artifacts\\accuracy\\experiments\\scale-w64kd-final-sc-lanes-leakfree", "replay": "C:\\Users\\jonat\\workspace\\anki-rwkv\\artifacts\\cache\\kd-replay\\big-leakfree-1ep-final8k-neighbour", "chunk_reviews": 2048, "lanes": 16, "users": 8000, "reviews": 581942738, "labelled_curve": 505739554, "labelled_rating": 505739554, "updates_per_epoch_before_trims": 22079, "trims": [{"user_id": 5599, "from": 32782, "to": 32768, "dropped_reviews": 14, "updates_before": 2}], "ok": true, "failures": []}
+[sm72s 10-29 14:45:08] label windows: 8000 users, 581,942,738 reviews, trims [5599] ok True
+[sm72s-smoke] OK: smoke-prep options == the experiment's epoch options
+[sm72s 10-29 14:45:13] epoch 1/25: curve 0.30575 instant 0.28190; vs big model leak-free (458 users) +3.54% / +3.59%
+[sm72s 10-29 14:45:14] epoch 2/25: curve 0.30391 instant 0.27826; gain vs e1 curve +0.00184 (+0.60%) instant +0.00364 (+1.29%); vs e1 curve +0.00184 instant +0.00364; vs big model leak-free (458 users) +2.91% / +2.25%
+[sm72s 10-29 14:45:15] epoch 3/25: curve 0.30307 instant 0.27849; gain vs e1 curve +0.00268 (+0.88%) instant +0.00341 (+1.21%); vs e2 curve +0.00084 instant -0.00023; vs big model leak-free (458 users) +2.63% / +2.33%
+[sm72s 10-29 14:45:16] epoch 4/25: curve 0.30213 instant 0.27677; gain vs e1 curve +0.00362 (+1.18%) instant +0.00514 (+1.82%); vs e3 curve +0.00094 instant +0.00173; vs big model leak-free (458 users) +2.31% / +1.70%
+[sm72s 10-29 14:45:17] epoch 5/25: curve 0.30041 instant 0.27681; gain vs e1 curve +0.00534 (+1.75%) instant +0.00510 (+1.81%); vs e4 curve +0.00172 instant -0.00004; vs big model leak-free (458 users) +1.73% / +1.71%
+[sm72s 10-29 14:45:18] epoch 6/25: curve 0.30020 instant 0.27651; gain vs e1 curve +0.00555 (+1.82%) instant +0.00539 (+1.91%); vs e5 curve +0.00021 instant +0.00030; vs big model leak-free (458 users) +1.66% / +1.60%
+[sm72s 10-29 14:45:19] epoch 7/25: curve 0.30113 instant 0.27707; gain vs e1 curve +0.00462 (+1.51%) instant +0.00484 (+1.72%); vs e6 curve -0.00093 instant -0.00056; vs big model leak-free (458 users) +1.97% / +1.81%
+[sm72s 10-29 14:45:20] epoch 8/25: curve 0.30073 instant 0.27591; gain vs e1 curve +0.00502 (+1.64%) instant +0.00600 (+2.13%); vs e7 curve +0.00041 instant +0.00116; vs big model leak-free (458 users) +1.84% / +1.38%
+[sm72s 10-29 14:45:22] epoch 9/25: curve 0.29931 instant 0.27580; gain vs e1 curve +0.00644 (+2.11%) instant +0.00610 (+2.16%); vs e8 curve +0.00142 instant +0.00011; vs big model leak-free (458 users) +1.36% / +1.34%
+[sm72s 10-29 14:45:23] epoch 10/25: curve 0.29995 instant 0.27611; gain vs e1 curve +0.00580 (+1.90%) instant +0.00579 (+2.06%); vs e9 curve -0.00064 instant -0.00031; vs big model leak-free (458 users) +1.57% / +1.46%
+[sm72s 10-29 14:45:24] epoch 11/25: curve 0.30055 instant 0.27579; gain vs e1 curve +0.00520 (+1.70%) instant +0.00611 (+2.17%); vs e10 curve -0.00060 instant +0.00032; vs big model leak-free (458 users) +1.78% / +1.34%
+[sm72s 10-29 14:45:25] epoch 12/25: curve 0.29950 instant 0.27597; gain vs e1 curve +0.00625 (+2.04%) instant +0.00593 (+2.10%); vs e11 curve +0.00105 instant -0.00018; vs big model leak-free (458 users) +1.42% / +1.41%
+[sm72s 10-29 14:45:26] epoch 13/25: curve 0.30047 instant 0.27582; gain vs e1 curve +0.00528 (+1.73%) instant +0.00609 (+2.16%); vs e12 curve -0.00096 instant +0.00016; vs big model leak-free (458 users) +1.75% / +1.35%
+[sm72s 10-29 14:45:27] epoch 14/25: curve 0.29912 instant 0.27514; gain vs e1 curve +0.00662 (+2.17%) instant +0.00676 (+2.40%); vs e13 curve +0.00134 instant +0.00067; vs big model leak-free (458 users) +1.29% / +1.10%
+[sm72s 10-29 14:45:28] epoch 15/25: curve 0.29953 instant 0.27540; gain vs e1 curve +0.00622 (+2.04%) instant +0.00651 (+2.31%); vs e14 curve -0.00040 instant -0.00025; vs big model leak-free (458 users) +1.43% / +1.19%
+[sm72s 10-29 14:45:29] epoch 16/25: curve 0.29986 instant 0.27563; gain vs e1 curve +0.00589 (+1.93%) instant +0.00627 (+2.23%); vs e15 curve -0.00033 instant -0.00023; vs big model leak-free (458 users) +1.54% / +1.28%
+[sm72s 10-29 14:45:30] epoch 17/25: curve 0.29987 instant 0.27538; gain vs e1 curve +0.00588 (+1.92%) instant +0.00652 (+2.31%); vs e16 curve -0.00001 instant +0.00025; vs big model leak-free (458 users) +1.55% / +1.19%
+[sm72s 10-29 14:45:32] epoch 18/25: curve 0.29880 instant 0.27545; gain vs e1 curve +0.00695 (+2.27%) instant +0.00645 (+2.29%); vs e17 curve +0.00107 instant -0.00007; vs big model leak-free (458 users) +1.18% / +1.21%
+[sm72s 10-29 14:45:33] epoch 19/25: curve 0.30087 instant 0.27576; gain vs e1 curve +0.00488 (+1.60%) instant +0.00614 (+2.18%); vs e18 curve -0.00207 instant -0.00031; vs big model leak-free (458 users) +1.89% / +1.33%
+[sm72s 10-29 14:45:34] epoch 20/25: curve 0.30042 instant 0.27577; gain vs e1 curve +0.00533 (+1.74%) instant +0.00613 (+2.17%); vs e19 curve +0.00045 instant -0.00001; vs big model leak-free (458 users) +1.73% / +1.33%
+[sm72s 10-29 14:45:34] enqueue: SM72 small model leak-free (sm72s) epoch 21/25 (8k final tier, 2048 x 16 lanes carry, leak-free replay KD, AdamW 7e-4) (expected 120 min, max wait 251 min, 374 min to the next window)
+[sm72s 10-29 16:31:22] exit 3: SM72 small model leak-free (sm72s) epoch 21/25 (8k final tier, 2048 x 16 lanes carry, leak-free replay KD, AdamW 7e-4)
+[sm72s 10-29 16:31:23] epoch 21 trained: 581,942,724 reviews, 105.6 min training, 105.8 min wall, 91,876 reviews/s
+[sm72s 10-29 16:31:23] enqueue: SM72 leak-free scoring s-w64kd-final-sc-lanes-leakfree-e21 on the 464 set (458 fit users) (pass 1) (expected 12 min, max wait 253 min, 268 min to the next window)
+[sm72s 10-29 16:38:57] exit 0: SM72 leak-free scoring s-w64kd-final-sc-lanes-leakfree-e21 on the 464 set (458 fit users) (pass 1)
+[sm72s 10-29 16:38:58] epoch 21/25: curve 0.29991 instant 0.27569; gain vs e1 curve +0.00584 (+1.91%) instant +0.00621 (+2.20%); vs e20 curve +0.00051 instant +0.00008; vs big model leak-free (458 users) +1.56% / +1.30%
+[sm72s 10-29 16:38:58] enqueue: SM72 small model leak-free (sm72s) epoch 22/25 (8k final tier, 2048 x 16 lanes carry, leak-free replay KD, AdamW 7e-4) (expected 120 min, max wait 138 min, 261 min to the next window)
+[sm72s 10-29 18:25:10] exit 3: SM72 small model leak-free (sm72s) epoch 22/25 (8k final tier, 2048 x 16 lanes carry, leak-free replay KD, AdamW 7e-4)
+[sm72s 10-29 18:25:10] epoch 22 trained: 581,942,724 reviews, 106.0 min training, 106.2 min wall, 91,467 reviews/s
+[sm72s 10-29 18:25:10] enqueue: SM72 leak-free scoring s-w64kd-final-sc-lanes-leakfree-e22 on the 464 set (458 fit users) (pass 1) (expected 12 min, max wait 139 min, 154 min to the next window)
+[sm72s 10-29 18:32:40] exit 0: SM72 leak-free scoring s-w64kd-final-sc-lanes-leakfree-e22 on the 464 set (458 fit users) (pass 1)
+[sm72s 10-29 18:32:41] epoch 22/25: curve 0.29967 instant 0.27534; gain vs e1 curve +0.00608 (+1.99%) instant +0.00656 (+2.33%); vs e21 curve +0.00024 instant +0.00035; vs big model leak-free (458 users) +1.48% / +1.17%
+[sm72s 10-29 18:32:41] enqueue: SM72 small model leak-free (sm72s) epoch 23/25 (8k final tier, 2048 x 16 lanes carry, leak-free replay KD, AdamW 7e-4) (expected 120 min, max wait 24 min, 147 min to the next window)
+[sm72s 10-29 20:16:39] exit 3: SM72 small model leak-free (sm72s) epoch 23/25 (8k final tier, 2048 x 16 lanes carry, leak-free replay KD, AdamW 7e-4)
+[sm72s 10-29 20:16:39] epoch 23 trained: 581,942,724 reviews, 103.8 min training, 104.0 min wall, 93,428 reviews/s
+[sm72s 10-29 20:16:40] enqueue: SM72 leak-free scoring s-w64kd-final-sc-lanes-leakfree-e23 on the 464 set (458 fit users) (pass 1) (expected 12 min, max wait 28 min, 43 min to the next window)
+[sm72s 10-29 20:24:15] exit 0: SM72 leak-free scoring s-w64kd-final-sc-lanes-leakfree-e23 on the 464 set (458 fit users) (pass 1)
+[sm72s 10-29 20:24:15] epoch 23/25: curve 0.29962 instant 0.27531; gain vs e1 curve +0.00613 (+2.00%) instant +0.00660 (+2.34%); vs e22 curve +0.00005 instant +0.00003; vs big model leak-free (458 users) +1.46% / +1.16%
+[sm72s 10-29 20:24:16] SM72 small model leak-free (sm72s) epoch 24/25 (8k final tier, 2048 x 16 lanes carry, leak-free replay KD, AdamW 7e-4) needs 115 min, 35 min before the next window; waiting
+[sm72s 10-29 21:20:16] SM72 small model leak-free (sm72s) epoch 24/25 (8k final tier, 2048 x 16 lanes carry, leak-free replay KD, AdamW 7e-4): quiet window, 16843s left
+[sm72s 10-29 22:20:17] SM72 small model leak-free (sm72s) epoch 24/25 (8k final tier, 2048 x 16 lanes carry, leak-free replay KD, AdamW 7e-4): quiet window, 13242s left
+[sm72s 10-29 23:20:17] SM72 small model leak-free (sm72s) epoch 24/25 (8k final tier, 2048 x 16 lanes carry, leak-free replay KD, AdamW 7e-4): quiet window, 9642s left
+[sm72s 10-30 00:20:18] SM72 small model leak-free (sm72s) epoch 24/25 (8k final tier, 2048 x 16 lanes carry, leak-free replay KD, AdamW 7e-4): quiet window, 6041s left
+[sm72s 10-30 01:00:18] enqueue: SM72 small model leak-free (sm72s) epoch 24/25 (8k final tier, 2048 x 16 lanes carry, leak-free replay KD, AdamW 7e-4) (expected 115 min, max wait 1081 min, 1199 min to the next window)
+[sm72s 10-30 02:51:16] exit 3: SM72 small model leak-free (sm72s) epoch 24/25 (8k final tier, 2048 x 16 lanes carry, leak-free replay KD, AdamW 7e-4)
+[sm72s 10-30 02:51:16] epoch 24 trained: 581,942,724 reviews, 110.7 min training, 111.0 min wall, 87,621 reviews/s
+[sm72s 10-30 02:51:17] enqueue: SM72 leak-free scoring s-w64kd-final-sc-lanes-leakfree-e24 on the 464 set (458 fit users) (pass 1) (expected 12 min, max wait 1073 min, 1088 min to the next window)
+[sm72s 10-30 02:58:59] exit 0: SM72 leak-free scoring s-w64kd-final-sc-lanes-leakfree-e24 on the 464 set (458 fit users) (pass 1)
+[sm72s 10-30 02:59:00] epoch 24/25: curve 0.30101 instant 0.27586; gain vs e1 curve +0.00474 (+1.55%) instant +0.00605 (+2.15%); vs e23 curve -0.00139 instant -0.00055; vs big model leak-free (458 users) +1.93% / +1.36%
+[sm72s 10-30 02:59:00] enqueue: SM72 small model leak-free (sm72s) epoch 25/25 (8k final tier, 2048 x 16 lanes carry, leak-free replay KD, AdamW 7e-4) (expected 120 min, max wait 957 min, 1080 min to the next window)
+[sm72s 10-30 04:49:26] exit 0: SM72 small model leak-free (sm72s) epoch 25/25 (8k final tier, 2048 x 16 lanes carry, leak-free replay KD, AdamW 7e-4)
+[sm72s 10-30 04:49:27] epoch 25 trained: 581,942,724 reviews, 110.3 min training, 110.4 min wall, 87,944 reviews/s
+[sm72s 10-30 04:49:27] enqueue: SM72 leak-free scoring s-w64kd-final-sc-lanes-leakfree-e25 on the 464 set (458 fit users) (pass 1) (expected 12 min, max wait 955 min, 970 min to the next window)
+[sm72s 10-30 04:57:10] exit 0: SM72 leak-free scoring s-w64kd-final-sc-lanes-leakfree-e25 on the 464 set (458 fit users) (pass 1)
+[sm72s 10-30 04:57:11] epoch 25/25: curve 0.30011 instant 0.27509; gain vs e1 curve +0.00564 (+1.84%) instant +0.00682 (+2.42%); vs e24 curve +0.00090 instant +0.00077; vs big model leak-free (458 users) +1.63% / +1.08%
+[sm72s-decay-check] OK vs SM56's cool-down from e15: identical options except the leak-free teacher/replay (Muon expertium-iter53, 32768 x 1), users and seed-1 order, trims [5599], LR 7e-4 -> 0, shape one_minus_sin, over all 581,942,738 reviews, fresh optimizer; source e25 (update offset 551950)
+[sm72s-muon] PASS lines: 7
+[sm72s 10-30 04:57:26] cool-down e25 prepared: [sm72s-muon] PASS lines: 7 [sm72s-decay-check] OK vs SM56's cool-down from e15: identical options except the leak-free teacher/replay (Muon expertium-iter53, 32768 x 1), users and seed-1 order, trims [5599], LR 7e-4 -> 0, shape
+[sm72s 10-30 04:57:26] enqueue: SM72 small model leak-free (sm72s): 1-epoch 32k Muon cool-down from e25 (8k final tier, 581.9M reviews, lanes carry, leak-free replay KD) (expected 520 min of ~520, 962 min to the next window)
