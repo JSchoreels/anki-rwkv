@@ -48,7 +48,9 @@ def main():
     optimizer = catch_up.optimizer(master)
     muon = sum(p.numel() for g in optimizer.muon.param_groups for p in g["params"])
     adamw = sum(p.numel() for g in optimizer.adamw.param_groups for p in g["params"])
-    record("w64 parameters Muon / AdamW", [muon, adamw], [muon, adamw] == [309888, 21623])
+    # SM77 additions (zero-init biases and initial state, names sm77_*) are not matrices: AdamW, Muon set unchanged
+    extra = sum(p.numel() for n, p in master.named_parameters() if n.split(".")[-1].startswith("sm77_"))
+    record("w64 parameters Muon / AdamW", [muon, adamw], [muon, adamw] == [309888, 21623 + extra])
     record("fresh state is empty", [len(optimizer.muon.state), len(optimizer.adamw.state)],
            len(optimizer.muon.state) == 0 and len(optimizer.adamw.state) == 0)
     source = Path(decay["source_case"]) / "optimizer.pth"
