@@ -122,8 +122,9 @@ def wkv_long(r, k, v, w, a, kd, skip, bits=0, state0=None):
     return out
 
 
-def reference(r, k, v, w, a, kd, skip, bits=0, state0=None):
-    """Float32 per-step reference (CPU smoke and self-test); same update and rounding as the kernel."""
+def reference(r, k, v, w, a, kd, skip, bits=0, state0=None, steps=None):
+    """Float32 per-step reference (CPU smoke and self-test); same update and rounding as the kernel. `steps`: a list
+    that receives each step's largest row scale (the state quantisation step; self_test_state's bits-8 bar)."""
     from rwkv.model.rwkv_ops import single_timestep
     B, T, H, K = r.shape
     r, k, v, w, a, kd = (x.float() for x in (r, k, v, w, a, kd))
@@ -139,6 +140,8 @@ def reference(r, k, v, w, a, kd, skip, bits=0, state0=None):
             if bits & F16_SCALE:
                 scale = round_scale_f16(scale)
             scale = torch.where(scale > 0, scale, torch.ones_like(scale))
+            if steps is not None:
+                steps.append(float(scale.max()))
             nxt = torch.clamp(torch.round(nxt / scale), -qmax, qmax) * scale
         state = torch.where(skip[:, t, None, None, None].bool(), state, nxt)
     return out
@@ -164,7 +167,16 @@ def self_test(device="cuda", seed=0):
 
 
 def self_test_state(device="cuda", seed=0):
-    """SM77: max abs error of wkv_long(..., state0) vs the float32 reference from the same S0 (K 16 and 32, bits 0 / 8)."""
+    """SM77: max abs error of wkv_long(..., state0) vs the float32 reference from the same S0 (K 16 and 32, bits 0 / 8).
+
+    bits 8 also reports what its bar needs (scripts/sm77_warm.py gpu_check, check L): the state is rounded to 8-bit codes
+    every step, so a float32 summation-order difference of ~1e-7 that lands next to a rounding boundary moves one code
+    by one step (row absmax / 127) and the output by up to step * |r|_1 from then on. The kernel and the reference sum
+    in another order, so their bits-8 outputs are not continuous in that noise: the float32 reference itself against a
+    float64 run of the same recurrence differs by 5e-4..1.2e-3 on these inputs, from S0 and from zero alike (CPU,
+    10-31), while bits 0 agree to 1e-7. Keys: `/step` = the largest quantisation step of the reference run,
+    `/bound` = step * max_t |r_t|_1 (one step on every element of a state row), `/frac_over_1e-4` = the share of output
+    elements off by more than 1e-4 (code flips are rare events; a wrong kernel moves almost every element)."""
     g = torch.Generator().manual_seed(seed)
     results = {}
     for K in (16, 32):
@@ -176,12 +188,18 @@ def self_test_state(device="cuda", seed=0):
         skip = torch.rand(B, T, generator=g) < 0.3
         state0 = torch.randn(B, H, K, K, generator=g) * 0.2
         for bits in (0, 8):
-            ref = reference(r, k * a, v, w, a, kd, skip, bits, state0)
+            steps = []
+            ref = reference(r, k * a, v, w, a, kd, skip, bits, state0, steps)
             got = wkv_long(*(x.to(device) for x in (r, k * a, v, w, a, kd)), skip.to(device), bits, state0.to(device)).cpu()
             zero = wkv_long(*(x.to(device) for x in (r, k * a, v, w, a, kd)), skip.to(device), bits,
                             torch.zeros_like(state0).to(device)).cpu()
             stock = wkv_long(*(x.to(device) for x in (r, k * a, v, w, a, kd)), skip.to(device), bits).cpu()
-            results[f"K{K}/bits{bits}"] = float((got - ref).abs().max())
+            error = (got - ref).abs()
+            results[f"K{K}/bits{bits}"] = float(error.max())
+            if bits:
+                results[f"K{K}/bits{bits}/step"] = max(steps)
+                results[f"K{K}/bits{bits}/bound"] = max(steps) * float(r.abs().sum(-1).max())
+                results[f"K{K}/bits{bits}/frac_over_1e-4"] = float((error > 1e-4).float().mean())
             results[f"K{K}/bits{bits}/zero_state_equals_stock_bitwise"] = bool(torch.equal(zero, stock))
     return results
 
