@@ -1,7 +1,7 @@
 {
- "generated_at": "2026-10-31T21:03:10+01:00",
- "updated": "2026-10-31 21:03",
- "material": "4f2a99c6f8366067",
+ "generated_at": "2026-10-31T21:53:22+01:00",
+ "updated": "2026-10-31 21:53",
+ "material": "458915511a081ac9",
  "summary": "idle",
  "headline": [
   {
@@ -1618,6 +1618,14 @@
    "item": "Scheduling-time vs review-time accuracy (SM81): the small model and FSRS-7 at scheduling time, start of day and review time, on the same reviews",
    "why": "Asked 10-31: FSRS7-Instant is much better at review time but worse at scheduling time; check how much of the small model&rsquo;s lead a scheduler can use. Measurement only, ~1.5 GPU h. Branch sm81",
    "since": "10-31T20:57"
+  },
+  {
+   "status": "next",
+   "id": "SM82",
+   "track": "small model",
+   "item": "Response-time prediction (SM82): predict the answer time together with the grade, to find review patterns that lead to a good grade with a shorter answer time",
+   "why": "Asked 10-31. Stage 0: data audit of answer times (CPU). Stage 1: an answer-time head per grade (log-time bins), added during a quarter cool-down against the already-scored same-recipe reference (~2.5 GPU h); grade accuracy must not get worse. Stage 2: answer-time curves vs interval, and answer-time-aware workload in the simulator instead of fixed per-grade costs",
+   "since": "10-31T21:30"
   },
   {
    "status": "next",
