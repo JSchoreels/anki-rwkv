@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-10-31T09:25:18+01:00",
+ "generated_at": "2026-10-31T09:25:51+01:00",
  "updated": "2026-10-31 09:25",
- "material": "cdd2cf2c4097c581",
- "summary": "running 000783",
+ "material": "4d53256e76372ede",
+ "summary": "running 000784, finished 000783",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring (curve / instant)",
@@ -240,18 +240,18 @@
  "now": [
   {
    "what": "Tiny architecture additions (SM77) stage 1: separate removal / insertion keys plus r/k biases in all 13 layers, and a learned starting state for the card and note streams (+6,720 parameters, +26.9 KB export, no extra stored state). Warm start from the leak-free small model&rsquo;s (SM72s) epoch 20 with the new parameters at zero (outputs bit-identical at the start, checked on CPU), one constant-LR epoch plus cool-down, against the leak-free small model&rsquo;s (SM72s) own epoch 21 as the free reference; scored on the 732 set",
-   "id": "SM77, ticket 000783",
+   "id": "SM77, ticket 000784",
    "kind": "gpu-train",
    "decides": "Go if curve &ge; 0.20 points or instant &ge; 0.15 better on 722 users (CI clear of zero), other head no worse than +0.03%; stop if both under 0.10; in between, report. From the literature review (SM60)",
    "why": "",
-   "job": "tiny architecture additions (SM77) stage 1: GPU check (dS0 backward kernel, scorer kernel from S0, trainer-path function preservation, 2 users x 512 reviews) + trainer smoke of the arm",
+   "job": "tiny architecture additions (SM77) stage 1: arm epoch 21 (w64-sm77 from SM72s epoch 20, 8k final tier, 2048 x 16 lanes carry, leak-free replay KD, AdamW 7e-4 constant) (segment to the next window or the end)",
    "linked": true,
    "track": "small model",
-   "ticket": "000783-small-model",
-   "started": "09:24",
+   "ticket": "000784-small-model",
+   "started": "09:25",
    "elapsed": "0:00",
    "progress": null,
-   "eta": "~09:39"
+   "eta": "~11:30"
   }
  ],
  "charts": [
@@ -424,6 +424,15 @@
  "waiting": [],
  "recent": [
   {
+   "ticket": "000783-small-model",
+   "id": "SM77",
+   "what": "tiny architecture additions (SM77) stage 1: GPU check (dS0 backward kernel, scorer kernel from S0, trainer-path function preservation, 2 users x 512 reviews) + trainer smoke of the arm",
+   "ended": "09:25",
+   "date": "10-31",
+   "exit": 0,
+   "ran": "0:00"
+  },
+  {
    "ticket": "000782-small-model",
    "id": "SM67",
    "what": "data augmentation (SM67) stage 1: scoring sm67-aug-dec25-1ep32k-muon on the 3 long users of the 732 pool (cap 0.92)",
@@ -467,15 +476,6 @@
    "date": "10-31",
    "exit": 0,
    "ran": "8:05"
-  },
-  {
-   "ticket": "000777-small-model",
-   "id": "SM67",
-   "what": "data augmentation (SM67) stage 1: GPU smoke of the pseudo-user path (2 halves x 512 reviews, replay remap)",
-   "ended": "01:04",
-   "date": "10-31",
-   "exit": 0,
-   "ran": "0:00"
   }
  ],
  "plan": [
@@ -1578,8 +1578,8 @@
    "when": "GPU check stopped Sat 10-31 01:01 (data path, fixed) and 01:03 (two of its own correctness checks: trainer gradients at zero init, 8-bit scorer state); being diagnosed on CPU; runs after the next experiment (SM67), ~10:00 Sat at the earliest",
    "decides": "Go if curve &ge; 0.20 points or instant &ge; 0.15 better on 722 users (CI clear of zero), other head no worse than +0.03%; stop if both under 0.10; in between, report. From the literature review (SM60)",
    "state": "running",
-   "started": "09:24",
-   "ticket": "000783-small-model",
+   "started": "09:25",
+   "ticket": "000784-small-model",
    "started_at": "2026-10-31T01:01:08+01:00",
    "ends_at": "2026-10-31T08:01:08+01:00"
   }
