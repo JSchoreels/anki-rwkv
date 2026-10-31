@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-10-31T11:25:11+01:00",
- "updated": "2026-10-31 11:25",
- "material": "96cabfc57e5d7520",
- "summary": "idle, finished 000784",
+ "generated_at": "2026-10-31T11:27:45+01:00",
+ "updated": "2026-10-31 11:27",
+ "material": "db30bac1c2193faf",
+ "summary": "running 000785",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring (curve / instant)",
@@ -237,7 +237,23 @@
    "track": "small model"
   }
  ],
- "now": [],
+ "now": [
+  {
+   "what": "Tiny architecture additions (SM77) stage 1: separate removal / insertion keys plus r/k biases in all 13 layers, and a learned starting state for the card and note streams (+6,720 parameters, +26.9 KB export, no extra stored state). Warm start from the leak-free small model&rsquo;s (SM72s) epoch 20 with the new parameters at zero (outputs bit-identical at the start, checked on CPU), one constant-LR epoch plus cool-down, against the leak-free small model&rsquo;s (SM72s) own epoch 21 as the free reference; scored on the 732 set",
+   "id": "SM77, ticket 000785",
+   "kind": "gpu-train",
+   "decides": "Go if curve &ge; 0.20 points or instant &ge; 0.15 better on 722 users (CI clear of zero), other head no worse than +0.03%; stop if both under 0.10; in between, report. From the literature review (SM60)",
+   "why": "",
+   "job": "tiny architecture additions (SM77) stage 1: arm quarter-epoch 32k Muon cool-down from arm epoch 21 (w64-sm77) (segment to the next window or the end)",
+   "linked": true,
+   "track": "small model",
+   "ticket": "000785-small-model",
+   "started": "11:27",
+   "elapsed": "0:00",
+   "progress": null,
+   "eta": "~13:57"
+  }
+ ],
  "charts": [
   {
    "title": "Small model, leak-free (SM72s): LogLoss per epoch, 458-user set (lower is better)",
@@ -1561,12 +1577,11 @@
    "what": "Tiny architecture additions (SM77) stage 1: separate removal / insertion keys plus r/k biases in all 13 layers, and a learned starting state for the card and note streams (+6,720 parameters, +26.9 KB export, no extra stored state). Warm start from the leak-free small model&rsquo;s (SM72s) epoch 20 with the new parameters at zero (outputs bit-identical at the start, checked on CPU), one constant-LR epoch plus cool-down, against the leak-free small model&rsquo;s (SM72s) own epoch 21 as the free reference; scored on the 732 set",
    "when": "GPU check ALL OK Sat 10-31 09:25 (after the 01:03 check bars were corrected); launcher relaunched 09:24, arm epoch 21 running from 09:25, ~7 h in total (ends ~16:30 Sat), then 732-set scoring",
    "decides": "Go if curve &ge; 0.20 points or instant &ge; 0.15 better on 722 users (CI clear of zero), other head no worse than +0.03%; stop if both under 0.10; in between, report. From the literature review (SM60)",
-   "state": "done",
-   "ended": "11:24",
-   "exit": 0,
-   "started": "01:01",
+   "state": "running",
+   "started": "11:27",
+   "ticket": "000785-small-model",
    "started_at": "2026-10-31T01:01:08+01:00",
-   "ended_at": "2026-10-31T11:24:46+01:00"
+   "ends_at": "2026-10-31T08:01:08+01:00"
   }
  ],
  "gpu_break": {
