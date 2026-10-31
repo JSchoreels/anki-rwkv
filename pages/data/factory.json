@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-10-31T09:23:42+01:00",
- "updated": "2026-10-31 09:23",
- "material": "dc981b089a05ca4b",
- "summary": "running 000782, finished 000781",
+ "generated_at": "2026-10-31T09:24:25+01:00",
+ "updated": "2026-10-31 09:24",
+ "material": "86e4278a8382fba0",
+ "summary": "idle, finished 000782",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring (curve / instant)",
@@ -237,23 +237,7 @@
    "track": "small model"
   }
  ],
- "now": [
-  {
-   "what": "Data augmentation (SM67) stage 1: the leak-free small model&rsquo;s (SM72s) 1-epoch cool-down from epoch 25 again, with 959 large training users each split into two pseudo-users by a random half of their notes (32% of reviews in halves; every card keeps its full history, labels and teacher targets; only the cross-card context changes). Same reviews and labels as the control, 2.5% more updates; control = the existing cool-down from epoch 25; scored on the 732 set",
-   "id": "SM67, ticket 000782",
-   "kind": "gpu-train",
-   "decides": "Go if curve &ge; 0.20 points or instant &ge; 0.15 better on 722 users (CI clear of zero), other head no worse than +0.03%; stop if both under 0.10; in between, report. The design expects a small gain (0 to 0.05 points)",
-   "why": "",
-   "job": "data augmentation (SM67) stage 1: scoring sm67-aug-dec25-1ep32k-muon on the 3 long users of the 732 pool (cap 0.92)",
-   "linked": true,
-   "track": "small model",
-   "ticket": "000782-small-model",
-   "started": "09:23",
-   "elapsed": "0:00",
-   "progress": null,
-   "eta": "~09:29"
-  }
- ],
+ "now": [],
  "charts": [
   {
    "title": "Small model, leak-free (SM72s): LogLoss per epoch, 458-user set (lower is better)",
@@ -424,6 +408,15 @@
  "waiting": [],
  "recent": [
   {
+   "ticket": "000782-small-model",
+   "id": "SM67",
+   "what": "data augmentation (SM67) stage 1: scoring sm67-aug-dec25-1ep32k-muon on the 3 long users of the 732 pool (cap 0.92)",
+   "ended": "09:24",
+   "date": "10-31",
+   "exit": 0,
+   "ran": "0:00"
+  },
+  {
    "ticket": "000781-small-model",
    "id": "SM67",
    "what": "data augmentation (SM67) stage 1: scoring sm67-aug-dec25-1ep32k-muon on the 732 pool minus 9 never-fit (723) (pass 2)",
@@ -466,15 +459,6 @@
    "ended": "01:04",
    "date": "10-31",
    "exit": 0,
-   "ran": "0:00"
-  },
-  {
-   "ticket": "000776-small-model",
-   "id": "SM77",
-   "what": "tiny architecture additions (SM77) stage 1: GPU check (dS0 backward kernel, scorer kernel from S0, trainer-path function preservation, 2 users x 512 reviews) + trainer smoke of the arm",
-   "ended": "01:03",
-   "date": "10-31",
-   "exit": 1,
    "ran": "0:00"
   }
  ],
@@ -1545,11 +1529,12 @@
    "what": "Data augmentation (SM67) stage 1: the leak-free small model&rsquo;s (SM72s) 1-epoch cool-down from epoch 25 again, with 959 large training users each split into two pseudo-users by a random half of their notes (32% of reviews in halves; every card keeps its full history, labels and teacher targets; only the cross-card context changes). Same reviews and labels as the control, 2.5% more updates; control = the existing cool-down from epoch 25; scored on the 732 set",
    "when": "Code ready and checked on CPU (bit-identical with the option off; cards, labels and targets identical in the halves; no evaluation user). Started Sat 10-31 01:02 (moved ahead of the tiny architecture additions (SM77), whose GPU check failed); ~8.7 GPU h, ends ~09:45 Sat",
    "decides": "Go if curve &ge; 0.20 points or instant &ge; 0.15 better on 722 users (CI clear of zero), other head no worse than +0.03%; stop if both under 0.10; in between, report. The design expects a small gain (0 to 0.05 points)",
-   "state": "running",
-   "started": "09:23",
-   "ticket": "000782-small-model",
+   "state": "done",
+   "ended": "09:24",
+   "exit": 0,
+   "started": "01:04",
    "started_at": "2026-10-31T01:04:21+01:00",
-   "ends_at": "2026-10-31T09:44:21+01:00"
+   "ended_at": "2026-10-31T09:24:00+01:00"
   },
   {
    "id": "SM77",
