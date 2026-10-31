@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-10-31T01:04:43+01:00",
- "updated": "2026-10-31 01:04",
- "material": "19414397a8a46066",
- "summary": "idle, finished 000777",
+ "generated_at": "2026-10-31T01:05:17+01:00",
+ "updated": "2026-10-31 01:05",
+ "material": "6a259ec682428733",
+ "summary": "running 000778",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring (curve / instant)",
@@ -237,7 +237,23 @@
    "track": "small model"
   }
  ],
- "now": [],
+ "now": [
+  {
+   "what": "Data augmentation (SM67) stage 1: the leak-free small model&rsquo;s (SM72s) 1-epoch cool-down from epoch 25 again, with 959 large training users each split into two pseudo-users by a random half of their notes (32% of reviews in halves; every card keeps its full history, labels and teacher targets; only the cross-card context changes). Same reviews and labels as the control, 2.5% more updates; control = the existing cool-down from epoch 25; scored on the 732 set",
+   "id": "SM67, ticket 000778",
+   "kind": "gpu-train",
+   "decides": "Go if curve &ge; 0.20 points or instant &ge; 0.15 better on 722 users (CI clear of zero), other head no worse than +0.03%; stop if both under 0.10; in between, report. The design expects a small gain (0 to 0.05 points)",
+   "why": "",
+   "job": "data augmentation (SM67) stage 1: augmented 1-epoch 32k Muon cool-down from SM72s epoch 25 (note split, 8k final tier, lanes carry, leak-free replay KD) (segment to the next window or the end)",
+   "linked": true,
+   "track": "small model",
+   "ticket": "000778-small-model",
+   "started": "01:04",
+   "elapsed": "0:00",
+   "progress": null,
+   "eta": "~10:04"
+  }
+ ],
  "charts": [
   {
    "title": "Small model, leak-free (SM72s): LogLoss per epoch, 458-user set (lower is better)",
@@ -1529,12 +1545,11 @@
    "what": "Data augmentation (SM67) stage 1: the leak-free small model&rsquo;s (SM72s) 1-epoch cool-down from epoch 25 again, with 959 large training users each split into two pseudo-users by a random half of their notes (32% of reviews in halves; every card keeps its full history, labels and teacher targets; only the cross-card context changes). Same reviews and labels as the control, 2.5% more updates; control = the existing cool-down from epoch 25; scored on the 732 set",
    "when": "Code ready and checked on CPU (bit-identical with the option off; cards, labels and targets identical in the halves; no evaluation user). Started Sat 10-31 01:02 (moved ahead of the tiny architecture additions (SM77), whose GPU check failed); ~8.7 GPU h, ends ~09:45 Sat",
    "decides": "Go if curve &ge; 0.20 points or instant &ge; 0.15 better on 722 users (CI clear of zero), other head no worse than +0.03%; stop if both under 0.10; in between, report. The design expects a small gain (0 to 0.05 points)",
-   "state": "done",
-   "ended": "01:04",
-   "exit": 0,
+   "state": "running",
    "started": "01:04",
+   "ticket": "000778-small-model",
    "started_at": "2026-10-31T01:04:21+01:00",
-   "ended_at": "2026-10-31T01:04:43+01:00"
+   "ends_at": "2026-10-31T09:44:21+01:00"
   },
   {
    "id": "SM77",
