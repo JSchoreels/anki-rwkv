@@ -1,7 +1,7 @@
 {
- "generated_at": "2026-10-31T21:53:22+01:00",
- "updated": "2026-10-31 21:53",
- "material": "458915511a081ac9",
+ "generated_at": "2026-10-31T22:03:26+01:00",
+ "updated": "2026-10-31 22:03",
+ "material": "711c97cb3f8ef0a2",
  "summary": "idle",
  "headline": [
   {
@@ -1575,13 +1575,10 @@
    "kind": "gpu-train",
    "minutes": 300,
    "what": "Data-order re-seed (SM80): epoch 21 of the leak-free small model (SM72s) trained again from its epoch 20 with a new data seed (every epoch so far used the same seed, so the same window sampling), everything else identical (checked on CPU: same users, order, reviews, labels and teacher targets); then the same quarter-epoch Muon cool-down as the reference already scored in the tiny architecture additions run (SM77); scored on the 732 set",
-   "when": "Smoke OK Sat 10-31 16:20; epoch 21 running 16:20&ndash;~18:25; cool-down after the break, ~01:00&ndash;03:05 Sun; 732-set scoring and rule, ends ~03:30 Sun",
+   "when": "Smoke OK Sat 10-31 16:20; epoch 21 done 18:26 (125.7 min, 77,163 reviews/s); cool-down first segment 18:26&ndash;19:57 (paused for the break, resumable), rest ~01:00&ndash;~02:05 Sun; 732-set scoring and rule, ends ~02:30 Sun",
    "decides": "Go if curve &ge; 0.20 points or instant &ge; 0.15 better on 722 users (CI clear of zero), other head no worse than +0.03%; stop if both under 0.10; in between, report. A go means re-seeding every epoch in the final run (free)",
-   "state": "done",
+   "state": "partial",
    "ended": "19:57",
-   "exit": 1,
-   "started": "16:20",
-   "started_at": "2026-10-31T16:20:03+01:00",
    "ended_at": "2026-10-31T19:57:30+01:00"
   },
   {
@@ -1591,7 +1588,7 @@
    "kind": "gpu-score",
    "minutes": 85,
    "what": "Scheduling-time vs review-time accuracy (SM81): how much of the small model&rsquo;s accuracy a scheduler can use. Three points on the same reviews: at scheduling time (the curve made at the card&rsquo;s previous answer), at the start of the review day (instant head from the state before that day, new scorer pass), at review time (instant head). For the released small model and the big model (1 leak-free epoch), and FSRS-7 (per-user fit and default parameters) and FSRS7-Instant on the benchmark&rsquo;s test reviews of the 732 set",
-   "when": "Launcher waiting out the break; FSRS-7 side on CPU from 01:00 (~45 min), then after the data-order re-seed (SM80) ends ~03:30: small model (~40 min) and big model (~45 min) start-of-day scoring; table ~05:10 Sun",
+   "when": "Launcher waiting out the break; FSRS-7 side on CPU from 01:00 (~45 min), then after the data-order re-seed (SM80) ends ~02:30: small model (~40 min) and big model (~45 min) start-of-day scoring; table ~04:10 Sun",
    "decides": "Whether the small model&rsquo;s lead over FSRS-7 holds at scheduling time, and what share of the review-time gain is known at the start of the day (usable for daily rescheduling)",
    "state": "planned"
   }
