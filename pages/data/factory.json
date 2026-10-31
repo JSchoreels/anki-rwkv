@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-10-31T01:01:30+01:00",
- "updated": "2026-10-31 01:01",
- "material": "419d6fe8ceddef8a",
- "summary": "idle, finished 000775",
+ "generated_at": "2026-10-31T01:03:05+01:00",
+ "updated": "2026-10-31 01:03",
+ "material": "b4d1b376ed49328e",
+ "summary": "running 000776, finished 000776",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring (curve / instant)",
@@ -237,7 +237,23 @@
    "track": "small model"
   }
  ],
- "now": [],
+ "now": [
+  {
+   "what": "Tiny architecture additions (SM77) stage 1: separate removal / insertion keys plus r/k biases in all 13 layers, and a learned starting state for the card and note streams (+6,720 parameters, +26.9 KB export, no extra stored state). Warm start from the leak-free small model&rsquo;s (SM72s) epoch 20 with the new parameters at zero (outputs bit-identical at the start, checked on CPU), one constant-LR epoch plus cool-down, against SM72s&rsquo;s own epoch 21 as the free reference; scored on the 732 set",
+   "id": "SM77, ticket 000776",
+   "kind": "gpu-train",
+   "decides": "Go if curve &ge; 0.20 points or instant &ge; 0.15 better on 722 users (CI clear of zero), other head no worse than +0.03%; stop if both under 0.10; in between, report. From the literature review (SM60)",
+   "why": "",
+   "job": "tiny architecture additions (SM77) stage 1: GPU check (dS0 backward kernel, scorer kernel from S0, trainer-path function preservation, 2 users x 512 reviews) + trainer smoke of the arm",
+   "linked": true,
+   "track": "small model",
+   "ticket": "000776-small-model",
+   "started": "01:02",
+   "elapsed": "0:00",
+   "progress": null,
+   "eta": ""
+  }
+ ],
  "charts": [
   {
    "title": "Small model, leak-free (SM72s): LogLoss per epoch, 458-user set (lower is better)",
@@ -408,6 +424,15 @@
  "waiting": [],
  "recent": [
   {
+   "ticket": "000776-small-model",
+   "id": "SM77",
+   "what": "tiny architecture additions (SM77) stage 1: GPU check (dS0 backward kernel, scorer kernel from S0, trainer-path function preservation, 2 users x 512 reviews) + trainer smoke of the arm",
+   "ended": "01:03",
+   "date": "10-31",
+   "exit": 1,
+   "ran": "0:00"
+  },
+  {
    "ticket": "000775-small-model",
    "id": "SM77",
    "what": "tiny architecture additions (SM77) stage 1: GPU check (dS0 backward kernel, scorer kernel from S0, trainer-path function preservation, 2 users x 512 reviews) + trainer smoke of the arm",
@@ -448,15 +473,6 @@
    "id": "SM65",
    "what": "better teacher (SM65) stage 1: GPU smoke of the big model&#x27;s epoch on the new users (2 users x 512 reviews, scratch copy)",
    "ended": "13:10",
-   "date": "10-30",
-   "exit": 0,
-   "ran": "0:00"
-  },
-  {
-   "ticket": "000770-small-model",
-   "id": "SM63",
-   "what": "SM72 leak-free scoring s-w64kd-final-sc-lanes-leakfree-dec25-1ep32k-muon on the 3 long users of the 732 pool (cap 0.92)",
-   "ended": "13:08",
    "date": "10-30",
    "exit": 0,
    "ran": "0:00"
@@ -1529,12 +1545,11 @@
    "what": "Tiny architecture additions (SM77) stage 1: separate removal / insertion keys plus r/k biases in all 13 layers, and a learned starting state for the card and note streams (+6,720 parameters, +26.9 KB export, no extra stored state). Warm start from the leak-free small model&rsquo;s (SM72s) epoch 20 with the new parameters at zero (outputs bit-identical at the start, checked on CPU), one constant-LR epoch plus cool-down, against SM72s&rsquo;s own epoch 21 as the free reference; scored on the 732 set",
    "when": "Code ready and checked on CPU; launcher restarted Fri 10-30 20:20 with the new 20:00&ndash;01:00 break, starts at 01:00 Sat 10-31: a ~15-min GPU check of the new kernels, then ~7 h (ends ~08:30 Sat)",
    "decides": "Go if curve &ge; 0.20 points or instant &ge; 0.15 better on 722 users (CI clear of zero), other head no worse than +0.03%; stop if both under 0.10; in between, report. From the literature review (SM60)",
-   "state": "done",
-   "ended": "01:01",
-   "exit": 1,
-   "started": "01:01",
+   "state": "running",
+   "started": "01:02",
+   "ticket": "000776-small-model",
    "started_at": "2026-10-31T01:01:08+01:00",
-   "ended_at": "2026-10-31T01:01:17+01:00"
+   "ends_at": "2026-10-31T08:01:08+01:00"
   },
   {
    "id": "SM67",
