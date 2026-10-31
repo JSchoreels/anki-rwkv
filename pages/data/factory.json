@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-10-31T09:25:51+01:00",
- "updated": "2026-10-31 09:25",
- "material": "4d53256e76372ede",
- "summary": "running 000784, finished 000783",
+ "generated_at": "2026-10-31T09:30:55+01:00",
+ "updated": "2026-10-31 09:30",
+ "material": "318342ac279555b0",
+ "summary": "running 000784",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring (curve / instant)",
@@ -249,7 +249,7 @@
    "track": "small model",
    "ticket": "000784-small-model",
    "started": "09:25",
-   "elapsed": "0:00",
+   "elapsed": "0:05",
    "progress": null,
    "eta": "~11:30"
   }
@@ -1543,7 +1543,7 @@
    "kind": "gpu-train",
    "minutes": 520,
    "what": "Data augmentation (SM67) stage 1: the leak-free small model&rsquo;s (SM72s) 1-epoch cool-down from epoch 25 again, with 959 large training users each split into two pseudo-users by a random half of their notes (32% of reviews in halves; every card keeps its full history, labels and teacher targets; only the cross-card context changes). Same reviews and labels as the control, 2.5% more updates; control = the existing cool-down from epoch 25; scored on the 732 set",
-   "when": "Code ready and checked on CPU (bit-identical with the option off; cards, labels and targets identical in the halves; no evaluation user). Started Sat 10-31 01:02 (moved ahead of the tiny architecture additions (SM77), whose GPU check failed); ~8.7 GPU h, ends ~09:45 Sat",
+   "when": "Done Sat 10-31 09:24 (cool-down 01:04&ndash;09:10, scoring to 09:24): stop, no gain",
    "decides": "Go if curve &ge; 0.20 points or instant &ge; 0.15 better on 722 users (CI clear of zero), other head no worse than +0.03%; stop if both under 0.10; in between, report. The design expects a small gain (0 to 0.05 points)",
    "state": "done",
    "ended": "09:24",
@@ -1559,7 +1559,7 @@
    "kind": "gpu-check",
    "minutes": 10,
    "what": "Tiny architecture additions (SM77): GPU check re-run with the corrected bars (the 01:03 failures were bf16 summation order in the gradients and 8-bit state rounding, not bugs; checked on CPU)",
-   "when": "Queued Sat 10-31 01:15, runs in the first gap of the next experiment (SM67), ~10:05",
+   "when": "Ran Sat 10-31 09:10 between the next experiment&rsquo;s (SM67) tickets: ALL OK",
    "decides": "Whether the tiny architecture additions (SM77) launcher can be relaunched after the next experiment (SM67)",
    "state": "done",
    "ended": "09:10",
@@ -1575,7 +1575,7 @@
    "kind": "gpu-train",
    "minutes": 420,
    "what": "Tiny architecture additions (SM77) stage 1: separate removal / insertion keys plus r/k biases in all 13 layers, and a learned starting state for the card and note streams (+6,720 parameters, +26.9 KB export, no extra stored state). Warm start from the leak-free small model&rsquo;s (SM72s) epoch 20 with the new parameters at zero (outputs bit-identical at the start, checked on CPU), one constant-LR epoch plus cool-down, against the leak-free small model&rsquo;s (SM72s) own epoch 21 as the free reference; scored on the 732 set",
-   "when": "GPU check stopped Sat 10-31 01:01 (data path, fixed) and 01:03 (two of its own correctness checks: trainer gradients at zero init, 8-bit scorer state); being diagnosed on CPU; runs after the next experiment (SM67), ~10:00 Sat at the earliest",
+   "when": "GPU check ALL OK Sat 10-31 09:25 (after the 01:03 check bars were corrected); launcher relaunched 09:24, arm epoch 21 running from 09:25, ~7 h in total (ends ~16:30 Sat), then 732-set scoring",
    "decides": "Go if curve &ge; 0.20 points or instant &ge; 0.15 better on 722 users (CI clear of zero), other head no worse than +0.03%; stop if both under 0.10; in between, report. From the literature review (SM60)",
    "state": "running",
    "started": "09:25",
@@ -1673,11 +1673,11 @@
    "why": "A new axis that runs on CPU from saved predictions: a tiny per-user correction fitted on earlier reviews, tested on later ones (priority review 10-28: the factory looks for more accurate or smaller models, not more measurements)"
   },
   {
-   "status": "planned",
+   "status": "dropped",
    "id": "SM67",
    "track": "small model",
    "item": "New axis candidate: data augmentation (sub-sampled or time-shifted copies of review histories)",
-   "why": "Ready 10-30, launcher waiting behind the tiny architecture additions (SM77) (see the plan). Design done 10-29 (artifacts/small-model/sm67/DESIGN.md): split large users into two pseudo-users by notes (each card keeps its full history; only the cross-card context changes), keep the original teacher targets. Stage 1: one augmented cool-down vs the existing one, ~9 GPU h, after the tiny architecture additions (SM77). Expected gain small (0 to 0.05 points). Side finding: every epoch sees bit-identical inputs (fixed seed); re-seeding per epoch is a free stage-2 arm"
+   "why": "Stage 1 done 10-31: splitting 959 large users into note-halves gave +0.01 / &minus;0.01 points vs the same cool-down (stop bar 0.10). Dropped. Side finding still open: every epoch sees bit-identical inputs (fixed seed); re-seeding per epoch is a free arm. Design: artifacts/small-model/sm67/DESIGN.md"
   },
   {
    "status": "parked",
@@ -2006,6 +2006,76 @@
   }
  ],
  "results": [
+  {
+   "date": "10-31",
+   "kind": "gpu-train",
+   "id": "SM67",
+   "track": "small model",
+   "name": "Data augmentation (SM67) stage 1: the leak-free small model&rsquo;s (SM72s) cool-down from epoch 25 again, with 959 large training users each split into two pseudo-users by a random half of their notes",
+   "curve": 0.30007,
+   "instant": 0.27652,
+   "curve_pct": 0.37,
+   "instant_pct": 0.28,
+   "eval": "722 users (732 set), scored leak-free, w8+s8",
+   "fork": "vs the big model (1 leak-free epoch): 0.29897 / 0.27576",
+   "takeaway": "<strong>No gain: stopped</strong>. Splitting large users by notes changes nothing measurable: +0.01 points curve [&minus;0.02, +0.06], &minus;0.01 instant [&minus;0.01, &minus;0.00] vs the same cool-down without the split (+0.36% / +0.28% behind the big model). Not a release candidate",
+   "started_at": "2026-10-31T01:04+01:00",
+   "ended_at": "2026-10-31T09:24+01:00",
+   "gpu_minutes": 499,
+   "tickets": 5,
+   "detail": {
+    "verdict": "Stop: both heads gain under 0.10 points vs the plain cool-down from epoch 25",
+    "table": {
+     "head": [
+      "Users, leak-free scoring",
+      "Head",
+      "Note-split cool-down (SM67)",
+      "Plain cool-down from epoch 25 (SM63)",
+      "Change, points [95% interval]",
+      "Users better"
+     ],
+     "rows": [
+      [
+       "722 users (732 set, decision)",
+       "Curve",
+       "0.30007",
+       "0.30003",
+       "+0.01 [&minus;0.02, +0.06]",
+       "377"
+      ],
+      [
+       "722 users (732 set, decision)",
+       "Instant",
+       "0.27652",
+       "0.27654",
+       "&minus;0.01 [&minus;0.01, &minus;0.00]",
+       "364"
+      ],
+      [
+       "725 users (732 set + 3 long users)",
+       "Curve",
+       "0.30208",
+       "0.30199",
+       "+0.03 [&minus;0.02, +0.10]",
+       "378"
+      ],
+      [
+       "725 users (732 set + 3 long users)",
+       "Instant",
+       "0.27741",
+       "0.27742",
+       "&minus;0.00 [&minus;0.01, +0.00]",
+       "364"
+      ]
+     ]
+    },
+    "notes": [
+     "Same start epoch, reviews, order and options as the control; only the cross-card context changes for 32% of reviews (each card keeps its full history, labels and teacher targets).",
+     "Points = % of the big model (1 leak-free epoch); 95% intervals: paired user bootstrap (2,000, seed 0). Training 485.5 min at 19,979 reviews/s.",
+     "Side finding kept for later: every epoch sees bit-identical inputs (fixed seed); re-seeding per epoch is a free arm."
+    ]
+   }
+  },
   {
    "date": "10-30",
    "kind": "gpu-train",
