@@ -1404,7 +1404,7 @@
     "tiny architecture additions (SM77) stage 1"
    ],
    "what": "Tiny architecture additions (SM77) stage 1: separate removal / insertion keys plus r/k biases in all 13 layers, and a learned starting state for the card and note streams (+6,720 parameters, +26.9 KB export, no extra stored state). Warm start from the leak-free small model&rsquo;s (SM72s) epoch 20 with the new parameters at zero (outputs bit-identical at the start, checked on CPU), one constant-LR epoch plus cool-down, against the leak-free small model&rsquo;s (SM72s) own epoch 21 as the free reference; scored on the 732 set",
-   "when": "Arm epoch 21 done Sat 10-31 11:25 (119 min, 81,292 reviews/s); arm cool-down 11:27-13:22 (21,227 reviews/s), reference cool-down 13:22-15:26 (19,534 reviews/s); the first scoring ticket stopped on a gradient-carrying start state (fixed, relaunched 15:28); 732-set scoring running, ends ~16:10 Sat",
+   "when": "Done Sat 10-31 16:06 (arm epoch 09:25&ndash;11:25, cool-downs 11:27&ndash;15:26, 732-set scoring 15:28&ndash;16:06): stop, slightly worse than without the additions",
    "decides": "Go if curve &ge; 0.20 points or instant &ge; 0.15 better on 722 users (CI clear of zero), other head no worse than +0.03%; stop if both under 0.10; in between, report. From the literature review (SM60)"
   }
  ],
@@ -1425,11 +1425,12 @@
    "why": "Done 10-29: ranked shortlist in artifacts/small-model/sm60/LITERATURE.md. Top picks: key-side micro-parameters and a learned initial state, together the tiny architecture additions (SM77), and an int4 state drift check (SM78); a two-step delta update (DeltaProduct) only if one of those lands. No 2026 RWKV-7 successor paper found."
   },
   {
-   "status": "planned",
+   "status": "dropped",
    "id": "SM77",
    "track": "small model",
    "item": "Tiny architecture additions from the literature review (SM60): separate removal / insertion keys plus learnable r/k biases, and a learned initial state for the card and note streams (zero today)",
-   "why": "Ready 10-29, launcher waiting for the better teacher (SM65) (see the plan). About +3.3k and +3.5k parameters, no extra state, no extra CPU. Warm start from the leak-free small model (SM72s) with zero-initialized new parameters: one two-arm epoch plus short cool-downs, ~8 GPU h in all"
+   "why": "Stage 1 done 10-31: +0.06 / +0.08 points worse than the same epoch and cool-down without the additions (722 users; stop bar 0.10 gain). Dropped. Design and checks: artifacts/small-model/sm77 (branch sm77)",
+   "since": "10-31T16:10"
   },
   {
    "status": "done",
@@ -1841,6 +1842,87 @@
   "s-w64kd-gate-ctx2048c-dec8-1ep/w8+s8"
  ],
  "results": [
+  {
+   "date": "10-31",
+   "kind": "gpu-train",
+   "id": "SM77",
+   "track": "small model",
+   "name": "Tiny architecture additions (SM77) stage 1: separate removal / insertion keys plus r/k biases in all 13 layers and a learned starting state for the card and note streams (+6,720 parameters), warm-started from the leak-free small model&rsquo;s (SM72s) epoch 20",
+   "curve": 0.30092,
+   "instant": 0.27742,
+   "curve_pct": 0.65,
+   "instant_pct": 0.6,
+   "eval": "722 users (732 set), scored leak-free, w8+s8",
+   "fork": "vs the big model (1 leak-free epoch): 0.29897 / 0.27576",
+   "takeaway": "<strong>No gain: stopped</strong>. The additions come out slightly worse than the same epoch and cool-down without them: +0.06 points curve [&minus;0.01, +0.13], +0.08 instant [+0.06, +0.09] (instant clearly worse), and +26.9 KB export. Not a release candidate",
+   "started_at": "2026-10-31T09:25+01:00",
+   "ended_at": "2026-10-31T16:06+01:00",
+   "gpu_minutes": 400,
+   "tickets": 10,
+   "detail": {
+    "verdict": "Stop: neither head gains (both changes are in the wrong direction) vs the same recipe without the additions",
+    "table": {
+     "head": [
+      "Users, leak-free scoring",
+      "Head",
+      "With the additions (SM77)",
+      "Same recipe without them",
+      "Change, points [95% interval]",
+      "Users better",
+      "Additions vs big model",
+      "Without vs big model"
+     ],
+     "rows": [
+      [
+       "722 users (732 set, decision)",
+       "Curve",
+       "0.30092",
+       "0.30073",
+       "+0.06 [&minus;0.01, +0.13]",
+       "294",
+       "+0.65%",
+       "+0.59%"
+      ],
+      [
+       "722 users (732 set, decision)",
+       "Instant",
+       "0.27742",
+       "0.27722",
+       "+0.08 [+0.06, +0.09]",
+       "204",
+       "+0.60%",
+       "+0.53%"
+      ],
+      [
+       "725 users (732 set + 3 long users)",
+       "Curve",
+       "0.30300",
+       "0.30296",
+       "+0.01 [&minus;0.13, +0.11]",
+       "296",
+       "+0.59%",
+       "+0.58%"
+      ],
+      [
+       "725 users (732 set + 3 long users)",
+       "Instant",
+       "0.27835",
+       "0.27812",
+       "+0.09 [+0.07, +0.11]",
+       "204",
+       "+0.64%",
+       "+0.56%"
+      ]
+     ]
+    },
+    "notes": [
+     "Both arms: epoch 21 from the leak-free small model&rsquo;s (SM72s) epoch 20 (the reference is its own epoch 21), then the same quarter-epoch 32k Muon cool-down (145.6M reviews, same users and order). Zero-initialised additions, outputs bit-identical at the start (checked on CPU and GPU).",
+     "Points = % of the big model (1 leak-free epoch); 95% intervals: paired user bootstrap (2,000, seed 0). Arm epoch 119.3 min at 81,292 reviews/s; cool-downs 114 min (arm, 21,227 reviews/s) and 124 min (reference, 19,534 reviews/s).",
+     "Size: 331,511 &rarr; 338,231 parameters; export 410,459 &rarr; 437,339 B; card / note state unchanged.",
+     "Fixed on the way: two checks with fixed counts or too-strict bars, and the scorer handing a gradient-carrying start state to the GPU kernel (15:26)."
+    ]
+   }
+  },
   {
    "date": "10-31",
    "kind": "gpu-train",
