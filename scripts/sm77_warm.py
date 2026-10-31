@@ -11,7 +11,7 @@ off: SM72s's own epoch K+1 when it exists (K = 20..24, free), else trained here.
            DIR/master.pth = M plus the ARCH's new parameters (zeros; --perturb: normal(0, SCALE), checks only) and
            DIR/optimizer.pth = O's AdamW state re-indexed to ARCH's parameter order (new parameters: no state = fresh
            AdamW moments); DIR/extend.json records names, shapes and hashes.
-  epoch    --run RUN --epoch N --out DIR [--arch ARCH --init DIR2]
+  epoch    --run RUN --epoch N --out DIR [--arch ARCH --init DIR2 --data-seed S]
            DIR/protocol.json = RUN's epoch-N protocol rebuilt (scripts/run_full_training.write_protocol's order rule +
            accuracy_loop's fields + the label-window trims) from epoch N-1's protocol and result; with --init the
            start weights / optimizer are DIR2's (extend output); DIR/decay.json = RUN's options (+ architecture), so
@@ -208,6 +208,11 @@ def epoch(args):
         note += f", extended to {args.arch} (new parameters zero, AdamW state re-indexed)"
     if args.arch != "w64":
         options["architecture"] = args.arch
+    if args.data_seed is not None:   # data-order re-seed (SM80): only the per-window seeds change (see --data-seed)
+        if type(options.get("training_seed")) is not int or args.data_seed == options["training_seed"]:
+            raise SystemExit(f"--data-seed {args.data_seed}: the run's training_seed is {options.get('training_seed')}")
+        note += f", data-order re-seed (SM80): training_seed {options['training_seed']} -> {args.data_seed}"
+        options["training_seed"] = args.data_seed
     out.mkdir(parents=True)
     full["control_dir"] = (out / "control").relative_to(ROOT).as_posix()
     decay = {"created_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), "kind": "sm77 constant-LR epoch",
@@ -730,6 +735,10 @@ def main():
     p.add_argument("--out", required=True)
     p.add_argument("--arch", default="w64")
     p.add_argument("--init", default="")
+    p.add_argument("--data-seed", type=int, default=None,
+                   help="data-order re-seed (SM80): this epoch's training_seed (default: the run's own, bit-identical). "
+                        "Each window's seed = training_seed + user + offset (id codes, day baseline, dropout masks); "
+                        "users, user order, windows, lanes, labels, KD replay targets and every other option stay")
     p = sub.add_parser("check-protocol")
     p.add_argument("--run", default=str(RUN72S))
     p.add_argument("--epochs", default="2,11,21")
