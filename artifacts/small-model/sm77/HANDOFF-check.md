@@ -43,11 +43,18 @@ to 1e-7. The scorer's own CUDA gate (`small_model_heldout.py`) already holds onl
   the CPU reference): P pass: bf16 / float32 loss and outputs bitwise, float32 old gradients 2.7e-6, bf16 L2 gap
   0.39-1.08% vs w64's own bf16 error 2.3-8.2% (arm's 2.3-8.0%), per-tensor bf16 6.6% (reported), w64 rerun
   bitwise, 60 new tensors with gradient; L keys present (bits 8 bound 0.032 / 0.065).
-- GPU re-check: see "GPU re-check" below.
+- GPU re-check (check only, no smoke, no `gpu-check-ok` marker): queue ticket 000779, enqueued 10-31 01:20 by
+  `gpu/recheck-gpu.sh` (hidden, detached; wrapper pid 70544), waiting behind SM67's 540-min cool-down ticket
+  000778 (started 01:04, ends ~10:05); runs ~2 min in the gap before SM67's next ticket. Output
+  `gpu/check-gpu-sm77-recheck.json`, `gpu/recheck.out` (last line `[recheck] exit N`). A Claude app restart kills
+  the wrapper (then the ticket is dropped; the launcher's ticket 0 runs the same check anyway). Read it with:
+  `tail -3 artifacts/small-model/sm77/gpu/recheck.out; grep -o '"pass": [a-z]*' artifacts/small-model/sm77/gpu/check-gpu-sm77-recheck.json`
+  If P fails only on `fp32_old_gradients_max_relative_diff` slightly above 1e-4 (GPU float32 ordering), look at
+  `fp32_worst_tensor` before loosening; any bitwise loss / output failure is a real difference.
 
 ## Relaunch
 
-Safe once SM67 has finished: the launcher reruns ticket 0 (`gpu/gpu-check-ok` is absent), skips done preparation
+Safe once SM67 has finished (ideally after the re-check above reads ALL OK): the launcher reruns ticket 0 (`gpu/gpu-check-ok` is absent), skips done preparation
 steps, and uses the committed check. Command (PowerShell, hidden), as in `HANDOFF-sm77.md`:
 
 ```
