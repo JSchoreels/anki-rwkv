@@ -1406,9 +1406,31 @@
    "what": "Tiny architecture additions (SM77) stage 1: separate removal / insertion keys plus r/k biases in all 13 layers, and a learned starting state for the card and note streams (+6,720 parameters, +26.9 KB export, no extra stored state). Warm start from the leak-free small model&rsquo;s (SM72s) epoch 20 with the new parameters at zero (outputs bit-identical at the start, checked on CPU), one constant-LR epoch plus cool-down, against the leak-free small model&rsquo;s (SM72s) own epoch 21 as the free reference; scored on the 732 set",
    "when": "Done Sat 10-31 16:06 (arm epoch 09:25&ndash;11:25, cool-downs 11:27&ndash;15:26, 732-set scoring 15:28&ndash;16:06): stop, slightly worse than without the additions",
    "decides": "Go if curve &ge; 0.20 points or instant &ge; 0.15 better on 722 users (CI clear of zero), other head no worse than +0.03%; stop if both under 0.10; in between, report. From the literature review (SM60)"
+  },
+  {
+   "id": "SM80",
+   "track": "small model",
+   "since": "10-31T16:19",
+   "kind": "gpu-train",
+   "minutes": 300,
+   "match": [
+    "re-seeded epoch 21",
+    "sm80"
+   ],
+   "what": "Data-order re-seed (SM80): epoch 21 of the leak-free small model (SM72s) trained again from its epoch 20 with a new data seed (every epoch so far used the same seed, so the same window sampling), everything else identical (checked on CPU: same users, order, reviews, labels and teacher targets); then the same quarter-epoch Muon cool-down as the reference already scored in the tiny architecture additions run (SM77); scored on the 732 set",
+   "when": "Smoke OK Sat 10-31 16:20; epoch 21 running 16:20&ndash;~18:25; cool-down after the break, ~01:00&ndash;03:05 Sun; 732-set scoring and rule, ends ~03:30 Sun",
+   "decides": "Go if curve &ge; 0.20 points or instant &ge; 0.15 better on 722 users (CI clear of zero), other head no worse than +0.03%; stop if both under 0.10; in between, report. A go means re-seeding every epoch in the final run (free)"
   }
  ],
  "backlog": [
+  {
+   "status": "planned",
+   "id": "SM80",
+   "track": "small model",
+   "item": "Data-order re-seed (SM80): a new data seed for an epoch instead of the same one every epoch",
+   "why": "Side finding of the data augmentation run (SM67): every epoch sees bit-identical inputs. One re-seeded late epoch against the same recipe, ~5 GPU h, running (see the plan). Branch sm80",
+   "since": "10-31T16:19"
+  },
   {
    "status": "next",
    "id": "SM73",
