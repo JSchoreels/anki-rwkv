@@ -104,7 +104,7 @@ def wkv_long(r, k, v, w, a, kd, skip, bits=0, state0=None):
         return reference(r, k, v, w, a, kd, skip, bits, state0)
     import cupy
     kernel = _kernel(K, state=state0 is not None)
-    tensors = [x.float().contiguous() for x in (r, k, v, w, a, kd)]
+    tensors = [x.detach().float().contiguous() for x in (r, k, v, w, a, kd)]  # forward-only kernel: no autograd
     skip = skip.to(torch.uint8).contiguous()
     out = torch.empty_like(tensors[0])
     if B * H == 0 or T == 0:
@@ -115,7 +115,7 @@ def wkv_long(r, k, v, w, a, kd, skip, bits=0, state0=None):
         if state0 is None:
             kernel((B * H,), (K,), (*args, *scalars))
         else:
-            s0 = state0.float().contiguous()
+            s0 = state0.detach().float().contiguous()  # the arm's learned start state is a parameter (requires grad)
             if s0.shape != (B, H, K, K) or s0.device != r.device:
                 raise ValueError(f"state0 must be {(B, H, K, K)} on {r.device}, got {tuple(s0.shape)} {s0.device}")
             kernel((B * H,), (K,), (*args, *scalars, cupy.from_dlpack(s0)))
