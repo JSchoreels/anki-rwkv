@@ -543,9 +543,19 @@ def gpu_check(args):
     fails += [] if pair["pass"] else ["P"]
     from scripts.small_model_wkv import self_test_state
     long = self_test_state()
-    lk = all(v < 1e-4 for k, v in long.items() if not k.endswith("bitwise")) and all(
-        v for k, v in long.items() if k.endswith("bitwise"))
-    report["checks"]["L_scorer_long_kernel_from_state"] = {"pass": lk, **long}
+    # L: the scorer's long kernel from S0. Bitwise wherever the arithmetic is the same: S0 = 0 equals the stock kernel
+    # (bits 0 and 8). bits 0 (float32 state): 1e-4 vs the float32 reference, the scorer's own gate
+    # (small_model_heldout.py). bits 8: the state is re-rounded to 8-bit codes every step, so kernel and reference
+    # (another summation order) flip a code by one step now and then and are not comparable at 1e-4 (the float32
+    # reference vs a float64 run of itself already differs by 5e-4..1.2e-3 here; the scorer's gate exempts bits 4 / 8
+    # for this reason). Bar: max error <= one quantisation step on every element of a state row (step * |r|_1, the
+    # `/bound` key) and at most 1% of the outputs off by > 1e-4 (flips are rare; a wrong kernel moves almost all).
+    # The S0 load itself is the bits-0 code path, held at 1e-4.
+    lk = all(v for key, v in long.items() if key.endswith("bitwise"))
+    for K in (16, 32):
+        lk &= long[f"K{K}/bits0"] < 1e-4
+        lk &= long[f"K{K}/bits8"] <= long[f"K{K}/bits8/bound"] and long[f"K{K}/bits8/frac_over_1e-4"] <= 0.01
+    report["checks"]["L_scorer_long_kernel_from_state"] = {"pass": bool(lk), **long}
     fails += [] if lk else ["L"]
     report["fails"] = fails
     report["ok"] = not fails
@@ -577,62 +587,123 @@ def gpu_trainer_pair(args):
     config = json.loads((RUN72S / "run.json").read_text())
     options = {k: v for k, v in config["options"].items() if k not in ("packed_ipc", "distillation")}
     options.update(chunk_reviews=128, batch_chunks=2)
-    device = torch.device("cuda:0")
+    device = torch.device(getattr(args, "device", "cuda:0"))
     with ThreadPoolExecutor(max_workers=1) as pool:
         prepared = list(training_batches(rows, 256, options["training_seed"], pool, options, None, 2))
-    results = {}
-    with row_tiled_backend(rows=4, tile=32, exact=True):
-        for arch, ck in (("w64", base_master), (record["architecture"], ext / "master.pth")):
-            master, base = training_models(VariantSrsRWKV, variant(arch), device, torch.bfloat16, 2025)
-            master.load_state_dict(torch.load(ck, map_location="cpu", weights_only=True), strict=True)
-            base.copy_downcast_(master, torch.bfloat16)
-            for module in base.modules():
-                for name in ("exact_shift", "exact_index", "exact_group_norm"):
-                    if hasattr(module, name):
-                        setattr(module, name, bool(options.get(name)))
-            base.skip_padding_sources = bool(options.get("skip_padding_sources"))
-            catch_up = CatchUp(dict(options, architecture=arch), {}, rows)
-            shared = [n for n, _ in base.named_parameters() if ".sm77_" not in n]
-            params = dict(base.named_parameters())
-            out = []
-            for row, item in prepared:
-                batch = item.batch.to(device)
-                batch.start = batch.start.to(torch.bfloat16)
-                base.train()
-                base.zero_grad(set_to_none=True)
-                torch.manual_seed(item.seed)
-                catch_up.carry.attach(item, batch, row["user_id"])
-                stats = catch_up.loss(base, batch, 0, (row["user_id"], item.offset, item.reviews, item.seed), item.batch.labels)
-                stats.average_loss.backward()
+
+    def run(arch, ck, dtype):
+        master, base = training_models(VariantSrsRWKV, variant(arch), device, dtype, 2025)
+        master.load_state_dict(torch.load(ck, map_location="cpu", weights_only=True), strict=True)
+        if dtype != torch.float32:  # float32: the master is the training model (training_models)
+            base.copy_downcast_(master, dtype)
+        for module in base.modules():
+            for name in ("exact_shift", "exact_index", "exact_group_norm"):
+                if hasattr(module, name):
+                    setattr(module, name, bool(options.get(name)))
+        base.skip_padding_sources = bool(options.get("skip_padding_sources"))
+        catch_up = CatchUp(dict(options, architecture=arch), {}, rows)
+        shared = [n for n, _ in base.named_parameters() if ".sm77_" not in n]
+        params = dict(base.named_parameters())
+        out = []
+        for row, item in prepared:
+            batch = item.batch.to(device)
+            batch.start = batch.start.to(dtype)
+            base.train()
+            base.zero_grad(set_to_none=True)
+            torch.manual_seed(item.seed)
+            catch_up.carry.attach(item, batch, row["user_id"])
+            stats = catch_up.loss(base, batch, 0, (row["user_id"], item.offset, item.reviews, item.seed), item.batch.labels)
+            stats.average_loss.backward()
+            if device.type == "cuda":
                 torch.cuda.synchronize()
-                out.append({"loss": float(stats.average_loss).hex(), "p": stats.p_imm_all.float().cpu(),
-                            "grads": [params[n].grad.float().cpu() if params[n].grad is not None else None for n in shared],
-                            "new_grads": sum(int(p.grad is not None and bool(p.grad.abs().sum() > 0))
-                                             for n, p in params.items() if ".sm77_" in n)})
-            results[arch] = out
-    a, b = results["w64"], results[record["architecture"]]
-    loss_equal = [x["loss"] == y["loss"] for x, y in zip(a, b)]
-    p_equal = [bool(torch.equal(x["p"], y["p"])) for x, y in zip(a, b)]
-    # loss and outputs bitwise; the old weights' gradients up to summation order (the removal / insertion key branches
-    # add their contributions to k and a in another order; CPU float32: 2.8e-6 relative). bf16 gradients: bar 2e-2 of
-    # each tensor's max |value| (a few bf16 ulps)
-    rel = 0.0
-    same_presence = True
-    for x, y in zip(a, b):
-        for gx, gy in zip(x["grads"], y["grads"]):
+            out.append({"loss": float(stats.average_loss).hex(), "p": stats.p_imm_all.detach().float().cpu(),
+                        "names": shared,
+                        "grads": [params[n].grad.float().cpu() if params[n].grad is not None else None for n in shared],
+                        "new_grads": sum(int(p.grad is not None and bool(p.grad.abs().sum() > 0))
+                                         for n, p in params.items() if ".sm77_" in n)})
+        return out
+
+    arm_arch, arm_ck = record["architecture"], ext / "master.pth"
+    results = {}
+    tf32 = (torch.backends.cuda.matmul.allow_tf32, torch.backends.cudnn.allow_tf32)
+    with row_tiled_backend(rows=4, tile=32, exact=True):
+        # the trainer's dtype (bf16 training copy); w64 twice (determinism, reported only)
+        for tag, arch, ck in (("w64", "w64", base_master), ("arm", arm_arch, arm_ck), ("w64_again", "w64", base_master)):
+            results[tag] = run(arch, ck, torch.bfloat16)
+        # float32 twins (the same kernels in float32, TF32 off): the gradient path's exactness, and bf16's own error
+        torch.backends.cuda.matmul.allow_tf32 = torch.backends.cudnn.allow_tf32 = False
+        try:
+            for tag, arch, ck in (("w64_fp32", "w64", base_master), ("arm_fp32", arm_arch, arm_ck)):
+                results[tag] = run(arch, ck, torch.float32)
+        finally:
+            torch.backends.cuda.matmul.allow_tf32, torch.backends.cudnn.allow_tf32 = tf32
+    a, b, a2, af, bf = (results[t] for t in ("w64", "arm", "w64_again", "w64_fp32", "arm_fp32"))
+    n = len(a)
+    ok_shape = n == len(b) == len(af) == len(bf) > 2 and all(x["names"] == y["names"] for x, y in zip(a, b))
+
+    def same_outputs(x, y):
+        return [u["loss"] == v["loss"] for u, v in zip(x, y)], [bool(torch.equal(u["p"], v["p"])) for u, v in zip(x, y)]
+
+    def pairs(x, y):
+        for u, v in zip(x, y):
+            yield from zip(u["names"], u["grads"], v["grads"])
+
+    def per_tensor_gap(x, y):
+        """(worst over updates and tensors of max |diff| / max |x| of the tensor, that tensor, same None pattern)"""
+        worst, where, presence = 0.0, None, True
+        for name, gx, gy in pairs(x, y):
             if gx is None or gy is None:
-                same_presence &= (gx is None) == (gy is None)
+                presence &= (gx is None) == (gy is None)
                 continue
             scale = float(gx.abs().max())
-            if scale > 0:
-                rel = max(rel, float((gx - gy).abs().max()) / scale)
-    grad_equal = all(torch.equal(gx, gy) if gx is not None and gy is not None else gx is gy
-                     for x, y in zip(a, b) for gx, gy in zip(x["grads"], y["grads"]))
-    return {"pass": len(a) == len(b) > 2 and all(loss_equal) and all(p_equal) and same_presence and rel <= 2e-2
-            and all(y["new_grads"] > 0 for y in b),
-            "updates": len(a), "loss_bitwise_equal": loss_equal, "outputs_bitwise_equal": p_equal,
-            "old_gradients_bitwise_equal": grad_equal, "old_gradients_max_relative_diff": rel,
-            "new_parameters_with_gradient": [y["new_grads"] for y in b], "users": [r["user_id"] for r in rows]}
+            if scale > 0 and float((gx - gy).abs().max()) / scale > worst:
+                worst, where = float((gx - gy).abs().max()) / scale, name
+        return worst, where, presence
+
+    def flat(u):
+        return torch.cat([g.flatten() for g in u["grads"] if g is not None])
+
+    def bitwise(x, y):
+        return all(torch.equal(gx, gy) if gx is not None and gy is not None else gx is gy for _, gx, gy in pairs(x, y))
+
+    # What is exact and what is not (at zero the arm computes the same function; only its backward graph differs):
+    # * forward: x * (1 + 0), a + 0 * (1 - a) and + 0 are exact in any dtype, so loss and outputs are bitwise equal, in
+    #   bf16 and in float32 (strict).
+    # * old weights' gradients: the removal and insertion keys are two normalize branches, so autograd adds their
+    #   contributions to k (and a) in another order. In float32 that is summation-order noise (CPU T1: 2.8e-6 of each
+    #   tensor's max |value|): bar 1e-4 on GPU float32 (headroom for GPU ordering, still ~1000x below the bf16 noise;
+    #   a wrong or missing gradient term is O(1)).
+    # * in bf16 every partial result is rounded to 8 bits, so the reordering is not small per tensor: small
+    #   reduction-heavy tensors (4-entry biases, layer norms) differ by up to ~8% of their max between the two arms
+    #   (GPU 10-31: 7.8%; CPU bf16 twin: 8.3%), while w64's own bf16 gradient is up to 130% (per tensor) and 2.5-5.7%
+    #   (whole-model L2) away from its float32 gradient (CPU twin, 10-31). Bitwise or per-tensor bf16 bars measure that
+    #   noise, not the arm (reported only). Bars on the whole-model gradient (L2 over all old tensors, per update,
+    #   relative to the float32 norm): the arm-vs-w64 gap <= w64's own bf16 error (CPU twin: 0.09-0.25 of it) and the
+    #   arm's bf16 error <= 1.25 x w64's (CPU twin: 0.99-1.01 x), i.e. the arm's bf16 gradients are as good as w64's.
+    loss_equal, p_equal = same_outputs(a, b)
+    loss_equal32, p_equal32 = same_outputs(af, bf)
+    rel, rel_where, presence = per_tensor_gap(a, b)
+    rel32, rel32_where, presence32 = per_tensor_gap(af, bf)
+    gap_l2, err_w64, err_arm = [], [], []
+    for x, y, xf, yf in zip(a, b, af, bf):
+        norm = float(flat(xf).norm())
+        gap_l2.append(float((flat(x) - flat(y)).norm()) / norm)
+        err_w64.append(float((flat(x) - flat(xf)).norm()) / norm)
+        err_arm.append(float((flat(y) - flat(yf)).norm()) / float(flat(yf).norm()))
+    bf16_ok = all(g <= e and ea <= 1.25 * e for g, e, ea in zip(gap_l2, err_w64, err_arm))
+    learn = all(y["new_grads"] > 0 for y in b) and all(y["new_grads"] > 0 for y in bf)
+    passed = (ok_shape and all(loss_equal) and all(p_equal) and all(loss_equal32) and all(p_equal32) and presence
+              and presence32 and rel32 <= 1e-4 and bf16_ok and learn)
+    return {"pass": bool(passed), "updates": n, "loss_bitwise_equal": loss_equal, "outputs_bitwise_equal": p_equal,
+            "fp32_loss_bitwise_equal": loss_equal32, "fp32_outputs_bitwise_equal": p_equal32,
+            "fp32_old_gradients_max_relative_diff": rel32, "fp32_worst_tensor": rel32_where,
+            "old_gradients_bitwise_equal": bitwise(a, b), "old_gradients_max_relative_diff": rel,
+            "old_gradients_worst_tensor": rel_where,
+            "bf16_gap_l2_rel": gap_l2, "bf16_error_l2_rel_w64": err_w64, "bf16_error_l2_rel_arm": err_arm,
+            "w64_rerun_gradients_bitwise_equal": bitwise(a, a2),
+            "w64_rerun_max_relative_diff": per_tensor_gap(a, a2)[0],
+            "new_parameters_with_gradient": [y["new_grads"] for y in b],
+            "new_parameters_with_gradient_fp32": [y["new_grads"] for y in bf], "users": [r["user_id"] for r in rows]}
 
 
 class _null:
