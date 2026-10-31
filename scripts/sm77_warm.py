@@ -44,6 +44,7 @@ TRACK = "E89-F65e-F77a"
 SM72S = Path("C:/Users/jonat/workspace/wt/sm72s")
 RUN72S = SM72S / "artifacts/accuracy/experiments/scale-w64kd-final-sc-lanes-leakfree/run"
 DATA = os.environ.get("GPU_BATCH1_DATA_PATH", r"C:\Users\jonat\workspace\anki-rwkv\data\anki-revlogs-10k-original-20261011")
+os.environ.setdefault("GPU_BATCH1_DATA_PATH", DATA)  # before any import of scripts.gpu_batch1, which reads it at import time
 
 
 def atomic_json(path, value):
