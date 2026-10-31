@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-10-31T07:23:10+01:00",
- "updated": "2026-10-31 07:23",
- "material": "8f45041e0ced0696",
- "summary": "running 000778",
+ "generated_at": "2026-10-31T09:11:03+01:00",
+ "updated": "2026-10-31 09:11",
+ "material": "a9301093173700b7",
+ "summary": "running 000780, finished 000779",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring (curve / instant)",
@@ -240,18 +240,18 @@
  "now": [
   {
    "what": "Data augmentation (SM67) stage 1: the leak-free small model&rsquo;s (SM72s) 1-epoch cool-down from epoch 25 again, with 959 large training users each split into two pseudo-users by a random half of their notes (32% of reviews in halves; every card keeps its full history, labels and teacher targets; only the cross-card context changes). Same reviews and labels as the control, 2.5% more updates; control = the existing cool-down from epoch 25; scored on the 732 set",
-   "id": "SM67, ticket 000778",
+   "id": "SM67, ticket 000780",
    "kind": "gpu-train",
    "decides": "Go if curve &ge; 0.20 points or instant &ge; 0.15 better on 722 users (CI clear of zero), other head no worse than +0.03%; stop if both under 0.10; in between, report. The design expects a small gain (0 to 0.05 points)",
    "why": "",
-   "job": "data augmentation (SM67) stage 1: augmented 1-epoch 32k Muon cool-down from SM72s epoch 25 (note split, 8k final tier, lanes carry, leak-free replay KD) (segment to the next window or the end)",
+   "job": "data augmentation (SM67) stage 1: scoring sm67-aug-dec25-1ep32k-muon on the 732 pool minus 9 never-fit (723) (pass 1)",
    "linked": true,
    "track": "small model",
-   "ticket": "000778-small-model",
-   "started": "01:04",
-   "elapsed": "6:18",
+   "ticket": "000780-small-model",
+   "started": "09:10",
+   "elapsed": "0:00",
    "progress": null,
-   "eta": "~10:04"
+   "eta": "~09:22"
   }
  ],
  "charts": [
@@ -421,15 +421,26 @@
    ]
   }
  ],
- "waiting": [
+ "waiting": [],
+ "recent": [
   {
    "ticket": "000779-small-model",
    "id": "SM77",
    "what": "tiny architecture additions (SM77): GPU check re-run with the new P / L bars (check only, ~2 min)",
-   "flags": "expected 10 min"
-  }
- ],
- "recent": [
+   "ended": "09:10",
+   "date": "10-31",
+   "exit": 0,
+   "ran": "0:00"
+  },
+  {
+   "ticket": "000778-small-model",
+   "id": "SM67",
+   "what": "data augmentation (SM67) stage 1: augmented 1-epoch 32k Muon cool-down from SM72s epoch 25 (note split, 8k final tier, lanes carry, leak-free replay KD) (segment to the next window or the end)",
+   "ended": "09:10",
+   "date": "10-31",
+   "exit": 0,
+   "ran": "8:05"
+  },
   {
    "ticket": "000777-small-model",
    "id": "SM67",
@@ -465,24 +476,6 @@
    "date": "10-30",
    "exit": 0,
    "ran": "0:01"
-  },
-  {
-   "ticket": "000773-small-model",
-   "id": "SM65",
-   "what": "better teacher (SM65) stage 1: score big-moreusers/w8+s8, leak-free inputs, 732 set (723 users), split existing/deleted",
-   "ended": "20:26",
-   "date": "10-30",
-   "exit": 0,
-   "ran": "0:15"
-  },
-  {
-   "ticket": "000772-small-model",
-   "id": "SM65",
-   "what": "better teacher (SM65) stage 1: big model (fork RWKV) one more leak-free epoch on the 3,969 new users (ids below 5000) from the big model (1 leak-free epoch), 285M reviews left (segment to the next window or the end)",
-   "ended": "20:10",
-   "date": "10-30",
-   "exit": 0,
-   "ran": "7:00"
   }
  ],
  "plan": [
@@ -1553,8 +1546,8 @@
    "when": "Code ready and checked on CPU (bit-identical with the option off; cards, labels and targets identical in the halves; no evaluation user). Started Sat 10-31 01:02 (moved ahead of the tiny architecture additions (SM77), whose GPU check failed); ~8.7 GPU h, ends ~09:45 Sat",
    "decides": "Go if curve &ge; 0.20 points or instant &ge; 0.15 better on 722 users (CI clear of zero), other head no worse than +0.03%; stop if both under 0.10; in between, report. The design expects a small gain (0 to 0.05 points)",
    "state": "running",
-   "started": "01:04",
-   "ticket": "000778-small-model",
+   "started": "09:10",
+   "ticket": "000780-small-model",
    "started_at": "2026-10-31T01:04:21+01:00",
    "ends_at": "2026-10-31T09:44:21+01:00"
   },
@@ -1567,8 +1560,12 @@
    "what": "Tiny architecture additions (SM77): GPU check re-run with the corrected bars (the 01:03 failures were bf16 summation order in the gradients and 8-bit state rounding, not bugs; checked on CPU)",
    "when": "Queued Sat 10-31 01:15, runs in the first gap of the next experiment (SM67), ~10:05",
    "decides": "Whether the tiny architecture additions (SM77) launcher can be relaunched after the next experiment (SM67)",
-   "state": "waiting",
-   "ticket": "000779-small-model"
+   "state": "done",
+   "ended": "09:10",
+   "exit": 0,
+   "started": "09:10",
+   "started_at": "2026-10-31T09:10:34+01:00",
+   "ended_at": "2026-10-31T09:10:53+01:00"
   },
   {
    "id": "SM77",
