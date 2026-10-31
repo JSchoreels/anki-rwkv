@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-10-31T19:57:55+01:00",
- "updated": "2026-10-31 19:57",
- "material": "2fb3a3ce2bcf1f2c",
- "summary": "idle, finished 000795",
+ "generated_at": "2026-10-31T21:03:10+01:00",
+ "updated": "2026-10-31 21:03",
+ "material": "4f2a99c6f8366067",
+ "summary": "idle",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring (curve / instant)",
@@ -1583,6 +1583,17 @@
    "started": "16:20",
    "started_at": "2026-10-31T16:20:03+01:00",
    "ended_at": "2026-10-31T19:57:30+01:00"
+  },
+  {
+   "id": "SM81",
+   "track": "small model",
+   "since": "10-31T20:57",
+   "kind": "gpu-score",
+   "minutes": 85,
+   "what": "Scheduling-time vs review-time accuracy (SM81): how much of the small model&rsquo;s accuracy a scheduler can use. Three points on the same reviews: at scheduling time (the curve made at the card&rsquo;s previous answer), at the start of the review day (instant head from the state before that day, new scorer pass), at review time (instant head). For the released small model and the big model (1 leak-free epoch), and FSRS-7 (per-user fit and default parameters) and FSRS7-Instant on the benchmark&rsquo;s test reviews of the 732 set",
+   "when": "Launcher waiting out the break; FSRS-7 side on CPU from 01:00 (~45 min), then after the data-order re-seed (SM80) ends ~03:30: small model (~40 min) and big model (~45 min) start-of-day scoring; table ~05:10 Sun",
+   "decides": "Whether the small model&rsquo;s lead over FSRS-7 holds at scheduling time, and what share of the review-time gain is known at the start of the day (usable for daily rescheduling)",
+   "state": "planned"
   }
  ],
  "gpu_break": {
@@ -1599,6 +1610,14 @@
    "item": "Data-order re-seed (SM80): a new data seed for an epoch instead of the same one every epoch",
    "why": "Side finding of the data augmentation run (SM67): every epoch sees bit-identical inputs. One re-seeded late epoch against the same recipe, ~5 GPU h, running (see the plan). Branch sm80",
    "since": "10-31T16:19"
+  },
+  {
+   "status": "planned",
+   "id": "SM81",
+   "track": "small model",
+   "item": "Scheduling-time vs review-time accuracy (SM81): the small model and FSRS-7 at scheduling time, start of day and review time, on the same reviews",
+   "why": "Asked 10-31: FSRS7-Instant is much better at review time but worse at scheduling time; check how much of the small model&rsquo;s lead a scheduler can use. Measurement only, ~1.5 GPU h. Branch sm81",
+   "since": "10-31T20:57"
   },
   {
    "status": "next",
