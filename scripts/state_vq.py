@@ -76,6 +76,18 @@ def _r(**kw):
     return StreamRecipe(**kw)
 
 
+@dataclass(frozen=True)
+class IntStream:
+    """SM90 (codebook state compression sweep): a stream kept at the int row format inside a +vq recipe, so one stream
+    can be coded while the other stays at the fork default (int4 cards / int8 notes, as +s4c8n): WKV rows through
+    int_row_quant(bits) on CPU and the int kernel on CUDA (IntScoreCodec, exactly the +s8 / +s4c8n paths), token-shift
+    vectors float (as +s4c8n)."""
+    bits: int = 8
+
+    def exact_parts(self):
+        return False
+
+
 _E1 = _r(stages=(1,))
 _E4 = _r(stages=(4,))
 RECIPES = {
@@ -134,6 +146,32 @@ RECIPES.update({
     "vqr6exact": (_r(rank=6, stages=(0,) * 6, norm_bits=None, shift_m=0),) * 2,
 })
 RECIPES["vqS46sh"] = RECIPES["vq5902x3028"]   # its screen name (state_vq_fit.py tune rows)
+
+# SM90 (2026-11-01, codebook state compression sweep): per-stream ladders on the released small model, codebooks
+# artifacts/small-model/sm90/books/codebooks-sm90.npz (k-means on its own states; WKV components 0-7 with
+# (20, 16, 12, 8, 6, 4, 4, 3) 10-bit stages, 6/8-bit norm ranges with hi = the largest norm). The model-free proxy
+# (artifacts/small-model/sm90/proxy-sm90-wkv.json) showed the note heads are far higher-rank than the card heads (rank 6
+# keeps 99.95% of the card energy, 99.07% of the note energy), so cards and notes get separate ladders, each with the
+# other stream at the fork default: vqC<bits> = coded card + int8 note, vqN<bits> = int4 card + coded note. Card heads:
+# the proxy's best rank / norm bits / greedy stage split at each per-head budget; shift vectors m4 (12-bit codes) with
+# stages scaled with the rung + 10-bit norm.
+_SH = lambda st: dict(shift_m=4, shift_stages=st, shift_norm_bits=10)   # noqa: E731  (4 x 12 x st + 10 bits)
+_SM90_CARD = {   # card bits: 8 heads x head bits + 3 x shift bits
+    "vqC5902": _r(rank=5, stages=(16, 14, 11, 8, 6), norm_bits=8, **_SH(8)),       # 8 x 590 + 3 x 394 (1x SM46's card)
+    "vqC4430": _r(rank=4, stages=(14, 11, 9, 7), norm_bits=8, **_SH(6)),          # 8 x 442 + 3 x 298 (3/4)
+    "vqC2958": _r(rank=3, stages=(11, 9, 7), norm_bits=8, **_SH(4)),               # 8 x 294 + 3 x 202 (1/2)
+    "vqC1934": _r(rank=3, stages=(8, 5, 3), norm_bits=8, **_SH(3)),                # 8 x 184 + 3 x 154 (1/3)
+    "vqC1470": _r(rank=3, stages=(6, 4, 2), norm_bits=8, **_SH(2)),                # 8 x 144 + 3 x 106 (1/4)
+}
+_SM90_NOTE = {   # note bits: 4 heads x head bits + 2 x shift bits
+    "vqN3964": _r(rank=8, stages=(20, 16, 12, 8, 6, 4, 4, 3), norm_bits=8, **_SH(8)),  # 4 x 794 + 2 x 394 (all stages)
+    "vqN3020": _r(rank=6, stages=(13, 11, 9, 8, 6, 4), norm_bits=8, **_SH(8)),         # 4 x 558 + 2 x 394 (1x SM46's note)
+    "vqN1524": _r(rank=5, stages=(9, 7, 5, 2, 1), norm_bits=8, **_SH(4)),              # 4 x 280 + 2 x 202 (1/2)
+}
+RECIPES.update({name: (rec, IntStream(8)) for name, rec in _SM90_CARD.items()})
+RECIPES.update({name: (IntStream(4), rec) for name, rec in _SM90_NOTE.items()})
+# both streams coded: vqC<card bits>N<note bits> (the screen picks which pair reaches the 732 set)
+RECIPES.update({f"{c}N{n[3:]}": (crec, nrec) for c, crec in _SM90_CARD.items() for n, nrec in _SM90_NOTE.items()})
 
 
 def recipe(name):
@@ -195,7 +233,7 @@ class NormQuant:
         return torch.exp2(self.lo + q / levels * (self.hi - self.lo))
 
 
-def fit_norm_range(log2n, bits, weights=None, grid=41):
+def fit_norm_range(log2n, bits, weights=None, grid=41, top=None):
     """lo/hi of a uniform `bits`-bit log2 grid minimizing the weighted squared log2 error on the sample (grid search
     over quantiles 1..99%). Weights: the WKV component's energy share (sigma), so near-degenerate second components
     (sqrt(sigma) down to 2^-17) do not stretch the range; uniform for shift norms. His ranges are corpus-derived
@@ -218,6 +256,20 @@ def fit_norm_range(log2n, bits, weights=None, grid=41):
         return max(float(np.min(x)), hi - 20.0), hi
     levels = 2 ** bits - 1
     cdf = np.cumsum(w)
+    if top == "max":
+        # SM90 (codebook state compression sweep): hi = the largest norm of the sample (no clipping of the top, as the
+        # 10-bit rule), lo searched over the weighted 0.01-50% quantiles. On the released small model's note heads the
+        # clipped top 1% made the 6/8-bit norm error ~5x the 10-bit one (rank 8, exact directions: 1.0e-2 vs 2.1e-3).
+        hi = float(np.max(x))
+        best = (math.inf, float(x[0]), hi)
+        for lo in np.interp(np.linspace(0.0001, 0.5, 4 * grid), cdf, x):
+            if hi <= lo:
+                continue
+            q = np.clip(np.round((x - lo) / (hi - lo) * levels), 0, levels)
+            err = float((w * (lo + q / levels * (hi - lo) - x) ** 2).sum())
+            if err < best[0]:
+                best = (err, float(lo), hi)
+        return best[1], best[2]
     cand = np.interp(np.linspace(0.01, 0.99, grid), cdf, x)
     best = (math.inf, float(cand[0]), float(cand[-1]))
     for i in range(grid):
@@ -651,6 +703,8 @@ def configure(layout, codecs=None, int_bits=0, shift_bits=0):
 
 
 def entity_bits(rec, info):
+    if isinstance(rec, IntStream):   # SM90: the scorer's int row format (as state_vq_report.int_entity_bits)
+        return info["wkv_layers"] * info["heads"] * K * (K * rec.bits + 32) + len(info["shift_vectors"]) * info["heads"] * K * 32
     if rec.exact_parts():
         return None
     return (info["wkv_layers"] * info["heads"] * rec.wkv_bits()
@@ -661,6 +715,11 @@ def describe(name, layout, recs=None):
     recs = recs or recipe(name)
     out = {}
     for (stream, info), rec in zip(layout.items(), recs):
+        if isinstance(rec, IntStream):   # SM90
+            out[{0: "card", 2: "note"}.get(stream, str(stream))] = {
+                "bits": entity_bits(rec, info), "wkv_layers": info["wkv_layers"], "heads": info["heads"],
+                "shift_vectors": len(info["shift_vectors"]), "int_bits": rec.bits, "shift": "float"}
+            continue
         out[{0: "card", 2: "note"}.get(stream, str(stream))] = {
             "bits": entity_bits(rec, info), "wkv_layers": info["wkv_layers"], "heads": info["heads"],
             "shift_vectors": len(info["shift_vectors"]), "rank": rec.rank, "stages": list(rec.stages),
@@ -881,6 +940,9 @@ def score_codecs(name, books, device, factor_dtype=torch.float64, kernel=True):
     device = torch.device(device)
     out = {}
     for stream, rec in zip(STATE_STREAMS, recipe(name)):
+        if isinstance(rec, IntStream):   # SM90: the int kernel through the slot (the +s8 / +s4c8n GPU path)
+            out[stream] = IntScoreCodec(rec.bits)
+            continue
         fused = kernel and rec.rank == 1 and bool(rec.stages[0]) and rec.norm_bits is not None
         if fused:
             rec = replace(rec, factor="sq")
@@ -908,6 +970,19 @@ class IntScoreCodec:
     def shift(self, x, role):
         return self._shift(x) if self._shift is not None else x
 
+    def wkv(self, S):
+        """SM90: CPU path of an IntStream inside a +vq recipe: the +s8 / +s4 CPU rounding (configure int_bits)."""
+        if self._wkv is None:
+            self._wkv = int_row_quant(self.wkv_bits)
+        return self._wkv(S)
+
+    _wkv = None
+
+
+def cpu_codec(rec, books):
+    """SM90: the CPU scorer's codec of one stream of a +vq recipe (StateCodec, or IntScoreCodec for an IntStream)."""
+    return IntScoreCodec(rec.bits) if isinstance(rec, IntStream) else StateCodec(rec, books)
+
 
 def int_score_codecs(wkv_bits, shift_bits=0):
     """{stream: IntScoreCodec}; wkv_bits an int (both streams) or a (card, note) tuple."""
@@ -920,7 +995,7 @@ def score_path(codecs):
     names = {0: "card", 2: "note"}
     if all(isinstance(c, IntScoreCodec) for c in codecs.values()):
         return {names[s]: f"int kernel bits {c.wkv_bits}, shift bits {c.shift_bits}" for s, c in codecs.items()}
-    return {names[s]: (f"fused kernel, Gram squaring {str(c.factor_dtype).replace('torch.', '')}"
+    return {names[s]: f"int kernel bits {c.wkv_bits}, shift bits {c.shift_bits}" if isinstance(c, IntScoreCodec) else (f"fused kernel, Gram squaring {str(c.factor_dtype).replace('torch.', '')}"
                        if c.score_kernel is not None else
                        f"torch step loop, {c.rec.factor} {str(c.factor_dtype).replace('torch.', '')}")
             for s, c in codecs.items()}
