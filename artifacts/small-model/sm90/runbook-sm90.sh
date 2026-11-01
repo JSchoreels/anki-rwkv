@@ -138,7 +138,7 @@ if [ "$DRYRUN" != 1 ]; then
   "$PY" -X utf8 $H/sm90_rule.py screen >> "$G/rule.out" 2>&1 || { log "STOP: screen read-out incomplete (gpu/rule.out)"; exit 1; }
   log "screen done: finalists $(tr '\n' ' ' < $H/finalists.txt)"
 else
-  [ -f $H/finalists.txt ] || printf 'rel/w8+s4c8n\nrel/w8+vqB3a\n' > $G/finalists-dryrun.txt
+  [ -f $H/finalists.txt ] || printf 'rel/w8+s4c8n\nrel/w8+vqC1934\n' > $G/finalists-dryrun.txt
 fi
 
 # 4. finalists on the 732 set (723 fit users)

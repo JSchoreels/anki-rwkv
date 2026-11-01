@@ -41,8 +41,11 @@ Worktree `C:/Users/jonat/workspace/wt/sm90`, branch `sm90` = origin/main + the l
 | ~440 / ~295 / ~185 / ~145 bits per head | 1.4e-2 / 2.9e-2 / 5.7e-2 / 7.9e-2 | 4.0e-2 / 7.5e-2 (280) / 1.2e-1 / 1.4e-1 |
 | all fitted stages (rank 8, 794 bits) | | 1.5e-2 (approx.) |
 
-Token shift (stored 64-float vectors, float in the fork default): int8 1e-4, int4 2-3e-2; m4 x 8 stages of 12-bit codes
-reach ~1e-4 to 1e-3 (shift proxy, `proxy-sm90-shift.json`).
+Token shift (stored 64-float vectors, float in the fork default; `proxy-sm90-shift.json`): int8 1e-4, int4 2-3.5e-2.
+m4 (12-bit codes, 10-bit norm) per vector: x8 (394 bits) 1.3e-4 to 3.0e-4, x6 (298) 6e-4 to 1.2e-3, x4 (202) 2.5e-3 to
+5.1e-3, x3 (154) 5e-3 to 1.1e-2, x2 (106) 1.2e-2 to 2.5e-2. m8 at equal bits is within ~±20% (better on the channel-mixer
+vectors at 394 bits, worse at <= 200), so m4 stays. 8-bit shift norms give the same error as 10-bit (a 2-bit saving,
+not taken).
 
 ## Budget ladder (bits per entity; state MB = 13,973 cards x card + 13,198 notes x note, codes only)
 
@@ -80,8 +83,16 @@ shape on the new books.
 Measured on the proxy only (chosen per rung, not screened): rank vs stages (ranks 2-8 at 10 per-head budgets),
 norm bits 6/8/10 and the norm range rule, greedy stage split, shift m4 vs m8 and stage counts.
 
+Fitting-data knob (attempted 13:55, NOT run): the codec proof showed the deep WKV stages generalise poorly at 200k
+fitting points (component 0, held-out / in-sample residual 1.15x at stage 1 rising to 4.4x at stage 20;
+`proof/proof-codec-200k.json`). A refit on all 813,788 fit-split heads (`fit-big-sm90.sh`, 5 parallel processes) used
+~5 GB RAM each, filled the machine and crashed another session's GPU job; it was killed at ~14:00 with no output. The
+screen and the finalists use the 200k books (`codebooks-sm90.npz`, sha256 c12b659b...). Follow-up: the same refit with
+ONE process at a time and the data streamed or subsampled (< 6 GB RAM), then the proxy pick in `choose_books.py`
+(900k replaces 200k if lower held-out error for both `vqC5902` card and `vqN3020` note heads).
+
 Not run this round, with reasons:
-- codebook size per stage (8 / 12-bit vs 10-bit), fitting points (600k vs 200k), Lloyd iterations (50 vs 20):
+- fitting points (above), codebook size per stage (8 / 12-bit vs 10-bit), Lloyd iterations (50 vs 20):
   `knobs-sm90.sh` / `knobs_sm90.py` are written (proxy only) but were dropped before the 16:00 break to free the CPU
   for the rank-8 fit and the norm refit; they matter for speed / codebook size more than for accuracy.
 - 10-bit shift codes (would cut the codebooks by ~3x): needs a shift refit.
@@ -126,8 +137,11 @@ ms per review.
 ## CPU proof (before any GPU ticket)
 - (a) fitting deterministic: two k-means fits with the same seed on the same corpus give bitwise the same books
   (`proof/proof-fit-det.json`);
-- (b) encoding deterministic and decode(encode(x)) as expected: the held-out error is close to the k-means in-sample
-  residual, decreases with every stage, and the decoded picks equal the codec output (`proof/proof-codec.json`);
+- (b) encoding deterministic and decode(encode(x)) as expected: the explicit decode of the picks (sum of codewords,
+  norms on the grid) equals the codec output bitwise; the held-out residual falls with every stage and is not below the
+  in-sample residual (`proof/proof-codec.json`). The first run also required held-out <= 1.6x in-sample and failed
+  (4.4x at stage 20, `proof/proof-codec-200k.json`): a generalisation gap of the deep stages, not a codec error, which
+  started the fitting-data knob;
 - (c) int paths bitwise unchanged: `w8+s8` and `w8+s4c8n` rows of the sm90 tree = the released tree (wt/sm72s) on 3
   users (`proof/proof-int8.json`);
 - (d) the scorer with compression off reproduces the recorded released rows (`gpu/small-lf-neighbour.jsonl`) within the
