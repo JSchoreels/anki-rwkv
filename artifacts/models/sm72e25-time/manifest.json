@@ -1,0 +1,156 @@
+{
+ "label": "sm72e25-time",
+ "created": "2026-11-01 10:20:57",
+ "model": {
+  "package": "sm72e25",
+  "weights.f32.bin sha256": "42b79e35ad78bf291817cb48979f48fd105b39fc43b6a5ca954938d3f25cf261",
+  "master.pth sha256": "6f6b97e83404b981123e557d1df5fdfdfa6def0abc075d9804d6aab893d09b7d"
+ },
+ "head_master": {
+  "path": "<workspace>/wt/sm82c/artifacts/small-model/sm82c-head-released/master.pth",
+  "sha256": "e4fc2dd36820d8723c62f13f10d4e06d94b98418981f6be23434651ef04ad98c"
+ },
+ "parameters": {
+  "head": 69056,
+  "int8_tensors": [
+   "time_mlps.0.hidden.weight",
+   "time_mlps.0.out.weight"
+  ]
+ },
+ "training": "one pass over 80,988,171 labelled rows (1,991 users, first 400,000 reviews each), 9,887 AdamW steps of 8,192 rows, lr 0.002 cosine, heads only on the frozen released model",
+ "evaluation": {
+  "set": "732-user set, 722 users, 21,585,938 later-day reviews with a recorded time",
+  "head": {
+   "time_logloss": 1.9568,
+   "abs_ln_error": 0.4677
+  },
+  "card_last_time": {
+   "time_logloss": 2.4466,
+   "abs_ln_error": 0.7222
+  },
+  "user_running_median_per_grade": {
+   "time_logloss": 2.3664,
+   "abs_ln_error": 0.6428
+  },
+  "vs_user_median": {
+   "time_logloss": "-0.4096 [-0.4388, -0.3842] (-17.3%)",
+   "abs_ln_error": "-0.1751 [-0.1899, -0.1613] (-27.2%)"
+  },
+  "grade_outputs": "bitwise equal to the released model on 5 users (rows and per-review dumps)",
+  "source": "<workspace>/wt/sm82c/artifacts/small-model/sm82c/sm82c-decision.md"
+ },
+ "parity": {
+  "vectors": {
+   "4676": {
+    "fp32": {
+     "rows": 2838,
+     "inputs_equal_released_vectors": true
+    },
+    "int8": {
+     "rows": 2838,
+     "inputs_equal_released_vectors": true
+    },
+    "file": "user_4676.npz",
+    "bytes": 6321952
+   },
+   "1745": {
+    "fp32": {
+     "rows": 3705,
+     "inputs_equal_released_vectors": true
+    },
+    "int8": {
+     "rows": 3705,
+     "inputs_equal_released_vectors": true
+    },
+    "file": "user_1745.npz",
+    "bytes": 8155148
+   }
+  },
+  "numpy_check": {
+   "user_1745.npz": {
+    "rows": 3705,
+    "frozen_rows": 500,
+    "explicit_max_abs": 0.0,
+    "logit_max_abs": 4.291534423828125e-06,
+    "prob_max_abs": 3.3701205498504194e-07,
+    "median_good_s_mean": 6.027155445872916,
+    "p_fast_good_mean": 0.3088962375884253
+   },
+   "user_4676.npz": {
+    "rows": 2838,
+    "frozen_rows": 500,
+    "explicit_max_abs": 0.0,
+    "logit_max_abs": 4.76837158203125e-06,
+    "prob_max_abs": 3.16424493607137e-07,
+    "median_good_s_mean": 11.467135286213155,
+    "p_fast_good_mean": 0.18521891306725063
+   }
+  },
+  "native_fork": {
+   "fork": "JSchoreels/anki branch rwkv-answer-time-head, commit 826df061e (PR #24)",
+   "tests": [
+    "rwkv_sm72e25_answer_time_head_matches_published_vectors",
+    "rwkv_sm72e25_answer_time_history_matches_published_features"
+   ],
+   "full_vectors": {
+    "queries": 6543,
+    "f32_max_abs_bin_probability": 9.973373671923191e-07,
+    "int8_max_abs_bin_probability": 8.317372490185271e-07,
+    "f32_max_abs_logit": 1.8119812e-05,
+    "int8_max_abs_logit": 1.7642975e-05,
+    "history_features_max_abs": 0.0
+   },
+   "fixture_500_rows": {
+    "queries": 407,
+    "f32_max_abs_bin_probability": 4.4452981445841644e-07,
+    "int8_max_abs_bin_probability": 6.225845931573382e-07
+   },
+   "tolerance": "1e-5 (bin probabilities), 1e-6 (history features)"
+  }
+ },
+ "files": {
+  "ANSWER_TIME.md": {
+   "bytes": 6235,
+   "sha256": "b218541bf7375335cbbf453b68210d0c744b4a5a476d226bcb7e500e3c17eb0b"
+  },
+  "head.pth": {
+   "bytes": 278335,
+   "sha256": "e5552ae984f371df09d20215a4b122a5528d1482624479e5c5632d91b21b3e95"
+  },
+  "parity.json": {
+   "bytes": 1774,
+   "sha256": "756523d502015c593af6da71cfd80ad483c7c26e853b7a77ec3d58bd7012ec9b"
+  },
+  "reference/answer_time_numpy.py": {
+   "bytes": 6686,
+   "sha256": "15e5b66c6231cd582bfef12a5187e84d79cecba51ee25dc3dab62a1cd1e64a07"
+  },
+  "testvectors/check_time_vectors.py": {
+   "bytes": 2154,
+   "sha256": "9bc7fb49edb83b70fb08020871f9ac0079b28a08d91e1c1526d36f2abd03dafe"
+  },
+  "testvectors/user_1745.npz": {
+   "bytes": 4047560,
+   "sha256": "59cbf9ff983b9476de031c1602cdd6d28ecb442fc4c312ed52a14158dc40887b"
+  },
+  "testvectors/user_4676.npz": {
+   "bytes": 3295914,
+   "sha256": "4d4767941c5dceb7ab3f65c1c3310654e6371ee318743acace13e6826be80299"
+  },
+  "time_head.f32.bin": {
+   "bytes": 276402,
+   "sha256": "e958d749b94a64c4fed9a39b3dbff32c52144839956657857188eb13258d223b"
+  },
+  "time_head.int8.bin": {
+   "bytes": 70586,
+   "sha256": "7c4e123819b8a05f7dc30ed4da566a200f2ad616fffe57b98335f6224c64244f"
+  },
+  "time_head.json": {
+   "bytes": 3686,
+   "sha256": "c5c7e2069911aae36a92cb76f5a65a43c9cddc262631cb483ff2be2b5c7dbb87"
+  }
+ },
+ "provenance": {
+  "commit": "d5d381f3d68868fbed58510cc9c40721a417c0df"
+ }
+}

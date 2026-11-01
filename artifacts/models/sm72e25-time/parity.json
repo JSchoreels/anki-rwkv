@@ -1,0 +1,69 @@
+{
+ "vectors": {
+  "4676": {
+   "fp32": {
+    "rows": 2838,
+    "inputs_equal_released_vectors": true
+   },
+   "int8": {
+    "rows": 2838,
+    "inputs_equal_released_vectors": true
+   },
+   "file": "user_4676.npz",
+   "bytes": 6321952
+  },
+  "1745": {
+   "fp32": {
+    "rows": 3705,
+    "inputs_equal_released_vectors": true
+   },
+   "int8": {
+    "rows": 3705,
+    "inputs_equal_released_vectors": true
+   },
+   "file": "user_1745.npz",
+   "bytes": 8155148
+  }
+ },
+ "numpy_check": {
+  "user_1745.npz": {
+   "rows": 3705,
+   "frozen_rows": 500,
+   "explicit_max_abs": 0.0,
+   "logit_max_abs": 4.291534423828125e-06,
+   "prob_max_abs": 3.3701205498504194e-07,
+   "median_good_s_mean": 6.027155445872916,
+   "p_fast_good_mean": 0.3088962375884253
+  },
+  "user_4676.npz": {
+   "rows": 2838,
+   "frozen_rows": 500,
+   "explicit_max_abs": 0.0,
+   "logit_max_abs": 4.76837158203125e-06,
+   "prob_max_abs": 3.16424493607137e-07,
+   "median_good_s_mean": 11.467135286213155,
+   "p_fast_good_mean": 0.18521891306725063
+  }
+ },
+ "native_fork": {
+  "fork": "JSchoreels/anki branch rwkv-answer-time-head, commit 826df061e (PR #24)",
+  "tests": [
+   "rwkv_sm72e25_answer_time_head_matches_published_vectors",
+   "rwkv_sm72e25_answer_time_history_matches_published_features"
+  ],
+  "full_vectors": {
+   "queries": 6543,
+   "f32_max_abs_bin_probability": 9.973373671923191e-07,
+   "int8_max_abs_bin_probability": 8.317372490185271e-07,
+   "f32_max_abs_logit": 1.8119812e-05,
+   "int8_max_abs_logit": 1.7642975e-05,
+   "history_features_max_abs": 0.0
+  },
+  "fixture_500_rows": {
+   "queries": 407,
+   "f32_max_abs_bin_probability": 4.4452981445841644e-07,
+   "int8_max_abs_bin_probability": 6.225845931573382e-07
+  },
+  "tolerance": "1e-5 (bin probabilities), 1e-6 (history features)"
+ }
+}
