@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-01T06:29:23+01:00",
- "updated": "2026-11-01 06:29",
- "material": "aa5bfdb50e1274a8",
- "summary": "running 000814, finished 000813",
+ "generated_at": "2026-11-01T06:34:27+01:00",
+ "updated": "2026-11-01 06:34",
+ "material": "c9ab6bed17c47e92",
+ "summary": "running 000814",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring (curve / instant)",
@@ -239,17 +239,17 @@
  ],
  "now": [
   {
-   "what": "frozen-model answer-time head (SM82b): head training on the frozen released small model (1,991 users of the quarter-epoch cool-down, first 400k reviews each, 10k AdamW steps)",
-   "id": "000814-small-model",
+   "what": "Frozen-model answer-time head (SM82b): the answer-time head of response-time prediction (SM82) trained alone on a frozen copy of the released small model, so its grade predictions cannot change (only the head trains: 1,991 users, first 400k reviews each, 10k AdamW steps); then time scoring on the 732 set against the same baselines and a bitwise grade check against the released model",
+   "id": "SM82b, ticket 000814",
    "kind": "gpu-train",
-   "decides": "",
+   "decides": "Pass if the grade predictions are bitwise those of the released model and the head beats both time baselines (card&rsquo;s last time 2.447 nats, user&rsquo;s running median per grade 2.366); also shows how much time accuracy freezing costs vs SM82&rsquo;s jointly trained head (1.930). A pass gives a deployable answer-time head for stage 2 (answer-time curves and workload in the simulator)",
    "why": "",
    "job": "frozen-model answer-time head (SM82b): head training on the frozen released small model (1,991 users of the quarter-epoch cool-down, first 400k reviews each, 10k AdamW steps)",
-   "linked": false,
+   "linked": true,
    "track": "small model",
    "ticket": "000814-small-model",
    "started": "06:29",
-   "elapsed": "0:00",
+   "elapsed": "0:05",
    "progress": null,
    "eta": "~07:49"
   }
@@ -425,7 +425,7 @@
  "recent": [
   {
    "ticket": "000813-small-model",
-   "id": "",
+   "id": "SM82b",
    "what": "frozen-model answer-time head (SM82b): smoke: head training on 4 users (3 small + the longest, cut at 400k) + time scoring (3 users) + grade check (2 users) on the frozen released small model",
    "ended": "06:28",
    "date": "11-01",
@@ -1631,6 +1631,21 @@
    "started": "03:41",
    "started_at": "2026-11-01T03:41:39+01:00",
    "ended_at": "2026-11-01T06:08:25+01:00"
+  },
+  {
+   "id": "SM82b",
+   "track": "small model",
+   "since": "11-01T06:28",
+   "kind": "gpu-train",
+   "minutes": 120,
+   "what": "Frozen-model answer-time head (SM82b): the answer-time head of response-time prediction (SM82) trained alone on a frozen copy of the released small model, so its grade predictions cannot change (only the head trains: 1,991 users, first 400k reviews each, 10k AdamW steps); then time scoring on the 732 set against the same baselines and a bitwise grade check against the released model",
+   "when": "Smoke OK 06:28 Sun (trunk unchanged); head training ~06:29&ndash;~07:50, grade check and time scoring, rule ~08:20 Sun",
+   "decides": "Pass if the grade predictions are bitwise those of the released model and the head beats both time baselines (card&rsquo;s last time 2.447 nats, user&rsquo;s running median per grade 2.366); also shows how much time accuracy freezing costs vs SM82&rsquo;s jointly trained head (1.930). A pass gives a deployable answer-time head for stage 2 (answer-time curves and workload in the simulator)",
+   "state": "running",
+   "started": "06:29",
+   "ticket": "000814-small-model",
+   "started_at": "2026-11-01T06:28:23+01:00",
+   "ends_at": "2026-11-01T08:28:23+01:00"
   }
  ],
  "gpu_break": {
