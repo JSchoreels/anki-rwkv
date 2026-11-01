@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-01T01:16:48+01:00",
- "updated": "2026-11-01 01:16",
- "material": "328f97681a8267ae",
- "summary": "idle, finished 000796",
+ "generated_at": "2026-11-01T01:18:41+01:00",
+ "updated": "2026-11-01 01:18",
+ "material": "755ff83768fa7e94",
+ "summary": "running 000797",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring (curve / instant)",
@@ -237,7 +237,23 @@
    "track": "small model"
   }
  ],
- "now": [],
+ "now": [
+  {
+   "what": "Score the epoch-25 cool-down on the 732 set (723 users it fits, then the 3 long users), paired against the released cool-down from epoch 20",
+   "id": "SM63, ticket 000797",
+   "kind": "gpu-score",
+   "decides": "Cool-down from epoch 25 beats the released one from epoch 20: &minus;0.00016 (interval just touching zero) / &minus;0.00010 (significant), 722 users",
+   "why": "",
+   "job": "scheduling-time vs review-time accuracy (SM81): scoring s-w64kd-final-sc-lanes-leakfree-dec25-1ep32k-muon with the start-of-day pass on the 732 pool minus 9 never-fit (723) (pass 1)",
+   "linked": true,
+   "track": "small model",
+   "ticket": "000797-small-model",
+   "started": "01:18",
+   "elapsed": "0:00",
+   "progress": null,
+   "eta": "~01:48"
+  }
+ ],
  "charts": [
   {
    "title": "Small model, leak-free (SM72s): LogLoss per epoch, 458-user set (lower is better)",
@@ -1497,12 +1513,11 @@
    "minutes": 18,
    "what": "Score the epoch-25 cool-down on the 732 set (723 users it fits, then the 3 long users), paired against the released cool-down from epoch 20",
    "decides": "Cool-down from epoch 25 beats the released one from epoch 20: &minus;0.00016 (interval just touching zero) / &minus;0.00010 (significant), 722 users",
-   "state": "done",
-   "ended": "13:08",
-   "exit": 0,
-   "started": "12:55",
+   "state": "running",
+   "started": "01:18",
+   "ticket": "000797-small-model",
    "started_at": "2026-10-30T12:55:39+01:00",
-   "ended_at": "2026-10-30T13:08:40+01:00"
+   "ends_at": "2026-10-30T13:13:39+01:00"
   },
   {
    "id": "SM65",
@@ -1590,7 +1605,11 @@
    "what": "Scheduling-time vs review-time accuracy (SM81): how much of the small model&rsquo;s accuracy a scheduler can use. Three points on the same reviews: at scheduling time (the curve made at the card&rsquo;s previous answer), at the start of the review day (instant head from the state before that day, new scorer pass), at review time (instant head). For the released small model and the big model (1 leak-free epoch), and FSRS-7 (per-user fit and default parameters) and FSRS7-Instant on the benchmark&rsquo;s test reviews of the 732 set",
    "when": "Launcher waiting out the break; FSRS-7 side on CPU from 01:00 (~45 min), then after the data-order re-seed (SM80) ends ~02:30: small model (~40 min) and big model (~45 min) start-of-day scoring; table ~04:10 Sun",
    "decides": "Whether the small model&rsquo;s lead over FSRS-7 holds at scheduling time, and what share of the review-time gain is known at the start of the day (usable for daily rescheduling)",
-   "state": "planned"
+   "state": "running",
+   "started": "01:18",
+   "ticket": "000797-small-model",
+   "started_at": "2026-11-01T01:18:19+01:00",
+   "ends_at": "2026-11-01T02:43:19+01:00"
   }
  ],
  "gpu_break": {
