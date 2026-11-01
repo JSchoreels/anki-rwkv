@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-01T11:29:55+01:00",
- "updated": "2026-11-01 11:29",
- "material": "9952ade0a6973543",
- "summary": "running 000828",
+ "generated_at": "2026-11-01T12:07:46+01:00",
+ "updated": "2026-11-01 12:07",
+ "material": "285c79f91b1668b9",
+ "summary": "running 000829, finished 000828",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring (curve / instant)",
@@ -239,19 +239,19 @@
  ],
  "now": [
   {
-   "what": "Frozen-model answer-time head (SM82b): the answer-time head of response-time prediction (SM82) trained alone on a frozen copy of the released small model, so its grade predictions cannot change (only the head trains: 1,991 users, first 400k reviews each, 10k AdamW steps); then time scoring on the 732 set against the same baselines and a bitwise grade check against the released model",
-   "id": "SM82b, ticket 000828",
-   "kind": "gpu-train",
-   "decides": "Pass if the grade predictions are bitwise those of the released model and the head beats both time baselines (card&rsquo;s last time 2.447 nats, user&rsquo;s running median per grade 2.366); also shows how much time accuracy freezing costs vs the jointly trained head of response-time prediction (SM82) (1.930). A pass gives a deployable answer-time head for stage 2 (answer-time curves and workload in the simulator)",
+   "what": "Curve consistency on real rapid Good pairs (ST01a) stage 1: how much the curve&rsquo;s far tail (7, 30, 90, 365 days) jumps between two close Goods, released small model vs the big model (1 leak-free epoch), and which curve was closer where real later reviews exist",
+   "id": "ST01a, ticket 000829",
+   "kind": "gpu-score",
+   "decides": "Whether the curve&rsquo;s long-term tail needs a consistency penalty (a cool-down judged against the reference: curve and instant within +0.03 points)",
    "why": "",
-   "job": "frozen-model grade side head (SM87): smoke (side head training on 4 users + scoring 3 users), then side head training on the frozen released small model (1,991 users of the quarter-epoch cool-down, first 400k reviews each, 117.7M instant rows, 14.4k AdamW steps, side head + ablation without the model states), then scoring on the 732 pool minus 9 never-fit (723 users, w8+s8 leak-free: released, corrected and ablation rows; correction applied inside the model on 5 users)",
+   "job": "curve consistency on rapid Good pairs (ST01a): stage 1 measure, curves of the released small model (the leak-free small model (SM72s), epoch-25 cool-down) on 723 users of the 732 set (pass 2)",
    "linked": true,
    "track": "small model",
-   "ticket": "000828-small-model",
-   "started": "11:03",
-   "elapsed": "0:26",
+   "ticket": "000829-small-model",
+   "started": "12:07",
+   "elapsed": "0:00",
    "progress": null,
-   "eta": "~13:05"
+   "eta": "~12:32"
   }
  ],
  "charts": [
@@ -423,12 +423,6 @@
  ],
  "waiting": [
   {
-   "ticket": "000829-small-model",
-   "id": "ST01a",
-   "what": "curve consistency on rapid Good pairs (ST01a): stage 1 measure, curves of the released small model (the leak-free small model (SM72s), epoch-25 cool-down) on 723 users of the 732 set (pass 2)",
-   "flags": "expected 25 min"
-  },
-  {
    "ticket": "000830-small-model",
    "id": "SM31",
    "what": "duration-leak scoring (SM31): show-time intervals (e2s-query): scoring the released small model on the 723 users of the 732 set (pass 2)",
@@ -442,6 +436,15 @@
   }
  ],
  "recent": [
+  {
+   "ticket": "000828-small-model",
+   "id": "SM82b",
+   "what": "frozen-model grade side head (SM87): smoke (side head training on 4 users + scoring 3 users), then side head training on the frozen released small model (1,991 users of the quarter-epoch cool-down, first 400k reviews each, 117.7M instant rows, 14.4k AdamW steps, side head + ablation without the model states), then scoring on the 732 pool minus 9 never-fit (723 users, w8+s8 leak-free: released, corrected and ablation rows; correction applied inside the model on 5 users)",
+   "ended": "12:07",
+   "date": "11-01",
+   "exit": 0,
+   "ran": "1:03"
+  },
   {
    "ticket": "000827-small-model",
    "id": "SM33",
@@ -486,15 +489,6 @@
    "date": "11-01",
    "exit": 1,
    "ran": "0:00"
-  },
-  {
-   "ticket": "000820-small-model",
-   "id": "SM82c",
-   "what": "answer-time head on richer frozen features (SM82c): time scoring of the head and the ablation on the 732 pool minus 9 never-fit (723, pass 1)",
-   "ended": "08:41",
-   "date": "11-01",
-   "exit": 0,
-   "ran": "0:14"
   }
  ],
  "plan": [
@@ -1661,11 +1655,12 @@
    "what": "Frozen-model answer-time head (SM82b): the answer-time head of response-time prediction (SM82) trained alone on a frozen copy of the released small model, so its grade predictions cannot change (only the head trains: 1,991 users, first 400k reviews each, 10k AdamW steps); then time scoring on the 732 set against the same baselines and a bitwise grade check against the released model",
    "when": "Smoke OK 06:28 Sun; head training 06:29&ndash;07:10 (40.9 min); grade check and time scoring, rule 07:23 Sun: <strong>fail on time, grade unchanged</strong> (see results)",
    "decides": "Pass if the grade predictions are bitwise those of the released model and the head beats both time baselines (card&rsquo;s last time 2.447 nats, user&rsquo;s running median per grade 2.366); also shows how much time accuracy freezing costs vs the jointly trained head of response-time prediction (SM82) (1.930). A pass gives a deployable answer-time head for stage 2 (answer-time curves and workload in the simulator)",
-   "state": "running",
-   "started": "11:03",
-   "ticket": "000828-small-model",
+   "state": "done",
+   "ended": "12:07",
+   "exit": 0,
+   "started": "06:28",
    "started_at": "2026-11-01T06:28:23+01:00",
-   "ends_at": "2026-11-01T08:28:23+01:00"
+   "ended_at": "2026-11-01T12:07:18+01:00"
   },
   {
    "id": "SM82c",
@@ -1708,8 +1703,11 @@
    "what": "Curve consistency on real rapid Good pairs (ST01a) stage 1: how much the curve&rsquo;s far tail (7, 30, 90, 365 days) jumps between two close Goods, released small model vs the big model (1 leak-free epoch), and which curve was closer where real later reviews exist",
    "when": "Stage 1 from 10:33 Sun; a penalty cool-down (stage 2) only if the tail is jumpy",
    "decides": "Whether the curve&rsquo;s long-term tail needs a consistency penalty (a cool-down judged against the reference: curve and instant within +0.03 points)",
-   "state": "waiting",
-   "ticket": "000829-small-model"
+   "state": "running",
+   "started": "12:07",
+   "ticket": "000829-small-model",
+   "started_at": "2026-11-01T10:33:17+01:00",
+   "ends_at": "2026-11-01T11:33:17+01:00"
   },
   {
    "id": "SM31",
@@ -1755,11 +1753,12 @@
    "what": "Frozen-model grade side head (SM87): the released model frozen, a small head adding a correction to its instant prediction from its internal states plus simple explicit features (the card&rsquo;s last grades and times, the user&rsquo;s recent pass rate)",
    "when": "Building since 10:45 Sun; ~1 GPU h, before 16:00",
    "decides": "Go if instant improves by &ge; 0.15 points (CI clear of zero), stop if &lt; 0.05; the curve is unchanged by construction",
-   "state": "running",
+   "state": "done",
+   "ended": "12:07",
+   "exit": 0,
    "started": "11:03",
-   "ticket": "000828-small-model",
    "started_at": "2026-11-01T11:03:40+01:00",
-   "ends_at": "2026-11-01T12:33:40+01:00"
+   "ended_at": "2026-11-01T12:07:18+01:00"
   },
   {
    "id": "SM83",
