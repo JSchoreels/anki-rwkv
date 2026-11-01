@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-01T09:17:27+01:00",
- "updated": "2026-11-01 09:17",
- "material": "e2b3b1ba4fe79c43",
- "summary": "idle, finished 000822",
+ "generated_at": "2026-11-01T09:27:32+01:00",
+ "updated": "2026-11-01 09:27",
+ "material": "250a8ee53a9b529f",
+ "summary": "idle",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring (curve / instant)",
@@ -1624,7 +1624,7 @@
    "minutes": 120,
    "what": "Frozen-model answer-time head (SM82b): the answer-time head of response-time prediction (SM82) trained alone on a frozen copy of the released small model, so its grade predictions cannot change (only the head trains: 1,991 users, first 400k reviews each, 10k AdamW steps); then time scoring on the 732 set against the same baselines and a bitwise grade check against the released model",
    "when": "Smoke OK 06:28 Sun; head training 06:29&ndash;07:10 (40.9 min); grade check and time scoring, rule 07:23 Sun: <strong>fail on time, grade unchanged</strong> (see results)",
-   "decides": "Pass if the grade predictions are bitwise those of the released model and the head beats both time baselines (card&rsquo;s last time 2.447 nats, user&rsquo;s running median per grade 2.366); also shows how much time accuracy freezing costs vs SM82&rsquo;s jointly trained head (1.930). A pass gives a deployable answer-time head for stage 2 (answer-time curves and workload in the simulator)",
+   "decides": "Pass if the grade predictions are bitwise those of the released model and the head beats both time baselines (card&rsquo;s last time 2.447 nats, user&rsquo;s running median per grade 2.366); also shows how much time accuracy freezing costs vs the jointly trained head of response-time prediction (SM82) (1.930). A pass gives a deployable answer-time head for stage 2 (answer-time curves and workload in the simulator)",
    "state": "done",
    "ended": "08:26",
    "exit": 0,
@@ -1655,7 +1655,7 @@
    "kind": "gpu-score",
    "minutes": 60,
    "what": "Response-time prediction (SM82) stage 2: answer-time curves (recall, expected answer time and the chance of a fast Good as a function of the interval, from the frozen released model with the answer-time head on richer frozen features (SM82c)), patterns behind fast Goods, and answer-time-aware workload in the simulator instead of fixed per-grade costs",
-   "when": "Building since 08:45 Sun; curve queries on 150 users of the 732 set, then CPU analysis; before the 16:00 break",
+   "when": "Curve queries 08:56&ndash;09:17 Sun (150 users), CPU analysis 09:40: done (see results)",
    "decides": "Whether predicted answer times change the least-total-review-time choice (objective: least total review time for a given recall) and what a scheduler could do with them",
    "state": "done",
    "ended": "09:16",
@@ -1689,11 +1689,11 @@
    "since": "10-31T20:57"
   },
   {
-   "status": "next",
+   "status": "done",
    "id": "SM82",
    "track": "small model",
    "item": "Response-time prediction (SM82): predict the answer time together with the grade, to find review patterns that lead to a good grade with a shorter answer time",
-   "why": "Asked 10-31. Stage 0 (audit) and stage 1 done 11-01: training the time head with the grade heads costs grade accuracy (SM82), on the frozen model&rsquo;s last layer it is weak (SM82b), on its richer internal states plus simple time features it is nearly as good with the grade untouched (SM82c, pass). Next, stage 2: answer-time curves vs interval and answer-time-aware workload in the simulator instead of fixed per-grade costs (objective: least total review time for a given recall). Branches sm82, sm82b, sm82c",
+   "why": "Asked 10-31, done 11-01: stage 0 audit; stage 1: joint training costs grade accuracy (SM82), the frozen model&rsquo;s last layer is too weak (SM82b), richer frozen states plus simple time features pass with the grade untouched (SM82c); stage 2: answer-time curves, fast-answer patterns and workload. Open: time to fluency, and a real simulator driven by the model (see the small model in the review simulator (SM41)). Branches sm82, sm82b, sm82c, sm82s2",
    "since": "11-01T08:42"
   },
   {
@@ -1793,12 +1793,12 @@
    "why": "Same architecture, so memory should match; until then the 732 table uses the 726 users every model fits &mdash; parked 10-28: a measurement, not a better model"
   },
   {
-   "status": "next",
+   "status": "parked",
    "item": "Benchmark labels for the 1,493 training users of the 2,225-user set",
    "id": "EVAL",
-   "why": "The label database only covers validation and test users; the 2,225 set scored nothing (10-19)",
+   "why": "Checked 11-01: cheap (CPU, ~15&ndash;30 min; 787 of the 1,493 users already labelled on the compression track), but the 2,225 set is only valid for models trained on the 5,000-user gate tier: its 1,493 extra users are training users of every final-tier (8,000-user) model, including the released one. For small-vs-big comparisons the 732 set is already the largest pool neither model has seen; for small-vs-small, the 1,500 validation users would work (labels exist, a new pool option needed). Design note: artifacts/eval/2225-labels/DESIGN.md",
    "track": "small model",
-   "since": "10-27"
+   "since": "11-01T09:45"
   },
   {
    "status": "done",
@@ -2075,11 +2075,12 @@
    "why": "Done: all 8,000 training users are used (8k model (SM55), full retrain (SM56), leak-free retrain (SM72s)) (priority review 10-28: the factory looks for more accurate or smaller models, not more measurements)"
   },
   {
-   "status": "done",
+   "status": "parked",
    "id": "EVAL",
    "track": "small model",
    "item": "Runbooks skip the users that never fit in GPU memory instead of retrying them 3&times;",
-   "why": "Done: runbooks score the fit lists (732 set minus 9 never-fit users, long users at the 0.92 cap)"
+   "why": "Checked 11-01: cheap (CPU, ~15&ndash;30 min; 787 of the 1,493 users already labelled on the compression track), but the 2,225 set is only valid for models trained on the 5,000-user gate tier: its 1,493 extra users are training users of every final-tier (8,000-user) model, including the released one. For small-vs-big comparisons the 732 set is already the largest pool neither model has seen; for small-vs-small, the 1,500 validation users would work (labels exist, a new pool option needed). Design note: artifacts/eval/2225-labels/DESIGN.md",
+   "since": "11-01T09:45"
   },
   {
    "status": "done",
@@ -2112,6 +2113,56 @@
   }
  ],
  "results": [
+  {
+   "date": "11-01",
+   "kind": "gpu-score",
+   "id": "SM82",
+   "track": "small model",
+   "name": "Response-time prediction (SM82) stage 2: answer-time curves, fast-answer patterns and answer-time-aware workload, from the frozen released small model with the answer-time head on richer frozen features (SM82c)",
+   "eval": "150 users of the 732 set, 4.14M test reviews on a later day than the card&rsquo;s previous one; each review re-queried at 15 intervals (0.25&times; to 4&times; the real one)",
+   "fork": "Fast = under 3.9 s",
+   "takeaway": "<strong>Answer time is predictable and tied to recall</strong>: each 0.1 drop in recall adds about 2.1 s to a passed review (user quartiles 1.0&ndash;5.6 s); from 0.25&times; to 4&times; the real interval, recall falls 0.885 &rarr; 0.768 and expected time rises 15.0 &rarr; 17.9 s. Calibrated on the intervals actually seen (recall within 0.002, time within 0.4 s). In the simulator, recall-dependent costs make low desired retention about 8% dearer than fixed per-grade costs say, and high retention relatively cheaper; with a 30-minute daily limit the best desired retention moves for about a third of users, but keeping the fixed-cost choice loses only ~0.5% of memorised cards",
+   "started_at": "2026-11-01T08:45+01:00",
+   "ended_at": "2026-11-01T09:40+01:00",
+   "gpu_minutes": 21,
+   "tickets": 2,
+   "detail": {
+    "verdict": "Measurement: answer-time curves and workload with predicted answer times; no release decision",
+    "table": {
+     "head": [
+      "Interval vs the real one",
+      "0.25&times;",
+      "1&times;",
+      "4&times;"
+     ],
+     "rows": [
+      [
+       "Predicted recall",
+       "0.885",
+       "0.851",
+       "0.768"
+      ],
+      [
+       "Expected answer time",
+       "15.0 s (&minus;5%)",
+       "15.8 s",
+       "17.9 s (+13%)"
+      ],
+      [
+       "Chance of a fast Good (under 3.9 s)",
+       "0.137",
+       "0.128",
+       "0.105"
+      ]
+     ]
+    },
+    "notes": [
+     "Fast-Good share by pattern: first 10 reviews of the day 0.098 vs from the 201st on 0.236; interval growth 1.7&ndash;4&times; 0.21&ndash;0.22; cards with one earlier lapse 0.134 vs none 0.173; slowest vs fastest third of users 0.029 vs 0.254.",
+     "Workload: simulator with each user&rsquo;s own FSRS-6 parameters and the answer-time head turned into a per-user, per-grade cost curve over recall (the model does not run inside the simulator). No time limit: +8% time per memorised card at desired retention 0.70&ndash;0.85, +5% at 0.90, equal at 0.95 vs fixed costs; cost at 0.95 vs 0.90: 1.33&times; (recall-dependent) vs 1.42&times; (fixed). 30-minute daily limit: median optimum 0.60 under all cost models (the bottom of the range searched); moves up for 17&ndash;20% of users, down for 7&ndash;11%; keeping the fixed-cost optimum loses 0.5% of memorised cards on average (90th percentile 1.4%).",
+     "Limits: other intervals than the real one are extrapolation (calibration checked only on the intervals the scheduler chose, including growth above 4&times;); same-day reviews excluded (their intervals contain the answer time); time to fluency not computed. Branch sm82s2."
+    ]
+   }
+  },
   {
    "date": "11-01",
    "kind": "gpu-train",
@@ -2175,7 +2226,7 @@
     },
     "notes": [
      "Inputs: the model&rsquo;s 64-wide state at the review after the input encoder and after each of the 4 layer rounds (layer-normalised) plus the instant head&rsquo;s 128-wide layer (448 values); and 26 causal time features: the card&rsquo;s last 3 log answer times with &ldquo;none&rdquo; flags, its review count and last grade, the user&rsquo;s running median per grade, the user&rsquo;s previous and average log time, log interval, the user&rsquo;s review index. No-leak checks on both kinds of input.",
-     "Head: 474 &rarr; 128 &rarr; 64 (4 grades &times; 16 time bins), zero-initialised output, censored cross-entropy on the true grade; trained alone (the model runs forward only): 9,887 AdamW steps, 81.0M labelled rows of the 1,991 users of SM82&rsquo;s cool-down (first 400k reviews each), 45.0 min.",
+     "Head: 474 &rarr; 128 &rarr; 64 (4 grades &times; 16 time bins), zero-initialised output, censored cross-entropy on the true grade; trained alone (the model runs forward only): 9,887 AdamW steps, 81.0M labelled rows of the 1,991 users of the response-time prediction (SM82) cool-down (first 400k reviews each), 45.0 min.",
      "Size: +69,056 parameters (331,511 &rarr; 400,567), export +70,400 B. Serving needs per user a running median per grade and two scalars, per card its last 3 times.",
      "Predicted / actual share of answers under 3.9 s: Again 0.146 / 0.140, Hard 0.211 / 0.214, Good 0.324 / 0.330, Easy 0.389 / 0.399."
     ]
@@ -2189,7 +2240,7 @@
    "name": "Frozen-model answer-time head (SM82b): the answer-time head of response-time prediction (SM82) trained alone on a frozen copy of the released small model (only the head&rsquo;s 8,256 values train)",
    "eval": "Grade: 5 users bitwise vs the released model; time: 722 users (732 set), 21.59M test reviews on a later day than the card&rsquo;s previous one",
    "fork": "Grade unchanged: the released model&rsquo;s 0.30003 / 0.27654",
-   "takeaway": "<strong>Grade untouched, but the time head is weak: fail</strong>. Time LogLoss 2.339: only &minus;1.2% vs the user&rsquo;s running median per grade [&minus;2.6%, +0.3%], and its median error is 4.2% worse. The jointly trained head of SM82 reached 1.930. So the frozen model&rsquo;s last instant layer holds almost no answer-time information: the time skill in SM82 came from the model learning it, at the grade heads&rsquo; cost. Next: the head on earlier, richer layers of the frozen model",
+   "takeaway": "<strong>Grade untouched, but the time head is weak: fail</strong>. Time LogLoss 2.339: only &minus;1.2% vs the user&rsquo;s running median per grade [&minus;2.6%, +0.3%], and its median error is 4.2% worse. The jointly trained head of response-time prediction (SM82) reached 1.930. So the frozen model&rsquo;s last instant layer holds almost no answer-time information: the time skill in response-time prediction (SM82) came from the model learning it, at the grade heads&rsquo; cost. Next: the head on earlier, richer layers of the frozen model",
    "started_at": "2026-11-01T06:28+01:00",
    "ended_at": "2026-11-01T07:23+01:00",
    "gpu_minutes": 54,
@@ -2231,8 +2282,8 @@
      ]
     },
     "notes": [
-     "Frozen: the whole released model runs forward only (fp32, leak-free inputs, no gradient); only the head (one zero-initialised linear layer, 128 &rarr; 4 grades &times; 16 time bins) trains: plain AdamW, lr 2e-3 cosine, 9,923 steps of 8,192 rows, 81.3M labelled rows from the 1,991 users of SM82&rsquo;s cool-down (first 400k reviews each), 40.9 min.",
-     "Predicted / actual share of answers under 3.9 s: Again 0.110 / 0.140, Hard 0.211 / 0.214, Good 0.296 / 0.330, Easy 0.332 / 0.399 (SM82: within 0.01). Size +8,256 parameters, export +8,704 B."
+     "Frozen: the whole released model runs forward only (fp32, leak-free inputs, no gradient); only the head (one zero-initialised linear layer, 128 &rarr; 4 grades &times; 16 time bins) trains: plain AdamW, lr 2e-3 cosine, 9,923 steps of 8,192 rows, 81.3M labelled rows from the 1,991 users of the response-time prediction (SM82) cool-down (first 400k reviews each), 40.9 min.",
+     "Predicted / actual share of answers under 3.9 s: Again 0.110 / 0.140, Hard 0.211 / 0.214, Good 0.296 / 0.330, Easy 0.332 / 0.399 (response-time prediction (SM82): within 0.01). Size +8,256 parameters, export +8,704 B."
     ]
    }
   },
