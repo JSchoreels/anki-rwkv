@@ -1483,7 +1483,7 @@
     "time scoring of the head and the ablation on the 732 pool"
    ],
    "what": "Answer-time head on richer frozen features (SM82c): the released small model stays frozen (grade unchanged), the answer-time head becomes a small network reading earlier internal states of the model plus simple causal time features the model was never asked to keep (the card&rsquo;s previous answer times, the user&rsquo;s running median per grade, the interval); with an ablation on the time features alone",
-   "when": "CPU proof PASS 07:41 Sun; smoke, head training (~45 min), grade check and time scoring; rule ~09:00 Sun",
+   "when": "CPU proof PASS 07:41 Sun; smoke OK 07:42; head training 07:42&ndash;08:27 (45.0 min); grade check and time scoring, rule 08:41 Sun: <strong>pass</strong> (see results)",
    "decides": "Pass if grade is bitwise unchanged and the head beats both time baselines (2.447 / 2.366) with CIs clear of zero; shows how close a frozen model gets to the jointly trained head of response-time prediction (SM82) (1.930) and what the model&rsquo;s states add over the time features alone"
   }
  ],
@@ -1505,11 +1505,11 @@
    "since": "10-31T20:57"
   },
   {
-   "status": "planned",
+   "status": "next",
    "id": "SM82",
    "track": "small model",
    "item": "Response-time prediction (SM82): predict the answer time together with the grade, to find review patterns that lead to a good grade with a shorter answer time",
-   "why": "Asked 10-31. Stage 1 running since 11-01 03:42 (see the plan); branch sm82. Stage 0: data audit of answer times (CPU). Stage 1: an answer-time head per grade (log-time bins), added during a quarter cool-down against the already-scored same-recipe reference (~2.5 GPU h); grade accuracy must not get worse. Stage 2: answer-time curves vs interval, and answer-time-aware workload in the simulator instead of fixed per-grade costs",
+   "why": "Asked 10-31. Stage 0 (audit) and stage 1 done 11-01: training the time head with the grade heads costs grade accuracy (SM82), on the frozen model&rsquo;s last layer it is weak (SM82b), on its richer internal states plus simple time features it is nearly as good with the grade untouched (SM82c, pass). Next, stage 2: answer-time curves vs interval and answer-time-aware workload in the simulator instead of fixed per-grade costs (objective: least total review time for a given recall). Branches sm82, sm82b, sm82c",
    "since": "10-31T21:30"
   },
   {
@@ -1945,6 +1945,75 @@
   "s-w64kd-gate-ctx2048c-dec8-1ep/w8+s8"
  ],
  "results": [
+  {
+   "date": "11-01",
+   "kind": "gpu-train",
+   "id": "SM82c",
+   "track": "small model",
+   "name": "Answer-time head on richer frozen features (SM82c): the released small model frozen (grade unchanged), the answer-time head a small network (474 &rarr; 128 &rarr; 64) reading the model&rsquo;s internal states after each layer round plus 26 simple causal time features",
+   "eval": "Grade: 5 users bitwise vs the released model; time: 722 users (732 set), 21.59M test reviews on a later day than the card&rsquo;s previous one",
+   "fork": "Grade unchanged: the released model&rsquo;s 0.30003 / 0.27654",
+   "takeaway": "<strong>Pass: answer times predicted almost as well as by joint training, with the grade untouched</strong>. Time LogLoss 1.957: &minus;17.3% vs the user&rsquo;s running median per grade, &minus;20.0% vs the card&rsquo;s last time, only +1.4% behind the jointly trained head of response-time prediction (SM82) (1.930), which cost the grade heads. The simple time features alone get 2.030; the model&rsquo;s internal states add &minus;3.6%. Predicted share of fast answers matches the actual one within 0.01 per grade. Opens stage 2: answer-time curves and answer-time-aware workload in the simulator",
+   "started_at": "2026-11-01T07:41+01:00",
+   "ended_at": "2026-11-01T08:41+01:00",
+   "gpu_minutes": 60,
+   "tickets": 4,
+   "detail": {
+    "verdict": "Pass: grade bitwise unchanged (5 users, also equal to the recorded released scores), head beats both time baselines with intervals clear of zero",
+    "table": {
+     "head": [
+      "Predictor",
+      "Time LogLoss",
+      "Mean |ln error|",
+      "vs the user&rsquo;s running median per grade (LogLoss) [95% interval]"
+     ],
+     "rows": [
+      [
+       "Richer frozen features head (SM82c)",
+       "1.9568",
+       "0.4677",
+       "&minus;0.410 [&minus;0.439, &minus;0.384] (&minus;17.3%)"
+      ],
+      [
+       "Ablation: the 26 time features only",
+       "2.0299",
+       "0.5025",
+       "&minus;0.337 [&minus;0.365, &minus;0.312] (&minus;14.2%)"
+      ],
+      [
+       "Frozen-model answer-time head (SM82b)",
+       "2.3385",
+       "0.6696",
+       "&minus;0.028 [&minus;0.062, +0.006] (&minus;1.2%)"
+      ],
+      [
+       "Jointly trained head, response-time prediction (SM82) (grade worse)",
+       "1.9300",
+       "0.4625",
+       "&minus;0.437 [&minus;0.465, &minus;0.410] (&minus;18.4%)"
+      ],
+      [
+       "Baseline: the card&rsquo;s last time",
+       "2.4466",
+       "0.7222",
+       "+0.080"
+      ],
+      [
+       "Baseline: the user&rsquo;s running median per grade",
+       "2.3664",
+       "0.6428",
+       "&mdash;"
+      ]
+     ]
+    },
+    "notes": [
+     "Inputs: the model&rsquo;s 64-wide state at the review after the input encoder and after each of the 4 layer rounds (layer-normalised) plus the instant head&rsquo;s 128-wide layer (448 values); and 26 causal time features: the card&rsquo;s last 3 log answer times with &ldquo;none&rdquo; flags, its review count and last grade, the user&rsquo;s running median per grade, the user&rsquo;s previous and average log time, log interval, the user&rsquo;s review index. No-leak checks on both kinds of input.",
+     "Head: 474 &rarr; 128 &rarr; 64 (4 grades &times; 16 time bins), zero-initialised output, censored cross-entropy on the true grade; trained alone (the model runs forward only): 9,887 AdamW steps, 81.0M labelled rows of the 1,991 users of SM82&rsquo;s cool-down (first 400k reviews each), 45.0 min.",
+     "Size: +69,056 parameters (331,511 &rarr; 400,567), export +70,400 B. Serving needs per user a running median per grade and two scalars, per card its last 3 times.",
+     "Predicted / actual share of answers under 5.5 s: Again 0.146 / 0.140, Hard 0.211 / 0.214, Good 0.324 / 0.330, Easy 0.389 / 0.399."
+    ]
+   }
+  },
   {
    "date": "11-01",
    "kind": "gpu-train",
