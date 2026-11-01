@@ -1,0 +1,264 @@
+{
+ "verdict": "stop",
+ "users": 722,
+ "compare": {
+  "model": {
+   "users": 722,
+   "curve": {
+    "arm": 0.30003,
+    "reference": 0.30003,
+    "big": 0.298966,
+    "delta": 0.0,
+    "points": 0.0,
+    "ci": [
+     0.0,
+     0.0
+    ],
+    "users_better": 0,
+    "arm_vs_big_pct": 0.356,
+    "reference_vs_big_pct": 0.356
+   },
+   "instant": {
+    "arm": 0.276524,
+    "reference": 0.276539,
+    "big": 0.275757,
+    "delta": -1.5e-05,
+    "points": -0.005,
+    "ci": [
+     -0.007,
+     -0.004
+    ],
+    "users_better": 465,
+    "arm_vs_big_pct": 0.278,
+    "reference_vs_big_pct": 0.283
+   }
+  },
+  "ablation": {
+   "users": 722,
+   "curve": {
+    "arm": 0.30003,
+    "reference": 0.30003,
+    "big": 0.298966,
+    "delta": 0.0,
+    "points": 0.0,
+    "ci": [
+     0.0,
+     0.0
+    ],
+    "users_better": 0,
+    "arm_vs_big_pct": 0.356,
+    "reference_vs_big_pct": 0.356
+   },
+   "instant": {
+    "arm": 0.276526,
+    "reference": 0.276539,
+    "big": 0.275757,
+    "delta": -1.3e-05,
+    "points": -0.005,
+    "ci": [
+     -0.007,
+     -0.003
+    ],
+    "users_better": 451,
+    "arm_vs_big_pct": 0.279,
+    "reference_vs_big_pct": 0.283
+   }
+  },
+  "model_vs_ablation": {
+   "users": 722,
+   "curve": {
+    "arm": 0.30003,
+    "reference": 0.30003,
+    "big": 0.298966,
+    "delta": 0.0,
+    "points": 0.0,
+    "ci": [
+     0.0,
+     0.0
+    ],
+    "users_better": 0,
+    "arm_vs_big_pct": 0.356,
+    "reference_vs_big_pct": 0.356
+   },
+   "instant": {
+    "arm": 0.276524,
+    "reference": 0.276526,
+    "big": 0.275757,
+    "delta": -2e-06,
+    "points": -0.001,
+    "ci": [
+     -0.003,
+     0.001
+    ],
+    "users_better": 363,
+    "arm_vs_big_pct": 0.278,
+    "reference_vs_big_pct": 0.279
+   }
+  }
+ },
+ "instant_points_gain": 0.005,
+ "curve_unchanged": true,
+ "released_equals_recorded_scores": true,
+ "released_unequal_users": [],
+ "apply_checks": [
+  {
+   "user_id": 722,
+   "curve_equal": true,
+   "released_equals_recorded": true,
+   "apply_check": {
+    "p_curve_bitwise": true,
+    "ahead_avg_bitwise": true,
+    "w_loss_bitwise": true,
+    "p_imm_equals_replaced": true,
+    "p_imm_changed": true
+   }
+  },
+  {
+   "user_id": 1286,
+   "curve_equal": true,
+   "released_equals_recorded": true,
+   "apply_check": {
+    "p_curve_bitwise": true,
+    "ahead_avg_bitwise": true,
+    "w_loss_bitwise": true,
+    "p_imm_equals_replaced": true,
+    "p_imm_changed": true
+   }
+  },
+  {
+   "user_id": 3455,
+   "curve_equal": true,
+   "released_equals_recorded": true,
+   "apply_check": {
+    "p_curve_bitwise": true,
+    "ahead_avg_bitwise": true,
+    "w_loss_bitwise": true,
+    "p_imm_equals_replaced": true,
+    "p_imm_changed": true
+   }
+  },
+  {
+   "user_id": 3781,
+   "curve_equal": true,
+   "released_equals_recorded": true,
+   "apply_check": {
+    "p_curve_bitwise": true,
+    "ahead_avg_bitwise": true,
+    "w_loss_bitwise": true,
+    "p_imm_equals_replaced": true,
+    "p_imm_changed": true
+   }
+  },
+  {
+   "user_id": 4396,
+   "curve_equal": true,
+   "released_equals_recorded": true,
+   "apply_check": {
+    "p_curve_bitwise": true,
+    "ahead_avg_bitwise": true,
+    "w_loss_bitwise": true,
+    "p_imm_equals_replaced": true,
+    "p_imm_changed": true
+   }
+  }
+ ],
+ "apply_check_file": "C:/Users/jonat/workspace/wt/sm87/artifacts/small-model/sm87/gpu/apply-compare.json",
+ "apply_check_pass": true,
+ "rule": {
+  "go": "instant improves by >= 0.15 points of the big model (1 leak-free epoch) LogLoss, 95% CI of the paired user bootstrap (2,000, seed 0) clear of zero",
+  "stop": "gain < 0.05 points",
+  "grey": "in between: report",
+  "curve": "unchanged by construction; checked: corrected rows' curve fields = the released rows' on every user, and the correction applied inside the model keeps the curve outputs bitwise"
+ },
+ "training": {
+  "users": 1988,
+  "users_done": 1991,
+  "rows": 116570913,
+  "step": 14230,
+  "passes": 109,
+  "batch": 8192,
+  "lr": 0.002,
+  "warmup": 0.02,
+  "buffer_rows": 1000000,
+  "cap": 400000,
+  "reviews_forward": 134932251,
+  "skipped": [
+   [
+    474,
+    "OOM: CUDA out of memory. Tried to allocate 308.00 MiB. GPU 0 has a total capacity of 15.89 GiB of which 1.13 GiB is free. 12.72 GiB allowed; Of the allocated memory 11.10 GiB is allocated by PyTorch, "
+   ],
+   [
+    4162,
+    "OOM: CUDA out of memory. Tried to allocate 232.00 MiB. GPU 0 has a total capacity of 15.89 GiB of which 1.07 GiB is free. 12.72 GiB allowed; Of the allocated memory 10.52 GiB is allocated by PyTorch, "
+   ],
+   [
+    1573,
+    "OOM: CUDA out of memory. Tried to allocate 338.00 MiB. GPU 0 has a total capacity of 15.89 GiB of which 2.10 GiB is free. 12.72 GiB allowed; Of the allocated memory 11.04 GiB is allocated by PyTorch, "
+   ]
+  ],
+  "optimizer": "AdamW (betas 0.9/0.999, eps 1e-8, no weight decay), the two side heads only",
+  "head_values": 63876,
+  "ablation_values": 6532,
+  "inputs": {
+   "frozen": 448,
+   "released": 5,
+   "explicit": 41,
+   "explicit_names": [
+    "card_prev1_grade_1",
+    "card_prev1_grade_2",
+    "card_prev1_grade_3",
+    "card_prev1_grade_4",
+    "card_prev2_grade_1",
+    "card_prev2_grade_2",
+    "card_prev2_grade_3",
+    "card_prev2_grade_4",
+    "card_prev3_grade_1",
+    "card_prev3_grade_2",
+    "card_prev3_grade_3",
+    "card_prev3_grade_4",
+    "card_prev1_none",
+    "card_prev2_none",
+    "card_prev3_none",
+    "card_prev1_ln_t",
+    "card_prev2_ln_t",
+    "card_prev3_ln_t",
+    "card_prev1_t_none",
+    "card_prev2_t_none",
+    "card_prev3_t_none",
+    "card_reviews_ln1p",
+    "card_lapses_ln1p",
+    "card_prev_elapsed_days_ln1p",
+    "elapsed_days_ln1p",
+    "elapsed_seconds_ln1p",
+    "same_day",
+    "user_pass_50",
+    "user_pass_500",
+    "user_pass_all",
+    "user_index_ln1p",
+    "user_mix500_g1",
+    "user_mix500_g2",
+    "user_mix500_g3",
+    "user_mix500_g4",
+    "user_median_ln_t_g1",
+    "user_median_ln_t_g2",
+    "user_median_ln_t_g3",
+    "user_median_ln_t_g4",
+    "user_median_ln_t_all",
+    "user_ema_ln_t"
+   ]
+  },
+  "mean_logloss": 0.285671,
+  "mean_logloss_ablation": 0.285671,
+  "mean_logloss_released": 0.285705,
+  "first_loss": 0.20113900303840637,
+  "first_loss_released": 0.20113900303840637,
+  "first_corrected_equals_released": true,
+  "seconds_this_run": 2804.2,
+  "peak_gpu_gib": 11.23,
+  "released_master": "C:\\Users\\jonat\\workspace\\wt\\sm72s\\artifacts\\small-model\\scale-w64kd-final-sc-lanes-leakfree-dec25-1ep32k-muon\\expertium\\E89-F65e-F77a\\master.pth",
+  "released_master_sha256": "6f6b97e83404b981123e557d1df5fdfdfa6def0abc075d9804d6aab893d09b7d",
+  "side_head_sha256": "d7388f294865d39eddb67d2209521ae2eccdeb5e5a64a1280ee876c85b08dfc9",
+  "ablation_sha256": "e23065c152e67914957b7f49482824fa95efa872c7982e8bd17904dfe29ee5b9"
+ },
+ "rows": "C:/Users/jonat/workspace/wt/sm87/artifacts/small-model/sm87/gpu/sm87-rows.jsonl"
+}
