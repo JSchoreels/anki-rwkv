@@ -1453,6 +1453,22 @@
    "what": "Response-time prediction (SM82) stage 1: an answer-time head (per grade, 16 log-time bins from 0.5 s to the 60 s cap, cap = censored; +8,256 parameters, export +8.7 KB) added during the usual quarter-epoch Muon cool-down from the leak-free small model&rsquo;s (SM72s) epoch 21, against the same-recipe reference already scored in the tiny architecture additions run (SM77). Trained and scored only on reviews on a later day than the card&rsquo;s previous one (70% of reviews): the interval input of same-day reviews contains the answer time itself (stage 0 audit)",
    "when": "Stage 0 audit and CPU proof done 03:41 Sun; smoke OK 03:42; cool-down 03:42&ndash;05:42 (20,147 reviews/s); scoring and rule 06:08 Sun: <strong>fail on grade, pass on time</strong> (see results)",
    "decides": "Go if grade curve and instant stay within +0.03 points of the reference on 722 users and the time head beats both baselines (card&rsquo;s last time: 2.445 nats, 0.721 |ln error|; user&rsquo;s running median per grade: 2.364 / 0.642). A go opens stage 2: answer-time curves and answer-time-aware workload in the simulator"
+  },
+  {
+   "id": "SM82b",
+   "track": "small model",
+   "since": "11-01T06:28",
+   "kind": "gpu-train",
+   "minutes": 120,
+   "match": [
+    "frozen-model answer-time head (SM82b): smoke",
+    "head training on the frozen released small model",
+    "grade check: the released small model vs the frozen model with the head",
+    "time scoring of the head on the 732 pool"
+   ],
+   "what": "Frozen-model answer-time head (SM82b): the answer-time head of response-time prediction (SM82) trained alone on a frozen copy of the released small model, so its grade predictions cannot change (only the head trains: 1,991 users, first 400k reviews each, 10k AdamW steps); then time scoring on the 732 set against the same baselines and a bitwise grade check against the released model",
+   "when": "Smoke OK 06:28 Sun (trunk unchanged); head training ~06:29&ndash;~07:50, grade check and time scoring, rule ~08:20 Sun",
+   "decides": "Pass if the grade predictions are bitwise those of the released model and the head beats both time baselines (card&rsquo;s last time 2.447 nats, user&rsquo;s running median per grade 2.366); also shows how much time accuracy freezing costs vs SM82&rsquo;s jointly trained head (1.930). A pass gives a deployable answer-time head for stage 2 (answer-time curves and workload in the simulator)"
   }
  ],
  "backlog": [
