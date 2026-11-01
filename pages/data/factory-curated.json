@@ -1566,19 +1566,6 @@
    "decides": "Go if instant improves by &ge; 0.15 points (CI clear of zero), stop if &lt; 0.05; the curve is unchanged by construction"
   },
   {
-   "id": "SM41",
-   "track": "small model",
-   "since": "11-01T10:05",
-   "kind": "gpu-score",
-   "minutes": 30,
-   "match": [
-    "the small model in the review simulator (SM41): "
-   ],
-   "what": "The small model in the review simulator (SM41) stage 1: design and a prototype rolling the released model forward as a simulated learner (5 users, 90 days), checked against the users&rsquo; real continuation",
-   "when": "Building since 10:05 Sun",
-   "decides": "Whether a model-driven simulator is valid enough for scheduling-policy search, and its cost"
-  },
-  {
    "id": "SM83",
    "track": "small model",
    "since": "11-01T10:05",
@@ -1904,9 +1891,9 @@
    "status": "next",
    "item": "Support the small RWKV model in the open-spaced-repetition review simulator (srs-simulator), then let an AI agent search for the best review strategy on simulated users",
    "id": "SM41",
-   "why": "A recall model good enough to simulate learners turns scheduling into an offline search an AI agent can run. Needs our exported model in the simulator first (with the SM08 runtime port). Picked up 11-01: design and a prototype first",
+   "why": "A recall model good enough to simulate learners turns scheduling into an offline search an AI agent can run. Stage 1 done 11-01: our own simulator hosts the model (the outside srs-simulator is not needed); next is a drift study on 50 users and a vectorised engine (1&ndash;2 days) before any policy search",
    "track": "small model",
-   "since": "11-01T10:05"
+   "since": "11-01T11:30"
   },
   {
    "status": "done",
@@ -2112,6 +2099,67 @@
   "s-w64kd-gate-ctx2048c-dec8-1ep/w8+s8"
  ],
  "results": [
+  {
+   "date": "11-01",
+   "kind": "cpu",
+   "id": "SM41",
+   "track": "small model",
+   "name": "The small model in the review simulator (SM41) stage 1: design and a CPU prototype that rolls the released small model forward as a simulated learner (sampled grade from the instant head, sampled time from the answer-time head, review row commits the state)",
+   "eval": "5 users of the 732 set, 90 days after a split day, 2 seeds; checked against the users&rsquo; real continuation",
+   "fork": "Simulator validity for scheduling-policy search",
+   "takeaway": "<strong>The simulator runs and its parts match the real pipeline, but it drifts when the model reads its own samples</strong>. With the real answers fed in, later-day retention is 0.889 predicted vs 0.897 real (time 16.7 vs 16.1 s per review). With sampled answers, retention on old cards drifts by &minus;6 and &minus;22 points at days 60&ndash;89 on the two users with enough reviews, and sampled times inflate the Easy share (0.22 to 0.47 on one user). Desired retention 0.80 / 0.90 / 0.95 gives realised 0.763 / 0.888 / 0.936. A full run needs 1&ndash;2 days of engineering (vectorised lanes, a drift study on 50 users) before any policy search",
+   "started_at": "2026-11-01T10:05+01:00",
+   "ended_at": "2026-11-01T11:25+01:00",
+   "gpu_minutes": 0,
+   "tickets": 0,
+   "detail": {
+    "verdict": "Prototype works; self-feeding drift is large for some users, so a drift study comes before any policy search",
+    "table": {
+     "head": [
+      "Check",
+      "Result"
+     ],
+     "rows": [
+      [
+       "CPU proof: input builder vs the training data path",
+       "bitwise (92 columns within 4.5e-7)"
+      ],
+      [
+       "CPU proof: recurrent step vs the parallel model",
+       "about 1e-6 (time features 1.1e-5)"
+      ],
+      [
+       "Real answers fed in: later-day retention, predicted / real",
+       "0.889 / 0.897; time 16.7 / 16.1 s per review"
+      ],
+      [
+       "Sampled answers: drift on old cards&rsquo; first review, days 60&ndash;89",
+       "&minus;6 and &minus;22 points (2 users with enough reviews)"
+      ],
+      [
+       "Sampled answers: drift, days 0&ndash;29",
+       "+7 points on average (sampled grades miss real slumps)"
+      ],
+      [
+       "Desired retention 0.80 / 0.90 / 0.95: realised retention",
+       "0.763 / 0.888 / 0.936 (1&ndash;4 points under target: the curve and instant heads disagree)"
+      ],
+      [
+       "Desired retention 0.80 &rarr; 0.95: minutes per memorised card",
+       "1.09 &rarr; 2.36 for +10% memorised cards"
+      ],
+      [
+       "Speed on CPU",
+       "147 simulated reviews/s unbatched; batched 5,947/s (1 thread, 256 lanes), 11,937/s (4 threads, 2,048 lanes)"
+      ]
+     ]
+    },
+    "notes": [
+     "Switching to a new policy creates a backlog of 42&ndash;1,101 reviews on the split day; a full run keeps a 30-day burn-in out of the metrics and excludes Good-only users (one user answered Good on every review).",
+     "Full run estimate: about 100M simulated reviews (200 users &times; 23 lanes &times; 365 days), 4&ndash;6 h on CPU batched. The outside srs-simulator is not needed: the learner must be our stateful model. GPU speed not measured (queue full). Branch sm41."
+    ]
+   }
+  },
   {
    "date": "11-01",
    "kind": "cpu",
