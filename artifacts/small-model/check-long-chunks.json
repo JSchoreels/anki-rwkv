@@ -1,0 +1,60 @@
+{
+ "samples_for: unset = 128-review samples, chunk_reviews 1024 = 1,024-review samples": {
+  "value": [
+   16,
+   2
+  ],
+  "ok": true
+ },
+ "fast columnar samples == original construction at 1,024 (every batch field)": {
+  "value": {
+   "rows": [
+    3570,
+    92
+   ],
+   "differing": []
+  },
+  "ok": true
+ },
+ "teacher cache round-trips a 1,024-review batch on the rows the loss reads": {
+  "value": {
+   "hits": 1,
+   "writes": 1,
+   "online": 1
+  },
+  "ok": true
+ },
+ "w64 student + KD on 1,024-review samples: finite loss and gradients": {
+  "value": {
+   "loss": 2.62509,
+   "rows": [
+    3570,
+    92
+   ],
+   "gradients": 354
+  },
+  "ok": true
+ },
+ "nvrtc limit: 383 by default, raised by set_max_timesteps, restored": {
+  "value": {
+   "default": true,
+   "raised": true,
+   "restored": 383
+  },
+  "ok": true
+ },
+ "R01 ordered prefetch accepts the chunk_reviews option": {
+  "value": null,
+  "ok": true
+ },
+ "expertium_decay.prepare: protocol and options carry chunk_reviews 1024 / batch_chunks 32": {
+  "value": [
+   1024,
+   1024,
+   32
+  ],
+  "ok": true
+ },
+ "seconds": 10.5829460999812,
+ "failed": []
+}

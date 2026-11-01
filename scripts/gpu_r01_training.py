@@ -23,6 +23,10 @@ from scripts.experiment_provenance import process_provenance
 from scripts.run_gpu_batch1 import SourceWatch, tensor_hash, aggregate
 
 
+# Long-context training option (chunk_reviews) is wired through; runbook-next.sh `context` checks for this flag.
+LONG_CHUNKS_READY = True
+
+
 def atomic_json(path, value):
     """Windows readers can briefly deny deletion/replacement of progress JSON."""
     path = Path(path)
@@ -294,8 +298,15 @@ def run_case(args):
         raise ValueError("Preparation workers must be an integer between 1 and 8")
     # Seed studies vary initialization, dropout and batch encodings; held-out inputs keep seed 2025.
     training_seed = options.get("training_seed", 2025)
+    # Long-context training (docs/SMALL_MODEL.md 5.3): reviews per independent training chunk. Unset = 128, the
+    # accepted R01 layout, unchanged. Evaluation keeps its 128-review samples. Up to 32,768 = the fork's own context.
+    chunk_reviews = options.get("chunk_reviews", 128)
+    if type(chunk_reviews) is not int or not 16 <= chunk_reviews <= 32768:
+        raise ValueError("chunk_reviews must be an integer between 16 and 32768")
+    if chunk_reviews != 128 and (options.get("sample_cache") or options.get("preprocessing_cache") or options.get("pack_users")):
+        raise ValueError("chunk_reviews other than 128 does not support sample/preprocessing caches or pack_users")
     config = {"MODEL": args.model, "DTYPE": "bfloat16", "WKV_BACKEND": "nvrtc", "SEED": training_seed,
-              "BATCH_CHUNKS": chunks, "CHUNK_REVIEWS": 128, "PREFETCH_WORKERS": workers,
+              "BATCH_CHUNKS": chunks, "CHUNK_REVIEWS": chunk_reviews, "PREFETCH_WORKERS": workers,
               "PREFETCH_BATCHES": workers * 2, "CPU_THREADS": 4, "EPOCHS": 1,
               "DATA_PATH": protocol["dataset_path"], "DATASET_REVISION": protocol["dataset_revision"],
               "GPU_MEMORY_FRACTION": memory_fraction, "PEAK_LR": 7e-4, "WARMUP_STEPS": 5}
@@ -377,6 +388,11 @@ def run_case(args):
             if not options.get("deferred_reads") or not hasattr(base, "sync_free_loss"):
                 raise ValueError("F37 sync-free loss needs F33 deferred reads and the Expertium loss")
             base.sync_free_loss = True
+        if options.get("instant_loss_weight") is not None:
+            # SM26: scales only the instant (rating) term of the training loss; evaluation is unaffected.
+            if not hasattr(base, "instant_loss_weight"):
+                raise ValueError("instant_loss_weight needs the Expertium loss")
+            base.instant_loss_weight = float(options["instant_loss_weight"])
         if options.get("wddm_flush_streams"):
             # F77b: identity flush points between hierarchy streams in forward and backward.
             if not hasattr(base, "wddm_flush_streams"):
@@ -407,14 +423,34 @@ def run_case(args):
             if not hasattr(base, "concurrent_splits"):
                 raise ValueError("F49 requires Expertium")
             base.concurrent_splits = True
+        if options.get("state_vq") is not None:
+            # SM32b: card/note state through the SM32 VQ codec at every stored step (fake-quant, STE, frozen
+            # codebooks); absent = no mixer is touched.
+            if options.get("fused_shift") or not hasattr(base, "rwkv_modules"):
+                raise ValueError("state_vq needs the Expertium model without fused_shift")
+            from scripts.state_vq import install_training
+            report["state_vq"] = install_training(base, options["state_vq"], device)
         optimizer = catch_up.optimizer(master) if catch_up else get_optimizer(Namespace(PEAK_LR=7e-4), master)
         if catch_up:
             catch_up.load_teacher(device, dtype)
             report["expertium_catch_up"] = catch_up.describe(master)
+            if catch_up.teacher is not None and catch_up.teacher.cache is not None:
+                report["kd_cache"] = catch_up.teacher.cache_stats  # live counters, saved with every result.json
         if full_run.get("init_optimizer"):
             # Load on CPU: load_state_dict moves moments to the parameters' device but keeps AdamW's `step` where it
             # is, and a CUDA `step` makes non-capturable AdamW sync once per parameter (429 per update).
             optimizer.load_state_dict(torch.load(ROOT / full_run["init_optimizer"], map_location="cpu", weights_only=True))
+        learned_books = None
+        if options.get("state_vq") is not None:
+            from scripts import state_vq
+            learned_books = state_vq.LEARNED
+            if learned_books is not None:
+                # SM32c: the learned catalogs train in their own AdamW group (after the source optimizer state is
+                # loaded, so that file keeps its group layout); the loop sets every group's LR to the schedule.
+                if not isinstance(optimizer, torch.optim.AdamW):
+                    raise ValueError("state_vq learn: the catalog group needs an AdamW optimizer")
+                optimizer.add_param_group({"params": list(learned_books.parameters()), "weight_decay": 0.0})
+                report["state_vq"]["learned_parameters"] = sum(p.numel() for p in learned_books.parameters())
         update_offset = int(full_run.get("update_offset", 0))
         if options.get("group_adam"):
             from scripts.gpu_r01_group_adam import install_group_adam
@@ -524,7 +560,12 @@ def run_case(args):
         coverage = {}
         pool_context = prestarted_pool(pool_stack, warm_pool) if warm_pool is not None else preparation_pool(workers)
         with limited_gpu(0, 0, path), pool_context as pool, (path / "updates.jsonl").open("w", encoding="utf-8") as log:
-            source = training_batches(rows, chunks * 128, training_seed, pool, options, cache_paths, workers * 2)
+            if chunk_reviews > 191:
+                # A sample holds its reviews plus query rows (up to about 2x); scripts/check_long_wkv.py covers it.
+                from rwkv.model import nvrtc as nvrtc_limits
+                report["nvrtc_max_timesteps"] = 4 * chunk_reviews
+                kernel_stack.callback(nvrtc_limits.set_max_timesteps, nvrtc_limits.set_max_timesteps(4 * chunk_reviews))
+            source = training_batches(rows, chunks * chunk_reviews, training_seed, pool, options, cache_paths, workers * 2)
             transferred = transfer_batches(source, dtype, options.get("async_transfer", False),
                                            **({"bulk": True} if options.get("bulk_transfer") else {}))
             deferred = options.get("deferred_reads", False)
@@ -597,6 +638,8 @@ def run_case(args):
                 folder.mkdir(parents=True, exist_ok=True)
                 torch.save(master.state_dict(), folder / "master.pth")
                 torch.save(optimizer.state_dict(), folder / "optimizer.pth")
+                if learned_books is not None:
+                    learned_books.export(folder / "state-vq-books.npz")
                 done = sorted(int(user) for user, record in coverage.items() if record["reviews"] == row_end[int(user)])
                 meta = {"reason": reason, "utc": datetime.now(timezone.utc).isoformat(), "progress_users": report["progress_users"],
                         "updates": report["updates"], "update_offset_end": update_offset + report["updates"],
@@ -691,8 +734,12 @@ def run_case(args):
                             torch.cuda.synchronize()
                             graphs.metrics["capture_seconds"] += time.perf_counter() - capture_start
                     else:
+                        if catch_up is not None and catch_up.carry is not None:
+                            catch_up.carry.attach(item, batch, user)  # SM21: entity rows; table reset per user
                         stats = (reduced.get_loss(batch) if reduced else
-                                 catch_up.loss(active, batch, report["review_presentations"]) if catch_up else
+                                 catch_up.loss(active, batch, report["review_presentations"],
+                                               (user, item.offset, item.reviews, item.seed) if len(parts) == 1 else None,
+                                               cpu_labels) if catch_up else
                                  active.get_loss(batch))
                     if stats is None or (not deferred and not torch.isfinite(stats.average_loss)):
                         raise RuntimeError(f"Non-finite training loss user {user}")
@@ -798,6 +845,9 @@ def run_case(args):
         watch.check()
         # Preserve weights in a new experiment location, never the existing trial.
         torch.save(master.state_dict(), path / "master.pth")
+        if learned_books is not None:
+            report["state_vq"]["learned_books"] = {"file": "state-vq-books.npz",
+                                                   "sha256": learned_books.export(path / "state-vq-books.npz")}
         if full_run:
             torch.save(optimizer.state_dict(), path / "optimizer.pth")
             report["update_offset_end"] = update_offset + report["updates"]

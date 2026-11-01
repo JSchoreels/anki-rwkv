@@ -75,10 +75,12 @@ def prepare_job(row, offset, end, seed, options, section=None, cache_path=None):
         from scripts.gpu_r01_samples import samples_for
         samples = samples_for(section, row["user_id"], options)
     batched = options.get("batched_id_encodings", False)
+    # SM21 state carry: one encoding draw per user (seed = training_seed + user + offset, so seed - offset).
+    carry = {"consistent_seed": seed - offset} if options.get("state_carry") else {}
     if options.get("gpu_packed_features"):
-        batch = prepare_gpu_packed(samples, seed, batched_id_encodings=batched, layout=layout)
+        batch = prepare_gpu_packed(samples, seed, batched_id_encodings=batched, layout=layout, **carry)
     else:
-        batch = prepare_fast(samples, seed=seed, batched_id_encodings=batched, layout=layout)
+        batch = prepare_fast(samples, seed=seed, batched_id_encodings=batched, layout=layout, **carry)
     if options.get("worker_scatter_orders"):
         if not options.get("gpu_packed_features") or not options.get("skip_padding_sources") or not options.get("shared_shift_orders"):
             raise ValueError("F53 requires packed features, F50 padding and shared shift orders")
@@ -88,4 +90,7 @@ def prepare_job(row, offset, end, seed, options, section=None, cache_path=None):
         batch = pack_batch(batch)
     item = TrialBatch(batch, offset, end - offset, len(samples), seed, time.perf_counter() - started)
     item.cache_info = cache_info
+    if carry:
+        from scripts.state_carry_train import carry_entities
+        item.carry = carry_entities(samples)
     return item

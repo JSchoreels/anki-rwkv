@@ -1,0 +1,48 @@
+{
+ "user": 1340,
+ "reviews": 5641,
+ "chunk": 2048,
+ "checkpoint": "C:\\Users\\jonat\\workspace\\wt\\small-model\\artifacts\\accuracy\\experiments\\scale-w64kd-gate-cached-ctx2048\\run\\epoch-06\\expertium\\E89-F65e-F77a\\master.pth",
+ "checks": {
+  "A_batches_identical": {
+   "pass": true,
+   "sha256": "ad31cce711e7388c7a24cfa4dbdb311780ee78a38bfdaa88eada020b9aacc6c2",
+   "windows": 3
+  },
+  "B_zero_state_bitwise": {
+   "pass": true,
+   "stock_seconds": 3.1,
+   "carry_seconds": 3.3
+  },
+  "C_exact_carry_equals_full_history": {
+   "pass": true,
+   "windows": 3,
+   "fresh_fp32": {
+    "max_abs_dp": 5.364418029785156e-07,
+    "max_abs_dw": 2.980232238769531e-07,
+    "mean_max_dp_labelled": 5.0282189407893054e-08,
+    "seconds": 6.1,
+    "state_bytes_in_memory": 15067648
+   },
+   "fresh_int8": {
+    "max_abs_dp": 0.0030182600021362305,
+    "max_abs_dw": 0.0015429854393005371,
+    "mean_max_dp_labelled": 5.05779772240373e-05,
+    "seconds": 6.3,
+    "state_bytes_in_memory": 4525952
+   },
+   "no_carry": {
+    "max_abs_dp": 0.6450120210647583,
+    "max_abs_dw": 0.5483429431915283,
+    "mean_max_dp_labelled": 0.015790070613762728,
+    "seconds": 6.0
+   }
+  },
+  "D_stale_cache_int8": {
+   "bytes": 5560960,
+   "bytes_per_window": 1853653.3333333333,
+   "bytes_per_review": 985.8110264137564
+  }
+ },
+ "passed": true
+}

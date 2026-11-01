@@ -15,6 +15,10 @@ _modules = {}
 _dll_handles = []
 _cupy = None
 _checkpoint_length = 32
+# The kernels checkpoint their state every _checkpoint_length steps and loop over any T; 383 is the validated R01
+# window (128 reviews + queries). Long-context training (docs/SMALL_MODEL.md section 5.3) raises it explicitly with
+# set_max_timesteps after scripts/check_long_wkv.py; the default path is unchanged.
+_max_timesteps = 383
 _raw_pointer_launch = False
 _stream_launch = False
 _streams = {}
@@ -110,6 +114,15 @@ def set_raw_pointer_launch(enabled=False):
     _raw_pointer_launch = bool(enabled)
 
 
+def set_max_timesteps(limit=383):
+    """Opt-in limit on T for validate(); returns the previous value."""
+    global _max_timesteps
+    if type(limit) is not int or limit < 1:
+        raise ValueError("NVRTC timestep limit must be a positive integer")
+    previous, _max_timesteps = _max_timesteps, limit
+    return previous
+
+
 def set_checkpoint_length(length=32):
     """Select recomputation tiles before a forward/backward pair, never between them."""
     global _checkpoint_length
@@ -166,6 +179,29 @@ __device__ inline int nvrtc_min(int x, int y) { return x < y ? x : y; }
 """ + conversions + helpers + kernels
 
 
+def _compile_options(dtype):
+    options = ["--std=c++17"]
+    if dtype == torch.bfloat16:
+        # cuda_bf16.h also needs the CCCL headers from a CUDA toolkit.
+        import sysconfig
+        runtime = Path(sysconfig.get_paths()["purelib"]) / "nvidia/cuda_runtime/include"
+        options.append(f"--include-path={runtime}")
+        candidates = [runtime.parent.parent / "cuda_cccl/include"]
+        for variable in ("CUDA_PATH", "CUDA_HOME"):
+            if os.environ.get(variable):
+                candidates.append(Path(os.environ[variable]) / "include")
+        if os.name == "nt":
+            installed = Path(os.environ.get("ProgramFiles", r"C:\Program Files")) / "NVIDIA GPU Computing Toolkit/CUDA"
+            candidates.extend(path / "include" for path in sorted(installed.glob("v*"), reverse=True))
+        else:
+            candidates.append(Path("/usr/local/cuda/include"))
+        cccl = next((path for path in candidates if (path / "nv/target").exists()), None)
+        if cccl is None:
+            raise RuntimeError("BF16 NVRTC needs CCCL headers (nv/target); install a CUDA toolkit or nvidia-cuda-cccl-cu12")
+        options.append(f"--include-path={cccl}")
+    return options
+
+
 def module(device, dtype, head=32):
     index = device.index if device.index is not None else torch.cuda.current_device()
     key = (index, dtype, _checkpoint_length) if head == 32 else (index, dtype, _checkpoint_length, head)
@@ -174,34 +210,60 @@ def module(device, dtype, head=32):
             scalar = "float" if dtype == torch.float32 else "__nv_bfloat16"
             names = (f"rwkv::rwkv7_wkv_forward_kernel<{_checkpoint_length}, {scalar}>",
                      f"rwkv::rwkv7_wkv_backward_kernel<{_checkpoint_length}, {scalar}>")
-            options = ["--std=c++17"]
-            if dtype == torch.bfloat16:
-                # cuda_bf16.h also needs the CCCL headers from a CUDA toolkit.
-                import sysconfig
-                runtime = Path(sysconfig.get_paths()["purelib"]) / "nvidia/cuda_runtime/include"
-                options.append(f"--include-path={runtime}")
-                candidates = [runtime.parent.parent / "cuda_cccl/include"]
-                for variable in ("CUDA_PATH", "CUDA_HOME"):
-                    if os.environ.get(variable):
-                        candidates.append(Path(os.environ[variable]) / "include")
-                if os.name == "nt":
-                    installed = Path(os.environ.get("ProgramFiles", r"C:\Program Files")) / "NVIDIA GPU Computing Toolkit/CUDA"
-                    candidates.extend(path / "include" for path in sorted(installed.glob("v*"), reverse=True))
-                else:
-                    candidates.append(Path("/usr/local/cuda/include"))
-                cccl = next((path for path in candidates if (path / "nv/target").exists()), None)
-                if cccl is None:
-                    raise RuntimeError("BF16 NVRTC needs CCCL headers (nv/target); install a CUDA toolkit or nvidia-cuda-cccl-cu12")
-                options.append(f"--include-path={cccl}")
+            options = _compile_options(dtype)
             raw = _cupy.RawModule(code=kernel_source(dtype, head), options=tuple(options), name_expressions=names)
             _modules[key] = tuple(raw.get_function(name) for name in names)
     return _modules[key]
 
 
+# SM21 (docs/SMALL_MODEL.md, "training with carried state"): the production forward kernel started from an initial
+# state S0 [B, H, K, K] (float32, row x = value index, column y = key index, as reference_rwkv7) and writing the
+# final state S_T. It is built from the production text by STATE_REWRITES into a separate module, so the stock
+# kernels (module(), forward(), backward()) keep their text, compilation and launches bit for bit. The backward is
+# the stock one: it recomputes from the state checkpoints, whose first entry is now S0; S0 gets no gradient.
+STATE_REWRITES = (
+    ("    const int L,\n    float* __restrict__ state_checkpoints_BLHKK\n    ) {",
+     "    const int L,\n    float* __restrict__ state_checkpoints_BLHKK,\n    const float* __restrict__ state0_BHKK,\n"
+     "    float* __restrict__ state_final_BHKK\n    ) {", 1),
+    ("    float state_xy = 0.0; \n", "    float state_xy = state0_BHKK[get_index4(b, 0, h, x, y, 1, H, K, K)];\n", 1),
+    ("        global_x += H * K;\n        global_y += H * K;\n    }\n}",
+     "        global_x += H * K;\n        global_y += H * K;\n    }\n"
+     "    state_final_BHKK[get_index4(b, 0, h, x, y, 1, H, K, K)] = state_xy;\n}", 1),
+)
+
+
+def state_source(text):
+    """Apply STATE_REWRITES to the extracted kernel text (after the K=16 rewrite); each anchor must match once."""
+    for old, new, count in STATE_REWRITES:
+        if text.count(old) != count:
+            raise RuntimeError(f"state rewrite expected {count}x {old!r}, found {text.count(old)}")
+        text = text.replace(old, new)
+    return text
+
+
+def state_kernel_source(dtype=torch.float32, head=32):
+    return state_source(kernel_source(dtype, head))
+
+
+def state_module(device, dtype, head=32):
+    """The forward-with-state kernel (generic NVRTC layout); scripts/gpu_row_tiles.row_tiled_backend replaces it."""
+    index = device.index if device.index is not None else torch.cuda.current_device()
+    key = (index, dtype, _checkpoint_length, head, "state")
+    if key not in _modules:
+        with _cupy.cuda.Device(index):
+            scalar = "float" if dtype == torch.float32 else "__nv_bfloat16"
+            name = f"rwkv::rwkv7_wkv_forward_kernel<{_checkpoint_length}, {scalar}>"
+            raw = _cupy.RawModule(code=state_kernel_source(dtype, head), options=tuple(_compile_options(dtype)),
+                                  name_expressions=(name,))
+            _modules[key] = raw.get_function(name)
+    return _modules[key]
+
+
 def validate(inputs, skip):
     r = inputs[0]
-    if r.ndim != 4 or r.shape[-1] not in (16, 32) or not 0 < r.shape[1] < 384:
-        raise ValueError("NVRTC recurrence requires head dimension 16 or 32 and 1–383 timesteps")
+    if r.ndim != 4 or r.shape[-1] not in (16, 32) or not 0 < r.shape[1] <= _max_timesteps:
+        raise ValueError(f"NVRTC recurrence requires head dimension 16 or 32 and 1–{_max_timesteps} timesteps "
+                         f"(got {tuple(r.shape)}; nvrtc.set_max_timesteps raises the limit)")
     if r.dtype not in (torch.float32, torch.bfloat16) or any(
             x.dtype != (torch.float32 if i == 3 else r.dtype) or x.device != r.device or x.shape != r.shape
             or not x.is_contiguous() for i, x in enumerate(inputs)):
@@ -241,6 +303,26 @@ def forward(r, k, v, w, a, kd, skip):
     else:  # Expertium width-80 variant (K=16)
         launch(module(r.device, r.dtype, head=k)[0], r.device, shape, arguments, head=k)
     return out, states
+
+def forward_with_state(r, k, v, w, a, kd, skip, state0):
+    """SM21: forward() from initial state `state0` [B, H, K, K] float32; returns (out, checkpoints, final state).
+    The checkpoints feed the stock backward(); the final state is the state after the last non-skipped step."""
+    inputs = (r, k, v, w, a, kd)
+    b, t, h, k = shape = validate(inputs, skip)
+    if (state0.shape != (b, h, k, k) or state0.dtype != torch.float32 or state0.device != r.device
+            or not state0.is_contiguous()):
+        raise ValueError(f"NVRTC initial state must be contiguous float32 {(b, h, k, k)} on {r.device}, "
+                         f"got {tuple(state0.shape)} {state0.dtype} {state0.device}")
+    checkpoints = (t + _checkpoint_length - 1) // _checkpoint_length
+    out = torch.empty_like(r)
+    states = torch.empty((b, checkpoints, h, k, k), device=r.device, dtype=torch.float32)
+    final = torch.empty((b, h, k, k), device=r.device, dtype=torch.float32)
+    arguments = (b, t, h, *inputs, skip, out, checkpoints, states, state0, final)
+    if k == 32:
+        launch(state_module(r.device, r.dtype), r.device, shape, arguments)
+    else:
+        launch(state_module(r.device, r.dtype, head=k), r.device, shape, arguments, head=k)
+    return out, states, final
 
 
 def backward(r, k, v, w, a, kd, skip, states, grad):
