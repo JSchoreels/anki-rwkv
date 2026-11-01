@@ -6,3 +6,12 @@
 [sm82c 11-01 07:41:58] smoke head training: skipped / peak GiB / seconds: 0 8.35 16.1
 [sm82c 11-01 07:41:58] smoke: [sm82c-train] complete: 4/4 users, 295 steps, 301,214 rows, mean time loss 1.7748 / ablation 1.8633, skipped 0, trunk unchanged True, 0.3 min -> C:\Users\jonat\workspace\wt\sm82c\artifacts\small-model\sm82c\work\smoke-train-sm82c; [sm82c-train] step 1: time loss 2.7726 / ablation 2.7726 nats over 1,024 rows (zero output layers: ln 16 = 2.7726); [sm82c-grade] 2 users: released vs the exported model with the head bitwise True; vs the recorded released scores True
 [sm82c 11-01 07:41:58] enqueue: head training on the frozen released small model (1,991 users of the quarter-epoch cool-down, first 400k reviews each, 10k AdamW steps, head + explicit-only ablation) (expected 90 min, max wait 405 min, 498 min to the next window)
+[sm82c 11-01 08:26:59] exit 0: head training on the frozen released small model (1,991 users of the quarter-epoch cool-down, first 400k reviews each, 10k AdamW steps, head + explicit-only ablation)
+[sm82c 11-01 08:26:59] head training: [sm82c-train] complete: 1991/1991 users, 9,887 steps, 80,988,171 rows, mean time loss 1.9016 / ablation 1.9812, skipped 3, trunk unchanged True, 45.0 min -> C:\Users\jonat\workspace\wt\sm82c\artifacts\small-model\sm82c-head-released
+[sm82c 11-01 08:26:59] enqueue: grade check: the released small model vs the exported model with the head (5 users, scorer rows and dumps bitwise) (expected 10 min, max wait 440 min, 453 min to the next window)
+[sm82c 11-01 08:27:18] exit 0: grade check: the released small model vs the exported model with the head (5 users, scorer rows and dumps bitwise)
+[sm82c 11-01 08:27:20] [sm82c-grade] 5 users: released vs the exported model with the head bitwise True; vs the recorded released scores True
+[sm82c 11-01 08:27:20] enqueue: time scoring of the head and the ablation on the 732 pool minus 9 never-fit (723, pass 1) (expected 30 min, max wait 419 min, 452 min to the next window)
+[sm82c 11-01 08:41:21] exit 0: time scoring of the head and the ablation on the 732 pool minus 9 never-fit (723, pass 1)
+[sm82c 11-01 08:41:24] rule exit 0: [sm82c-rule] 722 users: grade unchanged True; time LogLoss 1.9568 (ablation 2.0299) vs card's last 2.4466 / user median 2.3664 / SM82b 2.3385 / SM82 1.9300, |ln err| 0.4677 (ablation 0.5025) vs 0.7222 / 0.6428 / 0.6696 / 0.4625: PASS
+[sm82c 11-01 08:41:24] done
