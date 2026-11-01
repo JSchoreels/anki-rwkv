@@ -1,0 +1,330 @@
+{
+ "checks": {
+  "F1_frozen": {
+   "pass": true,
+   "users": [
+    6959,
+    2308,
+    4745
+   ],
+   "steps": 14,
+   "rows": 1711,
+   "keys_released_plus_head": true,
+   "non_head_tensors_bitwise": true,
+   "head_abs_max": [
+    0.015896828845143318,
+    0.015671338886022568
+   ],
+   "trainable": [
+    "time_heads.0.linear.weight",
+    "time_heads.0.linear.bias"
+   ],
+   "in_optimizer": [
+    "time_heads.0.linear.bias",
+    "time_heads.0.linear.weight"
+   ],
+   "trunk_unchanged_in_memory": true,
+   "first_loss": 2.7725887298583984,
+   "pass_losses": [
+    2.69818,
+    2.73583
+   ]
+  },
+  "F5_labels": {
+   "pass": true,
+   "rows": 1711,
+   "planned": 1711,
+   "mismatch": [],
+   "grade_out_of_range": 0,
+   "duplicate_review_th": 0,
+   "skipped": [],
+   "how": "labels are looked up by the row's review_th in time_labels() of the revlog (the trainer's TimeTargets rule); rows = instant rows with a label"
+  },
+  "F2_resume_bitwise": {
+   "pass": true,
+   "steps": [
+    14,
+    14
+   ],
+   "log": null
+  },
+  "F3_grade_outputs_bitwise": {
+   "pass": true,
+   "probes": [
+    {
+     "user": 2388,
+     "start_shape": [
+      5781,
+      92
+     ],
+     "outputs_bitwise_equal": {
+      "ahead_logits": true,
+      "w": true,
+      "w_log_p": true,
+      "p_logits": true,
+      "s_raw": true,
+      "d_raw": true
+     },
+     "time_logits_nonzero": true,
+     "time_logits_shape": [
+      1,
+      5781,
+      64
+     ],
+     "bits": 0
+    },
+    {
+     "user": 2388,
+     "start_shape": [
+      5781,
+      92
+     ],
+     "outputs_bitwise_equal": {
+      "ahead_logits": true,
+      "w": true,
+      "w_log_p": true,
+      "p_logits": true,
+      "s_raw": true,
+      "d_raw": true
+     },
+     "time_logits_nonzero": true,
+     "time_logits_shape": [
+      1,
+      5781,
+      64
+     ],
+     "bits": 8
+    },
+    {
+     "user": 4676,
+     "start_shape": [
+      6554,
+      92
+     ],
+     "outputs_bitwise_equal": {
+      "ahead_logits": true,
+      "w": true,
+      "w_log_p": true,
+      "p_logits": true,
+      "s_raw": true,
+      "d_raw": true
+     },
+     "time_logits_nonzero": true,
+     "time_logits_shape": [
+      1,
+      6554,
+      64
+     ],
+     "bits": 0
+    },
+    {
+     "user": 4676,
+     "start_shape": [
+      6554,
+      92
+     ],
+     "outputs_bitwise_equal": {
+      "ahead_logits": true,
+      "w": true,
+      "w_log_p": true,
+      "p_logits": true,
+      "s_raw": true,
+      "d_raw": true
+     },
+     "time_logits_nonzero": true,
+     "time_logits_shape": [
+      1,
+      6554,
+      64
+     ],
+     "bits": 8
+    }
+   ]
+  },
+  "F4_no_time_leak": {
+   "pass": true,
+   "user": 2308,
+   "picks": [
+    {
+     "review_th": 83,
+     "query_row": 96,
+     "rows": 1286,
+     "elapsed_days": 156,
+     "outputs_up_to_its_query_bitwise_equal": true,
+     "later_outputs_changed": true,
+     "input_rows_changed": [
+      97
+     ],
+     "input_columns_changed": [
+      8
+     ],
+     "changed_rows_after_query": true,
+     "query_row_duration_input_zero": true
+    },
+    {
+     "review_th": 239,
+     "query_row": 331,
+     "rows": 1286,
+     "elapsed_days": 0,
+     "outputs_up_to_its_query_bitwise_equal": true,
+     "later_outputs_changed": true,
+     "input_rows_changed": [
+      332
+     ],
+     "input_columns_changed": [
+      8
+     ],
+     "changed_rows_after_query": true,
+     "query_row_duration_input_zero": true
+    },
+    {
+     "review_th": 253,
+     "query_row": 358,
+     "rows": 1286,
+     "elapsed_days": 0,
+     "outputs_up_to_its_query_bitwise_equal": true,
+     "later_outputs_changed": true,
+     "input_rows_changed": [
+      359
+     ],
+     "input_columns_changed": [
+      8
+     ],
+     "changed_rows_after_query": true,
+     "query_row_duration_input_zero": true
+    },
+    {
+     "review_th": 342,
+     "query_row": 516,
+     "rows": 1286,
+     "elapsed_days": 0,
+     "outputs_up_to_its_query_bitwise_equal": true,
+     "later_outputs_changed": true,
+     "input_rows_changed": [
+      517
+     ],
+     "input_columns_changed": [
+      8
+     ],
+     "changed_rows_after_query": true,
+     "query_row_duration_input_zero": true
+    },
+    {
+     "review_th": 403,
+     "query_row": 620,
+     "rows": 1286,
+     "elapsed_days": 0,
+     "outputs_up_to_its_query_bitwise_equal": true,
+     "later_outputs_changed": true,
+     "input_rows_changed": [
+      621
+     ],
+     "input_columns_changed": [
+      8
+     ],
+     "changed_rows_after_query": true,
+     "query_row_duration_input_zero": true
+    },
+    {
+     "review_th": 713,
+     "query_row": 1002,
+     "rows": 1286,
+     "elapsed_days": 1,
+     "outputs_up_to_its_query_bitwise_equal": true,
+     "later_outputs_changed": true,
+     "input_rows_changed": [
+      1003
+     ],
+     "input_columns_changed": [
+      8
+     ],
+     "changed_rows_after_query": true,
+     "query_row_duration_input_zero": true
+    }
+   ],
+   "training_rows_with_nonzero_duration_input": 0
+  },
+  "F7_scorer_export": {
+   "pass": true,
+   "grade": {
+    "pass": true,
+    "users": [
+     2388,
+     4676
+    ],
+    "fields": [
+     "reviews",
+     "curve_labels",
+     "instant_labels",
+     "curve_log_loss",
+     "curve_raw_log_loss",
+     "instant_log_loss",
+     "instant_rating_cross_entropy",
+     "benchmark",
+     "benchmark_existing",
+     "benchmark_deleted"
+    ],
+    "per_user": [
+     {
+      "user_id": 2388,
+      "reviews": 3685,
+      "dump_rows": 1745,
+      "fields_equal": true,
+      "dump_arrays_equal": true,
+      "unequal_fields": [],
+      "parameters": [
+       331511,
+       339767
+      ],
+      "weight_bytes": [
+       410459,
+       419163
+      ]
+     },
+     {
+      "user_id": 4676,
+      "reviews": 3716,
+      "dump_rows": 2365,
+      "fields_equal": true,
+      "dump_arrays_equal": true,
+      "unequal_fields": [],
+      "parameters": [
+       331511,
+       339767
+      ],
+      "weight_bytes": [
+       410459,
+       419163
+      ]
+     }
+    ]
+   },
+   "scorer_exit": 0,
+   "scorer_log": null,
+   "time_scorer_exit": 0,
+   "time_rows": [
+    {
+     "user_id": 2388,
+     "reviews": 920,
+     "ll_per_review": 2.7535311168219305
+    },
+    {
+     "user_id": 4676,
+     "reviews": 1732,
+     "ll_per_review": 2.6570851338993395
+    }
+   ],
+   "time_log": null
+  },
+  "F6_loss_equals_metric": {
+   "pass": true,
+   "rows": 4096,
+   "max_abs_gap": 8.83956792208096e-07,
+   "min_prob": 1.5705283917820247e-05
+  }
+ },
+ "started": "2026-11-01 06:27:18",
+ "passed": true,
+ "fails": [],
+ "seconds": 64.7
+}
