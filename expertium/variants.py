@@ -48,6 +48,11 @@ class VariantConfig:
     # the instant head's hidden layer; the grade outputs do not depend on it. 0 = today's model, bit for bit.
     time_head: int = 0
     time_weight: float = 0.0
+    # Answer-time head on richer frozen features (SM82c): (inputs, hidden, outputs) of a small MLP (time_mlps.0: hidden
+    # Linear + ReLU, zero-initialised output Linear) that scripts/sm82c_head.py trains and scores on features it
+    # assembles itself (frozen trunk hidden states + explicit causal time features). The model's forward never calls
+    # it, so every other output is the base preset's, bit for bit; () = no parameter (every other preset).
+    time_mlp: tuple = ()
     extra: dict = field(default_factory=dict)
 
     def stream_names(self):
@@ -93,6 +98,8 @@ SM77_PRESETS = {"w64-sm77": {"key_extras": True, "init_state": ("card_id", "note
 
 # SM82: the small model (w64) plus the answer-time head: 16 log-time bins per grade, time loss weight 0.1
 SM82_PRESETS = {"w64-sm82": {"time_head": 16, "time_weight": 0.1}}
+# Answer-time head on richer frozen features (SM82c): the released small model (w64) + the MLP parameters, unused by forward
+SM82C_PRESETS = {"w64-sm82c": {"time_mlp": (474, 128, 64)}}
 
 
 # rwkv.prepare_batch.prepare builds gathers in this order (rwkv.architecture.DEFAULT_ANKI_RWKV_CONFIG's tuples).
@@ -135,8 +142,10 @@ def preset(name):
         return replace(preset("w64"), name=name, **SM77_PRESETS[name])
     if name in SM82_PRESETS:
         return replace(preset("w64"), name=name, **SM82_PRESETS[name])
+    if name in SM82C_PRESETS:
+        return replace(preset("w64"), name=name, **SM82C_PRESETS[name])
     raise ValueError(f"Unknown Expertium architecture preset {name!r}; expected iter36, w64, w64-sequential, w80, "
-                     f"w80-sequential or one of {sorted(SM77_PRESETS) + sorted(SM82_PRESETS)}")
+                     f"w80-sequential or one of {sorted(SM77_PRESETS) + sorted(SM82_PRESETS) + sorted(SM82C_PRESETS)}")
 
 
 def variant(spec):
@@ -152,7 +161,7 @@ def variant(spec):
         unknown = set(overrides) - allowed
         if unknown:
             raise ValueError(f"Unknown architecture fields {sorted(unknown)}; allowed: {sorted(allowed)}")
-        for key in ("zero_features", "strip_cmix", "init_state"):
+        for key in ("zero_features", "strip_cmix", "init_state", "time_mlp"):
             if key in overrides:
                 overrides[key] = tuple(overrides[key])
         config = replace(config, name=config.name + "+" + ",".join(f"{k}={v}" for k, v in sorted(overrides.items())),
@@ -174,6 +183,8 @@ def variant(spec):
             raise ValueError(f"init_state stream {stream!r} is not one of {names}")
     if config.time_head < 0 or (config.time_head and not config.time_weight > 0):
         raise ValueError(f"time_head {config.time_head} needs a positive time_weight, got {config.time_weight}")
+    if config.time_mlp and (len(config.time_mlp) != 3 or min(int(v) for v in config.time_mlp) < 1):
+        raise ValueError(f"time_mlp must be (inputs, hidden, outputs) positive, got {config.time_mlp}")
     for index in config.zero_features:
         if not 0 <= int(index) < 92:
             raise ValueError(f"zero_features index {index} outside the 92 input dims")
