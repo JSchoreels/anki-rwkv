@@ -1,0 +1,10 @@
+[sm82 11-01 03:40:26] started: 6844cd49 Response-time prediction (SM82): answer-time head, stage 0 audit, CPU proof, launcher (DRYRUN=0, cool-down from SM72s epoch 21 + the zero answer-time head; reference = SM77's: C:/Users/jonat/workspace/wt/sm77/artifacts/small-model/sm77-ref-e21-dec-q32k-muon)
+[sm82 11-01 03:40:29] extended: C:/Users/jonat/workspace/wt/sm82/artifacts/small-model/sm82-ext-e21 (SM72s epoch 21 + the zero answer-time head)
+[sm82 11-01 03:40:34] cool-down prepared: sm82-arm-e21-dec-q32k-muon
+[sm82-muon] sm82-arm-e21-dec-q32k-muon PASS lines: 7
+[sm82-pair] decay OK: sm82-arm-e21-dec-q32k-muon == sm77-ref-e21-dec-q32k-muon except the start weights (the reference's start + the zero head), the architecture (w64-sm82) and paths (1,991 users, same order, options, seeds, schedule; update offset 463638)
+[sm82 11-01 03:41:39] [sm82-check] PASS (58.8 s; C:/Users/jonat/workspace/wt/sm82/artifacts/small-model/sm82/gpu/check-cpu-sm82.json)
+[sm82 11-01 03:41:39] enqueue: trainer smoke of the cool-down with the answer-time head (2 users x 512 reviews) + time-scorer smoke (3 users) (expected 12 min, max wait 723 min, 738 min to the next window)
+[sm82 11-01 03:41:57] exit 0: trainer smoke of the cool-down with the answer-time head (2 users x 512 reviews) + time-scorer smoke (3 users)
+[sm82 11-01 03:41:57] smoke: {"smoke": "sm82-arm-e21-dec-q32k-muon", "exit": 0, "status": "complete", "updates": 2, "reviews": 1024, "error": null, "seconds": 9.5}; [sm82-time] updates 1: time loss 2.7726 nats over 78 labelled rows (last 1 updates)
+[sm82 11-01 03:41:57] enqueue: arm quarter-epoch 32k Muon cool-down with the answer-time head (w64-sm82 from SM72s epoch 21, the reference's options and order) (expected 150 min of ~150, 738 min to the next window)
