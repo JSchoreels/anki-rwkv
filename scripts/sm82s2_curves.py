@@ -204,6 +204,7 @@ def query(args):
     from scripts import compress_common as cc
     from scripts import sm82c_head as h
     from scripts.sm82_time import label_db
+    from scripts.sm82b_head import first
     from scripts.experiment_provenance import process_provenance
     below_normal()
     device = torch.device(args.device)
@@ -221,7 +222,7 @@ def query(args):
     q = Querier(args.master, args.device)
     data = cc.data_path()
     loader = torch.utils.data.DataLoader(h.ScoreBatches(todo, data, cc.run_info()["review_counts"]), batch_size=1,
-                                         num_workers=args.workers, collate_fn=lambda x: x[0],
+                                         num_workers=args.workers, collate_fn=first,
                                          prefetch_factor=1 if args.workers else None)
     env = label_db()
     started = time.perf_counter()
