@@ -23,6 +23,9 @@ state compression at a large budget (SM46) fixes + this work). Always `git fetch
 - Sizes / encode cost: `cost-sm90.json` (`cost_sm90.py`).
 
 ## Running (detached, WMI hidden)
+- Launched 11-01 13:57 from commit ec6d0322 (WMI pid 60884). First ticket: 000840 (GPU check), queued behind
+  000838 (duration-leak scoring (SM31)) and 000839 (grade-order sanity (SM33)), max wait 84 min; if it cannot start
+  before the 16:00 break the runbook waits and re-enqueues after 01:00.
 - Runbook: `C:/Users/jonat/workspace/wt/sm90/artifacts/small-model/sm90/runbook-sm90.sh`
 - Log: `artifacts/small-model/sm90/runbook-sm90.log` (+ `.nohup`); ticket output `gpu/check.out`, `gpu/screen.out`,
   `gpu/final.out`, rule output `gpu/rule.out`. Dry run: `runbook-sm90-dryrun.log`, `gpu/*-dryrun.out`.
