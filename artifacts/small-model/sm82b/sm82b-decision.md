@@ -34,12 +34,14 @@ Time (722 users, 21,585,938 test reviews with a recorded time on a later day tha
 | the user's running median per grade | -0.0279 [-0.0622, +0.0060] | -1.2% | +0.0268 [+0.0069, +0.0476] | +4.2% |
 | the jointly trained head (SM82): the cost of freezing | +0.4085 [+0.3802, +0.4368] | +21.2% | +0.2071 [+0.1893, +0.2254] | +44.8% |
 
-| grade | reviews | frozen-model head LogLoss | jointly trained head (SM82) | card's last time | user's median per grade | P(under 5.5 s) predicted / actual | SM82 predicted |
+| grade | reviews | frozen-model head LogLoss | jointly trained head (SM82) | card's last time | user's median per grade | P(under 3.9 s) predicted / actual | SM82 predicted |
 |---|---|---|---|---|---|---|---|
 | 1 | 2,833,721 | 2.3629 | 2.0394 | 2.5233 | 2.3602 | 0.110 / 0.140 | 0.148 |
 | 2 | 4,414,931 | 2.3628 | 1.9167 | 2.4233 | 2.3682 | 0.211 / 0.214 | 0.222 |
 | 3 | 12,582,574 | 2.3285 | 1.9181 | 2.4488 | 2.3830 | 0.296 / 0.330 | 0.330 |
 | 4 | 1,754,712 | 2.3096 | 1.8714 | 2.3664 | 2.2528 | 0.332 / 0.399 | 0.400 |
+
+Threshold: bins 0-6 (under 3.891 s); earlier versions of this file said 5.5 s.
 
 Size: 331,511 -> 339,767 parameters; scorer w8 weight bytes 410,459 -> 419,163 (+8,704 B); state unchanged.
 
