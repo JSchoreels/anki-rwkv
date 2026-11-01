@@ -1980,7 +1980,7 @@
    "why": "From an outside audit of SM40 (10-20): the curve is trained only at the next real review, so its long-term tail can change freely between answers; repeated rapid Goods on a mature card make the interval jump, then collapse (the big model jumps too). CPU only. Tells whether it matters on real histories or only in the stress test &mdash; parked 10-28: a measurement, not a better model"
   },
   {
-   "status": "next",
+   "status": "done",
    "id": "ST01a",
    "track": "curve stability",
    "item": "Consistency on real rapid Good pairs: compare the curve before and after the second Good at the same future dates (days, months, a year)",
@@ -2099,6 +2099,52 @@
   "s-w64kd-gate-ctx2048c-dec8-1ep/w8+s8"
  ],
  "results": [
+  {
+   "date": "11-01",
+   "kind": "gpu-score",
+   "id": "ST01a",
+   "track": "small model",
+   "name": "Curve consistency on real rapid Good pairs (ST01a) stage 1: how much the 365-day recall moves after a Good answered 1&ndash;3 days after a passed review, released small model vs the big model (1 leak-free epoch)",
+   "eval": "723 users of the 732 set, 5.18M rapid pairs, w8+s8 leak-free; tail calibration on the cards&rsquo; real next review",
+   "fork": "Pre-registered stage 2 rule: penalty only if the small model is clearly jumpier than the big model AND the real next review does not back the fall",
+   "takeaway": "<strong>No consistency penalty needed</strong>. After a rapid Good both models lower the 365-day recall alike (small 64% of pairs, mean &minus;0.021; big 62%, &minus;0.024), and the small model has fewer big jumps (14% vs 18% move by more than 0.1). The real next review backs the fall: the curve after the Good predicts it better at 0&ndash;180 days (30+ days: 0.5381 vs 0.5481 LogLoss), about even past 180 days",
+   "started_at": "2026-11-01T10:33+01:00",
+   "ended_at": "2026-11-01T12:53+01:00",
+   "gpu_minutes": 80,
+   "tickets": 4,
+   "detail": {
+    "verdict": "Stage 2 not needed: the fall after a rapid Good is a correction the real next review confirms, and the small model is not jumpier than the big model",
+    "table": {
+     "head": [
+      "Model, rapid slice, 365 days",
+      "Pairs going down",
+      "Mean change",
+      "Share moving by more than 0.1",
+      "Next review 30+ days: LogLoss after / before the Good"
+     ],
+     "rows": [
+      [
+       "Released small model (the leak-free small model (SM72s))",
+       "64%",
+       "&minus;0.021 (0.526 &rarr; 0.505)",
+       "14%",
+       "0.5381 / 0.5481"
+      ],
+      [
+       "Big model (1 leak-free epoch)",
+       "62%",
+       "&minus;0.024 (0.557 &rarr; 0.532)",
+       "18%",
+       "0.5389 / 0.5547"
+      ]
+     ]
+    },
+    "notes": [
+     "Only one jumpiness criterion held: on mature cards (interval &ge; 21 days before) the small model goes down in 56% of pairs vs 45% for the big model. Both conditions were required, and the calibration one failed.",
+     "Small model by next-review gap: 30&ndash;90 days 0.5005 vs 0.5169, 90&ndash;180 days 0.5718 vs 0.5793, 180+ days 0.6103 vs 0.6057 (slightly worse after). Per-user curve LogLoss matches the scorer rows to 1e-7. Branch st01a."
+    ]
+   }
+  },
   {
    "date": "11-01",
    "kind": "gpu",
