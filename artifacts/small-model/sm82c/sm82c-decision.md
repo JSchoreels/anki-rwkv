@@ -38,12 +38,14 @@ Time (722 users, 21,585,938 test reviews with a recorded time on a later day tha
 | head vs the frozen-model answer-time head (SM82b) | -0.3817 [-0.4091, -0.3536] | -16.3% | -0.2019 [-0.2202, -0.1845] | -30.1% |
 | head vs the jointly trained head (SM82): the remaining cost of freezing | +0.0268 [+0.0229, +0.0310] | +1.4% | +0.0052 [+0.0043, +0.0062] | +1.1% |
 
-| grade | reviews | head LogLoss | ablation | SM82b | SM82 | card's last time | user's median per grade | P(under 5.5 s) predicted / actual | ablation / SM82b / SM82 predicted |
+| grade | reviews | head LogLoss | ablation | SM82b | SM82 | card's last time | user's median per grade | P(under 3.9 s) predicted / actual | ablation / SM82b / SM82 predicted |
 |---|---|---|---|---|---|---|---|---|---|
 | 1 | 2,833,721 | 2.0484 | 2.1140 | 2.3629 | 2.0394 | 2.5233 | 2.3602 | 0.146 / 0.140 | 0.146 / 0.110 / 0.148 |
 | 2 | 4,414,931 | 1.9332 | 2.0182 | 2.3628 | 1.9167 | 2.4233 | 2.3682 | 0.211 / 0.214 | 0.212 / 0.211 / 0.222 |
 | 3 | 12,582,574 | 1.9548 | 2.0268 | 2.3285 | 1.9181 | 2.4488 | 2.3830 | 0.324 / 0.330 | 0.317 / 0.296 / 0.330 |
 | 4 | 1,754,712 | 1.8824 | 1.9462 | 2.3096 | 1.8714 | 2.3664 | 2.2528 | 0.389 / 0.399 | 0.388 / 0.332 / 0.400 |
+
+Threshold: bins 0-6 (under 3.891 s); earlier versions of this file said 5.5 s.
 
 Size: 331,511 -> 400,567 parameters (+69,056); scorer w8 weight bytes 410,459 -> 480,859 (+70,400 B); state unchanged. The 26 explicit features need a per-user running median per grade (4 small heaps or a histogram), the card's last 3 times, and two user scalars at serving time.
 
