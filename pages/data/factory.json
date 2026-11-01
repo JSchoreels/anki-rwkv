@@ -1,7 +1,7 @@
 {
- "generated_at": "2026-11-01T09:27:32+01:00",
- "updated": "2026-11-01 09:27",
- "material": "250a8ee53a9b529f",
+ "generated_at": "2026-11-01T10:12:43+01:00",
+ "updated": "2026-11-01 10:12",
+ "material": "6e31c62b65ccf39d",
  "summary": "idle",
  "headline": [
   {
@@ -1673,6 +1673,14 @@
  },
  "backlog": [
   {
+   "status": "done",
+   "id": "SM85",
+   "track": "small model",
+   "item": "Session position effect on answer time (SM85)",
+   "why": "Asked 11-01 after response-time prediction (SM82) stage 2: done 11-01 (see results)",
+   "since": "11-01T10:05"
+  },
+  {
    "status": "dropped",
    "id": "SM80",
    "track": "small model",
@@ -1768,8 +1776,8 @@
    "id": "SM65",
    "track": "small model",
    "item": "New axis candidate: a better teacher (an ensemble of big models, or a big model trained on more users) to distill from",
-   "why": "Stage 1 done 10-30: the big model with one more leak-free epoch on 3,969 new users is &minus;0.17% curve / &minus;0.03% instant vs the big model (1 leak-free epoch), between the go and stop bars. Stage 2 (teacher targets, ~4 h GPU) and stage 3 (small-model cool-down, ~8.5 h) are parked (user 10-30 ~21:00); the checkpoint is kept in wt/sm65; expected student gain about 0.03&ndash;0.08 points curve, ~0 instant. Design: artifacts/small-model/sm65/DESIGN.md",
-   "since": "10-30T21:00"
+   "why": "Stage 1 done 10-30: the big model with one more leak-free epoch on 3,969 new users is &minus;0.17% curve / &minus;0.03% instant vs the big model (1 leak-free epoch), between the go and stop bars. Stage 2 (teacher targets, ~4 h GPU) and stage 3 (small-model cool-down, ~8.5 h) are parked (user 10-30 ~21:00); the checkpoint is kept in wt/sm65; expected student gain about 0.03&ndash;0.08 points curve, ~0 instant. Design: artifacts/small-model/sm65/DESIGN.md. 11-01: kept parked until more users are in the dataset (the 100k-user release, see more data (SM61)): a teacher trained on many more users is the version worth distilling from; stage 2 would only redo the final cool-down with swapped teacher targets (~13 GPU h) for ~0.03&ndash;0.08 points curve, ~0 instant",
+   "since": "11-01T10:20"
   },
   {
    "status": "done",
@@ -2113,6 +2121,51 @@
   }
  ],
  "results": [
+  {
+   "date": "11-01",
+   "kind": "cpu",
+   "id": "SM85",
+   "track": "small model",
+   "name": "Session position effect on answer time (SM85): is the speed-up later in the day&rsquo;s reviews warm-up or which cards come late? Card and day fixed effects plus controls",
+   "eval": "150 users of the 732 set, 4.14M test reviews on a later day than the card&rsquo;s previous one; user bootstrap 2,000, seed 0",
+   "fork": "vs the first 10 reviews of the day",
+   "takeaway": "<strong>Mostly real, not just card order</strong>: the same card is answered 27.6% faster [23.7, 31.6] at reviews 201&ndash;400 of the day and 34% faster [29.8, 37.9] from the 401st on, with fast Goods +6.2 / +9.3 points; monotone, seen in 95% of users with 5,000+ reviews. Selection explains ~40&ndash;45% of the raw gap (mostly which users do long days). It follows the number of reviews done, not minutes. A free reorder (slowest cards late) would save ~55 s a day [48, 63] (~4% of review time): an upper bound",
+   "started_at": "2026-11-01T10:05+01:00",
+   "ended_at": "2026-11-01T10:30+01:00",
+   "gpu_minutes": 0,
+   "tickets": 0,
+   "detail": {
+    "verdict": "Measurement: within-card speed-up with position in the day; warm-up and rushing late cannot be told apart (Again share only 0.123 &rarr; 0.139)",
+    "table": {
+     "head": [
+      "Position in the day",
+      "Time vs reviews 1&ndash;10 [95% interval]",
+      "Fast Good (under 3.9 s), points"
+     ],
+     "rows": [
+      [
+       "201&ndash;400 (card and day fixed effects, controls)",
+       "&minus;27.6% [&minus;31.6, &minus;23.7]",
+       "+6.2 [+4.6, +7.7]"
+      ],
+      [
+       "401+",
+       "&minus;34% [&minus;37.9, &minus;29.8]",
+       "+9.3 [+6.5, +11.6]"
+      ],
+      [
+       "Raw gap (no controls)",
+       "&minus;43.7%",
+       "+11.5"
+      ]
+     ]
+    },
+    "notes": [
+     "Controls: elapsed days, the card&rsquo;s review count, lapses, previous time and grade, predicted recall. With users weighted equally: &minus;26.6% at 201&ndash;400. User mix is the largest selection part (user effects alone &minus;31%); card mix small; day effects barely matter. Short days do not start clearly slower (+3% to +6%, intervals include 0).",
+     "Still confounded: queue order within the day is not in the data; time of day and breaks are invisible; card effects remove only what is constant per card. Branch sm85, script scripts/sm85_position.py (~30 s CPU)."
+    ]
+   }
+  },
   {
    "date": "11-01",
    "kind": "gpu-score",
