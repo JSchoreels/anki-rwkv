@@ -21,12 +21,14 @@ Time (722 users, 21,585,938 test reviews with a recorded time on a later day tha
 | the card's last time | -0.5167 [-0.5411, -0.4952] | -21.1% | -0.2596 [-0.2753, -0.2455] | -36.0% |
 | the user's running median per grade | -0.4365 [-0.4651, -0.4099] | -18.4% | -0.1802 [-0.1950, -0.1663] | -28.0% |
 
-| grade | reviews | head LogLoss | card's last time | user's median per grade | P(under 5.5 s) predicted / actual |
+| grade | reviews | head LogLoss | card's last time | user's median per grade | P(under 3.9 s) predicted / actual |
 |---|---|---|---|---|---|
 | 1 | 2,833,721 | 2.0394 | 2.5233 | 2.3602 | 0.148 / 0.140 |
 | 2 | 4,414,931 | 1.9167 | 2.4233 | 2.3682 | 0.222 / 0.214 |
 | 3 | 12,582,574 | 1.9181 | 2.4488 | 2.3830 | 0.330 / 0.330 |
 | 4 | 1,754,712 | 1.8714 | 2.3664 | 2.2528 | 0.400 / 0.399 |
+
+Threshold: bins 0-6 (under 3.891 s); earlier versions of this file said 5.5 s.
 
 Size: 331,511 -> 339,767 parameters; scorer w8 weight bytes 410,459 -> 419,163 (+8,704 B); state unchanged.
 
