@@ -1421,7 +1421,7 @@
     "scoring sm80-arm-e21-q32k on the 3 long users"
    ],
    "what": "Data-order re-seed (SM80): epoch 21 of the leak-free small model (SM72s) trained again from its epoch 20 with a new data seed (every epoch so far used the same seed, so the same window sampling), everything else identical (checked on CPU: same users, order, reviews, labels and teacher targets); then the same quarter-epoch Muon cool-down as the reference already scored in the tiny architecture additions run (SM77); scored on the 732 set",
-   "when": "Smoke OK Sat 10-31 16:20; epoch 21 done 18:26 (125.7 min, 77,163 reviews/s); cool-down first segment 18:26&ndash;19:57 (paused for the break, resumable); second segment 01:00&ndash;01:16 killed by a stop, relaunched 01:49 from the 1,481-user snapshot (74.9% done), queued behind the scheduling-time vs review-time accuracy (SM81) scoring; 732-set scoring and rule, ends ~03:45 Sun",
+   "when": "Smoke OK Sat 10-31 16:20; epoch 21 done 18:26 (125.7 min, 77,163 reviews/s); cool-down 18:26&ndash;19:57, 01:00&ndash;01:16 (killed by a stop), 01:50&ndash;02:21 from the 1,481-user snapshot; scored and ruled 03:04 Sun: <strong>stop</strong> (see results)",
    "decides": "Go if curve &ge; 0.20 points or instant &ge; 0.15 better on 722 users (CI clear of zero), other head no worse than +0.03%; stop if both under 0.10; in between, report. A go means re-seeding every epoch in the final run (free)"
   },
   {
@@ -1440,11 +1440,11 @@
  ],
  "backlog": [
   {
-   "status": "planned",
+   "status": "dropped",
    "id": "SM80",
    "track": "small model",
    "item": "Data-order re-seed (SM80): a new data seed for an epoch instead of the same one every epoch",
-   "why": "Side finding of the data augmentation run (SM67): every epoch sees bit-identical inputs. One re-seeded late epoch against the same recipe, ~5 GPU h, running (see the plan). Branch sm80",
+   "why": "Side finding of the data augmentation run (SM67): every epoch sees bit-identical inputs. Tested 11-01: a re-seeded epoch 21 changes nothing (+0.00 curve, &minus;0.01 instant points; noise about &plusmn;0.03). Branch sm80",
    "since": "10-31T16:19"
   },
   {
@@ -1896,6 +1896,86 @@
   "s-w64kd-gate-ctx2048c-dec8-1ep/w8+s8"
  ],
  "results": [
+  {
+   "date": "11-01",
+   "kind": "gpu-train",
+   "id": "SM80",
+   "track": "small model",
+   "name": "Data-order re-seed (SM80): epoch 21 of the leak-free small model (SM72s) trained again from its epoch 20 with a new data seed (every epoch so far used the same seed), then the same quarter-epoch 32k Muon cool-down as the reference",
+   "curve": 0.30074,
+   "instant": 0.2772,
+   "curve_pct": 0.59,
+   "instant_pct": 0.53,
+   "eval": "722 users (732 set), scored leak-free, w8+s8",
+   "fork": "vs the big model (1 leak-free epoch): 0.29897 / 0.27576",
+   "takeaway": "<strong>No gain: stopped</strong>. A new data seed changes nothing measurable: +0.00 points curve [&minus;0.03, +0.04], &minus;0.01 instant [&minus;0.01, +0.00]. Useful side result: the noise from data order alone is about &plusmn;0.03 points, so earlier gains above ~0.05 points were not luck of the data order",
+   "started_at": "2026-10-31T16:20+01:00",
+   "ended_at": "2026-11-01T03:04+01:00",
+   "gpu_minutes": 276,
+   "tickets": 8,
+   "detail": {
+    "verdict": "Stop: both heads change by under 0.10 points vs the same recipe with the usual seed",
+    "table": {
+     "head": [
+      "Users, leak-free scoring",
+      "Head",
+      "New data seed (SM80)",
+      "Usual seed (reference)",
+      "Change, points [95% interval]",
+      "Users better",
+      "New seed vs big model",
+      "Usual seed vs big model"
+     ],
+     "rows": [
+      [
+       "722 users (732 set, decision)",
+       "Curve",
+       "0.30074",
+       "0.30073",
+       "+0.00 [&minus;0.03, +0.04]",
+       "379",
+       "+0.59%",
+       "+0.59%"
+      ],
+      [
+       "722 users (732 set, decision)",
+       "Instant",
+       "0.27720",
+       "0.27722",
+       "&minus;0.01 [&minus;0.01, +0.00]",
+       "373",
+       "+0.53%",
+       "+0.53%"
+      ],
+      [
+       "725 users (732 set + 3 long users)",
+       "Curve",
+       "0.30299",
+       "0.30296",
+       "+0.01 [&minus;0.02, +0.04]",
+       "380",
+       "+0.58%",
+       "+0.58%"
+      ],
+      [
+       "725 users (732 set + 3 long users)",
+       "Instant",
+       "0.27811",
+       "0.27812",
+       "&minus;0.00 [&minus;0.01, +0.01]",
+       "374",
+       "+0.56%",
+       "+0.56%"
+      ]
+     ]
+    },
+    "notes": [
+     "Arm: SM72s epoch 20 + epoch 21 with training_seed 80021 (instead of 2025), then the quarter-epoch 32k Muon cool-down (145.6M reviews, same users and order as the reference). Reference: SM72s&rsquo;s own epoch 21 + the same cool-down (the tiny architecture additions (SM77) reference). Same architecture and size (w64).",
+     "Points = % of the big model (1 leak-free epoch); 95% intervals: paired user bootstrap (2,000, seed 0). Epoch 21 125.7 min at 77,163 reviews/s; cool-down 136 min in three segments (paused for the break; killed by the 01:16 stop and resumed from the 1,481-user snapshot), last segment 20,328 reviews/s.",
+     "Fixed on the way: the cool-down pair check now reads the prepared protocol after a resume (a resume rewrites protocol.json to the users left)."
+    ]
+   }
+  },
   {
    "date": "10-31",
    "kind": "gpu-train",
