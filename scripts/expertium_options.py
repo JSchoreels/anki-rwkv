@@ -345,6 +345,85 @@ def _same_dataset(a, b):
     return all(m.exists() for m in manifests) and manifests[0].read_bytes() == manifests[1].read_bytes()
 
 
+# Response-time prediction (SM82): the answer-time label of a review (the head itself: expertium/model/variant_model.py
+# TimeHead, preset "w64-sm82"). Anki stores the answer time in ms, capped at 60 s in this dataset. 16 bins: under
+# 0.5 s, 14 log-spaced bins between the 15 edges 500 x 120^(k/14) ms (k = 0..14, x1.41 per bin), and 60 s or more.
+TIME_BIN_EDGES_MS = [500.0 * 120.0 ** (k / 14) for k in range(15)]
+TIME_CAP_MS = 60000
+TIME_LOW_CAP_SHARE = 0.005
+
+
+def time_user_cap(duration):
+    """The user's own cap in ms: TIME_CAP_MS, unless the user's max time is lower and holds >= 0.5% (and >= 20) of
+    the timed reviews (Anki's per-preset "maximum answer seconds")."""
+    import numpy as np
+    timed = np.asarray(duration)[np.asarray(duration) > 0]
+    if timed.size == 0:
+        return TIME_CAP_MS
+    top = int(timed.max())
+    if top < TIME_CAP_MS and (timed == top).mean() >= TIME_LOW_CAP_SHARE and (timed == top).sum() >= 20:
+        return top
+    return TIME_CAP_MS
+
+
+def time_labels(duration, elapsed_days=None):
+    """(lower bin, censored, cap) per review of a user's history (revlog order = review_th - 1). Lower bin -1 = no
+    label: duration 0 (no time recorded) or, with elapsed_days, a first review or a review on the same day as the
+    card's previous one: those rows' interval input is answer-to-answer, so it holds their own answer time (the SM82
+    stage 0 leak audit, artifacts/small-model/sm82/stage0-audit.md). Censored = the time sits at a lower user cap: the
+    label is "this bin or a later one"."""
+    import numpy as np
+    duration = np.asarray(duration, dtype=np.int64)
+    cap = time_user_cap(duration)
+    lower = np.searchsorted(np.asarray(TIME_BIN_EDGES_MS), duration.astype(np.float64), side="right").astype(np.int64)
+    censored = ((duration >= cap) & (cap < TIME_CAP_MS)).astype(np.int64)
+    drop = duration <= 0
+    if elapsed_days is not None:
+        drop |= np.asarray(elapsed_days) < 1
+    lower[drop] = -1
+    censored[drop] = 0
+    return lower, censored, cap
+
+
+class TimeTargets:
+    """SM82: [B, T, 2] (lower bin, censored) for a training batch, looked up by its label_review_th in the user's
+    table (built once per user from the revlog's duration / elapsed_days; index 0 = no label). Only instant rows
+    with a time label enter the loss (the variant's _get_loss_variant masks the rest)."""
+
+    def __init__(self):
+        self.user, self.table = None, None
+        self.calls, self.sum, self.rows = 0, None, None
+
+    def __call__(self, batch, user):
+        if user != self.user:
+            import numpy as np
+            import pandas as pd
+            from scripts.gpu_batch1 import DATA
+            frame = pd.read_parquet(DATA / "revlogs" / f"user_id={user}", columns=["duration", "elapsed_days"])
+            lower, censored, _ = time_labels(frame["duration"].to_numpy(), frame["elapsed_days"].to_numpy())
+            table = np.stack([np.r_[-1, lower], np.r_[0, censored]], -1).astype(np.float32)
+            self.table = torch.from_numpy(table).to(batch.labels.device)
+            self.user = user
+        index = batch.label_review_th.long().clamp(0, self.table.shape[0] - 1)
+        return self.table[index]
+
+    def log(self, stats, every=500):
+        """Running (time loss, labelled rows) from the loss statistics, on the device; one line (one sync) every
+        `every` updates."""
+        if self.sum is None:
+            self.sum = torch.zeros((), device=stats.time_avg.device, dtype=torch.float64)
+            self.rows = torch.zeros((), device=stats.time_avg.device, dtype=torch.float64)
+        self.sum += stats.time_avg.double() * stats.time_n.double()
+        self.rows += stats.time_n.double()
+        self.calls += 1
+        if self.calls % every == 0 or self.calls == 1:   # the first update too (the smoke reads it: ln 16 at zero)
+            total, rows = self.sum.item(), self.rows.item()
+            print(f"[sm82-time] updates {self.calls}: time loss {total / max(rows, 1):.4f} nats over {rows:,.0f} "
+                  f"labelled rows (last {1 if self.calls == 1 else every} updates)", flush=True)
+            self.sum.zero_()
+            self.rows.zero_()
+
+
 def make_optimizer(spec, master):
     from scripts.muon_optimizer import expertium_iter53, get_hybrid_optimizer
     if spec == "expertium-iter53":
@@ -396,6 +475,10 @@ class CatchUp:
         if options.get("end_to_start_intervals"):
             # Read by rwkv.data_processing.get_rwkv_data in this process and in every worker spawned after this.
             os.environ[E2S_ENV] = "1"
+        # SM82: the answer-time head's labels (architecture "w64-sm82"); None for every other model
+        self.time = TimeTargets() if self.spec is not None and getattr(self.variant, "time_head", 0) else None
+        if self.time is not None and options.get("end_to_start_intervals"):
+            raise ValueError("the answer-time head reads the published revlog; end_to_start_intervals is not supported")
 
     def models(self, config, device):
         from scripts.compare import training_models
@@ -429,6 +512,18 @@ class CatchUp:
         if self.carry is not None and self.carry.model is None:
             with self.carry.active(model):  # the teacher is another model object: it never sees carried state
                 return self.loss(model, batch, reviews_done, key, labels)
+        if self.time is not None:   # SM82: key = (user, offset, reviews, seed)
+            if key is None:
+                raise ValueError("the answer-time head needs the batch key (user)")
+            target = self.time(batch, key[0])
+            kd = None
+            if self.teacher is not None:
+                decaying = self.schedule is not None and self.schedule.decaying(reviews_done + self.reviews_offset)
+                kd = self.teacher.targets(batch, decaying, key, labels)
+            stats = model.get_loss(batch, kd_mix=kd, time_target=target)
+            if stats is not None:
+                self.time.log(stats)
+            return stats
         if self.teacher is None:
             return model.get_loss(batch)
         decaying = self.schedule is not None and self.schedule.decaying(reviews_done + self.reviews_offset)
@@ -450,4 +545,9 @@ class CatchUp:
             out["distillation"] = self.teacher.describe()
         if self.carry is not None:
             out["state_carry"] = self.carry.describe()
+        if self.time is not None:
+            out["time_head"] = {"bins": self.variant.time_head, "weight": self.variant.time_weight,
+                                "bin_edges_ms": [round(e, 3) for e in TIME_BIN_EDGES_MS],
+                                "labels": "instant rows of reviews with a recorded time on a later day than the card's "
+                                          "previous review; true grade's distribution; censored at a lower user cap"}
         return out
