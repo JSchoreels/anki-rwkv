@@ -1610,11 +1610,11 @@
    "since": "11-01T10:21"
   },
   {
-   "status": "next",
+   "status": "done",
    "id": "SM86",
    "track": "small model",
    "item": "Wider simulator search with time-aware scheduling (SM86): desired retention 0.30&ndash;0.98, plus a per-card policy maximising stability gain per predicted second",
-   "why": "Asked 11-01: running on CPU (with an unlimited deck every optimum still sits at the lower bound, so a 10-new-cards-a-day setup was added)",
+   "why": "Asked 11-01: done 11-01 (see results)",
    "since": "11-01T10:21"
   },
   {
@@ -2112,6 +2112,49 @@
   "s-w64kd-gate-ctx2048c-dec8-1ep/w8+s8"
  ],
  "results": [
+  {
+   "date": "11-01",
+   "kind": "cpu",
+   "id": "SM86",
+   "track": "small model",
+   "name": "Wider simulator search with time-aware scheduling (SM86): desired retention 0.30&ndash;0.98 under a 30-minute daily limit, fixed vs predicted answer-time costs, and a per-card policy maximising stability gain per predicted second",
+   "eval": "150 users of the 732 set; FSRS-6 simulator with each user&rsquo;s parameters and the answer-time head&rsquo;s cost curves (cost models A fixed, B recall-dependent, C + grade mix)",
+   "fork": "Objective: memorised cards at day 365",
+   "takeaway": "<strong>A per-user desired retention matters far more than time-aware costs</strong>. With at most 10 new cards a day the median best desired retention is 0.92 (0.90 with C; quartiles ~0.80&ndash;0.98); a single 0.90 for everyone loses 3.7% of memorised cards at the median, 12.6% on average. Predicted answer times shift the optimum only slightly (&minus;0.007 / &minus;0.011); keeping the fixed-cost optimum costs 0.70% (B) / 1.82% (C) on average. The time-aware per-card policy gives no gain over the best single desired retention (mean &minus;0.2 to &minus;0.5%). With unlimited new cards the optimum stays at the 0.30 bound (no interior optimum)",
+   "started_at": "2026-11-01T10:21+01:00",
+   "ended_at": "2026-11-01T10:36+01:00",
+   "gpu_minutes": 0,
+   "tickets": 0,
+   "detail": {
+    "verdict": "Measurement: answer-time-aware costs barely move the optimum; per-user desired retention is the lever",
+    "table": {
+     "head": [
+      "Setup, 30-minute limit",
+      "Best desired retention (median)",
+      "Keeping the fixed-cost optimum costs",
+      "Time-aware per-card policy vs best single desired retention"
+     ],
+     "rows": [
+      [
+       "At most 10 new cards a day",
+       "0.92 (A, B), 0.90 (C)",
+       "0.70% (B), 1.82% (C) on average; 90th percentile 2.19% / 5.49%",
+       "&minus;0.2% to &minus;0.5% (better for 34&ndash;43% of users)"
+      ],
+      [
+       "Unlimited new cards",
+       "0.30 (the bound) for 85&ndash;88% of users",
+       "0.24% (B), 0.35% (C)",
+       "&mdash;"
+      ]
+     ]
+    },
+    "notes": [
+     "The per-card policy beats the same policy with fixed costs by only +0.27% (B) / +0.13% (C) and beats a single 0.90 by 24&ndash;26% on average (because it is tuned per user). Its tuned offset sits at a bound for 18&ndash;20% of users.",
+     "Limits: FSRS-6 simulator with the answer-time head&rsquo;s cost curves, not the RWKV model (see the small model in the review simulator (SM41)); desired retention below ~0.6 and other intervals than the observed ones are extrapolation; the new-card cap is a modelling choice; the policy is a heuristic. Branch sm84."
+    ]
+   }
+  },
   {
    "date": "11-01",
    "kind": "cpu",
