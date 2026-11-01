@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-01T03:06:26+01:00",
- "updated": "2026-11-01 03:06",
- "material": "eeebb656761d1a27",
- "summary": "idle, finished 000806",
+ "generated_at": "2026-11-01T03:11:30+01:00",
+ "updated": "2026-11-01 03:11",
+ "material": "01b7145d21e7ce2c",
+ "summary": "idle",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring (curve / instant)",
@@ -1591,7 +1591,7 @@
    "kind": "gpu-score",
    "minutes": 85,
    "what": "Scheduling-time vs review-time accuracy (SM81): how much of the small model&rsquo;s accuracy a scheduler can use. Three points on the same reviews: at scheduling time (the curve made at the card&rsquo;s previous answer), at the start of the review day (instant head from the state before that day, new scorer pass), at review time (instant head). For the released small model and the big model (1 leak-free epoch), and FSRS-7 (per-user fit and default parameters) and FSRS7-Instant on the benchmark&rsquo;s test reviews of the 732 set",
-   "when": "Launcher waiting out the break; FSRS-7 side on CPU from 01:00 (killed by a stop at 01:16 at 428 of 726 users; rest re-run on CPU from 01:46); small model start-of-day scoring from 01:18 (~40 min), big model (~45 min) after the data-order re-seed (SM80) cool-down; table ~04:15 Sun",
+   "when": "FSRS-7 side on CPU 01:00&ndash;01:55 (killed by a stop at 01:16, finished from 01:46); small and big model start-of-day scoring 01:18&ndash;03:06; table 03:06 Sun (see results)",
    "decides": "Whether the small model&rsquo;s lead over FSRS-7 holds at scheduling time, and what share of the review-time gain is known at the start of the day (usable for daily rescheduling)",
    "state": "done",
    "ended": "03:05",
@@ -1617,7 +1617,7 @@
    "since": "10-31T16:19"
   },
   {
-   "status": "planned",
+   "status": "done",
    "id": "SM81",
    "track": "small model",
    "item": "Scheduling-time vs review-time accuracy (SM81): the small model and FSRS-7 at scheduling time, start of day and review time, on the same reviews",
@@ -2050,6 +2050,75 @@
  "results": [
   {
    "date": "11-01",
+   "kind": "gpu-score",
+   "id": "SM81",
+   "track": "small model",
+   "name": "Scheduling-time vs review-time accuracy (SM81): the same reviews scored at scheduling time (the curve made at the card&rsquo;s previous answer), at the start of the review day and at review time, for FSRS-7, FSRS7-Instant, the small model and the big model",
+   "eval": "724 users (732 set), 20,751,812 test reviews common to FSRS-7 and RWKV (same-day repeats excluded: not in the FSRS-7 test folds); LogLoss review-weighted",
+   "fork": "% vs FSRS-7 per-user fit (0.3119 at all three times)",
+   "takeaway": "<strong>The small model&rsquo;s lead holds where a scheduler needs it</strong>: &minus;5.3% vs FSRS-7 at scheduling time (&minus;5.4% per user), while FSRS7-Instant is +3.4% worse there. Most of the review-time gain (&minus;13.4%) is same-day information: only 18% of it is known at the start of the day (&minus;6.8%). Small and big model are equal at all three times",
+   "started_at": "2026-11-01T01:00+01:00",
+   "ended_at": "2026-11-01T03:06+01:00",
+   "gpu_minutes": 64,
+   "tickets": 6,
+   "detail": {
+    "verdict": "Measurement: the small model beats FSRS-7 at scheduling time by 5.3% (CI [&minus;0.0181, &minus;0.0152] LogLoss), at the start of the day by 6.8%; the bigger review-time gain is mostly not usable for scheduling",
+    "table": {
+     "head": [
+      "Model",
+      "Scheduling time",
+      "Start of day",
+      "Review time",
+      "Share of the review-time gain known at the start of the day"
+     ],
+     "rows": [
+      [
+       "FSRS-7, default parameters",
+       "0.3333 (+6.9%)",
+       "0.3333 (+6.9%)",
+       "0.3333 (+6.9%)",
+       "&mdash; (no updates)"
+      ],
+      [
+       "FSRS-7, per-user fit (reference)",
+       "0.3119",
+       "0.3119",
+       "0.3119",
+       "&mdash; (no updates)"
+      ],
+      [
+       "FSRS7-Instant (shared start fit, online updates)",
+       "0.3226 (+3.4%)",
+       "0.3088 (&minus;1.0%)",
+       "0.2912 (&minus;6.6%)",
+       "44% [38%, 50%]"
+      ],
+      [
+       "Small model (leak-free, cool-down from epoch 25, released)",
+       "0.2953 (&minus;5.3%)",
+       "0.2908 (&minus;6.8%)",
+       "0.2702 (&minus;13.4%)",
+       "18% [9%, 26%]"
+      ],
+      [
+       "Big model (1 leak-free epoch)",
+       "0.2947 (&minus;5.5%)",
+       "0.2909 (&minus;6.7%)",
+       "0.2696 (&minus;13.6%)",
+       "15% [7%, 23%]"
+      ]
+     ]
+    },
+    "notes": [
+     "Review-weighted LogLoss, lower is better; % vs FSRS-7 per-user fit; 95% intervals: paired user bootstrap (2,000, seed 0). Per user: small model &minus;5.4% / &minus;6.6% / &minus;17.2%, FSRS7-Instant +4.6% / &minus;0.9% / &minus;8.6%.",
+     "Start of day: instant head from the state before the user&rsquo;s first review that day (new scorer pass). On the user&rsquo;s first review of a day it equals review time by construction (199,496 reviews); the shares above come from the later reviews of the day (20.55M).",
+     "FSRS-7 per-user fits with fsrs-rs (the published protocol); FSRS7-Instant with the shared-start protocol. The FSRS CPU step was killed by the 01:16 stop at 428 of 726 users and finished on CPU by 01:55.",
+     "Rows: 20.86M FSRS-7 test reviews, 30.91M RWKV reviews, 20.75M in both; 8.74M of the RWKV-only ones are same-day repeats."
+    ]
+   }
+  },
+  {
+   "date": "11-01",
    "kind": "gpu-train",
    "id": "SM80",
    "track": "small model",
@@ -2122,7 +2191,7 @@
      ]
     },
     "notes": [
-     "Arm: SM72s epoch 20 + epoch 21 with training_seed 80021 (instead of 2025), then the quarter-epoch 32k Muon cool-down (145.6M reviews, same users and order as the reference). Reference: SM72s&rsquo;s own epoch 21 + the same cool-down (the tiny architecture additions (SM77) reference). Same architecture and size (w64).",
+     "Arm: the leak-free small model&rsquo;s (SM72s) epoch 20 + epoch 21 with training_seed 80021 (instead of 2025), then the quarter-epoch 32k Muon cool-down (145.6M reviews, same users and order as the reference). Reference: the leak-free small model&rsquo;s (SM72s) own epoch 21 + the same cool-down (the tiny architecture additions (SM77) reference). Same architecture and size (w64).",
      "Points = % of the big model (1 leak-free epoch); 95% intervals: paired user bootstrap (2,000, seed 0). Epoch 21 125.7 min at 77,163 reviews/s; cool-down 136 min in three segments (paused for the break; killed by the 01:16 stop and resumed from the 1,481-user snapshot), last segment 20,328 reviews/s.",
      "Fixed on the way: the cool-down pair check now reads the prepared protocol after a resume (a resume rewrites protocol.json to the users left)."
     ]
