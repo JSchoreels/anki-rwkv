@@ -38,8 +38,69 @@ def _matrix(columns, direct=False):
     return np.column_stack([column.astype(np.float64) for column in columns])
 
 
+# Grade-order sanity (SM33): track option "grade_order": {"weight": W, "density": D, "horizons_days": [...], "seed": S}.
+# Absent (default) = nothing here runs and samples, batches, losses and gradients are bit for bit today's.
+PROBE_ORDER_QUERY, PROBE_ORDER_REAL = 0, 5
+
+
+def add_grade_probes(data, spec, user_id):
+    """Insert four what-if rows (rating 1..4) right before a seeded `density` share of the committed review rows:
+    copies of the review row with the rating one-hot (and rating / y) replaced, skip = True (no state commit, like
+    the fork's answer_heads and the query rows), has_label = False (no curve / instant / KD target) and
+    label_elapsed_days = -g (the probe grade; real rows hold elapsed days >= 0 or pi there, and the loss never reads
+    that column otherwise). Order inside a review_th: query row, probes 1..4, the real row, so probes g and g + 1
+    are adjacent rows and every real row keeps its committed history and token-shift source."""
+    density = float(spec.get("density", 0.0))
+    real = np.flatnonzero(~data["skip"].astype(bool))
+    if density <= 0 or not len(real):
+        return data
+    rng = np.random.default_rng([int(spec.get("seed", 33)), int(user_id), int(data["review_th"].min())])
+    pick = real[rng.random(len(real)) < density]
+    if not len(pick):
+        return data
+    order = np.where(data["is_query"].astype(np.int64) == 1, PROBE_ORDER_QUERY, PROBE_ORDER_REAL)
+    parts, orders = [data], [order]
+    for g in (1, 2, 3, 4):
+        probe = {name: values[pick].copy() for name, values in data.items()}
+        probe["rating"] = np.full(len(pick), g, dtype=data["rating"].dtype)
+        for i in (1, 2, 3, 4):
+            probe[f"rating_{i}"] = np.full(len(pick), int(i == g), dtype=data[f"rating_{i}"].dtype)
+        probe["y"] = np.full(len(pick), int(g > 1), dtype=data["y"].dtype)
+        probe["skip"] = np.ones(len(pick), dtype=data["skip"].dtype)
+        probe["has_label"] = np.zeros(len(pick), dtype=data["has_label"].dtype)
+        probe["label_elapsed_days"] = np.full(len(pick), -g, dtype=np.float64)
+        parts.append(probe)
+        orders.append(np.full(len(pick), g, dtype=np.int64))
+    merged = {name: np.concatenate([part[name] for part in parts]) for name in data}
+    key = np.lexsort((np.concatenate(orders), merged["review_th"]))
+    return {name: values[key] for name, values in merged.items()}
+
+
+def fix_leading_shift(batch):
+    """In a sub-sequence that starts with the 4 probe rows of its first committed row (a card's first review, or the
+    first row of a deck / note / preset in the window), those rows and that real row read their own input in the token
+    shift: prepare's rule for row 0, which the real row would get without the probes (under state carry, entities
+    with a carried state read the carried vector there instead). Without it they would read probe 1's input. Query-led
+    sequences (1 or 5 leading skipped rows) keep prepare's rule. A no-op (returns 0) on every batch without probes."""
+    changed = 0
+    for module_shifts, module_skips, lens in zip(batch.time_shift_selects, batch.skips, batch.sub_gather_lens):
+        for i, (shift, skip, r) in enumerate(zip(module_shifts, module_skips, lens)):
+            s2 = skip.view(-1, r)
+            first = (~s2).to(torch.int8).argmax(dim=1)
+            t = torch.arange(r, device=shift.device)
+            # only probe-led sequences: their first committed row follows exactly the 4 probes of its review (a
+            # query-led sequence starts with 1 or 1 + 4 skipped rows and keeps prepare's rule, bit for bit)
+            lead = (t[None, :] <= first[:, None]) & (first[:, None] == 4)
+            old = shift.view(-1, r)
+            new = torch.where(lead, t[None, :].to(old.dtype).expand_as(old), old)
+            changed += int((new != old).sum())
+            if changed:
+                module_shifts[i] = new.reshape(shift.shape).contiguous()
+    return changed
+
+
 def create_sample_fast(user_id, section_df, equalize_review_ths, dtype, device, column_arrays=None,
-                       segment_features_precomputed=False, direct_matrix=False, int64_ids=False):
+                       segment_features_precomputed=False, direct_matrix=False, int64_ids=False, grade_probes=None):
     if column_arrays is None:
         frame = add_segment_features(section_df.copy()).reset_index(drop=True)
         data = {name: frame[name].to_numpy() for name in frame.columns}
@@ -77,6 +138,8 @@ def create_sample_fast(user_id, section_df, equalize_review_ths, dtype, device, 
         # sort_values(by=["review_th", "skip"], ascending=[True, False]) is a stable lexsort.
         order = np.lexsort((~data["skip"].astype(bool), data["review_th"]))
         data = {name: values[order] for name, values in data.items()}
+    if grade_probes:
+        data = add_grade_probes(data, grade_probes, user_id)
     label_rating = data["label_rating"]
     if not (label_rating.min() >= 1 and label_rating.max() <= 4):
         raise AssertionError("label_rating outside 1-4")
@@ -129,7 +192,10 @@ def samples_for(section, user, options, chunk=128):
         if not (options.get("fast_samples") and options.get("columnar_samples")) or options.get("batch_segment_features"):
             raise ValueError("state_carry needs fast columnar samples without F44 batch segment features")
         return make_samples_fast(section, user, chunk, columnar=True, user_segment_features=True,
-                                 direct_matrix=options.get("direct_sample_matrix", False))
+                                 direct_matrix=options.get("direct_sample_matrix", False),
+                                 grade_probes=options.get("grade_order"))
+    if options.get("grade_order"):
+        raise ValueError("grade_order (SM33) probe rows are implemented for the state_carry sample path only")
     if options.get("fast_samples"):
         return make_samples_fast(section, user, chunk, columnar=options.get("columnar_samples", False),
                                  batch_segment_features=options.get("batch_segment_features", False),
@@ -141,7 +207,7 @@ def samples_for(section, user, options, chunk=128):
 
 
 def make_samples_fast(section, user, chunk, *, columnar=False, batch_segment_features=False, direct_matrix=False,
-                      user_segment_features=False):
+                      user_segment_features=False, grade_probes=None):
     if batch_segment_features and not columnar:
         raise ValueError("F44 requires columnar samples")
     if user_segment_features:
@@ -152,7 +218,8 @@ def make_samples_fast(section, user, chunk, *, columnar=False, batch_segment_fea
         columns = {name: section[name].to_numpy() for name in section.columns}
         return [create_sample_fast(user, section.iloc[i:i + chunk], [], torch.float32, torch.device("cpu"),
                                    column_arrays={name: values[i:i + chunk] for name, values in columns.items()},
-                                   segment_features_precomputed=True, direct_matrix=direct_matrix, int64_ids=True)
+                                   segment_features_precomputed=True, direct_matrix=direct_matrix, int64_ids=True,
+                                   grade_probes=grade_probes)
                 for i in range(0, len(section), chunk)]
     if columnar:
         columns = {name: section[name].to_numpy() for name in section.columns}
