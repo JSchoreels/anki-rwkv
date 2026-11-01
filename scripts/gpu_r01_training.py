@@ -393,6 +393,16 @@ def run_case(args):
             if not hasattr(base, "instant_loss_weight"):
                 raise ValueError("instant_loss_weight needs the Expertium loss")
             base.instant_loss_weight = float(options["instant_loss_weight"])
+        if options.get("grade_order"):
+            # SM33: hinge on the probe rows' curves (expertium.model.variant_model.grade_order_penalty); the probe rows
+            # themselves come from scripts.gpu_r01_samples.add_grade_probes in the workers.
+            if not hasattr(base, "grade_order_weight"):
+                raise ValueError("grade_order needs the Expertium variant loss")
+            spec = options["grade_order"]
+            base.grade_order_weight = float(spec["weight"])
+            base.grade_order_horizons = [float(day) * 86400.0 for day in spec["horizons_days"]]
+            report["grade_order"] = {"weight": base.grade_order_weight, "horizons_days": list(spec["horizons_days"]),
+                                     "density": float(spec.get("density", 0.0)), "seed": int(spec.get("seed", 33))}
         if options.get("wddm_flush_streams"):
             # F77b: identity flush points between hierarchy streams in forward and backward.
             if not hasattr(base, "wddm_flush_streams"):

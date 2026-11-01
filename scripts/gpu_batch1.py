@@ -138,6 +138,9 @@ def prepare_job(row, offset, end, seed, options, section=None, cache_path=None):
         samples = samples_for(section, user, options)
     batch = prepare(samples, seed=seed, padding_factor=options.get("padding_factor", 0.9),
                     allowed_excess_in_one_step=options.get("split_excess", 20000))
+    if options.get("grade_order"):
+        from scripts.gpu_r01_samples import fix_leading_shift  # SM33 probe rows
+        fix_leading_shift(batch)
     if options.get("packed_ipc"):
         batch = pack_batch(batch)
     return TrialBatch(batch, offset, end - offset, len(samples), seed, time.perf_counter() - started)

@@ -1,0 +1,18 @@
+[ok] samples, option absent == gpu_r01_samples before SM33 (d2ea7b7e), bitwise: 6
+[ok] samples, density 0 == option absent, bitwise: 6
+[ok] fix_leading_shift on the batch without probes changes nothing: 0
+[ok] option absent == variant_model before SM33 (d2ea7b7e): loss + loss tensor + gradients bitwise: 0.931463360786438
+[ok] weight 0.0 == option absent bitwise: 0.931463360786438
+[ok] weight 0.1 on the batch without probes == option absent bitwise (no probe pairs: penalty 0): None
+[ok] probe rows inserted (reviews probed, shift indices fixed, samples starting with a probe): {'probed_reviews': 156, 'rows_plain': 1112, 'rows_probed': 1736, 'shift_fixed': 652, 'leading': 1}
+[ok] non-probe rows: inputs bitwise equal: 0.0
+[ok] non-probe rows: outputs unchanged (max |delta|): {'ahead': 0.0, 'w': 2.980232238769531e-07, 'w_log_p': 2.384185791015625e-06, 'p_logits': 2.86102294921875e-06, 's_raw': 2.86102294921875e-06, 'd_raw': 1.9073486328125e-06}
+[ok] probe with the real rating == real row (max |delta|): {'ahead': 0.0, 'w': 2.384185791015625e-07, 'w_log_p': 1.430511474609375e-06, 'p_logits': 1.430511474609375e-06, 's_raw': 1.9073486328125e-06, 'd_raw': 1.1920928955078125e-06}
+[ok] weight 0 with probe rows (eval mode, no dropout): loss unchanged (relative), gradients (max |delta| / max |g|): {'loss_rel': 1.918510499144632e-07, 'grad_max_abs': 6.770715117454529e-07, 'grad_max': 0.0807860940694809}
+[ok] weight W: loss = loss(0) + W x penalty: {'penalty': 0.09398812055587769, 'pairs': 468, 'abs_gap': 5.960464455334602e-09}
+[ok] penalty == independent float64 NumPy recompute: {'torch': 0.09398812055587769, 'numpy': 0.0939881272553278, 'pairs_numpy': 468}
+[ok] weight W: gradients differ: 350/354 tensors
+[ok] synthetic ordered curves: penalty exactly 0, zero gradient: {'penalty': 0.0, 'grad_abs_sum': 0.0}
+[ok] synthetic Hard > Good: penalty > 0; gradient lowers Hard's stability, raises Good's, others 0: {'penalty': 0.5283438563346863, 'dP/dS_hard': 0.2576369047164917, 'dP/dS_good': -0.2730986475944519, 'others': 0.0}
+[ok] TorchScript model compiles; loss at weight W == eager (eval mode): {'scripted': True, 'loss': 0.9393326640129089, 'eager': 0.9393326640129089}
+[sm33-penalty-check] PASS (17 checks) -> C:\Users\jonat\workspace\wt\sm33p\artifacts\small-model\sm33\check-cpu-grade-order.json

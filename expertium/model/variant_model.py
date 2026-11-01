@@ -22,6 +22,31 @@ VARIANT_DTYPE_EXCLUDE = DTYPE_EXCLUDE + ["gru_"]
 # SM21 (scripts/state_carry_train.py): while a StateCarry is active for a model object, that model's interleaved
 # streams run with carried state. None (the default, always outside the opt-in `state_carry` option) = stock path.
 CARRY_HOOK = [None]
+# SM33: the last grade-order penalty value (detached tensor) and its pair count, for logging; untouched when off.
+GRADE_ORDER_LAST = [None, None]
+
+
+def grade_order_penalty(model, out_w, out_s_raw, out_d_raw, global_labels, horizons):
+    """relu(logit R_g(t) - logit R_{g+1}(t)) averaged over (probe pair, horizon). One host sync (the probe row count)."""
+    if not model.gru_on:
+        raise ValueError("grade_order needs the GRU curve head")
+    marker = global_labels[..., 1].reshape(-1)
+    grade = torch.where(marker < 0, -marker, torch.zeros_like(marker))          # 1..4 on probe rows, else 0
+    nxt = torch.nn.functional.pad(grade[1:], (0, 1))                             # the next row's grade
+    rows = torch.nonzero((grade >= 1) & (grade <= 3) & (nxt == grade + 1)).squeeze(1)  # probe g with g + 1 right after
+    n_curves = out_w.size(-1)
+    t = torch.tensor(horizons, dtype=torch.float32, device=out_w.device).view(1, -1, 1)
+    logits = []
+    for index in (rows, rows + 1):
+        w = out_w.reshape(-1, n_curves).index_select(0, index).float().unsqueeze(1)
+        s = out_s_raw.reshape(-1, n_curves).index_select(0, index).float().unsqueeze(1)
+        d = out_d_raw.reshape(-1, n_curves).index_select(0, index).float().unsqueeze(1)
+        r = model.gru_forgetting_curve(w, s, d, t)                               # [P, H]
+        logits.append(torch.log(r / (1 - r)))
+    hinge = torch.relu(logits[0] - logits[1])
+    value = hinge.sum() / (hinge.numel() + 1e-8)
+    GRADE_ORDER_LAST[0], GRADE_ORDER_LAST[1] = value.detach(), rows.numel()
+    return value
 
 
 def is_excluded(name):
@@ -171,6 +196,10 @@ class VariantSrsRWKV(SrsRWKV):
         # SM26: opt-in multiplier on the instant (rating) loss term; the default 1.0 keeps IMMEDIATE_SCALE = 1.0 exactly.
         # A float, not None: TorchScript fixes the attribute type when the model is scripted, so None could not become 2.0.
         self.instant_loss_weight = 1.0
+        # SM33 (track option "grade_order"): weight of the grade-order hinge on the probe rows' curves; 0.0 (default) =
+        # the term is never computed, so the loss and gradients are bit for bit today's.
+        self.grade_order_weight = 0.0
+        self.grade_order_horizons: List[float] = [86400.0]
 
         self.gru_n = int(variant.gru_head)
         self.gru_on = self.gru_n > 0
@@ -257,6 +286,15 @@ class VariantSrsRWKV(SrsRWKV):
             self.p_linear = torch.nn.Linear(self.p_head_dim, 4)
             torch.nn.init.zeros_(self.p_linear.weight)
             self.p_linear.bias.copy_(torch.tensor([-0.3512, -0.0802, 0.4297, -0.2041]))
+
+    # ---- SM33 grade-order hinge ----
+    @torch.jit.ignore
+    def _grade_order_penalty(self, out_w: torch.Tensor, out_s_raw: torch.Tensor, out_d_raw: torch.Tensor,
+                             global_labels: torch.Tensor) -> torch.Tensor:
+        """Mean over (probe pair, horizon) of relu(logit R_g(t) - logit R_{g+1}(t)) for the adjacent probe rows g, g + 1
+        (scripts/gpu_r01_samples.add_grade_probes marks probe g with label_elapsed_days = -g). Zero when every pair is
+        ordered; no host sync."""
+        return grade_order_penalty(self, out_w, out_s_raw, out_d_raw, global_labels, self.grade_order_horizons)
 
     # ---- GRU curve head (RWKV_GRU_HEAD) ----
     @torch.jit.ignore
@@ -565,6 +603,9 @@ class VariantSrsRWKV(SrsRWKV):
             + AHEAD_LOGITS_MAG_LOSS_SCALE * ahead_logits_mag_avg
             + AHEAD_LOGITS_DIFF_LOSS_SCALE * ahead_logits_diff_avg
         )
+        if self.grade_order_weight > 0.0:
+            loss_avg = loss_avg + self.grade_order_weight * self._grade_order_penalty(
+                out_w, out_s_raw, out_d_raw, global_labels)
         loss_tensor = (
             AHEAD_SCALE * curve_loss.detach()
             + IMMEDIATE_SCALE * p_loss.detach()
