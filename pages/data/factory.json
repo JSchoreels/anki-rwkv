@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-01T13:04:45+01:00",
- "updated": "2026-11-01 13:04",
- "material": "88c87d1c516d7c00",
- "summary": "running 000837",
+ "generated_at": "2026-11-01T13:54:17+01:00",
+ "updated": "2026-11-01 13:54",
+ "material": "27588da1fcabb0b9",
+ "summary": "running 000838, finished 000837",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring (curve / instant)",
@@ -239,19 +239,19 @@
  ],
  "now": [
   {
-   "what": "Grade-order sanity (SM33): how often the released model&rsquo;s button intervals break Again &le; Hard &le; Good &le; Easy and whether the fork hides it; then, if needed, a soft penalty on breaks in a cool-down against the reference",
-   "id": "SM33, ticket 000837",
-   "kind": "gpu-score",
-   "decides": "Whether to enforce the order in training (user&rsquo;s wish); outside research saw +0.002 curve for a hard constraint",
+   "what": "Deployment-realistic scoring without the review-duration leak, both the big model and SM36",
+   "id": "SM31, ticket 000838",
+   "kind": "gpu-check",
+   "decides": "Honest final numbers; outside runs: +0.0002 / +0.0004 for both models",
    "why": "",
-   "job": "grade-order sanity (SM33): arm quarter-epoch 32k Muon cool-down from SM72s epoch 21 with the grade-order hinge (w64, the reference&#x27;s options and order) (segment to the next window or the end)",
+   "job": "duration-leak scoring (SM31): end-to-start intervals on every row (e2s-all): scoring the released small model on the 723 users of the 732 set (pass 1)",
    "linked": true,
    "track": "small model",
-   "ticket": "000837-small-model",
-   "started": "12:54",
-   "elapsed": "0:10",
+   "ticket": "000838-small-model",
+   "started": "13:53",
+   "elapsed": "0:00",
    "progress": null,
-   "eta": "~15:44"
+   "eta": "~14:13"
   }
  ],
  "charts": [
@@ -421,15 +421,17 @@
    ]
   }
  ],
- "waiting": [
-  {
-   "ticket": "000838-small-model",
-   "id": "SM31",
-   "what": "duration-leak scoring (SM31): end-to-start intervals on every row (e2s-all): scoring the released small model on the 723 users of the 732 set (pass 1)",
-   "flags": "expected 20 min"
-  }
- ],
+ "waiting": [],
  "recent": [
+  {
+   "ticket": "000837-small-model",
+   "id": "SM33",
+   "what": "grade-order sanity (SM33): arm quarter-epoch 32k Muon cool-down from SM72s epoch 21 with the grade-order hinge (w64, the reference&#x27;s options and order) (segment to the next window or the end)",
+   "ended": "13:53",
+   "date": "11-01",
+   "exit": 1,
+   "ran": "0:59"
+  },
   {
    "ticket": "000836-small-model",
    "id": "SM31",
@@ -474,15 +476,6 @@
    "date": "11-01",
    "exit": 0,
    "ran": "0:17"
-  },
-  {
-   "ticket": "000831-small-model",
-   "id": "SM33",
-   "what": "grade-order sanity (SM33): stage 1, CUDA probe check + what-if intervals of the released small model on the 732 pool (723 users, 3,000 reviews each)",
-   "ended": "12:20",
-   "date": "11-01",
-   "exit": 0,
-   "ran": "0:12"
   }
  ],
  "plan": [
@@ -1456,8 +1449,11 @@
    "track": "small model",
    "when": "On hold: not started; the deleted-card leak check and the leak-free retrain (SM71, SM72) took the GPU",
    "decides": "Honest final numbers; outside runs: +0.0002 / +0.0004 for both models",
-   "state": "waiting",
-   "ticket": "000838-small-model"
+   "state": "running",
+   "started": "13:53",
+   "ticket": "000838-small-model",
+   "started_at": "2026-11-01T10:51:04+01:00",
+   "ends_at": "2026-11-01T11:51:04+01:00"
   },
   {
    "what": "Stack the week&rsquo;s winners (learning rate, teacher targets, timestamps, head changes) into one decay; then the decisive 2,225-user check",
@@ -1713,8 +1709,11 @@
    "what": "Duration-leak scoring (SM31): the released small model and the big model (1 leak-free epoch) scored with intervals as Anki knows them when it shows the card (without the review&rsquo;s own answer time)",
    "when": "Building since 10:45 Sun",
    "decides": "Honest deployment numbers for both models and the small-vs-big gap without the leak",
-   "state": "waiting",
-   "ticket": "000838-small-model"
+   "state": "running",
+   "started": "13:53",
+   "ticket": "000838-small-model",
+   "started_at": "2026-11-01T10:51:04+01:00",
+   "ends_at": "2026-11-01T11:51:04+01:00"
   },
   {
    "id": "SM29",
@@ -1736,11 +1735,12 @@
    "what": "Grade-order sanity (SM33): how often the released model&rsquo;s button intervals break Again &le; Hard &le; Good &le; Easy and whether the fork hides it; then, if needed, a soft penalty on breaks in a cool-down against the reference",
    "when": "Measuring since 10:45 Sun",
    "decides": "Whether to enforce the order in training (user&rsquo;s wish); outside research saw +0.002 curve for a hard constraint",
-   "state": "running",
-   "started": "12:54",
-   "ticket": "000837-small-model",
+   "state": "done",
+   "ended": "13:53",
+   "exit": 1,
+   "started": "11:03",
    "started_at": "2026-11-01T11:03:40+01:00",
-   "ends_at": "2026-11-01T12:03:40+01:00"
+   "ended_at": "2026-11-01T13:53:52+01:00"
   },
   {
    "id": "SM87",
