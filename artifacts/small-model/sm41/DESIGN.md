@@ -31,7 +31,7 @@ later prediction of every card. A simulated learner is therefore:
      drawn from the user's recent first-grade mix and its time from the user's first-review times of that grade;
    - same-day reviews (learning and relearning steps): the grade comes from the model (instant rows exist), the time
      from the user's same-day times of that grade (the time head is trained on later-day reviews only: same-day
-     interval inputs contain the previous answer's time, SM82 stage 0);
+     interval inputs contain the previous answer's time, response-time prediction (SM82) stage 0);
    - learning steps: whether a card comes back the same day, and after how many seconds, follows the user's own
      empirical rule per (review kind first / same-day / later day, grade): P(same-day follow-up) and the observed gaps
      (cap 8 reviews per card per day). Only the day-level interval is the scheduler's choice;
