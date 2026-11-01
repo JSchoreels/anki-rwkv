@@ -1451,7 +1451,7 @@
     "time scoring of the answer-time head on the 732 pool"
    ],
    "what": "Response-time prediction (SM82) stage 1: an answer-time head (per grade, 16 log-time bins from 0.5 s to the 60 s cap, cap = censored; +8,256 parameters, export +8.7 KB) added during the usual quarter-epoch Muon cool-down from the leak-free small model&rsquo;s (SM72s) epoch 21, against the same-recipe reference already scored in the tiny architecture additions run (SM77). Trained and scored only on reviews on a later day than the card&rsquo;s previous one (70% of reviews): the interval input of same-day reviews contains the answer time itself (stage 0 audit)",
-   "when": "Stage 0 audit and CPU proof done 03:41 Sun; smoke OK 03:42; cool-down 03:42&ndash;~05:40; grade scoring from 05:40, then time scoring and the rule ~06:40 Sun",
+   "when": "Stage 0 audit and CPU proof done 03:41 Sun; smoke OK 03:42; cool-down 03:42&ndash;05:42 (20,147 reviews/s); scoring and rule 06:08 Sun: <strong>fail on grade, pass on time</strong> (see results)",
    "decides": "Go if grade curve and instant stay within +0.03 points of the reference on 722 users and the time head beats both baselines (card&rsquo;s last time: 2.445 nats, 0.721 |ln error|; user&rsquo;s running median per grade: 2.364 / 0.642). A go opens stage 2: answer-time curves and answer-time-aware workload in the simulator"
   }
  ],
@@ -1913,6 +1913,79 @@
   "s-w64kd-gate-ctx2048c-dec8-1ep/w8+s8"
  ],
  "results": [
+  {
+   "date": "11-01",
+   "kind": "gpu-train",
+   "id": "SM82",
+   "track": "small model",
+   "name": "Response-time prediction (SM82) stage 1: an answer-time head (per grade, 16 log-time bins from 0.5 s to the 60 s cap) trained with the grade heads during the quarter-epoch 32k Muon cool-down from the leak-free small model&rsquo;s (SM72s) epoch 21",
+   "curve": 0.30108,
+   "instant": 0.27795,
+   "curve_pct": 0.7,
+   "instant_pct": 0.79,
+   "eval": "722 users (732 set), scored leak-free, w8+s8; time on 21.59M test reviews on a later day than the card&rsquo;s previous one",
+   "fork": "vs the big model (1 leak-free epoch): 0.29897 / 0.27576",
+   "takeaway": "<strong>Time head works, grade got worse: fail</strong>. Answer times are predicted well: time LogLoss 1.930 vs 2.366 for the best simple baseline (&minus;18.4%), median error in log-seconds &minus;28%, and the predicted share of fast answers matches the actual one per grade. But sharing the training cost the grade heads +0.12 points curve [+0.04, +0.18] and +0.27 instant [+0.24, +0.29] (bar +0.03). Next: the same head on a frozen model, so the grade predictions cannot change",
+   "started_at": "2026-11-01T03:41+01:00",
+   "ended_at": "2026-11-01T06:08+01:00",
+   "gpu_minutes": 146,
+   "tickets": 6,
+   "detail": {
+    "verdict": "Fail on grade (both heads above the +0.03 bar), pass on time (beats both baselines, CI clear of zero)",
+    "table": {
+     "head": [
+      "What",
+      "With the answer-time head (SM82)",
+      "Same recipe without it",
+      "Change [95% interval]",
+      "Bar"
+     ],
+     "rows": [
+      [
+       "Grade, curve (722 users)",
+       "0.30108",
+       "0.30073",
+       "+0.12 points [+0.04, +0.18]; 247 users better",
+       "&le; +0.03"
+      ],
+      [
+       "Grade, instant (722 users)",
+       "0.27795",
+       "0.27722",
+       "+0.27 points [+0.24, +0.29]; 58 users better",
+       "&le; +0.03"
+      ],
+      [
+       "Time LogLoss vs the card&rsquo;s last time",
+       "1.9300",
+       "2.4466",
+       "&minus;0.517 [&minus;0.541, &minus;0.495] (&minus;21.1%)",
+       "beat it"
+      ],
+      [
+       "Time LogLoss vs the user&rsquo;s running median per grade",
+       "1.9300",
+       "2.3664",
+       "&minus;0.437 [&minus;0.465, &minus;0.410] (&minus;18.4%)",
+       "beat it"
+      ],
+      [
+       "Mean |ln error| of the predicted median vs the best baseline",
+       "0.4625",
+       "0.6428",
+       "&minus;0.180 [&minus;0.195, &minus;0.166] (&minus;28.0%)",
+       "beat it"
+      ]
+     ]
+    },
+    "notes": [
+     "Stage 0 audit (723 users, 42.8M reviews): median user answers in 7.8 s (p10 4.0 s, p90 19.4 s); 5.6% of answers at the 60 s cap (treated as &ldquo;60 s or more&rdquo;), 0.09% at 0; 38% of the within-user spread is card to card.",
+     "Leak found and avoided: the interval input is answer-to-answer, so on same-day reviews it contains the answer time itself (77% of immediate repeats within 1.5 s of their own time). The time head is trained and scored only on reviews on a later day than the card&rsquo;s previous one (70% of reviews).",
+     "Head: one zero-initialised linear layer from the instant head&rsquo;s 128-wide layer to 4 grades &times; 16 bins, censored cross-entropy, weight 0.1, true answers only; +8,256 parameters, export +8,704 B. CPU proof: with the head at zero, grade outputs and gradients bit-identical to the reference recipe.",
+     "Predicted / actual share of answers under 5.5 s: Again 0.148 / 0.140, Hard 0.222 / 0.214, Good 0.330 / 0.330, Easy 0.400 / 0.399. Cool-down 120.4 min at 20,147 reviews/s."
+    ]
+   }
+  },
   {
    "date": "11-01",
    "kind": "gpu-score",
