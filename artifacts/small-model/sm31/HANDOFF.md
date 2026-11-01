@@ -30,6 +30,8 @@ Ticket purposes in order (each one scoring pass, 723 users at the 0.8 cap; a "pa
 
 Expected end: the first ticket queued behind curve consistency on rapid Good pairs (ST01a) and grade-order sanity (SM33) (~40 min); the 10 main tickets need ~3.7 h of GPU, so most land before the Sunday 16:00 break and the rest after 01:00 Monday; the long users ~2.5 h more, final table around 03:00-04:00 Monday.
 
+State at handoff (10:36): launcher alive, ticket 000825 (item 1) registered and waiting behind 000823 (curve consistency on rapid Good pairs (ST01a)) and 000824 (grade-order sanity (SM33)); it had not started yet, so the first fresh agent confirms it started cleanly (`grep -E "000825|^\[small-model\]" artifacts/small-model/sm31/gpu/score.out | tail -3`: a "started" line, then user progress, no Traceback).
+
 ## Follow-up (fresh agent, Sonnet medium is enough)
 
 1. `git -C C:/Users/jonat/workspace/wt/sm31 fetch` + `merge --ff-only`; check the log ends with `done` (`tail -3 artifacts/small-model/sm31/gpu/launch-sm31.log`). If the launcher died (app restart) and the log is silent > 10 min outside a ticket, relaunch (it resumes; remove `gpu/STOP` first if present):
