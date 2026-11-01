@@ -5,7 +5,7 @@
 
 1. protocol.json has no `init_optimizer` (fresh state) and decay.json options hold "optimizer": "expertium-iter53";
 2. the optimizer the trainer would build (CatchUp.optimizer -> make_optimizer) has 309,888 Muon + 21,623 AdamW parameters
-   for the w64 student, an EMPTY state, and exactly the groups the written learning rate reaches;
+   for the w64 student (+ 8,192 Muon / 64 AdamW for the answer-time head of w64-sm82, SM82), an EMPTY state, and exactly the groups the written learning rate reaches;
 3. loading the source epoch's AdamW optimizer.pth into it fails (so the fresh start is required, not cosmetic);
 4. one CPU step on the source epoch's weights is finite, changes the weights and restores the written learning rate;
 5. the optimizer state round-trips through state_dict (the decay saves and resumes optimizer.pth).
@@ -50,7 +50,12 @@ def main():
     adamw = sum(p.numel() for g in optimizer.adamw.param_groups for p in g["params"])
     # SM77 additions (zero-init biases and initial state, names sm77_*) are not matrices: AdamW, Muon set unchanged
     extra = sum(p.numel() for n, p in master.named_parameters() if n.split(".")[-1].startswith("sm77_"))
-    record("w64 parameters Muon / AdamW", [muon, adamw], [muon, adamw] == [309888, 21623 + extra])
+    # SM82 answer-time head (time_heads.0.linear): its weight matrix goes to Muon with the other head matrices
+    # (p_linear's group), its bias to AdamW: 8,192 + 64 values for 16 bins x 4 grades over the 128-wide instant layer
+    time_matrix = sum(p.numel() for n, p in master.named_parameters() if n.startswith("time_heads.") and p.dim() == 2)
+    time_vector = sum(p.numel() for n, p in master.named_parameters() if n.startswith("time_heads.") and p.dim() != 2)
+    record("w64 parameters Muon / AdamW", [muon, adamw, {"sm77": extra, "sm82_matrix": time_matrix, "sm82_vector": time_vector}],
+           [muon, adamw] == [309888 + time_matrix, 21623 + extra + time_vector])
     record("fresh state is empty", [len(optimizer.muon.state), len(optimizer.adamw.state)],
            len(optimizer.muon.state) == 0 and len(optimizer.adamw.state) == 0)
     source = Path(decay["source_case"]) / "optimizer.pth"

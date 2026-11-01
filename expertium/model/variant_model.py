@@ -8,7 +8,7 @@ this file. Ported from Expertium/rwkv-anki-autoresearch@a9fcf466 rwkv/model/srs_
 """
 from contextlib import contextmanager
 import math
-from typing import List, Optional, Tuple
+from typing import List, NamedTuple, Optional, Tuple
 
 import torch
 
@@ -18,7 +18,7 @@ from expertium.model.srs_model import (DTYPE_EXCLUDE, ExactIndexSelect, ExactPad
                                        FunctionType, ModuleType, SrsRWKV, SrsRWKVIterStatistics, wddm_flush_point)
 
 # The GRU head's root parameters stay float32 like the linears they replace (upstream DTYPE_EXCLUDE "gru_").
-VARIANT_DTYPE_EXCLUDE = DTYPE_EXCLUDE + ["gru_"]
+VARIANT_DTYPE_EXCLUDE = DTYPE_EXCLUDE + ["gru_", "time_heads"]   # SM82: the answer-time head stays float32 like p_linear
 # SM21 (scripts/state_carry_train.py): while a StateCarry is active for a model object, that model's interleaved
 # streams run with carried state. None (the default, always outside the opt-in `state_carry` option) = stock path.
 CARRY_HOOK = [None]
@@ -37,6 +37,50 @@ def interleave_schedule(depths):
 def layer_steps(schedule):
     """Round-major (stream, layer) pairs of a schedule; the order the interleaved forward runs them."""
     return [(i, schedule[i][r]) for r in range(len(schedule[0])) for i in range(len(schedule)) if schedule[i][r] >= 0]
+
+
+class TimeHead(torch.nn.Module):
+    """Response-time prediction (SM82): logits of 4 grades x B log-time bins from the instant head's hidden layer
+    (zero-initialised: a warm start keeps every grade output and the trunk's first gradients)."""
+
+    def __init__(self, width, outputs):
+        super().__init__()
+        self.linear = torch.nn.Linear(width, outputs)
+        torch.nn.init.zeros_(self.linear.weight)
+        torch.nn.init.zeros_(self.linear.bias)
+
+    def forward(self, x):
+        return self.linear(x)
+
+
+class VariantIterStatistics(NamedTuple):
+    """SrsRWKVIterStatistics (same fields, same order) plus the answer-time loss (SM82; zeros without the head)."""
+    average_loss: torch.Tensor
+    loss_tensor: torch.Tensor
+    w_loss_avg: torch.Tensor
+    ahead_logits_mag_loss_avg: torch.Tensor
+    ahead_logits_diff_loss_avg: torch.Tensor
+    ahead_avg: torch.Tensor
+    ahead_raw_avg: torch.Tensor
+    ahead_n: int
+    ahead_equalize_avg: torch.Tensor
+    ahead_raw_equalize_avg: torch.Tensor
+    ahead_equalize_n: int
+    imm_avg: torch.Tensor
+    imm_n: int
+    imm_binary_equalize_avg: torch.Tensor
+    imm_binary_equalize_n: int
+    p_curve: torch.Tensor
+    p_imm: torch.Tensor
+    p_imm_all: torch.Tensor
+    w: torch.Tensor
+    label_rating: torch.Tensor
+    label_elapsed_seconds: torch.Tensor
+    label_review_th: torch.Tensor
+    is_query: torch.Tensor
+    has_label: torch.Tensor
+    time_avg: torch.Tensor
+    time_n: torch.Tensor
 
 
 class StrippedChannelMixer(ModuleType):
@@ -258,6 +302,12 @@ class VariantSrsRWKV(SrsRWKV):
             torch.nn.init.zeros_(self.p_linear.weight)
             self.p_linear.bias.copy_(torch.tensor([-0.3512, -0.0802, 0.4297, -0.2041]))
 
+            # SM82: created last, so every other parameter keeps its order and random draws; empty = no parameter.
+            self.time_bins = int(variant.time_head)
+            self.time_loss_weight = float(variant.time_weight)
+            self.time_heads = torch.nn.ModuleList(
+                [TimeHead(self.p_head_dim, 4 * self.time_bins)] if self.time_bins > 0 else [])
+
     # ---- GRU curve head (RWKV_GRU_HEAD) ----
     @torch.jit.ignore
     def _gru_heads(self, x_w: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
@@ -292,7 +342,10 @@ class VariantSrsRWKV(SrsRWKV):
         else:
             out_ahead_logits = self.ahead_linear(self.head_ahead_logits(x).float())
         x_p = self.head_p(x).float()
-        return out_ahead_logits, out_w, out_w_log_p, self.p_linear(x_p), out_s_raw, out_d_raw
+        out_t_logits = torch.zeros(1, dtype=torch.float32, device=x.device)
+        for head in self.time_heads:   # SM82 (empty otherwise)
+            out_t_logits = head(x_p)
+        return out_ahead_logits, out_w, out_w_log_p, self.p_linear(x_p), out_s_raw, out_d_raw, out_t_logits
 
     # ---- streams ----
     @torch.jit.ignore
@@ -449,8 +502,9 @@ class VariantSrsRWKV(SrsRWKV):
         batch_labels: torch.Tensor,
         batch_label_review_th: torch.Tensor,
         kd_mix: Optional[Tuple[torch.Tensor, torch.Tensor, float]] = None,
+        time_target: Optional[torch.Tensor] = None,
     ):
-        out_ahead_logits, out_w, out_w_log_p, out_p_logits, out_s_raw, out_d_raw = self.forward_batch_variant(
+        out_ahead_logits, out_w, out_w_log_p, out_p_logits, out_s_raw, out_d_raw, out_t_logits = self.forward_batch_variant(
             batch_start,
             batch_sub_gather,
             batch_sub_gather_lens,
@@ -565,6 +619,25 @@ class VariantSrsRWKV(SrsRWKV):
             + AHEAD_LOGITS_MAG_LOSS_SCALE * ahead_logits_mag_avg
             + AHEAD_LOGITS_DIFF_LOSS_SCALE * ahead_logits_diff_avg
         )
+        time_avg = torch.zeros((), dtype=torch.float32, device=out_p_logits.device)
+        time_n = torch.zeros((), dtype=torch.float32, device=out_p_logits.device)
+        if time_target is not None and self.time_bins > 0:
+            # SM82: censored log-time-bin cross-entropy of the true grade's distribution at labelled instant rows;
+            # time_target [B, T, 2] = (lower bin, censored), lower bin -1 = no time label (scripts/sm82_time.py).
+            # Added after the grade terms, so the grade part of the loss is computed exactly as without the head.
+            bins = self.time_bins
+            grade = label_rating.long().clamp(0, NUM_LABELS - 1).view(B, T, 1, 1).expand(B, T, 1, bins)
+            per_grade = torch.gather(out_t_logits.float().view(B, T, NUM_LABELS, bins), 2, grade).squeeze(2)
+            log_p = torch.log_softmax(per_grade, dim=-1)
+            log_tail = torch.logcumsumexp(log_p.flip([-1]), dim=-1).flip([-1])
+            lower = time_target[:, :, 0].long()
+            index = lower.clamp(0, bins - 1).unsqueeze(-1)
+            picked = torch.where(time_target[:, :, 1:2] > 0, log_tail.gather(-1, index),
+                                 log_p.gather(-1, index)).squeeze(-1)
+            time_mask = immediate_mask.float() * (lower >= 0).float()
+            time_n = time_mask.sum()
+            time_avg = -(picked * time_mask).sum() / (1e-8 + time_n)
+            loss_avg = loss_avg + self.time_loss_weight * time_avg
         loss_tensor = (
             AHEAD_SCALE * curve_loss.detach()
             + IMMEDIATE_SCALE * p_loss.detach()
@@ -590,7 +663,7 @@ class VariantSrsRWKV(SrsRWKV):
             ahead_equalize_n = int(ahead_equalize_mask.sum().detach().item())
             imm_n = int(immediate_mask.sum().detach().item())
             imm_binary_equalize_n = int(immediate_equalize_mask.sum().detach().item())
-        return SrsRWKVIterStatistics(
+        return VariantIterStatistics(
             average_loss=loss_avg,
             p_curve=curve_probs.detach(),
             p_imm=out_p_binary.detach(),
@@ -615,9 +688,11 @@ class VariantSrsRWKV(SrsRWKV):
             label_rating=label_rating.detach(),
             is_query=is_query.detach(),
             has_label=has_label.detach(),
+            time_avg=time_avg.detach(),
+            time_n=time_n.detach(),
         )
 
-    def get_loss(self, batch, kd_mix=None):
+    def get_loss(self, batch, kd_mix=None, time_target=None):
         return self._get_loss_variant(
             batch.start,
             batch.sub_gather,
@@ -628,6 +703,7 @@ class VariantSrsRWKV(SrsRWKV):
             batch.labels,
             batch.label_review_th,
             kd_mix,
+            time_target,
         )
 
     def copy_downcast_(self, master_model, dtype):
@@ -645,4 +721,7 @@ class VariantSrsRWKV(SrsRWKV):
 
     def selective_cast(self, dtype):
         # SrsRWKV.selective_cast skips the root module, so root parameters (the GRU head) stay float32.
-        return SrsRWKV.selective_cast(self, dtype)
+        SrsRWKV.selective_cast(self, dtype)
+        for head in self.time_heads:   # SM82: float32 like p_linear (VARIANT_DTYPE_EXCLUDE)
+            head.float()
+        return self

@@ -42,6 +42,12 @@ class VariantConfig:
     # init_state: streams whose layers learn the initial WKV state and token-shift offsets of a never-seen entity
     # (zero today), e.g. ("card_id", "note_id"); H x K x K + 2 x d_model values per layer.
     init_state: tuple = ()
+    # Response-time prediction (SM82): an answer-time head on the instant (query) rows, per grade a distribution over
+    # `time_head` log-time bins (scripts/sm82_time.py BIN_EDGES_MS), trained with weight `time_weight` on the true
+    # grade's distribution (CatchUp passes the time labels). One zero-initialised Linear (time_heads.0.linear) reads
+    # the instant head's hidden layer; the grade outputs do not depend on it. 0 = today's model, bit for bit.
+    time_head: int = 0
+    time_weight: float = 0.0
     extra: dict = field(default_factory=dict)
 
     def stream_names(self):
@@ -85,6 +91,10 @@ SM77_PRESETS = {"w64-sm77": {"key_extras": True, "init_state": ("card_id", "note
                 "w64-sm77-init": {"init_state": ("card_id", "note_id")}}
 
 
+# SM82: the small model (w64) plus the answer-time head: 16 log-time bins per grade, time loss weight 0.1
+SM82_PRESETS = {"w64-sm82": {"time_head": 16, "time_weight": 0.1}}
+
+
 # rwkv.prepare_batch.prepare builds gathers in this order (rwkv.architecture.DEFAULT_ANKI_RWKV_CONFIG's tuples).
 BATCH_STREAMS = ["card_id", "deck_id", "note_id", "preset_id", "user_id"]
 # iter 53 runner (scratchpad/iter53_muonlora/run_iter53.cmd): RWKV_STRIP_CMIX value, verbatim.
@@ -123,8 +133,10 @@ def preset(name):
     if name in SM77_PRESETS:
         # SM77: the small model (w64) plus the tiny additions; a preset name, so the scorer's TAG=KIND:ARCH:PATH takes it
         return replace(preset("w64"), name=name, **SM77_PRESETS[name])
+    if name in SM82_PRESETS:
+        return replace(preset("w64"), name=name, **SM82_PRESETS[name])
     raise ValueError(f"Unknown Expertium architecture preset {name!r}; expected iter36, w64, w64-sequential, w80, "
-                     f"w80-sequential or one of {sorted(SM77_PRESETS)}")
+                     f"w80-sequential or one of {sorted(SM77_PRESETS) + sorted(SM82_PRESETS)}")
 
 
 def variant(spec):
@@ -160,6 +172,8 @@ def variant(spec):
     for stream in config.init_state:
         if stream not in names:
             raise ValueError(f"init_state stream {stream!r} is not one of {names}")
+    if config.time_head < 0 or (config.time_head and not config.time_weight > 0):
+        raise ValueError(f"time_head {config.time_head} needs a positive time_weight, got {config.time_weight}")
     for index in config.zero_features:
         if not 0 <= int(index) < 92:
             raise ValueError(f"zero_features index {index} outside the 92 input dims")
