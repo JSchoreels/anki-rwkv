@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-01T01:01:17+01:00",
- "updated": "2026-11-01 01:01",
- "material": "8b317d48dea52e20",
- "summary": "running 000796",
+ "generated_at": "2026-11-01T01:16:48+01:00",
+ "updated": "2026-11-01 01:16",
+ "material": "328f97681a8267ae",
+ "summary": "idle, finished 000796",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring (curve / instant)",
@@ -237,23 +237,7 @@
    "track": "small model"
   }
  ],
- "now": [
-  {
-   "what": "Data-order re-seed (SM80): epoch 21 of the leak-free small model (SM72s) trained again from its epoch 20 with a new data seed (every epoch so far used the same seed, so the same window sampling), everything else identical (checked on CPU: same users, order, reviews, labels and teacher targets); then the same quarter-epoch Muon cool-down as the reference already scored in the tiny architecture additions run (SM77); scored on the 732 set",
-   "id": "SM80, ticket 000796",
-   "kind": "gpu-train",
-   "decides": "Go if curve &ge; 0.20 points or instant &ge; 0.15 better on 722 users (CI clear of zero), other head no worse than +0.03%; stop if both under 0.10; in between, report. A go means re-seeding every epoch in the final run (free)",
-   "why": "",
-   "job": "data-order re-seed (SM80): arm quarter-epoch 32k Muon cool-down from the re-seeded epoch 21 (w64, the reference&#x27;s options and order) (segment to the next window or the end)",
-   "linked": true,
-   "track": "small model",
-   "ticket": "000796-small-model",
-   "started": "01:00",
-   "elapsed": "0:00",
-   "progress": null,
-   "eta": "~03:30"
-  }
- ],
+ "now": [],
  "charts": [
   {
    "title": "Small model, leak-free (SM72s): LogLoss per epoch, 458-user set (lower is better)",
@@ -424,6 +408,15 @@
  "waiting": [],
  "recent": [
   {
+   "ticket": "000796-small-model",
+   "id": "SM80",
+   "what": "data-order re-seed (SM80): arm quarter-epoch 32k Muon cool-down from the re-seeded epoch 21 (w64, the reference&#x27;s options and order) (segment to the next window or the end)",
+   "ended": "01:16",
+   "date": "11-01",
+   "exit": 1,
+   "ran": "0:15"
+  },
+  {
    "ticket": "000795-small-model",
    "id": "SM80",
    "what": "data-order re-seed (SM80): arm quarter-epoch 32k Muon cool-down from the re-seeded epoch 21 (w64, the reference&#x27;s options and order) (segment to the next window or the end)",
@@ -467,15 +460,6 @@
    "date": "10-31",
    "exit": 0,
    "ran": "0:00"
-  },
-  {
-   "ticket": "000790-small-model",
-   "id": "SM77",
-   "what": "tiny architecture additions (SM77) stage 1: scoring sm77-ref-e21-q32k on the 732 pool minus 9 never-fit (723) (pass 1)",
-   "ended": "16:04",
-   "date": "10-31",
-   "exit": 0,
-   "ran": "0:17"
   }
  ],
  "plan": [
@@ -1593,11 +1577,9 @@
    "what": "Data-order re-seed (SM80): epoch 21 of the leak-free small model (SM72s) trained again from its epoch 20 with a new data seed (every epoch so far used the same seed, so the same window sampling), everything else identical (checked on CPU: same users, order, reviews, labels and teacher targets); then the same quarter-epoch Muon cool-down as the reference already scored in the tiny architecture additions run (SM77); scored on the 732 set",
    "when": "Smoke OK Sat 10-31 16:20; epoch 21 done 18:26 (125.7 min, 77,163 reviews/s); cool-down first segment 18:26&ndash;19:57 (paused for the break, resumable), rest ~01:00&ndash;~02:05 Sun; 732-set scoring and rule, ends ~02:30 Sun",
    "decides": "Go if curve &ge; 0.20 points or instant &ge; 0.15 better on 722 users (CI clear of zero), other head no worse than +0.03%; stop if both under 0.10; in between, report. A go means re-seeding every epoch in the final run (free)",
-   "state": "running",
-   "started": "01:00",
-   "ticket": "000796-small-model",
-   "started_at": "2026-10-31T16:20:03+01:00",
-   "ends_at": "2026-10-31T21:20:03+01:00"
+   "state": "partial",
+   "ended": "01:16",
+   "ended_at": "2026-11-01T01:16:22+01:00"
   },
   {
    "id": "SM81",
