@@ -1,0 +1,216 @@
+{
+ "mode": "gpu",
+ "tol_benchmark_logloss": 1e-05,
+ "users": {
+  "2388": 3685,
+  "4676": 3716,
+  "1712": 4090
+ },
+ "factor_dtype_kernel": "float64",
+ "cases": {
+  "sm36/w8+vq5902x3028": {
+   "checkpoint": "C:/Users/jonat/workspace/wt/sm42/artifacts/small-model/scale-w64kd-gate-sc-lanes-cont-decay1ep32k-muon/expertium/E89-F65e-F77a/master.pth",
+   "codebooks": "C:/Users/jonat/workspace/wt/sm46/artifacts/small-model/sm46/books/codebooks-sm46.npz",
+   "codebooks_sha256": "af46e6a253c4f18e349792527c815860006924c301f70c3924a4872c38cf81f7",
+   "recipe": "vq5902x3028",
+   "path": {
+    "card": "torch step loop, eigh float64",
+    "note": "torch step loop, eigh float64"
+   },
+   "users": {
+    "2388": {
+     "float_vs_ref": {
+      "ahead": {
+       "d_exact_logloss": -6.908802588548313e-05,
+       "max_abs_dp": 0.028246402740478516
+      },
+      "instant": {
+       "d_exact_logloss": -2.4555379374818775e-05,
+       "max_abs_dp": 0.042592644691467285
+      }
+     },
+     "gpu": {
+      "ahead": {
+       "predictions": 2096,
+       "missing": 0,
+       "max_abs_dp": 0.005401790142059326,
+       "mean_abs_dp": 5.228079514194081e-05,
+       "n_dp_over_1e-4": 202,
+       "benchmark_logloss_ref": 0.132512,
+       "benchmark_logloss": 0.13252,
+       "d_benchmark_logloss": 8.000000000008e-06,
+       "d_exact_logloss": 7.90697531091733e-06
+      },
+      "instant": {
+       "predictions": 2096,
+       "missing": 0,
+       "max_abs_dp": 0.007616877555847168,
+       "mean_abs_dp": 6.75499496114163e-05,
+       "n_dp_over_1e-4": 167,
+       "benchmark_logloss_ref": 0.074898,
+       "benchmark_logloss": 0.074899,
+       "d_benchmark_logloss": 9.999999999871223e-07,
+       "d_exact_logloss": 8.89377731225216e-07
+      },
+      "d_curve_log_loss": 1.4692544937133789e-05,
+      "d_instant_log_loss": -2.6884879774716208e-05,
+      "ok": true,
+      "seconds": 0.808,
+      "reviews_per_second": 4563.1
+     },
+     "slot_calls": {
+      "wkv": 10,
+      "shift": 17,
+      "kernel": 0
+     }
+    },
+    "4676": {
+     "gpu": {
+      "ahead": {
+       "predictions": 2838,
+       "missing": 0,
+       "max_abs_dp": 0.007379889488220215,
+       "mean_abs_dp": 0.00011355765400174809,
+       "n_dp_over_1e-4": 602,
+       "benchmark_logloss_ref": 0.051509,
+       "benchmark_logloss": 0.051521,
+       "d_benchmark_logloss": 1.1999999999998123e-05,
+       "d_exact_logloss": 1.1800906974182568e-05
+      },
+      "instant": {
+       "predictions": 2838,
+       "missing": 0,
+       "max_abs_dp": 0.01049661636352539,
+       "mean_abs_dp": 0.00011620509364052168,
+       "n_dp_over_1e-4": 459,
+       "benchmark_logloss_ref": 0.039321,
+       "benchmark_logloss": 0.039334,
+       "d_benchmark_logloss": 1.2999999999999123e-05,
+       "d_exact_logloss": 1.2736677860988865e-05
+      },
+      "d_curve_log_loss": 1.519918441772461e-05,
+      "d_instant_log_loss": 2.2861300596810352e-05,
+      "ok": false,
+      "seconds": 1.828,
+      "reviews_per_second": 2033.3
+     },
+     "slot_calls": {
+      "wkv": 10,
+      "shift": 17,
+      "kernel": 0
+     }
+    },
+    "1712": {
+     "gpu": {
+      "ahead": {
+       "predictions": 3221,
+       "missing": 0,
+       "max_abs_dp": 0.027196884155273438,
+       "mean_abs_dp": 0.0010113837258142553,
+       "n_dp_over_1e-4": 2068,
+       "benchmark_logloss_ref": 0.333919,
+       "benchmark_logloss": 0.333933,
+       "d_benchmark_logloss": 1.399999999995849e-05,
+       "d_exact_logloss": 1.3826843605624362e-05
+      },
+      "instant": {
+       "predictions": 3221,
+       "missing": 0,
+       "max_abs_dp": 0.044463396072387695,
+       "mean_abs_dp": 0.0012994412678585627,
+       "n_dp_over_1e-4": 1982,
+       "benchmark_logloss_ref": 0.298884,
+       "benchmark_logloss": 0.298651,
+       "d_benchmark_logloss": -0.00023299999999998322,
+       "d_exact_logloss": -0.00023284161455244812
+      },
+      "d_curve_log_loss": 5.78761100769043e-05,
+      "d_instant_log_loss": -0.0001524268229975423,
+      "ok": false,
+      "seconds": 2.471,
+      "reviews_per_second": 1655.5
+     },
+     "slot_calls": {
+      "wkv": 13,
+      "shift": 22,
+      "kernel": 0
+     }
+    }
+   }
+  }
+ },
+ "provenance": {
+  "captured_utc": "2026-10-20T19:44:48.532238+00:00",
+  "git_commit": "a94b2a4d156dee644b3544ff750536522d3abc6c",
+  "git_dirty": true,
+  "git_status_porcelain_z": " M artifacts/small-model/sm46/runbook-sm46.log\u0000 M scripts/state_vq.py\u0000",
+  "source_tree_sha256": "39bc74173c253588043501ef9a41bbb1cebc981474ae5db58ed31ee990803979",
+  "source_archive": "artifacts/sources/experiment-sources/39bc74173c253588043501ef9a41bbb1cebc981474ae5db58ed31ee990803979/source.zip",
+  "source_paths": [
+   "rwkv",
+   "expertium",
+   "scripts",
+   "configs",
+   "pyproject.toml",
+   "uv.lock",
+   "justfile",
+   "upstream.json"
+  ]
+ },
+ "device": "NVIDIA GeForce RTX 5080",
+ "base_float_state_gpu_vs_cpu": {
+  "2388": {
+   "ahead": {
+    "d_exact_logloss": 3.858200758877217e-08,
+    "max_abs_dp": 1.430511474609375e-06
+   },
+   "instant": {
+    "d_exact_logloss": -1.8400423823505818e-08,
+    "max_abs_dp": 1.6093254089355469e-06
+   }
+  },
+  "4676": {
+   "ahead": {
+    "d_exact_logloss": -2.828654657727192e-09,
+    "max_abs_dp": 6.556510925292969e-07
+   },
+   "instant": {
+    "d_exact_logloss": 7.971427254394037e-09,
+    "max_abs_dp": 1.0132789611816406e-06
+   }
+  },
+  "1712": {
+   "ahead": {
+    "d_exact_logloss": 3.125122144398418e-08,
+    "max_abs_dp": 1.9371509552001953e-06
+   },
+   "instant": {
+    "d_exact_logloss": 6.29941454555194e-09,
+    "max_abs_dp": 2.6226043701171875e-06
+   }
+  }
+ },
+ "timing": {
+  "users": {
+   "3016": {
+    "reviews": 30099,
+    "w8+s8_seconds": 0.534,
+    "w8+vq5902x3028_seconds": 5.471
+   },
+   "170": {
+    "reviews": 30372,
+    "w8+s8_seconds": 0.537,
+    "w8+vq5902x3028_seconds": 9.549
+   }
+  },
+  "reviews_per_second": {
+   "w8+s8": 56462.2,
+   "w8+vq5902x3028": 4026.0
+  }
+ },
+ "fails": [
+  "sm36/w8+vq5902x3028 user 4676 gpu",
+  "sm36/w8+vq5902x3028 user 1712 gpu"
+ ],
+ "passed": false
+}
