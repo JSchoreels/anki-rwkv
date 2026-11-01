@@ -1436,6 +1436,23 @@
    "what": "Scheduling-time vs review-time accuracy (SM81): how much of the small model&rsquo;s accuracy a scheduler can use. Three points on the same reviews: at scheduling time (the curve made at the card&rsquo;s previous answer), at the start of the review day (instant head from the state before that day, new scorer pass), at review time (instant head). For the released small model and the big model (1 leak-free epoch), and FSRS-7 (per-user fit and default parameters) and FSRS7-Instant on the benchmark&rsquo;s test reviews of the 732 set",
    "when": "FSRS-7 side on CPU 01:00&ndash;01:55 (killed by a stop at 01:16, finished from 01:46); small and big model start-of-day scoring 01:18&ndash;03:06; table 03:06 Sun (see results)",
    "decides": "Whether the small model&rsquo;s lead over FSRS-7 holds at scheduling time, and what share of the review-time gain is known at the start of the day (usable for daily rescheduling)"
+  },
+  {
+   "id": "SM82",
+   "track": "small model",
+   "since": "11-01T03:41",
+   "kind": "gpu-train",
+   "minutes": 180,
+   "match": [
+    "response-time prediction (SM82): trainer smoke",
+    "cool-down with the answer-time head",
+    "scoring sm82-arm-e21-q32k on the 732 pool minus 9 never-fit (723) (pass 1)",
+    "scoring sm82-arm-e21-q32k on the 3 long users",
+    "time scoring of the answer-time head on the 732 pool minus 9 never-fit (723, pass 1)"
+   ],
+   "what": "Response-time prediction (SM82) stage 1: an answer-time head (per grade, 16 log-time bins from 0.5 s to the 60 s cap, cap = censored; +8,256 parameters, export +8.7 KB) added during the usual quarter-epoch Muon cool-down from the leak-free small model&rsquo;s (SM72s) epoch 21, against the same-recipe reference already scored in the tiny architecture additions run (SM77). Trained and scored only on reviews on a later day than the card&rsquo;s previous one (70% of reviews): the interval input of same-day reviews contains the answer time itself (stage 0 audit)",
+   "when": "Stage 0 audit and CPU proof done 03:41 Sun; smoke OK 03:42; cool-down ~03:42&ndash;05:50, grade and time scoring, rule ~06:40 Sun",
+   "decides": "Go if grade curve and instant stay within +0.03 points of the reference on 722 users and the time head beats both baselines (card&rsquo;s last time: 2.445 nats, 0.721 |ln error|; user&rsquo;s running median per grade: 2.364 / 0.642). A go opens stage 2: answer-time curves and answer-time-aware workload in the simulator"
   }
  ],
  "backlog": [
@@ -1456,11 +1473,11 @@
    "since": "10-31T20:57"
   },
   {
-   "status": "next",
+   "status": "planned",
    "id": "SM82",
    "track": "small model",
    "item": "Response-time prediction (SM82): predict the answer time together with the grade, to find review patterns that lead to a good grade with a shorter answer time",
-   "why": "Asked 10-31. Stage 0: data audit of answer times (CPU). Stage 1: an answer-time head per grade (log-time bins), added during a quarter cool-down against the already-scored same-recipe reference (~2.5 GPU h); grade accuracy must not get worse. Stage 2: answer-time curves vs interval, and answer-time-aware workload in the simulator instead of fixed per-grade costs",
+   "why": "Asked 10-31. Stage 1 running since 11-01 03:42 (see the plan); branch sm82. Stage 0: data audit of answer times (CPU). Stage 1: an answer-time head per grade (log-time bins), added during a quarter cool-down against the already-scored same-recipe reference (~2.5 GPU h); grade accuracy must not get worse. Stage 2: answer-time curves vs interval, and answer-time-aware workload in the simulator instead of fixed per-grade costs",
    "since": "10-31T21:30"
   },
   {
