@@ -1,7 +1,7 @@
 {
- "generated_at": "2026-11-01T10:12:43+01:00",
- "updated": "2026-11-01 10:12",
- "material": "6e31c62b65ccf39d",
+ "generated_at": "2026-11-01T10:22:48+01:00",
+ "updated": "2026-11-01 10:22",
+ "material": "cd711634e3a40958",
  "summary": "idle",
  "headline": [
   {
@@ -1673,6 +1673,30 @@
  },
  "backlog": [
   {
+   "status": "next",
+   "id": "SM87",
+   "track": "small model",
+   "item": "Frozen-model grade side head (SM87): the trick of the answer-time head on richer frozen features (SM82c) for the instant grade: the released model frozen, a small head on its internal states plus simple explicit features (the card&rsquo;s last grades and times, the user&rsquo;s recent pass rate)",
+   "why": "Cheap (~1 GPU h): a free instant gain if it beats the released instant head; the curve is untouched. Differs from the head-only fine-tunes (SM50), which added no new inputs",
+   "since": "11-01T10:45"
+  },
+  {
+   "status": "next",
+   "id": "SM88",
+   "track": "small model",
+   "item": "Slow-Good signal (SM88): among Good answers with the same predicted recall, do slow ones lapse more at the next review?",
+   "why": "If yes, the scheduler could shorten intervals after slow Goods; if not, the model already uses answer times. CPU",
+   "since": "11-01T10:45"
+  },
+  {
+   "status": "dropped",
+   "id": "SM89",
+   "track": "small model",
+   "item": "Ordering reviews within the day by predicted answer time",
+   "why": "From the session position effect (SM85): dropped 11-01, the late-session speed-up is most likely rushing",
+   "since": "11-01T10:45"
+  },
+  {
    "status": "done",
    "id": "SM85",
    "track": "small model",
@@ -1858,11 +1882,12 @@
    "track": "small model"
   },
   {
-   "status": "parked",
+   "status": "next",
    "item": "Deployment-realistic scoring without the duration leak",
    "id": "SM31",
-   "why": "Intervals as Anki knows them when it shows the card; both models, cheap. Outside runs: +0.0002 / +0.0004 cost. Week plan: Sun 10-25 &mdash; parked 10-28: a measurement, not a better model",
-   "track": "small model"
+   "why": "Intervals as Anki knows them when it shows the card; both models, cheap. Outside runs: +0.0002 / +0.0004 cost. Week plan: Sun 10-25 &mdash; parked 10-28: a measurement, not a better model. Picked up 11-01 (the answer-time leak found by response-time prediction (SM82) is the same leak)",
+   "track": "small model",
+   "since": "11-01T10:45"
   },
   {
    "status": "idea",
@@ -1893,18 +1918,20 @@
    "track": "small model"
   },
   {
-   "status": "idea",
+   "status": "next",
    "item": "Robustness to other apps: pass/fail-only ratings, no durations",
    "id": "SM29",
-   "why": "Same test as the review-type one, CPU",
-   "track": "small model"
+   "why": "Same test as the review-type one, CPU. Picked up 11-01: grade heads only, the answer-time head is not evaluated",
+   "track": "small model",
+   "since": "11-01T10:45"
   },
   {
-   "status": "idea",
+   "status": "next",
    "item": "Grade-order sanity: interval(Again) &le; Hard &le; Good &le; Easy",
    "id": "SM33",
-   "why": "Measure how often the student breaks it; enforcing it cost +0.002 on curve in outside runs",
-   "track": "small model"
+   "why": "Measure how often the student breaks it; enforcing it cost +0.002 on curve in outside runs. Picked up 11-01: the user wants the order enforced in training; measure the break rate first, then a penalty only on breaks in a cool-down against the reference",
+   "track": "small model",
+   "since": "11-01T10:45"
   },
   {
    "status": "dropped",
@@ -2020,11 +2047,12 @@
    "why": "From an outside audit of SM40 (10-20): the curve is trained only at the next real review, so its long-term tail can change freely between answers; repeated rapid Goods on a mature card make the interval jump, then collapse (the big model jumps too). CPU only. Tells whether it matters on real histories or only in the stress test &mdash; parked 10-28: a measurement, not a better model"
   },
   {
-   "status": "idea",
+   "status": "next",
    "id": "ST01a",
    "track": "curve stability",
    "item": "Consistency on real rapid Good pairs: compare the curve before and after the second Good at the same future dates (days, months, a year)",
-   "why": "Our simpler first version of ST01: ~5&ndash;6M real pairs in the training data, both curves already computed in the same pass, so almost no extra cost; a small penalty, only for short gaps where Good was expected. One-epoch decay like SM42, judged on 732 users (curve and instant must not get worse) plus the stress test"
+   "why": "Our simpler first version of ST01: ~5&ndash;6M real pairs in the training data, both curves already computed in the same pass, so almost no extra cost; a small penalty, only for short gaps where Good was expected. One-epoch decay like SM42, judged on 732 users (curve and instant must not get worse) plus the stress test. Picked up 11-01: measure the far-tail jumps first (small vs big model), penalty cool-down only if needed",
+   "since": "11-01T11:00"
   },
   {
    "status": "idea",
@@ -2129,7 +2157,7 @@
    "name": "Session position effect on answer time (SM85): is the speed-up later in the day&rsquo;s reviews warm-up or which cards come late? Card and day fixed effects plus controls",
    "eval": "150 users of the 732 set, 4.14M test reviews on a later day than the card&rsquo;s previous one; user bootstrap 2,000, seed 0",
    "fork": "vs the first 10 reviews of the day",
-   "takeaway": "<strong>Mostly real, not just card order</strong>: the same card is answered 27.6% faster [23.7, 31.6] at reviews 201&ndash;400 of the day and 34% faster [29.8, 37.9] from the 401st on, with fast Goods +6.2 / +9.3 points; monotone, seen in 95% of users with 5,000+ reviews. Selection explains ~40&ndash;45% of the raw gap (mostly which users do long days). It follows the number of reviews done, not minutes. A free reorder (slowest cards late) would save ~55 s a day [48, 63] (~4% of review time): an upper bound",
+   "takeaway": "<strong>Mostly real, not just card order</strong>: the same card is answered 27.6% faster [23.7, 31.6] at reviews 201&ndash;400 of the day and 34% faster [29.8, 37.9] from the 401st on, with fast Goods +6.2 / +9.3 points; monotone, seen in 95% of users with 5,000+ reviews. Selection explains ~40&ndash;45% of the raw gap (mostly which users do long days). It follows the number of reviews done, not minutes. A free reorder (slowest cards late) would save ~55 s a day [48, 63] (~4% of review time): an upper bound. User&rsquo;s reading (11-01): most likely rushing late in long sessions, so no reordering is planned",
    "started_at": "2026-11-01T10:05+01:00",
    "ended_at": "2026-11-01T10:30+01:00",
    "gpu_minutes": 0,
