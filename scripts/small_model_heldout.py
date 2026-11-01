@@ -34,6 +34,9 @@ row of day D moved in front of day D's first update row (scripts/sm81_sod.py), s
 after the reviews before day D ("start of day"). The normal pass and its row fields are unchanged; the row gets a
 "start_of_day" entry (benchmark metrics of that pass + exactness checks), and --dump writes per-review p_curve,
 p_instant and p_sod (float32, the heads' own precision) instead of the plain dump. Off = today's scorer.
+--inputs V (duration-leak scoring (SM31), robustness to other apps (SM29); scripts/sm31_inputs.py): score the history
+with input variant V (e2s-query = show-time intervals, e2s-all = end-to-start on every row, passfail, notime,
+passfail-notime); labels get the suffix "@V" and rows the field "inputs". Default normal = today's scorer.
 
 usage: small_model_heldout.py --model fork=fork::<pth> --model decay=expertium:iter36:<pth> --variants fp32,w8+s8
        --out artifacts/small-model/heldout.jsonl --time-limit 3000 [--device cpu --count 2]
@@ -186,16 +189,21 @@ class LeakBatches(UserBatches):
     """SM71: full-history batches with the deleted-card signals neutralised (scripts/sm71_leak.py) and/or the id/day
     codes drawn with seed 2025 + user + seed_offset. Only used when --deleted-cards != keep or --seed-offset != 0."""
 
-    def __init__(self, users, data, counts, mode, seed_offset):
+    def __init__(self, users, data, counts, mode, seed_offset, inputs="normal"):
         super().__init__(users, data, counts)
-        self.mode, self.seed_offset = mode, seed_offset
+        self.mode, self.seed_offset, self.inputs = mode, seed_offset, inputs
 
     def __getitem__(self, index):
         user = self.users[index]
         started = time.perf_counter()
         try:
-            from rwkv.data_processing import get_rwkv_data
             from rwkv.prepare_batch import prepare
+            if self.inputs != "normal":   # SM31 / SM29 input variants (scripts/sm31_inputs.py)
+                from scripts import sm31_inputs
+                samples = sm31_inputs.samples(self.data, user, self.inputs, self.mode)
+                batch = prepare(samples, seed=2025 + user + self.seed_offset)
+                return user, batch, None, time.perf_counter() - started
+            from rwkv.data_processing import get_rwkv_data
             from scripts import sm71_leak
             frame = get_rwkv_data(self.data, user)
             if self.mode != "keep":
@@ -360,6 +368,9 @@ def main():
     parser.add_argument("--start-of-day", action="store_true", help="SM81: also score the instant head from the state "
                         "at the start of each review's day (scripts/sm81_sod.py); row entry start_of_day, --dump "
                         "writes p_curve / p_instant / p_sod")
+    parser.add_argument("--inputs", default="normal", choices=("normal", "e2s-query", "e2s-all", "passfail", "notime",
+                                                               "passfail-notime"),
+                        help="SM31 / SM29: input variant (scripts/sm31_inputs.py); labels get the suffix @VARIANT")
     args = parser.parse_args()
     cpu = args.device == "cpu"
     if cpu:
@@ -399,6 +410,10 @@ def main():
         grid = args.only
     if args.window:
         grid = [f"{label}@w{args.window}" for label in grid]
+    if args.inputs != "normal":
+        if args.window or args.start_of_day:
+            raise SystemExit("--inputs: full-history scoring without --window / --start-of-day")
+        grid = [f"{label}@{args.inputs}" for label in grid]
     out = ROOT / args.out
     out.parent.mkdir(parents=True, exist_ok=True)
     done = {}
@@ -470,14 +485,15 @@ def main():
         if args.window or args.legacy_metrics or len(grid) != 1 or (not cpu and max(1, args.lanes) > 1):
             raise SystemExit("--start-of-day: full history, array metrics, one label, one lane")
         dataset = SodBatches(todo, cc.data_path(run), counts, args.deleted_cards, args.seed_offset)
-    elif args.deleted_cards != "keep" or args.seed_offset:
+    elif args.deleted_cards != "keep" or args.seed_offset or args.inputs != "normal":
         if args.window:
             raise SystemExit("--deleted-cards / --seed-offset are for full-history scoring")
-        dataset = LeakBatches(todo, cc.data_path(run), counts, args.deleted_cards, args.seed_offset)
+        dataset = LeakBatches(todo, cc.data_path(run), counts, args.deleted_cards, args.seed_offset, args.inputs)
     else:
         dataset = (WindowBatches if args.window else UserBatches)(todo, cc.data_path(run), counts)
     sm71_fields = {**({"deleted_cards": args.deleted_cards} if args.deleted_cards != "keep" else {}),
-                   **({"seed_offset": args.seed_offset} if args.seed_offset else {})}
+                   **({"seed_offset": args.seed_offset} if args.seed_offset else {}),
+                   **({"inputs": args.inputs} if args.inputs != "normal" else {})}
     loader = torch.utils.data.DataLoader(dataset, batch_size=1,
                                          num_workers=args.workers, collate_fn=first,
                                          prefetch_factor=1 if args.workers else None)
