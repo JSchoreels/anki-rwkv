@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-01T12:08:19+01:00",
- "updated": "2026-11-01 12:08",
- "material": "9ec13e0b67a3dc2c",
- "summary": "running 000831, finished 000830",
+ "generated_at": "2026-11-01T12:13:22+01:00",
+ "updated": "2026-11-01 12:13",
+ "material": "2f6f8a2a79c6e81d",
+ "summary": "running 000831",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring (curve / instant)",
@@ -249,7 +249,7 @@
    "track": "small model",
    "ticket": "000831-small-model",
    "started": "12:08",
-   "elapsed": "0:00",
+   "elapsed": "0:05",
    "progress": null,
    "eta": "~12:48"
   }
@@ -1804,7 +1804,7 @@
    "since": "11-01T10:21"
   },
   {
-   "status": "next",
+   "status": "done",
    "id": "SM87",
    "track": "small model",
    "item": "Frozen-model grade side head (SM87): the trick of the answer-time head on richer frozen features (SM82c) for the instant grade: the released model frozen, a small head on its internal states plus simple explicit features (the card&rsquo;s last grades and times, the user&rsquo;s recent pass rate)",
@@ -2281,6 +2281,66 @@
   }
  ],
  "results": [
+  {
+   "date": "11-01",
+   "kind": "gpu",
+   "id": "SM87",
+   "track": "small model",
+   "name": "Frozen-model grade side head (SM87): a small add-on that corrects only the released small model&rsquo;s instant prediction, from the frozen model&rsquo;s internal states plus 41 simple history features (the card&rsquo;s last 3 grades and times, pass rates, grade mix, median times)",
+   "eval": "722 users of the 732 set, leak-free scoring (w8+s8); training on the 1,991 users of the quarter-epoch cool-down (116.6M instant rows, one pass)",
+   "fork": "Instant LogLoss; the curve stays bitwise",
+   "takeaway": "<strong>Stop: the released model already uses this information</strong>. Instant 0.27654 &rarr; 0.27652 (&minus;0.005 points, CI [&minus;0.007, &minus;0.004]; go needed &ge; 0.15). The version without the model&rsquo;s states gains the same, so the model&rsquo;s states add &minus;0.001 points (CI crosses zero). Curve unchanged bitwise",
+   "started_at": "2026-11-01T11:03+01:00",
+   "ended_at": "2026-11-01T12:07+01:00",
+   "gpu_minutes": 64,
+   "tickets": 1,
+   "detail": {
+    "verdict": "Stop (gain 0.005 points, stop threshold 0.05)",
+    "table": {
+     "head": [
+      "Model",
+      "Curve LogLoss",
+      "vs the big model (1 leak-free epoch)",
+      "Instant LogLoss",
+      "vs the big model (1 leak-free epoch)"
+     ],
+     "rows": [
+      [
+       "Released small model",
+       "0.30003",
+       "+0.356%",
+       "0.27654",
+       "+0.283%"
+      ],
+      [
+       "+ grade side head (SM87)",
+       "0.30003",
+       "+0.356%",
+       "0.27652",
+       "+0.278%"
+      ],
+      [
+       "+ side head without the model states",
+       "0.30003",
+       "+0.356%",
+       "0.27653",
+       "+0.279%"
+      ],
+      [
+       "Big model (1 leak-free epoch)",
+       "0.29897",
+       "",
+       "0.27576",
+       ""
+      ]
+     ]
+    },
+    "notes": [
+     "Side head vs released: &minus;0.005 points [&minus;0.007, &minus;0.004], better for 465 / 722 users; without the model states: &minus;0.005 [&minus;0.007, &minus;0.003]; what the states add: &minus;0.001 [&minus;0.003, +0.001].",
+     "Released rows equal the recorded released scores on every grade field; the correction applied inside the model keeps the curve bitwise (5 users). Side head 63,876 values. Branch sm87."
+    ]
+   }
+  },
   {
    "date": "11-01",
    "kind": "cpu",
