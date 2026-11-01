@@ -1,0 +1,46 @@
+[sm80 10-31 16:19:39] started: 8b20861f Data-order re-seed (SM80): --data-seed epoch option, CPU proof, launcher (dry run OK) (DRYRUN=0, epoch 21 from SM72s epoch 20, training_seed 2025 -> 80021; reference = SM77's: C:/Users/jonat/workspace/wt/sm77/artifacts/small-model/sm77-ref-e21-dec-q32k-muon)
+[sm80 10-31 16:19:40] arm epoch prepared: C:/Users/jonat/workspace/wt/sm80/artifacts/small-model/sm80-arm-e21 (training_seed -> 80021)
+[sm80 10-31 16:20:03] [sm80-check] PASS: P0 True; option off == SM72s epoch 21 True; option on: only training_seed 2025 -> 80021 (8,000 users, 581,942,724 reviews); batches of 3 users / 4 updates: layout, labels, KD targets equal True, differing ['input[start]', 'packed[baselines]', 'packed[table0]', 'packed[table1]', 'packed[table2]', 'packed[table3]']
+[sm80 10-31 16:20:03] enqueue: trainer smoke of the re-seeded epoch 21 (2 users x 512 reviews) (expected 10 min, max wait 206 min, 219 min to the next window)
+[sm80 10-31 16:20:24] exit 0: trainer smoke of the re-seeded epoch 21 (2 users x 512 reviews)
+[sm80 10-31 16:20:24] smoke: {"smoke": "sm80-arm-e21", "exit": 0, "status": "complete", "updates": 2, "reviews": 1024, "error": null, "seconds": 18.8}
+[sm80 10-31 16:20:24] enqueue: arm epoch 21 (w64 from SM72s epoch 20, training_seed 80021, 8k final tier, 2048 x 16 lanes carry, leak-free replay KD, AdamW 7e-4 constant) (expected 125 min of ~125, 219 min to the next window)
+[sm80 10-31 18:26:25] exit 0: arm epoch 21 (w64 from SM72s epoch 20, training_seed 80021, 8k final tier, 2048 x 16 lanes carry, leak-free replay KD, AdamW 7e-4 constant) segment
+[sm80 10-31 18:26:25] arm epoch 21 (w64 from SM72s epoch 20, training_seed 80021, 8k final tier, 2048 x 16 lanes carry, leak-free replay KD, AdamW 7e-4 constant) complete: 581,942,724 reviews, 125.7 min training, 77,163 reviews/s
+[sm80-muon] sm80-arm-e21-dec-q32k-muon PASS lines: 7
+[sm80 10-31 18:26:37] cool-down prepared: sm80-arm-e21-dec-q32k-muon
+[sm80-pair] decay OK: sm80-arm-e21-dec-q32k-muon == sm77-ref-e21-dec-q32k-muon except the start weights and paths (1,991 users, same order, options, seeds, schedule; update offset 463638)
+[sm80 10-31 18:26:37] enqueue: arm quarter-epoch 32k Muon cool-down from the re-seeded epoch 21 (w64, the reference's options and order) (expected 88 min of ~150, 93 min to the next window)
+[sm80 10-31 19:57:22] requesting a snapshot stop (NEXT 2)
+[sm80 10-31 19:57:52] exit 1: arm quarter-epoch 32k Muon cool-down from the re-seeded epoch 21 (w64, the reference's options and order) segment
+[sm80 10-31 19:57:52] arm quarter-epoch 32k Muon cool-down from the re-seeded epoch 21 (w64, the reference's options and order) needs 30 min, 2 min before the next window; waiting
+[sm80 10-31 20:50:52] arm quarter-epoch 32k Muon cool-down from the re-seeded epoch 21 (w64, the reference's options and order): quiet window, 15007s left
+[sm80 10-31 21:50:53] arm quarter-epoch 32k Muon cool-down from the re-seeded epoch 21 (w64, the reference's options and order): quiet window, 11406s left
+[sm80 10-31 22:50:53] arm quarter-epoch 32k Muon cool-down from the re-seeded epoch 21 (w64, the reference's options and order): quiet window, 7806s left
+[sm80 10-31 23:50:54] arm quarter-epoch 32k Muon cool-down from the re-seeded epoch 21 (w64, the reference's options and order): quiet window, 4205s left
+[sm80 11-01 00:50:54] arm quarter-epoch 32k Muon cool-down from the re-seeded epoch 21 (w64, the reference's options and order): quiet window, 605s left
+[sm80 11-01 01:00:54] enqueue: arm quarter-epoch 32k Muon cool-down from the re-seeded epoch 21 (w64, the reference's options and order) (expected 150 min of ~150, 899 min to the next window)
+[sm80 11-01 01:16:29] exit 1: arm quarter-epoch 32k Muon cool-down from the re-seeded epoch 21 (w64, the reference's options and order) segment
+[sm80 11-01 01:16:29] STOP: arm quarter-epoch 32k Muon cool-down from the re-seeded epoch 21 (w64, the reference's options and order) segment ended without completing and without a stop request (exit 1); see C:/Users/jonat/workspace/wt/sm80/artifacts/small-model/sm80/gpu/train.out
+[sm80 11-01 01:16:29] STOP: ended with exit 1
+[sm80 11-01 01:45:33] started: 76eb9f41 Data-order re-seed (SM80): launched (CPU proof PASS, smoke OK, epoch 21 ticket 000794 running), handoff (DRYRUN=0, epoch 21 from SM72s epoch 20, training_seed 2025 -> 80021; reference = SM77's: C:/Users/jonat/workspace/wt/sm77/artifacts/small-model/sm77-ref-e21-dec-q32k-muon)
+[sm80 11-01 01:45:51] [sm80-check] PASS: P0 True; option off == SM72s epoch 21 True; option on: only training_seed 2025 -> 80021 (8,000 users, 581,942,724 reviews); batches of 3 users / 4 updates: layout, labels, KD targets equal True, differing ['input[start]', 'packed[baselines]', 'packed[table0]', 'packed[table1]', 'packed[table2]', 'packed[table3]']
+[sm80 11-01 01:45:51] arm epoch 21 (w64 from SM72s epoch 20, training_seed 80021, 8k final tier, 2048 x 16 lanes carry, leak-free replay KD, AdamW 7e-4 constant) complete: 581,942,724 reviews, 125.7 min training, 77,163 reviews/s
+[sm80-pair] decay REFUSE: protocol.json differs beyond the start weights and paths (['full_run', 'rows']; full_run {'lr_resume': ({'total_reviews': 145578259, 'reviews_offset': 109047943}, None), 'resumed': ({'done_users': 1481, 'from': 'artifacts/small-model/sm80-arm-e21-dec-q32k-muon/attempts/attempt-1/expertium/E89-F65e-F77a/snapshots/users-01481', 'attempts': ['attempt-1']}, None), 'update_offset': (467771, 463638), 'optimizer_state': ('snapshot', 'fresh'), 'control_dir': ('artifacts/small-model/sm80-arm-e21-dec-q32k-muon/control', 'artifacts/small-model/sm77-ref-e21-dec-q32k-muon/control'), 'init_optimizer': ('artifacts/small-model/sm80-arm-e21-dec-q32k-muon/attempts/attempt-1/expertium/E89-F65e-F77a/snapshots/users-01481/optimizer.pth', None), 'init_master': ('artifacts/small-model/sm80-arm-e21-dec-q32k-muon/attempts/attempt-1/expertium/E89-F65e-F77a/snapshots/users-01481/master.pth', 'C:/Users/jonat/workspace/wt/sm72s/artifacts/accuracy/experiments/scale-w64kd-final-sc-lanes-leakfree/run/epoch-21/expertium/E89-F65e-F77a/master.pth')})
+[sm80 11-01 01:45:51] STOP: the cool-down does not match the reference's
+[sm80 11-01 01:45:51] STOP: ended with exit 1
+[sm80 11-01 01:49:13] started: 5d31981f Data-order re-seed (SM80): cool-down pair check reads protocol.prepared.json after a resume (DRYRUN=0, epoch 21 from SM72s epoch 20, training_seed 2025 -> 80021; reference = SM77's: C:/Users/jonat/workspace/wt/sm77/artifacts/small-model/sm77-ref-e21-dec-q32k-muon)
+[sm80 11-01 01:49:44] [sm80-check] PASS: P0 True; option off == SM72s epoch 21 True; option on: only training_seed 2025 -> 80021 (8,000 users, 581,942,724 reviews); batches of 3 users / 4 updates: layout, labels, KD targets equal True, differing ['input[start]', 'packed[baselines]', 'packed[table0]', 'packed[table1]', 'packed[table2]', 'packed[table3]']
+[sm80 11-01 01:49:45] arm epoch 21 (w64 from SM72s epoch 20, training_seed 80021, 8k final tier, 2048 x 16 lanes carry, leak-free replay KD, AdamW 7e-4 constant) complete: 581,942,724 reviews, 125.7 min training, 77,163 reviews/s
+[sm80-pair] decay OK: sm80-arm-e21-dec-q32k-muon == sm77-ref-e21-dec-q32k-muon except the start weights and paths (1,991 users, same order, options, seeds, schedule; update offset 463638)
+[sm80 11-01 01:49:45] enqueue: arm quarter-epoch 32k Muon cool-down from the re-seeded epoch 21 (w64, the reference's options and order) (expected 150 min of ~150, 850 min to the next window)
+[sm80 11-01 02:21:20] exit 0: arm quarter-epoch 32k Muon cool-down from the re-seeded epoch 21 (w64, the reference's options and order) segment
+[sm80 11-01 02:21:21] arm quarter-epoch 32k Muon cool-down from the re-seeded epoch 21 (w64, the reference's options and order) complete: 36,530,316 reviews, 30.0 min training, 20,328 reviews/s
+[sm80 11-01 02:21:21] enqueue: scoring sm80-arm-e21-q32k on the 732 pool minus 9 never-fit (723) (pass 1) (expected 12 min, max wait 803 min, 818 min to the next window)
+[sm80 11-01 02:33:52] exit 0: scoring sm80-arm-e21-q32k on the 732 pool minus 9 never-fit (723) (pass 1)
+[sm80 11-01 02:33:52] enqueue: scoring sm80-arm-e21-q32k on the 732 pool minus 9 never-fit (723) (pass 2) (expected 8 min, max wait 795 min, 806 min to the next window)
+[sm80 11-01 03:02:14] exit 0: scoring sm80-arm-e21-q32k on the 732 pool minus 9 never-fit (723) (pass 2)
+[sm80 11-01 03:02:15] enqueue: scoring sm80-arm-e21-q32k on the 3 long users of the 732 pool (cap 0.92) (expected 6 min, max wait 768 min, 777 min to the next window)
+[sm80 11-01 03:03:57] exit 0: scoring sm80-arm-e21-q32k on the 3 long users of the 732 pool (cap 0.92)
+[sm80 11-01 03:03:58] rule exit 0: [sm80-rule] 722 users: curve +0.00 points [-0.026, 0.036] instant -0.01 points [-0.009, 0.0] (arm - reference): STOP (both heads gain under 0.10 points)
+[sm80 11-01 03:03:58] done
