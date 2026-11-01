@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-01T12:07:46+01:00",
- "updated": "2026-11-01 12:07",
- "material": "285c79f91b1668b9",
- "summary": "running 000829, finished 000828",
+ "generated_at": "2026-11-01T12:08:19+01:00",
+ "updated": "2026-11-01 12:08",
+ "material": "9ec13e0b67a3dc2c",
+ "summary": "running 000831, finished 000830",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring (curve / instant)",
@@ -239,19 +239,19 @@
  ],
  "now": [
   {
-   "what": "Curve consistency on real rapid Good pairs (ST01a) stage 1: how much the curve&rsquo;s far tail (7, 30, 90, 365 days) jumps between two close Goods, released small model vs the big model (1 leak-free epoch), and which curve was closer where real later reviews exist",
-   "id": "ST01a, ticket 000829",
+   "what": "Grade-order sanity (SM33): how often the released model&rsquo;s button intervals break Again &le; Hard &le; Good &le; Easy and whether the fork hides it; then, if needed, a soft penalty on breaks in a cool-down against the reference",
+   "id": "SM33, ticket 000831",
    "kind": "gpu-score",
-   "decides": "Whether the curve&rsquo;s long-term tail needs a consistency penalty (a cool-down judged against the reference: curve and instant within +0.03 points)",
+   "decides": "Whether to enforce the order in training (user&rsquo;s wish); outside research saw +0.002 curve for a hard constraint",
    "why": "",
-   "job": "curve consistency on rapid Good pairs (ST01a): stage 1 measure, curves of the released small model (the leak-free small model (SM72s), epoch-25 cool-down) on 723 users of the 732 set (pass 2)",
+   "job": "grade-order sanity (SM33): stage 1, CUDA probe check + what-if intervals of the released small model on the 732 pool (723 users, 3,000 reviews each)",
    "linked": true,
    "track": "small model",
-   "ticket": "000829-small-model",
-   "started": "12:07",
+   "ticket": "000831-small-model",
+   "started": "12:08",
    "elapsed": "0:00",
    "progress": null,
-   "eta": "~12:32"
+   "eta": "~12:48"
   }
  ],
  "charts": [
@@ -423,19 +423,37 @@
  ],
  "waiting": [
   {
-   "ticket": "000830-small-model",
-   "id": "SM31",
-   "what": "duration-leak scoring (SM31): show-time intervals (e2s-query): scoring the released small model on the 723 users of the 732 set (pass 2)",
-   "flags": "expected 10 min"
+   "ticket": "000832-small-model",
+   "id": "ST01a",
+   "what": "curve consistency on rapid Good pairs (ST01a): stage 1 measure, curves of the big model (1 leak-free epoch) on 723 users of the 732 set (pass 1)",
+   "flags": "expected 25 min"
   },
   {
-   "ticket": "000831-small-model",
-   "id": "SM33",
-   "what": "grade-order sanity (SM33): stage 1, CUDA probe check + what-if intervals of the released small model on the 732 pool (723 users, 3,000 reviews each)",
-   "flags": "expected 40 min"
+   "ticket": "000833-small-model",
+   "id": "SM31",
+   "what": "duration-leak scoring (SM31): show-time intervals (e2s-query): scoring the big model (1 leak-free epoch) on the 723 users of the 732 set (pass 1)",
+   "flags": "expected 25 min"
   }
  ],
  "recent": [
+  {
+   "ticket": "000830-small-model",
+   "id": "SM31",
+   "what": "duration-leak scoring (SM31): show-time intervals (e2s-query): scoring the released small model on the 723 users of the 732 set (pass 2)",
+   "ended": "12:08",
+   "date": "11-01",
+   "exit": 0,
+   "ran": "0:00"
+  },
+  {
+   "ticket": "000829-small-model",
+   "id": "ST01a",
+   "what": "curve consistency on rapid Good pairs (ST01a): stage 1 measure, curves of the released small model (the leak-free small model (SM72s), epoch-25 cool-down) on 723 users of the 732 set (pass 2)",
+   "ended": "12:07",
+   "date": "11-01",
+   "exit": 0,
+   "ran": "0:00"
+  },
   {
    "ticket": "000828-small-model",
    "id": "SM82b",
@@ -471,24 +489,6 @@
    "date": "11-01",
    "exit": 0,
    "ran": "0:17"
-  },
-  {
-   "ticket": "000822-small-model",
-   "id": "SM82",
-   "what": "response-time prediction (SM82) stage 2: answer-time curve queries on the frozen released small model + the answer-time head on richer frozen features (SM82c): 150 users of the 732 set, 15 elapsed-time grid points (pass 1)",
-   "ended": "09:16",
-   "date": "11-01",
-   "exit": 0,
-   "ran": "0:20"
-  },
-  {
-   "ticket": "000821-small-model",
-   "id": "SM82",
-   "what": "response-time prediction (SM82) stage 2: answer-time curve queries on the frozen released small model + the answer-time head on richer frozen features (SM82c): 150 users of the 732 set, 15 elapsed-time grid points (pass 1)",
-   "ended": "08:54",
-   "date": "11-01",
-   "exit": 1,
-   "ran": "0:00"
   }
  ],
  "plan": [
@@ -1463,7 +1463,7 @@
    "when": "On hold: not started; the deleted-card leak check and the leak-free retrain (SM71, SM72) took the GPU",
    "decides": "Honest final numbers; outside runs: +0.0002 / +0.0004 for both models",
    "state": "waiting",
-   "ticket": "000830-small-model"
+   "ticket": "000833-small-model"
   },
   {
    "what": "Stack the week&rsquo;s winners (learning rate, teacher targets, timestamps, head changes) into one decay; then the decisive 2,225-user check",
@@ -1703,11 +1703,8 @@
    "what": "Curve consistency on real rapid Good pairs (ST01a) stage 1: how much the curve&rsquo;s far tail (7, 30, 90, 365 days) jumps between two close Goods, released small model vs the big model (1 leak-free epoch), and which curve was closer where real later reviews exist",
    "when": "Stage 1 from 10:33 Sun; a penalty cool-down (stage 2) only if the tail is jumpy",
    "decides": "Whether the curve&rsquo;s long-term tail needs a consistency penalty (a cool-down judged against the reference: curve and instant within +0.03 points)",
-   "state": "running",
-   "started": "12:07",
-   "ticket": "000829-small-model",
-   "started_at": "2026-11-01T10:33:17+01:00",
-   "ends_at": "2026-11-01T11:33:17+01:00"
+   "state": "waiting",
+   "ticket": "000832-small-model"
   },
   {
    "id": "SM31",
@@ -1719,7 +1716,7 @@
    "when": "Building since 10:45 Sun",
    "decides": "Honest deployment numbers for both models and the small-vs-big gap without the leak",
    "state": "waiting",
-   "ticket": "000830-small-model"
+   "ticket": "000833-small-model"
   },
   {
    "id": "SM29",
@@ -1741,8 +1738,11 @@
    "what": "Grade-order sanity (SM33): how often the released model&rsquo;s button intervals break Again &le; Hard &le; Good &le; Easy and whether the fork hides it; then, if needed, a soft penalty on breaks in a cool-down against the reference",
    "when": "Measuring since 10:45 Sun",
    "decides": "Whether to enforce the order in training (user&rsquo;s wish); outside research saw +0.002 curve for a hard constraint",
-   "state": "waiting",
-   "ticket": "000831-small-model"
+   "state": "running",
+   "started": "12:08",
+   "ticket": "000831-small-model",
+   "started_at": "2026-11-01T11:03:40+01:00",
+   "ends_at": "2026-11-01T12:03:40+01:00"
   },
   {
    "id": "SM87",
