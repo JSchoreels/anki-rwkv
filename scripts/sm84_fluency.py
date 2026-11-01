@@ -360,7 +360,7 @@ def render(r):
     for cmodel in ("C", "B"):
         L += [f"## 2. Desired retention, cost model {cmodel} (median over users)" if cmodel == "C" else "## 2b. Desired retention, cost model B (fixed pass mix; median over users)", ""]
         if cmodel == "C":
-            L += ["Share = cards fluent by day 365; reviews / seconds = to the fluent review, over the cards that got there (users with at least 1% fluent); seconds per fluent card = all seconds spent on every card until it became fluent (or the whole year if it never did) / fluent cards, the honest cost of fluency; memorized = mean recall at day 365; seconds per card = the whole year.", ""]
+            L += ["Share = cards fluent by day 365; reviews / seconds = up to and including the fluent review (seconds include the first learning review), over the cards that got there (users with at least 1% fluent); seconds per fluent card = all seconds spent on every card until it became fluent (or the whole year if it never did) / fluent cards, the honest cost of fluency; memorized = mean recall at day 365; seconds per card = the whole year.", ""]
         rows = [x for x in a[f"dr_{cmodel}"] if float(x["policy"]) in SHOW_DRS]
         L += md_table(rows, ["policy", "mean_review_recall", "reviews", "seconds_B", "memorized", "model39_share", "model39_reviews", "model39_seconds", "model39_spf", "model39p_share", "model39p_spf", "obs55_share", "obs55_reviews", "obs55_spf", "model39_two_share", "model39p_two_share", "model39p_two_spf"],
                       ["desired retention", "recall at review", "reviews per card", "seconds per card", "memorized", "fluent 3.9 s", "reviews to 3.9 s", "seconds to 3.9 s", "seconds per fluent card 3.9 s", "fluent 3.9 s, persistent", "seconds per fluent card 3.9 s, persistent", "fluent 5.5 s (obs curve)", "reviews to 5.5 s", "seconds per fluent card 5.5 s", "two in a row", "two in a row, persistent", "seconds per fluent card two in a row, persistent"])
@@ -393,6 +393,26 @@ def render(r):
     return L
 
 
+def rd(x):
+    if isinstance(x, float):
+        return float(f"{x:.5g}")
+    if isinstance(x, dict):
+        return {k: rd(v) for k, v in x.items()}
+    if isinstance(x, list):
+        return [rd(v) for v in x]
+    return x
+
+
+def slim(u):
+    """Per-user file: curves, observed reference, cost model C at the shown desired retentions and growth factors."""
+    keep = [f"C|dr|{d:.2f}" for d in SHOW_DRS] + [f"C|growth|{g:g}" for g in GROWTH]
+    sims = {k: {"memorized": v["memorized"], "reviews": v["reviews"], "seconds_B": v["seconds_B"],
+                **{d: {kk: v[d][kk] for kk in ("share", "reviews", "seconds", "seconds_per_fluent")} for d in ("model39", "model39p", "obs55", "model39_two", "model39p_two")}}
+            for k, v in u["sims"].items() if k in keep}
+    return rd({"user": u["user"], "w_source": u["w_source"], "median_time_s": u["median_time_s"], "curves": u["curves"], "observed": u["observed"],
+               "dr_at_pass_rate": u["dr_at_pass_rate"], "sims_C": sims})
+
+
 def main():
     ap = ArgumentParser()
     ap.add_argument("cmd", choices=["run"])
@@ -417,7 +437,7 @@ def main():
            "settings": {"days": DAYS, "cards": N_CARDS, "drs": DRS, "growth": GROWTH, "fast_ms": FAST_MS, "fast55_ms": FAST55_MS}}
     sfx = "" if not args.limit else f"-test{args.limit}"
     (out / f"time-to-fluency{sfx}.json").write_text(json.dumps(res, indent=1, default=float))
-    (out / f"time-to-fluency-users{sfx}.json").write_text(json.dumps([{k: v for k, v in u.items()} for u in users], default=float))
+    (out / f"time-to-fluency-users{sfx}.json").write_text(json.dumps([slim(u) for u in users], separators=(",", ":"), default=float))
     md = out / f"time-to-fluency{sfx}.md"
     text = "\n".join(render(res)) + "\n"
     if md.exists() and "TAKEAWAYS" not in md.read_text(encoding="utf-8"):
