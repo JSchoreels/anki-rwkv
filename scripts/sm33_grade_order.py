@@ -8,10 +8,10 @@ review row: copies of that row with skip = True (the same no-commit rule as quer
 one-hot = g. Two details make them exact:
   * order within a review_th: query row, probes g = 1..4, real row; probes read the same committed state as the real
     row and never change it, so every real row's output is unchanged (checked: `check`);
-  * token shift: prepare_batch points rows before an entity's first committed row at row 0. With probes before a
-    card's (or deck's...) first review, that would read a probe's input, so rows up to and including the first
-    committed row of each sub-sequence point at themselves (`fix_leading_shift`; a no-op when no sequence starts with
-    a skip row, i.e. on every batch without probes - checked).
+  * token shift: prepare_batch points rows before an entity's first committed row at row 0. With the 4 probes before
+    a card's (or a deck's...) first review, the real row would read probe 1's input, so in probe-led sequences the
+    probes and that first committed row point at themselves (`fix_leading_shift`; a no-op on every batch without
+    probes - checked; query-led sequences keep prepare's rule).
 From each row's GRU curve R(t) = sum_i w_i (1 + t / S_i)^(-d_i) (no ahead residual in w64), the intervals at desired
 retention 0.80 / 0.90 / 0.95 are solved per grade (bisection on log t, 1 s .. 36,500 days, unrounded), plus the fork's
 displayed intervals at 0.90 with its default grade-order correction: on its search grid (sub-day points, days 1-30,
@@ -101,15 +101,18 @@ def _install_probe_queries():
 
 
 def fix_leading_shift(batch):
-    """Rows up to and including each sub-sequence's first committed row read their own input in the token shift
-    (prepare_batch's rule for row 0). Returns the number of changed indices (0 on batches without leading skips)."""
+    """Sub-sequences that start with the 4 probes of their first committed row: those rows and that row read their own
+    input in the token shift (prepare_batch's rule for row 0, which the real row gets without probes). Query-led
+    sequences keep prepare's rule. Returns the number of changed indices (0 on every batch without probes)."""
     changed = 0
     for module_shifts, module_skips, lens in zip(batch.time_shift_selects, batch.skips, batch.sub_gather_lens):
         for i, (shift, skip, r) in enumerate(zip(module_shifts, module_skips, lens)):
             s2 = skip.view(-1, r)
             first = (~s2).to(torch.int8).argmax(dim=1)
             t = torch.arange(r, device=shift.device)
-            lead = t[None, :] <= first[:, None]
+            # only probe-led sequences: their first committed row follows exactly the 4 probes of its review (a
+            # query-led sequence starts with 1 or 1 + 4 skipped rows and keeps prepare's rule, bit for bit)
+            lead = (t[None, :] <= first[:, None]) & (first[:, None] == 4)
             new = torch.where(lead, t[None, :].expand_as(s2).to(shift.dtype), shift.view(-1, r))
             changed += int((new != shift.view(-1, r)).sum())
             module_shifts[i] = new.reshape(-1).contiguous()
