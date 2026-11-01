@@ -16,6 +16,10 @@ SM46: --student <master.pth> (its run's protocol.json gives the training users) 
 model and output folder (defaults: the SM32 student, artifacts/small-model/state-vq); --exclude-pool 732 drops any
 evaluation-pool user from the corpus / tune users; fit takes rank-R stage lists (--wkv-stages 24 16 10 6) and per-m
 shift stage counts (--shift-m 4 8 --shift-stages 4 6).
+SM90 (codebook state compression sweep): --deleted-cards neighbour collects / tunes on the leak-free inputs (the
+scorer's sm71_leak.neutralise, as the released small model was trained); fit --components 0 2 fits only those WKV rank
+components (one process per component; the books keep their real component index) and --no-shift skips the shift
+part; merge --files a.npz b.npz ... takes the union of several fits.
 """
 import argparse
 import json
@@ -47,6 +51,19 @@ OUT = ROOT / "artifacts" / "small-model" / "state-vq"
 
 
 EXCLUDE = set()   # SM46 --exclude-pool: evaluation users never used for codebooks or tuning
+DELETED = "keep"  # SM90 --deleted-cards: input transform of the corpus / tune batches (keep = the SM46 behaviour)
+
+
+def history_batch(data, user):
+    """Full-history batch of `user`; with DELETED != keep the deleted-card signals are neutralised exactly as the
+    held-out scorer's LeakBatches (scripts/small_model_heldout.py) does."""
+    if DELETED == "keep":
+        return cc.full_history_batch(data, user)
+    from rwkv.data_processing import get_rwkv_data
+    from rwkv.prepare_batch import prepare
+    from scripts import sm71_leak
+    frame, _ = sm71_leak.neutralise(get_rwkv_data(data, user), DELETED, data, user)
+    return prepare(cc.make_samples(frame, user, len(frame)), seed=2025 + user)
 
 
 def training_users(count, offset, counts, lo=3000, hi=60000):
@@ -106,7 +123,7 @@ def collect(args):
         state_vq.Hooks.shift = {}
         state_vq.Hooks.record_shift = rec_shift
         t0 = time.perf_counter()
-        batch = cc.full_history_batch(data, user)
+        batch = history_batch(data, user)
         with torch.inference_mode():
             values, _ = evaluate_with_predictions(model, [{"batch": batch}])
         np.savez_compressed(path, **{k: np.concatenate(v) for k, v in samples.items()})
@@ -181,16 +198,18 @@ def fit(args):
         kept = (sigma[:, :r] ** 2 * valid[:, :r]).sum(1)
         print(f"[fit] rank-{r} truncation keeps {float(kept.sum() / energy.sum()):.4%} of the WKV energy", flush=True)
     for j, stages in enumerate(wkv_stages if "wkv" in args.parts else []):
+        if args.components and j not in args.components:
+            continue
         m = valid[:, j]
         X = torch.cat([u[m, j], v[m, j]], dim=-1).float()
-        books.wkv.append(fit_rvq(X, stages, 10, args.iters, 100 * j, f"wkv comp {j}"))
+        books.wkv.append(fit_rvq(X, stages, args.wkv_index_bits, args.iters, 100 * j, f"wkv comp {j}"))
         ln = torch.log2(torch.sqrt(sigma[m, j])).numpy()
         for b in args.norm_bits:
             books.wkv_norm[(j, b)] = state_vq.fit_norm_range(ln, b, sigma[m, j].numpy())
         print(f"[fit] wkv comp {j} log2 sqrt(sigma) quantiles 1/50/99%: "
               f"{np.quantile(ln, [0.01, 0.5, 0.99]).round(3)}; ranges {[(b, books.wkv_norm[(j, b)]) for b in args.norm_bits]}",
               flush=True)
-    for role in (("t", "c") if "shift" in args.parts else ()):
+    for role in (tuple(args.roles) if "shift" in args.parts else ()):
         X = torch.from_numpy(np.concatenate(shift[role])).float()
         if X.shape[0] > args.max_points:
             X = X[torch.randperm(X.shape[0], generator=rng)[:args.max_points]]
@@ -209,12 +228,42 @@ def fit(args):
             books.shift[(role, m)] = [fit_rvq(unit[:, p * sub:(p + 1) * sub].contiguous(), shift_stages[m], 12,
                                               args.iters, 1000 + 10 * p, f"shift {role} m{m} pos {p}")
                                       for p in range(m)]
-    books.save(OUT / args.out)
+    if args.components:   # SM90: keep the real component index (Codebooks.save would renumber from 0)
+        arrays = {}
+        for j in sorted(args.components):
+            for s, cb in enumerate(books.wkv[sorted(args.components).index(j)]):
+                arrays[f"wkv/{j}/{s}"] = cb.numpy()
+        for (j, bits), (lo, hi) in books.wkv_norm.items():
+            arrays[f"wkvnorm/{j}/{bits}"] = np.array([lo, hi])
+        tmp = state_vq.Codebooks(shift=books.shift, shift_norm=books.shift_norm)
+        tmp.save(OUT / "_shift_tmp.npz")
+        z = np.load(OUT / "_shift_tmp.npz")
+        arrays.update({k: z[k] for k in z.files})
+        z.close()
+        (OUT / "_shift_tmp.npz").unlink()
+        np.savez(OUT / args.out, **arrays)
+    else:
+        books.save(OUT / args.out)
     print(f"[fit] wrote {OUT / args.out}", flush=True)
 
 
 def merge(args):
-    """SM46: one codebook file from a WKV-only and a shift-only fit (fit --parts)."""
+    """SM46: one codebook file from a WKV-only and a shift-only fit (fit --parts). SM90: --files = union of the
+    arrays of several fits (per-component WKV fits, shift fit); a key present in two files must be equal."""
+    if args.files:
+        arrays = {}
+        for name in args.files:
+            z = np.load(OUT / name)
+            for k in z.files:
+                if k in arrays and not np.array_equal(arrays[k], z[k]):
+                    raise SystemExit(f"[merge] {k} differs between files")
+                arrays[k] = z[k]
+        np.savez(OUT / args.out, **arrays)
+        books = state_vq.Codebooks.load(OUT / args.out)
+        print(f"[merge] {OUT / args.out}: wkv stages {[len(s) for s in books.wkv]}, shift "
+              f"{ {k: len(v[0]) for k, v in books.shift.items()} }, sha256 {state_vq.file_sha256(OUT / args.out)}",
+              flush=True)
+        return
     wkv = state_vq.Codebooks.load(OUT / args.wkv)
     shift = state_vq.Codebooks.load(OUT / args.shift)
     books = state_vq.Codebooks(wkv=wkv.wkv, shift=shift.shift, wkv_norm=wkv.wkv_norm, shift_norm=shift.shift_norm)
@@ -243,15 +292,15 @@ def refit_norms(args):
         m = valid[:, j]
         ln = torch.log2(torch.sqrt(sigma[m, j])).numpy()
         for b in args.norm_bits:
-            books.wkv_norm[(j, b)] = state_vq.fit_norm_range(ln, b, sigma[m, j].numpy())
+            books.wkv_norm[(j, b)] = state_vq.fit_norm_range(ln, b, sigma[m, j].numpy(), top=args.norm_top)
         print(f"[norms] wkv comp {j}: {[(b, tuple(round(x, 3) for x in books.wkv_norm[(j, b)])) for b in args.norm_bits]}")
     for role in ("t", "c"):
         n = np.linalg.norm(np.concatenate(shift[role]), axis=1)
         n = n[n > 1e-20]
         for b in args.norm_bits:
-            books.shift_norm[(role, b)] = state_vq.fit_norm_range(np.log2(n), b)
+            books.shift_norm[(role, b)] = state_vq.fit_norm_range(np.log2(n), b, top=args.norm_top)
         print(f"[norms] shift {role}: {[(b, tuple(round(x, 3) for x in books.shift_norm[(role, b)])) for b in args.norm_bits]}")
-    books.save(OUT / args.codebooks)
+    books.save(OUT / (args.out or args.codebooks))
 
 
 def tune(args):
@@ -270,7 +319,7 @@ def tune(args):
     data = cc.data_path(run)
     out = OUT / args.out
     for user in users:
-        batch = cc.full_history_batch(data, user)
+        batch = history_batch(data, user)
         for name in ["w8"] + args.recipes.split(","):
             if (user, name) in done:
                 continue
@@ -314,14 +363,23 @@ def main():
     f.add_argument("--parts", default="wkv,shift", help="SM46: fit only these parts (wkv / shift), for two "
                    "processes in parallel; merge the files with state_vq_fit.py merge")
     f.add_argument("--holdout-every", type=int, default=0, help="SM46: leave every k-th corpus user out of the fit")
+    f.add_argument("--components", type=int, nargs="+", default=[], help="SM90: fit only these WKV rank components")
+    f.add_argument("--wkv-index-bits", type=int, default=10, help="SM90: WKV stage codebook size 2^bits (recipes "
+                   "read it as StreamRecipe.index_bits; 10 = every recipe so far)")
+    f.add_argument("--roles", nargs="+", default=["t", "c"], help="SM90: shift roles to fit (t = time mixer, c = "
+                   "channel mixer), one process per role")
     n = sub.add_parser("refit-norms")
     n.add_argument("--codebooks", default="codebooks.npz")
     n.add_argument("--max-points", type=int, default=150_000)
     n.add_argument("--norm-bits", type=int, nargs="+", default=[1, 2, 3, 4, 6, 8])
     n.add_argument("--holdout-every", type=int, default=0, help="SM46: as fit --holdout-every")
+    n.add_argument("--norm-top", default=None, choices=("max",), help="SM90: 6/8-bit ranges with hi = the largest "
+                   "norm (state_vq.fit_norm_range top='max'); default: the quantile search")
+    n.add_argument("--out", default="", help="SM90: write to this file instead of overwriting --codebooks")
     mg = sub.add_parser("merge")
-    mg.add_argument("--wkv", required=True)
-    mg.add_argument("--shift", required=True)
+    mg.add_argument("--wkv", default="")
+    mg.add_argument("--shift", default="")
+    mg.add_argument("--files", nargs="+", default=[], help="SM90: union of these fits")
     mg.add_argument("--out", required=True)
     t = sub.add_parser("tune")
     t.add_argument("--users", type=int, default=8)
@@ -333,8 +391,11 @@ def main():
     parser.add_argument("--student", default="", help="SM46: model checkpoint (default: the SM32 student)")
     parser.add_argument("--out-dir", default="", help="SM46: corpus / codebook / tune folder (default: state-vq)")
     parser.add_argument("--exclude-pool", type=int, default=0, help="SM46: drop this evaluation pool's users")
+    parser.add_argument("--deleted-cards", choices=("keep", "flags", "neighbour"), default="keep",
+                        help="SM90: corpus / tune inputs with the deleted-card signals neutralised (sm71_leak)")
     args = parser.parse_args()
-    global STUDENT, PROTOCOL, OUT
+    global STUDENT, PROTOCOL, OUT, DELETED
+    DELETED = args.deleted_cards
     if args.student:
         STUDENT = Path(args.student)
         PROTOCOL = STUDENT.parents[2] / "protocol.json"
@@ -343,7 +404,8 @@ def main():
     if args.exclude_pool:
         from scripts.eval_pools import pool_users
         EXCLUDE.update(pool_users(args.exclude_pool))
-    print(f"[state_vq_fit] student {STUDENT}, out {OUT}, excluded users {len(EXCLUDE)}", flush=True)
+    print(f"[state_vq_fit] student {STUDENT}, out {OUT}, excluded users {len(EXCLUDE)}, deleted cards {DELETED}",
+          flush=True)
     {"collect": collect, "fit": fit, "refit-norms": refit_norms, "merge": merge, "tune": tune}[args.cmd](args)
 
 

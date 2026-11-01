@@ -430,7 +430,7 @@ def main():
                         path = ROOT / args.vq_codebooks
                         books = state_vq.Codebooks.load(path) if path.exists() else state_vq.Codebooks()
                         codecs["sha256"] = state_vq.file_sha256(path) if path.exists() else None
-                        codecs[state_bits] = {s: state_vq.StateCodec(rec, books)
+                        codecs[state_bits] = {s: state_vq.cpu_codec(rec, books)   # SM90: IntStream streams
                                               for s, rec in zip(lane_layouts[tag], state_vq.recipe(state_bits))}
                         print(f"[small-model] {state_bits}: {state_vq.describe(state_bits, lane_layouts[tag])}",
                               flush=True)

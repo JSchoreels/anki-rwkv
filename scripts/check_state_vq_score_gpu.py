@@ -252,7 +252,7 @@ def main():
                  "recipe": name, "path": state_vq.score_path(codecs), "users": {}}
         print(f"[sm44-check] {case}: {entry['path']}", flush=True)
         if cpu:
-            codecs_cpu = {s: state_vq.StateCodec(rec, books) for s, rec in zip(layout["hooks"], state_vq.recipe(name))}
+            codecs_cpu = {s: state_vq.cpu_codec(rec, books) for s, rec in zip(layout["hooks"], state_vq.recipe(name))}
         for i, u in enumerate(users[:n_users]):
             batch = batches[u].to(device)
             labels = label_cache[u]
