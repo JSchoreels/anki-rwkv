@@ -11,7 +11,8 @@ state:
   real-fr   the real schedule (same cards, days, elapsed seconds), but every output the model covers SAMPLED from it
             and fed back: the grade of every non-first review, the time of every later-day review (free running on the
             real schedule: the drift check); first-review grades and times and same-day times stay real
-  real-fr-pool  the same, but first-review grades and times and same-day times drawn from the user's recent pools,
+  real-fr-grade / real-fr-time  diagnostics: only the grades / only the later-day times sampled, the rest real
+  real-fr-pool  the same as real-fr, but first-review grades and times and same-day times drawn from the user's recent pools,
             exactly as in the scheduler lanes (what the pools add to the drift)
   dr-X      a scheduler: every card's next interval = the day its predicted curve reaches desired retention X; grades
             and times sampled and fed back; same-day learning steps follow the user's own empirical step rules; new
@@ -417,10 +418,11 @@ class Lane:
         # both rows at once: only the review row's columns 8..12 (duration, grade) depend on the outcome
         q, f = self.builder.row(card, note, deck, preset, day_abs, ed, es, 1, 0)
         if kind == 0:
-            if rating is None and real is not None:
+            if real is not None:
                 rating, duration = real
             if rating is None:
                 rating = int(self.rng.choice(4, p=habits["first_mix"])) + 1
+            if duration is None:
                 duration = int(self.rng.choice(habits["pools"][(0, rating)]))
         else:
             out_q, _, frozen = m.step(q, cur, snaps=kind == 2)
@@ -432,6 +434,7 @@ class Lane:
                 tp = m.time_probs(frozen, self.explicit.features(card, ed))
             if rating is None:
                 rating = int(self.rng.choice(4, p=pg)) + 1
+            if duration is None:
                 if kind == 2:
                     duration = m.sample_time_ms(tp[rating - 1], self.rng)
                 else:
@@ -465,6 +468,25 @@ class Lane:
         self.records.append((d, kind, rating, duration, -1.0 if p_pass is None else p_pass, card))
         self.wall += time.perf_counter() - started
         return rating, duration
+
+
+def first_touch(lane, old):
+    """Clean drift check: the FIRST later-day review in the window of each old card. Its day was set by the real
+    scheduler from real pre-split outcomes, so it does not depend on the lane's own samples; only the user-level state
+    (fed the lane's samples since the split) differs between lanes. Realised and predicted pass rate, per 30-day block."""
+    seen, rows = set(), []
+    for (d, kind, rating, ms, p, card) in lane.records:
+        if card in seen:
+            continue
+        seen.add(card)
+        if card in old and kind == 2:
+            rows.append((d, int(rating > 1), p))
+    out = {"n": len(rows)}
+    for name, lo, hi in (("all", 0, 10 ** 9), ("days_0_29", 0, 30), ("days_30_59", 30, 60), ("days_60_89", 60, 90)):
+        sel = [r for r in rows if lo <= r[0] < hi]
+        out[name] = {"n": len(sel), "retention": round(float(np.mean([r[1] for r in sel])), 4) if sel else None,
+                     "predicted": round(float(np.mean([r[2] for r in sel])), 4) if sel else None}
+    return out
 
 
 def memorized(lane, cards, t_end):
@@ -509,7 +531,7 @@ def run(args):
         if c in window_cards:
             last_out[c] = (out["w"], out["s"], out["d"])
             last_day[c] = int(day[i])
-    # drop card / note states the window never touches (memory)
+    old_cards = set(last_out)   # window cards with a pre-split review
     warm_s = time.perf_counter() - t0
     mu = 12 * 3600.0
     last_time = {c: d * SECONDS_PER_DAY + mu for c, d in last_day.items()}
@@ -544,9 +566,12 @@ def run(args):
                     c = int(rev["card_id"][i])
                     d = int(day[i])
                     rr = (int(rev["rating"][i]), int(rev["duration"][i]))
+                    # real-fr-grade: sampled grades, real times; real-fr-time: real grades, sampled later-day times
+                    keep_grade = tf or name == "real-fr-time"
+                    keep_time = tf or name == "real-fr-grade"
                     lane.review(ids_of[c], d - D, int(rev["elapsed_days"][i]), int(rev["elapsed_seconds"][i]), habits,
-                                rating=rr[0] if tf else None, duration=rr[1] if tf else None, t_abs=None,
-                                real=rr if name == "real-fr" else None)
+                                rating=rr[0] if keep_grade else None, duration=rr[1] if keep_time else None, t_abs=None,
+                                real=rr if name in ("real-fr", "real-fr-grade", "real-fr-time") else None)
                     lane.last_time[c] = d * SECONDS_PER_DAY + mu
             else:
                 simulate_policy(lane, float(name.split("-")[1]), rev, end, stop, D, N, ids_of, window_cards, habits,
@@ -558,6 +583,10 @@ def run(args):
             summary["reviews_per_second"] = round(len(lane.records) / max(lane.wall, 1e-9), 1)
             summary["fluency"] = fluency(lane, rev, end, stop)
             summary["by_kind"] = by_kind(lane.records)
+            summary["first_touch"] = first_touch(lane, old_cards)
+            summary["later_seconds_blocks"] = [
+                round(float(np.mean([x[3] for x in lane.records if x[1] == 2 and lo <= x[0] < lo + 30])) / 1000, 2)
+                if any(x[1] == 2 and lo <= x[0] < lo + 30 for x in lane.records) else None for lo in (0, 30, 60)]
             result["lanes"][lane.name] = summary
             print(f"[sm41] user {user} {lane.name}: {json.dumps({k: v for k, v in summary.items() if k != 'series'})}",
                   flush=True)
@@ -941,6 +970,87 @@ def report(args):
         L.append(f"| mean, {len(agg['real'])} users without Good-only | | | | {m['real']:.3f} | {m['tf']:.3f} | "
                  f"{m['fr']:.3f} | | | | {m['rmin']:.1f} | {m['frmin']:.1f} | {m['rs']:.1f} | {m['tfs']:.1f} | "
                  f"{m['frs']:.1f} | | | {m['pr']:.3f} / {m['pmin']:.1f} / {m['ps']:.1f} |")
+    diag_path = Path(args.rows).with_name("prototype-diagnostic.jsonl")
+    diag = {r["user"]: r for r in rows if any(k.startswith("real-fr-grade") for k in r["lanes"])}
+    if not diag and diag_path.exists():
+        for line in diag_path.read_text().splitlines():
+            if line.strip():
+                d = json.loads(line)
+                diag[d["user"]] = d
+    if diag:
+        main = {r["user"]: r for r in rows}
+        L.append("")
+        L.append("### Drift decomposition (diagnostic lanes, 2 seeds each)")
+        L.append("")
+        L.append("`real-fr-grade`: the real schedule, grades sampled, every time real; `real-fr-time`: grades real, "
+                 "later-day times sampled from the answer-time head. Retention under `real-fr-time` is the real one by "
+                 "construction; times under `real-fr-grade` are real.")
+        L.append("")
+        L.append("| user | real retention | real-fr | real-fr-grade | real-fr-grade days 0-29 / 60-89 | real Easy share of passes | "
+                 "real-fr Easy | real-fr-grade Easy | real s per later review | real-fr s | real-fr-time s | real-fr-time days 0-29 / 60-89 s |")
+        L.append("|" + "---|" * 12)
+        out["drift_decomposition"] = {}
+        for u in sorted(diag):
+            dl, r = diag[u]["lanes"], main.get(u)
+            if r is None:
+                continue
+            g = [v for k, v in dl.items() if k.split("#")[0] == "real-fr-grade"]
+            t = [v for k, v in dl.items() if k.split("#")[0] == "real-fr-time"]
+            fr = [v for k, v in r["lanes"].items() if k.split("#")[0] == "real-fr"]
+
+            rec = {"real": r["real"]["retention_later"],
+                   "fr": float(np.mean([v["retention_later"] for v in fr])),
+                   "grade": float(np.mean([v["retention_later"] for v in g])),
+                   "grade_b1": float(np.nanmean([block_retention(v["series"], 0, 30) for v in g])),
+                   "grade_b3": float(np.nanmean([block_retention(v["series"], 60, 90) for v in g])),
+                   "real_easy": r["real"]["pass_grade_mix"][2],
+                   "fr_easy": float(np.mean([v["pass_grade_mix"][2] for v in fr])),
+                   "grade_easy": float(np.mean([v["pass_grade_mix"][2] for v in g])),
+                   "real_s": r["real"]["by_kind"]["later"]["mean_seconds"],
+                   "fr_s": float(np.mean([v["by_kind"]["later"]["mean_seconds"] for v in fr])),
+                   "time_s": float(np.mean([v["by_kind"]["later"]["mean_seconds"] for v in t])),
+                   "time_b": [float(np.nanmean([(v.get("later_seconds_blocks") or [None] * 3)[k] or float("nan") for v in t]))
+                              for k in (0, 2)]}
+            out["drift_decomposition"][str(u)] = rec
+            L.append(f"| {u} | {rec['real']:.3f} | {rec['fr']:.3f} | {rec['grade']:.3f} | {rec['grade_b1']:.3f} / "
+                     f"{rec['grade_b3']:.3f} | {rec['real_easy']:.2f} | {rec['fr_easy']:.2f} | {rec['grade_easy']:.2f} | "
+                     f"{rec['real_s']:.1f} | {rec['fr_s']:.1f} | {rec['time_s']:.1f} | {rec['time_b'][0]:.1f} / {rec['time_b'][1]:.1f} |")
+    if all("first_touch" in r["lanes"]["real-tf#0"] for r in rows):
+        L.append("")
+        L.append("### Clean drift check: each old card's first later-day review in the window")
+        L.append("")
+        L.append("These reviews were scheduled by the real scheduler from real pre-split outcomes, so their days do not "
+                 "depend on a lane's samples (in the full replay, a sampled lapse keeps the real long interval that "
+                 "followed a real pass, which confounds the comparison above); only the user-level state, fed the "
+                 "lane's own samples since the split, differs. Realised pass rate (predicted mean in brackets).")
+        L.append("")
+        L.append("| user | reviews | real (tf predicted) days 0-29 | real (tf) days 60-89 | real-fr days 0-29 | real-fr days 60-89 | "
+                 "real-fr-grade days 0-29 | real-fr-grade days 60-89 |")
+        L.append("|---|---|---|---|---|---|---|---|")
+        out["first_touch"] = {}
+
+        def cell(vs, block):
+            ret = [v["first_touch"][block]["retention"] for v in vs if v["first_touch"][block]["retention"] is not None]
+            pre = [v["first_touch"][block]["predicted"] for v in vs if v["first_touch"][block]["predicted"] is not None]
+            return (float(np.mean(ret)) if ret else float("nan"), float(np.mean(pre)) if pre else float("nan"))
+        for r in rows:
+            lanes = r["lanes"]
+            tf = [lanes["real-tf#0"]]
+            fr = [v for k, v in lanes.items() if k.split("#")[0] == "real-fr"]
+            gr = [v for k, v in lanes.items() if k.split("#")[0] == "real-fr-grade"]
+            rec = {name: {b: cell(vs, b) for b in ("days_0_29", "days_60_89", "all")} for name, vs in
+                   (("real", tf), ("real-fr", fr), ("real-fr-grade", gr)) if vs}
+            out["first_touch"][str(r["user"])] = rec
+            flag = " (Good-only)" if r["real"]["retention_later"] >= 0.995 else ""
+
+            def fmt(name, b):
+                if name not in rec:
+                    return ""
+                a, pr = rec[name][b]
+                return f"{a:.3f} ({pr:.3f})"
+            L.append(f"| {r['user']}{flag} | {lanes['real-tf#0']['first_touch']['n']} | {fmt('real', 'days_0_29')} | "
+                     f"{fmt('real', 'days_60_89')} | {fmt('real-fr', 'days_0_29')} | {fmt('real-fr', 'days_60_89')} | "
+                     f"{fmt('real-fr-grade', 'days_0_29')} | {fmt('real-fr-grade', 'days_60_89')} |")
     L.append("")
     L.append("## 2. Validity and outcomes: the desired-retention scheduler")
     L.append("")
@@ -1025,7 +1135,7 @@ def main():
     c = sub.add_parser("check"); c.add_argument("--user", type=int, default=722); c.add_argument("--rows", type=int, default=3000)
     c.add_argument("--out", default=str(HERE / "check-cpu.json"))
     r = sub.add_parser("run"); r.add_argument("--user", type=int, required=True); r.add_argument("--split-day", type=int, required=True)
-    r.add_argument("--days", type=int, default=90); r.add_argument("--lanes", default="real-tf,real-fr,real-fr-pool,dr-0.80,dr-0.90,dr-0.95")
+    r.add_argument("--days", type=int, default=90); r.add_argument("--lanes", default="real-tf,real-fr,real-fr-grade,real-fr-time,real-fr-pool,dr-0.80,dr-0.90,dr-0.95")
     r.add_argument("--seeds", type=int, default=1); r.add_argument("--threads", type=int, default=1)
     r.add_argument("--out", default=str(HERE / "prototype.jsonl"))
     b = sub.add_parser("bench"); b.add_argument("--batch", default="1,16,256,2048"); b.add_argument("--device", default="cpu")

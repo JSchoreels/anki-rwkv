@@ -1,0 +1,81 @@
+# The small model in the review simulator (SM41): stage 1 prototype tables
+
+5 users of the 732 set ([users.json](users.json)), 90 simulated days from a split day inside each history, CPU (1 thread per process, 4 processes). Learner: the released leak-free small model + the answer-time head on richer frozen features (SM82c). Design and definitions: [DESIGN.md](DESIGN.md). Lanes: `real-tf` = the real continuation with real grades and times fed back (teacher forcing); `real-fr` = the real schedule with sampled grades and times fed back (2 seeds); `dr-r` = desired-retention scheduler at r (2 seeds). Retention = pass share of later-day reviews (interval >= 1 day).
+
+## 1. Validity: the real schedule replayed through the model
+
+| user | split day | warm-up reviews | window reviews | real retention | teacher-forced predicted | free-running (sampled) | free-running days 0-29 / 60-89 | real pass mix H/G/E | free-running pass mix | real min/day | free-running min/day | real s per later review | teacher-forced predicted s | free-running s | grade LogLoss (tf) | time LogLoss (tf) | pools: retention / min/day / s per later review |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 2755 | 406 | 29,925 | 3,452 | 0.932 | 0.937 | 0.973 | 0.971 / 0.966 | 0.18/0.70/0.11 | 0.12/0.74/0.14 | 7.5 | 8.8 | 10.6 | 12.8 | 13.4 | 0.628 | 1.753 | 0.964 / 8.5 / 13.0 |
+| 3486 | 220 | 24,100 | 7,010 | 0.900 | 0.890 | 0.861 | 0.832 / 0.858 | 0.06/0.72/0.22 | 0.03/0.50/0.47 | 19.8 | 20.4 | 15.1 | 15.0 | 15.7 | 0.797 | 2.139 | 0.789 / 18.5 / 14.7 |
+| 3817 | 4127 | 24,039 | 3,642 | 0.865 | 0.859 | 0.818 | 0.850 / 0.799 | 0.02/0.98/0.00 | 0.02/0.98/0.00 | 14.2 | 12.6 | 18.6 | 19.3 | 15.9 | 0.438 | 1.818 | 0.879 / 10.4 / 13.6 |
+| 3876 | 428 | 13,988 | 3,798 | 0.891 | 0.869 | 0.766 | 0.796 / 0.694 | 0.14/0.77/0.09 | 0.13/0.57/0.30 | 14.1 | 16.1 | 20.2 | 19.8 | 24.8 | 0.641 | 2.268 | 0.798 / 19.9 / 29.6 |
+| 4326 (Good-only) | 513 | 12,641 | 3,214 | 1.000 | 1.000 | 1.000 | 1.000 / 0.999 | 0.00/1.00/0.00 | 0.00/1.00/0.00 | 8.9 | 11.3 | 14.8 | 16.0 | 19.2 | 0.001 | 1.818 | 1.000 / 15.1 / 24.8 |
+| mean, 4 users without Good-only | | | | 0.897 | 0.889 | 0.855 | | | | 13.9 | 14.5 | 16.1 | 16.7 | 17.5 | | | 0.857 / 14.3 / 17.7 |
+
+### Drift decomposition (diagnostic lanes, 2 seeds each)
+
+`real-fr-grade`: the real schedule, grades sampled, every time real; `real-fr-time`: grades real, later-day times sampled from the answer-time head. Retention under `real-fr-time` is the real one by construction; times under `real-fr-grade` are real.
+
+| user | real retention | real-fr | real-fr-grade | real-fr-grade days 0-29 / 60-89 | real Easy share of passes | real-fr Easy | real-fr-grade Easy | real s per later review | real-fr s | real-fr-time s | real-fr-time days 0-29 / 60-89 s |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| 2755 | 0.932 | 0.973 | 0.976 | 0.966 / 0.981 | 0.11 | 0.14 | 0.11 | 10.6 | 13.4 | 14.4 | 12.4 / 15.2 |
+| 3486 | 0.900 | 0.861 | 0.847 | 0.805 / 0.859 | 0.22 | 0.47 | 0.25 | 15.1 | 15.7 | 17.0 | 16.4 / 17.9 |
+| 3817 | 0.865 | 0.818 | 0.850 | 0.869 / 0.824 | 0.00 | 0.00 | 0.00 | 18.6 | 15.9 | 16.9 | 17.5 / 14.5 |
+| 3876 | 0.891 | 0.766 | 0.764 | 0.781 / 0.698 | 0.09 | 0.30 | 0.21 | 20.2 | 24.8 | 23.2 | 28.1 / 22.0 |
+| 4326 | 1.000 | 1.000 | 1.000 | 1.000 / 1.000 | 0.00 | 0.00 | 0.00 | 14.8 | 19.2 | 19.9 | 24.1 / 16.2 |
+
+### Clean drift check: each old card's first later-day review in the window
+
+These reviews were scheduled by the real scheduler from real pre-split outcomes, so their days do not depend on a lane's samples (in the full replay, a sampled lapse keeps the real long interval that followed a real pass, which confounds the comparison above); only the user-level state, fed the lane's own samples since the split, differs. Realised pass rate (predicted mean in brackets).
+
+| user | reviews | real (tf predicted) days 0-29 | real (tf) days 60-89 | real-fr days 0-29 | real-fr days 60-89 | real-fr-grade days 0-29 | real-fr-grade days 60-89 |
+|---|---|---|---|---|---|---|---|
+| 2755 | 420 | 0.715 (0.753) | 0.846 (0.841) | 0.925 (0.923) | 0.846 (0.857) | 0.916 (0.919) | 0.782 (0.793) |
+| 3486 | 460 | 0.694 (0.703) | 0.800 (0.739) | 0.776 (0.760) | 0.875 (0.800) | 0.685 (0.705) | 0.400 (0.560) |
+| 3817 | 1094 | 0.826 (0.843) | 0.867 (0.851) | 0.843 (0.843) | 0.804 (0.761) | 0.842 (0.836) | 0.790 (0.792) |
+| 3876 | 976 | 0.809 (0.775) | 0.942 (0.913) | 0.783 (0.774) | 0.723 (0.706) | 0.772 (0.743) | 0.562 (0.603) |
+| 4326 (Good-only) | 734 | 1.000 (1.000) | 1.000 (1.000) | 1.000 (1.000) | 1.000 (1.000) | 1.000 (1.000) | 1.000 (1.000) |
+
+## 2. Validity and outcomes: the desired-retention scheduler
+
+Same card set as the real window (old cards reviewed in the window + the window's real new cards, in real order and on their real day). Memorised = sum of the cards' predicted recall at the end of day 90; the real row uses the teacher-forced lane's curves. Day-0 reviews = the split day's reviews (the backlog of old cards already due under the policy). Mean of 2 seeds.
+
+| user | schedule | later-day retention | instant-head predicted | reviews/day | min/day | memorised at day 90 | min per memorised card | day-0 reviews | new cards mature (90% interval >= 21 d) |
+|---|---|---|---|---|---|---|---|---|---|
+| 2755 | real | 0.932 | 0.937 | 38.4 | 7.5 | 930 | 0.71 | 19 | 0.97 |
+| 2755 | dr-0.80 | 0.694 | 0.692 | 19.4 | 5.3 | 895 | 0.53 | 42 | 0.62 |
+| 2755 | dr-0.90 | 0.904 | 0.904 | 26.1 | 7.8 | 947 | 0.74 | 169 | 0.93 |
+| 2755 | dr-0.95 | 0.958 | 0.958 | 35.3 | 9.8 | 976 | 0.90 | 220 | 1.00 |
+| 3486 | real | 0.900 | 0.890 | 77.9 | 19.8 | 1386 | 1.28 | 0 | 0.52 |
+| 3486 | dr-0.80 | 0.774 | 0.776 | 69.5 | 19.9 | 1345 | 1.33 | 286 | 0.10 |
+| 3486 | dr-0.90 | 0.870 | 0.869 | 131.6 | 34.6 | 1446 | 2.15 | 462 | 0.41 |
+| 3486 | dr-0.95 | 0.918 | 0.919 | 270.0 | 57.4 | 1486 | 3.48 | 614 | 0.31 |
+| 3817 | real | 0.865 | 0.859 | 40.5 | 14.2 | 1248 | 0.90 | 40 | 0.73 |
+| 3817 | dr-0.80 | 0.769 | 0.773 | 28.5 | 10.4 | 1234 | 0.76 | 226 | 0.26 |
+| 3817 | dr-0.90 | 0.888 | 0.885 | 48.9 | 15.9 | 1313 | 1.09 | 530 | 0.84 |
+| 3817 | dr-0.95 | 0.926 | 0.928 | 108.3 | 22.1 | 1349 | 1.48 | 916 | 0.70 |
+| 3876 | real | 0.891 | 0.869 | 42.2 | 14.1 | 1327 | 0.95 | 37 | 0.37 |
+| 3876 | dr-0.80 | 0.816 | 0.817 | 51.9 | 25.8 | 1330 | 1.74 | 418 | 0.20 |
+| 3876 | dr-0.90 | 0.891 | 0.891 | 123.3 | 61.3 | 1433 | 3.85 | 875 | 0.29 |
+| 3876 | dr-0.95 | 0.940 | 0.939 | 141.8 | 59.0 | 1477 | 3.59 | 1101 | 0.74 |
+| 4326 (Good-only) | real | 1.000 | 1.000 | 35.7 | 8.9 | 1111 | 0.72 | 73 | 1.00 |
+| 4326 (Good-only) | dr-0.80 | 1.000 | 0.742 | 5.0 | 2.4 | 1105 | 0.19 | 6 | 1.00 |
+| 4326 (Good-only) | dr-0.90 | 0.500 | 0.395 | 4.9 | 2.4 | 1106 | 0.19 | 6 | 1.00 |
+| 4326 (Good-only) | dr-0.95 | 0.500 | 0.484 | 4.9 | 2.4 | 1108 | 0.19 | 6 | 1.00 |
+
+Mean over the users without Good-only:
+
+| schedule | target | later-day retention | instant-head predicted | min/day | memorised at day 90 | min per memorised card |
+|---|---|---|---|---|---|---|
+| dr-0.80 | 0.80 | 0.763 | 0.764 | 15.3 | 1201 | 1.09 |
+| dr-0.90 | 0.90 | 0.888 | 0.887 | 29.9 | 1285 | 1.96 |
+| dr-0.95 | 0.95 | 0.936 | 0.936 | 37.1 | 1322 | 2.36 |
+
+## 3. Speed
+
+- Warm-up (one model step per real review): mean 268 reviews/s per process (range 267-271).
+- Simulated reviews (2 model steps each: instant row + review row, plus the time head): mean 147 reviews/s per process (range 128-226); 382,498 lane reviews, 55.0 process-minutes in all incl. warm-up (4 processes at below-normal priority, other CPU work running).
+- Batched step (`bench`, cpu-threads1): B=1: 193 reviews/s (2.589 ms per step), B=16: 1,992 reviews/s (4.017 ms per step), B=256: 5,947 reviews/s (21.523 ms per step), B=2048: 5,744 reviews/s (178.257 ms per step)
+- Batched step (`bench`, cpu-threads4): B=256: 9,428 reviews/s (13.577 ms per step), B=2048: 11,937 reviews/s (85.783 ms per step)
+

@@ -86,8 +86,14 @@ card), the backlog on the split day (old cards already overdue under the policy)
 - **V1 teacher forcing (`real-tf`)**: the real continuation, real grades and times fed back: predicted vs real
   retention, answer time (the model's ordinary prediction task, on these days).
 - **V2 free running on the real schedule (`real-fr`)**: the same cards, days and elapsed seconds, but every grade and
-  time sampled and fed back. Must reproduce the real retention, grade mix and minutes per day; the gap to V1 is the
-  drift caused by the model reading its own samples (per 30-day block, to see it grow).
+  time sampled and fed back. Should reproduce the real retention, grade mix and minutes per day, but the comparison
+  is confounded: the real schedule reacted to the real outcomes, so a sampled lapse keeps the long interval that
+  followed a real pass (and a sampled pass the short one after a real lapse). Diagnostic lanes split the loop:
+  `real-fr-grade` (grades sampled, times real) and `real-fr-time` (grades real, later-day times sampled).
+- **V2' clean drift check (first touch)**: each old card's first later-day review in the window was scheduled from
+  real pre-split outcomes, so its day does not depend on the lane's samples; only the user-level state (fed the
+  lane's samples since the split) differs. Realised and predicted pass rate on these reviews, real vs free running, per
+  30-day block: the drift of the model on its own samples, without the schedule confound.
 - **V3 policy retention**: under `dr-r`, the realised later-day retention should be close to r (the curve head chose
   the day; the instant head grades the review: two heads must agree).
 - Later: the same users through the FSRS-6 simulator of response-time prediction (SM82) stage 2 (same policies), to
@@ -106,7 +112,7 @@ card), the backlog on the split day (old cards already overdue under the policy)
   and the natural-experiment calibration above; prefer policies whose intervals stay inside the range real schedulers
   produce for that card.
 - **Habit changes and degenerate users**: users change (user 1190 moved to Good-only before its split; the habits
-  therefore come from the last 60 days). Good-only users (2 of the first users seen, e.g. 4326) have no failure signal:
+  therefore come from the last 60 days). Good-only users (1190 in the smoke test, 4326 among the 5 prototype users) have no failure signal:
   their retention is ~1.0 under any policy; flag and exclude them from policy conclusions.
 - **Clock and same-day steps are empirical**, not modelled: they are the same across lanes, so policy comparisons are
   fair, but absolute minutes per day carry this approximation.
@@ -115,7 +121,7 @@ card), the backlog on the split day (old cards already overdue under the policy)
 ## 6. Speed and the full run
 
 Prototype (CPU, 1 thread per process, eager PyTorch, one row per step): measured in
-[prototype-result.md](prototype-result.md) (~200 simulated reviews/s per process; warm-up ~190-370 reviews/s).
+[prototype-result.md](prototype-result.md) (147 simulated reviews/s per process; warm-up 268 reviews/s).
 Python overhead dominates (a step is ~13 layer calls on a 64-wide vector), so the full run batches **lanes**: all
 learners (users x policies x seeds) advance one review per tick, their states stacked along the batch dimension
 (`bench`: one step over B learners). Learners whose day has ended wait; new entities start from a zero state with a
