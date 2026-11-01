@@ -1,7 +1,7 @@
 {
- "generated_at": "2026-11-01T12:59:41+01:00",
- "updated": "2026-11-01 12:59",
- "material": "4d38afc8ab97750d",
+ "generated_at": "2026-11-01T13:04:45+01:00",
+ "updated": "2026-11-01 13:04",
+ "material": "88c87d1c516d7c00",
  "summary": "running 000837",
  "headline": [
   {
@@ -249,7 +249,7 @@
    "track": "small model",
    "ticket": "000837-small-model",
    "started": "12:54",
-   "elapsed": "0:05",
+   "elapsed": "0:10",
    "progress": null,
    "eta": "~15:44"
   }
@@ -1768,6 +1768,17 @@
    "when": "Building since 10:05 Sun; any public publish step waits for the user",
    "decides": "Ships the time head",
    "state": "planned"
+  },
+  {
+   "id": "SM90",
+   "track": "small model",
+   "since": "11-01T13:00",
+   "kind": "gpu-score",
+   "minutes": 120,
+   "what": "Codebook state compression sweep (SM90): design, CPU proof, a cheap screen of 2&times;&ndash;6&times; smaller budgets than the large-budget compression (SM46) on the released small model, then the finalists on the 732 set",
+   "when": "Designing since 13:00 Sun; GPU after the queued work",
+   "decides": "The smallest codebook budget within +0.02 points of the fork&rsquo;s int4 + int8 state, with its codebook size and speed",
+   "state": "planned"
   }
  ],
  "gpu_break": {
@@ -1777,6 +1788,14 @@
   "label": "Breaks: no GPU work 20:00&ndash;01:00 (from 10-30; tonight from 21:04; Sunday from 16:00). Jobs that would run into a break wait for 01:00"
  },
  "backlog": [
+  {
+   "status": "next",
+   "item": "Codebook state compression sweep (SM90): on the released small model, shrink the state compression at a large budget (SM46) by 2&times;, 3&times; and more, and tune the quantization pipeline, to find the smallest budget that is still nearly free",
+   "id": "SM90",
+   "why": "Suggested by outside research. The large budget cost only +0.00009 / +0.00015 at 4.5&times; smaller state than int8; earlier ~800-bit codebooks cost +0.37% / +0.67%, so the cliff is in between. Verdict includes codebook size and scoring/encode speed, not only accuracy",
+   "track": "small model",
+   "since": "11-01T13:00"
+  },
   {
    "status": "next",
    "id": "SM83",
