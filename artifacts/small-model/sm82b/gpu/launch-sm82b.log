@@ -6,3 +6,12 @@
 [sm82b 11-01 06:28:59] smoke head training: skipped / peak GiB / seconds: 0 8.06 14.5
 [sm82b 11-01 06:28:59] smoke: [sm82b-train] complete: 4/4 users, 295 steps, 301,214 rows, mean time loss 2.2711, skipped 0, trunk unchanged True, 0.2 min -> C:\Users\jonat\workspace\wt\sm82b\artifacts\small-model\sm82b\work\smoke-train-sm82b; [sm82b-train] step 1: time loss 2.7726 nats over 1,024 rows (zero head: ln 16 = 2.7726); [sm82b-grade] 2 users: released vs frozen with the head bitwise True; vs the recorded released scores True
 [sm82b 11-01 06:29:00] enqueue: head training on the frozen released small model (1,991 users of the quarter-epoch cool-down, first 400k reviews each, 10k AdamW steps) (expected 80 min, max wait 487 min, 570 min to the next window)
+[sm82b 11-01 07:09:55] exit 0: head training on the frozen released small model (1,991 users of the quarter-epoch cool-down, first 400k reviews each, 10k AdamW steps)
+[sm82b 11-01 07:09:56] head training: [sm82b-train] complete: 1991/1991 users, 9,923 steps, 81,285,752 rows, mean time loss 2.2598, skipped 2, trunk unchanged True, 40.9 min -> C:\Users\jonat\workspace\wt\sm82b\artifacts\small-model\sm82b-head-released
+[sm82b 11-01 07:09:56] enqueue: grade check: the released small model vs the frozen model with the head (5 users, scorer rows and dumps bitwise) (expected 10 min, max wait 517 min, 530 min to the next window)
+[sm82b 11-01 07:10:15] exit 0: grade check: the released small model vs the frozen model with the head (5 users, scorer rows and dumps bitwise)
+[sm82b 11-01 07:10:17] [sm82b-grade] 5 users: released vs frozen with the head bitwise True; vs the recorded released scores True
+[sm82b 11-01 07:10:17] enqueue: time scoring of the head on the 732 pool minus 9 never-fit (723, pass 1) (expected 25 min, max wait 501 min, 529 min to the next window)
+[sm82b 11-01 07:22:58] exit 0: time scoring of the head on the 732 pool minus 9 never-fit (723, pass 1)
+[sm82b 11-01 07:23:00] rule exit 0: [sm82b-rule] 722 users: grade unchanged True; time LogLoss 2.3385 vs card's last 2.4466 / user median 2.3664 / joint (SM82) 1.9300 (+0.4085), |ln err| 0.6696 vs 0.7222 / 0.6428 / 0.4625: FAIL-TIME
+[sm82b 11-01 07:23:00] done
