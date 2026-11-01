@@ -1,0 +1,53 @@
+{
+ "created": "2026-10-25 09:59",
+ "users": "the 4 longest of users 5000-10000, each cut to 131,072 reviews (524,288 reviews, 32 updates of 16,384 reviews)",
+ "model": "big model (fork RWKV, baseline in the R01 trainer), shipped weights, fresh AdamW, RWKV_DELETED_CARDS=neighbour, cap 0.8 (12.7 GB)",
+ "rows": [
+  {
+   "per_update": "2 x 32,768",
+   "status": "failed",
+   "error": "CUDA out of memory (first update)"
+  },
+  {
+   "per_update": "1 x 32,768",
+   "status": "failed",
+   "error": "CUDA out of memory (first update)"
+  },
+  {
+   "per_update": "1 x 16,384",
+   "status": "complete",
+   "reviews_per_second": 7572,
+   "peak_allocated_mib": 9016,
+   "peak_reserved_mib": 10880,
+   "mean_loss": 0.6377,
+   "epoch_hours_at_this_rate": 13.6
+  },
+  {
+   "per_update": "2 x 8,192",
+   "status": "complete",
+   "reviews_per_second": 12248,
+   "peak_allocated_mib": 9471,
+   "peak_reserved_mib": 12440,
+   "mean_loss": 0.6438,
+   "epoch_hours_at_this_rate": 8.4
+  },
+  {
+   "per_update": "4 x 4,096",
+   "status": "complete",
+   "reviews_per_second": 16051,
+   "peak_allocated_mib": 9353,
+   "peak_reserved_mib": 12588,
+   "mean_loss": 0.6508,
+   "epoch_hours_at_this_rate": 6.4
+  },
+  {
+   "per_update": "8 x 2,048",
+   "status": "complete",
+   "reviews_per_second": 17781,
+   "peak_allocated_mib": 9875,
+   "peak_reserved_mib": 12200,
+   "mean_loss": 0.6604,
+   "epoch_hours_at_this_rate": 5.8
+  }
+ ]
+}

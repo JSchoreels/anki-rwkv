@@ -74,6 +74,48 @@ extern "C" __global__ void gamma_beta_tree(const float* partial, F* dgamma, F* d
         for (int l = 0; l < offset; ++l) lane[l] = __fadd_rn(lane[l], lane[l + offset]);
     (kind == 0 ? dgamma : dbeta)[c] = write(lane[0]);
 }}
+// Wide-kernels port (C > 32, e.g. 64 or 80 channels): PyTorch launches one 32x16 block per 32 channels with the
+// same per-channel chains and tree; grid z selects the 32-channel group, channels beyond C idle.
+extern "C" __global__ void gamma_beta_chains_wide(const F* dy, const F* x, const F* mean, const F* rstd,
+    float* partial, long long N, int G, int C) {{
+    const int r = blockIdx.x, kind = blockIdx.y, c = blockIdx.z * 32 + threadIdx.x;
+    if (c >= C) return;
+    const int D = C / G;
+    const long long g = c / D;
+    float sum = 0.0f;
+    long long n = r;
+    for (; n + 32LL * ({UNROLL} - 1) < N; n += 32LL * {UNROLL}) {{
+        float dys[{UNROLL}], xs[{UNROLL}], means[{UNROLL}], rstds[{UNROLL}];
+        #pragma unroll
+        for (int u = 0; u < {UNROLL}; ++u) {{
+            const long long row = n + 32LL * u;
+            dys[u] = read(dy[row * C + c]);
+            if (kind == 0) {{
+                xs[u] = read(x[row * C + c]);
+                means[u] = read(mean[row * G + g]);
+                rstds[u] = read(rstd[row * G + g]);
+            }}
+        }}
+        #pragma unroll
+        for (int u = 0; u < {UNROLL}; ++u)
+            sum = kind == 0 ? gamma_step(sum, dys[u], xs[u], means[u], rstds[u]) : __fadd_rn(sum, dys[u]);
+    }}
+    for (; n < N; n += 32) {{
+        const float dyv = read(dy[n * C + c]);
+        sum = kind == 0 ? gamma_step(sum, dyv, read(x[n * C + c]), read(mean[n * G + g]), read(rstd[n * G + g]))
+                        : __fadd_rn(sum, dyv);
+    }}
+    partial[(kind * 32 + r) * C + c] = sum;
+}}
+extern "C" __global__ void gamma_beta_tree_wide(const float* partial, F* dgamma, F* dbeta, int C) {{
+    const int c = blockIdx.y * 32 + threadIdx.x, kind = blockIdx.x;
+    if (c >= C) return;
+    float lane[32];
+    for (int l = 0; l < 32; ++l) lane[l] = partial[(kind * 32 + l) * C + c];
+    for (int offset = 16; offset > 0; offset /= 2)
+        for (int l = 0; l < offset; ++l) lane[l] = __fadd_rn(lane[l], lane[l + offset]);
+    (kind == 0 ? dgamma : dbeta)[c] = write(lane[0]);
+}}
 """
         options = ["--std=c++17"]
         if dtype == torch.bfloat16:
@@ -88,14 +130,27 @@ extern "C" __global__ void gamma_beta_tree(const float* partial, F* dgamma, F* d
             cccl = next(p for p in candidates if (p / "nv/target").exists())
             options += [f"--include-path={runtime}", f"--include-path={cccl}"]
         raw = nvrtc._cupy.RawModule(code=code, options=tuple(options))
-        _KERNELS[dtype] = {name: raw.get_function(name) for name in ("gamma_beta_chains", "gamma_beta_tree")}
+        _KERNELS[dtype] = {name: raw.get_function(name) for name in ("gamma_beta_chains", "gamma_beta_tree",
+                                                                "gamma_beta_chains_wide", "gamma_beta_tree_wide")}
     return _KERNELS[dtype]
 
 
 def gamma_beta_backward(grad, x, mean, rstd, groups):
-    """dgamma, dbeta of native_group_norm for contiguous (N > 128, 32) inputs."""
+    """dgamma, dbeta of native_group_norm for contiguous (N > 128, C) inputs; C == 32 is the accepted F32 path."""
     from rwkv.model import nvrtc
-    N = x.shape[0]
+    N, C = x.shape
+    if C != 32:
+        blocks = (C + 31) // 32
+        partial = torch.empty((2, 32, C), device=x.device, dtype=torch.float32)
+        dgamma = torch.empty(C, device=x.device, dtype=x.dtype)
+        dbeta = torch.empty(C, device=x.device, dtype=x.dtype)
+        functions = kernel(x.dtype)
+        pointers = tuple(np.uint64(v.data_ptr()) for v in (grad, x, mean, rstd, partial))
+        nvrtc.raw_launch(functions["gamma_beta_chains_wide"], x.device, (32, 2, blocks), (32,),
+                         pointers + (np.int64(N), np.int32(groups), np.int32(C)))
+        nvrtc.raw_launch(functions["gamma_beta_tree_wide"], x.device, (2, blocks), (32,),
+                         tuple(np.uint64(v.data_ptr()) for v in (partial, dgamma, dbeta)) + (np.int32(C),))
+        return dgamma, dbeta
     partial = torch.empty((2, 32, 32), device=x.device, dtype=torch.float32)
     dgamma = torch.empty(32, device=x.device, dtype=x.dtype)
     dbeta = torch.empty(32, device=x.device, dtype=x.dtype)
@@ -112,8 +167,8 @@ class ExactGroupNorm(torch.autograd.Function):
 
     @staticmethod
     def forward(ctx, x, weight, bias, groups: int, eps: float):
-        if not x.is_cuda or x.dim() != 2 or x.shape[1] != 32 or not x.is_contiguous() or x.dtype not in (torch.float32, torch.bfloat16):
-            raise ValueError("Exact GroupNorm requires a contiguous 2-D CUDA float32/BF16 input with 32 channels")
+        if not x.is_cuda or x.dim() != 2 or x.shape[1] % groups or not x.is_contiguous() or x.dtype not in (torch.float32, torch.bfloat16):
+            raise ValueError("Exact GroupNorm requires a contiguous 2-D CUDA float32/BF16 input, channels divisible by groups")
         N, C = x.shape
         out, mean, rstd = torch.ops.aten.native_group_norm(x, weight, bias, N, C, 1, groups, eps)
         ctx.save_for_backward(x, weight, mean, rstd)

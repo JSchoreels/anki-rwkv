@@ -1,0 +1,59 @@
+{
+ "created": "2026-10-25 10:45",
+ "users": "the 4 longest of users 5000-10000, each cut to 131,072 reviews (524,288 reviews); 32 updates per layout",
+ "model": "big model through the variant class 'fork' (stream-major), shipped weights, fresh AdamW, peak 3.5e-4 x warmup 200 (the probe stays in warmup), carried state in strided lanes, RWKV_DELETED_CARDS=neighbour, cap 0.8 (12.7 GB)",
+ "note": "lane starts begin from zero state: L lanes = L zero-state starts per user. Fresh-state reference (probe-big-sm72.json, 7e-4 warmup): 1 x 16,384 mean loss 0.6377 at 7,572 reviews/s",
+ "chosen": "8,192 x 2 (loss equal to the single-lane whole-history carry, 9.5 h)",
+ "rows": [
+  {
+   "layout": "1 lanes x 16,384",
+   "reviews_per_update": 16384,
+   "status": "complete",
+   "reviews_per_second": 7287,
+   "peak_allocated_mib": 10062,
+   "peak_reserved_mib": 12522,
+   "mean_loss": 0.6283,
+   "carry_table_peak_mib": 449,
+   "epoch_hours_at_this_rate": 14.1
+  },
+  {
+   "layout": "2 lanes x 8,192",
+   "reviews_per_update": 16384,
+   "status": "complete",
+   "reviews_per_second": 10821,
+   "peak_allocated_mib": 10217,
+   "peak_reserved_mib": 12898,
+   "mean_loss": 0.6278,
+   "carry_table_peak_mib": 596,
+   "epoch_hours_at_this_rate": 9.5
+  },
+  {
+   "layout": "4 lanes x 4,096",
+   "reviews_per_update": 16384,
+   "status": "complete",
+   "reviews_per_second": 14121,
+   "peak_allocated_mib": 11072,
+   "peak_reserved_mib": 13020,
+   "mean_loss": 0.6302,
+   "carry_table_peak_mib": 805,
+   "epoch_hours_at_this_rate": 7.3
+  },
+  {
+   "layout": "8 lanes x 2,048",
+   "reviews_per_update": 16384,
+   "status": "complete",
+   "reviews_per_second": 16796,
+   "peak_allocated_mib": 11654,
+   "peak_reserved_mib": 12976,
+   "mean_loss": 0.6358,
+   "carry_table_peak_mib": 1042,
+   "epoch_hours_at_this_rate": 6.1
+  },
+  {
+   "layout": "16 lanes x 2,048",
+   "reviews_per_update": 32768,
+   "status": "failed",
+   "error": "CUDA out of memory (first update)"
+  }
+ ]
+}

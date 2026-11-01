@@ -1,0 +1,161 @@
+{
+ "users": [
+  1425,
+  1893,
+  2388
+ ],
+ "metrics": [
+  "curve_log_loss",
+  "curve_raw_log_loss",
+  "instant_log_loss",
+  "instant_rating_cross_entropy",
+  "benchmark ahead/instant LogLoss, RMSE, RMSE(bins), AUC, size"
+ ],
+ "i_old_variants_reproduce_sm45": {
+  "w8+s8": true,
+  "w8+s4c8n": true
+ },
+ "ii_new_vs_base": {
+  "w8+s8h": {
+   "base": "w8+s8",
+   "differs": true,
+   "curve_log_loss_delta_per_user": [
+    -2.086162567138672e-06,
+    2.60770320892334e-08,
+    -7.003545761108398e-07
+   ],
+   "max_abs_benchmark_dlogloss": 7.999999999896978e-06,
+   "entity_bits": {
+    "card": 24576,
+    "note": 13312
+   }
+  },
+  "w8+s8x8": {
+   "base": "w8+s8",
+   "differs": true,
+   "curve_log_loss_delta_per_user": [
+    -4.351139068603516e-06,
+    -2.428889274597168e-06,
+    3.725290298461914e-06
+   ],
+   "max_abs_benchmark_dlogloss": 1.9000000000019e-05,
+   "entity_bits": {
+    "card": 22112,
+    "note": 11328
+   }
+  },
+  "w8+s8hx8": {
+   "base": "w8+s8",
+   "differs": true,
+   "curve_log_loss_delta_per_user": [
+    -9.775161743164062e-06,
+    -5.710870027542114e-06,
+    1.080334186553955e-05
+   ],
+   "max_abs_benchmark_dlogloss": 1.4000000000014001e-05,
+   "entity_bits": {
+    "card": 20016,
+    "note": 10272
+   }
+  },
+  "w8+s4c8nh": {
+   "base": "w8+s4c8n",
+   "differs": true,
+   "curve_log_loss_delta_per_user": [
+    -2.682209014892578e-06,
+    1.4603137969970703e-06,
+    -1.2040138244628906e-05
+   ],
+   "max_abs_benchmark_dlogloss": 1.2000000000012001e-05,
+   "entity_bits": {
+    "card": 16384,
+    "note": 13312
+   }
+  },
+  "w8+s4c8nx8": {
+   "base": "w8+s4c8n",
+   "differs": true,
+   "curve_log_loss_delta_per_user": [
+    -7.212162017822266e-06,
+    1.7583370208740234e-06,
+    -4.0471553802490234e-05
+   ],
+   "max_abs_benchmark_dlogloss": 5.8000000000002494e-05,
+   "entity_bits": {
+    "card": 13920,
+    "note": 11328
+   }
+  },
+  "w8+s4c8nhx8": {
+   "base": "w8+s4c8n",
+   "differs": true,
+   "curve_log_loss_delta_per_user": [
+    6.139278411865234e-06,
+    -2.7939677238464355e-06,
+    -4.073977470397949e-05
+   ],
+   "max_abs_benchmark_dlogloss": 5.4999999999999494e-05,
+   "entity_bits": {
+    "card": 11824,
+    "note": 10272
+   }
+  }
+ },
+ "iii_gpu_path_on_cpu_vs_cpu": {
+  "w8+s8h": {
+   "max_abs_dlogloss_benchmark": 0.0,
+   "max_abs_d_curve_log_loss": 0.0,
+   "max_abs_d_instant_log_loss": 0.0,
+   "path": {
+    "card": "int kernel bits 264, shift bits 0",
+    "note": "int kernel bits 264, shift bits 0"
+   }
+  },
+  "w8+s8x8": {
+   "max_abs_dlogloss_benchmark": 0.0,
+   "max_abs_d_curve_log_loss": 0.0,
+   "max_abs_d_instant_log_loss": 0.0,
+   "path": {
+    "card": "int kernel bits 8, shift bits 8",
+    "note": "int kernel bits 8, shift bits 8"
+   }
+  },
+  "w8+s8hx8": {
+   "max_abs_dlogloss_benchmark": 0.0,
+   "max_abs_d_curve_log_loss": 0.0,
+   "max_abs_d_instant_log_loss": 0.0,
+   "path": {
+    "card": "int kernel bits 264, shift bits 264",
+    "note": "int kernel bits 264, shift bits 264"
+   }
+  },
+  "w8+s4c8nh": {
+   "max_abs_dlogloss_benchmark": 0.0,
+   "max_abs_d_curve_log_loss": 0.0,
+   "max_abs_d_instant_log_loss": 0.0,
+   "path": {
+    "card": "int kernel bits 260, shift bits 0",
+    "note": "int kernel bits 264, shift bits 0"
+   }
+  },
+  "w8+s4c8nx8": {
+   "max_abs_dlogloss_benchmark": 0.0,
+   "max_abs_d_curve_log_loss": 0.0,
+   "max_abs_d_instant_log_loss": 0.0,
+   "path": {
+    "card": "int kernel bits 4, shift bits 8",
+    "note": "int kernel bits 8, shift bits 8"
+   }
+  },
+  "w8+s4c8nhx8": {
+   "max_abs_dlogloss_benchmark": 0.0,
+   "max_abs_d_curve_log_loss": 0.0,
+   "max_abs_d_instant_log_loss": 0.0,
+   "path": {
+    "card": "int kernel bits 260, shift bits 264",
+    "note": "int kernel bits 264, shift bits 264"
+   }
+  }
+ },
+ "passed": true
+}

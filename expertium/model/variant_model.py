@@ -19,6 +19,9 @@ from expertium.model.srs_model import (DTYPE_EXCLUDE, ExactIndexSelect, ExactPad
 
 # The GRU head's root parameters stay float32 like the linears they replace (upstream DTYPE_EXCLUDE "gru_").
 VARIANT_DTYPE_EXCLUDE = DTYPE_EXCLUDE + ["gru_"]
+# SM21 (scripts/state_carry_train.py): while a StateCarry is active for a model object, that model's interleaved
+# streams run with carried state. None (the default, always outside the opt-in `state_carry` option) = stock path.
+CARRY_HOOK = [None]
 
 
 def is_excluded(name):
@@ -122,17 +125,22 @@ class VariantSrsRWKV(SrsRWKV):
         self.concurrent_split_limit = 0
         self.concurrent_splits = False
         self.sync_free_loss = False
+        # SM26: opt-in multiplier on the instant (rating) loss term; the default 1.0 keeps IMMEDIATE_SCALE = 1.0 exactly.
+        # A float, not None: TorchScript fixes the attribute type when the model is scripted, so None could not become 2.0.
+        self.instant_loss_weight = 1.0
 
         self.gru_n = int(variant.gru_head)
         self.gru_on = self.gru_n > 0
         self.no_ahead_residual = bool(variant.no_ahead_residual or self.gru_on)
         self.zero_features_on = len(variant.zero_features) > 0
         self.zero_features: List[int] = [int(i) for i in variant.zero_features] or [-1]
-        self.interleave_on = bool(variant.interleave)
+        self.interleave_on = bool(variant.interleave or variant.stream_major)
         self.stream_depths: List[int] = [config.n_layers for _, config in anki_rwkv_config.modules]
         # (stream, layer) execution order, round-major; check_expertium_catch_up.py swaps in stream-major order to
         # prove the canonical gather/scatter path reproduces the sequential forward.
         self.layer_steps: List[Tuple[int, int]] = layer_steps(interleave_schedule(self.stream_depths))
+        if variant.stream_major:  # SM72: the sequential order on the canonical path (where state carry hooks in)
+            self.layer_steps = [(i, layer) for i, depth in enumerate(self.stream_depths) for layer in range(depth)]
 
         self.card_features_dim = 92
         self.d_model = anki_rwkv_config.d_model
@@ -253,6 +261,9 @@ class VariantSrsRWKV(SrsRWKV):
         so x stays canonical and each layer-step is gather -> one layer -> scatter-back of the non-padding rows.
         v0 (value residual) stays stream-local: set by the stream's layer 0, reused by its later layers.
         """
+        carry = CARRY_HOOK[0]
+        if carry is not None and carry.owns(self):
+            return carry.streams(self, x, batch_sub_gather, batch_sub_gather_lens, batch_time_shift_selects, batch_skips)
         cur = torch.arange(x.size(0), dtype=torch.long, device=x.device)
         gathers, positions, targets = [], [], []
         for splits in batch_sub_gather:
@@ -282,10 +293,28 @@ class VariantSrsRWKV(SrsRWKV):
             fused_positions.append(torch.cat([keep + offset for keep, offset in zip(positions[i], offsets)]))
             fused_targets.append(torch.cat(targets[i]))
         v0s = [[None] * len(splits) for splits in batch_sub_gather]
+        exact = self.exact_index and x.is_cuda
+        if exact:
+            # Wide-kernels port: sort-free exact gather/scatter, one sort per stream reused by all its layers.
+            # Bitwise equal to the deterministic index_select / index_copy below (scripts/check_wide_kernels.py).
+            from rwkv.model.exact_index import ExactIndexCopy, OrderedIndexSelect, row_order
+            rows = x.size(0)
+            gather_orders, position_orders = [], []
+            for i in range(len(gathers)):
+                if self.skip_padding_sources:
+                    # F50: padding sources (-1) leave the backward sum; their gradients are +0 here.
+                    source = torch.cat(gathers[i])
+                else:
+                    source = fused_gather[i]
+                gather_orders.append(row_order(source, rows))
+                position_orders.append(row_order(fused_positions[i], fused_gather[i].numel()))
         for i, layer in self.layer_steps:
             # Scripted ModuleLists have no Python indexing; children are named by position.
             block = getattr(getattr(self.rwkv_modules, str(i)).blocks, str(layer))
-            inputs = x.index_select(0, fused_gather[i]).split(fused_sizes[i])
+            if exact:
+                inputs = OrderedIndexSelect.apply(x, fused_gather[i], *gather_orders[i]).split(fused_sizes[i])
+            else:
+                inputs = x.index_select(0, fused_gather[i]).split(fused_sizes[i])
             outputs = []
             for s, x_split in enumerate(inputs):
                 length = batch_sub_gather_lens[i][s]
@@ -295,7 +324,11 @@ class VariantSrsRWKV(SrsRWKV):
                                                  batch_skips[i][s].view(-1, length))
                 outputs.append(x_out.reshape(-1, self.d_model))
             flat = torch.cat(outputs)
-            x = x.index_copy(0, fused_targets[i], flat.index_select(0, fused_positions[i]))
+            if exact:
+                kept = OrderedIndexSelect.apply(flat, fused_positions[i], *position_orders[i])
+                x = ExactIndexCopy.apply(x, fused_targets[i], kept)
+            else:
+                x = x.index_copy(0, fused_targets[i], flat.index_select(0, fused_positions[i]))
         return x
 
     @FunctionType
@@ -462,7 +495,7 @@ class VariantSrsRWKV(SrsRWKV):
         ahead_raw_avg = (curve_raw_loss * ahead_mask).sum() / (1e-8 + ahead_mask.sum())
         AHEAD_RAW_SCALE = 0.5
         immediate_avg = (p_loss * immediate_mask).sum() / (1e-8 + immediate_mask.sum())
-        IMMEDIATE_SCALE = 1.0
+        IMMEDIATE_SCALE = self.instant_loss_weight
         w_avg = (w_loss * ahead_mask).sum() / (1e-8 + ahead_mask.sum())
         W_LOSS_SCALE = 1e-5
         ahead_logits_mag_loss = torch.sqrt(
@@ -489,7 +522,7 @@ class VariantSrsRWKV(SrsRWKV):
         )
         loss_tensor = (
             AHEAD_SCALE * curve_loss.detach()
-            + p_loss.detach()
+            + IMMEDIATE_SCALE * p_loss.detach()
             + AHEAD_RAW_SCALE * curve_raw_loss.detach()
             + W_LOSS_SCALE * w_loss.detach()
             + AHEAD_LOGITS_MAG_LOSS_SCALE * ahead_logits_mag_loss.detach()

@@ -1,0 +1,162 @@
+{
+ "mode": "cpu",
+ "tol_benchmark_logloss": 1e-05,
+ "users": {
+  "2388": 3685,
+  "4676": 3716,
+  "1712": 4090
+ },
+ "factor_dtype_kernel": "float64",
+ "cases": {
+  "sm36/w8+vq5902x3028": {
+   "checkpoint": "C:/Users/jonat/workspace/wt/sm42/artifacts/small-model/scale-w64kd-gate-sc-lanes-cont-decay1ep32k-muon/expertium/E89-F65e-F77a/master.pth",
+   "codebooks": "C:/Users/jonat/workspace/wt/sm46/artifacts/small-model/sm46/books/codebooks-sm46.npz",
+   "codebooks_sha256": "af46e6a253c4f18e349792527c815860006924c301f70c3924a4872c38cf81f7",
+   "recipe": "vq5902x3028",
+   "path": {
+    "card": "torch step loop, eigh float64",
+    "note": "torch step loop, eigh float64"
+   },
+   "users": {
+    "2388": {
+     "float_vs_ref": {
+      "ahead": {
+       "d_exact_logloss": -6.91266078930719e-05,
+       "max_abs_dp": 0.02824622392654419
+      },
+      "instant": {
+       "d_exact_logloss": -2.453697895099527e-05,
+       "max_abs_dp": 0.042592406272888184
+      }
+     },
+     "cpu_scorer_seconds": 12.73,
+     "torch": {
+      "ahead": {
+       "predictions": 2096,
+       "missing": 0,
+       "max_abs_dp": 0.0,
+       "mean_abs_dp": 0.0,
+       "n_dp_over_1e-4": 0,
+       "benchmark_logloss_ref": 0.132512,
+       "benchmark_logloss": 0.132512,
+       "d_benchmark_logloss": 0.0,
+       "d_exact_logloss": 0.0
+      },
+      "instant": {
+       "predictions": 2096,
+       "missing": 0,
+       "max_abs_dp": 0.0,
+       "mean_abs_dp": 0.0,
+       "n_dp_over_1e-4": 0,
+       "benchmark_logloss_ref": 0.074898,
+       "benchmark_logloss": 0.074898,
+       "d_benchmark_logloss": 0.0,
+       "d_exact_logloss": 0.0
+      },
+      "d_curve_log_loss": 0.0,
+      "d_instant_log_loss": 0.0,
+      "ok": true,
+      "seconds": 13.35
+     },
+     "slot_calls": {
+      "wkv": 10,
+      "shift": 17,
+      "kernel": 0
+     }
+    },
+    "4676": {
+     "cpu_scorer_seconds": 17.02,
+     "torch": {
+      "ahead": {
+       "predictions": 2838,
+       "missing": 0,
+       "max_abs_dp": 0.0,
+       "mean_abs_dp": 0.0,
+       "n_dp_over_1e-4": 0,
+       "benchmark_logloss_ref": 0.051509,
+       "benchmark_logloss": 0.051509,
+       "d_benchmark_logloss": 0.0,
+       "d_exact_logloss": 0.0
+      },
+      "instant": {
+       "predictions": 2838,
+       "missing": 0,
+       "max_abs_dp": 0.0,
+       "mean_abs_dp": 0.0,
+       "n_dp_over_1e-4": 0,
+       "benchmark_logloss_ref": 0.039321,
+       "benchmark_logloss": 0.039321,
+       "d_benchmark_logloss": 0.0,
+       "d_exact_logloss": 0.0
+      },
+      "d_curve_log_loss": 0.0,
+      "d_instant_log_loss": 0.0,
+      "ok": true,
+      "seconds": 17.11
+     },
+     "slot_calls": {
+      "wkv": 10,
+      "shift": 17,
+      "kernel": 0
+     }
+    },
+    "1712": {
+     "cpu_scorer_seconds": 18.07,
+     "torch": {
+      "ahead": {
+       "predictions": 3221,
+       "missing": 0,
+       "max_abs_dp": 0.0,
+       "mean_abs_dp": 0.0,
+       "n_dp_over_1e-4": 0,
+       "benchmark_logloss_ref": 0.333919,
+       "benchmark_logloss": 0.333919,
+       "d_benchmark_logloss": 0.0,
+       "d_exact_logloss": 0.0
+      },
+      "instant": {
+       "predictions": 3221,
+       "missing": 0,
+       "max_abs_dp": 0.0,
+       "mean_abs_dp": 0.0,
+       "n_dp_over_1e-4": 0,
+       "benchmark_logloss_ref": 0.298884,
+       "benchmark_logloss": 0.298884,
+       "d_benchmark_logloss": 0.0,
+       "d_exact_logloss": 0.0
+      },
+      "d_curve_log_loss": 0.0,
+      "d_instant_log_loss": 0.0,
+      "ok": true,
+      "seconds": 17.2
+     },
+     "slot_calls": {
+      "wkv": 13,
+      "shift": 22,
+      "kernel": 0
+     }
+    }
+   }
+  }
+ },
+ "provenance": {
+  "captured_utc": "2026-10-20T15:22:01.977700+00:00",
+  "git_commit": "d376f7e6c5a61d750ac3e0a62f8e39bd8841978a",
+  "git_dirty": true,
+  "git_status_porcelain_z": " M scripts/check_state_vq_score_gpu.py\u0000 M scripts/state_vq.py\u0000 M scripts/state_vq_fit.py\u0000",
+  "source_tree_sha256": "5c02cfa70a501a63c76b5db9d0186044b2b75b96ad7385b51cfb1e5ddd7b7735",
+  "source_archive": "artifacts/sources/experiment-sources/5c02cfa70a501a63c76b5db9d0186044b2b75b96ad7385b51cfb1e5ddd7b7735/source.zip",
+  "source_paths": [
+   "rwkv",
+   "expertium",
+   "scripts",
+   "configs",
+   "pyproject.toml",
+   "uv.lock",
+   "justfile",
+   "upstream.json"
+  ]
+ },
+ "fails": [],
+ "passed": true
+}
