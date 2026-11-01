@@ -237,7 +237,9 @@ def strip(p):
     for k in ("init_master", "init_optimizer", "control_dir", "benchmark_db"):
         p["full_run"].pop(k, None)
     return p
-pa, pb = json.loads((a / "protocol.json").read_text()), json.loads((b / "protocol.json").read_text())
+# a resumed cool-down rewrites protocol.json to the users left; protocol.prepared.json keeps the full one
+proto = lambda d: json.loads(((d / "protocol.prepared.json") if (d / "protocol.prepared.json").exists() else (d / "protocol.json")).read_text())
+pa, pb = proto(a), proto(b)
 da, db = json.loads((a / "decay.json").read_text()), json.loads((b / "decay.json").read_text())
 fail = []
 if strip(pa) != strip(pb):
