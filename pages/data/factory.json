@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-01T05:56:05+01:00",
- "updated": "2026-11-01 05:56",
- "material": "8a32597e3077fe4e",
- "summary": "running 000812, finished 000811",
+ "generated_at": "2026-11-01T06:08:51+01:00",
+ "updated": "2026-11-01 06:08",
+ "material": "e09b1655ae39a3fb",
+ "summary": "idle, finished 000812",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring (curve / instant)",
@@ -237,23 +237,7 @@
    "track": "small model"
   }
  ],
- "now": [
-  {
-   "what": "Response-time prediction (SM82) stage 1: an answer-time head (per grade, 16 log-time bins from 0.5 s to the 60 s cap, cap = censored; +8,256 parameters, export +8.7 KB) added during the usual quarter-epoch Muon cool-down from the leak-free small model&rsquo;s (SM72s) epoch 21, against the same-recipe reference already scored in the tiny architecture additions run (SM77). Trained and scored only on reviews on a later day than the card&rsquo;s previous one (70% of reviews): the interval input of same-day reviews contains the answer time itself (stage 0 audit)",
-   "id": "SM82, ticket 000812",
-   "kind": "gpu-train",
-   "decides": "Go if grade curve and instant stay within +0.03 points of the reference on 722 users and the time head beats both baselines (card&rsquo;s last time: 2.445 nats, 0.721 |ln error|; user&rsquo;s running median per grade: 2.364 / 0.642). A go opens stage 2: answer-time curves and answer-time-aware workload in the simulator",
-   "why": "",
-   "job": "response-time prediction (SM82): time scoring of the answer-time head on the 732 pool minus 9 never-fit (723, pass 1)",
-   "linked": true,
-   "track": "small model",
-   "ticket": "000812-small-model",
-   "started": "05:55",
-   "elapsed": "0:00",
-   "progress": null,
-   "eta": "~06:20"
-  }
- ],
+ "now": [],
  "charts": [
   {
    "title": "Small model, leak-free (SM72s): LogLoss per epoch, 458-user set (lower is better)",
@@ -424,6 +408,15 @@
  "waiting": [],
  "recent": [
   {
+   "ticket": "000812-small-model",
+   "id": "SM82",
+   "what": "response-time prediction (SM82): time scoring of the answer-time head on the 732 pool minus 9 never-fit (723, pass 1)",
+   "ended": "06:08",
+   "date": "11-01",
+   "exit": 0,
+   "ran": "0:12"
+  },
+  {
    "ticket": "000811-small-model",
    "id": "SM82",
    "what": "response-time prediction (SM82): scoring sm82-arm-e21-q32k on the 3 long users of the 732 pool (cap 0.92)",
@@ -467,15 +460,6 @@
    "date": "11-01",
    "exit": 0,
    "ran": "0:00"
-  },
-  {
-   "ticket": "000806-small-model",
-   "id": "SM81",
-   "what": "scheduling-time vs review-time accuracy (SM81): scoring big-leakfree-1ep with the start-of-day pass on the 3 long users of the 732 pool (cap 0.92)",
-   "ended": "03:05",
-   "date": "11-01",
-   "exit": 0,
-   "ran": "0:01"
   }
  ],
  "plan": [
@@ -1625,11 +1609,12 @@
    "what": "Response-time prediction (SM82) stage 1: an answer-time head (per grade, 16 log-time bins from 0.5 s to the 60 s cap, cap = censored; +8,256 parameters, export +8.7 KB) added during the usual quarter-epoch Muon cool-down from the leak-free small model&rsquo;s (SM72s) epoch 21, against the same-recipe reference already scored in the tiny architecture additions run (SM77). Trained and scored only on reviews on a later day than the card&rsquo;s previous one (70% of reviews): the interval input of same-day reviews contains the answer time itself (stage 0 audit)",
    "when": "Stage 0 audit and CPU proof done 03:41 Sun; smoke OK 03:42; cool-down 03:42&ndash;~05:40; grade scoring from 05:40, then time scoring and the rule ~06:40 Sun",
    "decides": "Go if grade curve and instant stay within +0.03 points of the reference on 722 users and the time head beats both baselines (card&rsquo;s last time: 2.445 nats, 0.721 |ln error|; user&rsquo;s running median per grade: 2.364 / 0.642). A go opens stage 2: answer-time curves and answer-time-aware workload in the simulator",
-   "state": "running",
-   "started": "05:55",
-   "ticket": "000812-small-model",
+   "state": "done",
+   "ended": "06:08",
+   "exit": 0,
+   "started": "03:41",
    "started_at": "2026-11-01T03:41:39+01:00",
-   "ends_at": "2026-11-01T06:41:39+01:00"
+   "ended_at": "2026-11-01T06:08:25+01:00"
   }
  ],
  "gpu_break": {
