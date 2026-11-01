@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-01T03:42:09+01:00",
- "updated": "2026-11-01 03:42",
- "material": "a7d5a14226c46dfe",
- "summary": "running 000808, finished 000807",
+ "generated_at": "2026-11-01T03:47:12+01:00",
+ "updated": "2026-11-01 03:47",
+ "material": "d3c9d2b46f715062",
+ "summary": "running 000808",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring (curve / instant)",
@@ -239,17 +239,17 @@
  ],
  "now": [
   {
-   "what": "response-time prediction (SM82): arm quarter-epoch 32k Muon cool-down with the answer-time head (w64-sm82 from SM72s epoch 21, the reference&#x27;s options and order) (segment to the next window or the end)",
-   "id": "000808-small-model",
+   "what": "Response-time prediction (SM82) stage 1: an answer-time head (per grade, 16 log-time bins from 0.5 s to the 60 s cap, cap = censored; +8,256 parameters, export +8.7 KB) added during the usual quarter-epoch Muon cool-down from the leak-free small model&rsquo;s (SM72s) epoch 21, against the same-recipe reference already scored in the tiny architecture additions run (SM77). Trained and scored only on reviews on a later day than the card&rsquo;s previous one (70% of reviews): the interval input of same-day reviews contains the answer time itself (stage 0 audit)",
+   "id": "SM82, ticket 000808",
    "kind": "gpu-train",
-   "decides": "",
+   "decides": "Go if grade curve and instant stay within +0.03 points of the reference on 722 users and the time head beats both baselines (card&rsquo;s last time: 2.445 nats, 0.721 |ln error|; user&rsquo;s running median per grade: 2.364 / 0.642). A go opens stage 2: answer-time curves and answer-time-aware workload in the simulator",
    "why": "",
    "job": "response-time prediction (SM82): arm quarter-epoch 32k Muon cool-down with the answer-time head (w64-sm82 from SM72s epoch 21, the reference&#x27;s options and order) (segment to the next window or the end)",
-   "linked": false,
+   "linked": true,
    "track": "small model",
    "ticket": "000808-small-model",
    "started": "03:41",
-   "elapsed": "0:00",
+   "elapsed": "0:05",
    "progress": null,
    "eta": "~06:11"
   }
@@ -425,7 +425,7 @@
  "recent": [
   {
    "ticket": "000807-small-model",
-   "id": "",
+   "id": "SM82",
    "what": "response-time prediction (SM82): trainer smoke of the cool-down with the answer-time head (2 users x 512 reviews) + time-scorer smoke (3 users)",
    "ended": "03:41",
    "date": "11-01",
@@ -1615,6 +1615,21 @@
    "started": "01:18",
    "started_at": "2026-11-01T01:18:19+01:00",
    "ended_at": "2026-11-01T03:05:56+01:00"
+  },
+  {
+   "id": "SM82",
+   "track": "small model",
+   "since": "11-01T03:41",
+   "kind": "gpu-train",
+   "minutes": 180,
+   "what": "Response-time prediction (SM82) stage 1: an answer-time head (per grade, 16 log-time bins from 0.5 s to the 60 s cap, cap = censored; +8,256 parameters, export +8.7 KB) added during the usual quarter-epoch Muon cool-down from the leak-free small model&rsquo;s (SM72s) epoch 21, against the same-recipe reference already scored in the tiny architecture additions run (SM77). Trained and scored only on reviews on a later day than the card&rsquo;s previous one (70% of reviews): the interval input of same-day reviews contains the answer time itself (stage 0 audit)",
+   "when": "Stage 0 audit and CPU proof done 03:41 Sun; smoke OK 03:42; cool-down ~03:42&ndash;05:50, grade and time scoring, rule ~06:40 Sun",
+   "decides": "Go if grade curve and instant stay within +0.03 points of the reference on 722 users and the time head beats both baselines (card&rsquo;s last time: 2.445 nats, 0.721 |ln error|; user&rsquo;s running median per grade: 2.364 / 0.642). A go opens stage 2: answer-time curves and answer-time-aware workload in the simulator",
+   "state": "running",
+   "started": "03:41",
+   "ticket": "000808-small-model",
+   "started_at": "2026-11-01T03:41:39+01:00",
+   "ends_at": "2026-11-01T06:41:39+01:00"
   }
  ],
  "gpu_break": {
@@ -1641,11 +1656,11 @@
    "since": "10-31T20:57"
   },
   {
-   "status": "next",
+   "status": "planned",
    "id": "SM82",
    "track": "small model",
    "item": "Response-time prediction (SM82): predict the answer time together with the grade, to find review patterns that lead to a good grade with a shorter answer time",
-   "why": "Asked 10-31. Stage 0: data audit of answer times (CPU). Stage 1: an answer-time head per grade (log-time bins), added during a quarter cool-down against the already-scored same-recipe reference (~2.5 GPU h); grade accuracy must not get worse. Stage 2: answer-time curves vs interval, and answer-time-aware workload in the simulator instead of fixed per-grade costs",
+   "why": "Asked 10-31. Stage 1 running since 11-01 03:42 (see the plan); branch sm82. Stage 0: data audit of answer times (CPU). Stage 1: an answer-time head per grade (log-time bins), added during a quarter cool-down against the already-scored same-recipe reference (~2.5 GPU h); grade accuracy must not get worse. Stage 2: answer-time curves vs interval, and answer-time-aware workload in the simulator instead of fixed per-grade costs",
    "since": "10-31T21:30"
   },
   {
