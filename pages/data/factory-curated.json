@@ -1598,8 +1598,8 @@
    "id": "SM65",
    "track": "small model",
    "item": "New axis candidate: a better teacher (an ensemble of big models, or a big model trained on more users) to distill from",
-   "why": "Stage 1 done 10-30: the big model with one more leak-free epoch on 3,969 new users is &minus;0.17% curve / &minus;0.03% instant vs the big model (1 leak-free epoch), between the go and stop bars. Stage 2 (teacher targets, ~4 h GPU) and stage 3 (small-model cool-down, ~8.5 h) are parked (user 10-30 ~21:00); the checkpoint is kept in wt/sm65; expected student gain about 0.03&ndash;0.08 points curve, ~0 instant. Design: artifacts/small-model/sm65/DESIGN.md",
-   "since": "10-30T21:00"
+   "why": "Stage 1 done 10-30: the big model with one more leak-free epoch on 3,969 new users is &minus;0.17% curve / &minus;0.03% instant vs the big model (1 leak-free epoch), between the go and stop bars. Stage 2 (teacher targets, ~4 h GPU) and stage 3 (small-model cool-down, ~8.5 h) are parked (user 10-30 ~21:00); the checkpoint is kept in wt/sm65; expected student gain about 0.03&ndash;0.08 points curve, ~0 instant. Design: artifacts/small-model/sm65/DESIGN.md. 11-01: kept parked until more users are in the dataset (the 100k-user release, see more data (SM61)): a teacher trained on many more users is the version worth distilling from; stage 2 would only redo the final cool-down with swapped teacher targets (~13 GPU h) for ~0.03&ndash;0.08 points curve, ~0 instant",
+   "since": "11-01T10:20"
   },
   {
    "status": "done",
