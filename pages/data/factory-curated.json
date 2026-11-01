@@ -2023,7 +2023,7 @@
      "Inputs: the model&rsquo;s 64-wide state at the review after the input encoder and after each of the 4 layer rounds (layer-normalised) plus the instant head&rsquo;s 128-wide layer (448 values); and 26 causal time features: the card&rsquo;s last 3 log answer times with &ldquo;none&rdquo; flags, its review count and last grade, the user&rsquo;s running median per grade, the user&rsquo;s previous and average log time, log interval, the user&rsquo;s review index. No-leak checks on both kinds of input.",
      "Head: 474 &rarr; 128 &rarr; 64 (4 grades &times; 16 time bins), zero-initialised output, censored cross-entropy on the true grade; trained alone (the model runs forward only): 9,887 AdamW steps, 81.0M labelled rows of the 1,991 users of SM82&rsquo;s cool-down (first 400k reviews each), 45.0 min.",
      "Size: +69,056 parameters (331,511 &rarr; 400,567), export +70,400 B. Serving needs per user a running median per grade and two scalars, per card its last 3 times.",
-     "Predicted / actual share of answers under 5.5 s: Again 0.146 / 0.140, Hard 0.211 / 0.214, Good 0.324 / 0.330, Easy 0.389 / 0.399."
+     "Predicted / actual share of answers under 3.9 s: Again 0.146 / 0.140, Hard 0.211 / 0.214, Good 0.324 / 0.330, Easy 0.389 / 0.399."
     ]
    }
   },
@@ -2078,7 +2078,7 @@
     },
     "notes": [
      "Frozen: the whole released model runs forward only (fp32, leak-free inputs, no gradient); only the head (one zero-initialised linear layer, 128 &rarr; 4 grades &times; 16 time bins) trains: plain AdamW, lr 2e-3 cosine, 9,923 steps of 8,192 rows, 81.3M labelled rows from the 1,991 users of SM82&rsquo;s cool-down (first 400k reviews each), 40.9 min.",
-     "Predicted / actual share of answers under 5.5 s: Again 0.110 / 0.140, Hard 0.211 / 0.214, Good 0.296 / 0.330, Easy 0.332 / 0.399 (SM82: within 0.01). Size +8,256 parameters, export +8,704 B."
+     "Predicted / actual share of answers under 3.9 s: Again 0.110 / 0.140, Hard 0.211 / 0.214, Good 0.296 / 0.330, Easy 0.332 / 0.399 (SM82: within 0.01). Size +8,256 parameters, export +8,704 B."
     ]
    }
   },
@@ -2151,7 +2151,7 @@
      "Stage 0 audit (723 users, 42.8M reviews): median user answers in 7.8 s (p10 4.0 s, p90 19.4 s); 5.6% of answers at the 60 s cap (treated as &ldquo;60 s or more&rdquo;), 0.09% at 0; 38% of the within-user spread is card to card.",
      "Leak found and avoided: the interval input is answer-to-answer, so on same-day reviews it contains the answer time itself (77% of immediate repeats within 1.5 s of their own time). The time head is trained and scored only on reviews on a later day than the card&rsquo;s previous one (70% of reviews).",
      "Head: one zero-initialised linear layer from the instant head&rsquo;s 128-wide layer to 4 grades &times; 16 bins, censored cross-entropy, weight 0.1, true answers only; +8,256 parameters, export +8,704 B. CPU proof: with the head at zero, grade outputs and gradients bit-identical to the reference recipe.",
-     "Predicted / actual share of answers under 5.5 s: Again 0.148 / 0.140, Hard 0.222 / 0.214, Good 0.330 / 0.330, Easy 0.400 / 0.399. Cool-down 120.4 min at 20,147 reviews/s."
+     "Predicted / actual share of answers under 3.9 s: Again 0.148 / 0.140, Hard 0.222 / 0.214, Good 0.330 / 0.330, Easy 0.400 / 0.399. Cool-down 120.4 min at 20,147 reviews/s."
     ]
    }
   },
