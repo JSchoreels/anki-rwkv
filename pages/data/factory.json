@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-01T07:10:18+01:00",
- "updated": "2026-11-01 07:10",
- "material": "f8edee0b1e865a5b",
- "summary": "running 000816, finished 000815",
+ "generated_at": "2026-11-01T07:23:24+01:00",
+ "updated": "2026-11-01 07:23",
+ "material": "2f85cd7d96513c69",
+ "summary": "idle, finished 000816",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring (curve / instant)",
@@ -237,23 +237,7 @@
    "track": "small model"
   }
  ],
- "now": [
-  {
-   "what": "Frozen-model answer-time head (SM82b): the answer-time head of response-time prediction (SM82) trained alone on a frozen copy of the released small model, so its grade predictions cannot change (only the head trains: 1,991 users, first 400k reviews each, 10k AdamW steps); then time scoring on the 732 set against the same baselines and a bitwise grade check against the released model",
-   "id": "SM82b, ticket 000816",
-   "kind": "gpu-train",
-   "decides": "Pass if the grade predictions are bitwise those of the released model and the head beats both time baselines (card&rsquo;s last time 2.447 nats, user&rsquo;s running median per grade 2.366); also shows how much time accuracy freezing costs vs SM82&rsquo;s jointly trained head (1.930). A pass gives a deployable answer-time head for stage 2 (answer-time curves and workload in the simulator)",
-   "why": "",
-   "job": "frozen-model answer-time head (SM82b): time scoring of the head on the 732 pool minus 9 never-fit (723, pass 1)",
-   "linked": true,
-   "track": "small model",
-   "ticket": "000816-small-model",
-   "started": "07:10",
-   "elapsed": "0:00",
-   "progress": null,
-   "eta": "~07:35"
-  }
- ],
+ "now": [],
  "charts": [
   {
    "title": "Small model, leak-free (SM72s): LogLoss per epoch, 458-user set (lower is better)",
@@ -424,6 +408,15 @@
  "waiting": [],
  "recent": [
   {
+   "ticket": "000816-small-model",
+   "id": "SM82b",
+   "what": "frozen-model answer-time head (SM82b): time scoring of the head on the 732 pool minus 9 never-fit (723, pass 1)",
+   "ended": "07:22",
+   "date": "11-01",
+   "exit": 0,
+   "ran": "0:12"
+  },
+  {
    "ticket": "000815-small-model",
    "id": "SM82b",
    "what": "frozen-model answer-time head (SM82b): grade check: the released small model vs the frozen model with the head (5 users, scorer rows and dumps bitwise)",
@@ -464,15 +457,6 @@
    "id": "SM82",
    "what": "response-time prediction (SM82): scoring sm82-arm-e21-q32k on the 3 long users of the 732 pool (cap 0.92)",
    "ended": "05:55",
-   "date": "11-01",
-   "exit": 0,
-   "ran": "0:00"
-  },
-  {
-   "ticket": "000810-small-model",
-   "id": "SM82",
-   "what": "response-time prediction (SM82): scoring sm82-arm-e21-q32k on the 732 pool minus 9 never-fit (723) (pass 2)",
-   "ended": "05:54",
    "date": "11-01",
    "exit": 0,
    "ran": "0:00"
@@ -1641,11 +1625,12 @@
    "what": "Frozen-model answer-time head (SM82b): the answer-time head of response-time prediction (SM82) trained alone on a frozen copy of the released small model, so its grade predictions cannot change (only the head trains: 1,991 users, first 400k reviews each, 10k AdamW steps); then time scoring on the 732 set against the same baselines and a bitwise grade check against the released model",
    "when": "Smoke OK 06:28 Sun (trunk unchanged); head training ~06:29&ndash;~07:50, grade check and time scoring, rule ~08:20 Sun",
    "decides": "Pass if the grade predictions are bitwise those of the released model and the head beats both time baselines (card&rsquo;s last time 2.447 nats, user&rsquo;s running median per grade 2.366); also shows how much time accuracy freezing costs vs SM82&rsquo;s jointly trained head (1.930). A pass gives a deployable answer-time head for stage 2 (answer-time curves and workload in the simulator)",
-   "state": "running",
-   "started": "07:10",
-   "ticket": "000816-small-model",
+   "state": "done",
+   "ended": "07:22",
+   "exit": 0,
+   "started": "06:28",
    "started_at": "2026-11-01T06:28:23+01:00",
-   "ends_at": "2026-11-01T08:28:23+01:00"
+   "ended_at": "2026-11-01T07:22:58+01:00"
   }
  ],
  "gpu_break": {
