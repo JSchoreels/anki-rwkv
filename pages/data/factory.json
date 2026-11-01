@@ -1,7 +1,7 @@
 {
- "generated_at": "2026-11-01T10:35:25+01:00",
+ "generated_at": "2026-11-01T10:35:59+01:00",
  "updated": "2026-11-01 10:35",
- "material": "77b780dae26af1af",
+ "material": "d3f94dc03b8c1feb",
  "summary": "running 000823",
  "headline": [
   {
@@ -427,6 +427,18 @@
    "id": "SM33",
    "what": "grade-order sanity (SM33): stage 1, CUDA probe check + what-if intervals of the released small model on the 732 pool (723 users, 3,000 reviews each)",
    "flags": "expected 40 min"
+  },
+  {
+   "ticket": "000825-small-model",
+   "id": "SM31",
+   "what": "duration-leak scoring (SM31): show-time intervals (e2s-query): scoring the released small model on the 723 users of the 732 set (pass 1)",
+   "flags": "expected 20 min"
+  },
+  {
+   "ticket": "000826-small-model",
+   "id": "SM41",
+   "what": "the small model in the review simulator (SM41): batched recurrent-step throughput benchmark (random states, B = 1 to 16,384 learners, ~3 min)",
+   "flags": "expected 5 min"
   }
  ],
  "recent": [
@@ -1456,7 +1468,8 @@
    "track": "small model",
    "when": "On hold: not started; the deleted-card leak check and the leak-free retrain (SM71, SM72) took the GPU",
    "decides": "Honest final numbers; outside runs: +0.0002 / +0.0004 for both models",
-   "state": "hold"
+   "state": "waiting",
+   "ticket": "000825-small-model"
   },
   {
    "what": "Stack the week&rsquo;s winners (learning rate, teacher targets, timestamps, head changes) into one decay; then the decisive 2,225-user check",
@@ -1711,7 +1724,8 @@
    "what": "Duration-leak scoring (SM31): the released small model and the big model (1 leak-free epoch) scored with intervals as Anki knows them when it shows the card (without the review&rsquo;s own answer time)",
    "when": "Building since 10:45 Sun",
    "decides": "Honest deployment numbers for both models and the small-vs-big gap without the leak",
-   "state": "planned"
+   "state": "waiting",
+   "ticket": "000825-small-model"
   },
   {
    "id": "SM29",
@@ -1756,7 +1770,8 @@
    "what": "The small model in the review simulator (SM41) stage 1: design and a prototype rolling the released model forward as a simulated learner (5 users, 90 days), checked against the users&rsquo; real continuation",
    "when": "Building since 10:05 Sun",
    "decides": "Whether a model-driven simulator is valid enough for scheduling-policy search, and its cost",
-   "state": "planned"
+   "state": "waiting",
+   "ticket": "000826-small-model"
   },
   {
    "id": "SM83",
