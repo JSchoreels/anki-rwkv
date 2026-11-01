@@ -1,7 +1,7 @@
 {
- "generated_at": "2026-11-01T10:22:48+01:00",
- "updated": "2026-11-01 10:22",
- "material": "cd711634e3a40958",
+ "generated_at": "2026-11-01T10:27:54+01:00",
+ "updated": "2026-11-01 10:27",
+ "material": "8df732d94e9c22d8",
  "summary": "idle",
  "headline": [
   {
@@ -1673,6 +1673,22 @@
  },
  "backlog": [
   {
+   "status": "done",
+   "id": "SM84",
+   "track": "small model",
+   "item": "Time to fluency (SM84)",
+   "why": "Asked 11-01: done 11-01 (see results)",
+   "since": "11-01T10:21"
+  },
+  {
+   "status": "next",
+   "id": "SM86",
+   "track": "small model",
+   "item": "Wider simulator search with time-aware scheduling (SM86): desired retention 0.30&ndash;0.98, plus a per-card policy maximising stability gain per predicted second",
+   "why": "Asked 11-01: running on CPU (with an unlimited deck every optimum still sits at the lower bound, so a 10-new-cards-a-day setup was added)",
+   "since": "11-01T10:21"
+  },
+  {
    "status": "next",
    "id": "SM87",
    "track": "small model",
@@ -1681,11 +1697,11 @@
    "since": "11-01T10:45"
   },
   {
-   "status": "next",
+   "status": "dropped",
    "id": "SM88",
    "track": "small model",
    "item": "Slow-Good signal (SM88): among Good answers with the same predicted recall, do slow ones lapse more at the next review?",
-   "why": "If yes, the scheduler could shorten intervals after slow Goods; if not, the model already uses answer times. CPU",
+   "why": "If yes, the scheduler could shorten intervals after slow Goods; if not, the model already uses answer times. CPU. Done 11-01: no usable signal, the model already accounts for slow Goods (see results)",
    "since": "11-01T10:45"
   },
   {
@@ -2149,6 +2165,92 @@
   }
  ],
  "results": [
+  {
+   "date": "11-01",
+   "kind": "cpu",
+   "id": "SM88",
+   "track": "small model",
+   "name": "Slow-Good signal (SM88): at equal predicted recall, do slow Good answers lapse more at the card&rsquo;s next review?",
+   "eval": "150 users of the 732 set, 1,788,213 pairs (a Good, then the card&rsquo;s next review on a later day); user bootstrap 2,000, seed 0",
+   "fork": "Controls: the small model&rsquo;s scheduling-time and review-time predictions at the next review",
+   "takeaway": "<strong>No usable signal: the model already accounts for slow Goods</strong>. Slowest vs fastest fifth of Goods (time relative to the user&rsquo;s median Good): next-review lapse &minus;0.41 points [&minus;1.10, +0.25] at equal scheduling-time prediction, residual vs the prediction &minus;0.56 [&minus;1.12, &minus;0.01] (the opposite sign: slow Goods lapse slightly less than predicted). Calibrated in every time tercile (actual / predicted 1.010, 0.981, 0.981). Shortening intervals after slow Goods would not help",
+   "started_at": "2026-11-01T10:15+01:00",
+   "ended_at": "2026-11-01T10:25+01:00",
+   "gpu_minutes": 0,
+   "tickets": 0,
+   "detail": {
+    "verdict": "Stop: no residual in the useful direction",
+    "table": {
+     "head": [
+      "Control",
+      "Actual lapse, slowest &minus; fastest fifth (points)",
+      "Residual vs prediction (points)"
+     ],
+     "rows": [
+      [
+       "Scheduling-time prediction",
+       "&minus;0.41 [&minus;1.10, +0.25]",
+       "&minus;0.56 [&minus;1.12, &minus;0.01]"
+      ],
+      [
+       "Review-time prediction",
+       "&minus;0.44 [&minus;0.80, &minus;0.11]",
+       "&minus;0.16 [&minus;0.35, +0.05]"
+      ]
+     ]
+    },
+    "notes": [
+     "Overall next-review Again rate 10.15%, predicted 10.26%. Logistic regression coefficient on ln relative time &minus;0.027 (SE 0.014, user-clustered) with the scheduling-time control, &minus;0.007 (0.004) with the review-time control; slope on logit(predicted recall) &minus;1.01 (calibrated).",
+     "Limits: test reviews only; small model only; regression standard errors cluster-robust, not bootstrapped. Branch sm88."
+    ]
+   }
+  },
+  {
+   "date": "11-01",
+   "kind": "cpu",
+   "id": "SM84",
+   "track": "small model",
+   "name": "Time to fluency (SM84): in the stage 2 simulator of response-time prediction (SM82), how many reviews and seconds until a card is first answered Good in under 3.9 s, by desired retention and interval-growth policy",
+   "eval": "150 users of the 732 set; simulator with each user&rsquo;s FSRS-6 parameters and the answer-time head&rsquo;s cost and speed curves (cost model C)",
+   "fork": "Fluent = first Good under 3.9 s",
+   "takeaway": "<strong>Fluency is mostly about the user, and higher retention makes it cheaper</strong>: at desired retention 0.90, 37.5% of cards are fluent by day 365 (4.9 reviews, 99 s each; 312 s per fluent card counting the cards that never get there); 67% for the fastest third of users vs 17% for the slowest. Seconds per fluent card fall as retention rises (2.6&times; at 0.70, 0.45&times; at 0.98 vs 0.90) but yearly time doubles (304 s vs 158 s per card at 0.98 vs 0.90). Absolute shares are about 2&times; optimistic (33% simulated vs 17% observed fluent): read the policy comparisons only",
+   "started_at": "2026-11-01T10:05+01:00",
+   "ended_at": "2026-11-01T10:21+01:00",
+   "gpu_minutes": 0,
+   "tickets": 0,
+   "detail": {
+    "verdict": "Measurement: fluency favours high desired retention; fixed interval growth 1.3&ndash;2&times; reaches fluency more cheaply at equal yearly time but memorises less",
+    "table": {
+     "head": [
+      "Desired retention",
+      "Seconds per fluent card vs 0.90",
+      "Yearly time per card"
+     ],
+     "rows": [
+      [
+       "0.70",
+       "2.6&times;",
+       "&mdash;"
+      ],
+      [
+       "0.90",
+       "1&times;",
+       "158 s"
+      ],
+      [
+       "0.98",
+       "0.45&times;",
+       "304 s"
+      ]
+     ]
+    },
+    "notes": [
+     "89% of users have their cheapest fluency at the 0.98 bound. Under 5.5 s: 61% fluent; two fast Goods in a row: 2.4% (4.5% keeping the head&rsquo;s persistence).",
+     "Fixed interval growth &times;2 vs one desired retention 0.94 at equal yearly time: cheaper fluency, but memorised 0.944 vs 0.971. In the simulator speed depends only on recall, so the stage 2 link between interval growth and fast Goods is not a lever here.",
+     "Speed sticks to the card: after a fast Good the next answer is a fast Good 31% of the time vs 7% otherwise (the head predicts this); the simulator does not keep it, hence the optimistic absolute shares. Branch sm84."
+    ]
+   }
+  },
   {
    "date": "11-01",
    "kind": "cpu",
