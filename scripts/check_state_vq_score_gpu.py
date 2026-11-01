@@ -12,6 +12,8 @@ WKV + shift gather, deployed eigh codec, float64), full histories of small evalu
         of the same users (base numerics, reported only); then timing (reviews/s of w8+s8 and of every recipe on
         --timing-users mid-size users). Exit 1 on a mismatch.
 Pass: benchmark LogLoss (curve = ahead head, instant) within --tol (1e-5) of the CPU scorer for every user and case;
+Discrete codec tolerance (gpu mode, +vq cases only): per user within --discrete-tol (3e-4) on both heads, and the review-weighted
+mean of the signed d within --discrete-mean-tol (1e-4); rule, per-user d and the mean are recorded in the JSON.
 max |dp| over all labelled predictions is reported (near-tie code flips move a few predictions, not the metric).
 
   .venv/Scripts/python.exe -X utf8 scripts/check_state_vq_score_gpu.py cpu [--emulate-users 1]
@@ -92,7 +94,7 @@ def exact_logloss(labels, preds):
     return out
 
 
-def compare(ref, cand, tol):
+def compare(ref, cand, tol, rule="strict"):
     """ref / cand: dicts with preds, bench, exact. Returns the comparison entry."""
     d = {}
     for head in ("ahead", "instant"):
@@ -113,6 +115,8 @@ def compare(ref, cand, tol):
              (d[h]["d_benchmark_logloss"] is None or abs(d[h]["d_benchmark_logloss"]) <= tol + 1e-6)
              for h in ("ahead", "instant"))
     d["ok"] = bool(ok)
+    d["rule"] = rule
+    d["tol"] = tol
     return d
 
 
@@ -190,6 +194,10 @@ def main():
                         "first N users of the sm42 vq378x412 case")
     parser.add_argument("--timing-users", type=int, default=2, help="gpu: near-median users of the 732 pool to time")
     parser.add_argument("--tol", type=float, default=1e-5)
+    parser.add_argument("--discrete-tol", type=float, default=3e-4,
+                        help="gpu, +vq cases: per-user |d benchmark LogLoss| bound (discrete codec tolerance)")
+    parser.add_argument("--discrete-mean-tol", type=float, default=1e-4,
+                        help="gpu, +vq cases: bound on |review-weighted mean of the signed d| over the check users")
     parser.add_argument("--factor-dtype", choices=("float64", "float32"), default="float64")
     parser.add_argument("--ref-dir", default=str(OUT / "check-ref"))
     parser.add_argument("--output", default="")
@@ -217,7 +225,8 @@ def main():
     run = cc.run_info()
     data = cc.data_path(run)
     ref_dir = Path(args.ref_dir)
-    report = {"mode": args.mode, "tol_benchmark_logloss": args.tol, "users": {u: counts[str(u)] for u in users},
+    report = {"mode": args.mode, "tol_benchmark_logloss": args.tol, "discrete_tol": args.discrete_tol,
+              "discrete_mean_tol": args.discrete_mean_tol, "users": {u: counts[str(u)] for u in users},
               "factor_dtype_kernel": args.factor_dtype, "cases": {}, "provenance": process_provenance()}
     if not cpu:
         report["device"] = torch.cuda.get_device_name(0)
@@ -276,7 +285,9 @@ def main():
             else:
                 ref = load_ref(ref_dir, case, u)
                 cand = run_gpu_path(model, layout, codecs, batch, labels, u)
-                res["gpu"] = compare(ref, cand, args.tol)
+                discrete = name.startswith("vq")   # discrete codeword choices: near-tie flips, see AGENT.md
+                res["gpu"] = (compare(ref, cand, args.discrete_tol, "discrete") if discrete else
+                              compare(ref, cand, args.tol))
                 res["gpu"]["seconds"] = round(cand["seconds"], 3)
                 res["gpu"]["reviews_per_second"] = round(counts[str(u)] / cand["seconds"], 1)
             res["slot_calls"] = {k: CALLS[k] - calls0[k] for k in CALLS}
@@ -291,6 +302,23 @@ def main():
                        for k, v in res.items() if isinstance(v, dict) and "ok" in v}
             print(f"[sm44-check] {case} user {u} ({counts[str(u)]} reviews): (dLL curve, dLL instant, max|dp|, ok) "
                   f"{summary}", flush=True)
+        if not cpu and name.startswith("vq"):   # discrete rule 2: no sign bias over the check users
+            rows = [(counts[str(u)], entry["users"][str(u)]["gpu"]) for u in users[:n_users]]
+            wmean = {}
+            for h in ("ahead", "instant"):
+                ds = [(n, g[h]["d_benchmark_logloss"] if g[h]["d_benchmark_logloss"] is not None
+                       else g[h]["d_exact_logloss"]) for n, g in rows]
+                wmean[h] = sum(n * d for n, d in ds) / sum(n for n, _ in ds)
+            entry["discrete_rule"] = {"rule": "discrete codec tolerance", "per_user_tol": args.discrete_tol,
+                                      "weighted_mean_tol": args.discrete_mean_tol,
+                                      "per_user_d_benchmark_logloss": {str(u): {h: (g[h]["d_benchmark_logloss"]
+                                          if g[h]["d_benchmark_logloss"] is not None else g[h]["d_exact_logloss"])
+                                          for h in ("ahead", "instant")} for u, (_, g) in zip(users[:n_users], rows)},
+                                      "review_weighted_mean_d": wmean,
+                                      "mean_ok": all(abs(v) <= args.discrete_mean_tol for v in wmean.values())}
+            print(f"[sm44-check] {case} discrete rule: weighted mean d {wmean} (tol {args.discrete_mean_tol})", flush=True)
+            if not entry["discrete_rule"]["mean_ok"]:
+                fails.append(f"{case} weighted mean d {wmean} above {args.discrete_mean_tol}")
         report["cases"][case] = entry
     # base numerics (reported, not gated): float card/note state, no codec on either side, first case's model, w8
     model, layout = models[base_ckpt]
