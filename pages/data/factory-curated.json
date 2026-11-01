@@ -1499,9 +1499,108 @@
    "when": "Curve queries 08:56&ndash;09:17 Sun (150 users), CPU analysis 09:40: done (see results)",
    "decides": "Whether predicted answer times change the least-total-review-time choice (objective: least total review time for a given recall) and what a scheduler could do with them",
    "state": "done"
+  },
+  {
+   "id": "ST01a",
+   "track": "small model",
+   "since": "11-01T10:30",
+   "kind": "gpu-score",
+   "minutes": 60,
+   "match": [
+    "curve consistency on rapid Good pairs (ST01a): "
+   ],
+   "what": "Curve consistency on real rapid Good pairs (ST01a) stage 1: how much the curve&rsquo;s far tail (7, 30, 90, 365 days) jumps between two close Goods, released small model vs the big model (1 leak-free epoch), and which curve was closer where real later reviews exist",
+   "when": "Stage 1 from 10:33 Sun; a penalty cool-down (stage 2) only if the tail is jumpy",
+   "decides": "Whether the curve&rsquo;s long-term tail needs a consistency penalty (a cool-down judged against the reference: curve and instant within +0.03 points)"
+  },
+  {
+   "id": "SM31",
+   "track": "small model",
+   "since": "11-01T10:45",
+   "kind": "gpu-score",
+   "minutes": 60,
+   "match": [
+    "duration-leak scoring (SM31): "
+   ],
+   "what": "Duration-leak scoring (SM31): the released small model and the big model (1 leak-free epoch) scored with intervals as Anki knows them when it shows the card (without the review&rsquo;s own answer time)",
+   "when": "Building since 10:45 Sun",
+   "decides": "Honest deployment numbers for both models and the small-vs-big gap without the leak"
+  },
+  {
+   "id": "SM29",
+   "track": "small model",
+   "since": "11-01T10:45",
+   "kind": "gpu-score",
+   "minutes": 60,
+   "match": [
+    "robustness to other apps (SM29): "
+   ],
+   "what": "Robustness to other apps (SM29): the released small model and the big model scored with pass/fail-only ratings, without answer times, and both (grade heads only)",
+   "when": "Building since 10:45 Sun",
+   "decides": "How gently the models degrade for apps or users without full ratings or answer times"
+  },
+  {
+   "id": "SM33",
+   "track": "small model",
+   "since": "11-01T10:45",
+   "kind": "gpu-score",
+   "minutes": 60,
+   "match": [
+    "grade-order sanity (SM33): "
+   ],
+   "what": "Grade-order sanity (SM33): how often the released model&rsquo;s button intervals break Again &le; Hard &le; Good &le; Easy and whether the fork hides it; then, if needed, a soft penalty on breaks in a cool-down against the reference",
+   "when": "Measuring since 10:45 Sun",
+   "decides": "Whether to enforce the order in training (user&rsquo;s wish); outside research saw +0.002 curve for a hard constraint"
+  },
+  {
+   "id": "SM87",
+   "track": "small model",
+   "since": "11-01T10:45",
+   "kind": "gpu-train",
+   "minutes": 90,
+   "match": [
+    "frozen-model grade side head (SM87): "
+   ],
+   "what": "Frozen-model grade side head (SM87): the released model frozen, a small head adding a correction to its instant prediction from its internal states plus simple explicit features (the card&rsquo;s last grades and times, the user&rsquo;s recent pass rate)",
+   "when": "Building since 10:45 Sun; ~1 GPU h, before 16:00",
+   "decides": "Go if instant improves by &ge; 0.15 points (CI clear of zero), stop if &lt; 0.05; the curve is unchanged by construction"
+  },
+  {
+   "id": "SM41",
+   "track": "small model",
+   "since": "11-01T10:05",
+   "kind": "gpu-score",
+   "minutes": 30,
+   "match": [
+    "the small model in the review simulator (SM41): "
+   ],
+   "what": "The small model in the review simulator (SM41) stage 1: design and a prototype rolling the released model forward as a simulated learner (5 users, 90 days), checked against the users&rsquo; real continuation",
+   "when": "Building since 10:05 Sun",
+   "decides": "Whether a model-driven simulator is valid enough for scheduling-policy search, and its cost"
+  },
+  {
+   "id": "SM83",
+   "track": "small model",
+   "since": "11-01T10:05",
+   "kind": "gpu-score",
+   "minutes": 30,
+   "match": [
+    "answer-time head release (SM83): "
+   ],
+   "what": "Answer-time head release (SM83): the answer-time head on richer frozen features (SM82c) exported with the released small model and supported in the Anki fork (predicted answer time shown; scheduling unchanged)",
+   "when": "Building since 10:05 Sun; any public publish step waits for the user",
+   "decides": "Ships the time head"
   }
  ],
  "backlog": [
+  {
+   "status": "next",
+   "id": "SM83",
+   "track": "small model",
+   "item": "Answer-time head release (SM83): ship the answer-time head on richer frozen features (SM82c) in the Anki fork",
+   "why": "User 11-01: &ldquo;let&rsquo;s ship the time head&rdquo;",
+   "since": "11-01T10:05"
+  },
   {
    "status": "done",
    "id": "SM84",
@@ -1802,11 +1901,12 @@
    "track": "small model"
   },
   {
-   "status": "idea",
+   "status": "next",
    "item": "Support the small RWKV model in the open-spaced-repetition review simulator (srs-simulator), then let an AI agent search for the best review strategy on simulated users",
    "id": "SM41",
-   "why": "A recall model good enough to simulate learners turns scheduling into an offline search an AI agent can run. Needs our exported model in the simulator first (with the SM08 runtime port)",
-   "track": "small model"
+   "why": "A recall model good enough to simulate learners turns scheduling into an offline search an AI agent can run. Needs our exported model in the simulator first (with the SM08 runtime port). Picked up 11-01: design and a prototype first",
+   "track": "small model",
+   "since": "11-01T10:05"
   },
   {
    "status": "done",
