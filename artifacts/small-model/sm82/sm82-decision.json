@@ -1,0 +1,155 @@
+{
+ "grade": {
+  "users": 722,
+  "curve": {
+   "arm": 0.301079,
+   "reference": 0.30073,
+   "big": 0.298966,
+   "delta": 0.00035,
+   "points": 0.117,
+   "ci": [
+    0.038,
+    0.177
+   ],
+   "users_better": 247,
+   "arm_vs_big_pct": 0.707,
+   "reference_vs_big_pct": 0.59
+  },
+  "instant": {
+   "arm": 0.277949,
+   "reference": 0.277217,
+   "big": 0.275757,
+   "delta": 0.000733,
+   "points": 0.266,
+   "ci": [
+    0.242,
+    0.289
+   ],
+   "users_better": 58,
+   "arm_vs_big_pct": 0.795,
+   "reference_vs_big_pct": 0.529
+  }
+ },
+ "time": {
+  "users": 722,
+  "reviews": 21585938,
+  "uncensored": 20440806,
+  "time_logloss": {
+   "model": 1.92996,
+   "model_marginal": 1.95467,
+   "card_last": 2.44665,
+   "user_median": 2.36641
+  },
+  "mae_ln_s": {
+   "model": 0.46253,
+   "model_marginal": 0.4744,
+   "card_last": 0.72217,
+   "user_median": 0.64279
+  },
+  "vs": {
+   "card_last": {
+    "time_logloss": {
+     "delta": -0.51668,
+     "ci": [
+      -0.54106,
+      -0.4952
+     ],
+     "relative_pct": -21.12,
+     "users_better": 722
+    },
+    "mae_ln_s": {
+     "delta": -0.25963,
+     "ci": [
+      -0.27527,
+      -0.2455
+     ],
+     "relative_pct": -35.95,
+     "users_better": 722
+    }
+   },
+   "user_median": {
+    "time_logloss": {
+     "delta": -0.43645,
+     "ci": [
+      -0.46512,
+      -0.40986
+     ],
+     "relative_pct": -18.44,
+     "users_better": 722
+    },
+    "mae_ln_s": {
+     "delta": -0.18025,
+     "ci": [
+      -0.19501,
+      -0.16633
+     ],
+     "relative_pct": -28.04,
+     "users_better": 721
+    }
+   }
+  },
+  "by_grade_time_logloss": {
+   "1": {
+    "reviews": 2833721,
+    "model": 2.0394,
+    "card_last": 2.5233,
+    "user_median": 2.3602,
+    "p_under_5_5s_predicted_vs_actual": [
+     0.1477,
+     0.1399
+    ]
+   },
+   "2": {
+    "reviews": 4414931,
+    "model": 1.9167,
+    "card_last": 2.4233,
+    "user_median": 2.3682,
+    "p_under_5_5s_predicted_vs_actual": [
+     0.2222,
+     0.214
+    ]
+   },
+   "3": {
+    "reviews": 12582574,
+    "model": 1.9181,
+    "card_last": 2.4488,
+    "user_median": 2.383,
+    "p_under_5_5s_predicted_vs_actual": [
+     0.33,
+     0.33
+    ]
+   },
+   "4": {
+    "reviews": 1754712,
+    "model": 1.8714,
+    "card_last": 2.3664,
+    "user_median": 2.2528,
+    "p_under_5_5s_predicted_vs_actual": [
+     0.4004,
+     0.3985
+    ]
+   }
+  }
+ },
+ "grade_ok": false,
+ "time_beats_baselines": true,
+ "verdict": "fail-grade",
+ "rule": {
+  "grade": "curve and instant each <= +0.03 points of % of the big model (1 leak-free epoch) vs the reference",
+  "time": "model beats both baselines on the censored time LogLoss and on the mean |ln error| (uncensored), 95% CI of the review-weighted difference clear of zero (paired user bootstrap 2,000, seed 0)",
+  "time_reviews": "benchmark test reviews of the 722 users with a recorded time, on a later day than the card's previous review; conditional on the true grade"
+ },
+ "arm_rows": "C:/Users/jonat/workspace/wt/sm82/artifacts/small-model/sm82/gpu/sm82-neighbour.jsonl",
+ "arm_label": "sm82-arm-e21-q32k/w8+s8",
+ "ref_rows": "C:/Users/jonat/workspace/wt/sm77/artifacts/small-model/sm77/gpu/sm77-neighbour.jsonl",
+ "ref_label": "sm77-ref-e21-q32k/w8+s8",
+ "time_rows": "C:/Users/jonat/workspace/wt/sm82/artifacts/small-model/sm82/gpu/sm82-time.jsonl",
+ "baselines": "C:/Users/jonat/workspace/wt/sm82/artifacts/small-model/sm82/time-baselines.jsonl",
+ "size": {
+  "parameters_arm": 339767,
+  "parameters_reference": 331511,
+  "weight_bytes_arm": 419163,
+  "weight_bytes_reference": 410459,
+  "weight_bytes_change": 8704
+ }
+}
