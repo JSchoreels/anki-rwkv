@@ -1877,11 +1877,12 @@
    "why": "From an outside audit of SM40 (10-20): the curve is trained only at the next real review, so its long-term tail can change freely between answers; repeated rapid Goods on a mature card make the interval jump, then collapse (the big model jumps too). CPU only. Tells whether it matters on real histories or only in the stress test &mdash; parked 10-28: a measurement, not a better model"
   },
   {
-   "status": "idea",
+   "status": "next",
    "id": "ST01a",
    "track": "curve stability",
    "item": "Consistency on real rapid Good pairs: compare the curve before and after the second Good at the same future dates (days, months, a year)",
-   "why": "Our simpler first version of ST01: ~5&ndash;6M real pairs in the training data, both curves already computed in the same pass, so almost no extra cost; a small penalty, only for short gaps where Good was expected. One-epoch decay like SM42, judged on 732 users (curve and instant must not get worse) plus the stress test"
+   "why": "Our simpler first version of ST01: ~5&ndash;6M real pairs in the training data, both curves already computed in the same pass, so almost no extra cost; a small penalty, only for short gaps where Good was expected. One-epoch decay like SM42, judged on 732 users (curve and instant must not get worse) plus the stress test. Picked up 11-01: measure the far-tail jumps first (small vs big model), penalty cool-down only if needed",
+   "since": "11-01T11:00"
   },
   {
    "status": "idea",
