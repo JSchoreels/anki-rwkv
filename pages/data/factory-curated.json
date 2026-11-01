@@ -1577,9 +1577,30 @@
    "what": "Answer-time head release (SM83): the answer-time head on richer frozen features (SM82c) exported with the released small model and supported in the Anki fork (predicted answer time shown; scheduling unchanged)",
    "when": "Building since 10:05 Sun; any public publish step waits for the user",
    "decides": "Ships the time head"
+  },
+  {
+   "id": "SM90",
+   "track": "small model",
+   "since": "11-01T13:00",
+   "kind": "gpu-score",
+   "minutes": 120,
+   "match": [
+    "codebook state compression sweep (SM90): "
+   ],
+   "what": "Codebook state compression sweep (SM90): design, CPU proof, a cheap screen of 2&times;&ndash;6&times; smaller budgets than the large-budget compression (SM46) on the released small model, then the finalists on the 732 set",
+   "when": "Designing since 13:00 Sun; GPU after the queued work",
+   "decides": "The smallest codebook budget within +0.02 points of the fork&rsquo;s int4 + int8 state, with its codebook size and speed"
   }
  ],
  "backlog": [
+  {
+   "status": "next",
+   "item": "Codebook state compression sweep (SM90): on the released small model, shrink the state compression at a large budget (SM46) by 2&times;, 3&times; and more, and tune the quantization pipeline, to find the smallest budget that is still nearly free",
+   "id": "SM90",
+   "why": "Suggested by outside research. The large budget cost only +0.00009 / +0.00015 at 4.5&times; smaller state than int8; earlier ~800-bit codebooks cost +0.37% / +0.67%, so the cliff is in between. Verdict includes codebook size and scoring/encode speed, not only accuracy",
+   "track": "small model",
+   "since": "11-01T13:00"
+  },
   {
    "status": "next",
    "id": "SM83",
