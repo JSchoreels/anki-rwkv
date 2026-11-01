@@ -1485,6 +1485,19 @@
    "what": "Answer-time head on richer frozen features (SM82c): the released small model stays frozen (grade unchanged), the answer-time head becomes a small network reading earlier internal states of the model plus simple causal time features the model was never asked to keep (the card&rsquo;s previous answer times, the user&rsquo;s running median per grade, the interval); with an ablation on the time features alone",
    "when": "CPU proof PASS 07:41 Sun; smoke OK 07:42; head training 07:42&ndash;08:27 (45.0 min); grade check and time scoring, rule 08:41 Sun: <strong>pass</strong> (see results)",
    "decides": "Pass if grade is bitwise unchanged and the head beats both time baselines (2.447 / 2.366) with CIs clear of zero; shows how close a frozen model gets to the jointly trained head of response-time prediction (SM82) (1.930) and what the model&rsquo;s states add over the time features alone"
+  },
+  {
+   "id": "SM82",
+   "track": "small model",
+   "since": "11-01T08:45",
+   "kind": "gpu-score",
+   "minutes": 60,
+   "match": [
+    "response-time prediction (SM82) stage 2: answer-time curve queries"
+   ],
+   "what": "Response-time prediction (SM82) stage 2: answer-time curves (recall, expected answer time and the chance of a fast Good as a function of the interval, from the frozen released model with the answer-time head on richer frozen features (SM82c)), patterns behind fast Goods, and answer-time-aware workload in the simulator instead of fixed per-grade costs",
+   "when": "Building since 08:45 Sun; curve queries on 150 users of the 732 set, then CPU analysis; before the 16:00 break",
+   "decides": "Whether predicted answer times change the least-total-review-time choice (objective: least total review time for a given recall) and what a scheduler could do with them"
   }
  ],
  "backlog": [
