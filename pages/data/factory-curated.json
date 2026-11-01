@@ -1469,6 +1469,22 @@
    "what": "Frozen-model answer-time head (SM82b): the answer-time head of response-time prediction (SM82) trained alone on a frozen copy of the released small model, so its grade predictions cannot change (only the head trains: 1,991 users, first 400k reviews each, 10k AdamW steps); then time scoring on the 732 set against the same baselines and a bitwise grade check against the released model",
    "when": "Smoke OK 06:28 Sun; head training 06:29&ndash;07:10 (40.9 min); grade check and time scoring, rule 07:23 Sun: <strong>fail on time, grade unchanged</strong> (see results)",
    "decides": "Pass if the grade predictions are bitwise those of the released model and the head beats both time baselines (card&rsquo;s last time 2.447 nats, user&rsquo;s running median per grade 2.366); also shows how much time accuracy freezing costs vs SM82&rsquo;s jointly trained head (1.930). A pass gives a deployable answer-time head for stage 2 (answer-time curves and workload in the simulator)"
+  },
+  {
+   "id": "SM82c",
+   "track": "small model",
+   "since": "11-01T07:41",
+   "kind": "gpu-train",
+   "minutes": 90,
+   "match": [
+    "answer-time head on richer frozen features (SM82c): smoke",
+    "head training on the frozen released small model (1,991 users of the quarter-epoch cool-down, first 400k reviews each, 10k AdamW steps, head + explicit-only ablation)",
+    "grade check: the released small model vs the exported model with the head",
+    "time scoring of the head and the ablation on the 732 pool"
+   ],
+   "what": "Answer-time head on richer frozen features (SM82c): the released small model stays frozen (grade unchanged), the answer-time head becomes a small network reading earlier internal states of the model plus simple causal time features the model was never asked to keep (the card&rsquo;s previous answer times, the user&rsquo;s running median per grade, the interval); with an ablation on the time features alone",
+   "when": "CPU proof PASS 07:41 Sun; smoke, head training (~45 min), grade check and time scoring; rule ~09:00 Sun",
+   "decides": "Pass if grade is bitwise unchanged and the head beats both time baselines (2.447 / 2.366) with CIs clear of zero; shows how close a frozen model gets to the jointly trained head of response-time prediction (SM82) (1.930) and what the model&rsquo;s states add over the time features alone"
   }
  ],
  "backlog": [
