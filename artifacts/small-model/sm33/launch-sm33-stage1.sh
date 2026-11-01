@@ -50,13 +50,13 @@ MAXWAIT=$((FREE - MIN - 3))
 log "enqueue (expected $MIN min, max wait $MAXWAIT min)"
 "$PY" "$QUEUE" run --owner small-model --purpose "grade-order sanity (SM33): stage 1, CUDA probe check + what-if intervals of the released small model on the 732 pool (723 users, 3,000 reviews each)" \
   --claim gpu --expected-minutes $MIN --max-wait-minutes $MAXWAIT --launched-by "detached launcher sm33/launch-sm33-stage1.sh" -- \
-  bash -c "\"$PY\" -X utf8 scripts/sm33_grade_order.py check --model $M --device cuda --user 4 --max-rows 20000 --probes 3000 --json $G/check-cuda.json \
-    && \"$PY\" -X utf8 scripts/sm33_grade_order.py measure --model $M --device cuda --users-file $USERS --probes 3000 --time-limit 2100 --out $OUT" \
+  bash -c "\"$PY\" -X utf8 $WT/scripts/sm33_grade_order.py check --model $M --device cuda --user 4 --max-rows 20000 --probes 3000 --json $G/check-cuda.json \
+    && \"$PY\" -X utf8 $WT/scripts/sm33_grade_order.py measure --model $M --device cuda --users-file $USERS --probes 3000 --time-limit 2100 --out $OUT" \
   >> "$G/stage1.out" 2>&1
 rc=$?
 log "ticket exit $rc"
 [ "$rc" = 0 ] || exit $rc
-"$PY" -X utf8 scripts/sm33_grade_order.py report --out "$OUT" >> "$G/stage1.out" 2>&1
+"$PY" -X utf8 "$WT/scripts/sm33_grade_order.py" report --out "$OUT" >> "$G/stage1.out" 2>&1
 log "report exit $?: $OUT/sm33-stage1.json"
 cp "$OUT/sm33-stage1.json" "$S/sm33-stage1.json" 2>/dev/null
 log "done"
