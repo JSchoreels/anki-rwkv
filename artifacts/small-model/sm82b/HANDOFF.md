@@ -25,7 +25,16 @@ Then the rule on CPU: `scripts/sm82b_head.py decide` -> [sm82b-decision.md](sm82
 
 ## Timeline (Sunday 11-01, GPU break from 16:00)
 
-TIMELINE
+| step | expected | when |
+|---|---|---|
+| CPU preparation + proof (PASS, 65 s) | 2 min | 06:27-06:28 |
+| ticket 1: smoke (exit 0) | 35 s | 06:28:23-06:28:58 |
+| ticket 2 (queue 000814): head training (136.1M reviews forward, 9,999 steps) | ~50 min at the scorer's ~45-56k reviews/s; ticket budget 80 min | started 06:29, ends ~07:20 (at worst ~07:50) |
+| ticket 3: grade check (5 users, both models) | ~5 min | ~07:25 |
+| ticket 4: time scoring (723 users; SM82's took 12.7 min) | ~13 min | ~07:30-07:45 |
+| rule | seconds | ~07:45 (at worst ~08:15) |
+
+Expected end: well before the 16:00 break. The long run's throughput had not been measured yet at handoff time; the first `train.out` progress line (step 500) gives it.
 
 ## Files
 
