@@ -18,7 +18,7 @@ from expertium.model.srs_model import (DTYPE_EXCLUDE, ExactIndexSelect, ExactPad
                                        FunctionType, ModuleType, SrsRWKV, SrsRWKVIterStatistics, wddm_flush_point)
 
 # The GRU head's root parameters stay float32 like the linears they replace (upstream DTYPE_EXCLUDE "gru_").
-VARIANT_DTYPE_EXCLUDE = DTYPE_EXCLUDE + ["gru_", "time_heads"]   # SM82: the answer-time head stays float32 like p_linear
+VARIANT_DTYPE_EXCLUDE = DTYPE_EXCLUDE + ["gru_", "time_heads", "time_mlps"]   # SM82: the answer-time head stays float32 like p_linear
 # SM21 (scripts/state_carry_train.py): while a StateCarry is active for a model object, that model's interleaved
 # streams run with carried state. None (the default, always outside the opt-in `state_carry` option) = stock path.
 CARRY_HOOK = [None]
@@ -51,6 +51,22 @@ class TimeHead(torch.nn.Module):
 
     def forward(self, x):
         return self.linear(x)
+
+
+class TimeMLP(torch.nn.Module):
+    """Answer-time head on richer frozen features (SM82c): hidden Linear + ReLU, then a zero-initialised output Linear
+    (4 grades x 16 log-time bins; a zero start predicts uniform bins, ln 16). Its inputs are assembled outside the model
+    (scripts/sm82c_head.py features); the model's forward never calls it."""
+
+    def __init__(self, inputs, hidden, outputs):
+        super().__init__()
+        self.hidden = torch.nn.Linear(inputs, hidden)
+        self.out = torch.nn.Linear(hidden, outputs)
+        torch.nn.init.zeros_(self.out.weight)
+        torch.nn.init.zeros_(self.out.bias)
+
+    def forward(self, x):
+        return self.out(torch.relu(self.hidden(x)))
 
 
 class VariantIterStatistics(NamedTuple):
@@ -307,6 +323,8 @@ class VariantSrsRWKV(SrsRWKV):
             self.time_loss_weight = float(variant.time_weight)
             self.time_heads = torch.nn.ModuleList(
                 [TimeHead(self.p_head_dim, 4 * self.time_bins)] if self.time_bins > 0 else [])
+            # SM82c: created after everything else (other parameters keep their order); empty = no parameter
+            self.time_mlps = torch.nn.ModuleList([TimeMLP(*[int(v) for v in variant.time_mlp])] if variant.time_mlp else [])
 
     # ---- GRU curve head (RWKV_GRU_HEAD) ----
     @torch.jit.ignore
@@ -723,5 +741,7 @@ class VariantSrsRWKV(SrsRWKV):
         # SrsRWKV.selective_cast skips the root module, so root parameters (the GRU head) stay float32.
         SrsRWKV.selective_cast(self, dtype)
         for head in self.time_heads:   # SM82: float32 like p_linear (VARIANT_DTYPE_EXCLUDE)
+            head.float()
+        for head in self.time_mlps:    # SM82c: float32 too
             head.float()
         return self
