@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-01T01:50:05+01:00",
- "updated": "2026-11-01 01:50",
- "material": "e27ac08b8cac8b3c",
- "summary": "running 000798, finished 000797",
+ "generated_at": "2026-11-01T01:51:08+01:00",
+ "updated": "2026-11-01 01:51",
+ "material": "8a29863bbf97b73f",
+ "summary": "running 000799, finished 000798",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring (curve / instant)",
@@ -239,19 +239,19 @@
  ],
  "now": [
   {
-   "what": "Score the epoch-25 cool-down on the 732 set (723 users it fits, then the 3 long users), paired against the released cool-down from epoch 20",
-   "id": "SM63, ticket 000798",
-   "kind": "gpu-score",
-   "decides": "Cool-down from epoch 25 beats the released one from epoch 20: &minus;0.00016 (interval just touching zero) / &minus;0.00010 (significant), 722 users",
+   "what": "Data-order re-seed (SM80): epoch 21 of the leak-free small model (SM72s) trained again from its epoch 20 with a new data seed (every epoch so far used the same seed, so the same window sampling), everything else identical (checked on CPU: same users, order, reviews, labels and teacher targets); then the same quarter-epoch Muon cool-down as the reference already scored in the tiny architecture additions run (SM77); scored on the 732 set",
+   "id": "SM80, ticket 000799",
+   "kind": "gpu-train",
+   "decides": "Go if curve &ge; 0.20 points or instant &ge; 0.15 better on 722 users (CI clear of zero), other head no worse than +0.03%; stop if both under 0.10; in between, report. A go means re-seeding every epoch in the final run (free)",
    "why": "",
-   "job": "scheduling-time vs review-time accuracy (SM81): scoring s-w64kd-final-sc-lanes-leakfree-dec25-1ep32k-muon with the start-of-day pass on the 732 pool minus 9 never-fit (723) (pass 2)",
+   "job": "data-order re-seed (SM80): arm quarter-epoch 32k Muon cool-down from the re-seeded epoch 21 (w64, the reference&#x27;s options and order) (segment to the next window or the end)",
    "linked": true,
    "track": "small model",
-   "ticket": "000798-small-model",
-   "started": "01:49",
+   "ticket": "000799-small-model",
+   "started": "01:50",
    "elapsed": "0:00",
    "progress": null,
-   "eta": "~01:59"
+   "eta": "~04:20"
   }
  ],
  "charts": [
@@ -423,13 +423,22 @@
  ],
  "waiting": [
   {
-   "ticket": "000799-small-model",
-   "id": "SM80",
-   "what": "data-order re-seed (SM80): arm quarter-epoch 32k Muon cool-down from the re-seeded epoch 21 (w64, the reference&#x27;s options and order) (segment to the next window or the end)",
-   "flags": "expected 150 min"
+   "ticket": "000800-small-model",
+   "id": "SM63",
+   "what": "scheduling-time vs review-time accuracy (SM81): scoring s-w64kd-final-sc-lanes-leakfree-dec25-1ep32k-muon with the start-of-day pass on the 3 long users of the 732 pool (cap 0.92)",
+   "flags": "expected 10 min"
   }
  ],
  "recent": [
+  {
+   "ticket": "000798-small-model",
+   "id": "SM63",
+   "what": "scheduling-time vs review-time accuracy (SM81): scoring s-w64kd-final-sc-lanes-leakfree-dec25-1ep32k-muon with the start-of-day pass on the 732 pool minus 9 never-fit (723) (pass 2)",
+   "ended": "01:50",
+   "date": "11-01",
+   "exit": 0,
+   "ran": "0:01"
+  },
   {
    "ticket": "000797-small-model",
    "id": "SM63",
@@ -474,15 +483,6 @@
    "date": "10-31",
    "exit": 0,
    "ran": "0:00"
-  },
-  {
-   "ticket": "000792-small-model",
-   "id": "SM77",
-   "what": "tiny architecture additions (SM77) stage 1: scoring sm77-ref-e21-q32k on the 3 long users of the 732 pool (cap 0.92)",
-   "ended": "16:06",
-   "date": "10-31",
-   "exit": 0,
-   "ran": "0:01"
   }
  ],
  "plan": [
@@ -1520,11 +1520,8 @@
    "minutes": 18,
    "what": "Score the epoch-25 cool-down on the 732 set (723 users it fits, then the 3 long users), paired against the released cool-down from epoch 20",
    "decides": "Cool-down from epoch 25 beats the released one from epoch 20: &minus;0.00016 (interval just touching zero) / &minus;0.00010 (significant), 722 users",
-   "state": "running",
-   "started": "01:49",
-   "ticket": "000798-small-model",
-   "started_at": "2026-10-30T12:55:39+01:00",
-   "ends_at": "2026-10-30T13:13:39+01:00"
+   "state": "waiting",
+   "ticket": "000800-small-model"
   },
   {
    "id": "SM65",
@@ -1597,10 +1594,13 @@
    "kind": "gpu-train",
    "minutes": 300,
    "what": "Data-order re-seed (SM80): epoch 21 of the leak-free small model (SM72s) trained again from its epoch 20 with a new data seed (every epoch so far used the same seed, so the same window sampling), everything else identical (checked on CPU: same users, order, reviews, labels and teacher targets); then the same quarter-epoch Muon cool-down as the reference already scored in the tiny architecture additions run (SM77); scored on the 732 set",
-   "when": "Smoke OK Sat 10-31 16:20; epoch 21 done 18:26 (125.7 min, 77,163 reviews/s); cool-down first segment 18:26&ndash;19:57 (paused for the break, resumable), rest ~01:00&ndash;~02:05 Sun; 732-set scoring and rule, ends ~02:30 Sun",
+   "when": "Smoke OK Sat 10-31 16:20; epoch 21 done 18:26 (125.7 min, 77,163 reviews/s); cool-down first segment 18:26&ndash;19:57 (paused for the break, resumable); second segment 01:00&ndash;01:16 killed by a stop, relaunched 01:49 from the 1,481-user snapshot (74.9% done), queued behind the scheduling-time vs review-time accuracy (SM81) scoring; 732-set scoring and rule, ends ~03:45 Sun",
    "decides": "Go if curve &ge; 0.20 points or instant &ge; 0.15 better on 722 users (CI clear of zero), other head no worse than +0.03%; stop if both under 0.10; in between, report. A go means re-seeding every epoch in the final run (free)",
-   "state": "waiting",
-   "ticket": "000799-small-model"
+   "state": "running",
+   "started": "01:50",
+   "ticket": "000799-small-model",
+   "started_at": "2026-10-31T16:20:03+01:00",
+   "ends_at": "2026-10-31T21:20:03+01:00"
   },
   {
    "id": "SM81",
@@ -1609,13 +1609,10 @@
    "kind": "gpu-score",
    "minutes": 85,
    "what": "Scheduling-time vs review-time accuracy (SM81): how much of the small model&rsquo;s accuracy a scheduler can use. Three points on the same reviews: at scheduling time (the curve made at the card&rsquo;s previous answer), at the start of the review day (instant head from the state before that day, new scorer pass), at review time (instant head). For the released small model and the big model (1 leak-free epoch), and FSRS-7 (per-user fit and default parameters) and FSRS7-Instant on the benchmark&rsquo;s test reviews of the 732 set",
-   "when": "Launcher waiting out the break; FSRS-7 side on CPU from 01:00 (~45 min), then after the data-order re-seed (SM80) ends ~02:30: small model (~40 min) and big model (~45 min) start-of-day scoring; table ~04:10 Sun",
+   "when": "Launcher waiting out the break; FSRS-7 side on CPU from 01:00 (killed by a stop at 01:16 at 428 of 726 users; rest re-run on CPU from 01:46); small model start-of-day scoring from 01:18 (~40 min), big model (~45 min) after the data-order re-seed (SM80) cool-down; table ~04:15 Sun",
    "decides": "Whether the small model&rsquo;s lead over FSRS-7 holds at scheduling time, and what share of the review-time gain is known at the start of the day (usable for daily rescheduling)",
-   "state": "running",
-   "started": "01:49",
-   "ticket": "000798-small-model",
-   "started_at": "2026-11-01T01:18:19+01:00",
-   "ends_at": "2026-11-01T02:43:19+01:00"
+   "state": "waiting",
+   "ticket": "000800-small-model"
   }
  ],
  "gpu_break": {
