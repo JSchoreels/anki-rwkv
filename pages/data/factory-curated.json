@@ -1468,7 +1468,7 @@
    ],
    "what": "Frozen-model answer-time head (SM82b): the answer-time head of response-time prediction (SM82) trained alone on a frozen copy of the released small model, so its grade predictions cannot change (only the head trains: 1,991 users, first 400k reviews each, 10k AdamW steps); then time scoring on the 732 set against the same baselines and a bitwise grade check against the released model",
    "when": "Smoke OK 06:28 Sun; head training 06:29&ndash;07:10 (40.9 min); grade check and time scoring, rule 07:23 Sun: <strong>fail on time, grade unchanged</strong> (see results)",
-   "decides": "Pass if the grade predictions are bitwise those of the released model and the head beats both time baselines (card&rsquo;s last time 2.447 nats, user&rsquo;s running median per grade 2.366); also shows how much time accuracy freezing costs vs SM82&rsquo;s jointly trained head (1.930). A pass gives a deployable answer-time head for stage 2 (answer-time curves and workload in the simulator)"
+   "decides": "Pass if the grade predictions are bitwise those of the released model and the head beats both time baselines (card&rsquo;s last time 2.447 nats, user&rsquo;s running median per grade 2.366); also shows how much time accuracy freezing costs vs the jointly trained head of response-time prediction (SM82) (1.930). A pass gives a deployable answer-time head for stage 2 (answer-time curves and workload in the simulator)"
   },
   {
    "id": "SM82c",
@@ -1523,7 +1523,7 @@
    "id": "SM82",
    "track": "small model",
    "item": "Response-time prediction (SM82): predict the answer time together with the grade, to find review patterns that lead to a good grade with a shorter answer time",
-   "why": "Asked 10-31, done 11-01: stage 0 audit; stage 1: joint training costs grade accuracy (SM82), the frozen model&rsquo;s last layer is too weak (SM82b), richer frozen states plus simple time features pass with the grade untouched (SM82c); stage 2: answer-time curves, fast-answer patterns and workload. Open: time to fluency, and a real simulator driven by the model (see SM41). Branches sm82, sm82b, sm82c, sm82s2",
+   "why": "Asked 10-31, done 11-01: stage 0 audit; stage 1: joint training costs grade accuracy (SM82), the frozen model&rsquo;s last layer is too weak (SM82b), richer frozen states plus simple time features pass with the grade untouched (SM82c); stage 2: answer-time curves, fast-answer patterns and workload. Open: time to fluency, and a real simulator driven by the model (see the small model in the review simulator (SM41)). Branches sm82, sm82b, sm82c, sm82s2",
    "since": "11-01T08:42"
   },
   {
@@ -2073,7 +2073,7 @@
     },
     "notes": [
      "Inputs: the model&rsquo;s 64-wide state at the review after the input encoder and after each of the 4 layer rounds (layer-normalised) plus the instant head&rsquo;s 128-wide layer (448 values); and 26 causal time features: the card&rsquo;s last 3 log answer times with &ldquo;none&rdquo; flags, its review count and last grade, the user&rsquo;s running median per grade, the user&rsquo;s previous and average log time, log interval, the user&rsquo;s review index. No-leak checks on both kinds of input.",
-     "Head: 474 &rarr; 128 &rarr; 64 (4 grades &times; 16 time bins), zero-initialised output, censored cross-entropy on the true grade; trained alone (the model runs forward only): 9,887 AdamW steps, 81.0M labelled rows of the 1,991 users of SM82&rsquo;s cool-down (first 400k reviews each), 45.0 min.",
+     "Head: 474 &rarr; 128 &rarr; 64 (4 grades &times; 16 time bins), zero-initialised output, censored cross-entropy on the true grade; trained alone (the model runs forward only): 9,887 AdamW steps, 81.0M labelled rows of the 1,991 users of the response-time prediction (SM82) cool-down (first 400k reviews each), 45.0 min.",
      "Size: +69,056 parameters (331,511 &rarr; 400,567), export +70,400 B. Serving needs per user a running median per grade and two scalars, per card its last 3 times.",
      "Predicted / actual share of answers under 3.9 s: Again 0.146 / 0.140, Hard 0.211 / 0.214, Good 0.324 / 0.330, Easy 0.389 / 0.399."
     ]
@@ -2087,7 +2087,7 @@
    "name": "Frozen-model answer-time head (SM82b): the answer-time head of response-time prediction (SM82) trained alone on a frozen copy of the released small model (only the head&rsquo;s 8,256 values train)",
    "eval": "Grade: 5 users bitwise vs the released model; time: 722 users (732 set), 21.59M test reviews on a later day than the card&rsquo;s previous one",
    "fork": "Grade unchanged: the released model&rsquo;s 0.30003 / 0.27654",
-   "takeaway": "<strong>Grade untouched, but the time head is weak: fail</strong>. Time LogLoss 2.339: only &minus;1.2% vs the user&rsquo;s running median per grade [&minus;2.6%, +0.3%], and its median error is 4.2% worse. The jointly trained head of SM82 reached 1.930. So the frozen model&rsquo;s last instant layer holds almost no answer-time information: the time skill in SM82 came from the model learning it, at the grade heads&rsquo; cost. Next: the head on earlier, richer layers of the frozen model",
+   "takeaway": "<strong>Grade untouched, but the time head is weak: fail</strong>. Time LogLoss 2.339: only &minus;1.2% vs the user&rsquo;s running median per grade [&minus;2.6%, +0.3%], and its median error is 4.2% worse. The jointly trained head of response-time prediction (SM82) reached 1.930. So the frozen model&rsquo;s last instant layer holds almost no answer-time information: the time skill in response-time prediction (SM82) came from the model learning it, at the grade heads&rsquo; cost. Next: the head on earlier, richer layers of the frozen model",
    "started_at": "2026-11-01T06:28+01:00",
    "ended_at": "2026-11-01T07:23+01:00",
    "gpu_minutes": 54,
@@ -2129,8 +2129,8 @@
      ]
     },
     "notes": [
-     "Frozen: the whole released model runs forward only (fp32, leak-free inputs, no gradient); only the head (one zero-initialised linear layer, 128 &rarr; 4 grades &times; 16 time bins) trains: plain AdamW, lr 2e-3 cosine, 9,923 steps of 8,192 rows, 81.3M labelled rows from the 1,991 users of SM82&rsquo;s cool-down (first 400k reviews each), 40.9 min.",
-     "Predicted / actual share of answers under 3.9 s: Again 0.110 / 0.140, Hard 0.211 / 0.214, Good 0.296 / 0.330, Easy 0.332 / 0.399 (SM82: within 0.01). Size +8,256 parameters, export +8,704 B."
+     "Frozen: the whole released model runs forward only (fp32, leak-free inputs, no gradient); only the head (one zero-initialised linear layer, 128 &rarr; 4 grades &times; 16 time bins) trains: plain AdamW, lr 2e-3 cosine, 9,923 steps of 8,192 rows, 81.3M labelled rows from the 1,991 users of the response-time prediction (SM82) cool-down (first 400k reviews each), 40.9 min.",
+     "Predicted / actual share of answers under 3.9 s: Again 0.110 / 0.140, Hard 0.211 / 0.214, Good 0.296 / 0.330, Easy 0.332 / 0.399 (response-time prediction (SM82): within 0.01). Size +8,256 parameters, export +8,704 B."
     ]
    }
   },
