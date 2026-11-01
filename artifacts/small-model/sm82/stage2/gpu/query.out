@@ -1,0 +1,56 @@
+[queue] 000821-small-model registered for gpu: response-time prediction (SM82) stage 2: answer-time curve queries on the frozen released small model + the answer-time head on richer frozen features (SM82c): 150 users of the 732 set, 15 elapsed-time grid points (pass 1)
+[queue] 000821-small-model started after 0:00:00; holds gpu
+[sm82s2-query] 150 users, 150 to query, grid 15, commit db19025a dirty False
+Traceback (most recent call last):
+  File "C:\Users\jonat\workspace\wt\sm82s2\scripts\sm82s2_curves.py", line 365, in <module>
+    raise SystemExit(main())
+                     ^^^^^^
+  File "C:\Users\jonat\workspace\wt\sm82s2\scripts\sm82s2_curves.py", line 361, in main
+    return {"sample": sample, "check": check, "query": query}[args.cmd](args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\jonat\workspace\wt\sm82s2\scripts\sm82s2_curves.py", line 231, in query
+    for k, (user, batch, error, prep, table) in enumerate(loader):
+                                                ^^^^^^^^^^^^^^^^^
+  File "C:\Users\jonat\workspace\anki-rwkv\.venv\Lib\site-packages\torch\utils\data\dataloader.py", line 494, in __iter__
+    return self._get_iterator()
+           ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\jonat\workspace\anki-rwkv\.venv\Lib\site-packages\torch\utils\data\dataloader.py", line 427, in _get_iterator
+    return _MultiProcessingDataLoaderIter(self)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\jonat\workspace\anki-rwkv\.venv\Lib\site-packages\torch\utils\data\dataloader.py", line 1170, in __init__
+    w.start()
+  File "C:\Users\jonat\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\multiprocessing\process.py", line 121, in start
+    self._popen = self._Popen(self)
+                  ^^^^^^^^^^^^^^^^^
+  File "C:\Users\jonat\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\multiprocessing\context.py", line 224, in _Popen
+    return _default_context.get_context().Process._Popen(process_obj)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\jonat\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\multiprocessing\context.py", line 337, in _Popen
+    return Popen(process_obj)
+           ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\jonat\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\multiprocessing\popen_spawn_win32.py", line 95, in __init__
+    reduction.dump(process_obj, to_child)
+  File "C:\Users\jonat\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\multiprocessing\reduction.py", line 60, in dump
+    ForkingPickler(file, protocol).dump(obj)
+AttributeError: Can't get local object 'query.<locals>.<lambda>'
+[queue] 000821-small-model finished with exit code 1 after 0:00:03; released gpu
+[queue] 000822-small-model registered for gpu: response-time prediction (SM82) stage 2: answer-time curve queries on the frozen released small model + the answer-time head on richer frozen features (SM82c): 150 users of the 732 set, 15 elapsed-time grid points (pass 1)
+[queue] 000822-small-model started after 0:00:00; holds gpu
+[sm82s2-query] 150 users, 150 to query, grid 15, commit c4ddf3a8 dirty False
+[sm82s2-query] 10/150 users, 46 s
+[sm82s2-query] 20/150 users, 188 s
+[sm82s2-query] 30/150 users, 269 s
+[sm82s2-query] 40/150 users, 329 s
+[sm82s2-query] 50/150 users, 394 s
+[sm82s2-query] 60/150 users, 572 s
+[sm82s2-query] 70/150 users, 693 s
+[sm82s2-query] 80/150 users, 733 s
+[sm82s2-query] 90/150 users, 810 s
+[sm82s2-query] 100/150 users, 861 s
+[sm82s2-query] 110/150 users, 961 s
+[sm82s2-query] 120/150 users, 1024 s
+[sm82s2-query] 130/150 users, 1090 s
+[sm82s2-query] 140/150 users, 1186 s
+[sm82s2-query] 150/150 users, 1248 s
+[sm82s2-query] done 150 users in 1248 s -> C:\Users\jonat\workspace\wt\sm82s2\artifacts\small-model\sm82\stage2\work\curves
+[queue] 000822-small-model finished with exit code 0 after 0:20:51; released gpu
