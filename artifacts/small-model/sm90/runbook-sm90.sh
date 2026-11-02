@@ -144,7 +144,7 @@ fi
 # 4. finalists on the 732 set (723 fit users)
 FIN=$H/finalists.txt; [ "$DRYRUN" = 1 ] && [ ! -f $FIN ] && FIN=$G/finalists-dryrun.txt
 NF=$("$PY" -X utf8 -c "import json,sys; print(len(json.load(open(sys.argv[1]))['users']))" "$USERS732")
-for l in $(cat $FIN); do
+for l in $(tr -d '\r' < $FIN); do
   prev=-1
   for pass in 1 2 3 4 5 6; do
     have=$(label_users "$FINAL_ROWS" "$l" "$USERS732")
