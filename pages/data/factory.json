@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-02T03:30:12+01:00",
+ "generated_at": "2026-11-02T03:30:56+01:00",
  "updated": "2026-11-02 03:30",
- "material": "a194973a42c8b788",
- "summary": "running 000866, finished 000865",
+ "material": "635b9217f4cf3d8d",
+ "summary": "running 000867, finished 000866",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring (curve / instant)",
@@ -239,19 +239,19 @@
  ],
  "now": [
   {
-   "what": "Robustness to other apps (SM29): the released small model and the big model scored with pass/fail-only ratings, without answer times, and both (grade heads only)",
-   "id": "SM29, ticket 000866",
+   "what": "Codebook state compression sweep (SM90): GPU check, a 40-user screen of codebook budgets one stream at a time (cards 5,902 &rarr; 1,470 bits with notes int8; notes 3,964 &rarr; 1,524 bits with cards int4), then the smallest near-free rung of each on the 732 set",
+   "id": "SM90, ticket 000867",
    "kind": "gpu-score",
-   "decides": "How gently the models degrade for apps or users without full ratings or answer times",
+   "decides": "The smallest codebook budget within +0.02 points of the fork&rsquo;s int4 + int8 state, with its codebook size and speed",
    "why": "",
-   "job": "robustness to other apps (SM29): pass / fail ratings and no answer times (passfail-notime): scoring the big model (1 leak-free epoch) on the 723 users of the 732 set (pass 2)",
+   "job": "codebook state compression sweep (SM90): scoring rel/w8+vqC4430 on the 723 users of the 732 set (pass 2, 722 done)",
    "linked": true,
    "track": "small model",
-   "ticket": "000866-small-model",
-   "started": "03:29",
+   "ticket": "000867-small-model",
+   "started": "03:30",
    "elapsed": "0:00",
    "progress": null,
-   "eta": "~03:39"
+   "eta": "~05:20"
   }
  ],
  "charts": [
@@ -423,13 +423,22 @@
  ],
  "waiting": [
   {
-   "ticket": "000867-small-model",
-   "id": "SM90",
-   "what": "codebook state compression sweep (SM90): scoring rel/w8+vqC4430 on the 723 users of the 732 set (pass 2, 722 done)",
-   "flags": "expected 110 min"
+   "ticket": "000868-small-model",
+   "id": "SM31",
+   "what": "duration-leak scoring (SM31): show-time intervals (e2s-query): scoring the released small model on the 3 long users of the 732 set (cap 0.92)",
+   "flags": "expected 20 min"
   }
  ],
  "recent": [
+  {
+   "ticket": "000866-small-model",
+   "id": "SM29",
+   "what": "robustness to other apps (SM29): pass / fail ratings and no answer times (passfail-notime): scoring the big model (1 leak-free epoch) on the 723 users of the 732 set (pass 2)",
+   "ended": "03:30",
+   "date": "11-02",
+   "exit": 0,
+   "ran": "0:00"
+  },
   {
    "ticket": "000865-small-model",
    "id": "SM90",
@@ -474,15 +483,6 @@
    "date": "11-02",
    "exit": 0,
    "ran": "0:13"
-  },
-  {
-   "ticket": "000860-small-model",
-   "id": "SM29",
-   "what": "robustness to other apps (SM29): pass / fail ratings and no answer times (passfail-notime): scoring the released small model on the 723 users of the 732 set (pass 2)",
-   "ended": "01:53",
-   "date": "11-02",
-   "exit": 0,
-   "ran": "0:00"
   }
  ],
  "plan": [
@@ -1456,7 +1456,8 @@
    "track": "small model",
    "when": "On hold: not started; the deleted-card leak check and the leak-free retrain (SM71, SM72) took the GPU",
    "decides": "Honest final numbers; outside runs: +0.0002 / +0.0004 for both models",
-   "state": "hold"
+   "state": "waiting",
+   "ticket": "000868-small-model"
   },
   {
    "what": "Stack the week&rsquo;s winners (learning rate, teacher targets, timestamps, head changes) into one decay; then the decisive 2,225-user check",
@@ -1712,7 +1713,8 @@
    "what": "Duration-leak scoring (SM31): the released small model and the big model (1 leak-free epoch) scored with intervals as Anki knows them when it shows the card (without the review&rsquo;s own answer time)",
    "when": "Main scoring done 14:46 Sun (723 users, both models); long users after 01:00 Mon, table ~03:00&ndash;04:00",
    "decides": "Honest deployment numbers for both models and the small-vs-big gap without the leak",
-   "state": "planned"
+   "state": "waiting",
+   "ticket": "000868-small-model"
   },
   {
    "id": "SM29",
@@ -1723,11 +1725,12 @@
    "what": "Robustness to other apps (SM29): the released small model and the big model scored with pass/fail-only ratings, without answer times, and both (grade heads only)",
    "when": "Pass/fail done, no-answer-times small done; big model stopped for the break 15:35, rest after 01:00 Mon, table ~03:00&ndash;04:00",
    "decides": "How gently the models degrade for apps or users without full ratings or answer times",
-   "state": "running",
-   "started": "03:29",
-   "ticket": "000866-small-model",
+   "state": "done",
+   "ended": "03:30",
+   "exit": 0,
+   "started": "01:13",
    "started_at": "2026-11-02T01:13:49+01:00",
-   "ends_at": "2026-11-02T02:13:49+01:00"
+   "ended_at": "2026-11-02T03:30:28+01:00"
   },
   {
    "id": "SM33",
@@ -1783,8 +1786,11 @@
    "what": "Codebook state compression sweep (SM90): GPU check, a 40-user screen of codebook budgets one stream at a time (cards 5,902 &rarr; 1,470 bits with notes int8; notes 3,964 &rarr; 1,524 bits with cards int4), then the smallest near-free rung of each on the 732 set",
    "when": "GPU check passed 14:08 Sun, 40-user screen done 14:31 (finalists: cards 5,902 and 4,430 bits, notes 3,020 bits, both together); 732-set scoring after 01:00 Mon, done Monday ~06:00&ndash;10:00",
    "decides": "The smallest codebook budget within +0.02 points of the fork&rsquo;s int4 + int8 state, with its codebook size and speed",
-   "state": "waiting",
-   "ticket": "000867-small-model"
+   "state": "running",
+   "started": "03:30",
+   "ticket": "000867-small-model",
+   "started_at": "2026-11-02T01:22:05+01:00",
+   "ends_at": "2026-11-02T03:22:05+01:00"
   }
  ],
  "gpu_break": {
