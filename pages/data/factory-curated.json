@@ -1575,8 +1575,11 @@
     "answer-time head release (SM83): "
    ],
    "what": "Answer-time head release (SM83): the answer-time head on richer frozen features (SM82c) exported with the released small model and supported in the Anki fork (predicted answer time shown; scheduling unchanged)",
-   "when": "Building since 10:05 Sun; any public publish step waits for the user",
-   "decides": "Ships the time head"
+   "when": "Done: merged in the fork 11-01 12:01, CI fixes 11-02 01:16",
+   "decides": "Ships the time head",
+   "state": "done",
+   "started_at": "2026-11-01T10:05+01:00",
+   "ended_at": "2026-11-02T01:16+01:00"
   },
   {
    "id": "SM90",
@@ -1602,7 +1605,7 @@
    "since": "11-01T13:00"
   },
   {
-   "status": "next",
+   "status": "done",
    "id": "SM83",
    "track": "small model",
    "item": "Answer-time head release (SM83): ship the answer-time head on richer frozen features (SM82c) in the Anki fork",
@@ -2120,6 +2123,28 @@
   "s-w64kd-gate-ctx2048c-dec8-1ep/w8+s8"
  ],
  "results": [
+  {
+   "date": "11-02",
+   "kind": "gpu-score",
+   "id": "SM83",
+   "track": "small model",
+   "name": "Answer-time head release (SM83): the answer-time head on richer frozen features (SM82c) shipped in the Anki fork as an optional file next to the released small model",
+   "eval": "Native parity on the package vectors (6,543 queries); fork CI (Linux build, 1,370 Rust tests, Python tests)",
+   "fork": "Grade unchanged: weights file byte-identical, the released model&rsquo;s 0.30003 / 0.27654",
+   "takeaway": "<strong>Shipped in the fork</strong>: Card Info shows the predicted answer time per button and the expected answer time, for cards last reviewed on an earlier day; scheduling unchanged, cached state stays valid. Max bin probability error 1.0e-6 (f32) / 8.3e-7 (int8 weights) vs the package. Two follow-up CI fixes (an unused result, an import order, a test request with one field too many) merged 11-02. No release build yet",
+   "started_at": "2026-11-01T10:05+01:00",
+   "ended_at": "2026-11-02T01:16+01:00",
+   "gpu_minutes": 0,
+   "tickets": 0,
+   "detail": {
+    "verdict": "Shipped: fork PRs JSchoreels/anki#24 (merged 11-01 12:01) and #25 (CI fixes, merged 11-02 01:16)",
+    "notes": [
+     "Head file qt/aqt/rwkv_inference/sm72e25/time_head.f32.bin, 69,056 parameters, format version 1; a model folder without it loads as before",
+     "Integration report: docs/rwkv-answer-time-2026-11-01.MD in the fork; package on anki-rwkv branch sm83 (artifacts/models/sm72e25-time)",
+     "A fork release build and any public release wait for the user"
+    ]
+   }
+  },
   {
    "date": "11-01",
    "kind": "gpu-score",
