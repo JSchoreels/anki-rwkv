@@ -76,6 +76,42 @@ def add_grade_probes(data, spec, user_id):
     return {name: values[key] for name, values in merged.items()}
 
 
+# Show-time interval retrain (SM91): track option "show_time_intervals": true trains on the duration-leak scoring (SM31)
+# `e2s-query` inputs (scripts/sm31_inputs.py): everything asked before the answer uses the interval from the card's
+# previous answer to the moment the card is shown, floor(max(elapsed_seconds - duration / 1000, 0)): the instant query
+# rows' interval columns (show_time_query_rows) and the curve query time (label_elapsed_seconds, show_time_frame, on
+# the whole user frame before the train split). Update rows keep the full interval. Absent (default) = nothing here
+# runs and samples are bit for bit today's.
+SHOW_TIME_OPTION = "show_time_intervals"
+
+
+def show_time_frame(frame):
+    """The scorer's frame-level e2s-query change (sm31_inputs.apply_frame): label_elapsed_seconds = the card's next
+    review's show-time interval. Called on the full user frame (after the deleted-card transform), like the scorer."""
+    from scripts.sm31_inputs import apply_frame
+    return apply_frame(frame, "e2s-query")
+
+
+def show_time_query_rows(query, duration):
+    """The instant query rows' interval columns at show time, in place on the query dict (before the REJECT columns
+    are zeroed; `duration` = the review's own answer time in ms, from its update row). The same arithmetic and dtype
+    casts as sm31_inputs._query_rows_show_time (the scorer's add_queries patch)."""
+    from rwkv import data_processing as dp
+    from scripts.sm31_inputs import SECONDS_PER_DAY, show_time_seconds
+    es = query["elapsed_seconds"].astype("float64")
+    show = show_time_seconds(es, duration)
+    cum = query["elapsed_seconds_cumulative"].astype("float64") - es + show
+    new = {"elapsed_seconds": show, "elapsed_seconds_cumulative": cum,
+           "elapsed_seconds_sin": np.sin((show % SECONDS_PER_DAY) * 2 * np.pi / SECONDS_PER_DAY),
+           "elapsed_seconds_cos": np.cos((show % SECONDS_PER_DAY) * 2 * np.pi / SECONDS_PER_DAY),
+           "elapsed_seconds_cumulative_sin": np.sin((cum % SECONDS_PER_DAY) * 2 * np.pi / SECONDS_PER_DAY),
+           "elapsed_seconds_cumulative_cos": np.cos((cum % SECONDS_PER_DAY) * 2 * np.pi / SECONDS_PER_DAY),
+           "scaled_elapsed_seconds": np.asarray(dp.scale_elapsed_seconds(show)),
+           "scaled_elapsed_seconds_cumulative": np.asarray(dp.scale_elapsed_seconds_cumulative(cum))}
+    for column, values in new.items():
+        query[column] = values.astype(query[column].dtype)
+
+
 def fix_leading_shift(batch):
     """In a sub-sequence that starts with the 4 probe rows of its first committed row (a card's first review, or the
     first row of a deck / note / preset in the window), those rows and that real row read their own input in the token
@@ -100,7 +136,8 @@ def fix_leading_shift(batch):
 
 
 def create_sample_fast(user_id, section_df, equalize_review_ths, dtype, device, column_arrays=None,
-                       segment_features_precomputed=False, direct_matrix=False, int64_ids=False, grade_probes=None):
+                       segment_features_precomputed=False, direct_matrix=False, int64_ids=False, grade_probes=None,
+                       show_time=False):
     if column_arrays is None:
         frame = add_segment_features(section_df.copy()).reset_index(drop=True)
         data = {name: frame[name].to_numpy() for name in frame.columns}
@@ -123,6 +160,8 @@ def create_sample_fast(user_id, section_df, equalize_review_ths, dtype, device, 
     if len(queries):
         query = {name: values[queries] for name, values in data.items()}
         rating, review_th = query["rating"], query["review_th"]
+        if show_time:  # SM91: before the REJECT columns (duration among them) are zeroed
+            show_time_query_rows(query, data["duration"][queries])
         for name in REJECT:
             query[name] = np.zeros(len(queries), dtype=np.int64)
         query["skip"] = np.ones(len(queries), dtype=bool)
@@ -193,7 +232,10 @@ def samples_for(section, user, options, chunk=128):
             raise ValueError("state_carry needs fast columnar samples without F44 batch segment features")
         return make_samples_fast(section, user, chunk, columnar=True, user_segment_features=True,
                                  direct_matrix=options.get("direct_sample_matrix", False),
-                                 grade_probes=options.get("grade_order"))
+                                 grade_probes=options.get("grade_order"),
+                                 show_time=bool(options.get(SHOW_TIME_OPTION)))
+    if options.get(SHOW_TIME_OPTION):
+        raise ValueError("show_time_intervals (SM91) is implemented for the state_carry sample path only")
     if options.get("grade_order"):
         raise ValueError("grade_order (SM33) probe rows are implemented for the state_carry sample path only")
     if options.get("fast_samples"):
@@ -207,7 +249,7 @@ def samples_for(section, user, options, chunk=128):
 
 
 def make_samples_fast(section, user, chunk, *, columnar=False, batch_segment_features=False, direct_matrix=False,
-                      user_segment_features=False, grade_probes=None):
+                      user_segment_features=False, grade_probes=None, show_time=False):
     if batch_segment_features and not columnar:
         raise ValueError("F44 requires columnar samples")
     if user_segment_features:
@@ -219,8 +261,10 @@ def make_samples_fast(section, user, chunk, *, columnar=False, batch_segment_fea
         return [create_sample_fast(user, section.iloc[i:i + chunk], [], torch.float32, torch.device("cpu"),
                                    column_arrays={name: values[i:i + chunk] for name, values in columns.items()},
                                    segment_features_precomputed=True, direct_matrix=direct_matrix, int64_ids=True,
-                                   grade_probes=grade_probes)
+                                   grade_probes=grade_probes, show_time=show_time)
                 for i in range(0, len(section), chunk)]
+    if show_time:
+        raise ValueError("show_time_intervals (SM91) needs the state_carry sample path (user-level segment features)")
     if columnar:
         columns = {name: section[name].to_numpy() for name in section.columns}
         if batch_segment_features and len(section):
