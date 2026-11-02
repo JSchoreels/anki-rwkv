@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-02T02:33:52+01:00",
- "updated": "2026-11-02 02:33",
- "material": "6c1fcd1fe3b61ca2",
- "summary": "running 000865, finished 000864",
+ "generated_at": "2026-11-02T02:38:56+01:00",
+ "updated": "2026-11-02 02:38",
+ "material": "feea779b8208757e",
+ "summary": "running 000865",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring (curve / instant)",
@@ -249,7 +249,7 @@
    "track": "small model",
    "ticket": "000865-small-model",
    "started": "02:33",
-   "elapsed": "0:00",
+   "elapsed": "0:05",
    "progress": null,
    "eta": "~04:23"
   }
@@ -1733,7 +1733,7 @@
    "kind": "gpu-score",
    "minutes": 60,
    "what": "Grade-order sanity (SM33): how often the released model&rsquo;s button intervals break Again &le; Hard &le; Good &le; Easy and whether the fork hides it; then, if needed, a soft penalty on breaks in a cool-down against the reference",
-   "when": "Stage 1 done 12:20 Sun; stage 2 cool-down ran to the break (snapshot 19:54), resumes 01:00 Mon, result ~03:30&ndash;04:30",
+   "when": "Done 02:33 Mon: verdict cost (curve +0.14 points for nearly ordered buttons)",
    "decides": "Whether to enforce the order in training (user&rsquo;s wish); outside research saw +0.002 curve for a hard constraint",
    "state": "done",
    "ended": "02:33",
@@ -2080,7 +2080,7 @@
    "since": "11-01T10:45"
   },
   {
-   "status": "next",
+   "status": "done",
    "item": "Grade-order sanity: interval(Again) &le; Hard &le; Good &le; Easy",
    "id": "SM33",
    "why": "Measure how often the student breaks it; enforcing it cost +0.002 on curve in outside runs. Picked up 11-01: the user wants the order enforced in training; measure the break rate first, then a penalty only on breaks in a cool-down against the reference",
@@ -2304,6 +2304,28 @@
   }
  ],
  "results": [
+  {
+   "date": "11-02",
+   "kind": "gpu-score",
+   "id": "SM33",
+   "track": "small model",
+   "name": "Grade-order sanity (SM33): how often the released small model&rsquo;s button intervals break Again &le; Hard &le; Good &le; Easy, and a grade-order hinge in a quarter-epoch cool-down against the same cool-down without it",
+   "eval": "Leak-free scoring w8+s8, 722 users of the 732 set; order measured on 723 users &times; 3,000 sampled reviews at desired retention 0.90 (same reviews for both models)",
+   "fork": "Curve 0.30115 vs 0.30073 (+0.14 points [+0.10, +0.19] of % vs the big model (1 leak-free epoch)); instant 0.27722 vs 0.27722 (+0.00)",
+   "takeaway": "<strong>Cost</strong>: the hinge removes almost all inversions (displayed order broken on 19.1% &rarr; 0.9% of reviews before the fork&rsquo;s pooling; Good&rsquo;s interval changed by the pooling 10.5% &rarr; 0.3%; 682 users better, 0 worse) and leaves instant unchanged, but the curve is +0.14 points worse, over the pre-registered +0.03 bar. The fork&rsquo;s pooling already hides inversions on screen",
+   "started_at": "2026-11-01T10:30+01:00",
+   "ended_at": "2026-11-02T02:33+01:00",
+   "gpu_minutes": 196,
+   "tickets": 10,
+   "detail": {
+    "verdict": "Cost (sm33_decide.py): both heads within +0.03 points required; curve +0.14",
+    "notes": [
+     "Arm: the leak-free small model (SM72s) epoch 21 + quarter-epoch 32k Muon cool-down with the hinge (weight 0.1, probes on 4% of reviews, 12 horizons 1&ndash;3,650 days); reference: the same cool-down without it",
+     "Per pair at 0.90, arm vs reference: Again&gt;Hard 0.40% vs 9.59%, Hard&gt;Good 0.41% vs 6.01%, Good&gt;Easy 0.15% vs 5.41%; raw (before rounding and the interval grid) 6.27% vs 27.50%",
+     "Write-up: artifacts/small-model/sm33/ on branch sm33"
+    ]
+   }
+  },
   {
    "date": "11-02",
    "kind": "gpu-score",
