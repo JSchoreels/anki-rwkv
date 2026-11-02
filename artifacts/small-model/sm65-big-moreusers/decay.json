@@ -1,0 +1,167 @@
+{
+ "created_utc": "2026-10-29T13:59:26.164496+00:00",
+ "kind": "sm72-big-leakfree-epoch",
+ "source_case": "C:\\Users\\jonat\\workspace\\wt\\sm72\\artifacts\\small-model\\sm72-big-leakfree-1ep\\expertium\\big-leakfree-1ep\\master.pth",
+ "source_sha256": "ac7f0d8a96cbc086eb17307ee13c67cf8e4a68e9b3d70dd5657eaa9957d9d240",
+ "model": "expertium",
+ "track": "big-moreusers",
+ "options": {
+  "prefetch_users": true,
+  "preparation_workers": 5,
+  "gpu_packed_features": true,
+  "packed_ipc": true,
+  "async_transfer": true,
+  "batched_id_encodings": true,
+  "grouped_sync": true,
+  "main_threads": 1,
+  "bulk_transfer": true,
+  "parallel_evaluation": true,
+  "exact_shift": true,
+  "batch_chunks": 2,
+  "gpu_memory_fraction": 0.8,
+  "fast_samples": true,
+  "prestart_pool": true,
+  "deferred_reads": true,
+  "shared_shift_orders": true,
+  "stream_launches": true,
+  "sync_free_loss": true,
+  "columnar_samples": true,
+  "skip_uninitialized_fill": true,
+  "host_placement": "physical",
+  "process_qos": true,
+  "deferred_read_depth": 2,
+  "bookkeeping_stride": 8,
+  "lean_step_reset": true,
+  "wddm_flush": true,
+  "architecture": "fork",
+  "chunk_reviews": 8192,
+  "state_carry": {
+   "lanes": "strided",
+   "table_gpu_mib": 768
+  },
+  "training_seed": 2025
+ },
+ "options_dropped": [],
+ "deleted_cards": "neighbour",
+ "probe": false,
+ "training_users": 3969,
+ "training_reviews": 285886387,
+ "train_users_from": "train_users with id < 5000 of C:\\Users\\jonat\\workspace\\anki-rwkv\\artifacts\\full-run\\run-8k-20261013\\run.json",
+ "shuffle_seed": 1,
+ "lr": "0.00035 -> 0, warmup 200 updates, shape one_minus_sin, over all 285,886,387 reviews",
+ "optimizer": "fresh AdamW (rwkv.train_rwkv.get_optimizer)",
+ "batches": "2 strided lanes x 8,192-review windows per update, carried state, one user per update",
+ "users_check": {
+  "users_run": "C:\\Users\\jonat\\workspace\\anki-rwkv\\artifacts\\full-run\\run-8k-20261013\\run.json",
+  "users_below": 5000,
+  "users": 3969,
+  "disjoint_from": {
+   "validation_users": {
+    "users": 1500,
+    "overlap": 0
+   },
+   "quick_validation_users": {
+    "users": 300,
+    "overlap": 0
+   },
+   "final_test_users": {
+    "users": 500,
+    "overlap": 0
+   },
+   "preserved_final_test_users": {
+    "users": 100,
+    "overlap": 0
+   },
+   "eval-users-732-fit.json": {
+    "users": 732,
+    "overlap": 0
+   },
+   "eval-users-464-fit.json": {
+    "users": 464,
+    "overlap": 0
+   },
+   "users-732-retry3.json": {
+    "users": 3,
+    "overlap": 0
+   }
+  }
+ },
+ "label_windows": {
+  "script": "scripts/sm72_label_windows.py",
+  "users": 3969,
+  "unlabelled_tails_trimmed": 14
+ },
+ "trimmed_unlabelled_tails": [
+  {
+   "user_id": 4196,
+   "trim_to": 65536,
+   "trimmed_reviews": 32
+  },
+  {
+   "user_id": 1234,
+   "trim_to": 49152,
+   "trimmed_reviews": 210
+  },
+  {
+   "user_id": 2828,
+   "trim_to": 180224,
+   "trimmed_reviews": 30
+  },
+  {
+   "user_id": 4891,
+   "trim_to": 16384,
+   "trimmed_reviews": 153
+  },
+  {
+   "user_id": 3846,
+   "trim_to": 49152,
+   "trimmed_reviews": 5
+  },
+  {
+   "user_id": 905,
+   "trim_to": 49152,
+   "trimmed_reviews": 81
+  },
+  {
+   "user_id": 1009,
+   "trim_to": 16384,
+   "trimmed_reviews": 202
+  },
+  {
+   "user_id": 4486,
+   "trim_to": 114688,
+   "trimmed_reviews": 580
+  },
+  {
+   "user_id": 4929,
+   "trim_to": 65536,
+   "trimmed_reviews": 36
+  },
+  {
+   "user_id": 2777,
+   "trim_to": 32768,
+   "trimmed_reviews": 23
+  },
+  {
+   "user_id": 126,
+   "trim_to": 65536,
+   "trimmed_reviews": 196
+  },
+  {
+   "user_id": 474,
+   "trim_to": 622592,
+   "trimmed_reviews": 12
+  },
+  {
+   "user_id": 1544,
+   "trim_to": 212992,
+   "trimmed_reviews": 35
+  },
+  {
+   "user_id": 880,
+   "trim_to": 16384,
+   "trimmed_reviews": 260
+  }
+ ],
+ "training_reviews_after_trims": 285884532
+}
