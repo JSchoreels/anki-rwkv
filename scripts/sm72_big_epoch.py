@@ -28,6 +28,9 @@ script's run/smoke/stop/save, so the epoch is resumable from snapshots exactly l
                      of that run or of the 732 / 464 sets; start weights CKPT instead of the shipped file; without these
                      flags decay.json and protocol.json are those of the SM72 epoch)
   check   --init CKPT --report PATH       the same load / scorer check for another start checkpoint
+          prepare [--extra-options JSON]  (show-time interval retrain (SM91) step 2: merged into the prepared options
+                                           after carry_options, e.g. {"show_time_intervals": true}; recorded in decay.json
+                                           "extra_options"; absent = the decay.json above, unchanged)
   run | smoke | stop | save --out DIR  (scripts/expertium_decay.py commands on that folder)
 """
 from argparse import ArgumentParser
@@ -157,7 +160,8 @@ def run_users(users_run, below):
 
 
 def prepare(out, warmup, chunk, batch_chunks, seed, snapshot_users, memory, probe, peak=PEAK, carry=True,
-            table_gpu_mib=TABLE_GPU_MIB, probe_users=None, users_run=None, users_below=5000, init=FORK, track=TRACK):
+            table_gpu_mib=TABLE_GPU_MIB, probe_users=None, users_run=None, users_below=5000, init=FORK, track=TRACK,
+            extra_options=None):
     if out.exists():
         raise FileExistsError(f"{out} exists; pick a new output")
     run = json.loads(RUN8K.read_text())
@@ -188,6 +192,8 @@ def prepare(out, warmup, chunk, batch_chunks, seed, snapshot_users, memory, prob
     else:  # fallback: fresh-state sections through the baseline class (the first prepared recipe)
         options = {"prefetch_users": True, "preparation_workers": 5, "chunk_reviews": chunk, "batch_chunks": batch_chunks,
                    "gpu_memory_fraction": memory, "training_seed": 2025}
+    if extra_options:  # SM91 step 2: e.g. {"show_time_intervals": true}; absent = the options above, unchanged
+        options = {**options, **extra_options}
     schedule = {"peak": peak, "warmup_updates": warmup, "decay_start": 0.0, "decay_end": 1.0, "shape": "one_minus_sin",
                 "final": 0.0}
     full_run = {"epoch": 0, "evaluate": False, "init_master": str(init), "update_offset": 0, "lr_schedule": schedule,
@@ -209,6 +215,8 @@ def prepare(out, warmup, chunk, batch_chunks, seed, snapshot_users, memory, prob
                          f"{batch_chunks} x {chunk:,} reviews per update, fresh state, one user per update")}
     if users_check:
         decay["users_check"] = users_check
+    if extra_options:
+        decay["extra_options"] = extra_options
     out.mkdir(parents=True)
     atomic_json(out / "decay.json", decay)
     atomic_json(out / "protocol.json", protocol)
@@ -238,6 +246,8 @@ def main():
     parser.add_argument("--init", type=Path, default=FORK, help="start weights (default: the shipped file)")
     parser.add_argument("--track", default=TRACK)
     parser.add_argument("--report", type=Path, help="check: output json (default: sm72/check-big-load-sm72.json)")
+    parser.add_argument("--extra-options", type=json.loads, default=None,
+                        help="prepare: JSON merged into the options, e.g. {\"show_time_intervals\": true} (SM91 step 2)")
     args = parser.parse_args()
     if args.command == "check":
         return check([int(u) for u in args.users.split(",")], args.init, args.report and (ROOT / args.report).resolve())
@@ -251,7 +261,7 @@ def main():
     if args.command == "prepare":
         return prepare(out, args.warmup_updates, args.chunk_reviews, args.batch_chunks, args.seed, args.snapshot_users,
                        args.memory, args.probe, args.peak, not args.fresh_state, args.table_gpu_mib, args.probe_users,
-                       args.users_run, args.users_below, args.init, args.track)
+                       args.users_run, args.users_below, args.init, args.track, args.extra_options)
     from scripts import expertium_decay
     if args.command in ("stop", "save"):
         (out / "control").mkdir(exist_ok=True)
