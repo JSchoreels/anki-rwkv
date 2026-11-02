@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-02T07:08:10+01:00",
- "updated": "2026-11-02 07:08",
- "material": "da9f0e722a11f2bb",
- "summary": "running 000883, finished 000882",
+ "generated_at": "2026-11-02T07:09:13+01:00",
+ "updated": "2026-11-02 07:09",
+ "material": "ddd101713daac8df",
+ "summary": "running 000884, finished 000883",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring (curve / instant)",
@@ -239,19 +239,19 @@
  ],
  "now": [
   {
-   "what": "Codebook state compression sweep (SM90): GPU check, a 40-user screen of codebook budgets one stream at a time (cards 5,902 &rarr; 1,470 bits with notes int8; notes 3,964 &rarr; 1,524 bits with cards int4), then the smallest near-free rung of each on the 732 set",
-   "id": "SM90, ticket 000883",
+   "what": "Robustness to other apps (SM29): the released small model and the big model scored with pass/fail-only ratings, without answer times, and both (grade heads only)",
+   "id": "SM29, ticket 000884",
    "kind": "gpu-score",
-   "decides": "The smallest codebook budget within +0.02 points of the fork&rsquo;s int4 + int8 state, with its codebook size and speed",
+   "decides": "How gently the models degrade for apps or users without full ratings or answer times",
    "why": "",
-   "job": "codebook state compression sweep (SM90): scoring rel/w8+vqC5902 on the 723 users of the 732 set (pass 2, 722 done)",
+   "job": "robustness to other apps (SM29): pass / fail ratings and no answer times (passfail-notime): scoring the big model (1 leak-free epoch) on the 3 long users of the 732 set (cap 0.92)",
    "linked": true,
    "track": "small model",
-   "ticket": "000883-small-model",
-   "started": "07:07",
+   "ticket": "000884-small-model",
+   "started": "07:08",
    "elapsed": "0:00",
    "progress": null,
-   "eta": "~08:57"
+   "eta": "~07:18"
   }
  ],
  "charts": [
@@ -423,13 +423,22 @@
  ],
  "waiting": [
   {
-   "ticket": "000884-small-model",
-   "id": "SM29",
-   "what": "robustness to other apps (SM29): pass / fail ratings and no answer times (passfail-notime): scoring the big model (1 leak-free epoch) on the 3 long users of the 732 set (cap 0.92)",
-   "flags": "expected 10 min"
+   "ticket": "000885-small-model",
+   "id": "SM90",
+   "what": "codebook state compression sweep (SM90): scoring rel/w8+vqN3020 on the 723 users of the 732 set (pass 1, 0 done)",
+   "flags": "expected 110 min"
   }
  ],
  "recent": [
+  {
+   "ticket": "000883-small-model",
+   "id": "SM90",
+   "what": "codebook state compression sweep (SM90): scoring rel/w8+vqC5902 on the 723 users of the 732 set (pass 2, 722 done)",
+   "ended": "07:08",
+   "date": "11-02",
+   "exit": 0,
+   "ran": "0:01"
+  },
   {
    "ticket": "000882-small-model",
    "id": "SM29",
@@ -474,15 +483,6 @@
    "date": "11-02",
    "exit": 0,
    "ran": "0:00"
-  },
-  {
-   "ticket": "000877-small-model",
-   "id": "SM90",
-   "what": "codebook state compression sweep (SM90): scoring rel/w8+vqC4430N3020 on the 723 users of the 732 set (pass 1, 721 done)",
-   "ended": "05:57",
-   "date": "11-02",
-   "exit": 0,
-   "ran": "0:01"
   }
  ],
  "plan": [
@@ -1728,8 +1728,11 @@
    "what": "Robustness to other apps (SM29): the released small model and the big model scored with pass/fail-only ratings, without answer times, and both (grade heads only)",
    "when": "GPU scoring done 03:30 Mon; the table comes with the duration-leak scoring (SM31) CPU step after its last long-user tickets, ~07:00",
    "decides": "How gently the models degrade for apps or users without full ratings or answer times",
-   "state": "waiting",
-   "ticket": "000884-small-model"
+   "state": "running",
+   "started": "07:08",
+   "ticket": "000884-small-model",
+   "started_at": "2026-11-02T05:53:48+01:00",
+   "ends_at": "2026-11-02T06:53:48+01:00"
   },
   {
    "id": "SM33",
@@ -1785,11 +1788,8 @@
    "what": "Codebook state compression sweep (SM90): GPU check, a 40-user screen of codebook budgets one stream at a time (cards 5,902 &rarr; 1,470 bits with notes int8; notes 3,964 &rarr; 1,524 bits with cards int4), then the smallest near-free rung of each on the 732 set",
    "when": "Finals: 2 of 5 scored on 723 users; the 3rd ran out of GPU memory on the 2 longest users at the 0.8 cap and is retried at 0.92 (runbook fix 05:55 Mon); result ~13:00&ndash;15:00 Mon",
    "decides": "The smallest codebook budget within +0.02 points of the fork&rsquo;s int4 + int8 state, with its codebook size and speed",
-   "state": "running",
-   "started": "07:07",
-   "ticket": "000883-small-model",
-   "started_at": "2026-11-02T01:22:05+01:00",
-   "ends_at": "2026-11-02T03:22:05+01:00"
+   "state": "waiting",
+   "ticket": "000885-small-model"
   }
  ],
  "gpu_break": {
