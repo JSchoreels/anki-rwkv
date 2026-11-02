@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-02T05:53:03+01:00",
- "updated": "2026-11-02 05:53",
- "material": "0d592743147f1ecf",
- "summary": "running 000874, finished 000873",
+ "generated_at": "2026-11-02T05:54:17+01:00",
+ "updated": "2026-11-02 05:54",
+ "material": "86d6d456bcc7cd4b",
+ "summary": "running 000875, finished 000874",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring (curve / instant)",
@@ -239,19 +239,19 @@
  ],
  "now": [
   {
-   "what": "Deployment-realistic scoring without the review-duration leak, both the big model and SM36",
-   "id": "SM31, ticket 000874",
-   "kind": "gpu-check",
-   "decides": "Honest final numbers; outside runs: +0.0002 / +0.0004 for both models",
+   "what": "Robustness to other apps (SM29): the released small model and the big model scored with pass/fail-only ratings, without answer times, and both (grade heads only)",
+   "id": "SM29, ticket 000875",
+   "kind": "gpu-score",
+   "decides": "How gently the models degrade for apps or users without full ratings or answer times",
    "why": "",
-   "job": "duration-leak scoring (SM31): end-to-start intervals on every row (e2s-all): scoring the big model (1 leak-free epoch) on the 3 long users of the 732 set (cap 0.92)",
+   "job": "robustness to other apps (SM29): pass / fail ratings only (passfail): scoring the released small model on the 3 long users of the 732 set (cap 0.92)",
    "linked": true,
    "track": "small model",
-   "ticket": "000874-small-model",
-   "started": "05:52",
+   "ticket": "000875-small-model",
+   "started": "05:53",
    "elapsed": "0:00",
    "progress": null,
-   "eta": "~06:02"
+   "eta": "~06:13"
   }
  ],
  "charts": [
@@ -424,6 +424,15 @@
  "waiting": [],
  "recent": [
   {
+   "ticket": "000874-small-model",
+   "id": "SM31",
+   "what": "duration-leak scoring (SM31): end-to-start intervals on every row (e2s-all): scoring the big model (1 leak-free epoch) on the 3 long users of the 732 set (cap 0.92)",
+   "ended": "05:53",
+   "date": "11-02",
+   "exit": 0,
+   "ran": "0:01"
+  },
+  {
    "ticket": "000873-small-model",
    "id": "SM90",
    "what": "codebook state compression sweep (SM90): scoring rel/w8+vqC4430N3020 on the 723 users of the 732 set (pass 3, 721 done)",
@@ -467,15 +476,6 @@
    "date": "11-02",
    "exit": 0,
    "ran": "1:40"
-  },
-  {
-   "ticket": "000868-small-model",
-   "id": "SM31",
-   "what": "duration-leak scoring (SM31): show-time intervals (e2s-query): scoring the released small model on the 3 long users of the 732 set (cap 0.92)",
-   "ended": "03:32",
-   "date": "11-02",
-   "exit": 0,
-   "ran": "0:01"
   }
  ],
  "plan": [
@@ -1449,11 +1449,7 @@
    "track": "small model",
    "when": "On hold: not started; the deleted-card leak check and the leak-free retrain (SM71, SM72) took the GPU",
    "decides": "Honest final numbers; outside runs: +0.0002 / +0.0004 for both models",
-   "state": "running",
-   "started": "05:52",
-   "ticket": "000874-small-model",
-   "started_at": "2026-11-01T10:51:04+01:00",
-   "ends_at": "2026-11-01T11:51:04+01:00"
+   "state": "hold"
   },
   {
    "what": "Stack the week&rsquo;s winners (learning rate, teacher targets, timestamps, head changes) into one decay; then the decisive 2,225-user check",
@@ -1709,11 +1705,12 @@
    "what": "Duration-leak scoring (SM31): the released small model and the big model (1 leak-free epoch) scored with intervals as Anki knows them when it shows the card (without the review&rsquo;s own answer time)",
    "when": "Main scoring done 14:46 Sun (723 users, both models); long users running after 01:00 Mon (shared GPU with the codebook sweep (SM90)), table ~07:00",
    "decides": "Honest deployment numbers for both models and the small-vs-big gap without the leak",
-   "state": "running",
-   "started": "05:52",
-   "ticket": "000874-small-model",
+   "state": "done",
+   "ended": "05:53",
+   "exit": 0,
+   "started": "03:31",
    "started_at": "2026-11-02T03:31:35+01:00",
-   "ends_at": "2026-11-02T04:31:35+01:00"
+   "ended_at": "2026-11-02T05:53:48+01:00"
   },
   {
    "id": "SM29",
@@ -1724,7 +1721,11 @@
    "what": "Robustness to other apps (SM29): the released small model and the big model scored with pass/fail-only ratings, without answer times, and both (grade heads only)",
    "when": "GPU scoring done 03:30 Mon; the table comes with the duration-leak scoring (SM31) CPU step after its last long-user tickets, ~07:00",
    "decides": "How gently the models degrade for apps or users without full ratings or answer times",
-   "state": "planned"
+   "state": "running",
+   "started": "05:53",
+   "ticket": "000875-small-model",
+   "started_at": "2026-11-02T05:53:48+01:00",
+   "ends_at": "2026-11-02T06:53:48+01:00"
   },
   {
    "id": "SM33",
