@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-02T20:05:10+01:00",
- "updated": "2026-11-02 20:05",
- "material": "db26270c4028fcb9",
- "summary": "idle, finished 000903",
+ "generated_at": "2026-11-02T20:15:14+01:00",
+ "updated": "2026-11-02 20:15",
+ "material": "23de512d7dc8137c",
+ "summary": "idle",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring (curve / instant)",
@@ -491,6 +491,17 @@
    "started": "19:51",
    "started_at": "2026-11-02T19:51:47+01:00",
    "ended_at": "2026-11-02T20:04:44+01:00"
+  },
+  {
+   "id": "SM91s2",
+   "track": "small model",
+   "since": "11-02T20:45",
+   "kind": "gpu-train",
+   "minutes": 720,
+   "what": "Show-time interval retrain (SM91) step 2: one added epoch of the big model (1 leak-free epoch) on show-time intervals, same recipe as its leak-free epoch (users 5000&ndash;10000, 2 lanes &times; 8,192 carried state, LR 3.5e-4 &rarr; 0); scored on show-time and normal inputs on the 732 set, paired against the big model (1 leak-free epoch) on show-time inputs",
+   "when": "Launcher waiting: CPU proofs after 01:00 Tue, then after step 1's last scoring: smoke, epoch (~9.5 h, snapshots every 50 users), scoring (~2 h); read-out ~14:00 Tue 11-03",
+   "decides": "Go to step 3 (new teacher targets + small cool-down on show-time inputs) if one head gains at least 0.10 points with its CI below zero vs the big model (1 leak-free epoch) on show-time inputs; stop otherwise (fixed before launch). The added epoch is a confound: the normal-vs-normal row checks it",
+   "state": "planned"
   },
   {
    "what": "Quick score of the new epoch on 100 users",
