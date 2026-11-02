@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-02T01:52:48+01:00",
- "updated": "2026-11-02 01:52",
- "material": "516593b3af66088d",
- "summary": "running 000860, finished 000859",
+ "generated_at": "2026-11-02T01:53:21+01:00",
+ "updated": "2026-11-02 01:53",
+ "material": "0b8fc0c9447d1cc8",
+ "summary": "running 000861, finished 000860",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring (curve / instant)",
@@ -239,19 +239,19 @@
  ],
  "now": [
   {
-   "what": "Robustness to other apps (SM29): the released small model and the big model scored with pass/fail-only ratings, without answer times, and both (grade heads only)",
-   "id": "SM29, ticket 000860",
+   "what": "Grade-order sanity (SM33): how often the released model&rsquo;s button intervals break Again &le; Hard &le; Good &le; Easy and whether the fork hides it; then, if needed, a soft penalty on breaks in a cool-down against the reference",
+   "id": "SM33, ticket 000861",
    "kind": "gpu-score",
-   "decides": "How gently the models degrade for apps or users without full ratings or answer times",
+   "decides": "Whether to enforce the order in training (user&rsquo;s wish); outside research saw +0.002 curve for a hard constraint",
    "why": "",
-   "job": "robustness to other apps (SM29): pass / fail ratings and no answer times (passfail-notime): scoring the released small model on the 723 users of the 732 set (pass 2)",
+   "job": "grade-order sanity (SM33): stage 2, what-if intervals of the arm on the 732 pool (723 users, 3,000 reviews each)",
    "linked": true,
    "track": "small model",
-   "ticket": "000860-small-model",
-   "started": "01:52",
+   "ticket": "000861-small-model",
+   "started": "01:53",
    "elapsed": "0:00",
    "progress": null,
-   "eta": "~02:02"
+   "eta": "~02:33"
   }
  ],
  "charts": [
@@ -423,19 +423,28 @@
  ],
  "waiting": [
   {
-   "ticket": "000861-small-model",
-   "id": "SM33",
-   "what": "grade-order sanity (SM33): stage 2, what-if intervals of the arm on the 732 pool (723 users, 3,000 reviews each)",
-   "flags": "expected 40 min"
-  },
-  {
    "ticket": "000862-small-model",
    "id": "SM90",
    "what": "codebook state compression sweep (SM90): scoring rel/w8+s4c8n on the 723 users of the 732 set (pass 2, 722 done)",
    "flags": "expected 110 min"
+  },
+  {
+   "ticket": "000863-small-model",
+   "id": "SM29",
+   "what": "robustness to other apps (SM29): pass / fail ratings and no answer times (passfail-notime): scoring the big model (1 leak-free epoch) on the 723 users of the 732 set (pass 1)",
+   "flags": "expected 25 min"
   }
  ],
  "recent": [
+  {
+   "ticket": "000860-small-model",
+   "id": "SM29",
+   "what": "robustness to other apps (SM29): pass / fail ratings and no answer times (passfail-notime): scoring the released small model on the 723 users of the 732 set (pass 2)",
+   "ended": "01:53",
+   "date": "11-02",
+   "exit": 0,
+   "ran": "0:00"
+  },
   {
    "ticket": "000859-small-model",
    "id": "SM90",
@@ -480,15 +489,6 @@
    "date": "11-02",
    "exit": 1,
    "ran": "0:00"
-  },
-  {
-   "ticket": "000854-small-model",
-   "id": "SM29",
-   "what": "robustness to other apps (SM29): no answer times (notime): scoring the big model (1 leak-free epoch) on the 723 users of the 732 set (pass 1)",
-   "ended": "01:22",
-   "date": "11-02",
-   "exit": 0,
-   "ran": "0:08"
   }
  ],
  "plan": [
@@ -1729,11 +1729,8 @@
    "what": "Robustness to other apps (SM29): the released small model and the big model scored with pass/fail-only ratings, without answer times, and both (grade heads only)",
    "when": "Pass/fail done, no-answer-times small done; big model stopped for the break 15:35, rest after 01:00 Mon, table ~03:00&ndash;04:00",
    "decides": "How gently the models degrade for apps or users without full ratings or answer times",
-   "state": "running",
-   "started": "01:52",
-   "ticket": "000860-small-model",
-   "started_at": "2026-11-02T01:13:49+01:00",
-   "ends_at": "2026-11-02T02:13:49+01:00"
+   "state": "waiting",
+   "ticket": "000863-small-model"
   },
   {
    "id": "SM33",
@@ -1744,8 +1741,11 @@
    "what": "Grade-order sanity (SM33): how often the released model&rsquo;s button intervals break Again &le; Hard &le; Good &le; Easy and whether the fork hides it; then, if needed, a soft penalty on breaks in a cool-down against the reference",
    "when": "Stage 1 done 12:20 Sun; stage 2 cool-down ran to the break (snapshot 19:54), resumes 01:00 Mon, result ~03:30&ndash;04:30",
    "decides": "Whether to enforce the order in training (user&rsquo;s wish); outside research saw +0.002 curve for a hard constraint",
-   "state": "waiting",
-   "ticket": "000861-small-model"
+   "state": "running",
+   "started": "01:53",
+   "ticket": "000861-small-model",
+   "started_at": "2026-11-02T01:00:13+01:00",
+   "ends_at": "2026-11-02T02:00:13+01:00"
   },
   {
    "id": "SM87",
