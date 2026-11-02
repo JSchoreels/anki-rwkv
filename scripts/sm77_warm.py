@@ -217,6 +217,13 @@ def epoch(args):
             raise SystemExit(f"--data-seed {args.data_seed}: the run's training_seed is {options.get('training_seed')}")
         note += f", data-order re-seed (SM80): training_seed {options['training_seed']} -> {args.data_seed}"
         options["training_seed"] = args.data_seed
+    if args.extra_options:   # show-time interval retrain (SM91): only new keys; the run's own options are never overridden
+        extra = json.loads(args.extra_options)
+        clash = sorted(set(extra) & set(options))
+        if clash:
+            raise SystemExit(f"--extra-options would override the run's options {clash}")
+        options.update(extra)
+        note += f", extra options {json.dumps(extra, sort_keys=True)}"
     out.mkdir(parents=True)
     full["control_dir"] = (out / "control").relative_to(ROOT).as_posix()
     decay = {"created_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), "kind": "sm77 constant-LR epoch",
@@ -743,6 +750,9 @@ def main():
                    help="data-order re-seed (SM80): this epoch's training_seed (default: the run's own, bit-identical). "
                         "Each window's seed = training_seed + user + offset (id codes, day baseline, dropout masks); "
                         "users, user order, windows, lanes, labels, KD replay targets and every other option stay")
+    p.add_argument("--extra-options", default="",
+                   help="JSON merged into the run's options, e.g. {\"show_time_intervals\": true} (show-time interval "
+                        "retrain (SM91)); only new keys; default: none, bit-identical")
     p = sub.add_parser("check-protocol")
     p.add_argument("--run", default=str(RUN72S))
     p.add_argument("--epochs", default="2,11,21")
