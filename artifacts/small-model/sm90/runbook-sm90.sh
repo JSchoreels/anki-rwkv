@@ -145,14 +145,19 @@ fi
 FIN=$H/finalists.txt; [ "$DRYRUN" = 1 ] && [ ! -f $FIN ] && FIN=$G/finalists-dryrun.txt
 NF=$("$PY" -X utf8 -c "import json,sys; print(len(json.load(open(sys.argv[1]))['users']))" "$USERS732")
 for l in $(tr -d '\r' < $FIN); do
-  prev=-1
+  prev=-1; CAP=0.8
   for pass in 1 2 3 4 5 6; do
     have=$(label_users "$FINAL_ROWS" "$l" "$USERS732")
     [ "$have" -ge "$NF" ] && break
-    if [ "$have" = "$prev" ] && [ "$DRYRUN" != 1 ]; then log "STOP: no progress on $l ($have of $NF users)"; exit 1; fi
+    if [ "$have" = "$prev" ] && [ "$DRYRUN" != 1 ]; then
+      # 11-02: the 2 longest users (4852, 3735; ~0.5M reviews) OOM at the 0.8 memory cap for the biggest budgets; one
+      # pass at the 0.92 cap (as the other runbooks' "3 long users" tickets; memory only, same numerics), then stop
+      if [ "$CAP" = 0.8 ]; then CAP=0.92; log "no progress on $l ($have of $NF users, OOM at the 0.8 cap): next pass at cap 0.92"
+      else log "STOP: no progress on $l ($have of $NF users)"; exit 1; fi
+    fi
     prev=$have
     q $MIN_FINAL "scoring $l on the 723 users of the 732 set (pass $pass, $have done)" -- \
-      "$PY" -X utf8 "$SC" --pool 732 --users-file "$USERS732" --model "rel=expertium:w64:$CK" --only "$l" --vq-codebooks "$BOOKS" \
+      env HELDOUT_GPU_MEMORY_FRACTION=$CAP "$PY" -X utf8 "$SC" --pool 732 --users-file "$USERS732" --model "rel=expertium:w64:$CK" --only "$l" --vq-codebooks "$BOOKS" \
       --time-limit $(( (MIN_FINAL - 10) * 60 )) --split-existing --deleted-cards neighbour --out "$FINAL_ROWS" >> "$G/final.out" 2>&1 \
       || { log "STOP: scoring ticket failed for $l (see gpu/final.out)"; exit 1; }
     [ "$DRYRUN" = 1 ] && break
