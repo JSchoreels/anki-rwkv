@@ -85,6 +85,13 @@ SM77_PRESETS = {"w64-sm77": {"key_extras": True, "init_state": ("card_id", "note
                 "w64-sm77-init": {"init_state": ("card_id", "note_id")}}
 
 
+# Smaller model (SM73) stage 2, candidate B (artifacts/small-model/sm73/DESIGN.md): the small model with its card stream cut
+# from 2 layers to 1. The removed layer is the card stream's last one (its channel mixer was already stripped), one
+# residual branch: the other 12 layer steps keep their round-robin order and their weights, so the SM72s weights minus
+# rwkv_modules.0.blocks.1.* load as they are (scripts/sm73s2_check.py: forward == w64 with that layer step skipped).
+SM73_PRESETS = {"w64-c1": {"card_layers": 1}}
+
+
 # rwkv.prepare_batch.prepare builds gathers in this order (rwkv.architecture.DEFAULT_ANKI_RWKV_CONFIG's tuples).
 BATCH_STREAMS = ["card_id", "deck_id", "note_id", "preset_id", "user_id"]
 # iter 53 runner (scratchpad/iter53_muonlora/run_iter53.cmd): RWKV_STRIP_CMIX value, verbatim.
@@ -120,11 +127,19 @@ def preset(name):
     if name in ("w64", "w64-sequential"):
         return VariantConfig(name=name, base=w64_config(), gru_head=3, no_ahead_residual=True, zero_features=(22,),
                              interleave=name == "w64", strip_l0_vlora=True, strip_cmix=W80_STRIP_CMIX)
+    if name in SM73_PRESETS:
+        # SM73: w64 with fewer card layers; "card_id:1" leaves the channel-mixer strip list with the layer it named
+        w64 = preset("w64")
+        depth = SM73_PRESETS[name]["card_layers"]
+        modules = [(stream, replace(c, n_layers=depth, total_layers=depth) if stream == "card_id" else c)
+                   for stream, c in w64.base.modules]
+        strip = tuple(e for e in w64.strip_cmix if not (e.startswith("card_id:") and int(e.partition(":")[2]) >= depth))
+        return replace(w64, name=name, base=replace(w64.base, modules=modules), strip_cmix=strip)
     if name in SM77_PRESETS:
         # SM77: the small model (w64) plus the tiny additions; a preset name, so the scorer's TAG=KIND:ARCH:PATH takes it
         return replace(preset("w64"), name=name, **SM77_PRESETS[name])
     raise ValueError(f"Unknown Expertium architecture preset {name!r}; expected iter36, w64, w64-sequential, w80, "
-                     f"w80-sequential or one of {sorted(SM77_PRESETS)}")
+                     f"w80-sequential or one of {sorted(SM77_PRESETS) + sorted(SM73_PRESETS)}")
 
 
 def variant(spec):
