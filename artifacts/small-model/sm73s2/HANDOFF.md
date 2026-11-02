@@ -14,7 +14,7 @@ Does cutting the card stream from 2 layers to 1 (candidate B: 4,554 -> 3,134 B p
 
 ## What runs (detached, WMI hidden)
 
-Launcher `launch-sm73s2.sh`, log `gpu/launch-sm73s2.log`, nohup `gpu/launch-sm73s2.nohup`. Ticket purposes in order, each prefixed "smaller model, card stream 1 layer (SM73 stage 2): ":
+Launcher `launch-sm73s2.sh`, log `gpu/launch-sm73s2.log`, nohup `gpu/launch-sm73s2.nohup`. Launched 2026-11-02 08:52 (WMI pid 77584, commit 28c224df); first log line `enqueue: trainer smoke of the arm epoch (w64-c1, 2 users x 512 reviews) (expected 15 min, ...)`, queue ticket 000886 running at 08:52. Ticket purposes in order, each prefixed "smaller model, card stream 1 layer (SM73 stage 2): ":
 
 1. "trainer smoke of the arm epoch (w64-c1, 2 users x 512 reviews)" (15 min; output `gpu/check.out`)
 2. "arm epoch 21 (w64-c1 cut from SM72s epoch 20, SM72s's epoch-21 protocol: ...) (segment to the next window or the end)" (125 min; output `gpu/train.out`, folder `artifacts/small-model/sm73s2-arm-e21`)
@@ -23,7 +23,7 @@ Launcher `launch-sm73s2.sh`, log `gpu/launch-sm73s2.log`, nohup `gpu/launch-sm73
 5. "scoring sm73s2-arm-e21-q32k on the 732 pool minus 9 never-fit (723) (pass 1, 0 done, cap 0.8)" (12 min; a pass without progress is retried once at cap 0.92), then "scoring sm73s2-arm-e21-q32k on the 3 long users of the 732 pool (cap 0.92)" (8 min); rows `gpu/sm73s2-neighbour.jsonl`, log `gpu/score.out`
 6. CPU rule -> `sm73s2-decision.{json,md}`; log line `rule exit 0: [sm73s2-rule] ...`, then `done`.
 
-Expected end of the read-out: ~14:30 on 2026-11-02 if the queue stays free (smoke ~09:15, epoch ~11:20, cool-down ~14:00, scoring ~14:20). If other tickets come first, the epoch only starts when 125 min fit before the 20:00 break; a cool-down cut by the break resumes at 01:00.
+Expected end of the read-out: ~14:15-14:30 on 2026-11-02 if the queue stays free (smoke ~09:07, epoch ~11:15, cool-down ~13:50, scoring ~14:15). If other tickets come first, the epoch only starts when 125 min fit before the 20:00 break; a cool-down cut by the break resumes at 01:00.
 
 ## Follow-up (fresh agent, Sonnet medium is enough)
 
