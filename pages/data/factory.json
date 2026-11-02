@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-02T08:35:40+01:00",
- "updated": "2026-11-02 08:35",
- "material": "177f68efef569ce8",
- "summary": "idle, finished 000885",
+ "generated_at": "2026-11-02T08:40:43+01:00",
+ "updated": "2026-11-02 08:40",
+ "material": "5e09c1f2284af1e4",
+ "summary": "idle",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring (curve / instant)",
@@ -1769,7 +1769,7 @@
    "kind": "gpu-score",
    "minutes": 120,
    "what": "Codebook state compression sweep (SM90): GPU check, a 40-user screen of codebook budgets one stream at a time (cards 5,902 &rarr; 1,470 bits with notes int8; notes 3,964 &rarr; 1,524 bits with cards int4), then the smallest near-free rung of each on the 732 set",
-   "when": "Finals: 2 of 5 scored on 723 users; the 3rd ran out of GPU memory on the 2 longest users at the 0.8 cap and is retried at 0.92 (runbook fix 05:55 Mon); result ~13:00&ndash;15:00 Mon",
+   "when": "Done 08:35 Mon: no practical budget",
    "decides": "The smallest codebook budget within +0.02 points of the fork&rsquo;s int4 + int8 state, with its codebook size and speed",
    "state": "done",
    "ended": "08:35",
@@ -1787,7 +1787,7 @@
  },
  "backlog": [
   {
-   "status": "next",
+   "status": "done",
    "item": "Codebook state compression sweep (SM90): on the released small model, shrink the state compression at a large budget (SM46) by 2&times;, 3&times; and more, and tune the quantization pipeline, to find the smallest budget that is still nearly free",
    "id": "SM90",
    "why": "Suggested by outside research. The large budget cost only +0.00009 / +0.00015 at 4.5&times; smaller state than int8; earlier ~800-bit codebooks cost +0.37% / +0.67%, so the cliff is in between. Verdict includes codebook size and scoring/encode speed, not only accuracy",
@@ -2296,6 +2296,30 @@
   }
  ],
  "results": [
+  {
+   "date": "11-02",
+   "kind": "gpu-score",
+   "id": "SM90",
+   "track": "small model",
+   "name": "Codebook state compression sweep (SM90): vector-quantized card and note states for the released small model, against the fork default of int4 cards + int8 notes",
+   "eval": "Leak-free scoring, w8 weights, 722 users of the 732 set; points = % of the big model (1 leak-free epoch) LogLoss vs int4 cards + int8 notes on the same users; paired user bootstrap 95% CI. Nearly free = &le; +0.02 points on both heads and inside the smaller-model bar; practical = codebooks &le; 10 MB (float16) and encode &le; 1 ms per review",
+   "fork": "Fork default int4 cards + int8 notes: curve 0.30007 (+0.37% vs big), instant 0.27659 (+0.30%), state 48.1 MB",
+   "takeaway": "<strong>No practical budget</strong>: cards coded at 5,902 bits are nearly free (+0.005 curve / +0.004 instant points, state 48.1 &rarr; 31.0 MB) but need 12 MB of codebooks and ~3.6 ms per review to encode. Cards at 4,430 bits (+0.022 / +0.028), notes at 3,020 bits (+0.018 / +0.033) and both together (+0.042 / +0.065) cost more than 0.02 points. The fork keeps int4 cards + int8 notes",
+   "started_at": "2026-11-01T14:06+01:00",
+   "ended_at": "2026-11-02T08:35+01:00",
+   "gpu_minutes": 391,
+   "tickets": 15,
+   "detail": {
+    "verdict": "No practical budget; nothing to ship",
+    "notes": [
+     "State MB / codebook MB / encode ms: cards 4,430 bits 28.4 / 9.0 / 2.7; cards 5,902 bits 31.0 / 12.0 / 3.6; notes 3,020 bits 32.4 / 11.7 / 1.9",
+     "The two longest users ran out of GPU memory for the both-coded recipe at the 0.8 cap; retried at 0.92 (runbook fix 25d6e447)",
+     "The summary table prints empty bit and size columns for the both-coded row (read-out display only)",
+     "Not tried this round: codebook size per stage, Lloyd iterations, 10-bit shift codes, relative norms",
+     "Write-up: artifacts/small-model/sm90/sm90-summary.md on branch sm90"
+    ]
+   }
+  },
   {
    "date": "11-02",
    "kind": "gpu-score",
