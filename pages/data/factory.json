@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-02T19:01:32+01:00",
- "updated": "2026-11-02 19:01",
- "material": "80b084acd852605d",
- "summary": "running 000898",
+ "generated_at": "2026-11-02T19:29:42+01:00",
+ "updated": "2026-11-02 19:29",
+ "material": "c6365156c7e78202",
+ "summary": "idle, finished 000898",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring (curve / instant)",
@@ -237,23 +237,7 @@
    "track": "small model"
   }
  ],
- "now": [
-  {
-   "what": "Show-time interval retrain (SM91) step 1: does training on show-time intervals (previous answer to the moment the card is shown, as the app sees them) win back part of the duration-leak cost (SM31: +0.13 curve / +0.43 instant points for the released small model)? Warm start from the leak-free small model (SM72s) epoch 20, 1 epoch + quarter-epoch 32k Muon cool-down with show-time inputs, paired against the same cool-down with normal inputs (tiny architecture additions (SM77) reference), both scored on show-time inputs on the 732 set",
-   "id": "SM91, ticket 000898",
-   "kind": "gpu-train",
-   "decides": "Go to step 2 (one big-model epoch on show-time inputs, ~9 GPU h, then new teacher targets + small cool-down) if one head gains at least 0.10 points with its CI below zero; stop otherwise (fixed before launch)",
-   "why": "",
-   "job": "show-time interval retrain (SM91): arm quarter-epoch 32k Muon cool-down on show-time inputs from arm epoch 21 (w64, the reference&#x27;s options and order) (segment to the next window or the end)",
-   "linked": true,
-   "track": "small model",
-   "ticket": "000898-small-model",
-   "started": "19:01",
-   "elapsed": "0:00",
-   "progress": null,
-   "eta": "~19:54"
-  }
- ],
+ "now": [],
  "charts": [
   {
    "title": "Small model, leak-free (SM72s): LogLoss per epoch, 458-user set (lower is better)",
@@ -424,6 +408,15 @@
  "waiting": [],
  "recent": [
   {
+   "ticket": "000898-small-model",
+   "id": "SM91",
+   "what": "show-time interval retrain (SM91): arm quarter-epoch 32k Muon cool-down on show-time inputs from arm epoch 21 (w64, the reference&#x27;s options and order) (segment to the next window or the end)",
+   "ended": "19:29",
+   "date": "11-02",
+   "exit": 0,
+   "ran": "0:28"
+  },
+  {
    "ticket": "000897-small-model",
    "id": "SM91",
    "what": "show-time interval retrain (SM91): arm quarter-epoch 32k Muon cool-down on show-time inputs from arm epoch 21 (w64, the reference&#x27;s options and order) (segment to the next window or the end)",
@@ -467,15 +460,6 @@
    "date": "11-02",
    "exit": 0,
    "ran": "0:00"
-  },
-  {
-   "ticket": "000892-small-model",
-   "id": "SM91",
-   "what": "show-time interval retrain (SM91): scoring the tiny architecture additions (SM77) reference cool-down (the leak-free small model (SM72s) epoch 21 + quarter-epoch 32k Muon, normal-trained) on e2s-query inputs, the 732 set minus 9 never-fit (723 users) (pass 1, 0 done, cap 0.8)",
-   "ended": "12:55",
-   "date": "11-02",
-   "exit": 0,
-   "ran": "0:11"
   }
  ],
  "plan": [
@@ -501,11 +485,12 @@
    "what": "Show-time interval retrain (SM91) step 1: does training on show-time intervals (previous answer to the moment the card is shown, as the app sees them) win back part of the duration-leak cost (SM31: +0.13 curve / +0.43 instant points for the released small model)? Warm start from the leak-free small model (SM72s) epoch 20, 1 epoch + quarter-epoch 32k Muon cool-down with show-time inputs, paired against the same cool-down with normal inputs (tiny architecture additions (SM77) reference), both scored on show-time inputs on the 732 set",
    "when": "Paused 16:17 Mon for the user (GPU free): reference re-scoring, smoke and epoch done; cool-down saved at 1,463 / 1,991 users (~30 min left), then scoring (~2 h). Resumes when the user says so",
    "decides": "Go to step 2 (one big-model epoch on show-time inputs, ~9 GPU h, then new teacher targets + small cool-down) if one head gains at least 0.10 points with its CI below zero; stop otherwise (fixed before launch)",
-   "state": "running",
+   "state": "done",
+   "ended": "19:29",
+   "exit": 0,
    "started": "19:01",
-   "ticket": "000898-small-model",
    "started_at": "2026-11-02T19:01:11+01:00",
-   "ends_at": "2026-11-03T02:41:11+01:00"
+   "ended_at": "2026-11-02T19:29:13+01:00"
   },
   {
    "what": "Quick score of the new epoch on 100 users",
