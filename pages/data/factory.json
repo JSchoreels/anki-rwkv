@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-02T02:21:47+01:00",
- "updated": "2026-11-02 02:21",
- "material": "1106553ddf1ff65a",
- "summary": "running 000864, finished 000863",
+ "generated_at": "2026-11-02T02:33:52+01:00",
+ "updated": "2026-11-02 02:33",
+ "material": "6c1fcd1fe3b61ca2",
+ "summary": "running 000865, finished 000864",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring (curve / instant)",
@@ -239,19 +239,19 @@
  ],
  "now": [
   {
-   "what": "Grade-order sanity (SM33): how often the released model&rsquo;s button intervals break Again &le; Hard &le; Good &le; Easy and whether the fork hides it; then, if needed, a soft penalty on breaks in a cool-down against the reference",
-   "id": "SM33, ticket 000864",
+   "what": "Codebook state compression sweep (SM90): GPU check, a 40-user screen of codebook budgets one stream at a time (cards 5,902 &rarr; 1,470 bits with notes int8; notes 3,964 &rarr; 1,524 bits with cards int4), then the smallest near-free rung of each on the 732 set",
+   "id": "SM90, ticket 000865",
    "kind": "gpu-score",
-   "decides": "Whether to enforce the order in training (user&rsquo;s wish); outside research saw +0.002 curve for a hard constraint",
+   "decides": "The smallest codebook budget within +0.02 points of the fork&rsquo;s int4 + int8 state, with its codebook size and speed",
    "why": "",
-   "job": "grade-order sanity (SM33): stage 2, what-if intervals of the reference on the 732 pool (723 users, 3,000 reviews each)",
+   "job": "codebook state compression sweep (SM90): scoring rel/w8+vqC4430 on the 723 users of the 732 set (pass 1, 0 done)",
    "linked": true,
    "track": "small model",
-   "ticket": "000864-small-model",
-   "started": "02:21",
+   "ticket": "000865-small-model",
+   "started": "02:33",
    "elapsed": "0:00",
    "progress": null,
-   "eta": "~03:01"
+   "eta": "~04:23"
   }
  ],
  "charts": [
@@ -423,12 +423,6 @@
  ],
  "waiting": [
   {
-   "ticket": "000865-small-model",
-   "id": "SM90",
-   "what": "codebook state compression sweep (SM90): scoring rel/w8+vqC4430 on the 723 users of the 732 set (pass 1, 0 done)",
-   "flags": "expected 110 min"
-  },
-  {
    "ticket": "000866-small-model",
    "id": "SM29",
    "what": "robustness to other apps (SM29): pass / fail ratings and no answer times (passfail-notime): scoring the big model (1 leak-free epoch) on the 723 users of the 732 set (pass 2)",
@@ -436,6 +430,15 @@
   }
  ],
  "recent": [
+  {
+   "ticket": "000864-small-model",
+   "id": "SM33",
+   "what": "grade-order sanity (SM33): stage 2, what-if intervals of the reference on the 732 pool (723 users, 3,000 reviews each)",
+   "ended": "02:33",
+   "date": "11-02",
+   "exit": 0,
+   "ran": "0:12"
+  },
   {
    "ticket": "000863-small-model",
    "id": "SM29",
@@ -480,15 +483,6 @@
    "date": "11-02",
    "exit": 0,
    "ran": "0:14"
-  },
-  {
-   "ticket": "000858-small-model",
-   "id": "SM33",
-   "what": "grade-order sanity (SM33): scoring sm33-arm-e21-q32k on the 3 long users of the 732 pool (cap 0.92)",
-   "ended": "01:38",
-   "date": "11-02",
-   "exit": 0,
-   "ran": "0:00"
   }
  ],
  "plan": [
@@ -1741,11 +1735,12 @@
    "what": "Grade-order sanity (SM33): how often the released model&rsquo;s button intervals break Again &le; Hard &le; Good &le; Easy and whether the fork hides it; then, if needed, a soft penalty on breaks in a cool-down against the reference",
    "when": "Stage 1 done 12:20 Sun; stage 2 cool-down ran to the break (snapshot 19:54), resumes 01:00 Mon, result ~03:30&ndash;04:30",
    "decides": "Whether to enforce the order in training (user&rsquo;s wish); outside research saw +0.002 curve for a hard constraint",
-   "state": "running",
-   "started": "02:21",
-   "ticket": "000864-small-model",
+   "state": "done",
+   "ended": "02:33",
+   "exit": 0,
+   "started": "01:00",
    "started_at": "2026-11-02T01:00:13+01:00",
-   "ends_at": "2026-11-02T02:00:13+01:00"
+   "ended_at": "2026-11-02T02:33:24+01:00"
   },
   {
    "id": "SM87",
@@ -1785,8 +1780,11 @@
    "what": "Codebook state compression sweep (SM90): GPU check, a 40-user screen of codebook budgets one stream at a time (cards 5,902 &rarr; 1,470 bits with notes int8; notes 3,964 &rarr; 1,524 bits with cards int4), then the smallest near-free rung of each on the 732 set",
    "when": "GPU check passed 14:08 Sun, 40-user screen done 14:31 (finalists: cards 5,902 and 4,430 bits, notes 3,020 bits, both together); 732-set scoring after 01:00 Mon, done Monday ~06:00&ndash;10:00",
    "decides": "The smallest codebook budget within +0.02 points of the fork&rsquo;s int4 + int8 state, with its codebook size and speed",
-   "state": "waiting",
-   "ticket": "000865-small-model"
+   "state": "running",
+   "started": "02:33",
+   "ticket": "000865-small-model",
+   "started_at": "2026-11-02T01:22:05+01:00",
+   "ends_at": "2026-11-02T03:22:05+01:00"
   }
  ],
  "gpu_break": {
