@@ -1,0 +1,137 @@
+{
+ "rule_pool": {
+  "users": 722,
+  "curve": {
+   "arm": 0.301215,
+   "reference": 0.30073,
+   "big": 0.298966,
+   "delta": 0.000486,
+   "delta_ci": [
+    0.000382,
+    0.0006
+   ],
+   "points": 0.162,
+   "points_ci": [
+    0.128,
+    0.202
+   ],
+   "users_better": 192,
+   "arm_vs_big_pct": 0.752,
+   "reference_vs_big_pct": 0.59
+  },
+  "instant": {
+   "arm": 0.277806,
+   "reference": 0.277217,
+   "big": 0.275757,
+   "delta": 0.000589,
+   "delta_ci": [
+    0.000536,
+    0.000648
+   ],
+   "points": 0.214,
+   "points_ci": [
+    0.194,
+    0.236
+   ],
+   "users_better": 94,
+   "arm_vs_big_pct": 0.743,
+   "reference_vs_big_pct": 0.529
+  }
+ },
+ "732+long": {
+  "users": 725,
+  "curve": {
+   "arm": 0.3035,
+   "reference": 0.302962,
+   "big": 0.301229,
+   "delta": 0.000538,
+   "delta_ci": [
+    0.000417,
+    0.000662
+   ],
+   "points": 0.179,
+   "points_ci": [
+    0.139,
+    0.221
+   ],
+   "users_better": 192,
+   "arm_vs_big_pct": 0.754,
+   "reference_vs_big_pct": 0.576
+  },
+  "instant": {
+   "arm": 0.278782,
+   "reference": 0.278117,
+   "big": 0.276575,
+   "delta": 0.000665,
+   "delta_ci": [
+    0.00056,
+    0.000791
+   ],
+   "points": 0.241,
+   "points_ci": [
+    0.204,
+    0.289
+   ],
+   "users_better": 94,
+   "arm_vs_big_pct": 0.798,
+   "reference_vs_big_pct": 0.557
+  }
+ },
+ "verdict": "stop",
+ "why": "curve +0.000486 > +0.00020; instant +0.000589 > +0.00015",
+ "projection": {
+  "curve": {
+   "release_vs_big_pct": 0.36,
+   "projected_vs_big_pct": 0.522,
+   "bar_pct": 0.5
+  },
+  "instant": {
+   "release_vs_big_pct": 0.28,
+   "projected_vs_big_pct": 0.494,
+   "bar_pct": 0.4
+  }
+ },
+ "size": {
+  "parameters_arm": 311786,
+  "parameters_reference": 331511,
+  "weight_bytes_arm": 385485,
+  "weight_bytes_reference": 410459,
+  "fork_state_bytes": {
+   "w64 (2 card layers)": {
+    "int8": {
+     "card": 2987,
+     "note": 1567,
+     "card_and_note": 4554
+    },
+    "int4": {
+     "card": 1963,
+     "note": 1055,
+     "card_and_note": 3018
+    }
+   },
+   "w64-c1 (1 card layer)": {
+    "int8": {
+     "card": 1567,
+     "note": 1567,
+     "card_and_note": 3134
+    },
+    "int4": {
+     "card": 1055,
+     "note": 1055,
+     "card_and_note": 2110
+    }
+   }
+  }
+ },
+ "rows": "C:\\Users\\jonat\\workspace\\wt\\sm73s2\\artifacts\\small-model\\sm73s2\\gpu\\sm73s2-neighbour.jsonl",
+ "arm_label": "sm73s2-arm-e21-q32k/w8+s8",
+ "reference": "C:\\Users\\jonat\\workspace\\wt\\sm77\\artifacts\\small-model\\sm77\\gpu\\sm77-neighbour.jsonl sm77-ref-e21-q32k/w8+s8",
+ "big": "C:\\Users\\jonat\\workspace\\wt\\sm72\\artifacts\\small-model\\sm72\\gpu-big\\bigleak-neighbour.jsonl big-leakfree-1ep/w8+s8",
+ "rule": {
+  "stop_if_delta_above": {
+   "curve": 0.0002,
+   "instant": 0.00015
+  },
+  "unit": "raw review-weighted LogLoss, arm - reference, point estimate"
+ }
+}
