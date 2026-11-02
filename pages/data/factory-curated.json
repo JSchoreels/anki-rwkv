@@ -249,6 +249,19 @@
    "decides": "Finish the cut model (3 more epochs + full cool-down, ~10 GPU h) or stop: stop if it costs more than +0.00020 curve or +0.00015 instant vs the reference (fixed before launch)"
   },
   {
+   "id": "SM91",
+   "track": "small model",
+   "since": "11-02T11:03",
+   "kind": "gpu-train",
+   "minutes": 460,
+   "match": [
+    "show-time interval retrain (SM91): "
+   ],
+   "what": "Show-time interval retrain (SM91) step 1: does training on show-time intervals (previous answer to the moment the card is shown, as the app sees them) win back part of the duration-leak cost (SM31: +0.13 curve / +0.43 instant points for the released small model)? Warm start from the leak-free small model (SM72s) epoch 20, 1 epoch + quarter-epoch 32k Muon cool-down with show-time inputs, paired against the same cool-down with normal inputs (tiny architecture additions (SM77) reference), both scored on show-time inputs on the 732 set",
+   "when": "Queued behind smaller model, card stream 1 layer (SM73 stage 2) (~13:45): reference re-scoring (~57 min), smoke, epoch (~125 min), cool-down (~150 min, paused for the 20:00 break), scoring; read-out ~02:30 Tue 11-03",
+   "decides": "Go to step 2 (one big-model epoch on show-time inputs, ~9 GPU h, then new teacher targets + small cool-down) if one head gains at least 0.10 points with its CI below zero; stop otherwise (fixed before launch)"
+  },
+  {
    "what": "Quick score of the new epoch on 100 users",
    "id": "Q12",
    "kind": "gpu-score",
