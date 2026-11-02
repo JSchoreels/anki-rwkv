@@ -1,0 +1,164 @@
+{
+ "ok": true,
+ "checks": {
+  "T1_trainer_flag_moves_only_query_intervals_and_curve_times": {
+   "ok": true,
+   "users": [
+    {
+     "user": 2651,
+     "train_reviews": 3064,
+     "samples": 2,
+     "query_columns": [
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+     ],
+     "update_columns": [],
+     "label_columns": [
+      "label_elapsed_seconds"
+     ],
+     "query_rows_moved": 2381,
+     "curve_query_times_moved": 2381,
+     "curve_query_time_max_shortening_s": 60.0,
+     "failures": []
+    },
+    {
+     "user": 8823,
+     "train_reviews": 15016,
+     "samples": 8,
+     "query_columns": [
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+     ],
+     "update_columns": [],
+     "label_columns": [
+      "label_elapsed_seconds"
+     ],
+     "query_rows_moved": 12897,
+     "curve_query_times_moved": 12894,
+     "curve_query_time_max_shortening_s": 64.0,
+     "failures": []
+    },
+    {
+     "user": 2158,
+     "train_reviews": 32077,
+     "samples": 16,
+     "query_columns": [
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+     ],
+     "update_columns": [],
+     "label_columns": [
+      "label_elapsed_seconds"
+     ],
+     "query_rows_moved": 28078,
+     "curve_query_times_moved": 28061,
+     "curve_query_time_max_shortening_s": 60.0,
+     "failures": []
+    }
+   ]
+  },
+  "T2_trainer_rows_equal_scorer_e2s_query_rows": {
+   "ok": true,
+   "users": [
+    {
+     "user": 2651,
+     "trainer_rows": 5445,
+     "scorer_rows": 5445,
+     "values_compared": 163350,
+     "rows_mismatched": 0,
+     "flag_off_vs_scorer_normal_differs": {},
+     "failures": []
+    },
+    {
+     "user": 8823,
+     "trainer_rows": 27913,
+     "scorer_rows": 27913,
+     "values_compared": 837390,
+     "rows_mismatched": 0,
+     "flag_off_vs_scorer_normal_differs": {},
+     "failures": []
+    },
+    {
+     "user": 2158,
+     "trainer_rows": 60157,
+     "scorer_rows": 60157,
+     "values_compared": 1804710,
+     "rows_mismatched": 0,
+     "flag_off_vs_scorer_normal_differs": {},
+     "failures": []
+    }
+   ]
+  },
+  "T3_flag_off_batches_equal_current_trainer": {
+   "ok": true,
+   "batches": 3,
+   "tensors_per_batch": [
+    83,
+    101,
+    113
+   ],
+   "differing": [],
+   "reference_tree": "C:\\Users\\jonat\\AppData\\Local\\Temp\\claude\\C--Users-jonat-workspace-anki-rwkv\\41a2947b-8da0-4ee6-a033-bc96eb42a697\\scratchpad\\ref-sm73s2"
+  },
+  "T3b_flag_on_batch_tensors_that_change": {
+   "ok": true,
+   "changed": [
+    "batch.labels",
+    "batch.start"
+   ],
+   "note": "informational: the packed card-feature / label tensors; the permutations and id tensors must not be listed"
+  },
+  "T4a_arm_epoch_equals_sm72s_epoch21_except_flag_and_paths": {
+   "ok": true,
+   "out": "[sm91-pair] epoch OK: sm91-arm-e21 == epoch-21 except the show-time inputs flag, the start weights and paths (8,000 users, update offset 441560, start epoch-20)"
+  },
+  "T4b_flag_cooldown_equals_reference_except_flag_and_names": {
+   "ok": true,
+   "out": "[sm91-pair] decay OK: test-cooldown-from-sm72s-e21 == sm77-ref-e21-dec-q32k-muon except the show-time inputs flag, the start weights and paths (1,991 users, update offset 463638, 145,578,259 reviews, start 2c8f59c0b6dd vs 2c8f59c0b6dd)"
+  },
+  "T4c_reference_against_itself_refused_without_flag": {
+   "ok": true,
+   "out": "[sm91-pair] decay REFUSE: show_time_intervals is not true in the arm only"
+  },
+  "T5_rule_reproduces_sm31_and_zero": {
+   "ok": true,
+   "out": "{\"users\": 722, \"sm31_e2s_query_reproduced\": {\"curve\": [0.128, [0.106, 0.16]], \"instant\": [0.428, [0.337, 0.546]]}, \"sm31_published\": {\"curve\": [0.128, [0.106, 0.16]], \"instant\": [0.428, [0.337, 0.546]]}, \"self_pair\": {\"curve\": 0.0, \"instant\": 0.0}, \"synthetic_instant_gain_verdict\": \"go to step 2\", \"ok\": true, \"failures\": []}",
+   "err": ""
+  }
+ },
+ "users": [
+  2651,
+  8823,
+  2158
+ ],
+ "provenance": {
+  "captured_utc": "2026-11-02T10:02:47.183866+00:00",
+  "git_commit": "cc7f5358b487b84d05e07515f2e052191856b0e3",
+  "git_dirty": false,
+  "git_status_porcelain_z": "",
+  "source_tree_sha256": "b0d32c656de907e8e7c84c0507e1f0b3df1e664a19d2fc640fd9f53908fd1743",
+  "source_archive": "artifacts/sources/experiment-sources/b0d32c656de907e8e7c84c0507e1f0b3df1e664a19d2fc640fd9f53908fd1743/source.zip",
+  "source_paths": [
+   "rwkv",
+   "expertium",
+   "scripts",
+   "configs",
+   "pyproject.toml",
+   "uv.lock",
+   "justfile",
+   "upstream.json"
+  ]
+ }
+}
