@@ -44,6 +44,22 @@ state compression at a large budget (SM46) fixes + this work). Always `git fetch
   int one ~0.5 h) Monday ~10:00-16:00, before the 20:00 break if the queue is otherwise free. A label that cannot
   finish before 20:00 resumes after 01:00 Tuesday (passes skip users already scored).
 
+## Update 2026-11-02 05:55: stalled scoring step, fixed, relaunched
+- Symptom: `rel/w8+vqC4430N3020` stuck at 721/723 users; the runbook stopped with "no progress" at 05:52.
+- Root cause (not a scorer bug): users 4852 and 3735 (~0.5M reviews each, the two longest) hit CUDA out of memory at the
+  scorer's default 0.8 memory cap (12.72 GiB; 10 GiB allocated + 2.5 GiB reserved-but-fragmented). The scorer writes an
+  error row (`"error": "OOM: ..."`, no metrics) and the runbook only counts error-free rows; the "0 review-evals/s" lines
+  of pass 3 are those OOM rows. Earlier labels got these users through on a lone retry pass (3735 also OOM'd once for
+  `vqC4430` and `s4c8n`); the 3 note-coded stages of `vqC4430N3020` needs more memory, so both fail at 0.8.
+- Fix (commit 25d6e447, runbook only, scripts untouched): after a pass with no progress, ONE more pass at
+  `HELDOUT_GPU_MEMORY_FRACTION=0.92` (the cap other runbooks use for their "3 long users" tickets; memory only, the
+  numerics are unchanged), then STOP if it still makes no progress. The cap resets for each label. Consequence: every
+  coded label now costs one extra short ticket that OOMs at 0.8 before the 0.92 pass. Rows of already scored
+  users/labels are untouched (the scorer skips them).
+- Relaunched 05:55 (WMI pid 52328, hidden) from commit 25d6e447; queued behind the robustness-to-other-apps (SM29)
+  scoring ticket. Remaining: `vqC4430N3020` (2 long users), `rel/w8+vqC5902`, `rel/w8+vqN3020`, then the rule read-out.
+  Expected end: ~13:00-15:00 today (before the 20:00 break unless the queue is busier), else resumes after 01:00.
+
 ## Follow-up commands
 ```bash
 cd C:/Users/jonat/workspace/wt/sm90 && git fetch -q && git merge --ff-only -q
