@@ -236,6 +236,19 @@
  "now_notes": [],
  "plan": [
   {
+   "id": "SM73s2",
+   "track": "small model",
+   "since": "11-02T08:52",
+   "kind": "gpu-train",
+   "minutes": 310,
+   "match": [
+    "smaller model, card stream 1 layer (SM73 stage 2): "
+   ],
+   "what": "Smaller model, card stream 1 layer (SM73 stage 2): early check of the small model with its card stream cut from 2 layers to 1 (311,786 parameters; 3,134 instead of 4,554 bytes per card + note at int8, 2,110 at int4). Warm start from the leak-free small model (SM72s) epoch 20, 1 epoch, quarter-epoch 32k Muon cool-down, paired against the same cool-down without the cut",
+   "when": "Started 08:52 Mon: smoke, epoch (~125 min), cool-down (~150 min), scoring; read-out ~14:15&ndash;14:30",
+   "decides": "Finish the cut model (3 more epochs + full cool-down, ~10 GPU h) or stop: stop if it costs more than +0.00020 curve or +0.00015 instant vs the reference (fixed before launch)"
+  },
+  {
    "what": "Quick score of the new epoch on 100 users",
    "id": "Q12",
    "kind": "gpu-score",
@@ -1298,7 +1311,7 @@
    "kind": "gpu-score",
    "minutes": 30,
    "match": [
-    "SM73"
+    "smaller model (SM73) stage 1"
    ],
    "what": "Smaller model (SM73) stage 1: the leak-free small model (SM72s, cool-down from epoch 20) with its card/note state stored at 4 bits instead of 8 (3,018 instead of 4,554 bytes per card + note, &minus;34%), scored on the 732 set; int4 cards + int8 notes (3,530 bytes, &minus;22%) only if that fails",
    "when": "Ready, not launched (dry run OK 10-29 09:19); ~15 min of GPU (~30 min if the fallback runs), done ~30 min after launch",
@@ -1693,7 +1706,7 @@
    "id": "SM73",
    "track": "small model",
    "item": "Smaller model: a smaller small model on the leak-free recipe within +0.5% curve / +0.4% instant vs the big model (1 leak-free epoch), only ~0.09 / ~0.08 points of room",
-   "why": "Stage 1 done 10-29: the fork&rsquo;s default state (int4 cards + int8 notes) passes the +0.5% / +0.4% bar. A narrower network needs accuracy bought back first (a better teacher, SM65): see the design note",
+   "why": "Stage 1 done 10-29: the fork&rsquo;s default state (int4 cards + int8 notes) passes the +0.5% / +0.4% bar. A narrower network needs accuracy bought back first (a better teacher, SM65): see the design note. Stage 2 early check (card stream 1 layer) started 11-02 08:52 without the buy-back precondition: the epoch-25 release left ~0.14 / ~0.12 points of room",
    "since": "10-29T09:43"
   },
   {
