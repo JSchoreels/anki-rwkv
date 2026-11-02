@@ -1,0 +1,162 @@
+{
+ "rule_pool": {
+  "users": 722,
+  "arm_minus_reference_e2s": {
+   "users": 722,
+   "curve": {
+    "new": 0.30085,
+    "ref": 0.301106,
+    "big": 0.298966,
+    "delta": -0.000256,
+    "delta_ci": [
+     -0.000376,
+     -0.00016
+    ],
+    "points": -0.086,
+    "points_ci": [
+     -0.126,
+     -0.054
+    ],
+    "users_better": 452,
+    "users_worse": 267,
+    "new_vs_big_pct": 0.63,
+    "ref_vs_big_pct": 0.716
+   },
+   "instant": {
+    "new": 0.277549,
+    "ref": 0.278311,
+    "big": 0.275757,
+    "delta": -0.000762,
+    "delta_ci": [
+     -0.001024,
+     -0.000564
+    ],
+    "points": -0.277,
+    "points_ci": [
+     -0.367,
+     -0.209
+    ],
+    "users_better": 552,
+    "users_worse": 166,
+    "new_vs_big_pct": 0.65,
+    "ref_vs_big_pct": 0.926
+   }
+  },
+  "reference_show_time_cost": {
+   "users": 722,
+   "curve": {
+    "new": 0.301106,
+    "ref": 0.30073,
+    "big": 0.298966,
+    "delta": 0.000377,
+    "delta_ci": [
+     0.000308,
+     0.000463
+    ],
+    "points": 0.126,
+    "points_ci": [
+     0.105,
+     0.153
+    ],
+    "users_better": 150,
+    "users_worse": 559,
+    "new_vs_big_pct": 0.716,
+    "ref_vs_big_pct": 0.59
+   },
+   "instant": {
+    "new": 0.278311,
+    "ref": 0.277217,
+    "big": 0.275757,
+    "delta": 0.001094,
+    "delta_ci": [
+     0.00084,
+     0.001422
+    ],
+    "points": 0.397,
+    "points_ci": [
+     0.311,
+     0.507
+    ],
+    "users_better": 95,
+    "users_worse": 609,
+    "new_vs_big_pct": 0.926,
+    "ref_vs_big_pct": 0.529
+   }
+  },
+  "arm_e2s_minus_reference_normal": {
+   "users": 722,
+   "curve": {
+    "new": 0.30085,
+    "ref": 0.30073,
+    "big": 0.298966,
+    "delta": 0.000121,
+    "delta_ci": [
+     1e-06,
+     0.000218
+    ],
+    "points": 0.04,
+    "points_ci": [
+     0.0,
+     0.073
+    ],
+    "users_better": 231,
+    "users_worse": 490,
+    "new_vs_big_pct": 0.63,
+    "ref_vs_big_pct": 0.59
+   },
+   "instant": {
+    "new": 0.277549,
+    "ref": 0.277217,
+    "big": 0.275757,
+    "delta": 0.000332,
+    "delta_ci": [
+     0.000266,
+     0.000414
+    ],
+    "points": 0.12,
+    "points_ci": [
+     0.098,
+     0.149
+    ],
+    "users_better": 176,
+    "users_worse": 543,
+    "new_vs_big_pct": 0.65,
+    "ref_vs_big_pct": 0.529
+   }
+  },
+  "win_back": {
+   "curve": {
+    "reference_cost_points": 0.126,
+    "arm_gain_points": 0.086,
+    "share_of_reference_cost_pct": 68.3,
+    "share_of_sm31_cost_pct": 67.2
+   },
+   "instant": {
+    "reference_cost_points": 0.397,
+    "arm_gain_points": 0.277,
+    "share_of_reference_cost_pct": 69.8,
+    "share_of_sm31_cost_pct": 64.7
+   }
+  }
+ },
+ "verdict": "go to step 2",
+ "why": "gain >= 0.10 points with the CI below zero: instant -0.277 points [-0.367, -0.209]",
+ "rows": "C:\\Users\\jonat\\workspace\\wt\\sm91\\artifacts\\small-model\\sm91\\gpu\\sm91-inputs.jsonl",
+ "labels": {
+  "arm_e2s": "sm91-arm-e21-q32k/w8+s8@e2s-query",
+  "ref_e2s": "sm77-ref-e21-q32k/w8+s8@e2s-query",
+  "arm_normal": "sm91-arm-e21-q32k/w8+s8",
+  "ref_normal": "C:\\Users\\jonat\\workspace\\wt\\sm77\\artifacts\\small-model\\sm77\\gpu\\sm77-neighbour.jsonl sm77-ref-e21-q32k/w8+s8"
+ },
+ "big": "C:\\Users\\jonat\\workspace\\wt\\sm72\\artifacts\\small-model\\sm72\\gpu-big\\bigleak-neighbour.jsonl big-leakfree-1ep/w8+s8",
+ "missing_informational": {
+  "arm_e2s": 0,
+  "ref_e2s": 0,
+  "arm_normal": 722,
+  "ref_normal": 0
+ },
+ "rule": {
+  "go_if": "delta (arm - reference, e2s-query) <= -0.1 points with 95% CI upper < 0 on curve or instant",
+  "unit": "points = % of the big model (1 leak-free epoch) normal-input LogLoss, review-weighted, 722 users"
+ }
+}
