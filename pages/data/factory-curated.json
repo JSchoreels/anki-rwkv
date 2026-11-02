@@ -1523,8 +1523,9 @@
     "duration-leak scoring (SM31): "
    ],
    "what": "Duration-leak scoring (SM31): the released small model and the big model (1 leak-free epoch) scored with intervals as Anki knows them when it shows the card (without the review&rsquo;s own answer time)",
-   "when": "Main scoring done 14:46 Sun (723 users, both models); long users running after 01:00 Mon (shared GPU with the codebook sweep (SM90)), table ~07:00",
-   "decides": "Honest deployment numbers for both models and the small-vs-big gap without the leak"
+   "when": "Done 07:09 Mon",
+   "decides": "Honest deployment numbers for both models and the small-vs-big gap without the leak",
+   "state": "done"
   },
   {
    "id": "SM29",
@@ -1536,8 +1537,9 @@
     "robustness to other apps (SM29): "
    ],
    "what": "Robustness to other apps (SM29): the released small model and the big model scored with pass/fail-only ratings, without answer times, and both (grade heads only)",
-   "when": "GPU scoring done 03:30 Mon; the table comes with the duration-leak scoring (SM31) CPU step after its last long-user tickets, ~07:00",
-   "decides": "How gently the models degrade for apps or users without full ratings or answer times"
+   "when": "Done 07:09 Mon",
+   "decides": "How gently the models degrade for apps or users without full ratings or answer times",
+   "state": "done"
   },
   {
    "id": "SM33",
@@ -1839,7 +1841,7 @@
    "track": "small model"
   },
   {
-   "status": "next",
+   "status": "done",
    "item": "Deployment-realistic scoring without the duration leak",
    "id": "SM31",
    "why": "Intervals as Anki knows them when it shows the card; both models, cheap. Outside runs: +0.0002 / +0.0004 cost. Week plan: Sun 10-25 &mdash; parked 10-28: a measurement, not a better model. Picked up 11-01 (the answer-time leak found by response-time prediction (SM82) is the same leak)",
@@ -1875,7 +1877,7 @@
    "track": "small model"
   },
   {
-   "status": "next",
+   "status": "done",
    "item": "Robustness to other apps: pass/fail-only ratings, no durations",
    "id": "SM29",
    "why": "Same test as the review-type one, CPU. Picked up 11-01: grade heads only, the answer-time head is not evaluated",
@@ -2124,6 +2126,50 @@
   "s-w64kd-gate-ctx2048c-dec8-1ep/w8+s8"
  ],
  "results": [
+  {
+   "date": "11-02",
+   "kind": "gpu-score",
+   "id": "SM31",
+   "track": "small model",
+   "name": "Duration-leak scoring (SM31): the released small model and the big model (1 leak-free epoch) scored with deployment-realistic intervals (the interval up to the moment the card is shown, not up to the answer)",
+   "eval": "Leak-free scoring w8+s8 (deleted cards: neighbour), 722 users of the 732 set, review-weighted LogLoss; points = % of the big model (1 leak-free epoch) with normal inputs; paired user bootstrap 95% CI; no retraining, only inputs change",
+   "fork": "Released small model: curve 0.30003 &rarr; 0.30041 (+0.13 [+0.11, +0.16] points), instant 0.27654 &rarr; 0.27772 (+0.43 [+0.34, +0.55])",
+   "takeaway": "<strong>Small leak</strong>: normal inputs carry the review&rsquo;s own answer time in the interval; removing it costs the small model +0.13 curve / +0.43 instant points and the big model +0.20 / +0.51. The small-vs-big gap gets smaller (curve +0.36 &rarr; +0.28, instant +0.28 &rarr; +0.20), so the bar comparisons are not flattered by the leak",
+   "started_at": "2026-11-01T10:51+01:00",
+   "ended_at": "2026-11-02T07:09+01:00",
+   "gpu_minutes": 61,
+   "tickets": 12,
+   "detail": {
+    "verdict": "Measured; no change to the released model needed",
+    "notes": [
+     "Outside-research definition (the same subtraction on every row, e2s-all): small +0.11 / +0.24, big +0.17 / +0.30 points",
+     "725-user pool with the 3 long users: same picture (small +0.12 / +0.42, big +0.20 / +0.50)",
+     "Write-up: artifacts/small-model/sm31/sm31-result.md on branch sm31"
+    ]
+   }
+  },
+  {
+   "date": "11-02",
+   "kind": "gpu-score",
+   "id": "SM29",
+   "track": "small model",
+   "name": "Robustness to other apps (SM29): the released small model and the big model (1 leak-free epoch) scored as if the reviews came from an app with only pass / fail buttons, without answer times, or both",
+   "eval": "Leak-free scoring w8+s8 (deleted cards: neighbour), 722 users of the 732 set, review-weighted LogLoss; points = % of the big model (1 leak-free epoch) with normal inputs; paired user bootstrap 95% CI; no retraining, only inputs change",
+   "fork": "Released small model: pass / fail +1.30 curve / +0.96 instant points; no answer times +8.55 / +11.04; both +10.63 / +12.53",
+   "takeaway": "<strong>Answer times matter most</strong>: pass / fail ratings cost about +1 point on both models, but missing answer times cost the small model +8.6 curve / +11.0 instant points and the big model much more (+14.4 / +18.4; with both changes +16.9 / +28.0). Without answer times the small model beats the big one (curve gap &minus;5.5, instant &minus;7.0 points)",
+   "started_at": "2026-11-01T14:46+01:00",
+   "ended_at": "2026-11-02T07:09+01:00",
+   "gpu_minutes": 93,
+   "tickets": 18,
+   "detail": {
+    "verdict": "Measured; no retraining in this test",
+    "notes": [
+     "Pass / fail: Hard and Easy fed as Good in the inputs; labels unchanged. No answer times: duration 0, the encoding for missing times",
+     "725-user pool with the 3 long users: same picture",
+     "Write-up: artifacts/small-model/sm29/sm29-result.md on branch sm31"
+    ]
+   }
+  },
   {
    "date": "11-02",
    "kind": "gpu-score",
