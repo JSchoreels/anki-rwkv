@@ -254,14 +254,14 @@
   {
    "id": "SM91",
    "track": "small model",
-   "since": "11-02T16:18",
+   "since": "11-02T19:52",
    "kind": "gpu-train",
-   "minutes": 460,
+   "minutes": 85,
    "match": [
     "show-time interval retrain (SM91): "
    ],
    "what": "Show-time interval retrain (SM91) step 1: does training on show-time intervals (previous answer to the moment the card is shown, as the app sees them) win back part of the duration-leak cost (SM31: +0.13 curve / +0.43 instant points for the released small model)? Warm start from the leak-free small model (SM72s) epoch 20, 1 epoch + quarter-epoch 32k Muon cool-down with show-time inputs, paired against the same cool-down with normal inputs (tiny architecture additions (SM77) reference), both scored on show-time inputs on the 732 set",
-   "when": "Paused 16:17 Mon for the user (GPU free): reference re-scoring, smoke and epoch done; cool-down saved at 1,463 / 1,991 users (~30 min left), then scoring (~2 h). Resumes when the user says so",
+   "when": "Rule done 19:51 (go to step 2); left: the 3 long users (~25 min, before 20:30) and the arm on normal inputs (~57 min, after 01:00)",
    "decides": "Go to step 2 (one big-model epoch on show-time inputs, ~9 GPU h, then new teacher targets + small cool-down) if one head gains at least 0.10 points with its CI below zero; stop otherwise (fixed before launch)"
   },
   {
@@ -2156,6 +2156,30 @@
   "s-w64kd-gate-ctx2048c-dec8-1ep/w8+s8"
  ],
  "results": [
+  {
+   "date": "11-02",
+   "kind": "gpu-train",
+   "id": "SM91",
+   "track": "small model",
+   "name": "Show-time interval retrain (SM91) step 1: the leak-free small model (SM72s) epoch 20 + 1 epoch + quarter-epoch 32k Muon cool-down trained on show-time intervals (previous answer to the moment the card is shown, as the app sees them), paired against the same run on normal intervals, both scored on show-time inputs",
+   "eval": "Leak-free scoring, w8+s8, show-time inputs (e2s-query), 722 users of the 732 set; points = % of the big model (1 leak-free epoch) normal-input LogLoss, arm minus reference, paired user bootstrap 2,000, seed 0, 95% CI. Go to step 2 if one head gains at least 0.10 points with its CI below zero (fixed before launch)",
+   "fork": "Unchanged for now: the fork already queries at show time, so a show-time-trained model is what it would ship",
+   "takeaway": "<strong>Go to step 2</strong>: training on show-time intervals wins back about two thirds of the duration-leak cost. vs the normal-trained reference, both on show-time inputs: &minus;0.09 curve [&minus;0.13, &minus;0.05] / &minus;0.28 instant [&minus;0.37, &minus;0.21] points (68% / 70% of its own show-time cost of +0.13 / +0.40). Left: +0.04 / +0.12 points vs the reference on normal inputs",
+   "started_at": "2026-11-02T12:43+01:00",
+   "ended_at": "2026-11-02T19:51+01:00",
+   "gpu_minutes": 254,
+   "tickets": 9,
+   "detail": {
+    "verdict": "Go to step 2: one big-model epoch on show-time inputs, then new teacher targets + small cool-down",
+    "notes": [
+     "Users better: 452 / 722 on curve, 552 / 722 on instant",
+     "Arm on show-time inputs: curve 0.30085, instant 0.27755; reference 0.30111 / 0.27831 (normal inputs 0.30073 / 0.27722)",
+     "Epoch 110.8 min at 87,566 reviews/s; cool-down paused 16:17&ndash;19:01 for the user, 27.7 min after the resume",
+     "Teacher targets unchanged (from the big model, trained on normal intervals): part of the cost left may be the teacher's",
+     "Still to run after the break: the 3 long users and the arm on normal inputs (information only)"
+    ]
+   }
+  },
   {
    "date": "11-02",
    "kind": "gpu-train",
