@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-02T19:51:43+01:00",
- "updated": "2026-11-02 19:51",
- "material": "72e0fccff09ef434",
- "summary": "running 000900, finished 000899",
+ "generated_at": "2026-11-02T19:52:17+01:00",
+ "updated": "2026-11-02 19:52",
+ "material": "df57d37d8e3692a6",
+ "summary": "running 000901, finished 000900",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring (curve / instant)",
@@ -240,18 +240,18 @@
  "now": [
   {
    "what": "Show-time interval retrain (SM91) step 1: does training on show-time intervals (previous answer to the moment the card is shown, as the app sees them) win back part of the duration-leak cost (SM31: +0.13 curve / +0.43 instant points for the released small model)? Warm start from the leak-free small model (SM72s) epoch 20, 1 epoch + quarter-epoch 32k Muon cool-down with show-time inputs, paired against the same cool-down with normal inputs (tiny architecture additions (SM77) reference), both scored on show-time inputs on the 732 set",
-   "id": "SM91, ticket 000900",
+   "id": "SM91, ticket 000901",
    "kind": "gpu-train",
    "decides": "Go to step 2 (one big-model epoch on show-time inputs, ~9 GPU h, then new teacher targets + small cool-down) if one head gains at least 0.10 points with its CI below zero; stop otherwise (fixed before launch)",
    "why": "",
-   "job": "show-time interval retrain (SM91): scoring the show-time arm cool-down on e2s-query inputs, the 732 set minus 9 never-fit (723 users) (pass 2, 722 done, cap 0.8)",
+   "job": "show-time interval retrain (SM91): scoring the show-time arm cool-down on e2s-query inputs, the 3 long users of the 732 set (pass 1, cap 0.92)",
    "linked": true,
    "track": "small model",
-   "ticket": "000900-small-model",
+   "ticket": "000901-small-model",
    "started": "19:51",
    "elapsed": "0:00",
    "progress": null,
-   "eta": "~20:11"
+   "eta": "~20:16"
   }
  ],
  "charts": [
@@ -424,6 +424,15 @@
  "waiting": [],
  "recent": [
   {
+   "ticket": "000900-small-model",
+   "id": "SM91",
+   "what": "show-time interval retrain (SM91): scoring the show-time arm cool-down on e2s-query inputs, the 732 set minus 9 never-fit (723 users) (pass 2, 722 done, cap 0.8)",
+   "ended": "19:51",
+   "date": "11-02",
+   "exit": 0,
+   "ran": "0:00"
+  },
+  {
    "ticket": "000899-small-model",
    "id": "SM91",
    "what": "show-time interval retrain (SM91): scoring the show-time arm cool-down on e2s-query inputs, the 732 set minus 9 never-fit (723 users) (pass 1, 0 done, cap 0.8)",
@@ -467,15 +476,6 @@
    "date": "11-02",
    "exit": 0,
    "ran": "0:00"
-  },
-  {
-   "ticket": "000894-small-model",
-   "id": "SM91",
-   "what": "show-time interval retrain (SM91): scoring the tiny architecture additions (SM77) reference cool-down (the leak-free small model (SM72s) epoch 21 + quarter-epoch 32k Muon, normal-trained) on e2s-query inputs, the 3 long users of the 732 set (pass 1, cap 0.92)",
-   "ended": "12:56",
-   "date": "11-02",
-   "exit": 0,
-   "ran": "0:00"
   }
  ],
  "plan": [
@@ -503,7 +503,7 @@
    "decides": "Go to step 2 (one big-model epoch on show-time inputs, ~9 GPU h, then new teacher targets + small cool-down) if one head gains at least 0.10 points with its CI below zero; stop otherwise (fixed before launch)",
    "state": "running",
    "started": "19:51",
-   "ticket": "000900-small-model",
+   "ticket": "000901-small-model",
    "started_at": "2026-11-02T19:01:11+01:00",
    "ends_at": "2026-11-03T02:41:11+01:00"
   },
