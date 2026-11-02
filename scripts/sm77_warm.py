@@ -201,11 +201,15 @@ def epoch(args):
         if record["architecture"] != args.arch or Path(record["source_master"]).resolve() != Path(full["init_master"]).resolve():
             raise SystemExit(f"{args.init} extends {record['source_master']} for {record['architecture']}, not "
                              f"{full['init_master']} for {args.arch}")
-        if record["init"] != "zeros":
+        # "cut" = smaller model (SM73) stage 2 (scripts/sm73s2.py cut): layers removed, the rest copied, AdamW re-indexed
+        if record["init"] not in ("zeros", "cut"):
             raise SystemExit(f"{args.init} is a check checkpoint ({record['init']})")
         full["init_master"] = (Path(args.init) / "master.pth").resolve().as_posix()
         full["init_optimizer"] = (Path(args.init) / "optimizer.pth").resolve().as_posix()
-        note += f", extended to {args.arch} (new parameters zero, AdamW state re-indexed)"
+        if record["init"] == "cut":
+            note += f", cut to {args.arch} ({', '.join(record['removed_prefixes'])} removed, AdamW state re-indexed)"
+        else:
+            note += f", extended to {args.arch} (new parameters zero, AdamW state re-indexed)"
     if args.arch != "w64":
         options["architecture"] = args.arch
     if args.data_seed is not None:   # data-order re-seed (SM80): only the per-window seeds change (see --data-seed)

@@ -50,7 +50,19 @@ def main():
     adamw = sum(p.numel() for g in optimizer.adamw.param_groups for p in g["params"])
     # SM77 additions (zero-init biases and initial state, names sm77_*) are not matrices: AdamW, Muon set unchanged
     extra = sum(p.numel() for n, p in master.named_parameters() if n.split(".")[-1].startswith("sm77_"))
-    record("w64 parameters Muon / AdamW", [muon, adamw], [muon, adamw] == [309888, 21623 + extra])
+    expected = [309888, 21623 + extra]
+    from expertium.variants import SM73_PRESETS
+    if options.get("architecture") in SM73_PRESETS:
+        # smaller model (SM73) stage 2: w64 minus the removed card layer; each removed tensor leaves the group (Muon or
+        # AdamW) the same trainer puts it in for w64
+        w64 = VariantSrsRWKV(variant("w64")).float()
+        split = catch_up.optimizer(w64)
+        kept = {n for n, _ in master.named_parameters()}
+        names = {id(p): n for n, p in w64.named_parameters()}
+        removed = [sum(p.numel() for g in opt.param_groups for p in g["params"] if names[id(p)] not in kept)
+                   for opt in (split.muon, split.adamw)]
+        expected = [309888 - removed[0], 21623 - removed[1]]
+    record("w64 parameters Muon / AdamW", [muon, adamw, expected], [muon, adamw] == expected)
     record("fresh state is empty", [len(optimizer.muon.state), len(optimizer.adamw.state)],
            len(optimizer.muon.state) == 0 and len(optimizer.adamw.state) == 0)
     source = Path(decay["source_case"]) / "optimizer.pth"
