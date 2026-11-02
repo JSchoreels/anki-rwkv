@@ -1,0 +1,47 @@
+[sm91 11-02 11:03:10] started: 283fd8bb Show-time interval retrain (SM91) step 1: CPU proofs ALL OK on cc7f5358 (trainer flag moves only the show-time columns, equals the scorer's e2s-query rows bitwise, flag off equals the current trainer bitwise, pair config, rule self-test) (DRYRUN=0; arm w64 + show-time inputs from the leak-free small model (SM72s) epoch 20; reference C:/Users/jonat/workspace/wt/sm77/artifacts/small-model/sm77-ref-e21-dec-q32k-muon)
+[sm91-pair] epoch OK: sm91-arm-e21 == epoch-21 except the show-time inputs flag, the start weights and paths (8,000 users, update offset 441560, start epoch-20)
+[sm91 11-02 12:43:11] the smaller model, card stream 1 layer (SM73 stage 2) chain ended: [sm73s2 11-02 12:38:48] done
+[sm91 11-02 12:43:12] enqueue: scoring the tiny architecture additions (SM77) reference cool-down (the leak-free small model (SM72s) epoch 21 + quarter-epoch 32k Muon, normal-trained) on e2s-query inputs, the 732 set minus 9 never-fit (723 users) (pass 1, 0 done, cap 0.8) (expected 32 min, max wait 401 min, 436 min to the next window)
+[sm91 11-02 12:55:05] exit 0: scoring the tiny architecture additions (SM77) reference cool-down (the leak-free small model (SM72s) epoch 21 + quarter-epoch 32k Muon, normal-trained) on e2s-query inputs, the 732 set minus 9 never-fit (723 users) (pass 1, 0 done, cap 0.8)
+[sm91 11-02 12:55:05] enqueue: scoring the tiny architecture additions (SM77) reference cool-down (the leak-free small model (SM72s) epoch 21 + quarter-epoch 32k Muon, normal-trained) on e2s-query inputs, the 732 set minus 9 never-fit (723 users) (pass 2, 722 done, cap 0.8) (expected 20 min, max wait 401 min, 424 min to the next window)
+[sm91 11-02 12:55:34] exit 0: scoring the tiny architecture additions (SM77) reference cool-down (the leak-free small model (SM72s) epoch 21 + quarter-epoch 32k Muon, normal-trained) on e2s-query inputs, the 732 set minus 9 never-fit (723 users) (pass 2, 722 done, cap 0.8)
+[sm91 11-02 12:55:35] enqueue: scoring the tiny architecture additions (SM77) reference cool-down (the leak-free small model (SM72s) epoch 21 + quarter-epoch 32k Muon, normal-trained) on e2s-query inputs, the 3 long users of the 732 set (pass 1, cap 0.92) (expected 25 min, max wait 396 min, 424 min to the next window)
+[sm91 11-02 12:56:23] exit 0: scoring the tiny architecture additions (SM77) reference cool-down (the leak-free small model (SM72s) epoch 21 + quarter-epoch 32k Muon, normal-trained) on e2s-query inputs, the 3 long users of the 732 set (pass 1, cap 0.92)
+[sm91 11-02 12:56:23] sm77-ref-e21-q32k/w8+s8@e2s-query: 726 users scored
+[sm91 11-02 12:56:23] enqueue: trainer smoke of the arm epoch (w64, show-time inputs, 2 users x 512 reviews) (expected 15 min, max wait 405 min, 423 min to the next window)
+[sm91 11-02 12:56:35] exit 0: trainer smoke of the arm epoch (w64, show-time inputs, 2 users x 512 reviews)
+[sm91 11-02 12:56:35] smoke: {"smoke": "sm91-arm-e21", "exit": 0, "status": "complete", "updates": 2, "reviews": 1024, "error": null, "seconds": 10.8}
+[sm91 11-02 12:56:35] enqueue: arm epoch 21 on show-time inputs (w64 from the leak-free small model (SM72s) epoch 20, its epoch-21 protocol: 8k final tier, 2048 x 16 lanes carry, leak-free replay KD, AdamW 7e-4 constant) (expected 125 min of ~125, 423 min to the next window)
+[sm91 11-02 14:47:54] exit 0: arm epoch 21 on show-time inputs (w64 from the leak-free small model (SM72s) epoch 20, its epoch-21 protocol: 8k final tier, 2048 x 16 lanes carry, leak-free replay KD, AdamW 7e-4 constant) segment
+[sm91 11-02 14:47:54] arm epoch 21 on show-time inputs (w64 from the leak-free small model (SM72s) epoch 20, its epoch-21 protocol: 8k final tier, 2048 x 16 lanes carry, leak-free replay KD, AdamW 7e-4 constant) complete: 581,942,724 reviews, 110.8 min training, 87,566 reviews/s, update offset end 463638
+[sm91-muon] sm91-arm-e21-dec-q32k-muon PASS lines: 7
+[sm91 11-02 14:48:07] cool-down prepared: sm91-arm-e21-dec-q32k-muon
+[sm91-pair] decay OK: sm91-arm-e21-dec-q32k-muon == sm77-ref-e21-dec-q32k-muon except the show-time inputs flag, the start weights and paths (1,991 users, update offset 463638, 145,578,259 reviews, start 45a7e9a13862 vs 2c8f59c0b6dd)
+[sm91 11-02 14:48:07] enqueue: arm quarter-epoch 32k Muon cool-down on show-time inputs from arm epoch 21 (w64, the reference's options and order) (expected 150 min of ~150, 311 min to the next window)
+[sm91 11-02 16:17:21] requesting a snapshot stop (NEXT 222)
+[sm91 11-02 16:17:51] exit 1: arm quarter-epoch 32k Muon cool-down on show-time inputs from arm epoch 21 (w64, the reference's options and order) segment
+[sm91 11-02 16:17:51] STOP: STOP file present
+[sm91 11-02 16:17:51] STOP: ended with exit 1
+[sm91 11-02 19:01:09] started: 4f39eb92 Show-time interval retrain (SM91) step 1: handoff with the launch (WMI pid 61404, waits for the smaller model, card stream 1 layer (SM73 stage 2) chain, 9 GPU tickets + rule) (DRYRUN=0; arm w64 + show-time inputs from the leak-free small model (SM72s) epoch 20; reference C:/Users/jonat/workspace/wt/sm77/artifacts/small-model/sm77-ref-e21-dec-q32k-muon)
+[sm91-pair] epoch OK: sm91-arm-e21 == epoch-21 except the show-time inputs flag, the start weights and paths (8,000 users, update offset 441560, start epoch-20)
+[sm91 11-02 19:01:10] sm77-ref-e21-q32k/w8+s8@e2s-query: 726 users scored
+[sm91 11-02 19:01:10] arm epoch 21 on show-time inputs (w64 from the leak-free small model (SM72s) epoch 20, its epoch-21 protocol: 8k final tier, 2048 x 16 lanes carry, leak-free replay KD, AdamW 7e-4 constant) complete: 581,942,724 reviews, 110.8 min training, 87,566 reviews/s, update offset end 463638
+[sm91-pair] decay OK: sm91-arm-e21-dec-q32k-muon == sm77-ref-e21-dec-q32k-muon except the show-time inputs flag, the start weights and paths (1,991 users, update offset 463638, 145,578,259 reviews, start 45a7e9a13862 vs 2c8f59c0b6dd)
+[sm91 11-02 19:01:10] enqueue: arm quarter-epoch 32k Muon cool-down on show-time inputs from arm epoch 21 (w64, the reference's options and order) (expected 53 min of ~150, 58 min to the next window)
+[sm91 11-02 19:29:15] exit 0: arm quarter-epoch 32k Muon cool-down on show-time inputs from arm epoch 21 (w64, the reference's options and order) segment
+[sm91 11-02 19:29:15] arm quarter-epoch 32k Muon cool-down on show-time inputs from arm epoch 21 (w64, the reference's options and order) complete: 37,592,460 reviews, 27.7 min training, 22,594 reviews/s, update offset end 469168
+[sm91 11-02 19:29:16] scoring the show-time arm cool-down on e2s-query inputs, the 732 set minus 9 never-fit (723 users) (pass 1, 0 done, cap 0.8) needs 32 min, 30 min before the next window; waiting
+[sm91 11-02 19:39:16] STOP: STOP file present
+[sm91 11-02 19:39:16] STOP: scoring ticket failed (sm91-arm-e21-q32k/w8+s8@e2s-query)
+[sm91 11-02 19:39:16] STOP: ended with exit 1
+[sm91 11-02 19:39:26] started: 4f39eb92 Show-time interval retrain (SM91) step 1: handoff with the launch (WMI pid 61404, waits for the smaller model, card stream 1 layer (SM73 stage 2) chain, 9 GPU tickets + rule) (DRYRUN=0; arm w64 + show-time inputs from the leak-free small model (SM72s) epoch 20; reference C:/Users/jonat/workspace/wt/sm77/artifacts/small-model/sm77-ref-e21-dec-q32k-muon)
+[sm91-pair] epoch OK: sm91-arm-e21 == epoch-21 except the show-time inputs flag, the start weights and paths (8,000 users, update offset 441560, start epoch-20)
+[sm91 11-02 19:39:27] sm77-ref-e21-q32k/w8+s8@e2s-query: 726 users scored
+[sm91 11-02 19:39:28] arm epoch 21 on show-time inputs (w64 from the leak-free small model (SM72s) epoch 20, its epoch-21 protocol: 8k final tier, 2048 x 16 lanes carry, leak-free replay KD, AdamW 7e-4 constant) complete: 581,942,724 reviews, 110.8 min training, 87,566 reviews/s, update offset end 463638
+[sm91-pair] decay OK: sm91-arm-e21-dec-q32k-muon == sm77-ref-e21-dec-q32k-muon except the show-time inputs flag, the start weights and paths (1,991 users, update offset 463638, 145,578,259 reviews, start 45a7e9a13862 vs 2c8f59c0b6dd)
+[sm91 11-02 19:39:28] arm quarter-epoch 32k Muon cool-down on show-time inputs from arm epoch 21 (w64, the reference's options and order) complete: 37,592,460 reviews, 27.7 min training, 22,594 reviews/s, update offset end 469168
+[sm91 11-02 19:39:28] enqueue: scoring the show-time arm cool-down on e2s-query inputs, the 732 set minus 9 never-fit (723 users) (pass 1, 0 done, cap 0.8) (expected 32 min, max wait 15 min, 50 min to the next window)
+[sm91 11-02 19:51:18] exit 0: scoring the show-time arm cool-down on e2s-query inputs, the 732 set minus 9 never-fit (723 users) (pass 1, 0 done, cap 0.8)
+[sm91 11-02 19:51:18] enqueue: scoring the show-time arm cool-down on e2s-query inputs, the 732 set minus 9 never-fit (723 users) (pass 2, 722 done, cap 0.8) (expected 20 min, max wait 15 min, 38 min to the next window)
+[sm91 11-02 19:51:47] exit 0: scoring the show-time arm cool-down on e2s-query inputs, the 732 set minus 9 never-fit (723 users) (pass 2, 722 done, cap 0.8)
+[sm91 11-02 19:51:47] enqueue: scoring the show-time arm cool-down on e2s-query inputs, the 3 long users of the 732 set (pass 1, cap 0.92) (expected 25 min, max wait 10 min, 38 min to the next window)
