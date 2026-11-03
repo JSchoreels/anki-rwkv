@@ -697,7 +697,7 @@
    "track": "small model",
    "state": "done",
    "started_at": "2026-10-20T00:14:54+02:00",
-   "what": "Reference for SM32c: the best model with codebooks fitted after training, and with int8 state, on the same 68 users (CPU)",
+   "what": "Reference for learned codebooks (SM32c): the best model with codebooks fitted after training, and with int8 state, on the same 68 users (CPU)",
    "decides": "Compression fitted after training costs the best model +0.42% curve / +0.93% instant on 68 users (same as before): the bar the learned-codebook run must beat",
    "ended_at": "2026-10-20T01:16:43+02:00"
   },
@@ -759,7 +759,7 @@
    "ended_at": "2026-10-20T21:26:38+02:00"
   },
   {
-   "what": "Compressed state in the GPU scorer (kernels from SM32c), 5-user GPU check, then scoring on 732 users: the best model at ~400 and ~800 bits per card/note, and the SM32c model at int8 and ~400 bits",
+   "what": "Compressed state in the GPU scorer (kernels from learned codebooks (SM32c)), 5-user GPU check, then scoring on 732 users: the best model at ~400 and ~800 bits per card/note, and the learned-codebooks model (SM32c) at int8 and ~400 bits",
    "id": "SM44",
    "kind": "gpu-check",
    "minutes": 200,
@@ -768,7 +768,7 @@
     "SM44"
    ],
    "when": "10-21 02:07 &rarr; 04:59 (5-user GPU check passed with the looser rule for codebook formats)",
-   "decides": "Not close enough: ~800 bits costs +0.37% curve / +0.67% instant on top of int8 (+1.08% / +1.38% vs the big model), ~400 bits +0.72% / +1.18%. The 16&ndash;24k-bit int formats (SM45/SM47) stay the practical choice",
+   "decides": "Not close enough: ~800 bits costs +0.37% curve / +0.67% instant on top of int8 (+1.08% / +1.38% vs the big model), ~400 bits +0.72% / +1.18%. The 16&ndash;24k-bit int formats (SM45, SM47) stay the practical choice",
    "state": "done",
    "started_at": "2026-10-21T02:06:53+02:00",
    "ended_at": "2026-10-21T04:59:26+02:00"
@@ -798,7 +798,7 @@
     "SM47"
    ],
    "when": "10-21 00:47 &rarr; 02:07 (break lifted early)",
-   "decides": "Nearly free: 16-bit scales and int8 short-term vectors cost nothing (&plusmn;0.00000); the smallest format (11,824 / 10,272 bits, 37.6 MB, &minus;46% vs int8) costs only the int4-card +0.00005 / +0.00005 already known from SM45",
+   "decides": "Nearly free: 16-bit scales and int8 short-term vectors cost nothing (&plusmn;0.00000); the smallest format (11,824 / 10,272 bits, 37.6 MB, &minus;46% vs int8) costs only the int4-card +0.00005 / +0.00005 already known from the earlier int4 test (SM45)",
    "state": "done",
    "started_at": "2026-10-21T00:47:01+02:00",
    "ended_at": "2026-10-21T02:06:33+02:00"
@@ -880,7 +880,7 @@
    "ended_at": "2026-10-19T12:40:11+02:00"
   },
   {
-   "what": "Several users at once (SM48 lanes) with the SM47 int formats, now without the lock: exact vs one-at-a-time, speed and GPU memory under the ~0.8 cap. Also: the 9 users that never fit in memory are now skipped by pool scorings (723 of 732 users)",
+   "what": "Several users at once (faster-scoring lanes, SM48) with the compressed int formats (SM47), now without the lock: exact vs one-at-a-time, speed and GPU memory under the ~0.8 cap. Also: the 9 users that never fit in memory are now skipped by pool scorings (723 of 732 users)",
    "id": "SM48b",
    "kind": "gpu-check",
    "minutes": 13,
@@ -895,7 +895,7 @@
    "ended_at": "2026-10-21T08:59:34+02:00"
   },
   {
-   "what": "Smaller int state, round 2 (no retraining, SM36): A = 4-bit notes too, B = A + 4-bit short-term vectors, C = B + one scale per head instead of per row; 732 users. Plus (CPU) lossless compression of the stored codes on the collection copy",
+   "what": "Smaller int state, round 2 (no retraining, on the Muon best model (SM36)): A = 4-bit notes too, B = A + 4-bit short-term vectors, C = B + one scale per head instead of per row; 732 users. Plus (CPU) lossless compression of the stored codes on the collection copy",
    "id": "SM49",
    "kind": "gpu-check",
    "minutes": 28,
@@ -932,7 +932,7 @@
     "SM50"
    ],
    "when": "Curve-only 09:18 &rarr; 09:51; instant-only killed at 10:18, rerun 11:54 &rarr; 12:26 (~21 min training each, ~65k reviews/s)",
-   "decides": "Neither head is under-trained: curve-only +0.00001 [&minus;0.00003, +0.00005], instant-only &minus;0.000004 [&minus;0.00001, +0.00000] vs SM36 (723 users). The remaining gap is in the shared trunk / card-note state, not the heads; drops the head-weighted option of Muon tuning arm 2 (SM39)",
+   "decides": "Neither head is under-trained: curve-only +0.00001 [&minus;0.00003, +0.00005], instant-only &minus;0.000004 [&minus;0.00001, +0.00000] vs the Muon best model (SM36) (723 users). The remaining gap is in the shared trunk / card-note state, not the heads; drops the head-weighted option of Muon tuning arm 2 (SM39)",
    "state": "planned"
   },
   {
@@ -949,7 +949,7 @@
    ]
   },
   {
-   "what": "Better distillation, step 1: fine-tunes of SM36 with more weight on the big model&rsquo;s predictions (control at today&rsquo;s weight, 0.9, 1.0), same setup as SM50 (81M reviews, ~110 min per arm with scoring), scored on 732 users",
+   "what": "Better distillation, step 1: fine-tunes of the Muon best model (SM36) with more weight on the big model&rsquo;s predictions (control at today&rsquo;s weight, 0.9, 1.0), same setup as the head-only fine-tunes (SM50) (81M reviews, ~110 min per arm with scoring), scored on 732 users",
    "id": "SM59",
    "kind": "gpu-train",
    "minutes": 330,
@@ -958,7 +958,7 @@
     "SM59"
    ],
    "when": "Code check passed 14:27. Control arm: training OK, scoring failed on a missing users file, rescored after a relaunch at 15:48 &rarr; done 17:49. Arm 0.9 done 19:27, arm 1.0 done 20:47 (each ~80 min on the GPU, 20,100 reviews/s training)",
-   "decides": "Does a heavier big-model weight help? Never tested since full-history distillation. If yes: step 2 (learn the big model&rsquo;s whole curve) and use the weight in SM56. Control (weight 0.5, as SM36) on 723 users: 0.30329 / 0.27957 vs SM36 0.30333 / 0.27960, &minus;0.00004 [&minus;0.00016, +0.00006] / &minus;0.00003 [&minus;0.00005, &minus;0.00001]: a tie on curve, a tiny instant gain. The arms are read against this control. Arm 0.9: 0.30358 / 0.27967, vs SM36 +0.00025 [+0.00008, +0.00040] / +0.00007 [+0.00005, +0.00009]: worse on both heads (+0.73% / +0.65% vs the big model, against +0.64% / +0.63%), so a heavier big-model weight does not help. Arm 1.0: 0.30365 / 0.27971, +0.00032 [+0.00013, +0.00050] / +0.00011 [+0.00009, +0.00014] (+0.75% / +0.67% vs the big model): worse again. Verdict: today&rsquo;s weight 0.5 stays; step 2 (whole curve) was conditional on a gain and is shelved. Tables: summary-table.md in the sm59 branch",
+   "decides": "Does a heavier big-model weight help? Never tested since full-history distillation. If yes: step 2 (learn the big model&rsquo;s whole curve) and use the weight in the full retrain (SM56). Control (weight 0.5, as the Muon best model (SM36)) on 723 users: 0.30329 / 0.27957 vs the Muon best model (SM36) 0.30333 / 0.27960, &minus;0.00004 [&minus;0.00016, +0.00006] / &minus;0.00003 [&minus;0.00005, &minus;0.00001]: a tie on curve, a tiny instant gain. The arms are read against this control. Arm 0.9: 0.30358 / 0.27967, vs the Muon best model (SM36) +0.00025 [+0.00008, +0.00040] / +0.00007 [+0.00005, +0.00009]: worse on both heads (+0.73% / +0.65% vs the big model, against +0.64% / +0.63%), so a heavier big-model weight does not help. Arm 1.0: 0.30365 / 0.27971, +0.00032 [+0.00013, +0.00050] / +0.00011 [+0.00009, +0.00014] (+0.75% / +0.67% vs the big model): worse again. Verdict: today&rsquo;s weight 0.5 stays; step 2 (whole curve) was conditional on a gain and is shelved. Tables: summary-table.md in the sm59 branch",
    "state": "done"
   },
   {
@@ -968,7 +968,7 @@
    "track": "small model",
    "what": "Disagreement test: UM+ and each model&rsquo;s slope (Search Stats Extended conventions), Muon best small model (SM36) vs the big model, curve and instant, 729 users + own collection (aggregate); the 8k model (SM55) too if it wins",
    "when": "Done 18:09 (dumps 15:38&ndash;18:08, analysis on the CPU)",
-   "decides": "Where the small and big model disagree, which is more right? Slope closer to 0 = more right; a tie is +0.5 for the small model. 722 benchmark users: the big model is more right. Muon version (SM36) slope +0.72 curve / +0.80 instant (UM+ 0.0251 / 0.0219 vs big 0.0106 / 0.0059); 8k model (SM55) +0.68 / +0.77 (UM+ 0.0229 / 0.0205), so the 8k model closes part of the gap. Own collection (aggregate): near a tie, SM36 +0.53 / +0.58 (UM+ 0.0179 / 0.0189 vs big 0.0181 / 0.0157), SM55 +0.56 / +0.61. How much they disagree (|p small &minus; p big|, curve / instant, SM36): benchmark 25% / 21% of reviews outside the central 5-point bin (&ge; 0.025), p66 0.018 / 0.015, p95 0.073 / 0.063, p99 0.144 / 0.113; own collection 33% / 31%, p66 0.024 / 0.023, p95 0.079 / 0.072, p99 0.126 / 0.114. Graphs: graphs.html in the sm58 branch",
+   "decides": "Where the small and big model disagree, which is more right? Slope closer to 0 = more right; a tie is +0.5 for the small model. 722 benchmark users: the big model is more right. Muon version (SM36) slope +0.72 curve / +0.80 instant (UM+ 0.0251 / 0.0219 vs big 0.0106 / 0.0059); 8k model (SM55) +0.68 / +0.77 (UM+ 0.0229 / 0.0205), so the 8k model closes part of the gap. Own collection (aggregate): near a tie, the Muon best model (SM36) +0.53 / +0.58 (UM+ 0.0179 / 0.0189 vs big 0.0181 / 0.0157), the 8k model (SM55) +0.56 / +0.61. How much they disagree (|p small &minus; p big|, curve / instant, the Muon best model (SM36)): benchmark 25% / 21% of reviews outside the central 5-point bin (&ge; 0.025), p66 0.018 / 0.015, p95 0.073 / 0.063, p99 0.144 / 0.113; own collection 33% / 31%, p66 0.024 / 0.023, p95 0.079 / 0.072, p99 0.126 / 0.114. Graphs: graphs.html in the sm58 branch",
    "state": "done",
    "match": [
     "SM58"
@@ -990,7 +990,7 @@
    ]
   },
   {
-   "what": "Muon tuning, arm 1: SM36&rsquo;s one-epoch 32k decay with the learning rate &times;0.5 (pointer from outside research), saving 4 snapshots along the decay for SM51",
+   "what": "Muon tuning, arm 1: the Muon best model&rsquo;s (SM36) one-epoch 32k decay with the learning rate &times;0.5 (pointer from outside research), saving 4 snapshots along the decay for checkpoint averaging (SM51)",
    "id": "SM39",
    "kind": "gpu-train",
    "minutes": 260,
@@ -998,8 +998,8 @@
    "match": [
     "SM39 arm 1"
    ],
-   "when": "Wed 10-21 13:28-17:48 (ran early: SM55 stopped), 23.9k reviews/s",
-   "decides": "Muon learning rate &times;0.5 ties the best model: 723 users curve 0.30330 / instant 0.27962 (+0.63% / +0.64% vs big); vs SM36 curve &minus;0.00003 [&minus;0.00021, +0.00012], instant +0.00003 [+0.00001, +0.00004]. The learning rate is not the lever",
+   "when": "Wed 10-21 13:28-17:48 (ran early: the 8k model (SM55) stopped), 23.9k reviews/s",
+   "decides": "Muon learning rate &times;0.5 ties the best model: 723 users curve 0.30330 / instant 0.27962 (+0.63% / +0.64% vs big); vs the Muon best model (SM36) curve &minus;0.00003 [&minus;0.00021, +0.00012], instant +0.00003 [+0.00001, +0.00004]. The learning rate is not the lever",
    "state": "done",
    "started_at": "2026-10-21T13:28:00+02:00",
    "ended_at": "2026-10-21T17:47:49+02:00"
@@ -1018,7 +1018,7 @@
    "state": "planned"
   },
   {
-   "what": "Checkpoint averaging: average the last 2, 3 or 4 SM39 decay snapshots, scored with the final weights on 723 users",
+   "what": "Checkpoint averaging: average the last 2, 3 or 4 decay snapshots of Muon tuning arm 2 (SM39), scored with the final weights on 723 users",
    "id": "SM51",
    "kind": "gpu-check",
    "minutes": 32,
@@ -1032,7 +1032,7 @@
    "ended_at": "2026-10-21T18:20:02+02:00"
   },
   {
-   "what": "Muon tuning, arm 2: learning rate &times;2, or a head-weighted decay instead if SM50 found head slack",
+   "what": "Muon tuning, arm 2: learning rate &times;2, or a head-weighted decay instead if the head-only fine-tunes (SM50) found head slack",
    "id": "SM39",
    "kind": "gpu-train",
    "minutes": 360,
@@ -1045,7 +1045,7 @@
    "state": "hold"
   },
   {
-   "what": "Real-timestamp inputs (card age, time since any review, creation batch): dataset build with timestamps (CPU, Thu&ndash;Fri), then a fine-tune from SM36 with the new inputs starting at zero (1 epoch + decay at 32k)",
+   "what": "Real-timestamp inputs (card age, time since any review, creation batch): dataset build with timestamps (CPU, Thu&ndash;Fri), then a fine-tune from the Muon best model (SM36) with the new inputs starting at zero (1 epoch + decay at 32k)",
    "id": "SM37",
    "kind": "gpu-train",
    "minutes": 700,
@@ -1275,7 +1275,7 @@
     "3 long 732-pool users"
    ],
    "when": "Done 10-24 16:41&ndash;16:51 (epoch 13 scoring 8 min, the 3 long users 1 min, all 3 fit at the 0.92 cap)",
-   "decides": "Done: epoch 13 curve 0.29988 / instant 0.27575 (458 users, flat since epoch 9). Decay from epoch 10 on 726 users: +0.45% / +0.49% vs the big model (8k model, SM55: +0.54% / +0.55%); difference to SM55 curve &minus;0.00027 [&minus;0.00069, +0.00018], instant &minus;0.00016 [&minus;0.00021, &minus;0.00011]",
+   "decides": "Done: epoch 13 curve 0.29988 / instant 0.27575 (458 users, flat since epoch 9). Decay from epoch 10 on 726 users: +0.45% / +0.49% vs the big model (8k model (SM55): +0.54% / +0.55%); difference to the 8k model (SM55) curve &minus;0.00027 [&minus;0.00069, +0.00018], instant &minus;0.00016 [&minus;0.00021, &minus;0.00011]",
    "state": "done",
    "started_at": "2026-10-24T16:41:28+02:00",
    "ended_at": "2026-10-24T16:50:45+02:00"
@@ -1776,7 +1776,7 @@
    "id": "SM61",
    "track": "small model",
    "item": "More data: retrain on the 100k-user dataset when it is released",
-   "why": "Outside research (10-22): data is the scaling axis with the most potential; our own evidence agrees (8k-user decay beat 5k by &minus;0.00048 / &minus;0.00025, SM55). Waits for the dataset"
+   "why": "Outside research (10-22): data is the scaling axis with the most potential; our own evidence agrees (8k-user decay beat 5k by &minus;0.00048 / &minus;0.00025, the 8k model (SM55)). Waits for the dataset"
   },
   {
    "status": "dropped",
@@ -1841,7 +1841,7 @@
    "status": "done",
    "item": "Training with carried state between a user&rsquo;s windows",
    "id": "SM21",
-   "why": "Done 10-18: carried state v2 (strided lanes) is in every model since (SM40, SM36, SM55, SM56, SM72)",
+   "why": "Done 10-18: carried state v2 (strided lanes) is in every model since the previous best model (SM40): the Muon best model (SM36), the 8k model (SM55), the released small model (SM56), the leak-free retrain (SM72)",
    "track": "small model"
   },
   {
@@ -1855,7 +1855,7 @@
    "status": "next",
    "item": "Teacher targets from the big model&rsquo;s full-history replay",
    "id": "SM11",
-   "why": "Needed with carried state; 5.2 h GPU, 3.7 GB. Already in use: the SM40v2 / SM36 final decays train on replay targets (5k users); 8k needs them for the 3,000 extra users (part of SM55)",
+   "why": "Needed with carried state; 5.2 h GPU, 3.7 GB. Already in use: the previous best model v2 (SM40v2) / the Muon best model (SM36) final decays train on replay targets (5k users); 8k needs them for the 3,000 extra users (part of the 8k model (SM55))",
    "track": "small model"
   },
   {
@@ -2021,7 +2021,7 @@
    "status": "dropped",
    "item": "Session / clock / deck depth / card age inputs as post-hoc features",
    "id": "SM28",
-   "why": "No signal in the screen (training test is SM37)",
+   "why": "No signal in the screen (training test is the real-timestamp inputs run (SM37))",
    "track": "small model"
   },
   {
@@ -2043,14 +2043,14 @@
    "id": "SM43",
    "track": "small model",
    "item": "Data diversity vs epochs: many users few epochs (10+1 epochs) vs 10&times; fewer users 10&times; more epochs (100+10), same number of gradient steps, both scored on the 732-user set",
-   "why": "User idea 10-19, not urgent. Does the small model gain more from more users or from more passes? Full size (5k users &times; 11 epochs) would take ~10.5 h per arm, so scaled to fit 5&ndash;6 h: 1,250 users &times; (10+1) vs 125 users &times; (100+10), the fast 2,048-window KD recipe (~108k reviews/s), equal reviews seen. Slot: 10-20 after SM32c"
+   "why": "User idea 10-19, not urgent. Does the small model gain more from more users or from more passes? Full size (5k users &times; 11 epochs) would take ~10.5 h per arm, so scaled to fit 5&ndash;6 h: 1,250 users &times; (10+1) vs 125 users &times; (100+10), the fast 2,048-window KD recipe (~108k reviews/s), equal reviews seen. Slot: 10-20 after learned codebooks (SM32c)"
   },
   {
    "status": "parked",
    "id": "ST00",
    "track": "curve stability",
    "item": "Measure first: the repeat stress test and a &ldquo;mature card, then rapid repeats&rdquo; slice, on the best small model (SM36) and the big model",
-   "why": "From an outside audit of SM40 (10-20): the curve is trained only at the next real review, so its long-term tail can change freely between answers; repeated rapid Goods on a mature card make the interval jump, then collapse (the big model jumps too). CPU only. Tells whether it matters on real histories or only in the stress test &mdash; parked 10-28: a measurement, not a better model"
+   "why": "From an outside audit of the previous best model (SM40) (10-20): the curve is trained only at the next real review, so its long-term tail can change freely between answers; repeated rapid Goods on a mature card make the interval jump, then collapse (the big model jumps too). CPU only. Tells whether it matters on real histories or only in the stress test &mdash; parked 10-28: a measurement, not a better model"
   },
   {
    "status": "done",
@@ -2065,7 +2065,7 @@
    "id": "ST01",
    "track": "curve stability",
    "item": "Consistency on made-up rapid Good sequences from real card histories (the audit&rsquo;s first proposal)",
-   "why": "Only if ST01a is not enough: inserted reviews also change what the deck, note and user memories see, so it is costly to build in our training"
+   "why": "Only if the real-pair consistency check (ST01a) is not enough: inserted reviews also change what the deck, note and user memories see, so it is costly to build in our training"
   },
   {
    "status": "idea",
@@ -2128,7 +2128,7 @@
    "status": "done",
    "id": "SM56",
    "track": "small model",
-   "item": "Full retrain from scratch with carried state at 2,048 windows (every epoch, not just the decay), on 8k users if SM55 wins",
+   "item": "Full retrain from scratch with carried state at 2,048 windows (every epoch, not just the decay), on 8k users if the 8k model (SM55) wins",
    "why": "Done 10-24 / 10-25: the released small model (leak inputs) (SM56); see its results rows"
   },
   {
@@ -2142,7 +2142,7 @@
    "status": "done",
    "id": "SM58",
    "track": "small model",
-   "item": "UM+ small vs big model with each model&rsquo;s slope, in the Search Stats Extended conventions (5-point disagreement bins, bins under 200 reviews hidden for slopes but counted in UM+). The slope closer to 0 is the more right model; the two slopes always differ by exactly 1, so a tie is +0.5 for the small model (and &minus;0.5 for the big model). Curve and instant, SM36 (and SM55 if it wins), 723 users and the own collection (aggregate only)",
+   "item": "UM+ small vs big model with each model&rsquo;s slope, in the Search Stats Extended conventions (5-point disagreement bins, bins under 200 reviews hidden for slopes but counted in UM+). The slope closer to 0 is the more right model; the two slopes always differ by exactly 1, so a tie is +0.5 for the small model (and &minus;0.5 for the big model). Curve and instant, the Muon best model (SM36) (and the 8k model (SM55) if it wins), 723 users and the own collection (aggregate only)",
    "why": "Done 10-22 to 10-24: see the results rows (SM58)"
   },
   {
@@ -2150,7 +2150,7 @@
    "id": "SM59",
    "track": "small model",
    "item": "Better distillation, step 2: also learn the big model&rsquo;s whole forgetting curve (its predictions at fixed intervals, e.g. 1 d / 7 d / 30 d / 180 d), not one point per review",
-   "why": "Shelved 10-22: step 1 (more teacher weight) was worse than SM36 at 0.9 and 1.0. Shelved 10-22 20:47: step 1 showed no gain (weights 0.9 and 1.0 both worse than 0.5). Was: only if step 1 shows a gain (user, 10-22). Needs new code and a new export of the big model&rsquo;s predictions (GPU, a few hours, +~16 B per review). Step 3 (copy the big model&rsquo;s internal state) only if 1&ndash;2 show the small model can&rsquo;t follow",
+   "why": "Shelved 10-22: step 1 (more teacher weight) was worse than the Muon best model (SM36) at 0.9 and 1.0. Shelved 10-22 20:47: step 1 showed no gain (weights 0.9 and 1.0 both worse than 0.5). Was: only if step 1 shows a gain (user, 10-22). Needs new code and a new export of the big model&rsquo;s predictions (GPU, a few hours, +~16 B per review). Step 3 (copy the big model&rsquo;s internal state) only if 1&ndash;2 show the small model can&rsquo;t follow",
    "since": "10-27"
   }
  ],
@@ -3951,7 +3951,7 @@
   {
    "date": "10-25",
    "kind": "gpu-score",
-   "name": "Deleted-card leak check: the big model and the released small model (full retrain, cool-down from epoch 10, SM56) scored with the deleted-card inputs removed (flags 0, nearest existing card&rsquo;s deck and preset), and on the cards that still exist only",
+   "name": "Deleted-card leak check: the big model and the released small model (full retrain (SM56), cool-down from epoch 10) scored with the deleted-card inputs removed (flags 0, nearest existing card&rsquo;s deck and preset), and on the cards that still exist only",
    "id": "SM71",
    "curve": null,
    "instant": null,
@@ -4902,7 +4902,7 @@
    "curve_pct": 0.77,
    "instant_pct": 0.7,
    "eval": "458 users (464 set), 19.83M reviews",
-   "fork": "SM36 int8 state: 0.29804 / 0.27397 (+0.74% / +0.64% vs the big model)",
+   "fork": "the Muon best model (SM36) int8 state: 0.29804 / 0.27397 (+0.74% / +0.64% vs the big model)",
    "takeaway": "<strong>Nearly free at 4.5&times; smaller than int8</strong>: +0.00009 [+0.00006, +0.00012] curve / +0.00015 [+0.00012, +0.00018] instant. 15.3 MB of state for 13,973 cards / 13,198 notes (int8 70.2 MB, smallest int format 37.6 MB at +0.00004 / +0.00005), but the codebooks add ~30 MB and scoring is ~11&times; slower (5,005 reviews/s on the GPU). Only the 464 set: all 732 users would take ~4 h",
    "track": "small model",
    "started_at": "2026-10-20T21:28+02:00",
@@ -4949,7 +4949,7 @@
   {
    "date": "10-21",
    "kind": "gpu-check",
-   "name": "Compressed card/note state at ~400 and ~800 bits (codebooks), scored on the GPU: SM42 model with codebooks fitted after training, and SM32c with codebooks learned in training",
+   "name": "Compressed card/note state at ~400 and ~800 bits (codebooks), scored on the GPU: the control model (SM42) with codebooks fitted after training, and the learned-codebooks model (SM32c) with codebooks learned in training",
    "id": "SM44",
    "curve": 0.30265,
    "instant": 0.27964,
@@ -5015,7 +5015,7 @@
   {
    "date": "10-21",
    "kind": "gpu-speed",
-   "name": "Faster held-out scoring: benchmark metrics on arrays instead of Python loops, and 2 or 4 users at once on the GPU (timing run, 40 users of the 732 set, SM36 int8 + int4-card state)",
+   "name": "Faster held-out scoring: benchmark metrics on arrays instead of Python loops, and 2 or 4 users at once on the GPU (timing run, 40 users of the 732 set, the Muon best model (SM36) int8 + int4-card state)",
    "id": "SM48",
    "eval": "40 users, 4.51M review-evals per run, 2 runs per arm",
    "fork": "old path: 46,144 reviews/s",
@@ -5072,7 +5072,7 @@
    "curve_pct": 0.66,
    "instant_pct": 0.64,
    "eval": "723 users (732 set), 30.48M reviews",
-   "fork": "SM36 int8 state (26,624 / 14,336 bits, 70.2 MB): 0.30333 / 0.27960 (+0.64% / +0.63% vs the big model)",
+   "fork": "the Muon best model (SM36) int8 state (26,624 / 14,336 bits, 70.2 MB): 0.30333 / 0.27960 (+0.64% / +0.63% vs the big model)",
    "takeaway": "<strong>&minus;46% state size for +0.00005</strong>: 16-bit scales and int8 short-term vectors are free (&plusmn;0.00000 alone, together, and on top of int4 cards); the only cost is the int4 cards (+0.00005 [+0.00003, +0.00006] curve / +0.00005 [+0.00004, +0.00006] instant). Without int4 cards: 51.9 MB (&minus;26%) at zero cost. Same on 458 users (464 set): +0.76% / +0.66%",
    "track": "small model",
    "started_at": "2026-10-21T00:47+02:00",
@@ -5417,7 +5417,7 @@
   {
    "date": "10-19",
    "kind": "gpu-score",
-   "name": "Where SM40&rsquo;s gap sits, by inferred stage (paired on 458 users)",
+   "name": "Where the previous best model&rsquo;s (SM40) gap sits, by inferred stage (paired on 458 users)",
    "id": "SM24",
    "curve": null,
    "instant": null,
