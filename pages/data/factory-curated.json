@@ -932,7 +932,7 @@
     "SM50"
    ],
    "when": "Curve-only 09:18 &rarr; 09:51; instant-only killed at 10:18, rerun 11:54 &rarr; 12:26 (~21 min training each, ~65k reviews/s)",
-   "decides": "Neither head is under-trained: curve-only +0.00001 [&minus;0.00003, +0.00005], instant-only &minus;0.000004 [&minus;0.00001, +0.00000] vs the Muon best model (SM36) (723 users). The remaining gap is in the shared trunk / card-note state, not the heads; drops the head-weighted option of Muon tuning arm 2 (SM39)",
+   "decides": "Neither head is under-trained: curve-only +0.00001 [&minus;0.00003, +0.00005], instant-only &minus;0.000004 [&minus;0.00001, +0.00000] vs the Muon best model (SM36) (723 users). The remaining gap is in the shared trunk / card-note state, not the heads; drops the head-weighted option of Muon tuning (SM39)",
    "state": "planned"
   },
   {
@@ -1018,7 +1018,7 @@
    "state": "planned"
   },
   {
-   "what": "Checkpoint averaging: average the last 2, 3 or 4 decay snapshots of Muon tuning arm 2 (SM39), scored with the final weights on 723 users",
+   "what": "Checkpoint averaging: average the last 2, 3 or 4 decay snapshots of Muon tuning (SM39), scored with the final weights on 723 users",
    "id": "SM51",
    "kind": "gpu-check",
    "minutes": 32,
@@ -4554,7 +4554,7 @@
    "instant_pct": 0.63,
    "eval": "723 users (732 set), 30.48M reviews",
    "fork": "the Muon best model (SM36) 0.30333 / 0.27960 (+0.64% / +0.63% vs the big model)",
-   "takeaway": "<strong>Neither head is under-trained</strong>: curve-only +0.00001 [&minus;0.00003, +0.00005] curve, instant-only &minus;0.000004 [&minus;0.00001, +0.00000] instant, vs the Muon best model (SM36). The remaining gap is in the shared trunk and card/note state, not the heads; drops the head-weighted option of Muon tuning arm 2 (SM39). Same on 458 users (464 set)",
+   "takeaway": "<strong>Neither head is under-trained</strong>: curve-only +0.00001 [&minus;0.00003, +0.00005] curve, instant-only &minus;0.000004 [&minus;0.00001, +0.00000] instant, vs the Muon best model (SM36). The remaining gap is in the shared trunk and card/note state, not the heads; drops the head-weighted option of Muon tuning (SM39). Same on 458 users (464 set)",
    "track": "small model",
    "started_at": "2026-10-22T09:18+02:00",
    "ended_at": "2026-10-22T12:26+02:00",
@@ -4583,7 +4583,7 @@
     },
     "notes": [
      "The remaining gap is in the shared trunk and card/note state, not the heads",
-     "Drops the head-weighted option of Muon tuning arm 2 (SM39)",
+     "Drops the head-weighted option of Muon tuning (SM39)",
      "Same on 458 users (464 set)"
     ]
    }
