@@ -1,0 +1,159 @@
+{
+ "ok": true,
+ "checks": {
+  "E0_teacher_loads": {
+   "ok": true,
+   "path": "C:\\Users\\jonat\\workspace\\wt\\sm91s2\\artifacts\\small-model\\sm91s2-big-showtime\\expertium\\big-showtime\\master.pth",
+   "sha256": "67ee8e9b0d0169733242c40646e0d2e5637845a25775762002ffc4e6396f9590",
+   "tensors": 504
+  },
+  "E1_exporter_batches_equal_scorer_normal": {
+   "ok": true,
+   "fields": 52,
+   "differing": {}
+  },
+  "E1_exporter_batches_equal_scorer_e2s-query": {
+   "ok": true,
+   "fields": 52,
+   "differing": {}
+  },
+  "E1b_e2s_query_changes_the_batch": {
+   "ok": true,
+   "moved": {
+    "8081": [
+     "batch.labels",
+     "batch.start"
+    ],
+    "4001": [
+     "batch.labels",
+     "batch.start"
+    ],
+    "5804": [
+     "batch.labels",
+     "batch.start"
+    ]
+   }
+  },
+  "E2_e2s_tables_cover_the_same_reviews_and_move": {
+   "ok": true,
+   "users": {
+    "8081": {
+     "reviews": 8623,
+     "curve_targets": 6469,
+     "rating_targets": 6469,
+     "same_nan_pattern_as_normal": true,
+     "coverage_equals_masks": true,
+     "curve_targets_changed": 2989,
+     "rating_targets_changed": 3208
+    },
+    "4001": {
+     "reviews": 8630,
+     "curve_targets": 5450,
+     "rating_targets": 5450,
+     "same_nan_pattern_as_normal": true,
+     "coverage_equals_masks": true,
+     "curve_targets_changed": 2179,
+     "rating_targets_changed": 2447
+    },
+    "5804": {
+     "reviews": 24292,
+     "curve_targets": 22248,
+     "rating_targets": 22248,
+     "same_nan_pattern_as_normal": true,
+     "coverage_equals_masks": true,
+     "curve_targets_changed": 4187,
+     "rating_targets_changed": 4779
+    }
+   }
+  },
+  "E3a_export_e2s_tables_equal_e2_bitwise": {
+   "ok": true,
+   "users": {
+    "8081": {
+     "bitwise_equal": true,
+     "teacher_sha256": "67ee8e9b0d01"
+    },
+    "4001": {
+     "bitwise_equal": true,
+     "teacher_sha256": "67ee8e9b0d01"
+    }
+   }
+  },
+  "E3b_manifest_old_except_teacher_and_inputs": {
+   "ok": true,
+   "differing": [
+    "inputs",
+    "teacher",
+    "teacher_sha256"
+   ],
+   "teacher_sha256": "67ee8e9b0d0169733242c40646e0d2e5637845a25775762002ffc4e6396f9590"
+  },
+  "E3c_verify_e2s_passes_and_normal_verify_refused": {
+   "ok": true,
+   "verify": "rify] {'user_id': 4001, 'reviews': 8630, 'device': 'cpu', 'same_nan_pattern': True, 'curve_max_abs': 9.97781753540039e-05, 'rating_max_abs': 0.0002440810203552246, 'ok': True}\n{\"out\": \"C:\\\\Users\\\\jonat\\\\workspace\\\\wt\\\\sm91s3\\\\artifacts\\\\small-model\\\\sm91s3\\\\work\\\\replay-e2s\", \"users\": 2, \"ok\": true}",
+   "refused": "C:\\Users\\jonat\\workspace\\wt\\sm91s3\\artifacts\\small-model\\sm91s3\\work\\replay-e2s was exported with inputs e2s-query, verify runs normal"
+  },
+  "E3d_flag_off_export_reproduces_old_targets": {
+   "ok": true,
+   "manifest_equal": true,
+   "same_nan_pattern": true,
+   "curve_max_abs": 0.00016516447067260742,
+   "rating_max_abs": 0.000244140625,
+   "user": 8081
+  },
+  "E4_export_users_equal_the_cooldown_users": {
+   "ok": true,
+   "users": 1991,
+   "reviews": 145578259,
+   "trained": 145578259
+  },
+  "E5a_new_cooldown_equals_step1_arm_cooldown_except_targets": {
+   "ok": true,
+   "out": "[sm91s3-pair] OK: sm91s3-arm-e21-dec-q32k-muon-stt == sm91-arm-e21-dec-q32k-muon except the KD replay targets (teacher + replay folder) and paths (1,991 users, update offset 463638, 145,578,259 reviews, start 45a7e9a13862)"
+  },
+  "E5b_step1_against_itself_refused": {
+   "ok": true,
+   "out": "FUSE: distillation teacher is the reference's (C:/Users/jonat/workspace/wt/sm72/artifacts/small-model/sm72-big-leakfree-1ep/expertium/big-leakfree-1ep/master.pth); distillation replay is the reference's (C:/Users/jonat/workspace/anki-rwkv/artifacts/cache/kd-replay/big-leakfree-1ep-final8k-neighbour)"
+  },
+  "E6_trainer_and_scorer_code_unchanged_since_step1": {
+   "ok": true,
+   "changed": [
+    "scripts/sm11_replay_export.py",
+    "scripts/sm65_rule.py",
+    "scripts/sm72_big_epoch.py",
+    "scripts/sm91s2.py",
+    "scripts/sm91s3.py"
+   ],
+   "other": []
+  },
+  "E7_rule_self_test": {
+   "ok": true,
+   "out": "{\"users\": 722, \"step1_rule_reproduced\": {\"curve\": [-0.086, [-0.126, -0.054]], \"instant\": [-0.277, [-0.367, -0.209]]}, \"step1_published\": {\"curve\": [-0.086, [-0.126, -0.054]], \"instant\": [-0.277, [-0.367, -0.209]]}, \"self_pair\": {\"curve\": 0.0, \"instant\": 0.0}, \"synthetic\": {\"instant -0.06\": \"adopt the show-time targets\", \"instant -0.04\": \"no gain\", \"instant -0.06 curve +0.06\": \"no gain\"}, \"ok\": true, \"failures\": []}",
+   "err": ""
+  }
+ },
+ "users": [
+  8081,
+  4001,
+  5804
+ ],
+ "teacher_sha256": "67ee8e9b0d0169733242c40646e0d2e5637845a25775762002ffc4e6396f9590",
+ "provenance": {
+  "captured_utc": "2026-11-03T10:03:08.473066+00:00",
+  "git_commit": "6c364924b3382b8faf474309d20819c51ac45d67",
+  "git_dirty": false,
+  "git_status_porcelain_z": "",
+  "source_tree_sha256": "c8f6e50169266279762b49429e7feaceae5e5011635eeb46b41df8b08021b6a6",
+  "source_archive": "artifacts/sources/experiment-sources/c8f6e50169266279762b49429e7feaceae5e5011635eeb46b41df8b08021b6a6/source.zip",
+  "source_paths": [
+   "rwkv",
+   "expertium",
+   "scripts",
+   "configs",
+   "pyproject.toml",
+   "uv.lock",
+   "justfile",
+   "upstream.json"
+  ]
+ }
+}
