@@ -1,7 +1,7 @@
 {
- "generated_at": "2026-11-03T19:44:01+01:00",
- "updated": "2026-11-03 19:44",
- "material": "836e665e9033ea6f",
+ "generated_at": "2026-11-03T22:44:43+01:00",
+ "updated": "2026-11-03 22:44",
+ "material": "8959aa08f6bafb58",
  "summary": "running 000925",
  "headline": [
   {
@@ -249,7 +249,7 @@
    "track": "small model",
    "ticket": "000925-small-model",
    "started": "19:43",
-   "elapsed": "0:00",
+   "elapsed": "3:01",
    "progress": null,
    "eta": "~22:54"
   }
@@ -553,9 +553,11 @@
    "kind": "cpu",
    "minutes": 120,
    "what": "The small model in the review simulator (SM41) stage 2, drift study (CPU): 50 users of the 732 set, 133 starting days, 60 days simulated ahead (10 users also 120 days), 32 lanes each: real answers fed in vs the model reading its own sampled answers, with 9 fixes (expected or real answer times, lower sampling temperature, weekly real days, re-syncing deck/preset/user state daily or weekly)",
-   "when": "Started 16:27 Tue on 4 CPU processes (2,456 simulated reviews/s each, 18&times; stage 1); paused 17:20&ndash;19:30 for the user; done ~19:50&ndash;20:00",
+   "when": "Done 19:29 Tue: daily re-syncing removes most of the drift",
    "decides": "Which fix makes free-running simulation trustworthy enough for within-user policy comparisons; metric fixed before the run: first-touch predicted-pass drift at days 30&ndash;59. First 11 starting days: plain free running drifts &minus;4.0 points (Easy share +10.6); daily re-syncing is best so far (mean absolute 2.7)",
-   "state": "planned"
+   "state": "done",
+   "started_at": "2026-11-03T16:27:26+01:00",
+   "ended_at": "2026-11-03T19:29:04+01:00"
   },
   {
    "what": "Quick score of the new epoch on 100 users",
@@ -2199,9 +2201,9 @@
    "status": "next",
    "item": "Support the small RWKV model in the open-spaced-repetition review simulator (srs-simulator), then let an AI agent search for the best review strategy on simulated users",
    "id": "SM41",
-   "why": "A recall model good enough to simulate learners turns scheduling into an offline search an AI agent can run. Stage 1 done 11-01: our own simulator hosts the model (the outside srs-simulator is not needed); next is a drift study on 50 users and a vectorised engine (1&ndash;2 days) before any policy search",
+   "why": "A recall model good enough to simulate learners turns scheduling into an offline search an AI agent can run. Stage 1 done 11-01: our own simulator hosts the model (the outside srs-simulator is not needed); next is a drift study on 50 users and a vectorised engine (1&ndash;2 days) before any policy search. Drift study done 11-03: daily re-syncing of the deck/preset/user state removes most of the drift (&minus;5.1 &rarr; &minus;0.6 points at days 30&ndash;59); next: intervals chosen with the instant head, a vectorised engine for lanes that leave the real schedule, then the full run",
    "track": "small model",
-   "since": "11-01T11:30"
+   "since": "11-03T19:30"
   },
   {
    "status": "done",
@@ -2390,6 +2392,89 @@
   }
  ],
  "results": [
+  {
+   "date": "11-03",
+   "kind": "cpu",
+   "id": "SM41",
+   "track": "small model",
+   "name": "The small model in the review simulator (SM41) stage 2, drift study: 50 users of the 732 set, 133 starting days, 60 days simulated ahead (10 users also 120 days), 32 lanes each: real answers fed in vs the model reading its own sampled answers, with 10 free-running variants",
+   "eval": "Drift = simulated lane minus the real user, mean over users with 95% CI over users; primary metric fixed before the run: first-touch predicted-pass (state) drift at days 30&ndash;59 of the 60-day horizon, paired per user against plain free running",
+   "fork": "Simulator validity for scheduling-policy search; nothing shipped",
+   "takeaway": "<strong>Daily re-syncing of the deck/preset/user state removes most of the drift</strong>. Plain free running drifts &minus;5.1 &plusmn; 3.6 points at days 30&ndash;59 (Easy share of passes +5.6); daily shared-stream re-anchoring leaves &minus;0.6 &plusmn; 1.0 (Easy +1.2, seconds &minus;0.2), a paired reduction of 6.9 &plusmn; 2.9 points. At 120 days plain free running reaches about &minus;10 points by days 60&ndash;89; daily re-syncing still leaves about &minus;3. The duration leak only touches same-day grades (+0.008 LogLoss), and answer-to-answer rows do not reduce drift",
+   "started_at": "2026-11-03T16:27+01:00",
+   "ended_at": "2026-11-03T19:29+01:00",
+   "gpu_minutes": 0,
+   "tickets": 0,
+   "detail": {
+    "verdict": "Use daily re-syncing (shared-stream re-anchoring every day) in the simulator; next stage: intervals chosen with the instant head, a vectorised engine for lanes that leave the real schedule, then the full run",
+    "table": {
+     "head": [
+      "Free-running variant",
+      "State drift days 30&ndash;59 (points)",
+      "Reduction vs plain (paired)"
+     ],
+     "rows": [
+      [
+       "Plain free running (fr)",
+       "&minus;5.1 &plusmn; 3.6 (mean abs 9.07)",
+       "&mdash;"
+      ],
+      [
+       "Daily shared-stream re-anchoring (fr-shared1)",
+       "&minus;0.6 &plusmn; 1.0 (mean abs 2.19)",
+       "+6.87 &plusmn; 2.91"
+      ],
+      [
+       "Expected answer time + daily re-anchoring (fr-texp-shared1)",
+       "",
+       "+6.84 &plusmn; 3.05"
+      ],
+      [
+       "Re-anchoring every 7 days (fr-shared7)",
+       "",
+       "+4.97 &plusmn; 2.23"
+      ],
+      [
+       "Every 7th day teacher forced (fr-anchor7)",
+       "",
+       "+3.17 &plusmn; 2.05"
+      ],
+      [
+       "Time head at temperature 0.5 (fr-tt0.5)",
+       "",
+       "+0.76 &plusmn; 0.87"
+      ],
+      [
+       "Expected answer time (fr-texp)",
+       "",
+       "+0.71 &plusmn; 2.22"
+      ],
+      [
+       "Answer-to-answer query rows (fr-answer)",
+       "",
+       "+0.35 &plusmn; 0.61"
+      ],
+      [
+       "Real answer times (fr-treal)",
+       "",
+       "&minus;0.13 &plusmn; 1.77"
+      ],
+      [
+       "Grade temperature 0.8 (fr-gt0.8)",
+       "+5.5 (overshoots)",
+       "&minus;1.08 &plusmn; 3.13"
+      ]
+     ]
+    },
+    "notes": [
+     "120-day horizon (10 users, wide CIs), state drift by 30-day block: plain &minus;1.3, &minus;8.9, &minus;10.2, &minus;0.7; daily re-anchoring &minus;0.4, &minus;2.1, &minus;3.1, +1.0 (paired reduction +3.34 &plusmn; 1.60 at days 90&ndash;119)",
+     "Duration leak, teacher forced: later-day grade LogLoss 0.65231 for both show-time and answer-to-answer query rows; same-day 0.53153 answer-to-answer vs 0.53912 show-time",
+     "CPU proof PASS: same seed identical, batched vs unbatched lanes max relative gap 8.3e-7 with no flipped draws, stage 1 teacher forcing reproduced",
+     "Speed: 2,437 simulated reviews/s per process (60 days), 2,349 (120 days); 4 processes &times; 1 thread; 5.07 CPU process-hours (2.61 lanes + 2.46 warm-ups); held 17:20&ndash;19:30 for the user pause",
+     "Branch sm41, commit 237f6666; report artifacts/small-model/sm41/drift-result.md"
+    ]
+   }
+  },
   {
    "date": "11-03",
    "kind": "gpu-train",
