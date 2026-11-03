@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-03T14:34:33+01:00",
- "updated": "2026-11-03 14:34",
- "material": "b766f3a625a15856",
- "summary": "running 000921, finished 000920",
+ "generated_at": "2026-11-03T14:35:47+01:00",
+ "updated": "2026-11-03 14:35",
+ "material": "e9e81a55ba7efbb9",
+ "summary": "idle, finished 000921",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring (curve / instant)",
@@ -237,23 +237,7 @@
    "track": "small model"
   }
  ],
- "now": [
-  {
-   "what": "Show-time interval retrain (SM91) step 3: rerun step 1&rsquo;s quarter-epoch 32k Muon cool-down (1,991 users, 145.6M reviews) from step 1&rsquo;s arm epoch 21, with new teacher targets from the show-time big model on show-time inputs; the only change vs step 1&rsquo;s arm is the targets. Scored on show-time and normal inputs on the 732 set",
-   "id": "SM91s3, ticket 000921",
-   "kind": "gpu-train",
-   "decides": "Adopt the show-time targets if one head gains at least 0.05 points with its CI below zero vs step 1&rsquo;s arm on show-time inputs and no head is worse by 0.05 with its CI above zero (fixed before launch). Epoch 21 still used the old targets in both arms, so this is a lower bound on full show-time distillation",
-   "why": "",
-   "job": "show-time interval retrain (SM91) step 3: scoring the cool-down with the show-time targets (information) on normal inputs, the 3 long users of the 732 set (pass 1, cap 0.92)",
-   "linked": true,
-   "track": "small model",
-   "ticket": "000921-small-model",
-   "started": "14:34",
-   "elapsed": "0:00",
-   "progress": null,
-   "eta": "~14:44"
-  }
- ],
+ "now": [],
  "charts": [
   {
    "title": "Small model, leak-free (SM72s): LogLoss per epoch, 458-user set (lower is better)",
@@ -424,6 +408,15 @@
  "waiting": [],
  "recent": [
   {
+   "ticket": "000921-small-model",
+   "id": "SM91s3",
+   "what": "show-time interval retrain (SM91) step 3: scoring the cool-down with the show-time targets (information) on normal inputs, the 3 long users of the 732 set (pass 1, cap 0.92)",
+   "ended": "14:35",
+   "date": "11-03",
+   "exit": 0,
+   "ran": "0:00"
+  },
+  {
    "ticket": "000920-small-model",
    "id": "SM91s3",
    "what": "show-time interval retrain (SM91) step 3: scoring the cool-down with the show-time targets (information) on normal inputs, the 732 set minus 9 never-fit (723 users) (pass 2, 722 done, cap 0.8)",
@@ -467,15 +460,6 @@
    "date": "11-03",
    "exit": 0,
    "ran": "0:11"
-  },
-  {
-   "ticket": "000915-small-model",
-   "id": "SM91s3",
-   "what": "show-time interval retrain (SM91) step 3: quarter-epoch 32k Muon cool-down on show-time inputs with the show-time targets, from step 1&#x27;s arm epoch 21 (w64, step 1&#x27;s options, users and order) (segment to the next window or the end)",
-   "ended": "14:08",
-   "date": "11-03",
-   "exit": 0,
-   "ran": "2:00"
   }
  ],
  "plan": [
@@ -527,11 +511,12 @@
    "what": "Show-time interval retrain (SM91) step 3: rerun step 1&rsquo;s quarter-epoch 32k Muon cool-down (1,991 users, 145.6M reviews) from step 1&rsquo;s arm epoch 21, with new teacher targets from the show-time big model on show-time inputs; the only change vs step 1&rsquo;s arm is the targets. Scored on show-time and normal inputs on the 732 set",
    "when": "CPU proofs ALL OK 11:03 Tue; teacher targets ~11:03&ndash;12:10, smoke, cool-down ~12:12&ndash;14:15, scoring ~14:15&ndash;14:45; stops cleanly at the 16:00 stop if late",
    "decides": "Adopt the show-time targets if one head gains at least 0.05 points with its CI below zero vs step 1&rsquo;s arm on show-time inputs and no head is worse by 0.05 with its CI above zero (fixed before launch). Epoch 21 still used the old targets in both arms, so this is a lower bound on full show-time distillation",
-   "state": "running",
-   "started": "14:34",
-   "ticket": "000921-small-model",
+   "state": "done",
+   "ended": "14:35",
+   "exit": 0,
+   "started": "11:03",
    "started_at": "2026-11-03T11:03:09+01:00",
-   "ends_at": "2026-11-03T14:48:09+01:00"
+   "ended_at": "2026-11-03T14:35:21+01:00"
   },
   {
    "what": "Quick score of the new epoch on 100 users",
