@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-03T14:35:47+01:00",
- "updated": "2026-11-03 14:35",
- "material": "e9e81a55ba7efbb9",
- "summary": "idle, finished 000921",
+ "generated_at": "2026-11-03T14:40:51+01:00",
+ "updated": "2026-11-03 14:40",
+ "material": "fcb29682c58779ff",
+ "summary": "idle",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring (curve / instant)",
@@ -509,14 +509,11 @@
    "kind": "gpu-train",
    "minutes": 225,
    "what": "Show-time interval retrain (SM91) step 3: rerun step 1&rsquo;s quarter-epoch 32k Muon cool-down (1,991 users, 145.6M reviews) from step 1&rsquo;s arm epoch 21, with new teacher targets from the show-time big model on show-time inputs; the only change vs step 1&rsquo;s arm is the targets. Scored on show-time and normal inputs on the 732 set",
-   "when": "CPU proofs ALL OK 11:03 Tue; teacher targets ~11:03&ndash;12:10, smoke, cool-down ~12:12&ndash;14:15, scoring ~14:15&ndash;14:45; stops cleanly at the 16:00 stop if late",
+   "when": "Done 14:35 Tue: no gain",
    "decides": "Adopt the show-time targets if one head gains at least 0.05 points with its CI below zero vs step 1&rsquo;s arm on show-time inputs and no head is worse by 0.05 with its CI above zero (fixed before launch). Epoch 21 still used the old targets in both arms, so this is a lower bound on full show-time distillation",
    "state": "done",
-   "ended": "14:35",
-   "exit": 0,
-   "started": "11:03",
-   "started_at": "2026-11-03T11:03:09+01:00",
-   "ended_at": "2026-11-03T14:35:21+01:00"
+   "started_at": "2026-11-03T11:00:59+01:00",
+   "ended_at": "2026-11-03T14:35:22+01:00"
   },
   {
    "what": "Quick score of the new epoch on 100 users",
@@ -2351,6 +2348,32 @@
   }
  ],
  "results": [
+  {
+   "date": "11-03",
+   "kind": "gpu-train",
+   "id": "SM91s3",
+   "track": "small model",
+   "name": "Show-time interval retrain (SM91) step 3: step 1&rsquo;s arm epoch 21 + the same quarter-epoch 32k Muon cool-down on show-time intervals, with teacher targets from the show-time big model on show-time inputs instead of the old targets",
+   "eval": "Leak-free scoring, w8+s8, show-time inputs (e2s-query), 722 users of the 732 set, vs step 1&rsquo;s arm (old targets); points = % of the big model (1 leak-free epoch) normal-input LogLoss, paired user bootstrap 2,000, seed 0, 95% CI. Adopt the new targets if one head gains at least 0.05 points with its CI below zero and no head is worse by 0.05 (fixed before launch)",
+   "fork": "Unchanged: new teacher targets do not help, so a show-time retrain of the small model can keep the existing targets",
+   "takeaway": "<strong>No gain</strong>: the show-time teacher targets change nothing. vs step 1&rsquo;s arm on show-time inputs: +0.01 curve [&minus;0.03, +0.06] / &minus;0.004 instant [&minus;0.008, &minus;0.000] points. Retraining the student on show-time intervals (step 1) is what wins back the leak cost; a new teacher adds nothing",
+   "started_at": "2026-11-03T11:03+01:00",
+   "ended_at": "2026-11-03T14:35+01:00",
+   "gpu_minutes": 211,
+   "tickets": 9,
+   "detail": {
+    "verdict": "No gain: keep the old teacher targets; the next step would be a full show-time retrain of the release recipe (needs the user's go)",
+    "notes": [
+     "Users better: 341 / 722 on curve, 388 / 722 on instant",
+     "New on show-time inputs: curve 0.30088, instant 0.27754; step 1&rsquo;s arm 0.30085 / 0.27755",
+     "The released small model (cool-down from epoch 25) on show-time inputs (duration-leak scoring (SM31) rows): 0.30041 / 0.27772, i.e. +0.48% / +0.71% vs the big model (1 leak-free epoch) on normal inputs (+0.36% / +0.28% on normal inputs)",
+     "Smaller-model bar with both models on show-time inputs: the new model +0.44% / +0.14% vs the big model (1 leak-free epoch) (passes), +0.49% / +0.49% vs the show-time big model (fails on instant)",
+     "Epoch 21 used the old targets in both arms, so this measures the last quarter-epoch only",
+     "Teacher-target export 63.6 min at 38,174 reviews/s (145.6M reviews, 1,991 users); cool-down 120.4 min at 20,145 reviews/s; CPU proofs ALL OK",
+     "732+long (725 users): &minus;0.05 curve [&minus;0.18, +0.04] / &minus;0.003 instant [&minus;0.008, +0.002] points"
+    ]
+   }
+  },
   {
    "date": "11-03",
    "kind": "gpu-train",
