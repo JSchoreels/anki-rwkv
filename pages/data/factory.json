@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-03T10:38:52+01:00",
- "updated": "2026-11-03 10:38",
- "material": "970dc2b26e1daa09",
- "summary": "running 000912, finished 000911",
+ "generated_at": "2026-11-03T10:39:55+01:00",
+ "updated": "2026-11-03 10:39",
+ "material": "a7fcb5acd462a212",
+ "summary": "idle, finished 000912",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring (curve / instant)",
@@ -237,23 +237,7 @@
    "track": "small model"
   }
  ],
- "now": [
-  {
-   "what": "Show-time interval retrain (SM91) step 2: one added epoch of the big model (1 leak-free epoch) on show-time intervals, same recipe as its leak-free epoch (users 5000&ndash;10000, 2 lanes &times; 8,192 carried state, LR 3.5e-4 &rarr; 0); scored on show-time and normal inputs on the 732 set, paired against the big model (1 leak-free epoch) on show-time inputs",
-   "id": "SM91s2, ticket 000912",
-   "kind": "gpu-train",
-   "decides": "Go to step 3 (new teacher targets + small cool-down on show-time inputs) if one head gains at least 0.10 points with its CI below zero vs the big model (1 leak-free epoch) on show-time inputs; stop otherwise (fixed before launch). The added epoch is a confound: the normal-vs-normal row checks it",
-   "why": "",
-   "job": "show-time interval retrain (SM91) step 2: scoring the show-time big model (big model (1 leak-free epoch) + 1 show-time epoch) on normal inputs, the 3 long users of the 732 set (pass 1, cap 0.92)",
-   "linked": true,
-   "track": "small model",
-   "ticket": "000912-small-model",
-   "started": "10:38",
-   "elapsed": "0:00",
-   "progress": null,
-   "eta": "~10:58"
-  }
- ],
+ "now": [],
  "charts": [
   {
    "title": "Small model, leak-free (SM72s): LogLoss per epoch, 458-user set (lower is better)",
@@ -424,6 +408,15 @@
  "waiting": [],
  "recent": [
   {
+   "ticket": "000912-small-model",
+   "id": "SM91s2",
+   "what": "show-time interval retrain (SM91) step 2: scoring the show-time big model (big model (1 leak-free epoch) + 1 show-time epoch) on normal inputs, the 3 long users of the 732 set (pass 1, cap 0.92)",
+   "ended": "10:39",
+   "date": "11-03",
+   "exit": 0,
+   "ran": "0:01"
+  },
+  {
    "ticket": "000911-small-model",
    "id": "SM91s2",
    "what": "show-time interval retrain (SM91) step 2: scoring the show-time big model (big model (1 leak-free epoch) + 1 show-time epoch) on normal inputs, the 732 set minus 9 never-fit (723 users) (pass 2, 722 done, cap 0.8)",
@@ -467,15 +460,6 @@
    "date": "11-03",
    "exit": 0,
    "ran": "0:15"
-  },
-  {
-   "ticket": "000906-small-model",
-   "id": "SM91s2",
-   "what": "show-time interval retrain (SM91) step 2: the big model (fork RWKV) one added epoch on show-time intervals from the big model (1 leak-free epoch) (users 5000-10000, carried state 2 lanes x 8,192, AdamW 3.5e-4 -&gt; 0, deleted-card inputs removed), 370M of 370M reviews left (segment to the next window or the end)",
-   "ended": "10:06",
-   "date": "11-03",
-   "exit": 0,
-   "ran": "9:02"
   }
  ],
  "plan": [
@@ -514,11 +498,12 @@
    "what": "Show-time interval retrain (SM91) step 2: one added epoch of the big model (1 leak-free epoch) on show-time intervals, same recipe as its leak-free epoch (users 5000&ndash;10000, 2 lanes &times; 8,192 carried state, LR 3.5e-4 &rarr; 0); scored on show-time and normal inputs on the 732 set, paired against the big model (1 leak-free epoch) on show-time inputs",
    "when": "CPU proofs ALL OK and smoke 01:04 Tue; epoch started 01:04 (~573 min, snapshots every 50 users), scoring ~2 h; read-out ~12:30&ndash;13:00 Tue, before the 16:00 stop",
    "decides": "Go to step 3 (new teacher targets + small cool-down on show-time inputs) if one head gains at least 0.10 points with its CI below zero vs the big model (1 leak-free epoch) on show-time inputs; stop otherwise (fixed before launch). The added epoch is a confound: the normal-vs-normal row checks it",
-   "state": "running",
-   "started": "10:38",
-   "ticket": "000912-small-model",
+   "state": "done",
+   "ended": "10:39",
+   "exit": 0,
+   "started": "01:03",
    "started_at": "2026-11-03T01:03:55+01:00",
-   "ends_at": "2026-11-03T13:03:55+01:00"
+   "ended_at": "2026-11-03T10:39:33+01:00"
   },
   {
    "what": "Quick score of the new epoch on 100 users",
