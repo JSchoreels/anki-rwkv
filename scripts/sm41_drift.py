@@ -311,6 +311,8 @@ def run_split(model, warm, habits, D, N, lanes, seeds_n, base_seed):
             q_es = np.where(answer, float(es), np.floor(np.maximum(x, 0.0)))
             Q = np.repeat(q[None], B, 0)
             Q[:, 2:8] = np.where(answer[:, None], Q[:, 2:8], es_cols(q_es, lane_cum + q_es))
+            if not np.isfinite(Q).all():
+                raise FloatingPointError(f"non-finite query row: user {warm.user} split {D} review {i}")
             p, _, frozen = step_batch(m, Q, cur, snaps=kind == 2)
             p = p / p.sum(-1, keepdims=True)
             g_s = sample_cat(temper(p, gT), U[:, 0]) + 1
@@ -340,8 +342,13 @@ def run_split(model, warm, habits, D, N, lanes, seeds_n, base_seed):
                 dur = np.full(B, u_r)
                 acc["grades_same"][np.arange(B), b, rating - 1] += 1
                 acc["grade_ll"][:, b, 2] += -np.log(np.maximum(p[:, g_r - 1], 1e-7)); acc["grade_ll"][:, b, 3] += 1
-            # commit row: answer-to-answer with the lane's own answer time (== the data's for teacher forcing)
-            c_es = np.where(answer, float(es), np.round(es + dp + (dur - u_r) / 1000.0))
+            # commit row: answer-to-answer with the lane's own answer time (== the data's for teacher forcing). A lane
+            # whose previous answer of this card ran past the real show moment (x < 0: e.g. a long sampled time before
+            # a short real same-day step) is shown when that answer ends: commit = max(x, 0) + its own answer time
+            c_es = np.round(es + dp + (dur - u_r) / 1000.0)
+            differs = (dp != 0) | (dur != u_r)
+            c_es = np.where(differs, np.maximum(c_es, np.round(np.maximum(x, 0.0) + dur / 1000.0)), c_es)
+            c_es = np.where(answer, float(es), c_es)
         seen.add(c)
         acc["implied_follow"][np.arange(B), b, 0] += 1
         acc["implied_follow"][:, b, 1] += np.array([rules[(kind, int(g))][0] for g in rating])
@@ -350,6 +357,9 @@ def run_split(model, warm, habits, D, N, lanes, seeds_n, base_seed):
         F[:, 8] = DP.scale_duration(dur.astype(np.float64)).astype(np.float32)
         F[:, 9:13] = 0.0
         F[np.arange(B), 8 + rating] = 1.0
+        if not np.isfinite(F).all():
+            raise FloatingPointError(f"non-finite review row: user {warm.user} split {D} review {i} lanes "
+                                     f"{np.where(~np.isfinite(F).all(1))[0].tolist()}")
         _, nxt, _ = step_batch(m, F, cur)
         for s in m.streams:
             states[s][keys[s]] = nxt[s]
@@ -735,7 +745,7 @@ def report(args):
               "positive = less drift than fr.", "", "| arm | what it does | state drift reduction, points | Easy | seconds |",
               "|---|---|---|---|---|"]
         for arm in arms_order:
-            if arm in ("fr", "tf"):
+            if arm == "fr" or arm.startswith("tf"):
                 continue
             red = {}
             for key, sc in (("ft_state", 100.0), ("easy_pass", 100.0), ("s", 1.0)):
