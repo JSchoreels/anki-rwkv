@@ -29,6 +29,12 @@ retries. The 5,000 gate training users: 38 are longer than 600k (39.2M of 369.5M
           [--time-limit S] [--users 1,2] [--max-users K]
   status: python -X utf8 scripts/sm11_replay_export.py status --out DIR --run <run.json>   (exit 0 = complete, 3 = not)
   verify: python -X utf8 scripts/sm11_replay_export.py verify --out DIR --run <run.json> [--sample 8]   (CPU recompute)
+
+--inputs e2s-query (show-time interval retrain (SM91) step 3): the teacher reads show-time intervals, exactly the
+duration-leak scoring (SM31) scorer's `e2s-query` inputs (scripts/sm31_inputs.py): the frame gets the show-time curve
+query time (apply_frame, after the deleted-card transform of RWKV_DELETED_CARDS) and the instant query rows get their
+show-time interval columns while samples are built (add_queries wrapped). The choice travels to the loader workers
+through SM11_INPUTS and is recorded in the manifest ("inputs"; absent for `normal`, so earlier manifests still match).
 """
 import argparse
 from concurrent.futures import ThreadPoolExecutor
@@ -67,6 +73,50 @@ def sha256_file(path):
     return digest.hexdigest()
 
 
+INPUT_VARIANTS = ("normal", "e2s-query")
+
+
+def inputs_variant():
+    variant = os.environ.get("SM11_INPUTS") or "normal"
+    if variant not in INPUT_VARIANTS:
+        raise SystemExit(f"SM11_INPUTS={variant}: expected one of {INPUT_VARIANTS}")
+    if variant != "normal" and os.environ.get("EXPERTIUM_END_TO_START") == "1":
+        raise SystemExit("--inputs: EXPERTIUM_END_TO_START must be unset (the variant defines the intervals)")
+    return variant
+
+
+_SHOW_TIME_PATCHED = False
+
+
+def _install_show_time_queries():
+    """e2s-query: rwkv.data_processing.add_queries rewrites the instant query rows' interval columns at show time
+    (sm31_inputs._query_rows_show_time, the scorer's own function), installed once per process (main and workers)."""
+    global _SHOW_TIME_PATCHED
+    if _SHOW_TIME_PATCHED:
+        return
+    from rwkv import data_processing as dp
+    from scripts import sm31_inputs
+    original = dp.add_queries
+
+    def add_queries(section_df, equalize_review_ths):
+        return sm31_inputs._query_rows_show_time(original(section_df, equalize_review_ths))
+
+    dp.add_queries = add_queries
+    _SHOW_TIME_PATCHED = True
+
+
+def load_frame(data, user):
+    """get_rwkv_data (deleted-card transform from RWKV_DELETED_CARDS) + the input variant's frame change."""
+    from rwkv.data_processing import get_rwkv_data
+    variant = inputs_variant()
+    frame = get_rwkv_data(data, user)
+    if variant == "e2s-query":
+        from scripts import sm31_inputs
+        _install_show_time_queries()
+        frame = sm31_inputs.apply_frame(frame, "e2s-query")
+    return frame
+
+
 def identity(teacher, teacher_sha, data, revision, max_pass, burn_in):
     return {"format": FORMAT, "kind": KIND, "teacher": str(teacher), "teacher_sha256": teacher_sha,
             "teacher_precision": "float32 weights, float32 state (compress_quant fork path, state_bits 0)",
@@ -77,7 +127,9 @@ def identity(teacher, teacher_sha, data, revision, max_pass, burn_in):
             "max_pass_reviews": int(max_pass), "burn_in_reviews": int(burn_in),
             # SM72: teacher inputs with the deleted-card transform (RWKV_DELETED_CARDS, rwkv/data_processing.py);
             # the key is absent when unset, so earlier manifests still match.
-            **({"deleted_cards": os.environ["RWKV_DELETED_CARDS"]} if os.environ.get("RWKV_DELETED_CARDS") else {})}
+            **({"deleted_cards": os.environ["RWKV_DELETED_CARDS"]} if os.environ.get("RWKV_DELETED_CARDS") else {}),
+            # SM91 step 3: the teacher's input variant; absent for normal inputs, so earlier manifests still match.
+            **({"inputs": inputs_variant()} if inputs_variant() != "normal" else {})}
 
 
 def plan_passes(reviews, max_pass, burn_in):
@@ -105,6 +157,8 @@ def expected_masks(frame):
 def prepare_pass(frame, user, section_start, end):
     from rwkv.data_processing import create_sample
     from rwkv.prepare_batch import prepare
+    if inputs_variant() == "e2s-query":
+        _install_show_time_queries()
     section = frame.iloc[section_start:end]
     sample = create_sample(user, section, [], torch.float32, torch.device("cpu"))
     batch = prepare([sample], seed=2025 + user + section_start)
@@ -228,13 +282,12 @@ class Exporter:
 
     def run_user(self, user, prepared=None, masks=None, prepare_seconds=0.0):
         """prepared/masks: a single full-history pass built by a loader worker; otherwise the frame is loaded here."""
-        from rwkv.data_processing import get_rwkv_data
         frame = None
         max_pass, burn_in = self.max_pass, self.burn_in
         for attempt in range(4):
             if prepared is None and frame is None:
                 started = time.perf_counter()
-                frame = get_rwkv_data(self.data, user)
+                frame = load_frame(self.data, user)
                 masks = expected_masks(frame)
                 prepare_seconds += time.perf_counter() - started
             passes = plan_passes(len(masks[0]), max_pass, burn_in)
@@ -267,13 +320,12 @@ class SinglePass(torch.utils.data.Dataset):
         return len(self.users)
 
     def __getitem__(self, index):
-        from rwkv.data_processing import get_rwkv_data
         user = self.users[index]
         started = time.perf_counter()
         try:
             if torch.utils.data.get_worker_info() is not None:
                 torch.set_num_threads(1)
-            frame = get_rwkv_data(self.data, user)
+            frame = load_frame(self.data, user)
             prepared, masks = prepare_pass(frame, user, 0, len(frame)), expected_masks(frame)
         except Exception as error:  # recorded, not fatal
             return user, None, None, repr(error), time.perf_counter() - started
@@ -398,9 +450,11 @@ def verify(args):
     """Recompute sampled single-pass users on the CPU in float32 (reference recurrence) and compare with the stored
     targets: same NaN pattern, curve within 2.2e-4 and ratings within 3.5e-4 (float16 bound + GPU/CPU float32)."""
     import random
-    from rwkv.data_processing import get_rwkv_data
     users, counts, data, _ = select_users(args)
     out = Path(args.out)
+    manifest = json.loads((out / "manifest.json").read_text(encoding="utf-8"))
+    if manifest.get("inputs", "normal") != inputs_variant():
+        raise SystemExit(f"{out} was exported with inputs {manifest.get('inputs', 'normal')}, verify runs {inputs_variant()}")
     torch.set_num_threads(args.threads)
     present = [u for u in users if (out / "users" / f"{u}.npz").exists() and counts.get(str(u), 0) <= args.max_reviews]
     sample = sorted(random.Random(args.seed).sample(present, min(args.sample, len(present)))) if not args.users else present
@@ -412,7 +466,7 @@ def verify(args):
             meta = json.loads(stored["meta"].tobytes().decode())
         if not meta["single_pass"]:
             continue
-        frame = get_rwkv_data(data, user)
+        frame = load_frame(data, user)
         batch, own = prepare_pass(frame, user, 0, len(frame))
         with torch.inference_mode():
             stats = model.get_loss(batch)
@@ -448,6 +502,8 @@ def main(argv=None):
         p.add_argument("--data", default="", help="dataset folder (default: the run's dataset_path)")
         p.add_argument("--max-pass-reviews", type=int, default=600_000)
         p.add_argument("--burn-in", type=int, default=300_000)
+        p.add_argument("--inputs", choices=INPUT_VARIANTS, default="normal",
+                       help="teacher inputs: normal or e2s-query (show-time intervals, the SM31 scorer's variant)")
         if name in ("export", "verify"):
             p.add_argument("--teacher", default=str(TEACHER))
             p.add_argument("--threads", type=int, default=4, help="torch threads of the main process")
@@ -461,6 +517,9 @@ def main(argv=None):
             p.add_argument("--time-limit", type=float, default=0, help="stop starting new users after N s (0 = none)")
             p.add_argument("--max-users", type=int, default=0, help="export at most K users in this pass (checks)")
     args = parser.parse_args(argv)
+    if os.environ.get("SM11_INPUTS") not in (None, "", args.inputs):
+        raise SystemExit(f"SM11_INPUTS={os.environ['SM11_INPUTS']} disagrees with --inputs {args.inputs}")
+    os.environ["SM11_INPUTS"] = args.inputs   # inherited by the loader workers (spawned processes)
     return {"export": export, "status": status, "verify": verify}[args.command](args)
 
 
