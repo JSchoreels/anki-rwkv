@@ -261,8 +261,11 @@
     "show-time interval retrain (SM91): "
    ],
    "what": "Show-time interval retrain (SM91) step 1: does training on show-time intervals (previous answer to the moment the card is shown, as the app sees them) win back part of the duration-leak cost (SM31: +0.13 curve / +0.43 instant points for the released small model)? Warm start from the leak-free small model (SM72s) epoch 20, 1 epoch + quarter-epoch 32k Muon cool-down with show-time inputs, paired against the same cool-down with normal inputs (tiny architecture additions (SM77) reference), both scored on show-time inputs on the 732 set",
-   "when": "Rule done 19:51 (go to step 2); left: the 3 long users (~25 min, before 20:30) and the arm on normal inputs (~57 min, after 01:00)",
-   "decides": "Go to step 2 (one big-model epoch on show-time inputs, ~9 GPU h, then new teacher targets + small cool-down) if one head gains at least 0.10 points with its CI below zero; stop otherwise (fixed before launch)"
+   "when": "Done 01:02 Tue: go to step 2",
+   "decides": "Go to step 2 (one big-model epoch on show-time inputs, ~9 GPU h, then new teacher targets + small cool-down) if one head gains at least 0.10 points with its CI below zero; stop otherwise (fixed before launch)",
+   "state": "done",
+   "started_at": "2026-11-02T12:43:12+01:00",
+   "ended_at": "2026-11-03T01:01:52+01:00"
   },
   {
    "id": "SM91s2",
@@ -2179,7 +2182,7 @@
    "fork": "Unchanged for now: the fork already queries at show time, so a show-time-trained model is what it would ship",
    "takeaway": "<strong>Go to step 2</strong>: training on show-time intervals wins back about two thirds of the duration-leak cost. vs the normal-trained reference, both on show-time inputs: &minus;0.09 curve [&minus;0.13, &minus;0.05] / &minus;0.28 instant [&minus;0.37, &minus;0.21] points (68% / 70% of its own show-time cost of +0.13 / +0.40). Left: +0.04 / +0.12 points vs the reference on normal inputs",
    "started_at": "2026-11-02T12:43+01:00",
-   "ended_at": "2026-11-02T19:51+01:00",
+   "ended_at": "2026-11-03T01:02+01:00",
    "gpu_minutes": 254,
    "tickets": 9,
    "detail": {
@@ -2189,7 +2192,8 @@
      "Arm on show-time inputs: curve 0.30085, instant 0.27755; reference 0.30111 / 0.27831 (normal inputs 0.30073 / 0.27722)",
      "Epoch 110.8 min at 87,566 reviews/s; cool-down paused 16:17&ndash;19:01 for the user, 27.7 min after the resume",
      "Teacher targets unchanged (from the big model, trained on normal intervals): part of the cost left may be the teacher's",
-     "Still to run after the break: the 3 long users and the arm on normal inputs (information only)"
+     "Trained on show-time intervals, the model no longer uses the leak: on normal inputs it is &minus;0.00 curve / +0.07 instant points vs the reference, and its own show-time cost is only +0.04 / +0.05",
+     "732+long (725 users): &minus;0.07 curve [&minus;0.11, &minus;0.03] / &minus;0.27 instant [&minus;0.36, &minus;0.21] points"
     ]
    }
   },
