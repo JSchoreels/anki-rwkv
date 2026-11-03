@@ -284,6 +284,19 @@
    "ended_at": "2026-11-03T10:39:34+01:00"
   },
   {
+   "id": "SM91s3",
+   "track": "small model",
+   "since": "11-03T11:00",
+   "kind": "gpu-train",
+   "minutes": 225,
+   "match": [
+    "show-time interval retrain (SM91) step 3: "
+   ],
+   "what": "Show-time interval retrain (SM91) step 3: rerun step 1&rsquo;s quarter-epoch 32k Muon cool-down (1,991 users, 145.6M reviews) from step 1&rsquo;s arm epoch 21, with new teacher targets from the show-time big model on show-time inputs; the only change vs step 1&rsquo;s arm is the targets. Scored on show-time and normal inputs on the 732 set",
+   "when": "CPU proofs ALL OK 11:03 Tue; teacher targets ~11:03&ndash;12:10, smoke, cool-down ~12:12&ndash;14:15, scoring ~14:15&ndash;14:45; stops cleanly at the 16:00 stop if late",
+   "decides": "Adopt the show-time targets if one head gains at least 0.05 points with its CI below zero vs step 1&rsquo;s arm on show-time inputs and no head is worse by 0.05 with its CI above zero (fixed before launch). Epoch 21 still used the old targets in both arms, so this is a lower bound on full show-time distillation"
+  },
+  {
    "what": "Quick score of the new epoch on 100 users",
    "id": "Q12",
    "kind": "gpu-score",
