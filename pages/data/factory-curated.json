@@ -313,6 +313,19 @@
    "decides": "Ship candidate if one head beats the release on show-time inputs by at least 0.05 points with its CI below zero and no head is worse by 0.05 (expected about +0.40% / +0.40% vs the big model (1 leak-free epoch), from +0.48% / +0.71% for the release on show-time inputs). The extra epoch is a confound: the normal-vs-normal row shows its size"
   },
   {
+   "id": "SM41",
+   "track": "small model",
+   "since": "11-03T16:27",
+   "kind": "cpu",
+   "minutes": 120,
+   "match": [
+    "the small model in the review simulator (SM41): "
+   ],
+   "what": "The small model in the review simulator (SM41) stage 2, drift study (CPU): 50 users of the 732 set, 133 starting days, 60 days simulated ahead (10 users also 120 days), 32 lanes each: real answers fed in vs the model reading its own sampled answers, with 9 fixes (expected or real answer times, lower sampling temperature, weekly real days, re-syncing deck/preset/user state daily or weekly)",
+   "when": "Started 16:27 Tue on 4 CPU processes (2,456 simulated reviews/s each, 18&times; stage 1); paused 17:20&ndash;19:30 for the user; done ~19:50&ndash;20:00",
+   "decides": "Which fix makes free-running simulation trustworthy enough for within-user policy comparisons; metric fixed before the run: first-touch predicted-pass drift at days 30&ndash;59. First 11 starting days: plain free running drifts &minus;4.0 points (Easy share +10.6); daily re-syncing is best so far (mean absolute 2.7)"
+  },
+  {
    "what": "Quick score of the new epoch on 100 users",
    "id": "Q12",
    "kind": "gpu-score",
