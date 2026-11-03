@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-03T10:38:18+01:00",
+ "generated_at": "2026-11-03T10:38:52+01:00",
  "updated": "2026-11-03 10:38",
- "material": "221a1764a7f9598d",
- "summary": "running 000911, finished 000910",
+ "material": "970dc2b26e1daa09",
+ "summary": "running 000912, finished 000911",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring (curve / instant)",
@@ -240,18 +240,18 @@
  "now": [
   {
    "what": "Show-time interval retrain (SM91) step 2: one added epoch of the big model (1 leak-free epoch) on show-time intervals, same recipe as its leak-free epoch (users 5000&ndash;10000, 2 lanes &times; 8,192 carried state, LR 3.5e-4 &rarr; 0); scored on show-time and normal inputs on the 732 set, paired against the big model (1 leak-free epoch) on show-time inputs",
-   "id": "SM91s2, ticket 000911",
+   "id": "SM91s2, ticket 000912",
    "kind": "gpu-train",
    "decides": "Go to step 3 (new teacher targets + small cool-down on show-time inputs) if one head gains at least 0.10 points with its CI below zero vs the big model (1 leak-free epoch) on show-time inputs; stop otherwise (fixed before launch). The added epoch is a confound: the normal-vs-normal row checks it",
    "why": "",
-   "job": "show-time interval retrain (SM91) step 2: scoring the show-time big model (big model (1 leak-free epoch) + 1 show-time epoch) on normal inputs, the 732 set minus 9 never-fit (723 users) (pass 2, 722 done, cap 0.8)",
+   "job": "show-time interval retrain (SM91) step 2: scoring the show-time big model (big model (1 leak-free epoch) + 1 show-time epoch) on normal inputs, the 3 long users of the 732 set (pass 1, cap 0.92)",
    "linked": true,
    "track": "small model",
-   "ticket": "000911-small-model",
-   "started": "10:37",
+   "ticket": "000912-small-model",
+   "started": "10:38",
    "elapsed": "0:00",
    "progress": null,
-   "eta": "~10:52"
+   "eta": "~10:58"
   }
  ],
  "charts": [
@@ -424,6 +424,15 @@
  "waiting": [],
  "recent": [
   {
+   "ticket": "000911-small-model",
+   "id": "SM91s2",
+   "what": "show-time interval retrain (SM91) step 2: scoring the show-time big model (big model (1 leak-free epoch) + 1 show-time epoch) on normal inputs, the 732 set minus 9 never-fit (723 users) (pass 2, 722 done, cap 0.8)",
+   "ended": "10:38",
+   "date": "11-03",
+   "exit": 0,
+   "ran": "0:00"
+  },
+  {
    "ticket": "000910-small-model",
    "id": "SM91s2",
    "what": "show-time interval retrain (SM91) step 2: scoring the show-time big model (big model (1 leak-free epoch) + 1 show-time epoch) on normal inputs, the 732 set minus 9 never-fit (723 users) (pass 1, 0 done, cap 0.8)",
@@ -467,15 +476,6 @@
    "date": "11-03",
    "exit": 0,
    "ran": "9:02"
-  },
-  {
-   "ticket": "000905-small-model",
-   "id": "SM91s2",
-   "what": "show-time interval retrain (SM91) step 2: trainer smoke of the show-time big-model epoch (fork RWKV, show-time inputs, 2 users x 512 reviews, scratch copy)",
-   "ended": "01:04",
-   "date": "11-03",
-   "exit": 0,
-   "ran": "0:00"
   }
  ],
  "plan": [
@@ -515,8 +515,8 @@
    "when": "CPU proofs ALL OK and smoke 01:04 Tue; epoch started 01:04 (~573 min, snapshots every 50 users), scoring ~2 h; read-out ~12:30&ndash;13:00 Tue, before the 16:00 stop",
    "decides": "Go to step 3 (new teacher targets + small cool-down on show-time inputs) if one head gains at least 0.10 points with its CI below zero vs the big model (1 leak-free epoch) on show-time inputs; stop otherwise (fixed before launch). The added epoch is a confound: the normal-vs-normal row checks it",
    "state": "running",
-   "started": "10:37",
-   "ticket": "000911-small-model",
+   "started": "10:38",
+   "ticket": "000912-small-model",
    "started_at": "2026-11-03T01:03:55+01:00",
    "ends_at": "2026-11-03T13:03:55+01:00"
   },
