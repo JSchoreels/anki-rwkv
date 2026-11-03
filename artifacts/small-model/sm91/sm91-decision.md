@@ -10,6 +10,12 @@ Leak-free scoring (deleted cards: neighbour), w8+s8, `--inputs e2s-query`, revie
 | 732 (rule) | 722 | reference e2s - reference normal (its show-time cost) | instant | 0.27831 | 0.27722 | +0.001094 [+0.000840, +0.001422] | +0.397 [+0.311, +0.507] | 95 / 609 |
 | 732 (rule) | 722 | arm e2s - reference normal (cost left) | curve | 0.30085 | 0.30073 | +0.000121 [+0.000001, +0.000218] | +0.040 [+0.000, +0.073] | 231 / 490 |
 | 732 (rule) | 722 | arm e2s - reference normal (cost left) | instant | 0.27755 | 0.27722 | +0.000332 [+0.000266, +0.000414] | +0.120 [+0.098, +0.149] | 176 / 543 |
+| 732 (rule) | 722 | arm normal - reference normal | curve | 0.30072 | 0.30073 | -0.000009 [-0.000123, +0.000081] | -0.003 [-0.041, +0.027] | 291 / 429 |
+| 732 (rule) | 722 | arm normal - reference normal | instant | 0.27741 | 0.27722 | +0.000195 [+0.000153, +0.000240] | +0.071 [+0.056, +0.087] | 216 / 503 |
+| 732 (rule) | 722 | arm e2s - arm normal | curve | 0.30085 | 0.30072 | +0.000130 [+0.000105, +0.000160] | +0.043 [+0.036, +0.053] | 213 / 493 |
+| 732 (rule) | 722 | arm e2s - arm normal | instant | 0.27755 | 0.27741 | +0.000137 [+0.000102, +0.000183] | +0.050 [+0.037, +0.066] | 195 / 499 |
+| 732+long | 725 | arm e2s - reference e2s (the rule) | curve | 0.30312 | 0.30333 | -0.000206 [-0.000343, -0.000078] | -0.068 [-0.112, -0.026] | 454 / 268 |
+| 732+long | 725 | arm e2s - reference e2s (the rule) | instant | 0.27844 | 0.27919 | -0.000749 [-0.000999, -0.000557] | -0.271 [-0.356, -0.207] | 553 / 168 |
 
 Win-back (not the rule): curve: gain +0.086 points = 68.3% of the reference's own show-time cost (+0.126) and 67.2% of SM31's released-model cost (+0.128); instant: gain +0.277 points = 69.8% of the reference's own show-time cost (+0.397) and 64.7% of SM31's released-model cost (+0.428).
 
