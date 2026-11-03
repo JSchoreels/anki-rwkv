@@ -1,0 +1,169 @@
+{
+ "ok": true,
+ "checks": {
+  "C1_epochs_21_25_rebuilt_equal_disk": {
+   "ok": true,
+   "out": "{\"rebuilt_equals_disk\": {\"21\": true, \"22\": true, \"23\": true, \"24\": true, \"25\": true}}",
+   "err": ""
+  },
+  "C2a_epoch26_equals_release_recipe_except_flag_start_index_paths": {
+   "ok": true,
+   "out": "[sm92-pair] epoch OK: sm92-e26 == epoch-25 except the show-time inputs flag, the start weights, the epoch index and paths (epoch 26, 8,000 users in the run's epoch-26 order, update offset 551950, start epoch-25)"
+  },
+  "C2b_epoch26_against_epoch24_refused": {
+   "ok": true,
+   "out": "poch-25/expertium/E89-F65e-F77a/optimizer.pth vs C:\\Users\\jonat\\workspace\\wt\\sm72s\\artifacts\\accuracy\\experiments\\scale-w64kd-final-sc-lanes-leakfree\\run\\epoch-24\\expertium\\E89-F65e-F77a\\optimizer.pth"
+  },
+  "C3a_trainer_scorer_files_equal_proven_commit": {
+   "ok": true,
+   "proven_commit": "cc7f5358",
+   "proven_checks": {
+    "T1_trainer_flag_moves_only_query_intervals_and_curve_times": true,
+    "T2_trainer_rows_equal_scorer_e2s_query_rows": true,
+    "T3_flag_off_batches_equal_current_trainer": true,
+    "T3b_flag_on_batch_tensors_that_change": true,
+    "T4a_arm_epoch_equals_sm72s_epoch21_except_flag_and_paths": true,
+    "T4b_flag_cooldown_equals_reference_except_flag_and_names": true,
+    "T4c_reference_against_itself_refused_without_flag": true,
+    "T5_rule_reproduces_sm31_and_zero": true
+   },
+   "diff": ""
+  },
+  "T1_trainer_flag_moves_only_query_intervals_and_curve_times": {
+   "ok": true,
+   "users": [
+    {
+     "user": 2651,
+     "train_reviews": 3064,
+     "samples": 2,
+     "query_columns": [
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+     ],
+     "update_columns": [],
+     "label_columns": [
+      "label_elapsed_seconds"
+     ],
+     "query_rows_moved": 2381,
+     "curve_query_times_moved": 2381,
+     "curve_query_time_max_shortening_s": 60.0,
+     "failures": []
+    },
+    {
+     "user": 8823,
+     "train_reviews": 15016,
+     "samples": 8,
+     "query_columns": [
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+     ],
+     "update_columns": [],
+     "label_columns": [
+      "label_elapsed_seconds"
+     ],
+     "query_rows_moved": 12897,
+     "curve_query_times_moved": 12894,
+     "curve_query_time_max_shortening_s": 64.0,
+     "failures": []
+    },
+    {
+     "user": 2158,
+     "train_reviews": 32077,
+     "samples": 16,
+     "query_columns": [
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+     ],
+     "update_columns": [],
+     "label_columns": [
+      "label_elapsed_seconds"
+     ],
+     "query_rows_moved": 28078,
+     "curve_query_times_moved": 28061,
+     "curve_query_time_max_shortening_s": 60.0,
+     "failures": []
+    }
+   ]
+  },
+  "T2_trainer_rows_equal_scorer_e2s_query_rows": {
+   "ok": true,
+   "users": [
+    {
+     "user": 2651,
+     "trainer_rows": 5445,
+     "scorer_rows": 5445,
+     "values_compared": 163350,
+     "rows_mismatched": 0,
+     "flag_off_vs_scorer_normal_differs": {},
+     "failures": []
+    },
+    {
+     "user": 8823,
+     "trainer_rows": 27913,
+     "scorer_rows": 27913,
+     "values_compared": 837390,
+     "rows_mismatched": 0,
+     "flag_off_vs_scorer_normal_differs": {},
+     "failures": []
+    },
+    {
+     "user": 2158,
+     "trainer_rows": 60157,
+     "scorer_rows": 60157,
+     "values_compared": 1804710,
+     "rows_mismatched": 0,
+     "flag_off_vs_scorer_normal_differs": {},
+     "failures": []
+    }
+   ]
+  },
+  "C4a_flag_cooldown_equals_release_except_flag_and_names": {
+   "ok": true,
+   "out": "[sm92-pair] decay OK: test-cooldown-from-sm72s-e25 == scale-w64kd-final-sc-lanes-leakfree-dec25-1ep32k-muon except the show-time inputs flag, the start weights, the epoch index and paths (8,000 users, 581,942,724 reviews, update offset 551950 vs 551950, start 520fe4f4a5b7)"
+  },
+  "C4b_release_against_itself_refused_without_flag": {
+   "ok": true,
+   "out": "[sm92-pair] decay REFUSE: show_time_intervals is not true in the arm only"
+  },
+  "C5_rule_self_test": {
+   "ok": true,
+   "out": "{\"users\": 722, \"step3_pair_reproduced\": {\"curve\": [0.146, [0.066, 0.23]], \"instant\": [-0.062, [-0.161, 0.016]]}, \"step3_published\": {\"curve\": [0.146, [0.066, 0.23]], \"instant\": [-0.062, [-0.161, 0.016]]}, \"self_pair\": {\"curve\": 0.0, \"instant\": 0.0}, \"synthetic\": {\"instant -0.06\": \"ship candidate\", \"instant -0.04\": \"no ship\", \"instant -0.06 curve +0.06\": \"no ship\", \"curve -0.06\": \"ship candidate\"}, \"ok\": true, \"failures\": []}",
+   "err": ""
+  }
+ },
+ "users": [
+  2651,
+  8823,
+  2158
+ ],
+ "provenance": {
+  "captured_utc": "2026-11-03T14:55:17.012467+00:00",
+  "git_commit": "f8a19500c9bc5b140e5b971838db941d7dcc62d7",
+  "git_dirty": false,
+  "git_status_porcelain_z": "",
+  "source_tree_sha256": "5468fc5053a19c430fe81b902b790be28b660555db455a134fe85c73c3ca9221",
+  "source_archive": "artifacts/sources/experiment-sources/5468fc5053a19c430fe81b902b790be28b660555db455a134fe85c73c3ca9221/source.zip",
+  "source_paths": [
+   "rwkv",
+   "expertium",
+   "scripts",
+   "configs",
+   "pyproject.toml",
+   "uv.lock",
+   "justfile",
+   "upstream.json"
+  ]
+ }
+}
