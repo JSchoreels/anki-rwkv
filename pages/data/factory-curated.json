@@ -277,7 +277,7 @@
     "show-time interval retrain (SM91) step 2: "
    ],
    "what": "Show-time interval retrain (SM91) step 2: one added epoch of the big model (1 leak-free epoch) on show-time intervals, same recipe as its leak-free epoch (users 5000&ndash;10000, 2 lanes &times; 8,192 carried state, LR 3.5e-4 &rarr; 0); scored on show-time and normal inputs on the 732 set, paired against the big model (1 leak-free epoch) on show-time inputs",
-   "when": "Launcher waiting: CPU proofs after 01:00 Tue, then after step 1's last scoring: smoke, epoch (~9.5 h, snapshots every 50 users), scoring (~2 h); read-out ~14:00 Tue 11-03",
+   "when": "CPU proofs ALL OK and smoke 01:04 Tue; epoch started 01:04 (~573 min, snapshots every 50 users), scoring ~2 h; read-out ~12:30&ndash;13:00 Tue, before the 16:00 stop",
    "decides": "Go to step 3 (new teacher targets + small cool-down on show-time inputs) if one head gains at least 0.10 points with its CI below zero vs the big model (1 leak-free epoch) on show-time inputs; stop otherwise (fixed before launch). The added epoch is a confound: the normal-vs-normal row checks it"
   },
   {
