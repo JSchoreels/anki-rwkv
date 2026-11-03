@@ -277,8 +277,11 @@
     "show-time interval retrain (SM91) step 2: "
    ],
    "what": "Show-time interval retrain (SM91) step 2: one added epoch of the big model (1 leak-free epoch) on show-time intervals, same recipe as its leak-free epoch (users 5000&ndash;10000, 2 lanes &times; 8,192 carried state, LR 3.5e-4 &rarr; 0); scored on show-time and normal inputs on the 732 set, paired against the big model (1 leak-free epoch) on show-time inputs",
-   "when": "CPU proofs ALL OK and smoke 01:04 Tue; epoch started 01:04 (~573 min, snapshots every 50 users), scoring ~2 h; read-out ~12:30&ndash;13:00 Tue, before the 16:00 stop",
-   "decides": "Go to step 3 (new teacher targets + small cool-down on show-time inputs) if one head gains at least 0.10 points with its CI below zero vs the big model (1 leak-free epoch) on show-time inputs; stop otherwise (fixed before launch). The added epoch is a confound: the normal-vs-normal row checks it"
+   "when": "Done 10:39 Tue: go to step 3",
+   "decides": "Go to step 3 (new teacher targets + small cool-down on show-time inputs) if one head gains at least 0.10 points with its CI below zero vs the big model (1 leak-free epoch) on show-time inputs; stop otherwise (fixed before launch). The added epoch is a confound: the normal-vs-normal row checks it",
+   "state": "done",
+   "started_at": "2026-11-03T01:03:55+01:00",
+   "ended_at": "2026-11-03T10:39:34+01:00"
   },
   {
    "what": "Quick score of the new epoch on 100 users",
@@ -2172,6 +2175,31 @@
   "s-w64kd-gate-ctx2048c-dec8-1ep/w8+s8"
  ],
  "results": [
+  {
+   "date": "11-03",
+   "kind": "gpu-train",
+   "id": "SM91s2",
+   "track": "small model",
+   "name": "Show-time interval retrain (SM91) step 2: the big model (1 leak-free epoch) + one added epoch trained on show-time intervals (same recipe as its leak-free epoch: users 5000&ndash;10000, 2 lanes &times; 8,192 carried state, LR 3.5e-4 &rarr; 0), scored on show-time and normal inputs",
+   "eval": "Leak-free scoring, w8+s8, show-time inputs (e2s-query), 722 users of the 732 set, vs the big model (1 leak-free epoch) on show-time inputs (rows from the duration-leak scoring (SM31)); points = % of the big model (1 leak-free epoch) normal-input LogLoss, paired user bootstrap 2,000, seed 0, 95% CI. Go to step 3 if one head gains at least 0.10 points with its CI below zero (fixed before launch)",
+   "fork": "Unchanged for now: the fork ships the small model; this big model is the teacher for step 3",
+   "takeaway": "<strong>Go to step 3</strong> on instant: on show-time inputs the show-time big model beats the big model (1 leak-free epoch) by &minus;0.35 instant points [&minus;0.46, &minus;0.28] (70% of its +0.51 show-time cost); curve &minus;0.06 [&minus;0.12, +0.01], not significant (27% of +0.21). On normal inputs the added epoch is worse: +0.12 curve / +0.10 instant points",
+   "started_at": "2026-11-03T01:03+01:00",
+   "ended_at": "2026-11-03T10:39+01:00",
+   "gpu_minutes": 575,
+   "tickets": 8,
+   "detail": {
+    "verdict": "Go to step 3: new teacher targets from the show-time big model on show-time inputs, then the small-model cool-down again",
+    "notes": [
+     "Users better: 457 / 722 on curve, 584 / 722 on instant",
+     "Show-time big model on show-time inputs: curve 0.29941, instant 0.27618; the big model (1 leak-free epoch) 0.29958 / 0.27716 (normal inputs 0.29897 / 0.27576)",
+     "Cost left vs the big model (1 leak-free epoch) on normal inputs: +0.15 curve / +0.16 instant points; its own show-time cost is only +0.03 / +0.06",
+     "The added epoch is not free: on normal inputs the new model is +0.12 curve [+0.07, +0.18] / +0.10 instant [+0.08, +0.12] points worse, so the show-time gain is net of that loss (a normal-input control epoch was not run)",
+     "Epoch 542.0 min at 11,387 reviews/s (370.3M reviews, one segment); CPU proofs ALL OK, smoke OK",
+     "732+long (725 users): &minus;0.10 curve [&minus;0.20, &minus;0.01] / &minus;0.34 instant [&minus;0.45, &minus;0.27] points"
+    ]
+   }
+  },
   {
    "date": "11-02",
    "kind": "gpu-train",
