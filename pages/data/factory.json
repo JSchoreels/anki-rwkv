@@ -1,7 +1,7 @@
 {
- "generated_at": "2026-11-03T16:01:13+01:00",
- "updated": "2026-11-03 16:01",
- "material": "075237fcd33285bb",
+ "generated_at": "2026-11-03T16:36:24+01:00",
+ "updated": "2026-11-03 16:36",
+ "material": "475b94566c93d973",
  "summary": "running 000923",
  "headline": [
   {
@@ -249,7 +249,7 @@
    "track": "small model",
    "ticket": "000923-small-model",
    "started": "15:55",
-   "elapsed": "0:05",
+   "elapsed": "0:40",
    "progress": null,
    "eta": "~17:24"
   }
@@ -545,6 +545,17 @@
    "ticket": "000923-small-model",
    "started_at": "2026-11-03T15:55:44+01:00",
    "ends_at": "2026-11-04T04:05:44+01:00"
+  },
+  {
+   "id": "SM41",
+   "track": "small model",
+   "since": "11-03T16:27",
+   "kind": "cpu",
+   "minutes": 120,
+   "what": "The small model in the review simulator (SM41) stage 2, drift study (CPU): 50 users of the 732 set, 133 starting days, 60 days simulated ahead (10 users also 120 days), 32 lanes each: real answers fed in vs the model reading its own sampled answers, with 9 fixes (expected or real answer times, lower sampling temperature, weekly real days, re-syncing deck/preset/user state daily or weekly)",
+   "when": "Started 16:27 Tue on 4 CPU processes (2,456 simulated reviews/s each, 18&times; stage 1); paused 17:20&ndash;19:30 for the user; done ~19:50&ndash;20:00",
+   "decides": "Which fix makes free-running simulation trustworthy enough for within-user policy comparisons; metric fixed before the run: first-touch predicted-pass drift at days 30&ndash;59. First 11 starting days: plain free running drifts &minus;4.0 points (Easy share +10.6); daily re-syncing is best so far (mean absolute 2.7)",
+   "state": "planned"
   },
   {
    "what": "Quick score of the new epoch on 100 users",
