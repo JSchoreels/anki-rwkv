@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-03T01:01:14+01:00",
- "updated": "2026-11-03 01:01",
- "material": "e7fe0dc2c52550cf",
- "summary": "running 000904",
+ "generated_at": "2026-11-03T01:02:18+01:00",
+ "updated": "2026-11-03 01:02",
+ "material": "588367050099413b",
+ "summary": "idle, finished 000904",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring (curve / instant)",
@@ -237,23 +237,7 @@
    "track": "small model"
   }
  ],
- "now": [
-  {
-   "what": "Show-time interval retrain (SM91) step 1: does training on show-time intervals (previous answer to the moment the card is shown, as the app sees them) win back part of the duration-leak cost (SM31: +0.13 curve / +0.43 instant points for the released small model)? Warm start from the leak-free small model (SM72s) epoch 20, 1 epoch + quarter-epoch 32k Muon cool-down with show-time inputs, paired against the same cool-down with normal inputs (tiny architecture additions (SM77) reference), both scored on show-time inputs on the 732 set",
-   "id": "SM91, ticket 000904",
-   "kind": "gpu-train",
-   "decides": "Go to step 2 (one big-model epoch on show-time inputs, ~9 GPU h, then new teacher targets + small cool-down) if one head gains at least 0.10 points with its CI below zero; stop otherwise (fixed before launch)",
-   "why": "",
-   "job": "show-time interval retrain (SM91): scoring the show-time arm cool-down (information) on normal inputs, the 3 long users of the 732 set (pass 1, cap 0.92)",
-   "linked": true,
-   "track": "small model",
-   "ticket": "000904-small-model",
-   "started": "01:00",
-   "elapsed": "0:00",
-   "progress": null,
-   "eta": "~01:25"
-  }
- ],
+ "now": [],
  "charts": [
   {
    "title": "Small model, leak-free (SM72s): LogLoss per epoch, 458-user set (lower is better)",
@@ -424,6 +408,15 @@
  "waiting": [],
  "recent": [
   {
+   "ticket": "000904-small-model",
+   "id": "SM91",
+   "what": "show-time interval retrain (SM91): scoring the show-time arm cool-down (information) on normal inputs, the 3 long users of the 732 set (pass 1, cap 0.92)",
+   "ended": "01:01",
+   "date": "11-03",
+   "exit": 0,
+   "ran": "0:01"
+  },
+  {
    "ticket": "000903-small-model",
    "id": "SM91",
    "what": "show-time interval retrain (SM91): scoring the show-time arm cool-down (information) on normal inputs, the 732 set minus 9 never-fit (723 users) (pass 2, 722 done, cap 0.8)",
@@ -467,15 +460,6 @@
    "date": "11-02",
    "exit": 0,
    "ran": "0:11"
-  },
-  {
-   "ticket": "000898-small-model",
-   "id": "SM91",
-   "what": "show-time interval retrain (SM91): arm quarter-epoch 32k Muon cool-down on show-time inputs from arm epoch 21 (w64, the reference&#x27;s options and order) (segment to the next window or the end)",
-   "ended": "19:29",
-   "date": "11-02",
-   "exit": 0,
-   "ran": "0:28"
   }
  ],
  "plan": [
@@ -501,11 +485,12 @@
    "what": "Show-time interval retrain (SM91) step 1: does training on show-time intervals (previous answer to the moment the card is shown, as the app sees them) win back part of the duration-leak cost (SM31: +0.13 curve / +0.43 instant points for the released small model)? Warm start from the leak-free small model (SM72s) epoch 20, 1 epoch + quarter-epoch 32k Muon cool-down with show-time inputs, paired against the same cool-down with normal inputs (tiny architecture additions (SM77) reference), both scored on show-time inputs on the 732 set",
    "when": "Rule done 19:51 (go to step 2); left: the 3 long users (~25 min, before 20:30) and the arm on normal inputs (~57 min, after 01:00)",
    "decides": "Go to step 2 (one big-model epoch on show-time inputs, ~9 GPU h, then new teacher targets + small cool-down) if one head gains at least 0.10 points with its CI below zero; stop otherwise (fixed before launch)",
-   "state": "running",
-   "started": "01:00",
-   "ticket": "000904-small-model",
+   "state": "done",
+   "ended": "01:01",
+   "exit": 0,
+   "started": "19:51",
    "started_at": "2026-11-02T19:51:47+01:00",
-   "ends_at": "2026-11-02T21:16:47+01:00"
+   "ended_at": "2026-11-03T01:01:51+01:00"
   },
   {
    "id": "SM91s2",
