@@ -1,5 +1,7 @@
 # The small model in the review simulator (SM41): handoff, stage 2 part 1 (the drift study)
 
+**Status: done 2026-11-03 (drift study finished; result in [drift-result.md](drift-result.md)).** The Follow-up section below was carried out.
+
 Branch `sm41`, worktree `C:/Users/jonat/workspace/wt/sm41`. Stage 1: [prototype-result.md](prototype-result.md). Design incl. stage 2 and the interval convention (duration leak): [DESIGN.md](DESIGN.md) section 8. Always `git fetch` + `git merge --ff-only` first.
 
 ## What runs (CPU only)

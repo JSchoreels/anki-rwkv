@@ -1,0 +1,63 @@
+[sm41-drift] report: 143 rows
+C:\Users\jonat\workspace\wt\sm41\scripts\sm41_drift.py:674: RuntimeWarning: Mean of empty slice
+  mean = {key: float(np.nanmean([m[bi][key] for m in ms])) for key in ms[0][bi]}
+# The small model in the review simulator (SM41): drift study tables
+
+## Horizon 60 days: 50 users, 133 split points
+
+Lanes per split: 32 (tf, tf-answer, fr#0, fr#1, ...). Drift = lane minus the real user (the teacher-forced lane for predictions) on the same reviews, in points; mean over users (splits of a user averaged first) ± 95% CI over users. 'first touch' = each old card's first later-day review in the window (its day was set from real pre-split outcomes, so it does not depend on the lane's samples). 'state' = the model's own predicted pass rate on those reviews (no outcome noise): the cleanest drift signal.
+
+### First-touch state drift (predicted pass rate, lane minus teacher forcing), points
+
+| arm | days 0-29 | days 30-59 | mean abs, last block |
+|---|---|---|---|
+| tf | +0.0 ± 0.0 | +0.0 ± 0.0 | 0.00 |
+| tf-answer | -0.0 ± 0.0 | +0.0 ± 0.0 | 0.00 |
+| fr | -1.1 ± 0.9 | -5.1 ± 3.6 | 9.07 |
+| fr-answer | -1.2 ± 0.9 | -4.5 ± 3.4 | 8.72 |
+| fr-treal | -1.5 ± 0.8 | -4.7 ± 3.3 | 9.20 |
+| fr-texp | -1.6 ± 0.9 | -4.5 ± 3.0 | 8.36 |
+| fr-tt0.5 | -1.0 ± 0.9 | -3.7 ± 3.1 | 8.31 |
+| fr-gt0.8 | +1.5 ± 1.6 | +5.5 ± 2.8 | 10.15 |
+| fr-anchor7 | -0.7 ± 0.8 | -2.5 ± 2.2 | 5.90 |
+| fr-shared1 | -0.6 ± 0.4 | -0.6 ± 1.0 | 2.19 |
+| fr-shared7 | -0.7 ± 0.7 | -1.7 ± 2.1 | 4.10 |
+| fr-texp-shared1 | -0.8 ± 0.4 | -0.8 ± 1.0 | 2.23 |
+
+### First-touch realised retention drift (lane minus real), points
+
+| arm | days 0-29 | days 30-59 |
+|---|---|---|
+| tf | +0.0 ± 0.0 | +0.0 ± 0.0 |
+| tf-answer | +0.0 ± 0.0 | +0.0 ± 0.0 |
+| fr | -1.3 ± 1.2 | -5.8 ± 3.9 |
+| fr-answer | -1.3 ± 1.2 | -5.4 ± 4.0 |
+| fr-treal | -1.7 ± 1.1 | -5.4 ± 3.9 |
+| fr-texp | -1.7 ± 1.3 | -4.9 ± 3.4 |
+| fr-tt0.5 | -1.1 ± 1.3 | -4.0 ± 3.5 |
+| fr-gt0.8 | +2.6 ± 1.9 | +6.1 ± 3.3 |
+| fr-anchor7 | -0.8 ± 1.1 | -2.6 ± 2.5 |
+| fr-shared1 | -0.8 ± 0.7 | -1.0 ± 1.8 |
+| fr-shared7 | -0.8 ± 1.0 | -2.1 ± 2.6 |
+| fr-texp-shared1 | -1.0 ± 0.8 | -1.2 ± 1.7 |
+
+### All later-day reviews on the real schedule (old cards / new cards), realised retention drift, points
+
+| arm | old days 0-29 | old days 30-59 | new days 0-29 | new days 30-59 |
+|---|---|---|---|---|
+| tf | +0.0 ± 0.0 | +0.0 ± 0.0 | +0.0 ± 0.0 | +0.0 ± 0.0 |
+| tf-answer | +0.0 ± 0.0 | +0.0 ± 0.0 | +0.0 ± 0.0 | +0.0 ± 0.0 |
+| fr | -1.0 ± 1.1 | -4.0 ± 2.5 | +0.3 ± 1.7 | -1.2 ± 2.0 |
+| fr-answer | -1.1 ± 1.1 | -3.8 ± 2.3 | -0.8 ± 1.8 | -2.4 ± 1.9 |
+| fr-treal | -1.5 ± 1.1 | -4.1 ± 2.1 | -0.2 ± 1.9 | -1.8 ± 1.8 |
+| fr-texp | -1.2 ± 1.1 | -3.8 ± 2.1 | +1.2 ± 1.9 | -0.2 ± 1.7 |
+| fr-tt0.5 | -0.8 ± 1.2 | -2.8 ± 2.3 | +0.6 ± 1.8 | -0.4 ± 1.9 |
+| fr-gt0.8 | +3.8 ± 1.7 | +5.5 ± 3.0 | +6.3 ± 2.4 | +8.8 ± 2.6 |
+| fr-anchor7 | -0.8 ± 1.0 | -2.6 ± 1.4 | -0.2 ± 1.2 | -1.6 ± 1.3 |
+| fr-shared1 | -0.5 ± 0.5 | -1.1 ± 1.1 | -0.4 ± 1.1 | -0.9 ± 1.1 |
+| fr-shared7 | -0.5 ± 0.7 | -1.8 ± 1.6 | +0.1 ± 1.3 | -1.0 ± 1.4 |
+| fr-texp-shared1 | -0.6 ± 0.5 | -1.4 ± 1.1 | -0.2 ± 1.1 | -0.8 ± 1.1 |
+
+### Grades, answer time and implied same-day load (days 30-59), lane minus real
+
+Again = share of non-first reviews; Easy = share of later-day passes; seconds = mean answer time of later-day reviews as fed back (fr-texp feeds exp E[ln t], a geometric mean) / the head's arithmetic expectation for the lane's grade; follow-ups = same-day reviews per review implied by the user's own step rules (on the real schedule reviews per day are fixed by construction; this is the load a policy lane would add). Real means: Again 0.148, Easy 0.153, 17.4 s.
