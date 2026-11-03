@@ -1,0 +1,32 @@
+[sm91s2 11-02 20:11:13] started: f5d1b7a7 Show-time interval retrain (SM91) step 2: one added big-model epoch on show-time intervals from the big model (1 leak-free epoch), SM72 recipe; CPU pro (DRYRUN=0; start C:/Users/jonat/workspace/wt/sm72/artifacts/small-model/sm72-big-leakfree-1ep/expertium/big-leakfree-1ep/master.pth; out C:/Users/jonat/workspace/wt/sm91s2/artifacts/small-model/sm91s2-big-showtime)
+[sm91s2 11-02 20:11:13] CPU proofs: quiet window, 17386s left
+[sm91s2 11-02 21:11:14] CPU proofs: quiet window, 13785s left
+[sm91s2 11-02 22:11:14] CPU proofs: quiet window, 10185s left
+[sm91s2 11-02 23:11:15] CPU proofs: quiet window, 6584s left
+[sm91s2 11-03 00:11:14] CPU proofs: quiet window, 2985s left
+[sm91s2 11-03 01:01:15] label-window pre-flight: {'script': 'scripts/sm72_label_windows.py', 'users': 5001, 'unlabelled_tails_trimmed': 27} 370292439
+[sm91s2 11-03 01:01:15] CPU proofs started (scripts/sm91s2.py cpu-check)
+[sm91s2 11-03 01:03:55] CPU proofs exit 0: [sm91s2-check] ALL OK: T4a_epoch_equals_big_model_1_leak_free_epoch_recipe_except_flag_start_paths OK, T4b_sm72_against_itself_refused_without_flag OK, T1_trainer_flag_moves_only_query_intervals_and_curve_times OK, T2_trainer_rows_equal_scorer_e2s_query_rows OK, T3a_flag_off_batches_equal_current_big_model_trainer OK, T3b_flag_on_batch_tensors_that_change OK, T3m_flag_off_model_loss_and_gradients_equal_current_big_model_trainer OK, T3mb_flag_on_changes_the_loss OK, T5_rule_reproduces_sm31_big_model_cost_and_zero OK, T6_scorer_rows_equal_sm31_scorer_commit OK
+[sm91s2 11-03 01:03:55] the show-time interval retrain (SM91) step 1 launcher ended: [sm91 11-03 01:01:52] done
+[sm91s2 11-03 01:03:55] enqueue: trainer smoke of the show-time big-model epoch (fork RWKV, show-time inputs, 2 users x 512 reviews, scratch copy) (expected 10 min, max wait 883 min, 896 min to the next window)
+[sm91s2 11-03 01:04:07] exit 0: trainer smoke of the show-time big-model epoch (fork RWKV, show-time inputs, 2 users x 512 reviews, scratch copy)
+[sm91s2 11-03 01:04:07] smoke: {"smoke": "sm91s2-big-showtime", "exit": 0, "status": "complete", "updates": 2, "reviews": 1024, "error": null, "seconds": 11.5}
+[sm91s2 11-03 01:04:08] enqueue: the big model (fork RWKV) one added epoch on show-time intervals from the big model (1 leak-free epoch) (users 5000-10000, carried state 2 lanes x 8,192, AdamW 3.5e-4 -> 0, deleted-card inputs removed), 370M of 370M reviews left (expected 573 min of ~573, 895 min to the next window)
+[sm91s2 11-03 10:06:33] exit 0: epoch segment (14849 reviews left)
+[sm91s2 11-03 10:06:33] epoch complete: 370,292,439 reviews (last attempt), 542.0 min training, 11,387 reviews/s, update offset end 25038
+[sm91s2 11-03 10:06:33] enqueue: scoring the show-time big model (big model (1 leak-free epoch) + 1 show-time epoch) on e2s-query inputs, the 732 set minus 9 never-fit (723 users) (pass 1, 0 done, cap 0.8) (expected 50 min, max wait 300 min, 353 min to the next window)
+[sm91s2 11-03 10:21:32] exit 0: scoring the show-time big model (big model (1 leak-free epoch) + 1 show-time epoch) on e2s-query inputs, the 732 set minus 9 never-fit (723 users) (pass 1, 0 done, cap 0.8)
+[sm91s2 11-03 10:21:33] enqueue: scoring the show-time big model (big model (1 leak-free epoch) + 1 show-time epoch) on e2s-query inputs, the 732 set minus 9 never-fit (723 users) (pass 2, 722 done, cap 0.8) (expected 15 min, max wait 320 min, 338 min to the next window)
+[sm91s2 11-03 10:22:04] exit 0: scoring the show-time big model (big model (1 leak-free epoch) + 1 show-time epoch) on e2s-query inputs, the 732 set minus 9 never-fit (723 users) (pass 2, 722 done, cap 0.8)
+[sm91s2 11-03 10:22:05] enqueue: scoring the show-time big model (big model (1 leak-free epoch) + 1 show-time epoch) on e2s-query inputs, the 3 long users of the 732 set (pass 1, cap 0.92) (expected 20 min, max wait 314 min, 337 min to the next window)
+[sm91s2 11-03 10:23:11] exit 0: scoring the show-time big model (big model (1 leak-free epoch) + 1 show-time epoch) on e2s-query inputs, the 3 long users of the 732 set (pass 1, cap 0.92)
+[sm91s2 11-03 10:23:11] sm91s2-big-showtime/w8+s8@e2s-query: 726 users scored
+[sm91s2 11-03 10:23:12] enqueue: scoring the show-time big model (big model (1 leak-free epoch) + 1 show-time epoch) on normal inputs, the 732 set minus 9 never-fit (723 users) (pass 1, 0 done, cap 0.8) (expected 30 min, max wait 303 min, 336 min to the next window)
+[sm91s2 11-03 10:37:55] exit 0: scoring the show-time big model (big model (1 leak-free epoch) + 1 show-time epoch) on normal inputs, the 732 set minus 9 never-fit (723 users) (pass 1, 0 done, cap 0.8)
+[sm91s2 11-03 10:37:55] enqueue: scoring the show-time big model (big model (1 leak-free epoch) + 1 show-time epoch) on normal inputs, the 732 set minus 9 never-fit (723 users) (pass 2, 722 done, cap 0.8) (expected 15 min, max wait 304 min, 322 min to the next window)
+[sm91s2 11-03 10:38:27] exit 0: scoring the show-time big model (big model (1 leak-free epoch) + 1 show-time epoch) on normal inputs, the 732 set minus 9 never-fit (723 users) (pass 2, 722 done, cap 0.8)
+[sm91s2 11-03 10:38:27] enqueue: scoring the show-time big model (big model (1 leak-free epoch) + 1 show-time epoch) on normal inputs, the 3 long users of the 732 set (pass 1, cap 0.92) (expected 20 min, max wait 298 min, 321 min to the next window)
+[sm91s2 11-03 10:39:33] exit 0: scoring the show-time big model (big model (1 leak-free epoch) + 1 show-time epoch) on normal inputs, the 3 long users of the 732 set (pass 1, cap 0.92)
+[sm91s2 11-03 10:39:33] sm91s2-big-showtime/w8+s8: 726 users scored
+[sm91s2 11-03 10:39:34] rule exit 0: [sm91s2-rule] 722 users, new - big model (1 leak-free epoch) on e2s-query: curve -0.055 points [-0.117, 0.013], instant -0.353 points [-0.459, -0.276]: GO TO STEP 3 (gain >= 0.10 points with the CI below zero: instant -0.353 points [-0.459, -0.276])
+[sm91s2 11-03 10:39:34] done

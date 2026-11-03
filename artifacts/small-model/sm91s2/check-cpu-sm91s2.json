@@ -1,0 +1,295 @@
+{
+ "ok": true,
+ "checks": {
+  "T4a_epoch_equals_big_model_1_leak_free_epoch_recipe_except_flag_start_paths": {
+   "ok": true,
+   "problems": [],
+   "full_run_differences": [
+    "control_dir",
+    "init_master",
+    "snapshot_users"
+   ],
+   "option_differences": [
+    "show_time_intervals"
+   ],
+   "start_sha256": "ac7f0d8a96cbc086eb17307ee13c67cf8e4a68e9b3d70dd5657eaa9957d9d240",
+   "users": 5001,
+   "training_reviews_after_trims": 370292439,
+   "label_windows": {
+    "script": "scripts/sm72_label_windows.py",
+    "users": 5001,
+    "unlabelled_tails_trimmed": 27
+   }
+  },
+  "T4b_sm72_against_itself_refused_without_flag": {
+   "ok": true,
+   "problems": [
+    "options differ in [] (want exactly [show_time_intervals] = true), extra_options None",
+    "protocol rows (users, order, trimmed train ranges) differ",
+    "protocol.json differs in ['rows']",
+    "full_run differs in ['init_master', 'init_optimizer', 'lr_resume', 'optimizer_state', 'resumed', 'update_offset']"
+   ]
+  },
+  "T1_trainer_flag_moves_only_query_intervals_and_curve_times": {
+   "ok": true,
+   "users": [
+    {
+     "user": 8632,
+     "train_reviews": 2641,
+     "samples": 1,
+     "query_columns": [
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+     ],
+     "update_columns": [],
+     "label_columns": [
+      "label_elapsed_seconds"
+     ],
+     "query_rows_moved": 2128,
+     "curve_query_times_moved": 2128,
+     "curve_query_time_max_shortening_s": 60.0,
+     "failures": []
+    },
+    {
+     "user": 5984,
+     "train_reviews": 12595,
+     "samples": 2,
+     "query_columns": [
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+     ],
+     "update_columns": [],
+     "label_columns": [
+      "label_elapsed_seconds"
+     ],
+     "query_rows_moved": 10430,
+     "curve_query_times_moved": 10425,
+     "curve_query_time_max_shortening_s": 272.0,
+     "failures": []
+    },
+    {
+     "user": 7885,
+     "train_reviews": 20883,
+     "samples": 3,
+     "query_columns": [
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+     ],
+     "update_columns": [],
+     "label_columns": [
+      "label_elapsed_seconds"
+     ],
+     "query_rows_moved": 17549,
+     "curve_query_times_moved": 17515,
+     "curve_query_time_max_shortening_s": 120.0,
+     "failures": []
+    }
+   ]
+  },
+  "T2_trainer_rows_equal_scorer_e2s_query_rows": {
+   "ok": true,
+   "users": [
+    {
+     "user": 8632,
+     "trainer_rows": 4855,
+     "scorer_rows": 4855,
+     "values_compared": 145650,
+     "rows_mismatched": 0,
+     "flag_off_vs_scorer_normal_differs": {},
+     "failures": []
+    },
+    {
+     "user": 5984,
+     "trainer_rows": 23025,
+     "scorer_rows": 23025,
+     "values_compared": 690750,
+     "rows_mismatched": 0,
+     "flag_off_vs_scorer_normal_differs": {},
+     "failures": []
+    },
+    {
+     "user": 7885,
+     "trainer_rows": 38432,
+     "scorer_rows": 38432,
+     "values_compared": 1152960,
+     "rows_mismatched": 0,
+     "flag_off_vs_scorer_normal_differs": {},
+     "failures": []
+    }
+   ]
+  },
+  "T3a_flag_off_batches_equal_current_big_model_trainer": {
+   "ok": true,
+   "batches": 4,
+   "updates": [
+    [
+     8632,
+     0,
+     2641
+    ],
+    [
+     5984,
+     0,
+     12595
+    ],
+    [
+     7885,
+     0,
+     16384
+    ],
+    [
+     7885,
+     16384,
+     4499
+    ]
+   ],
+   "tensors_per_batch": [
+    74,
+    87,
+    83,
+    72
+   ],
+   "differing": [],
+   "reference_tree": "C:\\Users\\jonat\\workspace\\wt\\sm91s2\\artifacts\\small-model\\sm91s2\\work\\ref-trainer-45a56e3a (git archive 45a56e3a)",
+   "span": 16384
+  },
+  "T3b_flag_on_batch_tensors_that_change": {
+   "ok": true,
+   "changed": [
+    "batch.labels",
+    "batch.start"
+   ],
+   "note": "the packed feature / label tensors only; permutations, skips and carry layout unchanged"
+  },
+  "T3m_flag_off_model_loss_and_gradients_equal_current_big_model_trainer": {
+   "ok": true,
+   "updates": 4,
+   "per_update": [
+    [
+     8632,
+     0,
+     2048,
+     10657,
+     1.136665940284729
+    ],
+    [
+     8632,
+     2048,
+     593,
+     12705,
+     1.0095734596252441
+    ],
+    [
+     5625,
+     0,
+     2048,
+     7650,
+     0.36155086755752563
+    ],
+    [
+     5625,
+     2048,
+     746,
+     9698,
+     0.5092222094535828
+    ]
+   ],
+   "reference_tree": "C:\\Users\\jonat\\workspace\\wt\\sm91s2\\artifacts\\small-model\\sm91s2\\work\\ref-trainer-45a56e3a (git archive 45a56e3a)",
+   "architecture": "fork",
+   "checkpoint": "C:\\Users\\jonat\\workspace\\wt\\sm72\\artifacts\\small-model\\sm72-big-leakfree-1ep\\expertium\\big-leakfree-1ep\\master.pth",
+   "windows": "1,024 x 2 strided lanes (carried state across updates)"
+  },
+  "T3mb_flag_on_changes_the_loss": {
+   "ok": true,
+   "losses_on": [
+    1.1367701292037964,
+    1.0090757608413696,
+    0.36140960454940796,
+    0.5093628764152527
+   ],
+   "losses_off": [
+    1.136665940284729,
+    1.0095734596252441,
+    0.36155086755752563,
+    0.5092222094535828
+   ],
+   "note": "informational: same layout, other inputs"
+  },
+  "T5_rule_reproduces_sm31_big_model_cost_and_zero": {
+   "ok": true,
+   "out": "{\"users\": 722, \"sm31_big_e2s_query_cost_reproduced\": {\"curve\": [0.205, [0.165, 0.258]], \"instant\": [0.508, [0.411, 0.633]]}, \"sm31_published\": {\"curve\": [0.205, [0.165, 0.258]], \"instant\": [0.508, [0.411, 0.633]]}, \"self_pair\": {\"curve\": 0.0, \"instant\": 0.0}, \"synthetic_instant_gain_verdict\": \"go to step 3\", \"ok\": true, \"failures\": []}",
+   "err": ""
+  },
+  "T6_scorer_rows_equal_sm31_scorer_commit": {
+   "ok": true,
+   "reference_tree": "C:\\Users\\jonat\\workspace\\wt\\sm91s2\\artifacts\\small-model\\sm91s2\\work\\ref-scorer-fa5a9f25 (git archive fa5a9f25)",
+   "e2s-query": {
+    "identical": true,
+    "users": [
+     2388,
+     4676
+    ],
+    "curve_log_loss": {
+     "2388": 0.1372527927160263,
+     "4676": 0.08341307193040848
+    }
+   },
+   "normal": {
+    "identical": true,
+    "users": [
+     2388,
+     4676
+    ],
+    "curve_log_loss": {
+     "2388": 0.13783329725265503,
+     "4676": 0.08337308466434479
+    }
+   }
+  }
+ },
+ "users": {
+  "T1_T2_T3a": [
+   8632,
+   5984,
+   7885
+  ],
+  "T3m": [
+   8632,
+   5625
+  ],
+  "T6": [
+   4676,
+   2388
+  ]
+ },
+ "provenance": {
+  "captured_utc": "2026-11-03T00:03:55.008414+00:00",
+  "git_commit": "72ba7cefe886646f6f087afe27564edad3ad0c5c",
+  "git_dirty": false,
+  "git_status_porcelain_z": "",
+  "source_tree_sha256": "bf6c1fa8ffce4875f31f572ea3c615462032bd6b5220699f27229113533b8bc3",
+  "source_archive": "artifacts/sources/experiment-sources/bf6c1fa8ffce4875f31f572ea3c615462032bd6b5220699f27229113533b8bc3/source.zip",
+  "source_paths": [
+   "rwkv",
+   "expertium",
+   "scripts",
+   "configs",
+   "pyproject.toml",
+   "uv.lock",
+   "justfile",
+   "upstream.json"
+  ]
+ }
+}

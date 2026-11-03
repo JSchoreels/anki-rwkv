@@ -1,0 +1,26 @@
+{
+ "decay": "C:\\Users\\jonat\\workspace\\wt\\sm91s2\\artifacts\\small-model\\sm91s2-big-showtime",
+ "users": 5001,
+ "chunk_reviews": 8192,
+ "lanes": 2,
+ "unlabelled_tails": 27,
+ "errors": [],
+ "pass": true,
+ "trimmed": true
+}
+C:\Users\jonat\workspace\wt\sm91s2\scripts\sm91s2.py:128: DeprecationWarning: Python 3.14 will, by default, filter extracted tar archives and reject files or modify their metadata. Use the filter argument to control this behavior.
+  tar.extractall(dest)
+[sm91-check] T4a_epoch_equals_big_model_1_leak_free_epoch_recipe_except_flag_start_paths: OK {"problems": [], "full_run_differences": ["control_dir", "init_master", "snapshot_users"], "option_differences": ["show_time_intervals"], "start_sha256": "ac7f0d8a96cbc086eb17307ee13c67cf8e4a68e9b3d70dd5657eaa9957d9d240", "users": 5001, "training_reviews_after_trims": 370292439, "label_windows": {"s
+[sm91-check] T4b_sm72_against_itself_refused_without_flag: OK {"problems": ["options differ in [] (want exactly [show_time_intervals] = true), extra_options None", "protocol rows (users, order, trimmed train ranges) differ", "protocol.json differs in ['rows']", "full_run differs in ['init_master', 'init_optimizer', 'lr_resume', 'optimizer_state', 'resumed', 'u
+[sm91-check] user 8632: T1 OK T2 OK
+[sm91-check] user 5984: T1 OK T2 OK
+[sm91-check] user 7885: T1 OK T2 OK
+[sm91-check] T1_trainer_flag_moves_only_query_intervals_and_curve_times: OK {"users": [{"user": 8632, "train_reviews": 2641, "samples": 1, "query_columns": [2, 3, 4, 5, 6, 7], "update_columns": [], "label_columns": ["label_elapsed_seconds"], "query_rows_moved": 2128, "curve_query_times_moved": 2128, "curve_query_time_max_shortening_s": 60.0, "failures": []}, {"user": 5984, 
+[sm91-check] T2_trainer_rows_equal_scorer_e2s_query_rows: OK {"users": [{"user": 8632, "trainer_rows": 4855, "scorer_rows": 4855, "values_compared": 145650, "rows_mismatched": 0, "flag_off_vs_scorer_normal_differs": {}, "failures": []}, {"user": 5984, "trainer_rows": 23025, "scorer_rows": 23025, "values_compared": 690750, "rows_mismatched": 0, "flag_off_vs_sc
+[sm91-check] T3a_flag_off_batches_equal_current_big_model_trainer: OK {"batches": 4, "updates": [[8632, 0, 2641], [5984, 0, 12595], [7885, 0, 16384], [7885, 16384, 4499]], "tensors_per_batch": [74, 87, 83, 72], "differing": [], "reference_tree": "C:\\Users\\jonat\\workspace\\wt\\sm91s2\\artifacts\\small-model\\sm91s2\\work\\ref-trainer-45a56e3a (git archive 45a56e3a)"
+[sm91-check] T3b_flag_on_batch_tensors_that_change: OK {"changed": ["batch.labels", "batch.start"], "note": "the packed feature / label tensors only; permutations, skips and carry layout unchanged"}
+[sm91-check] T3m_flag_off_model_loss_and_gradients_equal_current_big_model_trainer: OK {"updates": 4, "per_update": [[8632, 0, 2048, 10657, 1.136665940284729], [8632, 2048, 593, 12705, 1.0095734596252441], [5625, 0, 2048, 7650, 0.36155086755752563], [5625, 2048, 746, 9698, 0.5092222094535828]], "reference_tree": "C:\\Users\\jonat\\workspace\\wt\\sm91s2\\artifacts\\small-model\\sm91s2\
+[sm91-check] T3mb_flag_on_changes_the_loss: OK {"losses_on": [1.1367701292037964, 1.0090757608413696, 0.36140960454940796, 0.5093628764152527], "losses_off": [1.136665940284729, 1.0095734596252441, 0.36155086755752563, 0.5092222094535828], "note": "informational: same layout, other inputs"}
+[sm91-check] T5_rule_reproduces_sm31_big_model_cost_and_zero: OK {"out": "{\"users\": 722, \"sm31_big_e2s_query_cost_reproduced\": {\"curve\": [0.205, [0.165, 0.258]], \"instant\": [0.508, [0.411, 0.633]]}, \"sm31_published\": {\"curve\": [0.205, [0.165, 0.258]], \"instant\": [0.508, [0.411, 0.633]]}, \"self_pair\": {\"curve\": 0.0, \"instant\": 0.0}, \"synthetic
+[sm91-check] T6_scorer_rows_equal_sm31_scorer_commit: OK {"reference_tree": "C:\\Users\\jonat\\workspace\\wt\\sm91s2\\artifacts\\small-model\\sm91s2\\work\\ref-scorer-fa5a9f25 (git archive fa5a9f25)", "e2s-query": {"identical": true, "users": [2388, 4676], "curve_log_loss": {"2388": 0.1372527927160263, "4676": 0.08341307193040848}}, "normal": {"identical"
+[sm91s2-check] ALL OK: T4a_epoch_equals_big_model_1_leak_free_epoch_recipe_except_flag_start_paths OK, T4b_sm72_against_itself_refused_without_flag OK, T1_trainer_flag_moves_only_query_intervals_and_curve_times OK, T2_trainer_rows_equal_scorer_e2s_query_rows OK, T3a_flag_off_batches_equal_current_big_model_trainer OK, T3b_flag_on_batch_tensors_that_change OK, T3m_flag_off_model_loss_and_gradients_equal_current_big_model_trainer OK, T3mb_flag_on_changes_the_loss OK, T5_rule_reproduces_sm31_big_model_cost_and_zero OK, T6_scorer_rows_equal_sm31_scorer_commit OK
