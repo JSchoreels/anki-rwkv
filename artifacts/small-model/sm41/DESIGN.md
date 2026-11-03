@@ -139,3 +139,58 @@ our `user_habits` and the answer-time head fill the same roles. The open-spaced-
 useful only for comparability with published policy results (its scheduler implementations as policies); hosting
 our model there needs the fork runtime port (SM08). If wanted, that is a later, separate step and needs the user's
 go-ahead to clone it.
+
+## 8. Stage 2 part 1: the drift study (`scripts/sm41_drift.py`)
+
+### 8.1 Interval convention and the duration leak (duration-leak scoring (SM31))
+
+- **Training data.** `elapsed_seconds` runs from the card's previous answer to THIS answer, so it contains this review's own answer time. It feeds columns 2-7 (the interval, its sin / cos, the card's cumulative interval, its sin / cos) of the review (commit) row and of the instant (query) row alike. The query row therefore carries part of the answer it is asked to predict.
+- **The app** queries when the card is shown: the interval runs up to the show moment.
+- **Stage 1 (`sm41_sim.py`)** differed by lane type:
+  - Real-schedule lanes (`real-tf`, `real-fr*`) used the data's answer-to-answer interval in both rows, as in training. In a free-running lane, the query row therefore contained the REAL answer time, not the lane's.
+  - Scheduler lanes (`dr-*`) measured both rows from the lane's previous answer to the show moment. The query rows were app-like, but the commit rows were shorter than training's by this review's answer time.
+- **Stage 2 (`sm41_drift.py`, default conv `show`):**
+  - Query rows are at show time: from the lane's own previous answer of the card to the real show moment, floored and >= 0. The cumulative interval = the earlier intervals + this one. For teacher forcing these are exactly the SM31 `e2s-query` inputs.
+  - Commit rows are answer-to-answer with the lane's own answer time (the training convention). For teacher forcing they equal the data bitwise.
+  - The sampled answer time therefore feeds the card's next interval twice: the next query starts from the end of this answer, and the next commit row includes the next answer. Both are consistent with training.
+  - The arm `fr-answer` (and `tf-answer`) keeps stage 1's convention, so the study measures what the convention changes.
+- **Can the leak explain the drift?** Mostly not, by construction:
+  - For later-day reviews the answer time is 10-60 s out of an interval of days: about 1e-4 of the log-scaled interval, and well under 0.01 rad of the time-of-day angle.
+  - For same-day steps it is a larger share (a 20 s answer in a 10 min step), but stage 1's drift is on later-day reviews.
+  - The stage-1 free-running lanes saw the REAL answer time through the leak, which anchors them to reality rather than pushing them away.
+  - Measured on one user (3876, 90 days, the proof run): teacher-forced grade LogLoss with answer-to-answer vs show-time query rows is 0.8101 vs 0.8101 on later-day reviews and 0.2545 vs 0.2545 on same-day ones (equal to 4 decimals). The study reports this over all users (report section "The duration leak").
+  - Retraining on show-time intervals (SM91) is not part of this study.
+
+### 8.2 Design
+
+- **Users and splits.** 50 users of the 732 set (rule and ids in `drift/users.json`, `select`, numpy `default_rng(4141)` order), with Good-only users excluded. Each user has 2-3 split points, 60 days each, with windows at least 60 days apart: 133 splits, 621k window reviews. The long horizon uses 10 of these users, 1 split each, 120 days (90k reviews).
+- **Lanes.** Every split runs on the REAL schedule: same cards, days and review order. Reviews per day are therefore fixed by construction; the load drift is reported as the implied same-day follow-ups. Each split has 2 teacher-forced lanes (`tf`, `tf-answer`) + 10 free-running arms x 3 seeds = 32 lanes, advancing together as one batch (B = 32). Common random numbers: every lane draws the same 3 uniforms per review, whatever it uses, and lanes of the same seed share them.
+- **Free running.** Non-first grades are sampled from the instant head, and later-day answer times from the answer-time head. First-review grades and times, and same-day times, stay real (stage 1's `real-fr`).
+- **Arms (mitigations):**
+
+  | arm | change |
+  |---|---|
+  | `fr` | none |
+  | `fr-answer` | stage 1's interval convention |
+  | `fr-treal` | real times: the bound for any time fix |
+  | `fr-texp` | exp of the expected ln time fed back instead of a sample |
+  | `fr-tt0.5` | time head sampled at temperature 0.5 |
+  | `fr-gt0.8` | grade head sampled at temperature 0.8 |
+  | `fr-anchor7` | every 7th day teacher forced (real grades and times) |
+  | `fr-shared1` / `fr-shared7` | the deck / preset / user states replaced by the teacher-forced lane's at the start of every day / every 7th day; card and note states stay the lane's own |
+  | `fr-texp-shared1` | `fr-texp` and `fr-shared1` together |
+
+- **Metrics.** Per 15-day bucket and lane, counters are kept for:
+  - first-touch reviews (each old card's first later-day review in the window): realised and predicted pass rate;
+  - all later-day reviews, old cards and new cards separately;
+  - grade counts (same-day, later-day);
+  - later-day answer time: mean, geometric mean and the head's expectation;
+  - the same-day follow-ups implied by the user's step rules;
+  - teacher-forced grade LogLoss.
+- **Drift** = lane minus real (realised) or minus teacher forcing (predicted), first per split, averaged over a user's splits, then mean ± 95% CI over users.
+- **Primary metric, fixed before the run:** the first-touch STATE drift (the predicted pass rate of the free-running lane minus teacher forcing on the same reviews; it has no outcome noise) on days 30-59. Secondary metrics: Easy share of passes, answer time, Again share.
+- **Speed.** About 120 batched reviews/s per process for 22 lanes (2,660 lane reviews/s, 1 thread), against 147 reviews/s for one stage-1 lane. The warm-up runs once per user for all its splits.
+- **CPU proof (`proof`, `drift/proof-cpu.json`):**
+  - the same seed gives identical counters;
+  - batched == unbatched: every lane run alone (B = 1, or B = 2 with the teacher-forced lane for the shared-stream arms) against all lanes together, on 2 users;
+  - teacher forcing in stage 1's convention reproduces stage 1's `real-tf` lane (user 3876, 90 days: predicted later-day retention 0.8689, 976 first-touch reviews at 0.8407 predicted, 19.79 s predicted per later review, all identical).
