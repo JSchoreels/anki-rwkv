@@ -1,0 +1,72 @@
+# The small model in the review simulator (SM41): full-run tables
+
+117 users of the 732 set, 304 split points, 60 days, 59 lanes per split. Metrics on days 30-59 (after the 30-day burn-in of the switch), 4 seeds averaged. Cost = minutes of every review on days 30-59 / memorised cards at day 60 (the instant head's recall summed over the card set). Means over users (a user's splits averaged first), 95% CI over users (t). FSRS-7 = pre-split refit per (user, split).
+
+## Policies (mean over users)
+
+| policy | retention 30-59 | aim | min/day 30-59 | memorised | cost: min per memorised card | cost, 60 days | Easy drift, points | seconds drift | backlog |
+|---|---|---|---|---|---|---|---|---|---|
+| real schedule, teacher forcing (tf) | 0.851 | — | 23.2 | 1181 | 0.770 | 1.498 | 0.0 | 0.0 | 0 |
+| real schedule, sampled, daily shared-stream re-anchoring (fr-shared1) | 0.845 | — | 22.7 | 1159 | 0.790 | 1.538 | 1.1 | -0.8 | 0 |
+| instant-head desired retention 0.70 (ihr-0.70) | — | — | 16.1 | 1148 | 0.540 | 1.064 | — | — | 74 |
+| instant-head desired retention 0.75 (ihr-0.75) | — | — | 17.9 | 1175 | 0.574 | 1.140 | — | — | 94 |
+| instant-head desired retention 0.80 (ihr-0.80) | 0.801 | 0.778 | 20.2 | 1195 | 0.626 | 1.249 | -3.2 | 3.5 | 123 |
+| instant-head desired retention 0.85 (ihr-0.85) | 0.837 | 0.826 | 23.4 | 1225 | 0.691 | 1.393 | -2.7 | 2.4 | 164 |
+| instant-head desired retention 0.90 (ihr-0.90) | 0.879 | 0.874 | 28.1 | 1252 | 0.793 | 1.612 | -1.9 | 0.9 | 230 |
+| instant-head desired retention 0.95 (ihr-0.95) | 0.921 | 0.923 | 36.5 | 1284 | 0.969 | 1.986 | -0.4 | -1.6 | 347 |
+| FSRS-7 desired retention 0.70 (fsrs7-0.70) | — | — | 14.3 | 1111 | 0.496 | 0.970 | — | — | 54 |
+| FSRS-7 desired retention 0.75 (fsrs7-0.75) | — | — | 16.7 | 1138 | 0.540 | 1.056 | — | — | 75 |
+| FSRS-7 desired retention 0.80 (fsrs7-0.80) | — | — | 19.6 | 1167 | 0.594 | 1.172 | — | — | 102 |
+| FSRS-7 desired retention 0.85 (fsrs7-0.85) | 0.818 | 0.824 | 23.9 | 1203 | 0.673 | 1.340 | -2.3 | 1.4 | 144 |
+| FSRS-7 desired retention 0.90 (fsrs7-0.90) | 0.875 | 0.873 | 29.9 | 1240 | 0.784 | 1.589 | -1.2 | -1.0 | 215 |
+| FSRS-7 desired retention 0.95 (fsrs7-0.95) | 0.929 | 0.924 | 38.9 | 1283 | 0.953 | 1.993 | 0.1 | -4.9 | 360 |
+| instant-head desired retention 0.90 without re-anchoring (ihr-0.90-free) | 0.878 | 0.870 | 39.5 | 1247 | 1.058 | 1.969 | 1.9 | 2.1 | 230 |
+| FSRS-7 desired retention 0.90 without re-anchoring (fsrs7-0.90-free) | 0.873 | 0.872 | 33.4 | 1235 | 0.911 | 1.761 | 3.8 | 0.5 | 215 |
+
+## Primary: instant head vs FSRS-7 at matched realised retention (paired per user)
+
+Relative gap = cost of instant-head desired retention / cost of FSRS-7 desired retention - 1, both read off each policy's 6-point curve (realised retention on days 30-59 -> cost, linear between the points sorted by realised retention, no extrapolation) at the same realised retention, per split. PRIMARY (fixed before launch): the mean gap over the common realised-retention range of the two curves (grid step 0.005; splits whose ranges overlap by less than 0.02 are left out), a user's splits averaged, mean over users with a 95% CI over users. The fixed points 0.75-0.90 are secondary (users whose both curves cover the point). Negative = the instant head needs fewer minutes per memorised card. Decision rule (fixed before launch): the instant head moves on to the time-aware objective only if the primary gap is < 0 with the 95% CI excluding 0; otherwise FSRS-7 stays the scheduler baseline.
+
+| realised retention | users | relative gap, % (95% CI) | median, % | users where the instant head is cheaper | gap, 60-day cost, % (95% CI) |
+|---|---|---|---|---|---|
+| common range (PRIMARY; mean width 0.181) | 116 | +14.5 ± 7.4 | +7.6 | 16% | +15.0 ± 10.4 |
+| 0.75 | 91 | +57.2 ± 89.4 | +4.4 | 25% | +101.7 ± 184.3 |
+| 0.80 | 107 | +9.1 ± 3.2 | +6.5 | 25% | +8.4 ± 2.6 |
+| 0.85 | 106 | +8.1 ± 3.4 | +6.2 | 25% | +7.5 ± 3.3 |
+| 0.90 | 105 | +20.6 ± 11.8 | +11.0 | 14% | +15.7 ± 7.1 |
+
+Primary verdict: **FSRS-7 cheaper (CI excludes 0)** (+14.5 ± 7.4% over 116 users).
+
+## Each user's best desired retention at a stated price
+
+Value(R) = memorised cards at day 60 - minutes on days 30-59 / P, P = the price in minutes per extra memorised card; a user's best R = argmax over the 6 targets (splits averaged). 'Fixed' = the single R with the best mean value over users. Gain = the mean over users of value(own best) - value(fixed), in memorised cards and in % of memorised.
+
+| policy | price P | best R per user: 0.70 / 0.75 / 0.80 / 0.85 / 0.90 / 0.95 | fixed R | gain of a per-user target, cards (95% CI) | gain, % of memorised |
+|---|---|---|---|---|---|
+| instant-head desired retention | 1 | 86 / 12 / 9 / 5 / 3 / 2 | 0.70 | +7.6 ± 3.6 | +0.85% |
+| instant-head desired retention | 3 | 19 / 22 / 13 / 17 / 25 / 21 | 0.75 | +28.2 ± 6.0 | +2.75% |
+| instant-head desired retention | 10 | 2 / 5 / 5 / 8 / 14 / 83 | 0.95 | +13.2 ± 7.5 | +0.88% |
+| FSRS-7 desired retention | 1 | 75 / 10 / 6 / 5 / 11 / 10 | 0.70 | +19.8 ± 8.5 | +2.19% |
+| FSRS-7 desired retention | 3 | 28 / 8 / 8 / 9 / 16 / 48 | 0.80 | +56.8 ± 12.9 | +5.31% |
+| FSRS-7 desired retention | 10 | 4 / 3 / 4 / 6 / 13 / 87 | 0.95 | +22.5 ± 15.3 | +1.33% |
+
+## Does re-anchoring change the ranking? (target 0.90, paired per user)
+
+Relative cost gap instant head vs FSRS-7 at the same TARGET 0.90 (not matched retention), with and without daily shared-stream re-anchoring; difference = free - anchored.
+
+| lanes | users | retention: instant head / FSRS-7 | cost gap, % (95% CI) |
+|---|---|---|---|
+| anchored | 117 | 0.879 / 0.875 | +16.0 ± 6.3 |
+| free | 117 | 0.878 / 0.873 | +66.0 ± 65.8 |
+| free - anchored | 117 | | +49.9 ± 66.1 (sign flips in 27 users) |
+
+Drift of instant-head desired retention 0.90 without re-anchoring (ihr-0.90-free) vs teacher forcing on days 30-59: Easy share +1.9 points, seconds per later review +2.1.
+
+Drift of FSRS-7 desired retention 0.90 without re-anchoring (fsrs7-0.90-free) vs teacher forcing on days 30-59: Easy share +3.8 points, seconds per later review +0.5.
+
+Drift check: first-touch state drift of daily shared-stream re-anchoring (fr-shared1) on the real schedule, days 30-59: -0.4 ± 0.5 points over 115 users (drift study: -0.6 ± 1.0).
+
+FSRS-7: 304 pre-split refits; the srs-benchmark fit had seen the split day in 275 of them.
+
+Speed: 96,223,936 lane reviews in 39.19 process-hours (682 lane reviews/s per process, 1 thread), warm-ups 3.32 process-hours; 42.51 CPU process-hours in all.
+
