@@ -34,6 +34,11 @@ or issues, never stage `docs/GPU_OPTIMIZATIONS_LOG.md`, `.claude/`, `pages/data/
   full 14,403-row vectors 3.2e-6 (f32) / 3.0e-6 (INT8); fixture 2.0e-6 / 2.0e-6. Full harness run (default features):
   216 passed, 4 failed (the pre-existing `fused_packed` bit-exactness tests), 30 ignored, sm92 head tests skipped.
 
+**Fork pushes:** a plain `git push` in the fork hung at 08:09 (the Git Credential Manager prompt is not visible from an
+agent shell). Push with gh's credentials instead:
+`GIT_TERMINAL_PROMPT=0 git -c credential.helper= -c 'credential.helper=!gh auth git-credential' push origin <branch>`.
+The fork working tree was switched back to `main` (clean); the WIP is `origin/sm92-default-model` = `d06b3c7b3`.
+
 ## Placeholders still in the fork WIP (must all go before main)
 
 - `rslib/src/rwkv/testdata/sm92-time-vectors.json.gz` = a COPY of `sm72e25-time-vectors.json.gz` (placeholder).
