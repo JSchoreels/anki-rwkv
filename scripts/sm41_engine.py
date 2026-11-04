@@ -106,86 +106,21 @@ def uniforms(key, *parts):
     return (z >> np.uint64(11)).astype(np.float64) * (1.0 / 9007199254740992.0)
 
 
-# ------------------------------------------------------------------ FSRS-7 (numpy port of srs-benchmark models/fsrs_v7.py)
-FSRS7_DEFAULT = [0.1104, 2.2395, 3.9221, 11.7841, 6.1686, 0.6457, 3.6807, 1.9795, 0.0, 1.3826, 0.7024, 0.5999, 0.8146,
-                 0.6398, 1.0, 1.3207, 0.6707, 3.8668, 0.4416, 0.0934, 1.8631, 0.6162, 1.0869, 0.1567, 0.0801, 0.2421,
-                 0.9464, 0.1433, 0.7145, 0.0, 0.5667, 0.3734, 0.5333, 0.3048]
+from scripts.sm41_fsrs7 import FSRS7, FSRS7_DEFAULT   # noqa: E402,F401  (numpy port, shared with sm41_fsrs7_fit.py)
 
 
-class FSRS7:
-    """Finished dual-stability FSRS-7 (34 parameters); state [..., 3] = long-term S, short-term S, D (zeros = new)."""
-    S_MIN, S_MAX, D_MIN, D_MAX = 0.0001, 36500.0, 1.0, 10.0      # --secs: s_min 1e-4 (srs-benchmark config.py)
-
-    def __init__(self, w):
-        self.w = np.asarray(w, np.float64)
-
-    def init_d(self, rating):
-        return self.w[4] - np.exp(self.w[5] * (rating - 1)) + 1
-
-    def r1(self, t, ss):
-        w = self.w
-        t = np.maximum(t, 0.0)
-        decay1 = -np.clip(w[23] * ss ** (w[33] - 0.3), 0.01, 0.95)
-        factor1 = np.exp(np.minimum(np.log(w[25]) / decay1, 60.0)) - 1.0
-        return (t / ss * factor1 + 1.0) ** decay1
-
-    def recall(self, t, s, ss, d):
-        w = self.w
-        t = np.maximum(t, 0.0)
-        r1 = self.r1(t, ss)
-        decay2 = -np.clip(w[24], 0.01, 0.95)
-        factor2 = w[26] ** (1.0 / decay2) - 1.0
-        r2 = (t / s * factor2 * np.exp((d - 5.0) * (w[32] - 0.3)) + 1.0) ** decay2
-        w1 = w[27] * ss ** (-w[29])
-        w2 = w[28] * s ** w[30] * np.exp((d - 5.0) * (w[31] - 0.5))
-        return ((w1 * r1 + w2 * r2) / (w1 + w2)) * (1.0 - 2e-5) + 1e-5
-
-    def _stab(self, last_s, last_d, r, rating, k):
-        w = self.w
-        hard = np.where(rating == 2, w[k + 6], 1.0)
-        easy = np.where(rating == 4, w[k + 7], 1.0)
-        fail = w[k + 3] * ((last_s + 1.0) ** w[k + 4] - 1.0) * np.exp((1.0 - r) * w[k + 5])
-        pls = np.minimum(last_s, fail)
-        sinc = np.exp(w[k] - 1.5) * (11.0 - last_d) * last_s ** (-w[k + 1]) * (np.exp((1.0 - r) * w[k + 2]) - 1.0) \
-            * hard * easy + 1.0
-        return np.where(rating > 1, np.maximum(pls, last_s * sinc), pls)
-
-    def step(self, dt_days, rating, state):
-        w = self.w
-        rating = np.asarray(rating, np.float64)
-        first = (state == 0).all(-1)
-        idx = np.clip(rating.astype(np.int64), 1, 4) - 1
-        i_s = w[idx]
-        i_d = np.clip(self.init_d(rating), self.D_MIN, self.D_MAX)
-        s = np.clip(state[..., 0], self.S_MIN, self.S_MAX)
-        ss = np.clip(state[..., 1], self.S_MIN, self.S_MAX)
-        d = np.clip(state[..., 2], self.D_MIN, self.D_MAX)
-        r = self.recall(dt_days, s, ss, d)
-        u_s = self._stab(s, d, r, rating, 7)
-        u_ss = self._stab(ss, d, self.r1(dt_days, ss), rating, 15)
-        u_ss = np.where(rating == 1, np.minimum(u_ss, 0.8 * u_s), u_ss)
-        delta = -w[6] * (rating - 3)
-        delta = np.where(rating == 1, delta * (r + 0.1), delta)
-        u_d = d + delta * (10 - d) / 9
-        u_d = np.clip(0.01 * self.init_d(4.0) + 0.99 * u_d, self.D_MIN, self.D_MAX)
-        out = np.stack([np.where(first, i_s, u_s), np.where(first, 0.8 * i_s, u_ss), np.where(first, i_d, u_d)], -1)
-        out[..., :2] = np.clip(out[..., :2], self.S_MIN, self.S_MAX)
-        out[..., 2] = np.clip(out[..., 2], self.D_MIN, self.D_MAX)
-        return out
-
-    def interval(self, state, r):
-        """Days t where recall(t) = r (bisection in ln t over [1e-4, 1e6] days), per row."""
-        s, ss, d = state[..., 0], state[..., 1], state[..., 2]
-        r = np.broadcast_to(np.asarray(r, np.float64), s.shape)
-        lo = np.full(s.shape, math.log(1e-4)); hi = np.full(s.shape, math.log(1e6))
-        for _ in range(40):
-            mid = (lo + hi) / 2
-            ok = self.recall(np.exp(mid), s, ss, d) >= r
-            lo = np.where(ok, mid, lo); hi = np.where(ok, hi, mid)
-        return np.exp(lo)
-
-
-def fsrs7_params(user):
+def fsrs7_params(user, D=None, fits=None):
+    """FSRS-7 parameters for (user, split D). `fits` = a JSONL of pre-split refits (scripts/sm41_fsrs7_fit.py: one
+    line per (user, split), fitted on the reviews before D only); a missing line is an error. Without `fits`: the
+    user's srs-benchmark fit (it saw ~5/6 of the history, usually the simulated days too: stage 2 part 2 only)."""
+    if fits:
+        for line in Path(fits).read_text().splitlines():
+            if line.strip():
+                r = json.loads(line)
+                if int(r["user"]) == int(user) and int(r["split_day"]) == int(D):
+                    return r["parameters"], ("pre-split FSRS-7 refit (srs-benchmark trainer, reviews before day "
+                                             f"{D} only, {r['train_rows']} rows)")
+        raise KeyError(f"no pre-split FSRS-7 refit for user {user} split {D} in {fits}")
     if FSRS7_FITS.exists():
         with FSRS7_FITS.open() as fh:
             for line in fh:
@@ -364,6 +299,16 @@ class Warm:
                                    self.fs.get(c, np.zeros(3)))
         self.seconds += time.perf_counter() - t
         self.i = end
+
+    def refit_fs(self, fsrs):
+        """The FSRS-7 state of every card from the first review up to self.i with `fsrs` (the same rule as advance):
+        a warm-up reused for a later split of the same user must not keep the earlier split's parameters."""
+        rev = self.rev
+        self.fs = {}
+        for i in range(self.i):
+            c = int(rev["card_id"][i])
+            self.fs[c] = fsrs.step(np.array(max(0.0, int(rev["elapsed_seconds"][i]) / DAY)),
+                                   np.array(float(int(rev["rating"][i]))), self.fs.get(c, np.zeros(3)))
 
 
 def habit_rates(rev, end, recent_days=60, min_reviews=2000):
@@ -1028,16 +973,19 @@ class Engine:
                          "minutes": round(float(self.rev["duration"][self.end:self.stop].sum()) / 60000, 2)}}
 
 
-def setup(model, user, D, cache=None):
-    """Warm-up for (user, D), reusing `cache` (user -> Warm) when it has not passed D yet."""
-    rev, _ = S.load_user(user)
-    w7, src = fsrs7_params(user)
+def setup(model, user, D, cache=None, fits=None):
+    """Warm-up for (user, D), reusing `cache` (user -> Warm) when it has not passed D yet. `fits`: fsrs7_params."""
+    w7, src = fsrs7_params(user, D, fits)
     fsrs = FSRS7(w7)
     warm = cache.get(user) if cache is not None else None
+    rev = warm.rev if warm is not None else S.load_user(user)[0]
     end = int(np.searchsorted(rev["day_offset"], D, side="left"))
     if warm is None or warm.i > end:
         warm = Warm(model, rev, user)
+    reused = warm.i > 0
     warm.advance(end, fsrs)
+    if reused:
+        warm.refit_fs(fsrs)
     if cache is not None:
         cache[user] = warm
     return warm, fsrs, src
@@ -1348,25 +1296,48 @@ DEFAULT_LANES = ("tf,fr-shared1#0,fr-shared1#1,ihr-0.80#0,ihr-0.80#1,ihr-0.90#0,
 
 
 def run(args):
+    """One user, one or more splits (--splits D1,D2: one warm-up pass, splits in day order); resumable per split."""
     S.low_priority()
-    user, D, N = args.user, args.split, args.days
-    if (user, D, N) in DR.done_keys(args.out):
-        print(f"[sm41-engine] user {user} split {D}: done", flush=True)
+    user, N = args.user, args.days
+    splits = sorted(int(x) for x in (args.splits or str(args.split)).split(","))
+    todo = [D for D in splits if (user, D, N) not in DR.done_keys(args.out)]
+    if not todo:
+        print(f"[sm41-engine] user {user}: all splits done", flush=True)
         return
     DR.wait_clear(f"user {user}")
     model = S.Model(threads=args.threads)
-    warm, fsrs, src = setup(model, user, D)
-    print(f"[sm41-engine] user {user} split {D}: warm-up {warm.i} reviews {warm.seconds:.0f} s", flush=True)
-    DR.wait_clear(f"user {user} split {D}")
-    eng = Engine(model, warm, D, N, args.lanes.split(","), fsrs=fsrs, fsrs_source=src)
-    res = eng.run()
-    res["warmup_seconds"] = round(warm.seconds, 1)
-    res["finished"] = f"{dt.datetime.now():%Y-%m-%d %H:%M:%S}"
-    print(f"[sm41-engine] user {user} split {D}: {res['lane_reviews']} lane reviews in {res['wall_seconds']} s "
-          f"({res['lane_reviews_per_second']}/s), {res['candidate_rows']} candidate rows", flush=True)
-    Path(args.out).parent.mkdir(parents=True, exist_ok=True)
-    with open(args.out, "a") as fh:
-        fh.write(json.dumps(res) + "\n")
+    cache = {}
+    for D in todo:
+        w0 = cache[user].seconds if user in cache else 0.0
+        warm, fsrs, src = setup(model, user, D, cache, args.fsrs7_fits)
+        print(f"[sm41-engine] user {user} split {D}: warm-up {warm.i} reviews {warm.seconds - w0:.0f} s; {src}",
+              flush=True)
+        DR.wait_clear(f"user {user} split {D}")
+        if args.min_free_gb:
+            wait_memory(f"user {user} split {D}", args.min_free_gb)
+        eng = Engine(model, warm, D, N, args.lanes.split(","), fsrs=fsrs, fsrs_source=src)
+        res = eng.run()
+        res["warmup_seconds"] = round(warm.seconds - w0, 1)
+        res["finished"] = f"{dt.datetime.now():%Y-%m-%d %H:%M:%S}"
+        print(f"[sm41-engine] user {user} split {D}: {res['lane_reviews']} lane reviews in {res['wall_seconds']} s "
+              f"({res['lane_reviews_per_second']}/s), {res['candidate_rows']} candidate rows", flush=True)
+        Path(args.out).parent.mkdir(parents=True, exist_ok=True)
+        with open(args.out, "a") as fh:
+            fh.write(json.dumps(res) + "\n")
+        del eng
+
+
+def wait_memory(tag, need_gb=3.0):
+    """Hold a new split while the machine has less than `need_gb` of available physical memory (other jobs, e.g. a
+    GPU job's CPU workers, share the 31 GB); re-checked every minute."""
+    import psutil
+    said = False
+    while psutil.virtual_memory().available < need_gb * 2 ** 30:
+        if not said:
+            print(f"[sm41-engine] {tag}: holding for memory ({psutil.virtual_memory().available / 2 ** 30:.1f} GB "
+                  f"available < {need_gb} GB) at {dt.datetime.now():%m-%d %H:%M}", flush=True)
+            said = True
+        time.sleep(60)
 
 
 # ------------------------------------------------------------------ report
@@ -1486,7 +1457,10 @@ def main():
     q.add_argument("--p3", type=lambda x: tuple(map(int, x.split(":"))), default="3876:225")
     q.add_argument("--out", default=str(OUT / "proof-cpu.json"))
     r = sub.add_parser("run"); r.add_argument("--user", type=int, required=True)
-    r.add_argument("--split", type=int, required=True); r.add_argument("--days", type=int, default=60)
+    r.add_argument("--split", type=int); r.add_argument("--splits", default="", help="D1,D2,...: several splits")
+    r.add_argument("--days", type=int, default=60)
+    r.add_argument("--fsrs7-fits", default=None, help="pre-split FSRS-7 refits (JSONL, scripts/sm41_fsrs7_fit.py)")
+    r.add_argument("--min-free-gb", type=float, default=0.0, help="hold each split until this much RAM is available")
     r.add_argument("--lanes", default=DEFAULT_LANES); r.add_argument("--threads", type=int, default=1)
     r.add_argument("--out", default=str(OUT / "validation.jsonl"))
     t = sub.add_parser("report"); t.add_argument("--rows", default=str(OUT / "rows" / "*.jsonl"))
