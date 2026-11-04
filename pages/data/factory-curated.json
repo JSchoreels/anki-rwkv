@@ -2015,9 +2015,9 @@
    "status": "next",
    "item": "Support the small RWKV model in the open-spaced-repetition review simulator (srs-simulator), then let an AI agent search for the best review strategy on simulated users",
    "id": "SM41",
-   "why": "A recall model good enough to simulate learners turns scheduling into an offline search an AI agent can run. Stage 1 done 11-01: our own simulator hosts the model (the outside srs-simulator is not needed); next is a drift study on 50 users and a vectorised engine (1&ndash;2 days) before any policy search. Drift study done 11-03: daily re-syncing of the deck/preset/user state removes most of the drift (&minus;5.1 &rarr; &minus;0.6 points at days 30&ndash;59); next: intervals chosen with the instant head, a vectorised engine for lanes that leave the real schedule, then the full run",
+   "why": "A recall model good enough to simulate learners turns scheduling into an offline search an AI agent can run. Stage 1 done 11-01: our own simulator hosts the model (the outside srs-simulator is not needed); next is a drift study on 50 users and a vectorised engine (1&ndash;2 days) before any policy search. Drift study done 11-03: daily re-syncing of the deck/preset/user state removes most of the drift (&minus;5.1 &rarr; &minus;0.6 points at days 30&ndash;59). Engine + instant-head policy + FSRS-7 baseline done 11-04 (proofs pass, targets hit); next: the full run (150 users, ~4 h CPU), waiting for the user&rsquo;s go",
    "track": "small model",
-   "since": "11-03T19:30"
+   "since": "11-04T06:56"
   },
   {
    "status": "done",
@@ -2223,6 +2223,57 @@
   "s-w64kd-gate-ctx2048c-dec8-1ep/w8+s8"
  ],
  "results": [
+  {
+   "date": "11-04",
+   "kind": "cpu",
+   "id": "SM41",
+   "track": "small model",
+   "name": "The small model in the review simulator (SM41) stage 2 part 2: vectorised lane engine for scheduling policies (lanes leave the real schedule), an interval policy from the instant head (K candidate intervals, pick the one that hits a desired retention) and an FSRS-7 baseline policy, with daily shared-stream re-anchoring",
+   "eval": "CPU proofs (batched vs single lanes, engine vs an independent scalar path, real-schedule replay vs part 1) and a validation on 8 users of the 732 set, 60 days, retention read on days 30&ndash;59",
+   "fork": "Simulator for scheduling-policy search; nothing shipped",
+   "takeaway": "<strong>The engine works and the policies hit their targets</strong>: all three CPU proofs pass (gaps under 1e-6, no flipped draws). Instant-head policy at 0.80 / 0.90 / 0.95 realises 0.787 / 0.877 / 0.927 retention (aim 0.780 / 0.879 / 0.930). On 8 users FSRS-7 at the same target costs less time per memorised card (0.85 vs 0.95 min at 0.90): a hint only, no CIs",
+   "started_at": "2026-11-04T06:44+01:00",
+   "ended_at": "2026-11-04T06:55+01:00",
+   "gpu_minutes": 0,
+   "tickets": 0,
+   "detail": {
+    "verdict": "Ready for a full run (150 users &times; 2 splits, 60 days, 59 lanes, ~15 CPU process-hours, ~4 h on 4 CPUs), pending the user&rsquo;s go",
+    "table": {
+     "head": [
+      "Policy (8 users, days 30&ndash;59)",
+      "Retention / aim",
+      "Min per day",
+      "Min per memorised card"
+     ],
+     "rows": [
+      [
+       "Real schedule (teacher forced)",
+       "0.864 / &mdash;",
+       "7.2",
+       "0.60"
+      ],
+      [
+       "Instant-head policy 0.80 / 0.90 / 0.95",
+       "0.787 / 0.877 / 0.927 (aim 0.780 / 0.879 / 0.930)",
+       "7.7 / 11.1 / 15.2",
+       "0.71 / 0.95 / 1.24"
+      ],
+      [
+       "FSRS-7 0.80 / 0.90 / 0.95",
+       "0.771 / 0.872 / 0.927 (aim 0.775 / 0.872 / 0.923)",
+       "6.7 / 9.8 / 13.0",
+       "0.63 / 0.85 / 1.07"
+      ]
+     ]
+    },
+    "notes": [
+     "Proofs: batched vs single lanes identical review by review (15,278 reviews, P(pass) gap 6.1e-7); engine vs the stage 1 scalar path 6.9e-7 over 9,009 policy reviews; real-schedule replay reproduces part 1&rsquo;s daily re-anchoring rows (float gap 6.1e-8)",
+     "FSRS-7 uses each user&rsquo;s own benchmark fit, which may have seen the simulated days: a possible advantage to check before the full run",
+     "Speed: 517 simulated reviews/s per process with 17 lanes (862 with 33 lanes: cost is per tick, not per lane), 1 thread",
+     "Branch sm41, commit eed2af68; note artifacts/small-model/sm41/engine-result.md"
+    ]
+   }
+  },
   {
    "date": "11-04",
    "kind": "gpu-train",
