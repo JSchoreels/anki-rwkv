@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-04T05:59:16+01:00",
- "updated": "2026-11-04 05:59",
- "material": "0c44b86f6b921790",
- "summary": "running 000930, finished 000929",
+ "generated_at": "2026-11-04T06:11:02+01:00",
+ "updated": "2026-11-04 06:11",
+ "material": "f52b22ccd95189b5",
+ "summary": "running 000931, finished 000930",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring (curve / instant)",
@@ -240,15 +240,15 @@
  "now": [
   {
    "what": "Show-time retrain of the release (SM92): the released small model&rsquo;s epoch 25 + 1 epoch on show-time intervals, then the release&rsquo;s full one-epoch 32k Muon cool-down on show-time intervals (old teacher targets: new ones added nothing in step 3 of the show-time interval retrain (SM91)); scored on show-time and normal inputs on the 732 set against the release",
-   "id": "SM92, ticket 000930",
+   "id": "SM92, ticket 000931",
    "kind": "gpu-train",
    "decides": "Ship candidate if one head beats the release on show-time inputs by at least 0.05 points with its CI below zero and no head is worse by 0.05 (expected about +0.40% / +0.40% vs the big model (1 leak-free epoch), from +0.48% / +0.71% for the release on show-time inputs). The extra epoch is a confound: the normal-vs-normal row shows its size",
    "why": "",
-   "job": "show-time retrain of the release (SM92): scoring the show-time retrained model on normal inputs, the 732 set minus 9 never-fit (723 users) (pass 1, 0 done, cap 0.8)",
+   "job": "show-time retrain of the release (SM92): scoring the show-time retrained model on normal inputs, the 732 set minus 9 never-fit (723 users) (pass 2, 722 done, cap 0.8)",
    "linked": true,
    "track": "small model",
-   "ticket": "000930-small-model",
-   "started": "05:58",
+   "ticket": "000931-small-model",
+   "started": "06:10",
    "elapsed": "0:00",
    "progress": null,
    "eta": "~06:30"
@@ -424,6 +424,15 @@
  "waiting": [],
  "recent": [
   {
+   "ticket": "000930-small-model",
+   "id": "SM92",
+   "what": "show-time retrain of the release (SM92): scoring the show-time retrained model on normal inputs, the 732 set minus 9 never-fit (723 users) (pass 1, 0 done, cap 0.8)",
+   "ended": "06:10",
+   "date": "11-04",
+   "exit": 0,
+   "ran": "0:11"
+  },
+  {
    "ticket": "000929-small-model",
    "id": "SM92",
    "what": "show-time retrain of the release (SM92): scoring the show-time retrained model on e2s-query inputs, the 3 long users of the 732 set (pass 1, cap 0.92)",
@@ -467,15 +476,6 @@
    "date": "11-03",
    "exit": 1,
    "ran": "3:13"
-  },
-  {
-   "ticket": "000924-small-model",
-   "id": "SM92",
-   "what": "show-time retrain of the release (SM92): epoch 26 on show-time inputs (w64 from the leak-free small model (SM72s) epoch 25, the release&#x27;s epoch 21-25 recipe: 8k final tier, 2048 x 16 lanes carry, leak-free replay KD, AdamW 7e-4 constant) (segment to the next window or the end)",
-   "ended": "19:43",
-   "date": "11-03",
-   "exit": 0,
-   "ran": "0:22"
   }
  ],
  "plan": [
@@ -541,8 +541,8 @@
    "when": "CPU proofs ALL OK and smoke 15:55 Tue; epoch 26 15:56&ndash;17:27, paused for the user 17:30&ndash;19:20, rest ~19:30&ndash;20:00; cool-down ~20:20&ndash;~22:58, paused for the user 23:00&ndash;01:00, rest ~01:00&ndash;~07:00 Wed; scoring ~07:00&ndash;08:00, rule ~08:10",
    "decides": "Ship candidate if one head beats the release on show-time inputs by at least 0.05 points with its CI below zero and no head is worse by 0.05 (expected about +0.40% / +0.40% vs the big model (1 leak-free epoch), from +0.48% / +0.71% for the release on show-time inputs). The extra epoch is a confound: the normal-vs-normal row shows its size",
    "state": "running",
-   "started": "05:58",
-   "ticket": "000930-small-model",
+   "started": "06:10",
+   "ticket": "000931-small-model",
    "started_at": "2026-11-03T15:55:44+01:00",
    "ends_at": "2026-11-04T04:05:44+01:00"
   },
