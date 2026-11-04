@@ -251,7 +251,7 @@ moves cards to other days, so here every lane reviews its own card at a tick. Re
   - It uses each user's own srs-benchmark fit (`result/FSRS-7-short-secs.jsonl`, read only), or the default parameters when there is none.
   - It is updated at every review of the lane, same-day ones included, with the lane's own grades and answer-to-answer intervals.
   - The interval solves R(t) = R by bisection, rounded, at least 1 day.
-  - Caveat: the fit saw the user's whole history, including the window. This only shapes the baseline's schedule; the simulated learner is still the model.
+  - Caveat: the fit saw most of the user's history, usually including the window. Fixed for the full run: pre-split refits (10.1).
 - **Curve-head desired retention (`curve-R`).** Stage 1's policy (the commit row's GRU power curves, `time_at`), kept to measure the gap between the two heads.
 - **The time-aware objective is deferred.** On the same candidate grid it changes only the selection rule. But a one-step objective, such as expected answer time per day of retained memory, has no interior optimum with these power curves: like the cost ratio of response-time prediction (SM82) stage 2, it keeps falling as intervals grow. It needs a lapse value (the future cost of a forgotten card) or a daily time budget. Both are full-run design choices, not engine work.
 
@@ -285,3 +285,78 @@ Drift against the real user:
 
   The two paths share only the session rules, the draws, the FSRS-7 functions and the grid interpolation. P2 also checks the split-day candidate step against scalar steps on 40 old cards.
 - **P3, replay.** `tf` and `fr-shared1` x 3 seeds, replayed with part 1's stream, reproduce part 1's row (user 3876, split 225, 60 days): integer counters identical, float sums within a relative 1e-4.
+
+## 10. Stage 2 part 3: the full run (`fullrun/`, `scripts/sm41_fullrun.py`)
+
+Approved by the user on 2026-11-04 ("SM41 : oui on peut lancer la vraie simulation"). Everything in this section was fixed before the launch.
+
+### 10.1 The FSRS-7 baseline: pre-split refits (decision)
+
+- **What the stage 2 part 2 baseline used.** `result/FSRS-7-short-secs.jsonl` of srs-benchmark (`--algo FSRS-7 --short --secs`, no recency weighting). The benchmark fits a 5-fold `TimeSeriesSplit` and saves the LAST fold's parameters (`utils.evaluate`: `w_list[-1]`). That fold trains on the first ~5/6 of the user's benchmark rows. For most split days of the run, this fit had seen the simulated window; the exact count is in `fsrs7_fits` of the report. That gave FSRS-7 an unfair advantage.
+- **Decision: refit per (user, split) on the user's reviews before the split day only** (`scripts/sm41_fsrs7_fit.py`, srs-benchmark venv, the benchmark checkout only read).
+  - It uses srs-benchmark's own code: the feature pipeline, `script._fit_trainable_weights` and its Trainer, with the flags of that file, seed 42 and 1 torch thread.
+  - It reads the dataset the simulator reads (`anki-revlogs-10k-original-20261011`). Its rows equal the simulator's row for row (card, rating, elapsed seconds and days, day).
+  - The training rows are the benchmark rows with `day_offset` < the split day.
+  - fsrs-rs's `fit-v7` was not used: it applies recency weighting, which the benchmark's FSRS-7-short-secs fit does not.
+  - The engine reads one line per (user, split) (`--fsrs7-fits`); a missing line is an error, never a silent fallback.
+  - A warm-up reused for a later split of the same user recomputes every card's FSRS-7 state with that split's parameters (`Warm.refit_fs`).
+- **CPU proof** (`fullrun/fsrs7-proof-cpu.json`), on 5 users:
+  - (a) the same code on the benchmark's own last fold reproduces the saved parameters;
+  - (b) the numpy port (`scripts/sm41_fsrs7.py`, moved out of the engine unchanged) equals the benchmark's torch predictions on the pre-split rows with the refit parameters;
+  - (c) the simulator's update rule equals the benchmark's predictions on those rows. That rule is: every review in order, the first one initialises, later ones step by max(0, elapsed seconds) / 86400;
+  - (d) LogLoss of the refit, the benchmark fit and the defaults, both pre-split and on the 60-day window.
+
+  Tolerance: 1e-4 on parameters and predictions.
+- **The small model is equally clean.** None of its training users is in the 732 set (checked 2026-11-04, overlap 0 each):
+  - the trunk (the released leak-free small model) was trained on the 8,000 train users of the final tier (`artifacts/accuracy/tiers.json`, = the 8k split's train users);
+  - the answer-time head (SM82c) was trained on the 1,991 users of the SM82 cool-down (`sm82c/plan.json`);
+  - the 732 set is the 8k split's validation users with id < 5000.
+
+### 10.2 Design
+
+- **Users.** The drift study's rule (`sm41_drift.py select`, seed 4141), asked for 150 users.
+  - Only 117 users of the 732 set qualify (all 732 looked at). The run takes all 117 with all their 2-3 splits: 304 split points, against the proposal's 150 x 2 = 300 (`fullrun/users.json`).
+  - The first 50 users and their splits are the drift study's.
+  - 1.39M window reviews; the largest window has 8,997 reviews.
+- **Horizon:** 60 days. Policies are read on days 30-59, after a 30-day burn-in of the switch.
+- **Lanes (59 per split, `fullrun/lanes.txt`):**
+  - teacher forcing (`tf`);
+  - daily shared-stream re-anchoring (fr-shared1) on the real schedule x 2 seeds (the drift check);
+  - instant-head and FSRS-7 desired retention at 0.70 / 0.75 / 0.80 / 0.85 / 0.90 / 0.95 x 4 seeds (48 lanes);
+  - `ihr-0.90-free` and `fsrs7-0.90-free` (no re-anchoring) x 4 seeds.
+  - Common random numbers across policies (9.1).
+- **Runner (`fullrun/run-fullrun.sh`).**
+  - 4 processes x 1 thread, below-normal priority, CPU only, largest users first.
+  - One job per user: the user's pre-split refits (`fits/<user>.jsonl`), then every split with one warm-up pass (`rows/<user>.jsonl`, `logs/<user>.log`).
+  - Resumable per (user, split).
+  - Each job re-reads `quiet.json` (scope all / cpu) and holds from 10 min before a window until its end.
+  - Each job holds a new split while less than 3 GB of RAM is available, because other jobs' CPU workers share the 31 GB.
+  - At the end: `check` + `report`.
+
+### 10.3 Metrics (fixed before launch)
+
+- **Realised retention:** the pass share of later-day reviews on days 30-59.
+- **Cost:** minutes of every review (first, same-day, later-day) on days 30-59 / memorised cards at day 60 (the instant head's recall summed over the card set). Seeds are averaged per split: minutes and memorised cards separately, then the ratio. The 60-day cost (all 60 days' minutes) is reported alongside.
+- **Primary metric: does the instant-head policy beat FSRS-7 in minutes per memorised card at matched realised retention?**
+  - Per split, each family's 6 points (realised retention -> cost) form a curve, linear between the points sorted by realised retention, never extrapolated.
+  - The relative gap cost(instant head) / cost(FSRS-7) - 1 is averaged over the common realised-retention range of the two curves (grid step 0.005). Splits whose ranges overlap by less than 0.02 are left out.
+  - A user's splits are averaged. Result: the mean over users with a 95% CI over users (t; paired, since both families run on the same user, split and draws).
+  - Why a common range and not one point: in the smoke run, the instant head's realised retention sat 2-17 points above its aim at low targets, so a single point such as 0.85 is often outside one of the curves.
+  - Secondary: the gap at the fixed points 0.75 / 0.80 / 0.85 / 0.90, over the users whose both curves cover the point.
+- **Decision rule** (from the proposal): the instant-head policy moves on to the time-aware objective only if the primary gap is < 0 with the 95% CI excluding 0. Otherwise FSRS-7 stays the scheduler baseline, and the simulator's value is the learner.
+- **Each user's best desired retention.**
+  - Value(R) = memorised cards at day 60 - minutes on days 30-59 / P, at prices P = 1, 3 and 10 minutes per extra memorised card.
+  - A user's best R = argmax over the 6 targets, splits averaged, per family.
+  - Reported: the counts per R, the single best fixed R, and the mean gain of a per-user target over the fixed one (cards, with CI, and % of memorised).
+- **Re-anchoring:** the relative cost gap between the instant head and FSRS-7 at target 0.90, with and without re-anchoring, paired per user. Also reported: free minus anchored with its CI, the users whose sign flips, and the free lanes' Easy and seconds drift.
+- **Drift check:** the first-touch state drift of fr-shared1 on days 30-59 (the drift study: -0.6 ± 1.0 points).
+- **Speed:** lane reviews/s per process, CPU process-hours (engine + warm-ups).
+
+### 10.4 Smoke run (2026-11-04, before launch)
+
+- Users 4378 (splits 180, 270) and 1606 (660, 945), all 59 lanes, 60 days, 2 processes.
+- No errors; 4 rows; 238,768 lane reviews at 667-744 lane reviews/s per process (29-148 s per split, warm-ups 12-22 s).
+- The refits used 2,718-9,709 pre-split rows; the srs-benchmark fit had seen 3 of these 4 split days.
+- The report runs end to end.
+- The realised retention of the instant-head lanes is above their aim at low targets: 0.849 at aim 0.682 for 0.70, against 0.926 at aim 0.897 for 0.90. FSRS-7's is closer: 0.792 at aim 0.694. Hence the common-range primary metric.
+- **Cost estimate:** 0.046 engine-seconds per window review gives about 18 process-hours for 1.39M window reviews, plus about 3 h of warm-ups and the refits. That is about 5-6 h on 4 processes.
