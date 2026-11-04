@@ -4,3 +4,38 @@
 [sm92 11-03 15:55:58] exit 0: trainer smoke of epoch 26 (w64, show-time inputs, 2 users x 512 reviews)
 [sm92 11-03 15:55:58] smoke: {"smoke": "sm92-e26", "exit": 0, "status": "complete", "updates": 2, "reviews": 1024, "error": null, "seconds": 13.0}
 [sm92 11-03 15:55:58] enqueue: epoch 26 on show-time inputs (w64 from the leak-free small model (SM72s) epoch 25, the release's epoch 21-25 recipe: 8k final tier, 2048 x 16 lanes carry, leak-free replay KD, AdamW 7e-4 constant) (expected 89 min of ~125, 94 min to the next window)
+[sm92 11-03 17:27:16] requesting a snapshot stop (NEXT 2)
+[sm92 11-03 17:27:46] exit 1: epoch 26 on show-time inputs (w64 from the leak-free small model (SM72s) epoch 25, the release's epoch 21-25 recipe: 8k final tier, 2048 x 16 lanes carry, leak-free replay KD, AdamW 7e-4 constant) segment
+[sm92 11-03 17:27:46] epoch 26 on show-time inputs (w64 from the leak-free small model (SM72s) epoch 25, the release's epoch 21-25 recipe: 8k final tier, 2048 x 16 lanes carry, leak-free replay KD, AdamW 7e-4 constant) needs 30 min, 2 min before the next window; waiting
+[sm92 11-03 18:20:46] epoch 26 on show-time inputs (w64 from the leak-free small model (SM72s) epoch 25, the release's epoch 21-25 recipe: 8k final tier, 2048 x 16 lanes carry, leak-free replay KD, AdamW 7e-4 constant): quiet window, 4213s left
+[sm92 11-03 19:20:47] enqueue: epoch 26 on show-time inputs (w64 from the leak-free small model (SM72s) epoch 25, the release's epoch 21-25 recipe: 8k final tier, 2048 x 16 lanes carry, leak-free replay KD, AdamW 7e-4 constant) (expected 125 min of ~125, 219 min to the next window)
+[sm92 11-03 19:43:21] exit 0: epoch 26 on show-time inputs (w64 from the leak-free small model (SM72s) epoch 25, the release's epoch 21-25 recipe: 8k final tier, 2048 x 16 lanes carry, leak-free replay KD, AdamW 7e-4 constant) segment
+[sm92 11-03 19:43:21] epoch 26 on show-time inputs (w64 from the leak-free small model (SM72s) epoch 25, the release's epoch 21-25 recipe: 8k final tier, 2048 x 16 lanes carry, leak-free replay KD, AdamW 7e-4 constant) complete: 114,730,522 reviews, 22.0 min training, 86,932 reviews/s, update offset end 574028
+[sm92-muon] sm92-e26-dec-1ep32k-muon PASS lines: 7
+[sm92 11-03 19:43:39] cool-down prepared: sm92-e26-dec-1ep32k-muon
+[sm92-pair] decay OK: sm92-e26-dec-1ep32k-muon == scale-w64kd-final-sc-lanes-leakfree-dec25-1ep32k-muon except the show-time inputs flag, the start weights, the epoch index and paths (8,000 users, 581,942,724 reviews, update offset 574028 vs 551950, start 5a629e4e932a)
+[sm92 11-03 19:43:39] enqueue: the release's one-epoch 32k Muon cool-down on show-time inputs from epoch 26 (w64, the release's users, order, seeds, KD targets) (expected 191 min of ~560, 196 min to the next window)
+[sm92 11-03 22:57:10] requesting a snapshot stop (NEXT 2)
+[sm92 11-03 22:57:40] exit 1: the release's one-epoch 32k Muon cool-down on show-time inputs from epoch 26 (w64, the release's users, order, seeds, KD targets) segment
+[sm92 11-03 22:57:40] the release's one-epoch 32k Muon cool-down on show-time inputs from epoch 26 (w64, the release's users, order, seeds, KD targets) needs 30 min, 2 min before the next window; waiting
+[sm92 11-03 23:50:41] the release's one-epoch 32k Muon cool-down on show-time inputs from epoch 26 (w64, the release's users, order, seeds, KD targets): quiet window, 4218s left
+[sm92 11-04 00:50:41] the release's one-epoch 32k Muon cool-down on show-time inputs from epoch 26 (w64, the release's users, order, seeds, KD targets): quiet window, 618s left
+[sm92 11-04 01:00:41] enqueue: the release's one-epoch 32k Muon cool-down on show-time inputs from epoch 26 (w64, the release's users, order, seeds, KD targets) (expected 560 min of ~560, 1139 min to the next window)
+[sm92 11-04 05:45:30] exit 0: the release's one-epoch 32k Muon cool-down on show-time inputs from epoch 26 (w64, the release's users, order, seeds, KD targets) segment
+[sm92 11-04 05:45:31] the release's one-epoch 32k Muon cool-down on show-time inputs from epoch 26 (w64, the release's users, order, seeds, KD targets) complete: 347,610,303 reviews, 284.3 min training, 20,377 reviews/s, update offset end 596106
+[sm92 11-04 05:45:31] enqueue: scoring the show-time retrained model on e2s-query inputs, the 732 set minus 9 never-fit (723 users) (pass 1, 0 done, cap 0.8) (expected 32 min, max wait 819 min, 854 min to the next window)
+[sm92 11-04 05:57:33] exit 0: scoring the show-time retrained model on e2s-query inputs, the 732 set minus 9 never-fit (723 users) (pass 1, 0 done, cap 0.8)
+[sm92 11-04 05:57:33] enqueue: scoring the show-time retrained model on e2s-query inputs, the 732 set minus 9 never-fit (723 users) (pass 2, 722 done, cap 0.8) (expected 20 min, max wait 819 min, 842 min to the next window)
+[sm92 11-04 05:58:03] exit 0: scoring the show-time retrained model on e2s-query inputs, the 732 set minus 9 never-fit (723 users) (pass 2, 722 done, cap 0.8)
+[sm92 11-04 05:58:03] enqueue: scoring the show-time retrained model on e2s-query inputs, the 3 long users of the 732 set (pass 1, cap 0.92) (expected 25 min, max wait 813 min, 841 min to the next window)
+[sm92 11-04 05:58:53] exit 0: scoring the show-time retrained model on e2s-query inputs, the 3 long users of the 732 set (pass 1, cap 0.92)
+[sm92 11-04 05:58:53] sm92-e26-dec1ep32k/w8+s8@e2s-query: 726 users scored
+[sm92 11-04 05:58:54] enqueue: scoring the show-time retrained model on normal inputs, the 732 set minus 9 never-fit (723 users) (pass 1, 0 done, cap 0.8) (expected 32 min, max wait 806 min, 841 min to the next window)
+[sm92 11-04 06:10:33] exit 0: scoring the show-time retrained model on normal inputs, the 732 set minus 9 never-fit (723 users) (pass 1, 0 done, cap 0.8)
+[sm92 11-04 06:10:33] enqueue: scoring the show-time retrained model on normal inputs, the 732 set minus 9 never-fit (723 users) (pass 2, 722 done, cap 0.8) (expected 20 min, max wait 806 min, 829 min to the next window)
+[sm92 11-04 06:11:02] exit 0: scoring the show-time retrained model on normal inputs, the 732 set minus 9 never-fit (723 users) (pass 2, 722 done, cap 0.8)
+[sm92 11-04 06:11:02] enqueue: scoring the show-time retrained model on normal inputs, the 3 long users of the 732 set (pass 1, cap 0.92) (expected 25 min, max wait 800 min, 828 min to the next window)
+[sm92 11-04 06:11:51] exit 0: scoring the show-time retrained model on normal inputs, the 3 long users of the 732 set (pass 1, cap 0.92)
+[sm92 11-04 06:11:51] sm92-e26-dec1ep32k/w8+s8: 726 users scored
+[sm92 11-04 06:11:53] rule exit 0: [sm92-rule] 722 users, new - the release on e2s-query: curve -0.019 [-0.092, +0.085], instant -0.305 [-0.405, -0.232]: SHIP CANDIDATE (gain >= 0.05 points with the CI below zero: instant -0.305 [-0.405, -0.232])
+[sm92 11-04 06:11:53] done

@@ -1,4 +1,4 @@
-# Show-time retrain of the release (SM92): handoff
+# DONE 2026-11-04 (SHIP CANDIDATE, processed) - Show-time retrain of the release (SM92): handoff
 
 Branch `sm92` (cut from `sm91s3` at `6cd468df`: show-time interval retrain (SM91) steps 1-3 tooling + the resumable decay (SM69), `decay-resume` already merged), worktree `C:/Users/jonat/workspace/wt/sm92`. Design, recipe and rule: `DESIGN.md` (this folder).
 
