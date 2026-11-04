@@ -1,6 +1,6 @@
 # The small model in the review simulator (SM41): handoff, stage 2 part 3 (the full run)
 
-**Status: running (launched 2026-11-04 07:59:52).** The follow-up below is for a fresh agent (Sonnet, medium effort).
+**Status: done (finished 2026-11-04 19:39:40; result in fullrun-result.md).** The follow-up below is for a fresh agent (Sonnet, medium effort).
 
 Branch `sm41`, worktree `C:/Users/jonat/workspace/wt/sm41`. Always `git fetch` + `git merge --ff-only` first. Design, metrics and the primary metric, all fixed before launch: [DESIGN.md](DESIGN.md) section 10. Earlier parts: [drift-result.md](drift-result.md) (part 1; its handoff is in the git history of this file) and [engine-result.md](engine-result.md) (part 2).
 
