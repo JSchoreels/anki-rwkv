@@ -309,8 +309,11 @@
     "show-time retrain of the release (SM92): "
    ],
    "what": "Show-time retrain of the release (SM92): the released small model&rsquo;s epoch 25 + 1 epoch on show-time intervals, then the release&rsquo;s full one-epoch 32k Muon cool-down on show-time intervals (old teacher targets: new ones added nothing in step 3 of the show-time interval retrain (SM91)); scored on show-time and normal inputs on the 732 set against the release",
-   "when": "CPU proofs ALL OK and smoke 15:55 Tue; epoch 26 15:56&ndash;17:27, paused for the user 17:30&ndash;19:20, rest ~19:30&ndash;20:00; cool-down ~20:20&ndash;~22:58, paused for the user 23:00&ndash;01:00, rest ~01:00&ndash;~07:00 Wed; scoring ~07:00&ndash;08:00, rule ~08:10",
-   "decides": "Ship candidate if one head beats the release on show-time inputs by at least 0.05 points with its CI below zero and no head is worse by 0.05 (expected about +0.40% / +0.40% vs the big model (1 leak-free epoch), from +0.48% / +0.71% for the release on show-time inputs). The extra epoch is a confound: the normal-vs-normal row shows its size"
+   "when": "Done 06:11 Wed: ship candidate (instant &minus;0.31 points vs the release on show-time inputs)",
+   "decides": "Ship candidate if one head beats the release on show-time inputs by at least 0.05 points with its CI below zero and no head is worse by 0.05 (expected about +0.40% / +0.40% vs the big model (1 leak-free epoch), from +0.48% / +0.71% for the release on show-time inputs). The extra epoch is a confound: the normal-vs-normal row shows its size",
+   "state": "done",
+   "started_at": "2026-11-03T15:55:43+01:00",
+   "ended_at": "2026-11-04T06:11:53+01:00"
   },
   {
    "id": "SM41",
@@ -2220,6 +2223,80 @@
   "s-w64kd-gate-ctx2048c-dec8-1ep/w8+s8"
  ],
  "results": [
+  {
+   "date": "11-04",
+   "kind": "gpu-train",
+   "id": "SM92",
+   "track": "small model",
+   "name": "Show-time retrain of the release (SM92): the leak-free small model (SM72s) epoch 25 + epoch 26 on show-time intervals (the release&rsquo;s epoch 21&ndash;25 recipe), then the release&rsquo;s exact one-epoch 32k Muon cool-down on show-time intervals (same users, order, seeds, old teacher targets)",
+   "eval": "Leak-free scoring, w8+s8, show-time inputs (e2s-query, what the Anki fork queries) and normal inputs, 722 users of the 732 set, vs the released small model (SM63); points = % of the big model (1 leak-free epoch) normal-input LogLoss, paired user bootstrap 2,000, seed 0, 95% CI. Ship candidate if one head gains at least 0.05 points with its CI below zero and no head is worse by 0.05 (fixed before launch)",
+   "fork": "Ship candidate: the user decides whether it replaces the release in the Anki fork",
+   "takeaway": "<strong>Ship candidate</strong> on instant: on show-time inputs it beats the release by &minus;0.31 instant points [&minus;0.41, &minus;0.23]; curve &minus;0.02 [&minus;0.09, +0.09], neutral. On show-time inputs: 0.30036 / 0.27688 vs 0.30041 / 0.27772. Its own show-time cost drops from +0.13 / +0.43 to +0.04 / +0.04 points. On normal inputs it is slightly worse (+0.07 / +0.08, the extra epoch)",
+   "started_at": "2026-11-03T15:55+01:00",
+   "ended_at": "2026-11-04T06:11+01:00",
+   "gpu_minutes": 618,
+   "tickets": 11,
+   "detail": {
+    "verdict": "Ship candidate (instant gain with the CI below zero, no head worse); shipping needs the user&rsquo;s decision",
+    "table": {
+     "head": [
+      "Comparison (722 users)",
+      "Curve points [95% CI]",
+      "Instant points [95% CI]"
+     ],
+     "rows": [
+      [
+       "New &minus; release, show-time inputs (the rule)",
+       "&minus;0.019 [&minus;0.092, +0.085]",
+       "&minus;0.305 [&minus;0.405, &minus;0.232]"
+      ],
+      [
+       "New &minus; release, normal inputs (the extra-epoch confound)",
+       "+0.070 [+0.002, +0.177]",
+       "+0.079 [+0.063, +0.098]"
+      ],
+      [
+       "New: show-time &minus; normal (its own show-time cost)",
+       "+0.039 [+0.031, +0.048]",
+       "+0.043 [+0.033, +0.056]"
+      ],
+      [
+       "Release: show-time &minus; normal",
+       "+0.128 [+0.106, +0.160]",
+       "+0.428 [+0.337, +0.546]"
+      ],
+      [
+       "New show-time vs the big model (1 leak-free epoch) normal",
+       "+0.465 [+0.283, +0.671]",
+       "+0.406 [+0.364, +0.447]"
+      ],
+      [
+       "New show-time vs the big model (1 leak-free epoch) show-time",
+       "+0.260 [+0.072, +0.464]",
+       "&minus;0.102 [&minus;0.216, &minus;0.016]"
+      ],
+      [
+       "New show-time vs the show-time big model show-time",
+       "+0.315 [+0.149, +0.491]",
+       "+0.251 [+0.222, +0.280]"
+      ],
+      [
+       "New normal vs the big model (1 leak-free epoch) normal",
+       "+0.426 [+0.247, +0.631]",
+       "+0.362 [+0.327, +0.397]"
+      ]
+     ]
+    },
+    "notes": [
+     "Users better on show-time inputs vs the release: 447 / 722 curve, 571 / 722 instant",
+     "Smaller-model bar (&le; +0.5% curve / +0.4% instant): passes normal vs normal (+0.43 / +0.36), show-time vs the big model (1 leak-free epoch) show-time (+0.26 / &minus;0.10) and vs the show-time big model (+0.31 / +0.25); vs the big model normal from show-time inputs +0.47 / +0.41 (instant just over). The release fails vs the show-time big model (instant +0.56)",
+     "732+long (725 users), new &minus; release on show-time inputs: &minus;0.014 curve [&minus;0.084, +0.087] / &minus;0.299 instant [&minus;0.397, &minus;0.228]",
+     "Epoch 26: 114.7M reviews, 22.0 min (last segment) at 86,932 reviews/s, wall clock 15:56&ndash;19:43 with the user pause; 8k 10-epoch ETA ~3.7 h at this speed",
+     "Cool-down: 347.6M reviews, 284.3 min at 20,377 reviews/s, wall clock 19:43&ndash;05:45 with the 23:00&ndash;01:00 pause",
+     "Branch sm92, commit 85a7f4cf; decision artifacts/small-model/sm92/sm92-decision.md"
+    ]
+   }
+  },
   {
    "date": "11-03",
    "kind": "cpu",
