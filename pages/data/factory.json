@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-04T07:02:35+01:00",
- "updated": "2026-11-04 07:02",
- "material": "16f5b1a52b460abc",
- "summary": "idle",
+ "generated_at": "2026-11-04T07:46:58+01:00",
+ "updated": "2026-11-04 07:46",
+ "material": "2754970ce7370ae4",
+ "summary": "running 000933",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring (curve / instant)",
@@ -237,7 +237,23 @@
    "track": "small model"
   }
  ],
- "now": [],
+ "now": [
+  {
+   "what": "Show-time retrain of the release (SM92): the released small model&rsquo;s epoch 25 + 1 epoch on show-time intervals, then the release&rsquo;s full one-epoch 32k Muon cool-down on show-time intervals (old teacher targets: new ones added nothing in step 3 of the show-time interval retrain (SM91)); scored on show-time and normal inputs on the 732 set against the release",
+   "id": "SM92, ticket 000933",
+   "kind": "gpu-train",
+   "decides": "Ship candidate if one head beats the release on show-time inputs by at least 0.05 points with its CI below zero and no head is worse by 0.05 (expected about +0.40% / +0.40% vs the big model (1 leak-free epoch), from +0.48% / +0.71% for the release on show-time inputs). The extra epoch is a confound: the normal-vs-normal row shows its size",
+   "why": "",
+   "job": "show-time retrain of the release (SM92): answer-time head (SM82c recipe): smoke: head training on 4 users (3 small + the longest, cut at 400k) + time scoring of both heads (3 users) + grade check (2 users) on the frozen SM92 model",
+   "linked": true,
+   "track": "small model",
+   "ticket": "000933-small-model",
+   "started": "07:46",
+   "elapsed": "0:00",
+   "progress": null,
+   "eta": "~07:58"
+  }
+ ],
  "charts": [
   {
    "title": "Small model, leak-free (SM72s): LogLoss per epoch, 458-user set (lower is better)",
@@ -524,9 +540,12 @@
    "what": "Show-time retrain of the release (SM92): the released small model&rsquo;s epoch 25 + 1 epoch on show-time intervals, then the release&rsquo;s full one-epoch 32k Muon cool-down on show-time intervals (old teacher targets: new ones added nothing in step 3 of the show-time interval retrain (SM91)); scored on show-time and normal inputs on the 732 set against the release",
    "when": "Done 06:11 Wed: ship candidate (instant &minus;0.31 points vs the release on show-time inputs)",
    "decides": "Ship candidate if one head beats the release on show-time inputs by at least 0.05 points with its CI below zero and no head is worse by 0.05 (expected about +0.40% / +0.40% vs the big model (1 leak-free epoch), from +0.48% / +0.71% for the release on show-time inputs). The extra epoch is a confound: the normal-vs-normal row shows its size",
-   "state": "done",
-   "started_at": "2026-11-03T15:55:43+01:00",
-   "ended_at": "2026-11-04T06:11:53+01:00"
+   "state": "running",
+   "started_at": "2026-11-03T15:55:44+01:00",
+   "ended_at": "2026-11-04T06:11:53+01:00",
+   "started": "07:46",
+   "ticket": "000933-small-model",
+   "ends_at": "2026-11-04T04:05:44+01:00"
   },
   {
    "id": "SM41",
