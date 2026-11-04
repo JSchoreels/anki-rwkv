@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-04T08:34:38+01:00",
- "updated": "2026-11-04 08:34",
- "material": "ca88c923b2279f9c",
- "summary": "running 000936, finished 000935",
+ "generated_at": "2026-11-04T08:50:25+01:00",
+ "updated": "2026-11-04 08:50",
+ "material": "6e803160859a7890",
+ "summary": "idle, finished 000936",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring (curve / instant)",
@@ -237,23 +237,7 @@
    "track": "small model"
   }
  ],
- "now": [
-  {
-   "what": "Show-time retrain of the release (SM92): the released small model&rsquo;s epoch 25 + 1 epoch on show-time intervals, then the release&rsquo;s full one-epoch 32k Muon cool-down on show-time intervals (old teacher targets: new ones added nothing in step 3 of the show-time interval retrain (SM91)); scored on show-time and normal inputs on the 732 set against the release",
-   "id": "SM92, ticket 000936",
-   "kind": "gpu-train",
-   "decides": "Ship candidate if one head beats the release on show-time inputs by at least 0.05 points with its CI below zero and no head is worse by 0.05 (expected about +0.40% / +0.40% vs the big model (1 leak-free epoch), from +0.48% / +0.71% for the release on show-time inputs). The extra epoch is a confound: the normal-vs-normal row shows its size",
-   "why": "",
-   "job": "show-time retrain of the release (SM92): answer-time head (SM82c recipe): time scoring of the head and the ablation on the 732 pool minus 9 never-fit (723, pass 1)",
-   "linked": true,
-   "track": "small model",
-   "ticket": "000936-small-model",
-   "started": "08:34",
-   "elapsed": "0:00",
-   "progress": null,
-   "eta": "~09:04"
-  }
- ],
+ "now": [],
  "charts": [
   {
    "title": "Small model, leak-free (SM72s): LogLoss per epoch, 458-user set (lower is better)",
@@ -424,6 +408,15 @@
  "waiting": [],
  "recent": [
   {
+   "ticket": "000936-small-model",
+   "id": "SM92",
+   "what": "show-time retrain of the release (SM92): answer-time head (SM82c recipe): time scoring of the head and the ablation on the 732 pool minus 9 never-fit (723, pass 1)",
+   "ended": "08:50",
+   "date": "11-04",
+   "exit": 0,
+   "ran": "0:15"
+  },
+  {
    "ticket": "000935-small-model",
    "id": "SM92",
    "what": "show-time retrain of the release (SM92): answer-time head (SM82c recipe): grade check: the SM92 model vs the exported model with the head (5 users, scorer rows and dumps bitwise)",
@@ -467,15 +460,6 @@
    "date": "11-04",
    "exit": 0,
    "ran": "0:00"
-  },
-  {
-   "ticket": "000930-small-model",
-   "id": "SM92",
-   "what": "show-time retrain of the release (SM92): scoring the show-time retrained model on normal inputs, the 732 set minus 9 never-fit (723 users) (pass 1, 0 done, cap 0.8)",
-   "ended": "06:10",
-   "date": "11-04",
-   "exit": 0,
-   "ran": "0:11"
   }
  ],
  "plan": [
@@ -540,12 +524,9 @@
    "what": "Show-time retrain of the release (SM92): the released small model&rsquo;s epoch 25 + 1 epoch on show-time intervals, then the release&rsquo;s full one-epoch 32k Muon cool-down on show-time intervals (old teacher targets: new ones added nothing in step 3 of the show-time interval retrain (SM91)); scored on show-time and normal inputs on the 732 set against the release",
    "when": "Done 06:11 Wed: ship candidate (instant &minus;0.31 points vs the release on show-time inputs)",
    "decides": "Ship candidate if one head beats the release on show-time inputs by at least 0.05 points with its CI below zero and no head is worse by 0.05 (expected about +0.40% / +0.40% vs the big model (1 leak-free epoch), from +0.48% / +0.71% for the release on show-time inputs). The extra epoch is a confound: the normal-vs-normal row shows its size",
-   "state": "running",
-   "started_at": "2026-11-03T15:55:44+01:00",
-   "ended_at": "2026-11-04T06:11:53+01:00",
-   "started": "08:34",
-   "ticket": "000936-small-model",
-   "ends_at": "2026-11-04T04:05:44+01:00"
+   "state": "done",
+   "started_at": "2026-11-03T15:55:43+01:00",
+   "ended_at": "2026-11-04T06:11:53+01:00"
   },
   {
    "id": "SM41",
@@ -1754,11 +1735,12 @@
    "what": "Answer-time head on richer frozen features (SM82c): the released small model stays frozen (grade unchanged), the answer-time head becomes a small network reading earlier internal states of the model plus simple causal time features the model was never asked to keep (the card&rsquo;s previous answer times, the user&rsquo;s running median per grade, the interval); with an ablation on the time features alone",
    "when": "CPU proof PASS 07:41 Sun; smoke OK 07:42; head training 07:42&ndash;08:27 (45.0 min); grade check and time scoring, rule 08:41 Sun: <strong>pass</strong> (see results)",
    "decides": "Pass if grade is bitwise unchanged and the head beats both time baselines (2.447 / 2.366) with CIs clear of zero; shows how close a frozen model gets to the jointly trained head of response-time prediction (SM82) (1.930) and what the model&rsquo;s states add over the time features alone",
-   "state": "running",
-   "started": "08:34",
-   "ticket": "000936-small-model",
+   "state": "done",
+   "ended": "08:50",
+   "exit": 0,
+   "started": "07:41",
    "started_at": "2026-11-01T07:41:19+01:00",
-   "ends_at": "2026-11-01T09:11:19+01:00"
+   "ended_at": "2026-11-04T08:50:03+01:00"
   },
   {
    "id": "SM82",
