@@ -147,3 +147,35 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
    **Never** `gh release edit --draft=false`, never `--latest`.
 4. Report: fork commit + CI, anki-rwkv commits, parity numbers, the head gate, the draft URL and tag, what is left for the
    user (publish the draft; optional title like build 107's).
+
+## State 2026-11-04 ~09:55 (integration agent): fork main done, draft release building
+
+- Head gate PASS 08:50 (time LogLoss 1.9580 vs 1.9568, +0.06%). Head packaged and committed on anki-rwkv `sm92`:
+  `0ecbace5156e359cc9cff2eb272ee8fb09fd0faa` (= `⟨RWKV_COMMIT⟩` in the fork's RELEASE.md link).
+- Fork `main` (JSchoreels/anki):
+  - `6caa5fb0e` Integrate the show-time retrain of the release (SM92) as the default small RWKV model (squash of
+    `sm92-default-model`, plus the head files, the real `sm92-time-vectors.json.gz` fixture, filled notes/docs and a
+    `use crate::rwkv::ModelKind;` fix in `sm40_tests.rs` for `--no-default-features`).
+  - `056c7986b` Update pulldown-cmark to 0.13.6 for RUSTSEC-2026-0433 (new advisory failed cargo-deny on CI).
+  - `38e641960` Release notes: pulldown-cmark 0.13.6 security update.
+- Native parity (harness): model 3.2e-6 / 3.0e-6 (full), 2.0e-6 / 2.0e-6 (fixture); head 7.8e-7 / 7.6e-7 bin probability
+  on 6,543 queries (fixture 407 queries: 7.2e-7 / 4.9e-7), history features exact; full suites 219 passed, 4 failed
+  (the known `fused_packed`), 30 / 29 ignored.
+- CI green on `38e641960`: https://github.com/JSchoreels/anki/actions/runs/41798626197 (attempt 2; attempt 1 failed
+  only on the online link checker timing out on docs.ankiweb.net). `sm92-default-model` deleted (remote and local).
+- **Release workflow running** (unsigned draft, run #111, started ~09:53):
+  https://github.com/JSchoreels/anki/actions/runs/41802908390 . Expected tag `26.09.3+fsrs7.build.111`, notes from
+  RELEASE.md `## Unreleased` (since build 110). ~45-50 min.
+
+Follow-up (fresh agent, Sonnet is fine):
+
+```bash
+gh run view 41802908390 --repo JSchoreels/anki --json status,conclusion,jobs --jq '.status, .conclusion, (.jobs[] | [.name,.conclusion] | @tsv)'
+gh release list --repo JSchoreels/anki --limit 3          # expect 26.09.3+fsrs7.build.111 with Draft
+gh release view 26.09.3+fsrs7.build.111 --repo JSchoreels/anki --json isDraft,isPrerelease,url,body --jq '.isDraft, .isPrerelease, .url' 
+gh release view 26.09.3+fsrs7.build.111 --repo JSchoreels/anki --json body --jq .body | head -20   # notes start "Changes since the last normal release, build 110"
+```
+
+If a build job fails: `gh run view 41802908390 --repo JSchoreels/anki --log-failed`; for a flaky/network failure
+`gh run rerun 41802908390 --repo JSchoreels/anki --failed`. **Never** `gh release edit --draft=false`, never `--latest`;
+the user publishes the draft (optional title in the style of build 107's).
