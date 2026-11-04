@@ -1,7 +1,7 @@
 {
- "generated_at": "2026-11-04T18:16:14+01:00",
- "updated": "2026-11-04 18:16",
- "material": "a16600bde59abbaa",
+ "generated_at": "2026-11-04T19:48:15+01:00",
+ "updated": "2026-11-04 19:48",
+ "material": "9215427d6358314e",
  "summary": "idle",
  "headline": [
   {
@@ -584,9 +584,11 @@
    "kind": "cpu",
    "minutes": 900,
    "what": "The small model in the review simulator (SM41) full run (CPU): 117 users of the 732 set, 304 starting days, 60 days simulated with daily re-syncing; scheduling by the instant head vs FSRS-7 at desired retention 0.70&ndash;0.95, 4 seeds, plus lanes without re-syncing and drift checks (59 lanes). FSRS-7 refit per user on the reviews before each starting day only (the benchmark fit had seen most simulated days)",
-   "when": "Started 08:00 Wed on 4 CPU processes (held while the answer-time head retrain uses RAM); slower than estimated: 87 of 117 users done at 17:30 (largest first, no errors); pauses for the 20:00&ndash;01:00 break, done tonight or early Thu",
+   "when": "Done 19:39 Wed (11 h 40 min on 4 CPU processes): FSRS-7 cheaper at matched retention, see results",
    "decides": "Primary metric fixed before launch: does scheduling by the instant head cost fewer minutes per memorised card than FSRS-7 at matched realised retention (paired over users, 95% CI), averaged over the retention range both policies reach; also each user&rsquo;s best desired retention and whether re-syncing changes the ranking",
-   "state": "planned"
+   "state": "done",
+   "started_at": "2026-11-04T07:59+01:00",
+   "ended_at": "2026-11-04T19:39+01:00"
   },
   {
    "what": "Quick score of the new epoch on 100 users",
@@ -2227,12 +2229,12 @@
    "track": "small model"
   },
   {
-   "status": "next",
+   "status": "idea",
    "item": "Support the small RWKV model in the open-spaced-repetition review simulator (srs-simulator), then let an AI agent search for the best review strategy on simulated users",
    "id": "SM41",
-   "why": "A recall model good enough to simulate learners turns scheduling into an offline search an AI agent can run. Stage 1 done 11-01: our own simulator hosts the model (the outside srs-simulator is not needed); next is a drift study on 50 users and a vectorised engine (1&ndash;2 days) before any policy search. Drift study done 11-03: daily re-syncing of the deck/preset/user state removes most of the drift (&minus;5.1 &rarr; &minus;0.6 points at days 30&ndash;59). Engine + instant-head policy + FSRS-7 baseline done 11-04 (proofs pass, targets hit); next: the full run (150 users, ~4 h CPU), waiting for the user&rsquo;s go",
+   "why": "A recall model good enough to simulate learners turns scheduling into an offline search an AI agent can run. Stage 1 done 11-01: our own simulator hosts the model (the outside srs-simulator is not needed); next is a drift study on 50 users and a vectorised engine (1&ndash;2 days) before any policy search. Drift study done 11-03: daily re-syncing of the deck/preset/user state removes most of the drift (&minus;5.1 &rarr; &minus;0.6 points at days 30&ndash;59). Engine + instant-head policy + FSRS-7 baseline done 11-04 (proofs pass, targets hit). Full run done 11-04 19:39 (117 users): FSRS-7 schedules +14.5% &plusmn; 7.4 cheaper per memorised card than the instant head at matched retention, so the time-aware objective is not started. Left as an idea: the simulator is ready for a policy search, but the model-driven policy has no edge yet",
    "track": "small model",
-   "since": "11-04T06:56"
+   "since": "11-04T19:40"
   },
   {
    "status": "done",
@@ -2443,6 +2445,57 @@
      "The head trains on the review log&rsquo;s answer-to-answer intervals but is queried at show time, as the previous head; not scored separately",
      "Release workflow: the upload stopped on a GitHub 404 after 8 of 12 files; the 4 missing files were uploaded from the run&rsquo;s artifacts",
      "Branch sm92 commits 0ecbace5, 29727c6b"
+    ]
+   }
+  },
+  {
+   "date": "11-04",
+   "kind": "cpu",
+   "id": "SM41",
+   "track": "small model",
+   "name": "The small model in the review simulator (SM41) full run: scheduling by the instant head vs FSRS-7 over 60 simulated days, with daily re-syncing to the real review stream",
+   "eval": "117 benchmark users of the 732 set, 304 starting days (2&ndash;3 per user), 60 days each, 59 lanes (desired retention 0.70&ndash;0.95, 4 seeds, plus lanes without re-syncing); FSRS-7 refit per user on the reviews before each starting day only (the benchmark fit had seen the starting day in 275 of 304); primary metric fixed before launch: minutes per memorised card at matched realised retention, paired over users, 95% CI",
+   "fork": "Simulator result; nothing shipped. FSRS-7 stays the scheduler baseline in the fork",
+   "takeaway": "<strong>FSRS-7 is cheaper</strong>: scheduling by the instant head costs +14.5% &plusmn; 7.4 more minutes per memorised card than FSRS-7 at the same realised retention (116 users, median +7.6%; the instant head is cheaper for only 16% of users). The time-aware scheduling objective is not started",
+   "started_at": "2026-11-04T07:59+01:00",
+   "ended_at": "2026-11-04T19:39+01:00",
+   "gpu_minutes": 0,
+   "tickets": 0,
+   "detail": {
+    "verdict": "FSRS-7 wins at matched retention (CI excludes 0): the instant head predicts better but does not schedule cheaper in this simulator",
+    "table": {
+     "head": [
+      "Readout (116&ndash;117 users, paired)",
+      "Instant head vs FSRS-7"
+     ],
+     "rows": [
+      [
+       "Minutes per memorised card, matched retention (primary)",
+       "+14.5% &plusmn; 7.4 (median +7.6%)"
+      ],
+      [
+       "At desired retention 0.80 / 0.85 / 0.90",
+       "+9.1% &plusmn; 3.2 / +8.1% &plusmn; 3.4 / +20.6% &plusmn; 11.8"
+      ],
+      [
+       "Best desired retention at 1 / 3 / 10 min per extra memorised card",
+       "Instant head 0.70 / spread (0.90 most common) / 0.95; FSRS-7 0.70 / 0.95 / 0.95"
+      ],
+      [
+       "Per-user target vs the best fixed target",
+       "+0.9 to +2.8% memorised cards (instant head); +1.3 to +5.3% (FSRS-7)"
+      ],
+      [
+       "Gap at 0.90 with vs without daily re-syncing",
+       "+16.0% &plusmn; 6.3 re-synced; +66.0% &plusmn; 65.8 free (difference +49.9% &plusmn; 66.1, CI includes 0)"
+      ]
+     ]
+    },
+    "notes": [
+     "Checks: 304 of 304 starting days, 0 missing, 0 duplicates, 0 errors; drift check &minus;0.4 &plusmn; 0.5 points (drift study: &minus;0.6 &plusmn; 1.0)",
+     "The 0.75 point is very noisy (+57% &plusmn; 89); lanes without re-syncing drift (Easy share +1.9 points for the instant head, +3.8 for FSRS-7)",
+     "Speed: 682 simulated reviews/s per process; 42.5 CPU process-hours, 11 h 40 min on 4 processes (two holds for free memory)",
+     "Branch sm41, commit 46a345be; note artifacts/small-model/sm41/fullrun-result.md"
     ]
    }
   },
