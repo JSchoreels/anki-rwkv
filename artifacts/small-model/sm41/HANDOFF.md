@@ -1,44 +1,64 @@
-# The small model in the review simulator (SM41): handoff, stage 2 part 1 (the drift study)
+# The small model in the review simulator (SM41): handoff, stage 2 part 3 (the full run)
 
-**Status: done 2026-11-03 (drift study finished; result in [drift-result.md](drift-result.md)).** The Follow-up section below was carried out.
+**Status: running (launched 2026-11-04 07:59:52).** The follow-up below is for a fresh agent (Sonnet, medium effort).
 
-Branch `sm41`, worktree `C:/Users/jonat/workspace/wt/sm41`. Stage 1: [prototype-result.md](prototype-result.md). Design incl. stage 2 and the interval convention (duration leak): [DESIGN.md](DESIGN.md) section 8. Always `git fetch` + `git merge --ff-only` first.
+Branch `sm41`, worktree `C:/Users/jonat/workspace/wt/sm41`. Always `git fetch` + `git merge --ff-only` first. Design, metrics and the primary metric, all fixed before launch: [DESIGN.md](DESIGN.md) section 10. Earlier parts: [drift-result.md](drift-result.md) (part 1; its handoff is in the git history of this file) and [engine-result.md](engine-result.md) (part 2).
 
-## What runs (CPU only)
+## What runs (CPU only, no GPU)
 
-- Runner: `artifacts/small-model/sm41/drift/run-drift.sh`, launched 2026-11-03 16:27:26 hidden via WMI (bash pid 77892, script pid in `drift/runner.log`), 4 processes x 1 thread, 0.6-1.6 GB each, ~100% of one core each. Code commit: 2c85e5de (a first launch at 16:12 on b2a2b271 was stopped and its rows deleted: negative commit intervals gave NaN in some free-running lanes; fixed in 2c85e5de).
-- Jobs: 50 users x 2-3 splits x 60 days (133 splits) + 10 users x 1 split x 120 days, 32 lanes per split (2 teacher-forced + 10 free-running arms x 3 seeds), one job per (user, horizon) -> `drift/rows/<user>-<days>.jsonl`, log `drift/logs/<user>-<days>.log`; at the end the runner writes the report (`drift/drift-tables.md`, `drift/drift-result.json`, `drift/report.out`) and "done" in `drift/runner.log`.
-- Breaks: every job re-reads `artifacts/coordination/queue/quiet.json` (main checkout) before each user and each split and holds from 10 min before a window (scope all/cpu) until its end. Tonight: hold 17:20-19:30, then free through the night; from 11-04 the 20:00-01:00 windows.
-- Expected: ~3.5 process-hours of lanes + warm-ups on 4 processes (measured 2,456 lane reviews/s per process), about 55 min of running. Started 16:27, so jobs run until the 17:20 hold, wait, resume at 19:30 and should be done by about 19:50-20:00 (report written right after).
-- First read (11 splits, before the hold): plain free running `fr` has a first-touch state drift of -4.0 points at days 30-59 (mean abs 6.2) and Easy share of passes +10.6 points. Daily shared-stream re-anchoring `fr-shared1` is best so far (mean abs 2.7, Easy +3.0, seconds +0.1). Grade temperature 0.8 makes it worse. Duration leak: teacher-forced same-day grade LogLoss 0.6312 answer-to-answer vs 0.6354 show-time; later-day identical. Not final.
-- Resumable: a (user, split, days) row already in `rows/` is skipped. If the runner died (e.g. a Claude app restart), relaunch the same command hidden via WMI. It redoes only the unfinished splits (a job's warm-up reruns):
+- **Runner:** `artifacts/small-model/sm41/fullrun/run-fullrun.sh`, launched hidden via WMI (Win32_Process.Create, ShowWindow=0). Code commit: e4a4b877.
+  - bash pid 65144 (Windows); the script logged pid 1385326 (MSYS) in `fullrun/runner.log`. At 08:00 the first jobs held for RAM (1.7 GB available) while the show-time retrain of the release (SM92) head training ran (started 07:47, about 45-90 min); they start on their own when RAM frees.
+  - 4 processes x 1 thread, below-normal priority.
+- **Jobs:** 117 users x 2-3 splits = 304 split points x 60 days, 59 lanes per split. One job per user, largest first:
+  1. the pre-split FSRS-7 refits of its splits (srs-benchmark venv) -> `fullrun/fits/<user>.jsonl`;
+  2. every split's lanes, one warm-up pass -> `fullrun/rows/<user>.jsonl`.
+
+  Log: `fullrun/logs/<user>.log`; runner output: `fullrun/runner.out`. At the end the runner writes `fullrun/check.out`, `fullrun/report.out`, `fullrun/fullrun-tables.md` and `fullrun/fullrun-result.json`, then "done" in `fullrun/runner.log`.
+- **Holds.** Every job re-reads `C:/Users/jonat/workspace/anki-rwkv/artifacts/coordination/queue/quiet.json` (scope all / cpu) before each user and each split, and holds from 10 min before a window until its end (today 20:00-01:00). It also holds a new split while less than 3 GB of RAM is available.
+- **Expected:** about 21 CPU process-hours (smoke: 0.046 engine-seconds per window review, 1.39M window reviews, plus warm-ups and refits), so about 5-6 h on 4 processes. **Expected end: about 14:30-15:30 today** (after the RAM hold), before the 19:50 hold. If it runs into the hold, it resumes at 01:00 and ends in the night.
+- **Resumable.** Finished (user, split) fits and rows are skipped. If the runner died (e.g. a Claude app restart: check that the pid is gone and `runner.log` has no "done"), relaunch the same command hidden. Only a user's unfinished splits are redone; its warm-up reruns.
   ```
-  $si = New-CimInstance -ClassName Win32_ProcessStartup -ClientOnly -Property @{ShowWindow=[uint16]0}; Invoke-CimMethod -ClassName Win32_Process -MethodName Create -Arguments @{CommandLine='"C:\Program Files\Git\usr\bin\bash.exe" -c "export PATH=/usr/bin:/mingw64/bin:$PATH; bash /c/Users/jonat/workspace/wt/sm41/artifacts/small-model/sm41/drift/run-drift.sh >> /c/Users/jonat/workspace/wt/sm41/artifacts/small-model/sm41/drift/runner.out 2>&1"'; ProcessStartupInformation=$si}
+  $si = New-CimInstance -ClassName Win32_ProcessStartup -ClientOnly -Property @{ShowWindow=[uint16]0}; Invoke-CimMethod -ClassName Win32_Process -MethodName Create -Arguments @{CommandLine='"C:\Program Files\Git\usr\bin\bash.exe" -c "export PATH=/usr/bin:/mingw64/bin:$PATH; bash /c/Users/jonat/workspace/wt/sm41/artifacts/small-model/sm41/fullrun/run-fullrun.sh >> /c/Users/jonat/workspace/wt/sm41/artifacts/small-model/sm41/fullrun/runner.out 2>&1"'; ProcessStartupInformation=$si}
   ```
+
+## Check commands
+
+```
+tail -n 3 /c/Users/jonat/workspace/wt/sm41/artifacts/small-model/sm41/fullrun/runner.log
+ls /c/Users/jonat/workspace/wt/sm41/artifacts/small-model/sm41/fullrun/rows | wc -l       # 117 when done
+cd /c/Users/jonat/workspace/wt/sm41 && /c/Users/jonat/workspace/anki-rwkv/.venv/Scripts/python.exe -X utf8 scripts/sm41_fullrun.py check
+grep -l Traceback /c/Users/jonat/workspace/wt/sm41/artifacts/small-model/sm41/fullrun/logs/*.log
+grep -h holding /c/Users/jonat/workspace/wt/sm41/artifacts/small-model/sm41/fullrun/logs/*.log | tail -n 3
+powershell -NoProfile -Command "Get-CimInstance Win32_Process -Filter \"Name='python.exe'\" | ? { $_.CommandLine -like '*sm41_engine.py run*' } | select ProcessId,@{n='MB';e={[int]($_.WorkingSetSize/1MB)}}"
+```
 
 ## Follow-up (fresh agent, Sonnet medium)
 
-1. Check that it finished: `drift/runner.log` ends with "done", there are 60 files in `drift/rows/` (50 with `-60`, 10 with `-120`), 133 rows with days 60 and 10 with days 120, and `grep -l Traceback drift/logs/*` is empty.
-2. Rebuild the report (the runner already does this; repeat after any relaunch):
-   `C:/Users/jonat/workspace/anki-rwkv/.venv/Scripts/python.exe -X utf8 C:/Users/jonat/workspace/wt/sm41/scripts/sm41_drift.py report`
-3. Write `artifacts/small-model/sm41/drift-result.md` (short; plain names with IDs in parentheses, never "Expertium"):
-   - the design (users, splits, horizons, lanes, arms: DESIGN.md 8.2);
-   - the CPU proof (`drift/proof-cpu.json`);
-   - the primary metric fixed before the run: first-touch STATE drift on days 30-59 at the 60-day horizon. Answer which arm removes most of it (the "Mitigation vs plain free running" table, paired per user) and what is left: the remaining state drift, Easy share and seconds drift of the best arm;
-   - how the drift grows with the horizon (the 120-day tables, by 30-day block);
-   - the duration-leak table (teacher forcing, show-time vs answer-to-answer query rows) and fr vs fr-answer;
-   - speed: lane reviews/s per process (report footer) and CPU (4 processes x 1 thread).
-   Caveat to keep: `fr-texp` feeds a geometric-mean time, so compare its workload with the "seconds expected" column, not "seconds fed".
-4. Commit as Jonathan Schoreels (`git -c user.name="Jonathan Schoreels" -c user.email="jonathan.schoreels@gmail.com" commit`, message ending with a blank line + `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`). Stage with `git add -f`:
-   - `artifacts/small-model/sm41/drift/rows/*.jsonl`, `drift/logs/*.log`, `drift/drift-tables.md`, `drift/drift-result.json`, `drift/runner.log`, `drift/report.out`;
-   - `artifacts/small-model/sm41/drift-result.md`, this file (status "done").
+1. **Checks.**
+   - `fullrun/runner.log` ends with "done".
+   - `scripts/sm41_fullrun.py check` reports 304 splits planned, 304 finished, 0 missing, 0 duplicates, lanes per row [59], 304 fits, 0 logs with Traceback, and only "pre-split FSRS-7 refit" as the FSRS-7 source.
+   - If anything is missing, relaunch (above) and stop. Do not wait on the run.
+2. **Rebuild the report.** The runner does this already; repeat after any relaunch:
+   `C:/Users/jonat/workspace/anki-rwkv/.venv/Scripts/python.exe -X utf8 C:/Users/jonat/workspace/wt/sm41/scripts/sm41_fullrun.py report > C:/Users/jonat/workspace/wt/sm41/artifacts/small-model/sm41/fullrun/report.out 2>&1`
+3. **Write `artifacts/small-model/sm41/fullrun-result.md`.** Keep it short. Plain names with the ID in parentheses, never a bare ID, never "Expertium"; say FSRS7-Instant if it comes up, never FSRS-Instant. Sections:
+   - **design in 3 lines:** 117 users x 304 splits, 60 days, 59 lanes; FSRS-7 refit before each split day; DESIGN.md 10.
+   - **the FSRS-7 fit check:** the srs-benchmark fit had seen the split day in N of 304 splits (report footer). Refit proof: `fullrun/fsrs7-proof-cpu.json`, numbers in DESIGN.md 10.1. The small model's training users do not overlap the 732 set.
+   - **the primary table:** the "Primary" table with its 95% CI, and the verdict line, verbatim. Then one sentence applying the decision rule fixed before launch: the instant head moves on to the time-aware objective only if the common-range gap is < 0 with the CI excluding 0; otherwise FSRS-7 stays the scheduler baseline.
+   - **the policy table:** realised retention, aim, min/day, memorised, cost per policy.
+   - **each user's best desired retention:** the table at P = 1 / 3 / 10, and whether a per-user target matters (the gain column).
+   - **re-anchoring's effect:** the anchored vs free gaps, free minus anchored with CI, the sign flips, and the free lanes' drift.
+   - **the drift check:** fr-shared1 state drift vs the drift study's -0.6 ± 1.0.
+   - **speed and CPU hours:** lane reviews/s per process, CPU process-hours (report footer), 4 processes x 1 thread, wall time from `runner.log` (start to done, minus any hold).
+4. **Commit as Jonathan Schoreels:** `git -c user.name="Jonathan Schoreels" -c user.email="jonathan.schoreels@gmail.com" commit`, with the message ending in a blank line + `Co-Authored-By: Claude Sonnet <noreply@anthropic.com>` (your own model name). Use explicit paths and `git add -f`:
+   - `artifacts/small-model/sm41/fullrun/rows/*.jsonl`, `fullrun/fits/*.jsonl`, `fullrun/logs/*.log`;
+   - `fullrun/fullrun-tables.md`, `fullrun/fullrun-result.json`, `fullrun/check.out`, `fullrun/report.out`, `fullrun/runner.log`;
+   - `artifacts/small-model/sm41/fullrun-result.md`;
+   - this file, with the status set to "done".
 
-   Push. Never stage `docs/GPU_OPTIMIZATIONS_LOG.md` or `.claude/`. Do not edit `pages/data/factory-curated.json`; the main session updates the Factory page.
+   Then push (`git push`). Never stage `docs/GPU_OPTIMIZATIONS_LOG.md`, `.claude/` or `pages/data/factory-curated.json`. Never bypass hooks. The main session updates the Factory page.
 
-## Still open after this (stage 2)
+## Still open after this
 
-- Done 2026-11-04 (stage 2 part 2, [engine-result.md](engine-result.md), DESIGN.md section 9): intervals chosen with the instant head (K = 16 candidate query rows), the general vectorised lane engine for scheduler lanes (`scripts/sm41_engine.py`), the FSRS-7 baseline policy; CPU proofs PASS; validation on 8 users.
-- The time-aware objective on the same candidate grid: deferred (needs a lapse value or a daily time budget, DESIGN.md 9.2).
-- The full run: proposal and cost in [engine-result.md](engine-result.md); not started, the main session decides.
-- GPU batched-step benchmark (stage 1 follow-up 1, skipped: no GPU without the user's go).
-- Retraining on show-time intervals is the separate show-time interval retrain (SM91); not part of this track.
+- The time-aware objective (DESIGN.md 9.2): only if the primary result says the instant head wins.
+- GPU batched-step benchmark (stage 1 follow-up 1): no GPU without the user's go.
+- Retraining on show-time intervals is the separate show-time interval retrain (SM91), not part of this track.

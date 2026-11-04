@@ -306,7 +306,12 @@ Approved by the user on 2026-11-04 ("SM41 : oui on peut lancer la vraie simulati
   - (c) the simulator's update rule equals the benchmark's predictions on those rows. That rule is: every review in order, the first one initialises, later ones step by max(0, elapsed seconds) / 86400;
   - (d) LogLoss of the refit, the benchmark fit and the defaults, both pre-split and on the 60-day window.
 
-  Tolerance: 1e-4 on parameters and predictions.
+  Tolerance: 1e-4 on parameters and predictions. For (a), a 5-fold LogLoss within 1e-5 of the file's also passes, since srs-benchmark notes that eager and `--compile` runs differ by up to 7.4e-6.
+
+  **Result: PASS** (users 3876, 4378, 1606, 1901, 4173):
+  - (a) The saved parameters were reproduced exactly for 4 users. For user 4173 (59k reviews) the largest parameter gap is 0.0088, but the 5-fold LogLoss is 0.599091 against the file's 0.599099; the other four match the file to 1e-6.
+  - (b), (c) The largest prediction gaps are 1.9e-6 to 1.3e-5 (float32 torch vs float64 numpy), and no row is above 1e-4.
+  - (d) On the 60-day window, the pre-split refit's LogLoss was lower than the srs-benchmark fit's for 4 of 5 users, even though that fit had seen the window for 4 of them: 0.6395 vs 0.6561, 0.2426 vs 0.2409, 0.1480 vs 0.1485, 0.3113 vs 0.3155, 0.3364 vs 0.3554. The leaked fit was therefore not a better predictor of these windows: it was fitted to the whole first 5/6 of the history. The refit is the correct baseline either way.
 - **The small model is equally clean.** None of its training users is in the 732 set (checked 2026-11-04, overlap 0 each):
   - the trunk (the released leak-free small model) was trained on the 8,000 train users of the final tier (`artifacts/accuracy/tiers.json`, = the 8k split's train users);
   - the answer-time head (SM82c) was trained on the 1,991 users of the SM82 cool-down (`sm82c/plan.json`);
