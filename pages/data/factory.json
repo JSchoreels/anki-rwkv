@@ -1,7 +1,7 @@
 {
- "generated_at": "2026-11-05T00:29:26+01:00",
- "updated": "2026-11-05 00:29",
- "material": "275be5bfee498214",
+ "generated_at": "2026-11-05T00:39:32+01:00",
+ "updated": "2026-11-05 00:39",
+ "material": "97311162dece37f1",
  "summary": "idle",
  "headline": [
   {
@@ -585,10 +585,10 @@
    "track": "small model",
    "since": "11-05T01:00",
    "kind": "cpu",
-   "minutes": 180,
-   "what": "The small model in the review simulator (SM41) diagnostic (CPU): why scheduling by the instant head costs more than FSRS-7 at the same retention although the simulated learner is the small model itself. Re-run ~20 users at desired retention 0.90 with per-card logging; test four explanations: per-card retention spread, pass rate at review time vs knowledge held, the instant head off at long candidate intervals, the 60-day horizon",
-   "when": "Starts 01:00 Thu after the break (~1&ndash;3 h on up to 4 CPU processes)",
-   "decides": "Which explanation holds, and what a cost-optimising scheduling policy would need",
+   "minutes": 480,
+   "what": "The small model in the review simulator (SM41) diagnostic and policy search (CPU): (A) why scheduling by the instant head costs more than FSRS-7 at the same retention although the simulated learner is the small model itself: per-card retention spread, pass rate at review time vs knowledge held, the instant head off at long candidate intervals, the 60-day horizon; (B) scheduling rules that could beat FSRS-7: intervals from the curve head, intervals that maximise memorised cards per minute, a per-card retention target, FSRS-7 intervals corrected by the small model",
+   "when": "Starts 01:00 Thu after the break; part A ~1&ndash;3 h, part B screen on ~20 users then a confirmation run",
+   "decides": "Which explanation holds, and whether a scheduling rule driven by the small model beats FSRS-7 on minutes per memorised card (and could become an Anki scheduler)",
    "state": "planned"
   },
   {
@@ -1914,6 +1914,14 @@
   "label": "Breaks: no GPU work 20:00&ndash;01:00 (from 10-30; tonight from 21:04; Sunday from 16:00). Jobs that would run into a break wait for 01:00"
  },
  "backlog": [
+  {
+   "status": "idea",
+   "id": "SM93",
+   "track": "small model",
+   "item": "Model per scheduler in the Anki fork (SM93): the release from epoch 25 (SM63) for RWKV-Curve, the show-time retrain of the release (SM92) for RWKV-Instant",
+   "why": "User 11-05: noted for later. Each scheduler gets its best model: RWKV-Instant queries at show time, where the show-time retrain is 0.31% better on instant [0.23, 0.41]; RWKV-Curve queries at answer time, where the release is 0.07% better on curve. Cost: two model states warm when presets mix both schedulers",
+   "since": "11-05T00:40"
+  },
   {
    "status": "done",
    "item": "Codebook state compression sweep (SM90): on the released small model, shrink the state compression at a large budget (SM46) by 2&times;, 3&times; and more, and tune the quantization pipeline, to find the smallest budget that is still nearly free",
