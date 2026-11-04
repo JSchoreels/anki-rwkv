@@ -13,27 +13,7 @@
      "ref": true
     },
     {
-     "variant": "Shipped in draft build 111: show-time retrain of the release (SM92), the release + 1 epoch and the same cool-down on show-time intervals, now the Anki fork&rsquo;s default; scored on show-time inputs (what the fork queries); vs the release on show-time inputs (0.30041 / 0.27772): curve &minus;0.00006 [&minus;0.00027, +0.00026], instant &minus;0.00084 [&minus;0.00114, &minus;0.00063]",
-     "curve": 0.30036,
-     "instant": 0.27688,
-     "eval": "722 users (732 set), 30.13M reviews, leak-free show-time inputs",
-     "quant": "w8+s8",
-     "curve_pct": 0.46,
-     "instant_pct": 0.41,
-     "date": "11-04"
-    },
-    {
-     "variant": "Same model (SM92) on normal inputs (comparable to the rows below); vs the release: curve +0.00021 [+0.00001, +0.00053], instant +0.00022 [+0.00017, +0.00027] (the extra epoch)",
-     "curve": 0.30024,
-     "instant": 0.27676,
-     "eval": "722 users (732 set), 30.13M reviews, leak-free inputs",
-     "quant": "w8+s8",
-     "curve_pct": 0.43,
-     "instant_pct": 0.36,
-     "date": "11-04"
-    },
-    {
-     "variant": "Best on normal inputs, released: small model (leak-free), 25 epochs, cool-down from epoch 25 (SM63), released 10-30 (the Anki fork&rsquo;s default in build 110; replaced by the show-time retrain of the release (SM92) in draft build 111); vs the release (cool-down from epoch 20): curve &minus;0.00016 [&minus;0.00036, +0.00001], instant &minus;0.00010 [&minus;0.00012, &minus;0.00008]",
+     "variant": "Best and released: small model (leak-free), 25 epochs, cool-down from epoch 25 (SM63), released 10-30 and the Anki fork&rsquo;s default (briefly replaced by the show-time retrain of the release (SM92) on 11-04, back on 11-05); vs the release (cool-down from epoch 20): curve &minus;0.00016 [&minus;0.00036, +0.00001], instant &minus;0.00010 [&minus;0.00012, &minus;0.00008]",
      "curve": 0.30003,
      "instant": 0.27654,
      "eval": "722 users (732 set), 30.13M reviews, leak-free inputs",
@@ -41,6 +21,16 @@
      "curve_pct": 0.36,
      "instant_pct": 0.28,
      "date": "10-30"
+    },
+    {
+     "variant": "Show-time retrain of the release (SM92): the release + 1 epoch and the same cool-down on show-time intervals; not the Anki default (it only pays off once Anki queries at show time); vs the release: curve +0.00021 [+0.00001, +0.00053], instant +0.00022 [+0.00017, +0.00027] (the extra epoch). On show-time inputs it beats the release: 0.30036 / 0.27688 vs 0.30041 / 0.27772",
+     "curve": 0.30024,
+     "instant": 0.27676,
+     "eval": "722 users (732 set), 30.13M reviews, leak-free inputs",
+     "quant": "w8+s8",
+     "curve_pct": 0.43,
+     "instant_pct": 0.36,
+     "date": "11-04"
     },
     {
      "variant": "Previous release: small model (leak-free), 5 more epochs, cool-down from epoch 20 (SM72), released 10-29 (the Anki fork&rsquo;s default until 10-30); vs the previous release (cool-down from epoch 15): curve &minus;0.00020 [&minus;0.00031, &minus;0.00010], instant &minus;0.00023 [&minus;0.00026, &minus;0.00020]",
@@ -345,7 +335,7 @@
     "show-time retrain of the release (SM92): "
    ],
    "what": "Show-time retrain of the release (SM92): the released small model&rsquo;s epoch 25 + 1 epoch on show-time intervals, then the release&rsquo;s full one-epoch 32k Muon cool-down on show-time intervals (old teacher targets: new ones added nothing in step 3 of the show-time interval retrain (SM91)); scored on show-time and normal inputs on the 732 set against the release",
-   "when": "Done 06:11 Wed: shipped in the Anki fork as the new default 11:00 Wed (draft release build 111, not published yet)",
+   "when": "Done 06:11 Wed: shipped as the Anki default 11:00 Wed (draft build 111, not published); back to the release from epoch 25 (SM63) on 11-05, SM92 kept as an option",
    "decides": "Ship candidate if one head beats the release on show-time inputs by at least 0.05 points with its CI below zero and no head is worse by 0.05 (expected about +0.40% / +0.40% vs the big model (1 leak-free epoch), from +0.48% / +0.71% for the release on show-time inputs). The extra epoch is a confound: the normal-vs-normal row shows its size",
    "state": "done",
    "started_at": "2026-11-03T15:55:43+01:00",
@@ -2295,7 +2285,7 @@
    "track": "small model",
    "name": "Answer-time head on richer frozen features (SM82c) retrained on the show-time retrain of the release (SM92), and both shipped in the Anki fork as the new default small model (draft release build 111)",
    "eval": "Same recipe and evaluation as the answer-time head on richer frozen features (SM82c): 1,991 training users, 722 users of the 732 set, censored 16-bin time LogLoss; gate fixed before launch: time LogLoss at most +1% vs the first answer-time head (SM82c) at 1.9568. Fork: native parity on the full package vectors",
-   "fork": "Shipped: fork main 6caa5fb0e (+ 056c7986b, 38e641960), CI green; draft release 26.09.3+fsrs7.build.111 (12 files), not published",
+   "fork": "Bundled with the show-time retrain of the release (SM92) in the fork; draft release build 111 (never published). Since 11-05 the default is the release from epoch 25 (SM63) with its first answer-time head; the show-time retrain and this head stay selectable",
    "takeaway": "<strong>Gate passed, shipped as a draft</strong>: time LogLoss 1.9580 vs 1.9568 (+0.06%), &minus;17.3% vs the user&rsquo;s running median per button, &minus;20.0% vs the card&rsquo;s last time. Grade outputs bit for bit unchanged by the head. The new default small model in the fork is the show-time retrain of the release (SM92), with this head",
    "started_at": "2026-11-04T07:46+01:00",
    "ended_at": "2026-11-04T08:50+01:00",
@@ -2422,7 +2412,7 @@
    "track": "small model",
    "name": "Show-time retrain of the release (SM92): the leak-free small model (SM72s) epoch 25 + epoch 26 on show-time intervals (the release&rsquo;s epoch 21&ndash;25 recipe), then the release&rsquo;s exact one-epoch 32k Muon cool-down on show-time intervals (same users, order, seeds, old teacher targets)",
    "eval": "Leak-free scoring, w8+s8, show-time inputs (e2s-query, what the Anki fork queries) and normal inputs, 722 users of the 732 set, vs the released small model (SM63); points = % of the big model (1 leak-free epoch) normal-input LogLoss, paired user bootstrap 2,000, seed 0, 95% CI. Ship candidate if one head gains at least 0.05 points with its CI below zero and no head is worse by 0.05 (fixed before launch)",
-   "fork": "Shipped 11-04 as the new default small model in the Anki fork (fork main 6caa5fb0e, CI green), with the answer-time head retrained on it; draft release 26.09.3+fsrs7.build.111 ready, not published yet",
+   "fork": "Not the Anki default: shipped as the default on 11-04 (draft build 111, never published), back to the release from epoch 25 (SM63) on 11-05 (user: until Anki schedules by querying at show time, the normal-input model is better). It stays bundled in the fork as an option",
    "takeaway": "<strong>Shipped (draft release build 111)</strong>, better on instant: on show-time inputs it beats the release by &minus;0.31 instant points [&minus;0.41, &minus;0.23]; curve &minus;0.02 [&minus;0.09, +0.09], neutral. On show-time inputs: 0.30036 / 0.27688 vs 0.30041 / 0.27772. Its own show-time cost drops from +0.13 / +0.43 to +0.04 / +0.04 points. On normal inputs it is slightly worse (+0.07 / +0.08, the extra epoch)",
    "started_at": "2026-11-03T15:55+01:00",
    "ended_at": "2026-11-04T06:11+01:00",
