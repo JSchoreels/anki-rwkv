@@ -1,0 +1,244 @@
+{
+ "label": "sm92-time",
+ "created": "2026-11-04 08:51:32",
+ "model": {
+  "package": "sm92",
+  "weights.f32.bin sha256": "4fbc5f963b6ef18d23dbc0f11358fed8a9c7c97c271d6eda95df3b8ed6fbeb6e",
+  "master.pth sha256": "2091f8a879a56cf96a3df3b820fdacfa64c6467e8502a3a5eb17436524100d7f"
+ },
+ "head_master": {
+  "path": "<workspace>/wt/sm92/artifacts/small-model/sm92-head/master.pth",
+  "sha256": "fb1a732cc66cafb97046116e51662b3f43d1d5e94e5c407ce5bde1cf4fab6ce7"
+ },
+ "parameters": {
+  "head": 69056,
+  "int8_tensors": [
+   "time_mlps.0.hidden.weight",
+   "time_mlps.0.out.weight"
+  ]
+ },
+ "training": "the answer-time head on richer frozen features (SM82c) recipe on the frozen SM92 model: one pass over 80988171 labelled rows (1988 users, first 400,000 reviews each), 9887 AdamW steps of 8192 rows, lr 0.002 cosine, heads only",
+ "evaluation": {
+  "gate": {
+   "pass": true,
+   "time_logloss": 1.95795,
+   "sm82c_time_logloss": 1.9568,
+   "limit": 1.97637,
+   "relative_pct": 0.059,
+   "same_evaluation": true,
+   "users": 722,
+   "reviews": 21585938,
+   "sm82c_rule_verdict": "pass",
+   "mae_ln_s": 0.46817,
+   "sm82c_mae_ln_s": 0.46773
+  },
+  "time": {
+   "model": {
+    "time_logloss": 1.95795,
+    "time_logloss_marginal": 1.98321,
+    "mae_ln_s": 0.46817,
+    "mae_ln_s_marginal": 0.48048
+   },
+   "ablation": {
+    "time_logloss": 2.02995,
+    "time_logloss_marginal": 2.04837,
+    "mae_ln_s": 0.50248,
+    "mae_ln_s_marginal": 0.51251
+   },
+   "sm82": {
+    "time_logloss": 1.92996,
+    "time_logloss_marginal": 1.95467,
+    "mae_ln_s": 0.46253,
+    "mae_ln_s_marginal": 0.4744
+   },
+   "sm82b": {
+    "time_logloss": 2.33847,
+    "time_logloss_marginal": 2.34666,
+    "mae_ln_s": 0.66959,
+    "mae_ln_s_marginal": 0.67604
+   },
+   "card_last": {
+    "time_logloss": 2.44665,
+    "mae_ln_s": 0.72217
+   },
+   "user_median": {
+    "time_logloss": 2.36641,
+    "mae_ln_s": 0.64279
+   }
+  },
+  "vs": {
+   "card_last": {
+    "time_logloss": {
+     "delta": -0.4887,
+     "ci": [
+      -0.51218,
+      -0.46729
+     ],
+     "relative_pct": -19.97,
+     "users_better": 722
+    },
+    "mae_ln_s": {
+     "delta": -0.254,
+     "ci": [
+      -0.26998,
+      -0.23971
+     ],
+     "relative_pct": -35.17,
+     "users_better": 722
+    }
+   },
+   "user_median": {
+    "time_logloss": {
+     "delta": -0.40846,
+     "ci": [
+      -0.43759,
+      -0.38314
+     ],
+     "relative_pct": -17.26,
+     "users_better": 722
+    },
+    "mae_ln_s": {
+     "delta": -0.17462,
+     "ci": [
+      -0.18946,
+      -0.16098
+     ],
+     "relative_pct": -27.17,
+     "users_better": 719
+    }
+   },
+   "ablation": {
+    "time_logloss": {
+     "delta": -0.07201,
+     "ci": [
+      -0.07717,
+      -0.06644
+     ],
+     "relative_pct": -3.55,
+     "users_better": 712
+    },
+    "mae_ln_s": {
+     "delta": -0.03431,
+     "ci": [
+      -0.03627,
+      -0.03222
+     ],
+     "relative_pct": -6.83,
+     "users_better": 712
+    }
+   },
+   "sm82": {
+    "time_logloss": {
+     "delta": 0.02799,
+     "ci": [
+      0.02397,
+      0.03233
+     ],
+     "relative_pct": 1.45,
+     "users_better": 63
+    },
+    "mae_ln_s": {
+     "delta": 0.00563,
+     "ci": [
+      0.00469,
+      0.00665
+     ],
+     "relative_pct": 1.22,
+     "users_better": 117
+    }
+   }
+  },
+  "grade_unchanged": true,
+  "verdict": "pass"
+ },
+ "parity": {
+  "vectors": {
+   "4676": {
+    "fp32": {
+     "rows": 2838,
+     "inputs_equal_package_vectors": true
+    },
+    "int8": {
+     "rows": 2838,
+     "inputs_equal_package_vectors": true
+    },
+    "file": "user_4676.npz",
+    "bytes": 3417204
+   },
+   "1745": {
+    "fp32": {
+     "rows": 3705,
+     "inputs_equal_package_vectors": true
+    },
+    "int8": {
+     "rows": 3705,
+     "inputs_equal_package_vectors": true
+    },
+    "file": "user_1745.npz",
+    "bytes": 4190877
+   }
+  },
+  "numpy_check": {
+   "user_1745.npz": {
+    "rows": 3705,
+    "frozen_rows": 500,
+    "explicit_max_abs": 0.0,
+    "logit_max_abs": 4.291534423828125e-06,
+    "prob_max_abs": 2.901250264475408e-07,
+    "median_good_s_mean": 5.858177152949914,
+    "p_fast_good_mean": 0.33984516797189396
+   },
+   "user_4676.npz": {
+    "rows": 2838,
+    "frozen_rows": 500,
+    "explicit_max_abs": 0.0,
+    "logit_max_abs": 5.245208740234375e-06,
+    "prob_max_abs": 3.71152439115896e-07,
+    "median_good_s_mean": 11.434076747628357,
+    "p_fast_good_mean": 0.1900941656156324
+   }
+  }
+ },
+ "files": {
+  "head.pth": {
+   "bytes": 278335,
+   "sha256": "436efaa79c607b3a150198eef196a828e100ac03d8e38b47854ecd9e9c7adc58"
+  },
+  "parity.json": {
+   "bytes": 1062,
+   "sha256": "cf14d36b6003348bd1900e80ae4ea5918c8d2d741f2d56f77307ef6ca7c64f96"
+  },
+  "reference/answer_time_numpy.py": {
+   "bytes": 6686,
+   "sha256": "15e5b66c6231cd582bfef12a5187e84d79cecba51ee25dc3dab62a1cd1e64a07"
+  },
+  "testvectors/check_time_vectors.py": {
+   "bytes": 2154,
+   "sha256": "9bc7fb49edb83b70fb08020871f9ac0079b28a08d91e1c1526d36f2abd03dafe"
+  },
+  "testvectors/user_1745.npz": {
+   "bytes": 4190877,
+   "sha256": "5b56403d125c336efee2afb424e251bfd0bd286da76b1efa505523a11ffffe74"
+  },
+  "testvectors/user_4676.npz": {
+   "bytes": 3417204,
+   "sha256": "f285ac52b54e065eac57f323fec89378857ec2e7d6081bd13358577a2545b3dc"
+  },
+  "time_head.f32.bin": {
+   "bytes": 276402,
+   "sha256": "814e9b891987204a9e802b714e12c72282cc267c69511c27520131aaf0d2f09d"
+  },
+  "time_head.int8.bin": {
+   "bytes": 70586,
+   "sha256": "fcab0e3f7f766da9f56b37780e643622c282d24eeb473b1103723c4a5bf836c6"
+  },
+  "time_head.json": {
+   "bytes": 3746,
+   "sha256": "c5fbf054ed866d570f24e4688cb9d87f0f9420f2a383518ca73a61d251d5c469"
+  }
+ },
+ "provenance": {
+  "sm83_packaging_commit": "8659dc4344cc95e8e6c41b966f2ef0037de6e204",
+  "sm92_commit": "34fe9b4dbc3af9ea1f1381a6e4c0ebe4387a7f78"
+ }
+}

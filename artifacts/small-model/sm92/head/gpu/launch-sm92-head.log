@@ -1,0 +1,17 @@
+[sm92-head 11-04 07:45:25] started: scripts d5d381f3 Fix the fast-answer threshold label in the decision file: P(under 3.9 s), not 5.5 s (bins 0-6 end at 3,891 ms) (DRYRUN=0, head on the frozen SM92 model: C:/Users/jonat/workspace/wt/sm92/artifacts/small-model/sm92-e26-dec-1ep32k-muon/expertium/E89-F65e-F77a/master.pth)
+[sm92-head 11-04 07:45:25] plan: 1,991 users, 136,132,251 of 145,578,259 reviews (cap 400,000, 59 users cut), 81,906,441 labelled rows
+[sm92-head 11-04 07:46:35] [sm82c-check] PASS (68.0 s; C:/Users/jonat/workspace/wt/sm92/artifacts/small-model/sm92/head/gpu/check-cpu-sm92.json)
+[sm92-head 11-04 07:46:35] enqueue: smoke: head training on 4 users (3 small + the longest, cut at 400k) + time scoring of both heads (3 users) + grade check (2 users) on the frozen SM92 model (expected 12 min, max wait 718 min, 733 min to the next window)
+[sm92-head 11-04 07:47:13] exit 0: smoke: head training on 4 users (3 small + the longest, cut at 400k) + time scoring of both heads (3 users) + grade check (2 users) on the frozen SM92 model
+[sm92-head 11-04 07:47:15] smoke head training: skipped / peak GiB / seconds: 0 8.35 16.8
+[sm92-head 11-04 07:47:15] smoke: [sm82c-train] complete: 4/4 users, 295 steps, 301,214 rows, mean time loss 1.7743 / ablation 1.8633, skipped 0, trunk unchanged True, 0.3 min -> C:\Users\jonat\workspace\wt\sm92\artifacts\small-model\sm92\head\work\smoke-train-sm92; [sm82c-train] step 1: time loss 2.7726 / ablation 2.7726 nats over 1,024 rows (zero output layers: ln 16 = 2.7726); [sm82c-grade] 2 users: released vs the exported model with the head bitwise True; vs the recorded released scores True
+[sm92-head 11-04 07:47:15] enqueue: head training on the frozen SM92 model (1,991 users of the quarter-epoch cool-down, first 400k reviews each, 10k AdamW steps, head + explicit-only ablation) (expected 90 min, max wait 639 min, 732 min to the next window)
+[sm92-head 11-04 08:34:11] exit 0: head training on the frozen SM92 model (1,991 users of the quarter-epoch cool-down, first 400k reviews each, 10k AdamW steps, head + explicit-only ablation)
+[sm92-head 11-04 08:34:11] head training: [sm82c-train] complete: 1991/1991 users, 9,887 steps, 80,988,171 rows, mean time loss 1.9023 / ablation 1.9812, skipped 3, trunk unchanged True, 46.9 min -> C:\Users\jonat\workspace\wt\sm92\artifacts\small-model\sm92-head
+[sm92-head 11-04 08:34:11] enqueue: grade check: the SM92 model vs the exported model with the head (5 users, scorer rows and dumps bitwise) (expected 10 min, max wait 672 min, 685 min to the next window)
+[sm92-head 11-04 08:34:36] exit 0: grade check: the SM92 model vs the exported model with the head (5 users, scorer rows and dumps bitwise)
+[sm92-head 11-04 08:34:37] [sm82c-grade] 5 users: released vs the exported model with the head bitwise True; vs the recorded released scores True
+[sm92-head 11-04 08:34:38] enqueue: time scoring of the head and the ablation on the 732 pool minus 9 never-fit (723, pass 1) (expected 30 min, max wait 652 min, 685 min to the next window)
+[sm92-head 11-04 08:50:03] exit 0: time scoring of the head and the ablation on the 732 pool minus 9 never-fit (723, pass 1)
+[sm92-head 11-04 08:50:05] rule exit 0: [sm92-head-gate] 722 users: time LogLoss 1.9580 vs SM82c 1.9568 (+0.06%), rule pass: PASS
+[sm92-head 11-04 08:50:05] done
