@@ -500,6 +500,27 @@ def sync_issues(curated, data, running, waiting, finished):
                     and r["curve"] < best["curve"] - 1e-5 and r["instant"] < best["instant"] - 1e-5):
                 issues.append(f'headline "{plain(h["k"])[:50]}": results row {r.get("id") or r.get("label")} ({r.get("date")}) '
                               f"beats its Best on both heads ({r['curve']} / {r['instant']})")
+    # a ship decision that a later row acted on, but the candidate's own row still reads as pending
+    pending = re.compile(r"ship candidate|the user decides", re.I)
+    shipped = re.compile(r"^\s*(<strong>)?shipped\b", re.I)
+    for r in data["results"]:
+        if not pending.search(str(r.get("fork") or "")):
+            continue
+        for i in ids_of(r.get("id")):
+            later = [o for o in data["results"] if o is not r and o.get("date", "") >= r.get("date", "")
+                     and f"({i})" in str(o.get("name") or "") and shipped.search(str(o.get("fork") or ""))]
+            if later:
+                issues.append(f"results row {i} ({r.get('date')}) still reads as a ship candidate, but row "
+                              f"{later[0].get('id')} ({later[0].get('date')}) shipped it: update its fork / takeaway text")
+    # a model shipped as the fork's default must show on a headline card
+    variants = " ".join(c.get("variant", "") for h in data["headline"] for c in h.get("compare") or [])
+    for r in data["results"]:
+        fork = str(r.get("fork") or "")
+        if shipped.search(fork) and re.search(r"\bdefault\b", fork, re.I):
+            for i in ids_of(r.get("id")):
+                if f"({i})" not in variants:
+                    issues.append(f"{i} shipped as the fork's default ({r.get('date')}) but no headline card row names it: "
+                                  f"add it to the best-results card")
     for r in data["results"]:
         if r.get("auto") and stamp - local(r["first_seen"]) > timedelta(days=1):
             issues.append(f"pending result {r['label']} since {r['first_seen'][:16]} has no curated row")
