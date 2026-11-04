@@ -194,3 +194,94 @@ go-ahead to clone it.
   - the same seed gives identical counters;
   - batched == unbatched: every lane run alone (B = 1, or B = 2 with the teacher-forced lane for the shared-stream arms) against all lanes together, on 2 users;
   - teacher forcing in stage 1's convention reproduces stage 1's `real-tf` lane (user 3876, 90 days: predicted later-day retention 0.8689, 976 first-touch reviews at 0.8407 predicted, 19.79 s predicted per later review, all identical).
+
+## 9. Stage 2 part 2: the lane engine for policies (`scripts/sm41_engine.py`)
+
+Part 1's lock-step batch only replays the real schedule: every lane reviews the same card at the same tick. A policy
+moves cards to other days, so here every lane reviews its own card at a tick. Result: [engine-result.md](engine-result.md).
+
+### 9.1 Engine (decisions)
+
+- **One engine = one user, one split, B lanes.** Lane 0 is teacher forcing on the real schedule (`tf`). Days run in step for all lanes. Within a day, every active lane does one review per tick, so a tick is one batched query step and one batched commit step. A lane whose day is over waits. The instant-head policy's candidate rows (9.2) ride along in the next tick's query step: rows of a batch are independent, and a card that left the day is not needed again before the next day (pending decisions are flushed at the end of the day). This saves one model call per tick (+20% throughput).
+- **State arenas.**
+  - There is one tensor [entities x lanes x ...] per stream, per layer and per state tensor (token shift, wkv state, channel shift), filled from the warm-up.
+  - Entities are the card set (every card of the real window, as in stage 1 section 1.6), their notes, decks and presets, and the user.
+  - A tick gathers (entity of lane b, lane b) for every active lane and scatters the commit back: about 40 indexing calls per tick, whatever B is.
+- **New entities: the fresh mask.**
+  - An entity a lane has not reviewed yet must behave like the stock first step (state None): the token shift reads the row's own layer-normed input, and the wkv state is zero.
+  - In a batch where only some rows are new, forward hooks on the mixers' layer norms copy that output into the shift buffers of the fresh rows before it is used, and their wkv rows are zeroed.
+  - No model code is copied. P2 checks this path against the stock step.
+- **Inputs.**
+  - `sm41_sim.Builder` is vectorised over lanes (per-lane counters, per lane x card history).
+  - The id codes are drawn once, in the real window order, so every lane uses the same codes, and they equal part 1's.
+- **Interval convention.** Part 1's `show` (8.1).
+  - Query rows run from the lane's previous answer of the card to the show moment.
+  - Commit rows run answer to answer, with the lane's own answer time.
+- **Clock (policy lanes).** Stage 1's session: the start time is 12:00 + N(0, sigma), reviews follow each other by answer time, and same-day steps come back after the user's own gaps. One rule is added: the clock never runs backwards, so a session that runs past the next day's start delays that start. Without this rule, a long late session gave negative intervals on the next day (found in the smoke test).
+- **Re-anchoring by default.** Daily shared-stream re-anchoring (fr-shared1) is on for every lane.
+  - At the start of every day, the deck, preset and user states (and their fresh flags) of every anchored lane are copied from lane 0. Card and note states stay the lane's own.
+  - The suffix `-free` turns it off.
+  - Consequence: a run cannot go past the end of the user's real history.
+- **Replay lanes** (`tf`, `fr`, `fr-shared1`, `fr-shared7`) replay the real schedule exactly as part 1 does.
+- **Policy lanes** run their own sessions:
+  - each day, the due cards (overdue first, ties in a seeded order), then the day's real new cards in real order, all of them (no daily limits yet);
+  - same-day steps by the user's own rules;
+  - first-review grades and times, and same-day times, from the user's recent pools (stage 1's scheduler lanes);
+  - later-day grades from the instant head, later-day times from the answer-time head.
+- **Draws.**
+  - Policy lanes use counter-based uniforms (a splitmix64 hash) keyed on (user, split, seed, card, the card's review number in the lane, slot). Lanes of the same seed therefore draw the same numbers card by card under every policy (common random numbers). A lane run alone draws exactly what it draws in a batch, so batched == alone can be checked review by review.
+  - Replay lanes keep part 1's random stream, so they reproduce part 1's rows (P3).
+
+### 9.2 Policies
+
+- **Instant-head desired retention (`ihr-R`).** This is stage 1's follow-up "choose intervals with the instant head", and the machinery the time-aware policy needs.
+  - When a card leaves the day, K = 16 candidate query rows are built, at T = 1, 2, 3, 4, 6, 10, 16, 25, 40, 63, 100, 158, 251, 398, 631 and 1000 days.
+  - All 16 rows use the card's post-commit states and go through one batched step (the next tick's query step, 9.1).
+  - The interval is the first crossing of P(pass) = R, by log-linear interpolation on the grid, rounded, at least 1 day. If P(pass) is already below R at 1 day, the interval is 1 day; if it never falls to R, it is 1000 days.
+  - The candidate rows are counterfactual, so they need rules (decisions):
+    - elapsed = T whole days;
+    - the day gap since the lane's previous review = 0 (mid-session);
+    - the new cards and reviews since the card's last review = the user's recent per-calendar-day rates x T (the 60-day window of `user_habits`, the same for every policy);
+    - today's counters at half the user's mean per active day;
+    - weekday and day encodings at the candidate day;
+    - the shared streams as they are now (their future is unknown).
+  - On the split day the same rows are built from the warm-up state for every old card. Cards whose interval has already run out are due on day 0 (the switch backlog).
+- **FSRS-7 baseline (`fsrs7-R`).** No FSRS-7 scheduler existed in this repository, so the simplest equivalent was added.
+  - It is a numpy port of srs-benchmark's finished 34-parameter FSRS-7 (`models/fsrs_v7.py`: dual stability, the mixture forgetting curve, `--secs` intervals in fractional days).
+  - It uses each user's own srs-benchmark fit (`result/FSRS-7-short-secs.jsonl`, read only), or the default parameters when there is none.
+  - It is updated at every review of the lane, same-day ones included, with the lane's own grades and answer-to-answer intervals.
+  - The interval solves R(t) = R by bisection, rounded, at least 1 day.
+  - Caveat: the fit saw the user's whole history, including the window. This only shapes the baseline's schedule; the simulated learner is still the model.
+- **Curve-head desired retention (`curve-R`).** Stage 1's policy (the commit row's GRU power curves, `time_at`), kept to measure the gap between the two heads.
+- **The time-aware objective is deferred.** On the same candidate grid it changes only the selection rule. But a one-step objective, such as expected answer time per day of retained memory, has no interior optimum with these power curves: like the cost ratio of response-time prediction (SM82) stage 2, it keeps falling as intervals grow. It needs a lapse value (the future cost of a forgotten card) or a daily time budget. Both are full-run design choices, not engine work.
+
+### 9.3 Metrics
+
+Part 1's counters per lane and 15-day bucket, plus:
+
+- workload: the answer seconds of first, same-day and later-day reviews;
+- the policy's aim: its own predicted recall at the interval it chose;
+- memorised cards at the horizon, by the instant head (a query row at 12:00 of the last day, from the lane's final states) and by the last commit curve (for reference);
+- the switch backlog.
+
+Policy metrics are read on days 30-59, after a 30-day burn-in of the switch (stage 1 takeaway 5).
+
+Drift against the real user:
+
+- replay lanes: the first-touch state drift, as in part 1;
+- policy lanes: the Easy share of passes and the seconds per later-day review, each against teacher forcing on the real schedule.
+
+### 9.4 Proofs (`proof`, `engine/proof-cpu.json`)
+
+- **P1, batched == alone.**
+  - Every lane is run alone (B = 1, or B = 2 with `tf` for re-anchored lanes) and compared with the run of all lanes together.
+  - The comparison is review by review: day, card, kind, grade, time and chosen interval identical, P(pass) within 1e-4.
+  - The counters must agree within a relative 1e-4.
+- **P2, the scalar reference.** One lane at a time against an independent scalar path:
+  - stage 1's `Builder`, with the codes preset to the engine's;
+  - dict states with None for new entities, and the stock recurrent step;
+  - candidate rows built from the Builder's own history;
+  - stage 1's `time_at`.
+
+  The two paths share only the session rules, the draws, the FSRS-7 functions and the grid interpolation. P2 also checks the split-day candidate step against scalar steps on 40 old cards.
+- **P3, replay.** `tf` and `fr-shared1` x 3 seeds, replayed with part 1's stream, reproduce part 1's row (user 3876, split 225, 60 days): integer counters identical, float sums within a relative 1e-4.

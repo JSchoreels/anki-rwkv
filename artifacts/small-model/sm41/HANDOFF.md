@@ -35,10 +35,10 @@ Branch `sm41`, worktree `C:/Users/jonat/workspace/wt/sm41`. Stage 1: [prototype-
 
    Push. Never stage `docs/GPU_OPTIMIZATIONS_LOG.md` or `.claude/`. Do not edit `pages/data/factory-curated.json`; the main session updates the Factory page.
 
-## Still open after this (stage 2, not started)
+## Still open after this (stage 2)
 
-- Intervals chosen with the instant head (K candidate query rows), the time-aware policy.
-- The general vectorised lane engine for scheduler lanes (lanes that diverge from the real schedule). The lock-step batch here only covers real-schedule replay.
-- The full run.
+- Done 2026-11-04 (stage 2 part 2, [engine-result.md](engine-result.md), DESIGN.md section 9): intervals chosen with the instant head (K = 16 candidate query rows), the general vectorised lane engine for scheduler lanes (`scripts/sm41_engine.py`), the FSRS-7 baseline policy; CPU proofs PASS; validation on 8 users.
+- The time-aware objective on the same candidate grid: deferred (needs a lapse value or a daily time budget, DESIGN.md 9.2).
+- The full run: proposal and cost in [engine-result.md](engine-result.md); not started, the main session decides.
 - GPU batched-step benchmark (stage 1 follow-up 1, skipped: no GPU without the user's go).
 - Retraining on show-time intervals is the separate show-time interval retrain (SM91); not part of this track.
