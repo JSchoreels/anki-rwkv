@@ -1,6 +1,6 @@
 # The real-data check of the time-aware target (SM41r): handoff
 
-**Status: running** (launched 2026-11-05 14:32, expected end about 16:15-16:45).
+**Status: done** (launched 2026-11-05 14:32, finished 16:27; results written up in realcheck-result.md).
 
 Branch `sm41`, worktree `C:/Users/jonat/workspace/wt/sm41`. Always `git fetch` + `git merge --ff-only` first. If SSH
 to GitHub fails:
