@@ -349,3 +349,7 @@ The [0014–0016 seed studies and handoff details](../artifacts/retraining/gpu-r
 ## 2026-10-14: EV01 adopted
 
 User approved the evaluation-tolerance rule (AGENT.md, GPU_RETRAIN_LOOP.md) and `fast_evaluation` as the full-run default (`scripts/run_full_training.py`, `config.get("fast_evaluation", True)`). Models refused by `evaluate_fast` (EV08: width-80 / GRU head) fall back to the reference and record `evaluation_mode`. Bit-exact claims still use `fast_evaluation: false` / `--mode reference` / `--batch-chunks 8`.
+
+## 2026-11-05: CPU review simulator (SM41) engine, scenarios as lanes
+
+Measured (branch `sm41`, commit `e5cdd5d8`, [note](../artifacts/small-model/sm41/perf/fused-scenarios.md)). cProfile of one job: 73% small-model forward passes on tiny batches (about 7 reviews + 34 candidate rows per tick), 11% of it PyTorch module-call overhead, 36&ndash;200 s warm-up per job. Per-lane learner drift (lane option `g<a>_<b>`) runs the three changing-learner scenarios as lanes of one run: fused == separate review by review (integer columns identical, P(pass) within 4e-7, proof P1 bar 1e-4), about 45% less CPU (518 s vs about 935 s, user 3992, 169 lanes), the same peak memory as one scenario (0.60 GB). The patch is applied to `scripts/sm41_engine.py` only after the running changing-learner simulation ends. Untested: a warm-up cache per (user, split) (about 10&ndash;20%), skipping module-call overhead when no fresh rows need hooks (up to about 11%), several users per process.
