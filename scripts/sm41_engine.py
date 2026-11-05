@@ -36,6 +36,9 @@ different card. Design: artifacts/small-model/sm41/DESIGN.md section 9.
   proof    P1 batched == each lane alone; P2 engine == a scalar reference built on stage 1's Builder and the stock
            recurrent step; P3 replay lanes reproduce part 1's fr-shared1 rows
   run      --user U --split D --days N --lanes ...   one user, one split -> JSONL row (resumable, quiet.json holds)
+           options (off by default): --drift A,B the changing learner (the changing-learner simulation (SM41g):
+           policy lanes' P(pass) logit + A * day / 60, answer times x exp(-B * day / 60)); --ivl-hist the
+           later-day elapsed-days histogram
   report   the validation tables -> artifacts/small-model/sm41/engine/engine-tables.md / .json
 """
 from argparse import ArgumentParser
@@ -73,6 +76,8 @@ T_GRID = np.unique(np.round(np.geomspace(1, 1000, 16)))     # candidate interval
 LOG_COLS = ("lane", "day", "card", "kind", "ed", "q_es", "rating", "ms", "p_true", "ivl", "aim_out", "aim_prev",
             "r_fsrs7", "r_curve", "t90_before", "t90_after")
 LOG_IVL, LOG_AIM_OUT = LOG_COLS.index("ivl"), LOG_COLS.index("aim_out")
+# interval histogram bins (Engine(ivl_hist=True)): whole days 1-10, then about 10% wide, the last bin open (>= 1000)
+IVL_EDGES = np.unique(np.concatenate([np.arange(1, 11), np.round(np.geomspace(10, 1000, 49))])).astype(np.int64)
 FSRS7_FITS = Path("C:/Users/jonat/workspace/srs-benchmark/result/FSRS-7-short-secs.jsonl")   # read only
 
 
@@ -406,8 +411,17 @@ class Engine:
     """One user, one split, B lanes (lane 0 must be 'tf' when any lane is re-anchored)."""
 
     def __init__(self, model, warm, D, N, lane_names, seeds_n=3, base_seed=0, trace=False, fsrs=None,
-                 fsrs_source="", log=False):
+                 fsrs_source="", log=False, drift=None, ivl_hist=False):
         install_fresh_hooks(model)
+        # learner drift (the changing-learner simulation (SM41g); None = off, the default rows unchanged): (a, b) =
+        # on simulated day d the policy lanes' learner draws its model-graded reviews (same-day and later-day) from
+        # P(pass) shifted by a * d / 60 on the logit scale (a pass keeps the instant head's Hard / Good / Easy mix
+        # renormalised, a fail is Again), and every answer time of a policy lane is multiplied by exp(-b * d / 60).
+        # Only the learner's draws change: the drawn grade and time feed the commit row, the time features, FSRS-7 and
+        # the time-aware target exactly like an undrifted draw. Replay lanes (tf: the real user) are not drifted.
+        self.drift = None if drift is None else (float(drift[0]), float(drift[1]))
+        # interval histogram (off by default): elapsed days of later-day reviews per lane and bucket (IVL_EDGES bins)
+        self.ivl_hist = ivl_hist
         self.model, self.warm, self.D, self.N = model, warm, D, N
         torch = model.torch
         rev = warm.rev
@@ -586,6 +600,9 @@ class Engine:
                     "grades_later": zz(4), "time_later": zz(4), "implied_follow": zz(2), "grade_ll": zz(4),
                     "load": zz(6),      # n first / same-day / later, seconds first / same-day / later
                     "aim": zz(2)}       # later-day reviews with a policy aim: n, sum of the aimed recall
+        if self.ivl_hist:
+            self.acc["ivl_later"] = zz(len(IVL_EDGES))   # bin j: IVL_EDGES[j] <= elapsed days < IVL_EDGES[j + 1]
+        self.is_pol = np.array([c["kind"] == "policy" for c in self.cfg])
         self.traces = [[] for _ in range(B)]
         self.mid = (model.lo + model.hi) / 2
 
@@ -860,14 +877,29 @@ class Engine:
             if pend is not None:
                 self.resolve(pend, (1.0 - p_full[n:, 0]).reshape(-1, K))
         # grades
-        rating = DR.sample_cat(p_all, U[:, 0]) + 1
+        p_draw = p_all
+        tfac = None
+        if self.drift is not None:
+            # the changing learner: policy lanes' model-graded reviews drawn from the drifted P(pass)
+            a_, b_ = self.drift
+            dm = pol & (kind != 0)
+            if dm.any() and a_ != 0.0:
+                p_draw = p_all.copy()
+                P0 = np.clip(1.0 - p_all[dm, 0], 1e-12, 1 - 1e-12)
+                P1 = 1.0 / (1.0 + np.exp(-(np.log(P0 / (1 - P0)) + a_ * d / 60.0)))
+                q = p_all[dm].copy()
+                q[:, 1:] *= (P1 / P0)[:, None]
+                q[:, 0] = 1.0 - P1
+                p_draw[dm] = q
+            tfac = math.exp(-b_ * d / 60.0)
+        rating = DR.sample_cat(p_draw, U[:, 0]) + 1
         fm = self.habits["first_mix"]
         first_g = DR.sample_cat(np.repeat(fm[None], n, 0), U[:, 0]) + 1
         rating = np.where(kind == 0, np.where(rep, g_r, first_g), np.where(teacher, g_r, rating))
         # times
         dur = np.where(rep, u_r, 0).astype(np.int64)
         k2 = np.nonzero(kind == 2)[0]
-        ppass = 1.0 - p_all[:, 0]
+        ppass = 1.0 - p_draw[:, 0]     # the learner's true recall (= the instant head's unless drifted)
         if len(k2):
             ex = np.stack([self.expl[A[j]].features(self.cards[e[j]], int(ed[j])) for j in k2])
             tp = DR.time_probs_batch(m, frozen[torch.from_numpy(k2)], ex)
@@ -875,9 +907,17 @@ class Engine:
             bins = DR.sample_cat(pb / pb.sum(-1, keepdims=True), U[k2, 1])
             lo, hi = m.lo[bins], m.hi[bins]
             ms_s = np.where(bins == 15, 60000, np.round(1000 * np.exp(lo + U[k2, 2] * (hi - lo)))).astype(np.int64)
+            ex_s = (pb * np.exp(self.mid)).sum(-1)
+            if tfac is not None:
+                pk = pol[k2]
+                ms_s = np.where(pk, np.maximum(1, np.round(ms_s * tfac)), ms_s).astype(np.int64)
+                ex_s = np.where(pk, ex_s * tfac, ex_s)
             dur[k2] = np.where(teacher[k2], u_r[k2], ms_s)
             A2 = A[k2]
-            self.acc["time_later"][A2, bkt, 3] += (pb * np.exp(self.mid)).sum(-1)
+            self.acc["time_later"][A2, bkt, 3] += ex_s
+            if self.ivl_hist:
+                bi = np.searchsorted(IVL_EDGES, ed[k2], side="right") - 1
+                np.add.at(self.acc["ivl_later"], (A2, bkt, np.maximum(bi, 0)), 1)
             old2 = self.old[e[k2]]
             for nm, sel in (("later_old", old2), ("later_new", ~old2)):
                 rr = k2[sel]
@@ -904,6 +944,8 @@ class Engine:
         for j in np.nonzero(pol & (kind < 2))[0]:
             pool = pools[(int(kind[j]), int(rating[j]))]
             dur[j] = int(pool[min(int(U[j, 1] * len(pool)), len(pool) - 1)])
+            if tfac is not None:
+                dur[j] = max(1, int(round(dur[j] * tfac)))
         # commit row intervals
         c_es = np.round(es_r + dp + (dur - u_r) / 1000.0)
         differs = (dp != 0) | (dur != u_r)
@@ -1096,6 +1138,14 @@ class Engine:
             p = p / p.sum(-1, keepdims=True)
             out[sl] = 1 - p[:, 0]
         inst = out.reshape(B, C).sum(1)
+        self.mem_model = None
+        if self.drift is not None and self.drift[0] != 0.0:
+            # the changing learner's own recall at the horizon (day N): the instant head's shifted by a * N / 60 on the
+            # policy lanes; the undrifted sum is kept as memorised_instant_model
+            self.mem_model = inst.copy()
+            P0 = np.clip(out.reshape(B, C), 1e-12, 1 - 1e-12)
+            P1 = 1.0 / (1.0 + np.exp(-(np.log(P0 / (1 - P0)) + self.drift[0] * self.N / 60.0)))
+            inst = np.where(self.is_pol, P1.sum(1), inst)
         tt = np.maximum(1.0, t_end - self.last_end)
         crv = np.array([curve_np(self.cw[b], self.cs[b], self.cd[b], tt[b]).sum() for b in range(B)])
         if self.log_on:
@@ -1106,6 +1156,16 @@ class Engine:
     def result(self):
         inst, crv = self.memorised()
         lanes = [c["name"] for c in self.cfg]
+        extra = {}
+        if self.drift is not None:
+            extra["drift"] = {"a": self.drift[0], "b": self.drift[1]}
+            if self.mem_model is not None:
+                extra["memorised_instant_model"] = self.mem_model.round(3).tolist()
+        if self.ivl_hist:
+            extra["ivl_edges"] = IVL_EDGES.tolist()
+        return {**self._result(inst, crv, lanes), **extra}
+
+    def _result(self, inst, crv, lanes):
         return {"user": self.warm.user, "split_day": self.D, "days": self.N, "warmup_reviews": self.end,
                 "window_reviews": self.stop - self.end, "cards": self.C, "old_cards": int(self.old.sum()),
                 "lanes": lanes, "bucket_days": BUCKET, "acc": {k: v.round(6).tolist() for k, v in self.acc.items()},
@@ -1460,7 +1520,9 @@ def run(args):
         DR.wait_clear(f"user {user} split {D}")
         if args.min_free_gb:
             wait_memory(f"user {user} split {D}", args.min_free_gb)
-        eng = Engine(model, warm, D, N, args.lanes.split(","), fsrs=fsrs, fsrs_source=src, log=bool(args.log_dir))
+        eng = Engine(model, warm, D, N, args.lanes.split(","), fsrs=fsrs, fsrs_source=src, log=bool(args.log_dir),
+                     drift=tuple(float(x) for x in args.drift.split(",")) if args.drift else None,
+                     ivl_hist=args.ivl_hist)
         res = eng.run()
         if args.log_dir:
             Path(args.log_dir).mkdir(parents=True, exist_ok=True)
@@ -1611,6 +1673,9 @@ def main():
     r.add_argument("--min-free-gb", type=float, default=0.0, help="hold each split until this much RAM is available")
     r.add_argument("--lanes", default=DEFAULT_LANES); r.add_argument("--threads", type=int, default=1)
     r.add_argument("--log-dir", default="", help="per-review diagnostic log, one .npz per split (off by default)")
+    r.add_argument("--drift", default="", help="A,B: the changing learner (off by default): P(pass) logit + A * day / 60, "
+                   "answer times x exp(-B * day / 60), policy lanes only")
+    r.add_argument("--ivl-hist", action="store_true", help="add the later-day elapsed-days histogram (acc ivl_later)")
     r.add_argument("--out", default=str(OUT / "validation.jsonl"))
     t = sub.add_parser("report"); t.add_argument("--rows", default=str(OUT / "rows" / "*.jsonl"))
     t.add_argument("--md", default=str(OUT / "engine-tables.md")); t.add_argument("--json", default=str(OUT / "engine-result.json"))
