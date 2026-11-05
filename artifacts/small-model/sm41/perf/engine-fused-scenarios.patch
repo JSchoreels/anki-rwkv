@@ -1,0 +1,113 @@
+diff --git a/scripts/sm41_engine.py b/scripts/sm41_engine.py
+index 84ec1b3f..583b9eea 100644
+--- a/scripts/sm41_engine.py
++++ b/scripts/sm41_engine.py
+@@ -106,6 +106,10 @@ def lane_cfg(name):
+     for o in parts[2:]:
+         if o == "free":
+             continue
++        if o[0] == "g":
++            # per-lane learner drift g<a>_<b> ('m' = minus, e.g. gm0.5_m0.2): overrides the run's --drift on this lane
++            cfg["drift"] = tuple(float(v.replace("m", "-")) for v in o[1:].split("_"))
++            continue
+         opt[o[0]] = float(o[1:])
+     assert set(opt) <= set("nsa"), f"unknown lane option in {name}"
+     if opt:
+@@ -420,6 +424,15 @@ class Engine:
+         # Only the learner's draws change: the drawn grade and time feed the commit row, the time features, FSRS-7 and
+         # the time-aware target exactly like an undrifted draw. Replay lanes (tf: the real user) are not drifted.
+         self.drift = None if drift is None else (float(drift[0]), float(drift[1]))
++        # per-lane drift (lane option g<a>_<b>): several scenarios as lanes of one run (shared warm-up, fuller batches);
++        # lanes without it use --drift (or none). Arithmetic per row is the same as the scalar path.
++        g0 = self.drift if self.drift is not None else (0.0, 0.0)
++        self.dA = [0.0] * len(lane_names); self.dB = [0.0] * len(lane_names)
++        for b_, nm_ in enumerate(lane_names):
++            c_ = lane_cfg(nm_)
++            if c_["kind"] == "policy":
++                self.dA[b_], self.dB[b_] = c_.get("drift", g0)
++        self.drift_on = self.drift is not None or any(self.dA) or any(self.dB)
+         # interval histogram (off by default): elapsed days of later-day reviews per lane and bucket (IVL_EDGES bins)
+         self.ivl_hist = ivl_hist
+         self.model, self.warm, self.D, self.N = model, warm, D, N
+@@ -879,19 +892,20 @@ class Engine:
+         # grades
+         p_draw = p_all
+         tfac = None
+-        if self.drift is not None:
++        if self.drift_on:
+             # the changing learner: policy lanes' model-graded reviews drawn from the drifted P(pass)
+-            a_, b_ = self.drift
+-            dm = pol & (kind != 0)
+-            if dm.any() and a_ != 0.0:
++            aL = np.array([self.dA[b] * d / 60.0 for b in A])
++            dm = pol & (kind != 0) & (np.array([self.dA[b] for b in A]) != 0.0)
++            if dm.any():
+                 p_draw = p_all.copy()
+                 P0 = np.clip(1.0 - p_all[dm, 0], 1e-12, 1 - 1e-12)
+-                P1 = 1.0 / (1.0 + np.exp(-(np.log(P0 / (1 - P0)) + a_ * d / 60.0)))
++                P1 = 1.0 / (1.0 + np.exp(-(np.log(P0 / (1 - P0)) + aL[dm])))
+                 q = p_all[dm].copy()
+                 q[:, 1:] *= (P1 / P0)[:, None]
+                 q[:, 0] = 1.0 - P1
+                 p_draw[dm] = q
+-            tfac = math.exp(-b_ * d / 60.0)
++            tfac = np.array([math.exp(-self.dB[b] * d / 60.0) for b in A])
++            tmask = pol & (np.array([self.dB[b] for b in A]) != 0.0)
+         rating = DR.sample_cat(p_draw, U[:, 0]) + 1
+         fm = self.habits["first_mix"]
+         first_g = DR.sample_cat(np.repeat(fm[None], n, 0), U[:, 0]) + 1
+@@ -909,9 +923,9 @@ class Engine:
+             ms_s = np.where(bins == 15, 60000, np.round(1000 * np.exp(lo + U[k2, 2] * (hi - lo)))).astype(np.int64)
+             ex_s = (pb * np.exp(self.mid)).sum(-1)
+             if tfac is not None:
+-                pk = pol[k2]
+-                ms_s = np.where(pk, np.maximum(1, np.round(ms_s * tfac)), ms_s).astype(np.int64)
+-                ex_s = np.where(pk, ex_s * tfac, ex_s)
++                pk = tmask[k2]
++                ms_s = np.where(pk, np.maximum(1, np.round(ms_s * tfac[k2])), ms_s).astype(np.int64)
++                ex_s = np.where(pk, ex_s * tfac[k2], ex_s)
+             dur[k2] = np.where(teacher[k2], u_r[k2], ms_s)
+             A2 = A[k2]
+             self.acc["time_later"][A2, bkt, 3] += ex_s
+@@ -944,8 +958,8 @@ class Engine:
+         for j in np.nonzero(pol & (kind < 2))[0]:
+             pool = pools[(int(kind[j]), int(rating[j]))]
+             dur[j] = int(pool[min(int(U[j, 1] * len(pool)), len(pool) - 1)])
+-            if tfac is not None:
+-                dur[j] = max(1, int(round(dur[j] * tfac)))
++            if tfac is not None and tmask[j]:
++                dur[j] = max(1, int(round(dur[j] * float(tfac[j]))))
+         # commit row intervals
+         c_es = np.round(es_r + dp + (dur - u_r) / 1000.0)
+         differs = (dp != 0) | (dur != u_r)
+@@ -1139,13 +1153,14 @@ class Engine:
+             out[sl] = 1 - p[:, 0]
+         inst = out.reshape(B, C).sum(1)
+         self.mem_model = None
+-        if self.drift is not None and self.drift[0] != 0.0:
++        aN = np.array([a_ * self.N / 60.0 for a_ in self.dA])
++        if self.drift_on and (aN != 0.0).any():
+             # the changing learner's own recall at the horizon (day N): the instant head's shifted by a * N / 60 on the
+             # policy lanes; the undrifted sum is kept as memorised_instant_model
+             self.mem_model = inst.copy()
+             P0 = np.clip(out.reshape(B, C), 1e-12, 1 - 1e-12)
+-            P1 = 1.0 / (1.0 + np.exp(-(np.log(P0 / (1 - P0)) + self.drift[0] * self.N / 60.0)))
+-            inst = np.where(self.is_pol, P1.sum(1), inst)
++            P1 = 1.0 / (1.0 + np.exp(-(np.log(P0 / (1 - P0)) + aN[:, None])))
++            inst = np.where(self.is_pol & (aN != 0.0), P1.sum(1), inst)
+         tt = np.maximum(1.0, t_end - self.last_end)
+         crv = np.array([curve_np(self.cw[b], self.cs[b], self.cd[b], tt[b]).sum() for b in range(B)])
+         if self.log_on:
+@@ -1157,8 +1172,10 @@ class Engine:
+         inst, crv = self.memorised()
+         lanes = [c["name"] for c in self.cfg]
+         extra = {}
+-        if self.drift is not None:
+-            extra["drift"] = {"a": self.drift[0], "b": self.drift[1]}
++        if self.drift_on:
++            extra["drift"] = {"a": self.drift[0], "b": self.drift[1]} if self.drift is not None else {"a": 0.0, "b": 0.0}
++            if any(c.get("drift") for c in self.cfg):
++                extra["drift_lanes"] = {"a": self.dA, "b": self.dB}
+             if self.mem_model is not None:
+                 extra["memorised_instant_model"] = self.mem_model.round(3).tolist()
+         if self.ivl_hist:
