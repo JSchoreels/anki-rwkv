@@ -157,6 +157,19 @@ Gap vs FSRS-7 on the 20 screen users, three ways (paired, 95% CI):
 - Next: beta = 3 on all 117 users (`policy/run-confirm3.sh`, rows `policy/confirm3/rows/`, read-out
   `policy/frontier-confirm3.out`), launched 10:11.
 
+### Beta = 3 on all users (117 users, 304 splits, 10:11-14:34; `policy/confirm3/`, `policy/frontier-confirm3.out`)
+
+| gap vs FSRS-7 (paired, 95% CI) | beta = 2, all / held-out | beta = 3, all / held-out |
+|---|---|---|
+| matched retention (plan) | -22.6 ± 3.2 / -23.6 ± 3.5 | -26.6 ± 3.4 / -27.8 ± 3.7 |
+| matched memorised, days 30-59 | **-6.3 ± 3.7** / -5.9 ± 4.0 | -5.9 ± 3.6 / -5.2 ± 3.9 |
+| matched memorised, 60 days | +1.8 ± 4.8 / +2.4 ± 5.6 | +3.6 ± 3.0 / +4.0 ± 3.2 |
+
+- Screen 4's edge for beta = 3 (-12.1 vs -7.5 on 20 users) does not hold on all users: once settled it equals
+  beta = 2, and over the whole 60 days it is costlier than FSRS-7 (CI excludes 0).
+- **beta = 2 stays the setting:** about 6% cheaper than FSRS-7 at the same memorised cards once settled, as good as
+  FSRS-7 over 60 days. The larger retention-matched gain of beta = 3 is selection, not efficiency.
+
 ### Could it become an Anki scheduler?
 
 The target needs only the card's last answer time and the user's median answer time, both in the revlog. So it is a
