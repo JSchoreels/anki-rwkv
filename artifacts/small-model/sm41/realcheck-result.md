@@ -121,4 +121,57 @@ structure. Code `scripts/sm41_realcheck.py`, runner `realcheck/run-realcheck.sh`
 
 ## Results
 
-(to be filled from `realcheck/realcheck-tables.md` after the run; see [HANDOFF-realcheck.md](HANDOFF-realcheck.md))
+Run: 117 users, 304 splits, 890,493 real later-day reviews (739,939 with a previous later-day answer). All 117 jobs
+exited 0, no tracebacks, no row mismatches. Run cost: 1,392,736 window reviews, 7.44 process-hours wall including
+warm-ups, 7.30 CPU hours; the engine ran at 95 reviews/s per process (52 reviews/s including warm-up). Numbers are
+mean ± 95% CI over users; full tables in `realcheck/realcheck-tables.md`.
+
+**Point 1: the instant head is calibrated in x (verdict: calibrated).**
+- Realised minus predicted pass rate: fast +0.1 ± 0.1, mid +0.1 ± 0.2, slow +0.0 ± 0.2 points. Slow minus fast
+  -0.0 ± 0.2 points. No band shows a slow-fast gap whose CI excludes 0.
+- Recalibration slope delta (instant head) = -0.009 ± 0.015; the CI includes 0.
+- FSRS-7, blind to time, is off: slow minus fast -3.3 ± 0.6 points, delta -0.198 ± 0.031. It is too optimistic about
+  slow cards. So the instant head's time input is real information, and a target shift is not a correction of its
+  miscalibration (its share, delta / beta, is about 0).
+
+**Point 2: a slow card's review is more expensive and stays so (verdict: yes; the head matches).**
+- Seconds incl. same-day steps at matched predicted recall: fast 13.6, slow 23.7, slow vs fast +79.5 ± 8.7 %.
+  Answer seconds alone +77.7 ± 8.4 %. Lapse minutes +92.2 ± 14.4 % (0.18 vs 0.32).
+- The answer-time head predicts +74.3 ± 6.7 %, with bias per stratum between -0.016 and +0.003 in ln s.
+- Elasticity gamma: this review real +0.395 ± 0.024, head +0.368 ± 0.020 (head minus real -0.027 ± 0.007, within
+  ±0.1). The next later-day review, real: +0.355 ± 0.024 (CI excludes 0, so it persists).
+
+**Point 3: late is not relatively cheaper for slow cards in one step (verdict: no support from this metric; no
+contradiction either).**
+- Late (P < 0.85) minus on time (P >= 0.90), matched on state: pass rate about -0.23 in every stratum (slow minus
+  fast -0.005 ± 0.016); seconds +5.7 (fast), +6.6 (mid), +8.1 (slow), slow minus fast +2.3 ± 0.9; ln t90 growth
+  -1.21 / -1.17 / -1.08 (slow minus fast +0.127 ± 0.143).
+- Primary interaction ln rho_slow - ln rho_fast = +0.142 ± 0.370 (only 24 users, 93 dropped for a non-positive
+  gain): slow and fast cards have the same shape. ln rho is about +0.9 for both, so reviewing late looks expensive
+  one step at a time for everyone, as part A found inside the model.
+- Positive currency (seconds per day of t90): interaction -0.563 ± 0.250 (112 users), late relatively cheaper for slow
+  cards. Holding view: ln X_slow - ln X_fast +0.880 ± 0.181 (75 users), deferring a slow card saves more seconds per
+  unit of recall lost (X 21.8 vs 8.0).
+- Pooled optimal P: fast 0.984, mid 0.981, slow 0.979. Slope of its logit on x -0.14 (bootstrap -1.48 .. -0.11), so
+  this one-step metric implies beta = +0.14, far below 2-3.
+
+**Point 4: beta_real (verdict: supported by the plan's rule).**
+- beta_sim = 2: beta_real 2.14 (2.10 .. 2.18); beta_sim = 3: 3.21 (3.15 .. 3.27). Point 2 passes, delta is not < 0,
+  the point 3 interaction is not > 0 with the CI excluding 0, and the CI includes values in 2-3.
+- This is a statement about the cost lever and calibration only. The beta_real formula carries beta_sim, so it cannot
+  confirm the simulator's optimum by itself.
+
+**What stays confounded.**
+- The user's scheduler chose the intervals; low recall at review means an overdue card or a disagreeing scheduler.
+- Selection: slow cards may be harder, and difficulty is matched only through the model's state and the pre-split
+  Again share. The cost premium is also a user-level time-of-day / fatigue effect that the model cannot separate.
+- The memory currency is the model's own reading; the real next interval is censored at the window end.
+- One-step cost per unit of memory ignores the effect on later intervals; the simulator's metric is a holding one.
+- Context from the simulator: the time-aware target at beta = 2 is about 6% cheaper than FSRS-7 at the same
+  memorised cards once settled (days 30-59) and ties over 60 days; at beta = 3 it is no better once settled and worse
+  over 60 days. Its larger gains at matched retention are selection.
+
+**Recommendation.** The real data support the mechanism's inputs (the head is calibrated in x; slow-answer reviews
+cost about 80% more and persist), but not a gain from the late-review step itself (point 3 primary is flat). With a
+settled simulator gain of only about 6% at beta = 2 and a tie over 60 days, the rule is worth at most an opt-in
+Anki trial option at beta about 2, not a default.
