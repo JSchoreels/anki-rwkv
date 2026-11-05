@@ -399,9 +399,25 @@
     "the small model in the review simulator (SM41) screen 4: "
    ],
    "what": "The small model in the review simulator (SM41) screen 4 (CPU): the time-aware target at &beta; = 3 and 4 on the 20 screen users, 3 targets, 4 seeds, judged at matched retention and at matched memorised cards",
-   "when": "Running since 09:40 Thu, about 30 min",
+   "when": "Done 10:09 Thu: &beta; = 3 is best at matched memorised cards, see results",
    "decides": "Whether the gain at the same memorised cards grows with &beta; (then confirm the best &beta; on all users) or the larger retention-matched gains are only selection",
-   "started_at": "2026-11-05T09:40+01:00"
+   "started_at": "2026-11-05T09:40+01:00",
+   "state": "done",
+   "ended_at": "2026-11-05T10:09+01:00"
+  },
+  {
+   "id": "SM41c3",
+   "track": "small model",
+   "since": "11-05T10:11",
+   "kind": "cpu",
+   "minutes": 240,
+   "match": [
+    "the small model in the review simulator (SM41) &beta; = 3 confirmation: "
+   ],
+   "what": "The small model in the review simulator (SM41) &beta; = 3 confirmation (CPU): the time-aware target at &beta; = 3 on all 117 users / 304 starting days, 3 targets &times; 4 seeds, read at matched memorised cards and matched retention, held-out users apart",
+   "when": "Running since 10:11 Thu, ends about 14:00&ndash;15:00 Thu",
+   "decides": "Whether &beta; = 3 beats the confirmed &beta; = 2 (&minus;6.3% &plusmn; 3.7 at the same memorised cards, days 30&ndash;59) and FSRS-7 on all users",
+   "started_at": "2026-11-05T10:11+01:00"
   },
   {
    "what": "Quick score of the new epoch on 100 users",
@@ -2325,6 +2341,67 @@
      "The head trains on the review log&rsquo;s answer-to-answer intervals but is queried at show time, as the previous head; not scored separately",
      "Release workflow: the upload stopped on a GitHub 404 after 8 of 12 files; the 4 missing files were uploaded from the run&rsquo;s artifacts",
      "Branch sm92 commits 0ecbace5, 29727c6b"
+    ]
+   }
+  },
+  {
+   "date": "11-05",
+   "kind": "cpu",
+   "id": "SM41s4",
+   "track": "small model",
+   "name": "The small model in the review simulator (SM41) screen 4: the time-aware target at larger &beta; (3 and 4), every &beta; scored at matched retention and at matched memorised cards",
+   "eval": "The 20 screen users, 1 starting day each, 60 days, targets 0.80 / 0.85 / 0.90 &times; 4 seeds, paired vs FSRS-7 from the full-run rows, 95% CI over users",
+   "fork": "Simulator result; nothing shipped",
+   "takeaway": "<strong>&beta; = 3 is the best setting</strong>: &minus;12.1% &plusmn; 8.3 minutes vs FSRS-7 at the same memorised cards on days 30&ndash;59 (83% of the 20 users cheaper), against &minus;7.5% &plusmn; 7.9 for &beta; = 2; &beta; = 4 is worse on every metric. Over the whole 60 days, switching costs included, no &beta; beats FSRS-7. &beta; = 3 goes to all users",
+   "started_at": "2026-11-05T09:40+01:00",
+   "ended_at": "2026-11-05T10:09+01:00",
+   "gpu_minutes": 0,
+   "tickets": 0,
+   "detail": {
+    "verdict": "Confirm &beta; = 3 on all 117 users",
+    "table": {
+     "head": [
+      "&beta; (20 users, vs FSRS-7)",
+      "Matched retention (plan)",
+      "Matched memorised, days 30&ndash;59",
+      "Matched memorised, 60 days"
+     ],
+     "rows": [
+      [
+       "0.5",
+       "+1.2% &plusmn; 3.9",
+       "&minus;3.3% &plusmn; 5.5",
+       "&minus;0.9% &plusmn; 8.9"
+      ],
+      [
+       "1",
+       "&minus;6.9% &plusmn; 6.0",
+       "&minus;3.6% &plusmn; 6.7",
+       "+1.0% &plusmn; 9.1"
+      ],
+      [
+       "2",
+       "&minus;18.7% &plusmn; 8.4",
+       "&minus;7.5% &plusmn; 7.9",
+       "+0.8% &plusmn; 9.5"
+      ],
+      [
+       "<strong>3</strong>",
+       "&minus;23.9% &plusmn; 9.9",
+       "<strong>&minus;12.1% &plusmn; 8.3</strong>",
+       "&minus;0.7% &plusmn; 9.8"
+      ],
+      [
+       "4",
+       "&minus;22.7% &plusmn; 9.6",
+       "&minus;9.9% &plusmn; 9.7",
+       "+5.4% &plusmn; 12.4"
+      ]
+     ]
+    },
+    "notes": [
+     "29 min on 4 CPU processes",
+     "Branch sm41, commit d9c3d02b; note artifacts/small-model/sm41/policy-result.md (screen 4)"
     ]
    }
   },
