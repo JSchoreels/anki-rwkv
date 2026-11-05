@@ -65,6 +65,14 @@ MU = 12 * 3600.0                       # warm-up cards: their last answer at 12:
 BUCKET = DR.BUCKET
 SHARED = DR.SHARED
 T_GRID = np.unique(np.round(np.geomspace(1, 1000, 16)))     # candidate intervals, days (16 values)
+# per-review diagnostic log columns (Engine(log=True)): lane, day, card index, kind (0 first / 1 same-day / 2 later),
+# elapsed days, query elapsed seconds, rating, answer ms, the instant head's P(pass) at the show moment (= the
+# simulated learner's true recall: the grade is drawn from it), the interval the policy chose when the card left the
+# day (-1: it stays today), the policy's aim at that interval, the aim this review was scheduled with, FSRS-7's recall
+# at the show moment, the previous commit curve's recall at the show moment, its t90 (days) and the new curve's t90
+LOG_COLS = ("lane", "day", "card", "kind", "ed", "q_es", "rating", "ms", "p_true", "ivl", "aim_out", "aim_prev",
+            "r_fsrs7", "r_curve", "t90_before", "t90_after")
+LOG_IVL, LOG_AIM_OUT = LOG_COLS.index("ivl"), LOG_COLS.index("aim_out")
 FSRS7_FITS = Path("C:/Users/jonat/workspace/srs-benchmark/result/FSRS-7-short-secs.jsonl")   # read only
 
 
@@ -381,7 +389,7 @@ class Engine:
     """One user, one split, B lanes (lane 0 must be 'tf' when any lane is re-anchored)."""
 
     def __init__(self, model, warm, D, N, lane_names, seeds_n=3, base_seed=0, trace=False, fsrs=None,
-                 fsrs_source=""):
+                 fsrs_source="", log=False):
         install_fresh_hooks(model)
         self.model, self.warm, self.D, self.N = model, warm, D, N
         torch = model.torch
@@ -399,6 +407,9 @@ class Engine:
         # when seeds_n stays 3)
         self.seeds_n = max([seeds_n] + [c["seed"] + 1 for c in self.cfg if c["kind"] == "replay"])
         self.trace_on = trace
+        # per-review diagnostic log (off by default; observation only: it reads values, never changes them)
+        self.log_on = log
+        self.logs = []
         self.rng_rep = np.random.default_rng([41, warm.user, D, N, base_seed])
         self.habits = S.user_habits(rev, self.end)
         self.rates = habit_rates(rev, self.end)
@@ -735,6 +746,9 @@ class Engine:
                 pos = pend["tpos"][j]
                 tr = self.traces[b][pos]
                 self.traces[b][pos] = tr[:5] + (int(t_),) + tr[6:]
+            if self.log_on:
+                lp = pend["lpos"][j]
+                self.logs[lp][LOG_IVL] = int(t_); self.logs[lp][LOG_AIM_OUT] = float(a_)
 
     def flush(self):
         pend, self.pending = self.pending, None
@@ -877,6 +891,8 @@ class Engine:
             sel = kind == kk_
             self.acc["load"][A[sel], bkt, cn] += 1
             self.acc["load"][A[sel], bkt, cs_] += dur[sel] / 1000.0
+        if self.log_on:
+            lg_pre = self._log_pre(A, e, kind, q_es, cw, cs, cd)
         self.cum[A, e] = lane_cum + c_es
         self.dprev[A, e] = np.where(rep, (u_r - dur) / 1000.0, 0.0)
         self.k_rev[A, e] += 1
@@ -932,9 +948,59 @@ class Engine:
             for j in range(n):
                 self.traces[A[j]].append((d, int(e[j]), int(kind[j]), int(rating[j]), int(dur[j]), int(ivl[j]),
                                           float(ppass[j]) if kind[j] else -1.0))
+        if self.log_on:
+            base = len(self.logs)
+            aim_row = np.full(n, np.nan)
+            if len(need):
+                aim_row[need] = np.where(pols != "ihr", aim, np.nan)
+            for j in range(n):
+                self.logs.append([int(A[j]), d, int(e[j]), int(kind[j]), int(ed[j]), float(q_es[j]), int(rating[j]),
+                                  int(dur[j]), float(ppass[j]) if kind[j] else float("nan"), int(ivl[j]),
+                                  float(aim_row[j])] + [float(v[j]) for v in lg_pre])
         if pend_new is not None:
             pend_new["tpos"] = [len(self.traces[A[j]]) - 1 for j in pend_new["jj"]] if self.trace_on else None
+            if self.log_on:
+                pend_new["lpos"] = [base + int(j) for j in pend_new["jj"]]
             self.pending = pend_new
+
+    # -------------------------------------------------------------- diagnostic log (observation only)
+    def _log_pre(self, A, e, kind, q_es, cw, cs, cd):
+        """Per row, read before the card's stored outputs are overwritten: the policy aim this review was scheduled
+        with, FSRS-7's recall at the show moment (the lane's FSRS-7 state before this review), the previous commit
+        curve's recall at the show moment, its time to 0.9 (t90 before) and the new commit curve's t90 (after), in
+        days. New cards (no previous review): NaN."""
+        old = kind != 0
+        fs = self.fs[A, e]
+        r7 = np.full(len(A), np.nan)
+        if self.fsrs is not None and old.any():
+            r7[old] = self.fsrs.recall(np.maximum(0.0, q_es[old]) / DAY, fs[old, 0], fs[old, 1], fs[old, 2])
+        pw, ps, pd = self.cw[A, e], self.cs[A, e], self.cd[A, e]
+        rc = np.where(old, curve_np(pw, ps, pd, np.maximum(q_es, 1.0)), np.nan)
+        t9 = time_at_vec(np.concatenate([pw, cw]), np.concatenate([ps, cs]), np.concatenate([pd, cd]),
+                         np.full(2 * len(A), 0.9)) / DAY
+        return (self.aim[A, e].copy(), r7, rc, np.where(old, t9[:len(A)], np.nan), t9[len(A):])
+
+    def log_arrays(self):
+        """The per-review log as named numpy arrays, plus the per-card table (real-history difficulty)."""
+        L = np.asarray(self.logs, np.float64).reshape(-1, len(LOG_COLS))
+        out = {c: L[:, k] for k, c in enumerate(LOG_COLS)}
+        rev = self.rev
+        cid = np.asarray(rev["card_id"]); later = np.asarray(rev["elapsed_days"]) > 0
+        again = np.asarray(rev["rating"]) == 1
+        n_all, a_all, n_pre, a_pre = (np.zeros(self.C) for _ in range(4))
+        for i in np.nonzero(later)[0]:
+            k = self.cidx.get(int(cid[i]))
+            if k is None:
+                continue
+            n_all[k] += 1; a_all[k] += again[i]
+            if i < self.end:
+                n_pre[k] += 1; a_pre[k] += again[i]
+        out.update({"card_id": np.asarray(self.cards, np.int64), "card_old": self.old.copy(),
+                    "card_later_n": n_all, "card_later_again": a_all, "card_pre_later_n": n_pre,
+                    "card_pre_later_again": a_pre, "card_fsrs7_d0": self.fs[0, :, 2].copy(),
+                    "mem_card": self.mem_card, "mem_card_curve": self.mem_card_curve,
+                    "lanes": np.asarray([c["name"] for c in self.cfg])})
+        return out
 
     # -------------------------------------------------------------- the horizon and the result
     def memorised(self):
@@ -956,6 +1022,9 @@ class Engine:
         inst = out.reshape(B, C).sum(1)
         tt = np.maximum(1.0, t_end - self.last_end)
         crv = np.array([curve_np(self.cw[b], self.cs[b], self.cd[b], tt[b]).sum() for b in range(B)])
+        if self.log_on:
+            self.mem_card = out.reshape(B, C).copy()
+            self.mem_card_curve = np.stack([curve_np(self.cw[b], self.cs[b], self.cd[b], tt[b]) for b in range(B)])
         return inst, crv
 
     def result(self):
@@ -1315,8 +1384,11 @@ def run(args):
         DR.wait_clear(f"user {user} split {D}")
         if args.min_free_gb:
             wait_memory(f"user {user} split {D}", args.min_free_gb)
-        eng = Engine(model, warm, D, N, args.lanes.split(","), fsrs=fsrs, fsrs_source=src)
+        eng = Engine(model, warm, D, N, args.lanes.split(","), fsrs=fsrs, fsrs_source=src, log=bool(args.log_dir))
         res = eng.run()
+        if args.log_dir:
+            Path(args.log_dir).mkdir(parents=True, exist_ok=True)
+            np.savez_compressed(Path(args.log_dir) / f"{user}-{D}.npz", **eng.log_arrays())
         res["warmup_seconds"] = round(warm.seconds - w0, 1)
         res["finished"] = f"{dt.datetime.now():%Y-%m-%d %H:%M:%S}"
         print(f"[sm41-engine] user {user} split {D}: {res['lane_reviews']} lane reviews in {res['wall_seconds']} s "
@@ -1462,6 +1534,7 @@ def main():
     r.add_argument("--fsrs7-fits", default=None, help="pre-split FSRS-7 refits (JSONL, scripts/sm41_fsrs7_fit.py)")
     r.add_argument("--min-free-gb", type=float, default=0.0, help="hold each split until this much RAM is available")
     r.add_argument("--lanes", default=DEFAULT_LANES); r.add_argument("--threads", type=int, default=1)
+    r.add_argument("--log-dir", default="", help="per-review diagnostic log, one .npz per split (off by default)")
     r.add_argument("--out", default=str(OUT / "validation.jsonl"))
     t = sub.add_parser("report"); t.add_argument("--rows", default=str(OUT / "rows" / "*.jsonl"))
     t.add_argument("--md", default=str(OUT / "engine-tables.md")); t.add_argument("--json", default=str(OUT / "engine-result.json"))
