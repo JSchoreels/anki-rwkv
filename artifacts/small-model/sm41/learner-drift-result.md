@@ -88,4 +88,88 @@ The 20 users of part A (`diag/sample.json`, 1 split each), 60 days, the full run
 
 ## Results
 
-(pending)
+(Full tables: `learner-drift/tables.md`, `tables.json`. 20 users, 1 split each, 60 days, seeds 0-3. Gaps are the
+cost of the policy relative to FSRS-7 (minutes per memorised card), mean ± 95% CI over users, in %. All 60 jobs ran,
+no Tracebacks.)
+
+### Check of the no-drift rerun (`learner-drift/check.out`)
+
+The `none` rerun matches the existing full-run / screen 3 rows within 1e-6 on 1135 of 1140 lanes. **Five lanes
+differ** (users 2363, 2503, 3992 and 4207, one or two lanes each: the instant head at 0.80 / 0.85, the time-aware rule
+at 0.90 seed 1, the `-free` lane of user 4207 by 0.4%). The first three differ by 60-100% of a counter, which is the
+signature of a single flipped draw that then changes the whole trajectory, not of a bug in the drift code (the drift
+options are off in `none`); not investigated further. The gap tables use the existing rows for no drift (not `none`),
+so only the interval columns see these lanes (5 of 1140, so a small effect). Part A's earlier sample check was 1.0e-6.
+
+### Gaps vs FSRS-7 and change vs no drift
+
+| scenario | policy | matched retention (plan) | change | matched memorised, days 30-59 | change | matched memorised, 60 days | change |
+|---|---|---|---|---|---|---|---|
+| no drift | instant head | +5.6 ± 5.0 | | +0.6 ± 6.3 | | +5.2 ± 15.4 | |
+| no drift | time-aware rule (beta = 2) | -18.7 ± 8.4 | | -7.5 ± 7.9 | | +0.8 ± 9.5 | |
+| improving | instant head | +2.7 ± 4.7 | **-2.9 ± 1.5** | -2.4 ± 7.3 | -2.9 ± 5.6 | +1.5 ± 8.7 | -3.7 ± 10.6 |
+| improving | time-aware rule | -15.1 ± 8.3 | **+5.7 ± 4.2** | -7.8 ± 8.1 | -0.3 ± 5.0 | -1.0 ± 10.2 | -1.7 ± 7.5 |
+| declining | instant head | +29.7 ± 27.0 | +23.0 ± 25.4 | +8.9 ± 10.7 | +8.3 ± 7.8 | +10.7 ± 14.4 | +5.4 ± 7.7 |
+| declining | time-aware rule | -32.7 ± 9.9 | **-13.4 ± 9.2** | -19.0 ± 8.6 | **-11.6 ± 8.7** | -5.6 ± 12.0 | -6.4 ± 10.1 |
+
+(The sign of the gap flips between metrics for the time-aware rule at no drift, -18.7 at matched retention vs +0.8
+at matched memorised cards over 60 days: this is the same pattern as in the existing no-drift results, not a drift
+effect. The declining instant head gap, +29.7 ± 27.0, has a CI as wide as its mean: a few users dominate it; per-user
+medians were not computed in this pass.)
+
+### Does it schedule less? (days 30-59, change vs no drift, policy minus FSRS-7, mean of targets 0.80 / 0.85 / 0.90)
+
+| scenario | policy | reviews/day | median later-day interval | seconds per later-day review |
+|---|---|---|---|---|
+| improving | instant head | **-7.1 ± 3.1** | +4.1 ± 6.9 | +7.1 ± 5.5 |
+| improving | time-aware rule | +17.8 ± 9.2 | **-27.1 ± 10.2** | -9.1 ± 8.4 |
+| declining | instant head | **+9.9 ± 4.5** | -2.0 ± 14.6 | -4.4 ± 4.7 |
+| declining | time-aware rule | **-30.6 ± 14.9** | +38.4 ± 15.2 | +7.4 ± 7.0 |
+
+Key lanes (days 30-59, no drift -> improving): instant head 0.85: 78.3 -> 59.7 reviews/day, retention 0.824 -> 0.879;
+0.90: 94.2 -> 69.2, 0.869 -> 0.912. FSRS-7 0.85: 77.8 -> 63.4, 0.814 -> 0.877; 0.90: 97.9 -> 80.5, 0.873 -> 0.922. Both
+policies review less when the learner improves (the learner remembers more); the instant head cuts reviews a little
+more than FSRS-7 (-7.1 points), which is the "schedules less" direction. The time-aware rule goes the other way
+(+17.8, its intervals get shorter, -27%).
+
+### Re-anchoring check (instant head / FSRS-7 at target 0.90, `-free` lanes)
+
+Anchored: +8.3 (no drift), +6.5 (improving, change -1.9 ± 4.8), +34.2 (declining, +25.9 ± 27.2). The `-free` lanes
+are too noisy to read: no drift +577 ± 1198% (an outlier user), improving -11.0 ± 9.7, declining +14028 ± 22870%
+(both lanes collapse in the declining scenario: instant head `-free` retention 0.28 and about 1957 reviews/day, FSRS-7
+`-free` 0.36 and 854/day). Medians were not computed. Conclusion: the anchored result is not an artefact of the daily
+re-anchoring as far as can be told; the free lanes do not give a usable second reading.
+
+### FSRS-7 frozen
+
+FSRS-7 keeps the full run's pre-split parameters for all 60 days. A refit in the middle would see the drifted passes
+and answers and move its intervals for every card at once (longer when improving, shorter when declining), which is
+exactly what the frozen version cannot do; not run, so the improving-scenario gap is probably somewhat in FSRS-7's
+disfavour relative to a real Anki between optimisations.
+
+### Verdict by the plan's decision rule
+
+- Improving: (1) reviews/day change vs FSRS-7 -7.1 ± 3.1, below 0 with the CI excluding 0: met. (2) gap at matched
+  memorised cards (days 30-59) change -2.9 ± 5.6, CI includes 0: not met. So: **"the instant head schedules less
+  than FSRS-7 when the learner improves, but not more efficiently"** (the 60-day metric points the same way, -3.7 ±
+  10.6, not significant). The user's hypothesis is supported on scheduling less only. The time-aware rule does not
+  schedule less.
+- Declining: the instant head schedules more (+9.9 ± 4.5), the time-aware rule less and loses efficiency (-11.6 ± 8.7
+  at days 30-59).
+- **The confirmation rule fires** (several changes vs no drift have a CI excluding 0: improving instant head and
+  time-aware rule at matched retention, declining time-aware rule at matched retention and days 30-59; also the
+  improving instant head gap vs FSRS-7 goes from CI excluding 0 to including 0). Matched-retention is the sensitive
+  metric; the memorised-card metrics mostly do not move beyond their CIs.
+
+### Next
+
+Confirmation on all 117 users (304 splits) of the improving scenario, only the lanes it needs (`tf`,
+`ihr-0.80/0.85/0.90`, `ihr-*-s2`, `fsrs7-*` x 4 seeds = 49 lanes): about 30-40 process-hours (about 8-10 h on 4
+processes). Needs the main session's go-ahead and its own handoff. Not run before the break.
+
+### Speed (1 thread per process)
+
+improving 4.77 M lane reviews, 1.81 engine process-hours, 732 lane reviews/s per process; declining 13.40 M, 7.92 h,
+470 /s (the collapsing `-free` lanes dominate); none 5.69 M, 2.66 h, 595 /s; warm-up 0.43-0.44 process-hours each.
+Total 12.39 engine + 1.31 warm-up process-hours.
+
