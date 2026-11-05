@@ -116,8 +116,11 @@ def report(args):
     refs = [f"ihr-{x:.2f}" for x in SCREEN_R] + [f"fsrs7-{x:.2f}" for x in FR.LEVELS]
     for b in refs + bases:
         src = 1 if b in refs else 0
-        v = [np.mean([s[src][b][k] for s in per[u]]) for u in users for k in ("ret",)]
-        mm = lambda key: float(np.nanmean([np.mean([s[src][b][key] for s in per[u]]) for u in users]))   # noqa: E731
+        us = [u for u in users if any(b in s[src] for s in per[u])]          # screens run different lane sets
+        if not us:
+            continue
+        v = [np.mean([s[src][b]["ret"] for s in per[u] if b in s[src]]) for u in us]
+        mm = lambda key: float(np.nanmean([np.mean([s[src][b][key] for s in per[u] if b in s[src]]) for u in us]))   # noqa: E731
         L.append(f"| {b}{' (full run)' if src else ''} | {family(b)[1]:.2f} | {np.nanmean(v):.3f} | "
                  f"{mm('min_30_59') / 30:.1f} | {mm('memorised'):.0f} | {mm('cost'):.3f} |")
     txt = "\n".join(L) + "\n"
