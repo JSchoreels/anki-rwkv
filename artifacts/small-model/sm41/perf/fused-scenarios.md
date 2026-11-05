@@ -1,8 +1,8 @@
 # Faster engine for the changing-learner simulation (SM41g): scenarios as lanes of one run
 
 Done 11-05 18:20. CPU only. The running engine (`scripts/sm41_engine.py`) was not touched: the changing-learner run
-re-imports it at every split. The change was built and checked in an uncommitted copy. It goes into the engine after
-that run's `runner.log` says `done`, together with the checks below rerun on the real file.
+re-imports it at every split. The change was built and checked in an uncommitted copy. Applied 11-05 19:35, after
+that run ended: the patched `scripts/sm41_engine.py` is byte-identical to the checked copy, so the checks below hold for it.
 
 ## Where the time goes (cProfile)
 
