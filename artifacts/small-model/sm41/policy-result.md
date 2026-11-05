@@ -119,6 +119,27 @@ At about the same realised retention (beta = 2 at 0.893 vs FSRS-7 at 0.875) the 
   candidate: its gap stays positive.
 - The instant head alone stays costlier than FSRS-7 (+9.0 ± 3.3), as in the full run.
 
+### Check after the run: matched memorised cards (main session, 11-05 10:00; `scripts/sm41_frontier.py`, `policy/frontier-confirm.out`)
+
+The plan's metric matches on realised retention. The time-aware target defers slow cards, so the reviews that do
+happen are on easier cards: its pass rate goes up while it memorises fewer cards (at target 0.90: realised 0.893 and
+1201 memorised, against FSRS-7's 0.875 and 1240). Matching on retention then compares it with a FSRS-7 point that
+holds more cards. The fairer frontier is minutes against memorised cards at day 60, paired per user over the common
+memorised range:
+
+| policy | days 30-59 minutes vs FSRS-7, all / held-out | 60-day minutes vs FSRS-7, all / held-out |
+|---|---|---|
+| time-aware beta = 2 | **-6.3 ± 3.7** (73% cheaper) / -5.9 ± 4.0 | +1.8 ± 4.8 / +2.4 ± 5.6 |
+| noise s = 0.5 (control) | +4.0 ± 3.2 / +5.0 ± 3.4 | +5.0 ± 2.6 / +5.8 ± 2.8 |
+
+- **Read-out.** At the same memorised count the time-aware target is still cheaper than FSRS-7 once settled (days
+  30-59, CI excluding 0, held-out users agree), but by about 6%, not 23%. Over the whole 60 days, switching costs
+  included, it is as good as FSRS-7 (CI includes 0).
+- Most of the -22.6% is the retention-matching metric rewarding a policy that changes which cards get reviewed: the
+  selection effect H2 asked about, which did not apply to the plain instant head but does apply here.
+- Next: screen 4 (beta = 3 and 4, same 20 users) judged on both metrics, to see whether the memorised-matched gain
+  grows with beta or the retention-matched gain is only selection.
+
 ### Could it become an Anki scheduler?
 
 The target needs only the card's last answer time and the user's median answer time, both in the revlog. So it is a
