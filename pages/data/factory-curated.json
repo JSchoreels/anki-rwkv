@@ -383,8 +383,9 @@
     "the small model in the review simulator (SM41) diagnostic: "
    ],
    "what": "The small model in the review simulator (SM41) diagnostic and policy search (CPU): (A) why scheduling by the instant head costs more than FSRS-7 at the same retention although the simulated learner is the small model itself: per-card retention spread, pass rate at review time vs knowledge held, the instant head off at long candidate intervals, the 60-day horizon; (B) scheduling rules that could beat FSRS-7: intervals from the curve head, intervals that maximise memorised cards per minute, a per-card retention target, FSRS-7 intervals corrected by the small model",
-   "when": "Starts 01:00 Thu after the break; part A ~1&ndash;3 h, part B screen on ~20 users then a confirmation run",
-   "decides": "Which explanation holds, and whether a scheduling rule driven by the small model beats FSRS-7 on minutes per memorised card (and could become an Anki scheduler)"
+   "when": "Part A done 01:29 Thu; part B: first screen done 02:00, screens 2&ndash;3 and the confirmation on all 117 users running (CPU), ends about 07:00&ndash;09:30 Thu",
+   "decides": "Which explanation holds (answer: seconds per review, see results), and whether a scheduling rule driven by the small model beats FSRS-7 on minutes per memorised card (and could become an Anki scheduler). Rule fixed before the runs: beats FSRS-7 if the gap is below 0 with the CI excluding 0",
+   "started_at": "2026-11-05T01:00+01:00"
   },
   {
    "what": "Quick score of the new epoch on 100 users",
@@ -2308,6 +2309,73 @@
      "The head trains on the review log&rsquo;s answer-to-answer intervals but is queried at show time, as the previous head; not scored separately",
      "Release workflow: the upload stopped on a GitHub 404 after 8 of 12 files; the 4 missing files were uploaded from the run&rsquo;s artifacts",
      "Branch sm92 commits 0ecbace5, 29727c6b"
+    ]
+   }
+  },
+  {
+   "date": "11-05",
+   "kind": "cpu",
+   "id": "SM41d",
+   "track": "small model",
+   "name": "The small model in the review simulator (SM41) diagnostic: why scheduling by the instant head costs more than FSRS-7 at the same retention, and a first screen of scheduling rules",
+   "eval": "Per-review log added to the engine (off by default, rows bit-identical); 20 users of the full run, 1 starting day each, 60 days, desired retention 0.90, 4 seeds (all 20 reproduce the full-run rows, largest gap 1.0e-6); full-run rows (116 users) for the selection and horizon checks; first policy screen on the same 20 users at 3 targets, paired vs FSRS-7, 95% CI over users",
+   "fork": "Simulator result; nothing shipped. FSRS-7 stays the scheduler baseline in the fork",
+   "takeaway": "<strong>The gap is answer time, not recall</strong>: at matched retention a later-day review costs +7.9% &plusmn; 1.6 more seconds under the instant head. It reads a slow previous answer as weaker memory, so slow cards come back sooner; FSRS-7 never sees answer times and reviews slow cards late (true recall 0.859 vs 0.874) and fast ones early (0.908 vs 0.888). Lower true recall is not cheaper in this learner (memory gained per minute rises with recall), so the user&rsquo;s lower-recall idea holds only in this answer-time form. First screen: a time-aware target (lower target on slow-answering cards) is <strong>&minus;6.9% &plusmn; 6.0 vs FSRS-7</strong> on 20 users (cheaper for 79%); confirmation on all users is running",
+   "started_at": "2026-11-05T01:00+01:00",
+   "ended_at": "2026-11-05T02:02+01:00",
+   "gpu_minutes": 0,
+   "tickets": 0,
+   "detail": {
+    "verdict": "Per-card spread, knowledge held, miscalibration and the 60-day horizon are not the cause; the minutes go to slow cards. The rule to test is a per-card desired retention shifted by the card&rsquo;s recent answer time",
+    "table": {
+     "head": [
+      "Check (paired, 95% CI over users)",
+      "Result"
+     ],
+     "rows": [
+      [
+       "Spread of true recall over cards (H1)",
+       "FSRS-7 wider (SD 0.082 vs 0.063), but a spread at the same mean buys nothing (&minus;0.4% &plusmn; 7.4): not the cause"
+      ],
+      [
+       "Knowledge held (H2, 116 users)",
+       "Instant head memorises more (+2.2% &plusmn; 1.3); the gap is the same counted with the curve head (+15.1% &plusmn; 7.5): not the cause"
+      ],
+      [
+       "Instant head off at the candidate intervals (H3)",
+       "Aim minus true recall +0.2 &plusmn; 1.6 points; slightly optimistic at long intervals, which would lengthen them: not the cause"
+      ],
+      [
+       "60-day horizon (H4, 116 users)",
+       "Gap does not shrink late: days 30&ndash;44 +18.1% &plusmn; 6.7, days 45&ndash;59 +24.6% &plusmn; 15.8: not the cause"
+      ],
+      [
+       "Lower true recall is cheaper (H5, the user&rsquo;s idea)",
+       "Memory gained per minute rises with true recall; FSRS-7&rsquo;s errors are not on high-gain cards (Spearman &minus;0.115 &plusmn; 0.100). Holds only as answer time"
+      ],
+      [
+       "Seconds per later-day review, instant head vs FSRS-7 (116 users)",
+       "+7.9% &plusmn; 1.6 (median +7.6%)"
+      ],
+      [
+       "Screen 1 (20 users): instant head, same 3 targets",
+       "+5.6% &plusmn; 5.0 vs FSRS-7"
+      ],
+      [
+       "Screen 1: instant head + noise on the target (H5 causal check)",
+       "+4.2% &plusmn; 4.5: noise closes 1.4 of 5.6 points, under the half needed"
+      ],
+      [
+       "Screen 1: instant head + time-aware target (&beta; = 1)",
+       "<strong>&minus;6.9% &plusmn; 6.0</strong> vs FSRS-7 (79% of users cheaper); &minus;10.9% &plusmn; 4.2 vs the instant head"
+      ]
+     ]
+    },
+    "notes": [
+     "Part A ran 18.5 min on 4 CPU processes (01:06&ndash;01:24); per-review logs (53 MB) not committed, a script regenerates them in about 20 min",
+     "Still running: screen 2 (curve head, FSRS-7 corrected by the small model), screen 3 (&beta; = 0.5 and 2), then the best 1&ndash;2 rules on all 117 users / 304 starting days with a held-out report (97 users not in the screen)",
+     "Caveat: the simulated learner is the same small model, so a gain is inside the model&rsquo;s world; a real-data check comes before any Anki scheduler",
+     "Branch sm41, commits 9ce6f50e (part A) and 507043fe (part B plan + screen 1); notes artifacts/small-model/sm41/diag-result.md and policy-result.md"
     ]
    }
   },
