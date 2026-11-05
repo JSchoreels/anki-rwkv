@@ -431,9 +431,11 @@
     "the real-data check of the time-aware target (SM41r): "
    ],
    "what": "The real-data check of the time-aware target (SM41r), CPU: on the full-run users&rsquo; real reviews after each starting day, is the instant head calibrated on slow-answering cards, are their reviews really more expensive, and is reviewing them at lower recall cheaper per unit of memory (within user, matched on the model&rsquo;s state)",
-   "when": "Running since 14:33 Thu on the real reviews of 117 users (1.39M reviews, 4 CPU processes from 14:35, about 115 reviews/s each), ends about 16:15&ndash;16:45 Thu",
+   "when": "Done 16:30 Thu: the mechanism holds on real reviews, the best &beta; is not pinned down, see results",
    "decides": "Whether real reviews support the simulator&rsquo;s rule (lower target on slow-answering cards), and so whether it is worth an Anki trial option",
-   "started_at": "2026-11-05T14:25+01:00"
+   "started_at": "2026-11-05T14:25+01:00",
+   "state": "done",
+   "ended_at": "2026-11-05T16:30+01:00"
   },
   {
    "id": "SM41g",
@@ -2371,6 +2373,52 @@
      "The head trains on the review log&rsquo;s answer-to-answer intervals but is queried at show time, as the previous head; not scored separately",
      "Release workflow: the upload stopped on a GitHub 404 after 8 of 12 files; the 4 missing files were uploaded from the run&rsquo;s artifacts",
      "Branch sm92 commits 0ecbace5, 29727c6b"
+    ]
+   }
+  },
+  {
+   "date": "11-05",
+   "kind": "cpu",
+   "id": "SM41r",
+   "track": "small model",
+   "name": "The real-data check of the time-aware target (SM41r): on real reviews, is the small model right about slow-answering cards, are their reviews really more expensive, and is reviewing them later cheaper",
+   "eval": "Real 60-day windows after each starting day of the 117 full-run users (304 starting days, 1.39M reviews), the released small model teacher-forced on the real schedule (no simulation); within user, matched on the model&rsquo;s state; paired over users, 95% CI over users",
+   "fork": "Analysis only; nothing shipped",
+   "takeaway": "<strong>The mechanism is real, the size of the fix is not pinned down</strong>: the instant head is calibrated on slow-answering cards (slow minus fast &minus;0.0 &plusmn; 0.2 points) while FSRS-7 is too optimistic on them (&minus;3.3 &plusmn; 0.6 points), so FSRS-7 does review slow cards late in reality too. Slow reviews really cost more (+79.5% &plusmn; 8.7 seconds with same-day steps, +92% &plusmn; 14 lapse minutes; the answer-time head predicts +74.3% &plusmn; 6.7) and the cost persists. But whether reviewing slow cards later buys memory more cheaply is unclear on real data (primary interaction +0.14 &plusmn; 0.37, only 24 users usable), and the one-step optimum implies a correction of about 0.1&ndash;1.5, below the simulator&rsquo;s &beta; = 2",
+   "started_at": "2026-11-05T14:33+01:00",
+   "ended_at": "2026-11-05T16:30+01:00",
+   "gpu_minutes": 0,
+   "tickets": 0,
+   "detail": {
+    "verdict": "At most an opt-in Anki trial option at &beta; about 2 (or lower), not a default: the simulator&rsquo;s settled gain is about 6% and ties over 60 days, and real data does not confirm the late-review gain itself",
+    "table": {
+     "head": [
+      "Point (real reviews, paired, 95% CI)",
+      "Result"
+     ],
+     "rows": [
+      [
+       "1. Instant head calibrated on slow cards?",
+       "Yes: realised minus predicted +0.1 / +0.1 / +0.0 points (fast / mid / slow), slow minus fast &minus;0.0 &plusmn; 0.2; FSRS-7 slow minus fast &minus;3.3 &plusmn; 0.6 (too optimistic on slow cards)"
+      ],
+      [
+       "2. Slow reviews more expensive?",
+       "Yes: +79.5% &plusmn; 8.7 seconds (same-day steps included), +92% &plusmn; 14 lapse minutes; answer-time head +74.3% &plusmn; 6.7; the cost carries to the next review (elasticity 0.355 &plusmn; 0.024)"
+      ],
+      [
+       "3. Later review cheaper per unit of memory for slow cards?",
+       "Unclear: primary interaction +0.14 &plusmn; 0.37 (24 users); two side readings favour deferring slow cards (&minus;0.56 &plusmn; 0.25, 112 users; +0.88 &plusmn; 0.18, 75 users); one-step optimum implies a correction of about 0.1&ndash;1.5 (estimate outside its own bootstrap range: not robust)"
+      ],
+      [
+       "4. Implied &beta;",
+       "2.14 for the simulator&rsquo;s 2, but the formula carries the simulator&rsquo;s value in (circular): it only shows the model&rsquo;s inputs to the rule match real data"
+      ]
+     ]
+    },
+    "notes": [
+     "Still confounded: the user&rsquo;s scheduler chose the intervals, slow cards may simply be harder, memory gain is read from the model, one-step cost ignores later intervals",
+     "Speed: 95 real reviews/s per process (52 with warm-ups); 7.3 CPU hours, about 2 h on 4 processes",
+     "Branch sm41, commits df8a1a3b (plan, code), 8eaa747d (results), 42a0a010 (reading notes); note artifacts/small-model/sm41/realcheck-result.md"
     ]
    }
   },
