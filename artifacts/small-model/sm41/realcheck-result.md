@@ -175,3 +175,17 @@ contradiction either).**
 cost about 80% more and persist), but not a gain from the late-review step itself (point 3 primary is flat). With a
 settled simulator gain of only about 6% at beta = 2 and a tie over 60 days, the rule is worth at most an opt-in
 Anki trial option at beta about 2, not a default.
+
+## Reading notes (main session, 11-05 17:00)
+
+- **Point 3's slope is not robust.** The pooled point estimate (-0.14) lies outside its own bootstrap range
+  (-1.48 .. -0.11): the estimator is skewed. Read the one-step metric as "implied beta between about 0.1 and 1.5",
+  below the simulator's 2. It does not support beta = 2-3 on its own.
+- **Point 4 is circular.** beta_real = beta_sim x (real / head cost elasticity) + delta carries beta_sim in, so it
+  says only that the model's two inputs to the rule (calibration on slow cards, cost elasticity) match real data. It
+  says nothing about where the optimum lies.
+- **What real data does support:** the mechanism. The instant head is calibrated on slow cards (slow minus fast
+  -0.0 ± 0.2 points), slow reviews really cost about 75-80% more (and the cost persists), and FSRS-7 really is too
+  optimistic on slow cards (-3.3 ± 0.6 points), so it does review them late in reality too. The size of the best
+  correction (beta) is not pinned down by real data.
+
