@@ -2379,6 +2379,47 @@
   {
    "date": "11-05",
    "kind": "cpu",
+   "id": "SM41p",
+   "track": "small model",
+   "name": "Faster review simulator for the changing-learner simulation (SM41p): run the improving, declining and no-drift learners as lanes of one run",
+   "eval": "Profile of one job (user 3992, 57 lanes); exactness and speed on user 3992, split 840, 60 days, fused vs the three separate runs",
+   "fork": "Engine change only (branch sm41); applied to the engine after the changing-learner simulation (SM41g) ends",
+   "takeaway": "<strong>About 45% less CPU, same results</strong>: 73% of a job is the small model on tiny batches (about 7 reviews + 34 candidate rows per tick) and every scenario redid the same warm-up. With the learner drift set per lane, the three scenarios share one warm-up and fill each other&rsquo;s batches: 518 s instead of about 935 s for user 3992, review-by-review identical decisions (P(pass) within 4e-7), the same peak memory as one scenario (0.60 GB). A 3-scenario check on all 117 users would take about 4.5&ndash;5.5 h instead of 8&ndash;10 h",
+   "started_at": "2026-11-05T17:45+01:00",
+   "ended_at": "2026-11-05T18:20+01:00",
+   "gpu_minutes": 0,
+   "tickets": 0,
+   "detail": {
+    "verdict": "Adopt for multi-scenario runs once the running changing-learner simulation ends; next untested ideas: a warm-up cache per user and starting day (about 10&ndash;20%), less PyTorch call overhead (up to about 11%)",
+    "table": {
+     "head": [
+      "Check (user 3992, split 840)",
+      "Result"
+     ],
+     "rows": [
+      [
+       "Patched engine, one global drift, vs the current engine",
+       "Bit-identical (every row field and per-review column)"
+      ],
+      [
+       "Fused 3 scenarios vs 3 separate runs",
+       "Day, card, grade, answer time, interval identical for every review; P(pass) within 4e-7 (bar 1e-4); counters within 2e-7"
+      ],
+      [
+       "Time, all 169 lanes",
+       "518 s fused (937 lane reviews/s) vs about 935 s separate"
+      ],
+      [
+       "Peak memory (10-day runs)",
+       "0.60 GB for 169 lanes, 0.61 GB for 57 lanes"
+      ]
+     ]
+    }
+   }
+  },
+  {
+   "date": "11-05",
+   "kind": "cpu",
    "id": "SM41r",
    "track": "small model",
    "name": "The real-data check of the time-aware target (SM41r): on real reviews, is the small model right about slow-answering cards, are their reviews really more expensive, and is reviewing them later cheaper",
