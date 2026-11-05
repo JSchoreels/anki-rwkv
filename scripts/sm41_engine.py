@@ -90,8 +90,25 @@ def lane_cfg(name):
                 "seed": seed}
     parts = base.split("-")
     free = parts[-1] == "free"
-    return {"name": name, "base": base, "kind": "policy", "teacher": False, "anchor": 0 if free else 1,
-            "policy": parts[0], "r": float(parts[1]), "seed": seed}
+    cfg = {"name": name, "base": base, "kind": "policy", "teacher": False, "anchor": 0 if free else 1,
+           "policy": parts[0], "r": float(parts[1]), "seed": seed}
+    # policy options (stage 2 part 4, the policy search; none = the default policies, unchanged):
+    #   n<s>     target logit + N(0, s) per decision (counter-based draws)
+    #   s<beta>  time-aware per-card target: target logit - beta * ln(the card's last later-day answer time in the
+    #            lane / the user's median later-day answer time before the split) (no shift before a first one)
+    #   a<alpha> hybrid (policy hyb): FSRS-7's interval x (ln R / ln P_instant(FSRS-7's interval)) ** alpha
+    opt = {}
+    for o in parts[2:]:
+        if o == "free":
+            continue
+        opt[o[0]] = float(o[1:])
+    assert set(opt) <= set("nsa"), f"unknown lane option in {name}"
+    if opt:
+        cfg["opt"] = opt
+    return cfg
+
+
+GRID_POLICIES = ("ihr", "hyb")     # policies that read the instant head's candidate grid
 
 
 # ------------------------------------------------------------------ counter-based draws
@@ -505,6 +522,21 @@ class Engine:
             if c in warm.fs:
                 self.fs[:, k] = warm.fs[c]
         self.expl = [copy.deepcopy(warm.explicit) for _ in range(B)]
+        # option s (time-aware target): each card's last later-day answer time (warm-up: its last real one) and the
+        # user's median later-day answer time over the 60 days before the split
+        self.need_ms = any("s" in c.get("opt", {}) for c in self.cfg)
+        if self.need_ms:
+            pre = np.arange(self.end)
+            lat = rev["elapsed_days"][:self.end] > 0
+            last = {}
+            for i in pre[lat]:
+                last[int(rev["card_id"][i])] = float(rev["duration"][i])
+            self.last_ms = np.full((B, C), np.nan)
+            for k, c in enumerate(cards):
+                if c in last:
+                    self.last_ms[:, k] = last[c]
+            recent = lat & (rev["day_offset"][:self.end] >= D - 60)
+            self.med_ms = float(np.median(rev["duration"][:self.end][recent if recent.sum() >= 100 else lat]))
         # the real window by day
         self.rev_card = np.array([self.cidx[int(c)] for c in rev["card_id"][self.end:self.stop]], np.int64)
         self.real_by_day = {}
@@ -521,7 +553,7 @@ class Engine:
         self.backlog = np.zeros(B, np.int64)
         self.init_p = None
         old_idx = np.nonzero(self.old)[0]
-        need_ihr = any(c["kind"] == "policy" and c["policy"] == "ihr" for c in self.cfg)
+        need_ihr = any(c["kind"] == "policy" and c["policy"] in GRID_POLICIES for c in self.cfg)
         if need_ihr and len(old_idx):
             self.init_p = self.candidates_p(np.zeros(len(old_idx), np.int64), old_idx, None,
                                             self.last_day[0, old_idx], T_GRID)
@@ -529,8 +561,11 @@ class Engine:
             if c["kind"] != "policy":
                 continue
             r = np.full(len(old_idx), c["r"])
+            r = self.targets(np.full(len(old_idx), bl), old_idx, r, np.full(len(old_idx), -1))
             if c["policy"] == "ihr":
                 _, ti, aim = choose_interval(self.init_p, r)
+            elif c["policy"] in GRID_POLICIES:
+                _, ti, aim = self.grid_choose(self.init_p, r, np.full(len(old_idx), bl), old_idx)
             elif c["policy"] == "fsrs7":
                 t = self.fsrs.interval(self.fs[bl, old_idx], r)
                 ti = np.maximum(1, np.round(t)).astype(np.int64)
@@ -738,7 +773,8 @@ class Engine:
     def resolve(self, pend, pg):
         """Instant-head intervals of the cards that left the day at the previous tick (their candidate rows ran with
         this tick's query rows, in the same batched step)."""
-        _, ti, aim = choose_interval(pg, pend["r"])
+        _, ti, aim = (choose_interval(pg, pend["r"]) if not pend.get("special") else
+                      self.grid_choose(pg, pend["r"], pend["A"], pend["e"]))
         for j, (b, k, t_, a_) in enumerate(zip(pend["A"], pend["e"], ti, aim)):
             self.sess[b].due[int(k)] = pend["d"] + int(t_)
             self.aim[b, k] = a_
@@ -893,6 +929,8 @@ class Engine:
             self.acc["load"][A[sel], bkt, cs_] += dur[sel] / 1000.0
         if self.log_on:
             lg_pre = self._log_pre(A, e, kind, q_es, cw, cs, cd)
+        if self.need_ms and len(k2):
+            self.last_ms[A[k2], e[k2]] = dur[k2]
         self.cum[A, e] = lane_cum + c_es
         self.dprev[A, e] = np.where(rep, (u_r - dur) / 1000.0, 0.0)
         self.k_rev[A, e] += 1
@@ -916,14 +954,17 @@ class Engine:
             need = np.asarray(need)
             pols = np.array([self.cfg[A[j]]["policy"] for j in need])
             rr = np.array([self.cfg[A[j]]["r"] for j in need])
+            rr = self.targets(A[need], e[need], rr, self.k_rev[A[need], e[need]])
             ti = np.zeros(len(need), np.int64); aim = np.zeros(len(need))
-            sel = np.nonzero(pols == "ihr")[0]
+            sel = np.nonzero(np.isin(pols, GRID_POLICIES))[0]
             if len(sel):
                 # deferred to the next tick's query step (or the end of the day): the card does not come back today
                 jj = need[sel]
                 sub = {s: {layer: _nest([None if t is None else t[torch.from_numpy(jj)] for t in _leaves(v)])
                            for layer, v in nxt[s].items()} for s in nxt}
                 pend_new = {"A": A[jj], "e": e[jj], "d": d, "r": rr[sel], "st": sub, "jj": jj}
+                if (pols[sel] == "hyb").any():
+                    pend_new["special"] = True
             sel = np.nonzero(pols == "fsrs7")[0]
             if len(sel):
                 jj = need[sel]
@@ -938,7 +979,7 @@ class Engine:
                 ti[sel] = np.maximum(1, np.round(t / DAY)).astype(np.int64)
                 aim[sel] = curve_np(cw[jj], cs[jj], cd[jj], ti[sel] * float(DAY))
             for j, t_, a_, p_ in zip(need, ti, aim, pols):
-                if p_ == "ihr":
+                if p_ in GRID_POLICIES:
                     continue
                 b = A[j]
                 self.sess[b].due[int(e[j])] = d + int(t_)
@@ -952,7 +993,7 @@ class Engine:
             base = len(self.logs)
             aim_row = np.full(n, np.nan)
             if len(need):
-                aim_row[need] = np.where(pols != "ihr", aim, np.nan)
+                aim_row[need] = np.where(~np.isin(pols, GRID_POLICIES), aim, np.nan)
             for j in range(n):
                 self.logs.append([int(A[j]), d, int(e[j]), int(kind[j]), int(ed[j]), float(q_es[j]), int(rating[j]),
                                   int(dur[j]), float(ppass[j]) if kind[j] else float("nan"), int(ivl[j]),
@@ -962,6 +1003,41 @@ class Engine:
             if self.log_on:
                 pend_new["lpos"] = [base + int(j) for j in pend_new["jj"]]
             self.pending = pend_new
+
+    # -------------------------------------------------------------- policy options (part 4)
+    def targets(self, lanes, cards, r, slot_k):
+        """Per-decision desired retention for rows (lane, card): r itself unless the lane has option n or s."""
+        if not any(set(self.cfg[b].get("opt", {})) & {"n", "s"} for b in set(np.asarray(lanes).tolist())):
+            return r
+        r = np.asarray(r, np.float64).copy()
+        for j, (b, k) in enumerate(zip(lanes, cards)):
+            o = self.cfg[b].get("opt", {})
+            if "n" not in o and "s" not in o:
+                continue
+            z = math.log(r[j] / (1 - r[j]))
+            if "s" in o and np.isfinite(self.last_ms[b, k]):
+                z -= o["s"] * math.log(max(self.last_ms[b, k], 100.0) / self.med_ms)
+            if "n" in o:
+                u1 = float(uniforms(self.keys[b], 10, k, slot_k[j])); u2 = float(uniforms(self.keys[b], 11, k, slot_k[j]))
+                z += o["n"] * math.sqrt(-2.0 * math.log(max(u1, 1e-300))) * math.cos(2 * math.pi * u2)
+            r[j] = 1 / (1 + math.exp(-z))
+        return np.clip(r, 0.3, 0.995)
+
+    def grid_choose(self, pg, r, lanes, cards):
+        """Intervals of grid policies: ihr and ca = choose_interval; hyb overrides its rows."""
+        t, ti, aim = choose_interval(pg, r)
+        pols = np.array([self.cfg[b]["policy"] for b in lanes])
+        h = np.nonzero(pols == "hyb")[0]
+        if len(h):
+            lg = np.log(T_GRID)
+            t7 = np.clip(self.fsrs.interval(self.fs[lanes[h], cards[h]], r[h]), 1.0, T_GRID[-1])
+            p7 = np.array([np.interp(math.log(x), lg, pg[i]) for i, x in zip(h, t7)])
+            p7 = np.clip(p7, 1e-4, 1 - 1e-6)
+            al = np.array([self.cfg[lanes[i]]["opt"].get("a", 1.0) for i in h])
+            th = np.clip(t7 * (np.log(r[h]) / np.log(p7)) ** al, 1.0, T_GRID[-1])
+            ti[h] = np.maximum(1, np.round(th)).astype(np.int64)
+            aim[h] = [np.interp(math.log(x), lg, pg[i]) for i, x in zip(h, ti[h])]
+        return t, ti, aim
 
     # -------------------------------------------------------------- diagnostic log (observation only)
     def _log_pre(self, A, e, kind, q_es, cw, cs, cd):
