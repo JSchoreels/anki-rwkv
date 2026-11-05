@@ -383,9 +383,25 @@
     "the small model in the review simulator (SM41) diagnostic: "
    ],
    "what": "The small model in the review simulator (SM41) policy search, confirmation (CPU): screens 2&ndash;3 on 20 users (intervals from the curve head, FSRS-7 intervals corrected by the small model, the time-aware target at &beta; = 0.5 and 2), then the best 1&ndash;2 rules on all 117 users / 304 starting days, with a held-out report on the 97 users not in the screen. Part A and screen 1 are in the results",
-   "when": "Running since 02:01 Thu; screens done 02:54 (time-aware target at &beta; = 2: &minus;18.7% &plusmn; 8.4 vs FSRS-7 on 20 users; curve head +9.9% &plusmn; 8.2, FSRS-7 corrected by the small model +6.0% &plusmn; 5.3). Confirming &beta; = 2 and the noise control on all 117 users, ends about 09:30 Thu",
+   "when": "Done 09:31 Thu (7.5 h on 4 CPU processes): the time-aware target beats FSRS-7, by about 6% at the same memorised cards, see results",
    "decides": "Which explanation holds (answer: seconds per review, see results), and whether a scheduling rule driven by the small model beats FSRS-7 on minutes per memorised card (and could become an Anki scheduler). Rule fixed before the runs: beats FSRS-7 if the gap is below 0 with the CI excluding 0",
-   "started_at": "2026-11-05T02:01+01:00"
+   "started_at": "2026-11-05T02:01+01:00",
+   "state": "done",
+   "ended_at": "2026-11-05T09:31+01:00"
+  },
+  {
+   "id": "SM41s4",
+   "track": "small model",
+   "since": "11-05T09:40",
+   "kind": "cpu",
+   "minutes": 35,
+   "match": [
+    "the small model in the review simulator (SM41) screen 4: "
+   ],
+   "what": "The small model in the review simulator (SM41) screen 4 (CPU): the time-aware target at &beta; = 3 and 4 on the 20 screen users, 3 targets, 4 seeds, judged at matched retention and at matched memorised cards",
+   "when": "Running since 09:40 Thu, about 30 min",
+   "decides": "Whether the gain at the same memorised cards grows with &beta; (then confirm the best &beta; on all users) or the larger retention-matched gains are only selection",
+   "started_at": "2026-11-05T09:40+01:00"
   },
   {
    "what": "Quick score of the new epoch on 100 users",
@@ -2079,7 +2095,7 @@
    "status": "idea",
    "item": "Support the small RWKV model in the open-spaced-repetition review simulator (srs-simulator), then let an AI agent search for the best review strategy on simulated users",
    "id": "SM41",
-   "why": "A recall model good enough to simulate learners turns scheduling into an offline search an AI agent can run. Stage 1 done 11-01: our own simulator hosts the model (the outside srs-simulator is not needed); next is a drift study on 50 users and a vectorised engine (1&ndash;2 days) before any policy search. Drift study done 11-03: daily re-syncing of the deck/preset/user state removes most of the drift (&minus;5.1 &rarr; &minus;0.6 points at days 30&ndash;59). Engine + instant-head policy + FSRS-7 baseline done 11-04 (proofs pass, targets hit). Full run done 11-04 19:39 (117 users): FSRS-7 schedules +14.5% &plusmn; 7.4 cheaper per memorised card than the instant head at matched retention, so the time-aware objective is not started. Left as an idea: the simulator is ready for a policy search, but the model-driven policy has no edge yet",
+   "why": "A recall model good enough to simulate learners turns scheduling into an offline search an AI agent can run. Stage 1 done 11-01: our own simulator hosts the model (the outside srs-simulator is not needed); next is a drift study on 50 users and a vectorised engine (1&ndash;2 days) before any policy search. Drift study done 11-03: daily re-syncing of the deck/preset/user state removes most of the drift (&minus;5.1 &rarr; &minus;0.6 points at days 30&ndash;59). Engine + instant-head policy + FSRS-7 baseline done 11-04 (proofs pass, targets hit). Full run done 11-04 19:39 (117 users): FSRS-7 schedules +14.5% &plusmn; 7.4 cheaper per memorised card than the instant head at matched retention, so the time-aware objective is not started. Left as an idea: the simulator is ready for a policy search, but the model-driven policy has no edge yet. Policy search done 11-05 09:31: answer time is the gap (the instant head brings slow cards back sooner); a per-card target lowered on slow-answering cards beats FSRS-7 in the simulator, &minus;6.3% &plusmn; 3.7 minutes at the same memorised cards (&minus;22.6% on the retention-matched metric, which it partly games); larger &beta; screened next, then a real-data check",
    "track": "small model",
    "since": "11-04T19:40"
   },
@@ -2309,6 +2325,64 @@
      "The head trains on the review log&rsquo;s answer-to-answer intervals but is queried at show time, as the previous head; not scored separately",
      "Release workflow: the upload stopped on a GitHub 404 after 8 of 12 files; the 4 missing files were uploaded from the run&rsquo;s artifacts",
      "Branch sm92 commits 0ecbace5, 29727c6b"
+    ]
+   }
+  },
+  {
+   "date": "11-05",
+   "kind": "cpu",
+   "id": "SM41d",
+   "track": "small model",
+   "name": "The small model in the review simulator (SM41) policy search, confirmation: a per-card target lowered on slow-answering cards (time-aware, &beta; = 2) and a noise control vs FSRS-7, on all full-run users",
+   "eval": "117 users, 304 starting days, 60 days, targets 0.80 / 0.85 / 0.90 &times; 4 seeds; FSRS-7 and the instant head from the full-run rows (same draws); plan metric: minutes per memorised card at matched realised retention; check after the run: minutes at matched memorised cards; 97 users not in the screen reported apart (held out); paired, 95% CI over users",
+   "fork": "Simulator result; nothing shipped. A real-data check comes before any Anki scheduler",
+   "takeaway": "<strong>The time-aware target beats FSRS-7, by about 6%</strong>: on the plan&rsquo;s metric (matched retention) it is &minus;22.6% &plusmn; 3.2 (held out &minus;23.6% &plusmn; 3.5, 92% of users cheaper), but it reaches that retention partly by deferring slow cards and memorising fewer of them. At the same memorised cards it costs &minus;6.3% &plusmn; 3.7 minutes on days 30&ndash;59 (held out &minus;5.9% &plusmn; 4.0) and is as good as FSRS-7 over the whole 60 days (+1.8% &plusmn; 4.8). The noise control stays costlier (+5.3% &plusmn; 2.8), so the user&rsquo;s lower-recall idea holds only through answer time",
+   "started_at": "2026-11-05T02:01+01:00",
+   "ended_at": "2026-11-05T09:31+01:00",
+   "gpu_minutes": 0,
+   "tickets": 0,
+   "detail": {
+    "verdict": "Beats FSRS-7 inside the simulator, modestly once matched on memorised cards; next: larger &beta; (screen 4), then a real-data check of whether slow-answer cards are cheaper to review late",
+    "table": {
+     "head": [
+      "Rule vs FSRS-7 (paired, 95% CI)",
+      "Matched retention (plan), all / held out",
+      "Matched memorised, days 30&ndash;59, all / held out",
+      "Matched memorised, 60 days"
+     ],
+     "rows": [
+      [
+       "Instant head, lower target on slow-answering cards (&beta; = 2)",
+       "<strong>&minus;22.6% &plusmn; 3.2</strong> / &minus;23.6% &plusmn; 3.5",
+       "<strong>&minus;6.3% &plusmn; 3.7</strong> / &minus;5.9% &plusmn; 4.0",
+       "+1.8% &plusmn; 4.8"
+      ],
+      [
+       "Instant head + noise on the target (control)",
+       "+5.3% &plusmn; 2.8 / +5.9% &plusmn; 3.2",
+       "+4.0% &plusmn; 3.2 / +5.0% &plusmn; 3.4",
+       "+5.0% &plusmn; 2.6"
+      ],
+      [
+       "Instant head as before (reference)",
+       "+9.0% &plusmn; 3.3 / +10.0% &plusmn; 3.8",
+       "",
+       ""
+      ],
+      [
+       "Target 0.90: realised retention / min per day / memorised",
+       "&beta; = 2: 0.893 / 21.6 / 1201; FSRS-7: 0.875 / 29.9 / 1240",
+       "",
+       ""
+      ]
+     ]
+    },
+    "notes": [
+     "Screens on 20 users (vs FSRS-7, matched retention): curve head +9.9% &plusmn; 8.2, FSRS-7 corrected by the small model +6.0% &plusmn; 5.3, time-aware &beta; = 0.5 / 1 / 2: +1.2 / &minus;6.9 / &minus;18.7%",
+     "The rule needs only the card&rsquo;s last answer time and the user&rsquo;s median answer time (both in the revlog), on top of a recall model: in Anki it would need the fork&rsquo;s RWKV runtime",
+     "Caveat: the simulated learner is the same small model, so the gain is inside the model&rsquo;s world",
+     "Speed: about 445 simulated reviews/s per process (35.9M reviews); about 30 CPU process-hours, 7.5 h on 4 processes",
+     "Branch sm41, commits abf1bf08 (results) and 80c2f10b (matched-memorised check); note artifacts/small-model/sm41/policy-result.md"
     ]
    }
   },
