@@ -37,14 +37,16 @@ def main():
     sample = {u["user"] for u in json.loads(P.SAMPLE.read_text())["users"]}
     pairs = [(r["user"], FR.split_policies(r), FR.split_policies(full[(r["user"], r["split_day"])])) for r in rows]
     for fam in sys.argv[2:]:
-        for y, what in (("min_30_59", "days 30-59 minutes"), ("min_all", "60-day minutes")):
+        for y, what in (("ret", "matched retention (plan)"), ("min_30_59", "days 30-59 minutes"),
+                        ("min_all", "60-day minutes")):
             for held in (False, True):
                 per = {}
                 for u, sp, fr in pairs:
                     if held and u in sample:
                         continue
                     a = [sp[k] for k in sp if k.endswith("-" + fam)]
-                    per.setdefault(u, []).append(gap(a, [fr[f"fsrs7-{v:.2f}"] for v in FR.LEVELS], y))
+                    b = [fr[f"fsrs7-{v:.2f}"] for v in FR.LEVELS]
+                    per.setdefault(u, []).append(P.overlap_gap(a, b) if y == "ret" else gap(a, b, y))
                 g = [np.nanmean(v) for v in per.values() if np.isfinite(v).any()]
                 if not g:
                     continue

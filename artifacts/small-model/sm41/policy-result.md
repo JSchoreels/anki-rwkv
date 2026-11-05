@@ -140,6 +140,23 @@ memorised range:
 - Next: screen 4 (beta = 3 and 4, same 20 users) judged on both metrics, to see whether the memorised-matched gain
   grows with beta or the retention-matched gain is only selection.
 
+### Screen 4: larger beta (20 users, 09:40-10:09; `policy/screen4/`, `policy/frontier-screens.out`)
+
+Gap vs FSRS-7 on the 20 screen users, three ways (paired, 95% CI):
+
+| beta | matched retention (plan) | matched memorised, days 30-59 | matched memorised, 60 days |
+|---|---|---|---|
+| 0.5 | +1.2 ± 3.9 | -3.3 ± 5.5 | -0.9 ± 8.9 |
+| 1 | -6.9 ± 6.0 | -3.6 ± 6.7 | +1.0 ± 9.1 |
+| 2 | -18.7 ± 8.4 | -7.5 ± 7.9 | +0.8 ± 9.5 |
+| **3** | -23.9 ± 9.9 | **-12.1 ± 8.3** (83% cheaper) | -0.7 ± 9.8 |
+| 4 | -22.7 ± 9.6 | -9.9 ± 9.7 | +5.4 ± 12.4 |
+
+- beta = 3 is the best at matched memorised cards once settled; beta = 4 is worse on every metric.
+- Over the whole 60 days, switching costs included, no beta beats FSRS-7.
+- Next: beta = 3 on all 117 users (`policy/run-confirm3.sh`, rows `policy/confirm3/rows/`, read-out
+  `policy/frontier-confirm3.out`), launched 10:11.
+
 ### Could it become an Anki scheduler?
 
 The target needs only the card's last answer time and the user's median answer time, both in the revlog. So it is a
