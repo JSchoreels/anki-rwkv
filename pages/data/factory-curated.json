@@ -447,9 +447,11 @@
     "the changing-learner simulation (SM41g): "
    ],
    "what": "The changing-learner simulation (SM41g), CPU: the review simulator with a learner who gets better over the weeks (recall up, answers faster) or worse, while FSRS-7&rsquo;s parameters stay as fitted before the starting day; instant head, FSRS-7 and the time-aware target (&beta; = 2) on the 20 screen users, then all users if the ranking moves; also lanes without the daily re-syncing, which partly hides a learner&rsquo;s trend",
-   "when": "Simulation done 19:21 Thu (all 60 jobs, 4 h 35 min on up to 4 CPU processes); read-out running",
+   "when": "Done 19:25 Thu (simulation 14:46&ndash;19:21, up to 4 CPU processes): the instant head schedules less for an improving learner but is not more efficient; see results",
    "decides": "The user&rsquo;s hypothesis: with a learner who improves, the small model reads the trend across all cards and schedules less than FSRS-7 (gaps at matched retention and matched memorised cards, change vs no drift)",
-   "started_at": "2026-11-05T14:38+01:00"
+   "started_at": "2026-11-05T14:38+01:00",
+   "state": "done",
+   "ended_at": "2026-11-05T19:25+01:00"
   },
   {
    "what": "Quick score of the new epoch on 100 users",
@@ -2374,6 +2376,69 @@
      "Release workflow: the upload stopped on a GitHub 404 after 8 of 12 files; the 4 missing files were uploaded from the run&rsquo;s artifacts",
      "Branch sm92 commits 0ecbace5, 29727c6b"
     ]
+   }
+  },
+  {
+   "date": "11-05",
+   "kind": "cpu",
+   "id": "SM41g",
+   "track": "small model",
+   "name": "The changing-learner simulation (SM41g): a simulated learner who gets better (or worse) over the 60 days; does the small model then schedule less than FSRS-7, which stays at its pre-split fit",
+   "eval": "20 users of the 732 set, 1 starting day each, 60 days; improving learner (recall +0.5 logit and answers 18% faster by day 60), declining learner (the reverse), no drift; instant head, time-aware target (&beta; = 2), FSRS-7 at 6 targets, 4 seeds; paired over users, 95% CI",
+   "fork": "Simulation only; nothing shipped",
+   "takeaway": "<strong>Your guess on scheduling holds, but it does not make the small model more efficient</strong>: with an improving learner the instant head cuts its reviews/day by 7.1% &plusmn; 3.1 more than FSRS-7 does, yet minutes per memorised card barely move (change vs no drift &minus;2.9% &plusmn; 5.6, days 30&ndash;59). The surprise is the declining learner: the time-aware target copes much better than FSRS-7 (&minus;19.0% &plusmn; 8.6 minutes at the same memorised cards, &minus;11.6% &plusmn; 8.7 better than without drift), while the plain instant head gets worse (+8.9% &plusmn; 10.7)",
+   "started_at": "2026-11-05T14:46+01:00",
+   "ended_at": "2026-11-05T19:25+01:00",
+   "gpu_minutes": 0,
+   "tickets": 0,
+   "detail": {
+    "verdict": "Confirmation rule fired (several changes vs no drift have a CI excluding 0). With the faster engine (SM41p) all three scenarios on all 117 users take about 4.5&ndash;5.5 h on 4 CPU processes; needs the user&rsquo;s go-ahead",
+    "table": {
+     "head": [
+      "Scenario, policy",
+      "vs FSRS-7, matched retention (change vs no drift)",
+      "vs FSRS-7, matched memorised, days 30&ndash;59 (change)",
+      "Reviews/day vs FSRS-7, change"
+     ],
+     "rows": [
+      [
+       "Improving, instant head",
+       "+2.7 &plusmn; 4.7 (&minus;2.9 &plusmn; 1.5)",
+       "&minus;2.4 &plusmn; 7.3 (&minus;2.9 &plusmn; 5.6)",
+       "&minus;7.1 &plusmn; 3.1"
+      ],
+      [
+       "Improving, time-aware target (&beta; = 2)",
+       "&minus;15.1 &plusmn; 8.3 (+5.7 &plusmn; 4.2)",
+       "&minus;7.8 &plusmn; 8.1 (&minus;0.3 &plusmn; 5.0)",
+       "+17.8 &plusmn; 9.2"
+      ],
+      [
+       "Declining, instant head",
+       "+29.7 &plusmn; 27.0 (+23.0 &plusmn; 25.4), a few users dominate",
+       "+8.9 &plusmn; 10.7 (+8.3 &plusmn; 7.8)",
+       "+9.9 &plusmn; 4.5"
+      ],
+      [
+       "Declining, time-aware target (&beta; = 2)",
+       "&minus;32.7 &plusmn; 9.9 (&minus;13.4 &plusmn; 9.2)",
+       "&minus;19.0 &plusmn; 8.6 (&minus;11.6 &plusmn; 8.7)",
+       "&minus;30.6 &plusmn; 14.9"
+      ],
+      [
+       "Speed",
+       "732 / 470 / 595 lane reviews/s per process (improving / declining / none)",
+       "12.4 process-hours + 1.3 warm-up",
+       ""
+      ],
+      [
+       "Caveats",
+       "Lanes without daily re-syncing are unusable (no-drift gap +577% &plusmn; 1198)",
+       "No-drift rerun matches earlier rows on 1,135 of 1,140 lanes; 5 lanes diverge (a flipped draw early in the run)",
+       ""
+      ]
+     ]
+    }
    }
   },
   {
