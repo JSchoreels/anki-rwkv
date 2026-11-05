@@ -1,6 +1,6 @@
 # The small model in the review simulator (SM41): handoff, part B (the policy search)
 
-**Status: running** (launched 2026-11-05 02:01). The follow-up is for a fresh agent (Sonnet, medium effort).
+**Status: done** (ran 2026-11-05 02:01-09:31; results in [policy-result.md](policy-result.md)).
 
 Branch `sm41`, worktree `C:/Users/jonat/workspace/wt/sm41`. Always `git fetch` + `git merge --ff-only` first. If SSH
 to GitHub fails:

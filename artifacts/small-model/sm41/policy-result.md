@@ -73,5 +73,62 @@ exploration. Brief: [diag-brief.md](diag-brief.md), part B. Part A: [diag-result
   - at 0.90: 22.0 against 25.5 min/day, 1084 against 1102 memorised;
   - FSRS-7 at 0.90: 23.4 min/day, 1090 memorised.
 
-Screens 2 (`curve-R`, `hyb-R-a0.5`) and 3 (β = 0.5 and 2), the choice of what to confirm, and the confirmation on
-all full-run users are running: see [HANDOFF-policy.md](HANDOFF-policy.md).
+### Screens 2 and 3 (same 20 users; `policy/screen-tables.md`, `policy/lanes-confirm.json`)
+
+| policy | users | gap vs FSRS-7, % (95% CI) | gap vs instant head |
+|---|---|---|---|
+| curve head (`curve-*`) | 19 | +9.9 ± 8.2 | +1.5 ± 6.7 |
+| hybrid, alpha = 0.5 (`hyb-*-a0.5`) | 19 | +6.0 ± 5.3 | -0.5 ± 3.9 |
+| noise s = 0.5 (`ihr-*-n0.5`, control) | 18 | +4.2 ± 4.5 | -2.2 ± 2.8 |
+| time-aware beta = 0.5 (`ihr-*-s0.5`) | 18 | +1.2 ± 3.9 | -4.9 ± 2.4 |
+| time-aware beta = 1 (`ihr-*-s1`) | 19 | -6.9 ± 6.0 | -10.9 ± 4.2 |
+| time-aware beta = 2 (`ihr-*-s2`) | 19 | **-18.7 ± 8.4** | -21.2 ± 6.7 |
+
+- The curve head and the hybrid do not help. The gap shrinks steadily as beta grows; beta = 2 is the largest tried
+  (the optimum may lie beyond it).
+- **Passed to confirmation** (rule: the best time-aware family, plus the best other family that passes, at most 2):
+  `ihr-*-s2` and `ihr-*-n0.5`. The noise rule is a **control**: it was picked because its screen CI included 0,
+  not because it looked good.
+
+### Confirmation (117 users, 304 splits, 60 days; `policy/confirm-tables.md`, `policy/confirm-heldout-tables.md`)
+
+| policy | users | gap vs FSRS-7, % (95% CI) | median | users cheaper | gap vs instant head | 60-day cost gap vs FSRS-7 |
+|---|---|---|---|---|---|---|
+| instant head, targets 0.80-0.90 (reference), all users | 115 | +9.0 ± 3.3 | +7.1 | 20% | — | +8.7 ± 2.8 |
+| noise s = 0.5 (control), all users | 116 | +5.3 ± 2.8 | +4.6 | 31% | -3.2 ± 1.1 | +6.5 ± 2.2 |
+| **time-aware beta = 2, all users** | 110 | **-22.6 ± 3.2** | -21.7 | 92% | -26.1 ± 2.9 | -20.3 ± 2.8 |
+| instant head (reference), 97 held-out | 96 | +10.0 ± 3.8 | +8.8 | 17% | — | +9.3 ± 3.2 |
+| noise s = 0.5 (control), 97 held-out | 97 | +5.9 ± 3.2 | +5.0 | 28% | -3.4 ± 1.3 | +7.3 ± 2.5 |
+| **time-aware beta = 2, 97 held-out** | 91 | **-23.6 ± 3.5** | -21.8 | 92% | -27.3 ± 3.2 | -21.1 ± 3.2 |
+
+Per target, all users (days 30-59):
+
+| policy | target | realised retention | min/day | memorised |
+|---|---|---|---|---|
+| time-aware beta = 2 | 0.80 / 0.85 / 0.90 | 0.825 / 0.858 / 0.893 | 16.2 / 18.5 / 21.6 | 1151 / 1174 / 1201 |
+| instant head | 0.80 / 0.85 / 0.90 | 0.801 / 0.838 / 0.879 | 20.2 / 23.4 / 28.1 | 1195 / 1225 / 1252 |
+| FSRS-7 | 0.80 / 0.85 / 0.90 / 0.95 | 0.769 / 0.820 / 0.875 / 0.929 | 19.6 / 23.9 / 29.9 / 38.9 | 1167 / 1203 / 1240 / 1283 |
+
+At about the same realised retention (beta = 2 at 0.893 vs FSRS-7 at 0.875) the time-aware rule costs 21.6 against
+29.9 min/day.
+
+- **Verdict (the plan's rule): the time-aware target beats FSRS-7** (gap < 0, CI excluding 0), on all users and on
+  the 97 held-out users alike (-22.6 vs -23.6; 92% of users cheaper in both). The held-out users agree.
+- **H5 causal check:** noise moves the gap from +9.0 to +5.3 (41% of the instant head's gap, less than half), and
+  from +10.0 to +5.9 held-out (41%). The spread form of H5 is **not confirmed**. Noise is a control, not a
+  candidate: its gap stays positive.
+- The instant head alone stays costlier than FSRS-7 (+9.0 ± 3.3), as in the full run.
+
+### Could it become an Anki scheduler?
+
+The target needs only the card's last answer time and the user's median answer time, both in the revlog. So it is a
+per-card desired-retention rule on top of any recall model: in the simulator it needs the instant head, and in Anki
+it would need the fork's RWKV runtime. Caveat: the simulator's learner is the same small model, so the gain is
+inside the model's world. Beta = 2 was the largest value tried. Next step, which needs the user's go-ahead: an
+offline check on the real revlog (are slow-answer cards cheaper to review late?), and a larger-beta screen.
+
+### Run cost (CPU only)
+
+4 processes x 1 thread. Simulation about 445 reviews/s per process on the confirmation (35.9M simulated reviews,
+22.4 h), 619/s on screen 2 and 431/s on screen 3; about 26 process-hours of simulation plus 4 of warm-up, about 30
+CPU process-hours, 7.5 h wall (02:01-09:31).
