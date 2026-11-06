@@ -173,3 +173,44 @@ improving 4.77 M lane reviews, 1.81 engine process-hours, 732 lane reviews/s per
 470 /s (the collapsing `-free` lanes dominate); none 5.69 M, 2.66 h, 595 /s; warm-up 0.43-0.44 process-hours each.
 Total 12.39 engine + 1.31 warm-up process-hours.
 
+
+## Confirmation on all users (plan, written 11-07 before the run)
+
+User 11-07 ~00:40: "Sure it can be interesting to see on more users". Files: `learner-drift-all/` (runner, lanes, jobs,
+rows, logs), handoff `HANDOFF-drift-all.md`.
+
+### Setup
+
+- **Users and splits:** all 117 users of the full run and their 304 splits (`fullrun/users.json`), largest users first,
+  60 days, `--ivl-hist`, the full run's pre-split FSRS-7 refits (as in the 20-user run). One job per user (its splits
+  share one warm-up).
+- **One fused run per split, 3 scenarios as lanes** (`perf/fused-scenarios.md`, lane option `g<a>_<b>`, proven
+  equivalent to separate runs): improving `g0.5_0.2`, declining `gm0.5_m0.2` (same A / B as the 20-user run) and no
+  drift (no option). Lanes per scenario: instant head `ihr-0.80/0.85/0.90`, time-aware rule (beta = 2)
+  `ihr-0.80/0.85/0.90-s2`, FSRS-7 `fsrs7-0.70 ... 0.95` (all 6), seeds 0-3 = 48 policy lanes, plus the replay lane `tf`
+  once: 145 lanes (`learner-drift-all/lanes.txt`). No `-free` lanes (unusable at 20 users), so no re-anchoring check.
+- **No-drift baseline:** the fused run's own no-drift lanes (so every user and split has one; screen 3 covers only the
+  20 users). They are checked against the existing full-run / screen 3 rows (`check`, same comparison as the 20-user
+  run, 1e-6 per counter, a few single-draw flips expected).
+- **Load:** 4 processes, 1 thread, below-normal priority, a split waits while < 3 GB RAM is free, quiet windows and the
+  daily break hold CPU too.
+
+### Metrics and aggregation
+
+Same as the 20-user screen (see above), all per user: splits of one user are averaged first, so the CI is over users
+(117, t-based), not over splits: gap vs FSRS-7 at matched realised retention and at matched memorised cards (days 30-59
+and 60 days) for the instant head and the time-aware rule, per scenario, and the change vs no drift on the same user,
+split and seeds; reviews/day, median later-day interval and seconds per later-day review vs FSRS-7, change vs no drift;
+speed.
+
+### Decision bar (fixed before the results)
+
+A **meaningful effect** is a change vs no drift whose 95% CI excludes 0 AND whose size is at least 2.9 points (in %),
+the smallest change the 20-user screen flagged as having a CI excluding 0 (instant head, improving, matched retention:
+-2.9). Smaller significant changes are reported as "significant but small". The user's hypothesis ("RWKV would be more
+efficient since it would schedule less when the learner improves") is supported only under the 20-user decision rule,
+now on 117 users: (1) reviews/day change vs FSRS-7 below 0 with the CI excluding 0 (meaningful if at least 2.9 points)
+and (2) the gap change at matched memorised cards (days 30-59) below 0 with the CI excluding 0. Only (1): "schedules
+less, not more efficiently". The 20-user screen's central claims to confirm or retract: improving, instant head: -7.1
+reviews/day vs FSRS-7, gap change at matched memorised cards -2.9 ± 5.6 (not significant); time-aware rule: +17.8
+reviews/day, -27% median interval; declining, instant head +9.9 reviews/day, time-aware rule -30.6 reviews/day.

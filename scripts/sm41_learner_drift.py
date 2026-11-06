@@ -28,6 +28,8 @@ from scripts import sm41_frontier as FT    # noqa: E402
 
 HERE = ROOT / "artifacts" / "small-model" / "sm41"
 OUT = HERE / "learner-drift"
+ALL = False        # --dir learner-drift-all: one fused row per split (tf + 3 scenarios as lanes), 117 users, 304 splits
+GTAG = {"improve": "-g0.5_0.2", "decline": "-gm0.5_m0.2"}      # lane name suffix of a fused scenario
 SCEN = ("improve", "decline")
 R3 = [0.80, 0.85, 0.90]
 FAMS = {"ihr": ("instant head", lambda R: f"ihr-{R:.2f}"), "s2": ("time-aware beta = 2", lambda R: f"ihr-{R:.2f}-s2")}
@@ -38,6 +40,41 @@ def rows_by_key(pattern):
     for r in FR.load_rows(pattern):
         out.setdefault((r["user"], r["split_day"]), r)    # screen 3 ran twice on some users: the first row
     return out
+
+
+def scen_view(r, sc):
+    """The rows of one scenario out of a fused row (tf + the scenario's lanes, names without the drift tag)."""
+    nl = len(r["lanes"])
+    ks, names = [], []
+    for k, n in enumerate(r["lanes"]):
+        b, _, sd = n.partition("#")
+        tagged = [t for t in GTAG.values() if b.endswith(t)]
+        if b == "tf" or (sc == "none" and not tagged) or (sc in GTAG and b.endswith(GTAG[sc])):
+            ks.append(k)
+            names.append((b[:-len(GTAG[sc])] if sc in GTAG and b != "tf" else b) + "#" + sd)
+    v = dict(r)
+    v["lanes"] = names
+    v["acc"] = {n: np.asarray(a)[ks].tolist() for n, a in r["acc"].items()}
+    for key, val in r.items():
+        if isinstance(val, list) and len(val) == nl and key != "lanes":
+            v[key] = [val[k] for k in ks]
+    return v
+
+
+def scen_rows(sc):
+    """(user, split) -> row of scenario sc ('improve' / 'decline' / 'none')."""
+    if not ALL:
+        return rows_by_key(str(OUT / sc / "rows" / "*.jsonl"))
+    return {k: scen_view(r, sc) for k, r in rows_by_key(str(OUT / "rows" / "*.jsonl")).items()}
+
+
+def U(ks, v):
+    """Per-user mean of per-split values (users with several splits count once; NaN-free means)."""
+    g = {}
+    for k, x in zip(ks, v):
+        if np.isfinite(x):
+            g.setdefault(k[0], []).append(x)
+    return [float(np.mean(x)) for x in g.values()]
 
 
 def baseline():
@@ -95,14 +132,23 @@ def fmt(v, d=1, scale=100):
 def check(args):
     full, s3 = baseline()
     L = []
-    for sc in SCEN + ("none",):
+    if ALL:
+        files = sorted(glob.glob(str(OUT / "rows" / "*.jsonl")))
+        rows = FR.load_rows(str(OUT / "rows" / "*.jsonl"))
+        tb = [p for p in glob.glob(str(OUT / "logs" / "*.log")) if "Traceback" in Path(p).read_text()]
+        jf = OUT / "jobs.txt"
+        jobs = [l.split() for l in jf.read_text().splitlines() if l.strip()] if jf.exists() else []
+        want = sum(len(j[1].split(",")) for j in jobs)
+        L.append(f"fused: {len(files)} of {len(jobs)} row files, {len(rows)} of {want} split rows, Tracebacks in "
+                 f"{len(tb)} logs {tb}")
+    for sc in (() if ALL else SCEN + ("none",)):
         files = sorted(glob.glob(str(OUT / sc / "rows" / "*.jsonl")))
         rows = FR.load_rows(str(OUT / sc / "rows" / "*.jsonl"))
         tb = [p for p in glob.glob(str(OUT / sc / "logs" / "*.log")) if "Traceback" in Path(p).read_text()]
         L.append(f"{sc}: {len(files)} row files, {len(rows)} rows, Tracebacks in {len(tb)} logs {tb}")
     worst, worst_at = 0.0, ""
     n = 0
-    for (u, D), r in rows_by_key(str(OUT / "none" / "rows" / "*.jsonl")).items():
+    for (u, D), r in scen_rows("none").items():
         for k, name in enumerate(r["lanes"]):
             ref = full.get((u, D)) if name in full.get((u, D), {"lanes": []})["lanes"] else None
             if ref is None and (u, D) in s3 and name in s3[(u, D)]["lanes"]:
@@ -121,7 +167,7 @@ def check(args):
                 g = abs(a - b) / max(abs(b), 1.0)
                 if g > worst:
                     worst, worst_at = g, f"user {u} lane {name} {key}"
-    L.append(f"none vs existing rows: {n} lanes compared, largest relative gap {worst:.2e} {worst_at}")
+    L.append(f"no drift lanes vs existing rows: {n} lanes compared, largest relative gap {worst:.2e} {worst_at}")
     txt = "\n".join(L)
     print(txt)
     (OUT / "check.out").write_text(txt + "\n", encoding="utf8")
@@ -129,36 +175,44 @@ def check(args):
 
 def report(args):
     full, s3 = baseline()
-    sample = json.loads(P.SAMPLE.read_text())["users"]
-    keys = [(u["user"], u["split_day"]) for u in sample]
+    none = scen_rows("none")
+    if ALL:
+        keys = sorted(none)
+    else:
+        sample = json.loads(P.SAMPLE.read_text())["users"]
+        keys = [(u["user"], u["split_day"]) for u in sample]
 
     def base_sp(key):
+        if ALL:      # the fused run's own no-drift lanes (checked against the existing rows by `check`)
+            return FR.split_policies(none[key])
         sp = FR.split_policies(full[key])
         sp.update({k: v for k, v in FR.split_policies(s3[key]).items() if k != "tf"})
         return sp
 
     def base_extra(key, b):
+        if ALL:
+            return lane_extra(none[key], b)
         r = full[key] if b in {n.split("#")[0] for n in full[key]["lanes"]} else s3[key]
         return lane_extra(r, b)
 
-    none = rows_by_key(str(OUT / "none" / "rows" / "*.jsonl"))
     res = {"users": len(keys), "scenarios": {}}
     L = ["# The changing-learner simulation (SM41g): tables", "",
-         "20 users of part A (1 split each), 60 days, seeds 0-3. Gaps: cost of the policy / FSRS-7 - 1, paired per "
+         "Users of the run (splits of a user averaged first), 60 days, seeds 0-3. Gaps: cost of the policy / FSRS-7 - 1, paired per "
          "user, mean ± 95% CI over users (%). Change vs no drift = the scenario's gap minus the no-drift gap on the "
          "same user (difference in differences, points). No drift = the full run + screen 3 rows.", ""]
-    scen = [s for s in SCEN + ("none",) if rows_by_key(str(OUT / s / "rows" / "*.jsonl"))]
+    scen = [s for s in SCEN + (() if ALL else ("none",)) if scen_rows(s)]
     sp0 = {k: base_sp(k) for k in keys}
     g0 = {fam: {k: gaps(sp0[k], sp0[k], fam) for k in keys} for fam in FAMS}
+    nu = len({k[0] for k in keys})
     L += ["## Gaps vs FSRS-7", "",
           "| scenario | policy | users | matched retention (plan) | change vs no drift | matched memorised, days 30-59 | "
           "change | matched memorised, 60 days | change |", "|---|---|---|---|---|---|---|---|---|"]
     for fam, (nm, _) in FAMS.items():
-        cols = [[g0[fam][k][i] for k in keys] for i in range(3)]
-        L.append(f"| no drift | {nm} | {len(keys)} | {fmt(cols[0])} | — | {fmt(cols[1])} | — | {fmt(cols[2])} | — |")
+        cols = [U(keys, [g0[fam][k][i] for k in keys]) for i in range(3)]
+        L.append(f"| no drift | {nm} | {nu} | {fmt(cols[0])} | — | {fmt(cols[1])} | — | {fmt(cols[2])} | — |")
         res.setdefault("no_drift", {})[fam] = [FR.ci(c) for c in cols]
     for sc in scen:
-        rows = rows_by_key(str(OUT / sc / "rows" / "*.jsonl"))
+        rows = scen_rows(sc)
         ks = [k for k in keys if k in rows]
         sp = {k: FR.split_policies(rows[k]) for k in ks}
         out = res["scenarios"].setdefault(sc, {"users": len(ks)})
@@ -166,11 +220,11 @@ def report(args):
             g = {k: gaps(sp[k], sp[k], fam) for k in ks}
             cells = []
             for i in range(3):
-                v = [g[k][i] for k in ks]
-                dd = [g[k][i] - g0[fam][k][i] for k in ks]
+                v = U(ks, [g[k][i] for k in ks])
+                dd = U(ks, [g[k][i] - g0[fam][k][i] for k in ks])
                 cells += [fmt(v), fmt(dd)]
                 out.setdefault(fam, {})[["plan", "mem_30_59", "mem_60"][i]] = {"gap": FR.ci(v), "change": FR.ci(dd)}
-            L.append(f"| {sc} | {nm} | {len(ks)} | " + " | ".join(cells) + " |")
+            L.append(f"| {sc} | {nm} | {len({k[0] for k in ks})} | " + " | ".join(cells) + " |")
     # schedules less: reviews/day and median interval vs FSRS-7 at the same target, change vs no drift
     L += ["", "## Does it schedule less? (days 30-59)", "",
           "Per user and target (0.80 / 0.85 / 0.90): ln(scenario / no drift) of the policy minus the same for FSRS-7 "
@@ -180,10 +234,11 @@ def report(args):
           "| scenario | policy | reviews/day vs FSRS-7, change | median later-day interval vs FSRS-7, change | "
           "seconds per later-day review vs FSRS-7, change |", "|---|---|---|---|---|"]
     for sc in [s for s in scen if s != "none"]:
-        rows = rows_by_key(str(OUT / sc / "rows" / "*.jsonl"))
+        rows = scen_rows(sc)
         ks = [k for k in keys if k in rows]
         for fam, (nm, f) in FAMS.items():
             vals = {"rev_day": [], "ivl": [], "s_later": []}
+            vk = {q: [] for q in vals}
             for k in ks:
                 per = {q: [] for q in vals}
                 for R in R3:
@@ -201,7 +256,8 @@ def report(args):
                             per[q].append(x)
                 for q in vals:
                     if per[q]:
-                        vals[q].append(float(np.mean(per[q])))
+                        vals[q].append(float(np.mean(per[q]))); vk[q].append(k)
+            vals = {q: U(vk[q], v) for q, v in vals.items()}
             L.append(f"| {sc} | {nm} | {fmt(vals['rev_day'])} | {fmt(vals['ivl'])} | {fmt(vals['s_later'])} |")
             res["scenarios"][sc].setdefault(fam, {})["schedules_less"] = {q: FR.ci(v) for q, v in vals.items()}
     # per-lane table
@@ -209,9 +265,9 @@ def report(args):
           "| scenario | lane | realised retention | reviews/day | min/day | s per later-day review | median later-day "
           "interval (days) | memorised at day 60 |", "|---|---|---|---|---|---|---|---|"]
     lanes = [f"ihr-{R:.2f}" for R in R3] + [f"ihr-{R:.2f}-s2" for R in R3] + [f"fsrs7-{v:.2f}" for v in FR.LEVELS] + \
-        ["ihr-0.90-free", "fsrs7-0.90-free"]
+        ([] if ALL else ["ihr-0.90-free", "fsrs7-0.90-free"])
     for sc in ["no drift"] + [s for s in scen if s != "none"]:
-        rows = None if sc == "no drift" else rows_by_key(str(OUT / sc / "rows" / "*.jsonl"))
+        rows = None if sc == "no drift" else scen_rows(sc)
         ks = keys if rows is None else [k for k in keys if k in rows]
         for b in lanes:
             ex, sp_ = [], []
@@ -226,33 +282,34 @@ def report(args):
             mm = lambda xs, q: float(np.nanmean([x[q] for x in xs]))   # noqa: E731
             L.append(f"| {sc} | {b} | {mm(sp_, 'ret'):.3f} | {mm(ex, 'rev_day'):.1f} | {mm(ex, 'min_day'):.1f} | "
                      f"{mm(ex, 's_later'):.1f} | {mm(ex, 'ivl'):.1f} | {mm(sp_, 'memorised'):.0f} |")
-    # re-anchoring: cost gap at 0.90 anchored vs free
-    L += ["", "## Re-anchoring check: cost gap instant head / FSRS-7 at target 0.90 (days 30-59 minutes per memorised "
-          "card)", "", "| scenario | anchored | change vs no drift | `-free` | change vs no drift |", "|---|---|---|---|---|"]
-    c0 = {k: (sp0[k]["ihr-0.90"]["cost"] / sp0[k]["fsrs7-0.90"]["cost"] - 1,
-              sp0[k]["ihr-0.90-free"]["cost"] / sp0[k]["fsrs7-0.90-free"]["cost"] - 1) for k in keys}
-    L.append(f"| no drift | {fmt([c0[k][0] for k in keys])} | — | {fmt([c0[k][1] for k in keys])} | — |")
-    for sc in [s for s in scen if s != "none"]:
-        rows = rows_by_key(str(OUT / sc / "rows" / "*.jsonl"))
-        ks = [k for k in keys if k in rows]
-        sp = {k: FR.split_policies(rows[k]) for k in ks}
-        c = {k: (sp[k]["ihr-0.90"]["cost"] / sp[k]["fsrs7-0.90"]["cost"] - 1,
-                 sp[k]["ihr-0.90-free"]["cost"] / sp[k]["fsrs7-0.90-free"]["cost"] - 1) for k in ks}
-        L.append(f"| {sc} | {fmt([c[k][0] for k in ks])} | {fmt([c[k][0] - c0[k][0] for k in ks])} | "
-                 f"{fmt([c[k][1] for k in ks])} | {fmt([c[k][1] - c0[k][1] for k in ks])} |")
-        res["scenarios"][sc]["anchor_check"] = {"anchored": FR.ci([c[k][0] for k in ks]),
-                                                "anchored_change": FR.ci([c[k][0] - c0[k][0] for k in ks]),
-                                                "free": FR.ci([c[k][1] for k in ks]),
-                                                "free_change": FR.ci([c[k][1] - c0[k][1] for k in ks])}
+    # re-anchoring: cost gap at 0.90 anchored vs free (the 20-user run only: the confirmation has no -free lanes)
+    if not ALL:
+        L += ["", "## Re-anchoring check: cost gap instant head / FSRS-7 at target 0.90 (days 30-59 minutes per memorised "
+              "card)", "", "| scenario | anchored | change vs no drift | `-free` | change vs no drift |", "|---|---|---|---|---|"]
+        c0 = {k: (sp0[k]["ihr-0.90"]["cost"] / sp0[k]["fsrs7-0.90"]["cost"] - 1,
+                  sp0[k]["ihr-0.90-free"]["cost"] / sp0[k]["fsrs7-0.90-free"]["cost"] - 1) for k in keys}
+        L.append(f"| no drift | {fmt([c0[k][0] for k in keys])} | — | {fmt([c0[k][1] for k in keys])} | — |")
+        for sc in [s for s in scen if s != "none"]:
+            rows = rows_by_key(str(OUT / sc / "rows" / "*.jsonl"))
+            ks = [k for k in keys if k in rows]
+            sp = {k: FR.split_policies(rows[k]) for k in ks}
+            c = {k: (sp[k]["ihr-0.90"]["cost"] / sp[k]["fsrs7-0.90"]["cost"] - 1,
+                     sp[k]["ihr-0.90-free"]["cost"] / sp[k]["fsrs7-0.90-free"]["cost"] - 1) for k in ks}
+            L.append(f"| {sc} | {fmt([c[k][0] for k in ks])} | {fmt([c[k][0] - c0[k][0] for k in ks])} | "
+                     f"{fmt([c[k][1] for k in ks])} | {fmt([c[k][1] - c0[k][1] for k in ks])} |")
+            res["scenarios"][sc]["anchor_check"] = {"anchored": FR.ci([c[k][0] for k in ks]),
+                                                    "anchored_change": FR.ci([c[k][0] - c0[k][0] for k in ks]),
+                                                    "free": FR.ci([c[k][1] for k in ks]),
+                                                    "free_change": FR.ci([c[k][1] - c0[k][1] for k in ks])}
     # speed
     L += ["", "## Speed (CPU, 1 thread per process)", "", "| scenario | lane reviews | engine process-hours | "
           "lane reviews/s per process | warm-up process-hours |", "|---|---|---|---|---|"]
-    for sc in scen:
-        rows = list(rows_by_key(str(OUT / sc / "rows" / "*.jsonl")).values())
+    for sc in (["fused (all 3 scenarios, one run)"] if ALL else scen):
+        rows = list(rows_by_key(str(OUT / ("rows" if ALL else sc + "/rows") / "*.jsonl")).values())
         lr = sum(r["lane_reviews"] for r in rows); w = sum(r["wall_seconds"] for r in rows)
         wu = sum(r.get("warmup_seconds", 0) for r in rows)
         L.append(f"| {sc} | {lr:,} | {w / 3600:.2f} | {lr / max(w, 1e-9):.0f} | {wu / 3600:.2f} |")
-        res["scenarios"][sc]["speed"] = {"lane_reviews": lr, "engine_s": w, "warmup_s": wu}
+        res["scenarios"].setdefault(sc, {})["speed"] = {"lane_reviews": lr, "engine_s": w, "warmup_s": wu}
     txt = "\n".join(L) + "\n"
     (OUT / "tables.md").write_text(txt, encoding="utf8")
     (OUT / "tables.json").write_text(json.dumps(res, indent=1), encoding="utf8")
@@ -262,9 +319,14 @@ def report(args):
 def main():
     ap = ArgumentParser()
     sub = ap.add_subparsers(dest="cmd", required=True)
-    sub.add_parser("check")
-    sub.add_parser("report")
+    for n in ("check", "report"):
+        q = sub.add_parser(n)
+        q.add_argument("--dir", default="learner-drift", help="learner-drift (20 users, one run per scenario) or "
+                       "learner-drift-all (all 117 users, fused scenarios)")
     a = ap.parse_args()
+    global OUT, ALL
+    OUT = HERE / a.dir
+    ALL = a.dir.endswith("-all")
     {"check": check, "report": report}[a.cmd](a)
 
 
