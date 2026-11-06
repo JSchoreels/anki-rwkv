@@ -196,6 +196,11 @@ class VariantSrsRWKV(SrsRWKV):
         # SM26: opt-in multiplier on the instant (rating) loss term; the default 1.0 keeps IMMEDIATE_SCALE = 1.0 exactly.
         # A float, not None: TorchScript fixes the attribute type when the model is scripted, so None could not become 2.0.
         self.instant_loss_weight = 1.0
+        # SM57 (track option "curve_loss_weight"): multiplier on every curve term of the training loss (the curve and
+        # raw-curve BCE, which carry the curve KD targets, and the curve head's three regularizers). 0.0 = instant-only
+        # training: the instant head and the shared trunk get all the gradient, the curve-only weights get zero
+        # gradients. The default 1.0 scales each constant by 1.0, so the loss and gradients are bit for bit today's.
+        self.curve_loss_weight = 1.0
         # SM33 (track option "grade_order"): weight of the grade-order hinge on the probe rows' curves; 0.0 (default) =
         # the term is never computed, so the loss and gradients are bit for bit today's.
         self.grade_order_weight = 0.0
@@ -574,27 +579,28 @@ class VariantSrsRWKV(SrsRWKV):
             out_p_binary, hard_y, reduction="none"
         )
         ahead_avg = (curve_loss * ahead_mask).sum() / (1e-8 + ahead_mask.sum())
-        AHEAD_SCALE = 0.5
+        CURVE_SCALE = self.curve_loss_weight
+        AHEAD_SCALE = 0.5 * CURVE_SCALE
         ahead_raw_avg = (curve_raw_loss * ahead_mask).sum() / (1e-8 + ahead_mask.sum())
-        AHEAD_RAW_SCALE = 0.5
+        AHEAD_RAW_SCALE = 0.5 * CURVE_SCALE
         immediate_avg = (p_loss * immediate_mask).sum() / (1e-8 + immediate_mask.sum())
         IMMEDIATE_SCALE = self.instant_loss_weight
         w_avg = (w_loss * ahead_mask).sum() / (1e-8 + ahead_mask.sum())
-        W_LOSS_SCALE = 1e-5
+        W_LOSS_SCALE = 1e-5 * CURVE_SCALE
         ahead_logits_mag_loss = torch.sqrt(
             1e-16 + out_ahead_logits.square().mean(dim=-1)
         )
         ahead_logits_mag_avg = (ahead_logits_mag_loss * ahead_mask).sum() / (
             1e-8 + ahead_mask.sum()
         )
-        AHEAD_LOGITS_MAG_LOSS_SCALE = 1e-4
+        AHEAD_LOGITS_MAG_LOSS_SCALE = 1e-4 * CURVE_SCALE
         ahead_logits_diff_loss = torch.sqrt(
             1e-16 + out_ahead_logits.diff().square().mean(dim=-1)
         )
         ahead_logits_diff_avg = (ahead_logits_diff_loss * ahead_mask).sum() / (
             1e-8 + ahead_mask.sum()
         )
-        AHEAD_LOGITS_DIFF_LOSS_SCALE = 1e-3
+        AHEAD_LOGITS_DIFF_LOSS_SCALE = 1e-3 * CURVE_SCALE
         loss_avg = (
             AHEAD_SCALE * ahead_avg
             + IMMEDIATE_SCALE * immediate_avg

@@ -393,6 +393,14 @@ def run_case(args):
             if not hasattr(base, "instant_loss_weight"):
                 raise ValueError("instant_loss_weight needs the Expertium loss")
             base.instant_loss_weight = float(options["instant_loss_weight"])
+        if options.get("curve_loss_weight") is not None:
+            # SM57: scales every curve term of the training loss (0.0 = instant-only training); evaluation is unaffected.
+            if not hasattr(base, "curve_loss_weight"):
+                raise ValueError("curve_loss_weight needs the Expertium variant loss")
+            if options.get("grade_order"):
+                raise ValueError("curve_loss_weight with grade_order (a curve term it does not scale) is not supported")
+            base.curve_loss_weight = float(options["curve_loss_weight"])
+            report["curve_loss_weight"] = base.curve_loss_weight
         if options.get("grade_order"):
             # SM33: hinge on the probe rows' curves (expertium.model.variant_model.grade_order_penalty); the probe rows
             # themselves come from scripts.gpu_r01_samples.add_grade_probes in the workers.
