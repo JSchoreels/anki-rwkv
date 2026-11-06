@@ -39,6 +39,7 @@ WORKTREE = Path("C:/Users/jonat/workspace/wt/small-model")
 SM = WORKTREE / "artifacts" / "small-model"
 HELDOUT = SM / "heldout.jsonl"
 OWNER = "small-model"
+OWNERS = re.compile(r"^(small-model|sm\d+[a-z]?)$")  # factory experiments may file tickets under their own ID (e.g. sm57)
 FORK = "fork/w8+s8"
 USERS = 464
 TRACK = "small model"
@@ -106,7 +107,7 @@ def queue_state():
     running, waiting = [], []
     for line in text.splitlines():
         m = RUNNING.match(line)
-        if m and m["owner"] == OWNER:
+        if m and OWNERS.match(m["owner"]):
             h, mi, s = (int(x) for x in m["age"].split(":"))
             record = read_json(QUEUE_DIR / "tickets" / f"{m['ticket']}.json") or {}
             started = local(record["started"]) if record.get("started") else now() - timedelta(hours=h, minutes=mi, seconds=s)
@@ -114,7 +115,7 @@ def queue_state():
                             "elapsed": h * 3600 + mi * 60 + s, "expected_minutes": record.get("expected_minutes")})
             continue
         m = WAITING.match(line)
-        if m and m["owner"] == OWNER:
+        if m and OWNERS.match(m["owner"]):
             waiting.append({"ticket": m["ticket"], "purpose": clean(m["purpose"]), "flags": m["flags"].strip(", ")})
     return running, waiting
 
@@ -132,7 +133,7 @@ def finished_tickets():
             r = json.loads(line)
         except ValueError:
             continue
-        if r.get("owner") == OWNER and r.get("state") == "finished" and r.get("finished"):
+        if OWNERS.match(r.get("owner") or "") and r.get("state") == "finished" and r.get("finished"):
             code = r.get("exit_code")
             if code == 3 and EPOCH_TICKET.search(r.get("purpose", "")):
                 code = 0  # accuracy_loop.py train: exit 3 = epoch done, more epochs to do (not a failure)
