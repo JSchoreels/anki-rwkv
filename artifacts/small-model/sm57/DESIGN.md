@@ -35,7 +35,7 @@ Scoring as the release: `small_model_heldout.py --split-existing --deleted-cards
 
 Instant-only arm - joint arm, instant head, 722 users:
 
-- **go** if the 95% CI is entirely below zero. Reported with it: whether the gain is at least 0.05 points (the release-candidate size of SM92's rule). Then **stage 2 is proposed, not run**: a from-scratch comparison at small scale (for example a few epochs at 2,048 windows, same seeds, instant-only vs joint from the same random init), to see whether the curve task helps instant learn from the start.
+- **go** if the 95% CI is entirely below zero **and** the gain is at least 0.05 points (the release-candidate size of SM92's rule; this minimum was added by the user on 11-07 ~00:40, before the joint arm was scored). Then **stage 2 is proposed, not run**: a from-scratch comparison at small scale (for example a few epochs at 2,048 windows, same seeds, instant-only vs joint from the same random init), to see whether the curve task helps instant learn from the start.
 - **stop** otherwise.
 
 ## CPU proofs (`sm57_check.py` -> `check-cpu-sm57.json`)

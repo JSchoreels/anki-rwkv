@@ -13,12 +13,13 @@ w8+s8, the 732 set (+ the 3 long users). Rule pool: the 722 users of the 732 set
 rows have. Review-weighted LogLoss; points = % of the big model (1 leak-free epoch) normal-input LogLoss on the same
 users; paired user bootstrap 2,000 resamples, seed 0, 95% CI (sm92_rule.compare, unchanged).
 
-Rule (fixed 2026-11-06 before launch), instant head only, instant-only arm - joint arm:
-  go    the 95% CI is entirely below zero (the instant-only arm is better on instant). Then stage 2 is proposed (not run):
-        a from-scratch comparison at small scale (DESIGN.md).
+Rule (fixed 2026-11-06 before launch; minimum size added by the user 2026-11-07 ~00:40, before the joint arm was
+scored: "we would need at least .05 better result"), instant head only, instant-only arm - joint arm:
+  go    the 95% CI is entirely below zero AND the gain is at least 0.05 points (points <= -0.05; the release-candidate
+        size used by the show-time retrain of the release (SM92)). Then stage 2 is proposed (not run): a from-scratch
+        comparison at small scale (DESIGN.md).
   stop  otherwise.
-Also reported (not the rule): whether the go gain is >= 0.05 points (the release-candidate size used by the show-time
-retrain of the release (SM92)); instant-only - the release (instant); joint - the release (both heads: the one-more-epoch
+Also reported (not the rule): instant-only - the release (instant); joint - the release (both heads: the one-more-epoch
 confound); the joint arm's curve; both arms vs the big model (1 leak-free epoch); the smaller-model bar (<= +0.5% curve /
 <= +0.4% instant) for the joint arm and, instant only, for the instant-only arm; the 725-user 732+long pool; training
 minutes, reviews/s and GPU memory per arm and stage (gpu/segments.jsonl + result.json). The instant-only arm's curve
@@ -63,10 +64,11 @@ NAMES = {"inst_minus_joint": "instant-only - joint (the rule: instant)",
 
 def verdict(pair):
     x = pair["instant"]
-    if x["points_ci"][1] < 0:
-        size = "at least" if x["points"] <= -SIZE_POINTS else "below"
-        return "go", f"instant {fmt(x)}: CI below zero ({size} the {SIZE_POINTS:.2f}-point release-candidate size)"
-    return "stop", f"instant {fmt(x)}: CI not below zero"
+    if x["points_ci"][1] >= 0:
+        return "stop", f"instant {fmt(x)}: CI not below zero"
+    if x["points"] > -SIZE_POINTS:
+        return "stop", f"instant {fmt(x)}: CI below zero but the gain is below the {SIZE_POINTS:.2f}-point minimum"
+    return "go", f"instant {fmt(x)}: CI below zero and at least the {SIZE_POINTS:.2f}-point minimum"
 
 
 def training_stats():
@@ -123,7 +125,7 @@ def decide(args):
     res.update(rows=str(rows), labels={"inst": INST, "joint": JOINT, "release": f"{REL_NORMAL[0]} {REL_NORMAL[1]}",
                                        "big": f"{BIG[0]} {BIG[1]}"},
                missing={k: len(v) for k, v in missing.items()},
-               rule={"go_if": "instant-only - joint, instant head, 95% CI upper < 0 (normal inputs, 722 users)",
+               rule={"go_if": "instant-only - joint, instant head, 95% CI upper < 0 and points <= -0.05 (normal inputs, 722 users; minimum added by the user 11-07)",
                      "unit": "points = % of the big model (1 leak-free epoch) normal-input LogLoss, review-weighted"})
     (HERE / "sm57-decision.json").write_text(json.dumps(res, indent=1) + "\n", encoding="utf-8")
     md = ["# The instant-only small model (SM57): instant-only vs the matched joint arm", "",
@@ -162,7 +164,8 @@ def decide(args):
         md.append(f"| {k} | {t['status']} | {t['segments']} | {t['wall_minutes']} | {ls['reviews'] or 0:,} | {ls['training_minutes']} | "
                   f"{ls['reviews_per_second']:,} | {round(ls['peak_allocated_mib'] or 0):,} | {round(ls['peak_reserved_mib'] or 0):,} | "
                   f"{t['nvidia_smi_max_used_mib']} / {t['nvidia_smi_baseline_mib']} |")
-    md += ["", "Rule: go if instant-only - joint on the instant head has its 95% CI entirely below zero; else stop. Go proposes stage 2 "
+    md += ["", "Rule: go if instant-only - joint on the instant head has its 95% CI entirely below zero and a gain of at least "
+           f"{SIZE_POINTS:.2f} points (minimum added by the user 11-07, before the joint arm was scored); else stop. Go proposes stage 2 "
            "(from-scratch comparison at small scale, DESIGN.md), not run.", "", f"Verdict: **{res['verdict']}** ({res['why']})."]
     (HERE / "sm57-decision.md").write_text("\n".join(md) + "\n", encoding="utf-8")
     line = f"[sm57-rule] {len(users)} users: {res['verdict'].upper()} ({res['why']})"
@@ -177,7 +180,7 @@ def decide(args):
 def self_test(_args):
     """The show-time retrain of the release (SM92)'s published "new normal - the release normal" pair (sm92-decision.json)
     through this script's loading + sm92_rule.compare: points, CIs, users better / worse equal, 722 users; the release vs
-    itself: stop; synthetic arms vs the release: instant -0.03 points -> go, +0.03 -> stop, 0 -> stop."""
+    itself: stop; synthetic arms vs the release: instant -0.08 points -> go, -0.03 (below the minimum) -> stop, +0.03 -> stop, 0 -> stop."""
     users, big = pools()
     want = json.loads(SM92_DECISION.read_text())["rule_pool"]["new_normal_minus_release_normal"]
     rel = load(*REL_NORMAL, set(big))
@@ -198,7 +201,7 @@ def self_test(_args):
                             "instant": (rel[u]["all"]["instant"][0] + instant_points / 100 * big[u]["all"]["instant"][0],
                                         rel[u]["all"]["instant"][1])}} for u in users}
     synth = {}
-    for pts, expect in ((-0.03, "go"), (0.03, "stop"), (0.0, "stop")):
+    for pts, expect in ((-0.08, "go"), (-0.03, "stop"), (0.03, "stop"), (0.0, "stop")):
         v = verdict(compare(fake(pts), rel, big, users))
         synth[str(pts)] = v[0]
         if v[0] != expect:
