@@ -1,0 +1,364 @@
+{
+ "ok": true,
+ "checks": {
+  "C1_epochs_21_25_rebuilt_equal_disk": {
+   "ok": true,
+   "out": "{\"rebuilt_equals_disk\": {\"21\": true, \"22\": true, \"23\": true, \"24\": true, \"25\": true}}",
+   "err": ""
+  },
+  "C2a_joint_epoch26_equals_recipe": {
+   "ok": true,
+   "out": "[sm57-pair] epoch OK: sm57-joint-e26 == epoch-25 except the flag, the start weights, the epoch index and paths {} (epoch 26, 8,000 users in the run's epoch-26 order, update offset 551950, start epoch-25)",
+   "err": ""
+  },
+  "C2b_instant_epoch26_equals_recipe_plus_flag": {
+   "ok": true,
+   "out": "[sm57-pair] epoch OK: sm57-inst-e26 == epoch-25 except the flag, the start weights, the epoch index and paths {\"curve_loss_weight\": 0.0} (epoch 26, 8,000 users in the run's epoch-26 order, update offset 551950, start epoch-25)",
+   "err": ""
+  },
+  "C2c_instant_equals_joint_except_flag": {
+   "ok": true,
+   "out": "[sm57-pair] arms OK: sm57-inst-e26 == sm57-joint-e26 except the flag and folder names {\"curve_loss_weight\": 0.0} (8,000 users, same order / seeds / schedule / options except {\"curve_loss_weight\": 0.0})",
+   "err": ""
+  },
+  "C2d_instant_without_flag_refused": {
+   "ok": true,
+   "out": "[sm57-pair] epoch REFUSE: options /curve_loss_weight: 0.0 vs None",
+   "err": ""
+  },
+  "C2e_joint_against_epoch24_refused": {
+   "ok": true,
+   "out": "w64kd-final-sc-lanes-leakfree\\run\\epoch-24\\expertium\\E89-F65e-F77a\\master.pth; init_optimizer C:/Users/jonat/workspace/wt/sm72s/artifacts/accuracy/experiments/scale-w64kd-final-sc-lanes-leakfree/run/epoch-25/expertium/E89-F65e-F77a/optimizer.pth vs C:\\Users\\jonat\\workspace\\wt\\sm72s\\artifacts\\accuracy\\experiments\\scale-w64kd-final-sc-lanes-leakfree\\run\\epoch-24\\expertium\\E89-F65e-F77a\\optimizer.pth",
+   "err": ""
+  },
+  "C2f_joint_as_instant_refused": {
+   "ok": true,
+   "out": "[sm57-pair] arms REFUSE: curve_loss_weight is not 0.0 in the instant-only arm only",
+   "err": ""
+  },
+  "C3_eager_plain_a_untouched_equals_code_before_sm57": {
+   "ok": true,
+   "loss": 2.2806811332702637,
+   "scripted": false
+  },
+  "C3_eager_plain_b_weight1_equals_untouched": {
+   "ok": true
+  },
+  "C3_eager_plain_c_weight0_instant_only": {
+   "ok": true,
+   "c_zero_loss_equals_instant_average": true,
+   "c_zero_loss": 1.6784172058105469,
+   "c_instant": 1.6784172058105469,
+   "c_reports_unchanged": true,
+   "c_new_zero_grad_params": [
+    "gru_d_bias",
+    "gru_d_weight",
+    "gru_s_bias",
+    "gru_s_weight",
+    "gru_w_bias",
+    "gru_w_weight",
+    "head_w.0.bias",
+    "head_w.0.weight",
+    "head_w.2.bias",
+    "head_w.2.weight",
+    "head_w.4.bias",
+    "head_w.4.weight"
+   ],
+   "c_zero_grad_params_default": 66,
+   "c_grad_linearity_max_rel": 7.246561221402758e-06,
+   "c_loss_linearity_abs": 0.0,
+   "parameters": 420,
+   "parameters_zero_grad": 78
+  },
+  "C3_eager_kd + sync_free_loss_a_untouched_equals_code_before_sm57": {
+   "ok": true,
+   "loss": 2.2512929439544678,
+   "scripted": false
+  },
+  "C3_eager_kd + sync_free_loss_b_weight1_equals_untouched": {
+   "ok": true
+  },
+  "C3_eager_kd + sync_free_loss_c_weight0_instant_only": {
+   "ok": true,
+   "c_zero_loss_equals_instant_average": true,
+   "c_zero_loss": 1.6400986909866333,
+   "c_instant": 1.6400986909866333,
+   "c_reports_unchanged": true,
+   "c_new_zero_grad_params": [
+    "gru_d_bias",
+    "gru_d_weight",
+    "gru_s_bias",
+    "gru_s_weight",
+    "gru_w_bias",
+    "gru_w_weight",
+    "head_w.0.bias",
+    "head_w.0.weight",
+    "head_w.2.bias",
+    "head_w.2.weight",
+    "head_w.4.bias",
+    "head_w.4.weight"
+   ],
+   "c_zero_grad_params_default": 66,
+   "c_grad_linearity_max_rel": 1.7307375876698333e-05,
+   "c_loss_linearity_abs": 3.5762786865234375e-07,
+   "parameters": 420,
+   "parameters_zero_grad": 78
+  },
+  "C3_scripted_plain_a_untouched_equals_code_before_sm57": {
+   "ok": true,
+   "loss": 2.2806811332702637,
+   "scripted": true
+  },
+  "C3_scripted_plain_b_weight1_equals_untouched": {
+   "ok": true
+  },
+  "C3_scripted_plain_c_weight0_instant_only": {
+   "ok": true,
+   "c_zero_loss_equals_instant_average": true,
+   "c_zero_loss": 1.6784172058105469,
+   "c_instant": 1.6784172058105469,
+   "c_reports_unchanged": true,
+   "c_new_zero_grad_params": [
+    "gru_d_bias",
+    "gru_d_weight",
+    "gru_s_bias",
+    "gru_s_weight",
+    "gru_w_bias",
+    "gru_w_weight",
+    "head_w.0.bias",
+    "head_w.0.weight",
+    "head_w.2.bias",
+    "head_w.2.weight",
+    "head_w.4.bias",
+    "head_w.4.weight"
+   ],
+   "c_zero_grad_params_default": 66,
+   "c_grad_linearity_max_rel": 7.246561221402758e-06,
+   "c_loss_linearity_abs": 0.0,
+   "parameters": 420,
+   "parameters_zero_grad": 78
+  },
+  "C3_scripted_kd + sync_free_loss_a_untouched_equals_code_before_sm57": {
+   "ok": true,
+   "loss": 2.2512929439544678,
+   "scripted": true
+  },
+  "C3_scripted_kd + sync_free_loss_b_weight1_equals_untouched": {
+   "ok": true
+  },
+  "C3_scripted_kd + sync_free_loss_c_weight0_instant_only": {
+   "ok": true,
+   "c_zero_loss_equals_instant_average": true,
+   "c_zero_loss": 1.6400986909866333,
+   "c_instant": 1.6400986909866333,
+   "c_reports_unchanged": true,
+   "c_new_zero_grad_params": [
+    "gru_d_bias",
+    "gru_d_weight",
+    "gru_s_bias",
+    "gru_s_weight",
+    "gru_w_bias",
+    "gru_w_weight",
+    "head_w.0.bias",
+    "head_w.0.weight",
+    "head_w.2.bias",
+    "head_w.2.weight",
+    "head_w.4.bias",
+    "head_w.4.weight"
+   ],
+   "c_zero_grad_params_default": 66,
+   "c_grad_linearity_max_rel": 1.7307375876698333e-05,
+   "c_loss_linearity_abs": 3.5762786865234375e-07,
+   "parameters": 420,
+   "parameters_zero_grad": 78
+  },
+  "C4_adamw_epoch_base_tree_equals_this_tree_option_absent": {
+   "ok": true,
+   "updates": 8,
+   "optimizer": "AdamW",
+   "scripted": true,
+   "weights": "c582a90871b737c6",
+   "losses": [
+    1.2216482162475586,
+    0.9608363509178162,
+    0.6455850005149841,
+    0.6529930233955383,
+    0.9697211384773254,
+    0.5561112761497498,
+    0.8559331297874451,
+    0.7910759449005127
+   ]
+  },
+  "C4_adamw_epoch_weight1_equals_option_absent": {
+   "ok": true
+  },
+  "C4_adamw_epoch_weight0_trains_instant_only": {
+   "ok": true,
+   "new_zero_grad_params": [
+    "gru_d_bias",
+    "gru_d_weight",
+    "gru_s_bias",
+    "gru_s_weight",
+    "gru_w_bias",
+    "gru_w_weight",
+    "head_w.0.bias",
+    "head_w.0.weight",
+    "head_w.2.bias",
+    "head_w.2.weight",
+    "head_w.4.bias",
+    "head_w.4.weight"
+   ],
+   "losses": [
+    0.8560775518417358,
+    0.625490665435791,
+    0.5791096091270447,
+    0.48374703526496887,
+    0.5589864253997803,
+    0.3050735592842102,
+    0.4656313359737396,
+    0.37103408575057983
+   ]
+  },
+  "C4_muon_cooldown_base_tree_equals_this_tree_option_absent": {
+   "ok": true,
+   "updates": 8,
+   "optimizer": "HybridOptimizer",
+   "scripted": true,
+   "weights": "f7cf3ef6812dd6e6",
+   "losses": [
+    1.2216482162475586,
+    0.9587053656578064,
+    0.6482262015342712,
+    0.6528918743133545,
+    0.9726904034614563,
+    0.5561398863792419,
+    0.8527026772499084,
+    0.7870358228683472
+   ]
+  },
+  "C4_muon_cooldown_weight1_equals_option_absent": {
+   "ok": true
+  },
+  "C4_muon_cooldown_weight0_trains_instant_only": {
+   "ok": true,
+   "new_zero_grad_params": [
+    "gru_d_bias",
+    "gru_d_weight",
+    "gru_s_bias",
+    "gru_s_weight",
+    "gru_w_bias",
+    "gru_w_weight",
+    "head_w.0.bias",
+    "head_w.0.weight",
+    "head_w.2.bias",
+    "head_w.2.weight",
+    "head_w.4.bias",
+    "head_w.4.weight"
+   ],
+   "losses": [
+    0.8560775518417358,
+    0.6255435943603516,
+    0.5794083476066589,
+    0.48450377583503723,
+    0.5591711401939392,
+    0.3056179881095886,
+    0.4621122479438782,
+    0.3724406659603119
+   ]
+  },
+  "C5a_kd_cache_digest_unchanged_by_option": {
+   "ok": true,
+   "caches": [
+    "batches-2a514e9af643",
+    "batches-2a514e9af643"
+   ]
+  },
+  "C5b_only_the_loss_option_files_changed_since_base": {
+   "ok": true,
+   "changed": [
+    "expertium/model/variant_model.py",
+    "scripts/expertium_options.py",
+    "scripts/gpu_r01_prefetch.py",
+    "scripts/gpu_r01_training.py"
+   ],
+   "base": "29727c6b"
+  },
+  "C6a_instant_extras_are_joint_extras_plus_flag": {
+   "ok": true,
+   "joint": {
+    "distillation": {
+     "teacher": "C:/Users/jonat/workspace/wt/sm72/artifacts/small-model/sm72-big-leakfree-1ep/expertium/big-leakfree-1ep/master.pth",
+     "alpha": 0.9,
+     "decay_alpha": 0.5,
+     "kd_source": "replay",
+     "replay": "C:/Users/jonat/workspace/anki-rwkv/artifacts/cache/kd-replay/big-leakfree-1ep-final8k-neighbour"
+    },
+    "state_carry": {
+     "lanes": "strided"
+    },
+    "chunk_reviews": 32768,
+    "batch_chunks": 1,
+    "optimizer": "expertium-iter53"
+   },
+   "instant": {
+    "distillation": {
+     "teacher": "C:/Users/jonat/workspace/wt/sm72/artifacts/small-model/sm72-big-leakfree-1ep/expertium/big-leakfree-1ep/master.pth",
+     "alpha": 0.9,
+     "decay_alpha": 0.5,
+     "kd_source": "replay",
+     "replay": "C:/Users/jonat/workspace/anki-rwkv/artifacts/cache/kd-replay/big-leakfree-1ep-final8k-neighbour"
+    },
+    "state_carry": {
+     "lanes": "strided"
+    },
+    "chunk_reviews": 32768,
+    "batch_chunks": 1,
+    "optimizer": "expertium-iter53",
+    "curve_loss_weight": 0.0
+   }
+  },
+  "C6b_joint_cooldown_equals_release_except_flag_and_names": {
+   "ok": true,
+   "out": "[sm57-pair] decay OK: test-cooldown-joint-from-sm72s-e25 == scale-w64kd-final-sc-lanes-leakfree-dec25-1ep32k-muon except the flag, the start weights, the epoch index and paths {} (8,000 users, 581,942,724 reviews, update offset 551950 vs 551950, start 520fe4f4a5b7)"
+  },
+  "C6b_instant_cooldown_equals_release_except_flag_and_names": {
+   "ok": true,
+   "out": "[sm57-pair] decay OK: test-cooldown-instant-from-sm72s-e25 == scale-w64kd-final-sc-lanes-leakfree-dec25-1ep32k-muon except the flag, the start weights, the epoch index and paths {\"curve_loss_weight\": 0.0} (8,000 users, 581,942,724 reviews, update offset 551950 vs 551950, start 520fe4f4a5b7)"
+  },
+  "C6c_instant_cooldown_equals_joint_cooldown_except_flag": {
+   "ok": true,
+   "out": "[sm57-pair] arms OK: test-cooldown-instant-from-sm72s-e25 == test-cooldown-joint-from-sm72s-e25 except the flag and folder names {\"curve_loss_weight\": 0.0} (8,000 users, same order / seeds / schedule / options except {\"curve_loss_weight\": 0.0})"
+  },
+  "C6d_release_as_instant_refused": {
+   "ok": true,
+   "out": "[sm57-pair] decay REFUSE: curve_loss_weight is not 0.0 in the arm only"
+  },
+  "C7_rule_self_test": {
+   "ok": true,
+   "out": "{\"users\": 722, \"sm92_pair_reproduced\": {\"curve\": [0.07, [0.002, 0.177]], \"instant\": [0.079, [0.063, 0.098]]}, \"sm92_published\": {\"curve\": [0.07, [0.002, 0.177]], \"instant\": [0.079, [0.063, 0.098]]}, \"synthetic\": {\"-0.03\": \"go\", \"0.03\": \"stop\", \"0.0\": \"stop\"}, \"ok\": true, \"failures\": []}",
+   "err": ""
+  }
+ },
+ "seconds": 194.4,
+ "base": "29727c6b",
+ "commit": "fd43ae79a8a9b860edbf86388896347913044750",
+ "dirty_source": "",
+ "provenance": {
+  "captured_utc": "2026-11-06T00:51:55.005371+00:00",
+  "git_commit": "fd43ae79a8a9b860edbf86388896347913044750",
+  "git_dirty": false,
+  "git_status_porcelain_z": "",
+  "source_tree_sha256": "9e71333a05e68d4e8b2a2c9741dfab778211695d667c27079f971650b1fb9bc2",
+  "source_archive": "artifacts/sources/experiment-sources/9e71333a05e68d4e8b2a2c9741dfab778211695d667c27079f971650b1fb9bc2/source.zip",
+  "source_paths": [
+   "rwkv",
+   "expertium",
+   "scripts",
+   "configs",
+   "pyproject.toml",
+   "uv.lock",
+   "justfile",
+   "upstream.json"
+  ]
+ }
+}
