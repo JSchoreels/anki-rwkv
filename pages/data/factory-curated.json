@@ -262,6 +262,20 @@
  "now_notes": [],
  "plan": [
   {
+   "id": "SM57",
+   "track": "small model",
+   "since": "11-06T01:30",
+   "kind": "gpu",
+   "minutes": 1200,
+   "match": [
+    "the instant-only small model (SM57): "
+   ],
+   "what": "The instant-only small model (SM57): the release from epoch 25 (SM63) + 1 epoch and the same cool-down with only the instant head trained, against the same run with the normal joint loss (matched users, seeds, order); instant LogLoss on the 732 set, leak-free inputs",
+   "when": "Design and checks from 01:30 Fri, then two GPU arms of about 10 h each; they pause for the 20:00&ndash;01:00 break",
+   "decides": "Whether giving the whole small model to instant beats sharing it with the curve (go: instant better than the joint arm with the CI clear of 0; then a from-scratch check is proposed)",
+   "started_at": "2026-11-06T01:30+01:00"
+  },
+  {
    "id": "SM73s2",
    "track": "small model",
    "since": "11-02T08:52",
@@ -2313,11 +2327,12 @@
    "why": "Done 10-24 / 10-25: the released small model (leak inputs) (SM56); see its results rows"
   },
   {
-   "status": "parked",
+   "status": "next",
    "id": "SM57",
    "track": "small model",
    "item": "Instant-only small model: retrain from scratch with only the instant head, against a matched joint baseline (same users, seeds, epochs); record training time, reviews/s, GPU memory and instant LogLoss on 723 users",
-   "why": "Goal: better instant predictions, not less space. Does giving all of the model to instant beat sharing it with the curve, or does the curve task help instant learn? Many people mostly use instant; a second, curve-only model could cover the rest (both = double the state). No rush: later this week if a slot opens, else next week (user, 10-21) &mdash; parked 10-28: a measurement, not a better model"
+   "why": "Goal: better instant predictions, not less space. Does giving all of the model to instant beat sharing it with the curve, or does the curve task help instant learn? Many people mostly use instant; a second, curve-only model could cover the rest (both = double the state). No rush: later this week if a slot opens, else next week (user, 10-21) &mdash; parked 10-28: a measurement, not a better model &mdash; started 11-06 01:30 (user: &ldquo;we could do a instant-only model&rdquo;)",
+   "since": "11-06T01:30"
   },
   {
    "status": "done",
