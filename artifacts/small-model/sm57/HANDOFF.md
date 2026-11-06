@@ -9,7 +9,7 @@ Does giving the whole small model to the instant task beat sharing it with the c
 - **instant-only**: track option `"curve_loss_weight": 0.0` (every curve loss term, curve KD included, at weight 0) in the epoch and the cool-down.
 - **joint**: no extra option (the normal loss). Its epoch 26 is also epoch 26 of the "more epochs" run of the release from epoch 25 (SM63): keep `artifacts/small-model/sm57-joint-e26/expertium/E89-F65e-F77a/{master,optimizer}.pth`.
 
-**Rule** (`sm57_rule.py`, fixed before launch): 722 users of the 732 set, normal inputs, leak-free, instant-only - joint on the instant head, points = % of the big model (1 leak-free epoch) LogLoss, paired user bootstrap 2,000, seed 0, 95% CI. **go** if the CI is entirely below zero (then propose stage 2, do not run it); **stop** otherwise.
+**Rule** (`sm57_rule.py`, fixed before launch): 722 users of the 732 set, normal inputs, leak-free, instant-only - joint on the instant head, points = % of the big model (1 leak-free epoch) LogLoss, paired user bootstrap 2,000, seed 0, 95% CI. **go** if the CI is entirely below zero and the gain is at least 0.05 points (minimum added by the user 11-07 ~00:40, before the joint arm was scored; self-test re-run OK) (then propose stage 2, do not run it); **stop** otherwise.
 
 ## Done before launch
 
