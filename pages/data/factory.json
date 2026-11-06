@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-06T15:48:25+01:00",
- "updated": "2026-11-06 15:48",
- "material": "a1e608eb5a655b64",
- "summary": "idle",
+ "generated_at": "2026-11-06T17:33:52+01:00",
+ "updated": "2026-11-06 17:33",
+ "material": "e2554da00b4de69e",
+ "summary": "running 000945, finished 000944",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring (curve / instant)",
@@ -263,7 +263,23 @@
    "track": "small model"
   }
  ],
- "now": [],
+ "now": [
+  {
+   "what": "The instant-only small model (SM57): the release from epoch 25 (SM63) + 1 epoch and the same cool-down with only the instant head trained, against the same run with the normal joint loss (matched users, seeds, order); instant LogLoss on the 732 set, leak-free inputs",
+   "id": "SM57, ticket 000945",
+   "kind": "gpu",
+   "decides": "Whether giving the whole small model to instant beats sharing it with the curve (go: instant better than the joint arm with the CI clear of 0; then a from-scratch check is proposed)",
+   "why": "",
+   "job": "the instant-only small model (SM57): joint: the release&#x27;s one-epoch 32k Muon cool-down from epoch 26 (w64, the release&#x27;s users, order, seeds, KD targets) (segment to the next window or the end)",
+   "linked": true,
+   "track": "small model",
+   "ticket": "000945-sm57",
+   "started": "13:47",
+   "elapsed": "3:46",
+   "progress": null,
+   "eta": "~19:54"
+  }
+ ],
  "charts": [
   {
    "title": "Small model, leak-free (SM72s): LogLoss per epoch, 458-user set (lower is better)",
@@ -434,58 +450,58 @@
  "waiting": [],
  "recent": [
   {
-   "ticket": "000936-small-model",
-   "id": "SM92",
-   "what": "show-time retrain of the release (SM92): answer-time head (SM82c recipe): time scoring of the head and the ablation on the 732 pool minus 9 never-fit (723, pass 1)",
-   "ended": "08:50",
-   "date": "11-04",
-   "exit": 0,
-   "ran": "0:15"
-  },
-  {
-   "ticket": "000935-small-model",
-   "id": "SM92",
-   "what": "show-time retrain of the release (SM92): answer-time head (SM82c recipe): grade check: the SM92 model vs the exported model with the head (5 users, scorer rows and dumps bitwise)",
-   "ended": "08:34",
-   "date": "11-04",
+   "ticket": "000944-sm57",
+   "id": "SM57",
+   "what": "the instant-only small model (SM57): scoring the instant-only model on normal inputs, the 3 long users of the 732 set (pass 1, cap 0.92)",
+   "ended": "13:47",
+   "date": "11-06",
    "exit": 0,
    "ran": "0:00"
   },
   {
-   "ticket": "000934-small-model",
-   "id": "SM92",
-   "what": "show-time retrain of the release (SM92): answer-time head (SM82c recipe): head training on the frozen SM92 model (1,991 users of the quarter-epoch cool-down, first 400k reviews each, 10k AdamW steps, head + explicit-only ablation)",
-   "ended": "08:34",
-   "date": "11-04",
-   "exit": 0,
-   "ran": "0:46"
-  },
-  {
-   "ticket": "000933-small-model",
-   "id": "SM92",
-   "what": "show-time retrain of the release (SM92): answer-time head (SM82c recipe): smoke: head training on 4 users (3 small + the longest, cut at 400k) + time scoring of both heads (3 users) + grade check (2 users) on the frozen SM92 model",
-   "ended": "07:47",
-   "date": "11-04",
+   "ticket": "000943-sm57",
+   "id": "SM57",
+   "what": "the instant-only small model (SM57): scoring the instant-only model on normal inputs, the 732 set minus 9 never-fit (723 users) (pass 2, 722 done, cap 0.8)",
+   "ended": "13:46",
+   "date": "11-06",
    "exit": 0,
    "ran": "0:00"
   },
   {
-   "ticket": "000932-small-model",
-   "id": "SM92",
-   "what": "show-time retrain of the release (SM92): scoring the show-time retrained model on normal inputs, the 3 long users of the 732 set (pass 1, cap 0.92)",
-   "ended": "06:11",
-   "date": "11-04",
+   "ticket": "000942-sm57",
+   "id": "SM57",
+   "what": "the instant-only small model (SM57): scoring the instant-only model on normal inputs, the 732 set minus 9 never-fit (723 users) (pass 1, 0 done, cap 0.8)",
+   "ended": "13:46",
+   "date": "11-06",
+   "exit": 0,
+   "ran": "0:11"
+  },
+  {
+   "ticket": "000941-sm57",
+   "id": "SM57",
+   "what": "the instant-only small model (SM57): instant-only: the release&#x27;s one-epoch 32k Muon cool-down from epoch 26 (w64, the release&#x27;s users, order, seeds, KD targets), curve loss weight 0 (segment to the next window or the end)",
+   "ended": "13:34",
+   "date": "11-06",
+   "exit": 0,
+   "ran": "7:57"
+  },
+  {
+   "ticket": "000940-sm57",
+   "id": "SM57",
+   "what": "the instant-only small model (SM57): trainer smoke of the instant-only cool-down (fresh Muon, curve loss weight 0, 2 users x 512 reviews)",
+   "ended": "05:37",
+   "date": "11-06",
    "exit": 0,
    "ran": "0:00"
   },
   {
-   "ticket": "000931-small-model",
-   "id": "SM92",
-   "what": "show-time retrain of the release (SM92): scoring the show-time retrained model on normal inputs, the 732 set minus 9 never-fit (723 users) (pass 2, 722 done, cap 0.8)",
-   "ended": "06:11",
-   "date": "11-04",
+   "ticket": "000939-sm57",
+   "id": "SM57",
+   "what": "the instant-only small model (SM57): joint epoch 26 (w64 from the leak-free small model (SM72s) epoch 25, the release&#x27;s epoch 21-25 recipe: 8k final tier, 2048 x 16 lanes carry, leak-free replay KD, AdamW 7e-4 constant) (segment to the next window or the end)",
+   "ended": "05:36",
+   "date": "11-06",
    "exit": 0,
-   "ran": "0:00"
+   "ran": "1:50"
   }
  ],
  "plan": [
@@ -498,8 +514,11 @@
    "what": "The instant-only small model (SM57): the release from epoch 25 (SM63) + 1 epoch and the same cool-down with only the instant head trained, against the same run with the normal joint loss (matched users, seeds, order); instant LogLoss on the 732 set, leak-free inputs",
    "when": "Running since 01:54 Fri (option proven bit-identical when off, CPU and GPU): both epochs 26 done 05:37, instant-only cool-down 05:37&ndash;13:34 and scored 13:46, joint cool-down from 13:47 (pauses 19:58&ndash;01:00, ends ~02:45 Sat), decision ~03:15 Sat",
    "decides": "Whether giving the whole small model to instant beats sharing it with the curve (go: instant better than the joint arm with the CI clear of 0; then a from-scratch check is proposed)",
-   "started_at": "2026-11-06T01:30+01:00",
-   "state": "planned"
+   "started_at": "2026-11-06T01:52:59+01:00",
+   "state": "running",
+   "started": "13:47",
+   "ticket": "000945-sm57",
+   "ends_at": "2026-11-07T02:52:59+01:00"
   },
   {
    "id": "SM73s2",
