@@ -264,6 +264,20 @@
   {
    "id": "SM57",
    "track": "small model",
+   "since": "11-07T08:19",
+   "kind": "gpu",
+   "minutes": 210,
+   "match": [
+    "the instant-only small model (SM57) stage 3: "
+   ],
+   "what": "The instant-only small model (SM57) stage 3: the mirror arm, curve-only (instant head not trained), from the same random init on the 2k tier, 5 epochs, against stage 2&rsquo;s joint arm (not retrained); scored at epochs 1, 3 and 5 on the 732 set",
+   "when": "Running since 08:25 Sat (CPU proofs and GPU check passed: the loss is exactly the joint arm&rsquo;s curve terms): ~77&ndash;90k reviews/s, end ~11:45",
+   "decides": "Whether the instant task also costs the curve, so two dedicated models (one per scheduler) beat the shared one on both heads (go: curve-only &minus; joint on curve at epoch 5, 95% CI below 0 and at least 0.05 points)",
+   "started_at": "2026-11-07T08:19+01:00"
+  },
+  {
+   "id": "SM57",
+   "track": "small model",
    "since": "11-07T01:35",
    "kind": "gpu",
    "minutes": 400,
@@ -319,7 +333,7 @@
     "the changing-learner simulation (SM41g) on all users: "
    ],
    "what": "The changing-learner simulation (SM41g) on all 117 users (304 starting days, CPU): improving, declining and steady learner in one fused run, instant head, time-aware rule and FSRS-7 at matched targets",
-   "when": "Running since ~00:50 Sat, slower than estimated (27 of 117 users by 08:00, ~63 CPU process-hours left); 2 more CPU processes added 08:01 (6 in all), end ~18:30 Sat if no break hold",
+   "when": "Running since ~00:50 Sat, slower than estimated (27 of 117 users by 08:00, ~63 CPU process-hours left, 4 CPU processes); 2 more processes ran 08:01&ndash;08:20 and come back after the curve-only GPU run (RAM), end late Sat or after the night break",
    "decides": "Whether the 20-user screen holds: the instant head schedules less for an improving learner but is not more efficient; the time-aware rule is robust to a declining one",
    "started_at": "2026-11-07T00:50+01:00"
   },

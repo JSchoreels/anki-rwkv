@@ -1,7 +1,7 @@
 {
- "generated_at": "2026-11-07T08:25:38+01:00",
- "updated": "2026-11-07 08:25",
- "material": "af6f5bf043a73b00",
+ "generated_at": "2026-11-07T08:30:07+01:00",
+ "updated": "2026-11-07 08:30",
+ "material": "0f7acaf02d526269",
  "summary": "running 000976",
  "headline": [
   {
@@ -265,17 +265,17 @@
  ],
  "now": [
   {
-   "what": "the instant-only small model (SM57) stage 3: curve-only epoch 1, instant loss weight 0 (w64 from scratch, the 2k tier, the leak-free small model (SM72s) recipe: 2048 x 16 lanes carry, leak-free replay KD, AdamW 7e-4 constant) (segment to the next break or the end)",
-   "id": "000976-sm57",
-   "kind": "gpu-train",
-   "decides": "",
+   "what": "The instant-only small model (SM57) stage 3: the mirror arm, curve-only (instant head not trained), from the same random init on the 2k tier, 5 epochs, against stage 2&rsquo;s joint arm (not retrained); scored at epochs 1, 3 and 5 on the 732 set",
+   "id": "SM57, ticket 000976",
+   "kind": "gpu",
+   "decides": "Whether the instant task also costs the curve, so two dedicated models (one per scheduler) beat the shared one on both heads (go: curve-only &minus; joint on curve at epoch 5, 95% CI below 0 and at least 0.05 points)",
    "why": "",
    "job": "the instant-only small model (SM57) stage 3: curve-only epoch 1, instant loss weight 0 (w64 from scratch, the 2k tier, the leak-free small model (SM72s) recipe: 2048 x 16 lanes carry, leak-free replay KD, AdamW 7e-4 constant) (segment to the next break or the end)",
-   "linked": false,
+   "linked": true,
    "track": "small model",
    "ticket": "000976-sm57",
    "started": "08:25",
-   "elapsed": "0:00",
+   "elapsed": "0:05",
    "progress": null,
    "eta": "~09:05"
   }
@@ -451,7 +451,7 @@
  "recent": [
   {
    "ticket": "000975-sm57",
-   "id": "",
+   "id": "SM57",
    "what": "the instant-only small model (SM57) stage 3: GPU check (trainer smokes 2 users x 512 reviews of epoch 1: joint == stage 2&#x27;s joint smoke bitwise, curve-only trains with instant weight 0, same fresh init)",
    "ended": "08:25",
    "date": "11-07",
@@ -508,6 +508,21 @@
   {
    "id": "SM57",
    "track": "small model",
+   "since": "11-07T08:19",
+   "kind": "gpu",
+   "minutes": 210,
+   "what": "The instant-only small model (SM57) stage 3: the mirror arm, curve-only (instant head not trained), from the same random init on the 2k tier, 5 epochs, against stage 2&rsquo;s joint arm (not retrained); scored at epochs 1, 3 and 5 on the 732 set",
+   "when": "Running since 08:25 Sat (CPU proofs and GPU check passed: the loss is exactly the joint arm&rsquo;s curve terms): ~77&ndash;90k reviews/s, end ~11:45",
+   "decides": "Whether the instant task also costs the curve, so two dedicated models (one per scheduler) beat the shared one on both heads (go: curve-only &minus; joint on curve at epoch 5, 95% CI below 0 and at least 0.05 points)",
+   "started_at": "2026-11-07T08:24:39+01:00",
+   "state": "running",
+   "started": "08:25",
+   "ticket": "000976-sm57",
+   "ends_at": "2026-11-07T11:54:39+01:00"
+  },
+  {
+   "id": "SM57",
+   "track": "small model",
    "since": "11-07T01:35",
    "kind": "gpu",
    "minutes": 400,
@@ -551,7 +566,7 @@
    "kind": "cpu",
    "minutes": 1080,
    "what": "The changing-learner simulation (SM41g) on all 117 users (304 starting days, CPU): improving, declining and steady learner in one fused run, instant head, time-aware rule and FSRS-7 at matched targets",
-   "when": "Running since ~00:50 Sat, slower than estimated (27 of 117 users by 08:00, ~63 CPU process-hours left); 2 more CPU processes added 08:01 (6 in all), end ~18:30 Sat if no break hold",
+   "when": "Running since ~00:50 Sat, slower than estimated (27 of 117 users by 08:00, ~63 CPU process-hours left, 4 CPU processes); 2 more processes ran 08:01&ndash;08:20 and come back after the curve-only GPU run (RAM), end late Sat or after the night break",
    "decides": "Whether the 20-user screen holds: the instant head schedules less for an improving learner but is not more efficient; the time-aware rule is robust to a declining one",
    "started_at": "2026-11-07T00:50+01:00",
    "state": "planned"
