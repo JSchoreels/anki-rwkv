@@ -1,4 +1,4 @@
-# RUNNING - The instant-only small model (SM57): handoff (2026-11-06 01:56)
+# DONE - The instant-only small model (SM57): handoff (2026-11-06 01:56)
 
 Branch `sm57` (cut from `sm92` at `29727c6b`: main has no small-model training or scoring code), worktree `C:/Users/jonat/workspace/wt/sm57`. Design, option and pre-registered rule: `DESIGN.md` (this folder).
 
