@@ -4,9 +4,11 @@
   732  : every validation user of the 8k split with id < 5000 (fork-unseen). The new standard.
   2225 : the 732 + the 1,493 id < 5000 users of the split's training users that are in the `rest` part of the tier split,
          i.e. not in the gate training tier. INVALID for any model trained on the final tier (all 8,000 train users).
+  1500 : every validation user of the 8k split (SM93): held out from every small model, final tier included. The 768
+         users with id >= 5000 are training users of the fork and big models: valid for small-vs-small comparisons only.
 The 500 final_test_users are sealed and never included.
 
-usage: eval_pools.py --write   (rewrites artifacts/small-model/eval-users-{732,2225}.json)
+usage: eval_pools.py --write   (rewrites artifacts/small-model/eval-users-{732,2225,1500}.json)
 """
 import argparse
 import hashlib
@@ -17,7 +19,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 TIERS = ROOT / "artifacts" / "accuracy" / "tiers.json"
-POOLS = (464, 732, 2225)
+POOLS = (464, 732, 2225, 1500)
 FORK_SEEN_FROM = 5000
 
 
@@ -42,8 +44,10 @@ def pool_users(pool):
     if pool == 464:
         screen = tiers["tiers"]["screen"]
         return sorted(u for u in screen["eval_users"] if u < FORK_SEEN_FROM)
-    if pool not in (732, 2225):
+    if pool not in (732, 2225, 1500):
         raise SystemExit(f"unknown pool {pool}; choose from {POOLS}")
+    if pool == 1500:
+        return sorted(set(split["validation_users"]) - set(split["final_test_users"]))
     users = {u for u in split["validation_users"] if u < FORK_SEEN_FROM}
     if pool == 2225:
         _, rest = gate_train_users(split)
@@ -54,13 +58,16 @@ def pool_users(pool):
 def write_files():
     path, split, _ = split_info()
     counts = split["review_counts"]
-    for pool in (732, 2225):
+    for pool in (732, 2225, 1500):
         users = pool_users(pool)
         doc = {
             "note": "Evaluation pool for full-history scoring (scripts/eval_pools.py, small_model_heldout.py --pool). "
                     "Public benchmark user ids only.",
             "pool": pool,
             "rule": ("every validation user of the 8k split with id < 5000 (fork-unseen)" if pool == 732 else
+                     "every validation user of the 8k split (held out from every small model, final tier included); the "
+                     "users with id >= 5000 are training users of the fork and big models: valid for small-vs-small "
+                     "comparisons only" if pool == 1500 else
                      "the 732 validation users plus the split's training users with id < 5000 that are not in the gate "
                      "training tier (the `rest` part of build_tiers, TIER_SEED). Valid only for models trained on the "
                      "gate tier (5,000 users) or less; INVALID for any model trained on the final tier (all 8,000 train "
