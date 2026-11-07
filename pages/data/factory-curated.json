@@ -271,9 +271,11 @@
     "the instant-only small model (SM57): "
    ],
    "what": "The instant-only small model (SM57): the release from epoch 25 (SM63) + 1 epoch and the same cool-down with only the instant head trained, against the same run with the normal joint loss (matched users, seeds, order); instant LogLoss on the 732 set, leak-free inputs",
-   "when": "Running since 01:54 Fri (option proven bit-identical when off, CPU and GPU): both epochs 26 done 05:37, instant-only cool-down 05:37&ndash;13:34 and scored 13:46, joint cool-down 13:47&ndash;21:42 (extra segment 20:00&ndash;21:42, break moved to 22:00 tonight), joint scoring from 01:00, decision ~01:30 Sat",
+   "when": "Done 01:21 Sat: go, instant &minus;0.147 points vs the joint arm (see the results row)",
    "decides": "Whether giving the whole small model to instant beats sharing it with the curve (go: instant better than the joint arm with the CI clear of 0; then a from-scratch check is proposed)",
-   "started_at": "2026-11-06T01:30+01:00"
+   "started_at": "2026-11-06T01:30+01:00",
+   "state": "done",
+   "ended_at": "2026-11-07T01:21+01:00"
   },
   {
    "id": "SM94",
@@ -2023,7 +2025,7 @@
    "id": "SM63",
    "track": "small model",
    "item": "More epochs for the very last run: about 10&times; the epochs once the recipe is final",
-   "why": "Epochs 21&ndash;25 plus a cool-down from epoch 25 done 10-30 13:08: +0.36% / +0.28% vs the big model (1 leak-free epoch), better than the previous release (+0.41% / +0.32%); released 10-30 and now the Anki fork&rsquo;s default. Further epochs only once the recipe is final (priority review 10-28: the factory looks for more accurate or smaller models, not more measurements)",
+   "why": "Epochs 21&ndash;25 plus a cool-down from epoch 25 done 10-30 13:08: +0.36% / +0.28% vs the big model (1 leak-free epoch), better than the previous release (+0.41% / +0.32%); released 10-30 and now the Anki fork&rsquo;s default. Further epochs only once the recipe is final (priority review 10-28: the factory looks for more accurate or smaller models, not more measurements) 11-07: one more epoch + the cool-down (the joint arm of the instant-only small model (SM57)) gained only &minus;0.015 instant / +0.034 curve (CI includes 0): epochs 26&ndash;30 not worth it now",
    "since": "10-30T13:09"
   },
   {
@@ -2365,11 +2367,11 @@
    "why": "Done 10-24 / 10-25: the released small model (leak inputs) (SM56); see its results rows"
   },
   {
-   "status": "next",
+   "status": "done",
    "id": "SM57",
    "track": "small model",
    "item": "Instant-only small model: retrain from scratch with only the instant head, against a matched joint baseline (same users, seeds, epochs); record training time, reviews/s, GPU memory and instant LogLoss on 723 users",
-   "why": "Goal: better instant predictions, not less space. Does giving all of the model to instant beat sharing it with the curve, or does the curve task help instant learn? Many people mostly use instant; a second, curve-only model could cover the rest (both = double the state). No rush: later this week if a slot opens, else next week (user, 10-21) &mdash; parked 10-28: a measurement, not a better model &mdash; started 11-06 01:30 (user: &ldquo;we could do a instant-only model&rdquo;)",
+   "why": "Goal: better instant predictions, not less space. Does giving all of the model to instant beat sharing it with the curve, or does the curve task help instant learn? Many people mostly use instant; a second, curve-only model could cover the rest (both = double the state). No rush: later this week if a slot opens, else next week (user, 10-21) &mdash; parked 10-28: a measurement, not a better model &mdash; started 11-06 01:30 (user: &ldquo;we could do a instant-only model&rdquo;) Done 11-07 01:21: go, instant &minus;0.147 points [&minus;0.162, &minus;0.133] vs the matched joint arm; stage 2 (from scratch, ~5.2 GPU h) proposed",
    "since": "11-06T01:30"
   },
   {
@@ -2406,6 +2408,31 @@
   "s-w64kd-gate-ctx2048c-dec8-1ep/w8+s8"
  ],
  "results": [
+  {
+   "date": "11-07",
+   "kind": "gpu-train",
+   "id": "SM57",
+   "track": "small model",
+   "name": "The instant-only small model (SM57): the release from epoch 25 (SM63) + 1 epoch and the release&rsquo;s cool-down with only the instant head trained, against the same run with the normal joint loss",
+   "eval": "Both arms: the leak-free small model (SM72s) epoch 25 + epoch 26 (the release&rsquo;s recipe) + the release&rsquo;s one-epoch 32k Muon cool-down, same users, order, seeds and teacher targets; leak-free normal-input scoring, 722 users of the 732 set; points = % of the big model (1 leak-free epoch) LogLoss. Rule fixed before launch, 0.05-point minimum added by the user before the joint arm was scored: go = instant-only &minus; joint on instant with the 95% CI below 0 and at least 0.05 points",
+   "fork": "Not in the fork: the instant-only model cannot schedule on its own (its curve head is untrained, +16.8%). Options: a second model for instant next to the normal one, or an instant-only RWKV-Instant scheduler",
+   "takeaway": "<strong>Go</strong>: instant &minus;0.147 points [&minus;0.162, &minus;0.133] vs the joint arm (643 users better, 78 worse), &minus;0.162 vs the release; it closes about half of the release&rsquo;s instant gap to the big model (+0.122 vs +0.283). One more epoch alone (joint &minus; release) gives only &minus;0.015 instant and +0.034 curve (CI includes 0), so more epochs of the release are not worth it",
+   "started_at": "2026-11-06T01:54+01:00",
+   "ended_at": "2026-11-07T01:21+01:00",
+   "gpu_minutes": 1260,
+   "tickets": 12,
+   "detail": {
+    "verdict": "Go: giving the whole small model to instant beats sharing it with the curve. Stage 2 (from scratch at 2,048 windows, 5 epochs per arm, same init / seeds / order, ~5.2 GPU h) proposed",
+    "notes": [
+     "Epoch 26: 111 min per arm at ~87.6k reviews/s, peak allocated 10.9 GB; cool-downs ~477 min at ~20.3k reviews/s, peak allocated 7.4 GB (reserved ~13 GB)",
+     "Joint cool-down in two pieces: 13:47&ndash;19:57 and 20:00&ndash;21:42 (the user moved that night&rsquo;s break to 22:00)",
+     "The new option (curve loss weight) proven bit-identical when off: 33 CPU checks and one GPU check",
+     "Bigger pool (732 + the 3 long users, 725): instant-only &minus; joint &minus;0.161 [&minus;0.190, &minus;0.139]",
+     "Smaller-model bar: the joint arm passes both heads (+0.390 curve / +0.269 instant vs the big model); the instant-only arm passes on instant only",
+     "Branch sm57 commits 6a49c1c8, f71708d9, 9e4e2e9e"
+    ]
+   }
+  },
   {
    "date": "11-07",
    "kind": "gpu-score",
