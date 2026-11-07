@@ -68,7 +68,7 @@ STATE_MODULES = (0, 2)  # card, note (rwkv_modules order card, deck, note, prese
 
 
 def heldout_users(counts, pool=464):
-    if pool != 464:  # 732 / 2225: scripts/eval_pools.py
+    if pool != 464:  # 732 / 2225 / 1500: scripts/eval_pools.py
         from scripts.eval_pools import pool_users
         users = pool_users(pool)
     else:
@@ -331,9 +331,10 @@ def main():
     parser.add_argument("--only", action="append", default=[], help="TAG/VARIANT labels to score instead of the grid")
     parser.add_argument("--start", type=int, default=0)
     parser.add_argument("--count", type=int, default=0, help="0 = all users of the pool")
-    parser.add_argument("--pool", type=int, choices=(464, 732, 2225), default=464, help="base user set: 464 screen "
+    parser.add_argument("--pool", type=int, choices=(464, 732, 2225, 1500), default=464, help="base user set: 464 screen "
                         "eval users (default), 732 validation users with id < 5000, 2225 = 732 + gate-unseen train users "
-                        "(invalid for models trained on the final tier); --users-file still filters on top")
+                        "(invalid for models trained on the final tier), 1500 = every validation user (small-vs-small only: "
+                        "ids >= 5000 are fork / big model training users); --users-file still filters on top")
     parser.add_argument("--workers", type=int, default=4)
     parser.add_argument("--time-limit", type=float, default=3000, help="stop starting new users after N seconds")
     parser.add_argument("--device", choices=("cuda", "cpu"), default="cuda")
