@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-07T12:23:42+01:00",
- "updated": "2026-11-07 12:23",
- "material": "3056e21656d34551",
- "summary": "running 000992, finished 000991",
+ "generated_at": "2026-11-07T12:31:35+01:00",
+ "updated": "2026-11-07 12:31",
+ "material": "d2970549b4c6f0f1",
+ "summary": "running 000992",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring (curve / instant)",
@@ -265,17 +265,17 @@
  ],
  "now": [
   {
-   "what": "the instant-only small model (SM57) stage 4: instant-only epoch 27 from epoch 26 (w64, the release&#x27;s epoch recipe: 8k final tier, 2048 x 16 lanes carry, leak-free replay KD, AdamW 7e-4 constant, curve loss weight 0) (segment to the next break or the end)",
-   "id": "000992-sm57",
-   "kind": "gpu-train",
-   "decides": "",
+   "what": "The instant-only small model (SM57) stage 4: a longer instant-only training for RWKV-Instant: 4 more instant-only epochs (27&ndash;30) on top of stage 1&rsquo;s instant-only epoch 26, then the release&rsquo;s one-epoch 32k Muon cool-down, against stage 1&rsquo;s instant-only arm (the ship candidate)",
+   "id": "SM57, ticket 000992",
+   "kind": "gpu",
+   "decides": "Whether more instant-only training makes a clearly better instant model (go: candidate &minus; stage 1&rsquo;s instant-only arm on instant, 95% CI below 0 and at least 0.05 points; on go also checked on the 1,500 validation users vs the release)",
    "why": "",
    "job": "the instant-only small model (SM57) stage 4: instant-only epoch 27 from epoch 26 (w64, the release&#x27;s epoch recipe: 8k final tier, 2048 x 16 lanes carry, leak-free replay KD, AdamW 7e-4 constant, curve loss weight 0) (segment to the next break or the end)",
-   "linked": false,
+   "linked": true,
    "track": "small model",
    "ticket": "000992-sm57",
    "started": "12:23",
-   "elapsed": "0:00",
+   "elapsed": "0:08",
    "progress": null,
    "eta": "~14:28"
   }
@@ -451,7 +451,7 @@
  "recent": [
   {
    "ticket": "000991-sm57",
-   "id": "",
+   "id": "SM57",
    "what": "the instant-only small model (SM57) stage 4: GPU check (trainer smokes 2 users x 512 reviews: stage 1&#x27;s epoch 26 == stage 1&#x27;s GPU check bitwise, epoch 27 trains with curve loss weight 0 from epoch 26)",
    "ended": "12:23",
    "date": "11-07",
@@ -505,6 +505,21 @@
   }
  ],
  "plan": [
+  {
+   "id": "SM57",
+   "track": "small model",
+   "since": "11-07T12:17",
+   "kind": "gpu",
+   "minutes": 1080,
+   "what": "The instant-only small model (SM57) stage 4: a longer instant-only training for RWKV-Instant: 4 more instant-only epochs (27&ndash;30) on top of stage 1&rsquo;s instant-only epoch 26, then the release&rsquo;s one-epoch 32k Muon cool-down, against stage 1&rsquo;s instant-only arm (the ship candidate)",
+   "when": "Running since 12:23 Sat (CPU proofs and GPU check passed): epochs at ~85&ndash;89k reviews/s; epoch 30 pauses for the 20:00&ndash;01:00 break, cool-down ~02:00&ndash;10:00 Sun, end ~11:50 Sun",
+   "decides": "Whether more instant-only training makes a clearly better instant model (go: candidate &minus; stage 1&rsquo;s instant-only arm on instant, 95% CI below 0 and at least 0.05 points; on go also checked on the 1,500 validation users vs the release)",
+   "started_at": "2026-11-07T12:22:42+01:00",
+   "state": "running",
+   "started": "12:23",
+   "ticket": "000992-sm57",
+   "ends_at": "2026-11-08T06:22:42+01:00"
+  },
   {
    "id": "SM57",
    "track": "small model",
