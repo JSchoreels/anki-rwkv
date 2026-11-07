@@ -271,9 +271,11 @@
     "the instant-only small model (SM57) stage 3: "
    ],
    "what": "The instant-only small model (SM57) stage 3: the mirror arm, curve-only (instant head not trained), from the same random init on the 2k tier, 5 epochs, against stage 2&rsquo;s joint arm (not retrained); scored at epochs 1, 3 and 5 on the 732 set",
-   "when": "Running since 08:25 Sat (CPU proofs and GPU check passed: the loss is exactly the joint arm&rsquo;s curve terms): ~77&ndash;90k reviews/s, end ~11:45",
+   "when": "Done 12:01 Sat: stop, curve +0.873 points worse than the joint arm (see the results row)",
    "decides": "Whether the instant task also costs the curve, so two dedicated models (one per scheduler) beat the shared one on both heads (go: curve-only &minus; joint on curve at epoch 5, 95% CI below 0 and at least 0.05 points)",
-   "started_at": "2026-11-07T08:19+01:00"
+   "started_at": "2026-11-07T08:19+01:00",
+   "state": "done",
+   "ended_at": "2026-11-07T12:01+01:00"
   },
   {
    "id": "SM57",
@@ -333,7 +335,7 @@
     "the changing-learner simulation (SM41g) on all users: "
    ],
    "what": "The changing-learner simulation (SM41g) on all 117 users (304 starting days, CPU): improving, declining and steady learner in one fused run, instant head, time-aware rule and FSRS-7 at matched targets",
-   "when": "Running since ~00:50 Sat, slower than estimated (27 of 117 users by 08:00, ~63 CPU process-hours left, 4 CPU processes); 2 more processes ran 08:01&ndash;08:20 and come back after the curve-only GPU run (RAM), end late Sat or after the night break",
+   "when": "Running since ~00:50 Sat, slower than estimated (48 of 117 users by 12:05, ~48 CPU process-hours left); 5 CPU processes since 12:03; holds for the 20:00&ndash;01:00 break, end ~03:00&ndash;04:00 Sun",
    "decides": "Whether the 20-user screen holds: the instant head schedules less for an improving learner but is not more efficient; the time-aware rule is robust to a declining one",
    "started_at": "2026-11-07T00:50+01:00"
   },
@@ -2438,6 +2440,30 @@
   "s-w64kd-gate-ctx2048c-dec8-1ep/w8+s8"
  ],
  "results": [
+  {
+   "date": "11-07",
+   "kind": "gpu-train",
+   "id": "SM57",
+   "track": "small model",
+   "name": "The instant-only small model (SM57) stage 3: the mirror arm, curve-only (instant head not trained), from the same random init on the 2k tier, 5 epochs, against stage 2&rsquo;s joint arm",
+   "eval": "Same init (hash-checked), users, order, seeds and teacher targets as stage 2&rsquo;s joint arm; the loss is exactly the joint arm&rsquo;s curve terms (CPU proof, bit for bit). Scored at epochs 1, 3 and 5, leak-free normal inputs, 722 users of the 732 set; points = % of the big model (1 leak-free epoch) LogLoss. Rule fixed before launch: go = curve-only &minus; joint on curve at epoch 5 with the 95% CI below 0 and at least 0.05 points",
+   "fork": "Nothing to ship: the shared model stays the right one for RWKV-Curve",
+   "takeaway": "<strong>Stop</strong>: curve +0.873 points [+0.655, +1.104] worse than the joint arm at epoch 5 (219 users better, 503 worse). The split is one-sided: instant learns better alone (&minus;0.773 in stage 2), but the instant task helps the curve. So: the shared model for the curve, a dedicated instant model for instant (model per scheduler (SM93))",
+   "started_at": "2026-11-07T08:19+01:00",
+   "ended_at": "2026-11-07T12:01+01:00",
+   "gpu_minutes": 200,
+   "tickets": 9,
+   "detail": {
+    "verdict": "Stop: training the curve alone makes it worse; the instant task is a useful helper for the curve",
+    "notes": [
+     "Per epoch, curve-only &minus; joint on curve: +0.135 [&minus;0.063, +0.323] (287 / 435 users), +1.017 [+0.838, +1.208] (159 / 563), +0.873 [+0.655, +1.104] (219 / 503)",
+     "Vs the big model on curve: curve-only +6.87 / +5.33 / +5.40%, joint +6.74 / +4.31 / +4.53%; curve-only&rsquo;s instant head untrained (+50.2%)",
+     "Speed: ~83.6k reviews/s, 27.7&ndash;29.9 min training per epoch, same memory as the joint arm (peak allocated 10.35 GB, reserved 12.5&ndash;13.0 GB)",
+     "Started 5 min late: RAM gate (the 2 extra changing-learner (SM41g) CPU processes were stopped for it)",
+     "Branch sm57 commits 7362b5d7, 1b440716, 3c93171f"
+    ]
+   }
+  },
   {
    "date": "11-07",
    "kind": "gpu-train",
