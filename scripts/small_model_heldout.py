@@ -181,9 +181,10 @@ class LeakBatches(UserBatches):
     """SM71: full-history batches with the deleted-card signals neutralised (scripts/sm71_leak.py) and/or the id/day
     codes drawn with seed 2025 + user + seed_offset. Only used when --deleted-cards != keep or --seed-offset != 0."""
 
-    def __init__(self, users, data, counts, mode, seed_offset):
+    def __init__(self, users, data, counts, mode, seed_offset, rectify=False):
         super().__init__(users, data, counts)
         self.mode, self.seed_offset = mode, seed_offset
+        self.rectify = rectify   # SM95 --grade-rectify: other-grade probe rows before every labelled committed row
 
     def __getitem__(self, index):
         user = self.users[index]
@@ -195,7 +196,13 @@ class LeakBatches(UserBatches):
             frame = get_rwkv_data(self.data, user)
             if self.mode != "keep":
                 frame, _ = sm71_leak.neutralise(frame, self.mode, self.data, user)
+            if self.rectify:
+                from scripts.sm95_rectify import install_scorer_probes
+                install_scorer_probes()
             batch = prepare(cc.make_samples(frame, user, len(frame)), seed=2025 + user + self.seed_offset)
+            if self.rectify:
+                from scripts.gpu_r01_samples import fix_leading_shift
+                fix_leading_shift(batch, probes=3)
         except Exception as error:  # recorded, not fatal
             return user, None, repr(error), time.perf_counter() - started
         return user, batch, None, time.perf_counter() - started
@@ -282,6 +289,9 @@ def main():
     parser.add_argument("--split-existing", action="store_true", help="SM71: also store benchmark metrics restricted "
                         "to reviews of cards in the cards table (benchmark_existing) and of deleted cards "
                         "(benchmark_deleted)")
+    parser.add_argument("--grade-rectify", action="store_true", help="SM95: score the rectified curve (the four what-if "
+                        "curves of every labelled review pooled to be ordered; scripts/sm95_rectify.py); full-history "
+                        "leak-free scoring (--deleted-cards != keep) of expertium-kind models only")
     args = parser.parse_args()
     cpu = args.device == "cpu"
     if cpu:
@@ -342,6 +352,8 @@ def main():
                     block.time_mixer.use_reference_wkv = True
         else:
             model = build_expertium(arch, base)
+            if args.grade_rectify:
+                model.grade_rectify = True   # SM95
             from scripts import state_vq
             # CPU: the Hooks path (reference WKV + shift gather); CUDA: the eager model's state-VQ slots (SM44)
             layout = (state_vq.install(model) if cpu and not args.emulate_gpu_path
@@ -391,10 +403,14 @@ def main():
     if args.deleted_cards != "keep" or args.seed_offset:
         if args.window:
             raise SystemExit("--deleted-cards / --seed-offset are for full-history scoring")
-        dataset = LeakBatches(todo, cc.data_path(run), counts, args.deleted_cards, args.seed_offset)
+        dataset = LeakBatches(todo, cc.data_path(run), counts, args.deleted_cards, args.seed_offset,
+                              **({"rectify": True} if args.grade_rectify else {}))
     else:
+        if args.grade_rectify:
+            raise SystemExit("--grade-rectify is for full-history leak-free scoring (--deleted-cards neighbour/flags)")
         dataset = (WindowBatches if args.window else UserBatches)(todo, cc.data_path(run), counts)
-    sm71_fields = {**({"deleted_cards": args.deleted_cards} if args.deleted_cards != "keep" else {}),
+    sm71_fields = {**({"grade_rectify": True} if args.grade_rectify else {}),
+                   **({"deleted_cards": args.deleted_cards} if args.deleted_cards != "keep" else {}),
                    **({"seed_offset": args.seed_offset} if args.seed_offset else {})}
     loader = torch.utils.data.DataLoader(dataset, batch_size=1,
                                          num_workers=args.workers, collate_fn=first,

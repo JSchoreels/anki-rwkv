@@ -403,6 +403,17 @@ def run_case(args):
             base.grade_order_horizons = [float(day) * 86400.0 for day in spec["horizons_days"]]
             report["grade_order"] = {"weight": base.grade_order_weight, "horizons_days": list(spec["horizons_days"]),
                                      "density": float(spec.get("density", 0.0)), "seed": int(spec.get("seed", 33))}
+        if options.get("grade_rectify"):
+            # SM95: the curve of every probed real row is its grade's value in the rectified (isotonic) 4-vector of the
+            # what-if curves (expertium.model.grade_rectify); the probe rows come from
+            # scripts.gpu_r01_samples.add_rectify_probes in the workers.
+            if not hasattr(base, "grade_rectify"):
+                raise ValueError("grade_rectify needs the Expertium variant loss")
+            if options.get("grade_order"):
+                raise ValueError("grade_rectify and grade_order use different probe layouts; pick one")
+            base.grade_rectify = True
+            spec = options["grade_rectify"]
+            report["grade_rectify"] = {"density": float(spec.get("density", 0.0)), "seed": int(spec.get("seed", 95))}
         if options.get("wddm_flush_streams"):
             # F77b: identity flush points between hierarchy streams in forward and backward.
             if not hasattr(base, "wddm_flush_streams"):

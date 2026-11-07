@@ -200,6 +200,10 @@ class VariantSrsRWKV(SrsRWKV):
         # the term is never computed, so the loss and gradients are bit for bit today's.
         self.grade_order_weight = 0.0
         self.grade_order_horizons: List[float] = [86400.0]
+        # SM95 (track option "grade_rectify" / scorer --grade-rectify): replace each probed real row's curve by its grade's
+        # value in the isotonic 4-vector of the what-if curves (expertium/model/grade_rectify.py). False (default) = the
+        # branch never runs, so the loss and gradients are bit for bit today's.
+        self.grade_rectify = False
 
         self.gru_n = int(variant.gru_head)
         self.gru_on = self.gru_n > 0
@@ -295,6 +299,16 @@ class VariantSrsRWKV(SrsRWKV):
         (scripts/gpu_r01_samples.add_grade_probes marks probe g with label_elapsed_days = -g). Zero when every pair is
         ordered; no host sync."""
         return grade_order_penalty(self, out_w, out_s_raw, out_d_raw, global_labels, self.grade_order_horizons)
+
+    # ---- SM95 grade order by construction ----
+    @torch.jit.ignore
+    def _grade_rectify(self, curve_probs_raw: torch.Tensor, global_labels: torch.Tensor) -> torch.Tensor:
+        """curve_probs_raw with every probed real row replaced by its grade's rectified value (needs the GRU head: the
+        curve is the GRU mixture with no ahead residual, so the rectified value is the scored probability)."""
+        if not self.gru_on:
+            raise ValueError("grade_rectify needs the GRU curve head")
+        from expertium.model.grade_rectify import rectify_curve
+        return rectify_curve(curve_probs_raw, global_labels)
 
     # ---- GRU curve head (RWKV_GRU_HEAD) ----
     @torch.jit.ignore
@@ -523,6 +537,8 @@ class VariantSrsRWKV(SrsRWKV):
         label_elapsed_seconds = label_elapsed_seconds.unsqueeze(-1)
         if self.gru_on:
             curve_probs_raw = self.gru_forgetting_curve(out_w, out_s_raw, out_d_raw, label_elapsed_seconds)
+            if self.grade_rectify:
+                curve_probs_raw = self._grade_rectify(curve_probs_raw, global_labels)
         else:
             curve_probs_raw = self.forgetting_curve(out_w, label_elapsed_seconds)
         curve_logits_raw = torch.log(

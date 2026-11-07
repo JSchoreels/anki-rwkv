@@ -76,12 +76,51 @@ def add_grade_probes(data, spec, user_id):
     return {name: values[key] for name, values in merged.items()}
 
 
-def fix_leading_shift(batch):
+# The grade order by construction (SM95): track option "grade_rectify": {"density": D, "seed": S}. Absent (default) =
+# nothing here runs and samples, batches, losses and gradients are bit for bit the code before.
+def add_rectify_probes(data, spec, user_id):
+    """Before a seeded `density` share of the labelled committed rows (density 1.0 = all, the scorer's setting), insert
+    the three what-if rows of the OTHER grades: copies of the review row with the rating one-hot (and rating / y)
+    replaced, skip = True (no state commit, like the fork's answer_heads), has_label = False (no target of their own)
+    and label_elapsed_days = -g (the probe grade; real rows hold >= 0 or pi there). Each probe keeps the row's label
+    time, so its curve is evaluated at the real row's t. Order inside a review_th: query row, the three probes in grade
+    order, the real row; expertium.model.grade_rectify.rectify_curve finds them as the three rows right before a real
+    row, and the real row itself is the slot of its own grade."""
+    density = float(spec.get("density", 0.0))
+    real = np.flatnonzero(~data["skip"].astype(bool) & data["has_label"].astype(bool))
+    if density <= 0 or not len(real):
+        return data
+    rng = np.random.default_rng([int(spec.get("seed", 95)), int(user_id), int(data["review_th"].min())])
+    pick = real[rng.random(len(real)) < density]
+    if not len(pick):
+        return data
+    order = np.where(data["is_query"].astype(np.int64) == 1, PROBE_ORDER_QUERY, PROBE_ORDER_REAL)
+    parts, orders = [data], [order]
+    rating = data["rating"][pick].astype(np.int64)
+    for g in (1, 2, 3, 4):
+        rows = pick[rating != g]
+        probe = {name: values[rows].copy() for name, values in data.items()}
+        probe["rating"] = np.full(len(rows), g, dtype=data["rating"].dtype)
+        for i in (1, 2, 3, 4):
+            probe[f"rating_{i}"] = np.full(len(rows), int(i == g), dtype=data[f"rating_{i}"].dtype)
+        probe["y"] = np.full(len(rows), int(g > 1), dtype=data["y"].dtype)
+        probe["skip"] = np.ones(len(rows), dtype=data["skip"].dtype)
+        probe["has_label"] = np.zeros(len(rows), dtype=data["has_label"].dtype)
+        probe["label_elapsed_days"] = np.full(len(rows), -g, dtype=np.float64)
+        parts.append(probe)
+        orders.append(np.full(len(rows), g, dtype=np.int64))
+    merged = {name: np.concatenate([part[name] for part in parts]) for name in data}
+    key = np.lexsort((np.concatenate(orders), merged["review_th"]))
+    return {name: values[key] for name, values in merged.items()}
+
+
+def fix_leading_shift(batch, probes=4):
     """In a sub-sequence that starts with the 4 probe rows of its first committed row (a card's first review, or the
     first row of a deck / note / preset in the window), those rows and that real row read their own input in the token
     shift: prepare's rule for row 0, which the real row would get without the probes (under state carry, entities
     with a carried state read the carried vector there instead). Without it they would read probe 1's input. Query-led
-    sequences (1 or 5 leading skipped rows) keep prepare's rule. A no-op (returns 0) on every batch without probes."""
+    sequences (1 or 5 leading skipped rows) keep prepare's rule. A no-op (returns 0) on every batch without probes.
+    SM95 (`probes=3`): three probes before a probed row; query-led sequences then start with 1 or 4 skipped rows."""
     changed = 0
     for module_shifts, module_skips, lens in zip(batch.time_shift_selects, batch.skips, batch.sub_gather_lens):
         for i, (shift, skip, r) in enumerate(zip(module_shifts, module_skips, lens)):
@@ -90,7 +129,7 @@ def fix_leading_shift(batch):
             t = torch.arange(r, device=shift.device)
             # only probe-led sequences: their first committed row follows exactly the 4 probes of its review (a
             # query-led sequence starts with 1 or 1 + 4 skipped rows and keeps prepare's rule, bit for bit)
-            lead = (t[None, :] <= first[:, None]) & (first[:, None] == 4)
+            lead = (t[None, :] <= first[:, None]) & (first[:, None] == probes)
             old = shift.view(-1, r)
             new = torch.where(lead, t[None, :].to(old.dtype).expand_as(old), old)
             changed += int((new != old).sum())
@@ -100,7 +139,8 @@ def fix_leading_shift(batch):
 
 
 def create_sample_fast(user_id, section_df, equalize_review_ths, dtype, device, column_arrays=None,
-                       segment_features_precomputed=False, direct_matrix=False, int64_ids=False, grade_probes=None):
+                       segment_features_precomputed=False, direct_matrix=False, int64_ids=False, grade_probes=None,
+                       rectify_probes=None):
     if column_arrays is None:
         frame = add_segment_features(section_df.copy()).reset_index(drop=True)
         data = {name: frame[name].to_numpy() for name in frame.columns}
@@ -140,6 +180,8 @@ def create_sample_fast(user_id, section_df, equalize_review_ths, dtype, device, 
         data = {name: values[order] for name, values in data.items()}
     if grade_probes:
         data = add_grade_probes(data, grade_probes, user_id)
+    if rectify_probes:
+        data = add_rectify_probes(data, rectify_probes, user_id)
     label_rating = data["label_rating"]
     if not (label_rating.min() >= 1 and label_rating.max() <= 4):
         raise AssertionError("label_rating outside 1-4")
@@ -193,9 +235,12 @@ def samples_for(section, user, options, chunk=128):
             raise ValueError("state_carry needs fast columnar samples without F44 batch segment features")
         return make_samples_fast(section, user, chunk, columnar=True, user_segment_features=True,
                                  direct_matrix=options.get("direct_sample_matrix", False),
-                                 grade_probes=options.get("grade_order"))
+                                 grade_probes=options.get("grade_order"),
+                                 **({"rectify_probes": options["grade_rectify"]} if options.get("grade_rectify") else {}))
     if options.get("grade_order"):
         raise ValueError("grade_order (SM33) probe rows are implemented for the state_carry sample path only")
+    if options.get("grade_rectify"):
+        raise ValueError("grade_rectify (SM95) probe rows are implemented for the state_carry sample path only")
     if options.get("fast_samples"):
         return make_samples_fast(section, user, chunk, columnar=options.get("columnar_samples", False),
                                  batch_segment_features=options.get("batch_segment_features", False),
@@ -207,7 +252,7 @@ def samples_for(section, user, options, chunk=128):
 
 
 def make_samples_fast(section, user, chunk, *, columnar=False, batch_segment_features=False, direct_matrix=False,
-                      user_segment_features=False, grade_probes=None):
+                      user_segment_features=False, grade_probes=None, rectify_probes=None):
     if batch_segment_features and not columnar:
         raise ValueError("F44 requires columnar samples")
     if user_segment_features:
@@ -219,7 +264,8 @@ def make_samples_fast(section, user, chunk, *, columnar=False, batch_segment_fea
         return [create_sample_fast(user, section.iloc[i:i + chunk], [], torch.float32, torch.device("cpu"),
                                    column_arrays={name: values[i:i + chunk] for name, values in columns.items()},
                                    segment_features_precomputed=True, direct_matrix=direct_matrix, int64_ids=True,
-                                   grade_probes=grade_probes)
+                                   grade_probes=grade_probes,
+                                   **({"rectify_probes": rectify_probes} if rectify_probes else {}))
                 for i in range(0, len(section), chunk)]
     if columnar:
         columns = {name: section[name].to_numpy() for name in section.columns}

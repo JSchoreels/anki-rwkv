@@ -141,6 +141,9 @@ def prepare_job(row, offset, end, seed, options, section=None, cache_path=None):
     if options.get("grade_order"):
         from scripts.gpu_r01_samples import fix_leading_shift  # SM33 probe rows
         fix_leading_shift(batch)
+    if options.get("grade_rectify"):
+        from scripts.gpu_r01_samples import fix_leading_shift  # SM95 probe rows (three per probed review)
+        fix_leading_shift(batch, probes=3)
     if options.get("packed_ipc"):
         batch = pack_batch(batch)
     return TrialBatch(batch, offset, end - offset, len(samples), seed, time.perf_counter() - started)

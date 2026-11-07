@@ -85,6 +85,10 @@ def prepare_job(row, offset, end, seed, options, section=None, cache_path=None):
         # SM33: probe rows can lead a sub-sequence (a card's first review); see gpu_r01_samples.fix_leading_shift
         from scripts.gpu_r01_samples import fix_leading_shift
         fix_leading_shift(batch)
+    if options.get("grade_rectify"):
+        # SM95: three probe rows can lead a sub-sequence (a card's first review)
+        from scripts.gpu_r01_samples import fix_leading_shift
+        fix_leading_shift(batch, probes=3)
     if options.get("worker_scatter_orders"):
         if not options.get("gpu_packed_features") or not options.get("skip_padding_sources") or not options.get("shared_shift_orders"):
             raise ValueError("F53 requires packed features, F50 padding and shared shift orders")
