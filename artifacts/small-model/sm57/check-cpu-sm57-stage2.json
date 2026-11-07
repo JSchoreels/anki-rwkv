@@ -1,0 +1,183 @@
+{
+ "ok": true,
+ "checks": {
+  "S1_2k_tier_inside_run_disjoint_from_eval_no_trims": {
+   "ok": true,
+   "users": 2000,
+   "reviews": 146654211,
+   "trims_users": [
+    5599
+   ]
+  },
+  "S2_same_fresh_init_both_arms_equals_sm72s_epoch1": {
+   "ok": true,
+   "hashes": {
+    "inst": "47a33c7882df8c01c31e6b7be171ad62be715bf6862356cada19f457f8fb917f",
+    "joint": "47a33c7882df8c01c31e6b7be171ad62be715bf6862356cada19f457f8fb917f"
+   },
+   "sm72s_epoch1": "47a33c7882df8c01c31e6b7be171ad62be715bf6862356cada19f457f8fb917f"
+  },
+  "S3a_epoch1_arms_differ_only_by_flag": {
+   "ok": true,
+   "out": "[sm57s2-pair] epoch 1 OK: sm57s2-inst-e01 == sm57s2-joint-e01 except {\"curve_loss_weight\": 0.0} and folder names (2,000 users, 146,654,211 reviews, epoch 1)",
+   "err": ""
+  },
+  "S3b_joint_against_joint_refused": {
+   "ok": true,
+   "out": "[sm57s2-pair] epoch 1 REFUSE: curve_loss_weight is not 0.0 in the instant-only arm only"
+  },
+  "S3c_swapped_rows_refused": {
+   "ok": true,
+   "out": "0]/validation_range[1]: 48293 vs 143747; protocol /rows[1]/available_reviews: 143747 vs 48293; protocol /rows[1]/train_range[1]: 143747 vs 48293; protocol /rows[1]/user_id: 4794 vs 2590; protocol /rows[1]/validation_range[1]: 143747 vs 48293; inst rows are not the epoch-1 order rule over the 2k tier"
+  },
+  "S3d_flag_0.5_refused": {
+   "ok": true,
+   "out": "[sm57s2-pair] epoch 1 REFUSE: curve_loss_weight is not 0.0 in the instant-only arm only"
+  },
+  "S4_epoch_orders_distinct_permutations": {
+   "ok": true,
+   "first_users": [
+    [
+     4794,
+     2590,
+     6449
+    ],
+    [
+     6491,
+     8048,
+     1364
+    ],
+    [
+     9413,
+     2889,
+     3013
+    ],
+    [
+     9060,
+     8686,
+     9413
+    ],
+    [
+     2765,
+     5016,
+     3456
+    ]
+   ]
+  },
+  "S5a_joint_from_fresh_init_base_tree_equals_this_tree": {
+   "ok": true,
+   "updates": 16,
+   "optimizer": "AdamW",
+   "rows": [
+    6013,
+    6933
+   ],
+   "losses": [
+    1.6284959316253662,
+    1.4005498886108398,
+    1.2036547660827637,
+    1.3995795249938965,
+    1.1443067789077759,
+    1.0054073333740234,
+    1.8745627403259277,
+    2.0555849075317383,
+    1.9476547241210938,
+    1.9708824157714844,
+    1.8877276182174683,
+    1.8962726593017578,
+    2.021528959274292,
+    1.8095844984054565,
+    1.8597790002822876,
+    2.2993721961975098
+   ]
+  },
+  "S5b_instant_only_same_batches_same_first_predictions_instant_loss": {
+   "ok": true,
+   "losses": [
+    1.0569477081298828,
+    0.9897053837776184,
+    0.9221128225326538,
+    0.8840731978416443,
+    0.9311482906341553,
+    0.8946066498756409,
+    1.3432551622390747,
+    1.3690241575241089,
+    1.3150410652160645,
+    1.3910521268844604,
+    1.4476475715637207,
+    1.417912244796753,
+    1.4810000658035278,
+    1.3349727392196655,
+    1.380435824394226,
+    1.4131196737289429
+   ]
+  },
+  "S6_rule_self_test": {
+   "ok": true,
+   "out": "{\"users\": 722, \"stage1_reproduced\": [-0.147, [-0.162, -0.133]], \"ok\": true, \"failures\": []}",
+   "err": ""
+  },
+  "S7_break_windows": {
+   "ok": true,
+   "cases": {
+    "empty_19:00_default_next_60": {
+     "got": "NEXT 60",
+     "want": "NEXT 60"
+    },
+    "empty_00:30_inside_default": {
+     "got": "NOW",
+     "want": "NOW"
+    },
+    "moved_19:00_next_180": {
+     "got": "NEXT 180",
+     "want": "NEXT 180"
+    },
+    "moved_21:00_free_next_60": {
+     "got": "NEXT 60",
+     "want": "NEXT 60"
+    },
+    "moved_00:50_free_after_00:41": {
+     "got": "NEXT 1150",
+     "want": "NEXT 1150"
+    },
+    "timing_scope_keeps_default": {
+     "got": "NEXT 60",
+     "want": "NEXT 60"
+    },
+    "other_night_keeps_default": {
+     "got": "NEXT 60",
+     "want": "NEXT 60"
+    },
+    "afternoon_window_overlapping_nothing_keeps_default": {
+     "got": "NEXT 240",
+     "want": "NEXT 240"
+    },
+    "lifted_night_window_ends_early": {
+     "got": "NEXT 1380",
+     "want": "NEXT 1380"
+    }
+   }
+  }
+ },
+ "seconds": 86.7,
+ "commit": "9e4e2e9e9259eab17e977e56922992fd3c36e36a",
+ "dirty_source": "",
+ "provenance": {
+  "captured_utc": "2026-11-07T00:32:57.341308+00:00",
+  "git_commit": "9e4e2e9e9259eab17e977e56922992fd3c36e36a",
+  "git_dirty": false,
+  "git_status_porcelain_z": "",
+  "source_tree_sha256": "fa8c0bae0c205e627b6fd6d1d422d5f4d09ded700efdc7f2024618c27ed11df7",
+  "source_archive": "artifacts/sources/experiment-sources/fa8c0bae0c205e627b6fd6d1d422d5f4d09ded700efdc7f2024618c27ed11df7/source.zip",
+  "source_paths": [
+   "rwkv",
+   "expertium",
+   "scripts",
+   "configs",
+   "pyproject.toml",
+   "uv.lock",
+   "justfile",
+   "upstream.json"
+  ]
+ }
+}
