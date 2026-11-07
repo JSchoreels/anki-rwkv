@@ -1,7 +1,7 @@
 {
- "generated_at": "2026-11-07T17:17:48+01:00",
- "updated": "2026-11-07 17:17",
- "material": "f972693683e58f63",
+ "generated_at": "2026-11-07T17:23:12+01:00",
+ "updated": "2026-11-07 17:23",
+ "material": "e32cd2e7f0c58c30",
  "summary": "running 000998",
  "headline": [
   {
@@ -9,64 +9,70 @@
    "v": "0.30003 / 0.27654",
    "compare": [
     {
-     "variant": "Big model (1 leak-free epoch) (reference)",
+     "variant": "Big model (1 leak-free epoch)",
      "curve": 0.29897,
      "instant": 0.27576,
      "eval": "722 users (732 set), 30.13M reviews, leak-free inputs",
      "quant": "w8+s8",
-     "ref": true
+     "ref": true,
+     "note": "Reference: the fork&rsquo;s original 2.76M-parameter RWKV + one epoch on leak-free inputs"
     },
     {
-     "variant": "Best and released: small model (leak-free), 25 epochs, cool-down from epoch 25 (SM63), released 10-30 and the Anki fork&rsquo;s default (briefly replaced by the show-time retrain of the release (SM92) on 11-04, back on 11-05); vs the release (cool-down from epoch 20): curve &minus;0.00016 [&minus;0.00036, +0.00001], instant &minus;0.00010 [&minus;0.00012, &minus;0.00008]",
+     "variant": "Best and released: the release, 25 epochs (SM63)",
      "curve": 0.30003,
      "instant": 0.27654,
      "eval": "722 users (732 set), 30.13M reviews, leak-free inputs",
      "quant": "w8+s8",
      "curve_pct": 0.36,
      "instant_pct": 0.28,
-     "date": "10-30"
+     "date": "10-30",
+     "note": "Small model (leak-free), cool-down from epoch 25. Released 10-30; the Anki fork&rsquo;s default for RWKV-Curve (briefly replaced by the show-time retrain (SM92) on 11-04, back on 11-05). Vs the previous release (cool-down from epoch 20): curve &minus;0.00016 [&minus;0.00036, +0.00001], instant &minus;0.00010 [&minus;0.00012, &minus;0.00008]"
     },
     {
-     "variant": "In the Anki fork for RWKV-Instant: the instant-only small model (SM57, stage 1): the release from epoch 25 + 1 epoch and the release&rsquo;s cool-down with the curve loss off; serves RWKV-Instant through the model per scheduler (SM93) (fork main 74c1131d6, no release yet); its curve head is untrained, so RWKV-Curve and intervals stay on the release. Vs the release on instant: &minus;0.162 points [&minus;0.176, &minus;0.148] (722 users); on 1,500 unseen users &minus;0.164% [&minus;0.179, &minus;0.152]",
+     "variant": "RWKV-Instant in the fork: instant-only model (SM57)",
      "curve": null,
      "instant": 0.27609,
      "eval": "722 users (732 set), 30.13M reviews, leak-free inputs",
      "quant": "w8+s8",
      "instant_pct": 0.12,
-     "date": "11-07"
+     "date": "11-07",
+     "note": "The release&rsquo;s epoch 25 + 1 epoch and its cool-down with the curve loss off (stage 1). Serves RWKV-Instant through the model per scheduler (SM93) (fork main 74c1131d6, no release yet); curve head untrained, so RWKV-Curve and intervals stay on the release. Vs the release on instant: &minus;0.162 points [&minus;0.176, &minus;0.148] (722 users); &minus;0.164% [&minus;0.179, &minus;0.152] on 1,500 unseen users"
     },
     {
-     "variant": "Show-time retrain of the release (SM92): the release + 1 epoch and the same cool-down on show-time intervals; not the Anki default (it only pays off once Anki queries at show time); vs the release: curve +0.00021 [+0.00001, +0.00053], instant +0.00022 [+0.00017, +0.00027] (the extra epoch). On show-time inputs it beats the release: 0.30036 / 0.27688 vs 0.30041 / 0.27772",
+     "variant": "Show-time retrain of the release (SM92)",
      "curve": 0.30024,
      "instant": 0.27676,
      "eval": "722 users (732 set), 30.13M reviews, leak-free inputs",
      "quant": "w8+s8",
      "curve_pct": 0.43,
      "instant_pct": 0.36,
-     "date": "11-04"
+     "date": "11-04",
+     "note": "The release + 1 epoch and the same cool-down on show-time intervals. Not the Anki default: it only pays off once Anki queries at show time. Vs the release: curve +0.00021 [+0.00001, +0.00053], instant +0.00022 [+0.00017, +0.00027] (the extra epoch). On show-time inputs it beats the release: 0.30036 / 0.27688 vs 0.30041 / 0.27772"
     },
     {
-     "variant": "Previous release: small model (leak-free), 5 more epochs, cool-down from epoch 20 (SM72), released 10-29 (the Anki fork&rsquo;s default until 10-30); vs the previous release (cool-down from epoch 15): curve &minus;0.00020 [&minus;0.00031, &minus;0.00010], instant &minus;0.00023 [&minus;0.00026, &minus;0.00020]",
+     "variant": "Previous release: cool-down from epoch 20 (SM72)",
      "curve": 0.30019,
      "instant": 0.27664,
      "eval": "722 users (732 set), 30.13M reviews, leak-free inputs",
      "quant": "w8+s8",
      "curve_pct": 0.41,
      "instant_pct": 0.32,
-     "date": "10-29"
+     "date": "10-29",
+     "note": "Small model (leak-free), 5 more epochs. Released 10-29; the Anki fork&rsquo;s default until 10-30. Vs the earlier release (cool-down from epoch 15): curve &minus;0.00020 [&minus;0.00031, &minus;0.00010], instant &minus;0.00023 [&minus;0.00026, &minus;0.00020]"
     },
     {
-     "variant": "Earlier release: small model (leak-free), cool-down from epoch 15 (SM72), released 10-28 (the Anki fork&rsquo;s default until 10-29); vs the released small model (leak inputs) (SM56): curve &minus;0.00028 [&minus;0.00055, +0.00006], instant &minus;0.00058 [&minus;0.00066, &minus;0.00050]",
+     "variant": "Earlier release: cool-down from epoch 15 (SM72)",
      "curve": 0.30038,
      "instant": 0.27687,
      "eval": "722 users (732 set), 30.13M reviews, leak-free inputs",
      "quant": "w8+s8",
      "curve_pct": 0.47,
      "instant_pct": 0.4,
-     "date": "10-28"
+     "date": "10-28",
+     "note": "Small model (leak-free). Released 10-28; the Anki fork&rsquo;s default until 10-29. Vs the released small model with leak inputs (SM56): curve &minus;0.00028 [&minus;0.00055, +0.00006], instant &minus;0.00058 [&minus;0.00066, &minus;0.00050]"
     },
     {
-     "variant": "Shipped big model (fork RWKV, its training saw the leak)",
+     "variant": "Shipped big model (fork RWKV)",
      "curve": 0.29966,
      "instant": 0.2762,
      "eval": "722 users (732 set), 30.13M reviews, leak-free inputs",
@@ -74,10 +80,11 @@
      "curve_pct": 0.23,
      "instant_pct": 0.16,
      "date": "10-28",
-     "leak": true
+     "leak": true,
+     "note": "Its training saw the leak"
     },
     {
-     "variant": "Small model, cool-down from epoch 15 (SM56, leak inputs)",
+     "variant": "Small model, cool-down from epoch 15 (SM56)",
      "curve": 0.30048,
      "instant": 0.27714,
      "eval": "722 users (732 set), 30.13M reviews, leak-free inputs",
@@ -88,7 +95,7 @@
      "leak": true
     },
     {
-     "variant": "Previous release: small model, cool-down from epoch 10 (SM56, leak inputs)",
+     "variant": "Previous release: cool-down from epoch 10 (SM56)",
      "curve": 0.30066,
      "instant": 0.27745,
      "eval": "722 users (732 set), 30.13M reviews, leak-free inputs",
@@ -116,7 +123,7 @@
      "leak": true
     },
     {
-     "variant": "Best: full retrain (SM56) with 5 more epochs, cool-down from epoch 15 (leak inputs), on the 723 users it fits (big model there 0.30139 / 0.27786); vs the cool-down from epoch 10: curve &minus;0.00022 [&minus;0.00035, &minus;0.00009], instant &minus;0.00030 [&minus;0.00034, &minus;0.00026]",
+     "variant": "Best: full retrain, cool-down from epoch 15 (SM56)",
      "curve": 0.3022,
      "instant": 0.27887,
      "curve_pct": 0.27,
@@ -124,10 +131,11 @@
      "eval": "723 users, 30.48M reviews",
      "date": "10-25",
      "quant": "w8+s8",
-     "leak": true
+     "leak": true,
+     "note": "5 more epochs; on the 723 users it fits (big model there 0.30139 / 0.27786). Vs the cool-down from epoch 10: curve &minus;0.00022 [&minus;0.00035, &minus;0.00009], instant &minus;0.00030 [&minus;0.00034, &minus;0.00026]"
     },
     {
-     "variant": "Previous best: full retrain with all 8,000 users in every epoch (SM56), on the 723 users it fits (big model there 0.30139 / 0.27786)",
+     "variant": "Previous best: full retrain, 8,000 users every epoch (SM56)",
      "curve": 0.30242,
      "instant": 0.27917,
      "curve_pct": 0.34,
@@ -135,10 +143,11 @@
      "eval": "723 users, 30.48M reviews",
      "date": "10-24",
      "quant": "w8+s8",
-     "leak": true
+     "leak": true,
+     "note": "On the 723 users it fits (big model there 0.30139 / 0.27786)"
     },
     {
-     "variant": "Previous best: the Muon recipe with its decay on 8,000 training users instead of 5,000 (SM55, released 10-22); vs the Muon version (SM36): curve &minus;0.00048 [&minus;0.00089, &minus;0.00019], instant &minus;0.00025 [&minus;0.00029, &minus;0.00022], both better",
+     "variant": "Previous best: Muon recipe, decay on 8,000 users (SM55)",
      "curve": 0.30464,
      "instant": 0.28015,
      "curve_pct": 0.54,
@@ -146,10 +155,11 @@
      "eval": "726 users, 31.74M reviews",
      "date": "10-22",
      "quant": "w8+s8",
-     "leak": true
+     "leak": true,
+     "note": "Released 10-22. Vs the Muon version (SM36): curve &minus;0.00048 [&minus;0.00089, &minus;0.00019], instant &minus;0.00025 [&minus;0.00029, &minus;0.00022], both better"
     },
     {
-     "variant": "Older best: same with the decay on 5,000 users, Muon instead of AdamW (SM36, released 10-22)",
+     "variant": "Older best: Muon recipe, decay on 5,000 users (SM36)",
      "curve": 0.30512,
      "instant": 0.2804,
      "curve_pct": 0.7,
@@ -157,10 +167,11 @@
      "eval": "726 users, 31.74M reviews",
      "date": "10-20",
      "quant": "w8+s8",
-     "leak": true
+     "leak": true,
+     "note": "Released 10-22; Muon instead of AdamW"
     },
     {
-     "variant": "Older: carried state v2 + one-epoch 32k decay, AdamW (SM40)",
+     "variant": "Older: carried state v2 + one-epoch 32k decay (SM40)",
      "curve": 0.30518,
      "instant": 0.28056,
      "curve_pct": 0.72,
@@ -168,7 +179,8 @@
      "eval": "726 users, 31.74M reviews",
      "date": "10-19",
      "quant": "w8+s8",
-     "leak": true
+     "leak": true,
+     "note": "AdamW"
     },
     {
      "variant": "Oldest: epoch 10 + decay at 32k (Q12)",
@@ -284,7 +296,7 @@
    "track": "small model",
    "ticket": "000998-sm57",
    "started": "16:52",
-   "elapsed": "0:25",
+   "elapsed": "0:30",
    "progress": null,
    "eta": "~18:57"
   }
