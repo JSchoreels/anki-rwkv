@@ -1,0 +1,219 @@
+{
+ "ok": true,
+ "spec": {
+  "density": 0.3,
+  "seed": 95
+ },
+ "user": 7,
+ "reviews": 768,
+ "scorer_reviews": 2000,
+ "start_weights": "C:\\Users\\jonat\\workspace\\wt\\sm72s\\artifacts\\accuracy\\experiments\\scale-w64kd-final-sc-lanes-leakfree\\run\\epoch-21\\expertium\\E89-F65e-F77a\\master.pth",
+ "seconds": 65.5,
+ "results": {
+  "training samples, option absent == gpu_r01_samples before SM95 (e71b0a5e), bitwise": {
+   "value": 6,
+   "ok": true
+  },
+  "training samples, density 0 == option absent, bitwise": {
+   "value": 6,
+   "ok": true
+  },
+  "fix_leading_shift(probes=3) on the batch without probes changes nothing": {
+   "value": 0,
+   "ok": true
+  },
+  "scorer batch (leak-free full history, user 4), flag absent == small_model_heldout before SM95 (e71b0a5e), bitwise": {
+   "value": {
+    "errors": [
+     null,
+     null
+    ],
+    "rows": 28930
+   },
+   "ok": true
+  },
+  "option absent == variant_model before SM95 (e71b0a5e): loss + loss tensor + p_curve + gradients bitwise": {
+   "value": 0.931463360786438,
+   "ok": true
+  },
+  "grade_rectify False == absent, bitwise": {
+   "value": null,
+   "ok": true
+  },
+  "grade_rectify True on a batch without probes == absent, bitwise": {
+   "value": null,
+   "ok": true
+  },
+  "training layout: probes inserted (probed reviews, rows, shift indices fixed, samples starting with a probe)": {
+   "value": {
+    "probed_reviews": 159,
+    "rows_plain": 1112,
+    "rows_probed": 1589,
+    "shift_fixed": 594,
+    "leading": 0
+   },
+   "ok": true
+  },
+  "training layout: slot g holds the row whose rating one-hot is g (all probed reviews)": {
+   "value": {
+    "reviews": 159
+   },
+   "ok": true
+  },
+  "training layout: non-probe rows' inputs bitwise equal": {
+   "value": 0.0,
+   "ok": true
+  },
+  "training layout: non-probe rows' outputs unchanged (max |delta|)": {
+   "value": {
+    "ahead": 0.0,
+    "w": 2.682209014892578e-07,
+    "w_log_p": 1.9073486328125e-06,
+    "p_logits": 2.86102294921875e-06,
+    "s_raw": 2.384185791015625e-06,
+    "d_raw": 2.1457672119140625e-06
+   },
+   "ok": true
+  },
+  "rectified p_curve of probed rows == float64 recompute (stack PAVA of the four curves at the label time)": {
+   "value": {
+    "probed": 159,
+    "broken_raw": 108,
+    "max_abs": 1.2507706803610574e-07,
+    "residual_logit": 9.932949855517847e-06
+   },
+   "ok": true
+  },
+  "unprobed rows and ordered probed reviews: p_curve bitwise the raw curve; instant head bitwise": {
+   "value": {
+    "ordered_probed": 51
+   },
+   "ok": true
+  },
+  "train mode: rectified loss finite, gradients finite and different; gradient reaches pooled probe rows only": {
+   "value": {
+    "loss": 0.9266058206558228,
+    "tensors_differ": "350/354",
+    "probe_rows_with_grad": 142,
+    "non_slot_rows_with_grad": 0
+   },
+   "ok": true
+  },
+  "scorer layout: three probes before every labelled committed row; slot g holds grade g": {
+   "value": {
+    "probed": 1594,
+    "labelled_committed_rows": 1594,
+    "shift_fixed": 3741,
+    "rows_plain": 3231,
+    "rows_probed": 8013
+   },
+   "ok": true
+  },
+  "scorer layout: non-probe rows' inputs bitwise, outputs within 1e-5": {
+   "value": {
+    "inputs": 0.0,
+    "ahead": 0.0,
+    "w": 4.172325134277344e-07,
+    "w_log_p": 1.9073486328125e-06,
+    "p_logits": 3.814697265625e-06,
+    "s_raw": 3.814697265625e-06,
+    "d_raw": 1.6689300537109375e-06
+   },
+   "ok": true
+  },
+  "order exact: zero rectified breaks at 242 horizons per probed review (float32 torch, float64 NumPy)": {
+   "value": {
+    "trained (SM72s epoch 21), scorer layout": {
+     "reviews": 1594,
+     "horizons": 242,
+     "raw_reviews_broken": 0.9554579673776662,
+     "rectified_breaks_f32": 0,
+     "rectified_breaks_f64": 0,
+     "f32_vs_f64_max_abs": 1.6238023325954032e-07,
+     "max_increase_in_t_f32": 0.0
+    },
+    "random init 0 (GRU head weights ~ N(0, 0.3))": {
+     "reviews": 1594,
+     "horizons": 242,
+     "raw_reviews_broken": 1.0,
+     "rectified_breaks_f32": 0,
+     "rectified_breaks_f64": 0,
+     "f32_vs_f64_max_abs": 1.620968245186205e-07,
+     "max_increase_in_t_f32": 0.0
+    },
+    "random init 1 (GRU head weights ~ N(0, 0.3))": {
+     "reviews": 1594,
+     "horizons": 242,
+     "raw_reviews_broken": 0.9974905897114178,
+     "rectified_breaks_f32": 0,
+     "rectified_breaks_f64": 0,
+     "f32_vs_f64_max_abs": 1.643558175112858e-07,
+     "max_increase_in_t_f32": 0.0
+    },
+    "random init 2 (GRU head weights ~ N(0, 0.3))": {
+     "reviews": 1594,
+     "horizons": 242,
+     "raw_reviews_broken": 0.9968632371392723,
+     "rectified_breaks_f32": 0,
+     "rectified_breaks_f64": 0,
+     "f32_vs_f64_max_abs": 1.5844493794769932e-07,
+     "max_increase_in_t_f32": 0.0
+    }
+   },
+   "ok": true
+  },
+  "adversarial 4-vectors (1,000,000 float64 + float32): zero breaks; == stack PAVA; identity on ordered rows, bitwise": {
+   "value": {
+    "breaks_f64": 0,
+    "breaks_f32": 0,
+    "max_abs_vs_stack_pava": 2.220446049250313e-16,
+    "ordered_rows": 223089
+   },
+   "ok": true
+  },
+  "rectified intervals ordered at 12 target retentions; fork display with == without its PAVA (bitwise); the fork's PAVA on the raw curves == the rectified curves' display": {
+   "value": {
+    "interval_breaks": {
+     "0.5": 0,
+     "0.6": 0,
+     "0.7": 0,
+     "0.75": 0,
+     "0.8": 0,
+     "0.85": 0,
+     "0.88": 0,
+     "0.9": 0,
+     "0.92": 0,
+     "0.95": 0,
+     "0.97": 0,
+     "0.99": 0
+    },
+    "raw_reviews_broken": {
+     "0.8": 0.39146800501882056,
+     "0.9": 0.2954830614805521,
+     "0.95": 0.41468005018820575
+    },
+    "fork_pava_changes_rectified": 0,
+    "fork_raw_pava_vs_rectified_max_rel": 1.8823016906870898e-14
+   },
+   "ok": true
+  },
+  "TorchScript model compiles with grade_rectify; loss == eager (eval mode)": {
+   "value": {
+    "scripted": true,
+    "loss": 0.9278826117515564,
+    "eager": 0.9278826117515564
+   },
+   "ok": true
+  },
+  "preview (not a gate): curve LogLoss of the scorer layout on the check user, raw vs rectified (fp32 CPU)": {
+   "value": {
+    "reviews": 1594,
+    "raw": 0.3921943614567449,
+    "rectified": 0.3917872576758757,
+    "rectified_changed_share": 0.17628607277289837,
+    "label_y_is_hard": true
+   },
+   "ok": true
+  }
+ }
+}
