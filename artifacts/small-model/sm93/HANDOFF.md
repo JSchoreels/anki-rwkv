@@ -147,3 +147,7 @@ If it failed: fix on a branch from main (Python ruff format / mypy on `qt/aqt/rw
 `qt/aqt/mediasrv.py`, the new tests in `qt/tests/test_rwkv_model.py` / `test_rwkv_inference_process.py`, the svelte
 toggle, the proto field `specialized_instant_model`), harness `cd rwkvharness && . ./env.sh && cargo test --offline
 --release -- runtime paired sm57`, commit as Jonathan Schoreels, fetch + ff before committing and pushing.
+
+## Done (2026-11-07, main session)
+
+Fork CI: run 42369925888 on 64211f498 failed (ruff import order; 3 Windows pytest backend-creation tests). Fixed in fork main 74c1131d6 (only `qt/aqt/rwkv_scheduler.py`: import order; the instant model is passed to the backend only when two models run together); CI run 42370821200 green on Linux, macOS and Windows. No release.
