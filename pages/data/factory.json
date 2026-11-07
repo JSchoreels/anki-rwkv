@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-07T10:52:29+01:00",
- "updated": "2026-11-07 10:52",
- "material": "0c2b401d0ee7b358",
- "summary": "running 000984, finished 000983",
+ "generated_at": "2026-11-07T11:02:54+01:00",
+ "updated": "2026-11-07 11:02",
+ "material": "4ac0002f3a58c364",
+ "summary": "running 000984",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring (curve / instant)",
@@ -275,7 +275,7 @@
    "track": "small model",
    "ticket": "000984-small-model",
    "started": "10:52",
-   "elapsed": "0:00",
+   "elapsed": "0:10",
    "progress": null,
    "eta": "~11:37"
   }
@@ -447,7 +447,14 @@
    ]
   }
  ],
- "waiting": [],
+ "waiting": [
+  {
+   "ticket": "000985-sm57",
+   "id": "SM57",
+   "what": "the instant-only small model (SM57) stage 3: curve-only epoch 5, instant loss weight 0 (w64 from scratch, the 2k tier, the leak-free small model (SM72s) recipe: 2048 x 16 lanes carry, leak-free replay KD, AdamW 7e-4 constant) (segment to the next break or the end)",
+   "flags": "expected 40 min"
+  }
+ ],
  "recent": [
   {
    "ticket": "000983-sm57",
@@ -514,12 +521,9 @@
    "what": "The instant-only small model (SM57) stage 3: the mirror arm, curve-only (instant head not trained), from the same random init on the 2k tier, 5 epochs, against stage 2&rsquo;s joint arm (not retrained); scored at epochs 1, 3 and 5 on the 732 set",
    "when": "Running since 08:25 Sat (CPU proofs and GPU check passed: the loss is exactly the joint arm&rsquo;s curve terms): ~77&ndash;90k reviews/s, end ~11:45",
    "decides": "Whether the instant task also costs the curve, so two dedicated models (one per scheduler) beat the shared one on both heads (go: curve-only &minus; joint on curve at epoch 5, 95% CI below 0 and at least 0.05 points)",
-   "started_at": "2026-11-07T08:24:39+01:00",
-   "state": "done",
-   "ended": "10:52",
-   "exit": 0,
-   "started": "08:24",
-   "ended_at": "2026-11-07T10:52:00+01:00"
+   "started_at": "2026-11-07T08:19+01:00",
+   "state": "waiting",
+   "ticket": "000985-sm57"
   },
   {
    "id": "SM57",
