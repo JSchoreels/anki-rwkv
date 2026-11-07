@@ -85,3 +85,38 @@ GPU (`sm57s2_gpu_check.py`, first ticket): the joint epoch-1 trainer smoke (2 us
 ### Breaks and launcher
 
 `launch-sm57-stage2.sh` (new; `launch-sm57.sh` is finished and unchanged), queue owner `sm57`, WMI hidden. Breaks: quiet.json (scope all/gpu) plus the default nightly 20:00-01:00, except that a night with any quiet.json all/gpu window overlapping its 20:00-01:00 uses quiet.json's window instead of the default (the user moves the night's break there); re-read at every check. A new epoch starts only if 40 min fit; a running epoch gets a snapshot stop <= 2 min before a break and resumes after it. Expected (if the queue stays free): start ~02:00 on 11-07, end ~08:30.
+
+## Stage 3 plan (fixed 2026-11-07 ~08:20, before any stage-3 GPU run)
+
+### Question
+
+Stage 2 showed that dropping the curve task helps the instant head (instant-only - joint at epoch 5: -0.773 points [-0.861, -0.685]). The mirror question: does the instant task also cost the curve? If both specialised arms beat the joint arm, two dedicated models, one per Anki scheduler (the model-per-scheduler idea (SM93)), would beat the shared model on both heads.
+
+### One new arm: curve-only
+
+- **Option**: the existing `instant_loss_weight` (SM26) at 0.0, no code change. `scripts/gpu_r01_training.py` applies it whenever it is not None, so 0.0 is applied; the model uses it only as `IMMEDIATE_SCALE`, the factor of the instant average in the loss (and the per-review loss tensor). The instant KD targets (the big model (1 leak-free epoch)'s rating probabilities, alpha 0.9) live inside that instant average (its soft rating target), so weight 0 removes the instant term, instant KD included; the curve terms (curve and raw-curve BCE with the curve KD targets, plus the curve head's three regularizers) are unchanged. The option is teacher-blind and an accepted batch option of the ordered prefetch, so the batches and teacher targets cannot change.
+- **Everything else is stage 2's joint arm**: the same fresh init (training_seed 2025, hash `47a33c78...`), the 2k tier, the leak-free small model (SM72s) recipe and options, epoch order, per-window seeds, replay KD targets, AdamW 7e-4 constant, no cool-down, GPU memory cap 0.8. Epoch N > 1 from the arm's own epoch N-1 (weights, AdamW state, update offset). Folders `artifacts/small-model/sm57s3-curve-eNN`, built by `sm57_stage3.py prepare` from stage 2's own construction of the joint folder (`sm57_stage2.build("joint", N)`) with only the flag, the folder paths and the stage name changed; `sm57_stage3.py pair` re-checks every epoch against stage 2's joint folder before it runs.
+- **Comparison**: stage 2's joint arm, not retrained (its checkpoints `sm57s2-joint-eNN` and its rows `gpu/sm57s2-rows.jsonl`, labels `sm57s2-joint-eNN/w8+s8`); the instant-only arm's rows for the two-model report.
+
+### Epochs and scoring
+
+5 epochs, scored at epochs 1, 3 and 5 (as stage 2: `small_model_heldout.py --split-existing --deleted-cards neighbour`, w8+s8, normal inputs, the 732 set minus 9 never-fit (723 users), cap 0.8, one retry pass at 0.92 if a pass makes no progress). Labels `sm57s3-curve-eNN/w8+s8`, rows `gpu/sm57s3-rows.jsonl`. Expected: ~5 x 30 min training + 3 x 14 min scoring ~ 3.3 h; no time plan (it fits before the 20:00 break).
+
+### Pre-registered rule (`sm57_stage3.py rule`)
+
+Curve-only - joint on the **curve** head at epoch 5, 722 users of the 732 set (the stage-1/2 pool), review-weighted LogLoss, points = % of the big model (1 leak-free epoch) normal-input LogLoss, paired user bootstrap 2,000, seed 0, 95% CI (`sm92_rule.compare`, as stages 1-2):
+
+- **go** if the 95% CI is entirely below zero **and** the gain is at least 0.05 points: the instant task costs the curve too.
+- **stop** otherwise.
+
+Reported (no rule): the same pair at epochs 1 and 3; curve-only's instant head (expected untrained: the instant-head-only weights (`head_p`, `p_linear`) get zero gradients, so only weight decay, if their group has any, moves them); curve-only and joint vs the big model (1 leak-free epoch) on both heads; the **two-model comparison** per scored epoch: (instant-only instant, curve-only curve) vs joint (both heads), and whether both rules are go at epoch 5; training minutes, reviews/s and GPU memory per epoch next to stage 2's joint arm; same fresh init (initial_parameter_sha256 of curve-only e01 == stage 2 joint e01's).
+
+### Proofs
+
+CPU (`sm57s3_check.py` -> `check-cpu-sm57-stage3.json`): T1 the fresh init hash for the curve-only options == joint's == stage 2's epoch-1 results' == SM72s epoch 1's; T2 the epoch-1 folder differs from stage 2's joint e01 only by the flag, folder names and stage name, with refusals (joint vs joint, stage 2's instant-only folder, swapped rows, flag 0.5); T3 the option's path in the source (applied at 0.0, teacher-blind, batch-blind, only `IMMEDIATE_SCALE` in the loss, the instant KD inside that term); T4 a CPU trainer slice from the fresh init with the run's real replay KD (`sm57s3_probe.py`): the probe without the teacher == stage 2's probe bit for bit; the same batches; the same first forward; curve-only's loss == the curve terms of the loss exactly (and == the curve terms of joint's loss on the same first batch); reversing the teacher's rating targets leaves curve-only's losses, gradients and weights bit for bit unchanged (and changes joint's): the instant KD is gone; flipping the curve targets changes curve-only's loss: the curve KD stays; only the instant-head-only parameters (`head_p`, `p_linear`) lose their gradient, disjoint from the curve-only parameters instant-only zeroes; TorchScript, weights finite; T5 the rule code reproduces stage 2's published epoch-5 pair on stage 2's rows; T6 the break logic.
+
+GPU (`sm57s3_gpu_check.py`, first ticket): the joint epoch-1 smoke by this tree == stage 2's GPU-check joint smoke bitwise (the GPU and tree still reproduce stage 2); the curve-only smoke trains with instant_loss_weight 0.0 recorded and different weights; both smokes from the same init == SM72s epoch 1's.
+
+### Breaks and launcher
+
+`launch-sm57-stage3.sh` (new; the stage 1 and 2 launchers are finished and unchanged), queue owner `sm57`, ticket purposes starting with "the instant-only small model (SM57) stage 3: ", WMI hidden. Breaks as stage 2 (quiet.json all/gpu plus the nightly 20:00-01:00 unless quiet.json moves that night's break; re-read at every check); a new epoch starts only if 40 min fit; a running epoch gets a snapshot stop <= 2 min before a break and resumes after it.

@@ -1,0 +1,300 @@
+{
+ "ok": true,
+ "checks": {
+  "T1_same_fresh_init_curve_joint_stage2_sm72s": {
+   "ok": true,
+   "out": "{\"curve\": \"47a33c7882df8c01c31e6b7be171ad62be715bf6862356cada19f457f8fb917f\", \"joint\": \"47a33c7882df8c01c31e6b7be171ad62be715bf6862356cada19f457f8fb917f\", \"stage2_joint_e01_initial_parameter_sha256\": \"47a33c7882df8c01c31e6b7be171ad62be715bf6862356cada19f457f8fb917f\", \"stage2_inst_e01_initial_parameter_sha256\": \"47a33c7882df8c01c31e6b7be171ad62be715bf6862356cada19f457f8fb917f\", \"sm72s_epoch1_initial_parameter_sha256\": \"47a33c7882df8c01c31e6b7be171ad62be715bf6862356cada19f457f8fb917f\"}",
+   "err": ""
+  },
+  "T2a_epoch1_curve_differs_from_stage2_joint_only_by_flag": {
+   "ok": true,
+   "out": "[sm57s3-pair] epoch 1 OK: sm57s3-curve-e01 == sm57s2-joint-e01 except {\"instant_loss_weight\": 0.0}, folder names and the stage name (2,000 users, 146,654,211 reviews, epoch 1)",
+   "err": ""
+  },
+  "T2b_joint_against_joint_refused": {
+   "ok": true,
+   "out": "[sm57s3-pair] epoch 1 REFUSE: instant_loss_weight is not 0.0 in the curve-only arm only"
+  },
+  "T2c_stage2_instant_only_refused": {
+   "ok": true,
+   "out": "l-model/sm57s2-joint-e01/control; instant_loss_weight is not 0.0 in the curve-only arm only; the arms' options differ beyond the flag; decay /arm: inst vs joint; decay /note: SM57 stage 2 epoch 1, arm inst, extra options {\"curve_loss_weight\": 0.0} vs SM57 stage 2 epoch 1, arm joint, extra options {}"
+  },
+  "T2d_swapped_rows_refused": {
+   "ok": true,
+   "out": "]/validation_range[1]: 48293 vs 143747; protocol /rows[1]/available_reviews: 143747 vs 48293; protocol /rows[1]/train_range[1]: 143747 vs 48293; protocol /rows[1]/user_id: 4794 vs 2590; protocol /rows[1]/validation_range[1]: 143747 vs 48293; curve rows are not the epoch-1 order rule over the 2k tier"
+  },
+  "T2e_flag_0.5_refused": {
+   "ok": true,
+   "out": "[sm57s3-pair] epoch 1 REFUSE: instant_loss_weight is not 0.0 in the curve-only arm only"
+  },
+  "T3_option_path_in_source": {
+   "ok": true,
+   "uses": [
+    "scripts/expertium_options.py:38: # The instant-only small model (SM57) curve_loss_weight only scales loss terms, like instant_loss_weight.",
+    "scripts/expertium_options.py:39: TEACHER_BLIND = (\"distillation\", \"optimizer\", \"instant_loss_weight\", \"state_vq\", \"curve_loss_weight\")",
+    "scripts/gpu_r01_prefetch.py:16: \"architecture\", \"lr_schedule\", \"optimizer\", \"end_to_start_intervals\", \"distillation\", \"chunk_reviews\", \"instant_loss_weight\", \"state_carry\",",
+    "scripts/gpu_r01_training.py:391: if options.get(\"instant_loss_weight\") is not None:",
+    "scripts/gpu_r01_training.py:393: if not hasattr(base, \"instant_loss_weight\"):",
+    "scripts/gpu_r01_training.py:394: raise ValueError(\"instant_loss_weight needs the Expertium loss\")",
+    "scripts/gpu_r01_training.py:395: base.instant_loss_weight = float(options[\"instant_loss_weight\"])",
+    "expertium/model/srs_model.py:153: # SM26: opt-in multiplier on the instant (rating) loss term; None keeps IMMEDIATE_SCALE = 1.0 exactly.",
+    "expertium/model/srs_model.py:154: self.instant_loss_weight = None",
+    "expertium/model/srs_model.py:474: IMMEDIATE_SCALE = 1.0 if self.instant_loss_weight is None else float(self.instant_loss_weight)",
+    "expertium/model/srs_model.py:493: + IMMEDIATE_SCALE * immediate_avg",
+    "expertium/model/srs_model.py:501: + IMMEDIATE_SCALE * p_loss.detach()",
+    "expertium/model/variant_model.py:196: # SM26: opt-in multiplier on the instant (rating) loss term; the default 1.0 keeps IMMEDIATE_SCALE = 1.0 exactly.",
+    "expertium/model/variant_model.py:198: self.instant_loss_weight = 1.0",
+    "expertium/model/variant_model.py:587: IMMEDIATE_SCALE = self.instant_loss_weight",
+    "expertium/model/variant_model.py:606: + IMMEDIATE_SCALE * immediate_avg",
+    "expertium/model/variant_model.py:617: + IMMEDIATE_SCALE * p_loss.detach()"
+   ],
+   "loss_lines": [
+    "IMMEDIATE_SCALE = self.instant_loss_weight",
+    "+ IMMEDIATE_SCALE * immediate_avg",
+    "+ IMMEDIATE_SCALE * p_loss.detach()"
+   ]
+  },
+  "T4a_probe_without_teacher_equals_stage2_probe": {
+   "ok": true,
+   "updates": 16
+  },
+  "T4b_same_batches": {
+   "ok": true,
+   "updates": 16,
+   "rows": [
+    6013,
+    6933
+   ],
+   "teacher_stats": {
+    "replay_batches": 16,
+    "replay_users": 2
+   }
+  },
+  "T4c_same_first_forward": {
+   "ok": true,
+   "components": {
+    "ahead_avg": 0.5343827605247498,
+    "imm_avg": 1.0672624111175537,
+    "ahead_raw_avg": 0.5343829989433289,
+    "w_loss_avg": 0.0,
+    "ahead_logits_mag_loss_avg": 9.99999905104687e-09,
+    "ahead_logits_diff_loss_avg": 9.99999905104687e-09
+   }
+  },
+  "T4d_curve_only_loss_is_exactly_the_curve_terms": {
+   "ok": true,
+   "first_update": {
+    "joint_loss": 1.6016453504562378,
+    "joint_curve_terms": 0.5343828797340393,
+    "curve_only_loss": 0.5343828797340393,
+    "instant_average": 1.0672624111175537
+   },
+   "curve_only_losses": [
+    0.5343828797340393,
+    0.4448860287666321,
+    0.34018516540527344,
+    0.32531633973121643,
+    0.18910342454910278,
+    0.16925188899040222,
+    0.6266753077507019,
+    0.6281406879425049,
+    0.5921697616577148,
+    0.5063082575798035,
+    0.49587345123291016,
+    0.42669808864593506,
+    0.4518889784812927,
+    0.42684948444366455,
+    0.3989405930042267,
+    0.5792646408081055
+   ]
+  },
+  "T4e_instant_kd_removed": {
+   "ok": true,
+   "instant_average_first_update": {
+    "targets": 1.0672624111175537,
+    "reversed_targets": 1.4368607997894287
+   },
+   "joint_loss_first_update": {
+    "targets": 1.6016453504562378,
+    "reversed_targets": 1.9712437391281128
+   }
+  },
+  "T4f_curve_kd_kept": {
+   "ok": true,
+   "curve_only_loss_first_update": {
+    "targets": 0.5343828797340393,
+    "flipped_curve_targets": 1.8222951889038086
+   }
+  },
+  "T4g_gradients_instant_head_only_zeroed": {
+   "ok": true,
+   "last_update_joint_zero": [
+    "ahead_linear.bias",
+    "ahead_linear.weight",
+    "head_ahead_logits.0.bias",
+    "head_ahead_logits.0.weight",
+    "rwkv_modules.0.blocks.0.time_mixer.v_lora_simple.A.weight",
+    "rwkv_modules.0.blocks.0.time_mixer.v_lora_simple.B_and_lamb.bias",
+    "rwkv_modules.0.blocks.0.time_mixer.v_lora_simple.B_and_lamb.weight",
+    "rwkv_modules.0.blocks.1.channel_mixer.W_k.weight",
+    "rwkv_modules.0.blocks.1.channel_mixer.W_v.weight",
+    "rwkv_modules.0.blocks.1.channel_mixer.layer_norm.bias",
+    "rwkv_modules.0.blocks.1.channel_mixer.layer_norm.weight",
+    "rwkv_modules.0.blocks.1.channel_mixer.lerp_k",
+    "rwkv_modules.1.blocks.0.time_mixer.v_lora_simple.A.weight",
+    "rwkv_modules.1.blocks.0.time_mixer.v_lora_simple.B_and_lamb.bias",
+    "rwkv_modules.1.blocks.0.time_mixer.v_lora_simple.B_and_lamb.weight",
+    "rwkv_modules.1.blocks.1.channel_mixer.W_k.weight",
+    "rwkv_modules.1.blocks.1.channel_mixer.W_v.weight",
+    "rwkv_modules.1.blocks.1.channel_mixer.layer_norm.bias",
+    "rwkv_modules.1.blocks.1.channel_mixer.layer_norm.weight",
+    "rwkv_modules.1.blocks.1.channel_mixer.lerp_k",
+    "rwkv_modules.1.blocks.2.channel_mixer.W_k.weight",
+    "rwkv_modules.1.blocks.2.channel_mixer.W_v.weight",
+    "rwkv_modules.1.blocks.2.channel_mixer.layer_norm.bias",
+    "rwkv_modules.1.blocks.2.channel_mixer.layer_norm.weight",
+    "rwkv_modules.1.blocks.2.channel_mixer.lerp_k",
+    "rwkv_modules.2.blocks.0.time_mixer.v_lora_simple.A.weight",
+    "rwkv_modules.2.blocks.0.time_mixer.v_lora_simple.B_and_lamb.bias",
+    "rwkv_modules.2.blocks.0.time_mixer.v_lora_simple.B_and_lamb.weight",
+    "rwkv_modules.3.blocks.0.channel_mixer.W_k.weight",
+    "rwkv_modules.3.blocks.0.channel_mixer.W_v.weight",
+    "rwkv_modules.3.blocks.0.channel_mixer.layer_norm.bias",
+    "rwkv_modules.3.blocks.0.channel_mixer.layer_norm.weight",
+    "rwkv_modules.3.blocks.0.channel_mixer.lerp_k",
+    "rwkv_modules.3.blocks.0.time_mixer.v_lora_simple.A.weight",
+    "rwkv_modules.3.blocks.0.time_mixer.v_lora_simple.B_and_lamb.bias",
+    "rwkv_modules.3.blocks.0.time_mixer.v_lora_simple.B_and_lamb.weight",
+    "rwkv_modules.3.blocks.1.channel_mixer.W_k.weight",
+    "rwkv_modules.3.blocks.1.channel_mixer.W_v.weight",
+    "rwkv_modules.3.blocks.1.channel_mixer.layer_norm.bias",
+    "rwkv_modules.3.blocks.1.channel_mixer.layer_norm.weight",
+    "rwkv_modules.3.blocks.1.channel_mixer.lerp_k",
+    "rwkv_modules.3.blocks.2.channel_mixer.W_k.weight",
+    "rwkv_modules.3.blocks.2.channel_mixer.W_v.weight",
+    "rwkv_modules.3.blocks.2.channel_mixer.layer_norm.bias",
+    "rwkv_modules.3.blocks.2.channel_mixer.layer_norm.weight",
+    "rwkv_modules.3.blocks.2.channel_mixer.lerp_k",
+    "rwkv_modules.4.blocks.0.channel_mixer.W_k.weight",
+    "rwkv_modules.4.blocks.0.channel_mixer.W_v.weight",
+    "rwkv_modules.4.blocks.0.channel_mixer.layer_norm.bias",
+    "rwkv_modules.4.blocks.0.channel_mixer.layer_norm.weight",
+    "rwkv_modules.4.blocks.0.channel_mixer.lerp_k",
+    "rwkv_modules.4.blocks.0.time_mixer.v_lora_simple.A.weight",
+    "rwkv_modules.4.blocks.0.time_mixer.v_lora_simple.B_and_lamb.bias",
+    "rwkv_modules.4.blocks.0.time_mixer.v_lora_simple.B_and_lamb.weight",
+    "rwkv_modules.4.blocks.1.channel_mixer.W_k.weight",
+    "rwkv_modules.4.blocks.1.channel_mixer.W_v.weight",
+    "rwkv_modules.4.blocks.1.channel_mixer.layer_norm.bias",
+    "rwkv_modules.4.blocks.1.channel_mixer.layer_norm.weight",
+    "rwkv_modules.4.blocks.1.channel_mixer.lerp_k",
+    "rwkv_modules.4.blocks.2.channel_mixer.W_k.weight",
+    "rwkv_modules.4.blocks.2.channel_mixer.W_v.weight",
+    "rwkv_modules.4.blocks.2.channel_mixer.layer_norm.bias",
+    "rwkv_modules.4.blocks.2.channel_mixer.layer_norm.weight",
+    "rwkv_modules.4.blocks.2.channel_mixer.lerp_k",
+    "w_linear.bias",
+    "w_linear.weight"
+   ],
+   "last_update_zeroed_by_curve_only": [
+    "head_p.0.bias",
+    "head_p.0.weight",
+    "p_linear.bias",
+    "p_linear.weight"
+   ],
+   "last_update_zeroed_by_instant_only": [
+    "gru_d_bias",
+    "gru_d_weight",
+    "gru_s_bias",
+    "gru_s_weight",
+    "gru_w_bias",
+    "gru_w_weight",
+    "head_w.0.bias",
+    "head_w.0.weight",
+    "head_w.2.bias",
+    "head_w.2.weight",
+    "head_w.4.bias",
+    "head_w.4.weight"
+   ],
+   "first_update_extra_zero": {
+    "curve_only": [
+     "p_linear.bias",
+     "p_linear.weight"
+    ],
+    "instant_only": [
+     "gru_d_bias",
+     "gru_d_weight",
+     "gru_s_bias",
+     "gru_s_weight",
+     "gru_w_bias",
+     "gru_w_weight"
+    ]
+   },
+   "first_update_joint_zero_count": 412,
+   "parameters": 420
+  },
+  "T4h_weights_finite_differ_flag_read_back_jit": {
+   "ok": true,
+   "optimizer": "AdamW"
+  },
+  "T5_rule_self_test": {
+   "ok": true,
+   "out": "{\"users\": 722, \"stage2_e5_reproduced\": {\"instant\": [-0.773, [-0.861, -0.685]], \"curve\": [126.202, [115.984, 138.5]]}, \"ok\": true, \"failures\": []}",
+   "err": ""
+  },
+  "T6_break_windows": {
+   "ok": true,
+   "cases": {
+    "empty_19:00_default_next_60": {
+     "got": "NEXT 60",
+     "want": "NEXT 60"
+    },
+    "empty_00:30_inside_default": {
+     "got": "NOW",
+     "want": "NOW"
+    },
+    "moved_19:00_next_180": {
+     "got": "NEXT 180",
+     "want": "NEXT 180"
+    },
+    "moved_21:00_free_next_60": {
+     "got": "NEXT 60",
+     "want": "NEXT 60"
+    },
+    "timing_scope_keeps_default": {
+     "got": "NEXT 60",
+     "want": "NEXT 60"
+    },
+    "other_night_keeps_default": {
+     "got": "NEXT 60",
+     "want": "NEXT 60"
+    }
+   },
+   "live": {
+    "now": "2026-11-07T08:18:59",
+    "block": "NEXT 701"
+   }
+  }
+ },
+ "seconds": 233.6,
+ "commit": "6059fb78fee2d2197b983aa8b191d2813fe20d5f",
+ "dirty_source": "",
+ "provenance": {
+  "captured_utc": "2026-11-07T07:19:00.060316+00:00",
+  "git_commit": "6059fb78fee2d2197b983aa8b191d2813fe20d5f",
+  "git_dirty": true,
+  "git_status_porcelain_z": " M artifacts/small-model/sm57/DESIGN.md\u0000",
+  "source_tree_sha256": "5cdc35542252f64ec33e27cbd3d40641cc4194dba36d6a5d943092dc2522955a",
+  "source_archive": "artifacts/sources/experiment-sources/5cdc35542252f64ec33e27cbd3d40641cc4194dba36d6a5d943092dc2522955a/source.zip",
+  "source_paths": [
+   "rwkv",
+   "expertium",
+   "scripts",
+   "configs",
+   "pyproject.toml",
+   "uv.lock",
+   "justfile",
+   "upstream.json"
+  ]
+ }
+}
