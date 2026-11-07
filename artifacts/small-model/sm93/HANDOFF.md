@@ -114,3 +114,36 @@ would cost ~1 h GPU (SM82c recipe, as SM92) for no gain):
   `C:/Users/jonat/workspace/anki/rwkvharness` (`. ./env.sh; cargo test --offline --release`; 4 pre-existing
   `fused_packed` failures expected), `rustfmt --edition 2021 --check`. Fork pushes:
   `GIT_TERMINAL_PROMPT=0 git -c credential.helper= -c 'credential.helper=!gh auth git-credential' push origin <branch>`.
+
+## Done (2026-11-07 ~12:55)
+
+- Step 1: rule **GO**, row check 0.0 on 6 users for both labels; `sm93_package.py` run (use text: curve +16.0% of the
+  release's LogLoss on 1,487 users), `INTEGRATION.md` written (instant-only section on top of the sm72e25 manual);
+  commit `3225c739` (package + decision + logs), pushed.
+- Step 2, fork `JSchoreels/anki` **main `64211f498`** "Give RWKV-Instant the instant-only small model (SM57)" (also on
+  branch `sm93-instant-model`), pushed; no remote commits had to be integrated (origin/main stayed at `201b6e34b`).
+  User requirement added 11-07 ~12:25: only RWKV-Instant -> SM57 alone (`InstantOnly` runtime: no curve, intervals,
+  S90, answer time or workload simulation); both -> SM63 shared by default, Advanced toggle "Use specialized model for
+  RWKV-Instant (2x RAM if used alongside RWKV-Curve)" (`rwkvSpecializedInstantModel`) -> `Paired` runtime (SM57 for
+  Instant, SM63 for Curve and the answer-time head); only Curve -> SM63. Applies at profile reopen.
+  Report: `docs/rwkv-sm93-2026-11-07.MD` in the fork. No release, no draft.
+- Tests run: harness default features 225 passed / 4 failed (the pre-existing `fused_packed` ones) / 30 ignored;
+  `--no-default-features` same 4 only; new tests `rwkv_paired_runtime_matches_each_model_alone`,
+  `rwkv_paired_runtime_state_round_trips`, `rwkv_instant_only_runtime_serves_no_curve`, `rwkv_sm57_*`, `paired::tests`
+  pass; full 14,403-row vectors 2.3e-6 f32 / 2.0e-6 INT8; rustfmt clean; clippy clean on the new code. Python / TS /
+  rsbridge tests could not run locally (no built `out/`): they run in fork CI.
+
+## Follow-up: fork CI (not waited on)
+
+CI run **42369925888** on main `64211f498` (~18 min). Check:
+
+```bash
+cd C:/Users/jonat/workspace/anki && git fetch && git merge --ff-only
+gh run view 42369925888 --json status,conclusion,jobs --jq '.status, .conclusion, (.jobs[] | select(.conclusion != "success") | .name)'
+gh run view 42369925888 --log-failed | tail -80     # only if it failed
+```
+
+If it failed: fix on a branch from main (Python ruff format / mypy on `qt/aqt/rwkv_scheduler.py`, `qt/aqt/rwkv_model.py`,
+`qt/aqt/mediasrv.py`, the new tests in `qt/tests/test_rwkv_model.py` / `test_rwkv_inference_process.py`, the svelte
+toggle, the proto field `specialized_instant_model`), harness `cd rwkvharness && . ./env.sh && cargo test --offline
+--release -- runtime paired sm57`, commit as Jonathan Schoreels, fetch + ff before committing and pushing.
