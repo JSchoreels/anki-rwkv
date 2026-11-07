@@ -1,4 +1,4 @@
-# RUNNING - The instant-only small model (SM57) stage 2: handoff (2026-11-07 01:42)
+# DONE (2026-11-07 08:05; result in sm57-stage2-result.md, verdict GO) - The instant-only small model (SM57) stage 2: handoff (2026-11-07 01:42)
 
 Branch `sm57`, worktree `C:/Users/jonat/workspace/wt/sm57`. Plan and pre-registered rule: `DESIGN.md`, section "Stage 2 plan" (fixed 11-07 ~01:35, before any run). Stage 1 (go, instant -0.147 points vs joint): `sm57-result.md`.
 
