@@ -1,4 +1,4 @@
-# RUNNING - The instant-only small model (SM57) stage 3 (curve-only, the mirror arm): handoff (2026-11-07 08:19, filled 08:30 by the main session)
+# DONE - The instant-only small model (SM57) stage 3 (curve-only, the mirror arm): handoff (2026-11-07 08:19, filled 08:30 by the main session)
 
 Branch `sm57`, worktree `C:/Users/jonat/workspace/wt/sm57`. Plan and pre-registered rule: `DESIGN.md`, section "Stage 3 plan" (fixed 11-07 ~08:20, before any stage-3 GPU run). Stage 2 (go, instant-only - joint on instant at epoch 5: -0.773 points [-0.861, -0.685]): `sm57-stage2-result.md`, `sm57-stage2-decision.md`.
 
