@@ -47,3 +47,41 @@ GPU check (`sm57_gpu_check.py`, first ticket, ~5 min): the trainer's smoke (2 us
 ## Schedule (estimates from SM92: epoch ~114 min, cool-down ~480 min wall, scoring ~15 min per model)
 
 Launcher `launch-sm57.sh` (WMI hidden): GPU check -> instant-only epoch 26 -> joint epoch 26 -> instant-only cool-down -> its scoring -> joint cool-down -> its scoring -> rule. Epochs and cool-downs are snapshot-resumable (resumable decay (SM69)): a snapshot stop <= 2 min before a quiet window (quiet.json, scope all/gpu, plus the daily 20:00-01:00 break), resume after it. Expected: epochs ~02:30-06:30, instant-only cool-down ~06:30-14:30, joint cool-down ~14:45-20:00 then 01:00-~04:00 on 11-07, rule ~04:15 on 11-07.
+
+## Stage 2 plan (fixed 2026-11-07 ~01:35, before any stage-2 run)
+
+### Question
+
+From the same random init, does the curve task help instant learn early (then the joint arm leads on instant in the first epochs and the stage-1 gain is a late-training effect), or does instant-only lead from the start too?
+
+### Recipe: the factory's 2k tier from scratch
+
+- **Users**: the accuracy-loop tier `screen` (`anki-rwkv/artifacts/accuracy/tiers.json`): 2,000 training users nested in the 8k final tier, stratified by history length, 146,654,211 reviews per epoch (a quarter of the 8k epoch). Disjoint from the 732 set and its 3 long users; none of them has a label-window trim (the leak-free small model (SM72s) trims file covers all 8k users: only user 5599, not in the tier).
+- **Training**: the leak-free small model (SM72s)'s own from-scratch recipe, its `run.json` options unchanged: w64, 2,048-review windows x 16 strided state-carry lanes, leak-free replay KD (alpha 0.9, the big model (1 leak-free epoch) targets `big-leakfree-1ep-final8k-neighbour`, per-review so window- and order-independent), AdamW 7e-4 constant after the 5-update warm-up, `training_seed` 2025 (the fresh init and the per-window seeds), GPU memory cap 0.8, `RWKV_DELETED_CARDS=neighbour`. Protocol fields from SM72s's epoch 1. Epoch N order: the run's rule `random.Random(split_seed * 1000 + N)` over the tier's users. Epoch 1 from the trainer's fresh init (no checkpoint: `CatchUp.fresh_checkpoint(2025)`, the same init as SM72s's epoch 1, hash `47a33c78...`); epoch N > 1 from the arm's own epoch N-1 (weights, AdamW state, update offset). No cool-down: the read-out is on constant-LR checkpoints (the question is the trajectory, not a release).
+- **Arms**: joint (no extra option) and instant-only (+ `{"curve_loss_weight": 0.0}`), identical otherwise. Folders `artifacts/small-model/sm57s2-{inst,joint}-eNN`, prepared by `sm57_stage2.py prepare`, run by `scripts/expertium_decay.py run` (snapshot every 400 users, resumable).
+
+### Epochs, time cap and scoring
+
+- Up to **5 epochs per arm**, interleaved (instant-only eN, joint eN, then the scoring of both when N is scored), so a cut run still has matched pairs.
+- **Time plan** (`sm57_stage2.py plan`, once, after epoch 1 of both arms is trained and scored): F = the largest of 5, 4, 3, 2, 1 such that GPU minutes spent so far + (F - 1) x the measured epoch-1 pair minutes + 2 x the measured scoring minutes per checkpoint x the scored epochs after 1 stays <= 420 min (~7 h). Estimate (not measured): ~30 min per epoch per arm, ~13 min per scoring (stage 1: 12-13 min for 723 users), so F = 5 and ~6.5 h in all.
+- **Scored epochs**: 1, 3 and F (both arms each), the cheapest set that answers "does instant-only lead from the start" (epoch 1), shows the trend (epoch 3) and gives the rule (F). Epochs 2 and 4 are kept on disk and can be scored later on demand.
+- **Scoring**: as stage 1: `small_model_heldout.py --split-existing --deleted-cards neighbour`, w8+s8, normal inputs, the 732 set minus 9 never-fit (723 users) at cap 0.8 (one retry pass at 0.92 if a pass makes no progress); the 3 long users are skipped (not in the rule pool). Labels `sm57s2-{inst,joint}-eNN/w8+s8`, rows `gpu/sm57s2-rows.jsonl`.
+
+### Pre-registered rule (`sm57_stage2.py rule`)
+
+Instant-only - joint on the instant head at the final epoch F, 722 users of the 732 set (the stage-1 pool), review-weighted LogLoss, points = % of the big model (1 leak-free epoch) normal-input LogLoss, paired user bootstrap 2,000, seed 0, 95% CI (`sm92_rule.compare`, as stage 1):
+
+- **go** if the 95% CI is entirely below zero **and** the gain is at least 0.05 points: instant-only wins from scratch too.
+- **stop** otherwise.
+
+Reported (not the rule): the same pair at every scored epoch (the trajectory, with users better / worse); the epoch-1 reading (instant-only leads / joint leads = the curve task helps instant early / no difference, from the epoch-1 CI); the joint arm's curve and both arms' instant vs the big model (1 leak-free epoch); joint vs the release (SM63) for scale; training minutes, reviews/s and GPU memory per arm and epoch; same fresh init (initial_parameter_sha256 of both epoch-1 results).
+
+### Proofs
+
+CPU (`sm57s2_check.py` -> `check-cpu-sm57-stage2.json`): S1 the tier (2,000 users inside the 8k run, disjoint from the 732 set, no trims, 146,654,211 reviews); S2 the fresh init hash is equal for both arms' options and equal to SM72s epoch 1's; S3 the epoch-1 folders differ only by the flag and folder names (rows = the order rule, joint options == SM72s run.json, both from the fresh init), with refusals (joint vs joint, swapped rows, flag 0.5); S4 epochs 1-5 are distinct permutations; S5 a CPU trainer slice from the fresh init (the trainer's batch path, state carry, loss, clip, fresh AdamW, TorchScript): the `wt/sm92` tree == this tree for joint bit for bit, instant-only sees the same updates and first-update predictions with loss == the instant average; S6 the stage-2 rule code reproduces stage 1's published pair on stage 1's rows; S7 the break logic on synthetic quiet files. Each later epoch is re-checked by `sm57_stage2.py pair` before it runs (own previous epoch as start, update offsets and update counts equal across arms).
+
+GPU (`sm57s2_gpu_check.py`, first ticket): the joint epoch-1 trainer smoke (2 users x 512 reviews) by the `wt/sm92` tree == this tree bitwise; the instant-only smoke trains with weight 0 recorded; all three smokes start from the same init (initial_parameter_sha256 == SM72s epoch 1's).
+
+### Breaks and launcher
+
+`launch-sm57-stage2.sh` (new; `launch-sm57.sh` is finished and unchanged), queue owner `sm57`, WMI hidden. Breaks: quiet.json (scope all/gpu) plus the default nightly 20:00-01:00, except that a night with any quiet.json all/gpu window overlapping its 20:00-01:00 uses quiet.json's window instead of the default (the user moves the night's break there); re-read at every check. A new epoch starts only if 40 min fit; a running epoch gets a snapshot stop <= 2 min before a break and resumes after it. Expected (if the queue stays free): start ~02:00 on 11-07, end ~08:30.
