@@ -1,0 +1,58 @@
+{
+ "ok": true,
+ "checks": {
+  "V1a_builder_reproduces_stage1_epoch26": {
+   "ok": true,
+   "differences": []
+  },
+  "V1b_builder_reproduces_sm72s_epochs_22_25": {
+   "ok": true,
+   "differences": {}
+  },
+  "V2a_epoch27_prepared_and_paired": {
+   "ok": true,
+   "info": "8,000 users, 581,942,724 reviews, epoch 27, start sm57-inst-e26, offset 574028",
+   "failures": []
+  },
+  "V2b_pair_refusals": {
+   "ok": true,
+   "refusals": {
+    "rows26": true,
+    "noflag": true,
+    "flag05": true,
+    "offset": true,
+    "start25": true
+   }
+  },
+  "V3_orders_21_30_distinct_permutations": {
+   "ok": true,
+   "users": 8000
+  },
+  "V4_sources_and_pools": {
+   "ok": true,
+   "changed": [
+    "scripts/eval_pools.py",
+    "scripts/small_model_heldout.py"
+   ],
+   "pool732": 732,
+   "pool1500": 1500
+  },
+  "V5_cooldown_prepare_reproduces_stage1": {
+   "ok": true,
+   "prepare": "ec\", \"start\": \"C:\\\\Users\\\\jonat\\\\workspace\\\\wt\\\\sm57\\\\artifacts\\\\small-model\\\\sm57-inst-e26\\\\expertium\\\\E89-F65e-F77a\", \"update_offset\": 574028, \"training_users\": 8000, \"training_reviews\": 581942738}\n",
+   "vs_stage1": "[sm57-pair] decay OK: sm57s4-check-dec == sm57-inst-e26-dec-1ep32k-muon except the flag, the start weights, the epoch index and paths {} (8,000 users, 581,942,724 reviews, update offset 574028 vs 574028, start 82c929b5ebe3)",
+   "vs_release": "[sm57-pair] decay OK: sm57s4-check-dec == scale-w64kd-final-sc-lanes-leakfree-dec25-1ep32k-muon except the flag, the start weights, the epoch index and paths {\"curve_loss_weight\": 0.0} (8,000 users, 581,942,724 reviews, update offset 574028 vs 551950, start 82c929b5ebe3)"
+  },
+  "V6_rule_self_test": {
+   "ok": true,
+   "out": "{\"ok\": true, \"failures\": [], \"stage1_vs_release_722\": [-0.162, [-0.176, -0.148]], \"pool1500_stage1_vs_release\": [1487, -0.164, [-0.179, -0.152]]}"
+  },
+  "V7_break_logic": {
+   "ok": true,
+   "wrong": {},
+   "cases": 9
+  }
+ },
+ "seconds": 12.3,
+ "utc": "2026-11-07T11:13:24Z"
+}
