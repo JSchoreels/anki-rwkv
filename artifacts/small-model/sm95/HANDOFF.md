@@ -82,7 +82,7 @@ Launcher `launch-sm95.sh`, log `gpu/launch-sm95.log`, detached via WMI (hidden).
 7. "scoring sm95-arm-e21-q32k-rect ..." (rectified, `--grade-rectify --workers 3`, up to 4 passes of 45 min, plus the long users at a 0.92 cap, 25 min; those may run out of memory and are then left out).
 8. "scoring sm77-ref-e21-q32k-rect ..." (the same, reference checkpoint).
 9. "what-if intervals of the arm on the 732 pool (723 users, 3,000 reviews each, ...) (pass 1/2)", 40 min.
-10. CPU: `sm95_decide.py` derives the order read-outs and writes `sm95-decision.{json,md}`; the log line is `rule exit 0: [sm95-rule] ...`. The reference's and SM33's derived folders were pre-computed on 11-07 in `work/derived/{ref_raw,ref_rect,sm33_raw}`; the arm's are derived at the rule, about 35 min CPU.
+10. CPU: `sm95_decide.py` derives the order read-outs and writes `sm95-decision.{json,md}`; the log line is `rule exit 0: [sm95-rule] ...`. The reference's and SM33's derived folders were being pre-computed on 11-07 16:25-~17:50 in `work/derived/{ref_raw,ref_rect,sm33_raw}` (log `work/derive-prederive.out`). Derive skips users already done, so the rule completes whatever is missing; the arm's two folders take about 35 min CPU at the rule.
 
 Breaks are daily 20:00-01:00 and Sunday from 16:00 (`sm95_block.py`, quiet.json scope all/gpu replaces a night's default). No ticket starts unless it fits before the next break, and CPU steps respect breaks too. A RAM gate holds while less than 3 GB is free, for at most 30 min.
 
