@@ -1919,11 +1919,11 @@
    "since": "11-07T00:45"
   },
   {
-   "status": "next",
+   "status": "done",
    "id": "SM93",
    "track": "small model",
    "item": "Model per scheduler in the Anki fork (SM93): the release from epoch 25 (SM63) for RWKV-Curve, a dedicated instant-only small model (SM57) for RWKV-Instant",
-   "why": "User 11-05: noted for later. Each scheduler gets its best model: RWKV-Instant queries at show time, where the show-time retrain is 0.31% better on instant [0.23, 0.41]; RWKV-Curve queries at answer time, where the release is 0.07% better on curve. Cost: two model states warm when presets mix both schedulers Update 11-07: the instant-only small model (SM57) makes a dedicated instant model clearly better (&minus;0.147 points after the release&rsquo;s recipe, &minus;0.773 from scratch at 5 epochs). User 11-07 ~10:40: &ldquo;an instant model would help a lot so I&rsquo;d say go for it&rdquo;. In progress: 2,225-user check of the instant-only model from the release recipe vs the release (ship bar: CI below 0 and at least 0.05 points), then export and fork integration (no release)",
+   "why": "User 11-05: noted for later. Each scheduler gets its best model: RWKV-Instant queries at show time, where the show-time retrain is 0.31% better on instant [0.23, 0.41]; RWKV-Curve queries at answer time, where the release is 0.07% better on curve. Cost: two model states warm when presets mix both schedulers Update 11-07: the instant-only small model (SM57) makes a dedicated instant model clearly better (&minus;0.147 points after the release&rsquo;s recipe, &minus;0.773 from scratch at 5 epochs). User 11-07 ~10:40: &ldquo;an instant model would help a lot so I&rsquo;d say go for it&rdquo;. Done 11-07: go on 1,500 unseen users (&minus;0.164%), integrated in the fork (main 64211f498), no release yet",
    "since": "11-05T00:40"
   },
   {
@@ -2454,6 +2454,31 @@
   "s-w64kd-gate-ctx2048c-dec8-1ep/w8+s8"
  ],
  "results": [
+  {
+   "date": "11-07",
+   "kind": "eval",
+   "id": "SM93",
+   "track": "small model",
+   "name": "Model per scheduler (SM93): the instant-only small model (SM57, stage 1&rsquo;s instant-only arm) for RWKV-Instant, checked on all 1,500 validation users and integrated in the Anki fork",
+   "eval": "1,500 validation users of the 8k split, unseen by both models (1,487 scored), leak-free normal inputs, w8+s8; % of the release&rsquo;s LogLoss (the big model (1 leak-free epoch) trained on part of these users). Ship bar: CI below 0 and at least 0.05",
+   "fork": "In the fork (main 64211f498, no release): a profile that uses only RWKV-Instant gets the instant-only model; with both schedulers the release (SM63) serves both unless the Advanced toggle &ldquo;Use specialized model for RWKV-Instant (2x RAM if used alongside RWKV-Curve)&rdquo; is on. Curve, intervals, S90 and the answer-time head always stay on the release&rsquo;s state",
+   "takeaway": "<strong>Go</strong>: instant &minus;0.164% [&minus;0.179, &minus;0.152] vs the release on 1,487 unseen users, matching the 732-set &minus;0.162. Its curve is +16.0% (untrained head), so it never serves RWKV-Curve",
+   "started_at": "2026-11-07T10:41+01:00",
+   "ended_at": "2026-11-07T13:40+01:00",
+   "gpu_minutes": 70,
+   "tickets": 1,
+   "detail": {
+    "verdict": "Go and integrated: RWKV-Instant gets a dedicated model",
+    "notes": [
+     "The 2,225-user pool is not valid for final-tier models (its extra users are training users); all 1,500 validation users used instead (new scorer option --pool 1500)",
+     "Export parity vs PyTorch: instant max error 1.9e-6 (f32), 1.5e-6 (int8); fork native parity on 14,403 test rows 2.3e-6 / 2.0e-6",
+     "Two model states (toggle on, both schedulers): 5.6 vs 2.8 KB state per card, warm-up 1.48 vs 0.91 s (4,000 cards, 32,000 answers); queue scoring unchanged (93 vs 95 ms)",
+     "Instant-only profiles keep one model: no RWKV intervals, workload simulation or answer time in Card Info there (the answer-time head is never fed the instant model&rsquo;s features)",
+     "Fork tests: Rust harness 225 passed (4 pre-existing fused_packed failures); new bit-for-bit tests for the two-model mode; Python/TS tests run in fork CI",
+     "Branch sm93 commits 29120812, 3225c739, b8073269"
+    ]
+   }
+  },
   {
    "date": "11-07",
    "kind": "gpu-train",
