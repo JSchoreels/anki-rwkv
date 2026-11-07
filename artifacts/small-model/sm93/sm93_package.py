@@ -74,7 +74,7 @@ def main():
     m["use"] = {"heads": ["instant", "rating"],
                 "rule": "instant-only model: trained with curve_loss_weight 0.0 from the release's epoch 25 (epoch 26 + "
                         "the release's one-epoch 32k Muon cool-down). Its instant / rating head (p_imm, p_rating) is "
-                        "the product; its curve head was never trained (curve LogLoss +16.8% vs the big model) and must "
+                        "the product; its curve head was never trained (curve LogLoss +16.0% of the release's on 1,487 validation users) and must "
                         "not schedule. In the Anki fork it runs beside the release (sm72e25), which keeps the curve, "
                         "intervals, S90 and the answer-time head."}
     m["inputs"] = {"show_time_intervals": False,
