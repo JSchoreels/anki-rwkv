@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-07T12:00:36+01:00",
- "updated": "2026-11-07 12:00",
- "material": "f3ce4f8b433b0afc",
- "summary": "running 000988, finished 000987",
+ "generated_at": "2026-11-07T12:01:40+01:00",
+ "updated": "2026-11-07 12:01",
+ "material": "ee7a2e9d247d8cb7",
+ "summary": "running 000989, finished 000988",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring (curve / instant)",
@@ -265,19 +265,19 @@
  ],
  "now": [
   {
-   "what": "the instant model for RWKV-Instant (SM93): scoring the instant-only small model (SM57) and the release (SM63) on normal inputs, the 1,500 validation users outside the 732 set + 6 check users (pass 3, 10 label-users left, cap 0.92)",
-   "id": "000988-small-model",
-   "kind": "gpu-train",
-   "decides": "",
+   "what": "The instant-only small model (SM57) stage 3: the mirror arm, curve-only (instant head not trained), from the same random init on the 2k tier, 5 epochs, against stage 2&rsquo;s joint arm (not retrained); scored at epochs 1, 3 and 5 on the 732 set",
+   "id": "SM57, ticket 000989",
+   "kind": "gpu",
+   "decides": "Whether the instant task also costs the curve, so two dedicated models (one per scheduler) beat the shared one on both heads (go: curve-only &minus; joint on curve at epoch 5, 95% CI below 0 and at least 0.05 points)",
    "why": "",
-   "job": "the instant model for RWKV-Instant (SM93): scoring the instant-only small model (SM57) and the release (SM63) on normal inputs, the 1,500 validation users outside the 732 set + 6 check users (pass 3, 10 label-users left, cap 0.92)",
-   "linked": false,
+   "job": "the instant-only small model (SM57) stage 3: scoring curve-only epoch 5 on normal inputs, the 732 set minus 9 never-fit (723 users) (pass 2, 722 done, cap 0.8)",
+   "linked": true,
    "track": "small model",
-   "ticket": "000988-small-model",
-   "started": "12:00",
+   "ticket": "000989-sm57",
+   "started": "12:01",
    "elapsed": "0:00",
    "progress": null,
-   "eta": "~12:45"
+   "eta": "~12:21"
   }
  ],
  "charts": [
@@ -449,13 +449,22 @@
  ],
  "waiting": [
   {
-   "ticket": "000989-sm57",
-   "id": "SM57",
-   "what": "the instant-only small model (SM57) stage 3: scoring curve-only epoch 5 on normal inputs, the 732 set minus 9 never-fit (723 users) (pass 2, 722 done, cap 0.8)",
-   "flags": "expected 20 min"
+   "ticket": "000990-small-model",
+   "id": "",
+   "what": "the instant model for RWKV-Instant (SM93): scoring the instant-only small model (SM57) and the release (SM63) on normal inputs, the 1,500 validation users outside the 732 set + 6 check users (pass 4, 8 label-users left, cap 0.92)",
+   "flags": "expected 45 min"
   }
  ],
  "recent": [
+  {
+   "ticket": "000988-small-model",
+   "id": "",
+   "what": "the instant model for RWKV-Instant (SM93): scoring the instant-only small model (SM57) and the release (SM63) on normal inputs, the 1,500 validation users outside the 732 set + 6 check users (pass 3, 10 label-users left, cap 0.92)",
+   "ended": "12:01",
+   "date": "11-07",
+   "exit": 0,
+   "ran": "0:01"
+  },
   {
    "ticket": "000987-sm57",
    "id": "SM57",
@@ -500,15 +509,6 @@
    "date": "11-07",
    "exit": 0,
    "ran": "0:27"
-  },
-  {
-   "ticket": "000982-sm57",
-   "id": "SM57",
-   "what": "the instant-only small model (SM57) stage 3: scoring curve-only epoch 3 on normal inputs, the 732 set minus 9 never-fit (723 users) (pass 2, 722 done, cap 0.8)",
-   "ended": "10:24",
-   "date": "11-07",
-   "exit": 0,
-   "ran": "0:00"
   }
  ],
  "plan": [
@@ -521,9 +521,11 @@
    "what": "The instant-only small model (SM57) stage 3: the mirror arm, curve-only (instant head not trained), from the same random init on the 2k tier, 5 epochs, against stage 2&rsquo;s joint arm (not retrained); scored at epochs 1, 3 and 5 on the 732 set",
    "when": "Running since 08:25 Sat (CPU proofs and GPU check passed: the loss is exactly the joint arm&rsquo;s curve terms): ~77&ndash;90k reviews/s, end ~11:45",
    "decides": "Whether the instant task also costs the curve, so two dedicated models (one per scheduler) beat the shared one on both heads (go: curve-only &minus; joint on curve at epoch 5, 95% CI below 0 and at least 0.05 points)",
-   "started_at": "2026-11-07T08:19+01:00",
-   "state": "waiting",
-   "ticket": "000989-sm57"
+   "started_at": "2026-11-07T08:24:39+01:00",
+   "state": "running",
+   "started": "12:01",
+   "ticket": "000989-sm57",
+   "ends_at": "2026-11-07T11:54:39+01:00"
   },
   {
    "id": "SM57",
