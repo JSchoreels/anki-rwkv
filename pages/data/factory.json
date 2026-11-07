@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-07T10:24:23+01:00",
- "updated": "2026-11-07 10:24",
- "material": "2189347bd5dc050f",
- "summary": "running 000983, finished 000982",
+ "generated_at": "2026-11-07T10:37:01+01:00",
+ "updated": "2026-11-07 10:37",
+ "material": "d1d5f504c541d2f3",
+ "summary": "running 000983",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring (curve / instant)",
@@ -275,7 +275,7 @@
    "track": "small model",
    "ticket": "000983-sm57",
    "started": "10:24",
-   "elapsed": "0:00",
+   "elapsed": "0:12",
    "progress": null,
    "eta": "~11:04"
   }
@@ -2059,11 +2059,11 @@
    "since": "11-07T00:45"
   },
   {
-   "status": "idea",
+   "status": "next",
    "id": "SM93",
    "track": "small model",
-   "item": "Model per scheduler in the Anki fork (SM93): the release from epoch 25 (SM63) for RWKV-Curve, the show-time retrain of the release (SM92) for RWKV-Instant",
-   "why": "User 11-05: noted for later. Each scheduler gets its best model: RWKV-Instant queries at show time, where the show-time retrain is 0.31% better on instant [0.23, 0.41]; RWKV-Curve queries at answer time, where the release is 0.07% better on curve. Cost: two model states warm when presets mix both schedulers Update 11-07: the instant-only small model (SM57) makes a dedicated instant model clearly better (&minus;0.147 points after the release&rsquo;s recipe, &minus;0.773 from scratch at 5 epochs)",
+   "item": "Model per scheduler in the Anki fork (SM93): the release from epoch 25 (SM63) for RWKV-Curve, a dedicated instant-only small model (SM57) for RWKV-Instant",
+   "why": "User 11-05: noted for later. Each scheduler gets its best model: RWKV-Instant queries at show time, where the show-time retrain is 0.31% better on instant [0.23, 0.41]; RWKV-Curve queries at answer time, where the release is 0.07% better on curve. Cost: two model states warm when presets mix both schedulers Update 11-07: the instant-only small model (SM57) makes a dedicated instant model clearly better (&minus;0.147 points after the release&rsquo;s recipe, &minus;0.773 from scratch at 5 epochs). User 11-07 ~10:40: &ldquo;an instant model would help a lot so I&rsquo;d say go for it&rdquo;. In progress: 2,225-user check of the instant-only model from the release recipe vs the release (ship bar: CI below 0 and at least 0.05 points), then export and fork integration (no release)",
    "since": "11-05T00:40"
   },
   {
