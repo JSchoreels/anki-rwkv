@@ -285,9 +285,11 @@
     "fast-recall prediction (SM94): "
    ],
    "what": "Fast-recall prediction (SM94) stage 1: one scoring pass of the Anki default (the release from epoch 25 (SM63) with its answer-time head (SM83)) saving per-review grade and answer-time predictions on the 732 set (723 users), then CPU analysis: (a) how well P(pass and answer under N seconds) is predicted from the existing heads vs simple baselines; (b) whether the answer-time features lower the instant head&rsquo;s LogLoss beyond a plain recalibration",
-   "when": "Running since 00:45 Sat: GPU dump to ~01:13 (13.6k reviews/s), CPU analysis to ~01:30",
+   "when": "Done 01:08 Sat: no go for training (see the results row)",
    "decides": "Whether a fast-pass target or the speed signal is worth a GPU training stage (go: 95% CI below 0 and at least 0.05 points; a direct fast-pass head ~1.2 GPU h, speed as an extra loss ~4.8 + 6.5 GPU h)",
-   "started_at": "2026-11-07T00:45+01:00"
+   "started_at": "2026-11-07T00:45+01:00",
+   "state": "done",
+   "ended_at": "2026-11-07T01:08+01:00"
   },
   {
    "id": "SM41",
@@ -1861,11 +1863,11 @@
  ],
  "backlog": [
   {
-   "status": "running",
+   "status": "done",
    "id": "SM94",
    "track": "small model",
    "item": "Fast-recall prediction (SM94): predict the chance of a good answer within N seconds, and test whether the speed signal predicts plain R better",
-   "why": "User 11-07 00:40: postpone the time-aware target in Anki, but test whether it can predict better than R alone (&ldquo;the R of having a good answer before N seconds&rdquo;). Stage 1 (one scoring pass + CPU analysis) running; stage 2 GPU training only proposed",
+   "why": "User 11-07 00:40: postpone the time-aware target in Anki, but test whether it can predict better than R alone (&ldquo;the R of having a good answer before N seconds&rdquo;). Stage 1 (one scoring pass + CPU analysis) running; stage 2 GPU training only proposed. Done 11-07 01:08: no go, the composed chance from the existing heads is already good and speed does not improve R",
    "since": "11-07T00:45"
   },
   {
@@ -2404,6 +2406,30 @@
   "s-w64kd-gate-ctx2048c-dec8-1ep/w8+s8"
  ],
  "results": [
+  {
+   "date": "11-07",
+   "kind": "gpu-score",
+   "id": "SM94",
+   "track": "small model",
+   "name": "Fast-recall prediction (SM94) stage 1: the chance of a good answer within N seconds, and whether the speed signal predicts plain R better",
+   "eval": "One scoring pass of the Anki default (the release from epoch 25 (SM63) with its answer-time head (SM83)), normal inputs, 723 users of the 732 set, 21.8M later-day reviews; CPU analysis with cross-fitted stacks. Rules fixed before the run: go = 95% CI below 0 and at least 0.05 points",
+   "fork": "Nothing to ship; the Anki trial of the time-aware target stays postponed (user 11-07)",
+   "takeaway": "<strong>No go for training</strong>: the fast-pass chance composed from the existing heads (P(grade) &times; P(time under N | grade)) is already good: 10&ndash;35% better LogLoss than per-user rate baselines, calibration error &le; 0.006. A direct target (stand-in stack with 26 time features) is worse, +0.02 to +0.09%. Speed features do not improve plain R: +0.0095 points [+0.007, +0.012] (worse), R is already calibrated in speed",
+   "started_at": "2026-11-07T00:45+01:00",
+   "ended_at": "2026-11-07T01:08+01:00",
+   "gpu_minutes": 21,
+   "tickets": 1,
+   "detail": {
+    "verdict": "Stage 2 (direct fast-pass head ~1.2 GPU h; speed as an extra loss ~4.8 + 6.5 GPU h) not warranted; a stacking no-go ranks it down, it does not prove a trained head could not do better",
+    "notes": [
+     "Thresholds under 3.9 / 5.5 / 10.9 / 21.5 s and under the user&rsquo;s typical time; event rates 0.27&ndash;0.73",
+     "The usability check of the composed chance failed by the letter: mean gap 0.0054 / 0.0053 at 3.9 s / 10.9 s against a 0.005 bound (holds at the other three); post-hoc recalibration does not help either (all CIs include 0)",
+     "Identity check: same review sets as the answer-time head scoring for 723 of 723 users, max gap 0.0",
+     "Speed: 17,320 scored reviews/s, 21 min on the GPU; CPU analysis 111 s",
+     "Branch sm94 commits 7abcb6be, 454f7ddc"
+    ]
+   }
+  },
   {
    "date": "11-04",
    "kind": "gpu-train",
