@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-08T13:17:47+01:00",
- "updated": "2026-11-08 13:17",
- "material": "3d93d14cad224c6c",
- "summary": "running 001017, finished 001016",
+ "generated_at": "2026-11-08T13:18:21+01:00",
+ "updated": "2026-11-08 13:18",
+ "material": "f6e803854cab9a9f",
+ "summary": "running 001019, finished 001018",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring (curve / instant)",
@@ -308,18 +308,18 @@
  "now": [
   {
    "what": "The show-time scoring of the headline models: score the instant-only small model (SM57) stage 1 and stage 4, the older releases and the shipped big model on show-time inputs (the interval up to when the card is shown, what the fork gives; normal inputs include the answer time of the review being predicted, a small leak), plus stage 1 / stage 4 / the release on the 1,500 validation users",
-   "id": "SM57, ticket 001017",
+   "id": "SM57, ticket 001019",
    "kind": "gpu-score",
    "decides": "A show-time column in the headline table; whether stage 4 also beats stage 1 on the inputs the fork gives",
    "why": "",
-   "job": "show-time scoring of the headline models: scoring the instant-only small model (SM57) stage 1 on show-time inputs, the 732 set minus 9 never-fit (723 users) (pass 2, 722 done, cap 0.8)",
+   "job": "show-time scoring of the headline models: scoring the instant-only small model (SM57) stage 1 on show-time inputs, the 3 long users of the 732 set (pass 1, 723 done, cap 0.92)",
    "linked": true,
    "track": "small model",
-   "ticket": "001017-small-model",
-   "started": "13:17",
+   "ticket": "001019-small-model",
+   "started": "13:18",
    "elapsed": "0:00",
    "progress": null,
-   "eta": "~13:32"
+   "eta": "~13:38"
   }
  ],
  "charts": [
@@ -491,13 +491,31 @@
  ],
  "waiting": [
   {
-   "ticket": "001018-sm95",
+   "ticket": "001020-sm95",
    "id": "SM95",
-   "what": "the grade order by construction (SM95): scoring sm95-arm-e21-q32k on the 732 pool minus 9 never-fit (723) (pass 2)",
-   "flags": "expected 14 min"
+   "what": "the grade order by construction (SM95): scoring sm95-arm-e21-q32k on the 3 long users of the 732 pool (cap 0.92)",
+   "flags": "expected 8 min"
   }
  ],
  "recent": [
+  {
+   "ticket": "001018-sm95",
+   "id": "SM95",
+   "what": "the grade order by construction (SM95): scoring sm95-arm-e21-q32k on the 732 pool minus 9 never-fit (723) (pass 2)",
+   "ended": "13:18",
+   "date": "11-08",
+   "exit": 0,
+   "ran": "0:00"
+  },
+  {
+   "ticket": "001017-small-model",
+   "id": "SM57",
+   "what": "show-time scoring of the headline models: scoring the instant-only small model (SM57) stage 1 on show-time inputs, the 732 set minus 9 never-fit (723 users) (pass 2, 722 done, cap 0.8)",
+   "ended": "13:17",
+   "date": "11-08",
+   "exit": 0,
+   "ran": "0:00"
+  },
   {
    "ticket": "001016-sm95",
    "id": "SM95",
@@ -533,24 +551,6 @@
    "date": "11-08",
    "exit": 0,
    "ran": "0:00"
-  },
-  {
-   "ticket": "001012-sm95",
-   "id": "SM95",
-   "what": "the grade order by construction (SM95): GPU smoke 1/2: trainer smoke of the rectified cool-down (2 users x 512 reviews)",
-   "ended": "10:39",
-   "date": "11-08",
-   "exit": 0,
-   "ran": "0:00"
-  },
-  {
-   "ticket": "001011-sm57",
-   "id": "SM57",
-   "what": "the instant-only small model (SM57) stage 4: scoring the constant-LR instant-only epoch 30 (report only) on normal inputs, the 732 set minus 9 never-fit (723 users) (pass 2, 722 done, cap 0.8)",
-   "ended": "10:36",
-   "date": "11-08",
-   "exit": 0,
-   "ran": "0:00"
   }
  ],
  "plan": [
@@ -578,8 +578,8 @@
    "decides": "A show-time column in the headline table; whether stage 4 also beats stage 1 on the inputs the fork gives",
    "started_at": "2026-11-08T12:53:59+01:00",
    "state": "running",
-   "started": "13:17",
-   "ticket": "001017-small-model",
+   "started": "13:18",
+   "ticket": "001019-small-model",
    "ends_at": "2026-11-08T14:43:59+01:00"
   },
   {
@@ -2142,7 +2142,7 @@
    "decides": "Whether the order can be guaranteed without the accuracy cost of the soft penalty (go: zero breaks and both heads within +0.05 points of the same cool-down without it)",
    "started_at": "2026-11-07T16:15+01:00",
    "state": "waiting",
-   "ticket": "001018-sm95"
+   "ticket": "001020-sm95"
   }
  ],
  "gpu_break": {
