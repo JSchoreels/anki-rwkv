@@ -1,7 +1,7 @@
 {
- "generated_at": "2026-11-08T10:42:16+01:00",
- "updated": "2026-11-08 10:42",
- "material": "24f810115dee3ecb",
+ "generated_at": "2026-11-08T12:20:08+01:00",
+ "updated": "2026-11-08 12:20",
+ "material": "21bbbac636949bc7",
  "summary": "running 001014",
  "headline": [
   {
@@ -31,17 +31,19 @@
      "ships_href": "https://github.com/JSchoreels/anki/releases/tag/26.09.3%2Bfsrs7.build.110"
     },
     {
-     "variant": "Instant-only, 4 more epochs: candidate for RWKV-Instant (SM57 stage 4)",
+     "variant": "RWKV-Instant, next build: instant-only, 4 more epochs (SM57 stage 4)",
      "curve": null,
      "instant": 0.2759,
      "eval": "722 users (732 set), 30.13M reviews, leak-free inputs",
      "quant": "w8+s8",
      "instant_pct": 0.05,
      "date": "11-08",
-     "note": "The instant-only model in the fork + instant-only epochs 27&ndash;30 + the release&rsquo;s cool-down; &minus;0.071 points vs the model in the fork, not shipped yet (your call)"
+     "note": "The instant-only model + instant-only epochs 27&ndash;30 + the release&rsquo;s cool-down; &minus;0.071 points vs stage 1. Going into the fork for RWKV-Instant (user 11-08); judged on normal inputs, show-time scoring queued",
+     "ships": "fork main &middot; next build",
+     "ships_pending": true
     },
     {
-     "variant": "RWKV-Instant in the fork: instant-only model (SM57)",
+     "variant": "Instant-only model, stage 1 (SM57): replaced by stage 4",
      "curve": null,
      "instant": 0.27609,
      "eval": "722 users (732 set), 30.13M reviews, leak-free inputs",
@@ -49,7 +51,7 @@
      "instant_pct": 0.12,
      "date": "11-07",
      "note": "The release&rsquo;s epoch 25 + 1 epoch and its cool-down with the curve loss off (stage 1). Serves RWKV-Instant through the model per scheduler (SM93) (fork main 74c1131d6, no release yet); curve head untrained, so RWKV-Curve and intervals stay on the release. Vs the release on instant: &minus;0.162 points [&minus;0.176, &minus;0.148] (722 users); &minus;0.164% [&minus;0.179, &minus;0.152] on 1,500 unseen users",
-     "ships": "fork main &middot; next build",
+     "ships": "fork main &middot; being replaced",
      "ships_pending": true
     },
     {
@@ -316,7 +318,7 @@
    "track": "small model",
    "ticket": "001014-sm95",
    "started": "10:39",
-   "elapsed": "0:02",
+   "elapsed": "1:40",
    "progress": null,
    "eta": "~13:34"
   }
@@ -546,6 +548,30 @@
   }
  ],
  "plan": [
+  {
+   "id": "SM93",
+   "track": "small model",
+   "since": "11-08T11:35",
+   "kind": "cpu",
+   "minutes": 180,
+   "what": "The stage 4 instant-only model into the fork (SM93): RWKV-Instant gets the instant-only small model (SM57) stage 4 in place of stage 1, through the model per scheduler (SM93): export and parity on CPU, swap the weights in fork main, update tests and notes; no release",
+   "when": "Running since ~11:35 Sun (CPU), before the 16:00 break",
+   "decides": "Nothing: the user decided on 11-08; the show-time scoring (queued) reports the gain on the inputs the fork gives",
+   "started_at": "2026-11-08T11:35+01:00",
+   "state": "planned"
+  },
+  {
+   "id": "SM57",
+   "track": "small model",
+   "since": "11-08T11:30",
+   "kind": "gpu-score",
+   "minutes": 110,
+   "what": "The show-time scoring of the headline models: score the instant-only small model (SM57) stage 1 and stage 4, the older releases and the shipped big model on show-time inputs (the interval up to when the card is shown, what the fork gives; normal inputs include the answer time of the review being predicted, a small leak), plus stage 1 / stage 4 / the release on the 1,500 validation users",
+   "when": "Queued after the grade order by construction (SM95): stage 1, stage 4 and the 1,500 check if they fit before 16:00, the rest after 01:00; done ~Mon morning",
+   "decides": "A show-time column in the headline table; whether stage 4 also beats stage 1 on the inputs the fork gives",
+   "started_at": "2026-11-08T11:30+01:00",
+   "state": "planned"
+  },
   {
    "id": "SM57",
    "track": "small model",
