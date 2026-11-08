@@ -43,7 +43,17 @@ The imported baseline is pinned to srs-benchmark commit [`3effecc37c9584e8323ee9
 
 Local baseline adaptations include FSRS feature selection for benchmark-label alignment, extraction of three required utility functions, packaging, verification, project-specific configuration files, direct per-user metadata partition reads, group-index preparation without per-group DataFrame copies, configurable preparation padding with the original defaults, and opt-in reference recurrence and fused shift paths on CUDA. The separate `expertium/` package pins an upstream historical model with adapted import namespaces and opt-in exact row/shift selection and fused shift paths; `expertium/upstream.json` records both original and adapted hashes. The broader FSRS/LSTM/DASH benchmark suite is excluded.
 
-Upstream code licensing and checkpoint redistribution terms are discussed in [srs-benchmark issue #353](https://github.com/open-spaced-repetition/srs-benchmark/issues/353). Imported code retains upstream notices and is not assigned a new license here. Dataset terms are available on the dataset's own Hugging Face page.
+## License
+
+The code written for this repository is released under the [MIT License](LICENSE). That covers the training speedups, the scoring and experiment scripts, the factory tooling and the pages.
+
+Third-party code keeps its own terms and is **not** relicensed here:
+
+- **srs-benchmark** (`rwkv/`, `features/`, `config.py`, `utils.py`; files and hashes in [`upstream.json`](upstream.json)): the upstream repository has no license file yet. Licensing and checkpoint redistribution are discussed in [srs-benchmark issue #353](https://github.com/open-spaced-repetition/srs-benchmark/issues/353).
+- **rwkv-anki-autoresearch** (`expertium/`; files and hashes in [`expertium/upstream.json`](expertium/upstream.json)): the upstream repository has no license file yet.
+- **RWKV-LM** by BlinkDL, the origin of the RWKV model code: Apache-2.0.
+
+The anki-revlogs-10k dataset is not part of this repository; its terms are on the dataset's own Hugging Face page. Trained checkpoints are not committed.
 
 ## How RWKV is trained
 
