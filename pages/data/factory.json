@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-08T19:53:16+01:00",
- "updated": "2026-11-08 19:53",
- "material": "f4938c60407b653f",
- "summary": "idle, finished 001068",
+ "generated_at": "2026-11-08T19:55:19+01:00",
+ "updated": "2026-11-08 19:55",
+ "material": "75380651d0df3e1f",
+ "summary": "idle",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring (curve / instant)",
@@ -477,7 +477,7 @@
  "recent": [
   {
    "ticket": "001068-small-model",
-   "id": "SM57",
+   "id": "",
    "what": "show-time scoring of the headline models: scoring the shipped big model (fork RWKV) on show-time inputs, the 3 long users of the 732 set (pass 1, 723 done, cap 0.92)",
    "ended": "19:52",
    "date": "11-08",
@@ -486,7 +486,7 @@
   },
   {
    "ticket": "001067-small-model",
-   "id": "SM57",
+   "id": "",
    "what": "show-time scoring of the headline models: scoring the shipped big model (fork RWKV) on show-time inputs, the 732 set minus 9 never-fit (723 users) (pass 2, 722 done, cap 0.8)",
    "ended": "19:51",
    "date": "11-08",
@@ -495,7 +495,7 @@
   },
   {
    "ticket": "001066-small-model",
-   "id": "SM57",
+   "id": "",
    "what": "show-time scoring of the headline models: scoring the shipped big model (fork RWKV) on show-time inputs, the 732 set minus 9 never-fit (723 users) (pass 1, 0 done, cap 0.8)",
    "ended": "19:51",
    "date": "11-08",
@@ -504,7 +504,7 @@
   },
   {
    "ticket": "001065-small-model",
-   "id": "SM57",
+   "id": "SM56",
    "what": "show-time scoring of the headline models: scoring the previous release, cool-down from epoch 10 (SM56 dec10) on show-time inputs, the 3 long users of the 732 set (pass 1, 723 done, cap 0.92)",
    "ended": "19:36",
    "date": "11-08",
@@ -513,7 +513,7 @@
   },
   {
    "ticket": "001064-small-model",
-   "id": "SM57",
+   "id": "SM56",
    "what": "show-time scoring of the headline models: scoring the previous release, cool-down from epoch 10 (SM56 dec10) on show-time inputs, the 732 set minus 9 never-fit (723 users) (pass 2, 722 done, cap 0.8)",
    "ended": "19:35",
    "date": "11-08",
@@ -522,7 +522,7 @@
   },
   {
    "ticket": "001063-small-model",
-   "id": "SM57",
+   "id": "SM56",
    "what": "show-time scoring of the headline models: scoring the previous release, cool-down from epoch 10 (SM56 dec10) on show-time inputs, the 732 set minus 9 never-fit (723 users) (pass 1, 0 done, cap 0.8)",
    "ended": "19:34",
    "date": "11-08",
@@ -543,22 +543,6 @@
    "started_at": "2026-11-08T11:35+01:00",
    "state": "done",
    "ended_at": "2026-11-08T12:30+01:00"
-  },
-  {
-   "id": "SM57",
-   "track": "small model",
-   "since": "11-08T11:30",
-   "kind": "gpu-score",
-   "minutes": 110,
-   "what": "The show-time scoring of the headline models: score the instant-only small model (SM57) stage 1 and stage 4, the older releases and the shipped big model on show-time inputs (the interval up to when the card is shown, what the fork gives; normal inputs include the answer time of the review being predicted, a small leak), plus stage 1 / stage 4 / the release on the 1,500 validation users",
-   "when": "Running again since 17:40 Sun (the user moved tonight&rsquo;s break to 21:00): stage 1 and stage 4 done, the release (SM63) on the 1,500 validation users now, then the older releases and the shipped big model; likely done before 21:00, else after 01:00",
-   "decides": "A show-time column in the headline table; whether stage 4 also beats stage 1 on the inputs the fork gives",
-   "started_at": "2026-11-08T12:53:59+01:00",
-   "state": "done",
-   "ended": "19:52",
-   "exit": 0,
-   "started": "12:53",
-   "ended_at": "2026-11-08T19:52:47+01:00"
   },
   {
    "id": "SM57",
@@ -2660,6 +2644,28 @@
   }
  ],
  "results": [
+  {
+   "date": "11-08",
+   "kind": "gpu-score",
+   "id": "SM57",
+   "track": "small model",
+   "name": "Show-time scoring of the headline models: the instant-only small model (SM57) stage 1 and stage 4, the older releases and the shipped big model scored on show-time inputs (what the fork gives at a query: the interval up to when the card is shown)",
+   "eval": "Leak-free w8+s8, 722 users of the 732 set (points = % of the big model (1 leak-free epoch) normal-input LogLoss) and 1,487 of the 1,500 validation users (% of the release&rsquo;s LogLoss); paired user bootstrap 2,000, 95% CI",
+   "fork": "RWKV-Instant queries at show time, so these are the numbers its users get. Fork main serves the instant-only model (SM57) stage 4 for RWKV-Instant; the show-time retrain (SM92) is an option",
+   "takeaway": "Every normal-trained model loses on show-time inputs: instant +0.35 to +0.51 points, curve +0.13 to +0.21. The show-time retrain (SM92) loses only +0.04 on both. <strong>On show-time inputs the show-time retrain (SM92) is the best small model on instant</strong>: stage 4 is +0.130 points [+0.059, +0.216] worse than it (401 / 321 users), but &minus;0.175 [&minus;0.206, &minus;0.149] better than the release (SM63). Stage 4 beats stage 1 by &minus;0.070 on show-time inputs too",
+   "started_at": "2026-11-08T12:25+01:00",
+   "ended_at": "2026-11-08T19:52+01:00",
+   "gpu_minutes": 150,
+   "tickets": 33,
+   "detail": {
+    "verdict": "Measured; the fork choice for RWKV-Instant goes to the user (stage 4 vs the show-time retrain (SM92), or an instant-only show-time model)",
+    "notes": [
+     "Show-time instant LogLoss: SM92 0.27688, stage 4 0.27724, stage 1 0.27743, release 0.27772, shipped big 0.27756, show-time big (SM91 step 2) 0.27618",
+     "1,500 pool, show-time instant: stage 4 &minus;0.170% vs the release, &minus;0.063% vs stage 1",
+     "Report: artifacts/small-model/showtime/showtime-report.md (anki-rwkv main 518c8f84)"
+    ]
+   }
+  },
   {
    "date": "11-08",
    "kind": "cpu",
