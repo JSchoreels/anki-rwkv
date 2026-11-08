@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-08T01:55:00+01:00",
- "updated": "2026-11-08 01:55",
- "material": "377b8e77b400fab2",
- "summary": "running 001002, finished 001001",
+ "generated_at": "2026-11-08T02:53:27+01:00",
+ "updated": "2026-11-08 02:53",
+ "material": "6c9ce739b73f4323",
+ "summary": "running 001002",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring (curve / instant)",
@@ -306,7 +306,7 @@
    "track": "small model",
    "ticket": "001002-sm57",
    "started": "01:54",
-   "elapsed": "0:00",
+   "elapsed": "0:58",
    "progress": null,
    "eta": "~11:14"
   }
@@ -610,10 +610,11 @@
    "kind": "cpu",
    "minutes": 1080,
    "what": "The changing-learner simulation (SM41g) on all 117 users (304 starting days, CPU): improving, declining and steady learner in one fused run, instant head, time-aware rule and FSRS-7 at matched targets",
-   "when": "Running since ~00:50 Sat, slower than estimated (48 of 117 users by 12:05, ~48 CPU process-hours left); 5 CPU processes since 12:03; holds for the 20:00&ndash;01:00 break, end ~03:00&ndash;04:00 Sun",
+   "when": "Done 03:05 Sun (simulation 00:51 Sat&ndash;02:37 Sun, 4&ndash;5 CPU processes, 92.8 CPU process-hours): confirmed that the instant head schedules less for an improving learner but is not more efficient; see results",
    "decides": "Whether the 20-user screen holds: the instant head schedules less for an improving learner but is not more efficient; the time-aware rule is robust to a declining one",
    "started_at": "2026-11-07T00:50+01:00",
-   "state": "planned"
+   "state": "done",
+   "ended_at": "2026-11-08T03:05+01:00"
   },
   {
    "id": "SM73s2",
@@ -2633,6 +2634,73 @@
   }
  ],
  "results": [
+  {
+   "date": "11-08",
+   "kind": "cpu",
+   "id": "SM41g",
+   "track": "small model",
+   "name": "The changing-learner simulation (SM41g) on all users: the improving, declining and steady learner on all 117 users, to confirm the 20-user screen",
+   "eval": "117 users, 304 starting days, 60 days; improving learner (recall +0.5 logit and answers 18% faster by day 60), declining learner (the reverse), no drift, as lanes of one run (SM41p); instant head, time-aware target (&beta; = 2) and FSRS-7 (frozen at its pre-split fit) at targets 0.80 / 0.85 / 0.90, 4 seeds; gaps in % of minutes per memorised card vs FSRS-7 (negative = cheaper), changes vs no drift in points; 95% CI over users. Decision bar fixed before the run: CI excludes 0 and |change| &ge; 2.9 points",
+   "fork": "Simulation only; nothing shipped",
+   "takeaway": "<strong>Confirmed on all users: the small model schedules less when the learner improves, but it is not more efficient</strong>. With an improving learner the instant head cuts its reviews/day by 6.2% &plusmn; 1.4 more than FSRS-7 does, but its cost per memorised card does not move (change vs no drift &minus;0.7 &plusmn; 3.0 points, days 30&ndash;59). The 20-user screen&rsquo;s small gain at matched retention is retracted (now +0.8 &plusmn; 4.0). With a declining learner the time-aware target copes better than FSRS-7 (&minus;7.5 &plusmn; 5.4 points better than without drift at the same memorised cards), while the plain instant head gets clearly worse (+14.0 &plusmn; 10.6)",
+   "started_at": "2026-11-07T00:51+01:00",
+   "ended_at": "2026-11-08T03:05+01:00",
+   "gpu_minutes": 0,
+   "tickets": 0,
+   "detail": {
+    "verdict": "Your hypothesis, by the plan&rsquo;s two conditions: (1) schedules less, met (&minus;6.2% &plusmn; 1.4 reviews/day); (2) more efficient, not met (&minus;0.7 &plusmn; 3.0, CI includes 0). The time-aware target does the opposite with an improving learner: more reviews (+16.9% &plusmn; 2.7) and shorter intervals (median &minus;30.2% &plusmn; 3.1), at the same cost per memorised card. FSRS-7 stayed at its pre-split fit; a mid-run refit was not simulated",
+    "table": {
+     "head": [
+      "Scenario, policy",
+      "vs FSRS-7, matched retention (change vs no drift)",
+      "vs FSRS-7, matched memorised, days 30&ndash;59 (change)",
+      "Reviews/day vs FSRS-7, change"
+     ],
+     "rows": [
+      [
+       "Improving, instant head",
+       "+10.4 &plusmn; 4.2 (+0.8 &plusmn; 4.0)",
+       "+2.6 &plusmn; 2.4 (&minus;0.7 &plusmn; 3.0)",
+       "&minus;6.2 &plusmn; 1.4"
+      ],
+      [
+       "Improving, time-aware target (&beta; = 2)",
+       "&minus;13.5 &plusmn; 4.3 (+9.3 &plusmn; 5.0)",
+       "&minus;5.5 &plusmn; 2.2 (+0.5 &plusmn; 3.5)",
+       "+16.9 &plusmn; 2.7"
+      ],
+      [
+       "Declining, instant head",
+       "+35.0 &plusmn; 12.4 (+27.0 &plusmn; 12.6)",
+       "+18.3 &plusmn; 8.7 (+14.0 &plusmn; 10.6)",
+       "+11.9 &plusmn; 2.6"
+      ],
+      [
+       "Declining, time-aware target (&beta; = 2)",
+       "&minus;25.6 &plusmn; 6.7 (&minus;9.3 &plusmn; 3.7)",
+       "&minus;13.9 &plusmn; 5.4 (&minus;7.5 &plusmn; 5.4)",
+       "&minus;30.3 &plusmn; 5.0"
+      ],
+      [
+       "No drift (baseline)",
+       "instant head +9.0, time-aware &minus;22.6",
+       "instant head +3.1, time-aware &minus;6.2",
+       "&ndash;"
+      ],
+      [
+       "Speed",
+       "864 lane reviews/s per process",
+       "277.8M lane reviews",
+       "92.8 CPU process-hours"
+      ]
+     ]
+    },
+    "notes": [
+     "Check: 117 / 117 users, 304 / 304 starting days, no errors; the fused no-drift lanes match the earlier runs except 1.0% of lanes with single-draw flips, the same pattern as the 20-user screen",
+     "Branch sm41, commit 78c296df; result in artifacts/small-model/sm41/learner-drift-result.md"
+    ]
+   }
+  },
   {
    "date": "11-07",
    "kind": "eval",
