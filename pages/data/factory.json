@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-08T10:39:48+01:00",
- "updated": "2026-11-08 10:39",
- "material": "f4c3f92e1c20a124",
- "summary": "running 001013, finished 001012",
+ "generated_at": "2026-11-08T10:40:21+01:00",
+ "updated": "2026-11-08 10:40",
+ "material": "a9a4cf996cec47b9",
+ "summary": "running 001014, finished 001013",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring (curve / instant)",
@@ -307,18 +307,18 @@
  "now": [
   {
    "what": "The grade order by construction (SM95): an in-model rectifier pools the four what-if answer curves (Again &le; Hard &le; Good &le; Easy) at every time point, so the order holds exactly for every review and every target retention (the fork&rsquo;s correction becomes a no-op); trained on 8% of reviews in the same quarter-epoch cool-down pair as the grade-order sanity check (SM33)",
-   "id": "SM95, ticket 001013",
+   "id": "SM95, ticket 001014",
    "kind": "gpu-score",
    "decides": "Whether the order can be guaranteed without the accuracy cost of the soft penalty (go: zero breaks and both heads within +0.05 points of the same cool-down without it)",
    "why": "",
-   "job": "the grade order by construction (SM95): GPU smoke 2/2: rectified scorer on 2 users of the 732 pool (reference checkpoint, w8+s8, raw and rectified)",
+   "job": "the grade order by construction (SM95): arm quarter-epoch 32k Muon cool-down from SM72s epoch 21 with the grade rectifier (w64, the reference&#x27;s options and order) (segment to the next break or the end)",
    "linked": true,
    "track": "small model",
-   "ticket": "001013-sm95",
+   "ticket": "001014-sm95",
    "started": "10:39",
    "elapsed": "0:00",
    "progress": null,
-   "eta": "~10:51"
+   "eta": "~13:34"
   }
  ],
  "charts": [
@@ -491,6 +491,15 @@
  "waiting": [],
  "recent": [
   {
+   "ticket": "001013-sm95",
+   "id": "SM95",
+   "what": "the grade order by construction (SM95): GPU smoke 2/2: rectified scorer on 2 users of the 732 pool (reference checkpoint, w8+s8, raw and rectified)",
+   "ended": "10:39",
+   "date": "11-08",
+   "exit": 0,
+   "ran": "0:00"
+  },
+  {
    "ticket": "001012-sm95",
    "id": "SM95",
    "what": "the grade order by construction (SM95): GPU smoke 1/2: trainer smoke of the rectified cool-down (2 users x 512 reviews)",
@@ -530,15 +539,6 @@
    "ticket": "001008-sm57",
    "id": "SM57",
    "what": "the instant-only small model (SM57) stage 4: scoring the stage-4 candidate on normal inputs, the 1,500 validation users outside the 732 set + 6 check users (pass 3, 766 done, cap 0.92)",
-   "ended": "10:23",
-   "date": "11-08",
-   "exit": 0,
-   "ran": "0:00"
-  },
-  {
-   "ticket": "001007-sm57",
-   "id": "SM57",
-   "what": "the instant-only small model (SM57) stage 4: scoring the stage-4 candidate on normal inputs, the 1,500 validation users outside the 732 set + 6 check users (pass 2, 766 done, cap 0.8)",
    "ended": "10:23",
    "date": "11-08",
    "exit": 0,
@@ -2107,7 +2107,7 @@
    "started_at": "2026-11-08T10:39:19+01:00",
    "state": "running",
    "started": "10:39",
-   "ticket": "001013-sm95",
+   "ticket": "001014-sm95",
    "ends_at": "2026-11-08T14:39:19+01:00"
   }
  ],
