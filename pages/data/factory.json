@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-08T18:30:22+01:00",
- "updated": "2026-11-08 18:30",
- "material": "6afb26878bf61beb",
- "summary": "running 001052, finished 001051",
+ "generated_at": "2026-11-08T18:42:08+01:00",
+ "updated": "2026-11-08 18:42",
+ "material": "8fc1cd28b08410ba",
+ "summary": "running 001053, finished 001052",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring (curve / instant)",
@@ -307,19 +307,19 @@
  ],
  "now": [
   {
-   "what": "The show-time scoring of the headline models: score the instant-only small model (SM57) stage 1 and stage 4, the older releases and the shipped big model on show-time inputs (the interval up to when the card is shown, what the fork gives; normal inputs include the answer time of the review being predicted, a small leak), plus stage 1 / stage 4 / the release on the 1,500 validation users",
-   "id": "SM57, ticket 001052",
+   "what": "The grade order by construction (SM95): an in-model rectifier pools the four what-if answer curves (Again &le; Hard &le; Good &le; Easy) at every time point, so the order holds exactly for every review and every target retention (the fork&rsquo;s correction becomes a no-op); trained on 8% of reviews in the same quarter-epoch cool-down pair as the grade-order sanity check (SM33)",
+   "id": "SM95, ticket 001053",
    "kind": "gpu-score",
-   "decides": "A show-time column in the headline table; whether stage 4 also beats stage 1 on the inputs the fork gives",
+   "decides": "Whether the order can be guaranteed without the accuracy cost of the soft penalty (go: zero breaks and both heads within +0.05 points of the same cool-down without it)",
    "why": "",
-   "job": "show-time scoring of the headline models: scoring the previous release, cool-down from epoch 20 (SM72e20) on show-time inputs, the 732 set minus 9 never-fit (723 users) (pass 1, 0 done, cap 0.8)",
+   "job": "the grade order by construction (SM95): retry of the rectified scoring of sm77-ref-e21-q32k-rect on the 29 users lost to GPU out-of-memory (1 worker, cap 0.92, pass 2)",
    "linked": true,
    "track": "small model",
-   "ticket": "001052-small-model",
-   "started": "18:29",
+   "ticket": "001053-sm95",
+   "started": "18:41",
    "elapsed": "0:00",
    "progress": null,
-   "eta": "~18:49"
+   "eta": "~19:26"
   }
  ],
  "charts": [
@@ -491,13 +491,22 @@
  ],
  "waiting": [
   {
-   "ticket": "001053-sm95",
-   "id": "SM95",
-   "what": "the grade order by construction (SM95): retry of the rectified scoring of sm77-ref-e21-q32k-rect on the 29 users lost to GPU out-of-memory (1 worker, cap 0.92, pass 2)",
-   "flags": "expected 45 min"
+   "ticket": "001054-small-model",
+   "id": "SM57",
+   "what": "show-time scoring of the headline models: scoring the previous release, cool-down from epoch 20 (SM72e20) on show-time inputs, the 732 set minus 9 never-fit (723 users) (pass 2, 722 done, cap 0.8)",
+   "flags": "expected 15 min"
   }
  ],
  "recent": [
+  {
+   "ticket": "001052-small-model",
+   "id": "SM57",
+   "what": "show-time scoring of the headline models: scoring the previous release, cool-down from epoch 20 (SM72e20) on show-time inputs, the 732 set minus 9 never-fit (723 users) (pass 1, 0 done, cap 0.8)",
+   "ended": "18:41",
+   "date": "11-08",
+   "exit": 0,
+   "ran": "0:11"
+  },
   {
    "ticket": "001051-sm95",
    "id": "SM95",
@@ -542,15 +551,6 @@
    "date": "11-08",
    "exit": 0,
    "ran": "0:07"
-  },
-  {
-   "ticket": "001046-small-model",
-   "id": "SM57",
-   "what": "show-time scoring of the headline models: scoring the release (SM63) on show-time inputs, the 1,500 validation users outside the 732 set + 6 check users (pass 2, 766 done, cap 0.8)",
-   "ended": "18:06",
-   "date": "11-08",
-   "exit": 0,
-   "ran": "0:00"
   }
  ],
  "plan": [
@@ -576,11 +576,9 @@
    "what": "The show-time scoring of the headline models: score the instant-only small model (SM57) stage 1 and stage 4, the older releases and the shipped big model on show-time inputs (the interval up to when the card is shown, what the fork gives; normal inputs include the answer time of the review being predicted, a small leak), plus stage 1 / stage 4 / the release on the 1,500 validation users",
    "when": "Running again since 17:40 Sun (the user moved tonight&rsquo;s break to 21:00): stage 1 and stage 4 done, the release (SM63) on the 1,500 validation users now, then the older releases and the shipped big model; likely done before 21:00, else after 01:00",
    "decides": "A show-time column in the headline table; whether stage 4 also beats stage 1 on the inputs the fork gives",
-   "started_at": "2026-11-08T12:53:59+01:00",
-   "state": "running",
-   "started": "18:29",
-   "ticket": "001052-small-model",
-   "ends_at": "2026-11-08T14:43:59+01:00"
+   "started_at": "2026-11-08T11:30+01:00",
+   "state": "waiting",
+   "ticket": "001054-small-model"
   },
   {
    "id": "SM57",
@@ -2140,9 +2138,11 @@
    "what": "The grade order by construction (SM95): an in-model rectifier pools the four what-if answer curves (Again &le; Hard &le; Good &le; Easy) at every time point, so the order holds exactly for every review and every target retention (the fork&rsquo;s correction becomes a no-op); trained on 8% of reviews in the same quarter-epoch cool-down pair as the grade-order sanity check (SM33)",
    "when": "Cool-down and most scoring done; 29 long users (260k&ndash;530k reviews) ran out of GPU memory in the rectified scoring, so the rule saw 694 of 722 users (needs 700). Retry of those 29 users queued behind the show-time scoring (1 worker, memory cap 0.92, same numerics), then the rule; likely Mon 01:00&ndash;04:30",
    "decides": "Whether the order can be guaranteed without the accuracy cost of the soft penalty (go: zero breaks and both heads within +0.05 points of the same cool-down without it)",
-   "started_at": "2026-11-07T16:15+01:00",
-   "state": "waiting",
-   "ticket": "001053-sm95"
+   "started_at": "2026-11-08T10:39:19+01:00",
+   "state": "running",
+   "started": "18:41",
+   "ticket": "001053-sm95",
+   "ends_at": "2026-11-08T14:39:19+01:00"
   }
  ],
  "gpu_break": {
