@@ -1,9 +1,13 @@
 #!/usr/bin/env python
 """The show-time instant-only small model (SM96): pre-registered rule (fixed 2026-11-08 before any GPU run; CPU, seconds).
 
-New model: the instant-only small model (SM57) stage 4's constant-LR epoch 30 + the release's one-epoch 32k Muon cool-down
-trained on show-time inputs ("show_time_intervals": true = the scorer's e2s-query inputs, the switch of the show-time
-retrain of the release (SM92)), curve loss weight 0. Label `sm96-inst-e30-st-dec1ep32k/w8+s8`.
+New model: the instant-only small model (SM57) stage 4's constant-LR epoch 30 + one constant-LR instant-only epoch 31 on
+show-time inputs + the release's one-epoch 32k Muon cool-down from epoch 31 on show-time inputs ("show_time_intervals":
+true = the scorer's e2s-query inputs, the switch of the show-time retrain of the release (SM92), applied as in its epoch 26
+and cool-down), curve loss weight 0. Label `sm96-inst-e31st-st-dec1ep32k/w8+s8`.
+Redesign 2026-11-09 00:20 (user, before any GPU run): epoch 31 added before the cool-down; the rule itself (primary,
+threshold, pools, bootstrap) is unchanged, only the label moved from `sm96-inst-e30-st-dec1ep32k/w8+s8`. The secondary
+new - stage 4 pair now reads epoch 31 + the switch together, not the switch alone.
 
 Loaders and the paired bootstrap are the show-time report's (`artifacts/small-model/showtime/showtime_report.py` on main,
 sha256 pinned below; `load`, `compare`, `pools`): 2,000 resamples, seed 0, 95% CI, review-weighted LogLoss.
@@ -14,7 +18,7 @@ head, both on show-time inputs: new - the show-time retrain of the release (SM92
   go     = the 95% CI entirely below 0 AND the gain >= 0.05 points (points <= -0.05)
   no go  = otherwise
 SECONDARY (reported, no verdict):
-  new - stage 4 of the instant-only small model (SM57), show-time inputs (the paired effect of training on show-time inputs);
+  new - stage 4 of the instant-only small model (SM57), show-time inputs (epoch 31 + the cool-down on show-time inputs);
   new - stage 4 and new - SM92 on normal inputs; the new model's own show-time cost (show-time - normal);
   new - the release (SM63) on show-time inputs;
   1,500 pool, show-time inputs, unit % of the release's own LogLoss (the `pool1500` convention): new - the release,
@@ -36,7 +40,7 @@ G = HERE / "gpu"
 REPORT = Path("C:/Users/jonat/workspace/anki-rwkv/artifacts/small-model/showtime/showtime_report.py")
 REPORT_SHA = "3cdfed03afd40734d4b1931c244e8c1e73453d281a40c3843e80cd310d70dd9d"   # main b07b6a13
 ROWS, ROWS1500 = G / "sm96-rows.jsonl", G / "sm96-rows-1500.jsonl"
-LBL = "sm96-inst-e30-st-dec1ep32k/w8+s8"
+LBL = "sm96-inst-e31st-st-dec1ep32k/w8+s8"
 MIN_EFFECT = 0.05
 
 

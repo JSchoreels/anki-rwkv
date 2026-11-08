@@ -1,21 +1,23 @@
 #!/usr/bin/env bash
-# The show-time instant-only small model (SM96) (artifacts/small-model/sm96/HANDOFF.md): the instant-only small model (SM57)
-#   stage 4's constant-LR instant-only epoch 30 (reused, read only) + the release's one-epoch 32k Muon cool-down with
-#   "curve_loss_weight": 0.0 AND "show_time_intervals": true (the show-time retrain of the release (SM92)'s input switch =
-#   the scorer's e2s-query inputs). Paired against stage 4's own cool-down: same start, users, order, seeds, schedule,
-#   KD targets; only the inputs flag differs (sm57_pair.py decay --same-start).
-# Rule (sm96_rule.py decide, pre-registered): new - SM92, instant head, show-time inputs, 722 users of the 732 set:
+# The show-time instant-only small model (SM96) (artifacts/small-model/sm96/HANDOFF.md), redesigned 2026-11-09 00:20 (user):
+#   the instant-only small model (SM57) stage 4's constant-LR instant-only epoch 30 (reused, read only)
+#   -> epoch 31: one constant-LR instant-only epoch on show-time inputs (stage 4's epoch recipe, sm96_epoch.py, +
+#      "show_time_intervals": true, the switch of the show-time retrain of the release (SM92) as in its epoch 26)
+#   -> the release's one-epoch 32k Muon cool-down from epoch 31 with "curve_loss_weight": 0.0 AND "show_time_intervals": true
+#      (stage 4's cool-down except the start checkpoint, the switch and paths; prepared after epoch 31, then
+#      sm96_check.py cooldown). The same shape as SM92 (epoch 26 + cool-down on show-time inputs).
+# Rule (sm96_rule.py decide, pre-registered, unchanged): new - SM92, instant head, show-time inputs, 722 users of the 732 set:
 #   go if the 95% CI is below 0 and the gain >= 0.05 points (% of the big model (1 leak-free epoch) normal instant LogLoss).
 #   Secondary: new - stage 4 (show-time, normal), new - SM92 normal, the show-time cost, the 1,500 pool (show-time, % of the release).
 # CPU proofs (sm96_check.py -> check-cpu-sm96.json): ALL OK required.
 # Breaks: sm96_block.py = quiet.json (scope all/gpu) + the daily 20:00-01:00 (Sunday from 16:00) unless quiet.json overlaps
-#   that night, + a hard hold until 2026-11-09 01:00; re-read at every check, CPU steps too. The cool-down snapshot-stops
-#   <= 2 min before a break and resumes after it (scripts/expertium_decay.py run / stop).
+#   that night, + a hard hold until 2026-11-09 01:00; re-read at every check, CPU steps too. Epoch 31 and the cool-down
+#   each start when 30 min fit, snapshot-stop <= 2 min before a break and resume after it (scripts/expertium_decay.py run / stop).
 #   dry run  DRYRUN=1 bash C:/Users/jonat/workspace/wt/sm96/artifacts/small-model/sm96/launch-sm96.sh
 #   launch   WMI hidden (HANDOFF.md); log artifacts/small-model/sm96/gpu/launch-sm96.log
-#   resume   the launch command again (finished steps are skipped; an interrupted cool-down resumes from its snapshot)
+#   resume   the launch command again (finished steps are skipped; an interrupted epoch / cool-down resumes from its snapshot)
 #   stop     touch C:/Users/jonat/workspace/wt/sm96/artifacts/small-model/sm96/gpu/STOP (between tickets; a running
-#            cool-down gets a snapshot stop at the next user boundary)
+#            epoch / cool-down gets a snapshot stop at the next user boundary)
 # Do not edit scripts/ expertium/ rwkv/ of the sm96 worktree while it runs (SourceWatch stops the training).
 set -u
 export PATH=/usr/bin:/mingw64/bin:$PATH
@@ -31,17 +33,23 @@ LOG=$G/launch-sm96.log
 DEC_PY=$WT/scripts/expertium_decay.py
 SC=$WT/scripts/small_model_heldout.py
 RULE=$S/sm96_rule.py
+EPY=$S/sm96_epoch.py
+CHECK=$S/sm96_check.py
+WARM="$PY -X utf8 $WT/scripts/sm77_warm.py"
 PAIR=C:/Users/jonat/workspace/wt/sm57/artifacts/small-model/sm57/sm57_pair.py     # read only
 TRACK=E89-F65e-F77a
 ARCH=w64
+K=25                          # the release's cool-down recipe (sm77_warm.py cooldown --epoch 25: users / order / seeds / KD targets)
 S57=C:/Users/jonat/workspace/wt/sm57/artifacts/small-model                         # read only
 E30=$S57/sm57s4-inst-e30
 S4DEC=$S57/sm57s4-inst-e30-dec-1ep32k-muon
 S72=C:/Users/jonat/workspace/wt/sm72s/artifacts/small-model/sm72s                  # read only
 USERS732=$S72/eval-users-732-fit.json; ULONG=$S72/users-732-long.json
 USERS1500=$S57/sm57/stage4/users-sm93-score.json
-DEC=$SM/sm96-inst-e30-showtime-dec-1ep32k-muon
-CLBL=sm96-inst-e30-st-dec1ep32k
+E31=$SM/sm96-inst-e31-st                                                          # epoch 31 (show-time inputs)
+RECIPE=$SM/sm96-inst-e30-showtime-dec-1ep32k-muon                                  # cool-down recipe proof from epoch 30 (never trained)
+DEC=$SM/sm96-inst-e31st-st-dec-1ep32k-muon
+CLBL=sm96-inst-e31st-st-dec1ep32k
 SPEC="expertium:$ARCH:$DEC/expertium/$TRACK/master.pth"
 OUTROWS=$G/sm96-rows.jsonl
 ROWS1500=$G/sm96-rows-1500.jsonl
@@ -50,8 +58,9 @@ TICKETS=$G/tickets.jsonl
 STOPF=$G/STOP
 MODE=neighbour
 LF="env RWKV_DELETED_CARDS=$MODE"
+MIN_EPOCH=${MIN_EPOCH:-125}   # stage 4's epochs 27-30: 116-123 min at ~82-88k reviews/s
 MIN_DECAY=${MIN_DECAY:-560}   # stage 4's cool-down: 478 min wall at ~20.3k reviews/s + setup
-MIN_START=30                  # the cool-down starts when 30 min fit (snapshot stop before the break, resume after)
+MIN_START=30                  # epoch 31 / the cool-down start when 30 min fit (snapshot stop before the break, resume after)
 MIN_SMOKE=10; MIN_SCORE732=32; MIN_SCORE_RETRY=20; MIN_LONG=25; MIN_POOL=45
 TL732=1800; TLLONG=1380; TLPOOL=2400
 NAME="the show-time instant-only small model (SM96)"
@@ -211,8 +220,9 @@ rule() {  # rule WHEN
 }
 
 preconditions() {
-  for f in "$S/check-cpu-sm96.json" "$USERS732" "$ULONG" "$USERS1500" "$DEC/decay.json" "$DEC/protocol.json" "$S4DEC/decay.json" \
-           "$E30/expertium/$TRACK/master.pth" "$PAIR" "$RULE" "$S/sm96_block.py"; do
+  for f in "$S/check-cpu-sm96.json" "$USERS732" "$ULONG" "$USERS1500" "$E31/decay.json" "$E31/protocol.json" "$S4DEC/decay.json" \
+           "$RECIPE/decay.json" "$E30/expertium/$TRACK/master.pth" "$E30/expertium/$TRACK/optimizer.pth" "$PAIR" "$RULE" "$EPY" "$CHECK" \
+           "$S/extra-options.json" "$S/sm96_block.py"; do
     [ -f "$f" ] || { log "STOP: missing $f"; return 1; }
   done
   done_in "$E30" || { log "STOP: stage 4's constant-LR epoch 30 is not complete ($E30)"; return 1; }
@@ -220,23 +230,57 @@ preconditions() {
   grep -q '"all_ok": true' "$S/check-cpu-sm96.json" || { log "STOP: the CPU proofs are not ALL OK ($S/check-cpu-sm96.json)"; return 1; }
   if [ "$DRYRUN" != 1 ] && [ -n "$(git -C "$WT" status --porcelain -- scripts expertium rwkv)" ]; then
     log "STOP: uncommitted source changes in scripts/ expertium/ rwkv/ (SourceWatch refuses them)"; return 1; fi
-  "$PY" -X utf8 "$PAIR" decay --arm "$DEC" --ref "$S4DEC" --same-start --flag '{"show_time_intervals": true}' >> "$LOG" 2>&1 \
-    || { log "STOP: the cool-down is not stage 4's + the show-time flag"; return 1; }
+  "$PY" -X utf8 "$EPY" pair >> "$LOG" 2>&1 || { log "STOP: epoch 31 is not stage 4's epoch-30 step + the show-time switch"; return 1; }
+  "$PY" -X utf8 "$PAIR" decay --arm "$RECIPE" --ref "$S4DEC" --same-start --flag '{"show_time_intervals": true}' >> "$LOG" 2>&1 \
+    || { log "STOP: the cool-down recipe is not stage 4's + the show-time switch"; return 1; }
+  return 0
+}
+
+prepare_decay() {  # the release's cool-down recipe from epoch 31 (the command that wrote the recipe folder from epoch 30) + checks
+  local X; X=$(cat "$S/extra-options.json")
+  { $LF $WARM cooldown --epoch $K --start "$E31" --out "${DEC#$WT/}" --arch $ARCH --fraction 1.0 --extra-options "$X" >> "$G/prepare.out" 2>&1 \
+    && $LF "$PY" -X utf8 "$WT/scripts/check_replay_label_windows.py" --decay "$DEC" --trim-unlabelled-tail >/dev/null \
+    && $LF "$PY" -X utf8 "$WT/scripts/check_replay_label_windows.py" --decay "$DEC" --out "$G/check-replay-label-windows-$(basename "$DEC").json" >/dev/null; } \
+    || { log "STOP: cool-down prepare / label windows failed"; return 1; }
+  CUDA_VISIBLE_DEVICES= $LF "$PY" -X utf8 "$WT/scripts/check_muon_fresh_decay.py" --decay "$DEC" --out "$G/check-muon-fresh-$(basename "$DEC").json" \
+    | grep -c PASS | sed "s/^/[sm96-muon] $(basename "$DEC") PASS lines: /" >> "$LOG"
+  [ "${PIPESTATUS[0]}" = 0 ] || { log "STOP: Muon fresh-state CPU check failed"; return 1; }
   return 0
 }
 
 cd "$WT" || exit 1
-log "started: $(git -C "$WT" log --oneline -1) (DRYRUN=$DRYRUN; the release's cool-down on show-time inputs, curve loss weight 0, from SM57 stage 4's instant-only epoch 30)"
+log "started: $(git -C "$WT" log --oneline -1) (DRYRUN=$DRYRUN; epoch 31 on show-time inputs from SM57 stage 4's instant-only epoch 30, then the release's cool-down on show-time inputs from epoch 31, curve loss weight 0)"
 rc=0
 cpu_step 5 "preparation" || rc=1
 [ $rc -eq 0 ] && { preconditions || rc=1; }
-if [ $rc -eq 0 ] && [ ! -e "$G/smoke-ok" ]; then
+if [ $rc -eq 0 ] && [ ! -e "$G/smoke-e31-ok" ] && ! done_in "$E31"; then
   ram_gate "smoke" strict || rc=1
-  [ $rc -eq 0 ] && { q $MIN_SMOKE check "trainer smoke of the show-time instant-only cool-down (fresh Muon, curve loss weight 0, show-time inputs, 2 users x 512 reviews)" -- \
-    $LF "$PY" -X utf8 "$DEC_PY" smoke --out "$DEC" >> "$G/check.out" 2>&1 || { log "STOP: smoke failed (see $G/check.out)"; rc=1; }; }
-  [ $rc -eq 0 ] && [ "$DRYRUN" != 1 ] && { touch "$G/smoke-ok"; log "smoke: $(grep '"smoke"' "$G/check.out" | tail -1 | cut -c1-200)"; }
+  [ $rc -eq 0 ] && { q $MIN_SMOKE check "trainer smoke of epoch 31 (instant-only, constant LR, show-time inputs, from stage 4's epoch 30, 2 users x 512 reviews)" -- \
+    $LF "$PY" -X utf8 "$DEC_PY" smoke --out "$E31" >> "$G/check.out" 2>&1 || { log "STOP: epoch 31 smoke failed (see $G/check.out)"; rc=1; }; }
+  [ $rc -eq 0 ] && [ "$DRYRUN" != 1 ] && { touch "$G/smoke-e31-ok"; log "smoke: $(grep '"smoke"' "$G/check.out" | tail -1 | cut -c1-200)"; }
 fi
-[ $rc -eq 0 ] && { run_folder "$DEC" "the release's one-epoch 32k Muon cool-down on show-time inputs from SM57 stage 4's instant-only epoch 30 (stage 4's users, order, seeds, KD targets), curve loss weight 0" $MIN_DECAY || rc=1; }
+EP="(w64, stage 4's epoch recipe: 8k final tier, the run's order rule, 2048 x 16 lanes carry, leak-free replay KD, AdamW 7e-4 constant, curve loss weight 0, show-time inputs)"
+[ $rc -eq 0 ] && { run_folder "$E31" "instant-only epoch 31 on show-time inputs from SM57 stage 4's epoch 30 $EP" $MIN_EPOCH || rc=1; }
+if [ $rc -eq 0 ] && [ ! -f "$DEC/decay.json" ]; then
+  if [ "$DRYRUN" = 1 ]; then log "DRYRUN: the cool-down is prepared after epoch 31: $WARM cooldown --epoch $K --start $E31 --out ${DEC#$WT/} --arch $ARCH --fraction 1.0 --extra-options extra-options.json + label windows + Muon fresh"
+  else
+    cpu_step 20 "cool-down prepare" || rc=1
+    [ $rc -eq 0 ] && { prepare_decay || { rm -rf "$DEC"; rc=1; }; }
+    [ $rc -eq 0 ] && log "cool-down prepared: $(basename "$DEC")"
+  fi
+fi
+if [ $rc -eq 0 ] && [ "$DRYRUN" != 1 ]; then
+  "$PY" -X utf8 "$CHECK" cooldown >> "$LOG" 2>&1 \
+    || { log "STOP: the cool-down is not stage 4's except the start (epoch 31), the switch and paths (see $S/check-cpu-sm96-cooldown.json)"; rc=1; }
+fi
+[ "$DRYRUN" = 1 ] && log "DRYRUN: then $PY -X utf8 $CHECK cooldown (stage 4's cool-down except the start, the switch, paths; start == epoch 31)"
+if [ $rc -eq 0 ] && [ ! -e "$G/smoke-dec-ok" ]; then
+  ram_gate "smoke" strict || rc=1
+  [ $rc -eq 0 ] && { q $MIN_SMOKE check "trainer smoke of the show-time instant-only cool-down from epoch 31 (fresh Muon, curve loss weight 0, show-time inputs, 2 users x 512 reviews)" -- \
+    $LF "$PY" -X utf8 "$DEC_PY" smoke --out "$DEC" >> "$G/check.out" 2>&1 || { log "STOP: cool-down smoke failed (see $G/check.out)"; rc=1; }; }
+  [ $rc -eq 0 ] && [ "$DRYRUN" != 1 ] && { touch "$G/smoke-dec-ok"; log "smoke: $(grep '"smoke"' "$G/check.out" | tail -1 | cut -c1-200)"; }
+fi
+[ $rc -eq 0 ] && { run_folder "$DEC" "the release's one-epoch 32k Muon cool-down on show-time inputs from epoch 31 (stage 4's users, order, seeds, KD targets), curve loss weight 0" $MIN_DECAY || rc=1; }
 [ $rc -eq 0 ] && { score732 e2s-query || rc=1; }
 [ $rc -eq 0 ] && { rule "show-time 732" || rc=1; }
 [ $rc -eq 0 ] && { score732 normal || rc=1; }

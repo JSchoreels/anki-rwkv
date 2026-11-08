@@ -30,49 +30,42 @@
  "K2_options": {
   "ok": true,
   "info": {
-   "eq_sm57_plus_flag": true,
-   "eq_sm92_plus_weight0": true,
-   "decay_options_show_time_intervals": true,
-   "decay_options_curve_loss_weight": 0.0
+   "cooldown_extra_eq_sm57_plus_switch": true,
+   "cooldown_extra_eq_sm92_plus_weight0": true,
+   "e31_options_eq_e30_plus_switch": true,
+   "e31_options_eq_sm92_e26_plus_weight0": true,
+   "e30_options_weight0": true
   }
  },
- "K3_cooldown_pairs": {
+ "K3_epoch31_pair": {
   "ok": true,
   "info": {
-   "vs_stage4_cooldown_same_start": [
+   "pair": "[sm96-epoch] pair OK: sm96-inst-e31-st == stage 4's sm57s4-inst-e30 step except the input switch {\"show_time_intervals\": true} and the epoch index / start / paths (8,000 users, 581,942,724 reviews, epoch 31, start sm57s4-inst-e30 (sha256 585c50b6a545), offset 662340, differences: protocol ['/full_run/control_dir', '/full_run/epoch', '/full_run/init_master', '/full_run/init_optimizer', '/full_run/update_offset'] + rows order; decay ['/created_utc', '/epoch', '/init_master_sha256', '/init_optimizer_sha256', '/note', '/options/show_time_intervals', '/source_epoch', '/start'])",
+   "negative_controls_refused": {
+    "without_switch": true,
+    "weight_changed": true,
+    "batch_chunks_changed": true
+   }
+  }
+ },
+ "K4_cooldown_recipe": {
+  "ok": true,
+  "info": {
+   "recipe_vs_stage4_cooldown_same_start": [
     true,
     "[sm57-pair] decay OK: sm96-inst-e30-showtime-dec-1ep32k-muon == sm57s4-inst-e30-dec-1ep32k-muon except the flag, the start weights, the epoch index and paths {\"show_time_intervals\": true} (8,000 users, 581,942,724 reviews, update offset 662340 vs 662340, start 585c50b6a545)"
    ],
-   "vs_release_cooldown": [
+   "recipe_vs_release_cooldown": [
     true,
     "[sm57-pair] decay OK: sm96-inst-e30-showtime-dec-1ep32k-muon == scale-w64kd-final-sc-lanes-leakfree-dec25-1ep32k-muon except the flag, the start weights, the epoch index and paths {\"curve_loss_weight\": 0.0, \"show_time_intervals\": true} (8,000 users, 581,942,724 reviews, update offset 662340 vs 551950, start 585c50b6a545)"
    ],
-   "vs_sm92_cooldown": [
+   "recipe_vs_sm92_cooldown": [
     true,
     "[sm57-pair] decay OK: sm96-inst-e30-showtime-dec-1ep32k-muon == sm92-e26-dec-1ep32k-muon except the flag, the start weights, the epoch index and paths {\"curve_loss_weight\": 0.0} (8,000 users, 581,942,724 reviews, update offset 662340 vs 574028, start 585c50b6a545)"
-   ]
-  }
- },
- "K4_start_muon_windows": {
-  "ok": true,
-  "info": {
-   "e30_master_sha256": "585c50b6a5459b5a",
-   "cooldown_start_sha": "585c50b6a5459b5a",
-   "stage4_start_sha": "585c50b6a5459b5a",
-   "muon_fresh_pass": true,
-   "label_windows_ok": true,
-   "label_windows_keys": [
-    "decay",
-    "failures",
-    "labelled_reviews",
-    "ok",
-    "replay",
-    "reviews_in_train_ranges",
-    "span",
-    "trims_applied_now",
-    "trims_recorded",
-    "users"
-   ]
+   ],
+   "recipe_start_is_e30": true,
+   "recipe_muon_fresh": true,
+   "recipe_label_windows": true
   }
  },
  "K5_rule_selftest": {
@@ -82,12 +75,8 @@
  "K6_breaks": {
   "ok": true,
   "info": {
-   "2026-11-08T20:10": [
-    "NOW 17460",
-    true
-   ],
-   "2026-11-08T21:30": [
-    "NOW 12660",
+   "2026-11-08T20:02": [
+    "NOW 17940",
     true
    ],
    "2026-11-09T00:59": [
@@ -98,12 +87,36 @@
     "NEXT 1140",
     true
    ],
+   "2026-11-09T19:59": [
+    "NEXT 1",
+    true
+   ],
    "2026-11-09T20:30": [
     "NOW 16260",
     true
    ],
    "2026-11-10T01:00": [
     "NEXT 1140",
+    true
+   ],
+   "2026-11-15T15:00": [
+    "NEXT 60",
+    true
+   ],
+   "no_hold 2026-11-08T20:02 (quiet.json 21:00)": [
+    "NEXT 58",
+    true
+   ],
+   "synthetic 2026-11-10T12:30": [
+    "NEXT 510",
+    true
+   ],
+   "synthetic 2026-11-10T20:30": [
+    "NEXT 30",
+    true
+   ],
+   "synthetic 2026-11-10T21:30": [
+    "NOW 12660",
     true
    ]
   }
