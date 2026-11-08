@@ -139,3 +139,14 @@ cat artifacts/small-model/sm95/sm95-decision.md
    - the verdict and the fork change (above).
 3. Update the SM95 row in `docs/GPU_OPTIMIZATIONS.md` with status, measured quality, reviews/s and the result link.
 4. Commit `README.md`, `sm95-decision.{json,md}`, `gpu/*.log`, `gpu/*.out`, `gpu/*.jsonl`, the check JSONs and `work/measure-arm/measure-log.jsonl` with `git add -f` and explicit paths. Never commit checkpoints, snapshots, `work/derived` or `work/measure-arm/users`. Commit as Jonathan Schoreels, with the message ending in a blank line plus `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`. Push branch sm95 right away. Do not merge into main; the main session updates the Factory page.
+
+## Retry of the rectified scoring (2026-11-08)
+
+The launcher ended 11-08 17:40 with `rule exit 2: INCOMPLETE: 694 of 722`. Both rectified labels (`sm95-arm-e21-q32k-rect`, `sm77-ref-e21-q32k-rect`) lack the same 29 users: 276, 296, 481, 499, 510, 551, 968, 1125, 1354, 1830, 1870, 2073, 2267, 2423, 2582, 2594, 2912, 3156, 3289, 3301, 3433, 3735, 3923, 4071, 4390, 4577, 4655, 4661, 4852 (file `gpu/retry-users.json`). The 3 long users (650, 4501, 1601) also hit out-of-memory but are not in the 722 the rule needs.
+
+- **Cause**: GPU out-of-memory (`OOM` error rows in `gpu/sm95-neighbour.jsonl`): the rectified scoring has about 2.5x the rows and ran with `--workers 3` at cap 0.8 (12.7 GiB allowed, 10-12 GiB allocated); the 29 users have 260k-530k reviews. Passes 2-4 retried the same 29 under the same limits.
+- **Fix (memory only, same numerics)**: same scorer, model, users, `--grade-rectify`, `--deleted-cards neighbour`; only `--workers 1` and `HELDOUT_GPU_MEMORY_FRACTION=0.92`.
+- **Launcher**: `gpu/retry-rect.sh` (never edits `launch-sm95.sh`). It checks breaks itself, queues behind the show-time scoring (owner small-model, until about 20:00), scores the arm then the reference (up to 3 tickets each, 45 min expected), then runs the rule, and logs `rule exit N` and `done`. Started 11-08 17:43, hidden via WMI, pid 51188 (bash). Log `gpu/retry-rect.log`, stdout `gpu/retry-rect.nohup`, scorer output `gpu/score.out`.
+- **Expected**: the break is 21:00-01:00, so if the GPU is free before about 20:15 the arm retry runs then, otherwise it starts about Mon 01:00. End of scoring about Mon 02:30-03:30, rule about 1 h of CPU after.
+- **Alive check**: `tail gpu/retry-rect.log`. If the process died, relaunch: same command as above with `gpu/retry-rect.sh` (finished work is skipped).
+- **Follow-up**: when the log says `done`, continue with the follow-up section above from step 2 (the rule already ran). If it says `rule exit 2`, check the missing ids and rerun the script; if the rule did not run, use the rule command in step 1 above.
