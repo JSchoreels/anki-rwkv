@@ -27,6 +27,16 @@
      "ships_href": "https://github.com/JSchoreels/anki/releases/tag/26.09.3%2Bfsrs7.build.110"
     },
     {
+     "variant": "Instant-only, 4 more epochs: candidate for RWKV-Instant (SM57 stage 4)",
+     "curve": null,
+     "instant": 0.2759,
+     "eval": "722 users (732 set), 30.13M reviews, leak-free inputs",
+     "quant": "w8+s8",
+     "instant_pct": 0.05,
+     "date": "11-08",
+     "note": "The instant-only model in the fork + instant-only epochs 27&ndash;30 + the release&rsquo;s cool-down; &minus;0.071 points vs the model in the fork, not shipped yet (your call)"
+    },
+    {
      "variant": "RWKV-Instant in the fork: instant-only model (SM57)",
      "curve": null,
      "instant": 0.27609,
@@ -302,9 +312,11 @@
     "the instant-only small model (SM57) stage 4: "
    ],
    "what": "The instant-only small model (SM57) stage 4: a longer instant-only training for RWKV-Instant: 4 more instant-only epochs (27&ndash;30) on top of stage 1&rsquo;s instant-only epoch 26, then the release&rsquo;s one-epoch 32k Muon cool-down, against stage 1&rsquo;s instant-only arm (the ship candidate)",
-   "when": "Running since 12:23 Sat (CPU proofs and GPU check passed): epochs at ~85&ndash;89k reviews/s; epoch 30 pauses for the 20:00&ndash;01:00 break, cool-down ~02:00&ndash;10:00 Sun, end ~11:50 Sun",
+   "when": "Done 10:36 Sun: GO, instant &minus;0.071 points vs stage 1&rsquo;s instant-only arm, &minus;0.231% vs the release on the 1,500 validation users; see results",
    "decides": "Whether more instant-only training makes a clearly better instant model (go: candidate &minus; stage 1&rsquo;s instant-only arm on instant, 95% CI below 0 and at least 0.05 points; on go also checked on the 1,500 validation users vs the release)",
-   "started_at": "2026-11-07T12:17+01:00"
+   "started_at": "2026-11-07T12:17+01:00",
+   "state": "done",
+   "ended_at": "2026-11-08T10:36+01:00"
   },
   {
    "id": "SM57",
@@ -371,7 +383,7 @@
    "ended_at": "2026-11-07T01:08+01:00"
   },
   {
-   "id": "SM41",
+   "id": "SM41g",
    "track": "small model",
    "since": "11-07T00:50",
    "kind": "cpu",
@@ -2501,6 +2513,70 @@
   "s-w64kd-gate-ctx2048c-dec8-1ep/w8+s8"
  ],
  "results": [
+  {
+   "date": "11-08",
+   "kind": "gpu-train",
+   "id": "SM57",
+   "track": "small model",
+   "name": "The instant-only small model (SM57) stage 4: 4 more instant-only epochs (27&ndash;30) on top of the instant-only epoch 26, then the release&rsquo;s one-epoch 32k Muon cool-down, against the instant-only model in the fork (stage 1)",
+   "eval": "The release&rsquo;s epoch recipe (8k users, 581.9M reviews per epoch, AdamW 7e-4 constant), curve loss at weight 0; leak-free scoring, normal inputs, w8+s8, 722 users of the 732 set; points = % of the big model (1 leak-free epoch) LogLoss, paired user bootstrap 2,000, 95% CI. Rule fixed before launch: go = candidate &minus; stage 1 on instant with the CI below 0 and at least 0.05 points; on go, the 1,500 validation users vs the release",
+   "fork": "Not in the fork yet: replacing the instant-only model there (model per scheduler (SM93)) waits for the user&rsquo;s decision",
+   "takeaway": "<strong>Go</strong>: instant &minus;0.071 points [&minus;0.079, &minus;0.064] vs the model in the fork (553 users better, 167 worse), &minus;0.233 vs the release (SM63), and now only +0.051 behind the big model (1 leak-free epoch) on instant (was +0.122). Confirmed on the 1,500 validation users: &minus;0.231% [&minus;0.246, &minus;0.218] of the release&rsquo;s LogLoss (1,358 better, 128 worse), &minus;0.067% vs stage 1. The extra epochs only pay off through the cool-down: epoch 30 alone is worse than epoch 26 (+0.143)",
+   "started_at": "2026-11-07T12:23+01:00",
+   "ended_at": "2026-11-08T10:36+01:00",
+   "gpu_minutes": 975,
+   "tickets": 0,
+   "detail": {
+    "verdict": "Go: the candidate beats the instant-only model in the fork by more than the 0.05-point minimum on both pools; shipping it in the fork is the user&rsquo;s call",
+    "table": {
+     "head": [
+      "Step",
+      "Minutes",
+      "Reviews/s",
+      "Peak GPU memory (allocated / reserved)"
+     ],
+     "rows": [
+      [
+       "Epoch 27",
+       "118.8",
+       "81,975",
+       "10.9 / 13.0 GB"
+      ],
+      [
+       "Epoch 28",
+       "119.6",
+       "81,305",
+       "10.9 / 13.0 GB"
+      ],
+      [
+       "Epoch 29",
+       "122.8",
+       "79,409",
+       "10.9 / 13.0 GB"
+      ],
+      [
+       "Epoch 30 (2 segments, break stop)",
+       "115.7",
+       "83.8k (87,563 last segment)",
+       "10.9 / 13.0 GB"
+      ],
+      [
+       "Cool-down (one epoch, 32k Muon)",
+       "478.1",
+       "20,313",
+       "7.4 / 12.8 GB"
+      ]
+     ]
+    },
+    "notes": [
+     "Constant-LR trajectory on instant: epoch 28 &minus; epoch 26 &minus;0.099 [&minus;0.167, &minus;0.040], epoch 30 &minus; epoch 26 +0.143 [+0.091, +0.196]; the cool-down from epoch 30 gives &minus;1.067",
+     "1,500 validation users by part: 732-set part &minus;0.242%, other part &minus;0.223% vs the release; row check max difference 0.0",
+     "Chain: epoch 30&rsquo;s first segment started from epoch 29&rsquo;s trained weights (hash fcc36e2f), the second resumed from its snapshot",
+     "10-epoch ETA at ~82k reviews/s: 2k tier ~5.0 h, 8k tier ~19.7 h (training only)",
+     "Branch sm57, commit 8b323fb1; result in artifacts/small-model/sm57/sm57-stage4-result.md"
+    ]
+   }
+  },
   {
    "date": "11-08",
    "kind": "cpu",
