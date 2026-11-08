@@ -1,4 +1,4 @@
-# The instant-only small model (SM57) stage 4 (a better dedicated instant model): handoff (2026-11-07)
+# The instant-only small model (SM57) stage 4 (a better dedicated instant model): handoff (2026-11-07) -- DONE (2026-11-08, see sm57-stage4-result.md)
 
 Branch `sm57`, worktree `C:/Users/jonat/workspace/wt/sm57`. Plan and pre-registered rule: `DESIGN.md`, section "Stage 4 plan" (fixed 11-07 ~12:20, before any stage-4 GPU run; commit `0cc42e29`).
 
