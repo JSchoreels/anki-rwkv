@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-08T14:19:08+01:00",
- "updated": "2026-11-08 14:19",
- "material": "1ad89f86dcf41644",
- "summary": "running 001028, finished 001027",
+ "generated_at": "2026-11-08T14:22:22+01:00",
+ "updated": "2026-11-08 14:22",
+ "material": "cc4b7ce1838ca554",
+ "summary": "running 001029, finished 001028",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring (curve / instant)",
@@ -307,19 +307,19 @@
  ],
  "now": [
   {
-   "what": "The grade order by construction (SM95): an in-model rectifier pools the four what-if answer curves (Again &le; Hard &le; Good &le; Easy) at every time point, so the order holds exactly for every review and every target retention (the fork&rsquo;s correction becomes a no-op); trained on 8% of reviews in the same quarter-epoch cool-down pair as the grade-order sanity check (SM33)",
-   "id": "SM95, ticket 001028",
+   "what": "The show-time scoring of the headline models: score the instant-only small model (SM57) stage 1 and stage 4, the older releases and the shipped big model on show-time inputs (the interval up to when the card is shown, what the fork gives; normal inputs include the answer time of the review being predicted, a small leak), plus stage 1 / stage 4 / the release on the 1,500 validation users",
+   "id": "SM57, ticket 001029",
    "kind": "gpu-score",
-   "decides": "Whether the order can be guaranteed without the accuracy cost of the soft penalty (go: zero breaks and both heads within +0.05 points of the same cool-down without it)",
+   "decides": "A show-time column in the headline table; whether stage 4 also beats stage 1 on the inputs the fork gives",
    "why": "",
-   "job": "the grade order by construction (SM95): scoring sm95-arm-e21-q32k-rect on the 732 pool minus 9 never-fit (723) (pass 4)",
+   "job": "show-time scoring of the headline models: scoring the instant-only small model (SM57) stage 1 on show-time inputs, the 1,500 validation users outside the 732 set + 6 check users (pass 2, 766 done, cap 0.8)",
    "linked": true,
    "track": "small model",
-   "ticket": "001028-sm95",
-   "started": "14:18",
+   "ticket": "001029-small-model",
+   "started": "14:21",
    "elapsed": "0:00",
    "progress": null,
-   "eta": "~15:03"
+   "eta": "~14:36"
   }
  ],
  "charts": [
@@ -491,13 +491,22 @@
  ],
  "waiting": [
   {
-   "ticket": "001029-small-model",
-   "id": "SM57",
-   "what": "show-time scoring of the headline models: scoring the instant-only small model (SM57) stage 1 on show-time inputs, the 1,500 validation users outside the 732 set + 6 check users (pass 2, 766 done, cap 0.8)",
-   "flags": "expected 15 min"
+   "ticket": "001030-sm95",
+   "id": "SM95",
+   "what": "the grade order by construction (SM95): scoring sm95-arm-e21-q32k-rect on the 3 long users of the 732 pool (cap 0.92)",
+   "flags": "expected 25 min"
   }
  ],
  "recent": [
+  {
+   "ticket": "001028-sm95",
+   "id": "SM95",
+   "what": "the grade order by construction (SM95): scoring sm95-arm-e21-q32k-rect on the 732 pool minus 9 never-fit (723) (pass 4)",
+   "ended": "14:21",
+   "date": "11-08",
+   "exit": 0,
+   "ran": "0:03"
+  },
   {
    "ticket": "001027-small-model",
    "id": "SM57",
@@ -542,15 +551,6 @@
    "date": "11-08",
    "exit": 0,
    "ran": "0:00"
-  },
-  {
-   "ticket": "001022-sm95",
-   "id": "SM95",
-   "what": "the grade order by construction (SM95): scoring sm95-arm-e21-q32k-rect on the 732 pool minus 9 never-fit (723) (pass 1)",
-   "ended": "13:54",
-   "date": "11-08",
-   "exit": 0,
-   "ran": "0:22"
   }
  ],
  "plan": [
@@ -576,9 +576,11 @@
    "what": "The show-time scoring of the headline models: score the instant-only small model (SM57) stage 1 and stage 4, the older releases and the shipped big model on show-time inputs (the interval up to when the card is shown, what the fork gives; normal inputs include the answer time of the review being predicted, a small leak), plus stage 1 / stage 4 / the release on the 1,500 validation users",
    "when": "Launcher running since 12:25 Sun (8 models, ~2.5 GPU hours), queued behind the grade order by construction (SM95); likely starts 01:00 Mon after the break, done ~04:00 Mon",
    "decides": "A show-time column in the headline table; whether stage 4 also beats stage 1 on the inputs the fork gives",
-   "started_at": "2026-11-08T11:30+01:00",
-   "state": "waiting",
-   "ticket": "001029-small-model"
+   "started_at": "2026-11-08T12:53:59+01:00",
+   "state": "running",
+   "started": "14:21",
+   "ticket": "001029-small-model",
+   "ends_at": "2026-11-08T14:43:59+01:00"
   },
   {
    "id": "SM57",
@@ -2138,11 +2140,9 @@
    "what": "The grade order by construction (SM95): an in-model rectifier pools the four what-if answer curves (Again &le; Hard &le; Good &le; Easy) at every time point, so the order holds exactly for every review and every target retention (the fork&rsquo;s correction becomes a no-op); trained on 8% of reviews in the same quarter-epoch cool-down pair as the grade-order sanity check (SM33)",
    "when": "Running since 10:39 Sun (GPU smokes passed): the arm&rsquo;s quarter-epoch cool-down with the rectifier to ~13:35, then the reference cool-down if needed; scoring after the Sunday break, rule ~Mon morning",
    "decides": "Whether the order can be guaranteed without the accuracy cost of the soft penalty (go: zero breaks and both heads within +0.05 points of the same cool-down without it)",
-   "started_at": "2026-11-08T10:39:19+01:00",
-   "state": "running",
-   "started": "14:18",
-   "ticket": "001028-sm95",
-   "ends_at": "2026-11-08T14:39:19+01:00"
+   "started_at": "2026-11-07T16:15+01:00",
+   "state": "waiting",
+   "ticket": "001030-sm95"
   }
  ],
  "gpu_break": {
