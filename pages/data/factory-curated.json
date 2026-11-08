@@ -2530,6 +2530,26 @@
  "results": [
   {
    "date": "11-08",
+   "kind": "gpu-score",
+   "id": "SM56",
+   "track": "small model",
+   "name": "Show-time scoring of the full retrain&rsquo;s two cool-downs (SM56): from epoch 15 and from epoch 10, on show-time inputs (part of the show-time scoring of the headline models)",
+   "eval": "Leak-free w8+s8, 722 users of the 732 set; points = % of the big model (1 leak-free epoch) normal-input LogLoss; show-time cost = show-time minus normal on the same model, paired user bootstrap 95% CI",
+   "fork": "Not in the fork (older models); measured to show the show-time cost is the same for every normal-trained model",
+   "takeaway": "Show-time cost of the cool-down from epoch 15: curve +0.131 [+0.106, +0.165], instant +0.374 [+0.305, +0.462]; from epoch 10: curve +0.125, instant +0.347. Same size as the releases&rsquo; cost; only the show-time retrain (SM92) avoids it (+0.04)",
+   "started_at": "2026-11-08T17:40+01:00",
+   "ended_at": "2026-11-08T19:36+01:00",
+   "gpu_minutes": 20,
+   "tickets": 4,
+   "detail": {
+    "verdict": "Measured",
+    "notes": [
+     "Report: artifacts/small-model/showtime/showtime-report.md (anki-rwkv main 518c8f84)"
+    ]
+   }
+  },
+  {
+   "date": "11-08",
    "kind": "gpu-train",
    "id": "SM95",
    "track": "small model",
