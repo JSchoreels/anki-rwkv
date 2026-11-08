@@ -1,6 +1,6 @@
 # The small model in the review simulator (SM41): handoff, the changing-learner confirmation on all users (SM41g)
 
-**Status: running** (launched 2026-11-07 00:51; user approved 11-07 ~00:40, break lifted early at 00:41).
+**Status: done** (finished 2026-11-08 02:37; results in learner-drift-result.md, "Results of the confirmation on all users").
 
 Branch `sm41`, worktree `C:/Users/jonat/workspace/wt/sm41`. Always `git fetch` + `git merge --ff-only` first. If SSH fails:
 `git -c credential.helper= -c credential.helper='!gh auth git-credential' fetch|push https://github.com/JSchoreels/anki-rwkv.git sm41`.

@@ -214,3 +214,75 @@ and (2) the gap change at matched memorised cards (days 30-59) below 0 with the 
 less, not more efficiently". The 20-user screen's central claims to confirm or retract: improving, instant head: -7.1
 reviews/day vs FSRS-7, gap change at matched memorised cards -2.9 ± 5.6 (not significant); time-aware rule: +17.8
 reviews/day, -27% median interval; declining, instant head +9.9 reviews/day, time-aware rule -30.6 reviews/day.
+
+### Results of the confirmation on all users
+
+Done 11-08 02:37. Full tables: `learner-drift-all/tables.md`, `tables.json`. 117 users, 304 splits (splits of a user
+averaged first, CI over the 117 users), 60 days, seeds 0-3, one fused run per split. Gaps are the cost relative to
+FSRS-7 (minutes per memorised card), mean ± 95% CI over users, in %; changes vs no drift are in percentage points.
+
+**Check** (`learner-drift-all/check.out`): 117 of 117 row files, 304 of 304 split rows, no Tracebacks. The fused
+no-drift lanes vs the existing full-run / screen 3 rows: 11,184 lanes compared, 114 lanes (1.0%, in 65 users) differ
+by more than a relative 1e-6 (largest 26, on one counter of FSRS-7 0.90 for user 4262; the instant head and
+time-aware lanes of users 263, 4207, 3876 etc. by 0.3-1.0): the single-draw-flip signature seen in the 20-user run,
+not a bug in the drift code. The gap tables use the existing rows for no drift; only the interval columns use the
+rerun lanes.
+
+| scenario | policy | matched retention (plan) | change | matched memorised, days 30-59 | change | matched memorised, 60 days | change |
+|---|---|---|---|---|---|---|---|
+| no drift | instant head | +9.0 ± 3.3 | | +3.1 ± 4.3 | | +1.8 ± 2.8 | |
+| no drift | time-aware rule (beta = 2) | -22.6 ± 3.2 | | -6.2 ± 3.7 | | +1.8 ± 4.8 | |
+| improving | instant head | +10.4 ± 4.2 | +0.8 ± 4.0 | +2.6 ± 2.4 | -0.7 ± 3.0 | +3.2 ± 2.5 | +1.5 ± 1.7 |
+| improving | time-aware rule | -13.5 ± 4.3 | **+9.3 ± 5.0** | -5.5 ± 2.2 | +0.5 ± 3.5 | -0.8 ± 2.4 | -2.5 ± 4.5 |
+| declining | instant head | +35.0 ± 12.4 | **+27.0 ± 12.6** | +18.3 ± 8.7 | **+14.0 ± 10.6** | +13.7 ± 6.7 | **+10.8 ± 7.8** |
+| declining | time-aware rule | -25.6 ± 6.7 | **-9.3 ± 3.7** | -13.9 ± 5.4 | **-7.5 ± 5.4** | -2.3 ± 6.9 | -4.0 ± 7.0 |
+
+Does it schedule less (days 30-59, change vs no drift, policy minus FSRS-7, mean of targets 0.80 / 0.85 / 0.90, in %
+of log reviews/day etc.; the 20-user value in brackets, which was in points of the same quantity):
+
+| scenario | policy | reviews/day | median later-day interval | seconds per later-day review |
+|---|---|---|---|---|
+| improving | instant head | **-6.2 ± 1.4** (-7.1 ± 3.1) | +2.9 ± 2.2 (+4.1 ± 6.9) | +7.3 ± 3.0 (+7.1 ± 5.5) |
+| improving | time-aware rule | **+16.9 ± 2.7** (+17.8 ± 9.2) | **-30.2 ± 3.1** (-27.1 ± 10.2) | -9.3 ± 2.5 (-9.1 ± 8.4) |
+| declining | instant head | **+11.9 ± 2.6** (+9.9 ± 4.5) | -4.4 ± 2.7 (-2.0 ± 14.6) | -3.7 ± 2.1 (-4.4 ± 4.7) |
+| declining | time-aware rule | **-30.3 ± 5.0** (-30.6 ± 14.9) | +35.3 ± 4.3 (+38.4 ± 15.2) | +7.4 ± 2.6 (+7.4 ± 7.0) |
+
+Key rows (days 30-59, mean over users, no drift -> improving; reviews/day, realised retention): instant head 0.85
+74.1 -> 55.7, 0.837 -> 0.889; 0.90 94.0 -> 67.7, 0.880 -> 0.921. FSRS-7 0.85 87.8 -> 64.4, 0.815 -> 0.876; 0.90
+123.8 -> 91.4, 0.873 -> 0.921. Time-aware rule 0.85 76.4 -> 74.1, 0.857 -> 0.924; 0.90 101.0 -> 93.0, 0.893 -> 0.946.
+(At the same target the instant head reviews fewer cards than FSRS-7 even without drift, 74.1 vs 87.8 at 0.85; the
+table above is the change in that ratio.)
+
+**Decision bar** (CI excludes 0 AND |change| >= 2.9 points = meaningful):
+- Improving, instant head: no gap change is significant (+0.8 ± 4.0, -0.7 ± 3.0, +1.5 ± 1.7). Reviews/day vs FSRS-7
+  -6.2 ± 1.4: meaningful.
+- Improving, time-aware rule: matched-retention gap +9.3 ± 5.0 meaningful (it becomes worse vs FSRS-7); reviews/day
+  +16.9 and median interval -30.2: meaningful (it schedules more, shorter intervals); memorised-card gaps not moved.
+- Declining, instant head: all three gaps rise meaningfully (+27.0, +14.0, +10.8), reviews/day +11.9 meaningful.
+- Declining, time-aware rule: matched retention -9.3 and days 30-59 -7.5 meaningful (better vs FSRS-7), 60 days not;
+  reviews/day -30.3 meaningful.
+
+**Confirmed or retracted from the 20-user screen:**
+- Confirmed: instant head improving -7.1 -> -6.2 reviews/day; gap change at matched memorised cards not significant
+  (-2.9 ± 5.6 -> -0.7 ± 3.0); time-aware rule improving +17.8 -> +16.9 reviews/day and -27% -> -30% median interval,
+  and its matched-retention change (+5.7 -> +9.3, now clearly significant); declining instant head +9.9 -> +11.9
+  reviews/day; declining time-aware rule -30.6 -> -30.3 reviews/day, matched-retention -13.4 -> -9.3, days 30-59
+  -11.6 -> -7.5.
+- Retracted: the improving instant head matched-retention change -2.9 ± 1.5 (which put the central claim at the bar's
+  threshold) is +0.8 ± 4.0 on 117 users, so the "gap shrinks to +2.7, CI includes 0" reading is gone: the gap stays
+  +10.4 ± 4.2, CI excluding 0.
+- Strengthened: the declining instant head gap change (20 users +23.0 ± 25.4, not significant) is now +27.0 ± 12.6.
+
+**Verdict on the user's hypothesis** ("RWKV would be more efficient since it would schedule less when the learner
+improves"), by the plan's two conditions: (1) reviews/day vs FSRS-7 change -6.2 ± 1.4, below 0, CI excluding 0:
+**met**. (2) gap change at matched memorised cards, days 30-59: -0.7 ± 3.0, CI includes 0: **not met** (60 days:
++1.5 ± 1.7, also not significant). So: **the instant head schedules less than FSRS-7 when the learner improves, but
+not more efficiently**; the hypothesis is supported on scheduling less only. The time-aware rule does the opposite
+(more reviews, shorter intervals) and also loses efficiency at matched retention. Note both policies review less
+when the learner improves, the instant head only a bit more than FSRS-7 (about 6 points).
+
+**FSRS-7 frozen:** FSRS-7 keeps the pre-split refit for all 60 days, so a real Anki that refits between sessions
+would narrow the improving-scenario difference further in FSRS-7's favour.
+
+**Speed** (1 thread per process, fused 3 scenarios): 277.8 M lane reviews, 89.33 engine process-hours + 3.49 warm-up
+process-hours = 92.8 CPU process-hours, 864 lane reviews/s per process.
