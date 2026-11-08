@@ -1,7 +1,7 @@
 {
- "generated_at": "2026-11-08T20:04:19+01:00",
- "updated": "2026-11-08 20:04",
- "material": "afa774f7800e8010",
+ "generated_at": "2026-11-08T20:17:50+01:00",
+ "updated": "2026-11-08 20:17",
+ "material": "7e8b48a8525420af",
  "summary": "idle",
  "headline": [
   {
@@ -2094,22 +2094,6 @@
    "ended_at": "2026-11-02T08:35:17+01:00"
   },
   {
-   "id": "SM95",
-   "track": "small model",
-   "since": "11-07T16:15",
-   "kind": "gpu-score",
-   "minutes": 240,
-   "what": "The grade order by construction (SM95): an in-model rectifier pools the four what-if answer curves (Again &le; Hard &le; Good &le; Easy) at every time point, so the order holds exactly for every review and every target retention (the fork&rsquo;s correction becomes a no-op); trained on 8% of reviews in the same quarter-epoch cool-down pair as the grade-order sanity check (SM33)",
-   "when": "Cool-down and most scoring done; 29 long users (260k&ndash;530k reviews) ran out of GPU memory in the rectified scoring, so the rule saw 694 of 722 users (needs 700). Retry of those 29 users queued behind the show-time scoring (1 worker, memory cap 0.92, same numerics), then the rule; likely Mon 01:00&ndash;04:30",
-   "decides": "Whether the order can be guaranteed without the accuracy cost of the soft penalty (go: zero breaks and both heads within +0.05 points of the same cool-down without it)",
-   "started_at": "2026-11-08T10:39:19+01:00",
-   "state": "done",
-   "ended": "18:56",
-   "exit": 0,
-   "started": "10:39",
-   "ended_at": "2026-11-08T18:56:09+01:00"
-  },
-  {
    "id": "SM96",
    "track": "small model",
    "since": "11-08T20:02",
@@ -2654,6 +2638,27 @@
   }
  ],
  "results": [
+  {
+   "date": "11-08",
+   "kind": "gpu-train",
+   "id": "SM95",
+   "track": "small model",
+   "name": "The grade order by construction (SM95): an in-model rectifier pools the four what-if answer curves so Again &le; Hard &le; Good &le; Easy holds exactly, trained on 8% of reviews in the quarter-epoch 32k Muon cool-down from the leak-free small model (SM72s) epoch 21",
+   "eval": "Paired with the same cool-down without it (SM77 reference); leak-free w8+s8; points = % of the big model (1 leak-free epoch) LogLoss; paired user bootstrap 95% CI. Order on 722 users x 3,000 sampled reviews. Rule fixed before launch: go = zero breaks and both heads &le; +0.05 points vs the reference raw, at least 700 users",
+   "fork": "Not in the fork: the fork keeps its display-only correction of the button intervals, which costs nothing in LogLoss",
+   "takeaway": "<strong>Cost</strong> (informal read-out on 699 users; 24 very long users do not fit in GPU memory in rectified scoring, so the rule itself stays incomplete at 699 of 700): order exact (0 inverted pairs on 2,166,000 reviews, vs 19.1% displayed for today&rsquo;s model at 0.90), but curve +0.46 points [+0.34, +0.62], instant +0.00. Pooling today&rsquo;s model without training costs +0.93; the training halves it. The soft hinge (SM33) stays the cheaper trade (+0.14 for 0.94% displayed breaks)",
+   "started_at": "2026-11-07T16:15+01:00",
+   "ended_at": "2026-11-08T20:15+01:00",
+   "gpu_minutes": 361,
+   "tickets": 23,
+   "detail": {
+    "verdict": "Cost; branch sm95 2d8828e4 (README, readout-699/)",
+    "notes": [
+     "Retry of the 29 out-of-memory users with 1 worker at cap 0.92 recovered 5; the remaining 24 have 260k&ndash;530k reviews",
+     "Arm raw curves vs reference raw: +0.00 points, so the cost comes from the pooling itself"
+    ]
+   }
+  },
   {
    "date": "11-08",
    "kind": "gpu-score",
