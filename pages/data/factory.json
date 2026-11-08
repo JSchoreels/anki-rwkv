@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-08T10:38:51+01:00",
- "updated": "2026-11-08 10:38",
- "material": "3f590bd2aff85fe2",
- "summary": "idle",
+ "generated_at": "2026-11-08T10:39:48+01:00",
+ "updated": "2026-11-08 10:39",
+ "material": "f4c3f92e1c20a124",
+ "summary": "running 001013, finished 001012",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring (curve / instant)",
@@ -304,7 +304,23 @@
    "track": "small model"
   }
  ],
- "now": [],
+ "now": [
+  {
+   "what": "The grade order by construction (SM95): an in-model rectifier pools the four what-if answer curves (Again &le; Hard &le; Good &le; Easy) at every time point, so the order holds exactly for every review and every target retention (the fork&rsquo;s correction becomes a no-op); trained on 8% of reviews in the same quarter-epoch cool-down pair as the grade-order sanity check (SM33)",
+   "id": "SM95, ticket 001013",
+   "kind": "gpu-score",
+   "decides": "Whether the order can be guaranteed without the accuracy cost of the soft penalty (go: zero breaks and both heads within +0.05 points of the same cool-down without it)",
+   "why": "",
+   "job": "the grade order by construction (SM95): GPU smoke 2/2: rectified scorer on 2 users of the 732 pool (reference checkpoint, w8+s8, raw and rectified)",
+   "linked": true,
+   "track": "small model",
+   "ticket": "001013-sm95",
+   "started": "10:39",
+   "elapsed": "0:00",
+   "progress": null,
+   "eta": "~10:51"
+  }
+ ],
  "charts": [
   {
    "title": "Small model, leak-free (SM72s): LogLoss per epoch, 458-user set (lower is better)",
@@ -475,6 +491,15 @@
  "waiting": [],
  "recent": [
   {
+   "ticket": "001012-sm95",
+   "id": "SM95",
+   "what": "the grade order by construction (SM95): GPU smoke 1/2: trainer smoke of the rectified cool-down (2 users x 512 reviews)",
+   "ended": "10:39",
+   "date": "11-08",
+   "exit": 0,
+   "ran": "0:00"
+  },
+  {
    "ticket": "001011-sm57",
    "id": "SM57",
    "what": "the instant-only small model (SM57) stage 4: scoring the constant-LR instant-only epoch 30 (report only) on normal inputs, the 732 set minus 9 never-fit (723 users) (pass 2, 722 done, cap 0.8)",
@@ -518,15 +543,6 @@
    "date": "11-08",
    "exit": 0,
    "ran": "0:00"
-  },
-  {
-   "ticket": "001006-sm57",
-   "id": "SM57",
-   "what": "the instant-only small model (SM57) stage 4: scoring the stage-4 candidate on normal inputs, the 1,500 validation users outside the 732 set + 6 check users (pass 1, 0 done, cap 0.8)",
-   "ended": "10:22",
-   "date": "11-08",
-   "exit": 0,
-   "ran": "0:16"
   }
  ],
  "plan": [
@@ -2088,8 +2104,11 @@
    "what": "The grade order by construction (SM95): an in-model rectifier pools the four what-if answer curves (Again &le; Hard &le; Good &le; Easy) at every time point, so the order holds exactly for every review and every target retention (the fork&rsquo;s correction becomes a no-op); trained on 8% of reviews in the same quarter-epoch cool-down pair as the grade-order sanity check (SM33)",
    "when": "CPU proofs passed Sat 16:40 (21 checks; zero breaks at 242 horizons); launcher waits for the instant-only small model (SM57) stage 4 to end: GPU check and cool-down ~11:50&ndash;14:50 Sun, scoring after the Sunday break, decision ~06:30&ndash;07:30 Mon",
    "decides": "Whether the order can be guaranteed without the accuracy cost of the soft penalty (go: zero breaks and both heads within +0.05 points of the same cool-down without it)",
-   "started_at": "2026-11-07T16:15+01:00",
-   "state": "planned"
+   "started_at": "2026-11-08T10:39:19+01:00",
+   "state": "running",
+   "started": "10:39",
+   "ticket": "001013-sm95",
+   "ends_at": "2026-11-08T14:39:19+01:00"
   }
  ],
  "gpu_break": {
