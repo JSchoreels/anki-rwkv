@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-09T19:35:30+01:00",
- "updated": "2026-11-09 19:35",
- "material": "d83bea9a0646ba3b",
- "summary": "running 001088",
+ "generated_at": "2026-11-09T19:57:38+01:00",
+ "updated": "2026-11-09 19:57",
+ "material": "04c310c4f9572738",
+ "summary": "idle, finished 001088",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring (curve / instant)",
@@ -305,23 +305,7 @@
    "track": "small model"
   }
  ],
- "now": [
-  {
-   "what": "The show-time instant-only model, stage 2 (SM98): from the show-time instant-only small model (SM96)&rsquo;s epoch 31, 4 more constant-LR instant-only epochs (32&ndash;35) on show-time inputs, then the same one-epoch 32k Muon cool-down on show-time inputs. Rule fixed before launch: go = new &minus; the show-time instant-only small model (SM96) on show-time instant, 722 users, 95% CI below 0 and at least 0.05 points",
-   "id": "SM98, ticket 001088",
-   "kind": "gpu-train",
-   "decides": "Whether more show-time instant-only training makes a clearly better model for RWKV-Instant (as stage 4 did for the instant-only small model (SM57))",
-   "why": "",
-   "job": "the show-time instant-only model, stage 2 (SM98): instant-only epoch 35 on show-time inputs from epoch 34 (w64, SM96 epoch 31&#x27;s recipe: 8k final tier, the run&#x27;s order rule, 2048 x 16 lanes carry, leak-free replay KD, AdamW 7e-4 constant, curve loss weight 0, show-time inputs) (segment to the next break or the end)",
-   "linked": true,
-   "track": "small model",
-   "ticket": "001088-sm98",
-   "started": "18:51",
-   "elapsed": "0:44",
-   "progress": null,
-   "eta": "~20:57"
-  }
- ],
+ "now": [],
  "charts": [
   {
    "title": "Small model, leak-free (SM72s): LogLoss per epoch, 458-user set (lower is better)",
@@ -492,6 +476,15 @@
  "waiting": [],
  "recent": [
   {
+   "ticket": "001088-sm98",
+   "id": "SM98",
+   "what": "the show-time instant-only model, stage 2 (SM98): instant-only epoch 35 on show-time inputs from epoch 34 (w64, SM96 epoch 31&#x27;s recipe: 8k final tier, the run&#x27;s order rule, 2048 x 16 lanes carry, leak-free replay KD, AdamW 7e-4 constant, curve loss weight 0, show-time inputs) (segment to the next break or the end)",
+   "ended": "19:57",
+   "date": "11-09",
+   "exit": 1,
+   "ran": "1:05"
+  },
+  {
    "ticket": "001087-sm100",
    "id": "SM100",
    "what": "the show-time error sensitivity test (SM100): scoring the show-time instant-only small model (SM96) on the 723 users of the 732 set with show-time inputs shifted by 0 / +60 / +10 / +300 s and normal inputs (5 passes, per-review dumps, cap 0.8, 0.92 memory-only retry)",
@@ -535,15 +528,6 @@
    "date": "11-09",
    "exit": 0,
    "ran": "0:00"
-  },
-  {
-   "ticket": "001082-sm96",
-   "id": "SM96",
-   "what": "the show-time instant-only small model (SM96): scoring the new model on e2s-query inputs, the 1,500 validation users outside the 732 set + 6 check users (pass 4, 767 done, cap 0.92)",
-   "ended": "11:54",
-   "date": "11-09",
-   "exit": 0,
-   "ran": "0:00"
   }
  ],
  "plan": [
@@ -582,10 +566,11 @@
    "when": "Launched 12:12 Mon: 4 epochs ~125 min each (~78k reviews/s), pause for the 20:00&ndash;01:00 break, cool-down ~8 h (~20k reviews/s), scoring ~50 min; done ~12:30 Tue",
    "decides": "Whether more show-time instant-only training makes a clearly better model for RWKV-Instant (as stage 4 did for the instant-only small model (SM57))",
    "started_at": "2026-11-09T12:12:44+01:00",
-   "state": "running",
-   "started": "18:51",
-   "ticket": "001088-sm98",
-   "ends_at": "2026-11-10T05:32:44+01:00"
+   "state": "done",
+   "ended": "19:57",
+   "exit": 1,
+   "started": "12:12",
+   "ended_at": "2026-11-09T19:57:08+01:00"
   },
   {
    "id": "SM97",
