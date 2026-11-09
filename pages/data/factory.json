@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-09T01:00:55+01:00",
- "updated": "2026-11-09 01:00",
- "material": "48bf66f7ef4edcf1",
- "summary": "idle, finished 001069",
+ "generated_at": "2026-11-09T01:01:29+01:00",
+ "updated": "2026-11-09 01:01",
+ "material": "3e95ed19c8c00995",
+ "summary": "running 001070",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring (curve / instant)",
@@ -305,7 +305,23 @@
    "track": "small model"
   }
  ],
- "now": [],
+ "now": [
+  {
+   "what": "The show-time instant-only small model (SM96): from the instant-only small model (SM57) stage 4&rsquo;s epoch 30, one more instant-only epoch on show-time inputs, then the release&rsquo;s one-epoch 32k Muon cool-down on show-time inputs, so RWKV-Instant gets both gains (instant-only and show-time training; same recipe as the show-time retrain (SM92)). Rule fixed before launch: go = new &minus; the show-time retrain (SM92) on show-time instant, 722 users, 95% CI below 0 and at least 0.05 points",
+   "id": "SM96, ticket 001070",
+   "kind": "gpu-train",
+   "decides": "",
+   "why": "",
+   "job": "the show-time instant-only small model (SM96): instant-only epoch 31 on show-time inputs from SM57 stage 4&#x27;s epoch 30 (w64, stage 4&#x27;s epoch recipe: 8k final tier, the run&#x27;s order rule, 2048 x 16 lanes carry, leak-free replay KD, AdamW 7e-4 constant, curve loss weight 0, show-time inputs) (segment to the next break or the end)",
+   "linked": true,
+   "track": "small model",
+   "ticket": "001070-sm96",
+   "started": "01:00",
+   "elapsed": "0:00",
+   "progress": null,
+   "eta": "~03:05"
+  }
+ ],
  "charts": [
   {
    "title": "Small model, leak-free (SM72s): LogLoss per epoch, 458-user set (lower is better)",
@@ -2101,12 +2117,11 @@
    "minutes": 650,
    "what": "The show-time instant-only small model (SM96): from the instant-only small model (SM57) stage 4&rsquo;s epoch 30, one more instant-only epoch on show-time inputs, then the release&rsquo;s one-epoch 32k Muon cool-down on show-time inputs, so RWKV-Instant gets both gains (instant-only and show-time training; same recipe as the show-time retrain (SM92)). Rule fixed before launch: go = new &minus; the show-time retrain (SM92) on show-time instant, 722 users, 95% CI below 0 and at least 0.05 points",
    "when": "Redesigned 11-09 00:20 before any GPU run (user: do the show-time epoch first); first GPU ticket 01:00 Mon: epoch 31 ~2 h (~82k reviews/s), cool-down ~8 h, scoring ~50 min; done ~12:00 Mon",
-   "state": "done",
-   "ended": "01:00",
-   "exit": 0,
+   "state": "running",
    "started": "01:00",
+   "ticket": "001070-sm96",
    "started_at": "2026-11-09T01:00:31+01:00",
-   "ended_at": "2026-11-09T01:00:54+01:00"
+   "ends_at": "2026-11-09T11:50:31+01:00"
   }
  ],
  "gpu_break": {
