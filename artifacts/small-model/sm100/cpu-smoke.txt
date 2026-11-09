@@ -1,0 +1,14 @@
+The show-time error sensitivity test (SM100): CPU smoke 2026-11-09 (scorer --device cpu, users 2388 and 4676, the 5 variants, --dump),
+before the commit (provenance_dirty true). Instant LogLoss: CPU row / from the dump / the SM96 GPU row of the show-time instant-only small model (SM96).
+2388 sm96-inst-e31st-st-dec1ep32k/w8+s8@e2s-query+60s 0.072346 0.072346 -
+4676 sm96-inst-e31st-st-dec1ep32k/w8+s8@e2s-query+60s 0.039055 0.039055 -
+2388 sm96-inst-e31st-st-dec1ep32k/w8+s8@e2s-query 0.071902 0.071902 0.071902
+4676 sm96-inst-e31st-st-dec1ep32k/w8+s8@e2s-query 0.039038 0.039038 0.039038
+2388 sm96-inst-e31st-st-dec1ep32k/w8+s8@e2s-query+10s 0.072102 0.072102 -
+4676 sm96-inst-e31st-st-dec1ep32k/w8+s8@e2s-query+10s 0.039052 0.039052 -
+2388 sm96-inst-e31st-st-dec1ep32k/w8+s8@e2s-query+300s 0.07297 0.07297 -
+4676 sm96-inst-e31st-st-dec1ep32k/w8+s8@e2s-query+300s 0.039057 0.039057 -
+2388 sm96-inst-e31st-st-dec1ep32k/w8+s8 0.072356 0.072356 0.072356
+4676 sm96-inst-e31st-st-dec1ep32k/w8+s8 0.039031 0.039031 0.039031
+dump_analysis on the 2 users (code path test only, not a result; note +60 s on 60,000 ms timeout reviews rebuilds the normal interval exactly):
+{"capped_users": 2, "caps": {"60000": 2}, "all_reviews": 4110, "timeout_reviews": 820, "fail_timeout": 40, "fail_other": 30, "other_reviews_capped_users": 3290, "timeout_share": 0.19951, "fail_rate_timeout": 0.0488, "fail_rate_other_capped_users": 0.0091, "timeout_e2s_minus_normal": {"a": 0.111447, "b": 0.111973, "delta": -0.000526, "delta_ci": [-0.000747, 0.000231], "pct_of_b": -0.47, "pct_of_b_ci": [-0.595, 0.354], "users": 2, "reviews": 820, "points_overall_denominator": -0.191}, "timeout_plus60_minus_e2s": {"a": 0.111973, "b": 0.111447, "delta": 0.000526, "delta_ci": [-0.000231, 0.000747], "pct_of_b": 0.472, "pct_of_b_ci": [-0.352, 0.599], "users": 2, "reviews": 820, "points_overall_denominator": 0.191}, "other_e2s_minus_normal": {"a": 0.038422, "b": 0.038526, "delta": -0.000104, "delta_ci": [-0.000285, -1.2e-05], "pct_of_b": -0.271, "pct_of_b_ci": [-0.681, -0.033], "users": 2, "reviews": 3290, "points_overall_denominator": -0.038}}

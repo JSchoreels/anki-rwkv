@@ -18,9 +18,15 @@ robustness to other apps (SM29): inputs another app could give us; labels are ne
   notime     no answer times: scaled_duration as for a missing time (duration 0) on every row.
   passfail-notime  both.
 `normal` = today's frame and samples, untouched.
+show-time error sensitivity (SM100): e2s-query+Ns / e2s-query-Ns (N whole seconds) = e2s-query with every show-time
+             interval moved by +/-N s before its derived columns: the instant query rows' interval, its sin / cos, the
+             cumulative interval (earlier answer-to-answer intervals + the moved show-time interval), its sin / cos and
+             the scaled columns, and the curve query's label_elapsed_seconds; floored at 0, the -1 sentinel kept. Shift 0
+             is e2s-query bit for bit (artifacts/small-model/sm100/sm100_check.py).
 """
 import contextlib
 import os
+import re
 
 import numpy as np
 
@@ -31,10 +37,32 @@ QUERY_INTERVAL_COLUMNS = ("elapsed_seconds", "elapsed_seconds_sin", "elapsed_sec
                           "scaled_elapsed_seconds_cumulative")
 
 
-def show_time_seconds(seconds, duration_ms):
-    """expertium/intervals.end_to_start_published on arrays: floor(max(s - d / 1000, 0)), the -1 sentinel kept."""
+SHIFT_RE = re.compile(r"e2s-query([+-]\d+)s")
+
+
+def parse(variant):
+    """(base variant, show-time shift in seconds): e2s-query+60s -> ("e2s-query", 60); others -> (variant, 0)."""
+    m = SHIFT_RE.fullmatch(variant)
+    if m:
+        return "e2s-query", int(m.group(1))
+    if variant not in VARIANTS:
+        raise ValueError(f"unknown input variant {variant}")
+    return variant, 0
+
+
+def valid(variant):
+    """argparse type for --inputs: a VARIANTS name or e2s-query+Ns / e2s-query-Ns."""
+    parse(variant)
+    return variant
+
+
+def show_time_seconds(seconds, duration_ms, shift=0):
+    """expertium/intervals.end_to_start_published on arrays: floor(max(s - d / 1000, 0)), the -1 sentinel kept.
+    shift (SM100): + shift seconds after the floor, floored at 0 again (shift 0 = the original expression)."""
     seconds = np.asarray(seconds, dtype="float64")
     out = np.floor(np.maximum(seconds - np.asarray(duration_ms, dtype="float64") / 1000.0, 0.0))
+    if shift:
+        out = np.maximum(out + float(shift), 0.0)
     out[seconds == -1] = -1.0
     return out
 
@@ -42,8 +70,7 @@ def show_time_seconds(seconds, duration_ms):
 def load_frame(data, user, variant):
     """get_rwkv_data(data, user) with the variant's frame-level change (before any deleted-card transform)."""
     from rwkv import data_processing as dp
-    if variant not in VARIANTS:
-        raise ValueError(f"unknown input variant {variant}")
+    variant, _ = parse(variant)
     if variant == "e2s-all":
         old = os.environ.get("EXPERTIUM_END_TO_START")
         os.environ["EXPERTIUM_END_TO_START"] = "1"
@@ -62,11 +89,12 @@ def load_frame(data, user, variant):
 def apply_frame(frame, variant):
     """Variant columns on the finished frame (after the deleted-card transform); `normal` / `e2s-all` return it as is."""
     from rwkv import data_processing as dp
+    variant, shift = parse(variant)
     if variant in ("normal", "e2s-all"):
         return frame
     frame = frame.copy()
     if variant == "e2s-query":
-        show = show_time_seconds(frame["elapsed_seconds"].to_numpy(), frame["duration"].to_numpy())
+        show = show_time_seconds(frame["elapsed_seconds"].to_numpy(), frame["duration"].to_numpy(), shift)
         nxt = frame.assign(_show=show).groupby("card_id")["_show"].shift(-1)
         frame["label_elapsed_seconds"] = nxt.fillna(np.pi).astype(frame["label_elapsed_seconds"].dtype)
         return frame
@@ -80,8 +108,8 @@ def apply_frame(frame, variant):
     return frame
 
 
-def _query_rows_show_time(section_df):
-    """e2s-query: the add_queries frame with the instant query rows' interval columns at show time."""
+def _query_rows_show_time(section_df, shift=0):
+    """e2s-query: the add_queries frame with the instant query rows' interval columns at show time (+ shift s, SM100)."""
     from rwkv import data_processing as dp
     q = section_df["is_query"].to_numpy() == 1
     if not q.any():
@@ -93,7 +121,7 @@ def _query_rows_show_time(section_df):
     if np.isnan(duration.astype("float64")).any():
         raise RuntimeError("e2s-query: a query row without its update row")
     es = sub["elapsed_seconds"].to_numpy().astype("float64")
-    show = show_time_seconds(es, duration)
+    show = show_time_seconds(es, duration, shift)
     cum = sub["elapsed_seconds_cumulative"].to_numpy().astype("float64") - es + show
     new = {"elapsed_seconds": show, "elapsed_seconds_cumulative": cum,
            "elapsed_seconds_sin": np.sin((show % SECONDS_PER_DAY) * 2 * np.pi / SECONDS_PER_DAY),
@@ -111,6 +139,7 @@ def _query_rows_show_time(section_df):
 @contextlib.contextmanager
 def query_patch(variant):
     """e2s-query: rwkv.data_processing.add_queries rewrites the query rows' intervals while samples are built."""
+    variant, shift = parse(variant)
     if variant != "e2s-query":
         yield
         return
@@ -118,7 +147,7 @@ def query_patch(variant):
     original = dp.add_queries
 
     def add_queries(section_df, equalize_review_ths):
-        return _query_rows_show_time(original(section_df, equalize_review_ths))
+        return _query_rows_show_time(original(section_df, equalize_review_ths), shift)
 
     dp.add_queries = add_queries
     try:

@@ -369,9 +369,10 @@ def main():
     parser.add_argument("--start-of-day", action="store_true", help="SM81: also score the instant head from the state "
                         "at the start of each review's day (scripts/sm81_sod.py); row entry start_of_day, --dump "
                         "writes p_curve / p_instant / p_sod")
-    parser.add_argument("--inputs", default="normal", choices=("normal", "e2s-query", "e2s-all", "passfail", "notime",
-                                                               "passfail-notime"),
-                        help="SM31 / SM29: input variant (scripts/sm31_inputs.py); labels get the suffix @VARIANT")
+    from scripts.sm31_inputs import valid as _valid_inputs
+    parser.add_argument("--inputs", default="normal", type=_valid_inputs,
+                        help="SM31 / SM29: input variant (scripts/sm31_inputs.py: normal, e2s-query, e2s-all, passfail, "
+                        "notime, passfail-notime; SM100: e2s-query+Ns / e2s-query-Ns); labels get the suffix @VARIANT")
     args = parser.parse_args()
     cpu = args.device == "cpu"
     if cpu:
