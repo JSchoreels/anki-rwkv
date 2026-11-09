@@ -54,7 +54,9 @@ usable signal.
 
 ## What runs
 
-- Launcher `artifacts/small-model/sm100/launch-sm100.sh`, started hidden via WMI (pid below). Log `gpu/launch-sm100.log`
+- Launcher `artifacts/small-model/sm100/launch-sm100.sh`, started 2026-11-09 16:20 hidden via WMI from commit 29975fac:
+  wrapper bash pid **56180**, launcher bash pid **34440**; queue ticket **001087-sm100** (waiting behind stage 2 (SM98)'s
+  epoch 34 ticket 001086 at 16:20, max wait 141 min). Log `gpu/launch-sm100.log`
   (ends `done (verdict ...)` or a `STOP:` line); scorer output `gpu/score.out`; tickets `gpu/tickets.jsonl`; dry run
   `gpu/launch-sm100-dryrun.log` (DRYRUN OK).
 - Queue owner `sm100`; purpose starts "the show-time error sensitivity test (SM100): ". One ticket, expected 75 min (SM96:
