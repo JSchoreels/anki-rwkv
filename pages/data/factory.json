@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-09T18:51:44+01:00",
- "updated": "2026-11-09 18:51",
- "material": "e9502d350a86dbbe",
- "summary": "running 001088, finished 001087",
+ "generated_at": "2026-11-09T18:59:02+01:00",
+ "updated": "2026-11-09 18:59",
+ "material": "211fd9536bf483b7",
+ "summary": "running 001088",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring (curve / instant)",
@@ -317,7 +317,7 @@
    "track": "small model",
    "ticket": "001088-sm98",
    "started": "18:51",
-   "elapsed": "0:00",
+   "elapsed": "0:07",
    "progress": null,
    "eta": "~20:57"
   }
@@ -554,14 +554,11 @@
    "kind": "gpu-score",
    "minutes": 75,
    "what": "The show-time error sensitivity test (SM100): outside research asked whether show time = answer time &minus; duration leaks the outcome (undo, timeout cap). Score the show-time instant-only small model (SM96) with every query interval made longer by +10 s, +60 s and +300 s, plus per-review dumps for a timeout subset. Rule fixed before launch: negligible if the +10 s and +60 s instant changes stay inside &plusmn;0.05 points (95% CI, 722 users)",
-   "when": "Queued 16:20 Mon behind stage 2&rsquo;s epoch 34 (SM98): runs ~18:00&ndash;19:15 (~75 GPU min); if later than ~18:45, after the break, ~02:20 Tue",
+   "when": "Done 18:51 Mon (GPU 17:48&ndash;18:51): rule verdict not negligible (sensitivity at intervals under 10 min); the actual timeout leak is ~0.006 points per minute of error; see results",
    "decides": "Whether the reconstructed show time can flatter the evaluation; Anki itself queries at the real show time",
-   "started_at": "2026-11-09T17:47:57+01:00",
+   "started_at": "2026-11-09T16:20+01:00",
    "state": "done",
-   "ended": "18:51",
-   "exit": 0,
-   "started": "17:47",
-   "ended_at": "2026-11-09T18:51:23+01:00"
+   "ended_at": "2026-11-09T18:51+01:00"
   },
   {
    "id": "SM98",
@@ -2709,6 +2706,27 @@
   }
  ],
  "results": [
+  {
+   "date": "11-09",
+   "kind": "gpu-score",
+   "id": "SM100",
+   "track": "small model",
+   "name": "The show-time error sensitivity test (SM100): does the rebuilt show time (answer time &minus; duration) leak the outcome when the duration is wrong (timeouts, undo)? The show-time instant-only small model (SM96) scored with every query interval longer by +10 s, +60 s and +300 s, plus a timeout subset",
+   "eval": "Leak-free w8+s8, 722 users of the 732 set; points = % of the big model (1 leak-free epoch) normal-input instant LogLoss; paired user bootstrap 95% CI. Rule fixed before launch: negligible if the +10 s and +60 s changes stay inside &plusmn;0.05 points. Timeout reviews = duration at the user&rsquo;s cap (repeated at least 20 times)",
+   "fork": "No change: the Anki fork queries at the real show time, so scheduling has no leak",
+   "takeaway": "<strong>Not negligible by the rule</strong>: +10 s +0.090 [+0.069, +0.114], +60 s +0.397 [+0.331, +0.476], +300 s +1.107 points, all from intervals under 10 min (14% of reviews; &ge;1 day: |&Delta;R| ~1e-6). The real leak is small: timeouts are 3.36% of reviews (failure 20.1% vs 14.4%), and their too-long rebuilt interval helps by 0.179% of their LogLoss per 60 s, ~0.006 points overall per minute of error (informal bound); undo is unmeasured. Model comparisons on the same inputs largely cancel it",
+   "started_at": "2026-11-09T17:48+01:00",
+   "ended_at": "2026-11-09T18:51+01:00",
+   "gpu_minutes": 63,
+   "tickets": 1,
+   "detail": {
+    "verdict": "Not negligible (sensitivity); leak bound ~0.006 points per minute; branch sm100 b63cd133 (sm100-result.md)",
+    "notes": [
+     "Question from outside research (obezag): show time = answer time &minus; duration leaks via undo / timeout",
+     "Scorer ~58k review-evals/s per pass, 5 passes"
+    ]
+   }
+  },
   {
    "date": "11-09",
    "kind": "gpu-train",
