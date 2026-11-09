@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-09T11:54:42+01:00",
- "updated": "2026-11-09 11:54",
- "material": "e956a7825ff9fd7a",
- "summary": "idle, finished 001082",
+ "generated_at": "2026-11-09T12:00:22+01:00",
+ "updated": "2026-11-09 12:00",
+ "material": "0924ca0ebc01ecaf",
+ "summary": "idle",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring (curve / instant)",
@@ -2113,13 +2113,11 @@
    "kind": "gpu-train",
    "minutes": 650,
    "what": "The show-time instant-only small model (SM96): from the instant-only small model (SM57) stage 4&rsquo;s epoch 30, one more instant-only epoch on show-time inputs, then the release&rsquo;s one-epoch 32k Muon cool-down on show-time inputs, so RWKV-Instant gets both gains (instant-only and show-time training; same recipe as the show-time retrain (SM92)). Rule fixed before launch: go = new &minus; the show-time retrain (SM92) on show-time instant, 722 users, 95% CI below 0 and at least 0.05 points",
-   "when": "Redesigned 11-09 00:20 before any GPU run (user: do the show-time epoch first); first GPU ticket 01:00 Mon: epoch 31 ~2 h (~82k reviews/s), cool-down ~8 h, scoring ~50 min; done ~12:00 Mon",
+   "when": "Done 11:54 Mon: GO, instant &minus;0.214 points vs the show-time retrain (SM92) on show-time inputs; &minus;0.481% vs the release on the 1,500 validation users; see results",
+   "decides": "Whether the show-time instant-only model beats the show-time retrain (SM92) for RWKV-Instant (go: 95% CI below 0 and at least 0.05 points); on go, the user decides the fork integration",
    "state": "done",
-   "ended": "11:54",
-   "exit": 0,
-   "started": "01:00",
-   "started_at": "2026-11-09T01:00:31+01:00",
-   "ended_at": "2026-11-09T11:54:15+01:00"
+   "started_at": "2026-11-09T01:00+01:00",
+   "ended_at": "2026-11-09T11:54+01:00"
   }
  ],
  "gpu_break": {
@@ -2656,6 +2654,28 @@
   }
  ],
  "results": [
+  {
+   "date": "11-09",
+   "kind": "gpu-train",
+   "id": "SM96",
+   "track": "small model",
+   "name": "The show-time instant-only small model (SM96): from the instant-only small model (SM57) stage 4&rsquo;s epoch 30, one more instant-only epoch (31) on show-time inputs, then the release&rsquo;s one-epoch 32k Muon cool-down on show-time inputs",
+   "eval": "Leak-free w8+s8, 722 users of the 732 set, show-time inputs (what RWKV-Instant gets in the fork); points = % of the big model (1 leak-free epoch) normal-input instant LogLoss; paired user bootstrap 95% CI. Rule fixed before launch: go = new &minus; the show-time retrain (SM92), CI below 0 and at least 0.05 points. Also the 1,500 validation users (1,487 scored), % of the release&rsquo;s LogLoss",
+   "fork": "Not yet in the fork: RWKV-Instant uses the show-time retrain (SM92) since 11-09 01:40 (SM97); integration waits for the user (its curve is untrained, so a profile with RWKV-Instant only would lose intervals again)",
+   "takeaway": "<strong>GO</strong>: instant &minus;0.214 points [&minus;0.233, &minus;0.195] vs the show-time retrain (SM92), better for 647 of 722 users; &minus;0.344 vs the instant-only small model (SM57) stage 4 on show-time inputs; show-time cost only +0.055 (stage 4: ~+0.45). 1,500 validation users: &minus;0.481% [&minus;0.534, &minus;0.438] vs the release, better for 1,383 of 1,487",
+   "started_at": "2026-11-09T01:00+01:00",
+   "ended_at": "2026-11-09T11:54+01:00",
+   "gpu_minutes": 654,
+   "tickets": 12,
+   "detail": {
+    "verdict": "Go; branch sm96 4b3d96c0 (sm96-result.md, sm96-decision.md)",
+    "notes": [
+     "Epoch 31: 124.6 min, 77,996 reviews/s; cool-down: 483.2 min, 20,084 reviews/s; nvidia-smi max 15.5 GB",
+     "10-epoch ETA: constant-LR 5.3 h (2k tier) / 20.7 h (8k tier); cool-down speed 20.4 h / 80.5 h",
+     "On normal inputs: +0.086 vs stage 4 (the show-time switch costs a little there), &minus;0.226 vs the show-time retrain (SM92)"
+    ]
+   }
+  },
   {
    "date": "11-09",
    "kind": "cpu",
