@@ -1,7 +1,7 @@
 {
- "generated_at": "2026-11-09T01:01:29+01:00",
- "updated": "2026-11-09 01:01",
- "material": "3e95ed19c8c00995",
+ "generated_at": "2026-11-09T01:41:14+01:00",
+ "updated": "2026-11-09 01:41",
+ "material": "3fb18cf2085884b0",
  "summary": "running 001070",
  "headline": [
   {
@@ -317,7 +317,7 @@
    "track": "small model",
    "ticket": "001070-sm96",
    "started": "01:00",
-   "elapsed": "0:00",
+   "elapsed": "0:40",
    "progress": null,
    "eta": "~03:05"
   }
@@ -547,6 +547,19 @@
   }
  ],
  "plan": [
+  {
+   "id": "SM97",
+   "track": "small model",
+   "since": "11-09T01:01",
+   "kind": "cpu",
+   "minutes": 60,
+   "what": "RWKV-Instant on the show-time retrain (SM97): in the fork, RWKV-Instant uses the show-time retrain of the release (SM92) wherever it used the instant-only small model (SM57) stage 4, because the fork queries at show time; update tests and notes; no release",
+   "when": "Done 01:40 Mon: fork main 34399e70d, CI green; no release",
+   "decides": "Nothing: the user decided on 11-08 (&ldquo;fair to take the hit for this fix&rdquo;); the show-time instant-only model (SM96) may replace it later",
+   "started_at": "2026-11-09T01:01+01:00",
+   "state": "done",
+   "ended_at": "2026-11-09T01:40+01:00"
+  },
   {
    "id": "SM93",
    "track": "small model",
@@ -2658,6 +2671,28 @@
   }
  ],
  "results": [
+  {
+   "date": "11-09",
+   "kind": "cpu",
+   "id": "SM97",
+   "track": "small model",
+   "name": "RWKV-Instant on the show-time retrain (SM97): RWKV-Instant now uses the show-time retrain of the release (SM92) in place of the instant-only small model (SM57) stage 4",
+   "eval": "Decision from the show-time scoring: 722 users of the 732 set, leak-free w8+s8, show-time inputs (what the fork gives at a query); points = % of the big model (1 leak-free epoch) normal-input instant LogLoss; paired user bootstrap 95% CI. Fork Rust and Python tests; fork CI (Linux, Windows, macOS)",
+   "fork": "In fork main 34399e70d (CI green, no release): RWKV-Instant only with the default model runs the show-time retrain (SM92) alone as a full model (intervals, S90, simulation and answer time come back); with both schedulers and the specialized toggle on, RWKV-Curve keeps the small model (SM63) and RWKV-Instant runs on the show-time retrain (SM92) beside it; toggle off unchanged. The instant-only small model (SM57) stays bundled (one constant to switch back or to the show-time instant-only model (SM96))",
+   "takeaway": "<strong>Shipped in the fork</strong>: show-time instant 0.276876 for the show-time retrain (SM92) vs 0.277236 for the instant-only small model (SM57) stage 4: the instant-only model minus the show-time retrain is +0.130 points [+0.059, +0.216], so the switch passes the go rule. The instant-only model was trained on normal inputs and loses most of its lead on show-time inputs",
+   "started_at": "2026-11-09T01:01+01:00",
+   "ended_at": "2026-11-09T01:40+01:00",
+   "gpu_minutes": 0,
+   "tickets": 0,
+   "detail": {
+    "verdict": "Shipped in the fork (no release)",
+    "notes": [
+     "Native paired loader now accepts any compatible leak-free small model as the RWKV-Instant engine; paired parity tests bit for bit for both engines",
+     "Profiles rebuild RWKV state from history once (new model key)",
+     "Tests: Rust 249 passed; Python 786 + 791 + 66 passed"
+    ]
+   }
+  },
   {
    "date": "11-08",
    "kind": "gpu-score",
