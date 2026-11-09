@@ -7,3 +7,51 @@
 [sm96 11-09 00:22:15] stopped by the main session before any GPU ticket: the user asked for a show-time epoch before the cool-down (redesign)
 [sm96 11-09 00:30:30] started: 1e22b62c The show-time instant-only small model (SM96): redesign before any GPU run (user 11-09 00:20), epoch 31 on show-time inputs before the cool-down (DRYRUN=0; epoch 31 on show-time inputs from SM57 stage 4's instant-only epoch 30, then the release's cool-down on show-time inputs from epoch 31, curve loss weight 0)
 [sm96 11-09 00:30:30] preparation: break, 1829s left
+[sm96-epoch] pair OK: sm96-inst-e31-st == stage 4's sm57s4-inst-e30 step except the input switch {"show_time_intervals": true} and the epoch index / start / paths (8,000 users, 581,942,724 reviews, epoch 31, start sm57s4-inst-e30 (sha256 585c50b6a545), offset 662340, differences: protocol ['/full_run/control_dir', '/full_run/epoch', '/full_run/init_master', '/full_run/init_optimizer', '/full_run/update_offset'] + rows order; decay ['/created_utc', '/epoch', '/init_master_sha256', '/init_optimizer_sha256', '/note', '/options/show_time_intervals', '/source_epoch', '/start'])
+[sm57-pair] decay OK: sm96-inst-e30-showtime-dec-1ep32k-muon == sm57s4-inst-e30-dec-1ep32k-muon except the flag, the start weights, the epoch index and paths {"show_time_intervals": true} (8,000 users, 581,942,724 reviews, update offset 662340 vs 662340, start 585c50b6a545)
+[sm96 11-09 01:00:31] enqueue: trainer smoke of epoch 31 (instant-only, constant LR, show-time inputs, from stage 4's epoch 30, 2 users x 512 reviews) (expected 10 min, max wait 1126 min, 1139 min to the next break)
+[sm96 11-09 01:00:54] exit 0: trainer smoke of epoch 31 (instant-only, constant LR, show-time inputs, from stage 4's epoch 30, 2 users x 512 reviews)
+[sm96 11-09 01:00:54] smoke: {"smoke": "sm96-inst-e31-st", "exit": 0, "status": "complete", "updates": 2, "reviews": 1024, "error": null, "seconds": 21.6}
+[sm96 11-09 01:00:55] enqueue: instant-only epoch 31 on show-time inputs from SM57 stage 4's epoch 30 (w64, stage 4's epoch recipe: 8k final tier, the run's order rule, 2048 x 16 lanes carry, leak-free replay KD, AdamW 7e-4 constant, curve loss weight 0, show-time inputs) (expected 125 min of ~125, 1139 min to the next break, 13978 MiB RAM free)
+[sm96 11-09 03:05:33] exit 0: instant-only epoch 31 on show-time inputs from SM57 stage 4's epoch 30 (w64, stage 4's epoch recipe: 8k final tier, the run's order rule, 2048 x 16 lanes carry, leak-free replay KD, AdamW 7e-4 constant, curve loss weight 0, show-time inputs) segment (nvidia-smi max 15440 MiB, baseline 4178 MiB)
+[sm96 11-09 03:05:33] instant-only epoch 31 on show-time inputs from SM57 stage 4's epoch 30 (w64, stage 4's epoch recipe: 8k final tier, the run's order rule, 2048 x 16 lanes carry, leak-free replay KD, AdamW 7e-4 constant, curve loss weight 0, show-time inputs) complete: 581,942,724 reviews, 124.4 min training, 77,996 reviews/s, peak allocated 10,879 MiB, reserved 13,006 MiB, curve_loss_weight 0.0, init c30ddbcf68ae, trained f961d506eb45, update offset end 684418
+[sm96-muon] sm96-inst-e31st-st-dec-1ep32k-muon PASS lines: 7
+[sm96 11-09 03:05:51] cool-down prepared: sm96-inst-e31st-st-dec-1ep32k-muon
+[sm96-check] C1_cooldown_from_e31 OK: {"vs_stage4_cooldown": [true, "[sm57-pair] decay OK: sm96-inst-e31st-st-dec-1ep32k-muon == sm57s4-inst-e30-dec-1ep32k-muon except the flag, the start weights, the epoch index and paths {\"show_time_intervals\": true} (8,000 users, 581,942,724 reviews, update offset 684418 vs 662340, start f49c36fa5bff)"], "vs_release_cooldown": [true, "[sm57-pair] decay OK: sm96-inst-e31st-st-dec-1ep32k-muon == scale-w64kd-final-sc-lanes-leakfree-dec25-1ep32k-muon except the flag, the start weights, the epoch index and paths {\"curve_loss_weight\": 0.0, \"show_time_intervals\": true} (8,000 users, 581,942,724 reviews, update offset 684418 vs 551950, start f49c36fa5bff)"], "vs_sm92_cooldown": [true, "[sm57-pa
+[sm96-check] ALL OK -> check-cpu-sm96-cooldown.json
+[sm96 11-09 03:05:51] enqueue: trainer smoke of the show-time instant-only cool-down from epoch 31 (fresh Muon, curve loss weight 0, show-time inputs, 2 users x 512 reviews) (expected 10 min, max wait 1001 min, 1014 min to the next break)
+[sm96 11-09 03:06:04] exit 0: trainer smoke of the show-time instant-only cool-down from epoch 31 (fresh Muon, curve loss weight 0, show-time inputs, 2 users x 512 reviews)
+[sm96 11-09 03:06:04] smoke: {"smoke": "sm96-inst-e31st-st-dec-1ep32k-muon", "exit": 0, "status": "complete", "updates": 2, "reviews": 1024, "error": null, "seconds": 11.8}
+[sm96 11-09 03:06:05] enqueue: the release's one-epoch 32k Muon cool-down on show-time inputs from epoch 31 (stage 4's users, order, seeds, KD targets), curve loss weight 0 (expected 560 min of ~560, 1013 min to the next break, 13261 MiB RAM free)
+[sm96 11-09 11:09:19] exit 0: the release's one-epoch 32k Muon cool-down on show-time inputs from epoch 31 (stage 4's users, order, seeds, KD targets), curve loss weight 0 segment (nvidia-smi max 15544 MiB, baseline 2168 MiB)
+[sm96 11-09 11:09:19] the release's one-epoch 32k Muon cool-down on show-time inputs from epoch 31 (stage 4's users, order, seeds, KD targets), curve loss weight 0 complete: 581,942,724 reviews, 482.9 min training, 20,084 reviews/s, peak allocated 7,428 MiB, reserved 12,840 MiB, curve_loss_weight 0.0, init f961d506eb45, trained 6ad9c11704e2, update offset end 706496
+[sm96 11-09 11:09:20] enqueue: scoring the new model on e2s-query inputs, the 732 set minus 9 never-fit (723 users) (pass 1, 0 done, cap 0.8) (expected 32 min, max wait 495 min, 530 min to the next break)
+[sm96 11-09 11:21:18] exit 0: scoring the new model on e2s-query inputs, the 732 set minus 9 never-fit (723 users) (pass 1, 0 done, cap 0.8)
+[sm96 11-09 11:21:19] enqueue: scoring the new model on e2s-query inputs, the 732 set minus 9 never-fit (723 users) (pass 2, 722 done, cap 0.8) (expected 20 min, max wait 495 min, 518 min to the next break)
+[sm96 11-09 11:21:47] exit 0: scoring the new model on e2s-query inputs, the 732 set minus 9 never-fit (723 users) (pass 2, 722 done, cap 0.8)
+[sm96 11-09 11:21:48] sm96-inst-e31st-st-dec1ep32k/w8+s8@e2s-query: 723 users scored in sm96-rows.jsonl
+[sm96 11-09 11:21:48] enqueue: scoring the new model on e2s-query inputs, the 3 long users of the 732 set (pass 1, 723 done, cap 0.92) (expected 25 min, max wait 490 min, 518 min to the next break)
+[sm96 11-09 11:22:38] exit 0: scoring the new model on e2s-query inputs, the 3 long users of the 732 set (pass 1, 723 done, cap 0.92)
+[sm96 11-09 11:22:38] sm96-inst-e31st-st-dec1ep32k/w8+s8@e2s-query: 726 users scored in sm96-rows.jsonl
+[sm96 11-09 11:22:39] rule (show-time 732) exit 0: [sm96-rule] verdict go: new - SM92 show-time instant -0.214 [-0.233, -0.195] points (722 users); new - stage 4 show-time -0.344 [-0.429, -0.275]; 1,500 pool users 726
+[sm96 11-09 11:22:39] enqueue: scoring the new model on normal inputs, the 732 set minus 9 never-fit (723 users) (pass 1, 0 done, cap 0.8) (expected 32 min, max wait 482 min, 517 min to the next break)
+[sm96 11-09 11:34:13] exit 0: scoring the new model on normal inputs, the 732 set minus 9 never-fit (723 users) (pass 1, 0 done, cap 0.8)
+[sm96 11-09 11:34:13] enqueue: scoring the new model on normal inputs, the 732 set minus 9 never-fit (723 users) (pass 2, 722 done, cap 0.8) (expected 20 min, max wait 482 min, 505 min to the next break)
+[sm96 11-09 11:34:42] exit 0: scoring the new model on normal inputs, the 732 set minus 9 never-fit (723 users) (pass 2, 722 done, cap 0.8)
+[sm96 11-09 11:34:42] sm96-inst-e31st-st-dec1ep32k/w8+s8: 723 users scored in sm96-rows.jsonl
+[sm96 11-09 11:34:42] enqueue: scoring the new model on normal inputs, the 3 long users of the 732 set (pass 1, 723 done, cap 0.92) (expected 25 min, max wait 477 min, 505 min to the next break)
+[sm96 11-09 11:35:30] exit 0: scoring the new model on normal inputs, the 3 long users of the 732 set (pass 1, 723 done, cap 0.92)
+[sm96 11-09 11:35:31] sm96-inst-e31st-st-dec1ep32k/w8+s8: 726 users scored in sm96-rows.jsonl
+[sm96 11-09 11:35:31] enqueue: scoring the new model on e2s-query inputs, the 1,500 validation users outside the 732 set + 6 check users (pass 1, 0 done, cap 0.8) (expected 45 min, max wait 456 min, 504 min to the next break)
+[sm96 11-09 11:52:21] exit 0: scoring the new model on e2s-query inputs, the 1,500 validation users outside the 732 set + 6 check users (pass 1, 0 done, cap 0.8)
+[sm96 11-09 11:52:22] enqueue: scoring the new model on e2s-query inputs, the 1,500 validation users outside the 732 set + 6 check users (pass 2, 766 done, cap 0.8) (expected 20 min, max wait 464 min, 487 min to the next break)
+[sm96 11-09 11:53:00] exit 0: scoring the new model on e2s-query inputs, the 1,500 validation users outside the 732 set + 6 check users (pass 2, 766 done, cap 0.8)
+[sm96 11-09 11:53:00] no progress on sm96-inst-e31st-st-dec1ep32k/w8+s8@e2s-query (766 of 771 users): next pass at cap 0.92 (memory only, same numerics)
+[sm96 11-09 11:53:00] enqueue: scoring the new model on e2s-query inputs, the 1,500 validation users outside the 732 set + 6 check users (pass 3, 766 done, cap 0.92) (expected 20 min, max wait 463 min, 486 min to the next break)
+[sm96 11-09 11:53:43] exit 0: scoring the new model on e2s-query inputs, the 1,500 validation users outside the 732 set + 6 check users (pass 3, 766 done, cap 0.92)
+[sm96 11-09 11:53:44] enqueue: scoring the new model on e2s-query inputs, the 1,500 validation users outside the 732 set + 6 check users (pass 4, 767 done, cap 0.92) (expected 20 min, max wait 463 min, 486 min to the next break)
+[sm96 11-09 11:54:15] exit 0: scoring the new model on e2s-query inputs, the 1,500 validation users outside the 732 set + 6 check users (pass 4, 767 done, cap 0.92)
+[sm96 11-09 11:54:16] no progress at cap 0.92 on sm96-inst-e31st-st-dec1ep32k/w8+s8@e2s-query (767 of 771 users): the rest do not fit; going on
+[sm96 11-09 11:54:16] sm96-inst-e31st-st-dec1ep32k/w8+s8@e2s-query: 767 users scored in sm96-rows-1500.jsonl
+[sm96 11-09 11:54:18] rule (final) exit 0: [sm96-rule] verdict go: new - SM92 show-time instant -0.214 [-0.233, -0.195] points (722 users); new - stage 4 show-time -0.344 [-0.429, -0.275]; 1,500 pool users 1487
+[sm96 11-09 11:54:18] done (verdict go)
