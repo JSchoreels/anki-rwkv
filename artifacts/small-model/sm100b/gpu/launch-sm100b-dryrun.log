@@ -1,0 +1,13 @@
+[sm100b 11-09 19:32:44] started: b63cd133 SM100: show-time error sensitivity result (not negligible; informal timeout bound ~0.006 points) (DRYRUN=1; SM92 checkpoint on 723 users: e2s-query, dumps on)
+[sm100b-rule] selftest rows: 722 users; SM96 - SM92 e2s instant (a, exact report estimator) -0.214 [-0.233, -0.195] -> OK
+[sm100b-rule] selftest dumps: 722 users (0 missing); estimator, SM96 show-time - normal, all reviews: +0.055 [+0.041, +0.072] (rows: +0.055 [+0.042, +0.072]) -> OK
+[sm100b-rule] selftest: SM96 dumped vs row instant LogLoss, max abs diff over users 5.00e-07 -> OK
+[sm100b-rule] SM96 absolute instant LogLoss (show-time inputs): all 0.276287, without timeouts 0.274182, timeouts only 0.336900; timeout reviews 1,010,999 of 30,126,145 (3.36%)
+[sm100b-rule] selftest: ALL OK
+[sm100b 11-09 19:32:50] DRYRUN: scoring the show-time retrain of the release (SM92) on the 723 users of the 732 set with show-time inputs (1 pass, per-review dumps, cap 0.8, 0.92 memory-only retry) would wait inside a break (19689s left)
+[sm100b 11-09 19:32:50] DRYRUN enqueue: the show-time error sensitivity test (SM100), follow-up: scoring the show-time retrain of the release (SM92) on the 723 users of the 732 set with show-time inputs (1 pass, per-review dumps, cap 0.8, 0.92 memory-only retry) (expected 25 min)
+    cmd: C:/Users/jonat/workspace/anki-rwkv/.venv/Scripts/python.exe -X utf8 C:/Users/jonat/workspace/wt/sm100/artifacts/small-model/sm100b/sm100b_score.py --dry-run
+[sm100b-score 11-09 19:32:50] e2s-query: 0 of 723 users done; pass at cap 0.8
+    C:\Users\jonat\workspace\anki-rwkv\.venv\Scripts\python.exe -X utf8 C:\Users\jonat\workspace\wt\sm100\scripts\small_model_heldout.py --pool 732 --users-file C:/Users/jonat/workspace/wt/sm72s/artifacts/small-model/sm72s/eval-users-732-fit.json --model sm92-e26-dec1ep32k=expertium:w64:C:/Users/jonat/workspace/wt/sm92/artifacts/small-model/sm92-e26-dec-1ep32k-muon/expertium/E89-F65e-F77a/master.pth --only sm92-e26-dec1ep32k/w8+s8 --inputs e2s-query --time-limit 1800 --split-existing --deleted-cards neighbour --out C:\Users\jonat\workspace\wt\sm100\artifacts\small-model\sm100b\gpu\sm100b-rows.jsonl --dump C:\Users\jonat\workspace\wt\sm100\artifacts\small-model\sm100b\gpu\dump
+[sm100b 11-09 19:32:50] DRYRUN: then C:/Users/jonat/workspace/anki-rwkv/.venv/Scripts/python.exe -X utf8 C:/Users/jonat/workspace/wt/sm100/artifacts/small-model/sm100b/sm100b_rule.py decide
+[sm100b 11-09 19:32:51] DRYRUN OK
