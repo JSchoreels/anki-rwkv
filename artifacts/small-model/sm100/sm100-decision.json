@@ -1,0 +1,281 @@
+{
+ "rule": "shifted - unshifted, instant, the show-time instant-only small model (SM96), 722 users: negligible if the 95% CI of BOTH +10 s and +60 s lies inside (-0.05, +0.05) points",
+ "label": "sm96-inst-e31st-st-dec1ep32k/w8+s8",
+ "users": 722,
+ "big_instant": 0.275757,
+ "pairs": {
+  "+10s": {
+   "new": 0.276534,
+   "ref": 0.276287,
+   "big": 0.275757,
+   "delta": 0.000247,
+   "delta_ci": [
+    0.000188,
+    0.000316
+   ],
+   "points": 0.09,
+   "points_ci": [
+    0.069,
+    0.114
+   ],
+   "pct_of_ref": 0.089,
+   "pct_of_ref_ci": [
+    0.069,
+    0.114
+   ],
+   "users_better": 139,
+   "users_worse": 564
+  },
+  "+60s": {
+   "new": 0.277381,
+   "ref": 0.276287,
+   "big": 0.275757,
+   "delta": 0.001094,
+   "delta_ci": [
+    0.000897,
+    0.001325
+   ],
+   "points": 0.397,
+   "points_ci": [
+    0.331,
+    0.476
+   ],
+   "pct_of_ref": 0.396,
+   "pct_of_ref_ci": [
+    0.331,
+    0.475
+   ],
+   "users_better": 62,
+   "users_worse": 652
+  },
+  "+300s": {
+   "new": 0.27934,
+   "ref": 0.276287,
+   "big": 0.275757,
+   "delta": 0.003053,
+   "delta_ci": [
+    0.002582,
+    0.003617
+   ],
+   "points": 1.107,
+   "points_ci": [
+    0.951,
+    1.309
+   ],
+   "pct_of_ref": 1.105,
+   "pct_of_ref_ci": [
+    0.949,
+    1.306
+   ],
+   "users_better": 35,
+   "users_worse": 683
+  }
+ },
+ "verdict": "not negligible",
+ "own_show_time_cost": {
+  "new": 0.276287,
+  "ref": 0.276134,
+  "big": 0.275757,
+  "delta": 0.000153,
+  "delta_ci": [
+   0.000114,
+   0.000198
+  ],
+  "points": 0.055,
+  "points_ci": [
+   0.042,
+   0.072
+  ],
+  "pct_of_ref": 0.055,
+  "pct_of_ref_ci": [
+   0.042,
+   0.072
+  ],
+  "users_better": 199,
+  "users_worse": 502
+ },
+ "reproduction_vs_sm96_rows": {
+  "e2s-query": {
+   "users": 722,
+   "max_abs_instant_logloss_diff": 0.0
+  },
+  "normal": {
+   "users": 722,
+   "max_abs_instant_logloss_diff": 0.0
+  }
+ },
+ "dumps": {
+  "missing": 0,
+  "missing_examples": [],
+  "review_th_mismatch": 0,
+  "shifts": {
+   "+10s": {
+    "reviews": 30126145,
+    "mean_abs_dR": 0.001213,
+    "p99_abs_dR_upper": 0.0235,
+    "share_abs_dR_over_0.01": 0.02711,
+    "by_bucket": {
+     "< 10 min": {
+      "share": 0.1402,
+      "mean_abs_dR": 0.008504,
+      "dLogLoss_per_review": 0.00176,
+      "pct_of_bucket_logloss": 0.559,
+      "points_contribution": 0.089
+     },
+     "10 min - 1 day": {
+      "share": 0.2196,
+      "mean_abs_dR": 9e-05,
+      "dLogLoss_per_review": 2e-06,
+      "pct_of_bucket_logloss": 0.001,
+      "points_contribution": 0.0
+     },
+     ">= 1 day": {
+      "share": 0.6402,
+      "mean_abs_dR": 1e-06,
+      "dLogLoss_per_review": 0.0,
+      "pct_of_bucket_logloss": 0.0,
+      "points_contribution": 0.0
+     }
+    }
+   },
+   "+60s": {
+    "reviews": 30126145,
+    "mean_abs_dR": 0.004053,
+    "p99_abs_dR_upper": 0.0965,
+    "share_abs_dR_over_0.01": 0.06703,
+    "by_bucket": {
+     "< 10 min": {
+      "share": 0.1402,
+      "mean_abs_dR": 0.028081,
+      "dLogLoss_per_review": 0.007778,
+      "pct_of_bucket_logloss": 2.473,
+      "points_contribution": 0.396
+     },
+     "10 min - 1 day": {
+      "share": 0.2196,
+      "mean_abs_dR": 0.000507,
+      "dLogLoss_per_review": 1.3e-05,
+      "pct_of_bucket_logloss": 0.004,
+      "points_contribution": 0.001
+     },
+     ">= 1 day": {
+      "share": 0.6402,
+      "mean_abs_dR": 6e-06,
+      "dLogLoss_per_review": 0.0,
+      "pct_of_bucket_logloss": 0.0,
+      "points_contribution": 0.0
+     }
+    }
+   },
+   "+300s": {
+    "reviews": 30126145,
+    "mean_abs_dR": 0.008344,
+    "p99_abs_dR_upper": 0.1735,
+    "share_abs_dR_over_0.01": 0.10741,
+    "by_bucket": {
+     "< 10 min": {
+      "share": 0.1402,
+      "mean_abs_dR": 0.056115,
+      "dLogLoss_per_review": 0.021591,
+      "pct_of_bucket_logloss": 6.864,
+      "points_contribution": 1.098
+     },
+     "10 min - 1 day": {
+      "share": 0.2196,
+      "mean_abs_dR": 0.002081,
+      "dLogLoss_per_review": 0.000112,
+      "pct_of_bucket_logloss": 0.039,
+      "points_contribution": 0.009
+     },
+     ">= 1 day": {
+      "share": 0.6402,
+      "mean_abs_dR": 2.9e-05,
+      "dLogLoss_per_review": 0.0,
+      "pct_of_bucket_logloss": 0.0,
+      "points_contribution": 0.0
+     }
+    }
+   }
+  },
+  "timeout": {
+   "capped_users": 553,
+   "caps": {
+    "60000": 499,
+    "120000": 12,
+    "300000": 5,
+    "180000": 12,
+    "200000": 2,
+    "1200000": 1,
+    "90000": 9,
+    "40000": 1,
+    "100000": 1,
+    "77000": 1,
+    "70000": 3,
+    "160000": 1,
+    "600000": 3,
+    "80000": 1,
+    "500000": 1,
+    "999000": 1
+   },
+   "all_reviews": 30126145,
+   "timeout_reviews": 1010999,
+   "fail_timeout": 202934,
+   "fail_other": 2637017,
+   "other_reviews_capped_users": 18377156,
+   "timeout_share": 0.03356,
+   "fail_rate_timeout": 0.2007,
+   "fail_rate_other_capped_users": 0.1435,
+   "timeout_e2s_minus_normal": {
+    "a": 0.3369,
+    "b": 0.336281,
+    "delta": 0.000619,
+    "delta_ci": [
+     0.000431,
+     0.00085
+    ],
+    "pct_of_b": 0.184,
+    "pct_of_b_ci": [
+     0.131,
+     0.243
+    ],
+    "users": 551,
+    "reviews": 1010999,
+    "points_overall_denominator": 0.224
+   },
+   "timeout_plus60_minus_e2s": {
+    "a": 0.336298,
+    "b": 0.3369,
+    "delta": -0.000603,
+    "delta_ci": [
+     -0.000834,
+     -0.000417
+    ],
+    "pct_of_b": -0.179,
+    "pct_of_b_ci": [
+     -0.237,
+     -0.126
+    ],
+    "users": 551,
+    "reviews": 1010999,
+    "points_overall_denominator": -0.219
+   },
+   "other_e2s_minus_normal": {
+    "a": 0.276217,
+    "b": 0.276057,
+    "delta": 0.00016,
+    "delta_ci": [
+     0.000111,
+     0.00022
+    ],
+    "pct_of_b": 0.058,
+    "pct_of_b_ci": [
+     0.04,
+     0.079
+    ],
+    "users": 553,
+    "reviews": 18377156,
+    "points_overall_denominator": 0.058
+   }
+  }
+ }
+}
