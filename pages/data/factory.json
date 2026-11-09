@@ -1,7 +1,7 @@
 {
- "generated_at": "2026-11-09T16:20:39+01:00",
- "updated": "2026-11-09 16:20",
- "material": "3a8e061f345e1043",
+ "generated_at": "2026-11-09T16:21:52+01:00",
+ "updated": "2026-11-09 16:21",
+ "material": "bc959f3671d2c410",
  "summary": "running 001086",
  "headline": [
   {
@@ -317,7 +317,7 @@
    "track": "small model",
    "ticket": "001086-sm98",
    "started": "15:56",
-   "elapsed": "0:24",
+   "elapsed": "0:25",
    "progress": null,
    "eta": "~18:06"
   }
@@ -492,7 +492,7 @@
  "waiting": [
   {
    "ticket": "001087-sm100",
-   "id": "",
+   "id": "SM100",
    "what": "the show-time error sensitivity test (SM100): scoring the show-time instant-only small model (SM96) on the 723 users of the 732 set with show-time inputs shifted by 0 / +60 / +10 / +300 s and normal inputs (5 passes, per-review dumps, cap 0.8, 0.92 memory-only retry)",
    "flags": "expected 75 min"
   }
@@ -554,6 +554,19 @@
   }
  ],
  "plan": [
+  {
+   "id": "SM100",
+   "track": "small model",
+   "since": "11-09T16:20",
+   "kind": "gpu-score",
+   "minutes": 75,
+   "what": "The show-time error sensitivity test (SM100): outside research asked whether show time = answer time &minus; duration leaks the outcome (undo, timeout cap). Score the show-time instant-only small model (SM96) with every query interval made longer by +10 s, +60 s and +300 s, plus per-review dumps for a timeout subset. Rule fixed before launch: negligible if the +10 s and +60 s instant changes stay inside &plusmn;0.05 points (95% CI, 722 users)",
+   "when": "Queued 16:20 Mon behind stage 2&rsquo;s epoch 34 (SM98): runs ~18:00&ndash;19:15 (~75 GPU min); if later than ~18:45, after the break, ~02:20 Tue",
+   "decides": "Whether the reconstructed show time can flatter the evaluation; Anki itself queries at the real show time",
+   "started_at": "2026-11-09T16:20+01:00",
+   "state": "waiting",
+   "ticket": "001087-sm100"
+  },
   {
    "id": "SM98",
    "track": "small model",
