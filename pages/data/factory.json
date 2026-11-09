@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-09T16:21:52+01:00",
- "updated": "2026-11-09 16:21",
- "material": "bc959f3671d2c410",
- "summary": "running 001086",
+ "generated_at": "2026-11-09T17:48:19+01:00",
+ "updated": "2026-11-09 17:48",
+ "material": "0017712b18b35fbf",
+ "summary": "running 001087, finished 001086",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring (curve / instant)",
@@ -307,19 +307,19 @@
  ],
  "now": [
   {
-   "what": "The show-time instant-only model, stage 2 (SM98): from the show-time instant-only small model (SM96)&rsquo;s epoch 31, 4 more constant-LR instant-only epochs (32&ndash;35) on show-time inputs, then the same one-epoch 32k Muon cool-down on show-time inputs. Rule fixed before launch: go = new &minus; the show-time instant-only small model (SM96) on show-time instant, 722 users, 95% CI below 0 and at least 0.05 points",
-   "id": "SM98, ticket 001086",
-   "kind": "gpu-train",
-   "decides": "Whether more show-time instant-only training makes a clearly better model for RWKV-Instant (as stage 4 did for the instant-only small model (SM57))",
+   "what": "The show-time error sensitivity test (SM100): outside research asked whether show time = answer time &minus; duration leaks the outcome (undo, timeout cap). Score the show-time instant-only small model (SM96) with every query interval made longer by +10 s, +60 s and +300 s, plus per-review dumps for a timeout subset. Rule fixed before launch: negligible if the +10 s and +60 s instant changes stay inside &plusmn;0.05 points (95% CI, 722 users)",
+   "id": "SM100, ticket 001087",
+   "kind": "gpu-score",
+   "decides": "Whether the reconstructed show time can flatter the evaluation; Anki itself queries at the real show time",
    "why": "",
-   "job": "the show-time instant-only model, stage 2 (SM98): instant-only epoch 34 on show-time inputs from epoch 33 (w64, SM96 epoch 31&#x27;s recipe: 8k final tier, the run&#x27;s order rule, 2048 x 16 lanes carry, leak-free replay KD, AdamW 7e-4 constant, curve loss weight 0, show-time inputs) (segment to the next break or the end)",
+   "job": "the show-time error sensitivity test (SM100): scoring the show-time instant-only small model (SM96) on the 723 users of the 732 set with show-time inputs shifted by 0 / +60 / +10 / +300 s and normal inputs (5 passes, per-review dumps, cap 0.8, 0.92 memory-only retry)",
    "linked": true,
    "track": "small model",
-   "ticket": "001086-sm98",
-   "started": "15:56",
-   "elapsed": "0:25",
+   "ticket": "001087-sm100",
+   "started": "17:47",
+   "elapsed": "0:00",
    "progress": null,
-   "eta": "~18:06"
+   "eta": "~19:02"
   }
  ],
  "charts": [
@@ -489,15 +489,17 @@
    ]
   }
  ],
- "waiting": [
-  {
-   "ticket": "001087-sm100",
-   "id": "SM100",
-   "what": "the show-time error sensitivity test (SM100): scoring the show-time instant-only small model (SM96) on the 723 users of the 732 set with show-time inputs shifted by 0 / +60 / +10 / +300 s and normal inputs (5 passes, per-review dumps, cap 0.8, 0.92 memory-only retry)",
-   "flags": "expected 75 min"
-  }
- ],
+ "waiting": [],
  "recent": [
+  {
+   "ticket": "001086-sm98",
+   "id": "SM98",
+   "what": "the show-time instant-only model, stage 2 (SM98): instant-only epoch 34 on show-time inputs from epoch 33 (w64, SM96 epoch 31&#x27;s recipe: 8k final tier, the run&#x27;s order rule, 2048 x 16 lanes carry, leak-free replay KD, AdamW 7e-4 constant, curve loss weight 0, show-time inputs) (segment to the next break or the end)",
+   "ended": "17:47",
+   "date": "11-09",
+   "exit": 0,
+   "ran": "1:51"
+  },
   {
    "ticket": "001085-sm98",
    "id": "SM98",
@@ -542,15 +544,6 @@
    "date": "11-09",
    "exit": 0,
    "ran": "0:00"
-  },
-  {
-   "ticket": "001080-sm96",
-   "id": "SM96",
-   "what": "the show-time instant-only small model (SM96): scoring the new model on e2s-query inputs, the 1,500 validation users outside the 732 set + 6 check users (pass 2, 766 done, cap 0.8)",
-   "ended": "11:53",
-   "date": "11-09",
-   "exit": 0,
-   "ran": "0:00"
   }
  ],
  "plan": [
@@ -563,9 +556,11 @@
    "what": "The show-time error sensitivity test (SM100): outside research asked whether show time = answer time &minus; duration leaks the outcome (undo, timeout cap). Score the show-time instant-only small model (SM96) with every query interval made longer by +10 s, +60 s and +300 s, plus per-review dumps for a timeout subset. Rule fixed before launch: negligible if the +10 s and +60 s instant changes stay inside &plusmn;0.05 points (95% CI, 722 users)",
    "when": "Queued 16:20 Mon behind stage 2&rsquo;s epoch 34 (SM98): runs ~18:00&ndash;19:15 (~75 GPU min); if later than ~18:45, after the break, ~02:20 Tue",
    "decides": "Whether the reconstructed show time can flatter the evaluation; Anki itself queries at the real show time",
-   "started_at": "2026-11-09T16:20+01:00",
-   "state": "waiting",
-   "ticket": "001087-sm100"
+   "started_at": "2026-11-09T17:47:57+01:00",
+   "state": "running",
+   "started": "17:47",
+   "ticket": "001087-sm100",
+   "ends_at": "2026-11-09T19:02:57+01:00"
   },
   {
    "id": "SM98",
@@ -577,10 +572,11 @@
    "when": "Launched 12:12 Mon: 4 epochs ~125 min each (~78k reviews/s), pause for the 20:00&ndash;01:00 break, cool-down ~8 h (~20k reviews/s), scoring ~50 min; done ~12:30 Tue",
    "decides": "Whether more show-time instant-only training makes a clearly better model for RWKV-Instant (as stage 4 did for the instant-only small model (SM57))",
    "started_at": "2026-11-09T12:12:44+01:00",
-   "state": "running",
-   "started": "15:56",
-   "ticket": "001086-sm98",
-   "ends_at": "2026-11-10T05:32:44+01:00"
+   "state": "done",
+   "ended": "17:47",
+   "exit": 0,
+   "started": "12:12",
+   "ended_at": "2026-11-09T17:47:57+01:00"
   },
   {
    "id": "SM97",
