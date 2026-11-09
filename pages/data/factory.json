@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-09T00:33:25+01:00",
- "updated": "2026-11-09 00:33",
- "material": "f5ee91cd2ce0fa4f",
- "summary": "idle",
+ "generated_at": "2026-11-09T01:00:55+01:00",
+ "updated": "2026-11-09 01:00",
+ "material": "48bf66f7ef4edcf1",
+ "summary": "idle, finished 001069",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring (curve / instant)",
@@ -476,6 +476,15 @@
  "waiting": [],
  "recent": [
   {
+   "ticket": "001069-sm96",
+   "id": "SM96",
+   "what": "the show-time instant-only small model (SM96): trainer smoke of epoch 31 (instant-only, constant LR, show-time inputs, from stage 4&#x27;s epoch 30, 2 users x 512 reviews)",
+   "ended": "01:00",
+   "date": "11-09",
+   "exit": 0,
+   "ran": "0:00"
+  },
+  {
    "ticket": "001068-small-model",
    "id": "",
    "what": "show-time scoring of the headline models: scoring the shipped big model (fork RWKV) on show-time inputs, the 3 long users of the 732 set (pass 1, 723 done, cap 0.92)",
@@ -519,15 +528,6 @@
    "date": "11-08",
    "exit": 0,
    "ran": "0:00"
-  },
-  {
-   "ticket": "001063-small-model",
-   "id": "SM56",
-   "what": "show-time scoring of the headline models: scoring the previous release, cool-down from epoch 10 (SM56 dec10) on show-time inputs, the 732 set minus 9 never-fit (723 users) (pass 1, 0 done, cap 0.8)",
-   "ended": "19:34",
-   "date": "11-08",
-   "exit": 0,
-   "ran": "0:11"
   }
  ],
  "plan": [
@@ -2101,7 +2101,12 @@
    "minutes": 650,
    "what": "The show-time instant-only small model (SM96): from the instant-only small model (SM57) stage 4&rsquo;s epoch 30, one more instant-only epoch on show-time inputs, then the release&rsquo;s one-epoch 32k Muon cool-down on show-time inputs, so RWKV-Instant gets both gains (instant-only and show-time training; same recipe as the show-time retrain (SM92)). Rule fixed before launch: go = new &minus; the show-time retrain (SM92) on show-time instant, 722 users, 95% CI below 0 and at least 0.05 points",
    "when": "Redesigned 11-09 00:20 before any GPU run (user: do the show-time epoch first); first GPU ticket 01:00 Mon: epoch 31 ~2 h (~82k reviews/s), cool-down ~8 h, scoring ~50 min; done ~12:00 Mon",
-   "state": "planned"
+   "state": "done",
+   "ended": "01:00",
+   "exit": 0,
+   "started": "01:00",
+   "started_at": "2026-11-09T01:00:31+01:00",
+   "ended_at": "2026-11-09T01:00:54+01:00"
   }
  ],
  "gpu_break": {
