@@ -485,13 +485,18 @@ def sync_issues(curated, data, running, waiting, finished):
         if not w["id"]:
             issues.append(f"queued ticket {w['ticket'][:6]} has no plan row: {plain(w['what'])[:90]}")
     for h in data["headline"]:
-        best = next((c for c in h.get("compare") or [] if c.get("variant", "").startswith("Best")), None)
+        bests = [c for c in h.get("compare") or [] if c.get("variant", "").startswith("Best")]
+        best = next(iter(bests), None)
         if not best or best.get("curve") is None:
             continue
+        # several "Best ..." rows (e.g. best two-head and best instant-only): the card shows the best value per head
+        best = dict(best, curve=min(c["curve"] for c in bests if c.get("curve") is not None),
+                    instant=min(c["instant"] for c in bests if c.get("instant") is not None))
         shown = [float(x) for x in re.findall(r"\d+\.\d+", h.get("v", ""))[:2]]
         if len(shown) < 2 or abs(shown[0] - best["curve"]) > 5e-6 or abs(shown[1] - best["instant"]) > 5e-6:
             issues.append(f'headline "{plain(h["k"])[:50]}" shows {h.get("v")}, its Best row is {best["curve"]} / {best["instant"]}')
-        key = eval_key(best.get("eval"))
+        # results rows score the instant head on normal inputs: no comparison with a show-time instant column
+        key = None if "show-time" in (best.get("eval") or "") else eval_key(best.get("eval"))
         # the card's reference (e.g. the big model (1 leak-free epoch)) may itself be a results row: not a better small model
         refs = {(c.get("curve"), c.get("instant")) for c in h.get("compare") or [] if c.get("ref")}
         for r in data["results"]:
