@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-10T02:05:18+01:00",
- "updated": "2026-11-10 02:05",
- "material": "6398e7f830625103",
- "summary": "running 001092, finished 001091",
+ "generated_at": "2026-11-10T02:06:53+01:00",
+ "updated": "2026-11-10 02:06",
+ "material": "f9d0d61a8bec487a",
+ "summary": "running 001092",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring (curve / instant)",
@@ -317,7 +317,7 @@
    "track": "small model",
    "ticket": "001092-sm98",
    "started": "02:05",
-   "elapsed": "0:00",
+   "elapsed": "0:01",
    "progress": null,
    "eta": "~11:25"
   }
@@ -554,14 +554,11 @@
    "kind": "gpu-score",
    "minutes": 20,
    "what": "The show-time error sensitivity test (SM100), follow-up: the decision pair (the show-time instant-only small model (SM96) &minus; the show-time retrain (SM92), show-time instant, 722 users) recomputed without the timeout reviews (3.36%), from per-review dumps. Rule fixed before launch: unchanged if removing them moves the difference by less than 0.05 points",
-   "when": "Queued; starts 01:00 Tue after the break, ~15 GPU min; done ~01:30 Tue",
+   "when": "Done 02:05 Tue: unchanged, the pair moves by 0.002 points without timeouts; see results",
    "decides": "Whether the timeout leak can bias model comparisons (expected to cancel)",
-   "started_at": "2026-11-10T01:51:56+01:00",
+   "started_at": "2026-11-10T01:01+01:00",
    "state": "done",
-   "ended": "02:04",
-   "exit": 0,
-   "started": "01:51",
-   "ended_at": "2026-11-10T02:04:55+01:00"
+   "ended_at": "2026-11-10T02:05+01:00"
   },
   {
    "id": "SM100",
@@ -2722,6 +2719,27 @@
   }
  ],
  "results": [
+  {
+   "date": "11-10",
+   "kind": "gpu-score",
+   "id": "SM100b",
+   "track": "small model",
+   "name": "The show-time error sensitivity test (SM100), follow-up: the decision pair (the show-time instant-only small model (SM96) &minus; the show-time retrain (SM92)) recomputed without the timeout reviews",
+   "eval": "Leak-free w8+s8, 722 users of the 732 set, show-time inputs, per-review dumps; points = % of the big model (1 leak-free epoch) normal-input instant LogLoss; paired user bootstrap 95% CI. Timeout reviews = duration at the user&rsquo;s cap (3.36%). Rule fixed before launch: unchanged if the pair moves by less than 0.05 points",
+   "fork": "No change: the fork queries at the real show time",
+   "takeaway": "<strong>Unchanged</strong>: all reviews &minus;0.214 [&minus;0.232, &minus;0.195], without timeouts &minus;0.212 [&minus;0.230, &minus;0.193], timeouts only &minus;0.272 [&minus;0.344, &minus;0.200] points. The timeout error gives both models the same small advantage, so model comparisons are not biased",
+   "started_at": "2026-11-10T01:01+01:00",
+   "ended_at": "2026-11-10T02:05+01:00",
+   "gpu_minutes": 13,
+   "tickets": 1,
+   "detail": {
+    "verdict": "Unchanged; branch sm100 448ea423 (sm100b-result.md)",
+    "notes": [
+     "Instant LogLoss all / without timeouts: the show-time instant-only small model (SM96) 0.276287 / 0.274182; the show-time retrain (SM92) 0.276876 / 0.274766",
+     "Scorer 57,053 review-evals/s; the show-time retrain&rsquo;s (SM92) rows reproduced bit for bit"
+    ]
+   }
+  },
   {
    "date": "11-09",
    "kind": "gpu-score",
