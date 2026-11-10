@@ -34,7 +34,7 @@
      "eval": "722 users (732 set), 30.13M reviews, leak-free; instant on show-time inputs",
      "quant": "w8+s8",
      "date": "11-10",
-     "note": "Trained for RWKV-Instant only, on show-time inputs; its curve head is untrained, so it always runs beside the default small model (SM63). &minus;0.25% vs the show-time retrain (SM92) on instant. In fork main since 11-10 (no release yet): every profile with RWKV-Instant and the default small model runs this pair by default",
+     "note": "Trained for RWKV-Instant only, on show-time inputs; its curve head is untrained. &minus;0.25% vs the show-time retrain (SM92) on instant. In fork main since 11-10 (no release yet): with the default small model, RWKV-Instant runs it alone when no preset uses RWKV-Curve (FSRS writes the due dates), and beside the default small model (SM63) when RWKV-Curve is used too",
      "ships": "fork main &middot; RWKV-Instant default",
      "ships_pending": true
     },
@@ -46,8 +46,8 @@
      "quant": "w8+s8",
      "curve_pct": 0.43,
      "date": "11-04",
-     "note": "The default small model (SM63) + 1 epoch and the same cool-down on show-time inputs. In fork main it is only used when the new &ldquo;Use one model for RWKV&rdquo; opt-out is on and a profile uses RWKV-Instant without RWKV-Curve",
-     "ships": "fork main &middot; one-model opt-out",
+     "note": "The default small model (SM63) + 1 epoch and the same cool-down on show-time inputs. Bundled in fork main as a model you can pick; no longer chosen automatically since the smart switch (11-10)",
+     "ships": "fork main &middot; selectable",
      "ships_pending": true
     },
     {
@@ -1912,12 +1912,12 @@
    "match": [
     "RWKV-Instant pair by default (SM102): "
    ],
-   "what": "RWKV-Instant pair by default (SM102): in the fork, every profile with RWKV-Instant and the default small model (SM63) runs the show-time instant-only model, stage 2 (SM98) for RWKV-Instant beside the default small model (SM63) for the curve; the old specialized toggle becomes a &ldquo;Use one model for RWKV&rdquo; opt-out; no release",
-   "when": "Done 14:11 Tue: fork main 67016d84c; CI red only on cargo-deny (new SQLite advisory, unrelated); no release",
+   "what": "RWKV-Instant pair by default (SM102): in the fork, every profile with RWKV-Instant and the default small model (SM63) runs the show-time instant-only model, stage 2 (SM98) for RWKV-Instant beside the default small model (SM63) for the curve; the old specialized toggle becomes a &ldquo;Use one model for RWKV&rdquo; opt-out; no release; then the smart switch: without RWKV-Curve the show-time instant-only model, stage 2 (SM98) runs alone and FSRS writes the due dates",
+   "when": "Done 16:09 Tue: fork main 67016d84c + smart switch 1fe0592d9; no release",
    "decides": "Nothing: the user chose &ldquo;by default&rdquo; on 11-10",
    "started_at": "2026-11-10T13:43+01:00",
    "state": "done",
-   "ended_at": "2026-11-10T14:11+01:00"
+   "ended_at": "2026-11-10T16:09+01:00"
   },
   {
    "id": "SM103",
@@ -2496,7 +2496,7 @@
    "track": "small model",
    "name": "The show-time instant-only model, stage 2 (SM98): from the show-time instant-only small model (SM96)&rsquo;s epoch 31, 4 more constant-LR instant-only epochs (32&ndash;35) on show-time inputs, then the same one-epoch 32k Muon cool-down on show-time inputs",
    "eval": "Leak-free w8+s8, 722 users of the 732 set, show-time inputs; points = % of the big model (1 leak-free epoch) normal-input instant LogLoss; paired user bootstrap 95% CI. Rule fixed before launch: go = new &minus; the show-time instant-only small model (SM96), CI below 0 and at least 0.05 points. Also the 1,500 validation users (1,487 scored), % of the release&rsquo;s LogLoss",
-   "fork": "In fork main 67016d84c (11-10, no release): although under the minimum effect vs the show-time instant-only small model (SM96), it is the best instant model, so RWKV-Instant runs it by default beside the default small model (SM63) (see the RWKV-Instant pair by default (SM102))",
+   "fork": "In fork main (11-10, no release): although under the minimum effect vs the show-time instant-only small model (SM96), it is the best instant model, so RWKV-Instant runs it, alone without RWKV-Curve or beside the default small model (SM63) with it (see the RWKV-Instant pair by default (SM102))",
    "takeaway": "<strong>No go</strong>: instant &minus;0.035 points [&minus;0.041, &minus;0.029] vs the show-time instant-only small model (SM96), better for 489 of 722 users: real but under the 0.05 minimum, so more instant-only epochs have stopped paying (stage 4 of the instant-only small model (SM57) had gained 0.071). &minus;0.248 vs the show-time retrain (SM92). 1,500 validation users: &minus;0.031% vs the show-time instant-only small model (SM96), &minus;0.512% vs the release",
    "started_at": "2026-11-09T12:12+01:00",
    "ended_at": "2026-11-10T10:49+01:00",
@@ -8797,10 +8797,10 @@
    "track": "small model",
    "name": "RWKV-Instant pair by default (SM102): RWKV-Instant now runs the show-time instant-only model, stage 2 (SM98) beside the default small model (SM63) by default",
    "eval": "From the show-time scoring: 722 users of the 732 set, leak-free w8+s8, show-time inputs; % of the big model (1 leak-free epoch) normal-input instant LogLoss. Fork Rust and Python tests, native parity, fork CI",
-   "fork": "In fork main 67016d84c (no release): profiles with RWKV-Instant (alone or with RWKV-Curve) and the default small model run the pair; the opt-out &ldquo;Use one model for RWKV&rdquo; (new key, off by default) gives back one model: the show-time retrain (SM92) for RWKV-Instant alone, the default small model (SM63) with both. RWKV-Curve only, other models and custom paths unchanged",
+   "fork": "In fork main (no release): first the pair whenever RWKV-Instant is used (67016d84c), then the user&rsquo;s smart switch (1fe0592d9): with no preset using RWKV-Curve (as scheduler or fallback), the show-time instant-only model, stage 2 (SM98) runs alone (one model state, FSRS due dates, no RWKV Card Info curve/S90/answer-time rows, RWKV workload simulator unavailable with a message); with RWKV-Curve too, the pair; the opt-out &ldquo;Use one model for RWKV&rdquo; only applies then (the default small model (SM63) alone). Turning RWKV-Curve on in Deck Options loads the pair at once",
    "takeaway": "<strong>Shipped in the fork</strong>: RWKV-Instant on show-time inputs goes from 0.276876 (the show-time retrain (SM92)) to 0.276191, &minus;0.248% [&minus;0.270, &minus;0.228], while intervals and S90 still come from the default small model (SM63). Costs about twice the RWKV memory, hence the opt-out",
    "started_at": "2026-11-10T13:43+01:00",
-   "ended_at": "2026-11-10T14:11+01:00",
+   "ended_at": "2026-11-10T16:09+01:00",
    "gpu_minutes": 0,
    "tickets": 0,
    "detail": {
@@ -8811,7 +8811,8 @@
      "The instant-only model is never loaded alone as a full model; the pair loader rejects it as the curve side, beside Legacy or beside a leak-input model",
      "Profiles rebuild RWKV state once (new instant model key)",
      "Tests: Rust 348 passed (both feature sets); Python 1676 + 791 + 73 passed",
-     "CI: build, tests, e2e, lint all green; cargo-deny red on a new SQLite advisory (RUSTSEC-2026-0459, libsqlite3-sys 0.34), not from this change"
+     "CI: build, tests, e2e, lint all green; cargo-deny red on a new SQLite advisory (RUSTSEC-2026-0459, libsqlite3-sys 0.34), not from this change",
+     "Smart switch 1fe0592d9: Python RWKV suites 1,718 passed, Rust 350 (both feature sets); replay keys distinct for the pair, the show-time instant-only model, stage 2 (SM98) alone, the default small model (SM63) alone and the show-time retrain (SM92) alone"
     ]
    }
   },
