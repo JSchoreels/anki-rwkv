@@ -352,6 +352,21 @@
    "ended_at": "2026-11-10T10:49+01:00"
   },
   {
+   "id": "SM101",
+   "track": "small model",
+   "since": "11-10T11:18",
+   "kind": "gpu-train",
+   "minutes": 870,
+   "match": [
+    "the smaller instant-only model (SM101): "
+   ],
+   "what": "The smaller instant-only model (SM101): the show-time instant-only model, stage 2 (SM98)&rsquo;s epoch 35 with the card stream cut to 1 layer (31% less card + note state, 4,554 &rarr; 3,134 B at int8), 3 instant-only epochs (36&ndash;38) on show-time inputs, then the release&rsquo;s one-epoch 32k Muon cool-down on show-time inputs. Rules fixed before launch: early stop after epoch 36 if it is more than +0.25 points behind stage 2 (SM98)&rsquo;s epoch 35; go = within the +0.4% instant bar vs the big model (1 leak-free epoch) AND beats the show-time retrain (SM92) on show-time instant (95% CI below 0 and at least 0.05 points)",
+   "when": "Launched 11:18 Tue: early check ~14:20 (~2.3 GPU h); if it continues, epochs end ~18:00, cool-down paused for the 20:00&ndash;01:00 break, verdict ~07:30&ndash;08:10 Wed",
+   "decides": "Whether an instant-only model with one fewer card layer can still beat what RWKV-Instant ships. Only saves state where RWKV-Instant runs alone; shipping needs an engine change (one architecture per build)",
+   "started_at": "2026-11-10T11:18+01:00",
+   "state": "running"
+  },
+  {
    "id": "SM97",
    "track": "small model",
    "since": "11-09T01:01",
