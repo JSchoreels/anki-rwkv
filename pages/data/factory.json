@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-10T16:15:42+01:00",
- "updated": "2026-11-10 16:15",
- "material": "b229bb5b70fb3268",
- "summary": "running 001114",
+ "generated_at": "2026-11-10T17:08:22+01:00",
+ "updated": "2026-11-10 17:08",
+ "material": "257893a8763777e3",
+ "summary": "idle, finished 001114",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring (curve / instant; instant on show-time inputs, what RWKV-Instant gets)",
@@ -143,23 +143,7 @@
    "track": "small model"
   }
  ],
- "now": [
-  {
-   "what": "The smaller instant-only model (SM101): the show-time instant-only model, stage 2 (SM98)&rsquo;s epoch 35 with the card stream cut to 1 layer (31% less card + note state, 4,554 &rarr; 3,134 B at int8), 3 instant-only epochs (36&ndash;38) on show-time inputs, then the release&rsquo;s one-epoch 32k Muon cool-down on show-time inputs. Rules fixed before launch: early stop after epoch 36 if it is more than +0.25 points behind stage 2 (SM98)&rsquo;s epoch 35; go = within the +0.4% instant bar vs the big model (1 leak-free epoch) AND beats the show-time retrain (SM92) on show-time instant (95% CI below 0 and at least 0.05 points)",
-   "id": "SM101, ticket 001114",
-   "kind": "gpu-train",
-   "decides": "Whether an instant-only model with one fewer card layer can still beat what RWKV-Instant ships. Only saves state where RWKV-Instant runs alone; shipping needs an engine change (one architecture per build)",
-   "why": "",
-   "job": "the smaller instant-only model (SM101): instant-only epoch 38 on show-time inputs from epoch 37 (w64-c1, SM98&#x27;s epoch recipe: 8k final tier, the run&#x27;s order rule, 2048 x 16 lanes carry, leak-free replay KD, AdamW 7e-4 constant, curve loss weight 0, show-time inputs) (segment to the next break or the end)",
-   "linked": true,
-   "track": "small model",
-   "ticket": "001114-sm101",
-   "started": "15:18",
-   "elapsed": "0:57",
-   "progress": null,
-   "eta": "~17:23"
-  }
- ],
+ "now": [],
  "charts": [
   {
    "title": "Small model, leak-free (SM72s): LogLoss per epoch, 458-user set (lower is better)",
@@ -330,6 +314,15 @@
  "waiting": [],
  "recent": [
   {
+   "ticket": "001114-sm101",
+   "id": "SM101",
+   "what": "the smaller instant-only model (SM101): instant-only epoch 38 on show-time inputs from epoch 37 (w64-c1, SM98&#x27;s epoch recipe: 8k final tier, the run&#x27;s order rule, 2048 x 16 lanes carry, leak-free replay KD, AdamW 7e-4 constant, curve loss weight 0, show-time inputs) (segment to the next break or the end)",
+   "ended": "17:07",
+   "date": "11-10",
+   "exit": 0,
+   "ran": "1:49"
+  },
+  {
    "ticket": "001113-sm101",
    "id": "SM101",
    "what": "the smaller instant-only model (SM101): instant-only epoch 37 on show-time inputs from epoch 36 (w64-c1, SM98&#x27;s epoch recipe: 8k final tier, the run&#x27;s order rule, 2048 x 16 lanes carry, leak-free replay KD, AdamW 7e-4 constant, curve loss weight 0, show-time inputs) (segment to the next break or the end)",
@@ -369,15 +362,6 @@
    "ticket": "001109-sm101",
    "id": "SM101",
    "what": "the smaller instant-only model (SM101): trainer smoke of epoch 36 (w64-c1 from the cut of SM98&#x27;s epoch 35, instant-only, constant LR, show-time inputs, 2 users x 512 reviews)",
-   "ended": "11:30",
-   "date": "11-10",
-   "exit": 0,
-   "ran": "0:00"
-  },
-  {
-   "ticket": "001108-sm101",
-   "id": "SM101",
-   "what": "the smaller instant-only model (SM101): scoring SM98&#x27;s constant-LR epoch 35 (the early check&#x27;s reference, w64) on e2s-query inputs, the 732 set minus 9 never-fit (723 users) (pass 2, 722 done, cap 0.8)",
    "ended": "11:30",
    "date": "11-10",
    "exit": 0,
@@ -434,10 +418,11 @@
    "when": "Launched 11:18 Tue: early check ~14:20 (~2.3 GPU h); if it continues, epochs end ~18:00, cool-down paused for the 20:00&ndash;01:00 break, verdict ~07:30&ndash;08:10 Wed",
    "decides": "Whether an instant-only model with one fewer card layer can still beat what RWKV-Instant ships. Only saves state where RWKV-Instant runs alone; shipping needs an engine change (one architecture per build)",
    "started_at": "2026-11-10T11:18:00+01:00",
-   "state": "running",
-   "started": "15:18",
-   "ticket": "001114-sm101",
-   "ends_at": "2026-11-11T01:48:00+01:00"
+   "state": "done",
+   "ended": "17:07",
+   "exit": 0,
+   "started": "11:18",
+   "ended_at": "2026-11-10T17:07:59+01:00"
   },
   {
    "id": "SM97",
