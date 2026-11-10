@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-10T15:01:22+01:00",
- "updated": "2026-11-10 15:01",
- "material": "9b07753eca394476",
- "summary": "running 001113",
+ "generated_at": "2026-11-10T15:18:41+01:00",
+ "updated": "2026-11-10 15:18",
+ "material": "b02a32fa8fb9cf44",
+ "summary": "running 001114, finished 001113",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring (curve / instant; instant on show-time inputs, what RWKV-Instant gets)",
@@ -146,18 +146,18 @@
  "now": [
   {
    "what": "The smaller instant-only model (SM101): the show-time instant-only model, stage 2 (SM98)&rsquo;s epoch 35 with the card stream cut to 1 layer (31% less card + note state, 4,554 &rarr; 3,134 B at int8), 3 instant-only epochs (36&ndash;38) on show-time inputs, then the release&rsquo;s one-epoch 32k Muon cool-down on show-time inputs. Rules fixed before launch: early stop after epoch 36 if it is more than +0.25 points behind stage 2 (SM98)&rsquo;s epoch 35; go = within the +0.4% instant bar vs the big model (1 leak-free epoch) AND beats the show-time retrain (SM92) on show-time instant (95% CI below 0 and at least 0.05 points)",
-   "id": "SM101, ticket 001113",
+   "id": "SM101, ticket 001114",
    "kind": "gpu-train",
    "decides": "Whether an instant-only model with one fewer card layer can still beat what RWKV-Instant ships. Only saves state where RWKV-Instant runs alone; shipping needs an engine change (one architecture per build)",
    "why": "",
-   "job": "the smaller instant-only model (SM101): instant-only epoch 37 on show-time inputs from epoch 36 (w64-c1, SM98&#x27;s epoch recipe: 8k final tier, the run&#x27;s order rule, 2048 x 16 lanes carry, leak-free replay KD, AdamW 7e-4 constant, curve loss weight 0, show-time inputs) (segment to the next break or the end)",
+   "job": "the smaller instant-only model (SM101): instant-only epoch 38 on show-time inputs from epoch 37 (w64-c1, SM98&#x27;s epoch recipe: 8k final tier, the run&#x27;s order rule, 2048 x 16 lanes carry, leak-free replay KD, AdamW 7e-4 constant, curve loss weight 0, show-time inputs) (segment to the next break or the end)",
    "linked": true,
    "track": "small model",
-   "ticket": "001113-sm101",
-   "started": "13:28",
-   "elapsed": "1:32",
+   "ticket": "001114-sm101",
+   "started": "15:18",
+   "elapsed": "0:00",
    "progress": null,
-   "eta": "~15:33"
+   "eta": "~17:23"
   }
  ],
  "charts": [
@@ -330,6 +330,15 @@
  "waiting": [],
  "recent": [
   {
+   "ticket": "001113-sm101",
+   "id": "SM101",
+   "what": "the smaller instant-only model (SM101): instant-only epoch 37 on show-time inputs from epoch 36 (w64-c1, SM98&#x27;s epoch recipe: 8k final tier, the run&#x27;s order rule, 2048 x 16 lanes carry, leak-free replay KD, AdamW 7e-4 constant, curve loss weight 0, show-time inputs) (segment to the next break or the end)",
+   "ended": "15:18",
+   "date": "11-10",
+   "exit": 0,
+   "ran": "1:49"
+  },
+  {
    "ticket": "001112-sm101",
    "id": "SM101",
    "what": "the smaller instant-only model (SM101): scoring epoch 36 (constant LR, w64-c1; the early check) on e2s-query inputs, the 732 set minus 9 never-fit (723 users) (pass 2, 722 done, cap 0.8)",
@@ -373,15 +382,6 @@
    "date": "11-10",
    "exit": 0,
    "ran": "0:00"
-  },
-  {
-   "ticket": "001107-sm101",
-   "id": "SM101",
-   "what": "the smaller instant-only model (SM101): scoring SM98&#x27;s constant-LR epoch 35 (the early check&#x27;s reference, w64) on e2s-query inputs, the 732 set minus 9 never-fit (723 users) (pass 1, 0 done, cap 0.8)",
-   "ended": "11:29",
-   "date": "11-10",
-   "exit": 0,
-   "ran": "0:11"
   }
  ],
  "plan": [
@@ -435,8 +435,8 @@
    "decides": "Whether an instant-only model with one fewer card layer can still beat what RWKV-Instant ships. Only saves state where RWKV-Instant runs alone; shipping needs an engine change (one architecture per build)",
    "started_at": "2026-11-10T11:18:00+01:00",
    "state": "running",
-   "started": "13:28",
-   "ticket": "001113-sm101",
+   "started": "15:18",
+   "ticket": "001114-sm101",
    "ends_at": "2026-11-11T01:48:00+01:00"
   },
   {
