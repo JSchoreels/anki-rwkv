@@ -11,7 +11,9 @@
      "eval": "722 users (732 set), 30.13M reviews, leak-free; instant on show-time inputs",
      "quant": "w8+s8",
      "ref": true,
-     "note": "Reference: the fork&rsquo;s original 2.76M-parameter RWKV + one epoch on leak-free inputs"
+     "note": "Reference: the fork&rsquo;s original 2.76M-parameter RWKV + one epoch on leak-free inputs. In fork main since 11-10 as &ldquo;Legacy - Bigger Model&rdquo; (no release yet)",
+     "ships": "fork main &middot; Legacy",
+     "ships_pending": true
     },
     {
      "variant": "Best two-head small model: the default small model, 25 epochs (SM63)",
@@ -21,7 +23,7 @@
      "quant": "w8+s8",
      "curve_pct": 0.36,
      "date": "10-30",
-     "note": "The fork&rsquo;s default small model (leak-free, cool-down from epoch 25, Anki build 110). Serves RWKV-Curve, and RWKV-Instant too when both are on and the specialized toggle is off",
+     "note": "The fork&rsquo;s default small model (leak-free, cool-down from epoch 25, Anki build 110). Serves RWKV-Curve, and in fork main it is the curve half of the RWKV-Instant pair (intervals, S90, answer time)",
      "ships": "Anki build 110 &middot; default",
      "ships_href": "https://github.com/JSchoreels/anki/releases/tag/26.09.3%2Bfsrs7.build.110"
     },
@@ -32,8 +34,8 @@
      "eval": "722 users (732 set), 30.13M reviews, leak-free; instant on show-time inputs",
      "quant": "w8+s8",
      "date": "11-10",
-     "note": "Trained for RWKV-Instant only, on show-time inputs; its curve head is untrained, so it always runs beside the default small model (SM63). &minus;0.25% vs the show-time retrain (SM92) on instant. Being integrated in the fork (paired with the default small model, specialized toggle on)",
-     "ships": "fork: being integrated",
+     "note": "Trained for RWKV-Instant only, on show-time inputs; its curve head is untrained, so it always runs beside the default small model (SM63). &minus;0.25% vs the show-time retrain (SM92) on instant. In fork main since 11-10 (no release yet): every profile with RWKV-Instant and the default small model runs this pair by default",
+     "ships": "fork main &middot; RWKV-Instant default",
      "ships_pending": true
     },
     {
@@ -44,8 +46,8 @@
      "quant": "w8+s8",
      "curve_pct": 0.43,
      "date": "11-04",
-     "note": "The default small model (SM63) + 1 epoch and the same cool-down on show-time inputs. In fork main (since 11-09, no release yet), RWKV-Instant runs it alone when a profile uses RWKV-Instant without RWKV-Curve",
-     "ships": "fork main &middot; RWKV-Instant only",
+     "note": "The default small model (SM63) + 1 epoch and the same cool-down on show-time inputs. In fork main it is only used when the new &ldquo;Use one model for RWKV&rdquo; opt-out is on and a profile uses RWKV-Instant without RWKV-Curve",
+     "ships": "fork main &middot; one-model opt-out",
      "ships_pending": true
     },
     {
@@ -57,7 +59,7 @@
      "curve_pct": 0.23,
      "date": "10-28",
      "leak": true,
-     "note": "Its training saw the leak",
+     "note": "Its training saw the leak. Still &ldquo;Legacy&rdquo; in Anki build 110; fork main replaced it with the big model (1 leak-free epoch) on 11-10",
      "ships": "Anki build 110 &middot; Legacy",
      "ships_href": "https://github.com/JSchoreels/anki/releases/tag/26.09.3%2Bfsrs7.build.110"
     }
@@ -1900,6 +1902,38 @@
    "state": "done",
    "started_at": "2026-11-09T01:00+01:00",
    "ended_at": "2026-11-09T11:54+01:00"
+  },
+  {
+   "id": "SM102",
+   "track": "small model",
+   "since": "11-10T13:43",
+   "kind": "cpu",
+   "minutes": 90,
+   "match": [
+    "RWKV-Instant pair by default (SM102): "
+   ],
+   "what": "RWKV-Instant pair by default (SM102): in the fork, every profile with RWKV-Instant and the default small model (SM63) runs the show-time instant-only model, stage 2 (SM98) for RWKV-Instant beside the default small model (SM63) for the curve; the old specialized toggle becomes a &ldquo;Use one model for RWKV&rdquo; opt-out; no release",
+   "when": "Done 14:11 Tue: fork main 67016d84c; CI red only on cargo-deny (new SQLite advisory, unrelated); no release",
+   "decides": "Nothing: the user chose &ldquo;by default&rdquo; on 11-10",
+   "started_at": "2026-11-10T13:43+01:00",
+   "state": "done",
+   "ended_at": "2026-11-10T14:11+01:00"
+  },
+  {
+   "id": "SM103",
+   "track": "small model",
+   "since": "11-10T14:11",
+   "kind": "cpu",
+   "minutes": 30,
+   "match": [
+    "Leak-free Legacy model (SM103): "
+   ],
+   "what": "Leak-free Legacy model (SM103): in the fork, &ldquo;Legacy - Bigger Model&rdquo; ships the big model (1 leak-free epoch) instead of the big model trained with the leak; no release",
+   "when": "Done 14:57 Tue: fork main 4717e0adc; no release",
+   "decides": "Nothing: the user asked on 11-10",
+   "started_at": "2026-11-10T14:11+01:00",
+   "state": "done",
+   "ended_at": "2026-11-10T14:57+01:00"
   }
  ],
  "backlog": [
@@ -2462,7 +2496,7 @@
    "track": "small model",
    "name": "The show-time instant-only model, stage 2 (SM98): from the show-time instant-only small model (SM96)&rsquo;s epoch 31, 4 more constant-LR instant-only epochs (32&ndash;35) on show-time inputs, then the same one-epoch 32k Muon cool-down on show-time inputs",
    "eval": "Leak-free w8+s8, 722 users of the 732 set, show-time inputs; points = % of the big model (1 leak-free epoch) normal-input instant LogLoss; paired user bootstrap 95% CI. Rule fixed before launch: go = new &minus; the show-time instant-only small model (SM96), CI below 0 and at least 0.05 points. Also the 1,500 validation users (1,487 scored), % of the release&rsquo;s LogLoss",
-   "fork": "Not in the fork: the gain over the show-time instant-only small model (SM96) is under the minimum effect",
+   "fork": "In fork main 67016d84c (11-10, no release): although under the minimum effect vs the show-time instant-only small model (SM96), it is the best instant model, so RWKV-Instant runs it by default beside the default small model (SM63) (see the RWKV-Instant pair by default (SM102))",
    "takeaway": "<strong>No go</strong>: instant &minus;0.035 points [&minus;0.041, &minus;0.029] vs the show-time instant-only small model (SM96), better for 489 of 722 users: real but under the 0.05 minimum, so more instant-only epochs have stopped paying (stage 4 of the instant-only small model (SM57) had gained 0.071). &minus;0.248 vs the show-time retrain (SM92). 1,500 validation users: &minus;0.031% vs the show-time instant-only small model (SM96), &minus;0.512% vs the release",
    "started_at": "2026-11-09T12:12+01:00",
    "ended_at": "2026-11-10T10:49+01:00",
@@ -8753,6 +8787,53 @@
      "Largest effect: the first 30 minutes of a day recall 85.8% vs 85.2% predicted (logit +0.05), later reviews slightly below prediction; the model counts reviews done today but not time since the first one",
      "Global = one logit offset per bin fit on half the users, scored on the other half; per-user = offsets fit on each user&rsquo;s first 70% of reviews, scored on the last 30%, minus a per-user constant offset",
      "Training users (the model was trained on them, but cannot see the clock); 95% intervals: user bootstrap"
+    ]
+   }
+  },
+  {
+   "date": "11-10",
+   "kind": "cpu",
+   "id": "SM102",
+   "track": "small model",
+   "name": "RWKV-Instant pair by default (SM102): RWKV-Instant now runs the show-time instant-only model, stage 2 (SM98) beside the default small model (SM63) by default",
+   "eval": "From the show-time scoring: 722 users of the 732 set, leak-free w8+s8, show-time inputs; % of the big model (1 leak-free epoch) normal-input instant LogLoss. Fork Rust and Python tests, native parity, fork CI",
+   "fork": "In fork main 67016d84c (no release): profiles with RWKV-Instant (alone or with RWKV-Curve) and the default small model run the pair; the opt-out &ldquo;Use one model for RWKV&rdquo; (new key, off by default) gives back one model: the show-time retrain (SM92) for RWKV-Instant alone, the default small model (SM63) with both. RWKV-Curve only, other models and custom paths unchanged",
+   "takeaway": "<strong>Shipped in the fork</strong>: RWKV-Instant on show-time inputs goes from 0.276876 (the show-time retrain (SM92)) to 0.276191, &minus;0.248% [&minus;0.270, &minus;0.228], while intervals and S90 still come from the default small model (SM63). Costs about twice the RWKV memory, hence the opt-out",
+   "started_at": "2026-11-10T13:43+01:00",
+   "ended_at": "2026-11-10T14:11+01:00",
+   "gpu_minutes": 0,
+   "tickets": 0,
+   "detail": {
+    "verdict": "Shipped in the fork (no release)",
+    "notes": [
+     "Package exported on CPU to anki-rwkv branch sm98-package dd885124: export parity fp32 1.0e-6, INT8 7.2e-7; architecture identical to the show-time retrain (SM92)",
+     "Native parity on 14,403 rows: 1.3e-6 (f32), 1.1e-6 (INT8); show-time feature builder matches 6,543 queries to 7.5e-7",
+     "The instant-only model is never loaded alone as a full model; the pair loader rejects it as the curve side, beside Legacy or beside a leak-input model",
+     "Profiles rebuild RWKV state once (new instant model key)",
+     "Tests: Rust 348 passed (both feature sets); Python 1676 + 791 + 73 passed",
+     "CI: build, tests, e2e, lint all green; cargo-deny red on a new SQLite advisory (RUSTSEC-2026-0459, libsqlite3-sys 0.34), not from this change"
+    ]
+   }
+  },
+  {
+   "date": "11-10",
+   "kind": "cpu",
+   "id": "SM103",
+   "track": "small model",
+   "name": "Leak-free Legacy model (SM103): &ldquo;Legacy - Bigger Model&rdquo; now ships the big model (1 leak-free epoch)",
+   "eval": "722 users of the 732 set, leak-free w8+s8 (curve on normal inputs, instant on show-time inputs); % of the old big model&rsquo;s LogLoss. PyTorch-vs-fork parity on 14,403 rows; fork tests and CI",
+   "fork": "In fork main 4717e0adc (no release): same file name and setting key; Legacy profiles rebuild their RWKV state once (weights hash in the state key); Legacy now gets leak-free inputs",
+   "takeaway": "<strong>Shipped in the fork</strong>: vs the big model trained with the leak, curve 0.29897 vs 0.29966 (&minus;0.23%), show-time instant 0.277157 vs 0.277559 (&minus;0.15%)",
+   "started_at": "2026-11-10T14:11+01:00",
+   "ended_at": "2026-11-10T14:57+01:00",
+   "gpu_minutes": 0,
+   "tickets": 0,
+   "detail": {
+    "verdict": "Shipped in the fork (no release)",
+    "notes": [
+     "Checkpoint: wt/sm72 big-leakfree-1ep master.pth, the one scored in report-732.md",
+     "Exporter reproduces the old .bin byte for byte from the old .pth; new weights max error 1.6e-6 vs PyTorch (old weights 1.3e-6 by the same check)",
+     "Tests: Rust 350 passed (both feature sets)"
     ]
    }
   }
