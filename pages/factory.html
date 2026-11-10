@@ -83,6 +83,9 @@
   .card.wide { grid-column: 1 / -1; }
   .cmp th.n, .cmp td.n, .mini th.n, .mini td.n { text-align: right; font-variant-numeric: tabular-nums; }
   .cmp td.n.good { font-weight: 600; }
+  /* gap to the big model: <= 0.25% green, 0.25-0.50% yellow, > 0.50% orange-red */
+  .cmp td.n.mid { color: var(--c-extend); font-weight: 600; }
+  .cmp td.n.far { color: var(--c-rejected); font-weight: 600; }
   .cmp tr.ref td { color: var(--muted); }
   .cmp tr.top td:first-child { font-weight: 600; }
   .cmp td { vertical-align: top; }
@@ -216,7 +219,7 @@
     const gap = (v, p, f) => (!none(p) ? p : (none(v) || none(f) ? null : (v / f - 1) * 100));
     const num = (v) => (none(v) ? '&ndash;' : v.toFixed(v < 0.4 ? 5 : 4));
     const pc = (p, isRef) => (isRef ? '<td class="n">&ndash;</td>' : none(p) ? '<td class="n">&ndash;</td>'
-      : `<td class="n${p <= 1.0 ? ' good' : ''}">${p > 0 ? '+' : ''}${p.toFixed(2)}%</td>`);
+      : `<td class="n ${p <= 0.25 ? 'good' : p <= 0.5 ? 'mid' : 'far'}">${p > 0 ? '+' : ''}${p.toFixed(2)}%</td>`);
     const dated = rows.some((r) => r.date);  // date column only when a row carries one
     const quants = [...new Set(rows.map((r) => r.quant || ''))];
     const qcol = quants.length > 1;
