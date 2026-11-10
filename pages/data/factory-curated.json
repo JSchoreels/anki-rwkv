@@ -14,7 +14,7 @@
      "note": "Reference: the fork&rsquo;s original 2.76M-parameter RWKV + one epoch on leak-free inputs"
     },
     {
-     "variant": "Best and released: the release, 25 epochs (SM63)",
+     "variant": "Best two-head small model: the release, 25 epochs (SM63)",
      "curve": 0.30003,
      "instant": 0.27654,
      "eval": "722 users (732 set), 30.13M reviews, leak-free inputs",
@@ -22,35 +22,24 @@
      "curve_pct": 0.36,
      "instant_pct": 0.28,
      "date": "10-30",
-     "note": "Small model (leak-free), cool-down from epoch 25. Released 10-30; the Anki fork&rsquo;s default for RWKV-Curve (briefly replaced by the show-time retrain (SM92) on 11-04, back on 11-05). Vs the previous release (cool-down from epoch 20): curve &minus;0.00016 [&minus;0.00036, +0.00001], instant &minus;0.00010 [&minus;0.00012, &minus;0.00008]",
+     "note": "The small model&rsquo;s current release (leak-free, cool-down from epoch 25). The Anki fork&rsquo;s default: serves RWKV-Curve, and RWKV-Instant too when both are on and the specialized toggle is off",
      "ships": "Anki build 110 &middot; default",
      "ships_href": "https://github.com/JSchoreels/anki/releases/tag/26.09.3%2Bfsrs7.build.110"
     },
     {
-     "variant": "RWKV-Instant, next build: instant-only, 4 more epochs (SM57 stage 4)",
+     "variant": "Best instant-only model: the show-time instant-only model, stage 2 (SM98)",
      "curve": null,
-     "instant": 0.2759,
+     "instant": 0.27606,
      "eval": "722 users (732 set), 30.13M reviews, leak-free inputs",
      "quant": "w8+s8",
-     "instant_pct": 0.05,
-     "date": "11-08",
-     "note": "The instant-only model + instant-only epochs 27&ndash;30 + the release&rsquo;s cool-down; &minus;0.071 points vs stage 1. In fork main for RWKV-Instant (f4ea2f94c, 11-08, no release yet); judged on normal inputs, show-time scoring queued",
-     "ships": "fork main &middot; next build",
+     "instant_pct": 0.11,
+     "date": "11-10",
+     "note": "Trained for RWKV-Instant only, on show-time inputs (the time up to the moment a card is shown); its curve head is untrained, so it always runs beside the release. On the show-time inputs RWKV-Instant really gets: instant 0.27619, &minus;0.35% vs the big model (1 leak-free epoch) and &minus;0.25% vs the show-time retrain (SM92). Being integrated in the fork (paired with the release, specialized toggle on)",
+     "ships": "fork: being integrated",
      "ships_pending": true
     },
     {
-     "variant": "Instant-only model, stage 1 (SM57): replaced by stage 4 in fork main",
-     "curve": null,
-     "instant": 0.27609,
-     "eval": "722 users (732 set), 30.13M reviews, leak-free inputs",
-     "quant": "w8+s8",
-     "instant_pct": 0.12,
-     "date": "11-07",
-     "note": "The release&rsquo;s epoch 25 + 1 epoch and its cool-down with the curve loss off (stage 1). Serves RWKV-Instant through the model per scheduler (SM93) (fork main 74c1131d6, no release yet); curve head untrained, so RWKV-Curve and intervals stay on the release. Vs the release on instant: &minus;0.162 points [&minus;0.176, &minus;0.148] (722 users); &minus;0.164% [&minus;0.179, &minus;0.152] on 1,500 unseen users",
-     "ships": null
-    },
-    {
-     "variant": "Show-time retrain of the release (SM92)",
+     "variant": "Show-time two-head model: the show-time retrain of the release (SM92)",
      "curve": 0.30024,
      "instant": 0.27676,
      "eval": "722 users (732 set), 30.13M reviews, leak-free inputs",
@@ -58,31 +47,9 @@
      "curve_pct": 0.43,
      "instant_pct": 0.36,
      "date": "11-04",
-     "note": "The release + 1 epoch and the same cool-down on show-time intervals. Parked: bundled in fork main but no plan to use it; it only pays off if Anki ever schedules by querying at show time (review when R &lt; desired retention), and on normal inputs the release beats it. Vs the release: curve +0.00021 [+0.00001, +0.00053], instant +0.00022 [+0.00017, +0.00027] (the extra epoch). On show-time inputs it beats the release: 0.30036 / 0.27688 vs 0.30041 / 0.27772",
-     "ships": "fork main &middot; parked, not used",
+     "note": "The release + 1 epoch and the same cool-down on show-time inputs. In fork main (since 11-09, no release yet), RWKV-Instant runs it alone when a profile uses RWKV-Instant without RWKV-Curve. On show-time inputs: instant 0.27688 vs the release 0.27772",
+     "ships": "fork main &middot; RWKV-Instant only",
      "ships_pending": true
-    },
-    {
-     "variant": "Previous release: cool-down from epoch 20 (SM72)",
-     "curve": 0.30019,
-     "instant": 0.27664,
-     "eval": "722 users (732 set), 30.13M reviews, leak-free inputs",
-     "quant": "w8+s8",
-     "curve_pct": 0.41,
-     "instant_pct": 0.32,
-     "date": "10-29",
-     "note": "Small model (leak-free), 5 more epochs. Released 10-29; the Anki fork&rsquo;s default until 10-30. Vs the earlier release (cool-down from epoch 15): curve &minus;0.00020 [&minus;0.00031, &minus;0.00010], instant &minus;0.00023 [&minus;0.00026, &minus;0.00020]"
-    },
-    {
-     "variant": "Earlier release: cool-down from epoch 15 (SM72)",
-     "curve": 0.30038,
-     "instant": 0.27687,
-     "eval": "722 users (732 set), 30.13M reviews, leak-free inputs",
-     "quant": "w8+s8",
-     "curve_pct": 0.47,
-     "instant_pct": 0.4,
-     "date": "10-28",
-     "note": "Small model (leak-free). Released 10-28; the Anki fork&rsquo;s default until 10-29. Vs the released small model with leak inputs (SM56): curve &minus;0.00028 [&minus;0.00055, +0.00006], instant &minus;0.00058 [&minus;0.00066, &minus;0.00050]"
     },
     {
      "variant": "Shipped big model (fork RWKV)",
@@ -97,30 +64,6 @@
      "note": "Its training saw the leak",
      "ships": "Anki build 110 &middot; Legacy",
      "ships_href": "https://github.com/JSchoreels/anki/releases/tag/26.09.3%2Bfsrs7.build.110"
-    },
-    {
-     "variant": "Small model, cool-down from epoch 15 (SM56)",
-     "curve": 0.30048,
-     "instant": 0.27714,
-     "eval": "722 users (732 set), 30.13M reviews, leak-free inputs",
-     "quant": "w8+s8",
-     "curve_pct": 0.51,
-     "instant_pct": 0.5,
-     "date": "10-25",
-     "leak": true
-    },
-    {
-     "variant": "Previous release: cool-down from epoch 10 (SM56)",
-     "curve": 0.30066,
-     "instant": 0.27745,
-     "eval": "722 users (732 set), 30.13M reviews, leak-free inputs",
-     "quant": "w8+s8",
-     "curve_pct": 0.57,
-     "instant_pct": 0.61,
-     "date": "10-24",
-     "leak": true,
-     "ships": "Anki builds 107&ndash;108",
-     "ships_href": "https://github.com/JSchoreels/anki/releases/tag/26.09.3%2Bfsrs7.build.107"
     }
    ],
    "big": true,
@@ -150,65 +93,6 @@
      "quant": "w8+s8",
      "leak": true,
      "note": "5 more epochs; on the 723 users it fits (big model there 0.30139 / 0.27786). Vs the cool-down from epoch 10: curve &minus;0.00022 [&minus;0.00035, &minus;0.00009], instant &minus;0.00030 [&minus;0.00034, &minus;0.00026]"
-    },
-    {
-     "variant": "Previous best: full retrain, 8,000 users every epoch (SM56)",
-     "curve": 0.30242,
-     "instant": 0.27917,
-     "curve_pct": 0.34,
-     "instant_pct": 0.47,
-     "eval": "723 users, 30.48M reviews",
-     "date": "10-24",
-     "quant": "w8+s8",
-     "leak": true,
-     "note": "On the 723 users it fits (big model there 0.30139 / 0.27786)"
-    },
-    {
-     "variant": "Previous best: Muon recipe, decay on 8,000 users (SM55)",
-     "curve": 0.30464,
-     "instant": 0.28015,
-     "curve_pct": 0.54,
-     "instant_pct": 0.55,
-     "eval": "726 users, 31.74M reviews",
-     "date": "10-22",
-     "quant": "w8+s8",
-     "leak": true,
-     "note": "Released 10-22. Vs the Muon version (SM36): curve &minus;0.00048 [&minus;0.00089, &minus;0.00019], instant &minus;0.00025 [&minus;0.00029, &minus;0.00022], both better"
-    },
-    {
-     "variant": "Older best: Muon recipe, decay on 5,000 users (SM36)",
-     "curve": 0.30512,
-     "instant": 0.2804,
-     "curve_pct": 0.7,
-     "instant_pct": 0.64,
-     "eval": "726 users, 31.74M reviews",
-     "date": "10-20",
-     "quant": "w8+s8",
-     "leak": true,
-     "note": "Released 10-22; Muon instead of AdamW"
-    },
-    {
-     "variant": "Older: carried state v2 + one-epoch 32k decay (SM40)",
-     "curve": 0.30518,
-     "instant": 0.28056,
-     "curve_pct": 0.72,
-     "instant_pct": 0.7,
-     "eval": "726 users, 31.74M reviews",
-     "date": "10-19",
-     "quant": "w8+s8",
-     "leak": true,
-     "note": "AdamW"
-    },
-    {
-     "variant": "Oldest: epoch 10 + decay at 32k (Q12)",
-     "curve": 0.30614,
-     "instant": 0.28109,
-     "curve_pct": 1.04,
-     "instant_pct": 0.89,
-     "eval": "726 users, 31.74M reviews",
-     "date": "10-17 (scored 10-18)",
-     "quant": "w8+s8",
-     "leak": true
     }
    ],
    "track": "small model"
@@ -234,50 +118,6 @@
      "instant_pct": 0.06,
      "eval": "173,690 reviews",
      "date": "10-22",
-     "quant": "w8+s8",
-     "leak": true
-    },
-    {
-     "variant": "Full retrain: all 8,000 users in every epoch (SM56)",
-     "curve": 0.4415,
-     "instant": 0.4371,
-     "curve_pct": -0.03,
-     "instant_pct": 0.1,
-     "eval": "173,690 reviews",
-     "date": "10-24",
-     "quant": "w8+s8",
-     "leak": true
-    },
-    {
-     "variant": "8k model: Muon version trained on 8k users (SM55)",
-     "curve": 0.4414,
-     "instant": 0.437,
-     "curve_pct": -0.05,
-     "instant_pct": 0.08,
-     "eval": "173,690 reviews",
-     "date": "10-22",
-     "quant": "w8+s8",
-     "leak": true
-    },
-    {
-     "variant": "Carried state v2 + one-epoch 32k decay (SM40)",
-     "curve": 0.4419,
-     "instant": 0.4373,
-     "curve_pct": 0.06,
-     "instant_pct": 0.14,
-     "eval": "173,690 reviews",
-     "date": "10-19",
-     "quant": "w8+s8",
-     "leak": true
-    },
-    {
-     "variant": "Previous best: epoch 10 + decay at 32k (Q12)",
-     "curve": 0.4423,
-     "instant": 0.4375,
-     "curve_pct": 0.14,
-     "instant_pct": 0.18,
-     "eval": "173,690 reviews",
-     "date": "10-17",
      "quant": "w8+s8",
      "leak": true
     }
