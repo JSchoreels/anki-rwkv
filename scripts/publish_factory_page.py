@@ -391,7 +391,7 @@ def build(previous):
     return {
         "generated_at": stamp.isoformat(timespec="seconds"), "updated": stamp.strftime("%Y-%m-%d %H:%M"),
         "material": material, "summary": ", ".join(parts),
-        "headline": curated.get("headline", []), "now": now_rows, "charts": charts, "waiting": waiting_rows,
+        "headline": curated.get("headline", []), "family": curated.get("family"), "now": now_rows, "charts": charts, "waiting": waiting_rows,
         "recent": recent, "plan": plan, "gpu_break": curated.get("gpu_break"), "backlog": curated["backlog"], "results": results,
         "_sync": sync,
     }

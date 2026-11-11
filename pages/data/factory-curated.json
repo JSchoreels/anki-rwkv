@@ -9123,5 +9123,95 @@
    ],
    "note": "Constant-learning-rate epochs 1&ndash;25; dots: the cool-downs (learning rate down to 0) from epochs 15, 20 and 25, and the plain average of epochs 15&ndash;20."
   }
- ]
+ ],
+ "family": {
+  "ref": {
+   "name": "the big model (1 leak-free epoch)",
+   "id": "SM72 big",
+   "curve": 0.29958,
+   "instant": 0.277157
+  },
+  "eval": "722 users of the 732 set, 30.13M reviews, leak-free w8+s8, show-time inputs for both heads",
+  "note": "Planned GitHub release of the whole family (SM108), after the last two models finish; nothing is published before the user&rsquo;s OK. Memory = card + note state at the fork&rsquo;s default precision (int4 cards + int8 notes).",
+  "rows": [
+   {
+    "size": "Big",
+    "variant": "Two-head",
+    "name": "the show-time big model",
+    "id": "SM91s2",
+    "use": "One model for both RWKV-Curve and RWKV-Instant",
+    "params": 2762884,
+    "mem_b": 19554,
+    "curve": 0.299415,
+    "instant": 0.276183,
+    "state": "done",
+    "status": "Becoming the fork&rsquo;s Big size (SM107, tonight)"
+   },
+   {
+    "size": "Big",
+    "variant": "Instant-Only",
+    "name": "the show-time instant-only big model",
+    "id": "SM99",
+    "use": "RWKV-Instant only (its curve head is not trained)",
+    "params": 2762884,
+    "mem_b": 19554,
+    "curve": null,
+    "instant": null,
+    "state": "running",
+    "status": "Epoch 2 of 2 until ~07:00 Thu; epoch 1 was &minus;0.069% vs the Small Instant-Only model (SM98)"
+   },
+   {
+    "size": "Small",
+    "variant": "Two-head",
+    "name": "the show-time retrain",
+    "id": "SM92",
+    "use": "One model for both RWKV-Curve and RWKV-Instant",
+    "params": 331511,
+    "mem_b": 3530,
+    "curve": 0.300356,
+    "instant": 0.276876,
+    "state": "done",
+    "status": "Fork main: the one-model choice"
+   },
+   {
+    "size": "Small",
+    "variant": "Instant-Only",
+    "name": "the Small Instant-Only model",
+    "id": "SM98",
+    "use": "RWKV-Instant only (its curve head is not trained)",
+    "params": 331511,
+    "mem_b": 3530,
+    "curve": null,
+    "instant": 0.276191,
+    "state": "done",
+    "status": "Fork main: RWKV-Instant in the Small size (default)"
+   },
+   {
+    "size": "Tiny",
+    "variant": "Two-head",
+    "name": "the Tiny two-head model",
+    "id": "SM106",
+    "use": "One model for both RWKV-Curve and RWKV-Instant",
+    "params": 311786,
+    "mem_b": 2622,
+    "curve": null,
+    "instant": null,
+    "state": "queued",
+    "status": "~15 h GPU from Thu morning; needs curve &le; +0.5% and instant &le; +0.4%"
+   },
+   {
+    "size": "Tiny",
+    "variant": "Instant-Only",
+    "name": "the Tiny Instant-Only model",
+    "id": "SM101",
+    "use": "RWKV-Instant only (its curve head is not trained)",
+    "params": 311786,
+    "mem_b": 2622,
+    "curve": null,
+    "instant": 0.27672,
+    "state": "done",
+    "status": "Fork main: RWKV-Instant in the Tiny size"
+   }
+  ]
+ }
 }

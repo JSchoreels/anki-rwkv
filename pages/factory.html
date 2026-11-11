@@ -40,6 +40,9 @@
   table.tk-table th { position: static; font-size: 12px; background: none; }
   table.tk-table th, table.tk-table td { padding: 3px 14px 3px 0; white-space: normal; min-width: 64px; }
   .table-wrap.free { max-height: none; }
+  .sm-table.fam td.size { font-weight: 700; font-size: 1.05rem; }
+  .sm-table.fam tr.grp > td { border-top: 2px solid var(--muted); }
+  .sm-table.fam td.num b { font-weight: 600; }
   .tag { display: inline-block; border-radius: 999px; padding: 1px 9px; font-size: 12.5px; border: 1px solid var(--line); white-space: nowrap; }
   .tag.running, .tag.gpu-train { border-color: var(--c-extend); color: var(--c-extend); }
   .tag.next, .tag.gpu-score { border-color: var(--accent); color: var(--accent); }
@@ -136,11 +139,18 @@
 </header>
 
 <nav class="secnav" aria-label="Sections"><div class="wrap">
-  <a href="#headline">Top</a><a href="#sec-now">1. Running now <span class="n" id="n-now"></span></a><a href="#sec-plan">2. Planned <span class="n" id="n-plan"></span></a><a href="#sec-backlog">3. Backlog <span class="n" id="n-backlog"></span></a><a href="#sec-results">4. Results <span class="n" id="n-results"></span></a>
+  <a href="#headline">Top</a><a href="#sec-family">RWKV family</a><a href="#sec-now">1. Running now <span class="n" id="n-now"></span></a><a href="#sec-plan">2. Planned <span class="n" id="n-plan"></span></a><a href="#sec-backlog">3. Backlog <span class="n" id="n-backlog"></span></a><a href="#sec-results">4. Results <span class="n" id="n-results"></span></a>
 </div></nav>
 
 <main class="wrap">
   <section class="cards hl" id="headline" aria-label="Headline"></section>
+
+  <section class="panel" id="sec-family">
+    <div class="panel-head"><h2>The RWKV family</h2><p class="hint" id="family-eval"></p></div>
+    <div class="table-wrap free tablewrap-sm"><table class="sm-table fam" id="family"></table></div>
+    <div class="cardlist" id="family-cards"></div>
+    <p class="hint" id="family-note"></p>
+  </section>
 
   <section class="panel" id="sec-now">
     <div class="panel-head"><h2>1. Running now</h2><p class="hint" id="now-asof"></p></div>
@@ -373,7 +383,41 @@
       + `<div style="display:flex;flex-wrap:wrap;gap:16px">${panel('curve', 1)}${panel('instant', 2)}</div>${c.note ? `<div class="s">${c.note}</div>` : ''}`;
   }
 
+  // The RWKV family: one row per size x variant, show-time LogLoss and % vs the reference big model.
+  function drawFamily(F) {
+    if (!F) { $('sec-family').hidden = true; return; }
+    const ref = F.ref, num = (x) => x.toLocaleString('en-US');
+    const pct = (v, r) => { const p = (v / r - 1) * 100; return `${p > 0 ? '+' : '&minus;'}${Math.abs(p).toFixed(2)}%`; };
+    const ll = (v, head, io) => none(v) ? `<span class="id">${io && head === 'curve' ? 'not trained' : 'not scored yet'}</span>`
+      : `<b>${v.toFixed(5)}</b> <span class="pct">${pct(v, ref[head])}</span>`;
+    const mem = (b) => `${num(b)} B`;
+    const st = (k) => `<span class="tag ${k === 'done' ? 'next' : k}">${{ done: 'ready', running: 'training', queued: 'queued' }[k] || k}</span>`;
+    $('family-eval').innerHTML = `${F.eval}. % against ${ref.name} (${ref.id}): curve ${ref.curve.toFixed(5)}, instant ${ref.instant.toFixed(5)}; lower is better.`;
+    $('family-note').innerHTML = F.note || '';
+    const trs = [], cs = [];
+    F.rows.forEach((r, i) => {
+      const io = r.variant === 'Instant-Only', first = i === 0 || F.rows[i - 1].size !== r.size;
+      const n = F.rows.filter((x) => x.size === r.size).length;
+      trs.push(`<tr class="${first ? 'grp' : ''}">${first ? `<td class="size" rowspan="${n}">${r.size}</td>` : ''}`
+        + `<td><b>${r.variant}</b><div class="id">${r.use}</div></td>`
+        + `<td>${r.name} <span class="id">(${r.id})</span></td>`
+        + `<td class="num">${num(r.params)}</td><td class="num">${mem(r.mem_b)}</td>`
+        + `<td class="num">${ll(r.curve, 'curve', io)}</td><td class="num">${ll(r.instant, 'instant', io)}</td>`
+        + `<td>${st(r.state)} ${r.status}</td></tr>`);
+      cs.push(`<div class="card"><div class="k">${r.size} &middot; ${r.variant} ${st(r.state)}</div>`
+        + `<div class="fld what">${r.name} <span class="id">(${r.id})</span></div>`
+        + `<div class="fld"><b>Use</b>${r.use}</div>`
+        + `<div class="fld"><b>Curve</b>${ll(r.curve, 'curve', io)} &nbsp; <b>Instant</b>${ll(r.instant, 'instant', io)}</div>`
+        + `<div class="fld"><b>Size</b>${num(r.params)} parameters, ${mem(r.mem_b)} per card + note</div>`
+        + `<div class="fld"><b>Status</b>${r.status}</div></div>`);
+    });
+    $('family').innerHTML = '<thead><tr><th>Size</th><th>Variant</th><th>Model</th><th>Parameters</th><th>Memory per card + note</th>'
+      + '<th>Curve (show-time)</th><th>Instant (show-time)</th><th>Status</th></tr></thead><tbody>' + trs.join('') + '</tbody>';
+    $('family-cards').innerHTML = cs.join('');
+  }
+
   function render(D) {
+    drawFamily(D.family);
     $('headline').innerHTML = (D.headline || []).map((h) => `<div class="card${h.big ? ' big' : ''}${h.compare ? ' wide' : ''}"><div class="k">${h.k}${trk(h.track)}</div><div class="v">${h.v}</div>`
       + (h.compare ? cmpTable(h.compare) : `<div class="s">${h.s || ''}</div>`)
       + (h.link ? `<div class="s"><a href="${h.link.href}">${h.link.text}</a></div>` : '') + '</div>').join('');
