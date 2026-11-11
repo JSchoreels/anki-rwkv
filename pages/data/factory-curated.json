@@ -1999,6 +1999,50 @@
    "started_at": "2026-11-11T15:35+01:00",
    "state": "done",
    "ended_at": "2026-11-11T16:05+01:00"
+  },
+  {
+   "id": "SM107",
+   "track": "small model",
+   "since": "11-11T19:05",
+   "kind": "cpu",
+   "minutes": 180,
+   "match": [
+    "Big size on the show-time big model (SM107): "
+   ],
+   "what": "Big size on the show-time big model (SM107): in the fork, the &ldquo;Big&rdquo; size runs the show-time big model (SM91s2) in place of the big model (1 leak-free epoch): export on CPU, native parity, show-time test vectors, swap in fork main, tests and docs (user 11-11)",
+   "when": "Started 19:05 Wed; heavy CPU steps pause for the 20:00&ndash;01:00 break",
+   "decides": "Nothing: user choice 11-11 (&minus;0.06% curve, &minus;0.35% instant vs the big model (1 leak-free epoch) on show-time inputs)",
+   "state": "running",
+   "started_at": "2026-11-11T19:05+01:00"
+  },
+  {
+   "id": "SM106",
+   "track": "small model",
+   "since": "11-11T19:05",
+   "kind": "gpu",
+   "minutes": 900,
+   "match": [
+    "the Tiny two-head model (SM106): "
+   ],
+   "what": "The Tiny two-head model (SM106): the show-time retrain (SM92) with its card stream cut to 1 layer (31% less state), more epochs with both heads on show-time inputs, then the one-epoch 32k Muon cool-down on show-time inputs (the Tiny Instant-Only model (SM101) recipe, both heads trained). Rules fixed before launch, show-time inputs, vs the big model (1 leak-free epoch): curve CI upper end &le; +0.5%, instant &le; +0.4%",
+   "when": "Queued behind the show-time instant-only big model (SM99): from ~Thu morning, ~15 h GPU",
+   "decides": "Whether the Tiny size gets a two-head model for the RWKV family release (user 11-11)",
+   "state": "queued"
+  },
+  {
+   "id": "SM108",
+   "track": "small model",
+   "since": "11-11T19:05",
+   "kind": "cpu",
+   "minutes": 240,
+   "match": [
+    "RWKV family release (SM108): "
+   ],
+   "what": "RWKV family release (SM108): one GitHub release with Big, Small and Tiny, each with a two-head model and an Instant-Only variant: Big = the show-time big model (SM91s2) + the show-time instant-only big model (SM99); Small = the show-time retrain (SM92) + the Small Instant-Only model (SM98); Tiny = the Tiny two-head model (SM106) + the Tiny Instant-Only model (SM101). Packages, test vectors and notes prepared now; published after the user&rsquo;s OK",
+   "when": "Preparing from 19:05 Wed; waits for the show-time instant-only big model (SM99) and the Tiny two-head model (SM106)",
+   "decides": "Nothing: user request 11-11",
+   "state": "running",
+   "started_at": "2026-11-11T19:05+01:00"
   }
  ],
  "backlog": [
