@@ -1,7 +1,7 @@
 {
- "generated_at": "2026-11-11T10:37:04+01:00",
- "updated": "2026-11-11 10:37",
- "material": "465aff08ddf98f31",
+ "generated_at": "2026-11-11T12:27:22+01:00",
+ "updated": "2026-11-11 12:27",
+ "material": "296920f2e3077d01",
  "summary": "running 001132",
  "headline": [
   {
@@ -155,7 +155,7 @@
    "track": "small model",
    "ticket": "001132-sm99",
    "started": "07:04",
-   "elapsed": "3:32",
+   "elapsed": "5:22",
    "progress": null,
    "eta": "~16:37"
   }
@@ -2073,10 +2073,11 @@
    "kind": "cpu",
    "minutes": 360,
    "what": "Big / Small / Tiny model sizes (SM104): in the fork, one RWKV model choice with three sizes, Small by default. Big = the big model (1 leak-free epoch); Small = today&rsquo;s default (the default small model (SM63) with the show-time instant-only model, stage 2 (SM98) for RWKV-Instant); Tiny = the same with the smaller instant-only model (SM101) for RWKV-Instant (31% less state). Includes the engine change for its 1-layer card stream and INT8 / INT4 checks for the smaller instant-only model (SM101) on CPU; no release",
-   "when": "Started 10:45 Wed (CPU only, the GPU runs the show-time instant-only big model (SM99))",
+   "when": "Done 12:25 Wed: fork main 094910d73; CI queued; no release",
    "decides": "Whether the smaller instant-only model (SM101) ships as Tiny, after its INT8 / INT4 checks",
    "started_at": "2026-11-11T10:45+01:00",
-   "state": "planned"
+   "state": "done",
+   "ended_at": "2026-11-11T12:25+01:00"
   }
  ],
  "gpu_break": {
@@ -8977,7 +8978,7 @@
    "track": "small model",
    "name": "The smaller instant-only model (SM101): the show-time instant-only model, stage 2 (SM98)&rsquo;s epoch 35 with the card stream cut to 1 layer (31% less state), 3 more instant-only epochs (36&ndash;38) on show-time inputs, then the one-epoch 32k Muon cool-down on show-time inputs",
    "eval": "Leak-free w8+s8, 722 users of the 732 set; % of the big model (1 leak-free epoch) normal-input instant LogLoss; paired user bootstrap 95% CI. Rules fixed before launch: A = new &minus; the big model (1 leak-free epoch), normal inputs, CI upper end &le; +0.40%; B = new &minus; the show-time retrain (SM92), show-time inputs, CI below 0 and at least 0.05%. Also the 1,500 validation users (1,487 scored), % of the default small model&rsquo;s LogLoss",
-   "fork": "Not in the fork: shipping it needs an engine change (the layer count is fixed at build time), and it would only replace the show-time instant-only model, stage 2 (SM98) where it runs alone (RWKV-Instant without RWKV-Curve); waits for the user",
+   "fork": "In fork main 094910d73 (11-11, no release) as the &ldquo;Tiny&rdquo; size: RWKV-Instant runs it instead of the show-time instant-only model, stage 2 (SM98); see the Big / Small / Tiny model sizes (SM104)",
    "takeaway": "<strong>Go</strong>: A +0.298% [+0.268, +0.329] vs the big model (1 leak-free epoch) (pass); B &minus;0.057% [&minus;0.079, &minus;0.034] vs the show-time retrain (SM92) on show-time inputs (pass, 460 of 722 users better). The 1-layer card stream costs +0.192% [+0.171, +0.215] vs the show-time instant-only model, stage 2 (SM98) for 31% less state (4,554 &rarr; 3,134 B). 1,500 validation users: &minus;0.323% vs the default small model (SM63), +0.190% vs the show-time instant-only model, stage 2 (SM98)",
    "started_at": "2026-11-10T11:12+01:00",
    "ended_at": "2026-11-11T06:36+01:00",
@@ -9025,6 +9026,54 @@
      "10-epoch ETA: constant-LR 4.5 h (2k tier) / 17.6 h (8k tier); cool-down speed 19.7 h / 77.6 h",
      "GPU minutes: 796 in 25 tickets + ~56 min of the reboot-cut segment (no ticket)",
      "1,500 pool: 767 of 771 users scored (4 long users do not fit at the 0.92 cap)"
+    ]
+   }
+  },
+  {
+   "date": "11-11",
+   "kind": "cpu",
+   "id": "SM104",
+   "track": "small model",
+   "name": "Big / Small / Tiny model sizes (SM104): the fork&rsquo;s RWKV model choice becomes three sizes, Small by default; Tiny runs the smaller instant-only model (SM101) for RWKV-Instant",
+   "eval": "Fork tests, PyTorch-vs-fork parity on 14,403 rows, Small speed before/after on a synthetic 4,000-card bench; INT8 / INT4 state cost on CPU, 80 users of the 732 set, leak-free, show-time inputs, % of the same model&rsquo;s f32-state instant LogLoss, paired bootstrap 95% CI",
+   "fork": "In fork main 094910d73 (no release). Big = the big model (1 leak-free epoch); Small = today&rsquo;s default (the default small model (SM63) with the show-time instant-only model, stage 2 (SM98)); Tiny = the same with the smaller instant-only model (SM101), whose curve still comes from the default small model (SM63). Stored values unchanged for Big and Small; old small choices become Small at the next Deck Options save; the show-time retrain (SM92) stays visible only for profiles that have it",
+   "takeaway": "<strong>Shipped in the fork</strong>: Tiny cuts the default state (int4 cards + int8 notes) from 3,530 to 2,622 B per card + note (&minus;25.7%; &minus;12.8% when both schedulers run) for +0.19% instant, and runs 7% faster alone. Its INT4 state cost (+0.013% [+0.003, +0.023]) matches the show-time instant-only model, stage 2 (SM98) (+0.010%); INT8 state is free for both. Small speed unchanged (within &plusmn;1.5%)",
+   "started_at": "2026-11-11T10:45+01:00",
+   "ended_at": "2026-11-11T12:25+01:00",
+   "gpu_minutes": 0,
+   "tickets": 0,
+   "detail": {
+    "verdict": "Shipped in the fork (no release); report on anki-rwkv branch sm101-package 740c12fd (sm104-tiny-fork.md)",
+    "table": {
+     "head": [
+      "Instant LogLoss vs f32 state",
+      "int8 state",
+      "int4 cards + int8 notes"
+     ],
+     "rows": [
+      [
+       "the smaller instant-only model (SM101) (Tiny)",
+       "&minus;0.001% [&minus;0.003, +0.001]",
+       "+0.013% [+0.003, +0.023]"
+      ],
+      [
+       "the show-time instant-only model, stage 2 (SM98) (Small)",
+       "&minus;0.000% [&minus;0.001, +0.000]",
+       "+0.010% [+0.001, +0.018]"
+      ],
+      [
+       "Tiny minus Small",
+       "&minus;0.000% [&minus;0.002, +0.001]",
+       "+0.003% [&minus;0.005, +0.013]"
+      ]
+     ]
+    },
+    "notes": [
+     "Engine: the small engine reads the card layer count from the weights file (no third compiled engine); predictions for Small bit-identical",
+     "Parity: export f32 1.2e-6, INT8 1.0e-6; fork native 1.1e-6 (f32) / 1.2e-6 (INT8); show-time test vectors pass",
+     "Speed, 8 threads: Small pair 26,530 &rarr; 26,473 reviews/s; Tiny alone 49,847 (+7% vs the show-time instant-only model, stage 2 (SM98) alone), Tiny pair 27,699 (+5%)",
+     "Tests: Python 934 + 794 passed; Rust full run passed; Playwright deck options 26 passed; lints pass",
+     "Open: the fork&rsquo;s local build fails on this computer (Windows refuses forward-slash program paths); needs a fix before the next local release build"
     ]
    }
   }
