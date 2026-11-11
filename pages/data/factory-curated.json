@@ -11,8 +11,8 @@
      "eval": "722 users (732 set), 30.13M reviews, leak-free; show-time inputs (curve and instant)",
      "quant": "w8+s8",
      "ref": true,
-     "note": "Reference: the fork&rsquo;s original 2.76M-parameter RWKV + one epoch on leak-free inputs. In fork main as the &ldquo;Big&rdquo; size (no release yet). Every % on this table is against this row, on show-time inputs",
-     "ships": "fork main &middot; Big",
+     "note": "Reference: the fork&rsquo;s original 2.76M-parameter RWKV + one epoch on leak-free inputs. Was the fork&rsquo;s &ldquo;Big&rdquo; size until 11-11 (replaced by the show-time big model (SM91s2)). Every % on this table is against this row, on show-time inputs",
+     "ships": "Anki build 110 &middot; Legacy (leak); fork main until 11-11",
      "ships_pending": true
     },
     {
@@ -22,7 +22,8 @@
      "eval": "722 users (732 set), 30.13M reviews, leak-free; show-time inputs (curve and instant)",
      "quant": "w8+s8",
      "date": "11-03",
-     "note": "The big model (1 leak-free epoch) + one epoch trained on show-time inputs. Better on both heads on show-time inputs. Not in the fork; the show-time instant-only big model (SM99) is training on top of it now"
+     "note": "The big model (1 leak-free epoch) + one epoch trained on show-time inputs. Better on both heads on show-time inputs. Not in the fork; the show-time instant-only big model (SM99) is training on top of it now",
+     "ships": "fork main &middot; Big"
     },
     {
      "variant": "Best two-head small model: the show-time retrain of the default small model (SM92)",
@@ -2010,10 +2011,11 @@
     "Big size on the show-time big model (SM107): "
    ],
    "what": "Big size on the show-time big model (SM107): in the fork, the &ldquo;Big&rdquo; size runs the show-time big model (SM91s2) in place of the big model (1 leak-free epoch): export on CPU, native parity, show-time test vectors, swap in fork main, tests and docs (user 11-11)",
-   "when": "Started 19:05 Wed; heavy CPU steps pause for the 20:00&ndash;01:00 break",
+   "when": "Done 19:34 Wed: fork main 51661533c; no release",
    "decides": "Nothing: user choice 11-11 (&minus;0.06% curve, &minus;0.35% instant vs the big model (1 leak-free epoch) on show-time inputs)",
-   "state": "running",
-   "started_at": "2026-11-11T19:05+01:00"
+   "state": "done",
+   "started_at": "2026-11-11T19:05+01:00",
+   "ended_at": "2026-11-11T19:34+01:00"
   },
   {
    "id": "SM106",
@@ -2598,6 +2600,30 @@
   "s-w64kd-gate-ctx2048c-dec8-1ep/w8+s8"
  ],
  "results": [
+  {
+   "date": "11-11",
+   "kind": "cpu",
+   "id": "SM107",
+   "track": "small model",
+   "name": "Big size on the show-time big model (SM107): in the fork, the &ldquo;Big&rdquo; size runs the show-time big model (SM91s2) in place of the big model (1 leak-free epoch)",
+   "eval": "Export on CPU with the 11-10 big-model writer (re-exporting the old checkpoint reproduces the shipped file byte for byte); native parity on 2 users (14,403 rows), normal and show-time inputs; fork Rust and Python tests",
+   "fork": "Fork main 51661533c (Big = the show-time big model (SM91s2)); Big profiles rebuild their state once; no release",
+   "takeaway": "<strong>Shipped in fork main</strong>. Show-time inputs, 722 users, vs the big model (1 leak-free epoch): curve &minus;0.06% [&minus;0.12, +0.01] (tie), instant &minus;0.35% [&minus;0.46, &minus;0.27]. On normal inputs slightly worse (+0.12% curve, +0.10% instant), as expected for a show-time model",
+   "inputs": "show-time",
+   "started_at": "2026-11-11T19:05+01:00",
+   "ended_at": "2026-11-11T19:34+01:00",
+   "gpu_minutes": 0,
+   "tickets": 0,
+   "detail": {
+    "verdict": "Shipped; anki-rwkv branch sm107-big-showtime a7ee43c7 (export script, parity, README)",
+    "notes": [
+     "Native vs PyTorch max gap 1.5e-6 (show-time and normal vectors), bundled fixture 1.3e-6 (tolerance 1e-5)",
+     "The fork&rsquo;s Big test vectors are now on show-time inputs; a new test checks the feature builder&rsquo;s show-time intervals on 6,543 query rows (max gap 7.5e-7)",
+     "Rust rwkv tests 262 passed (default and no-default features); Python model / inference / scheduler tests 1,729 passed, 84 skipped (no built bridge on Windows, no torch)",
+     "Pairing Big with the show-time instant-only big model (SM99) later needs runtime support for two big models (today only small pairs load)"
+    ]
+   }
+  },
   {
    "date": "11-10",
    "kind": "gpu-train",
@@ -9145,7 +9171,7 @@
     "curve": 0.299415,
     "instant": 0.276183,
     "state": "done",
-    "status": "Becoming the fork&rsquo;s Big size (SM107, tonight)"
+    "status": "Fork main: the Big size (since 11-11, 51661533c)"
    },
    {
     "size": "Big",
