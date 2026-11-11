@@ -1,0 +1,281 @@
+{
+ "all_ok": true,
+ "ok": true,
+ "only": null,
+ "checks": {
+  "K1_code_trees_equal_1e22b62c": {
+   "ok": true,
+   "trees": {
+    "scripts": "ae079460cee0",
+    "expertium": "7f9693c3d7b8",
+    "rwkv": "47f4d0161135"
+   },
+   "uncommitted": [],
+   "changed_since_sm91s2_launch_72ba7cef": [
+    "expertium/model/variant_model.py",
+    "scripts/eval_pools.py",
+    "scripts/expertium_options.py",
+    "scripts/gpu_r01_prefetch.py",
+    "scripts/gpu_r01_training.py",
+    "scripts/sm11_replay_export.py",
+    "scripts/sm91s3.py",
+    "scripts/small_model_heldout.py"
+   ]
+  },
+  "K2_epoch1_equals_sm91s2_epoch_except_weight_start_seed_paths": {
+   "ok": true,
+   "pair": {
+    "epoch": 1,
+    "folder": "sm99-big-inst-e1",
+    "start": "C:\\Users\\jonat\\workspace\\wt\\sm91s2\\artifacts\\small-model\\sm91s2-big-showtime\\expertium\\big-showtime\\master.pth",
+    "start_sha256": "67ee8e9b0d0169733242c40646e0d2e5637845a25775762002ffc4e6396f9590",
+    "seed": 2,
+    "vs_sm91s2": [],
+    "ok": true
+   },
+   "negatives_refused": {
+    "sm91s2_against_itself": true,
+    "curve_weight_1": true,
+    "curve_weight_int_0": true,
+    "no_show_time": true,
+    "other_chunk": true,
+    "seed_1_order": true,
+    "dropped_user": true,
+    "other_peak": true,
+    "other_start": true,
+    "missing_trim": true,
+    "snapshot_400": true
+   },
+   "out": "[sm99-epoch] pair epoch 1: OK {\"vs_sm91s2\": []}",
+   "training_reviews_after_trims": 370292439,
+   "label_windows": {
+    "script": "scripts/sm72_label_windows.py",
+    "users": 5001,
+    "unlabelled_tails_trimmed": 27
+   }
+  },
+  "K3a_sm91s2_tree_equals_this_tree_option_absent": {
+   "ok": true,
+   "updates": 4,
+   "optimizer": "AdamW",
+   "scripted": true,
+   "reference_tree": "C:\\Users\\jonat\\workspace\\wt\\sm99\\artifacts\\small-model\\sm99\\work\\ref-72ba7cef (git archive 72ba7cef)",
+   "weights": "c4ba7c3e211ab2ff",
+   "losses": [
+    1.112615704536438,
+    0.9882047772407532,
+    0.35517531633377075,
+    0.5089556574821472
+   ],
+   "windows": "1,024 x 2 strided lanes, carried state"
+  },
+  "K3b_weight1_equals_option_absent": {
+   "ok": true
+  },
+  "K3c_weight0_trains_instant_only": {
+   "ok": true,
+   "new_zero_grad_params": [
+    "ahead_linear.bias",
+    "ahead_linear.weight",
+    "head_ahead_logits.0.bias",
+    "head_ahead_logits.0.weight",
+    "head_w.0.bias",
+    "head_w.0.weight",
+    "head_w.2.bias",
+    "head_w.2.weight",
+    "head_w.4.bias",
+    "head_w.4.weight",
+    "w_linear.bias",
+    "w_linear.weight"
+   ],
+   "losses": [
+    0.7461994886398315,
+    0.4950977861881256,
+    0.2871208190917969,
+    0.42992380261421204
+   ],
+   "instant_averages": [
+    0.7461994886398315,
+    0.4950977861881256,
+    0.2871208190917969,
+    0.42992380261421204
+   ],
+   "seconds": 186
+  },
+  "K4_T1_trainer_flag_moves_only_query_intervals_and_curve_times": {
+   "ok": true,
+   "users": [
+    {
+     "user": 8632,
+     "train_reviews": 2641,
+     "samples": 1,
+     "query_columns": [
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+     ],
+     "update_columns": [],
+     "label_columns": [
+      "label_elapsed_seconds"
+     ],
+     "query_rows_moved": 2128,
+     "curve_query_times_moved": 2128,
+     "curve_query_time_max_shortening_s": 60.0,
+     "failures": []
+    },
+    {
+     "user": 5984,
+     "train_reviews": 12595,
+     "samples": 2,
+     "query_columns": [
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+     ],
+     "update_columns": [],
+     "label_columns": [
+      "label_elapsed_seconds"
+     ],
+     "query_rows_moved": 10430,
+     "curve_query_times_moved": 10425,
+     "curve_query_time_max_shortening_s": 272.0,
+     "failures": []
+    },
+    {
+     "user": 7885,
+     "train_reviews": 20883,
+     "samples": 3,
+     "query_columns": [
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+     ],
+     "update_columns": [],
+     "label_columns": [
+      "label_elapsed_seconds"
+     ],
+     "query_rows_moved": 17549,
+     "curve_query_times_moved": 17515,
+     "curve_query_time_max_shortening_s": 120.0,
+     "failures": []
+    }
+   ]
+  },
+  "K4_T2_trainer_rows_equal_scorer_e2s_query_rows": {
+   "ok": true,
+   "users": [
+    {
+     "user": 8632,
+     "trainer_rows": 4855,
+     "scorer_rows": 4855,
+     "values_compared": 145650,
+     "rows_mismatched": 0,
+     "flag_off_vs_scorer_normal_differs": {},
+     "failures": []
+    },
+    {
+     "user": 5984,
+     "trainer_rows": 23025,
+     "scorer_rows": 23025,
+     "values_compared": 690750,
+     "rows_mismatched": 0,
+     "flag_off_vs_scorer_normal_differs": {},
+     "failures": []
+    },
+    {
+     "user": 7885,
+     "trainer_rows": 38432,
+     "scorer_rows": 38432,
+     "values_compared": 1152960,
+     "rows_mismatched": 0,
+     "flag_off_vs_scorer_normal_differs": {},
+     "failures": []
+    }
+   ],
+   "seconds": 3
+  },
+  "K5_scorer_rows_equal_sm91s2_scorer_commit": {
+   "ok": true,
+   "reference_tree": "C:\\Users\\jonat\\workspace\\wt\\sm99\\artifacts\\small-model\\sm99\\work\\ref-72ba7cef (git archive 72ba7cef)",
+   "e2s-query": {
+    "identical": true,
+    "users": [
+     2388,
+     4676
+    ],
+    "instant_log_loss": {
+     "2388": 0.07978702137488446,
+     "4676": 0.06326455780954073
+    }
+   },
+   "normal": {
+    "identical": true,
+    "users": [
+     2388,
+     4676
+    ],
+    "instant_log_loss": {
+     "2388": 0.0803222073853471,
+     "4676": 0.06321922770010241
+    }
+   }
+  },
+  "K6_rule_selftest": {
+   "ok": true,
+   "out": "[sm99-rule] selftest: SM98 - SM98 +0.000% [+0.000, +0.000] -> at the ceiling; SM96 - SM98 +0.035% [+0.029, +0.041] -> at the ceiling / early stop; the show-time big model (SM91 step 2) - SM98 -0.003% [-0.026, +0.019] -> at the ceiling / early continue; synthetic 0.3% better -0.300% [-0.301, -0.300] -> ceiling above SM98; {\"sm98_against_itself_zero_at_ceiling_stop\": true, \"sm96_minus_sm98_plus0035_at_ceiling_stop\": true, \"sm91s2_minus_sm98_known\": true, \"synthetic_0p3pct_better_is_above\": true, \"early_edges\": true, \"ceiling_edges\": true, \"end_to_end_early_and_decide\": true} -> OK",
+   "err": ""
+  },
+  "K7_breaks": {
+   "ok": true,
+   "got": {
+    "wed_19:00": "NEXT 60",
+    "wed_21:00": "NOW 14460",
+    "thu_00:59": "NOW 120",
+    "thu_01:00": "NEXT 1140",
+    "sun_15:00": "NEXT 60",
+    "sun_17:00": "NOW 28860",
+    "thu_20:30_quiet_21:00": "NEXT 30",
+    "thu_19:00_quiet_21:00": "NEXT 120",
+    "real_now": "NEXT 777"
+   },
+   "want": {
+    "wed_19:00": "NEXT 60",
+    "wed_21:00": "NOW 14460",
+    "thu_00:59": "NOW 120",
+    "thu_01:00": "NEXT 1140",
+    "sun_15:00": "NEXT 60",
+    "sun_17:00": "NOW 28860",
+    "thu_20:30_quiet_21:00": "NEXT 30",
+    "thu_19:00_quiet_21:00": "NEXT 120"
+   }
+  }
+ },
+ "seconds": 245,
+ "provenance": {
+  "captured_utc": "2026-11-11T06:03:02.163278+00:00",
+  "git_commit": "faf07fdf2e39e23e3a1115ecca499627c8c0bdb8",
+  "git_dirty": false,
+  "git_status_porcelain_z": "",
+  "source_tree_sha256": "294861fa6af22dfb3fdd1ad17c85d45ace45625223a57907998e9d3e198c9a80",
+  "source_archive": "artifacts/sources/experiment-sources/294861fa6af22dfb3fdd1ad17c85d45ace45625223a57907998e9d3e198c9a80/source.zip",
+  "source_paths": [
+   "rwkv",
+   "expertium",
+   "scripts",
+   "configs",
+   "pyproject.toml",
+   "uv.lock",
+   "justfile",
+   "upstream.json"
+  ]
+ }
+}
