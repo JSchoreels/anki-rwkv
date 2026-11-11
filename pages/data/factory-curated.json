@@ -11,8 +11,8 @@
      "eval": "722 users (732 set), 30.13M reviews, leak-free; instant on show-time inputs",
      "quant": "w8+s8",
      "ref": true,
-     "note": "Reference: the fork&rsquo;s original 2.76M-parameter RWKV + one epoch on leak-free inputs. In fork main since 11-10 as &ldquo;Legacy - Bigger Model&rdquo; (no release yet)",
-     "ships": "fork main &middot; Legacy",
+     "note": "Reference: the fork&rsquo;s original 2.76M-parameter RWKV + one epoch on leak-free inputs. In fork main since 11-10 as &ldquo;Legacy - Bigger Model&rdquo;, the &ldquo;Big&rdquo; size since 11-11 (no release yet)",
+     "ships": "fork main &middot; Big",
      "ships_pending": true
     },
     {
@@ -35,8 +35,19 @@
      "quant": "w8+s8",
      "date": "11-10",
      "note": "Trained for RWKV-Instant only, on show-time inputs; its curve head is untrained. &minus;0.25% vs the show-time retrain (SM92) on instant. In fork main since 11-10 (no release yet): with the default small model, RWKV-Instant runs it alone when no preset uses RWKV-Curve (FSRS writes the due dates), and beside the default small model (SM63) when RWKV-Curve is used too",
-     "ships": "fork main &middot; RWKV-Instant default",
+     "ships": "fork main &middot; Small (RWKV-Instant default)",
      "ships_pending": true
+    },
+    {
+     "variant": "Smallest instant-only model: the smaller instant-only model (SM101)",
+     "curve": null,
+     "instant": 0.27672,
+     "eval": "722 users (732 set), 30.13M reviews, leak-free; instant on show-time inputs",
+     "quant": "w8+s8",
+     "date": "11-11",
+     "ships": "fork main &middot; Tiny",
+     "ships_pending": true,
+     "note": "The show-time instant-only model, stage 2 (SM98) with its card stream cut to 1 layer: 31% less state (2,622 vs 3,530 B per card + note in the default int4 cards + int8 notes format), +0.19% instant. Like the show-time instant-only model, stage 2 (SM98) its curve head is untrained, so the curve comes from the default small model (SM63). In fork main since 11-11 (no release) as the &ldquo;Tiny&rdquo; size"
     },
     {
      "variant": "Show-time two-head model: the show-time retrain of the default small model (SM92)",
