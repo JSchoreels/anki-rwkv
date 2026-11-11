@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-11T06:37:07+01:00",
- "updated": "2026-11-11 06:37",
- "material": "ace4bc5345f9c16b",
- "summary": "idle, finished 001128",
+ "generated_at": "2026-11-11T06:40:29+01:00",
+ "updated": "2026-11-11 06:40",
+ "material": "fc2980b3a9e3af40",
+ "summary": "idle",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring (curve / instant; instant on show-time inputs, what RWKV-Instant gets)",
@@ -415,14 +415,11 @@
    "kind": "gpu-train",
    "minutes": 870,
    "what": "The smaller instant-only model (SM101): the show-time instant-only model, stage 2 (SM98)&rsquo;s epoch 35 with the card stream cut to 1 layer (31% less card + note state, 4,554 &rarr; 3,134 B at int8), 3 instant-only epochs (36&ndash;38) on show-time inputs, then the release&rsquo;s one-epoch 32k Muon cool-down on show-time inputs. Rules fixed before launch: early stop after epoch 36 if it is more than +0.25 points behind stage 2 (SM98)&rsquo;s epoch 35; go = within the +0.4% instant bar vs the big model (1 leak-free epoch) AND beats the show-time retrain (SM92) on show-time instant (95% CI below 0 and at least 0.05 points)",
-   "when": "Launched 11:18 Tue: early check ~14:20 (~2.3 GPU h); if it continues, epochs end ~18:00, cool-down paused for the 20:00&ndash;01:00 break, verdict ~07:30&ndash;08:10 Wed",
+   "when": "Done 06:36 Wed: go (both rules pass); cool-down cut by a reboot at 01:56 and resumed from its snapshot",
    "decides": "Whether an instant-only model with one fewer card layer can still beat what RWKV-Instant ships. Only saves state where RWKV-Instant runs alone; shipping needs an engine change (one architecture per build)",
-   "started_at": "2026-11-10T11:18:00+01:00",
+   "started_at": "2026-11-10T11:18+01:00",
    "state": "done",
-   "ended": "06:36",
-   "exit": 0,
-   "started": "11:18",
-   "ended_at": "2026-11-11T06:36:43+01:00"
+   "ended_at": "2026-11-11T06:36+01:00"
   },
   {
    "id": "SM97",
@@ -8927,6 +8924,64 @@
      "Checkpoint: wt/sm72 big-leakfree-1ep master.pth, the one scored in report-732.md",
      "Exporter reproduces the old .bin byte for byte from the old .pth; new weights max error 1.6e-6 vs PyTorch (old weights 1.3e-6 by the same check)",
      "Tests: Rust 350 passed (both feature sets)"
+    ]
+   }
+  },
+  {
+   "date": "11-11",
+   "kind": "gpu-train",
+   "id": "SM101",
+   "track": "small model",
+   "name": "The smaller instant-only model (SM101): the show-time instant-only model, stage 2 (SM98)&rsquo;s epoch 35 with the card stream cut to 1 layer (31% less state), 3 more instant-only epochs (36&ndash;38) on show-time inputs, then the one-epoch 32k Muon cool-down on show-time inputs",
+   "eval": "Leak-free w8+s8, 722 users of the 732 set; % of the big model (1 leak-free epoch) normal-input instant LogLoss; paired user bootstrap 95% CI. Rules fixed before launch: A = new &minus; the big model (1 leak-free epoch), normal inputs, CI upper end &le; +0.40%; B = new &minus; the show-time retrain (SM92), show-time inputs, CI below 0 and at least 0.05%. Also the 1,500 validation users (1,487 scored), % of the default small model&rsquo;s LogLoss",
+   "fork": "Not in the fork: shipping it needs an engine change (the layer count is fixed at build time), and it would only replace the show-time instant-only model, stage 2 (SM98) where it runs alone (RWKV-Instant without RWKV-Curve); waits for the user",
+   "takeaway": "<strong>Go</strong>: A +0.298% [+0.268, +0.329] vs the big model (1 leak-free epoch) (pass); B &minus;0.057% [&minus;0.079, &minus;0.034] vs the show-time retrain (SM92) on show-time inputs (pass, 460 of 722 users better). The 1-layer card stream costs +0.192% [+0.171, +0.215] vs the show-time instant-only model, stage 2 (SM98) for 31% less state (4,554 &rarr; 3,134 B). 1,500 validation users: &minus;0.323% vs the default small model (SM63), +0.190% vs the show-time instant-only model, stage 2 (SM98)",
+   "started_at": "2026-11-10T11:12+01:00",
+   "ended_at": "2026-11-11T06:36+01:00",
+   "gpu_minutes": 852,
+   "tickets": 25,
+   "detail": {
+    "verdict": "Go; branch sm101 faf07fdf (sm101-result.md, sm101-decision.md)",
+    "table": {
+     "head": [
+      "Show-time instant, new minus",
+      "%",
+      "95% CI",
+      "better / worse"
+     ],
+     "rows": [
+      [
+       "the show-time retrain (SM92) (rule B)",
+       "&minus;0.057",
+       "[&minus;0.079, &minus;0.034]",
+       "460 / 261"
+      ],
+      [
+       "the show-time instant-only model, stage 2 (SM98)",
+       "+0.192",
+       "[+0.171, +0.215]",
+       "114 / 607"
+      ],
+      [
+       "the show-time instant-only small model (SM96)",
+       "+0.157",
+       "[+0.137, +0.178]",
+       "140 / 580"
+      ],
+      [
+       "the default small model (SM63)",
+       "&minus;0.362",
+       "[&minus;0.463, &minus;0.284]",
+       "574 / 148"
+      ]
+     ]
+    },
+    "notes": [
+     "Early check after epoch 36: +0.051% [&minus;0.004, +0.109] vs the show-time instant-only model, stage 2 (SM98)&rsquo;s epoch 35, under the +0.25% stop bar",
+     "Epochs 36&ndash;38: 105.9 / 109.4 / 110.1 min at 91,875 / 88,837 / 88,602 reviews/s; cool-down ~458 min over 3 segments around the break and a reboot, 20,839 reviews/s; nvidia-smi max 15.3 GB",
+     "10-epoch ETA: constant-LR 4.5 h (2k tier) / 17.6 h (8k tier); cool-down speed 19.7 h / 77.6 h",
+     "GPU minutes: 796 in 25 tickets + ~56 min of the reboot-cut segment (no ticket)",
+     "1,500 pool: 767 of 771 users scored (4 long users do not fit at the 0.92 cap)"
     ]
    }
   }
