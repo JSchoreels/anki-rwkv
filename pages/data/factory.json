@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-11T01:58:56+01:00",
- "updated": "2026-11-11 01:58",
- "material": "f1a548386c94af05",
- "summary": "running 001118",
+ "generated_at": "2026-11-11T05:52:05+01:00",
+ "updated": "2026-11-11 05:52",
+ "material": "d29f0c005db03970",
+ "summary": "running 001119, finished 001118",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring (curve / instant; instant on show-time inputs, what RWKV-Instant gets)",
@@ -146,18 +146,18 @@
  "now": [
   {
    "what": "The smaller instant-only model (SM101): the show-time instant-only model, stage 2 (SM98)&rsquo;s epoch 35 with the card stream cut to 1 layer (31% less card + note state, 4,554 &rarr; 3,134 B at int8), 3 instant-only epochs (36&ndash;38) on show-time inputs, then the release&rsquo;s one-epoch 32k Muon cool-down on show-time inputs. Rules fixed before launch: early stop after epoch 36 if it is more than +0.25 points behind stage 2 (SM98)&rsquo;s epoch 35; go = within the +0.4% instant bar vs the big model (1 leak-free epoch) AND beats the show-time retrain (SM92) on show-time instant (95% CI below 0 and at least 0.05 points)",
-   "id": "SM101, ticket 001118",
+   "id": "SM101, ticket 001119",
    "kind": "gpu-train",
    "decides": "Whether an instant-only model with one fewer card layer can still beat what RWKV-Instant ships. Only saves state where RWKV-Instant runs alone; shipping needs an engine change (one architecture per build)",
    "why": "",
-   "job": "the smaller instant-only model (SM101): the release&#x27;s one-epoch 32k Muon cool-down on show-time inputs from epoch 38 (w64-c1; SM98&#x27;s users, order, seeds, KD targets), curve loss weight 0 (segment to the next break or the end)",
+   "job": "the smaller instant-only model (SM101): scoring the new model on e2s-query inputs, the 732 set minus 9 never-fit (723 users) (pass 1, 0 done, cap 0.8)",
    "linked": true,
    "track": "small model",
-   "ticket": "001118-sm101",
-   "started": "01:58",
+   "ticket": "001119-sm101",
+   "started": "05:52",
    "elapsed": "0:00",
    "progress": null,
-   "eta": "~10:58"
+   "eta": "~06:24"
   }
  ],
  "charts": [
@@ -330,6 +330,15 @@
  "waiting": [],
  "recent": [
   {
+   "ticket": "001118-sm101",
+   "id": "SM101",
+   "what": "the smaller instant-only model (SM101): the release&#x27;s one-epoch 32k Muon cool-down on show-time inputs from epoch 38 (w64-c1; SM98&#x27;s users, order, seeds, KD targets), curve loss weight 0 (segment to the next break or the end)",
+   "ended": "05:51",
+   "date": "11-11",
+   "exit": 0,
+   "ran": "3:53"
+  },
+  {
    "ticket": "001116-sm101",
    "id": "SM101",
    "what": "the smaller instant-only model (SM101): the release&#x27;s one-epoch 32k Muon cool-down on show-time inputs from epoch 38 (w64-c1; SM98&#x27;s users, order, seeds, KD targets), curve loss weight 0 (segment to the next break or the end)",
@@ -373,15 +382,6 @@
    "date": "11-10",
    "exit": 0,
    "ran": "0:00"
-  },
-  {
-   "ticket": "001111-sm101",
-   "id": "SM101",
-   "what": "the smaller instant-only model (SM101): scoring epoch 36 (constant LR, w64-c1; the early check) on e2s-query inputs, the 732 set minus 9 never-fit (723 users) (pass 1, 0 done, cap 0.8)",
-   "ended": "13:28",
-   "date": "11-10",
-   "exit": 0,
-   "ran": "0:11"
   }
  ],
  "plan": [
@@ -435,8 +435,8 @@
    "decides": "Whether an instant-only model with one fewer card layer can still beat what RWKV-Instant ships. Only saves state where RWKV-Instant runs alone; shipping needs an engine change (one architecture per build)",
    "started_at": "2026-11-10T11:18:00+01:00",
    "state": "running",
-   "started": "01:58",
-   "ticket": "001118-sm101",
+   "started": "05:52",
+   "ticket": "001119-sm101",
    "ends_at": "2026-11-11T01:48:00+01:00"
   },
   {
