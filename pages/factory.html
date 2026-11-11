@@ -426,16 +426,18 @@
       const ul = d.notes && d.notes.length ? `<ul>${d.notes.map((n) => `<li>${n}</li>`).join('')}</ul>` : '';
       return `<div class="tk"><p class="verdict">${d.verdict}</p>${tb}${ul}</div>`;
     };
+    // Show-time inputs are the standard since 11-11; rows whose LogLoss columns were scored on normal inputs say so.
+    const inp = (r) => ((none(r.curve) && none(r.instant)) || r.inputs === 'show-time') ? '' : ' <span class="tag" title="Scored on normal inputs (the interval runs to the answer); not comparable with show-time numbers">normal inputs</span>';
     const drawRes = (k) => T('results', ['Date', 'Took', 'Kind', 'Result', 'Curve LogLoss', 'Instant LogLoss', 'Evaluated on'], res.filter((x) => k === 'all' || x.kind === k).map((r, i) => {
       const b = (r.flag === 'best' ? ' best' : '') + (i % 2 ? ' alt' : '');
-      return `<tr class="res${b}"><td class="when">${r.date}${r.started_at ? `<br><span class="id">${ran(r)}</span>` : ''}</td><td class="num">${took(r)}</td><td>${tag(r.kind)}</td><td>${name(r.name, r.id, r.track)}</td><td class="num">${ll(r.curve, r.curve_pct)}</td><td class="num">${ll(r.instant, r.instant_pct)}</td><td>${r.eval}${r.fork ? `<br><span class="id">${r.fork}</span>` : ''}</td></tr>`
+      return `<tr class="res${b}"><td class="when">${r.date}${r.started_at ? `<br><span class="id">${ran(r)}</span>` : ''}</td><td class="num">${took(r)}</td><td>${tag(r.kind)}</td><td>${name(r.name, r.id, r.track)}</td><td class="num">${ll(r.curve, r.curve_pct)}</td><td class="num">${ll(r.instant, r.instant_pct)}${inp(r)}</td><td>${r.eval}${r.fork ? `<br><span class="id">${r.fork}</span>` : ''}</td></tr>`
         + `<tr class="tkrow${b}"><td colspan="7">${take(r)}</td></tr>`;
     }));
     const drawResAll = (k) => {
       drawRes(k);
       $('results-cards').innerHTML = res.filter((x) => k === 'all' || x.kind === k).map((r) =>
         `<div class="rc${r.flag === 'best' ? ' best' : ''}"><div class="l1"><span class="t">${name(r.name, r.id, r.track)}</span></div>`
-        + `<div class="ll"><span>Curve ${ll(r.curve, r.curve_pct)}</span><span>Instant ${ll(r.instant, r.instant_pct)}</span></div>`
+        + `<div class="ll"><span>Curve ${ll(r.curve, r.curve_pct)}</span><span>Instant ${ll(r.instant, r.instant_pct)}${inp(r)}</span></div>`
         + `<div class="sub">${r.date}${r.started_at ? ` &middot; ran ${ran(r)} &middot; ${took(r).replace('<br>', ', ')}` : ''} &middot; ${r.eval}${r.fork ? ` &middot; ${r.fork}` : ''}</div>`
         + `<div class="tx">${take(r)}</div><div class="tg">${tag(r.kind)}</div></div>`).join('');
     };
