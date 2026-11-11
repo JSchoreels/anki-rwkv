@@ -21,8 +21,8 @@ EARLY CHECK (`early`, after epoch 27; stop rule):
             model (SM101)'s early bar, applied to each trained head)
   continue  otherwise.
 FINAL (`decide`, after the cool-down):
-  A  the pruning bar (the verdict): new - the big model (1 leak-free epoch), show-time inputs: curve 95% CI upper end
-     <= +0.5% AND instant 95% CI upper end <= +0.4%.   pass = "go", otherwise "no go".
+  A  the pruning bar (the verdict): new - the big model (1 leak-free epoch), show-time inputs: curve point estimate
+     <= +0.5% AND instant point estimate <= +0.4% (the 10-29 pruning bar is on point estimates; CIs reported).   pass = "go", otherwise "no go".
   B  report only (no verdict): new - SM92 (curve and instant), new - SM101 (instant; SM101's curve is untrained).
   Also reported: new - the release (SM63); the 1,500 pool (% of the release's own LogLoss: new - the release, new - SM101
   instant); the row check on the 6 check users.
@@ -91,7 +91,7 @@ def fpct(x):
 
 
 def bar_ok(x, head):
-    return x["points_ci"][1] <= BAR[head]
+    return x["points"] <= BAR[head]
 
 
 def early_decision(c):
@@ -133,8 +133,8 @@ def selftest():
         "early_edges": early_decision({"curve": {"points": 0.25}, "instant": {"points": 0.25}}) == "continue"
         and early_decision({"curve": {"points": 0.251}, "instant": {"points": -1}}) == "stop"
         and early_decision({"curve": {"points": -1}, "instant": {"points": 0.251}}) == "stop",
-        "bar_edges": bar_ok({"points_ci": [0, 0.5]}, "curve") and not bar_ok({"points_ci": [0, 0.501]}, "curve")
-        and bar_ok({"points_ci": [0, 0.4]}, "instant") and not bar_ok({"points_ci": [0, 0.401]}, "instant")}
+        "bar_edges": bar_ok({"points": 0.5, "points_ci": [0, 0.9]}, "curve") and not bar_ok({"points": 0.501, "points_ci": [0, 0.6]}, "curve")
+        and bar_ok({"points": 0.4, "points_ci": [0, 0.9]}, "instant") and not bar_ok({"points": 0.401, "points_ci": [0, 0.5]}, "instant")}
     ok = all(checks.values())
     print(f"[sm106-rule] selftest: SM92 as new: A curve {fp(a92['curve'])}, instant {fp(a92['instant'])} -> {f92['verdict']}; "
           f"the release as new: A curve {fp(arel['curve'])}, instant {fp(arel['instant'])} -> {frel['verdict']}; SM101 as new "
@@ -191,8 +191,8 @@ def decide(out_dir=HERE, rows=ROWS, rows1500=ROWS1500, label=LBL):
         print(f"[sm106-rule] pending: new show-time rows {len(have & set(new))} of {len(users)} rule users")
         return 2
     f = final(r, new, users, bige)
-    out = {"rule": "go = A: new - the big model (1 leak-free epoch), show-time inputs: curve 95% CI upper end <= +0.5% AND "
-                   "instant 95% CI upper end <= +0.4%; B (new - SM92, new - SM101) report only", "label": label,
+    out = {"rule": "go = A: new - the big model (1 leak-free epoch), show-time inputs: curve point estimate <= +0.5% AND "
+                   "instant point estimate <= +0.4% (the pruning bar as set 10-29); B (new - SM92, new - SM101) report only", "label": label,
            "users": len(users), "big_e2s": {h: round(r.big_denominator(bige, users, k), 6) for k, h in r.HEADS.items()}} | f
     refs = {"sm92": r.load(r.MODELS["sm92"]["e2s"], have), "sm101": r.load([(S101G / "sm101-rows.jsonl", LBL101 + r.E2S, None)], have),
             "release": r.load(r.MODELS["release"]["e2s"], have)}
@@ -228,7 +228,7 @@ def decide(out_dir=HERE, rows=ROWS, rows1500=ROWS1500, label=LBL):
           f"leak-free epoch)'s show-time LogLoss, curve {out['big_e2s']['curve']} / instant {out['big_e2s']['instant']}; "
           f"paired user bootstrap 2,000, seed 0, 95% CI).", "",
           "## A, the pruning bar: the Tiny two-head model (SM106) minus the big model (1 leak-free epoch)", "",
-          "| head | new | big | % [95% CI] | bar (CI upper end) | pass |", "|---|---|---|---|---|---|"]
+          "| head | new | big | % [95% CI] | bar (point estimate) | pass |", "|---|---|---|---|---|---|"]
     for h in HEADS:
         md.append(f"| {h} | {a[h]['new']} | {a[h]['ref']} | {fp(a[h])} | <= +{BAR[h]}% | {'pass' if f['A_pass'][h] else 'fail'} |")
     md += ["", "## B, report only (show-time inputs, % of the big model (1 leak-free epoch))", "",

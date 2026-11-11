@@ -2,7 +2,7 @@
 
 Design: `design.md`, in this folder. In short: the show-time retrain (SM92)'s constant-LR epoch 26, card stream cut to 1 layer (w64-c1), 3 two-head constant-LR epochs (27-29) on show-time inputs with SM92 epoch 26's recipe, then the release's one-epoch 32k Muon cool-down on show-time inputs (SM92's cool-down except the start and the architecture). Early stop after epoch 27. About 15 GPU h; ~2.3 GPU h if the early check stops it.
 
-**Read before launching:** the curve bar binds. SM92 itself sits at +0.259% [+0.072, +0.463] on the curve vs the big model (1 leak-free epoch), so the cut has only ~+0.04% of curve room under rule A (CI upper end <= +0.5%). With the cut cost seen before (~+0.16% curve), the expected verdict is no go on the curve, go on instant. The early bar (+0.25% per head) does not catch that. Confirm the run is still wanted, or tighten the early curve bar before launch (`EARLY_STOP` in `sm106_rule.py`, then rerun `sm106_check.py`, commit, push).
+**Rule A is on point estimates** (changed before launch 11-11 19:25 by the main session, to match the 10-29 pruning bar): curve <= +0.5%, instant <= +0.4% vs the big model (1 leak-free epoch), CIs reported. The show-time retrain (SM92) sits at +0.259% curve, so with the cut cost seen before (~+0.16%) the curve should pass narrowly (~+0.42%).
 
 ## Precondition (check by hand first)
 

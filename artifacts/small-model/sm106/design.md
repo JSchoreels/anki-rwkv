@@ -2,7 +2,7 @@
 
 ## Question
 
-Can a two-head (curve + instant) small model with the card stream cut to 1 layer (the w64-c1 architecture of the Tiny Instant-Only model (SM101)) stay inside the pruning bar on show-time inputs? The bar is new minus the big model (1 leak-free epoch): curve 95% CI upper end <= +0.5% and instant 95% CI upper end <= +0.4%.
+Can a two-head (curve + instant) small model with the card stream cut to 1 layer (the w64-c1 architecture of the Tiny Instant-Only model (SM101)) stay inside the pruning bar on show-time inputs? The bar is new minus the big model (1 leak-free epoch): curve point estimate <= +0.5% and instant point estimate <= +0.4% (the pruning bar set 10-29 is on point estimates; CIs are reported beside).
 
 In short: SM101's recipe, but with the curve loss kept, started from the show-time retrain (SM92) instead of the Small Instant-Only model (SM98).
 
@@ -49,7 +49,7 @@ Arm: epoch 27 of the Tiny two-head model (SM106) (w64-c1, constant LR). Referenc
 
 All on show-time inputs (`e2s-query`), leak-free w8+s8 rows (`--split-existing --deleted-cards neighbour`), 722 users of the 732 set, review-weighted LogLoss, paired user bootstrap (2,000 resamples, seed 0, 95% CI). The bootstrap and loaders are the show-time report's (`showtime_report.py`, sha256 pinned).
 
-- **A, the pruning bar (the verdict).** The Tiny two-head model (SM106) minus the big model (1 leak-free epoch): **curve CI upper end <= +0.5% AND instant CI upper end <= +0.4%**. Go if both hold; no go otherwise.
+- **A, the pruning bar (the verdict).** The Tiny two-head model (SM106) minus the big model (1 leak-free epoch): **curve point estimate <= +0.5% AND instant point estimate <= +0.4%** (changed before launch, 11-11 19:25: the brief said CI upper end by mistake; the 10-29 pruning bar is on point estimates). Go if both hold; no go otherwise.
 - **B, report only (no verdict).** New minus the show-time retrain (SM92), curve and instant; new minus the Tiny Instant-Only model (SM101), instant (SM101's curve head is untrained).
 - Also reported: new minus the release (SM63); the 1,500 pool on show-time inputs (% of the release's own LogLoss: new minus the release, new minus SM101 on instant); the row check on the 6 check users.
 
@@ -61,7 +61,7 @@ All on show-time inputs (`e2s-query`), leak-free w8+s8 rows (`--split-existing -
 | the release (SM63) | +0.278% [+0.117, +0.461] | +0.202% [+0.171, +0.235] | go |
 | the Tiny Instant-Only model (SM101) | curve untrained | | no go |
 
-- **The curve bar binds, and hard.** SM92's own curve CI upper end is +0.463%, so the cut has only about **+0.04%** of curve room before A fails (assuming the CI width stays about the same). On instant the room is about +0.4%.
+- **The curve bar binds.** The show-time retrain (SM92) itself is at +0.259% on the curve (point estimate), so the cut has about **+0.24%** of curve room; the earlier smaller-model check (SM73s2) saw the cut cost about +0.16% on the curve, so A is expected to pass narrowly (~+0.42%). On instant the room is about +0.5%.
 - **What to expect.** The two-head cut cost +0.16% curve / +0.21% instant one epoch after the cut in the smaller-model check (SM73s2, normal inputs); SM101's finished cut cost ~+0.16-0.19% instant against its uncut chain. If the curve cost is similar here, the Tiny two-head model (SM106) lands near +0.42% [+0.23, +0.62] on the curve, which **fails A**, and near +0.09% [-0.02, +0.20] on instant, which passes. So a go needs the cut to cost almost nothing on the curve head. That is unlikely, and the early bar (+0.25% per head) will not stop a cut that only fails the curve bar. **The main session may want to confirm the run is still wanted (or tighten the early curve bar, e.g. to +0.10%, before launch; the rule is pre-registered, so only before launch).**
 
 ## GPU budget and timeline (if launched ~08:00 Thu 2026-11-12, after SM99, queue empty)
