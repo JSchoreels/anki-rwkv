@@ -1,0 +1,53 @@
+{
+  "what": "The Big size on the show-time big model (SM107): the show-time big model (SM91s2) exported to the Anki fork's big-model weight file, native parity against PyTorch",
+  "date": "2026-11-11",
+  "fork_commit": "51661533c",
+  "source": {
+    "checkpoint": "wt/sm91s2/artifacts/small-model/sm91s2-big-showtime/expertium/big-showtime/master.pth (branch sm91s2, not committed)",
+    "sha256": "67ee8e9b0d0169733242c40646e0d2e5637845a25775762002ffc4e6396f9590",
+    "tensors": 504,
+    "parameters": 2762884
+  },
+  "export": {
+    "script": "sm107_export.py (the writer of the 2026-11-10 export of the big model (1 leak-free epoch))",
+    "format": "ARWKVWEIGHTS1 f32",
+    "bytes": 11082637,
+    "sha256": "b53a89729d518c2db970833b7159904368fe9e882298e0f715f4d302f7cf4ed5",
+    "previous_sha256": "0e07004ddd90a152a96a1ec2faa9496840fd28cebbc9fd27ea10b1e09c5e1aff",
+    "writer_check": "re-export of the previous fork .pth (ac7f0d8a...) is byte-identical to the previous .bin (0e07004d...)"
+  },
+  "vectors": {
+    "script": "sm107_vectors.py (cwd wt/sm91s2, RWKV_DELETED_CARDS=neighbour, CPU)",
+    "users": [4676, 1745],
+    "rows": 14403,
+    "query_rows": 6543,
+    "method_check": "on the previous .pth with 500 rows per user and normal inputs it reproduces the fork's previous legacy-vectors.json.gz exactly (features, ids, skip identical; max output difference 0)",
+    "show_time_vs_normal": "show-time inputs change the inputs of all 6,543 query rows and of no answer row",
+    "full_showtime_sha256": "d88fc110929f5c6214f306b9a2de56837613ebb9764b7f838ae3d89ba6199669",
+    "full_normal_sha256": "f8e5471516120c701d6edeb3d180ce6b59320d31cc127cc2c85c8c3546caf70a",
+    "fixture": "export/legacy-vectors.json.gz (show-time, first 500 rows per user, sha256 9cc5d6df46e86b0846a0ff5971fd8db6c5a894a3a9539eb34a6c31bcccfbe619) = fork rslib/src/rwkv/testdata/legacy-vectors.json.gz"
+  },
+  "native_parity": {
+    "tolerance": 1e-5,
+    "engine": "fork big engine (rwkv::alternate, default features), leak-free input rule, raw forgetting curve (ahead residual ignored)",
+    "full_showtime_max_abs": 1.4901161e-6,
+    "full_normal_max_abs": 1.5199184e-6,
+    "fixture_max_abs": 1.2814999e-6,
+    "previous_model_full_normal_max_abs": 1.6391277e-6,
+    "feature_builder_show_time_intervals_full_max_abs": 7.5343996e-7,
+    "feature_builder_show_time_intervals_fixture_max_abs": 7.338822e-7,
+    "verdict": "PASS"
+  },
+  "fork_tests": {
+    "cargo_rwkv_default_features": "262 passed, 31 ignored",
+    "cargo_rwkv_no_default_features": "262 passed, 30 ignored",
+    "python": "qt/tests/test_rwkv_model.py + test_rwkv_inference_process.py + test_rwkv_scheduler.py: 1729 passed, 84 skipped (no _rsbridge.so on Windows, no torch)"
+  },
+  "scores_show_time": {
+    "source": "artifacts/small-model/showtime/showtime-report.md; branch sm91s2 sm91s2-decision.md",
+    "pool": "722 users of the 732 set, leak-free, w8+s8, e2s-query, paired user bootstrap 2,000 seed 0",
+    "reference": "the big model (1 leak-free epoch): curve 0.29958, instant 0.277157",
+    "curve": {"logloss": 0.299415, "pct": -0.06, "ci95_pct": [-0.12, 0.01]},
+    "instant": {"logloss": 0.276183, "pct": -0.35, "ci95_pct": [-0.46, -0.27]}
+  }
+}
