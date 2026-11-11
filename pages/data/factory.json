@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-11T19:35:13+01:00",
- "updated": "2026-11-11 19:35",
- "material": "8a629fd712d26644",
- "summary": "running 001136",
+ "generated_at": "2026-11-11T19:57:34+01:00",
+ "updated": "2026-11-11 19:57",
+ "material": "ab6324de568faa25",
+ "summary": "idle, finished 001136",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring, show-time inputs for both heads (curve / instant)",
@@ -251,23 +251,7 @@
    }
   ]
  },
- "now": [
-  {
-   "what": "The show-time instant-only big model (SM99): the show-time big model (SM91s2) given up to 2 instant-only big-model epochs on show-time inputs (curve loss weight 0, the big model&rsquo;s own epoch recipe, each epoch decays to LR 0, no teacher), as the ceiling for the Small Instant-Only model (SM98). Early rule after epoch 1: continue only if it beats the Small Instant-Only model (SM98) on show-time instant. Verdict: ceiling above the Small Instant-Only model (SM98) if &le; &minus;0.05% with CI below 0",
-   "id": "SM99, ticket 001136",
-   "kind": "gpu",
-   "decides": "Whether a show-time instant-only big teacher is worth a distillation experiment for the small instant-only model",
-   "why": "",
-   "job": "the show-time instant-only big model (SM99): big-model epoch 2 on show-time inputs, instant-only (curve loss weight 0) from epoch 1 (users 5000-10000, shuffle seed 3, 2 lanes x 8,192 carried state, fresh AdamW 3.5e-4 -&gt; 0, no teacher), 370M of 370M reviews left (segment to the next break or the end)",
-   "linked": true,
-   "track": "small model",
-   "ticket": "001136-sm99",
-   "started": "16:25",
-   "elapsed": "3:09",
-   "progress": null,
-   "eta": "~19:54"
-  }
- ],
+ "now": [],
  "charts": [
   {
    "title": "Small model, leak-free (SM72s): LogLoss per epoch, 458-user set (lower is better)",
@@ -438,6 +422,15 @@
  "waiting": [],
  "recent": [
   {
+   "ticket": "001136-sm99",
+   "id": "SM99",
+   "what": "the show-time instant-only big model (SM99): big-model epoch 2 on show-time inputs, instant-only (curve loss weight 0) from epoch 1 (users 5000-10000, shuffle seed 3, 2 lanes x 8,192 carried state, fresh AdamW 3.5e-4 -&gt; 0, no teacher), 370M of 370M reviews left (segment to the next break or the end)",
+   "ended": "19:57",
+   "date": "11-11",
+   "exit": 1,
+   "ran": "3:31"
+  },
+  {
    "ticket": "001135-sm99",
    "id": "SM99",
    "what": "the show-time instant-only big model (SM99): trainer smoke of big-model epoch 2 (instant-only, show-time inputs, 2 users x 512 reviews, scratch copy)",
@@ -481,15 +474,6 @@
    "date": "11-11",
    "exit": 0,
    "ran": "0:00"
-  },
-  {
-   "ticket": "001130-sm99",
-   "id": "SM99",
-   "what": "the show-time instant-only big model (SM99): GPU pair check, run 2 (trainer smokes of the show-time big model (SM91 step 2)&#x27;s epoch on its tree and this tree, epoch 1 with and without curve loss weight 0, scorer rows vs committed rows; 2 users each)",
-   "ended": "07:00",
-   "date": "11-11",
-   "exit": 0,
-   "ran": "0:01"
   }
  ],
  "plan": [
@@ -2169,10 +2153,11 @@
    "when": "Epoch 1 done 16:09 Wed (544.5 min, 11,334 reviews/s); early check 16:25: &minus;0.069% [&minus;0.094, &minus;0.044] vs the Small Instant-Only model (SM98) and &minus;0.066% [&minus;0.076, &minus;0.056] vs the show-time big model (SM91s2), so epoch 2 runs: ~573 min around the 20:00 break, about 07:00 Thu, then scoring",
    "decides": "Whether a show-time instant-only big teacher is worth a distillation experiment for the small instant-only model",
    "started_at": "2026-11-11T07:04:13+01:00",
-   "state": "running",
-   "started": "16:25",
-   "ticket": "001136-sm99",
-   "ends_at": "2026-11-12T03:24:13+01:00"
+   "state": "done",
+   "ended": "19:57",
+   "exit": 1,
+   "started": "07:04",
+   "ended_at": "2026-11-11T19:57:03+01:00"
   },
   {
    "id": "SM104",
