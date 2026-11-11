@@ -23,8 +23,8 @@
      "quant": "w8+s8",
      "curve_pct": 0.36,
      "date": "10-30",
-     "note": "The fork&rsquo;s default small model (leak-free, cool-down from epoch 25, Anki build 110). Serves RWKV-Curve, and in fork main it is the curve half of the RWKV-Instant pair (intervals, S90, answer time)",
-     "ships": "Anki build 110 &middot; default",
+     "note": "The fork&rsquo;s default small model (leak-free, cool-down from epoch 25, Anki build 110). Still the best small model on the curve, so in fork main it gives RWKV-Curve, intervals and S90 for both the Small and Tiny sizes; RWKV-Instant runs on the instant-only models below. The show-time retrain (SM92) beats it on instant (&minus;0.31%) but is worse on curve (+0.07%), and the instant-only models beat both on instant, so it is no longer shown here",
+     "ships": "Anki build 110 &middot; default; fork main &middot; curve of Small and Tiny",
      "ships_href": "https://github.com/JSchoreels/anki/releases/tag/26.09.3%2Bfsrs7.build.110"
     },
     {
@@ -48,18 +48,6 @@
      "ships": "fork main &middot; Tiny",
      "ships_pending": true,
      "note": "The show-time instant-only model, stage 2 (SM98) with its card stream cut to 1 layer: 31% less state (2,622 vs 3,530 B per card + note in the default int4 cards + int8 notes format), +0.19% instant. Like the show-time instant-only model, stage 2 (SM98) its curve head is untrained, so the curve comes from the default small model (SM63). In fork main since 11-11 (no release) as the &ldquo;Tiny&rdquo; size"
-    },
-    {
-     "variant": "Show-time two-head model: the show-time retrain of the default small model (SM92)",
-     "curve": 0.30024,
-     "instant": 0.276876,
-     "eval": "722 users (732 set), 30.13M reviews, leak-free; instant on show-time inputs",
-     "quant": "w8+s8",
-     "curve_pct": 0.43,
-     "date": "11-04",
-     "note": "The default small model (SM63) + 1 epoch and the same cool-down on show-time inputs. Bundled in fork main as a model you can pick; no longer chosen automatically since the smart switch (11-10)",
-     "ships": "fork main &middot; selectable",
-     "ships_pending": true
     },
     {
      "variant": "Shipped big model (fork RWKV)",
