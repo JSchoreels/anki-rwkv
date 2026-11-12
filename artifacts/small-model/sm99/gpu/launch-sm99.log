@@ -4,3 +4,67 @@
 [sm99 11-11 07:04:23] exit 0: trainer smoke of big-model epoch 1 (instant-only, show-time inputs, 2 users x 512 reviews, scratch copy)
 [sm99 11-11 07:04:23] smoke: {"smoke": "sm99-big-inst-e1", "exit": 0, "status": "complete", "updates": 2, "reviews": 1024, "error": null, "seconds": 9.0}
 [sm99 11-11 07:04:23] enqueue: big-model epoch 1 on show-time inputs, instant-only (curve loss weight 0) from the show-time big model (SM91 step 2) (users 5000-10000, shuffle seed 2, 2 lanes x 8,192 carried state, fresh AdamW 3.5e-4 -> 0, no teacher), 370M of 370M reviews left (expected 573 min of ~573, 775 min to the next break, 18269 MiB RAM free)
+[sm99 11-11 16:09:30] exit 0: epoch 1 segment (35549 reviews left; nvidia-smi max 14593 MiB, baseline 482 MiB)
+[sm99 11-11 16:09:30] epoch 1 complete: 370,292,439 reviews (last attempt), 544.5 min training, 11,334 reviews/s, peak allocated 11,060 MiB, reserved 13,020 MiB, process tree RSS max 12,974 MiB, curve_loss_weight 0.0, init 4f31860d3cde, trained cb171c20e273, update offset end 25038
+[sm99 11-11 16:09:31] enqueue: scoring epoch 1 on e2s-query inputs, the 732 set minus 9 never-fit (723 users) (pass 1, 0 done, cap 0.8) (expected 25 min, max wait 202 min, 230 min to the next break)
+[sm99 11-11 16:24:33] exit 0: scoring epoch 1 on e2s-query inputs, the 732 set minus 9 never-fit (723 users) (pass 1, 0 done, cap 0.8)
+[sm99 11-11 16:24:34] enqueue: scoring epoch 1 on e2s-query inputs, the 732 set minus 9 never-fit (723 users) (pass 2, 722 done, cap 0.8) (expected 15 min, max wait 197 min, 215 min to the next break)
+[sm99 11-11 16:25:06] exit 0: scoring epoch 1 on e2s-query inputs, the 732 set minus 9 never-fit (723 users) (pass 2, 722 done, cap 0.8)
+[sm99 11-11 16:25:07] sm99-big-inst-e1/w8+s8@e2s-query: 723 users scored in sm99-rows.jsonl
+[sm99 11-11 16:25:07] rule early (after epoch 1) exit 0: [sm99-rule] early continue: epoch 1 - SM98 show-time instant -0.069% [-0.094, -0.044]; epoch 1 - SM91 step 2 -0.066% [-0.076, -0.056] (722 users)
+[sm99 11-11 16:25:20] epoch 2 prepared: [sm99-epoch] prepared epoch 2: sm99-big-inst-e2, start C:\Users\jonat\workspace\wt\sm99\artifacts\small-model\sm99-big-inst-e1\expertium\big-inst\master.pth, seed 3, 5001 users, 370,292,439 reviews after {'script': 'scripts/sm72_label_windows.py', 'users': 5001, 'unlabelled_tails_trimmed': 27}
+[sm99-epoch] pair epoch 2: OK {"vs_sm91s2": [], "vs_epoch1": []}
+[sm99 11-11 16:25:21] enqueue: trainer smoke of big-model epoch 2 (instant-only, show-time inputs, 2 users x 512 reviews, scratch copy) (expected 10 min, max wait 201 min, 214 min to the next break)
+[sm99 11-11 16:25:32] exit 0: trainer smoke of big-model epoch 2 (instant-only, show-time inputs, 2 users x 512 reviews, scratch copy)
+[sm99 11-11 16:25:33] smoke: {"smoke": "sm99-big-inst-e2", "exit": 0, "status": "complete", "updates": 2, "reviews": 1024, "error": null, "seconds": 10.8}
+[sm99 11-11 16:25:33] enqueue: big-model epoch 2 on show-time inputs, instant-only (curve loss weight 0) from epoch 1 (users 5000-10000, shuffle seed 3, 2 lanes x 8,192 carried state, fresh AdamW 3.5e-4 -> 0, no teacher), 370M of 370M reviews left (expected 209 min of ~573, 214 min to the next break, 18249 MiB RAM free)
+[sm99 11-11 19:57:02] requesting a snapshot stop (NEXT 2)
+[sm99 11-11 19:57:32] exit 1: epoch 2 segment (227371580 reviews left; nvidia-smi max 15008 MiB, baseline 1592 MiB)
+[sm99 11-11 19:57:32] epoch 2 needs 30 min, 2 min before the next break; waiting
+[sm99 11-11 20:50:33] epoch 2: break, 15026s left
+[sm99 11-12 01:01:57] started: 726f9922 The show-time instant-only big model (SM99): handoff with the launch (WMI pid 33800, launcher pid 24008, epoch 1 running ~11.2k reviews/s, final ~08:30 (DRYRUN=0; the show-time big model (SM91 step 2) + instant-only big-model epochs on show-time inputs, early rule after epoch 1)
+[sm99-epoch] epoch 1 has started training; saved pair check OK (pair-e1.json)
+[sm99 11-12 01:02:01] epoch 1 complete: 370,292,439 reviews (last attempt), 544.5 min training, 11,334 reviews/s, peak allocated 11,060 MiB, reserved 13,020 MiB, process tree RSS max 12,974 MiB, curve_loss_weight 0.0, init 4f31860d3cde, trained cb171c20e273, update offset end 25038
+[sm99 11-12 01:02:02] sm99-big-inst-e1/w8+s8@e2s-query: 723 users scored in sm99-rows.jsonl
+[sm99 11-12 01:02:02] rule early (after epoch 1) exit 0: [sm99-rule] early continue: epoch 1 - SM98 show-time instant -0.069% [-0.094, -0.044]; epoch 1 - SM91 step 2 -0.066% [-0.076, -0.056] (722 users)
+[sm99-epoch] epoch 2 has started training; saved pair check OK (pair-e2.json)
+[sm99 11-12 01:02:03] enqueue: big-model epoch 2 on show-time inputs, instant-only (curve loss weight 0) from epoch 1 (users 5000-10000, shuffle seed 3, 2 lanes x 8,192 carried state, fresh AdamW 3.5e-4 -> 0, no teacher), 227M of 370M reviews left (expected 356 min of ~356, 1137 min to the next break, 13806 MiB RAM free)
+[sm99 11-12 06:25:45] exit 0: epoch 2 segment (4039066 reviews left; nvidia-smi max 15600 MiB, baseline 3231 MiB)
+[sm99 11-12 06:25:46] epoch 2 complete: 227,371,580 reviews (last attempt), 322.9 min training, 11,737 reviews/s, peak allocated 10,961 MiB, reserved 13,020 MiB, process tree RSS max 9,111 MiB, curve_loss_weight 0.0, init 2c8c0ae18194, trained 1c413d7fa488, update offset end 25038
+[sm99 11-12 06:25:46] enqueue: scoring epoch 2 on e2s-query inputs, the 732 set minus 9 never-fit (723 users) (pass 1, 0 done, cap 0.8) (expected 25 min, max wait 1085 min, 1113 min to the next break)
+[sm99 11-12 06:40:54] exit 0: scoring epoch 2 on e2s-query inputs, the 732 set minus 9 never-fit (723 users) (pass 1, 0 done, cap 0.8)
+[sm99 11-12 06:40:54] enqueue: scoring epoch 2 on e2s-query inputs, the 732 set minus 9 never-fit (723 users) (pass 2, 722 done, cap 0.8) (expected 15 min, max wait 1080 min, 1098 min to the next break)
+[sm99 11-12 06:41:26] exit 0: scoring epoch 2 on e2s-query inputs, the 732 set minus 9 never-fit (723 users) (pass 2, 722 done, cap 0.8)
+[sm99 11-12 06:41:26] sm99-big-inst-e2/w8+s8@e2s-query: 723 users scored in sm99-rows.jsonl
+[sm99 11-12 06:41:27] enqueue: scoring epoch 2 on e2s-query inputs, the 3 long users of the 732 set (pass 1, 723 done, cap 0.92) (expected 20 min, max wait 1074 min, 1097 min to the next break)
+[sm99 11-12 06:42:33] exit 0: scoring epoch 2 on e2s-query inputs, the 3 long users of the 732 set (pass 1, 723 done, cap 0.92)
+[sm99 11-12 06:42:33] sm99-big-inst-e2/w8+s8@e2s-query: 726 users scored in sm99-rows.jsonl
+[sm99 11-12 06:42:34] enqueue: scoring epoch 2 on normal inputs, the 732 set minus 9 never-fit (723 users) (pass 1, 0 done, cap 0.8) (expected 25 min, max wait 1068 min, 1096 min to the next break)
+[sm99 11-12 06:57:19] exit 0: scoring epoch 2 on normal inputs, the 732 set minus 9 never-fit (723 users) (pass 1, 0 done, cap 0.8)
+[sm99 11-12 06:57:19] enqueue: scoring epoch 2 on normal inputs, the 732 set minus 9 never-fit (723 users) (pass 2, 722 done, cap 0.8) (expected 15 min, max wait 1063 min, 1081 min to the next break)
+[sm99 11-12 06:57:51] exit 0: scoring epoch 2 on normal inputs, the 732 set minus 9 never-fit (723 users) (pass 2, 722 done, cap 0.8)
+[sm99 11-12 06:57:51] sm99-big-inst-e2/w8+s8: 723 users scored in sm99-rows.jsonl
+[sm99 11-12 06:57:51] enqueue: scoring epoch 2 on normal inputs, the 3 long users of the 732 set (pass 1, 723 done, cap 0.92) (expected 20 min, max wait 1058 min, 1081 min to the next break)
+[sm99 11-12 06:58:57] exit 0: scoring epoch 2 on normal inputs, the 3 long users of the 732 set (pass 1, 723 done, cap 0.92)
+[sm99 11-12 06:58:58] sm99-big-inst-e2/w8+s8: 726 users scored in sm99-rows.jsonl
+[sm99 11-12 06:58:59] rule decide (732 set) exit 0: [sm99-rule] verdict ceiling above SM98 (epoch 2): new - SM98 show-time instant -0.108% [-0.133, -0.084]; new - SM91 step 2 -0.105% [-0.118, -0.093]; 1,500 pool users 726
+[sm99 11-12 06:58:59] enqueue: scoring epoch 2 (the final model) on e2s-query inputs, the 1,500 validation users outside the 732 set + 6 check users (pass 1, 0 done, cap 0.8) (expected 35 min, max wait 1042 min, 1080 min to the next break)
+[sm99 11-12 07:20:31] exit 0: scoring epoch 2 (the final model) on e2s-query inputs, the 1,500 validation users outside the 732 set + 6 check users (pass 1, 0 done, cap 0.8)
+[sm99 11-12 07:20:32] enqueue: scoring epoch 2 (the final model) on e2s-query inputs, the 1,500 validation users outside the 732 set + 6 check users (pass 2, 770 done, cap 0.8) (expected 15 min, max wait 1040 min, 1058 min to the next break)
+[sm99 11-12 07:20:57] exit 0: scoring epoch 2 (the final model) on e2s-query inputs, the 1,500 validation users outside the 732 set + 6 check users (pass 2, 770 done, cap 0.8)
+[sm99 11-12 07:20:58] no progress on sm99-big-inst-e2/w8+s8@e2s-query (770 of 771 users): next pass at cap 0.92 (memory only, same numerics)
+[sm99 11-12 07:20:58] enqueue: scoring epoch 2 (the final model) on e2s-query inputs, the 1,500 validation users outside the 732 set + 6 check users (pass 3, 770 done, cap 0.92) (expected 15 min, max wait 1040 min, 1058 min to the next break)
+[sm99 11-12 07:21:23] exit 0: scoring epoch 2 (the final model) on e2s-query inputs, the 1,500 validation users outside the 732 set + 6 check users (pass 3, 770 done, cap 0.92)
+[sm99 11-12 07:21:23] no progress at cap 0.92 on sm99-big-inst-e2/w8+s8@e2s-query (770 of 771 users): the rest do not fit; going on
+[sm99 11-12 07:21:24] sm99-big-inst-e2/w8+s8@e2s-query: 770 users scored in sm99-rows-1500.jsonl
+[sm99 11-12 07:21:24] enqueue: scoring the show-time big model (SM91 step 2) (reference) on e2s-query inputs, the 1,500 validation users outside the 732 set + 6 check users (pass 1, 0 done, cap 0.8) (expected 35 min, max wait 1019 min, 1057 min to the next break)
+[sm99 11-12 07:42:53] exit 0: scoring the show-time big model (SM91 step 2) (reference) on e2s-query inputs, the 1,500 validation users outside the 732 set + 6 check users (pass 1, 0 done, cap 0.8)
+[sm99 11-12 07:42:54] enqueue: scoring the show-time big model (SM91 step 2) (reference) on e2s-query inputs, the 1,500 validation users outside the 732 set + 6 check users (pass 2, 770 done, cap 0.8) (expected 15 min, max wait 1018 min, 1036 min to the next break)
+[sm99 11-12 07:43:19] exit 0: scoring the show-time big model (SM91 step 2) (reference) on e2s-query inputs, the 1,500 validation users outside the 732 set + 6 check users (pass 2, 770 done, cap 0.8)
+[sm99 11-12 07:43:20] no progress on sm91s2-big-showtime/w8+s8@e2s-query (770 of 771 users): next pass at cap 0.92 (memory only, same numerics)
+[sm99 11-12 07:43:20] enqueue: scoring the show-time big model (SM91 step 2) (reference) on e2s-query inputs, the 1,500 validation users outside the 732 set + 6 check users (pass 3, 770 done, cap 0.92) (expected 15 min, max wait 1017 min, 1035 min to the next break)
+[sm99 11-12 07:43:45] exit 0: scoring the show-time big model (SM91 step 2) (reference) on e2s-query inputs, the 1,500 validation users outside the 732 set + 6 check users (pass 3, 770 done, cap 0.92)
+[sm99 11-12 07:43:45] no progress at cap 0.92 on sm91s2-big-showtime/w8+s8@e2s-query (770 of 771 users): the rest do not fit; going on
+[sm99 11-12 07:43:45] sm91s2-big-showtime/w8+s8@e2s-query: 770 users scored in sm99-rows-1500.jsonl
+[sm99 11-12 07:43:48] rule decide (final) exit 0: [sm99-rule] verdict ceiling above SM98 (epoch 2): new - SM98 show-time instant -0.108% [-0.133, -0.084]; new - SM91 step 2 -0.105% [-0.118, -0.093]; 1,500 pool users 1487
+[sm99 11-12 07:43:48] done (verdict ceiling above SM98 / sm99-big-inst-e2/w8+s8)
