@@ -335,8 +335,12 @@ for n in $EPOCHS; do
     score_early "epoch 27 (constant LR, w64-c1; the early check)" "$EARM" "expertium:$ARCH:$E27/expertium/$TRACK/master.pth" || { rc=1; break; }
     rule early "after epoch 27" || { rc=1; break; }
     if [ "$DRYRUN" != 1 ] && [ "$(early_decision)" != continue ]; then
-      log "EARLY STOP: $(early_decision) (epoch 27 - SM92 epoch 26 above +0.25% on show-time curve or instant; see $S/sm106-early.md); no further GPU work"
-      STOPPED_EARLY=1; break
+      if [ "${OVERRIDE_EARLY_STOP:-0}" = 1 ]; then
+        log "EARLY STOP OVERRIDDEN (OVERRIDE_EARLY_STOP=1; user 11-12 ~13:15: 'Finish SM106 anyway'): early decision $(early_decision), see $S/sm106-early.md; continuing to epochs 28-29 and the cool-down, rule A unchanged"
+      else
+        log "EARLY STOP: $(early_decision) (epoch 27 - SM92 epoch 26 above +0.25% on show-time curve or instant; see $S/sm106-early.md); no further GPU work"
+        STOPPED_EARLY=1; break
+      fi
     fi
   fi
 done
