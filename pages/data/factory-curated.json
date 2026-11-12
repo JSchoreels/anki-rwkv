@@ -22,8 +22,18 @@
      "eval": "722 users (732 set), 30.13M reviews, leak-free; show-time inputs (curve and instant)",
      "quant": "w8+s8",
      "date": "11-03",
-     "note": "The big model (1 leak-free epoch) + one epoch trained on show-time inputs. Better on both heads on show-time inputs. In fork main as the &ldquo;Big&rdquo; size since 11-11 (SM107); the show-time instant-only big model (SM99) is training on top of it now",
+     "note": "The big model (1 leak-free epoch) + one epoch trained on show-time inputs. Better on both heads on show-time inputs. In fork main as the &ldquo;Big&rdquo; size since 11-11 (SM107); the show-time instant-only big model (SM99) was trained on top of it",
      "ships": "fork main &middot; Big"
+    },
+    {
+     "variant": "Best instant model: the show-time instant-only big model (SM99)",
+     "curve": null,
+     "instant": 0.275894,
+     "eval": "722 users (732 set), 30.13M reviews, leak-free; show-time inputs (curve and instant)",
+     "quant": "w8+s8",
+     "date": "11-12",
+     "note": "The show-time big model (SM91s2) + 2 instant-only epochs on show-time inputs; its curve head is untrained. &minus;0.108% vs the Small Instant-Only model (SM98) on show-time instant. Not in the fork yet: the Big Instant-Only model of the coming RWKV family release",
+     "ships": "not yet (family release)"
     },
     {
      "variant": "Best two-head small model: the show-time retrain of the default small model (SM92)",
@@ -48,7 +58,7 @@
      "ships_href": "https://github.com/JSchoreels/anki/releases/tag/26.09.3%2Bfsrs7.build.110"
     },
     {
-     "variant": "Best instant-only model: the Small Instant-Only model (SM98)",
+     "variant": "Best small instant-only model: the Small Instant-Only model (SM98)",
      "curve": null,
      "instant": 0.276191,
      "eval": "722 users (732 set), 30.13M reviews, leak-free; show-time inputs (curve and instant)",
@@ -1964,10 +1974,11 @@
     "the show-time instant-only big model (SM99): "
    ],
    "what": "The show-time instant-only big model (SM99): the show-time big model (SM91s2) given up to 2 instant-only big-model epochs on show-time inputs (curve loss weight 0, the big model&rsquo;s own epoch recipe, each epoch decays to LR 0, no teacher), as the ceiling for the Small Instant-Only model (SM98). Early rule after epoch 1: continue only if it beats the Small Instant-Only model (SM98) on show-time instant. Verdict: ceiling above the Small Instant-Only model (SM98) if &le; &minus;0.05% with CI below 0",
-   "when": "Epoch 1 done 16:09 Wed (544.5 min, 11,334 reviews/s); early check 16:25: &minus;0.069% [&minus;0.094, &minus;0.044] vs the Small Instant-Only model (SM98) and &minus;0.066% [&minus;0.076, &minus;0.056] vs the show-time big model (SM91s2),; epoch 2: 143M reviews before the break, a reboot at 21:44 killed the launcher, relaunched 01:02 Thu from the snapshot (227M left, ~6 h), so about 07:00 Thu, then scoring",
+   "when": "Done 07:44 Thu: ceiling above the Small Instant-Only model (SM98), &minus;0.108% [&minus;0.133, &minus;0.084] on show-time instant; epoch 2 cut by a reboot at 21:44 Wed and resumed 01:02 Thu from its snapshot",
    "decides": "Whether a show-time instant-only big teacher is worth a distillation experiment for the small instant-only model",
    "started_at": "2026-11-11T07:04+01:00",
-   "state": "running"
+   "state": "done",
+   "ended_at": "2026-11-12T07:44+01:00"
   },
   {
    "id": "SM104",
@@ -2020,16 +2031,17 @@
   {
    "id": "SM106",
    "track": "small model",
-   "since": "11-11T19:05",
+   "since": "11-12T07:48",
    "kind": "gpu",
    "minutes": 900,
    "match": [
     "the Tiny two-head model (SM106): "
    ],
-   "what": "The Tiny two-head model (SM106): the show-time retrain (SM92) with its card stream cut to 1 layer (31% less state), more epochs with both heads on show-time inputs, then the one-epoch 32k Muon cool-down on show-time inputs (the Tiny Instant-Only model (SM101) recipe, both heads trained). Rules fixed before launch, show-time inputs, vs the big model (1 leak-free epoch): curve curve CI upper end &le; +0.5%, instant &le; +0.4%le; +0.5% and instant curve CI upper end &le; +0.5%, instant &le; +0.4%le; +0.4% (point estimates, as the 10-29 pruning bar; CIs reported). Branch sm106 ready: card cut and CPU checks pass",
-   "when": "Queued behind the show-time instant-only big model (SM99): launch ~07:30 Thu, early check ~09:50, result ~00:00 Fri (~15 h GPU; the user lifted Thursday&rsquo;s 20:00&ndash;01:00 break)",
+   "what": "The Tiny two-head model (SM106): the show-time retrain (SM92) with its card stream cut to 1 layer (31% less state), more epochs with both heads on show-time inputs, then the one-epoch 32k Muon cool-down on show-time inputs (the Tiny Instant-Only model (SM101) recipe, both heads trained). Rules fixed before launch, show-time inputs, vs the big model (1 leak-free epoch): curve &le; +0.5% and instant &le; +0.4% (point estimates, as the 10-29 pruning bar; CIs reported). Branch sm106 ready: card cut and CPU checks pass",
+   "when": "Started 07:48 Thu (scoring the show-time retrain (SM92)&rsquo;s epoch 26 first); early check ~10:00, result ~00:00 Fri (~15 h GPU; the user lifted Thursday&rsquo;s 20:00&ndash;01:00 break)",
    "decides": "Whether the Tiny size gets a two-head model for the RWKV family release (user 11-11)",
-   "state": "queued"
+   "state": "running",
+   "started_at": "2026-11-12T07:48+01:00"
   },
   {
    "id": "SM108",
@@ -2600,6 +2612,70 @@
   "s-w64kd-gate-ctx2048c-dec8-1ep/w8+s8"
  ],
  "results": [
+  {
+   "date": "11-12",
+   "kind": "gpu-train",
+   "id": "SM99",
+   "track": "small model",
+   "name": "The show-time instant-only big model (SM99): the show-time big model (SM91s2) given 2 instant-only big-model epochs on show-time inputs (curve loss weight 0, the big model&rsquo;s own epoch recipe, each epoch decays to LR 0, no teacher)",
+   "eval": "Leak-free w8+s8, 722 users of the 732 set, show-time inputs; % of the big model (1 leak-free epoch) normal-input instant LogLoss; paired user bootstrap 95% CI. Rule fixed before launch: &ldquo;ceiling above the Small Instant-Only model (SM98)&rdquo; if &le; &minus;0.05% with the CI below 0. Also the 1,500 validation users (1,487 scored)",
+   "fork": "Not in the fork: pairing the Big size with it needs runtime support for two big models (today only small pairs load). Planned as the Big Instant-Only model of the RWKV family release",
+   "takeaway": "<strong>Ceiling above the Small Instant-Only model (SM98)</strong>: &minus;0.108% [&minus;0.133, &minus;0.084] on show-time instant (492 of 722 users better), and &minus;0.105% [&minus;0.118, &minus;0.093] vs its start, the show-time big model (SM91s2). The best instant model so far: 0.275894, &minus;0.46% vs the big model (1 leak-free epoch). So a big instant-only teacher could still help the small instant-only model. 1,500 validation users: &minus;0.271% vs the Small Instant-Only model (SM98)",
+   "inputs": "show-time",
+   "started_at": "2026-11-11T07:04+01:00",
+   "ended_at": "2026-11-12T07:44+01:00",
+   "detail": {
+    "verdict": "Ceiling above the Small Instant-Only model (SM98); branch sm99 5a480ed8 (sm99-result.md, sm99-decision.md)",
+    "table": {
+     "head": [
+      "Show-time instant, new minus",
+      "%",
+      "95% CI",
+      "better / worse"
+     ],
+     "rows": [
+      [
+       "the Small Instant-Only model (SM98) (the rule)",
+       "&minus;0.108",
+       "[&minus;0.133, &minus;0.084]",
+       "492 / 230"
+      ],
+      [
+       "the show-time big model (SM91s2)",
+       "&minus;0.105",
+       "[&minus;0.118, &minus;0.093]",
+       "578 / 143"
+      ],
+      [
+       "the show-time instant-only small model (SM96)",
+       "&minus;0.143",
+       "[&minus;0.168, &minus;0.119]",
+       "514 / 207"
+      ],
+      [
+       "the show-time retrain (SM92)",
+       "&minus;0.356",
+       "[&minus;0.392, &minus;0.322]",
+       "630 / 91"
+      ],
+      [
+       "the default small model (SM63)",
+       "&minus;0.662",
+       "[&minus;0.765, &minus;0.577]",
+       "662 / 59"
+      ]
+     ]
+    },
+    "notes": [
+     "Early check after epoch 1: &minus;0.069% [&minus;0.094, &minus;0.044] vs the Small Instant-Only model (SM98), so epoch 2 ran; epoch 2 gave another &minus;0.039% [&minus;0.046, &minus;0.033]",
+     "Epoch 1: 545.1 min at 11,334 reviews/s; epoch 2: 535.7 min in 2 segments (212.0 + 323.7, cut by a reboot at 21:44 Wed, resumed 01:02 Thu) at 11,737 reviews/s; nvidia-smi max 15.6 GB, peak allocated 11.1 GB; GPU time ~19.6 h (1,081 min of epochs + 93 min of scoring tickets)",
+     "10-epoch ETA at 11,737 reviews/s: 34.9 h (2k tier) / 137.7 h (8k tier)",
+     "On normal inputs it ties the big model (1 leak-free epoch): &minus;0.004% [&minus;0.024, +0.016]; its show-time cost is +0.053%",
+     "1,500 validation users, show-time: &minus;0.115% vs the show-time big model (SM91s2), &minus;0.782% vs the default small model (SM63)"
+    ]
+   },
+   "gpu_minutes": 1174
+  },
   {
    "date": "11-11",
    "kind": "cpu",
@@ -9182,10 +9258,9 @@
     "params": 2762884,
     "mem_b": 19554,
     "curve": null,
-    "instant": null,
-    "state": "running",
-    "status": "Epoch 2 of 2 (resumed 01:02 after a reboot); epoch 1 was &minus;0.069% vs Small Instant-Only (SM98)",
-    "eta": "~07:00 Thu, scored ~07:30"
+    "instant": 0.275894,
+    "state": "done",
+    "status": "Done: not in the fork yet (pairing two big models needs runtime work)"
    },
    {
     "size": "Small",
@@ -9223,9 +9298,9 @@
     "mem_b": 2622,
     "curve": null,
     "instant": null,
-    "state": "queued",
-    "status": "Starts when Big Instant-Only (SM99) frees the GPU; needs curve &le; +0.5% and instant &le; +0.4%",
-    "eta": "~00:00 Fri (early check ~09:50 Thu; no break Thu evening)"
+    "state": "running",
+    "status": "Running: scoring its reference, then epoch 27",
+    "eta": "~00:00 Fri (early check ~10:00 Thu)"
    },
    {
     "size": "Tiny",
