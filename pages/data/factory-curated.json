@@ -2053,7 +2053,7 @@
     "RWKV family release (SM108): "
    ],
    "what": "RWKV family release (SM108): one GitHub release with Big, Small and Tiny, each with a two-head model and an Instant-Only variant: Big = the show-time big model (SM91s2) + the show-time instant-only big model (SM99); Small = the show-time retrain (SM92) + the Small Instant-Only model (SM98); Tiny = the Tiny two-head model (SM106) + the Tiny Instant-Only model (SM101). Packages, test vectors and notes prepared now; published after the user&rsquo;s OK",
-   "when": "Preparing from 19:05 Wed; waits for the show-time instant-only big model (SM99) and the Tiny two-head model (SM106)",
+   "when": "5 of 6 packages ready (Big pair in fork main since 08:48 Thu). User 11-12: wait for everything, the big instant-only teacher (SM110) included; include the Tiny two-head model (SM106) whatever its curve; fork default Small, Tiny when only RWKV-Instant is used; a realistic speed test first (harness being built). Release folder ~Fri evening, published only after the user&rsquo;s OK",
    "decides": "Nothing: user request 11-11",
    "state": "running",
    "started_at": "2026-11-11T19:05+01:00"
@@ -2085,8 +2085,23 @@
    ],
    "what": "The big instant-only teacher (SM110): the Small Instant-Only model (SM98)&rsquo;s own cool-down from its epoch 35, with the teacher targets swapped for the show-time instant-only big model (SM99)&rsquo;s (made on show-time inputs for the 8,000 cool-down users). Early stop halfway (4,000 users) unless below the Small Instant-Only model (SM98)&rsquo;s own snapshot at the same point; go = new &minus; the Small Instant-Only model (SM98), show-time instant, CI below 0 and at least 0.05%",
    "when": "Branch sm110 ready (CPU checks ALL OK, dry run OK); queued behind the Tiny two-head model (SM106), so ~02:00 Fri start, ~16:00 Fri result (~13.9 GPU h; ~8.9 h on an early stop). Expected about &minus;0.03%, so about 1 chance in 4 of a go",
-   "decides": "Whether the big model&rsquo;s instant lead (&minus;0.108%) can be passed on to the Small Instant-Only model of the family",
+   "decides": "Whether the big model&rsquo;s instant lead (&minus;0.108%) can be passed on to the Small Instant-Only model of the family; the family release waits for it (user 11-12)",
    "state": "queued"
+  },
+  {
+   "id": "SM111",
+   "track": "small model",
+   "since": "11-12T14:10",
+   "kind": "cpu",
+   "minutes": 180,
+   "match": [
+    "Fork speed test (SM111): "
+   ],
+   "what": "Fork speed test (SM111): time the Big, Small and Tiny sizes in the fork on the operation the user waits for in the app (their Anki timings: Big ~12&ndash;15 s, Small ~4&ndash;6 s), on a read-only copy of the collection; harness calibrated against the app first, final run in a quiet window with the GPU idle",
+   "when": "Harness and calibration now on CPU; final timing Fri after the big instant-only teacher (SM110), before the release",
+   "decides": "Nothing to ship or drop: where Tiny lands, and whether the Big pair is too slow (user 11-12)",
+   "state": "running",
+   "started_at": "2026-11-12T14:10+01:00"
   }
  ],
  "backlog": [
