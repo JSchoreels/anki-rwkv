@@ -44,7 +44,7 @@
   .sm-table.fam > tbody > tr.grp > td { border-top: 2px solid var(--muted); }
   .sm-table.fam th.grp { text-align: center; border-bottom: 1px solid var(--line); }
   .sm-table.fam .sep { border-left: 2px solid var(--line); }
-  .sm-table.fam td.m { min-width: 9rem; }
+  .sm-table.fam td.m { white-space: nowrap; }
   .sm-table.fam td.e { min-width: 6.5rem; }
   .sm-table.fam td.v { white-space: nowrap; }
   .sm-table.fam td.num b { font-weight: 600; }
@@ -412,7 +412,7 @@
     const vsSmall = (x) => x ? `<div class="vs">${x} <span class="id">vs Small</span></div>` : '';
     const st = (k) => `<span class="tag fam-${k}">${{ done: 'ready', running: 'training', queued: 'queued' }[k] || k}</span>`;
     const model = (r) => `<b>${r.id}</b>`;
-    const stat = (r) => `${st(r.state)}<div class="id">${r.status}</div>`;
+    const stat = (r) => st(r.state);
     const eta = (r) => r.eta ? `<span class="eta">${r.eta}</span>` : '<span class="id">&ndash;</span>';
     // one LogLoss cell: value, delta vs Big's two-head (reference cell for Big's own two-head), and for Tiny vs Small
     const ll = (r, head) => {
