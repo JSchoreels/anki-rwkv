@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-12T16:50:58+01:00",
- "updated": "2026-11-12 16:50",
- "material": "ec9fc9dcdd4b9042",
- "summary": "idle, finished 001157",
+ "generated_at": "2026-11-12T16:51:31+01:00",
+ "updated": "2026-11-12 16:51",
+ "material": "68653abbce0a364f",
+ "summary": "running 001159, finished 001158",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring, show-time inputs for both heads (curve / instant)",
@@ -262,7 +262,23 @@
    }
   ]
  },
- "now": [],
+ "now": [
+  {
+   "what": "The Tiny two-head model (SM106): the show-time retrain (SM92) with its card stream cut to 1 layer (31% less state), more epochs with both heads on show-time inputs, then the one-epoch 32k Muon cool-down on show-time inputs (the Tiny Instant-Only model (SM101) recipe, both heads trained). Rules fixed before launch, show-time inputs, vs the big model (1 leak-free epoch): curve &le; +0.5% and instant &le; +0.4% (point estimates, as the 10-29 pruning bar; CIs reported). Branch sm106 ready: card cut and CPU checks pass",
+   "id": "SM106, ticket 001159",
+   "kind": "gpu",
+   "decides": "Whether the Tiny size gets a two-head model for the RWKV family release (user 11-11)",
+   "why": "",
+   "job": "the Tiny two-head model (SM106): the release&#x27;s one-epoch 32k Muon cool-down on show-time inputs from epoch 29 (w64-c1; SM92&#x27;s users, order, seeds, KD targets), both heads (segment to the next break or the end)",
+   "linked": true,
+   "track": "small model",
+   "ticket": "001159-sm106",
+   "started": "16:51",
+   "elapsed": "0:00",
+   "progress": null,
+   "eta": "~00:53"
+  }
+ ],
  "charts": [
   {
    "title": "Small model, leak-free (SM72s): LogLoss per epoch, 458-user set (lower is better)",
@@ -433,6 +449,15 @@
  "waiting": [],
  "recent": [
   {
+   "ticket": "001158-sm106",
+   "id": "SM106",
+   "what": "the Tiny two-head model (SM106): trainer smoke of the w64-c1 show-time two-head cool-down from epoch 29 (fresh Muon, both heads, show-time inputs, 2 users x 512 reviews)",
+   "ended": "16:51",
+   "date": "11-12",
+   "exit": 0,
+   "ran": "0:00"
+  },
+  {
    "ticket": "001157-sm106",
    "id": "SM106",
    "what": "the Tiny two-head model (SM106): two-head epoch 29 on show-time inputs from epoch 28 (w64-c1, SM92 epoch 26&#x27;s recipe: 8k final tier, the run&#x27;s order rule, 2048 x 16 lanes carry, leak-free replay KD, AdamW 7e-4 constant, both heads, show-time inputs) (segment to the next break or the end)",
@@ -476,15 +501,6 @@
    "date": "11-12",
    "exit": 0,
    "ran": "1:46"
-  },
-  {
-   "ticket": "001152-sm106",
-   "id": "SM106",
-   "what": "the Tiny two-head model (SM106): trainer smoke of epoch 27 (w64-c1 from the cut of SM92&#x27;s epoch 26, both heads, constant LR, show-time inputs, 2 users x 512 reviews)",
-   "ended": "08:00",
-   "date": "11-12",
-   "exit": 0,
-   "ran": "0:00"
   }
  ],
  "plan": [
@@ -2215,12 +2231,11 @@
    "what": "The Tiny two-head model (SM106): the show-time retrain (SM92) with its card stream cut to 1 layer (31% less state), more epochs with both heads on show-time inputs, then the one-epoch 32k Muon cool-down on show-time inputs (the Tiny Instant-Only model (SM101) recipe, both heads trained). Rules fixed before launch, show-time inputs, vs the big model (1 leak-free epoch): curve &le; +0.5% and instant &le; +0.4% (point estimates, as the 10-29 pruning bar; CIs reported). Branch sm106 ready: card cut and CPU checks pass",
    "when": "Early check 10:00 Thu: stop (+0.259% [+0.131, +0.399] curve, +0.193% [+0.151, +0.234] instant vs the show-time retrain (SM92)&rsquo;s epoch 26; stop bar +0.25%). User 11-12 ~13:15: finish it anyway; relaunched 13:17 past the early stop, rule A unchanged (curve expected near +0.52%, just above the +0.5% bar). Epochs 28&ndash;29 to ~17:00, cool-down to ~00:50, result ~02:00 Fri",
    "decides": "Whether the Tiny size gets a two-head model for the RWKV family release (user 11-11)",
-   "state": "done",
+   "state": "running",
    "started_at": "2026-11-12T07:47:58+01:00",
-   "ended": "16:50",
-   "exit": 0,
-   "started": "07:47",
-   "ended_at": "2026-11-12T16:50:35+01:00"
+   "started": "16:51",
+   "ticket": "001159-sm106",
+   "ends_at": "2026-11-12T22:47:58+01:00"
   },
   {
    "id": "SM108",
