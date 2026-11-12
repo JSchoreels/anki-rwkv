@@ -2038,7 +2038,7 @@
     "the Tiny two-head model (SM106): "
    ],
    "what": "The Tiny two-head model (SM106): the show-time retrain (SM92) with its card stream cut to 1 layer (31% less state), more epochs with both heads on show-time inputs, then the one-epoch 32k Muon cool-down on show-time inputs (the Tiny Instant-Only model (SM101) recipe, both heads trained). Rules fixed before launch, show-time inputs, vs the big model (1 leak-free epoch): curve &le; +0.5% and instant &le; +0.4% (point estimates, as the 10-29 pruning bar; CIs reported). Branch sm106 ready: card cut and CPU checks pass",
-   "when": "Started 07:48 Thu (scoring the show-time retrain (SM92)&rsquo;s epoch 26 first); early check ~10:00, result ~00:00 Fri (~15 h GPU; the user lifted Thursday&rsquo;s 20:00&ndash;01:00 break)",
+   "when": "Started 07:48 Thu; epoch 27 since 08:01, early check ~10:20, result ~00:00 Fri (~15 h GPU; the user lifted Thursday&rsquo;s 20:00&ndash;01:00 break)",
    "decides": "Whether the Tiny size gets a two-head model for the RWKV family release (user 11-11)",
    "state": "running",
    "started_at": "2026-11-12T07:48+01:00"
@@ -2068,10 +2068,11 @@
     "Big pair in the fork (SM109): "
    ],
    "what": "Big pair in the fork (SM109): package the show-time big model (SM91s2) and the show-time instant-only big model (SM99) for the RWKV family release, then let the fork&rsquo;s &ldquo;Big&rdquo; size pair them the way &ldquo;Small&rdquo; pairs its two models (RWKV-Curve on the show-time big model (SM91s2), RWKV-Instant on the show-time instant-only big model (SM99)); parity, tests, docs; no release",
-   "when": "Started 08:05 Thu on CPU, beside the Tiny two-head model (SM106) on the GPU",
+   "when": "Done 08:48 Thu: fork main 72e03b263, packages on branch big-package 9dc96c91; no release",
    "decides": "Nothing: the Big Instant-Only slot of the family (user 11-11)",
-   "state": "running",
-   "started_at": "2026-11-12T08:05+01:00"
+   "state": "done",
+   "started_at": "2026-11-12T08:05+01:00",
+   "ended_at": "2026-11-12T08:48+01:00"
   }
  ],
  "backlog": [
@@ -2627,6 +2628,30 @@
   "s-w64kd-gate-ctx2048c-dec8-1ep/w8+s8"
  ],
  "results": [
+  {
+   "date": "11-12",
+   "kind": "cpu",
+   "id": "SM109",
+   "track": "small model",
+   "name": "Big pair in the fork (SM109): the fork&rsquo;s &ldquo;Big&rdquo; size pairs the show-time big model (SM91s2) for RWKV-Curve with the show-time instant-only big model (SM99) for RWKV-Instant, like &ldquo;Small&rdquo; pairs its two models; both Big models packaged for the RWKV family release",
+   "eval": "Release packages with show-time test vectors (NumPy reference, tolerance 1e-5, fp32 + int8); fork native engine vs PyTorch on show-time and normal vectors (14,403 rows); fork Rust and Python tests",
+   "fork": "Fork main 72e03b263: Big = the show-time big model (SM91s2) + the show-time instant-only big model (SM99); RWKV-Instant alone in Big runs the show-time instant-only big model (SM99) alone; the one-model choice in Big runs the show-time big model (SM91s2) alone; switching sizes rebuilds the state once; no release",
+   "takeaway": "<strong>Shipped in fork main</strong>. Native vs PyTorch for the show-time instant-only big model (SM99): 1.1e-6 max on show-time and on normal inputs. Memory per card + note at the fork default (int4 cards + int8 notes): 39,146 B for the Big pair vs 19,554 B for one Big model (Small pair 7,098 B)",
+   "inputs": "show-time",
+   "started_at": "2026-11-12T08:05+01:00",
+   "ended_at": "2026-11-12T08:48+01:00",
+   "gpu_minutes": 0,
+   "tickets": 0,
+   "detail": {
+    "verdict": "Shipped; fork 72e03b263 (docs/rwkv-sm109-2026-11-12.MD); anki-rwkv branch big-package 9dc96c91 (packages sm91s2, sm99); sm108-family-release 27190b6d (inventory)",
+    "notes": [
+     "Package parity (NumPy vs PyTorch): the show-time big model (SM91s2) 2.4e-6 fp32 / 1.6e-6 int8, the show-time instant-only big model (SM99) 1.2e-6 / 1.5e-6; both test-vector checks PASS",
+     "The show-time big model (SM91s2) package&rsquo;s weights are byte-identical to the fork&rsquo;s Big file",
+     "Rust rwkv tests 270 passed (default and no-default features; 262 before); Python model / inference / scheduler tests 1,742 passed, 91 skipped (no built bridge on Windows)",
+     "Not run here: the TypeScript / Svelte check and a full app build (no Node), and a speed measurement of the Big pair"
+    ]
+   }
+  },
   {
    "date": "11-12",
    "kind": "gpu-train",
@@ -9262,7 +9287,7 @@
     "curve": 0.299415,
     "instant": 0.276183,
     "state": "done",
-    "status": "In fork main: the Big size"
+    "status": "In fork main: RWKV-Curve in Big"
    },
    {
     "size": "Big",
@@ -9275,7 +9300,7 @@
     "curve": null,
     "instant": 0.275894,
     "state": "done",
-    "status": "Done: not in the fork yet (pairing two big models needs runtime work)"
+    "status": "In fork main: RWKV-Instant in Big"
    },
    {
     "size": "Small",
@@ -9314,7 +9339,7 @@
     "curve": null,
     "instant": null,
     "state": "running",
-    "status": "Running: scoring its reference, then epoch 27",
+    "status": "Running: epoch 27, early check next",
     "eta": "~00:00 Fri (early check ~10:00 Thu)"
    },
    {
