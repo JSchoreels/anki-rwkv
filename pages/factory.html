@@ -52,6 +52,7 @@
   #sec-family .eta { color: var(--c-extend); font-weight: 600; font-size: 13px; }
   .d { font-size: 12.5px; font-weight: 600; white-space: nowrap; }
   .d.good { color: var(--c-accepted); }
+  .d.mid { color: var(--c-extend); }
   .d.bad { color: var(--c-rejected); }
   .d.flat, .d.ref { color: var(--muted); font-weight: 400; }
   .tag.fam-done { border-color: var(--c-accepted); color: var(--c-accepted); }
@@ -406,7 +407,7 @@
     const sizes = [...new Set(F.rows.map((r) => r.size))];
     const pc = (v, r) => (v / r - 1) * 100, sg = (p) => `${p > 0 ? '+' : '&minus;'}${Math.abs(p).toFixed(Math.abs(p) >= 10 ? 1 : 2)}%`;
     // LogLoss: green = better, orange = worse, grey = within 0.05% (the minimum effect); size: share saved
-    const dLL = (v, r) => { const p = pc(v, r); return `<span class="d ${Math.abs(p) < 0.05 ? 'flat' : p < 0 ? 'good' : 'bad'}">${sg(p)}</span>`; };
+    const dLL = (v, r) => { const p = pc(v, r); return `<span class="d ${p <= 0.25 ? 'good' : p <= 0.5 ? 'mid' : 'bad'}">${sg(p)}</span>`; };
     const dSz = (v, r) => `<span class="d ${v < r ? 'good' : v > r ? 'bad' : 'flat'}">${sg(pc(v, r))}</span>`;
     const REF = '<span class="d ref">reference</span>';
     const vsSmall = (x) => x ? `<div class="vs">${x} <span class="id">vs Small</span></div>` : '';
@@ -429,8 +430,8 @@
       return `${num(v)}${unit}<div>${dSz(v, big[key])}</div>${sm ? vsSmall(dSz(v, sm)) : ''}`;
     };
     $('family-eval').innerHTML = `${F.eval}. Every % is against the Big two-head model (${big.id}); the Tiny rows also show the change against Small. `
-      + `LogLoss: lower is better; <span class="d good">green</span> = better, <span class="d bad">orange</span> = worse, `
-      + `<span class="d flat">grey</span> = within 0.05%. Parameters and memory: <span class="d good">&minus;%</span> = saved.`;
+      + `LogLoss: lower is better; same colour code as the headline: <span class="d good">&le; +0.25%</span>, <span class="d mid">+0.25 to +0.50%</span>, `
+      + `<span class="d bad">above +0.50%</span>. Parameters and memory: <span class="d good">&minus;%</span> = saved.`;
     const trs = [], cs = [];
     sizes.forEach((size) => {
       const rows = F.rows.filter((r) => r.size === size), n = rows.length;
