@@ -11,8 +11,8 @@ mkdir -p "$DIST"
 # name -> package folder. Defaults: finished packages live on their own branches (see inventory.md);
 # the TODO ones get a path once the package exists (add it to the repo or point the env var at it).
 declare -A PKG=(
-  [rwkv-big-two-head]="${PKG_BIG_TWO_HEAD:-$WT/sm91s2/artifacts/models/sm91s2}"           # TODO: SM91s2 package (other agent)
-  [rwkv-big-instant-only]="${PKG_BIG_INSTANT_ONLY:-$WT/sm99/artifacts/models/sm99}"      # TODO: SM99 package (after training ~Thu 07:00); do not touch wt/sm99 while it trains
+  [rwkv-big-two-head]="${PKG_BIG_TWO_HEAD:-$WT/big-package/artifacts/models/sm91s2}"   # branch big-package 9dc96c91
+  [rwkv-big-instant-only]="${PKG_BIG_INSTANT_ONLY:-$WT/big-package/artifacts/models/sm99}"   # branch big-package 9dc96c91
   [rwkv-small-two-head]="${PKG_SMALL_TWO_HEAD:-$WT/sm101-package/artifacts/models/sm92}"
   [rwkv-small-instant-only]="${PKG_SMALL_INSTANT_ONLY:-$WT/sm98-package/artifacts/models/sm98}"
   [rwkv-tiny-two-head]="${PKG_TINY_TWO_HEAD:-$WT/sm106/artifacts/models/sm106}"           # TODO: SM106 package (not trained yet)

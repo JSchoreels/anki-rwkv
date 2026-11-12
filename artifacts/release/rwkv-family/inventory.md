@@ -41,6 +41,6 @@ Source: `wt/sm101-package/artifacts/small-model/sm101/sm104-tiny-fork.md` (SM104
 
 - Instant-Only models (SM98, SM101, SM99) have an untrained curve head (`curve_loss_weight` 0): only `p_imm` and `p_rating` may be used, never `p_curve`, intervals or the 90% stability. Their manifest says so under `use`.
 - Big packages (SM91s2, SM99): the fork schedules with the raw forgetting curve and ignores the ahead residual; the package test vectors hold the training code's `p_curve` with the residual (their INTEGRATION.md section 5). Their INTEGRATION.md is a shorter manual (sections 1-10) that points to the small packages' section 6 for the full feature list.
-- Package SM92 has a companion folder `sm92-time` (answer-time head, 69,056 parameters, same branch); undecided whether it ships.
-- The SM98 and SM101 manifests/INTEGRATION.md still say "in the Anki fork it runs beside the release (sm72e25)" in `use`; reword if the family release should not mention that.
+- Package SM92 has a companion folder `sm92-time` (answer-time head, 69,056 parameters, same branch); it is not shipped in this release.
+- The SM98 and SM101 manifests/INTEGRATION.md still say "in the Anki fork it runs beside the release (sm72e25)" in `use`; the release notes describe the correct pairing instead (package branches left untouched).
 - Numbers for Big two-head (SM91s2) in RELEASE_NOTES.md are the step-2 show-time scores from `artifacts/small-model/showtime/showtime-report.md` (0.299415 curve / 0.276183 instant), not final cool-down numbers.
