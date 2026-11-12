@@ -43,6 +43,13 @@
   .sm-table.fam td.size { font-weight: 700; font-size: 1.05rem; }
   .sm-table.fam tr.grp > td { border-top: 2px solid var(--muted); }
   .sm-table.fam td.num b { font-weight: 600; }
+  .d { font-size: 12.5px; font-weight: 600; white-space: nowrap; }
+  .d.good { color: var(--c-accepted); }
+  .d.bad { color: var(--c-rejected); }
+  .d.flat, .d.ref { color: var(--muted); font-weight: 400; }
+  .tag.fam-done { border-color: var(--c-accepted); color: var(--c-accepted); }
+  .tag.fam-running { border-color: var(--c-extend); color: var(--c-extend); }
+  .tag.fam-queued { border-color: var(--accent); color: var(--accent); }
   .tag { display: inline-block; border-radius: 999px; padding: 1px 9px; font-size: 12.5px; border: 1px solid var(--line); white-space: nowrap; }
   .tag.running, .tag.gpu-train { border-color: var(--c-extend); color: var(--c-extend); }
   .tag.next, .tag.gpu-score { border-color: var(--accent); color: var(--accent); }
@@ -386,29 +393,42 @@
   // The RWKV family: one row per size x variant, show-time LogLoss and % vs the reference big model.
   function drawFamily(F) {
     if (!F) { $('sec-family').hidden = true; return; }
-    const ref = F.ref, num = (x) => x.toLocaleString('en-US');
-    const pct = (v, r) => { const p = (v / r - 1) * 100; return `${p > 0 ? '+' : '&minus;'}${Math.abs(p).toFixed(2)}%`; };
-    const ll = (v, head, io) => none(v) ? `<span class="id">${io && head === 'curve' ? 'not trained' : 'not scored yet'}</span>`
-      : `<b>${v.toFixed(5)}</b> <span class="pct">${pct(v, ref[head])}</span>`;
-    const mem = (b) => `${num(b)} B`;
-    const st = (k) => `<span class="tag ${k === 'done' ? 'next' : k}">${{ done: 'ready', running: 'training', queued: 'queued' }[k] || k}</span>`;
-    $('family-eval').innerHTML = `${F.eval}. % against ${ref.name} (${ref.id}): curve ${ref.curve.toFixed(5)}, instant ${ref.instant.toFixed(5)}; lower is better.`;
-    $('family-note').innerHTML = F.note || '';
+    // Reference for this section: the Big two-head row (accuracy, parameters, memory); every other row shows its delta.
+    const big = F.rows.find((r) => r.size === 'Big' && r.variant === 'Two-head'), num = (x) => x.toLocaleString('en-US');
+    // LogLoss delta: green = better, orange = worse, grey = within 0.05% (the minimum effect)
+    const dl = (v, r) => { const p = (v / r - 1) * 100, c = Math.abs(p) < 0.05 ? 'flat' : p < 0 ? 'good' : 'bad';
+      return `<span class="d ${c}">${p > 0 ? '+' : '&minus;'}${Math.abs(p).toFixed(2)}%</span>`; };
+    // size delta: share saved against Big
+    const ds = (v, r) => v === r ? '' : ` <span class="d good">&minus;${((1 - v / r) * 100).toFixed(1)}%</span>`;
+    const isRef = (r) => r === big;
+    const ll = (r, head) => {
+      const v = r[head];
+      if (none(v)) return `<span class="id">${r.variant === 'Instant-Only' && head === 'curve' ? 'not trained' : 'not scored yet'}</span>`;
+      return `<b>${v.toFixed(5)}</b> ${isRef(r) ? '<span class="d ref">reference</span>' : dl(v, big[head])}`;
+    };
+    const par = (r) => `${num(r.params)}${isRef(r) ? ' <span class="d ref">reference</span>' : ds(r.params, big.params)}`;
+    const mem = (r) => `${num(r.mem_b)} B${isRef(r) ? ' <span class="d ref">reference</span>' : ds(r.mem_b, big.mem_b)}`;
+    const st = (k) => `<span class="tag fam-${k}">${{ done: 'ready', running: 'training', queued: 'queued' }[k] || k}</span>`;
+    $('family-eval').innerHTML = `${F.eval}. Every % is against the Big two-head model, ${big.name} (${big.id}): curve ${big.curve.toFixed(5)}, `
+      + `instant ${big.instant.toFixed(5)}, ${num(big.params)} parameters, ${num(big.mem_b)} B per card + note. LogLoss: lower is better; `
+      + `<span class="d good">green</span> = better than Big, <span class="d bad">orange</span> = worse, <span class="d flat">grey</span> = within 0.05%. `
+      + `Parameters and memory: <span class="d good">&minus;%</span> = saved against Big.`;
+    const uses = [...new Map(F.rows.map((r) => [r.variant, r.use])).entries()];
+    $('family-note').innerHTML = uses.map(([v, u]) => `<b>${v}</b>: ${u}.`).join(' ') + (F.note ? ` ${F.note}` : '');
     const trs = [], cs = [];
     F.rows.forEach((r, i) => {
-      const io = r.variant === 'Instant-Only', first = i === 0 || F.rows[i - 1].size !== r.size;
+      const first = i === 0 || F.rows[i - 1].size !== r.size;
       const n = F.rows.filter((x) => x.size === r.size).length;
       trs.push(`<tr class="${first ? 'grp' : ''}">${first ? `<td class="size" rowspan="${n}">${r.size}</td>` : ''}`
-        + `<td><b>${r.variant}</b><div class="id">${r.use}</div></td>`
+        + `<td><b>${r.variant}</b></td>`
         + `<td>${r.name} <span class="id">(${r.id})</span></td>`
-        + `<td class="num">${num(r.params)}</td><td class="num">${mem(r.mem_b)}</td>`
-        + `<td class="num">${ll(r.curve, 'curve', io)}</td><td class="num">${ll(r.instant, 'instant', io)}</td>`
+        + `<td class="num">${par(r)}</td><td class="num">${mem(r)}</td>`
+        + `<td class="num">${ll(r, 'curve')}</td><td class="num">${ll(r, 'instant')}</td>`
         + `<td>${st(r.state)} ${r.status}</td></tr>`);
       cs.push(`<div class="card"><div class="k">${r.size} &middot; ${r.variant} ${st(r.state)}</div>`
         + `<div class="fld what">${r.name} <span class="id">(${r.id})</span></div>`
-        + `<div class="fld"><b>Use</b>${r.use}</div>`
-        + `<div class="fld"><b>Curve</b>${ll(r.curve, 'curve', io)} &nbsp; <b>Instant</b>${ll(r.instant, 'instant', io)}</div>`
-        + `<div class="fld"><b>Size</b>${num(r.params)} parameters, ${mem(r.mem_b)} per card + note</div>`
+        + `<div class="fld"><b>Curve</b>${ll(r, 'curve')} &nbsp; <b>Instant</b>${ll(r, 'instant')}</div>`
+        + `<div class="fld"><b>Parameters</b>${par(r)} &nbsp; <b>Memory</b>${mem(r)}</div>`
         + `<div class="fld"><b>Status</b>${r.status}</div></div>`);
     });
     $('family').innerHTML = '<thead><tr><th>Size</th><th>Variant</th><th>Model</th><th>Parameters</th><th>Memory per card + note</th>'
