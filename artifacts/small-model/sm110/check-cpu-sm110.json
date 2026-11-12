@@ -1,0 +1,181 @@
+{
+ "commit": "5a480ed8",
+ "minutes": 1.3,
+ "all_ok": true,
+ "partial": null,
+ "checks": {
+  "C1_code_trees_equal_1e22b62c": {
+   "ok": true,
+   "trees": {
+    "scripts": "ae079460cee0",
+    "expertium": "7f9693c3d7b8",
+    "rwkv": "47f4d0161135"
+   },
+   "uncommitted": []
+  },
+  "C2_inputs_pinned": {
+   "ok": true,
+   "teacher": "c49e45d69819",
+   "package": "c49e45d69819",
+   "epoch35": "f7577d14ba10",
+   "sm98_cooldown_start": "f7577d14ba10",
+   "sm98_cooldown_status": "complete",
+   "snapshot_users_04000": {
+    "progress_users": 4000,
+    "review_presentations": 284944410,
+    "update_offset_end": 783594,
+    "done_users": 4000
+   },
+   "run_users": 8000,
+   "run_reviews": 581942738,
+   "old_targets": [
+    8000,
+    581942738
+   ]
+  },
+  "C3_recipe_equals_sm98_cooldown_except_targets": {
+   "ok": true,
+   "pair": "8,000 users, update offset 772730, 581,942,738 reviews, start f7577d14ba10, trims []",
+   "failures": [],
+   "negatives_refused": {
+    "decay_alpha_0.9": true,
+    "start_sha": true,
+    "shuffle_seed": true,
+    "curve_weight_1": true,
+    "show_time_off": true,
+    "old_targets": true
+   },
+   "sm98_against_itself_refused": true
+  },
+  "C4a_sm99_show_time_targets_on_cpu": {
+   "ok": true,
+   "runs": {
+    "replay-sm99-e2s": {
+     "exit": 0,
+     "seconds": 27.3,
+     "tail": "m110\\artifacts\\small-model\\sm110\\work\\replay-sm99-e2s\n[sm11] 1/2 user 4001 (8,630 reviews, 1 pass(es), model 16.0s) | 18s, 490 reviews/s\n[sm11] 2/2 user 8081 (8,623 reviews, 1 pass(es), model 7.1s) | 25s, 699 reviews/s\n[sm11] pass finished: 2 users, 17,253 reviews in 25s (693 reviews/s), 0 failed\n{\"out\": \"C:\\\\Users\\\\jonat\\\\workspace\\\\wt\\\\sm110\\\\artifacts\\\\small-model\\\\sm110\\\\work\\\\replay-sm99-e2s\", \"users\": 2, \"complete_users\": 2, \"missing_users\": 0, \"missing_sample\": [], \"reviews_done\": 17253, \"reviews_total\": 17253, \"bytes\": 174353, \"bytes_per_review\": 10.106, \"complete\": true, \"errors\": 0}\n"
+    },
+    "replay-sm91s2-e2s": {
+     "exit": 0,
+     "seconds": 27.4,
+     "tail": "\\artifacts\\small-model\\sm110\\work\\replay-sm91s2-e2s\n[sm11] 1/2 user 4001 (8,630 reviews, 1 pass(es), model 15.9s) | 18s, 490 reviews/s\n[sm11] 2/2 user 8081 (8,623 reviews, 1 pass(es), model 7.1s) | 25s, 698 reviews/s\n[sm11] pass finished: 2 users, 17,253 reviews in 25s (692 reviews/s), 0 failed\n{\"out\": \"C:\\\\Users\\\\jonat\\\\workspace\\\\wt\\\\sm110\\\\artifacts\\\\small-model\\\\sm110\\\\work\\\\replay-sm91s2-e2s\", \"users\": 2, \"complete_users\": 2, \"missing_users\": 0, \"missing_sample\": [], \"reviews_done\": 17253, \"reviews_total\": 17253, \"bytes\": 174352, \"bytes_per_review\": 10.106, \"complete\": true, \"errors\": 0}\n"
+    }
+   },
+   "users": {
+    "4001": {
+     "reviews": 8630,
+     "labelled_rating_rows": 5450,
+     "same_nan_pattern_as_old_and_sm91s3": true,
+     "finite": true,
+     "rating_rows_moved_vs_sm91s3_targets": 5390,
+     "rows_moved_vs_old_targets": 5450,
+     "mean_abs_p_again_change_vs_old": 0.00891,
+     "mean_abs_p_again_change_vs_sm91s3": 0.00679,
+     "sm91s2_cpu_vs_sm91s3_gpu": {
+      "same_nan": true,
+      "curve_max_abs": 0.00015020370483398438,
+      "rating_max_abs": 0.00048828125,
+      "rating_max_float16_steps": 1.0
+     }
+    },
+    "8081": {
+     "reviews": 8623,
+     "labelled_rating_rows": 6469,
+     "same_nan_pattern_as_old_and_sm91s3": true,
+     "finite": true,
+     "rating_rows_moved_vs_sm91s3_targets": 6393,
+     "rows_moved_vs_old_targets": 6468,
+     "mean_abs_p_again_change_vs_old": 0.01799,
+     "mean_abs_p_again_change_vs_sm91s3": 0.01326,
+     "sm91s2_cpu_vs_sm91s3_gpu": {
+      "same_nan": true,
+      "curve_max_abs": 0.00016444921493530273,
+      "rating_max_abs": 0.00048828125,
+      "rating_max_float16_steps": 1.0
+     }
+    },
+    "manifest_differences_vs_sm91s3": [
+     "teacher",
+     "teacher_sha256"
+    ]
+   }
+  },
+  "C4b_this_tree_reproduces_sm91s3_gpu_targets": {
+   "ok": true,
+   "users": {
+    "4001": {
+     "same_nan": true,
+     "curve_max_abs": 0.00015020370483398438,
+     "rating_max_abs": 0.00048828125,
+     "rating_max_float16_steps": 1.0
+    },
+    "8081": {
+     "same_nan": true,
+     "curve_max_abs": 0.00016444921493530273,
+     "rating_max_abs": 0.00048828125,
+     "rating_max_float16_steps": 1.0
+    }
+   }
+  },
+  "C5_scorer_reproduces_sm98_rows_and_scores_the_snapshot": {
+   "ok": true,
+   "same_state_dict_layout": true,
+   "max_abs_logloss_vs_committed_rows": {
+    "4676": 0.0,
+    "2388": 0.0
+   },
+   "snapshot_vs_final_instant": {
+    "4676": {
+     "instant": [
+      0.039623,
+      0.038917
+     ]
+    },
+    "2388": {
+     "instant": [
+      0.072293,
+      0.07207
+     ]
+    }
+   },
+   "errors": {}
+  },
+  "C6_rule_selftest": {
+   "ok": true,
+   "out": "[sm110-rule] selftest: SM98 - SM98 +0.000% [+0.000, +0.000] -> no go; SM96 - SM98 +0.035% [+0.029, +0.041] -> no go / mid stop; SM99 - SM98 -0.108% [-0.133, -0.084] -> go / mid continue; synthetic 0.04% better -0.040% [-0.040, -0.040] -> no go; {\"sm98_against_itself_zero_no_go_mid_stop\": true, \"sm96_minus_sm98_known_no_go_stop\": true, \"sm99_minus_sm98_known_go_continue\": true, \"synthetic_0p04pct_better_is_no_go_but_continue\": true, \"mid_edges\": true, \"go_edges\": true, \"end_to_end_mid_and_decide\": true} -> OK",
+   "err": ""
+  },
+  "C7_breaks": {
+   "ok": true,
+   "got": {
+    "thu_12:00_default": "NEXT 480",
+    "thu_21:00_default": "NOW 14460",
+    "sun_15:00": "NEXT 60",
+    "fri_20:30_quiet_21:00": "NEXT 30",
+    "real_thu_12:00": "NEXT 779",
+    "real_thu_21:00": "NEXT 239",
+    "real_fri_00:57": "NEXT 2",
+    "real_fri_00:59": "NOW 120",
+    "real_fri_01:00": "NEXT 1140",
+    "real_now": "NEXT 874"
+   },
+   "want": {
+    "thu_12:00_default": "NEXT 480",
+    "thu_21:00_default": "NOW 14460",
+    "sun_15:00": "NEXT 60",
+    "fri_20:30_quiet_21:00": "NEXT 30",
+    "real_thu_12:00": "NEXT 779",
+    "real_thu_21:00": "NEXT 239",
+    "real_fri_00:57": "NEXT 2",
+    "real_fri_00:59": "NOW 120",
+    "real_fri_01:00": "NEXT 1140"
+   },
+   "code_equals_sm106_block": true
+  },
+  "C8_disk": {
+   "ok": true,
+   "free_gib": 1698.0,
+   "new_targets_folder_exists": false
+  }
+ }
+}
