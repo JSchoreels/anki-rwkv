@@ -41,11 +41,12 @@
   table.tk-table th, table.tk-table td { padding: 3px 14px 3px 0; white-space: normal; min-width: 64px; }
   .table-wrap.free { max-height: none; }
   .sm-table.fam td.size { font-weight: 700; font-size: 1.05rem; }
-  .sm-table.fam > tbody > tr > td { border-top: 2px solid var(--line); }
+  .sm-table.fam > tbody > tr.grp > td { border-top: 2px solid var(--muted); }
   .sm-table.fam th.grp { text-align: center; border-bottom: 1px solid var(--line); }
   .sm-table.fam .sep { border-left: 2px solid var(--line); }
   .sm-table.fam td.m { min-width: 9rem; }
   .sm-table.fam td.e { min-width: 6.5rem; }
+  .sm-table.fam td.v { white-space: nowrap; }
   .sm-table.fam td.num b { font-weight: 600; }
   .sm-table.fam .vs { white-space: nowrap; }
   #sec-family .eta { color: var(--c-extend); font-weight: 600; font-size: 13px; }
@@ -432,18 +433,23 @@
       + `<span class="d flat">grey</span> = within 0.05%. Parameters and memory: <span class="d good">&minus;%</span> = saved.`;
     const trs = [], cs = [];
     sizes.forEach((size) => {
-      const t = get(size, 'Two-head'), io = get(size, 'Instant-Only');
-      trs.push(`<tr><td class="size">${size}</td><td class="num">${sz(size, 'params', '')}</td><td class="num">${sz(size, 'mem_b', ' B')}</td>`
-        + `<td>${model(t)}</td><td class="num">${ll(t, 'curve')}</td><td class="num">${ll(t, 'instant')}</td><td class="m">${stat(t)}</td><td class="e">${eta(t)}</td>`
-        + `<td class="sep">${model(io)}</td><td class="num">${ll(io, 'instant')}</td><td class="m">${stat(io)}</td><td class="e">${eta(io)}</td></tr>`);
+      const rows = F.rows.filter((r) => r.size === size), n = rows.length;
+      rows.forEach((r, k) => {
+        const io = r.variant === 'Instant-Only';
+        trs.push(`<tr class="${k === 0 ? 'grp' : ''}">`
+          + (k === 0 ? `<td class="size" rowspan="${n}">${size}</td><td class="num" rowspan="${n}">${sz(size, 'params', '')}</td>`
+            + `<td class="num" rowspan="${n}">${sz(size, 'mem_b', ' B')}</td>` : '')
+          + `<td class="v"><b>${r.variant}</b></td><td>${model(r)}</td>`
+          + `<td class="num">${io && none(r.curve) ? '<span class="id">not trained</span>' : ll(r, 'curve')}</td><td class="num">${ll(r, 'instant')}</td>`
+          + `<td class="m">${stat(r)}</td><td class="e">${eta(r)}</td></tr>`);
+      });
       cs.push(`<div class="card"><div class="k"><b>${size}</b></div>`
         + `<div class="fld"><b>Parameters</b>${sz(size, 'params', '')}</div><div class="fld"><b>Memory per card + note</b>${sz(size, 'mem_b', ' B')}</div>`
-        + `<div class="fld"><b>Two-head</b>${model(t)} ${stat(t)}${t.eta ? `<div><b>ETA</b> ${eta(t)}</div>` : ''}<div><b>Curve</b> ${ll(t, 'curve')} <b>Instant</b> ${ll(t, 'instant')}</div></div>`
-        + `<div class="fld"><b>Instant-Only</b>${model(io)} ${stat(io)}${io.eta ? `<div><b>ETA</b> ${eta(io)}</div>` : ''}<div><b>Instant</b> ${ll(io, 'instant')}</div></div></div>`);
+        + rows.map((r) => `<div class="fld"><b>${r.variant}</b>${model(r)} ${stat(r)}${r.eta ? `<div><b>ETA</b> ${eta(r)}</div>` : ''}`
+          + `<div>${r.variant === 'Two-head' ? `<b>Curve</b> ${ll(r, 'curve')} ` : ''}<b>Instant</b> ${ll(r, 'instant')}</div></div>`).join('') + '</div>');
     });
-    $('family').innerHTML = '<thead><tr><th rowspan="2">Size</th><th rowspan="2">Parameters</th><th rowspan="2">Memory per card + note</th>'
-      + '<th colspan="5" class="grp">Two-head</th><th colspan="4" class="grp sep">Instant-Only</th></tr>'
-      + '<tr><th>Model</th><th>Curve</th><th>Instant</th><th>Status</th><th>ETA</th><th class="sep">Model</th><th>Instant</th><th>Status</th><th>ETA</th></tr></thead><tbody>' + trs.join('') + '</tbody>';
+    $('family').innerHTML = '<thead><tr><th>Size</th><th>Parameters</th><th>Memory per card + note</th><th>Variant</th><th>Model</th>'
+      + '<th>Curve</th><th>Instant</th><th>Status</th><th>ETA</th></tr></thead><tbody>' + trs.join('') + '</tbody>';
     $('family-cards').innerHTML = cs.join('');
     const uses = [...new Map(F.rows.map((r) => [r.variant, r.use])).entries()];
     $('family-note').innerHTML = uses.map(([v, u]) => `<b>${v}</b>: ${u}.`).join(' ')
