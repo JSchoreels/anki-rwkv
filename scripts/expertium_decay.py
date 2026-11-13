@@ -211,9 +211,14 @@ def resume_point(out, decay):
     total = sum(row["train_range"][1] - row["train_range"][0] for row in protocol["rows"])
     finished = sum(row["train_range"][1] - row["train_range"][0] for row in protocol["rows"] if row["user_id"] in done)
     protocol["rows"] = [row for row in protocol["rows"] if row["user_id"] not in done]
+    lr_resume = {"total_reviews": total, "reviews_offset": finished}
+    base = protocol["full_run"].get("lr_resume")
+    if base:   # SM113: the prepared folder is itself a part of a longer decay; keep its place in that decay
+        lr_resume = {"total_reviews": int(base["total_reviews"]), "reviews_offset": int(base["reviews_offset"]) + finished,
+                     **({"segment": True} if base.get("segment") is True else {})}
     protocol["full_run"].update(init_master=resume["master"], init_optimizer=resume["optimizer"], optimizer_state="snapshot",
                                 update_offset=resume["update_offset_end"],
-                                lr_resume={"total_reviews": total, "reviews_offset": finished},
+                                lr_resume=lr_resume,
                                 resumed={"done_users": len(done), "from": resume["folder"], "attempts": resume["attempts"]})
     atomic_json(out / "protocol.json", protocol)
     print(f"[decay] resuming {out.name} from {resume['folder']}: {len(done):,} users done "

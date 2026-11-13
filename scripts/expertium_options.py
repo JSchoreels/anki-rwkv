@@ -384,7 +384,12 @@ class CatchUp:
         self.reviews_offset = 0
         if resume:
             self.reviews_offset = int(resume["reviews_offset"])
-            if self.reviews_offset + total != int(resume["total_reviews"]):
+            # SM113: "segment": true = this folder trains only [offset, offset + its reviews) of a longer decay that a
+            # later folder continues (a two-epoch cool-down as two chained one-epoch folders), so it may end short of it.
+            if resume.get("segment") is True:
+                if self.reviews_offset < 0 or self.reviews_offset + total > int(resume["total_reviews"]):
+                    raise ValueError(f"lr_resume segment {resume} does not hold the {total:,} reviews left to train")
+            elif self.reviews_offset + total != int(resume["total_reviews"]):
                 raise ValueError(f"lr_resume {resume} does not add up with the {total:,} reviews left to train")
             total = int(resume["total_reviews"])
         self.schedule = LearningRate(schedule, total) if schedule else None
