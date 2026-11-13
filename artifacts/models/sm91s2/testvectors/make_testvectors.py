@@ -1,9 +1,16 @@
-"""Provenance only: how the golden test vectors were made. Needs the training repo (torch, pandas, the
-anki-revlogs-10k data); a developer who only uses the package does not run this.
+"""Provenance only: how the golden test vectors were made. Needs the training repo (torch, pandas); a developer who only uses the package does not run this.
+
+Synthetic users (no dataset data): the vectors are built from users 900001 and 900002, simulated review histories that
+the training repo's scripts/synthetic_testvector_users.py (main branch, fixed seed) writes in the on-disk format of
+anki-revlogs-10k into a scratch folder; RWKV_TESTVECTOR_DATA points the loader at it. No row of the dataset is shipped
+(it is gated and not redistributable: https://huggingface.co/datasets/open-spaced-repetition/anki-revlogs-10k).
+To regenerate:
+
+    python scripts/synthetic_testvector_users.py <scratch dir>        # in the training repo, main branch
 
     cd <repo worktree that exported the package>      # big packages: <workspace>/wt/sm99 (has the "fork" variant and
                                                       # scripts/sm31_inputs.py)
-    RWKV_DELETED_CARDS=neighbour CUDA_VISIBLE_DEVICES= python -X utf8 <this file> <package dir> <out dir> 4676 1745
+    RWKV_TESTVECTOR_DATA=<scratch dir> RWKV_DELETED_CARDS=neighbour CUDA_VISIBLE_DEVICES= python -X utf8 <this file> <package dir> <out dir> 900001 900002
 
 Big packages (architecture "fork", the Anki fork's 2,762,884-parameter model): the PyTorch side is the "fork"
 variant of the training code and, for fp32, also the original big-model class (scripts/compress_quant.load_model);
@@ -60,7 +67,7 @@ def arrays(batch):
             "labels": to(batch.labels)}
 
 
-data = cc.data_path()
+data = Path(os.environ["RWKV_TESTVECTOR_DATA"]) if os.environ.get("RWKV_TESTVECTOR_DATA") else cc.data_path()
 for user in users:
     frame = sm31_inputs.apply_frame(get_rwkv_data(data, user), "e2s-query")   # curve query times at show time
     with sm31_inputs.query_patch("e2s-query"):                                 # instant query rows at show time
@@ -124,6 +131,8 @@ for user in users:
             lab[..., 0] = t
             sweep.append(ref.predict(**{**arrays(batch), "labels": lab})["p_curve"][0])
         out[f"{name}_p_curve_sweep"] = np.stack(sweep, axis=1).astype(np.float32)
+    if os.environ.get("RWKV_TESTVECTOR_DATA"):
+        out["source"] = np.array("synthetic user (no dataset data): scripts/synthetic_testvector_users.py")
     path = out_dir / f"user_{user}.npz"
     np.savez_compressed(path, **out)
     print(f"[testvectors] {path}: {T} rows, {path.stat().st_size:,} bytes", flush=True)

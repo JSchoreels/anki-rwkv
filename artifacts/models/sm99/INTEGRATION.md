@@ -49,7 +49,7 @@ The curve head is untrained and not scored for use.
 | `manifest.json` | about 27 KB | sha256 of every file, training record, evaluation, `use` and `inputs` rules. |
 | `master.pth` | 11,251,089 | PyTorch state dict, the source of the two `.bin` files. Not needed at runtime. |
 | `reference/` | | Standalone NumPy reference: `small_model_numpy.py` (batch form), `small_model_recurrent.py` (one review at a time), `weights_io.py`, `run_reference.py`. |
-| `testvectors/` | | Golden inputs and outputs for 2 benchmark users on show-time inputs, `check_testvectors.py` (section 9). |
+| `testvectors/` | | Golden inputs and outputs for 2 synthetic users (no dataset data) on show-time inputs, `check_testvectors.py` (section 9). |
 
 sha256 of `weights.f32.bin`: `682ba1ff207c51af7de5e2abeb25593362aa706b292cbcc338a1591fad0d935c`. Use it as the model id for state caches.
 
@@ -127,16 +127,18 @@ Use `p_imm` and `p_rating` only. In the Anki fork this is the Big size's RWKV-In
 ## 9. Test vectors and reference
 
 `python testvectors/check_testvectors.py` (NumPy only, any folder) runs the NumPy reference in both forms (recurrent, one
-review at a time, and parallel) with fp32 and int8 weights over the full show-time histories of 2 benchmark users
-(4676: 6,554 rows; 1745: 7,849 rows) and compares `p_imm`, `p_rating`, `p_curve` at the label time and at 6 sweep times
+review at a time, and parallel) with fp32 and int8 weights over the full show-time histories of 2 synthetic users (no dataset data)
+(900001: 3,363 rows; 900002: 2,946 rows) and compares `p_imm`, `p_rating`, `p_curve` at the label time and at 6 sweep times
 (1 minute to 1 year) with the stored values: it must print `RESULT: PASS` (tolerance 1e-5). Last run:
-`RESULT: PASS (tolerance 1e-05)`; 8 checks (2 users x fp32 / int8 x recurrent / parallel), largest difference 9.5e-07.
+`RESULT: PASS (tolerance 1e-05)`; 8 checks (2 users x fp32 / int8 x recurrent / parallel), largest difference 5.4e-07.
 
-`testvectors/make_testvectors.py` is provenance only (needs the training repository): it built the vectors on show-time
+`testvectors/make_testvectors.py` is provenance only (needs the training repository): it built the vectors from 2 synthetic users (no dataset data), written by the training repository's `scripts/synthetic_testvector_users.py` (its docstring and make_testvectors.py's say how to regenerate them), on show-time
 inputs (`e2s-query`) and checked the NumPy reference against the training code's PyTorch model and against the original
-big-model class (max 1.2e-06, tolerance 1e-5). `reference/small_model_recurrent.py` is the small packages' file plus
+big-model class (max 4.2e-07, tolerance 1e-5). `reference/small_model_recurrent.py` is the small packages' file plus
 the big model's curve and ahead heads (section 5).
 
 ## 10. License
+
+The package contains no anki-revlogs-10k data: its test vectors use synthetic users (no dataset data), simulated by the training repository's `scripts/synthetic_testvector_users.py`. The dataset itself is linked, not shipped: https://huggingface.co/datasets/open-spaced-repetition/anki-revlogs-10k (gated, license "anki-revlogs-10k").
 
 TBD by the owner: check the terms of the training data (anki-revlogs-10k) and the architecture source before redistribution.
