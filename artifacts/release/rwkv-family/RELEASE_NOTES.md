@@ -1,6 +1,4 @@
-# The RWKV family: Big, Small and Tiny memory models for Anki (DRAFT)
-
-> DRAFT. All six packages exist (the Tiny two-head model (SM106) since 2026-11-13). Nothing in this folder creates a GitHub release; the `gh release create` line is at the end of `build_release.sh`, commented out.
+# The RWKV family: Big, Small and Tiny memory models for Anki
 
 One release, three sizes, two kinds of model per size. Every model here was trained and scored on **leak-free inputs** (the signal that a card is deleted later is removed, see section 6.9 of `INTEGRATION.md`) and on **show-time inputs** (see below), which is what a live Anki gives a model.
 
@@ -60,6 +58,22 @@ In the Anki fork (fork main cec8ca927, the Tiny one-model choice and Tiny for RW
 - The two-head models of Small and Tiny serve as the one model of their size: the show-time retrain (SM92) for Small, the Tiny two-head model (SM106) for Tiny. The Tiny two-head model (SM106) has no answer-time head, so the fork shows no RWKV answer-time estimate with it.
 
 The manifests of the Small Instant-Only model (SM98) and the Tiny Instant-Only model (SM101) say the model "runs beside the release (sm72e25)". That wording is out of date for this family: the right pairing is the one listed above, with the default small model (SM63) providing the curve.
+
+## Speed in the fork
+
+Measured on 2026-11-13 on a real collection (13,980 cards, 13,205 notes, 225,132 reviews) on a quiet desktop computer, with the fork's Rust code at its default precision, 5 runs each, medians. "State build" is what you wait for after switching size, or when no stored state matches: a full replay of the review history. The app estimate adds about 1.1 s of Python work measured separately. About 1.5 s of every build is reading the history, the same for every size.
+
+| Size | Presets use | Models | State build (app estimate) | Stored state |
+|---|---|---|---|---|
+| Big | both schedulers | SM91s2 + SM99 | 23.1 s | 611 MB |
+| Big | one model, or one scheduler | SM91s2 or SM99 | 14.2 s | 306 MB |
+| Small | both schedulers | SM63 + SM98 | 7.8 s | 115 MB |
+| Small | one model, or RWKV-Curve only | SM92 or SM63 | 5.9 s | 58 MB |
+| Tiny | both schedulers | SM63 + SM101 | 7.4 s | 103 MB |
+| Tiny | one model | SM106 | 5.6 s | 46 MB |
+| Small or Tiny | RWKV-Instant only | SM101 | 5.6 s | 46 MB |
+
+Loading a stored state takes 1.4–1.5 s (Small, Tiny) or 1.9–2.4 s (Big); scoring every card takes 0.12–0.13 s (Small, Tiny) or 0.49 s (Big). These timings match those seen in the app (Big one model about 12–15 s, Small about 4–6 s).
 
 ## Important for anyone porting a model
 
