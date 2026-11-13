@@ -2054,7 +2054,7 @@
     "RWKV family release (SM108): "
    ],
    "what": "RWKV family release (SM108): one GitHub release with Big, Small and Tiny, each with a two-head model and an Instant-Only variant: Big = the show-time big model (SM91s2) + the show-time instant-only big model (SM99); Small = the show-time retrain (SM92) + the Small Instant-Only model (SM98); Tiny = the Tiny two-head model (SM106) + the Tiny Instant-Only model (SM101). Packages, test vectors and notes prepared now; published after the user&rsquo;s OK",
-   "when": "All 6 packages ready with test vectors PASS; a dry build makes all 6 zips (sm108-family-release 08b394e0). No longer waits for the big instant-only teacher (SM110), which can ship later if it ever gives a go (user 11-13). Publishing approved: right after the quiet speed test (SM111), which runs when the GPU is free at ~14:30 Fri",
+   "when": "All 6 packages built and verified, final notes with the speed test (SM111) (sm108-family-release aa6c7d47). The big instant-only teacher (SM110) was a no go, so the Small Instant-Only model (SM98) stays. Publishing now (user OK 11-13)",
    "decides": "Nothing: user request 11-11",
    "state": "running",
    "started_at": "2026-11-11T19:05+01:00"
@@ -2087,8 +2087,9 @@
    "what": "The big instant-only teacher (SM110): the Small Instant-Only model (SM98)&rsquo;s own cool-down from its epoch 35, with the teacher targets swapped for the show-time instant-only big model (SM99)&rsquo;s (made on show-time inputs for the 8,000 cool-down users). Early stop halfway (4,000 users) unless below the Small Instant-Only model (SM98)&rsquo;s own snapshot at the same point; go = new &minus; the Small Instant-Only model (SM98), show-time instant, CI below 0 and at least 0.05%",
    "when": "Started 01:34 Fri. Targets done 05:54 (8,000 users, 39,288 reviews/s, 0 failures). Halfway check 10:06: continue, but only just: &minus;0.001% [&minus;0.010, +0.007] vs the Small Instant-Only model (SM98) at the same point (375 users better / 343 worse). Second half of the cool-down running, result ~14:30 Fri. A go now looks unlikely (it needs at least 0.05%)",
    "decides": "Whether the big model&rsquo;s instant lead (&minus;0.108%) can be passed on to the Small Instant-Only model of the family; the family release waits for it (user 11-12)",
-   "state": "running",
-   "started_at": "2026-11-13T01:34+01:00"
+   "state": "done",
+   "started_at": "2026-11-13T01:34+01:00",
+   "ended_at": "2026-11-13T14:54+01:00"
   },
   {
    "id": "SM111",
@@ -2102,8 +2103,9 @@
    "what": "Fork speed test (SM111): time the Big, Small and Tiny sizes in the fork on the operation the user waits for in the app (their Anki timings: Big ~12&ndash;15 s, Small ~4&ndash;6 s), on a read-only copy of the collection; harness calibrated against the app first, final run in a quiet window with the GPU idle",
    "when": "Harness and calibration now on CPU; final timing Fri after the big instant-only teacher (SM110), before the release",
    "decides": "Nothing to ship or drop: where Tiny lands, and whether the Big pair is too slow (user 11-12)",
-   "state": "running",
-   "started_at": "2026-11-12T14:10+01:00"
+   "state": "done",
+   "started_at": "2026-11-12T14:10+01:00",
+   "ended_at": "2026-11-13T15:21+01:00"
   },
   {
    "id": "SM112",
@@ -9369,6 +9371,130 @@
      "Tests: test_rwkv_model.py 935 passed, incl. a new check that RWKV-Curve as RWKV-Instant&rsquo;s fallback counts as curve used and the FSRS fallback does not",
      "Not run here: the native Rust path under the opt-out (existing full-model path), the Deck Options UI render; fork CI covers both"
     ]
+   }
+  },
+  {
+   "date": "11-13",
+   "kind": "gpu-train",
+   "id": "SM110",
+   "track": "small model",
+   "name": "The big instant-only teacher (SM110): the Small Instant-Only model (SM98)&rsquo;s own cool-down from its epoch 35, with the teacher targets of the show-time instant-only big model (SM99) (show-time inputs, 8,000 users) in place of the old ones",
+   "eval": "Leak-free w8+s8, 722 users of the 732 set, show-time instant; % of the big model (1 leak-free epoch)&rsquo;s LogLoss; paired user bootstrap 95% CI. Go = new minus the Small Instant-Only model (SM98) with CI below 0 and at least 0.05%. Halfway check at 4,000 users. Also the 1,500 validation users (1,487 scored)",
+   "fork": "Not used: the release keeps the Small Instant-Only model (SM98)",
+   "takeaway": "<strong>No go</strong>: &minus;0.023% [&minus;0.028, &minus;0.019] vs the Small Instant-Only model (SM98) (493 users better / 225 worse), a real but small gain under the 0.05% bar; it closes 21% of the gap to the teacher. Same on the 1,500 validation users (&minus;0.021%). Halfway it was tied (&minus;0.001%). Targets at 39,288 reviews/s; total 13.3 h GPU",
+   "inputs": "show-time",
+   "started_at": "2026-11-13T01:34+01:00",
+   "ended_at": "2026-11-13T14:54+01:00",
+   "detail": {
+    "verdict": "No go; branch sm110 eb60d24c (sm110-decision.md, sm110-mid.md)",
+    "table": {
+     "head": [
+      "Show-time instant, new minus",
+      "%",
+      "95% CI",
+      "better / worse"
+     ],
+     "rows": [
+      [
+       "the Small Instant-Only model (SM98) (the rule)",
+       "&minus;0.023",
+       "[&minus;0.028, &minus;0.019]",
+       "493 / 225"
+      ],
+      [
+       "the show-time instant-only big model (SM99) (the teacher)",
+       "+0.085",
+       "[+0.061, +0.110]",
+       "257 / 464"
+      ],
+      [
+       "the show-time instant-only small model (SM96)",
+       "&minus;0.058",
+       "[&minus;0.065, &minus;0.051]",
+       "551 / 171"
+      ],
+      [
+       "the show-time retrain (SM92)",
+       "&minus;0.271",
+       "[&minus;0.294, &minus;0.249]",
+       "657 / 64"
+      ],
+      [
+       "halfway: snapshot vs the Small Instant-Only model (SM98) snapshot",
+       "&minus;0.001",
+       "[&minus;0.010, +0.007]",
+       "375 / 343"
+      ]
+     ]
+    }
+   }
+  },
+  {
+   "date": "11-13",
+   "kind": "cpu",
+   "id": "SM111",
+   "track": "small model",
+   "name": "Fork speed test (SM111): state build, load and scoring time for every size and mode of the family in the fork, on the user&rsquo;s own collection copy, quiet computer",
+   "eval": "Fork Rust code at the default precision (int4 cards + int8 notes), 5 runs per cell, medians; 13,980 cards, 13,205 notes, 225,132 reviews; app estimate = build + 1.07 s measured Python side. Other CPU load 6&ndash;9%; GPU 8% from desktop apps only",
+   "fork": "Fork branch speed-test a26316483 (docs/rwkv-speed-test-2026-11-13.MD); numbers in the release notes",
+   "takeaway": "<strong>Done</strong>. State build (app estimate): Big both models 23.1 s, Big one model 14.2 s; Small both 7.8 s, one 5.9 s; Tiny both 7.4 s, one (the Tiny two-head model (SM106)) 5.6 s; RWKV-Instant only (the Tiny Instant-Only model (SM101)) 5.6 s. Matches the user&rsquo;s app (Big ~12&ndash;15 s, Small ~4&ndash;6 s). About 1.5 s of every build is history reading, so Tiny saves only ~0.3 s over Small",
+   "inputs": "show-time",
+   "started_at": "2026-11-13T14:57+01:00",
+   "ended_at": "2026-11-13T15:21+01:00",
+   "detail": {
+    "verdict": "Done; realistic timings for the release",
+    "table": {
+     "head": [
+      "Size and mode",
+      "Build s",
+      "App estimate s",
+      "Stored state MB"
+     ],
+     "rows": [
+      [
+       "Big, both models",
+       "22.06",
+       "23.1",
+       "611"
+      ],
+      [
+       "Big, one model",
+       "13.15",
+       "14.2",
+       "306"
+      ],
+      [
+       "Small, both models",
+       "6.75",
+       "7.8",
+       "115"
+      ],
+      [
+       "Small, one model",
+       "4.86",
+       "5.9",
+       "58"
+      ],
+      [
+       "Tiny, both models",
+       "6.37",
+       "7.4",
+       "103"
+      ],
+      [
+       "Tiny, one model (SM106)",
+       "4.52",
+       "5.6",
+       "46"
+      ],
+      [
+       "RWKV-Instant only (SM101)",
+       "4.54",
+       "5.6",
+       "46"
+      ]
+     ]
+    }
    }
   }
  ],
