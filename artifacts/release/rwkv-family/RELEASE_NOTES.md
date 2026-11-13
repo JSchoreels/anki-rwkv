@@ -27,7 +27,7 @@ LogLoss on held-out benchmark users (lower is better), 732-user set (722 users),
 
 Notes on the table:
 
-- Memory per card + note at int8 state (the accuracy-reference format): Small 4,554 B, the Tiny models (SM106, SM101) 3,134 B. In f32: Small 13,640 B, Tiny 9,276 B. Big costs 19,554 B per card + note at the fork default (25,698 B at int8, 87,136 B serialized in f32). When the fork pairs two models (a curve model plus an instant model) the Big pair costs 39,146 B, the Small pair 7,098 B and the Tiny pair 6,190 B; a Small two-head model alone is the 3,530 B above.
+- Memory per card + note at int8 state (the accuracy-reference format): Small 4,554 B, the Tiny models (SM106, SM101) 3,134 B. In f32: Small 13,640 B, Tiny 9,276 B. Big costs 19,554 B per card + note at the fork default (25,698 B at int8, 87,136 B serialized in f32). When the fork pairs a size's two models (its two-head model for the curve plus its Instant-Only model) the Big pair costs 39,146 B, the Small pair 7,098 B and the Tiny pair 5,282 B; one model alone costs the figure in the table.
 - The Tiny two-head model (SM106) is the show-time retrain (SM92) with one card layer: +0.11% on the curve and +0.18% on instant against it (95% intervals [+0.07, +0.14] and [+0.16, +0.20], % of the big model (1 leak-free epoch)), for 26% less state per card and note. It passed the pruning bar (curve at most +0.5%, instant at most +0.4% vs the big model (1 leak-free epoch)).
 - Instant-Only vs two-head: the instant head gains about 0.25% for Small (the Small Instant-Only model (SM98) 0.276191 vs the show-time retrain (SM92) 0.276876), about 0.10% for Big (the show-time instant-only big model (SM99) 0.275894 vs the show-time big model (SM91s2) 0.276183) and about 0.23% for Tiny (the Tiny Instant-Only model (SM101) 0.27672 vs the Tiny two-head model (SM106) 0.277369). The Tiny Instant-Only model (SM101) is about 0.19% behind the Small Instant-Only model (SM98) (it drops one card layer) and still better than the show-time retrain (SM92) on instant (-0.057% [-0.079, -0.034], 460 users better / 261 worse).
 - Cost of the smaller state formats on the instant head (80 users of the 732 set, f32 state as reference): int4 cards + int8 notes cost +0.0095% (the Small Instant-Only model (SM98)) and +0.0128% (the Tiny Instant-Only model (SM101)), below the 0.05% minimum effect. Full int4 state (int4 notes too) can diverge on long note histories and must not be used; keep notes at int8 or better.
@@ -44,20 +44,20 @@ The optional answer-time head that exists for the show-time retrain (SM92) (`sm9
 
 ## How the fork uses these models
 
-In the Anki fork (fork main cec8ca927, the Tiny one-model choice and Tiny for RWKV-Instant alone (SM112), 2026-11-13), by the schedulers the profile's presets use:
+The Anki fork (fork main 001440b03, 2026-11-13) runs exactly these six models, byte for byte, and a size never borrows another size's model. Pick a size in Deck Options; which of its two models run depends on the schedulers your presets use and on the "use one model" option:
 
 | Presets use | Big | Small (default) | Tiny |
 |---|---|---|---|
-| RWKV-Instant and RWKV-Curve (default) | the show-time big model (SM91s2) for the curve beside the show-time instant-only big model (SM99) for the instant head | the default small model (SM63) beside the Small Instant-Only model (SM98) | the default small model (SM63) beside the Tiny Instant-Only model (SM101) |
+| RWKV-Curve and RWKV-Instant (default) | the show-time big model (SM91s2) for the curve beside the show-time instant-only big model (SM99) for the instant head | the show-time retrain (SM92) beside the Small Instant-Only model (SM98) | the Tiny two-head model (SM106) beside the Tiny Instant-Only model (SM101) |
 | both, with "use one model" | the show-time big model (SM91s2) alone | the show-time retrain (SM92) alone | the Tiny two-head model (SM106) alone |
-| RWKV-Instant alone (no preset uses RWKV-Curve) | the show-time instant-only big model (SM99) alone | the Tiny Instant-Only model (SM101) alone | the Tiny Instant-Only model (SM101) alone |
-| RWKV-Curve only | the show-time big model (SM91s2) alone | the default small model (SM63) alone | the default small model (SM63) alone |
+| RWKV-Instant alone (no preset uses RWKV-Curve) | the show-time instant-only big model (SM99) alone | the Small Instant-Only model (SM98) alone | the Tiny Instant-Only model (SM101) alone |
+| RWKV-Curve only | the show-time big model (SM91s2) alone | the show-time retrain (SM92) alone | the Tiny two-head model (SM106) alone |
 
-- With both schedulers Tiny keeps the default small model (SM63) for the curve: it is more accurate there than the Tiny two-head model (SM106) (+0.09%).
-- RWKV-Instant alone runs the Tiny Instant-Only model (SM101) for Small and Tiny alike (the smallest state and the fastest); Big, an explicit choice, keeps its own Instant-Only model.
-- The two-head models of Small and Tiny serve as the one model of their size: the show-time retrain (SM92) for Small, the Tiny two-head model (SM106) for Tiny. The Tiny two-head model (SM106) has no answer-time head, so the fork shows no RWKV answer-time estimate with it.
+- The curve always comes from the size's two-head model, so "use one model" only changes the instant side.
+- The two-head model also provides the answer-time estimate. The show-time big model (SM91s2) and the show-time retrain (SM92) have one; the Tiny two-head model (SM106) does not, so Tiny shows no RWKV answer-time estimate.
+- The default small model of the earlier release (SM63) stays in the fork as an explicit profile choice, but no size picks it any more.
 
-The manifests of the Small Instant-Only model (SM98) and the Tiny Instant-Only model (SM101) say the model "runs beside the release (sm72e25)". That wording is out of date for this family: the right pairing is the one listed above, with the default small model (SM63) providing the curve.
+The manifests of the Small Instant-Only model (SM98) and the Tiny Instant-Only model (SM101) say the model "runs beside the release (sm72e25)". That wording is out of date: each Instant-Only model runs beside the two-head model of its own size, as listed above.
 
 ## Speed in the fork
 
@@ -67,11 +67,12 @@ Measured on 2026-11-13 on a real collection (13,980 cards, 13,205 notes, 225,132
 |---|---|---|---|---|
 | Big | both schedulers | SM91s2 + SM99 | 23.1 s | 611 MB |
 | Big | one model, or one scheduler | SM91s2 or SM99 | 14.2 s | 306 MB |
-| Small | both schedulers | SM63 + SM98 | 7.8 s | 115 MB |
-| Small | one model, or RWKV-Curve only | SM92 or SM63 | 5.9 s | 58 MB |
-| Tiny | both schedulers | SM63 + SM101 | 7.4 s | 103 MB |
-| Tiny | one model | SM106 | 5.6 s | 46 MB |
-| Small or Tiny | RWKV-Instant only | SM101 | 5.6 s | 46 MB |
+| Small | both schedulers | SM92 + SM98 | 7.8 s | 115 MB |
+| Small | one model, or one scheduler | SM92 or SM98 | 5.9 s | 58 MB |
+| Tiny | both schedulers | SM106 + SM101 | not measured yet (expected between 5.6 and 7.4 s) | not measured yet |
+| Tiny | one model, or one scheduler | SM106 or SM101 | 5.6 s | 46 MB |
+
+The Small pair was timed with the default small model (SM63) in place of the show-time retrain (SM92); both have the same architecture, so the time is the same.
 
 Loading a stored state takes 1.4–1.5 s (Small, Tiny) or 1.9–2.4 s (Big); scoring every card takes 0.12–0.13 s (Small, Tiny) or 0.49 s (Big). These timings match those seen in the app (Big one model about 12–15 s, Small about 4–6 s).
 
