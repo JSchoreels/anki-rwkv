@@ -2038,10 +2038,11 @@
     "the Tiny two-head model (SM106): "
    ],
    "what": "The Tiny two-head model (SM106): the show-time retrain (SM92) with its card stream cut to 1 layer (31% less state), more epochs with both heads on show-time inputs, then the one-epoch 32k Muon cool-down on show-time inputs (the Tiny Instant-Only model (SM101) recipe, both heads trained). Rules fixed before launch, show-time inputs, vs the big model (1 leak-free epoch): curve &le; +0.5% and instant &le; +0.4% (point estimates, as the 10-29 pruning bar; CIs reported). Branch sm106 ready: card cut and CPU checks pass",
-   "when": "Early check 10:00 Thu: stop (+0.259% [+0.131, +0.399] curve, +0.193% [+0.151, +0.234] instant vs the show-time retrain (SM92)&rsquo;s epoch 26; stop bar +0.25%). User 11-12 ~13:15: finish it anyway; relaunched 13:17 past the early stop, rule A unchanged (curve expected near +0.52%, just above the +0.5% bar). Epochs 28&ndash;29 to ~17:00, cool-down to ~00:50, result ~02:00 Fri",
+   "when": "Done 01:33 Fri: go. Curve +0.366% [+0.183, +0.574], instant +0.076% [&minus;0.033, +0.163] vs the big model (1 leak-free epoch) (bars +0.5% / +0.4%), after the user chose to continue past the early stop at 10:00 Thu",
    "decides": "Whether the Tiny size gets a two-head model for the RWKV family release (user 11-11)",
-   "state": "running",
-   "started_at": "2026-11-12T07:48+01:00"
+   "state": "done",
+   "started_at": "2026-11-12T07:48+01:00",
+   "ended_at": "2026-11-13T01:33+01:00"
   },
   {
    "id": "SM108",
@@ -2077,16 +2078,17 @@
   {
    "id": "SM110",
    "track": "small model",
-   "since": "11-12T13:20",
+   "since": "11-13T01:34",
    "kind": "gpu",
    "minutes": 834,
    "match": [
     "the big instant-only teacher (SM110): "
    ],
    "what": "The big instant-only teacher (SM110): the Small Instant-Only model (SM98)&rsquo;s own cool-down from its epoch 35, with the teacher targets swapped for the show-time instant-only big model (SM99)&rsquo;s (made on show-time inputs for the 8,000 cool-down users). Early stop halfway (4,000 users) unless below the Small Instant-Only model (SM98)&rsquo;s own snapshot at the same point; go = new &minus; the Small Instant-Only model (SM98), show-time instant, CI below 0 and at least 0.05%",
-   "when": "Branch sm110 ready (CPU checks ALL OK, dry run OK); queued behind the Tiny two-head model (SM106), so ~02:00 Fri start, ~16:00 Fri result (~13.9 GPU h; ~8.9 h on an early stop). Expected about &minus;0.03%, so about 1 chance in 4 of a go",
+   "when": "Started 01:34 Fri (reference scoring, then the show-time instant-only big model (SM99)&rsquo;s targets for 8,000 users ~4.3 h, then the cool-down with a halfway check); result ~15:30 Fri (~13.9 GPU h; ~8.9 h on an early stop). Expected about &minus;0.03%, about 1 chance in 4 of a go",
    "decides": "Whether the big model&rsquo;s instant lead (&minus;0.108%) can be passed on to the Small Instant-Only model of the family; the family release waits for it (user 11-12)",
-   "state": "queued"
+   "state": "running",
+   "started_at": "2026-11-13T01:34+01:00"
   },
   {
    "id": "SM111",
@@ -2102,6 +2104,21 @@
    "decides": "Nothing to ship or drop: where Tiny lands, and whether the Big pair is too slow (user 11-12)",
    "state": "running",
    "started_at": "2026-11-12T14:10+01:00"
+  },
+  {
+   "id": "SM112",
+   "track": "small model",
+   "since": "11-13T01:40",
+   "kind": "cpu",
+   "minutes": 240,
+   "match": [
+    "Tiny in the fork (SM112): "
+   ],
+   "what": "Tiny in the fork (SM112): package the Tiny two-head model (SM106) for the RWKV family release; in the fork, Tiny&rsquo;s one-model choice runs it alone, and RWKV-Instant alone runs the Tiny Instant-Only model (SM101) by default (user 11-12); parity, tests, docs; no release",
+   "when": "Started 01:40 Fri on CPU, beside the big instant-only teacher (SM110)",
+   "decides": "Nothing: user decisions 11-12",
+   "state": "running",
+   "started_at": "2026-11-13T01:40+01:00"
   }
  ],
  "backlog": [
@@ -2657,6 +2674,88 @@
   "s-w64kd-gate-ctx2048c-dec8-1ep/w8+s8"
  ],
  "results": [
+  {
+   "date": "11-13",
+   "kind": "gpu-train",
+   "id": "SM106",
+   "track": "small model",
+   "name": "The Tiny two-head model (SM106): the show-time retrain (SM92)&rsquo;s constant-LR epoch 26 with the card stream cut to 1 layer, 3 two-head epochs (27&ndash;29) on show-time inputs, then the release&rsquo;s one-epoch 32k Muon cool-down on show-time inputs, both heads trained",
+   "eval": "Leak-free w8+s8, 722 users of the 732 set, show-time inputs; % of the big model (1 leak-free epoch)&rsquo;s show-time LogLoss; paired user bootstrap 95% CI. Rule A fixed before launch (the pruning bar, point estimates): curve &le; +0.5%, instant &le; +0.4%. Early stop after epoch 27 if more than +0.25% behind the show-time retrain (SM92)&rsquo;s epoch 26 on either head. Also the 1,500 validation users (1,487 scored)",
+   "fork": "Being wired in (SM112): Tiny&rsquo;s one-model choice; Tiny&rsquo;s default pair keeps the default small model (SM63) for the curve",
+   "takeaway": "<strong>Go</strong>: curve +0.366% [+0.183, +0.574], instant +0.076% [&minus;0.033, +0.163] vs the big model (1 leak-free epoch), both within the bar, with 31% less state than the show-time retrain (SM92) (2,622 vs 3,530 B per card + note). The early check had said stop (curve +0.259% vs the bar of +0.25%); the user chose to continue and the cool-down recovered more than expected (~+0.52% predicted). Vs the show-time retrain (SM92): +0.107% curve, +0.178% instant",
+   "inputs": "show-time",
+   "started_at": "2026-11-12T07:48+01:00",
+   "ended_at": "2026-11-13T01:33+01:00",
+   "detail": {
+    "verdict": "Go; branch sm106 (sm106-decision.md, sm106-result.md)",
+    "table": {
+     "head": [
+      "Show-time, new minus",
+      "head",
+      "%",
+      "95% CI",
+      "better / worse"
+     ],
+     "rows": [
+      [
+       "the big model (1 leak-free epoch) (rule A)",
+       "curve",
+       "+0.366",
+       "[+0.183, +0.574]",
+       "&ndash;"
+      ],
+      [
+       "the big model (1 leak-free epoch) (rule A)",
+       "instant",
+       "+0.076",
+       "[&minus;0.033, +0.163]",
+       "&ndash;"
+      ],
+      [
+       "the show-time retrain (SM92)",
+       "curve",
+       "+0.107",
+       "[+0.074, +0.137]",
+       "213 / 509"
+      ],
+      [
+       "the show-time retrain (SM92)",
+       "instant",
+       "+0.178",
+       "[+0.158, +0.199]",
+       "122 / 600"
+      ],
+      [
+       "the Tiny Instant-Only model (SM101)",
+       "instant",
+       "+0.234",
+       "[+0.215, +0.254]",
+       "90 / 631"
+      ],
+      [
+       "the default small model (SM63)",
+       "curve",
+       "+0.088",
+       "[+0.001, +0.210]",
+       "311 / 411"
+      ],
+      [
+       "the default small model (SM63)",
+       "instant",
+       "&minus;0.126",
+       "[&minus;0.223, &minus;0.052]",
+       "353 / 368"
+      ]
+     ]
+    },
+    "notes": [
+     "Early check after epoch 27 (10:00 Thu): curve +0.259% [+0.131, +0.399], instant +0.193% [+0.151, +0.234] vs the show-time retrain (SM92)&rsquo;s epoch 26 &rarr; stop; user 11-12 ~13:15: finish anyway; relaunched 13:17 with the override, rule A unchanged",
+     "Epochs 27 / 28 / 29: 106.8 / 106.7 / 105.4 min at 91,020 / 90,865 / 92,039 reviews/s; cool-down 463.2 min at 20,941 reviews/s",
+     "10-epoch ETA: constant-LR 4.5 h (2k tier) / 17.7 h (8k tier); cool-down speed 19.6 h / 77.2 h",
+     "1,500 validation users, show-time: +0.062% curve, &minus;0.083% instant vs the default small model (SM63)"
+    ]
+   }
+  },
   {
    "date": "11-12",
    "kind": "cpu",
@@ -9365,11 +9464,10 @@
     "use": "One model for both RWKV-Curve and RWKV-Instant",
     "params": 311786,
     "mem_b": 2622,
-    "curve": null,
-    "instant": null,
-    "state": "running",
-    "status": "Running past its early stop (your choice): epoch 28",
-    "eta": "~02:00 Fri"
+    "curve": 0.300676,
+    "instant": 0.277369,
+    "state": "done",
+    "status": "Done (go): fork wiring in progress"
    },
    {
     "size": "Tiny",
