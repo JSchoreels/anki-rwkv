@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-13T05:54:52+01:00",
- "updated": "2026-11-13 05:54",
- "material": "5fec7e3d416426f7",
- "summary": "idle, finished 001169",
+ "generated_at": "2026-11-13T05:58:07+01:00",
+ "updated": "2026-11-13 05:58",
+ "material": "caf2398e9bf28dde",
+ "summary": "running 001171, finished 001170",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring, show-time inputs for both heads (curve / instant)",
@@ -261,7 +261,23 @@
    }
   ]
  },
- "now": [],
+ "now": [
+  {
+   "what": "The big instant-only teacher (SM110): the Small Instant-Only model (SM98)&rsquo;s own cool-down from its epoch 35, with the teacher targets swapped for the show-time instant-only big model (SM99)&rsquo;s (made on show-time inputs for the 8,000 cool-down users). Early stop halfway (4,000 users) unless below the Small Instant-Only model (SM98)&rsquo;s own snapshot at the same point; go = new &minus; the Small Instant-Only model (SM98), show-time instant, CI below 0 and at least 0.05%",
+   "id": "SM110, ticket 001171",
+   "kind": "gpu",
+   "decides": "Whether the big model&rsquo;s instant lead (&minus;0.108%) can be passed on to the Small Instant-Only model of the family; the family release waits for it (user 11-12)",
+   "why": "",
+   "job": "the big instant-only teacher (SM110): the release&#x27;s one-epoch 32k Muon cool-down on show-time inputs from SM98&#x27;s epoch 35 with SM99&#x27;s show-time targets, curve loss weight 0 (segment to the next break, the mid-check or the end)",
+   "linked": true,
+   "track": "small model",
+   "ticket": "001171-sm110",
+   "started": "05:57",
+   "elapsed": "0:00",
+   "progress": null,
+   "eta": "~15:17"
+  }
+ ],
  "charts": [
   {
    "title": "Small model, leak-free (SM72s): LogLoss per epoch, 458-user set (lower is better)",
@@ -432,6 +448,15 @@
  "waiting": [],
  "recent": [
   {
+   "ticket": "001170-sm110",
+   "id": "SM110",
+   "what": "the big instant-only teacher (SM110): trainer smoke of the cool-down with SM99&#x27;s show-time targets (fresh Muon, curve loss weight 0, show-time inputs, 2 users x 512 reviews)",
+   "ended": "05:57",
+   "date": "11-13",
+   "exit": 0,
+   "ran": "0:00"
+  },
+  {
    "ticket": "001169-sm110",
    "id": "SM110",
    "what": "the big instant-only teacher (SM110): teacher targets from the show-time instant-only big model (SM99) on show-time inputs, the 8,000 cool-down users (581942738 reviews left, ~256 min; stops starting users after 301 min)",
@@ -472,15 +497,6 @@
    "id": "SM106",
    "what": "the Tiny two-head model (SM106): scoring the new model on e2s-query inputs, the 1,500 validation users outside the 732 set + 6 check users (pass 3, 766 done, cap 0.92)",
    "ended": "01:32",
-   "date": "11-13",
-   "exit": 0,
-   "ran": "0:00"
-  },
-  {
-   "ticket": "001164-sm106",
-   "id": "SM106",
-   "what": "the Tiny two-head model (SM106): scoring the new model on e2s-query inputs, the 1,500 validation users outside the 732 set + 6 check users (pass 2, 766 done, cap 0.8)",
-   "ended": "01:31",
    "date": "11-13",
    "exit": 0,
    "ran": "0:00"
@@ -2252,12 +2268,11 @@
    "what": "The big instant-only teacher (SM110): the Small Instant-Only model (SM98)&rsquo;s own cool-down from its epoch 35, with the teacher targets swapped for the show-time instant-only big model (SM99)&rsquo;s (made on show-time inputs for the 8,000 cool-down users). Early stop halfway (4,000 users) unless below the Small Instant-Only model (SM98)&rsquo;s own snapshot at the same point; go = new &minus; the Small Instant-Only model (SM98), show-time instant, CI below 0 and at least 0.05%",
    "when": "Started 01:34 Fri (reference scoring, then the show-time instant-only big model (SM99)&rsquo;s targets for 8,000 users ~4.3 h, then the cool-down with a halfway check); result ~15:30 Fri (~13.9 GPU h; ~8.9 h on an early stop). Expected about &minus;0.03%, about 1 chance in 4 of a go",
    "decides": "Whether the big model&rsquo;s instant lead (&minus;0.108%) can be passed on to the Small Instant-Only model of the family; the family release waits for it (user 11-12)",
-   "state": "done",
+   "state": "running",
    "started_at": "2026-11-13T01:34:29+01:00",
-   "ended": "05:54",
-   "exit": 0,
-   "started": "01:34",
-   "ended_at": "2026-11-13T05:54:21+01:00"
+   "started": "05:57",
+   "ticket": "001171-sm110",
+   "ends_at": "2026-11-13T15:28:29+01:00"
   },
   {
    "id": "SM111",
