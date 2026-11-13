@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-13T01:47:54+01:00",
- "updated": "2026-11-13 01:47",
- "material": "4701c241cf3f3234",
- "summary": "running 001169, finished 001168",
+ "generated_at": "2026-11-13T02:11:27+01:00",
+ "updated": "2026-11-13 02:11",
+ "material": "53d3083245942382",
+ "summary": "running 001169",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring, show-time inputs for both heads (curve / instant)",
@@ -231,7 +231,7 @@
     "curve": null,
     "instant": 0.276191,
     "state": "done",
-    "status": "In fork main: RWKV-Instant in Small (default)"
+    "status": "In fork main: RWKV-Instant in Small (default) when RWKV-Curve also runs"
    },
    {
     "size": "Tiny",
@@ -244,7 +244,7 @@
     "curve": 0.300676,
     "instant": 0.277369,
     "state": "done",
-    "status": "Done (go): fork wiring in progress"
+    "status": "In fork main: the one-model choice in Tiny"
    },
    {
     "size": "Tiny",
@@ -257,7 +257,7 @@
     "curve": null,
     "instant": 0.27672,
     "state": "done",
-    "status": "In fork main: RWKV-Instant in Tiny"
+    "status": "In fork main: RWKV-Instant in Tiny, and RWKV-Instant alone in Small"
    }
   ]
  },
@@ -273,7 +273,7 @@
    "track": "small model",
    "ticket": "001169-sm110",
    "started": "01:47",
-   "elapsed": "0:00",
+   "elapsed": "0:24",
    "progress": null,
    "eta": "~06:13"
   }
@@ -2241,7 +2241,7 @@
    "kind": "cpu",
    "minutes": 240,
    "what": "RWKV family release (SM108): one GitHub release with Big, Small and Tiny, each with a two-head model and an Instant-Only variant: Big = the show-time big model (SM91s2) + the show-time instant-only big model (SM99); Small = the show-time retrain (SM92) + the Small Instant-Only model (SM98); Tiny = the Tiny two-head model (SM106) + the Tiny Instant-Only model (SM101). Packages, test vectors and notes prepared now; published after the user&rsquo;s OK",
-   "when": "5 of 6 packages ready (Big pair in fork main since 08:48 Thu). User 11-12: wait for everything, the big instant-only teacher (SM110) included; include the Tiny two-head model (SM106) whatever its curve; fork default Small, Tiny when only RWKV-Instant is used; a realistic speed test first (harness being built). Release folder ~Fri evening, published only after the user&rsquo;s OK",
+   "when": "All 6 packages ready with test vectors PASS; a dry build makes all 6 zips (sm108-family-release 08b394e0). Waits for the big instant-only teacher (SM110) (~15:30 Fri) and the quiet speed test (SM111), then the user&rsquo;s OK to publish",
    "decides": "Nothing: user request 11-11",
    "state": "planned",
    "started_at": "2026-11-11T19:05+01:00"
@@ -2293,10 +2293,11 @@
    "kind": "cpu",
    "minutes": 240,
    "what": "Tiny in the fork (SM112): package the Tiny two-head model (SM106) for the RWKV family release; in the fork, Tiny&rsquo;s one-model choice runs it alone, and RWKV-Instant alone runs the Tiny Instant-Only model (SM101) by default (user 11-12); parity, tests, docs; no release",
-   "when": "Started 01:40 Fri on CPU, beside the big instant-only teacher (SM110)",
+   "when": "Done 02:10 Fri: fork main cec8ca927 + 1aad10cb0 (docs); package on branch tiny-package cdfdb3e1; no release",
    "decides": "Nothing: user decisions 11-12",
-   "state": "planned",
-   "started_at": "2026-11-13T01:40+01:00"
+   "state": "done",
+   "started_at": "2026-11-13T01:40+01:00",
+   "ended_at": "2026-11-13T02:10+01:00"
   }
  ],
  "gpu_break": {
@@ -2841,6 +2842,30 @@
   }
  ],
  "results": [
+  {
+   "date": "11-13",
+   "kind": "cpu",
+   "id": "SM112",
+   "track": "small model",
+   "name": "Tiny in the fork (SM112): Tiny&rsquo;s one-model choice runs the Tiny two-head model (SM106) alone, and RWKV-Instant alone runs the Tiny Instant-Only model (SM101) in Small and Tiny (user 11-12); the Tiny two-head model (SM106) packaged for the RWKV family release",
+   "eval": "Release package with show-time test vectors (NumPy reference, tolerance 1e-5, fp32 + int8); fork native engine vs PyTorch (14,403 rows); fork Rust and Python tests; a test over all 18 size &times; mode combinations for state sharing and rebuilds",
+   "fork": "Fork main cec8ca927 (+ 1aad10cb0 docs): Big = the show-time big model (SM91s2) + the show-time instant-only big model (SM99); Small = the default small model (SM63) + the Small Instant-Only model (SM98); Tiny = the default small model (SM63) + the Tiny Instant-Only model (SM101); one-model choice: the show-time big model (SM91s2) / the show-time retrain (SM92) / the Tiny two-head model (SM106); RWKV-Instant alone: the show-time instant-only big model (SM99) in Big, the Tiny Instant-Only model (SM101) in Small and Tiny; no release",
+   "takeaway": "<strong>Shipped in fork main</strong>. Native vs PyTorch for the Tiny two-head model (SM106): 3.2e-6 max on all 14,403 rows (fp32 and int8). 2,622 B per card + note at the fork default. Profiles whose RWKV-Instant-only state was built with the Small Instant-Only model (SM98) rebuild it once",
+   "inputs": "show-time",
+   "started_at": "2026-11-13T01:40+01:00",
+   "ended_at": "2026-11-13T02:10+01:00",
+   "gpu_minutes": 0,
+   "tickets": 0,
+   "detail": {
+    "verdict": "Shipped; fork cec8ca927 (docs/rwkv-sm112-2026-11-13.MD); anki-rwkv tiny-package cdfdb3e1; sm108-family-release 08b394e0",
+    "notes": [
+     "Package parity (NumPy vs PyTorch): fp32 1.8e-6, int8 1.4e-6; test-vector check PASS (max 1.9e-6)",
+     "Rust rwkv tests 274 passed (default and no-default features; 270 before), clippy clean; Python model / inference / scheduler tests 1,756 passed, 94 skipped; native-bridge tests on a fresh release build 90 passed, 4 skipped (no torch)",
+     "The Tiny two-head model (SM106) has no answer-time head, so Tiny&rsquo;s one-model choice shows no answer-time estimate",
+     "Not run here: TypeScript / Playwright checks, a full app build, a speed run of the Tiny two-head model (SM106) alone"
+    ]
+   }
+  },
   {
    "date": "11-13",
    "kind": "gpu-train",
