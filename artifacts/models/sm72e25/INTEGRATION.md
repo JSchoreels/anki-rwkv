@@ -119,7 +119,7 @@ Caveats on these numbers:
 | `manifest.json` | about 21 KB | sha256 of every file, parameter count, training record, evaluation block. |
 | `master.pth` | 1,489,805 | PyTorch checkpoint (the source of the two `.bin` files). Not needed at runtime. |
 | `reference/` | | Standalone NumPy reference (section 13). |
-| `testvectors/` | | Golden inputs and outputs for 2 benchmark users (built leak-free), check script (section 13). |
+| `testvectors/` | | Golden inputs and outputs for 2 synthetic users (no dataset data) (built leak-free), check script (section 13). |
 
 Identity of the weights: the sha256 of `weights.f32.bin` is listed in `manifest.json` → `files`. Use it as the model id
 for caches (section 8.5).
@@ -853,7 +853,7 @@ then one run on an actual 2 GB phone (rebuild time, peak RAM).
 
 Verified:
 
-- NumPy parallel reference vs PyTorch on this trained checkpoint: users 4676, 1745, 516, fp32 and int8 weights, max |dp| 1.3e-6 over curve, instant and rating
+- NumPy parallel reference vs PyTorch on this trained checkpoint: 3 dataset users (aggregate errors only, no rows shipped), fp32 and int8 weights, max |dp| 1.3e-6 over curve, instant and rating
   outputs (`parity.json`; passes at 1e-5).
 - The recurrent reference in this folder vs the parallel reference (which is itself within 1.3e-6 of PyTorch), on 2 users, 14,403 rows, fp32 and int8 weights: max difference below 2e-6
   (`testvectors/check_testvectors.py`, tolerance 1e-5).
@@ -864,7 +864,7 @@ Not verified:
 
 - **Rust**: nothing was compiled or run in the fork. Section 10 is a plan read from the code, not tested.
 - **int8 state (s8)** in NumPy: the reference implements it (`state_bits=8`) following `precision.rs` and the scorer, but there are no golden vectors for it.
-  On the first 2,500 rows of user 4676 it differs from fp32 state by up to 2.5e-3 in probability, which fits the accuracy cost seen in the scorer.
+  On the first 2,500 rows of a dataset user it differs from fp32 state by up to 2.5e-3 in probability, which fits the accuracy cost seen in the scorer.
   Small known difference: the scorer also rounds the shift to float16 on a new entity's first review; the reference rounds only stored states.
 - **Fork feature builder with this model**: the accuracy in section 2 uses the scorer's entity codes and calendar baselines. The fork assigns codes with its own
   fixed-state generator and uses baseline 0. The effect on accuracy was not measured for this model.
@@ -872,7 +872,7 @@ Not verified:
   imports) may lose about +0.0002 (curve) / +0.0004 (instant) LogLoss.
 - The numbers of section 2 and the paired differences against the previous release come from the model owner and are not recomputed in this package.
 - **Leak-free feature builder in the fork**: the fork features_for does not apply section 6.9 today; nothing was measured on how much a runtime that skips it loses.
-- The test vectors come from 2 benchmark users only (3,716 and 4,144 reviews). Long histories (hundreds of thousands of reviews) are not covered by golden values;
+- The test vectors come from 2 synthetic users (no dataset data) only (1,775 and 1,540 reviews). Long histories (hundreds of thousands of reviews) are not covered by golden values;
   float32 drift over such histories is untested.
 - Performance of a Rust implementation is unmeasured.
 
@@ -890,15 +890,15 @@ Not verified:
 | `run_reference.py` | Loads the package, runs the reference over a test-vector file, prints outputs and the difference to the stored values. |
 
 ```
-python reference/run_reference.py testvectors/user_4676.npz --rows 20
-python reference/run_reference.py testvectors/user_4676.npz --weights int8 --form parallel
+python reference/run_reference.py testvectors/user_900001.npz --rows 20
+python reference/run_reference.py testvectors/user_900001.npz --weights int8 --form parallel
 ```
 
-`testvectors/` (`user_4676.npz`, `user_1745.npz`, benchmark users of `anki-revlogs-10k`, features built with the leak-free transform of section 6.9; per-user benchmark data may be shared):
+`testvectors/` (`user_900001.npz`, `user_900002.npz`, synthetic users (no dataset data) written in the `anki-revlogs-10k` on-disk format by the training repository's `scripts/synthetic_testvector_users.py`, features built with the leak-free transform of section 6.9):
 
 | Key | Shape | Content |
 |---|---|---|
-| `features` | N x 92 float32 | exact model input per row (N = reviews + query rows; 6,554 and 7,849) |
+| `features` | N x 92 float32 | exact model input per row (N = reviews + query rows; 3,363 and 2,946) |
 | `id_card_id`, `id_deck_id`, `id_note_id`, `id_preset_id`, `id_user_id` | N int64 | entity key per stream |
 | `skip`, `is_query`, `has_label` | N uint8 | row role (section 6.3); `has_label` = a curve/instant label exists |
 | `label_elapsed_seconds` | N float32 | elapsed seconds to the next review of the card = the `t` at which `p_curve` is scored (0 on query rows: then `t` is clamped to 1) |
@@ -921,10 +921,12 @@ python testvectors/check_testvectors.py        # about 3.5 minutes; --rows 500 -
 ```
 
 It runs both reference forms for fp32 and int8 weights on both users and exits 0 only if every output (`p_curve` at the label time, at the six sweep times,
-`p_imm`, `p_rating`) is within 1e-5. Result when this package was built: PASS, largest difference 1.1e-6.
+`p_imm`, `p_rating`) is within 1e-5. Result when this package was built: PASS, largest difference 3.2e-06.
 
 ---
 
 ## 14. License
+
+The package contains no anki-revlogs-10k data: its test vectors use synthetic users (no dataset data), simulated by the training repository's `scripts/synthetic_testvector_users.py`. The dataset itself is linked, not shipped: https://huggingface.co/datasets/open-spaced-repetition/anki-revlogs-10k (gated, license "anki-revlogs-10k").
 
 TBD by the owner: check the terms of the training data (anki-revlogs-10k), the teacher weights and the architecture source before redistribution.
