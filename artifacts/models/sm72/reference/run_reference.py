@@ -1,9 +1,9 @@
 """Load the package, run the NumPy reference over a test-vector file and print the outputs.
 
-    python run_reference.py ../testvectors/user_4676.npz                  # fp32 weights, first 12 rows
-    python run_reference.py ../testvectors/user_4676.npz --weights int8 --rows 40
-    python run_reference.py ../testvectors/user_4676.npz --form parallel  # the batch form (small_model_numpy.py)
-    python run_reference.py ../testvectors/user_4676.npz --state-bits 8   # int8 card/note state (no golden values)
+    python run_reference.py ../testvectors/user_900001.npz                  # fp32 weights, first 12 rows
+    python run_reference.py ../testvectors/user_900001.npz --weights int8 --rows 40
+    python run_reference.py ../testvectors/user_900001.npz --form parallel  # the batch form (small_model_numpy.py)
+    python run_reference.py ../testvectors/user_900001.npz --state-bits 8   # int8 card/note state (no golden values)
 
 Needs only numpy. Prints, per row: row index, query flag, skip flag, p_imm, p_rating (again/hard/good/easy),
 p_curve at the row's label time, and the difference to the expected value stored in the test-vector file.
