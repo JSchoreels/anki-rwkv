@@ -15,7 +15,7 @@ declare -A PKG=(
   [rwkv-big-instant-only]="${PKG_BIG_INSTANT_ONLY:-$WT/big-package/artifacts/models/sm99}"   # branch big-package 9dc96c91
   [rwkv-small-two-head]="${PKG_SMALL_TWO_HEAD:-$WT/sm101-package/artifacts/models/sm92}"
   [rwkv-small-instant-only]="${PKG_SMALL_INSTANT_ONLY:-$WT/sm98-package/artifacts/models/sm98}"
-  [rwkv-tiny-two-head]="${PKG_TINY_TWO_HEAD:-$WT/sm106/artifacts/models/sm106}"           # TODO: SM106 package (not trained yet)
+  [rwkv-tiny-two-head]="${PKG_TINY_TWO_HEAD:-$WT/tiny-package/artifacts/models/sm106}"   # branch tiny-package cdfdb3e1
   [rwkv-tiny-instant-only]="${PKG_TINY_INSTANT_ONLY:-$WT/sm101-package/artifacts/models/sm101}"
 )
 ORDER=(rwkv-big-two-head rwkv-big-instant-only rwkv-small-two-head rwkv-small-instant-only rwkv-tiny-two-head rwkv-tiny-instant-only)
