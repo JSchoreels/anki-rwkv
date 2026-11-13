@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-13T09:53:29+01:00",
- "updated": "2026-11-13 09:53",
- "material": "ab892445d5f6d14e",
- "summary": "idle, finished 001171",
+ "generated_at": "2026-11-13T09:54:02+01:00",
+ "updated": "2026-11-13 09:54",
+ "material": "737f3d2a6d139a08",
+ "summary": "running 001172",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring, show-time inputs for both heads (curve / instant)",
@@ -261,7 +261,23 @@
    }
   ]
  },
- "now": [],
+ "now": [
+  {
+   "what": "The big instant-only teacher (SM110): the Small Instant-Only model (SM98)&rsquo;s own cool-down from its epoch 35, with the teacher targets swapped for the show-time instant-only big model (SM99)&rsquo;s (made on show-time inputs for the 8,000 cool-down users). Early stop halfway (4,000 users) unless below the Small Instant-Only model (SM98)&rsquo;s own snapshot at the same point; go = new &minus; the Small Instant-Only model (SM98), show-time instant, CI below 0 and at least 0.05%",
+   "id": "SM110, ticket 001172",
+   "kind": "gpu",
+   "decides": "Whether the big model&rsquo;s instant lead (&minus;0.108%) can be passed on to the Small Instant-Only model of the family; the family release waits for it (user 11-12)",
+   "why": "",
+   "job": "the big instant-only teacher (SM110): scoring sm110-dec-u4000 on e2s-query inputs, the 732 set minus 9 never-fit (723 users) (pass 1, 0 done, cap 0.8)",
+   "linked": true,
+   "track": "small model",
+   "ticket": "001172-sm110",
+   "started": "09:53",
+   "elapsed": "0:00",
+   "progress": null,
+   "eta": "~10:18"
+  }
+ ],
  "charts": [
   {
    "title": "Small model, leak-free (SM72s): LogLoss per epoch, 458-user set (lower is better)",
@@ -2252,12 +2268,11 @@
    "what": "The big instant-only teacher (SM110): the Small Instant-Only model (SM98)&rsquo;s own cool-down from its epoch 35, with the teacher targets swapped for the show-time instant-only big model (SM99)&rsquo;s (made on show-time inputs for the 8,000 cool-down users). Early stop halfway (4,000 users) unless below the Small Instant-Only model (SM98)&rsquo;s own snapshot at the same point; go = new &minus; the Small Instant-Only model (SM98), show-time instant, CI below 0 and at least 0.05%",
    "when": "Started 01:34 Fri (reference scoring, then the show-time instant-only big model (SM99)&rsquo;s targets for 8,000 users ~4.3 h, then the cool-down with a halfway check); result ~15:30 Fri (~13.9 GPU h; ~8.9 h on an early stop). Expected about &minus;0.03%, about 1 chance in 4 of a go",
    "decides": "Whether the big model&rsquo;s instant lead (&minus;0.108%) can be passed on to the Small Instant-Only model of the family; the family release waits for it (user 11-12)",
-   "state": "done",
+   "state": "running",
    "started_at": "2026-11-13T01:34:29+01:00",
-   "ended": "09:53",
-   "exit": 1,
-   "started": "01:34",
-   "ended_at": "2026-11-13T09:53:07+01:00"
+   "started": "09:53",
+   "ticket": "001172-sm110",
+   "ends_at": "2026-11-13T15:28:29+01:00"
   },
   {
    "id": "SM111",
