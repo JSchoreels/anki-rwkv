@@ -1,8 +1,15 @@
-"""Provenance only: how the golden test vectors were made. Needs the training repo (torch, pandas, the
-anki-revlogs-10k data); a developer who only uses the package does not run this.
+"""Provenance only: how the golden test vectors were made. Needs the training repo (torch, pandas); a developer who only uses the package does not run this.
+
+Synthetic users (no dataset data): the vectors are built from users 900001 and 900002, simulated review histories that
+the training repo's scripts/synthetic_testvector_users.py (main branch, fixed seed) writes in the on-disk format of
+anki-revlogs-10k into a scratch folder; RWKV_TESTVECTOR_DATA points the loader at it. No row of the dataset is shipped
+(it is gated and not redistributable: https://huggingface.co/datasets/open-spaced-repetition/anki-revlogs-10k).
+To regenerate:
+
+    python scripts/synthetic_testvector_users.py <scratch dir>        # in the training repo, main branch
 
     cd <repo worktree that exported the package>      # e.g. <workspace>/wt/small-model
-    CUDA_VISIBLE_DEVICES= python -X utf8 <this file> <package dir> <out dir> 4676 1745
+    RWKV_TESTVECTOR_DATA=<scratch dir> CUDA_VISIBLE_DEVICES= python -X utf8 <this file> <package dir> <out dir> 900001 900002
 
 Per user it builds the full-history sample exactly like the held-out scorer (scripts/compress_common.full_history_batch,
 ID-encoding seed 2025 + user), saves every model input per row (92 features, entity ids, skip flag, query time) and
@@ -49,7 +56,7 @@ def arrays(batch):
             "labels": to(batch.labels)}
 
 
-data = cc.data_path()
+data = Path(os.environ["RWKV_TESTVECTOR_DATA"]) if os.environ.get("RWKV_TESTVECTOR_DATA") else cc.data_path()
 for user in users:
     frame = get_rwkv_data(data, user)
     sample = cc.make_samples(frame, user, len(frame))
@@ -108,6 +115,8 @@ for user in users:
             lab[..., 0] = t
             sweep.append(ref.predict(**{**arrays(batch), "labels": lab})["p_curve"][0])
         out[f"{name}_p_curve_sweep"] = np.stack(sweep, axis=1).astype(np.float32)
+    if os.environ.get("RWKV_TESTVECTOR_DATA"):
+        out["source"] = np.array("synthetic user (no dataset data): scripts/synthetic_testvector_users.py")
     path = out_dir / f"user_{user}.npz"
     np.savez_compressed(path, **out)
     print(f"[testvectors] {path}: {T} rows, {path.stat().st_size:,} bytes", flush=True)

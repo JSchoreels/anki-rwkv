@@ -37,7 +37,7 @@ Daily use (2-10 ms per answer) is fast on all of them. Details, flagship example
 - `INTEGRATION.md`: the developer manual (inputs, features, state handling, weight formats, how to port it, known gaps). It is also attached on its own below.
 - `weights.f32.bin`, `weights.int8.bin`, `architecture.json`, `master.pth` (PyTorch checkpoint), `manifest.json` (training recipe, scores, sha256 of every file).
 - `reference/`: a NumPy-only reference model (parallel and one-review-at-a-time forms) and `run_reference.py`.
-- `testvectors/`: inputs and expected outputs for 2 users; `python testvectors/check_testvectors.py` must print `RESULT: PASS`.
+- `testvectors/`: inputs and expected outputs for 2 synthetic users (no dataset data); `python testvectors/check_testvectors.py` must print `RESULT: PASS`.
 
 ## Not done yet
 
@@ -47,4 +47,6 @@ Daily use (2-10 ms per answer) is fast on all of them. Details, flagship example
 - Compressed state (a few hundred bits per card instead of int8) is not part of this release; it currently costs too much accuracy.
 - No license is set yet. Check the terms of the training data (anki-revlogs-10k) and the teacher model before redistributing.
 
-sha256 of `sm36-package.zip`: `866166e30bf76b8f40bfeaca4bcc0bc542983a6a8663c9d01f8a69cb225105a8`
+sha256 of `sm36-package.zip`: `a01215cfd88da76e181c5930507f6cc68319988917a34cd76859e611a2051457`
+
+**Test vectors and training data (updated 2026-11-13):** the package's test vectors (`testvectors/user_900001.npz`, `testvectors/user_900002.npz`) come from two synthetic users: simulated review histories (fixed seed) written in the dataset's on-disk format by `scripts/synthetic_testvector_users.py` in this repository. The package contains no rows of the training data. The zip was replaced on 2026-11-13 (same tag, same model and weight files; only the test vectors and their documentation changed). The model was trained on the anki-revlogs-10k dataset, which is linked rather than shipped: https://huggingface.co/datasets/open-spaced-repetition/anki-revlogs-10k (gated, license "anki-revlogs-10k").

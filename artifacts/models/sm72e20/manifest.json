@@ -724,7 +724,8 @@
     ],
     "pass_1e-5": true
    }
-  }
+  },
+  "users_note": "dataset users of the NumPy-vs-PyTorch parity check: aggregate errors only, no rows shipped; the test vectors use synthetic users (see testvectors)"
  },
  "files": {
   "architecture.json": {
@@ -765,5 +766,22 @@
    "justfile",
    "upstream.json"
   ]
+ },
+ "testvectors": {
+  "users": [
+   900001,
+   900002
+  ],
+  "synthetic": true,
+  "rows": {
+   "900001": 3363,
+   "900002": 2946
+  },
+  "reviews": {
+   "900001": 1775,
+   "900002": 1540
+  },
+  "note": "synthetic users (no dataset data): simulated by the training repository's scripts/synthetic_testvector_users.py (fixed seed) in the anki-revlogs-10k on-disk format; no dataset rows are shipped. Dataset (linked, gated): https://huggingface.co/datasets/open-spaced-repetition/anki-revlogs-10k",
+  "check": "testvectors/check_testvectors.py: PASS, largest difference 4.8e-07 (tolerance 1e-5)"
  }
 }
