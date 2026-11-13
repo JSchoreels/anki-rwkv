@@ -2054,10 +2054,11 @@
     "RWKV family release (SM108): "
    ],
    "what": "RWKV family release (SM108): one GitHub release with Big, Small and Tiny, each with a two-head model and an Instant-Only variant: Big = the show-time big model (SM91s2) + the show-time instant-only big model (SM99); Small = the show-time retrain (SM92) + the Small Instant-Only model (SM98); Tiny = the Tiny two-head model (SM106) + the Tiny Instant-Only model (SM101). Packages, test vectors and notes prepared now; published after the user&rsquo;s OK",
-   "when": "All 6 packages built and verified, final notes with the speed test (SM111) (sm108-family-release aa6c7d47). The big instant-only teacher (SM110) was a no go, so the Small Instant-Only model (SM98) stays. Publishing now (user OK 11-13)",
+   "when": "Published 15:50 Fri: GitHub release rwkv-family-2026-11-13 (6 zips + INTEGRATION.md + SHA256SUMS), all test vectors PASS from a clean extract",
    "decides": "Nothing: user request 11-11",
-   "state": "running",
-   "started_at": "2026-11-11T19:05+01:00"
+   "state": "done",
+   "started_at": "2026-11-11T19:05+01:00",
+   "ended_at": "2026-11-13T15:50+01:00"
   },
   {
    "id": "SM109",
@@ -9496,6 +9497,22 @@
      ]
     }
    }
+  },
+  {
+   "date": "11-13",
+   "kind": "cpu",
+   "id": "SM108",
+   "track": "small model",
+   "name": "The RWKV family release (SM108): Big, Small and Tiny, each as a two-head model and an Instant-Only model, in one GitHub release",
+   "eval": "Each package&rsquo;s show-time test vectors (NumPy reference, tolerance 1e-5) re-run from a clean extract of the release zips; SHA256SUMS checked on downloaded assets",
+   "fork": "Matches fork main cec8ca927 (the size &times; scheduler table is in the release notes); no fork app build released",
+   "takeaway": "<strong>Published</strong>: rwkv-family-2026-11-13 (Latest), 6 zips (Big 26 MB each, Small 4.6&ndash;5.8 MB, Tiny 5.5&ndash;5.7 MB) + INTEGRATION.md + SHA256SUMS, with the speed test (SM111) in the notes. The Small Instant-Only model (SM98) stays, since the big instant-only teacher (SM110) was a no go",
+   "inputs": "show-time",
+   "started_at": "2026-11-12T08:00+01:00",
+   "ended_at": "2026-11-13T15:50+01:00",
+   "detail": {
+    "verdict": "Published; branch sm108-family-release aa6c7d47; https://github.com/JSchoreels/anki-rwkv/releases/tag/rwkv-family-2026-11-13"
+   }
   }
  ],
  "gpu_break": {
@@ -9554,7 +9571,7 @@
    "instant": 0.277157
   },
   "eval": "722 users of the 732 set, 30.13M reviews, leak-free w8+s8, show-time inputs for both heads",
-  "note": "Planned GitHub release of the whole family (SM108), after the last two models finish; nothing is published before the user&rsquo;s OK. Memory = card + note state at the fork&rsquo;s default precision (int4 cards + int8 notes).",
+  "note": "Published as the GitHub release rwkv-family-2026-11-13 (SM108) on 11-13. Memory = card + note state at the fork&rsquo;s default precision (int4 cards + int8 notes).",
   "rows": [
    {
     "size": "Big",
