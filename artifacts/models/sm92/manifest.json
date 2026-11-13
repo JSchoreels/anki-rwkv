@@ -1220,7 +1220,8 @@
     ],
     "pass_1e-5": true
    }
-  }
+  },
+  "users_note": "dataset users of the NumPy-vs-PyTorch parity check: aggregate errors only, no rows shipped; the test vectors use synthetic users (see testvectors)"
  },
  "files": {
   "architecture.json": {
@@ -1266,5 +1267,22 @@
   "show_time_intervals": true,
   "rule": "trained with the track option show_time_intervals: the instant query row of review j and the curve query for review j use floor(max(elapsed_seconds_j - duration_j / 1000, 0)) seconds (previous answer to the moment review j is shown), its sin / cos, and the cumulative interval = the card's earlier answer-to-answer intervals + that show-time interval; update rows keep the answer-to-answer interval and the cumulative interval including it. The test vectors are built this way (testvectors/make_testvectors.py, the held-out scorer's --inputs e2s-query rows).",
   "leak_free": "RWKV_DELETED_CARDS=neighbour: missing-ID flags (features 13-15) always 0 (INTEGRATION.md 6.9)"
+ },
+ "testvectors": {
+  "users": [
+   900001,
+   900002
+  ],
+  "synthetic": true,
+  "rows": {
+   "900001": 3363,
+   "900002": 2946
+  },
+  "reviews": {
+   "900001": 1775,
+   "900002": 1540
+  },
+  "note": "synthetic users (no dataset data): simulated by the training repository's scripts/synthetic_testvector_users.py (fixed seed) in the anki-revlogs-10k on-disk format; no dataset rows are shipped. Dataset (linked, gated): https://huggingface.co/datasets/open-spaced-repetition/anki-revlogs-10k",
+  "check": "testvectors/check_testvectors.py: PASS, largest difference 6.0e-07 (tolerance 1e-5)"
  }
 }
