@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-13T01:13:49+01:00",
- "updated": "2026-11-13 01:13",
- "material": "65eae15920a8c54f",
- "summary": "running 001162, finished 001161",
+ "generated_at": "2026-11-13T01:14:32+01:00",
+ "updated": "2026-11-13 01:14",
+ "material": "60a0a5210594974e",
+ "summary": "running 001163, finished 001162",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring, show-time inputs for both heads (curve / instant)",
@@ -265,18 +265,18 @@
  "now": [
   {
    "what": "The Tiny two-head model (SM106): the show-time retrain (SM92) with its card stream cut to 1 layer (31% less state), more epochs with both heads on show-time inputs, then the one-epoch 32k Muon cool-down on show-time inputs (the Tiny Instant-Only model (SM101) recipe, both heads trained). Rules fixed before launch, show-time inputs, vs the big model (1 leak-free epoch): curve &le; +0.5% and instant &le; +0.4% (point estimates, as the 10-29 pruning bar; CIs reported). Branch sm106 ready: card cut and CPU checks pass",
-   "id": "SM106, ticket 001162",
+   "id": "SM106, ticket 001163",
    "kind": "gpu",
    "decides": "Whether the Tiny size gets a two-head model for the RWKV family release (user 11-11)",
    "why": "",
-   "job": "the Tiny two-head model (SM106): scoring the new model on e2s-query inputs, the 3 long users of the 732 set (pass 1, 723 done, cap 0.92)",
+   "job": "the Tiny two-head model (SM106): scoring the new model on e2s-query inputs, the 1,500 validation users outside the 732 set + 6 check users (pass 1, 0 done, cap 0.8)",
    "linked": true,
    "track": "small model",
-   "ticket": "001162-sm106",
-   "started": "01:13",
+   "ticket": "001163-sm106",
+   "started": "01:14",
    "elapsed": "0:00",
    "progress": null,
-   "eta": "~01:38"
+   "eta": "~01:59"
   }
  ],
  "charts": [
@@ -449,6 +449,15 @@
  "waiting": [],
  "recent": [
   {
+   "ticket": "001162-sm106",
+   "id": "SM106",
+   "what": "the Tiny two-head model (SM106): scoring the new model on e2s-query inputs, the 3 long users of the 732 set (pass 1, 723 done, cap 0.92)",
+   "ended": "01:14",
+   "date": "11-13",
+   "exit": 0,
+   "ran": "0:00"
+  },
+  {
    "ticket": "001161-sm106",
    "id": "SM106",
    "what": "the Tiny two-head model (SM106): scoring the new model on e2s-query inputs, the 732 set minus 9 never-fit (723 users) (pass 2, 722 done, cap 0.8)",
@@ -492,15 +501,6 @@
    "date": "11-12",
    "exit": 0,
    "ran": "1:45"
-  },
-  {
-   "ticket": "001156-sm106",
-   "id": "SM106",
-   "what": "the Tiny two-head model (SM106): two-head epoch 28 on show-time inputs from epoch 27 (w64-c1, SM92 epoch 26&#x27;s recipe: 8k final tier, the run&#x27;s order rule, 2048 x 16 lanes carry, leak-free replay KD, AdamW 7e-4 constant, both heads, show-time inputs) (segment to the next break or the end)",
-   "ended": "15:04",
-   "date": "11-12",
-   "exit": 0,
-   "ran": "1:46"
   }
  ],
  "plan": [
@@ -2233,8 +2233,8 @@
    "decides": "Whether the Tiny size gets a two-head model for the RWKV family release (user 11-11)",
    "state": "running",
    "started_at": "2026-11-12T07:47:58+01:00",
-   "started": "01:13",
-   "ticket": "001162-sm106",
+   "started": "01:14",
+   "ticket": "001163-sm106",
    "ends_at": "2026-11-12T22:47:58+01:00"
   },
   {
