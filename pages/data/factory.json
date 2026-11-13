@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-13T16:18:10+01:00",
- "updated": "2026-11-13 16:18",
- "material": "c3f92acd1c84f186",
- "summary": "running 001186, finished 001185",
+ "generated_at": "2026-11-13T17:38:07+01:00",
+ "updated": "2026-11-13 17:38",
+ "material": "9be72799262f3e0e",
+ "summary": "running 001186",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring, show-time inputs for both heads (curve / instant)",
@@ -273,7 +273,7 @@
    "track": "small model",
    "ticket": "001186-sm113",
    "started": "16:17",
-   "elapsed": "0:00",
+   "elapsed": "1:20",
    "progress": null,
    "eta": "~19:54"
   }
@@ -9691,6 +9691,22 @@
    "ended_at": "2026-11-13T15:50+01:00",
    "detail": {
     "verdict": "Published; branch sm108-family-release aa6c7d47; https://github.com/JSchoreels/anki-rwkv/releases/tag/rwkv-family-2026-11-13"
+   }
+  },
+  {
+   "date": "11-13",
+   "kind": "cpu",
+   "id": "SM114",
+   "track": "small model",
+   "name": "The family wiring (SM114): the Anki fork runs exactly the models of the RWKV family release, each size only its own two models (user 11-13: no fallback to another size)",
+   "eval": "Fork Rust tests (349), Python RWKV tests (1,905 passed / 107 skipped), native bridge (103 / 4), a test over all 18 size &times; scheduler combinations (no size loads another size&rsquo;s weights), pair parity at three precisions; bundled weights byte-identical to the release zips",
+   "fork": "Fork main 001440b03 (3194fe99b code + tests, 001440b03 docs): Big = the show-time big model (SM91s2) + the show-time instant-only big model (SM99); Small = the show-time retrain (SM92) + the Small Instant-Only model (SM98); Tiny = the Tiny two-head model (SM106) + the Tiny Instant-Only model (SM101); the one-model option or RWKV-Curve only runs the size&rsquo;s two-head model, RWKV-Instant alone its Instant-Only model; no app release",
+   "takeaway": "<strong>Shipped in fork main</strong>. The default small model (SM63) is no longer picked by any size (still selectable as a profile value). 8 of the 18 combinations rebuild their state once. Tiny shows no answer-time estimate (the Tiny two-head model (SM106) has no answer-time head). Tiny pair: 5,282 B per card + note. Not run: TypeScript / Playwright checks and a full app build (no Node / MSYS2). Release notes updated on GitHub",
+   "inputs": "show-time",
+   "started_at": "2026-11-13T17:00+01:00",
+   "ended_at": "2026-11-13T17:36+01:00",
+   "detail": {
+    "verdict": "Shipped; fork branch sm114-family-wiring; report docs/rwkv-sm114-2026-11-13.MD"
    }
   }
  ]
