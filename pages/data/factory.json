@@ -564,7 +564,7 @@
    "kind": "cpu",
    "minutes": 180,
    "what": "The longer-trained instant-only small model into the fork (SM93): RWKV-Instant gets the longer-trained instant-only small model (SM57) in place of the first instant-only small model (SM57), through the model per scheduler (SM93): export and parity on CPU, swap the weights in fork main, update tests and notes; no release",
-   "when": "Done ~12:30 Sun: fork main f4ea2f94c (weights, test vectors, notes; parity PASS, max error 1.3e-6), anki-rwkv package sm93 4967a744; CI green (rerun after GitHub download timeouts); no release",
+   "when": "Done ~12:30 Sun: fork main f4ea2f94c (weights, test vectors, notes; parity PASS, max error 1.3e-6), anki-rwkv package sm93 a20b7db6; CI green (rerun after GitHub download timeouts); no release",
    "decides": "Nothing: the user decided on 11-08; the show-time scoring (queued) reports the gain on the inputs the fork gives",
    "started_at": "2026-11-08T11:35+01:00",
    "state": "done",
@@ -2791,7 +2791,7 @@
    "gpu_minutes": 1057,
    "tickets": 12,
    "detail": {
-    "verdict": "No go; branch sm98 248940df (sm98-result.md, sm98-decision.md)",
+    "verdict": "No go; branch sm98 333fe208 (sm98-result.md, sm98-decision.md)",
     "notes": [
      "Epochs 32&ndash;34: ~112 min each, ~87,400 reviews/s; epoch 35: 180.5 min wall over two segments around the break (first segment slow, GPU probably shared); cool-down 479.6 min, 20,232 reviews/s; nvidia-smi max 15.7 GB",
      "10-epoch ETA: constant-LR 4.7 h (2k tier) / 18.5 h (8k tier); cool-down speed 20.3 h / 79.9 h",
@@ -2814,7 +2814,7 @@
    "gpu_minutes": 13,
    "tickets": 1,
    "detail": {
-    "verdict": "Unchanged; branch sm100 448ea423 (sm100b-result.md)",
+    "verdict": "Unchanged; branch sm100 80105f58 (sm100b-result.md)",
     "notes": [
      "Instant LogLoss all / without timeouts: the show-time instant-only small model (SM96) 0.276287 / 0.274182; the show-time retrain (SM92) 0.276876 / 0.274766",
      "Scorer 57,053 review-evals/s; the show-time retrain&rsquo;s (SM92) rows reproduced bit for bit"
@@ -2835,7 +2835,7 @@
    "gpu_minutes": 63,
    "tickets": 1,
    "detail": {
-    "verdict": "Not negligible (sensitivity); leak bound ~0.006 points per minute; branch sm100 b63cd133 (sm100-result.md)",
+    "verdict": "Not negligible (sensitivity); leak bound ~0.006 points per minute; branch sm100 e23ee398 (sm100-result.md)",
     "notes": [
      "Question from outside research (obezag): show time = answer time &minus; duration leaks via undo / timeout",
      "Scorer ~58k review-evals/s per pass, 5 passes"
@@ -2856,7 +2856,7 @@
    "gpu_minutes": 654,
    "tickets": 12,
    "detail": {
-    "verdict": "Go; branch sm96 4b3d96c0 (sm96-result.md, sm96-decision.md)",
+    "verdict": "Go; branch sm96 e54fdb93 (sm96-result.md, sm96-decision.md)",
     "notes": [
      "Epoch 31: 124.6 min, 77,996 reviews/s; cool-down: 483.2 min, 20,084 reviews/s; nvidia-smi max 15.5 GB",
      "10-epoch ETA: constant-LR 5.3 h (2k tier) / 20.7 h (8k tier); cool-down speed 20.4 h / 80.5 h",
@@ -2902,7 +2902,7 @@
    "detail": {
     "verdict": "Measured",
     "notes": [
-     "Report: artifacts/small-model/showtime/showtime-report.md (anki-rwkv main 518c8f84)"
+     "Report: artifacts/small-model/showtime/showtime-report.md (anki-rwkv main 7b156e6e)"
     ]
    }
   },
@@ -2920,7 +2920,7 @@
    "gpu_minutes": 361,
    "tickets": 23,
    "detail": {
-    "verdict": "Cost; branch sm95 2d8828e4 (README, readout-699/)",
+    "verdict": "Cost; branch sm95 c74ffb0a (README, readout-699/)",
     "notes": [
      "Retry of the 29 out-of-memory users with 1 worker at cap 0.92 recovered 5; the remaining 24 have 260k&ndash;530k reviews",
      "Arm raw curves vs reference raw: +0.00 points, so the cost comes from the pooling itself"
@@ -2945,7 +2945,7 @@
     "notes": [
      "Show-time instant LogLoss: the show-time retrain (SM92) 0.27688, the longer-trained one 0.27724, the first one 0.27743, the release (SM63) 0.27772, the shipped big model 0.27756, the show-time big model (SM91s2) 0.27618",
      "1,500 pool, show-time instant: the longer-trained instant-only small model (SM57) &minus;0.170% vs the release, &minus;0.063% vs the first instant-only small model (SM57)",
-     "Report: artifacts/small-model/showtime/showtime-report.md (anki-rwkv main 518c8f84)"
+     "Report: artifacts/small-model/showtime/showtime-report.md (anki-rwkv main 7b156e6e)"
     ]
    }
   },
@@ -2965,7 +2965,7 @@
    "detail": {
     "verdict": "Shipped in fork main f4ea2f94c; CI run 42475745402 green on attempt 2",
     "notes": [
-     "Package: anki-rwkv branch sm93 4967a744 (artifacts/models/sm57s4)",
+     "Package: anki-rwkv branch sm93 a20b7db6 (artifacts/models/sm57s4)",
      "CI attempt 1: protoc download 504 on Windows, installer download timeouts on Linux; all RWKV tests passed",
      "No release or draft (the user publishes)"
     ]
@@ -3031,7 +3031,7 @@
      "1,500 validation users by part: 732-set part &minus;0.242%, other part &minus;0.223% vs the release; row check max difference 0.0",
      "Chain: epoch 30&rsquo;s first segment started from epoch 29&rsquo;s trained weights (hash fcc36e2f), the second resumed from its snapshot",
      "10-epoch ETA at ~82k reviews/s: 2k tier ~5.0 h, 8k tier ~19.7 h (training only)",
-     "Branch sm57, commit 8b323fb1; result in artifacts/small-model/sm57/sm57-stage4-result.md"
+     "Branch sm57, commit 035cf1dd; result in artifacts/small-model/sm57/sm57-stage4-result.md"
     ]
    }
   },
@@ -3098,7 +3098,7 @@
     },
     "notes": [
      "Check: 117 / 117 users, 304 / 304 starting days, no errors; the fused no-drift lanes match the earlier runs except 1.0% of lanes with single-draw flips, the same pattern as the 20-user screen",
-     "Branch sm41, commit 78c296df; result in artifacts/small-model/sm41/learner-drift-result.md"
+     "Branch sm41, commit 01db9546; result in artifacts/small-model/sm41/learner-drift-result.md"
     ]
    }
   },
@@ -3123,7 +3123,7 @@
      "Two model states (toggle on, both schedulers): 5.6 vs 2.8 KB state per card, warm-up 1.48 vs 0.91 s (4,000 cards, 32,000 answers); queue scoring unchanged (93 vs 95 ms)",
      "Instant-only profiles keep one model: no RWKV intervals, workload simulation or answer time in Card Info there (the answer-time head is never fed the instant model&rsquo;s features)",
      "Fork tests: Rust harness 225 passed (4 pre-existing fused_packed failures); new bit-for-bit tests for the two-model mode; Python/TS tests run in fork CI",
-     "Branch sm93 commits 29120812, 3225c739, b8073269"
+     "Branch sm93 commits d4994b88, 225ac5ff, 577dc3c7"
     ]
    }
   },
@@ -3147,7 +3147,7 @@
      "Vs the big model on curve: curve-only +6.87 / +5.33 / +5.40%, joint +6.74 / +4.31 / +4.53%; curve-only&rsquo;s instant head untrained (+50.2%)",
      "Speed: ~83.6k reviews/s, 27.7&ndash;29.9 min training per epoch, same memory as the joint arm (peak allocated 10.35 GB, reserved 12.5&ndash;13.0 GB)",
      "Started 5 min late: RAM gate (the 2 extra changing-learner (SM41g) CPU processes were stopped for it)",
-     "Branch sm57 commits 7362b5d7, 1b440716, 3c93171f"
+     "Branch sm57 commits 8ae1672c, e89bc9fa, ccf91565"
     ]
    }
   },
@@ -3172,7 +3172,7 @@
      "Speed: ~83k reviews/s in both arms (81.9k&ndash;84.9k), 29.5 min training per epoch; peak allocated 10.35 GB, reserved 12.5&ndash;13.0 GB",
      "10-epoch ETA at this speed: ~4.9 h on the 2k tier, ~19.5 h on the 8k tier",
      "The time plan kept all 5 epochs (388 min projected vs the 420 min cap)",
-     "Branch sm57 commits 9d957f22, c6b80baa, 6059fb78"
+     "Branch sm57 commits 774c0459, 5f61b9c6, 8eb7f7c5"
     ]
    }
   },
@@ -3197,7 +3197,7 @@
      "The new option (curve loss weight) proven bit-identical when off: 33 CPU checks and one GPU check",
      "Bigger pool (732 + the 3 long users, 725): instant-only &minus; joint &minus;0.161 [&minus;0.190, &minus;0.139]",
      "Smaller-model bar: the joint arm passes both heads (+0.390 curve / +0.269 instant vs the big model); the instant-only arm passes on instant only",
-     "Branch sm57 commits 6a49c1c8, f71708d9, 9e4e2e9e"
+     "Branch sm57 commits 105ebea3, 6a2caedb, c61f4adb"
     ]
    }
   },
@@ -3221,7 +3221,7 @@
      "The usability check of the composed chance failed by the letter: mean gap 0.0054 / 0.0053 at 3.9 s / 10.9 s against a 0.005 bound (holds at the other three); post-hoc recalibration does not help either (all CIs include 0)",
      "Identity check: same review sets as the answer-time head scoring for 723 of 723 users, max gap 0.0",
      "Speed: 17,320 scored reviews/s, 21 min on the GPU; CPU analysis 111 s",
-     "Branch sm94 commits 7abcb6be, 454f7ddc"
+     "Branch sm94 commits edcfee21, 0fd073f8"
     ]
    }
   },
@@ -3246,7 +3246,7 @@
      "The fork already builds show-time inputs the way show-time training does (query and commit rows): new Rust test, max error 7.5e-7",
      "The head trains on the review log&rsquo;s answer-to-answer intervals but is queried at show time, as the previous head; not scored separately",
      "Release workflow: the upload stopped on a GitHub 404 after 8 of 12 files; the 4 missing files were uploaded from the run&rsquo;s artifacts",
-     "Branch sm92 commits 0ecbace5, 29727c6b"
+     "Branch sm92 commits 80035594, 22ca8edf"
     ]
    }
   },
@@ -3396,7 +3396,7 @@
     "notes": [
      "Still confounded: the user&rsquo;s scheduler chose the intervals, slow cards may simply be harder, memory gain is read from the model, one-step cost ignores later intervals",
      "Speed: 95 real reviews/s per process (52 with warm-ups); 7.3 CPU hours, about 2 h on 4 processes",
-     "Branch sm41, commits df8a1a3b (plan, code), 8eaa747d (results), 42a0a010 (reading notes); note artifacts/small-model/sm41/realcheck-result.md"
+     "Branch sm41, commits 6c9c7d00 (plan, code), 75cf23e3 (results), 7fd12a31 (reading notes); note artifacts/small-model/sm41/realcheck-result.md"
     ]
    }
   },
@@ -3441,7 +3441,7 @@
     },
     "notes": [
      "4 h 23 min on 4 CPU processes, 304 of 304 starting days, no errors",
-     "Branch sm41, commit 518dd9e2; note artifacts/small-model/sm41/policy-result.md"
+     "Branch sm41, commit cc2575cd; note artifacts/small-model/sm41/policy-result.md"
     ]
    }
   },
@@ -3502,7 +3502,7 @@
     },
     "notes": [
      "29 min on 4 CPU processes",
-     "Branch sm41, commit d9c3d02b; note artifacts/small-model/sm41/policy-result.md (screen 4)"
+     "Branch sm41, commit c2005bbd; note artifacts/small-model/sm41/policy-result.md (screen 4)"
     ]
    }
   },
@@ -3560,7 +3560,7 @@
      "The rule needs only the card&rsquo;s last answer time and the user&rsquo;s median answer time (both in the revlog), on top of a recall model: in Anki it would need the fork&rsquo;s RWKV runtime",
      "Caveat: the simulated learner is the same small model, so the gain is inside the model&rsquo;s world",
      "Speed: about 445 simulated reviews/s per process (35.9M reviews); about 30 CPU process-hours, 7.5 h on 4 processes",
-     "Branch sm41, commits abf1bf08 (results) and 80c2f10b (matched-memorised check); note artifacts/small-model/sm41/policy-result.md"
+     "Branch sm41, commits 3ab52d61 (results) and 9b4beb98 (matched-memorised check); note artifacts/small-model/sm41/policy-result.md"
     ]
    }
   },
@@ -3627,7 +3627,7 @@
      "Part A ran 18.5 min on 4 CPU processes (01:06&ndash;01:24); per-review logs (53 MB) not committed, a script regenerates them in about 20 min",
      "Still running: screen 2 (curve head, FSRS-7 corrected by the small model), screen 3 (&beta; = 0.5 and 2), then the best 1&ndash;2 rules on all 117 users / 304 starting days with a held-out report (97 users not in the screen)",
      "Caveat: the simulated learner is the same small model, so a gain is inside the model&rsquo;s world; a real-data check comes before any Anki scheduler",
-     "Branch sm41, commits 9ce6f50e (part A) and 507043fe (part B plan + screen 1); notes artifacts/small-model/sm41/diag-result.md and policy-result.md"
+     "Branch sm41, commits b5dcf811 (part A) and f0567ff7 (part B plan + screen 1); notes artifacts/small-model/sm41/diag-result.md and policy-result.md"
     ]
    }
   },
@@ -3678,7 +3678,7 @@
      "Checks: 304 of 304 starting days, 0 missing, 0 duplicates, 0 errors; drift check &minus;0.4 &plusmn; 0.5 points (drift study: &minus;0.6 &plusmn; 1.0)",
      "The 0.75 point is very noisy (+57% &plusmn; 89); lanes without re-syncing drift (Easy share +1.9 points for the instant head, +3.8 for FSRS-7)",
      "Speed: 682 simulated reviews/s per process; 42.5 CPU process-hours, 11 h 40 min on 4 processes (two holds for free memory)",
-     "Branch sm41, commit 46a345be; note artifacts/small-model/sm41/fullrun-result.md"
+     "Branch sm41, commit 6321b689; note artifacts/small-model/sm41/fullrun-result.md"
     ]
    }
   },
@@ -3729,7 +3729,7 @@
      "Proofs: batched vs single lanes identical review by review (15,278 reviews, P(pass) gap 6.1e-7); engine vs the stage 1 scalar path 6.9e-7 over 9,009 policy reviews; real-schedule replay reproduces part 1&rsquo;s daily re-anchoring rows (float gap 6.1e-8)",
      "FSRS-7 uses each user&rsquo;s own benchmark fit, which may have seen the simulated days: a possible advantage to check before the full run",
      "Speed: 517 simulated reviews/s per process with 17 lanes (862 with 33 lanes: cost is per tick, not per lane), 1 thread",
-     "Branch sm41, commit eed2af68; note artifacts/small-model/sm41/engine-result.md"
+     "Branch sm41, commit 750b853f; note artifacts/small-model/sm41/engine-result.md"
     ]
    }
   },
@@ -3803,7 +3803,7 @@
      "732+long (725 users), new &minus; release on show-time inputs: &minus;0.014 curve [&minus;0.084, +0.087] / &minus;0.299 instant [&minus;0.397, &minus;0.228]",
      "Epoch 26: 114.7M reviews, 22.0 min (last segment) at 86,932 reviews/s, wall clock 15:56&ndash;19:43 with the user pause; 8k 10-epoch ETA ~3.7 h at this speed",
      "Cool-down: 347.6M reviews, 284.3 min at 20,377 reviews/s, wall clock 19:43&ndash;05:45 with the 23:00&ndash;01:00 pause",
-     "Branch sm92, commit 85a7f4cf; decision artifacts/small-model/sm92/sm92-decision.md"
+     "Branch sm92, commit 92986100; decision artifacts/small-model/sm92/sm92-decision.md"
     ]
    }
   },
@@ -3886,7 +3886,7 @@
      "Duration leak, teacher forced: later-day grade LogLoss 0.65231 for both show-time and answer-to-answer query rows; same-day 0.53153 answer-to-answer vs 0.53912 show-time",
      "CPU proof PASS: same seed identical, batched vs unbatched lanes max relative gap 8.3e-7 with no flipped draws, stage 1 teacher forcing reproduced",
      "Speed: 2,437 simulated reviews/s per process (60 days), 2,349 (120 days); 4 processes &times; 1 thread; 5.07 CPU process-hours (2.61 lanes + 2.46 warm-ups); held 17:20&ndash;19:30 for the user pause",
-     "Branch sm41, commit 237f6666; report artifacts/small-model/sm41/drift-result.md"
+     "Branch sm41, commit 949c09ed; report artifacts/small-model/sm41/drift-result.md"
     ]
    }
   },
@@ -4008,7 +4008,7 @@
     "verdict": "No practical budget; nothing to ship",
     "notes": [
      "State MB / codebook MB / encode ms: cards 4,430 bits 28.4 / 9.0 / 2.7; cards 5,902 bits 31.0 / 12.0 / 3.6; notes 3,020 bits 32.4 / 11.7 / 1.9",
-     "The two longest users ran out of GPU memory for the both-coded recipe at the 0.8 cap; retried at 0.92 (runbook fix 25d6e447)",
+     "The two longest users ran out of GPU memory for the both-coded recipe at the 0.8 cap; retried at 0.92 (runbook fix 1c307a69)",
      "The summary table prints empty bit and size columns for the both-coded row (read-out display only)",
      "Not tried this round: codebook size per stage, Lloyd iterations, 10-bit shift codes, relative norms",
      "Write-up: artifacts/small-model/sm90/sm90-summary.md on branch sm90"
@@ -9094,7 +9094,7 @@
    "detail": {
     "verdict": "Shipped in the fork (no release)",
     "notes": [
-     "Package exported on CPU to anki-rwkv branch sm98-package dd885124: export parity fp32 1.0e-6, INT8 7.2e-7; architecture identical to the show-time retrain (SM92)",
+     "Package exported on CPU to anki-rwkv branch sm98-package 1f203fbe: export parity fp32 1.0e-6, INT8 7.2e-7; architecture identical to the show-time retrain (SM92)",
      "Native parity on 14,403 rows: 1.3e-6 (f32), 1.1e-6 (INT8); show-time feature builder matches 6,543 queries to 7.5e-7",
      "The instant-only model is never loaded alone as a full model; the pair loader rejects it as the curve side, beside Legacy or beside a leak-input model",
      "Profiles rebuild RWKV state once (new instant model key)",
@@ -9140,7 +9140,7 @@
    "gpu_minutes": 852,
    "tickets": 25,
    "detail": {
-    "verdict": "Go; branch sm101 faf07fdf (sm101-result.md, sm101-decision.md)",
+    "verdict": "Go; branch sm101 4f93a716 (sm101-result.md, sm101-decision.md)",
     "table": {
      "head": [
       "Show-time instant, new minus",
@@ -9198,7 +9198,7 @@
    "gpu_minutes": 0,
    "tickets": 0,
    "detail": {
-    "verdict": "Shipped in the fork (no release); report on anki-rwkv branch sm101-package 740c12fd (sm104-tiny-fork.md)",
+    "verdict": "Shipped in the fork (no release); report on anki-rwkv branch sm101-package c940093e (sm104-tiny-fork.md)",
     "table": {
      "head": [
       "Instant LogLoss vs f32 state",

@@ -11,11 +11,11 @@ mkdir -p "$DIST"
 # name -> package folder. Defaults: finished packages live on their own branches (see inventory.md);
 # the TODO ones get a path once the package exists (add it to the repo or point the env var at it).
 declare -A PKG=(
-  [rwkv-big-two-head]="${PKG_BIG_TWO_HEAD:-$WT/big-package/artifacts/models/sm91s2}"   # branch big-package 9dc96c91
-  [rwkv-big-instant-only]="${PKG_BIG_INSTANT_ONLY:-$WT/big-package/artifacts/models/sm99}"   # branch big-package 9dc96c91
+  [rwkv-big-two-head]="${PKG_BIG_TWO_HEAD:-$WT/big-package/artifacts/models/sm91s2}"   # branch big-package 708b8062
+  [rwkv-big-instant-only]="${PKG_BIG_INSTANT_ONLY:-$WT/big-package/artifacts/models/sm99}"   # branch big-package 708b8062
   [rwkv-small-two-head]="${PKG_SMALL_TWO_HEAD:-$WT/sm101-package/artifacts/models/sm92}"
   [rwkv-small-instant-only]="${PKG_SMALL_INSTANT_ONLY:-$WT/sm98-package/artifacts/models/sm98}"
-  [rwkv-tiny-two-head]="${PKG_TINY_TWO_HEAD:-$WT/tiny-package/artifacts/models/sm106}"   # branch tiny-package cdfdb3e1
+  [rwkv-tiny-two-head]="${PKG_TINY_TWO_HEAD:-$WT/tiny-package/artifacts/models/sm106}"   # branch tiny-package 4ae0b434
   [rwkv-tiny-instant-only]="${PKG_TINY_INSTANT_ONLY:-$WT/sm101-package/artifacts/models/sm101}"
 )
 ORDER=(rwkv-big-two-head rwkv-big-instant-only rwkv-small-two-head rwkv-small-instant-only rwkv-tiny-two-head rwkv-tiny-instant-only)
