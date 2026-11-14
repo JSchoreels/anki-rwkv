@@ -20,7 +20,7 @@ So a card's R on day d depends on its own card state and on four states shared w
 
 ## Status: complete (2025-12-01 to 2026-10-04, 308 days)
 
-The replay was stopped on 2026-10-26 at 20:54 for the CPU break and resumed from its checkpoint on 2026-10-27 00:25 (same code, same seed; [HANDOFF.md](HANDOFF.md)). It covers every Anki day from 2025-11-25 to the last review in the copy, 2026-10-04; the first six days are warm-up for the day-over-day changes. A partial read-out on 2025-12-01 to 2026-03-24 (114 days, commit 735ad659) gave the same picture with slightly different shares.
+The replay was stopped on 2026-10-26 at 20:54 for the CPU break and resumed from its checkpoint on 2026-10-27 00:25 (same code, same seed; [HANDOFF.md](HANDOFF.md)). It covers every Anki day from 2025-11-25 to the last review in the copy, 2026-10-04; the first six days are warm-up for the day-over-day changes. A partial read-out on 2025-12-01 to 2026-03-24 (114 days, commit c8811049) gave the same picture with slightly different shares.
 
 ## Results
 
