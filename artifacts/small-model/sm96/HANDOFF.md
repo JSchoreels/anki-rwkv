@@ -26,7 +26,7 @@ epoch 31 + the switch together (one extra constant-LR epoch: in stage 4, epoch 3
 LR), not the switch alone. The old folder `sm96-inst-e30-showtime-dec-1ep32k-muon` (cool-down from epoch 30) is never
 trained; it stays as the recipe proof of the cool-down prepare command.
 
-## Pre-registered rule (`sm96_rule.py`, unchanged since 05664521 except the label)
+## Pre-registered rule (`sm96_rule.py`, unchanged since 6d391cf1 except the label)
 
 - **Primary (verdict):** new - the show-time retrain of the release (SM92), instant head, both on show-time inputs, 722
   users of the 732 set, review-weighted, paired user bootstrap 2,000, seed 0, 95% CI, unit points (% of the big model
@@ -37,9 +37,9 @@ trained; it stays as the recipe proof of the cool-down prepare command.
 - Curve head untrained (weight 0): never part of the verdict. Loaders and `compare` from
   `anki-rwkv/artifacts/small-model/showtime/showtime_report.py` (sha256 pinned).
 
-## CPU proofs (`sm96_check.py` -> `check-cpu-sm96.json`: ALL OK, commit 1e22b62c)
+## CPU proofs (`sm96_check.py` -> `check-cpu-sm96.json`: ALL OK, commit c99330a7)
 
-- K1 code: scripts/ expertium/ rwkv/ trees == sm57 8b323fb1 (the code stage 4 trained with), show-time path files
+- K1 code: scripts/ expertium/ rwkv/ trees == sm57 035cf1dd (the code stage 4 trained with), show-time path files
   byte-identical to the branch of the show-time retrain of the release (SM92).
 - K2 options: epoch 31's options == stage 4's epoch 30 options + the switch == the epoch 26 options of the show-time
   retrain of the release (SM92) + `curve_loss_weight` 0; the cool-down's `extra-options.json` == the instant options of
@@ -66,7 +66,7 @@ when 30 min fit, snapshot-stops <= 2 min before a break and resumes after it.
 
 ## What runs
 
-- Launcher `artifacts/small-model/sm96/launch-sm96.sh`, started 2026-11-09 00:30 hidden via WMI from commit 1e22b62c:
+- Launcher `artifacts/small-model/sm96/launch-sm96.sh`, started 2026-11-09 00:30 hidden via WMI from commit c99330a7:
   wrapper bash pid **68304**, launcher bash pid **69624** (the old launcher pid 55384 was stopped at 00:21 before any
   ticket). It waits for the hold until 01:00.
 - Log `gpu/launch-sm96.log` (ends `done (verdict ...)` or a `STOP:` line); trainer `gpu/train.out`; scorer `gpu/score.out`;

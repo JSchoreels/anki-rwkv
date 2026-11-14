@@ -12,7 +12,7 @@ From the same fresh init, on the factory's 2k tier (2,000 users, 146,654,211 rev
 
 - CPU proofs `check-cpu-sm57-stage2.json`: **ALL OK** (S1-S7: tier facts; same fresh init hash in both arms == SM72s epoch 1's `47a33c78...`; epoch-1 folders differ only by the flag, refusals work; distinct epoch orders; CPU trainer slice from the fresh init: `wt/sm92` tree == this tree bitwise for joint, instant-only same batches / same first predictions, loss == instant average; rule code reproduces stage 1's -0.147 [-0.162, -0.133]; break logic).
 - GPU check `gpu/check-gpu-sm57-stage2.json` (ticket 000952, 01:35:47-01:36:27): **ALL OK** (joint smoke base tree == this tree bitwise; instant-only trains with weight 0; all three smokes from the same init == SM72s epoch 1's).
-- Commit `9d957f22` (plan, scripts, launcher, proofs).
+- Commit `774c0459` (plan, scripts, launcher, proofs).
 
 ## What runs (detached, WMI hidden)
 
