@@ -1,6 +1,6 @@
 # The grade order by construction (SM95): handoff
 
-Branch `sm95`, worktree `C:/Users/jonat/workspace/wt/sm95`, cut from `sm33` (`e71b0a5e`, the grade-order sanity check (SM33)'s tip). Main has none of the small-model code (every small-model branch forks from `eb429978`), and `sm33` carries the probe-row machinery, its order tool and the exact code that passed the pair check against the reference, so it is the base that keeps the three-way comparison exact. Started 2026-11-07 ~16:15. Do not merge into main.
+Branch `sm95`, worktree `C:/Users/jonat/workspace/wt/sm95`, cut from `sm33` (`e8f56632`, the grade-order sanity check (SM33)'s tip). Main has none of the small-model code (every small-model branch forks from `eb429978`), and `sm33` carries the probe-row machinery, its order tool and the exact code that passed the pair check against the reference, so it is the base that keeps the three-way comparison exact. Started 2026-11-07 ~16:15. Do not merge into main.
 
 ## Question
 
@@ -28,7 +28,7 @@ The four buttons must satisfy interval(Again) <= Hard <= Good <= Easy at any des
 
 ## CPU proof (stage 0): PASS, 21 checks
 
-`scripts/check_grade_rectify.py` writes `check-cpu-grade-rectify.{json,out}`. Run at `9adb96a4`. The base for "the code before" is `e71b0a5e`.
+`scripts/check_grade_rectify.py` writes `check-cpu-grade-rectify.{json,out}`. Run at `1b31fb02`. The base for "the code before" is `e8f56632`.
 
 - **Option absent is bitwise equal to the code before**:
   - training samples;
@@ -71,7 +71,7 @@ Pair protocol as SM33.
 
 ## What runs
 
-Launcher `launch-sm95.sh`, log `gpu/launch-sm95.log`, detached via WMI (hidden). It was launched 2026-11-07 16:44: WMI wrapper bash pid 41936, launcher bash pid 57072 (`bash .../launch-sm95.sh`); its first log line says "started: 9adb96a4". A dry run (`gpu/launch-sm95-dryrun.log`) went through every ticket. Queue owner `sm95`. Each ticket purpose is prefixed "the grade order by construction (SM95): ".
+Launcher `launch-sm95.sh`, log `gpu/launch-sm95.log`, detached via WMI (hidden). It was launched 2026-11-07 16:44: WMI wrapper bash pid 41936, launcher bash pid 57072 (`bash .../launch-sm95.sh`); its first log line says "started: 1b31fb02". A dry run (`gpu/launch-sm95-dryrun.log`) went through every ticket. Queue owner `sm95`. Each ticket purpose is prefixed "the grade order by construction (SM95): ".
 
 1. CPU: preconditions, prepare the arm cool-down, pair check (done 11-07 with `PREPARE_ONLY=1`).
 2. Wait until `wt/sm57/artifacts/small-model/sm57/gpu/launch-sm57-stage4.log` has a line containing `] done`, polling every 5 min. `touch gpu/GO-NOW` skips the wait if SM57 died.
