@@ -26,9 +26,9 @@ Scripts: `diag/vqdiag.py` (record), `diag/vqcmp.py` / `diag/vqcmpk.py` (compare)
 
 ## Fix (branch sm44, pushed)
 
-- `8f929a35`: `state_vq.factorize` marks components j >= 1 invalid when sigma_j <= 1e-4 x sigma_0 (`RANK_REL_TOL`, env `STATE_VQ_RANK_REL_TOL`; 0 gives the old behaviour).
+- `695c7b1a`: `state_vq.factorize` marks components j >= 1 invalid when sigma_j <= 1e-4 x sigma_0 (`RANK_REL_TOL`, env `STATE_VQ_RANK_REL_TOL`; 0 gives the old behaviour).
   - Rank-1 recipes are unaffected: every card codec, the 412-bit note and the fused kernel. Their CPU references are bitwise the old ones.
-- `e2dceabd`: CUDA eigh runs in chunks of 1,024 matrices. cuSOLVER needs ~0.6 MB of workspace per matrix, which caused the SM46 OOM; vq770x828 on large users could hit it too. Values are bitwise the same.
+- `f390dcc2`: CUDA eigh runs in chunks of 1,024 matrices. cuSOLVER needs ~0.6 MB of workspace per matrix, which caused the SM46 OOM; vq770x828 on large users could hit it too. Values are bitwise the same.
   - The same commit has the re-run CPU check and the new vq770x828 references.
 - **Score change caused by the fix (CPU reference, vq770x828):** on users 1712 / 2388 / 4676, curve +4.2e-4 / +9e-5 / +2e-5 and instant -4e-5 / -6.5e-5 / -6.2e-5.
   - Earlier CPU-scored rank-2 rows (SM32: vq770x828, vq1506x828, vqR2*) used the old behaviour, so they are not directly comparable with new SM44 rows.
