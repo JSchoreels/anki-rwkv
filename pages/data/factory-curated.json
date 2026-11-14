@@ -2158,6 +2158,14 @@
  ],
  "backlog": [
   {
+   "status": "next",
+   "id": "SM116",
+   "track": "small model",
+   "item": "Training-free state check (SM116): how much of the show-time retrain (SM92)&rsquo;s card and note state carries information (state directions on 100 of the 750 users), and the loss cost of folding a 70% card and note state into the weights without any training; one pre-registered score on the 750 users, curve and instant",
+   "why": "From an outside challenge (11-14): cut parameters and state with no gradient descent and no loss. The full challenge is unlikely (the one-card-layer cut still cost +0.11% curve / +0.18% instant after 3 retrained epochs, in the Tiny two-head model (SM106)), so only this time-boxed diagnostic: about 4 h CPU, ~200k tokens, no tuning on the 732 set. If the 70% state costs under 0.05%, it becomes the starting point of a trained smaller model; otherwise drop it. Low priority: a smaller state saves little time (Tiny pair 7.2 s vs Small pair 7.8 s), so it runs Monday in a CPU slot, after the longer cool-downs for the two-head models",
+   "since": "11-14T15:45"
+  },
+  {
    "status": "done",
    "id": "SM99",
    "track": "small model",

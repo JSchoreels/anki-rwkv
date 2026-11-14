@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-14T15:19:00+01:00",
- "updated": "2026-11-14 15:19",
- "material": "2d016f0b1349214f",
- "summary": "running 001205, finished 001204",
+ "generated_at": "2026-11-14T15:47:36+01:00",
+ "updated": "2026-11-14 15:47",
+ "material": "ec006d8b2d540366",
+ "summary": "running 001205",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring, show-time inputs for both heads (curve / instant)",
@@ -273,7 +273,7 @@
    "track": "small model",
    "ticket": "001205-sm115",
    "started": "15:18",
-   "elapsed": "0:00",
+   "elapsed": "0:28",
    "progress": null,
    "eta": "~19:54"
   }
@@ -2335,6 +2335,14 @@
   "label": "Breaks: no GPU work 20:00&ndash;01:00 (from 10-30; tonight from 21:04; Sunday from 16:00). Jobs that would run into a break wait for 01:00"
  },
  "backlog": [
+  {
+   "status": "next",
+   "id": "SM116",
+   "track": "small model",
+   "item": "Training-free state check (SM116): how much of the show-time retrain (SM92)&rsquo;s card and note state carries information (state directions on 100 of the 750 users), and the loss cost of folding a 70% card and note state into the weights without any training; one pre-registered score on the 750 users, curve and instant",
+   "why": "From an outside challenge (11-14): cut parameters and state with no gradient descent and no loss. The full challenge is unlikely (the one-card-layer cut still cost +0.11% curve / +0.18% instant after 3 retrained epochs, in the Tiny two-head model (SM106)), so only this time-boxed diagnostic: about 4 h CPU, ~200k tokens, no tuning on the 732 set. If the 70% state costs under 0.05%, it becomes the starting point of a trained smaller model; otherwise drop it. Low priority: a smaller state saves little time (Tiny pair 7.2 s vs Small pair 7.8 s), so it runs Monday in a CPU slot, after the longer cool-downs for the two-head models",
+   "since": "11-14T15:45"
+  },
   {
    "status": "done",
    "id": "SM99",
