@@ -1,6 +1,6 @@
 # Frozen-model grade side head (SM87): handoff
 
-Branch `sm87`, worktree `C:/Users/jonat/workspace/wt/sm87` (cut from `sm82c` at d5d381f3; sources at c1c46556). Launched Sunday 11-01 10:48 via WMI (hidden). Approved by the user Sunday 11-01 ~10:45 as a cheap try.
+Branch `sm87`, worktree `C:/Users/jonat/workspace/wt/sm87` (cut from `sm82c` at 63eb4d06; sources at 1794cc4a). Launched Sunday 11-01 10:48 via WMI (hidden). Approved by the user Sunday 11-01 ~10:45 as a cheap try.
 
 ## What was built (`scripts/sm87_head.py`)
 
