@@ -1,6 +1,6 @@
 # SM49 handoff: smaller int states for SM36 (int4 notes, int4 shift vectors, per-head scales)
 
-Branch `sm49`, worktree `C:/Users/jonat/workspace/wt/sm49`, code commit 3e7cde73. **Status: GPU ticket stopped at the strict GPU check; nothing is queued. Requeue needs the user's decision on the check rule (below).**
+Branch `sm49`, worktree `C:/Users/jonat/workspace/wt/sm49`, code commit 639e7ba1. **Status: GPU ticket stopped at the strict GPU check; nothing is queued. Requeue needs the user's decision on the check rule (below).**
 
 ## Variants (all f16 scales; bits from scripts/state_vq_report.int_entity_bits; collection 13,973 cards + 13,198 notes)
 
