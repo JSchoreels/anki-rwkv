@@ -256,9 +256,8 @@ print(json.loads(last)['lr'] / 7e-4)")
 
 score_ref() {  # the early-stop reference: SM101's own cool-down snapshot after 4,094 users (show-time, 723 users), first ticket
   [ -e "$G/ref-done" ] && return 0
-  if [ "$DRYRUN" = 1 ]; then log "DRYRUN: score $MID_REF = $SNAP101 on e2s-query (723 users)"; return 0; fi
   score e2s-query "$MID_REF" "$SNAP101" "$MIDROWS" "732 the 732 set minus 9 never-fit (723 users)" "$USERS732" 723 1 $MIN_SCORE732 $TL732 || return 1
-  touch "$G/ref-done"
+  [ "$DRYRUN" = 1 ] || touch "$G/ref-done"
   return 0
 }
 
