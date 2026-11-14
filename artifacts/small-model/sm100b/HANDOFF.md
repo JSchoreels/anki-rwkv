@@ -7,7 +7,7 @@ definition (`sm100_rule.cap_of`: user cap >= 10,000 ms, repeated >= 20 times and
 1,010,999 of 30,126,145 reviews).
 
 ## What runs
-- Launcher `launch-sm100b.sh` (committed 1e7050d9), started 2026-11-09 19:34 hidden via WMI: wrapper pid **8804**, launcher bash
+- Launcher `launch-sm100b.sh` (committed 7317dea4), started 2026-11-09 19:34 hidden via WMI: wrapper pid **8804**, launcher bash
   pid **48504**. It sleeps until 01:00 itself (`sm100b_block.py` hard hold 2026-11-10 01:00 + the daily 20:00-01:00 break + quiet.json),
   then queues ONE ticket (owner `sm100b`, purpose "the show-time error sensitivity test (SM100), follow-up: scoring ...", expected
   25 min, GPU cap 0.8, memory-only retry 0.92) behind whatever the stage 2 (SM98) ticket holds, then runs `sm100b_rule.py decide` (CPU).

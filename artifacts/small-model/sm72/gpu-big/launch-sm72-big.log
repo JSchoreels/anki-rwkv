@@ -1,4 +1,4 @@
-[sm72-big 10-25 10:46:10] started (commit 3bff3aac); SM71: [sm71 10-25 10:40:39] enqueue: SM71 deleted-card leak: big (fork/w8+s8) inputs=keep, 732 users, split existing/deleted (expected 14 min)
+[sm72-big 10-25 10:46:10] started (commit 7e9e4645); SM71: [sm71 10-25 10:40:39] enqueue: SM71 deleted-card leak: big (fork/w8+s8) inputs=keep, 732 users, split existing/deleted (expected 14 min)
 [sm72-big 10-25 10:46:10] prepared: expertium | 2 strided lanes x 8,192-review windows per update, carried state, one user per update | 0.00035 -> 0, warmup 200 updates, shape one_minus_sin, over all 370,299,909 reviews; checkpoint C:/Users/jonat/workspace/wt/sm72/artifacts/small-model/sm72-big-leakfree-1ep/expertium/big-leakfree-1ep/master.pth
 [sm72-big 10-25 10:46:10] DRYRUN enqueue: SM72 big model (fork RWKV) leak-free epoch from the shipped weights, users 5000-10000, 370M reviews left (segment to the next window or the end) (expected 188 min of ~583)
 [sm72-big 10-25 10:46:10] DRYRUN enqueue: SM72 big model leak-free epoch (big-leakfree-1ep/w8+s8), inputs=keep, 464 users, split existing/deleted (expected 12 min)
@@ -10,12 +10,12 @@
 [sm72-big 10-25 10:46:11] scoring done: C:/Users/jonat/workspace/wt/sm72/artifacts/small-model/sm72/gpu-big/bigleak-keep.jsonl, C:/Users/jonat/workspace/wt/sm72/artifacts/small-model/sm72/gpu-big/bigleak-neighbour.jsonl
 [sm72-big 10-25 10:46:11] DRYRUN enqueue: SM72 leak-free teacher targets from the big model's leak-free epoch (8,000 final-tier users, ~4.8 h total, this ticket stops starting users after 168 min) (expected 183 min)
 [sm72-big 10-25 10:46:11] DRYRUN: then CPU verify: env RWKV_DELETED_CARDS=neighbour C:/Users/jonat/workspace/anki-rwkv/.venv/Scripts/python.exe -X utf8 C:/Users/jonat/workspace/wt/sm72/scripts/sm11_replay_export.py verify --out C:/Users/jonat/workspace/anki-rwkv/artifacts/cache/kd-replay/big-leakfree-1ep-final8k-neighbour --run C:/Users/jonat/workspace/wt/sm55/artifacts/small-model/sm55-final8k-run.json --teacher C:/Users/jonat/workspace/wt/sm72/artifacts/small-model/sm72-big-leakfree-1ep/expertium/big-leakfree-1ep/master.pth --sample 8
-[sm72-big 10-25 11:13:58] started (commit bb4f6446); SM71: [sm71 10-25 11:12:41] done
+[sm72-big 10-25 11:13:58] started (commit 3a462ce4); SM71: [sm71 10-25 11:12:41] done
 [sm72-big 10-25 11:13:58] prepared: expertium | 2 strided lanes x 8,192-review windows per update, carried state, one user per update | 0.00035 -> 0, warmup 200 updates, shape one_minus_sin, over all 370,299,909 reviews; checkpoint C:/Users/jonat/workspace/wt/sm72/artifacts/small-model/sm72-big-leakfree-1ep/expertium/big-leakfree-1ep/master.pth
 [sm72-big 10-25 11:13:58] enqueue: SM72 big model (fork RWKV) leak-free epoch from the shipped weights, users 5000-10000, 370M reviews left (segment to the next window or the end) (expected 161 min of ~583, 166 min to the next window)
 [sm72-big 10-25 11:17:59] exit 1: training segment
 [sm72-big 10-25 11:17:59] training segment ended without completing and without a stop request (exit 1); see C:/Users/jonat/workspace/wt/sm72/artifacts/small-model/sm72/gpu-big/train.out
-[sm72-big 10-25 11:32:48] started (commit bb4f6446); SM71: [sm71 10-25 11:12:41] done
+[sm72-big 10-25 11:32:48] started (commit 3a462ce4); SM71: [sm71 10-25 11:12:41] done
 [sm72-big 10-25 11:32:48] prepared: expertium | 2 strided lanes x 8,192-review windows per update, carried state, one user per update | 0.00035 -> 0, warmup 200 updates, shape one_minus_sin, over all 370,299,909 reviews; checkpoint C:/Users/jonat/workspace/wt/sm72/artifacts/small-model/sm72-big-leakfree-1ep/expertium/big-leakfree-1ep/master.pth
 [sm72-big 10-25 11:32:48] DRYRUN enqueue: SM72 big model (fork RWKV) leak-free epoch from the shipped weights, users 5000-10000, 370M reviews left (segment to the next window or the end) (expected 142 min of ~583)
 [sm72-big 10-25 11:32:49] DRYRUN enqueue: SM72 big model leak-free epoch (big-leakfree-1ep/w8+s8), inputs=keep, 464 users, split existing/deleted (expected 12 min)
@@ -27,12 +27,12 @@
 [sm72-big 10-25 11:32:49] scoring done: C:/Users/jonat/workspace/wt/sm72/artifacts/small-model/sm72/gpu-big/bigleak-keep.jsonl, C:/Users/jonat/workspace/wt/sm72/artifacts/small-model/sm72/gpu-big/bigleak-neighbour.jsonl
 [sm72-big 10-25 11:32:49] DRYRUN enqueue: SM72 leak-free teacher targets from the big model's leak-free epoch (8,000 final-tier users, ~4.8 h total, this ticket stops starting users after 122 min) (expected 137 min)
 [sm72-big 10-25 11:32:49] DRYRUN: then CPU verify: env RWKV_DELETED_CARDS=neighbour C:/Users/jonat/workspace/anki-rwkv/.venv/Scripts/python.exe -X utf8 C:/Users/jonat/workspace/wt/sm72/scripts/sm11_replay_export.py verify --out C:/Users/jonat/workspace/anki-rwkv/artifacts/cache/kd-replay/big-leakfree-1ep-final8k-neighbour --run C:/Users/jonat/workspace/wt/sm55/artifacts/small-model/sm55-final8k-run.json --teacher C:/Users/jonat/workspace/wt/sm72/artifacts/small-model/sm72-big-leakfree-1ep/expertium/big-leakfree-1ep/master.pth --sample 8
-[sm72-big 10-25 11:33:28] started (commit a0a953ea); SM71: [sm71 10-25 11:12:41] done
+[sm72-big 10-25 11:33:28] started (commit a9cfe329); SM71: [sm71 10-25 11:12:41] done
 [sm72-big 10-25 11:33:29] prepared: expertium | 2 strided lanes x 8,192-review windows per update, carried state, one user per update | 0.00035 -> 0, warmup 200 updates, shape one_minus_sin, over all 370,299,909 reviews; checkpoint C:/Users/jonat/workspace/wt/sm72/artifacts/small-model/sm72-big-leakfree-1ep/expertium/big-leakfree-1ep/master.pth
 [sm72-big 10-25 11:33:29] enqueue: SM72 big model (fork RWKV) leak-free epoch from the shipped weights, users 5000-10000, 370M reviews left (segment to the next window or the end) (expected 141 min of ~583, 146 min to the next window)
 [sm72-big 10-25 11:45:01] exit 1: training segment
 [sm72-big 10-25 11:45:01] training segment ended without completing and without a stop request (exit 1); see C:/Users/jonat/workspace/wt/sm72/artifacts/small-model/sm72/gpu-big/train.out
-[sm72-big 10-25 11:48:12] started (commit a0a953ea); SM71: [sm71 10-25 11:12:41] done
+[sm72-big 10-25 11:48:12] started (commit a9cfe329); SM71: [sm71 10-25 11:12:41] done
 [sm72-big 10-25 11:48:12] prepared: expertium | 2 strided lanes x 8,192-review windows per update, carried state, one user per update | 0.00035 -> 0, warmup 200 updates, shape one_minus_sin, over all 370,299,909 reviews; checkpoint C:/Users/jonat/workspace/wt/sm72/artifacts/small-model/sm72-big-leakfree-1ep/expertium/big-leakfree-1ep/master.pth
 [sm72-big 10-25 11:48:12] DRYRUN enqueue: SM72 big model (fork RWKV) leak-free epoch from the shipped weights, users 5000-10000, 370M reviews left (segment to the next window or the end) (expected 126 min of ~583)
 [sm72-big 10-25 11:48:12] DRYRUN enqueue: SM72 big model leak-free epoch (big-leakfree-1ep/w8+s8), inputs=keep, 464 users, split existing/deleted (expected 12 min)
@@ -44,7 +44,7 @@
 [sm72-big 10-25 11:48:13] scoring done: C:/Users/jonat/workspace/wt/sm72/artifacts/small-model/sm72/gpu-big/bigleak-keep.jsonl, C:/Users/jonat/workspace/wt/sm72/artifacts/small-model/sm72/gpu-big/bigleak-neighbour.jsonl
 [sm72-big 10-25 11:48:13] DRYRUN enqueue: SM72 leak-free teacher targets from the big model's leak-free epoch (8,000 final-tier users, ~4.8 h total, this ticket stops starting users after 106 min) (expected 121 min)
 [sm72-big 10-25 11:48:13] DRYRUN: then CPU verify: env RWKV_DELETED_CARDS=neighbour C:/Users/jonat/workspace/anki-rwkv/.venv/Scripts/python.exe -X utf8 C:/Users/jonat/workspace/wt/sm72/scripts/sm11_replay_export.py verify --out C:/Users/jonat/workspace/anki-rwkv/artifacts/cache/kd-replay/big-leakfree-1ep-final8k-neighbour --run C:/Users/jonat/workspace/wt/sm55/artifacts/small-model/sm55-final8k-run.json --teacher C:/Users/jonat/workspace/wt/sm72/artifacts/small-model/sm72-big-leakfree-1ep/expertium/big-leakfree-1ep/master.pth --sample 8
-[sm72-big 10-25 11:48:58] started (commit a0a953ea); SM71: [sm71 10-25 11:12:41] done
+[sm72-big 10-25 11:48:58] started (commit a9cfe329); SM71: [sm71 10-25 11:12:41] done
 [sm72-big 10-25 11:48:59] prepared: expertium | 2 strided lanes x 8,192-review windows per update, carried state, one user per update | 0.00035 -> 0, warmup 200 updates, shape one_minus_sin, over all 370,299,909 reviews; checkpoint C:/Users/jonat/workspace/wt/sm72/artifacts/small-model/sm72-big-leakfree-1ep/expertium/big-leakfree-1ep/master.pth
 [sm72-big 10-25 11:48:59] DRYRUN enqueue: SM72 big model (fork RWKV) leak-free epoch from the shipped weights, users 5000-10000, 370M reviews left (segment to the next window or the end) (expected 126 min of ~583)
 [sm72-big 10-25 11:48:59] DRYRUN enqueue: SM72 big model leak-free epoch (big-leakfree-1ep/w8+s8), inputs=keep, 464 users, split existing/deleted (expected 12 min)
@@ -56,7 +56,7 @@
 [sm72-big 10-25 11:48:59] scoring done: C:/Users/jonat/workspace/wt/sm72/artifacts/small-model/sm72/gpu-big/bigleak-keep.jsonl, C:/Users/jonat/workspace/wt/sm72/artifacts/small-model/sm72/gpu-big/bigleak-neighbour.jsonl
 [sm72-big 10-25 11:49:00] DRYRUN enqueue: SM72 leak-free teacher targets from the big model's leak-free epoch (8,000 final-tier users, ~4.8 h total, this ticket stops starting users after 106 min) (expected 121 min)
 [sm72-big 10-25 11:49:00] DRYRUN: then CPU verify: env RWKV_DELETED_CARDS=neighbour C:/Users/jonat/workspace/anki-rwkv/.venv/Scripts/python.exe -X utf8 C:/Users/jonat/workspace/wt/sm72/scripts/sm11_replay_export.py verify --out C:/Users/jonat/workspace/anki-rwkv/artifacts/cache/kd-replay/big-leakfree-1ep-final8k-neighbour --run C:/Users/jonat/workspace/wt/sm55/artifacts/small-model/sm55-final8k-run.json --teacher C:/Users/jonat/workspace/wt/sm72/artifacts/small-model/sm72-big-leakfree-1ep/expertium/big-leakfree-1ep/master.pth --sample 8
-[sm72-big 10-25 11:49:08] started (commit 0f817fc4); SM71: [sm71 10-25 11:12:41] done
+[sm72-big 10-25 11:49:08] started (commit 7f5cfdc4); SM71: [sm71 10-25 11:12:41] done
 [sm72-big 10-25 11:49:08] prepared: expertium | 2 strided lanes x 8,192-review windows per update, carried state, one user per update | 0.00035 -> 0, warmup 200 updates, shape one_minus_sin, over all 370,299,909 reviews; checkpoint C:/Users/jonat/workspace/wt/sm72/artifacts/small-model/sm72-big-leakfree-1ep/expertium/big-leakfree-1ep/master.pth
 [sm72-big 10-25 11:49:08] enqueue: SM72 big model (fork RWKV) leak-free epoch from the shipped weights, users 5000-10000, 370M reviews left (segment to the next window or the end) (expected 125 min of ~583, 130 min to the next window)
 [sm72-big 10-25 13:57:29] requesting a snapshot stop (NEXT 2)

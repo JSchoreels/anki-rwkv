@@ -44,7 +44,7 @@ usable signal.
 ## CPU proofs (before launch)
 
 - `sm100_check.py` -> `check-cpu-sm100.json` ALL OK, on users 2388, 4676, 1712, 1286: whole scorer batch of `e2s-query` in
-  this branch == SM96's code (`git show 4b3d96c0:scripts/sm31_inputs.py`) bit for bit; `e2s-query+0s` == `e2s-query` bit
+  this branch == SM96's code (`git show e54fdb93:scripts/sm31_inputs.py`) bit for bit; `e2s-query+0s` == `e2s-query` bit
   for bit; for +10 / +60 / +300 / -60 s only the 8 query interval columns of query rows move, by exactly the shift, the
   derived columns follow the formulas, the curve label moves the same; +60 s changes only the `start` (inputs) and `labels`
   tensors; malformed variant names refused.
@@ -54,7 +54,7 @@ usable signal.
 
 ## What runs
 
-- Launcher `artifacts/small-model/sm100/launch-sm100.sh`, started 2026-11-09 16:20 hidden via WMI from commit 29975fac:
+- Launcher `artifacts/small-model/sm100/launch-sm100.sh`, started 2026-11-09 16:20 hidden via WMI from commit 9d34e629:
   wrapper bash pid **56180**, launcher bash pid **34440**; queue ticket **001087-sm100** (waiting behind stage 2 (SM98)'s
   epoch 34 ticket 001086 at 16:20, max wait 141 min). Log `gpu/launch-sm100.log`
   (ends `done (verdict ...)` or a `STOP:` line); scorer output `gpu/score.out`; tickets `gpu/tickets.jsonl`; dry run

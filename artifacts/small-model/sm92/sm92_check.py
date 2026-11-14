@@ -7,7 +7,7 @@
      the protocols on disk (so the rebuilt epoch 26 follows the release's epoch 21-25 recipe).
   C2 epoch 26: sm92_pair.py epoch, the new epoch-26 folder vs SM72s epoch 25: only the flag, the start (epoch 25's
      master / AdamW state / update offset), the epoch index, the run's own epoch-26 user order and paths differ.
-  C3 show-time transform: (a) the trainer / scorer files are byte-identical to commit cc7f5358, on which the
+  C3 show-time transform: (a) the trainer / scorer files are byte-identical to commit df9fee59, on which the
      show-time interval retrain (SM91) proofs passed (check-cpu-sm91.json: T1 flag moves only the interval columns,
      T2 trainer rows == scorer e2s-query rows bitwise, T3 flag off == the current trainer); (b) T1 + T2 re-run here
      on the epoch-26 protocol rows of 3 users with the run's options.
@@ -31,7 +31,7 @@ PY = sys.executable
 RUN72S = Path("C:/Users/jonat/workspace/wt/sm72s/artifacts/accuracy/experiments/scale-w64kd-final-sc-lanes-leakfree/run")
 RELEASE = Path("C:/Users/jonat/workspace/wt/sm72s/artifacts/small-model/scale-w64kd-final-sc-lanes-leakfree-dec25-1ep32k-muon")
 ARM = ROOT / "artifacts/small-model/sm92-e26"
-PROVEN = "cc7f5358"
+PROVEN = "df9fee59"
 FILES = ["scripts/gpu_r01_samples.py", "scripts/gpu_r01_prefetch.py", "scripts/sm31_inputs.py", "scripts/small_model_heldout.py",
          "scripts/expertium_decay.py", "scripts/gpu_r01_training.py", "scripts/expertium_options.py", "scripts/sm77_warm.py",
          "scripts/sm91.py", "rwkv", "expertium"]

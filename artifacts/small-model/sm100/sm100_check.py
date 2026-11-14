@@ -3,7 +3,7 @@
 
 On a few users of the 732 set (the scorer's own path: scripts/sm31_inputs.samples with --deleted-cards neighbour, then
 rwkv.prepare_batch.prepare with the scorer's seed 2025 + user):
-  C1  e2s-query of this branch == e2s-query of the show-time instant-only small model (SM96)'s code (sm96 commit 4b3d96c0,
+  C1  e2s-query of this branch == e2s-query of the show-time instant-only small model (SM96)'s code (sm96 commit e54fdb93,
       read with `git show`, not from wt/sm96), whole batch bit for bit (every tensor: dtype, shape, values).
   C2  e2s-query+0s == e2s-query, whole batch bit for bit.
   C3  for +10 s / +60 s / +300 s / -60 s, on the add_queries frames (the same frames the batch is built from):
@@ -38,7 +38,7 @@ from scripts import sm31_inputs as new  # noqa: E402
 
 USERS = (2388, 4676, 1712, 1286)        # the three shortest users of the 732 set + one median user (29,268 reviews)
 SHIFTS = (10, 60, 300, -60)
-SM96_COMMIT = "4b3d96c0"
+SM96_COMMIT = "e54fdb93"
 MODE = "neighbour"
 
 

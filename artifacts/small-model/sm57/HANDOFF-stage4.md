@@ -1,6 +1,6 @@
 # The instant-only small model (SM57) stage 4 (a better dedicated instant model): handoff (2026-11-07) -- DONE (2026-11-08, see sm57-stage4-result.md)
 
-Branch `sm57`, worktree `C:/Users/jonat/workspace/wt/sm57`. Plan and pre-registered rule: `DESIGN.md`, section "Stage 4 plan" (fixed 11-07 ~12:20, before any stage-4 GPU run; commit `0cc42e29`).
+Branch `sm57`, worktree `C:/Users/jonat/workspace/wt/sm57`. Plan and pre-registered rule: `DESIGN.md`, section "Stage 4 plan" (fixed 11-07 ~12:20, before any stage-4 GPU run; commit `3008eaa3`).
 
 ## What it asks
 
@@ -11,12 +11,12 @@ Does more instant-only training before the cool-down make a clearly better insta
 ## Done before launch
 
 - CPU proofs `check-cpu-sm57-stage4.json`: **ALL OK** (V1-V7, 12 s): the epoch builder reproduces stage 1's epoch 26 and SM72s epochs 22-25; epoch 27 passes `pair` with 5 refusals; orders 21-30 distinct; only the 1,500-pool scorer files changed (outside SourceWatch), pools equal their files; a cool-down prepared from epoch 26 by this tree == stage 1's instant-only cool-down and == the release + the flag; the rule code reproduces stage 1's -0.162 [-0.176, -0.148] and SM93's 1,487-user -0.164 [-0.179, -0.152]; break logic (Saturday 20:00, Sunday 16:00, moved nights).
-- The 1,500-user pool option of SM93 (`00072cac`) checked out into `sm57` (scripts/eval_pools.py, scripts/small_model_heldout.py, eval-users-1500.json); SM93's rows copied to `stage4/`.
+- The 1,500-user pool option of SM93 (`24bd3c68`) checked out into `sm57` (scripts/eval_pools.py, scripts/small_model_heldout.py, eval-users-1500.json); SM93's rows copied to `stage4/`.
 - Epoch-27 folder prepared (`artifacts/small-model/sm57s4-inst-e27`, not committed).
 
 ## What runs (detached, WMI hidden)
 
-Launcher `launch-sm57-stage4.sh` (commit `0cc42e29`), WMI pid **67476** (bash.exe), launched 2026-11-07 12:17:41 (held at its RAM gate until 12:22: 2.9 GB free < 3 GB; the changing-learner (SM41g) CPU run in `wt/sm41` uses most of the RAM). Log `gpu/launch-sm57-stage4.log`, nohup `gpu/launch-sm57-stage4.nohup`, trainer output `gpu/train-stage4.out`, scorer `gpu/score-stage4.out`, GPU check and smokes `gpu/check-stage4.out`, prepare `gpu/prepare-stage4.out`, per segment `gpu/segments-stage4.jsonl`, per ticket `gpu/tickets-stage4.jsonl`. Queue owner `sm57`; every ticket purpose starts with "the instant-only small model (SM57) stage 4: ".
+Launcher `launch-sm57-stage4.sh` (commit `3008eaa3`), WMI pid **67476** (bash.exe), launched 2026-11-07 12:17:41 (held at its RAM gate until 12:22: 2.9 GB free < 3 GB; the changing-learner (SM41g) CPU run in `wt/sm41` uses most of the RAM). Log `gpu/launch-sm57-stage4.log`, nohup `gpu/launch-sm57-stage4.nohup`, trainer output `gpu/train-stage4.out`, scorer `gpu/score-stage4.out`, GPU check and smokes `gpu/check-stage4.out`, prepare `gpu/prepare-stage4.out`, per segment `gpu/segments-stage4.jsonl`, per ticket `gpu/tickets-stage4.jsonl`. Queue owner `sm57`; every ticket purpose starts with "the instant-only small model (SM57) stage 4: ".
 
 First minutes of epoch 27 (ticket after 000991, enqueued 12:23:22): 77.3k reviews/s average incl. start-up, 85-89k reviews/s now (stage 1's epoch 26: 87.7k average); nvidia-smi 14,097 MiB total, baseline ~1,340 MiB (~12.8 GB training, cap 0.8 in the options); 3.9 GB RAM free; trainer ETA ~7,100 s. 10-epoch ETA (training only): at 87.6k reviews/s 2k = 10 x 146.65M / 87.6k = ~4.65 h, 8k = 10 x 581.94M / 87.6k = ~18.5 h; at the 77.3k start-up average ~5.3 h / ~20.9 h.
 
