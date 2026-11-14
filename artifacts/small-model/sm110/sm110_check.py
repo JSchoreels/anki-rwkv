@@ -9,7 +9,7 @@ The run: the Small Instant-Only model (SM98)'s cool-down rerun from its epoch 35
 for the show-time instant-only big model (SM99)'s, replayed on show-time inputs (scripts/sm11_replay_export.py --inputs
 e2s-query, the exporter of the show-time interval retrain (SM91) step 3). No source file changes.
 
-  C1 code: scripts/ expertium/ rwkv/ trees at HEAD == 1e22b62c (the trees SM96 / SM98 / SM99 / SM101 trained and scored
+  C1 code: scripts/ expertium/ rwkv/ trees at HEAD == c99330a7 (the trees SM96 / SM98 / SM99 / SM101 trained and scored
      with; the exporter's --inputs e2s-query is in them) and nothing uncommitted there.
   C2 inputs, all read only: the teacher (SM99's final epoch 2) sha256 == the release package's master.pth; SM98's epoch
      35 master sha256 == the start SM98's cool-down recorded; SM98's cool-down complete; SM98's cool-down snapshot
@@ -51,7 +51,7 @@ HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[2]
 SM = ROOT / "artifacts/small-model"
 PY = sys.executable
-CODE = "1e22b62c"
+CODE = "c99330a7"
 W = Path("C:/Users/jonat/workspace/wt")
 CACHE = Path("C:/Users/jonat/workspace/anki-rwkv/artifacts/cache/kd-replay")
 TEACHER = W / "sm99/artifacts/small-model/sm99-big-inst-e2/expertium/big-inst/master.pth"
@@ -109,7 +109,7 @@ def env_cpu(**extra):
 def c1(rep):
     trees = {p: (git("rev-parse", f"HEAD:{p}"), git("rev-parse", f"{CODE}:{p}")) for p in ("scripts", "expertium", "rwkv")}
     dirty = git("status", "--porcelain", "--", "scripts", "expertium", "rwkv")
-    rep.check("C1_code_trees_equal_1e22b62c", all(a == b for a, b in trees.values()) and not dirty,
+    rep.check("C1_code_trees_equal_c99330a7", all(a == b for a, b in trees.values()) and not dirty,
               trees={k: v[0][:12] for k, v in trees.items()}, uncommitted=dirty.splitlines()[:10])
 
 

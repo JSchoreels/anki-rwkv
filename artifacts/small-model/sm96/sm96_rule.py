@@ -38,7 +38,7 @@ import sys
 HERE = Path(__file__).resolve().parent
 G = HERE / "gpu"
 REPORT = Path("C:/Users/jonat/workspace/anki-rwkv/artifacts/small-model/showtime/showtime_report.py")
-REPORT_SHA = "3cdfed03afd40734d4b1931c244e8c1e73453d281a40c3843e80cd310d70dd9d"   # main b07b6a13
+REPORT_SHA = "3cdfed03afd40734d4b1931c244e8c1e73453d281a40c3843e80cd310d70dd9d"   # main 9031ed51
 ROWS, ROWS1500 = G / "sm96-rows.jsonl", G / "sm96-rows-1500.jsonl"
 LBL = "sm96-inst-e31st-st-dec1ep32k/w8+s8"
 MIN_EFFECT = 0.05

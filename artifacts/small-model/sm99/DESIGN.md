@@ -157,20 +157,20 @@ too.
 ## Checks before launch
 
 - **CPU proofs** (`sm99_check.py` -> `check-cpu-sm99.json`, required ALL OK):
-  - K1: the code trees (scripts/ expertium/ rwkv/) == 1e22b62c, the trees SM96 / SM98 / SM101 trained and scored with.
-    The 8 files changed since the show-time big model (SM91 step 2)'s launch commit 72ba7cef are listed.
+  - K1: the code trees (scripts/ expertium/ rwkv/) == c99330a7, the trees SM96 / SM98 / SM101 trained and scored with.
+    The 8 files changed since the show-time big model (SM91 step 2)'s launch commit 11d6c1a4 are listed.
   - K2: epoch 1's folder == the show-time big model (SM91 step 2)'s epoch folder, except curve loss weight 0, the start,
     the seed (row order only) and paths. 11 mutated copies are refused.
   - K3: the trainer slice on CPU (`sm99_probe.py` = `sm57_probe.py`), the fork architecture from the start weights,
     2 users at 1,024 x 2 carried lanes, with AdamW:
-    - K3a: the tree of 72ba7cef == this tree without the option, bit for bit (loss, instant average, every gradient,
+    - K3a: the tree of 11d6c1a4 == this tree without the option, bit for bit (loss, instant average, every gradient,
       final weights);
     - K3b: weight 1.0 == no option, bit for bit;
     - K3c: weight 0 trains, every loss == its instant average bit for bit, and only the 12 curve-only tensors get newly
       zero gradients.
   - K4: the show-time samples with the epoch's options: only the query intervals and curve query times move, and the
     trainer rows == the scorer's e2s-query rows, bitwise (`scripts/sm91.py t1_t2`).
-  - K5: this tree's scorer == the scorer of 72ba7cef on CPU, for the show-time big model (SM91 step 2), on show-time
+  - K5: this tree's scorer == the scorer of 11d6c1a4 on CPU, for the show-time big model (SM91 step 2), on show-time
     and normal inputs, so its committed rows are comparable with this run's.
   - K6: the rule selftest. K7: the breaks on fixed times.
 - **GPU pair check** (`sm99_gpu_check.py` -> `gpu/check-gpu-sm99.json`, one queue ticket):

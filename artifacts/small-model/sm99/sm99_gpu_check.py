@@ -7,7 +7,7 @@ Adapted from the instant-only small model (SM57)'s sm57_gpu_check.py to the big 
 Trainer smokes (scripts/expertium_decay.py run(smoke=True): the folder's options and start checkpoint on the trainer's
 smoke rows, 2 users x 512 reviews) on scratch copies, kept until compared:
   G1 the show-time big model (SM91 step 2)'s own epoch folder (wt/sm91s2/.../sm91s2-big-showtime, read only) trained
-     by the wt/sm91s2 tree (the tree it trained with, 72ba7cef's sources) and by this tree: complete, the trained
+     by the wt/sm91s2 tree (the tree it trained with, 11d6c1a4's sources) and by this tree: complete, the trained
      weights (master.pth sha256 and result.json trained_parameter_sha256) bit for bit equal, no curve_loss_weight;
   G2 epoch 1 of SM99 (sm99-big-inst-e1) on this tree: complete, finite, result.json records curve_loss_weight 0.0, and
      the trained weights differ from G2a = the same folder with the weight removed (so the option reaches the trainer);
@@ -15,7 +15,7 @@ Scorer pair:
   G3 this tree's scorer on the GPU (cap 0.8), the show-time big model (SM91 step 2)'s master.pth, users 4676 and 2388,
      w8+s8, --split-existing --deleted-cards neighbour, e2s-query and normal inputs: the benchmark blocks the rules read
      (benchmark, benchmark_existing, benchmark_deleted: LogLoss, RMSE, AUC, sizes) and the label counts equal to its
-     committed rows (gpu/sm91s2-inputs.jsonl, scored on the GPU from 72ba7cef); the raw float means (curve / instant
+     committed rows (gpu/sm91s2-inputs.jsonl, scored on the GPU from 11d6c1a4); the raw float means (curve / instant
      log loss) within 1e-6 (GPU reduction order; the first run saw 1.5e-8 on one user; on CPU K5 is bitwise).
 Memory: result.json peak allocated / reserved MiB and the nvidia-smi max used MiB during each smoke.
 """

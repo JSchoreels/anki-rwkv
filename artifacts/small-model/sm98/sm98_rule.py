@@ -41,10 +41,10 @@ HERE = Path(__file__).resolve().parent
 G = HERE / "gpu"
 WT = HERE.parents[2]
 REPORT = Path("C:/Users/jonat/workspace/anki-rwkv/artifacts/small-model/showtime/showtime_report.py")
-REPORT_SHA = "3cdfed03afd40734d4b1931c244e8c1e73453d281a40c3843e80cd310d70dd9d"   # main b07b6a13 (same pin as SM96)
+REPORT_SHA = "3cdfed03afd40734d4b1931c244e8c1e73453d281a40c3843e80cd310d70dd9d"   # main 9031ed51 (same pin as SM96)
 ROWS, ROWS1500 = G / "sm98-rows.jsonl", G / "sm98-rows-1500.jsonl"
 LBL = "sm98-inst-e35st-st-dec1ep32k/w8+s8"
-# the reference: the show-time instant-only small model (SM96), its own rows (branch sm96 4b3d96c0)
+# the reference: the show-time instant-only small model (SM96), its own rows (branch sm96 e54fdb93)
 S96G = WT / "artifacts/small-model/sm96/gpu"
 S96ROWS, S96ROWS1500 = S96G / "sm96-rows.jsonl", S96G / "sm96-rows-1500.jsonl"
 S96ORIG = Path("C:/Users/jonat/workspace/wt/sm96/artifacts/small-model/sm96/gpu")
