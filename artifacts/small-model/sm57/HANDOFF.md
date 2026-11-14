@@ -1,6 +1,6 @@
 # DONE - The instant-only small model (SM57): handoff (2026-11-06 01:56)
 
-Branch `sm57` (cut from `sm92` at `29727c6b`: main has no small-model training or scoring code), worktree `C:/Users/jonat/workspace/wt/sm57`. Design, option and pre-registered rule: `DESIGN.md` (this folder).
+Branch `sm57` (cut from `sm92` at `22ca8edf`: main has no small-model training or scoring code), worktree `C:/Users/jonat/workspace/wt/sm57`. Design, option and pre-registered rule: `DESIGN.md` (this folder).
 
 ## What it asks
 
@@ -13,14 +13,14 @@ Does giving the whole small model to the instant task beat sharing it with the c
 
 ## Done before launch
 
-- Option `curve_loss_weight` (default 1.0) in `expertium/model/variant_model.py`, wired in `scripts/gpu_r01_training.py` (recorded in result.json), allowlisted in `scripts/gpu_r01_prefetch.py`, `TEACHER_BLIND` in `scripts/expertium_options.py` (commit `fd43ae79`).
-- CPU proofs `check-cpu-sm57.json` on `fd43ae79`: **ALL OK** (33 checks, 194 s). Default training is bit-identical: the loss code before SM57 == option untouched == weight 1.0 (loss, per-review losses, every gradient; eager and TorchScript; with and without KD + sync-free loss), and a CPU trainer slice (8 updates, batch path with state-carry lanes, clip, AdamW and fresh Muon, TorchScript) gives bit-identical per-update losses, gradients and final weights in the `wt/sm92` tree and this tree. Weight 0.0: loss == instant average exactly; only `head_w.*` and `gru_*` (the curve head) get newly zero gradients.
+- Option `curve_loss_weight` (default 1.0) in `expertium/model/variant_model.py`, wired in `scripts/gpu_r01_training.py` (recorded in result.json), allowlisted in `scripts/gpu_r01_prefetch.py`, `TEACHER_BLIND` in `scripts/expertium_options.py` (commit `e5632dec`).
+- CPU proofs `check-cpu-sm57.json` on `e5632dec`: **ALL OK** (33 checks, 194 s). Default training is bit-identical: the loss code before SM57 == option untouched == weight 1.0 (loss, per-review losses, every gradient; eager and TorchScript; with and without KD + sync-free loss), and a CPU trainer slice (8 updates, batch path with state-carry lanes, clip, AdamW and fresh Muon, TorchScript) gives bit-identical per-update losses, gradients and final weights in the `wt/sm92` tree and this tree. Weight 0.0: loss == instant average exactly; only `head_w.*` and `gru_*` (the curve head) get newly zero gradients.
 - GPU check `gpu/check-gpu-sm57.json` (ticket 000937, 01:52:59-01:54:17): **ALL OK**: the joint epoch-26 trainer smoke run by the `wt/sm92` tree and by this tree gives the same weights bit for bit on GPU; the instant-only smoke trains with `curve_loss_weight` 0.0 recorded.
 - Epoch folders prepared (not committed): `artifacts/small-model/sm57-inst-e26`, `artifacts/small-model/sm57-joint-e26` (8,000 users, 581,942,724 reviews, update offset 551,950).
 
 ## What runs (detached, WMI hidden)
 
-Launcher `launch-sm57.sh` (commit `163c66d6`), WMI pid **21128** (bash.exe), log `gpu/launch-sm57.log`, nohup `gpu/launch-sm57.nohup`, launched 2026-11-06 01:52. Queue owner `sm57`; every ticket purpose starts with "the instant-only small model (SM57): ". GPU memory seen at the start of the instant-only epoch: 14,640 MiB nvidia-smi total with a ~2,600 MiB desktop baseline (~12 GB training, cap 0.8 in the options); ~80-100k reviews/s in the first minutes.
+Launcher `launch-sm57.sh` (commit `08a9fbd8`), WMI pid **21128** (bash.exe), log `gpu/launch-sm57.log`, nohup `gpu/launch-sm57.nohup`, launched 2026-11-06 01:52. Queue owner `sm57`; every ticket purpose starts with "the instant-only small model (SM57): ". GPU memory seen at the start of the instant-only epoch: 14,640 MiB nvidia-smi total with a ~2,600 MiB desktop baseline (~12 GB training, cap 0.8 in the options); ~80-100k reviews/s in the first minutes.
 
 | step | ticket | expected (if the queue stays free) |
 |---|---|---|

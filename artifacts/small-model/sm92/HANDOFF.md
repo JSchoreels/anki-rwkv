@@ -1,6 +1,6 @@
 # DONE 2026-11-04 (SHIP CANDIDATE, processed) - Show-time retrain of the release (SM92): handoff
 
-Branch `sm92` (cut from `sm91s3` at `6cd468df`: show-time interval retrain (SM91) steps 1-3 tooling + the resumable decay (SM69), `decay-resume` already merged), worktree `C:/Users/jonat/workspace/wt/sm92`. Design, recipe and rule: `DESIGN.md` (this folder).
+Branch `sm92` (cut from `sm91s3` at `eb91600b`: show-time interval retrain (SM91) steps 1-3 tooling + the resumable decay (SM69), `decay-resume` already merged), worktree `C:/Users/jonat/workspace/wt/sm92`. Design, recipe and rule: `DESIGN.md` (this folder).
 
 ## What it asks
 
@@ -11,11 +11,11 @@ The leak-free small model (SM72s) epoch 25 (the release's start) + epoch 26 on s
 ## Done before launch (CPU)
 
 - Epoch folder `artifacts/small-model/sm92-e26` prepared (not committed): 8,000 users, 581,942,724 reviews, start SM72s epoch 25 (master + AdamW), update offset 551,950.
-- CPU proofs `check-cpu-sm92.json` on `f8a19500`: **ALL OK** (C1 epochs 21-25 rebuilt == disk; C2 epoch 26 == epoch 25's recipe except flag / start / index / order / paths; C3 trainer + scorer files == `cc7f5358` where SM91's T1-T3 passed, T1 + T2 re-run on epoch-26 rows: trainer rows == scorer `e2s-query` rows bitwise; C4 a flag cool-down from epoch 25 == the release's cool-down except flag and names; C5 rule self-test reproduces step 3's +0.146 [+0.066, +0.230] / -0.062 [-0.161, +0.016]).
+- CPU proofs `check-cpu-sm92.json` on `d980e4fc`: **ALL OK** (C1 epochs 21-25 rebuilt == disk; C2 epoch 26 == epoch 25's recipe except flag / start / index / order / paths; C3 trainer + scorer files == `df9fee59` where SM91's T1-T3 passed, T1 + T2 re-run on epoch-26 rows: trainer rows == scorer `e2s-query` rows bitwise; C4 a flag cool-down from epoch 25 == the release's cool-down except flag and names; C5 rule self-test reproduces step 3's +0.146 [+0.066, +0.230] / -0.062 [-0.161, +0.016]).
 
 ## What runs (detached, WMI hidden)
 
-Launcher `launch-sm92.sh` (commit `764bac35`), WMI pid **76972**, log `gpu/launch-sm92.log`, nohup `gpu/launch-sm92.nohup`, launched 2026-11-03 15:55. Ticket purposes, each prefixed "show-time retrain of the release (SM92): ":
+Launcher `launch-sm92.sh` (commit `9c125341`), WMI pid **76972**, log `gpu/launch-sm92.log`, nohup `gpu/launch-sm92.nohup`, launched 2026-11-03 15:55. Ticket purposes, each prefixed "show-time retrain of the release (SM92): ":
 
 | # | purpose (after the prefix) | expected min | clock (if the queue stays free) |
 |---|---|---|---|
