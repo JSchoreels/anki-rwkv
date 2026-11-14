@@ -9,10 +9,10 @@ Branch `sm31` (from `sm81`, the newest scorer: `--start-of-day` + leak-free opti
 - `e2s-all`, the outside-research definition (`expertium/intervals.end_to_start_published`): the same subtraction on every row (update rows and the cumulative interval too).
 - `passfail`: Hard and Easy get the Good rating one-hot in the inputs (labels untouched). `notime`: `scaled_duration` of a missing time (duration 0) on every row. `passfail-notime`: both.
 
-## CPU proof (commit cd82f372, all on CPU)
+## CPU proof (commit 2f29a5cd, all on CPU)
 
 - `check-cpu-sm31-inputs.json` (4 users, ok): `normal` through the new module is bit-identical to the scorer's path (every sample tensor); each variant moves only the expected columns: `e2s-query` columns 2-7 on query rows only + the curve query time of update rows (equal to `e2s-all`'s), `e2s-all` columns 2-7 on all rows, `passfail` the rating one-hot on exactly the Hard / Easy update rows, `notime` column 8 on update rows; ids, permutations, review_ths, every other label identical.
-- `cpu-proof/compare.json` (ok): default scorer rows of the new commit identical to the previous scorer (wt/sm81 efd50462) on 2 users x 2 models (every field except timing / provenance); variant rows score the same test reviews.
+- `cpu-proof/compare.json` (ok): default scorer rows of the new commit identical to the previous scorer (wt/sm81 223d64c1) on 2 users x 2 models (every field except timing / provenance); variant rows score the same test reviews.
 
 ## What runs
 

@@ -4,9 +4,9 @@ Goal (user): retrain the small model with the deleted-card leak removed from its
 transform), score it leak-free (`scripts/small_model_heldout.py --deleted-cards neighbour`), compare with the big model
 scored leak-free (SM71's `big-neighbour` rows). This note covers the code, the CPU check and the plan; no GPU job ran.
 
-Branch `sm72` (worktree `C:/Users/jonat/workspace/wt/sm72`), cut from `sm71` (4e2c9413). `sm71` was itself cut from the
-`sm56` tip 746d8f1d, so it already holds the full SM56 recipe, `scripts/sm56_epochs.py` and the resumable decay
-(`decay-resume` 1a1653bb, merged into sm56 at 545c91d3). Nothing else needed merging.
+Branch `sm72` (worktree `C:/Users/jonat/workspace/wt/sm72`), cut from `sm71` (2eb9ece2). `sm71` was itself cut from the
+`sm56` tip 98e68d85, so it already holds the full SM56 recipe, `scripts/sm56_epochs.py` and the resumable decay
+(`decay-resume` 7158a247, merged into sm56 at 961830e3). Nothing else needed merging.
 
 ## Where the training inputs are built (correction to the brief)
 
