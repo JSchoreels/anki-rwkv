@@ -5,8 +5,8 @@ Design (2026-11-09): the show-time instant-only small model (SM96)'s constant-LR
 (instant-only, constant LR, show-time inputs, epoch 31's recipe with the epoch index advanced) -> the release's one-epoch
 32k Muon cool-down on show-time inputs from epoch 35 (SM96's cool-down except the start).
 
-  K1 code: branch sm98 is cut from origin/sm96: scripts/ expertium/ rwkv/ trees of HEAD == those of 1e22b62c (the commit
-     SM96's launcher ran epoch 31 and the cool-down from) == 8b323fb1 (the code of the instant-only small model (SM57)
+  K1 code: branch sm98 is cut from origin/sm96: scripts/ expertium/ rwkv/ trees of HEAD == those of c99330a7 (the commit
+     SM96's launcher ran epoch 31 and the cool-down from) == 035cf1dd (the code of the instant-only small model (SM57)
      stage 4) (git tree hashes, so bitwise); no uncommitted source.
   K2 options: extra-options.json (the cool-down's) == SM96's extra-options.json (bytes); epoch 32's options == SM96 epoch
      31's == the show-time retrain of the release (SM92) epoch 26's + {"curve_loss_weight": 0.0}.
@@ -58,7 +58,7 @@ REL = W / "sm72s/artifacts/small-model/scale-w64kd-final-sc-lanes-leakfree-dec25
 SM92DEC = W / "sm92/artifacts/small-model/sm92-e26-dec-1ep32k-muon"
 SM92E26 = W / "sm92/artifacts/small-model/sm92-e26"
 TRACK = "E89-F65e-F77a"
-BASES = {"sm96_launch_1e22b62c": "1e22b62c", "sm57_stage4_8b323fb1": "8b323fb196641f7fcd513164bfb528abbb2398e2"}
+BASES = {"sm96_launch_c99330a7": "c99330a7", "sm57_stage4_035cf1dd": "035cf1dd400d8350bbdd9d1f27d76874ffd94bb3"}
 SWITCH = {"show_time_intervals": True}
 WEIGHT0 = {"curve_loss_weight": 0.0}
 PAIR = S57 / "sm57/sm57_pair.py"
@@ -78,7 +78,7 @@ def k1():
     dirty = git("status", "--porcelain", "--", "scripts", "expertium", "rwkv")
     launched = [l for l in (S96 / "sm96/gpu/launch-sm96.log").read_text(encoding="utf-8").splitlines() if "started:" in l][-1]
     started_from = launched.split("started: ")[1].split()[0]
-    ok = all(trees.values()) and not dirty and started_from == BASES["sm96_launch_1e22b62c"]
+    ok = all(trees.values()) and not dirty and started_from == BASES["sm96_launch_c99330a7"]
     return ok, {"trees_equal": trees, "uncommitted_source": bool(dirty), "sm96_last_launch_commit": started_from}
 
 

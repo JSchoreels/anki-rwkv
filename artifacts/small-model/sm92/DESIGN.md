@@ -26,7 +26,7 @@ Also reported: vs the big model (1 leak-free epoch) on normal and on `e2s-query`
 
 ## CPU proofs (`sm92_check.py` -> `check-cpu-sm92.json`)
 
-C1 epochs 21-25 rebuilt by the order rule == the protocols on disk; C2 the epoch-26 folder == epoch 25's protocol except the flag, the start, the epoch index, the run's epoch-26 order and paths (and refused against epoch 24); C3 the trainer / scorer files are byte-identical to `cc7f5358`, where SM91's T1-T3 passed, and T1 + T2 (flag moves only the query intervals and curve query times; trainer rows == scorer `e2s-query` rows bitwise) re-run on 3 users of the epoch-26 protocol; C4 a cool-down prepared by this tree from epoch 25 with the flag + trim == the release's cool-down except the flag and names (the release against itself refused); C5 the rule self-test. Before the cool-down the launcher re-checks it against the release (`sm92_pair.py decay`).
+C1 epochs 21-25 rebuilt by the order rule == the protocols on disk; C2 the epoch-26 folder == epoch 25's protocol except the flag, the start, the epoch index, the run's epoch-26 order and paths (and refused against epoch 24); C3 the trainer / scorer files are byte-identical to `df9fee59`, where SM91's T1-T3 passed, and T1 + T2 (flag moves only the query intervals and curve query times; trainer rows == scorer `e2s-query` rows bitwise) re-run on 3 users of the epoch-26 protocol; C4 a cool-down prepared by this tree from epoch 25 with the flag + trim == the release's cool-down except the flag and names (the release against itself refused); C5 the rule self-test. Before the cool-down the launcher re-checks it against the release (`sm92_pair.py decay`).
 
 ## Schedule
 

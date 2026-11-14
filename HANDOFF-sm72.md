@@ -98,7 +98,7 @@ window's start continues its lane's previous window instead of starting fresh.
 Plan (user 10-24 ~20:40): (1) the big model gets ONE leak-free epoch from its shipped weights, (2) leak-free teacher
 targets are exported once from that model, (3) the small model is retrained leak-free on them (sections below).
 
-- `scripts/sm72_big_epoch.py` (4c0c63f4): `check` / `prepare` / `run` / `smoke` / `stop` / `save`. The fork's
+- `scripts/sm72_big_epoch.py` (15f5d476): `check` / `prepare` / `run` / `smoke` / `stop` / `save`. The fork's
   architecture is the R01 trainer's "baseline" model (`SrsRWKV(DEFAULT_ANKI_RWKV_CONFIG)`, the scorer's fork class); the
   run folder is a `scripts/expertium_decay.py` folder with `"model": "baseline"` (that script now reads the model from
   decay.json; every earlier decay says expertium), so the epoch is resumable from snapshots every 400 users.

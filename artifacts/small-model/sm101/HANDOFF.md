@@ -20,7 +20,7 @@ Bytes per card + note:
   the show-time instant-only small model (SM96)).
 - **CPU proofs.**
   - `check-cpu-sm101.json` (+ `.out`) is ALL OK:
-    - K1 code trees == 1e22b62c;
+    - K1 code trees == c99330a7;
     - K2 options;
     - K3 epoch pair + simulated chain + 6 negative controls;
     - K4 the cut;
