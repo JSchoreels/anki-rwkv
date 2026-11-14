@@ -1,6 +1,6 @@
 # Fast-recall prediction (SM94): handoff
 
-Branch `sm94` (from `sm92`), worktree `C:/Users/jonat/workspace/wt/sm94`. Design and fixed rules: [DESIGN.md](DESIGN.md). Code `scripts/sm94_fastpass.py` (commit `7abcb6be`).
+Branch `sm94` (from `sm92`), worktree `C:/Users/jonat/workspace/wt/sm94`. Design and fixed rules: [DESIGN.md](DESIGN.md). Code `scripts/sm94_fastpass.py` (commit `edcfee21`).
 
 ## What runs (detached, WMI hidden, below-normal priority)
 

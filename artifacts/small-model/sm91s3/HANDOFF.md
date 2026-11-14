@@ -1,6 +1,6 @@
 # Show-time interval retrain (SM91) step 3: handoff
 
-Branch `sm91s3` (cut from `sm91s2` at `e57db849`, `origin/sm91` merged for step 1's final rows), worktree `C:/Users/jonat/workspace/wt/sm91s3`. Design, confound, rule, proofs: `DESIGN.md` (this folder).
+Branch `sm91s3` (cut from `sm91s2` at `514e2016`, `origin/sm91` merged for step 1's final rows), worktree `C:/Users/jonat/workspace/wt/sm91s3`. Design, confound, rule, proofs: `DESIGN.md` (this folder).
 
 ## What it asks
 
@@ -10,7 +10,7 @@ Does the cool-down with KD targets from the show-time big model on show-time inp
 
 ## What runs (detached, WMI hidden)
 
-Launcher `launch-sm91s3.sh`, log `gpu/launch-sm91s3.log`, nohup `gpu/launch-sm91s3.nohup`. Launched 2026-11-03 11:00:58, WMI pid **73420**, commit `6c364924`. Ticket purposes start with "show-time interval retrain (SM91) step 3: ".
+Launcher `launch-sm91s3.sh`, log `gpu/launch-sm91s3.log`, nohup `gpu/launch-sm91s3.nohup`. Launched 2026-11-03 11:00:58, WMI pid **73420**, commit `185477e1`. Ticket purposes start with "show-time interval retrain (SM91) step 3: ".
 
 | # | step | expected min | clock if on time | output |
 |---|---|---|---|---|
