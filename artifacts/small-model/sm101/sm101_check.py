@@ -6,7 +6,7 @@ stream cut to 1 layer (w64-c1) -> epochs 36..38 (instant-only, constant LR, show
 release's one-epoch 32k Muon cool-down on show-time inputs from epoch 38 (SM98's cool-down except the start and the
 architecture).
 
-  K1 code: branch sm101 is cut from origin/sm98: scripts/ expertium/ rwkv/ trees of HEAD == those of 1e22b62c (the code
+  K1 code: branch sm101 is cut from origin/sm98: scripts/ expertium/ rwkv/ trees of HEAD == those of c99330a7 (the code
      SM96 and SM98 trained with; it contains the card-layer cut tooling of the card-stream-1-layer check (SM73 stage 2))
      (git tree hashes, so bitwise); no uncommitted source.
   K2 options: extra-options.json (the cool-down's) == SM98's == SM96's (bytes, up to CRLF / LF line ends); epoch 36's options == SM98 epoch 35's with
@@ -62,7 +62,7 @@ S98DEC = S98 / "sm98-inst-e35st-st-dec-1ep32k-muon"
 S96DEC = S96 / "sm96-inst-e31st-st-dec-1ep32k-muon"
 SM92E26 = W / "sm92/artifacts/small-model/sm92-e26"
 TRACK = "E89-F65e-F77a"
-BASE_COMMIT = "1e22b62c"
+BASE_COMMIT = "c99330a7"
 WEIGHT0 = {"curve_loss_weight": 0.0}
 CUT_PREFIX = "rwkv_modules.0.blocks.1."
 
@@ -84,7 +84,7 @@ def k1():
                  == git("rev-parse", f"HEAD:{d}") for d in ("scripts", "expertium", "rwkv")}
     has_cut = git("ls-tree", "HEAD", "scripts/sm73s2.py") != "" and "w64-c1" in (WT / "expertium/variants.py").read_text(encoding="utf-8")
     ok = all(trees.values()) and all(sm98_tree.values()) and not dirty and has_cut
-    return ok, {"trees_equal_1e22b62c": trees, "trees_equal_sm98_last_launch": [sm98_from, sm98_tree],
+    return ok, {"trees_equal_c99330a7": trees, "trees_equal_sm98_last_launch": [sm98_from, sm98_tree],
                 "uncommitted_source": bool(dirty), "cut_tooling_present": has_cut}
 
 

@@ -7,8 +7,8 @@
   V2 epoch 27 prepared for real (sm57s4-inst-e27) passes `pair`; refusals: epoch 26's rows, the flag removed, a wrong
      update offset, a start from SM72s epoch 25 instead of stage 1's epoch 26.
   V3 the epoch orders 21..30 are 10 distinct permutations of the same 8,000 train users.
-  V4 sources: since stage 1's launch commit (163c66d6) only scripts/eval_pools.py and scripts/small_model_heldout.py
-     change (the 1,500-user pool option of SM93, 00072cac); neither is in the trainer's SourceWatch set; the 732 pool is
+  V4 sources: since stage 1's launch commit (08a9fbd8) only scripts/eval_pools.py and scripts/small_model_heldout.py
+     change (the 1,500-user pool option of SM93, 24bd3c68); neither is in the trainer's SourceWatch set; the 732 pool is
      unchanged (pool_users(732) == eval-users-732.json, the 732 fit list inside it) and pool 1500 == eval-users-1500.json.
   V5 the cool-down prepared from stage 1's epoch 26 by this tree (sm77_warm.py cooldown --epoch 25 + the label-window
      trim pass) == stage 1's instant-only cool-down (sm57_pair.py decay --same-start, no flag difference): the same
@@ -121,9 +121,9 @@ def v3():
 
 
 def v4():
-    out = subprocess.run(["git", "-C", str(ROOT), "diff", "--name-only", "163c66d6", "--", "scripts", "expertium", "rwkv"],
+    out = subprocess.run(["git", "-C", str(ROOT), "diff", "--name-only", "08a9fbd8", "--", "scripts", "expertium", "rwkv"],
                          capture_output=True, text=True).stdout.split()
-    staged = subprocess.run(["git", "-C", str(ROOT), "diff", "--cached", "--name-only", "163c66d6", "--", "scripts", "expertium", "rwkv"],
+    staged = subprocess.run(["git", "-C", str(ROOT), "diff", "--cached", "--name-only", "08a9fbd8", "--", "scripts", "expertium", "rwkv"],
                             capture_output=True, text=True).stdout.split()
     changed = sorted(set(out) | set(staged))
     want = ["scripts/eval_pools.py", "scripts/small_model_heldout.py"]

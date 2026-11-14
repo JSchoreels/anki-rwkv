@@ -183,7 +183,7 @@ The speeds assumed:
   - there is no `show_time_intervals`;
   - there is no `scripts/sm77_warm.py`.
 - **Code.** The code trees are bitwise the ones the show-time instant-only small model (SM96) and the show-time
-  instant-only model, stage 2 (SM98) trained with (1e22b62c).
+  instant-only model, stage 2 (SM98) trained with (c99330a7).
 - **CPU proofs.** `check-cpu-sm101.json` is ALL OK.
 - **Cut equivalence.** The cut's proofs were re-run on this code (`check-cut-equivalence.json`, ALL OK). They show that
   the trainer and scorer paths are bitwise the full model with the layer skipped.

@@ -56,7 +56,7 @@ The 2k tier was not measured here; the 8k speeds are assumed for it.
 
 ## Early check and history (the run was first stopped, then finished)
 
-The early check after epoch 27 stopped the run on 11-12 at 09:59:48 (10:00 Thursday): on show-time inputs, 722 users, the Tiny two-head model (SM106) at epoch 27 minus epoch 26 of the show-time retrain (SM92) was +0.259% on curve against a +0.25% stop bar. The user then chose to finish anyway, and the run was relaunched at 13:17 on 11-12 with `OVERRIDE_EARLY_STOP=1` (commit 303be480). Rule A was unchanged. The run continued with epochs 28 and 29 and the cool-down, ending 11-13 at 01:32:45.
+The early check after epoch 27 stopped the run on 11-12 at 09:59:48 (10:00 Thursday): on show-time inputs, 722 users, the Tiny two-head model (SM106) at epoch 27 minus epoch 26 of the show-time retrain (SM92) was +0.259% on curve against a +0.25% stop bar. The user then chose to finish anyway, and the run was relaunched at 13:17 on 11-12 with `OVERRIDE_EARLY_STOP=1` (commit b8866aa4). Rule A was unchanged. The run continued with epochs 28 and 29 and the cool-down, ending 11-13 at 01:32:45.
 
 Early check numbers (stop bar: point estimate above +0.25% on either head):
 

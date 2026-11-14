@@ -5,8 +5,8 @@ Design (2026-11-11, design.md): the show-time retrain (SM92)'s constant-LR epoch
 1 layer (w64-c1) -> epochs 27..29 (both heads, constant LR, show-time inputs, SM92 epoch 26's recipe) -> the release's
 one-epoch 32k Muon cool-down on show-time inputs from epoch 29 (SM92's cool-down except the start and the architecture).
 
-  K1 code: branch sm106 is cut from origin/sm101: scripts/ expertium/ rwkv/ trees of HEAD == those of faf07fdf (the Tiny
-     Instant-Only model (SM101)'s finished run) == 1e22b62c (the code the Small Instant-Only model (SM98) and SM101 trained
+  K1 code: branch sm106 is cut from origin/sm101: scripts/ expertium/ rwkv/ trees of HEAD == those of 4f93a716 (the Tiny
+     Instant-Only model (SM101)'s finished run) == c99330a7 (the code the Small Instant-Only model (SM98) and SM101 trained
      with); no uncommitted source. Versus SM92's own code tree (origin/sm92) the trainer differs only by the
      curve_loss_weight knob (default 1.0, multiplies the curve terms by exactly 1.0 = SM92's loss bit for bit) and the
      scorer by the 1,500 pool option; recorded as a diff list.
@@ -63,7 +63,7 @@ CUT = SMD / "sm106-cut-e26"
 RECIPE = SMD / "sm106-recipe-sim-dec-1ep32k-muon"
 DEC = SMD / "sm106-c1-e29st-st-dec-1ep32k-muon"
 TRACK = "E89-F65e-F77a"
-BASE_COMMITS = ("faf07fdf", "1e22b62c")
+BASE_COMMITS = ("4f93a716", "c99330a7")
 CUT_PREFIX = "rwkv_modules.0.blocks.1."
 
 
