@@ -2,7 +2,7 @@
 
 Question (user): FSRS7-Instant is much better at review time but worse at scheduling time (shared-5k: -9.5% LogLoss at review time, -1.9% at the start of the day, +3.8% at scheduling time vs FSRS-7). Does the small model's advantage over FSRS have the same nuance? This measures, on the same reviews and with the same metric, FSRS-7 (default and per-user fit), FSRS7-Instant, the released small model (the leak-free small model (SM72s), cool-down from epoch 25; label `s-w64kd-final-sc-lanes-leakfree-dec25-1ep32k-muon/w8+s8`) and the big model (1 leak-free epoch) (label `big-leakfree-1ep/w8+s8`) at scheduling time, at the start of the day and at review time.
 
-Branch `sm81`, worktree `C:/Users/jonat/workspace/wt/sm81`, cut from `origin/sm77` (origin/main has no held-out scorer; sm77 carries it with the detach fix 799b279f).
+Branch `sm81`, worktree `C:/Users/jonat/workspace/wt/sm81`, cut from `origin/sm77` (origin/main has no held-out scorer; sm77 carries it with the detach fix bf938aa4).
 
 ## Protocol
 
