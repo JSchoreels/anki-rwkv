@@ -73,7 +73,7 @@ Worktree `C:/Users/jonat/workspace/wt/sm46`, branch `sm46` (= sm45 + this). Docs
 - Runbook/launcher: `C:/Users/jonat/workspace/wt/sm46/artifacts/small-model/sm46/runbook-sm46.sh`
 - Log: `C:/Users/jonat/workspace/wt/sm46/artifacts/small-model/sm46/runbook-sm46.log`
 - Dry run: `runbook-sm46-dryrun.log`.
-- Launched 10-20 17:26:21 from commit `053b5e34`. MSYS bash pid 3350, under the nohup wrapper 3348.
+- Launched 10-20 17:26:21 from commit `7e9193f8`. MSYS bash pid 3350, under the nohup wrapper 3348.
 - Order of steps:
   1. Wait for the SM44 runbook log (`wt/sm32c/artifacts/small-model/sm44/runbook-sm44.log`) to show `[sm44 ...] done`
      or `[sm44 ...] STOP`. The SM44 runbook itself waits for SM43 full (~20:50) and the 22:00-01:00 break, so SM46 will

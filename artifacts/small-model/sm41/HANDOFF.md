@@ -6,7 +6,7 @@ Branch `sm41`, worktree `C:/Users/jonat/workspace/wt/sm41`. Always `git fetch` +
 
 ## What runs (CPU only, no GPU)
 
-- **Runner:** `artifacts/small-model/sm41/fullrun/run-fullrun.sh`, launched hidden via WMI (Win32_Process.Create, ShowWindow=0). Code commit: e4a4b877.
+- **Runner:** `artifacts/small-model/sm41/fullrun/run-fullrun.sh`, launched hidden via WMI (Win32_Process.Create, ShowWindow=0). Code commit: 0a621ee2.
   - bash pid 65144 (Windows); the script logged pid 1385326 (MSYS) in `fullrun/runner.log`. At 08:00 the first jobs held for RAM (1.7 GB available) while the show-time retrain of the release (SM92) head training ran (started 07:47, about 45-90 min); they start on their own when RAM frees.
   - 4 processes x 1 thread, below-normal priority.
 - **Jobs:** 117 users x 2-3 splits = 304 split points x 60 days, 59 lanes per split. One job per user, largest first:

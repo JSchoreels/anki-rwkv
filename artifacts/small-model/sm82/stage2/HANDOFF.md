@@ -1,6 +1,6 @@
 # Response-time prediction (SM82) stage 2: handoff
 
-Branch `sm82s2` (from `sm82c`), worktree `C:/Users/jonat/workspace/wt/sm82s2`. Launched Sunday 11-01 08:56 via WMI (hidden), launcher `artifacts/small-model/sm82/stage2/launch-sm82s2.sh` at commit c4ddf3a8.
+Branch `sm82s2` (from `sm82c`), worktree `C:/Users/jonat/workspace/wt/sm82s2`. Launched Sunday 11-01 08:56 via WMI (hidden), launcher `artifacts/small-model/sm82/stage2/launch-sm82s2.sh` at commit 5af5d5da.
 
 ## What runs
 
@@ -8,7 +8,7 @@ The frozen released small model + the answer-time head on richer frozen features
 
 Ticket purposes, in order (queue owner small-model):
 
-1. `response-time prediction (SM82) stage 2: answer-time curve queries on the frozen released small model + the answer-time head on richer frozen features (SM82c): 150 users of the 732 set, 15 elapsed-time grid points (pass 1)`: queue 000822, started 08:56; the first attempt (000821, 08:54) failed in 3 s on a loader pickling error, fixed in c4ddf3a8. 80/150 users at 733 s; expected end ~09:25 (worst ~09:45).
+1. `response-time prediction (SM82) stage 2: answer-time curve queries on the frozen released small model + the answer-time head on richer frozen features (SM82c): 150 users of the 732 set, 15 elapsed-time grid points (pass 1)`: queue 000822, started 08:56; the first attempt (000821, 08:54) failed in 3 s on a loader pickling error, fixed in 5af5d5da. 80/150 users at 733 s; expected end ~09:25 (worst ~09:45).
 2. the same with `(pass 2)` only if users are missing.
 
 Logs: `C:/Users/jonat/workspace/wt/sm82s2/artifacts/small-model/sm82/stage2/gpu/launch-sm82s2.log` (last lines `queried users: N of 150` then `done (rc 0)`), `gpu/query.out`, `gpu/launch-sm82s2.nohup`. Outputs: `work/curves/query.jsonl` (one line per user: identity sums, timings) and `work/curves/users/<user>.npz` (~300 MB in all, not committed).
