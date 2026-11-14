@@ -1,6 +1,6 @@
 # SM48 handoff: faster held-out scoring
 
-Branch `sm48` (from `sm46`) in worktree `C:/Users/jonat/workspace/wt/sm48`, code commit be20647f. **Do not edit source in this worktree until the job has finished**: the queued job runs from this checkout (8 scorer processes, each reads the scripts at start).
+Branch `sm48` (from `sm46`) in worktree `C:/Users/jonat/workspace/wt/sm48`, code commit 9f373775. **Do not edit source in this worktree until the job has finished**: the queued job runs from this checkout (8 scorer processes, each reads the scripts at start).
 
 ## What was done
 
@@ -44,7 +44,7 @@ git push
 ```
 
 Then:
-- Fill in the measured review-evals/s and speedups in `docs/GPU_OPTIMIZATIONS.md` (rows SM48a, SM48b) and `docs/SMALL_MODEL.md` (section SM48). Add the implementation commit be20647f to the "Implementation commits" list.
+- Fill in the measured review-evals/s and speedups in `docs/GPU_OPTIMIZATIONS.md` (rows SM48a, SM48b) and `docs/SMALL_MODEL.md` (section SM48). Add the implementation commit 9f373775 to the "Implementation commits" list.
 - Report reviews/s per arm. The 732-pool ETA = 98.4M review-evals for 2 variants / rate.
 - If lanes are exact (compare passed, ideally bitwise) and faster, propose `--lanes` for pool scoring and merge `sm48` into the small-model line after SM47 (expect conflicts in `small_model_heldout.py` main()).
 - On `STOP: ... rows differ`, read `timing/compare-<run>.json` (`failures`, `max_abs_delta`):

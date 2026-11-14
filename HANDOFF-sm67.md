@@ -1,6 +1,6 @@
 # HANDOFF: data augmentation (SM67) stage 1
 
-Branch `sm67` (worktree `C:/Users/jonat/workspace/wt/sm67`), cut from `origin/sm72s` (9441d7db). Design:
+Branch `sm67` (worktree `C:/Users/jonat/workspace/wt/sm67`), cut from `origin/sm72s` (41fba4c6). Design:
 `artifacts/small-model/sm67/DESIGN.md` on main (section "Implementation"). Code and CPU checks only: **not launched,
 no GPU used**. The user launches it; the launcher itself waits for the tiny architecture additions' (SM77) launcher.
 
