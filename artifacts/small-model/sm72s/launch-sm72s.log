@@ -1,4 +1,4 @@
-[sm72s 10-26 08:10:42] started: 74806caa SM72 step 3: small model retrained leak-free (full retrain recipe, leak-free teacher + replay, 15 epochs, cool-downs from e15 and e10), launcher waits for the teacher export; dry run OK (DRYRUN=0)
+[sm72s 10-26 08:10:42] started: 4ddf042c SM72 step 3: small model retrained leak-free (full retrain recipe, leak-free teacher + replay, 15 epochs, cool-downs from e15 and e10), launcher waits for the teacher export; dry run OK (DRYRUN=0)
 [sm72s 10-26 08:10:42] waiting for the teacher export (step 2; last line: [sm72-big 10-26 05:56:56] enqueue: SM72 leak-free teacher targets from the big model's leak-free epoch (8,000 final-tier users, ~4.8 h total, this ticket stops )
 [sm72s 10-26 08:40:43] waiting for the teacher export (step 2; last line: [sm72-big 10-26 05:56:56] enqueue: SM72 leak-free teacher targets from the big model's leak-free epoch (8,000 final-tier users, ~4.8 h total, this ticket stops )
 [sm72s 10-26 09:10:43] waiting for the teacher export (step 2; last line: [sm72-big 10-26 05:56:56] enqueue: SM72 leak-free teacher targets from the big model's leak-free epoch (8,000 final-tier users, ~4.8 h total, this ticket stops )
@@ -125,7 +125,7 @@
 [sm72s 10-28 00:21:31] exit 1: SM72 small model leak-free (sm72s): 1-epoch 32k Muon cool-down from e15 (8k final tier, 581.9M reviews, lanes carry, leak-free replay KD) segment
 [sm72s 10-28 00:21:31] STOP: SM72 small model leak-free (sm72s): 1-epoch 32k Muon cool-down from e15 (8k final tier, 581.9M reviews, lanes carry, leak-free replay KD) segment ended without completing and without a stop request (exit 1); see C:/Users/jonat/workspace/wt/sm72s/artifacts/small-model/sm72s/gpu/decay.out
 [sm72s 10-28 00:21:31] STOP: ended with exit 1
-[sm72s 10-28 00:25:01] started: 74806caa SM72 step 3: small model retrained leak-free (full retrain recipe, leak-free teacher + replay, 15 epochs, cool-downs from e15 and e10), launcher waits for the teacher export; dry run OK (DRYRUN=0)
+[sm72s 10-28 00:25:01] started: 4ddf042c SM72 step 3: small model retrained leak-free (full retrain recipe, leak-free teacher + replay, 15 epochs, cool-downs from e15 and e10), launcher waits for the teacher export; dry run OK (DRYRUN=0)
 [sm72s 10-28 00:25:01] teacher export verified: [sm72-big 10-26 09:57:28] verify exit 0; manifest deleted_cards: "deleted_cards": "neighbour"
 [sm72s-replay] OK: deleted_cards neighbour, teacher = the big model's leak-free epoch (ac7f0d8a96cb), same dataset/layout/passes as fork-fp32-final8k
 [sm72s-exp] OK: scale-w64kd-final-sc-lanes-leakfree = SM56's experiment (options, seeds 2025/20261013, AdamW R01 schedule (AdamW peak 7e-4, 5-update warmup, constant) unless an option hook changes it, 8,000 final-tier users / 581,942,738 reviews per epoch, 15 epochs, from scratch, epoch hook) except distillation teacher/replay = leak-free (big-leakfree-1ep-final8k-neighbour) and env RWKV_DELETED_CARDS=neighbour; disjoint from the 464/732 pools and the sealed users
@@ -249,14 +249,14 @@
 [sm72s 10-28 08:35:07] exit 1: SM72 small model leak-free (sm72s): 1-epoch 32k Muon cool-down from e10 (8k final tier, 581.9M reviews, lanes carry, leak-free replay KD) segment
 [sm72s 10-28 08:35:07] STOP: STOP file present
 [sm72s 10-28 08:35:07] STOP: ended with exit 1
-[sm72s 10-28 08:35:57] started: 74806caa SM72 step 3: small model retrained leak-free (full retrain recipe, leak-free teacher + replay, 15 epochs, cool-downs from e15 and e10), launcher waits for the teacher export; dry run OK (DRYRUN=0)
+[sm72s 10-28 08:35:57] started: 4ddf042c SM72 step 3: small model retrained leak-free (full retrain recipe, leak-free teacher + replay, 15 epochs, cool-downs from e15 and e10), launcher waits for the teacher export; dry run OK (DRYRUN=0)
 [sm72s 10-28 08:35:57] teacher export verified: [sm72-big 10-26 09:57:28] verify exit 0; manifest deleted_cards: "deleted_cards": "neighbour"
 [sm72s-replay] OK: deleted_cards neighbour, teacher = the big model's leak-free epoch (ac7f0d8a96cb), same dataset/layout/passes as fork-fp32-final8k
 [sm72s-exp] REFUSE:
   epochs: 20 vs SM56 15
 [sm72s 10-28 08:36:01] STOP: experiment check failed
 [sm72s 10-28 08:36:01] STOP: ended with exit 1
-[sm72s 10-28 08:36:31] started: 74806caa SM72 step 3: small model retrained leak-free (full retrain recipe, leak-free teacher + replay, 15 epochs, cool-downs from e15 and e10), launcher waits for the teacher export; dry run OK (DRYRUN=0)
+[sm72s 10-28 08:36:31] started: 4ddf042c SM72 step 3: small model retrained leak-free (full retrain recipe, leak-free teacher + replay, 15 epochs, cool-downs from e15 and e10), launcher waits for the teacher export; dry run OK (DRYRUN=0)
 [sm72s 10-28 08:36:31] teacher export verified: [sm72-big 10-26 09:57:28] verify exit 0; manifest deleted_cards: "deleted_cards": "neighbour"
 [sm72s-replay] OK: deleted_cards neighbour, teacher = the big model's leak-free epoch (ac7f0d8a96cb), same dataset/layout/passes as fork-fp32-final8k
 [sm72s-exp] OK: scale-w64kd-final-sc-lanes-leakfree = SM56's experiment (options, seeds 2025/20261013, AdamW R01 schedule (AdamW peak 7e-4, 5-update warmup, constant) unless an option hook changes it, 8,000 final-tier users / 581,942,738 reviews per epoch, 20 epochs, from scratch, epoch hook) except distillation teacher/replay = leak-free (big-leakfree-1ep-final8k-neighbour) and env RWKV_DELETED_CARDS=neighbour; disjoint from the 464/732 pools and the sealed users
@@ -316,7 +316,7 @@
 [sm72s 10-28 18:34:31] exit 1: SM72 small model leak-free (sm72s): 1-epoch 32k Muon cool-down from e20 (8k final tier, 581.9M reviews, lanes carry, leak-free replay KD) segment
 [sm72s 10-28 18:34:31] STOP: STOP file present
 [sm72s 10-28 18:34:31] STOP: ended with exit 1
-[sm72s 10-28 18:46:36] started: 74806caa SM72 step 3: small model retrained leak-free (full retrain recipe, leak-free teacher + replay, 15 epochs, cool-downs from e15 and e10), launcher waits for the teacher export; dry run OK (DRYRUN=0)
+[sm72s 10-28 18:46:36] started: 4ddf042c SM72 step 3: small model retrained leak-free (full retrain recipe, leak-free teacher + replay, 15 epochs, cool-downs from e15 and e10), launcher waits for the teacher export; dry run OK (DRYRUN=0)
 [sm72s 10-28 18:46:36] teacher export verified: [sm72-big 10-26 09:57:28] verify exit 0; manifest deleted_cards: "deleted_cards": "neighbour"
 [sm72s-replay] OK: deleted_cards neighbour, teacher = the big model's leak-free epoch (ac7f0d8a96cb), same dataset/layout/passes as fork-fp32-final8k
 [sm72s-exp] OK: scale-w64kd-final-sc-lanes-leakfree = SM56's experiment (options, seeds 2025/20261013, AdamW R01 schedule (AdamW peak 7e-4, 5-update warmup, constant) unless an option hook changes it, 8,000 final-tier users / 581,942,738 reviews per epoch, 20 epochs, from scratch, epoch hook) except distillation teacher/replay = leak-free (big-leakfree-1ep-final8k-neighbour) and env RWKV_DELETED_CARDS=neighbour; disjoint from the 464/732 pools and the sealed users
@@ -356,7 +356,7 @@
 [sm72s 10-29 01:01:26] exit 1: SM72 small model leak-free (sm72s): 1-epoch 32k Muon cool-down from e20 (8k final tier, 581.9M reviews, lanes carry, leak-free replay KD) segment
 [sm72s 10-29 01:01:26] STOP: SM72 small model leak-free (sm72s): 1-epoch 32k Muon cool-down from e20 (8k final tier, 581.9M reviews, lanes carry, leak-free replay KD) segment ended without completing and without a stop request (exit 1); see C:/Users/jonat/workspace/wt/sm72s/artifacts/small-model/sm72s/gpu/decay.out
 [sm72s 10-29 01:01:26] STOP: ended with exit 1
-[sm72s 10-29 01:03:46] started: 315d5514 Decay smoke: drop lr_resume from the scratch protocol (a second resume failed: the smoke's 2 users did not add up with the reviews left) (DRYRUN=0)
+[sm72s 10-29 01:03:46] started: 052341c7 Decay smoke: drop lr_resume from the scratch protocol (a second resume failed: the smoke's 2 users did not add up with the reviews left) (DRYRUN=0)
 [sm72s 10-29 01:03:46] teacher export verified: [sm72-big 10-26 09:57:28] verify exit 0; manifest deleted_cards: "deleted_cards": "neighbour"
 [sm72s-replay] OK: deleted_cards neighbour, teacher = the big model's leak-free epoch (ac7f0d8a96cb), same dataset/layout/passes as fork-fp32-final8k
 [sm72s-exp] OK: scale-w64kd-final-sc-lanes-leakfree = SM56's experiment (options, seeds 2025/20261013, AdamW R01 schedule (AdamW peak 7e-4, 5-update warmup, constant) unless an option hook changes it, 8,000 final-tier users / 581,942,738 reviews per epoch, 20 epochs, from scratch, epoch hook) except distillation teacher/replay = leak-free (big-leakfree-1ep-final8k-neighbour) and env RWKV_DELETED_CARDS=neighbour; disjoint from the 464/732 pools and the sealed users
@@ -499,7 +499,7 @@
 - cool-down from e10: 69,478,198 reviews, 0 min, 0 reviews/s
 [sm72s 10-29 07:07:20] summary written: C:/Users/jonat/workspace/wt/sm72s/artifacts/small-model/sm72s/sm72s-summary.md (cool-down from e20)
 [sm72s 10-29 07:07:20] done
-[sm72s 10-29 14:45:01] started: 752b2b71 SM72s: epochs 21-25 then the 1-epoch 32k Muon cool-down from epoch 25 (replaces the one from epoch 20 as the last step); dry run OK (DRYRUN=0)
+[sm72s 10-29 14:45:01] started: dcee769c SM72s: epochs 21-25 then the 1-epoch 32k Muon cool-down from epoch 25 (replaces the one from epoch 20 as the last step); dry run OK (DRYRUN=0)
 [sm72s 10-29 14:45:01] teacher export verified: [sm72-big 10-26 09:57:28] verify exit 0; manifest deleted_cards: "deleted_cards": "neighbour"
 [sm72s-replay] OK: deleted_cards neighbour, teacher = the big model's leak-free epoch (ac7f0d8a96cb), same dataset/layout/passes as fork-fp32-final8k
 [sm72s-exp] OK: scale-w64kd-final-sc-lanes-leakfree = SM56's experiment (options, seeds 2025/20261013, AdamW R01 schedule (AdamW peak 7e-4, 5-update warmup, constant) unless an option hook changes it, 8,000 final-tier users / 581,942,738 reviews per epoch, 25 epochs, from scratch, epoch hook) except distillation teacher/replay = leak-free (big-leakfree-1ep-final8k-neighbour) and env RWKV_DELETED_CARDS=neighbour; disjoint from the 464/732 pools and the sealed users

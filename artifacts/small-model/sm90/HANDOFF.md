@@ -23,7 +23,7 @@ state compression at a large budget (SM46) fixes + this work). Always `git fetch
 - Sizes / encode cost: `cost-sm90.json` (`cost_sm90.py`).
 
 ## Running (detached, WMI hidden)
-- Launched 11-01 13:57 from commit ec6d0322 (WMI pid 60884). First ticket: 000840 (GPU check), queued behind
+- Launched 11-01 13:57 from commit ad9acc40 (WMI pid 60884). First ticket: 000840 (GPU check), queued behind
   000838 (duration-leak scoring (SM31)) and 000839 (grade-order sanity (SM33)), max wait 84 min; if it cannot start
   before the 16:00 break the runbook waits and re-enqueues after 01:00.
 - Runbook: `C:/Users/jonat/workspace/wt/sm90/artifacts/small-model/sm90/runbook-sm90.sh`
@@ -51,12 +51,12 @@ state compression at a large budget (SM46) fixes + this work). Always `git fetch
   error row (`"error": "OOM: ..."`, no metrics) and the runbook only counts error-free rows; the "0 review-evals/s" lines
   of pass 3 are those OOM rows. Earlier labels got these users through on a lone retry pass (3735 also OOM'd once for
   `vqC4430` and `s4c8n`); the 3 note-coded stages of `vqC4430N3020` needs more memory, so both fail at 0.8.
-- Fix (commit 25d6e447, runbook only, scripts untouched): after a pass with no progress, ONE more pass at
+- Fix (commit 1c307a69, runbook only, scripts untouched): after a pass with no progress, ONE more pass at
   `HELDOUT_GPU_MEMORY_FRACTION=0.92` (the cap other runbooks use for their "3 long users" tickets; memory only, the
   numerics are unchanged), then STOP if it still makes no progress. The cap resets for each label. Consequence: every
   coded label now costs one extra short ticket that OOMs at 0.8 before the 0.92 pass. Rows of already scored
   users/labels are untouched (the scorer skips them).
-- Relaunched 05:55 (WMI pid 52328, hidden) from commit 25d6e447; queued behind the robustness-to-other-apps (SM29)
+- Relaunched 05:55 (WMI pid 52328, hidden) from commit 1c307a69; queued behind the robustness-to-other-apps (SM29)
   scoring ticket. Remaining: `vqC4430N3020` (2 long users), `rel/w8+vqC5902`, `rel/w8+vqN3020`, then the rule read-out.
   Expected end: ~13:00-15:00 today (before the 20:00 break unless the queue is busier), else resumes after 01:00.
 
