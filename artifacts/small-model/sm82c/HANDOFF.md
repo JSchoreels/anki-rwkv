@@ -1,6 +1,6 @@
 # Answer-time head on richer frozen features (SM82c): handoff
 
-Branch `sm82c`, worktree `C:/Users/jonat/workspace/wt/sm82c` (cut from `sm82b` at a5057f2f; sources at 9cb2e620). Launched Sunday 11-01 07:40 via WMI (hidden).
+Branch `sm82c`, worktree `C:/Users/jonat/workspace/wt/sm82c` (cut from `sm82b` at 6229655c; sources at 06ee61b4). Launched Sunday 11-01 07:40 via WMI (hidden).
 
 ## What was built
 
