@@ -1,0 +1,237 @@
+{
+ "commit": "5bfe1ef8",
+ "minutes": 0.2,
+ "all_ok": true,
+ "partial": null,
+ "checks": {
+  "C1_code_sm113_launch_tree": {
+   "ok": true,
+   "vs_sm113_launch": {
+    "scripts/sm91s2.py": [
+     5,
+     5
+    ],
+    "scripts/sm91s3.py": [
+     2,
+     2
+    ]
+   },
+   "rewrite_lines_only_commit_ids": true,
+   "vs_c99330a7": {
+    "scripts/expertium_decay.py": [
+     6,
+     1
+    ],
+    "scripts/expertium_options.py": [
+     6,
+     1
+    ],
+    "scripts/sm91s2.py": [
+     5,
+     5
+    ],
+    "scripts/sm91s3.py": [
+     2,
+     2
+    ]
+   },
+   "untracked": []
+  },
+  "C2_old_paths_unchanged": {
+   "ok": true,
+   "steps": [
+    {
+     "done": [
+      11,
+      12
+     ],
+     "files_equal": true,
+     "lr_resume": {
+      "total_reviews": 2000,
+      "reviews_offset": 800
+     }
+    },
+    {
+     "done": [
+      13
+     ],
+     "files_equal": true,
+     "lr_resume": {
+      "total_reviews": 2000,
+      "reviews_offset": 1000
+     }
+    },
+    {
+     "done": [],
+     "files_equal": true,
+     "lr_resume": {
+      "total_reviews": 2000,
+      "reviews_offset": 1000
+     }
+    }
+   ],
+   "real": {
+    "sm101_prepared": {
+     "equal": true,
+     "lr_resume": null,
+     "total": 581942724
+    },
+    "sm101_protocol_resumed_twice": {
+     "equal": true,
+     "lr_resume": {
+      "total_reviews": 581942724,
+      "reviews_offset": 290914508
+     },
+     "total": 581942724
+    },
+    "sm98_prepared": "missing",
+    "sm98_protocol": {
+     "equal": true,
+     "lr_resume": null,
+     "total": 581942724
+    },
+    "sm110_prepared": {
+     "equal": true,
+     "lr_resume": null,
+     "total": 581942724
+    },
+    "sm110_protocol_resumed": {
+     "equal": true,
+     "lr_resume": {
+      "total_reviews": 581942724,
+      "reviews_offset": 285245041
+     },
+     "total": 581942724
+    }
+   },
+   "check_decay_resume": {
+    "exit": 0,
+    "pass": 18,
+    "fail": []
+   }
+  },
+  "C3_segment_schedule": {
+   "ok": true,
+   "pass1_equal": true,
+   "pass2_equal": true,
+   "pass1_end_lr_over_peak": 0.29289321881345254,
+   "pass2_end_lr": 0.0,
+   "resumes": {
+    "p1": {
+     "lr_resume": {
+      "total_reviews": 4000,
+      "reviews_offset": 700,
+      "segment": true
+     },
+     "rows": [
+      2,
+      3
+     ],
+     "lr_equal": true
+    },
+    "p2": {
+     "lr_resume": {
+      "total_reviews": 4000,
+      "reviews_offset": 2700
+     },
+     "rows": [
+      2,
+      3
+     ],
+     "lr_equal": true
+    }
+   },
+   "refused": {
+    "segment_too_long": true,
+    "segment_flag_not_true": true,
+    "no_segment_short": true,
+    "negative_offset": true
+   }
+  },
+  "C4_inputs_pinned": {
+   "ok": true,
+   "teacher": "c49e45d69819",
+   "epoch38": "e6ea69124af0",
+   "sm101_cooldown": "complete",
+   "replay_manifest": "db0d15a971ae",
+   "sm110_target_check": {
+    "ok": true,
+    "users_ok": 8000,
+    "failures_count": 0
+   },
+   "early_stop_reference": {
+    "snapshot": "attempts/attempt-2/expertium/E89-F65e-F77a/snapshots/users-01200",
+    "master": "3ab9e629e7d7",
+    "users_done": 4094,
+    "reviews_done": 290914508,
+    "of": 581942724,
+    "fraction": 0.4999,
+    "last_update_lr_over_peak": 0.29305,
+    "formula_lr_over_peak": 0.293,
+    "ok": true
+   }
+  },
+  "C5_pass1_folder": {
+   "ok": true,
+   "pair": "8,000 users, 581,942,724 reviews per pass, schedule over 1,163,885,448, update offset 838964, start e6ea69124af0, arch w64-c1, trims [5599]",
+   "mutated_refused": {
+    "lr_offset": true,
+    "no_segment": true,
+    "old_targets": true,
+    "arch_w64": true,
+    "sm113_start": true,
+    "decay_alpha": true,
+    "curve_weight": true,
+    "order": true,
+    "start_sha": true
+   },
+   "schedule_total": 1163885448,
+   "lr_start": 0.0007,
+   "lr_at_R_over_peak": 0.29289321881345254,
+   "muon_fresh": true,
+   "label_windows": true,
+   "trims": [
+    5599
+   ]
+  },
+  "C6_pass2_prepare_and_pair": {
+   "ok": true,
+   "prepare": "[sm115-prepare] p2 sm115-c6-p2: 8,000 users, 581,942,724 reviews, from E89-F65e-F77a master 31545b7a48ab, update offset 856000, lr_resume {\"total_reviews\": 1163885448, \"reviews_offset\": 581942724}",
+   "pair": "8,000 users (new order), 581,942,724 reviews, from pass 1's end (master 31545b7a48ab, update offset 856000), lr_resume {\"total_reviews\": 1163885448, \"reviews_offset\": 581942724}",
+   "mutated_refused": {
+    "same_order": true,
+    "lr_offset": true,
+    "other_start": true,
+    "teacher": true
+   },
+   "lr": {
+    "p1_at_R": 0.00020502525316941678,
+    "p2_at_0": 0.00020502525316941678,
+    "p2_end": 0.0,
+    "p2_mid_vs_formula": 0.0
+   }
+  },
+  "C7_rule_selftest": {
+   "ok": true,
+   "out": "true, \"sm98_minus_sm101_known_go_continue\": true, \"sm113_minus_sm98_known_through_this_code\": true, \"sm99_minus_sm101_go_gap_one\": true, \"sm113_minus_sm101_go\": true, \"synthetic_0p04pct_better_is_no_go_but_continue\": true, \"mid_edges\": true, \"go_edges\": true, \"end_to_end_mid_and_decide\": true} -> OK"
+  },
+  "C8_breaks": {
+   "ok": true,
+   "got": {
+    "fri_16:30": "NEXT 210",
+    "fri_20:30": "NOW 16260",
+    "sat_01:00": "NEXT 1140",
+    "sun_01:00": "NEXT 900",
+    "sun_16:30": "NOW 30660",
+    "sat_15:30": "NEXT 270",
+    "sun_15:00": "NEXT 60",
+    "real_now": "NEXT 295"
+   },
+   "code_equals_sm110_block": true
+  },
+  "C9_disk": {
+   "ok": true,
+   "free_gib": 1662.0
+  }
+ }
+}
