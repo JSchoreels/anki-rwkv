@@ -1,4 +1,4 @@
-[sm72s 10-26 08:08:37] started: 0f817fc4 SM72: label-window pre-flight for the big-model epoch (27 unlabelled final windows trimmed, as SM55/SM56), launcher runs it before training (DRYRUN=1)
+[sm72s 10-26 08:08:37] started: 7f5cfdc4 SM72: label-window pre-flight for the big-model epoch (27 unlabelled final windows trimmed, as SM55/SM56), launcher runs it before training (DRYRUN=1)
 [sm72s 10-26 08:08:37] DRYRUN: would wait for the teacher export (last line: [sm72-big 10-26 05:56:56] enqueue: SM72 leak-free teacher targets from the big model's leak-free epoch (8,000 final-tier users, ~4.8 h total, this ticket stops )
 [sm72s 10-26 08:08:40] DRYRUN warning (would stop): replay targets C:/Users/jonat/workspace/anki-rwkv/artifacts/cache/kd-replay/big-leakfree-1ep-final8k-neighbour incomplete
 [sm72s-replay] OK: deleted_cards neighbour, teacher = the big model's leak-free epoch (ac7f0d8a96cb), same dataset/layout/passes as fork-fp32-final8k
@@ -22,7 +22,7 @@
 [sm72s 10-26 08:08:48] DRYRUN enqueue: SM72 leak-free scoring s-w64kd-final-sc-lanes-leakfree-dec10-1ep32k-muon on the 732 pool minus 9 never-fit (723) (pass 1) (expected 12 min)
 [sm72s 10-26 08:08:48] DRYRUN enqueue: SM72 leak-free scoring s-w64kd-final-sc-lanes-leakfree-dec10-1ep32k-muon on the 3 long users of the 732 pool (cap 0.92) (expected 6 min)
 [sm72s 10-26 08:08:48] DRYRUN OK
-[sm72s 10-29 14:44:12] started: 239bdda8 SM72s launcher and rule script as they ran epochs 16-20 and the cool-down from epoch 20 (10-28): MAX_EPOCHS 20, e20 pair rows, stop flag removed before a cool-down segment, NO-DEC10 (DRYRUN=1)
+[sm72s 10-29 14:44:12] started: e5b5d081 SM72s launcher and rule script as they ran epochs 16-20 and the cool-down from epoch 20 (10-28): MAX_EPOCHS 20, e20 pair rows, stop flag removed before a cool-down segment, NO-DEC10 (DRYRUN=1)
 [sm72s 10-29 14:44:12] teacher export verified: [sm72-big 10-26 09:57:28] verify exit 0; manifest deleted_cards: "deleted_cards": "neighbour"
 [sm72s-replay] OK: deleted_cards neighbour, teacher = the big model's leak-free epoch (ac7f0d8a96cb), same dataset/layout/passes as fork-fp32-final8k
 {"experiment": "scale-w64kd-final-sc-lanes-leakfree-dryrun", "kind": "train", "tier": "final", "seed": 2025, "epochs": 25, "train_users": 8000, "eval_users": 1500, "option_overrides": {"architecture": "w64", "batch_chunks": 16, "native_glue": false, "native_group_norm": false, "native_index": false, "native_wkv": false, "wkv_tile": false, "distillation": {"teacher": "C:/Users/jonat/workspace/wt/sm72/artifacts/small-model/sm72-big-leakfree-1ep/expertium/big-leakfree-1ep/master.pth", "alpha": 0.9, "decay_alpha": 0.5, "kd_source": "replay", "replay": "C:/Users/jonat/workspace/anki-rwkv/artifacts/cache/kd-replay/big-leakfree-1ep-final8k-neighbour"}, "chunk_reviews": 2048, "state_carry": {"lanes": "strided"}}, "env": {"RWKV_DELETED_CARDS": "neighbour"}}
