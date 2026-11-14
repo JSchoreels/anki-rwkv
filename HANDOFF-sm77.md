@@ -1,6 +1,6 @@
 # HANDOFF: tiny architecture additions (SM77) stage 1
 
-Branch `sm77` (worktree `C:/Users/jonat/workspace/wt/sm77`), cut from `origin/sm72s` (6a074a0b). Design:
+Branch `sm77` (worktree `C:/Users/jonat/workspace/wt/sm77`), cut from `origin/sm72s` (4adc6c1f). Design:
 `artifacts/small-model/sm77/DESIGN.md` on main. Code and CPU checks only: **not launched, no GPU used**. The user
 launches it after the better teacher's (SM65) stage 1 (Friday night or Saturday).
 
