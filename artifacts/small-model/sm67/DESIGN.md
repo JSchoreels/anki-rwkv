@@ -242,7 +242,7 @@ written). It samples 25 training users stratified by size (2k-250k reviews, 1,31
 | 2. Augmented constant-LR epochs (re-drawn splits + re-seed) + cool-down | ~18 h | whether augmentation in training buys the smaller model's (SM73) room |
 | If stage 1 stops | ~9 h | the augmentation axis is closed (only the split is valid) |
 
-## 8. Implementation (10-30, branch `sm67` c414bc83, worktree `wt/sm67`; CPU only, not launched)
+## 8. Implementation (10-30, branch `sm67` ade6d063, worktree `wt/sm67`; CPU only, not launched)
 
 Code (flag off = today's training, bit for bit):
 - `scripts/augment.py` (new): spec check, pseudo ids `10,000,000 + 4 x user + part`, note hash
