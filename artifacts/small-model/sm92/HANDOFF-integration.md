@@ -151,7 +151,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 ## State 2026-11-04 ~09:55 (integration agent): fork main done, draft release building
 
 - Head gate PASS 08:50 (time LogLoss 1.9580 vs 1.9568, +0.06%). Head packaged and committed on anki-rwkv `sm92`:
-  `0ecbace5156e359cc9cff2eb272ee8fb09fd0faa` (= `⟨RWKV_COMMIT⟩` in the fork's RELEASE.md link).
+  `80035594ed0a3bf9577fcaff7cfa8d8b0aa2a122` (= `⟨RWKV_COMMIT⟩` in the fork's RELEASE.md link).
 - Fork `main` (JSchoreels/anki):
   - `6caa5fb0e` Integrate the show-time retrain of the release (SM92) as the default small RWKV model (squash of
     `sm92-default-model`, plus the head files, the real `sm92-time-vectors.json.gz` fixture, filled notes/docs and a

@@ -43,7 +43,7 @@ ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT))
 HERE = Path(__file__).resolve().parent
 PY = sys.executable
-BASE = "29727c6b"   # the show-time retrain of the release (SM92) branch tip this branch starts from
+BASE = "22ca8edf"   # the show-time retrain of the release (SM92) branch tip this branch starts from
 BASE_TREE = Path("C:/Users/jonat/workspace/wt/sm92")
 RUN72S = Path("C:/Users/jonat/workspace/wt/sm72s/artifacts/accuracy/experiments/scale-w64kd-final-sc-lanes-leakfree/run")
 RELEASE = Path("C:/Users/jonat/workspace/wt/sm72s/artifacts/small-model/scale-w64kd-final-sc-lanes-leakfree-dec25-1ep32k-muon")

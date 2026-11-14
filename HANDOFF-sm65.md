@@ -1,7 +1,7 @@
 # HANDOFF: better teacher (SM65) stage 1
 
-Branch `sm65` (worktree `C:/Users/jonat/workspace/wt/sm65`), cut from `sm72` (9dfa232e). Design:
-`artifacts/small-model/sm65/DESIGN.md` on main (3f2316e7, 4be454e3).
+Branch `sm65` (worktree `C:/Users/jonat/workspace/wt/sm65`), cut from `sm72` (413be0bb). Design:
+`artifacts/small-model/sm65/DESIGN.md` on main (1c11015a, 7e56cd0e).
 
 ## State 2026-10-29 15:13: launcher started hidden, waiting for the leak-free small model (SM72s)
 
@@ -27,7 +27,7 @@ Queue purposes all start with `small-model: better teacher (SM65) stage 1:` (the
   `anki-rwkv/artifacts/full-run/run-8k-20261013/run.json` with id < 5000), 285,886,387 reviews (285,884,532 after 14
   unlabelled tails were trimmed). Start: `wt/sm72/artifacts/small-model/sm72-big-leakfree-1ep/expertium/big-leakfree-1ep/master.pth`
   (sha256 ac7f0d8a..., read only). Recipe as SM72 step 1: 2 strided lanes x 8,192 carried state, fresh AdamW, warmup
-  200 updates, 3.5e-4 -> 0 one_minus_sin, cap 0.8, carry table above 768 MiB in host memory (a0a953ea), shuffle seed 1.
+  200 updates, 3.5e-4 -> 0 one_minus_sin, cap 0.8, carry table above 768 MiB in host memory (a9cfe329), shuffle seed 1.
   `decay.json` "users_check": 0 overlap with the run's validation (1,500), quick validation, final test (500), preserved
   final test, and the 732 (incl. never fit) / 464 / 3-long lists.
 - New checkpoint: `artifacts/small-model/sm65-big-moreusers/expertium/big-moreusers/master.pth`.

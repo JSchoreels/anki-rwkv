@@ -3,7 +3,7 @@
 ## Commits
 
 - Fork `main`: `094910d73` "RWKV model sizes Big / Small / Tiny: Tiny runs RWKV-Instant on the smaller instant-only model (SM101)" (built on worktree branch `model-sizes`, fast-forwarded into `main` from `cea5304b9`, pushed). Report in the fork: `docs/rwkv-sm101-2026-11-11.MD`.
-- anki-rwkv `sm101-package` (cut from `sm101`): `4b71dabc` package `artifacts/models/sm101` + INT8/INT4 state scoring (`artifacts/small-model/sm101/sm104/`), then this report and the speed-bench logs (`sm104/bench/`). No release, no GitHub comments.
+- anki-rwkv `sm101-package` (cut from `sm101`): `f5996836` package `artifacts/models/sm101` + INT8/INT4 state scoring (`artifacts/small-model/sm101/sm104/`), then this report and the speed-bench logs (`sm104/bench/`). No release, no GitHub comments.
 
 ## What the user gets
 
