@@ -6,10 +6,10 @@
 The run: the show-time big model (SM91 step 2) + two big-model epochs on show-time inputs with "curve_loss_weight"
 0.0 (sm99_epoch.py), each the big model's own recipe (fresh AdamW, warmup 200, 3.5e-4 -> 0 one_minus_sin).
 
-  K1 code: scripts/ expertium/ rwkv/ trees at HEAD == 1e22b62c (the trees the show-time instant-only small model
+  K1 code: scripts/ expertium/ rwkv/ trees at HEAD == c99330a7 (the trees the show-time instant-only small model
      (SM96), the show-time instant-only model, stage 2 (SM98) and the smaller instant-only model (SM101) trained and
      scored with) and nothing uncommitted there; the files changed since the show-time big model (SM91 step 2)'s launch
-     commit 72ba7cef are listed (K3 / K5 prove they do not change its path).
+     commit 11d6c1a4 are listed (K3 / K5 prove they do not change its path).
   K2 epoch 1's prepared folder == the show-time big model (SM91 step 2)'s epoch folder except curve_loss_weight 0.0, the
      start (its master.pth, sha256 pinned), the shuffle seed (2: the row order only; same users, same trimmed ranges,
      same 27 label-window trims), track and paths (sm99_epoch.py pair); 11 mutated copies refused (sm99_epoch.py
@@ -18,7 +18,7 @@ The run: the show-time big model (SM91 step 2) + two big-model epochs on show-ti
      carry, CatchUp.loss, clip, the trainer's AdamW, TorchScript like the trainer), architecture "fork" from the show-time
      big model (SM91 step 2)'s weights, users 8632 and 5625 of the epoch at 1,024-review windows x 2 strided lanes (the
      window size is a layout parameter; the CPU process stays far below 6 GB):
-       K3a the tree of 72ba7cef (git archive; the show-time big model (SM91 step 2) trained from it), options without
+       K3a the tree of 11d6c1a4 (git archive; the show-time big model (SM91 step 2) trained from it), options without
            the weight == this tree, options without the weight: per update the loss bits, the instant average bits,
            the instant predictions, every gradient, the zero-gradient set, and the final weights, bit for bit;
        K3b this tree with weight 1.0 == this tree without the weight, bit for bit;
@@ -28,9 +28,9 @@ The run: the show-time big model (SM91 step 2) + two big-model epochs on show-ti
   K4 show-time samples with the epoch's options (scripts/sm91.py t1_t2, users 8632, 5984, 7885): the flag moves only
      the instant query rows' interval columns 2-7 and the curve query times (never longer); the trainer rows equal the
      scorer's e2s-query rows bitwise.
-  K5 scorer: this tree's small_model_heldout.py and the tree of 72ba7cef (git archive) give identical rows on CPU for
+  K5 scorer: this tree's small_model_heldout.py and the tree of 11d6c1a4 (git archive) give identical rows on CPU for
      the show-time big model (SM91 step 2) (users 4676, 2388 of the 732 set, w8+s8, --split-existing --deleted-cards
-     neighbour, --inputs e2s-query and normal), so its committed rows (72ba7cef) are comparable with this tree's rows.
+     neighbour, --inputs e2s-query and normal), so its committed rows (11d6c1a4) are comparable with this tree's rows.
   K6 rule: sm99_rule.py selftest.
   K7 breaks: sm99_block.py on fixed times (the daily 20:00-01:00, Sunday from 16:00, a quiet.json window replacing a
      night's default).
@@ -54,8 +54,8 @@ sys.path.insert(0, str(HERE))
 import sm99_epoch  # noqa: E402
 
 PY = sys.executable
-CODE = "1e22b62c"
-REF_COMMIT = "72ba7cef"
+CODE = "c99330a7"
+REF_COMMIT = "11d6c1a4"
 DATA = r"C:\Users\jonat\workspace\anki-rwkv\data\anki-revlogs-10k-original-20261011"
 ENV = dict(os.environ, RWKV_DELETED_CARDS="neighbour", CUDA_VISIBLE_DEVICES="", GPU_BATCH1_DATA_PATH=DATA,
            OMP_NUM_THREADS="2", MKL_NUM_THREADS="2")
@@ -92,9 +92,9 @@ def k1(rep):
     trees = {p: (git("rev-parse", f"HEAD:{p}"), git("rev-parse", f"{CODE}:{p}")) for p in ("scripts", "expertium", "rwkv")}
     dirty = git("status", "--porcelain", "--", "scripts", "expertium", "rwkv")
     changed = git("diff", "--name-only", REF_COMMIT, "HEAD", "--", "scripts", "expertium", "rwkv").splitlines()
-    rep.check("K1_code_trees_equal_1e22b62c", all(a == b for a, b in trees.values()) and not dirty,
+    rep.check("K1_code_trees_equal_c99330a7", all(a == b for a, b in trees.values()) and not dirty,
               trees={k: v[0][:12] for k, v in trees.items()}, uncommitted=dirty.splitlines()[:10],
-              changed_since_sm91s2_launch_72ba7cef=changed)
+              changed_since_sm91s2_launch_11d6c1a4=changed)
 
 
 def k2(rep):

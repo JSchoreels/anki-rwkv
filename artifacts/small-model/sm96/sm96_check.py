@@ -5,8 +5,8 @@ Design (user 2026-11-09 00:20): the instant-only small model (SM57) stage 4's co
 (instant-only, constant LR, show-time inputs) -> the release's one-epoch 32k Muon cool-down on show-time inputs from
 epoch 31. The same shape as the show-time retrain of the release (SM92): its epoch 26 and its cool-down on show-time inputs.
 
-  K1 code: branch sm96 is cut from sm57 8b323fb1 (the code stage 4 of the instant-only small model (SM57) trained with):
-     scripts/ expertium/ rwkv/ trees of HEAD == 8b323fb1's (git tree hashes, so bitwise); and sm57 contains the whole
+  K1 code: branch sm96 is cut from sm57 035cf1dd (the code stage 4 of the instant-only small model (SM57) trained with):
+     scripts/ expertium/ rwkv/ trees of HEAD == 035cf1dd's (git tree hashes, so bitwise); and sm57 contains the whole
      show-time retrain of the release (SM92) branch (merge-base == sm92 tip), its source diff to SM92 is exactly the 6
      curve-loss-weight / 1,500-pool files, and the show-time path files (gpu_r01_samples.py, sm77_warm.py,
      expertium_decay.py, gpu_r01_prefetch.py apart from its option allowlist line) are byte-identical to SM92's.
@@ -54,7 +54,7 @@ REL = W / "sm72s/artifacts/small-model/scale-w64kd-final-sc-lanes-leakfree-dec25
 SM92DEC = W / "sm92/artifacts/small-model/sm92-e26-dec-1ep32k-muon"
 SM92E26 = W / "sm92/artifacts/small-model/sm92-e26"
 TRACK = "E89-F65e-F77a"
-BASE = "8b323fb196641f7fcd513164bfb528abbb2398e2"
+BASE = "035cf1dd400d8350bbdd9d1f27d76874ffd94bb3"
 DIFF6 = {"expertium/model/variant_model.py", "scripts/eval_pools.py", "scripts/expertium_options.py",
          "scripts/gpu_r01_prefetch.py", "scripts/gpu_r01_training.py", "scripts/small_model_heldout.py"}
 SAME = ["scripts/gpu_r01_samples.py", "scripts/sm77_warm.py", "scripts/expertium_decay.py", "scripts/check_muon_fresh_decay.py",
@@ -83,7 +83,7 @@ def k1():
     pre_ok = len(pre_lines) == 2 and pre_lines[0][0] == "-" and pre_lines[0][1:].strip() == '"show_time_intervals"}' and \
         pre_lines[1][0] == "+" and pre_lines[1][1:].strip() == '"show_time_intervals", "curve_loss_weight"}'
     ok = all(a == b for a, b in trees.values()) and not dirty and mb == sm92 and diff == DIFF6 and all(same.values()) and pre_ok
-    return ok, {"trees_equal_8b323fb1": {d: a == b for d, (a, b) in trees.items()}, "uncommitted_source": bool(dirty),
+    return ok, {"trees_equal_035cf1dd": {d: a == b for d, (a, b) in trees.items()}, "uncommitted_source": bool(dirty),
                 "sm92_tip_is_ancestor": mb == sm92, "source_diff_vs_sm92": sorted(diff), "show_time_files_identical": same,
                 "prefetch_diff_is_allowlist_only": pre_ok}
 

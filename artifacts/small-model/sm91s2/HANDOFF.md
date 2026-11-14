@@ -1,6 +1,6 @@
 # Show-time interval retrain (SM91) step 2: handoff
 
-Branch `sm91s2` (cut from `sm91` at `a8a44f78`, then merged `sm65` at `e1c0b780` for the big-epoch `--init / --track` tooling), worktree `C:/Users/jonat/workspace/wt/sm91s2`. Design, rule, proofs and deviations: `DESIGN.md` (this folder).
+Branch `sm91s2` (cut from `sm91` at `24b3f154`, then merged `sm65` at `0e78817a` for the big-epoch `--init / --track` tooling), worktree `C:/Users/jonat/workspace/wt/sm91s2`. Design, rule, proofs and deviations: `DESIGN.md` (this folder).
 
 ## What it asks
 
@@ -15,7 +15,7 @@ Does one added big-model epoch on show-time intervals win back the big model's s
 
 ## What runs (detached, WMI hidden)
 
-Launcher `launch-sm91s2.sh`, log `gpu/launch-sm91s2.log`, nohup `gpu/launch-sm91s2.nohup`. Launched 2026-11-02 20:11 (WMI pid **72836**, inner bash 76208, commit `f5d1b7a7`). It sleeps through the break (logs about once an hour), then:
+Launcher `launch-sm91s2.sh`, log `gpu/launch-sm91s2.log`, nohup `gpu/launch-sm91s2.nohup`. Launched 2026-11-02 20:11 (WMI pid **72836**, inner bash 76208, commit `70edc9f5`). It sleeps through the break (logs about once an hour), then:
 
 | # | step (ticket purposes start with "show-time interval retrain (SM91) step 2: ") | expected min | output |
 |---|---|---|---|
