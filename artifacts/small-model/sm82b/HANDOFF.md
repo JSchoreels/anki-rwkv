@@ -1,6 +1,6 @@
 # Frozen-model answer-time head (SM82b): handoff
 
-Branch `sm82b`, worktree `C:/Users/jonat/workspace/wt/sm82b` (cut from `sm82` at 94fb0f66). Launched Sunday 11-01 06:27 via WMI (hidden).
+Branch `sm82b`, worktree `C:/Users/jonat/workspace/wt/sm82b` (cut from `sm82` at ed508895). Launched Sunday 11-01 06:27 via WMI (hidden).
 
 ## What was built
 
