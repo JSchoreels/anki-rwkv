@@ -1,6 +1,6 @@
 # Response-time prediction (SM82) stage 1: handoff
 
-Branch `sm82`, worktree `C:/Users/jonat/workspace/wt/sm82` (cut from `sm80` at 768ce050). Launched 11-01 03:40 via WMI (hidden).
+Branch `sm82`, worktree `C:/Users/jonat/workspace/wt/sm82` (cut from `sm80` at 365e9327). Launched 11-01 03:40 via WMI (hidden).
 
 ## What was built
 

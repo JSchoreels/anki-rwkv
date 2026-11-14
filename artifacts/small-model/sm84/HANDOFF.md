@@ -4,11 +4,11 @@ Branch `sm84` (from `sm82s2`), worktree `C:/Users/jonat/workspace/wt/sm84`. CPU 
 
 ## Done
 
-- Time to fluency (SM84): `time-to-fluency.md` (takeaways written), `time-to-fluency.json`, `time-to-fluency-users.json`; script `scripts/sm84_fluency.py` (~20-70 s, 150 users). Committed 7c81f97b.
+- Time to fluency (SM84): `time-to-fluency.md` (takeaways written), `time-to-fluency.json`, `time-to-fluency-users.json`; script `scripts/sm84_fluency.py` (~20-70 s, 150 users). Committed 51c8794c.
 
 ## Done: wider simulator search with time-aware scheduling (SM86), finished 11-01 10:36, takeaways written
 
-Wider simulator search with time-aware scheduling (SM86): `scripts/sm86_search.py run --procs 6` (6 processes, below-normal priority), launched Sunday 11-01 10:21 from commit e05b5493 via `launch-sm86.sh`. Expected ~20 min (6-user test: 43 s per user-batch of 6 -> 150 users ~17-20 min), so done by ~10:45.
+Wider simulator search with time-aware scheduling (SM86): `scripts/sm86_search.py run --procs 6` (6 processes, below-normal priority), launched Sunday 11-01 10:21 from commit 9c750122 via `launch-sm86.sh`. Expected ~20 min (6-user test: 43 s per user-batch of 6 -> 150 users ~17-20 min), so done by ~10:45.
 
 - Log: `C:/Users/jonat/workspace/wt/sm84/artifacts/small-model/sm84/logs/sm86.log` (last line `done (rc 0) ...`), launcher output `logs/launch-sm86.nohup`.
 - Outputs: `simulator-search.md` (with a `TAKEAWAYS` placeholder), `simulator-search.json`, `simulator-search-users.json` (full precision, a few MB).
