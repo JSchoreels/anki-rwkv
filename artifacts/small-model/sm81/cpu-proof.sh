@@ -11,7 +11,7 @@ WT=C:/Users/jonat/workspace/wt/sm81
 O=$WT/artifacts/small-model/sm81/cpu-proof
 mkdir -p "$O"; rm -rf "$O"/*.jsonl "$O"/dump-*
 echo '{"users": [2388, 4676, 1712]}' > "$O/users3.json"
-BASE=d1d21473   # sm81's branch point (origin/sm77)
+BASE=d7726fd8   # sm81's branch point (origin/sm77)
 git -C "$WT" show $BASE:scripts/small_model_heldout.py > "$WT/scripts/_sm81_orig_heldout.py"
 SMALL=C:/Users/jonat/workspace/wt/sm72s/artifacts/small-model/scale-w64kd-final-sc-lanes-leakfree-dec25-1ep32k-muon/expertium/E89-F65e-F77a/master.pth
 BIGCK=C:/Users/jonat/workspace/wt/sm72/artifacts/small-model/sm72-big-leakfree-1ep/expertium/big-leakfree-1ep/master.pth

@@ -1,6 +1,6 @@
 # SM47 handoff: float16 row scales (h) and int8 shift vectors (x8)
 
-Branch `sm47` in worktree `C:/Users/jonat/workspace/wt/sm45`, code commit 4c2750ee. **Do not edit source in this
+Branch `sm47` in worktree `C:/Users/jonat/workspace/wt/sm45`, code commit 1e9a0b48. **Do not edit source in this
 worktree until the job has finished**: the queued job runs from this checkout.
 
 ## What is running
@@ -58,7 +58,7 @@ plus one per-vector scale (f16 with h, else f32). Card = 2 layers x 4 heads x 16
 | w8+s4c8nx8 | 13,920 | 11,328 | 43.00 |
 | w8+s4c8nhx8 | 11,824 | 10,272 | 37.60 |
 
-## Implementation (commit 4c2750ee)
+## Implementation (commit 1e9a0b48)
 
 - `scripts/small_model_wkv.py`: `F16_SCALE = 256` flag on the kernel's `bits` argument. The kernel source (patched
   textually from compress_wkv_cuda.SOURCE, which is untouched) gains `f16_round_scale`: RNE to float16 with subnormals

@@ -12,7 +12,7 @@ One new arm, curve-only = stage 2's joint arm + `{"instant_loss_weight": 0.0}` (
 
 - CPU proofs `check-cpu-sm57-stage3.json` (log `check-cpu-sm57-stage3.out`): **ALL OK** (T1-T6): same fresh init hash (curve-only options == joint == stage 2's e01 results == SM72s epoch 1's `47a33c78...`); the epoch-1 folder differs from stage 2's joint e01 only by the flag / folder names / stage name, refusals work; the option's source path (applied at 0.0, teacher-blind, batch-blind, only `IMMEDIATE_SCALE` in the loss, the instant KD inside that term); a CPU trainer slice from the fresh init with the run's real replay KD: same batches, same first forward, curve-only's loss == the curve terms of the loss bit for bit (first update: joint 1.60165 = curve terms 0.53438 + instant 1.06726; curve-only 0.53438), reversing the teacher's rating targets leaves curve-only bit for bit unchanged (changes joint), flipping the curve targets changes curve-only, only `head_p` and `p_linear` (the instant head) lose their gradient (instant-only zeroes `head_w` and the GRU curve head instead); the rule code reproduces stage 2's epoch-5 pair; break logic.
 - GPU check `gpu/check-gpu-sm57-stage3.json`: **ALL OK** (ticket 08:24:39-08:25:04; peak allocated 147 MiB per smoke, nvidia-smi max 1,450 MiB, baseline 939)
-- Commits: `7362b5d7` (plan, scripts, launcher, CPU proofs); this handoff in the next commit
+- Commits: `8ae1672c` (plan, scripts, launcher, CPU proofs); this handoff in the next commit
 
 ## What runs (detached, WMI hidden)
 

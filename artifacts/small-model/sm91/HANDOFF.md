@@ -1,6 +1,6 @@
 # Show-time interval retrain (SM91) step 1: handoff
 
-Branch `sm91` (cut from `sm73s2` at `eaf4128b`, then merged `sm31`: the smaller model, card stream 1 layer (SM73 stage 2) warm-start / cool-down tooling + the duration-leak scoring (SM31) inputs module and scorer), worktree `C:/Users/jonat/workspace/wt/sm91`. Design, KD-target decision and deviations: `DESIGN.md` (this folder).
+Branch `sm91` (cut from `sm73s2` at `518b918b`, then merged `sm31`: the smaller model, card stream 1 layer (SM73 stage 2) warm-start / cool-down tooling + the duration-leak scoring (SM31) inputs module and scorer), worktree `C:/Users/jonat/workspace/wt/sm91`. Design, KD-target decision and deviations: `DESIGN.md` (this folder).
 
 ## What it asks
 
@@ -12,11 +12,11 @@ Does training on show-time intervals win back part of SM31's cost (+0.13 curve /
 
 - `scripts/gpu_r01_samples.py` (`show_time_query_rows`, `show_time_frame`), `scripts/gpu_r01_prefetch.py` (option whitelist + frame hook, refuses unsupported paths), `scripts/sm77_warm.py epoch --extra-options`; `scripts/sm91.py cpu-check`.
 - Arm epoch folder `artifacts/small-model/sm91-arm-e21` prepared (not committed): `sm91_pair.py epoch` OK (8,000 users, update offset 441,560, start SM72s epoch 20).
-- CPU proofs `check-cpu-sm91.json` on commit `cc7f5358`: **ALL OK** (T1 flag moves only interval columns 2-7 on query rows + the curve query time on update rows; T2 trainer rows == scorer `e2s-query` rows bitwise on 3 users / 93,515 rows; T3 flag off == the current trainer (sm73s2 `eaf4128b` tree) bitwise on full training batches; T4 pair config epoch + cool-down, reference-vs-itself refused; T5 rule reproduces SM31's +0.128 [+0.106, +0.160] / +0.428 [+0.337, +0.546]).
+- CPU proofs `check-cpu-sm91.json` on commit `df9fee59`: **ALL OK** (T1 flag moves only interval columns 2-7 on query rows + the curve query time on update rows; T2 trainer rows == scorer `e2s-query` rows bitwise on 3 users / 93,515 rows; T3 flag off == the current trainer (sm73s2 `518b918b` tree) bitwise on full training batches; T4 pair config epoch + cool-down, reference-vs-itself refused; T5 rule reproduces SM31's +0.128 [+0.106, +0.160] / +0.428 [+0.337, +0.546]).
 
 ## What runs (detached, WMI hidden)
 
-Launcher `launch-sm91.sh`, log `gpu/launch-sm91.log`, nohup `gpu/launch-sm91.nohup`. Launched 2026-11-02 11:03 (WMI pid **61404**, commit `283fd8bb`). It first waits, **silently**, until the smaller model, card stream 1 layer (SM73 stage 2) launch log (`wt/sm73s2/.../gpu/launch-sm73s2.log`) ends with `done` or `STOP: ended` (at most 5 h, then goes ahead), so SM73 stage 2's scoring is not overtaken; expected ~13:30-14:15. Ticket purposes in order, each prefixed "show-time interval retrain (SM91): ":
+Launcher `launch-sm91.sh`, log `gpu/launch-sm91.log`, nohup `gpu/launch-sm91.nohup`. Launched 2026-11-02 11:03 (WMI pid **61404**, commit `8cb60579`). It first waits, **silently**, until the smaller model, card stream 1 layer (SM73 stage 2) launch log (`wt/sm73s2/.../gpu/launch-sm73s2.log`) ends with `done` or `STOP: ended` (at most 5 h, then goes ahead), so SM73 stage 2's scoring is not overtaken; expected ~13:30-14:15. Ticket purposes in order, each prefixed "show-time interval retrain (SM91): ":
 
 | # | purpose (after the prefix) | expected min | output |
 |---|---|---|---|

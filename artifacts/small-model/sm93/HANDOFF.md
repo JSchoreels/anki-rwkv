@@ -4,7 +4,7 @@ User approval (11-07 ~10:40): "Yeah I think everything shows that an instant mod
 it": ship the instant-only small model (SM57) (stage 1 instant-only arm) as the model of the RWKV-Instant scheduler in the
 Anki fork; RWKV-Curve keeps the release from epoch 25 (SM63, key `sm72e25`). **No release, not even a draft.**
 
-Branch `sm93` (cut from `sm57` at `1b440716`), worktree `C:/Users/jonat/workspace/wt/sm93`. Always `git fetch` +
+Branch `sm93` (cut from `sm57` at `e89bc9fa`), worktree `C:/Users/jonat/workspace/wt/sm93`. Always `git fetch` +
 `git merge --ff-only` first in every repo (the user works on several computers), the fork included.
 `wt/sm57` is read-only (stage 3 GPU run there; editing its `scripts/`, `expertium/`, `rwkv/` kills it); never touch
 `wt/sm41`; never write to `C:\Users\jonat\AppData\Roaming\Anki2\User 1`.
@@ -15,7 +15,7 @@ Branch `sm93` (cut from `sm57` at `1b440716`), worktree `C:/Users/jonat/workspac
 users are training users of every final-tier (8,000-user) model, the release and the instant-only model included
 (`artifacts/eval/2225-labels/DESIGN.md` on main, 11-01; it also has no labels for them). The valid larger pool for a
 small-vs-small comparison is every validation user of the 8k split: **1,500 users** (107.6M reviews; held out from
-both models). New `--pool 1500` in `scripts/eval_pools.py` / `scripts/small_model_heldout.py` (commit `00072cac`), file
+both models). New `--pool 1500` in `scripts/eval_pools.py` / `scripts/small_model_heldout.py` (commit `24bd3c68`), file
 `artifacts/small-model/eval-users-1500.json`; the 732 and 2,225 files are unchanged.
 
 - The 732-set rows are reused (the release: `wt/sm72s/.../sm72s/gpu/small-lf-neighbour.jsonl`; the candidate:
@@ -119,7 +119,7 @@ would cost ~1 h GPU (SM82c recipe, as SM92) for no gain):
 
 - Step 1: rule **GO**, row check 0.0 on 6 users for both labels; `sm93_package.py` run (use text: curve +16.0% of the
   release's LogLoss on 1,487 users), `INTEGRATION.md` written (instant-only section on top of the sm72e25 manual);
-  commit `3225c739` (package + decision + logs), pushed.
+  commit `225ac5ff` (package + decision + logs), pushed.
 - Step 2, fork `JSchoreels/anki` **main `64211f498`** "Give RWKV-Instant the instant-only small model (SM57)" (also on
   branch `sm93-instant-model`), pushed; no remote commits had to be integrated (origin/main stayed at `201b6e34b`).
   User requirement added 11-07 ~12:25: only RWKV-Instant -> SM57 alone (`InstantOnly` runtime: no curve, intervals,
