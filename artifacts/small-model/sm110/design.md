@@ -230,7 +230,7 @@ Fri 20:00 break is far away, so a late start or a slow export still finishes wel
 
 ## What is built, and the new code
 
-No source file changes: `scripts/ expertium/ rwkv/` == 1e22b62c (C1), the trees SM96 / SM98 / SM99 / SM101 trained and
+No source file changes: `scripts/ expertium/ rwkv/` == c99330a7 (C1), the trees SM96 / SM98 / SM99 / SM101 trained and
 scored with. Everything is existing code:
 - `scripts/sm11_replay_export.py --inputs e2s-query` (export, status, verify);
 - `scripts/sm77_warm.py cooldown`;

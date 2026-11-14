@@ -4,7 +4,7 @@ Unit: points = % of the big model (1 leak-free epoch) LogLoss, paired user boots
 
 ## Verdict: GO
 
-Rule: instant-only - joint on the instant head, CI entirely below zero and gain >= 0.05 points. Result -0.147 [-0.162, -0.133] points: go. The 0.05-point minimum was added by the user on 11-07 ~00:40, before the joint arm was scored (commit f71708d9). Go means stage 2 is proposed, not run.
+Rule: instant-only - joint on the instant head, CI entirely below zero and gain >= 0.05 points. Result -0.147 [-0.162, -0.133] points: go. The 0.05-point minimum was added by the user on 11-07 ~00:40, before the joint arm was scored (commit 6a2caedb). Go means stage 2 is proposed, not run.
 
 ## Numbers (722 users)
 

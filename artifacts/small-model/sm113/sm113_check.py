@@ -9,9 +9,9 @@ over 2R reviews, as two chained folders (sm113_prepare.py). One small source cha
 (scripts/expertium_options.py: an lr_resume "segment" may end short of its total; scripts/expertium_decay.py
 resume_point: a resumed folder that is itself a part of a longer decay keeps its place in it).
 
-  C1 code: scripts/ expertium/ rwkv/ == 1e22b62c (the trees SM96 / SM98 / SM99 / SM101 / SM110 trained and scored with)
+  C1 code: scripts/ expertium/ rwkv/ == c99330a7 (the trees SM96 / SM98 / SM99 / SM101 / SM110 trained and scored with)
      except exactly the two files of the SM113 change (6 lines added, 1 removed in each).
-  C2 the old paths are unchanged, A/B against 1e22b62c's own two files: resume_point on fake decays (snapshot resume, a
+  C2 the old paths are unchanged, A/B against c99330a7's own two files: resume_point on fake decays (snapshot resume, a
      second interruption, a stop before any snapshot) writes byte-identical protocol.json / resume.json; CatchUp's
      learning rate and KD switch are equal at every probed review for the prepared and resumed protocols of the fake
      decays, of SM98's and of SM110's real cool-downs (SM110's protocol.json is a resumed one); and the existing check
@@ -50,7 +50,7 @@ HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[2]
 SM = ROOT / "artifacts/small-model"
 PY = sys.executable
-CODE = "1e22b62c"
+CODE = "c99330a7"
 W = Path("C:/Users/jonat/workspace/wt")
 TRACK = "E89-F65e-F77a"
 TEACHER = W / "sm99/artifacts/small-model/sm99-big-inst-e2/expertium/big-inst/master.pth"
@@ -91,7 +91,7 @@ def sha256(path):
 
 
 def old_module(name, rel, tmp):
-    """1e22b62c's own copy of a file, loaded as a separate module (its imports resolve to this tree's packages)."""
+    """c99330a7's own copy of a file, loaded as a separate module (its imports resolve to this tree's packages)."""
     src = git("show", f"{CODE}:{rel}")
     path = Path(tmp) / f"{name}.py"
     path.write_text(src + "\n", encoding="utf-8")
@@ -109,7 +109,7 @@ def c1(rep):
         a, d, f = line.split("\t")
         stat[f] = (int(a), int(d))
     untracked = git("ls-files", "--others", "--exclude-standard", "--", "scripts", "expertium", "rwkv")
-    rep.check("C1_code_1e22b62c_plus_the_sm113_change", stat == CHANGED and not untracked, diff=stat,
+    rep.check("C1_code_c99330a7_plus_the_sm113_change", stat == CHANGED and not untracked, diff=stat,
               untracked=untracked.splitlines()[:5])
 
 

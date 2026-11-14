@@ -48,7 +48,7 @@ G = HERE / "gpu"
 REF = HERE / "ref"
 WT = HERE.parents[2]
 REPORT = Path("C:/Users/jonat/workspace/anki-rwkv/artifacts/small-model/showtime/showtime_report.py")
-REPORT_SHA = "3cdfed03afd40734d4b1931c244e8c1e73453d281a40c3843e80cd310d70dd9d"   # main b07b6a13 (same pin as SM96 / SM98 / SM99 / SM101 / SM110)
+REPORT_SHA = "3cdfed03afd40734d4b1931c244e8c1e73453d281a40c3843e80cd310d70dd9d"   # main 9031ed51 (same pin as SM96 / SM98 / SM99 / SM101 / SM110)
 ROWS, ROWS1500, MIDROWS = G / "sm113-rows.jsonl", G / "sm113-rows-1500.jsonl", G / "sm113-mid-rows.jsonl"
 LBL = "sm113-inst-e35st-st-dec2ep32k-t99/w8+s8"
 MID_NEW = "sm113-dec2ep-p1/w8+s8"
@@ -59,7 +59,7 @@ PINS = {S96G / "sm96-rows.jsonl": "cc93a32ac9f8ab522d028db342c2f07019874cddf50d7
         S96G / "sm96-rows-1500.jsonl": "7bc69afbf90f81ef88f275d2d6911f19c7bdfafc9091aca69ef2b62134f5c8f8",
         S98G / "sm98-rows.jsonl": "d4cc71b8a1ecc3d3250c19c58952b3607608cbb7d8ebc312109a9e77fc16234f",
         S98G / "sm98-rows-1500.jsonl": "288b2d1d9390233748d6372e50d1f77c688b33d1b80844101e8bf3b2698fc5fa",
-        S99G / "sm99-rows.jsonl": "bc8c08b294968aa4a58a38241400714957eccd3071a70e5b85665d2fd46060c5",       # branch sm99 5a480ed8
+        S99G / "sm99-rows.jsonl": "bc8c08b294968aa4a58a38241400714957eccd3071a70e5b85665d2fd46060c5",       # branch sm99 df9eab05
         S99G / "sm99-rows-1500.jsonl": "f87fb3d85691fc22754915b422323a033a437319a2a8ce534cc28e137a303004",
         R110: "cc873698aa33807a81ef06e1e2cd971b8363d59ee7a58184a4399012ff1cb8a0",                            # wt/sm110 gpu/, 11-13
         R110_1500: "44c4916a91be3820addb4fd6c1031f14fa78d82854716aa2e42a5e35c2425cf5",

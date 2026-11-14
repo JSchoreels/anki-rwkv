@@ -12,7 +12,7 @@ Design: `DESIGN.md`, in this folder. In short:
 
 ## Launch
 
-- Commit 151dd8a2 on branch `sm99`, started 07:04 Wed 2026-11-11 hidden via WMI.
+- Commit ab47446c on branch `sm99`, started 07:04 Wed 2026-11-11 hidden via WMI.
 - Pids: the WMI wrapper (returned ProcessId) **33800**; the launcher's bash **24008 (its subshell 32484)**.
 - First ticket: the epoch-1 trainer smoke passed 07:04:23 (2 updates, 1,024 reviews, 9.0 s); epoch 1 is queue ticket 001132-sm99, started 07:04:23, first progress lines at ~11.2k reviews/s, ETA ~9.2 h.
 

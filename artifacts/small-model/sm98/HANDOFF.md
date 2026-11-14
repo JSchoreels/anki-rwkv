@@ -35,8 +35,8 @@ points of instant.
 
 ## CPU proofs (`sm98_check.py` -> `check-cpu-sm98.json`: ALL OK)
 
-- K1 code: scripts/ expertium/ rwkv/ trees of HEAD == 1e22b62c (the commit SM96's launcher trained epoch 31 and the
-  cool-down from, read from its log) == 8b323fb1 (SM57 stage 4's code); no uncommitted source.
+- K1 code: scripts/ expertium/ rwkv/ trees of HEAD == c99330a7 (the commit SM96's launcher trained epoch 31 and the
+  cool-down from, read from its log) == 035cf1dd (SM57 stage 4's code); no uncommitted source.
 - K2 options: the cool-down's `extra-options.json` == SM96's (bytes); epoch 32's options == SM96 epoch 31's == SM92
   epoch 26's + `curve_loss_weight` 0.
 - K3 epochs: `sm98_epoch.py pair --epoch 32`: every protocol / decay.json leaf == SM96's epoch 31 except the order rule's

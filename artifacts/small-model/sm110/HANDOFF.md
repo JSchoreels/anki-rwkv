@@ -72,7 +72,7 @@ Record the returned ProcessId (the wrapper) and the launcher bash pid here after
 ## Checks done before launch
 
 - CPU proofs `check-cpu-sm110.json` (+ `.out`): ALL OK in 1.3 min.
-  - C1 code trees == 1e22b62c.
+  - C1 code trees == c99330a7.
   - C2 sha256 pins: the teacher == the release package, epoch 35 == SM98's cool-down start, SM98's snapshot users-04000
     present.
   - C3 the recipe == SM98's cool-down except teacher + replay + paths, and 6 mutated copies are refused.

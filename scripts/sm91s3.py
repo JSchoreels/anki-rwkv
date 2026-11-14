@@ -30,7 +30,7 @@ cool-down, rerun from step 1's arm epoch 21 with those targets; nothing else cha
     E5 config: sm91s3_pair.py: the new cool-down == step 1's arm cool-down except the distillation teacher and replay
        folder and its own folder name (same start, users, order, update offset, schedule, seeds, options, flag);
        step 1's arm cool-down against itself is refused.
-    E6 code: scripts/ rwkv/ expertium/ unchanged since step 1's launch commit 4f39eb92 (the commit that trained step 1's
+    E6 code: scripts/ rwkv/ expertium/ unchanged since step 1's launch commit 63029f40 (the commit that trained step 1's
        arm cool-down and scored its rows) except files the cool-down and the scorer never import
        (sm11_replay_export.py, sm65_rule.py, sm72_big_epoch.py, sm91s2.py, sm91s3.py).
     E7 rule: artifacts/small-model/sm91s3/sm91s3_rule.py self-test.
@@ -58,7 +58,7 @@ BIG1 = Path("C:/Users/jonat/workspace/wt/sm72/artifacts/small-model/sm72-big-lea
 OLD = Path("C:/Users/jonat/workspace/anki-rwkv/artifacts/cache/kd-replay/big-leakfree-1ep-final8k-neighbour")  # read only
 RUN = S / "cool-users-run.json"
 USERS = (8081, 4001, 5804)
-STEP1_COMMIT = "4f39eb92"
+STEP1_COMMIT = "63029f40"
 UNUSED = {"scripts/sm11_replay_export.py", "scripts/sm65_rule.py", "scripts/sm72_big_epoch.py", "scripts/sm91s2.py",
           "scripts/sm91s3.py"}
 

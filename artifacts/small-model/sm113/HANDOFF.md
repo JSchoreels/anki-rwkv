@@ -8,7 +8,7 @@ Design: `design.md` in this folder. In short:
 
 ## The running job
 
-- Launched 16:17 Fri 11-13 from branch `sm113` at b14e0a02, hidden via WMI. **WMI pid 28476** (the `bash -c` wrapper); **launcher bash pid 6428** (`bash .../launch-sm113.sh`).
+- Launched 16:17 Fri 11-13 from branch `sm113` at d99fe356, hidden via WMI. **WMI pid 28476** (the `bash -c` wrapper); **launcher bash pid 6428** (`bash .../launch-sm113.sh`).
 - **Main log:** `C:/Users/jonat/workspace/wt/sm113/artifacts/small-model/sm113/gpu/launch-sm113.log` (every line starts `[sm113 MM-DD HH:MM:SS]`). Trainer `gpu/train.out`, scorer `gpu/score.out`, smokes `gpu/check.out`, `gpu/segments.jsonl`, `gpu/tickets.jsonl`.
 - Queue owner `sm113`; every purpose starts with "the longer big instant-only teacher (SM113): ". First pass-1 ticket 001186.
 - At launch: smoke OK (11.5 s); pass 1 running at ~19.3k reviews/s; the GPU learning rate matches the 2R schedule exactly (checked on the first 31 updates).
