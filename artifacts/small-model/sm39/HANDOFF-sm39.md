@@ -1,6 +1,6 @@
 # HANDOFF: SM39 arm 1 (Muon LR x0.5 decay) + SM51 (snapshot averaging), launched 2026-10-21 08:58, waiting for SM55
 
-Worktree `C:/Users/jonat/workspace/wt/sm39` (branch `sm39`, from `small-model`). Code commit f8005ce5. Do not edit `scripts/ expertium/ rwkv/` here until the runbook is done (SourceWatch; the runbook also refuses a dirty tree).
+Worktree `C:/Users/jonat/workspace/wt/sm39` (branch `sm39`, from `small-model`). Code commit 0470b02c. Do not edit `scripts/ expertium/ rwkv/` here until the runbook is done (SourceWatch; the runbook also refuses a dirty tree).
 
 ## What runs
 - Launcher `launch-sm39-after-sm55.sh` (detached, log `artifacts/small-model/sm39/launch-sm39.log`) waits until SM55's runbook log (`wt/sm55/artifacts/small-model/runbook-2026-10-21-sm55.log`) ends with its final `[sm55 ...] done` or a `STOP` / `ended with exit` line, idle 5 min, with no live SM55 queue ticket (or `wt/sm55` gone). Then it runs `runbook-sm39.sh` (log `artifacts/small-model/sm39/runbook-sm39.log`).
