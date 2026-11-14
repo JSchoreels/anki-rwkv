@@ -52,7 +52,7 @@ Worktree `C:/Users/jonat/workspace/wt/sm32c`, branch `sm44`. It is the SM32c tre
 - Runbook: `C:/Users/jonat/workspace/wt/sm32c/artifacts/small-model/sm44/runbook-sm44.sh`
 - Log: `C:/Users/jonat/workspace/wt/sm32c/artifacts/small-model/sm44/runbook-sm44.log`
 - Dry run: `sm44/runbook-sm44-dryrun.log`
-- Launched 10-20 15:45:49 from commit `8c5770d5`. The runbook bash is MSYS pid 1708 (Windows pid 16516).
+- Launched 10-20 15:45:49 from commit `f978f9d1`. The runbook bash is MSYS pid 1708 (Windows pid 16516).
 - At launch it was waiting for the SM43 full launcher to end. There was no SM44 ticket in the queue yet; the queue was
   running only `000555-small-model` (SM43 A).
 - Order of steps:

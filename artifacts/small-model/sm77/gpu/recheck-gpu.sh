@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# SM77: one short queue ticket re-running only the GPU check with the new P / L bars (commit 81690dfa); no smoke, no
+# SM77: one short queue ticket re-running only the GPU check with the new P / L bars (commit ba8cb8f3); no smoke, no
 # gpu-check-ok marker (the launcher's own ticket 0 still runs on relaunch). Output: check-gpu-sm77-recheck.json, recheck.out.
 WT=C:/Users/jonat/workspace/wt/sm77
 PY=C:/Users/jonat/workspace/anki-rwkv/.venv/Scripts/python.exe
