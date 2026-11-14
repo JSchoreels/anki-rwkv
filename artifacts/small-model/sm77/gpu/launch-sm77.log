@@ -1,4 +1,4 @@
-[sm77 10-29 17:36:03] started: d370cf36 Tiny architecture additions (SM77) stage 1: key extras + learned card / note initial state behind flags, dS0 kernels, warm-start launcher (not launched) (DRYRUN=0, START_EPOCH=20, reference epoch 21 = SM72s's own (free))
+[sm77 10-29 17:36:03] started: 77c0ed85 Tiny architecture additions (SM77) stage 1: key extras + learned card / note initial state behind flags, dS0 kernels, warm-start launcher (not launched) (DRYRUN=0, START_EPOCH=20, reference epoch 21 = SM72s's own (free))
 [sm77 10-29 17:36:03] waiting for the better teacher's (SM65) launcher to end; its last line: [sm65 10-29 17:13:28] waiting for the leak-free small model's (SM72s) launcher to end; its last line: [sm72s 10-29 16:38:58] enqueue: SM72 small model leak-free (sm72s) epoch 22/25 (8k final tier, 204
 [sm77 10-29 18:36:04] waiting for the better teacher's (SM65) launcher to end; its last line: [sm65 10-29 18:13:29] waiting for the leak-free small model's (SM72s) launcher to end; its last line: [sm72s 10-29 16:38:58] enqueue: SM72 small model leak-free (sm72s) epoch 22/25 (8k final tier, 204
 [sm77 10-29 19:36:06] waiting for the better teacher's (SM65) launcher to end; its last line: [sm65 10-29 19:13:30] waiting for the leak-free small model's (SM72s) launcher to end; its last line: [sm72s 10-29 18:32:41] enqueue: SM72 small model leak-free (sm72s) epoch 23/25 (8k final tier, 204
@@ -26,7 +26,7 @@
 [sm77 10-30 17:36:32] waiting for the better teacher's (SM65) launcher to end; its last line: [sm65 10-30 13:10:05] enqueue: better teacher (SM65) stage 1: big model (fork RWKV) one more leak-free epoch on the 3,969 new users (ids below 5000) from the big model (1 leak-free epoch), 285M review
 [sm77 10-30 18:36:36] waiting for the better teacher's (SM65) launcher to end; its last line: [sm65 10-30 13:10:05] enqueue: better teacher (SM65) stage 1: big model (fork RWKV) one more leak-free epoch on the 3,969 new users (ids below 5000) from the big model (1 leak-free epoch), 285M review
 [sm77 10-30 19:36:37] waiting for the better teacher's (SM65) launcher to end; its last line: [sm65 10-30 13:10:05] enqueue: better teacher (SM65) stage 1: big model (fork RWKV) one more leak-free epoch on the 3,969 new users (ids below 5000) from the big model (1 leak-free epoch), 285M review
-[sm77 10-30 20:20:16] started: 5d78a34d sm77 launcher: daily break safeguard 20:00-01:00 (user 10-30: break between 8 and 1 from now on) (DRYRUN=0, START_EPOCH=20, reference epoch 21 = SM72s's own (free))
+[sm77 10-30 20:20:16] started: 30ce807c sm77 launcher: daily break safeguard 20:00-01:00 (user 10-30: break between 8 and 1 from now on) (DRYRUN=0, START_EPOCH=20, reference epoch 21 = SM72s's own (free))
 [sm77 10-30 20:20:16] waiting for the better teacher's (SM65) launcher to end; its last line: [sm65 10-30 20:10:39] enqueue: better teacher (SM65) stage 1: score big-moreusers/w8+s8, leak-free inputs, 732 set (723 users), split existing/deleted (expected 12 min)
 [sm77 10-30 20:28:16] SM65 launcher ended (or NO-WAIT): [sm65 10-30 20:27:15] done
 [sm77 10-30 20:28:16] preparation: quiet window, 16363s left
@@ -41,14 +41,14 @@
 [sm77 10-31 01:01:17] exit 1: GPU check (dS0 backward kernel, scorer kernel from S0, trainer-path function preservation, 2 users x 512 reviews) + trainer smoke of the arm
 [sm77 10-31 01:01:17] STOP: GPU check or smoke failed (see C:/Users/jonat/workspace/wt/sm77/artifacts/small-model/sm77/gpu/check.out, C:/Users/jonat/workspace/wt/sm77/artifacts/small-model/sm77/gpu/check-gpu-sm77.json)
 [sm77 10-31 01:01:17] STOP: ended with exit 1
-[sm77 10-31 01:02:40] started: 46cc73aa SM77 GPU check: set GPU_BATCH1_DATA_PATH before scripts.gpu_batch1 is imported (it read the worktree-relative default and the check stopped at 01:01) (DRYRUN=0, START_EPOCH=20, reference epoch 21 = SM72s's own (free))
+[sm77 10-31 01:02:40] started: 53db6d0e SM77 GPU check: set GPU_BATCH1_DATA_PATH before scripts.gpu_batch1 is imported (it read the worktree-relative default and the check stopped at 01:01) (DRYRUN=0, START_EPOCH=20, reference epoch 21 = SM72s's own (free))
 [sm77 10-31 01:02:40] SM65 launcher ended (or NO-WAIT): [sm65 10-30 20:27:15] done
 [sm77-pair] epoch OK: sm77-arm-e21 == epoch-21 except the start weights, the architecture (w64-sm77 vs w64) and paths (8,000 users)
 [sm77 10-31 01:02:41] enqueue: GPU check (dS0 backward kernel, scorer kernel from S0, trainer-path function preservation, 2 users x 512 reviews) + trainer smoke of the arm (expected 15 min, max wait 1119 min, 1137 min to the next window)
 [sm77 10-31 01:03:05] exit 1: GPU check (dS0 backward kernel, scorer kernel from S0, trainer-path function preservation, 2 users x 512 reviews) + trainer smoke of the arm
 [sm77 10-31 01:03:05] STOP: GPU check or smoke failed (see C:/Users/jonat/workspace/wt/sm77/artifacts/small-model/sm77/gpu/check.out, C:/Users/jonat/workspace/wt/sm77/artifacts/small-model/sm77/gpu/check-gpu-sm77.json)
 [sm77 10-31 01:03:05] STOP: ended with exit 1
-[sm77 10-31 09:24:51] started: 63b8c5bb SM77 check handoff: GPU re-check queued (ticket 000779, behind SM67's cool-down), recheck script, how to read it (DRYRUN=0, START_EPOCH=20, reference epoch 21 = SM72s's own (free))
+[sm77 10-31 09:24:51] started: 94d4500c SM77 check handoff: GPU re-check queued (ticket 000779, behind SM67's cool-down), recheck script, how to read it (DRYRUN=0, START_EPOCH=20, reference epoch 21 = SM72s's own (free))
 [sm77 10-31 09:24:51] SM65 launcher ended (or NO-WAIT): [sm65 10-30 20:27:15] done
 [sm77-pair] epoch OK: sm77-arm-e21 == epoch-21 except the start weights, the architecture (w64-sm77 vs w64) and paths (8,000 users)
 [sm77 10-31 09:24:51] enqueue: GPU check (dS0 backward kernel, scorer kernel from S0, trainer-path function preservation, 2 users x 512 reviews) + trainer smoke of the arm (expected 15 min, max wait 617 min, 635 min to the next window)
@@ -60,7 +60,7 @@
 [sm77-muon] sm77-arm-e21-dec-q32k-muon PASS lines: 6
 [sm77 10-31 11:25:18] Muon fresh-state CPU check failed (C:/Users/jonat/workspace/wt/sm77/artifacts/small-model/sm77-arm-e21-dec-q32k-muon)
 [sm77 10-31 11:25:18] STOP: ended with exit 1
-[sm77 10-31 11:27:04] started: 5eab5b39 SM77 Muon fresh-state check: expect the arm's 6,720 zero-init parameters in AdamW (it hardcoded w64's 21,623 and stopped the launcher at 11:25) (DRYRUN=0, START_EPOCH=20, reference epoch 21 = SM72s's own (free))
+[sm77 10-31 11:27:04] started: 5511f852 SM77 Muon fresh-state check: expect the arm's 6,720 zero-init parameters in AdamW (it hardcoded w64's 21,623 and stopped the launcher at 11:25) (DRYRUN=0, START_EPOCH=20, reference epoch 21 = SM72s's own (free))
 [sm77 10-31 11:27:04] SM65 launcher ended (or NO-WAIT): [sm65 10-30 20:27:15] done
 [sm77-pair] epoch OK: sm77-arm-e21 == epoch-21 except the start weights, the architecture (w64-sm77 vs w64) and paths (8,000 users)
 [sm77 10-31 11:27:05] arm epoch 21 (w64-sm77 from SM72s epoch 20, 8k final tier, 2048 x 16 lanes carry, leak-free replay KD, AdamW 7e-4 constant) complete: 581,942,724 reviews, 119.3 min training, 81,292 reviews/s
@@ -79,7 +79,7 @@
 [sm77 10-31 15:26:58] exit 1: scoring sm77-arm-e21-q32k on the 732 pool minus 9 never-fit (723) (pass 1)
 [sm77 10-31 15:26:58] STOP: scoring ticket failed (sm77-arm-e21-q32k)
 [sm77 10-31 15:26:58] STOP: ended with exit 1
-[sm77 10-31 15:28:03] started: 799b279f Tiny architecture additions (SM77) scorer: detach the long-kernel inputs (the learned start state needs grad, cupy refused it at 15:26) (DRYRUN=0, START_EPOCH=20, reference epoch 21 = SM72s's own (free))
+[sm77 10-31 15:28:03] started: bf938aa4 Tiny architecture additions (SM77) scorer: detach the long-kernel inputs (the learned start state needs grad, cupy refused it at 15:26) (DRYRUN=0, START_EPOCH=20, reference epoch 21 = SM72s's own (free))
 [sm77 10-31 15:28:03] SM65 launcher ended (or NO-WAIT): [sm65 10-30 20:27:15] done
 [sm77-pair] epoch OK: sm77-arm-e21 == epoch-21 except the start weights, the architecture (w64-sm77 vs w64) and paths (8,000 users)
 [sm77 10-31 15:28:04] arm epoch 21 (w64-sm77 from SM72s epoch 20, 8k final tier, 2048 x 16 lanes carry, leak-free replay KD, AdamW 7e-4 constant) complete: 581,942,724 reviews, 119.3 min training, 81,292 reviews/s
