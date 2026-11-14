@@ -1075,7 +1075,7 @@ State = card + note state of the largest dataset user (246,801 cards, 76,887 not
 | lanes 2 | `--lanes 2` | 66,484 | 1.44x | ~61 | ~14.5 GB | ~24.7 min |
 | lanes 4 | `--lanes 4` | 72,074 | 1.56x | ~67 | ~14.5 GB | ~22.8 min |
 
-  All 7 later runs match the first old run bitwise (80/80 row pairs each, no error rows). Memory: lanes raise the peak by about 1.4 GB (default `--lane-review-budget` 400k), above the ~0.8 cap (~13 GB of the 16.3 GB card) for new GPU jobs; for pool scoring use a lower budget or note the overshoot. Implementation commit be20647f; follow-up in `sm48/HANDOFF-sm48.md`.
+  All 7 later runs match the first old run bitwise (80/80 row pairs each, no error rows). Memory: lanes raise the peak by about 1.4 GB (default `--lane-review-budget` 400k), above the ~0.8 cap (~13 GB of the 16.3 GB card) for new GPU jobs; for pool scoring use a lower budget or note the overshoot. Implementation commit 9f373775; follow-up in `sm48/HANDOFF-sm48.md`.
 
 ### Lanes with int state variants, and users that never fit (SM48b)
 
