@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-13T19:58:01+01:00",
- "updated": "2026-11-13 19:58",
- "material": "5493f2501fee390c",
- "summary": "idle, finished 001186",
+ "generated_at": "2026-11-14T01:00:33+01:00",
+ "updated": "2026-11-14 01:00",
+ "material": "44ee3f5d382088ac",
+ "summary": "running 001187",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring, show-time inputs for both heads (curve / instant)",
@@ -261,7 +261,23 @@
    }
   ]
  },
- "now": [],
+ "now": [
+  {
+   "what": "The longer big instant-only teacher (SM113): the big instant-only teacher (SM110)&rsquo;s cool-down stretched over two passes of the 8,000 users (one learning-rate decay over twice the reviews), from the Small Instant-Only model (SM98)&rsquo;s epoch 35 with the same teacher targets of the show-time instant-only big model (SM99). Early stop after pass 1 unless it beats the Small Instant-Only model (SM98)&rsquo;s own snapshot at the same learning rate; go = new &minus; the Small Instant-Only model (SM98), show-time instant, CI below 0 and at least 0.05%",
+   "id": "SM113, ticket 001187",
+   "kind": "gpu",
+   "decides": "Whether a longer cool-down lets the Small Instant-Only model of the family take up enough of the big model&rsquo;s instant lead (&minus;0.108%) to replace the Small Instant-Only model (SM98); a go would mix the longer cool-down and the teacher, the comparison with the big instant-only teacher (SM110) shows the length part",
+   "why": "",
+   "job": "the longer big instant-only teacher (SM113): pass 1 of the two-epoch 32k Muon cool-down on show-time inputs from SM98&#x27;s epoch 35 with SM99&#x27;s show-time targets (7e-4 -&gt; 0.29 x peak), curve loss weight 0 (segment to the next break or the end)",
+   "linked": true,
+   "track": "small model",
+   "ticket": "001187-sm113",
+   "started": "01:00",
+   "elapsed": "0:00",
+   "progress": null,
+   "eta": "~10:20"
+  }
+ ],
  "charts": [
   {
    "title": "Small model, leak-free (SM72s): LogLoss per epoch, 458-user set (lower is better)",
@@ -2266,12 +2282,11 @@
    "what": "The longer big instant-only teacher (SM113): the big instant-only teacher (SM110)&rsquo;s cool-down stretched over two passes of the 8,000 users (one learning-rate decay over twice the reviews), from the Small Instant-Only model (SM98)&rsquo;s epoch 35 with the same teacher targets of the show-time instant-only big model (SM99). Early stop after pass 1 unless it beats the Small Instant-Only model (SM98)&rsquo;s own snapshot at the same learning rate; go = new &minus; the Small Instant-Only model (SM98), show-time instant, CI below 0 and at least 0.05%",
    "when": "Started 16:20 Fri. Pass 1 pauses for the 20:00&ndash;01:00 break and ends ~05:45 Sat; early stop check ~06:00; pass 2 ~06:05&ndash;14:10; result ~15:00 Sat (about 17 GPU h, or about 8.3 GPU h if the early stop fires)",
    "decides": "Whether a longer cool-down lets the Small Instant-Only model of the family take up enough of the big model&rsquo;s instant lead (&minus;0.108%) to replace the Small Instant-Only model (SM98); a go would mix the longer cool-down and the teacher, the comparison with the big instant-only teacher (SM110) shows the length part",
-   "state": "done",
+   "state": "running",
    "started_at": "2026-11-13T16:17:57+01:00",
-   "ended": "19:57",
-   "exit": 1,
-   "started": "16:17",
-   "ended_at": "2026-11-13T19:57:32+01:00"
+   "started": "01:00",
+   "ticket": "001187-sm113",
+   "ends_at": "2026-11-14T09:27:57+01:00"
   },
   {
    "id": "SM111",
