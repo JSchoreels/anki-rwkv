@@ -14,7 +14,7 @@ Does cutting the card stream from 2 layers to 1 (candidate B: 4,554 -> 3,134 B p
 
 ## What runs (detached, WMI hidden)
 
-Launcher `launch-sm73s2.sh`, log `gpu/launch-sm73s2.log`, nohup `gpu/launch-sm73s2.nohup`. Launched 2026-11-02 08:52 (WMI pid 77584, commit 28c224df); first log line `enqueue: trainer smoke of the arm epoch (w64-c1, 2 users x 512 reviews) (expected 15 min, ...)`, queue ticket 000886 running at 08:52. Ticket purposes in order, each prefixed "smaller model, card stream 1 layer (SM73 stage 2): ":
+Launcher `launch-sm73s2.sh`, log `gpu/launch-sm73s2.log`, nohup `gpu/launch-sm73s2.nohup`. Launched 2026-11-02 08:52 (WMI pid 77584, commit b4dc1421); first log line `enqueue: trainer smoke of the arm epoch (w64-c1, 2 users x 512 reviews) (expected 15 min, ...)`, queue ticket 000886 running at 08:52. Ticket purposes in order, each prefixed "smaller model, card stream 1 layer (SM73 stage 2): ":
 
 1. "trainer smoke of the arm epoch (w64-c1, 2 users x 512 reviews)" (15 min; output `gpu/check.out`)
 2. "arm epoch 21 (w64-c1 cut from SM72s epoch 20, SM72s's epoch-21 protocol: ...) (segment to the next window or the end)" (125 min; output `gpu/train.out`, folder `artifacts/small-model/sm73s2-arm-e21`)

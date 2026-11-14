@@ -15,7 +15,7 @@ the duration-leak scoring (SM31) `e2s-query` inputs, as the show-time interval r
        normal rows; on - off == e2s-query - normal (same users, scripts/sm91.py t1_t2).
     T3 flag off == the current big-model trainer: full training batches (gpu_r01_prefetch.training_batches, the
        big model (1 leak-free epoch) recipe's options from wt/sm72 decay.json minus packed_ipc, span 2 x 8,192) of this
-       tree and of the tree the better teacher (SM65) big-model epoch ran on (git archive 45a56e3a) are bitwise equal in
+       tree and of the tree the better teacher (SM65) big-model epoch ran on (git archive c4fc3b84) are bitwise equal in
        every tensor (T3a); T3m the model side: the fork architecture with the big model (1 leak-free epoch) weights,
        every update in order with the carried state, train mode, the trainer's seeds: batch digest, loss and every
        gradient sha256 equal between the two trees (users 8632, 5625 at 1,024-review windows x 2 lanes, 2 updates each,
@@ -28,8 +28,8 @@ the duration-leak scoring (SM31) `e2s-query` inputs, as the show-time interval r
        SM72 folder against itself is refused (no flag); nothing trained yet; outputs are new paths.
     T5 rule: artifacts/small-model/sm91s2/sm91s2_rule.py self-test (SM31's big-model show-time cost +0.205 / +0.508
        reproduced; a pair with itself 0 / stop; a synthetic model 0.2 points better on instant only: go).
-    T6 scorer: the reused SM31 rows came from commit fa5a9f25; the scorer of this tree and of a git archive of
-       fa5a9f25 give identical rows on CPU (users 4676, 2388 of the 732 set, the big model (1 leak-free epoch),
+    T6 scorer: the reused SM31 rows came from commit d8b1f2c5; the scorer of this tree and of a git archive of
+       d8b1f2c5 give identical rows on CPU (users 4676, 2388 of the 732 set, the big model (1 leak-free epoch),
        w8+s8, --split-existing --deleted-cards neighbour, --inputs e2s-query and normal).
 """
 from argparse import ArgumentParser
@@ -53,8 +53,8 @@ TRACK = "big-showtime"
 SM72OUT = Path("C:/Users/jonat/workspace/wt/sm72/artifacts/small-model/sm72-big-leakfree-1ep")  # read only
 BIG1 = SM72OUT / "expertium/big-leakfree-1ep/master.pth"                                        # read only
 SM65LOAD = Path("C:/Users/jonat/workspace/wt/sm65/artifacts/small-model/sm65/check-init-load-sm65.json")  # read only
-REF_TRAINER = "45a56e3a"   # better teacher (SM65) launch commit: the last big-model epoch ran from this tree
-REF_SCORER = "fa5a9f25"    # duration-leak scoring (SM31) rows' provenance commit (big-leakfree-1ep/w8+s8@e2s-query)
+REF_TRAINER = "c4fc3b84"   # better teacher (SM65) launch commit: the last big-model epoch ran from this tree
+REF_SCORER = "d8b1f2c5"    # duration-leak scoring (SM31) rows' provenance commit (big-leakfree-1ep/w8+s8@e2s-query)
 FLAG = "show_time_intervals"
 USERS_T12 = (8632, 5984, 7885)   # big-model training users: 1 / 1 (2 lanes) / 2 updates at 2 x 8,192
 USERS_T3M = (8632, 5625)         # 2,641 / 2,794 reviews: 3 windows of 1,024 -> 2 updates each at 2 lanes
