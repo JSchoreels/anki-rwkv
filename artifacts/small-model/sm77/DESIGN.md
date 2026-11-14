@@ -107,7 +107,7 @@ gain may be under-read; a go would then be confirmed by a full cool-down and a s
 **When.** After the better teacher's (SM65) stage 1 (decision ~04:00 Sat 10-31, earlier if SM72s finished early); the
 launcher waits for SM65's launcher to end. From epoch 20 and a start at ~04:00 Sat: decision ~11:00 Sat.
 
-## 6. Files (branch `sm77` at d370cf36, worktree `wt/sm77`)
+## 6. Files (branch `sm77` at 77c0ed85, worktree `wt/sm77`)
 
 | File | Change |
 |---|---|
