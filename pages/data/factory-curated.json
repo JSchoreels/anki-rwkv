@@ -2102,10 +2102,11 @@
     "the longer big instant-only teacher (SM113): "
    ],
    "what": "The longer big instant-only teacher (SM113): the big instant-only teacher (SM110)&rsquo;s cool-down stretched over two passes of the 8,000 users (one learning-rate decay over twice the reviews), from the Small Instant-Only model (SM98)&rsquo;s epoch 35 with the same teacher targets of the show-time instant-only big model (SM99). Early stop after pass 1 unless it beats the Small Instant-Only model (SM98)&rsquo;s own snapshot at the same learning rate; go = new &minus; the Small Instant-Only model (SM98), show-time instant, CI below 0 and at least 0.05%",
-   "when": "Started 16:20 Fri; pass 1 paused for the 20:00&ndash;01:00 break and ended 05:34 Sat (about 20,400 reviews/s). Early check after pass 1: &minus;0.144% [&minus;0.166, &minus;0.125] vs the Small Instant-Only model (SM98)&rsquo;s snapshot at the same point (&minus;0.143% vs the big instant-only teacher (SM110)&rsquo;s), 722 users: continue. Pass 2 started 05:35, ends ~13:30; result ~14:30 Sat",
+   "when": "Done 14:20 Sat: <strong>go</strong>, &minus;0.094% [&minus;0.103, &minus;0.085] vs the Small Instant-Only model (SM98); about 16 GPU h (962 min of segments, ~20,250 reviews/s). Held for the next release (user 11-14)",
    "decides": "Whether a longer cool-down lets the Small Instant-Only model of the family take up enough of the big model&rsquo;s instant lead (&minus;0.108%) to replace the Small Instant-Only model (SM98) in the next release (no new release soon: a go is held, user 11-14); a go would mix the longer cool-down and the teacher, the comparison with the big instant-only teacher (SM110) shows the length part",
-   "state": "running",
-   "started_at": "2026-11-13T16:20+01:00"
+   "state": "done",
+   "started_at": "2026-11-13T16:20+01:00",
+   "ended_at": "2026-11-14T14:20+01:00"
   },
   {
    "id": "SM111",
@@ -2693,6 +2694,142 @@
   "s-w64kd-gate-ctx2048c-dec8-1ep/w8+s8"
  ],
  "results": [
+  {
+   "date": "11-14",
+   "kind": "gpu-train",
+   "id": "SM113",
+   "track": "small model",
+   "name": "The longer big instant-only teacher (SM113): the big instant-only teacher (SM110)&rsquo;s cool-down stretched over two passes of the 8,000 users (one learning-rate decay over twice the reviews), from the Small Instant-Only model (SM98)&rsquo;s epoch 35 with the teacher targets of the show-time instant-only big model (SM99) (show-time inputs)",
+   "eval": "Leak-free w8+s8, 722 users of the 732 set, show-time instant; % of the big model (1 leak-free epoch)&rsquo;s LogLoss; paired user bootstrap 95% CI. Go = new minus the Small Instant-Only model (SM98) with CI below 0 and at least 0.05%. Early stop after pass 1 against the Small Instant-Only model (SM98)&rsquo;s snapshot at the same learning rate. Also the 1,500 validation users (1,487 scored)",
+   "fork": "Not used yet: held for the next release (user 11-14: no new release soon); the current release keeps the Small Instant-Only model (SM98)",
+   "takeaway": "<strong>Go</strong>: &minus;0.094% [&minus;0.103, &minus;0.085] vs the Small Instant-Only model (SM98) (628 users better / 94 worse); it closes 87% of the gap to the teacher and ties the show-time instant-only big model (SM99) on the 732 set (+0.014% [&minus;0.010, +0.038]). Same on the 1,500 validation users (&minus;0.097%). The one-pass version (SM110) gave only &minus;0.023%: the length of the cool-down is what pays. ~20,250 reviews/s; about 16 GPU h",
+   "inputs": "show-time",
+   "started_at": "2026-11-13T16:17+01:00",
+   "ended_at": "2026-11-14T14:20+01:00",
+   "detail": {
+    "verdict": "Go; branch sm113 dc4658e9 (sm113-decision.md, sm113-mid.md)",
+    "table": {
+     "head": [
+      "Show-time instant, new minus",
+      "%",
+      "95% CI",
+      "better / worse"
+     ],
+     "rows": [
+      [
+       "the Small Instant-Only model (SM98) (the rule)",
+       "&minus;0.094",
+       "[&minus;0.103, &minus;0.085]",
+       "628 / 94"
+      ],
+      [
+       "the big instant-only teacher (SM110) (one-pass cool-down)",
+       "&minus;0.071",
+       "[&minus;0.078, &minus;0.064]",
+       "604 / 117"
+      ],
+      [
+       "the show-time instant-only big model (SM99) (the teacher)",
+       "+0.014",
+       "[&minus;0.010, +0.038]",
+       "321 / 400"
+      ],
+      [
+       "the show-time instant-only small model (SM96)",
+       "&minus;0.129",
+       "[&minus;0.140, &minus;0.118]",
+       "614 / 107"
+      ],
+      [
+       "the show-time retrain (SM92)",
+       "&minus;0.342",
+       "[&minus;0.369, &minus;0.316]",
+       "675 / 47"
+      ],
+      [
+       "early stop: after pass 1 vs the Small Instant-Only model (SM98)&rsquo;s snapshot",
+       "&minus;0.144",
+       "[&minus;0.166, &minus;0.125]",
+       "558 / 164"
+      ],
+      [
+       "1,500 validation users: vs the Small Instant-Only model (SM98)",
+       "&minus;0.097",
+       "[&minus;0.109, &minus;0.088]",
+       "1,291 / 196"
+      ]
+     ]
+    }
+   }
+  },
+  {
+   "date": "11-14",
+   "kind": "cpu",
+   "id": "SM111b",
+   "track": "small model",
+   "name": "Fork speed test, family wiring (SM111b): the speed test (SM111) rerun on the fork code that runs each size&rsquo;s own models (the family wiring (SM114)), so the Tiny pair (the Tiny two-head model (SM106) beside the Tiny Instant-Only model (SM101)) is measured",
+   "eval": "Fork Rust code at the default precision (int4 cards + int8 notes), 5 runs per cell, medians; same collection copy (13,980 cards, 13,205 notes, 225,132 reviews); app estimate = cold build + 1.11 s measured Python side. Other CPU load 3&ndash;7%; GPU 8&ndash;10% from desktop apps only (no compute process, queue idle)",
+   "fork": "Fork branch speed-test (docs/rwkv-speed-test-2026-11-14.MD); release notes not updated (no new release)",
+   "takeaway": "<strong>Done</strong>. Tiny with both models: 7.2 s (90 MB stored), vs Small with both 7.8 s (115 MB); Tiny one model 5.6 s, Small one model 5.9 s, Big both 23.3 s, Big one 14.1 s. The Tiny pair stores 5,282 B per card + note (Small pair 7,098 B). Everything else matches the first test (SM111) within 0.1 s",
+   "inputs": "show-time",
+   "started_at": "2026-11-14T14:22+01:00",
+   "ended_at": "2026-11-14T14:45+01:00",
+   "detail": {
+    "verdict": "Done; the Tiny pair measured",
+    "table": {
+     "head": [
+      "Size and mode",
+      "Build s (cold)",
+      "App estimate s",
+      "Stored state MB"
+     ],
+     "rows": [
+      [
+       "Big, both models (the show-time big model (SM91s2) + the show-time instant-only big model (SM99))",
+       "22.15",
+       "23.3",
+       "611"
+      ],
+      [
+       "Big, one model",
+       "13.02",
+       "14.1",
+       "306"
+      ],
+      [
+       "Small, both models (the show-time retrain (SM92) + the Small Instant-Only model (SM98))",
+       "6.69",
+       "7.8",
+       "115"
+      ],
+      [
+       "Small, one model",
+       "4.80",
+       "5.9",
+       "58"
+      ],
+      [
+       "Tiny, both models (the Tiny two-head model (SM106) + the Tiny Instant-Only model (SM101))",
+       "6.08",
+       "7.2",
+       "90"
+      ],
+      [
+       "Tiny, one model (the Tiny two-head model (SM106))",
+       "4.48",
+       "5.6",
+       "46"
+      ],
+      [
+       "Tiny, RWKV-Instant only (the Tiny Instant-Only model (SM101))",
+       "4.44",
+       "5.6",
+       "46"
+      ]
+     ]
+    }
+   }
+  },
   {
    "date": "11-13",
    "kind": "cpu",
@@ -9498,7 +9635,7 @@
        "103"
       ],
       [
-       "Tiny, one model (SM106)",
+       "Tiny, one model (the Tiny two-head model (SM106))",
        "4.52",
        "5.6",
        "46"
