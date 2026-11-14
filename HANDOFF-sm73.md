@@ -3,7 +3,7 @@
 Design: `C:/Users/jonat/workspace/anki-rwkv/artifacts/small-model/sm73/DESIGN.md` (main). Bar (user 10-29):
 <= +0.50% curve AND <= +0.40% instant vs the big model (1 leak-free epoch), 732 set (722 users).
 
-Worktree `C:/Users/jonat/workspace/wt/sm73` (branch `sm73`, cut from `sm72s` at 85da58b9; no source changes). Reads
+Worktree `C:/Users/jonat/workspace/wt/sm73` (branch `sm73`, cut from `sm72s` at f50102a5; no source changes). Reads
 from wt/sm72s (checkpoint of the cool-down from epoch 20, its int8 rows, the 723-user list) and wt/sm72 (big model
 (1 leak-free epoch) rows), read only.
 

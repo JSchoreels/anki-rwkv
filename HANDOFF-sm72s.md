@@ -1,6 +1,6 @@
 # HANDOFF: SM72 step 3, the small model retrained leak-free (sm72s), prepared 2026-10-26 ~08:15
 
-Worktree `C:/Users/jonat/workspace/wt/sm72s` (branch `sm72s`, cut from `sm72` at 0f817fc4). Launcher started
+Worktree `C:/Users/jonat/workspace/wt/sm72s` (branch `sm72s`, cut from `sm72` at 7f5cfdc4). Launcher started
 detached (hidden WMI process) at ~08:20; it waits for step 2 (the leak-free teacher export run by wt/sm72's launcher).
 
 ## What runs
