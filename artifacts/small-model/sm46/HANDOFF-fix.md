@@ -17,7 +17,7 @@ If it is relaunched unchanged, the GPU check will STOP again: all 3 users miss 1
 
 ## Fix (branch of wt/sm46, pushed)
 
-- `a4598176`: chunked CUDA eigh (1,024 matrices per call, ~0.6 GB, bitwise the same values; checked on 5,000 Grams with chunks 2,048 .. 1) plus the SM44 rank fix (components j >= 1 with sigma_j <= 1e-4 sigma_0 are invalid).
+- `9e835a02`: chunked CUDA eigh (1,024 matrices per call, ~0.6 GB, bitwise the same values; checked on 5,000 Grams with chunks 2,048 .. 1) plus the SM44 rank fix (components j >= 1 with sigma_j <= 1e-4 sigma_0 are invalid).
   - Effect of the rank fix on the CPU reference (users 1712 / 4676 / 2388): curve +1.3e-5 / +3.6e-5 / -9e-6 and instant -1.2e-5 / +6e-7 / +7e-6.
 - The next commit has the re-run CPU check (`check-sm46-cpu.json`, ALL OK, bitwise) and the new references.
 
