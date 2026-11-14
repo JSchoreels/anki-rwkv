@@ -1,6 +1,6 @@
 # HANDOFF: SM72 step 3, the small model retrained leak-free (sm72s), prepared 2026-10-26 ~08:15
 
-Worktree `C:/Users/jonat/workspace/wt/sm72s` (branch `sm72s`, cut from `sm72` at 0f817fc4). Launcher started
+Worktree `C:/Users/jonat/workspace/wt/sm72s` (branch `sm72s`, cut from `sm72` at 7f5cfdc4). Launcher started
 detached (hidden WMI process) at ~08:20; it waits for step 2 (the leak-free teacher export run by wt/sm72's launcher).
 
 ## What runs
@@ -60,7 +60,7 @@ start only if they end before the next window; cool-downs run in segments with a
 ## Update 2026-10-29 14:45: epochs 21-25 and the cool-down from epoch 25 (SM63)
 
 Epochs 16-20 and the cool-down from e20 are done (released 10-29, summary in `sm72s-summary.md`). Launcher extended
-(commits 239bdda8 = how epochs 16-20 ran, 752b2b71 = this extension): `MAX_EPOCHS=25`, experiment.json / run.json `epochs` 25
+(commits e5b5d081 = how epochs 16-20 ran, dcee769c = this extension): `MAX_EPOCHS=25`, experiment.json / run.json `epochs` 25
 (backups of the 15-epoch versions: `*.e15.json.bak`), the cool-down step is now `decay_and_score 25` (the e20 cool-down is finished and
 is not rerun), rule script `epoch k/25` + `cool-down from epoch 25 (SM72)` series and pairs (e25 vs e20, e25 vs the released small
 model) in the summary. Dry run OK (10-29 14:44). Relaunched hidden (WMI, same command as below) at 14:45; epoch 21 = ticket 000757.
