@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-15T12:47:33+01:00",
- "updated": "2026-11-15 12:47",
- "material": "f897db222caa3192",
- "summary": "idle, finished 001221",
+ "generated_at": "2026-11-15T12:49:04+01:00",
+ "updated": "2026-11-15 12:49",
+ "material": "be59b6aa7da7538f",
+ "summary": "idle",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring, show-time inputs for both heads (curve / instant)",
@@ -2277,14 +2277,11 @@
    "kind": "gpu",
    "minutes": 1010,
    "what": "The longer cool-down for Tiny (SM115): the recipe of the longer big instant-only teacher (SM113) applied to Tiny: the Tiny Instant-Only model (SM101)&rsquo;s cool-down stretched over two passes of the 8,000 users (one learning-rate decay over twice the reviews), from its constant-LR epoch 38 (the checkpoint its own cool-down started from), with the teacher targets of the show-time instant-only big model (SM99). Early stop after pass 1 unless it beats the Tiny Instant-Only model (SM101)&rsquo;s own snapshot at the same learning rate; go = new &minus; the Tiny Instant-Only model (SM101), show-time instant, CI below 0 and at least 0.05%",
-   "when": "Started 15:06 Sat (first the reference snapshot of the Tiny Instant-Only model (SM101) is scored, ~12 min). Pass 1 pauses for the 20:00 break and resumes at 01:00; early check ~05:30 Sun; result ~14:15 Sun, before the Sunday 16:00 break (otherwise it resumes Mon 01:00). About 17 GPU h (about 8 GPU h if the early stop fires)",
+   "when": "Done 12:47 Sun 11-15: go (&minus;0.099% vs the Tiny Instant-Only model (SM101)); held for the next release",
    "decides": "Whether the longer cool-down that went go for the Small Instant-Only model of the family (&minus;0.094%) also lifts the Tiny Instant-Only model (SM101), whose gap to the big model&rsquo;s instant model is almost three times larger (&minus;0.299%); a go is held for the next release (no new release soon, user 11-14)",
    "state": "done",
-   "started_at": "2026-11-14T15:06:04+01:00",
-   "ended": "12:47",
-   "exit": 0,
-   "started": "15:06",
-   "ended_at": "2026-11-15T12:47:09+01:00"
+   "started_at": "2026-11-14T15:06+01:00",
+   "ended_at": "2026-11-15T12:47+01:00"
   },
   {
    "id": "SM111",
@@ -2940,6 +2937,83 @@
   }
  ],
  "results": [
+  {
+   "date": "11-15",
+   "kind": "gpu-train",
+   "id": "SM115",
+   "track": "small model",
+   "name": "The longer cool-down for Tiny (SM115): the recipe of the longer big instant-only teacher (SM113) applied to the Tiny Instant-Only model (SM101): its cool-down stretched over two passes of the 8,000 users, from its constant-LR epoch 38, with the teacher targets of the show-time instant-only big model (SM99) (show-time inputs)",
+   "eval": "Leak-free w8+s8, 722 users of the 732 set, show-time instant; % of the big model (1 leak-free epoch)&rsquo;s LogLoss; paired user bootstrap 95% CI. Go = new minus the Tiny Instant-Only model (SM101) with CI below 0 and at least 0.05%. Early stop after pass 1 against the Tiny Instant-Only model (SM101)&rsquo;s snapshot at the same learning rate. Also the 1,500 validation users (1,487 scored)",
+   "fork": "Not used yet: held for the next release (user 11-14: no new release soon)",
+   "takeaway": "<strong>Go</strong>: &minus;0.099% [&minus;0.108, &minus;0.091] vs the Tiny Instant-Only model (SM101) (621 users better / 101 worse); it closes 0.331 of the gap to the teacher, the show-time instant-only big model (SM99). Same on the 1,500 validation users (&minus;0.103%). Read-outs: +0.186% vs the longer big instant-only teacher (SM113), +0.200% vs the show-time instant-only big model (SM99), +0.092% vs the Small Instant-Only model (SM98), &minus;0.156% vs the show-time retrain (SM92), &minus;0.462% vs the release (SM63). ~20,980 reviews/s; about 16.6 GPU h",
+   "inputs": "show-time",
+   "started_at": "2026-11-14T15:06+01:00",
+   "ended_at": "2026-11-15T12:47+01:00",
+   "gpu_minutes": 998,
+   "tickets": 16,
+   "detail": {
+    "verdict": "Go; branch sm115 ef434b3b (sm115-decision.md, sm115-mid.md)",
+    "table": {
+     "head": [
+      "Show-time instant, new minus",
+      "%",
+      "95% CI",
+      "better / worse"
+     ],
+     "rows": [
+      [
+       "the Tiny Instant-Only model (SM101) (the rule)",
+       "&minus;0.099",
+       "[&minus;0.108, &minus;0.091]",
+       "621 / 101"
+      ],
+      [
+       "the longer big instant-only teacher (SM113)",
+       "+0.186",
+       "[+0.166, +0.208]",
+       "108 / 614"
+      ],
+      [
+       "the show-time instant-only big model (SM99) (the teacher)",
+       "+0.200",
+       "[+0.177, +0.224]",
+       "151 / 571"
+      ],
+      [
+       "the Small Instant-Only model (SM98)",
+       "+0.092",
+       "[+0.073, +0.113]",
+       "244 / 478"
+      ],
+      [
+       "the show-time retrain (SM92)",
+       "&minus;0.156",
+       "[&minus;0.181, &minus;0.131]",
+       "547 / 175"
+      ],
+      [
+       "the release (SM63)",
+       "&minus;0.462",
+       "[&minus;0.565, &minus;0.382]",
+       "611 / 110"
+      ],
+      [
+       "early stop: after pass 1 vs the Tiny Instant-Only model (SM101)&rsquo;s snapshot",
+       "&minus;0.111",
+       "[&minus;0.129, &minus;0.094]",
+       "510 / 211"
+      ],
+      [
+       "1,500 validation users: vs the Tiny Instant-Only model (SM101)",
+       "&minus;0.103",
+       "[&minus;0.110, &minus;0.096]",
+       "1,259 / 226"
+      ]
+     ]
+    },
+    "notes": "Held for the next release (no new release yet, user decision 11-14). Speed about 20,980 reviews/s. The curve head is untrained (curve loss weight 0), so no curve numbers."
+   }
+  },
   {
    "date": "11-14",
    "kind": "gpu-train",
