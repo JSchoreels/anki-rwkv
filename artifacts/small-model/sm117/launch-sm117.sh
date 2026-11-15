@@ -173,6 +173,8 @@ prepare() {  # CPU: the CPU proof (skipped when check-cpu-ok exists for this com
 }
 
 model_steps() {  # model_steps KEY: smoke -> head training -> grade check (each once)
+  # grade checks score the release and the trunk in two scorer processes (each first in its process): in one process
+  # the second big (fork) model differs from the first by ~1e-7 (same weights; 2026-11-15 SM99 smoke, see design.md)
   local key=$1 rc=0
   eval "$($H info --model "$key")"
   local TR=$SM/$P-$key-head SMK=$W/smoke-$P-$key
@@ -184,7 +186,7 @@ model_steps() {  # model_steps KEY: smoke -> head training -> grade check (each 
     q "$(budget "$KIND" smoke)" "$MNAME: smoke (head training on 4 users: 3 small + the longest cut at 400k; time scoring of 3 users; grade check of 2 users)" -- \
       bash -c "$H train --model $key --out $SMK-train --max-users 3 --smoke-longest --buffer-rows 20000 --batch 1024 --log-every 5 \
         && $H score --model $key --head-dir $SMK-train --users-file $S/smoke-users.json --out $SMK-time.jsonl $SHIP_ARG \
-        && env -u RWKV_DELETED_CARDS $PY -X utf8 $SC --pool 732 --users-file $W/smoke-grade-users.json --model $key-rel=$SPEC --model $key-trunk=$SPECPFX$SMK-train/master.pth --only $key-rel/w8+s8 --only $key-trunk/w8+s8 --inputs e2s-query --time-limit 2400 --split-existing --deleted-cards neighbour --dump $SMK-grade-dump --out $SMK-grade-rows.jsonl" \
+        && env -u RWKV_DELETED_CARDS $PY -X utf8 $SC --pool 732 --users-file $W/smoke-grade-users.json --model $key-rel=$SPEC --only $key-rel/w8+s8 --inputs e2s-query --time-limit 2400 --split-existing --deleted-cards neighbour --dump $SMK-grade-dump --out $SMK-grade-rows.jsonl && env -u RWKV_DELETED_CARDS $PY -X utf8 $SC --pool 732 --users-file $W/smoke-grade-users.json --model $key-trunk=$SPECPFX$SMK-train/master.pth --only $key-trunk/w8+s8 --inputs e2s-query --time-limit 2400 --split-existing --deleted-cards neighbour --dump $SMK-grade-dump --out $SMK-grade-rows.jsonl" \
       >> "$G/check-$key.out" 2>&1 || { log "STOP: $key smoke failed (see $G/check-$key.out)"; return 1; }
     if [ "$DRYRUN" != 1 ]; then
       local gline sk first
@@ -215,7 +217,7 @@ model_steps() {  # model_steps KEY: smoke -> head training -> grade check (each 
   fi
   if [ ! -e "$G/grade-ok-$P-$key" ]; then
     q "$(budget "$KIND" grade)" "$MNAME: grade check (the release vs the trunk after head training, 5 users, show-time scorer rows and dumps bitwise)" -- \
-      bash -c "env -u RWKV_DELETED_CARDS $PY -X utf8 $SC --pool 732 --users-file $S/grade-users.json --model $key-rel=$SPEC --model $key-trunk=$SPECPFX$TR/master.pth --only $key-rel/w8+s8 --only $key-trunk/w8+s8 --inputs e2s-query --time-limit 2400 --split-existing --deleted-cards neighbour --dump $G/grade-dump-$key --out $G/grade-rows-$key.jsonl" \
+      bash -c "env -u RWKV_DELETED_CARDS $PY -X utf8 $SC --pool 732 --users-file $S/grade-users.json --model $key-rel=$SPEC --only $key-rel/w8+s8 --inputs e2s-query --time-limit 2400 --split-existing --deleted-cards neighbour --dump $G/grade-dump-$key --out $G/grade-rows-$key.jsonl && env -u RWKV_DELETED_CARDS $PY -X utf8 $SC --pool 732 --users-file $S/grade-users.json --model $key-trunk=$SPECPFX$TR/master.pth --only $key-trunk/w8+s8 --inputs e2s-query --time-limit 2400 --split-existing --deleted-cards neighbour --dump $G/grade-dump-$key --out $G/grade-rows-$key.jsonl" \
       >> "$G/grade-$key.out" 2>&1 || { log "STOP: $key grade check ticket failed (see $G/grade-$key.out)"; return 1; }
     if [ "$DRYRUN" != 1 ]; then
       local line
