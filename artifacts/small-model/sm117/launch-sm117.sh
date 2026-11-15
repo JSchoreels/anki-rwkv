@@ -7,7 +7,8 @@
 # Order: the Tiny two-head model (SM106), the Small Instant-Only model (SM98), the Tiny Instant-Only model (SM101), the
 #   show-time instant-only big model (SM99), the show-time big model (SM91s2), the show-time retrain (SM92) (its shipped
 #   head was trained on normal inputs: retrained here, the shipped one scored as a reference); per model: smoke ->
-#   head training -> grade check (5 users); then the scoring of all six (pass 1 at cap 0.8, pass 2 for missing users at
+#   head training -> grade check (5 users), all after the launcher of the longer cool-down for Tiny (SM115) has ended
+#   (FIFO queue: no ticket waits in between its tickets); then the scoring of all six (pass 1 at cap 0.8, pass 2 for missing users at
 #   0.92), then per-model `decide` and `report` on CPU.
 # Breaks: quiet.json (scope all/gpu) plus the daily 20:00-01:00 break and Sunday from 16:00, re-read at every check
 #   (<= 10 min); every ticket starts only when its budget fits before the next window (the training is resumable).
@@ -109,6 +110,20 @@ q() {  # q MINUTES PURPOSE -- CMD...   one ticket that must end before the next 
   done
 }
 cpu_step() { wait_free "$1" "$2"; }   # CPU work also stays out of the windows
+SM115LOG=C:/Users/jonat/workspace/wt/sm115/artifacts/small-model/sm115/gpu/launch-sm115.log   # read only
+after_sm115() {  # nothing is enqueued until the longer cool-down for Tiny (SM115)'s launcher has ended (its log's last line
+  # is "done ..." or a "STOP" line): the queue is FIFO, so a ticket waiting now would slip in between SM115's tickets
+  local n=0 last
+  while true; do
+    stopped && return 1
+    last=$(tail -1 "$SM115LOG" 2>/dev/null)
+    if [[ "$last" =~ ^\[sm115\ [^]]*\]\ (done|STOP) ]]; then log "the longer cool-down for Tiny (SM115) has ended: ${last:0:220}"; return 0; fi
+    [ "${SKIP_SM115_WAIT:-0}" = 1 ] && { log "SKIP_SM115_WAIT=1: not waiting for the longer cool-down for Tiny (SM115)"; return 0; }
+    if [ "$DRYRUN" = 1 ]; then log "DRYRUN: would wait for the longer cool-down for Tiny (SM115) to end (last line: ${last:0:140})"; return 0; fi
+    [ $((n % 12)) = 0 ] && log "waiting for the longer cool-down for Tiny (SM115) to end (no done / STOP line in its launcher log yet)"
+    n=$((n + 1)); sleep 300
+  done
+}
 scored_users() { F="$1" "$PY" -X utf8 -c "
 import json, os
 from pathlib import Path
@@ -242,6 +257,7 @@ rc=0
 cpu_step 10 "preparation" || rc=1
 [ $rc -eq 0 ] && { preconditions || rc=1; }
 [ $rc -eq 0 ] && { prepare || rc=1; }
+[ $rc -eq 0 ] && { after_sm115 || rc=1; }
 for key in $MODELS; do
   [ $rc -eq 0 ] && { model_steps "$key" || rc=1; }
 done
