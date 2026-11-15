@@ -1,7 +1,7 @@
 {
- "generated_at": "2026-11-15T01:01:05+01:00",
- "updated": "2026-11-15 01:01",
- "material": "86c1fd60bf6a6f30",
+ "generated_at": "2026-11-15T01:09:53+01:00",
+ "updated": "2026-11-15 01:09",
+ "material": "dd476603f96941fa",
  "summary": "running 001206",
  "headline": [
   {
@@ -273,7 +273,7 @@
    "track": "small model",
    "ticket": "001206-sm115",
    "started": "01:00",
-   "elapsed": "0:00",
+   "elapsed": "0:09",
    "progress": null,
    "eta": "~10:20"
   }
@@ -445,7 +445,14 @@
    ]
   }
  ],
- "waiting": [],
+ "waiting": [
+  {
+   "ticket": "001207-small-model",
+   "id": "SM106",
+   "what": "time heads for the family (SM117): the Tiny two-head model (SM106): smoke (head training on 4 users: 3 small + the longest cut at 400k; time scoring of 3 users; grade check of 2 users)",
+   "flags": "expected 12 min"
+  }
+ ],
  "recent": [
   {
    "ticket": "001205-sm115",
@@ -2230,9 +2237,10 @@
    "what": "The Tiny two-head model (SM106): the show-time retrain (SM92) with its card stream cut to 1 layer (31% less state), more epochs with both heads on show-time inputs, then the one-epoch 32k Muon cool-down on show-time inputs (the Tiny Instant-Only model (SM101) recipe, both heads trained). Rules fixed before launch, show-time inputs, vs the big model (1 leak-free epoch): curve &le; +0.5% and instant &le; +0.4% (point estimates, as the 10-29 pruning bar; CIs reported). Branch sm106 ready: card cut and CPU checks pass",
    "when": "Done 01:33 Fri: go. Curve +0.366% [+0.183, +0.574], instant +0.076% [&minus;0.033, +0.163] vs the big model (1 leak-free epoch) (bars +0.5% / +0.4%), after the user chose to continue past the early stop at 10:00 Thu",
    "decides": "Whether the Tiny size gets a two-head model for the RWKV family release (user 11-11)",
-   "state": "done",
+   "state": "waiting",
    "started_at": "2026-11-12T07:48+01:00",
-   "ended_at": "2026-11-13T01:33+01:00"
+   "ended_at": "2026-11-13T01:33+01:00",
+   "ticket": "001207-small-model"
   },
   {
    "id": "SM108",
