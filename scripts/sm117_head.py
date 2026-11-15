@@ -126,6 +126,12 @@ def build_model(key, state, device):
     state = {k: v.float() for k, v in state.items()}
     if m["kind"] == "fork":
         from scripts import compress_quant as cq
+        if torch.device(device).type == "cuda":   # the generated fork module calls compress::wkv_q: CUDA impl, as the scorer does
+            from scripts import compress_wkv_cuda
+            compress_wkv_cuda.register_cuda()
+            err = compress_wkv_cuda.self_test()[0]
+            if err > 1e-4:
+                raise SystemExit(f"CUDA wkv_q disagrees with the float32 reference (max abs error {err})")
         model = cq.load_model(state=state, reference_wkv=True)
         for module in model.rwkv_modules:
             for block in module.blocks:
