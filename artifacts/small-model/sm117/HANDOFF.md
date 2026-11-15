@@ -39,6 +39,8 @@ done
 $PY -X utf8 $WT/scripts/sm117_head.py report
 ```
 
+**Answer-time definition (user, 2026-11-15):** the report script does not print it, so add a short paragraph at the top of `sm117-result.md` (and say it in the factory results row): the answer time is front + back together, question shown -> grade pressed, capped at the preset's maximum answer seconds; the "Show answer" moment is not stored, so front-only / back-only times cannot be computed; "recall within S seconds" = recalled and answered within S s, reading the back included. See design.md, section "What answer time means here".
+
 Then commit on `sm117` with `git add -f`: `sm117-result.md`, `sm117-result.json`, `*-gate.json`, `gpu/*.log`, `gpu/*.out`, `gpu/*.json`, `gpu/sm117-*-rows.jsonl`, `gpu/grade-rows-*.jsonl`, `../sm117-*-head/train.json` (not `.pth`, not `resume.pt`, not `gpu/grade-dump-*/`, not `gpu/*.hist/`, not `work/`), fetch + merge, push.
 
 Factory page (main, `C:/Users/jonat/workspace/anki-rwkv`): close the seven SM117 plan rows (`state` done, `ended_at`) and add one results row per model (or one row for all six) from `sm117-result.json`: per model the gate (grade unchanged, time LogLoss head vs the user's running median with CI), and per S the head's LogLoss vs baselines (a) / (b) with CIs, ECE and AUC, and the "reliable" verdict; times from `gpu/launch-sm117.log`. Every model as "plain name (ID)", "%" not "points", no "Expertium". Then `python "$TEMP/bare.py"` (must print 0), `.venv/Scripts/python.exe scripts/publish_factory_page.py`, the same with `--check` (SYNC 0), commit + push main.

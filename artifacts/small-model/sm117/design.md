@@ -61,6 +61,10 @@ The head reads the instant head's hidden layer (`head_p`), which is trained in a
 
 ## The measurement: P(recall within S seconds)
 
+### What "answer time" means here (added 2026-11-15 after launch, at the user's request; documentation only, no rule changes)
+
+The answer time is the **whole time on the card, front and back together**: from the moment the question is shown to the moment a grade button is pressed. Anki starts the card timer when the question is displayed (`qt/aqt/reviewer.py`, `self.card.start_timer()`) and reads it only when the card is answered (`self.card.time_taken()`), capped at the preset's maximum answer seconds (60 s by default). That single number is the revlog `time` column, the dataset's `duration`. The moment "Show answer" is pressed is **not stored** anywhere, so front-only (recall) time and back-only (reading the answer) time cannot be computed, either for anki-revlogs-10k or for a real collection's history. So every result of this experiment reads as "recalled (Hard, Good or Easy) **and answered** within S seconds of the question appearing, reading the back included". It is not a pure recall latency. The user chose (2026-11-15) to keep this definition rather than add front/back recording to the fork. Every write-up, factory row, package `INTEGRATION.md` and fork document about the time heads must state it.
+
 For each time-labelled test review, at its instant row (show time):
 
 p(S) = sum over g in {Hard, Good, Easy} of P(g) x P(t <= S | g),
