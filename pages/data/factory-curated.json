@@ -2154,6 +2154,121 @@
    "state": "done",
    "started_at": "2026-11-13T01:40+01:00",
    "ended_at": "2026-11-13T02:10+01:00"
+  },
+  {
+   "id": "SM117",
+   "track": "small model",
+   "since": "11-15T01:11",
+   "kind": "gpu-train",
+   "minutes": 65,
+   "match": [
+    "time heads for the family (SM117): the Tiny two-head model (SM106): smoke",
+    "time heads for the family (SM117): the Tiny two-head model (SM106): head training",
+    "time heads for the family (SM117): the Tiny two-head model (SM106): grade check"
+   ],
+   "what": "Time heads for the family (SM117): answer-time head for the Tiny two-head model (SM106), the recipe of the answer-time head on richer frozen features (SM82c): an MLP on the frozen model&rsquo;s internal states and 26 causal time features, trained alone so no grade prediction changes, on show-time inputs with same-day reviews included: smoke, head training (1,991 users, first 400k reviews each), grade check",
+   "when": "Queued behind the longer cool-down for Tiny (SM115, ends ~14:15 Sun): starts Sun only if smoke + training fit before the 16:00 break (needs the GPU by ~14:20), otherwise Mon 01:00; ~65 min",
+   "decides": "Tiny has no answer-time estimate today; Gate per head (fixed in advance): grade outputs bitwise unchanged on 5 users, and the head beats the card&rsquo;s last time and the user&rsquo;s running median per grade on answer-time LogLoss and abs ln error, CI below 0",
+   "state": "planned"
+  },
+  {
+   "id": "SM117",
+   "track": "small model",
+   "since": "11-15T01:11",
+   "kind": "gpu-train",
+   "minutes": 65,
+   "match": [
+    "time heads for the family (SM117): the Small Instant-Only model (SM98): smoke",
+    "time heads for the family (SM117): the Small Instant-Only model (SM98): head training",
+    "time heads for the family (SM117): the Small Instant-Only model (SM98): grade check"
+   ],
+   "what": "Time heads for the family (SM117): answer-time head for the Small Instant-Only model (SM98), the recipe of the answer-time head on richer frozen features (SM82c): an MLP on the frozen model&rsquo;s internal states and 26 causal time features, trained alone so no grade prediction changes, on show-time inputs with same-day reviews included: smoke, head training (1,991 users, first 400k reviews each), grade check",
+   "when": "After the Tiny two-head model (SM106): Mon from 01:00 (~65 min)",
+   "decides": "Gate per head (fixed in advance): grade outputs bitwise unchanged on 5 users, and the head beats the card&rsquo;s last time and the user&rsquo;s running median per grade on answer-time LogLoss and abs ln error, CI below 0",
+   "state": "planned"
+  },
+  {
+   "id": "SM117",
+   "track": "small model",
+   "since": "11-15T01:11",
+   "kind": "gpu-train",
+   "minutes": 65,
+   "match": [
+    "time heads for the family (SM117): the Tiny Instant-Only model (SM101): smoke",
+    "time heads for the family (SM117): the Tiny Instant-Only model (SM101): head training",
+    "time heads for the family (SM117): the Tiny Instant-Only model (SM101): grade check"
+   ],
+   "what": "Time heads for the family (SM117): answer-time head for the Tiny Instant-Only model (SM101), the recipe of the answer-time head on richer frozen features (SM82c): an MLP on the frozen model&rsquo;s internal states and 26 causal time features, trained alone so no grade prediction changes, on show-time inputs with same-day reviews included: smoke, head training (1,991 users, first 400k reviews each), grade check",
+   "when": "Mon, after the Small Instant-Only model (SM98) (~65 min)",
+   "decides": "Gate per head (fixed in advance): grade outputs bitwise unchanged on 5 users, and the head beats the card&rsquo;s last time and the user&rsquo;s running median per grade on answer-time LogLoss and abs ln error, CI below 0",
+   "state": "planned"
+  },
+  {
+   "id": "SM117",
+   "track": "small model",
+   "since": "11-15T01:11",
+   "kind": "gpu-train",
+   "minutes": 110,
+   "match": [
+    "time heads for the family (SM117): the show-time instant-only big model (SM99): smoke",
+    "time heads for the family (SM117): the show-time instant-only big model (SM99): head training",
+    "time heads for the family (SM117): the show-time instant-only big model (SM99): grade check"
+   ],
+   "what": "Time heads for the family (SM117): answer-time head for the show-time instant-only big model (SM99), the recipe of the answer-time head on richer frozen features (SM82c): an MLP on the frozen model&rsquo;s internal states and 26 causal time features, trained alone so no grade prediction changes, on show-time inputs with same-day reviews included: smoke, head training (1,991 users, first 400k reviews each), grade check",
+   "when": "Mon, after the Tiny Instant-Only model (SM101) (~110 min; Big rows are 1,306 inputs wide)",
+   "decides": "Gate per head (fixed in advance): grade outputs bitwise unchanged on 5 users, and the head beats the card&rsquo;s last time and the user&rsquo;s running median per grade on answer-time LogLoss and abs ln error, CI below 0",
+   "state": "planned"
+  },
+  {
+   "id": "SM117",
+   "track": "small model",
+   "since": "11-15T01:11",
+   "kind": "gpu-train",
+   "minutes": 110,
+   "match": [
+    "time heads for the family (SM117): the show-time big model (SM91s2): smoke",
+    "time heads for the family (SM117): the show-time big model (SM91s2): head training",
+    "time heads for the family (SM117): the show-time big model (SM91s2): grade check"
+   ],
+   "what": "Time heads for the family (SM117): answer-time head for the show-time big model (SM91s2), the recipe of the answer-time head on richer frozen features (SM82c): an MLP on the frozen model&rsquo;s internal states and 26 causal time features, trained alone so no grade prediction changes, on show-time inputs with same-day reviews included: smoke, head training (1,991 users, first 400k reviews each), grade check",
+   "when": "Mon, after the show-time instant-only big model (SM99) (~110 min)",
+   "decides": "No Big model has an answer-time head yet (the family README says otherwise); Gate per head (fixed in advance): grade outputs bitwise unchanged on 5 users, and the head beats the card&rsquo;s last time and the user&rsquo;s running median per grade on answer-time LogLoss and abs ln error, CI below 0",
+   "state": "planned"
+  },
+  {
+   "id": "SM117",
+   "track": "small model",
+   "since": "11-15T01:11",
+   "kind": "gpu-train",
+   "minutes": 65,
+   "match": [
+    "time heads for the family (SM117): the show-time retrain (SM92): smoke",
+    "time heads for the family (SM117): the show-time retrain (SM92): head training",
+    "time heads for the family (SM117): the show-time retrain (SM92): grade check"
+   ],
+   "what": "Time heads for the family (SM117): answer-time head for the show-time retrain (SM92), the recipe of the answer-time head on richer frozen features (SM82c): an MLP on the frozen model&rsquo;s internal states and 26 causal time features, trained alone so no grade prediction changes, on show-time inputs with same-day reviews included: smoke, head training (1,991 users, first 400k reviews each), grade check",
+   "when": "Mon, after the show-time big model (SM91s2) (~65 min)",
+   "decides": "Its shipped head was trained on normal inputs while the fork runs show-time inputs: retrained under the same recipe, the shipped one scored as a reference; Gate per head (fixed in advance): grade outputs bitwise unchanged on 5 users, and the head beats the card&rsquo;s last time and the user&rsquo;s running median per grade on answer-time LogLoss and abs ln error, CI below 0",
+   "state": "planned"
+  },
+  {
+   "id": "SM117",
+   "track": "small model",
+   "since": "11-15T01:11",
+   "kind": "gpu-score",
+   "minutes": 125,
+   "match": [
+    "time heads for the family (SM117): scoring the Tiny two-head model (SM106): answer time and P(recall within S seconds) on the 732 set (723 users, pass 1",
+    "time heads for the family (SM117): scoring the Small Instant-Only model (SM98): answer time and P(recall within S seconds) on the 732 set (723 users, pass 1",
+    "time heads for the family (SM117): scoring the Tiny Instant-Only model (SM101): answer time and P(recall within S seconds) on the 732 set (723 users, pass 1",
+    "time heads for the family (SM117): scoring the show-time instant-only big model (SM99): answer time and P(recall within S seconds) on the 732 set (723 users, pass 1",
+    "time heads for the family (SM117): scoring the show-time big model (SM91s2): answer time and P(recall within S seconds) on the 732 set (723 users, pass 1",
+    "time heads for the family (SM117): scoring the show-time retrain (SM92): answer time and P(recall within S seconds) on the 732 set (723 users, pass 1"
+   ],
+   "what": "Time heads for the family (SM117): score all six heads on the 732 set (722 users, show-time inputs): answer-time LogLoss, and P(recall within S seconds) = P(Hard, Good or Easy) &times; P(answer under S | grade) for S = 3, 5, 8, 10, 15, 20, 30 s (LogLoss, ECE, AUC, Brier, reliability tables) against the model&rsquo;s grade split &times; the user&rsquo;s running answer-time shares, and the user&rsquo;s running rate",
+   "when": "After the six trainings, Mon ~08:00 &rarr; ~10:30 (later if nothing ran Sun)",
+   "decides": "How reliable P(recall within S seconds) is per model, a report (rule fixed in advance): reliable at an S = ECE below 0.01 and LogLoss below both baselines with the CI below 0; reliable = at all seven S",
+   "state": "planned"
   }
  ],
  "backlog": [
