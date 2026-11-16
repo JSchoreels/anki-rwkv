@@ -1,7 +1,7 @@
 {
- "generated_at": "2026-11-16T16:30:39+01:00",
- "updated": "2026-11-16 16:30",
- "material": "19a28b969d551148",
+ "generated_at": "2026-11-16T17:47:08+01:00",
+ "updated": "2026-11-16 17:47",
+ "material": "8b86dc02b970b864",
  "summary": "running 001264",
  "headline": [
   {
@@ -273,7 +273,7 @@
    "track": "small model",
    "ticket": "001264-sm118",
    "started": "16:15",
-   "elapsed": "0:14",
+   "elapsed": "1:31",
    "progress": null,
    "eta": "~19:54"
   }
@@ -2430,6 +2430,17 @@
    "started": "16:15",
    "ticket": "001264-sm118",
    "ends_at": "2026-11-17T06:10:17+01:00"
+  },
+  {
+   "id": "SM119",
+   "track": "small model",
+   "since": "11-16T17:45",
+   "kind": "gpu-train",
+   "minutes": 90,
+   "what": "Time heads for the new candidates (SM119): the answer-time head of the time heads for the family (SM117), exactly the same recipe and rules (an MLP on the frozen model&rsquo;s internal states and 26 causal time features, trained alone so no grade prediction changes, show-time inputs, same-day reviews included; then answer-time LogLoss and P(recall within S seconds) at S = 3, 5, 8, 10, 15, 20, 30 s on the 732 set), for the longer Small Instant-Only model (SM113) and the longer cool-down for Tiny (SM115), and for the show-time two-head cool-down for Small (SM118) only if that one ends with a go. Answer time = front and back together, from the question shown to the grade pressed, capped at the maximum answer seconds; recall within S seconds = recalled (Hard, Good or Easy) and answered within S seconds, reading the back included. Per model: smoke, grade-unchanged check (bitwise), head training, scoring",
+   "when": "Launched 17:45 Mon 11-16, waits for the launcher of the show-time two-head cool-down for Small (SM118) to end (about 03:30 to 12:30 Tue 11-17, queue order); then about 1.5 GPU h for the two models (about 2.3 GPU h if the show-time two-head cool-down for Small (SM118) is a go); respects the 20:00-01:00 break",
+   "decides": "Whether the heads of the two new candidates are as reliable as those of the family (gate per head fixed in advance: grade outputs bitwise unchanged, head beats the card&rsquo;s last time and the user&rsquo;s running median per grade, CI below 0), and then the time-head files for the fork branch of the family time heads",
+   "state": "planned"
   }
  ],
  "gpu_break": {
