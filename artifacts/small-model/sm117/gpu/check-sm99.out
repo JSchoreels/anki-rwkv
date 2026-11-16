@@ -1,0 +1,390 @@
+[queue] 001231-small-model registered for gpu: time heads for the family (SM117): the show-time instant-only big model (SM99): smoke (head training on 4 users: 3 small + the longest cut at 400k; time scoring of 3 users; grade check of 2 users)
+[queue] 001231-small-model started after 0:00:00; holds gpu
+[sm117-train] the show-time instant-only big model (SM99): 4 users (4 to go), 388,720 labelled rows planned, 380 steps of 1,024; inputs 1306 (6 x 128 + head_p 512 + 26); model parameters trainable [], in the optimizer 0; head 175,552 + ablation 11,712 values; device cuda
+Traceback (most recent call last):
+  File "C:\Users\jonat\workspace\wt\sm117\scripts\sm117_head.py", line 1246, in <module>
+    sys.exit(main())
+             ^^^^^^
+  File "C:\Users\jonat\workspace\wt\sm117\scripts\sm117_head.py", line 1241, in main
+    return {"plan": plan, "baselines": baselines, "train": train, "score": score, "check": check,
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\jonat\workspace\wt\sm117\scripts\sm117_head.py", line 637, in train
+    qi, th, feats, _ = frozen.forward(gb)
+                       ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\jonat\workspace\wt\sm117\scripts\sm117_head.py", line 286, in forward
+    o, snaps, hp_all = fork_forward_capture(self.model, gb, qi)
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\jonat\workspace\wt\sm117\scripts\sm117_head.py", line 237, in fork_forward_capture
+    module_out = submodule(module_in, time_shift_select_BT=time_shift_select_BT, skip_BT=skip_BT)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\jonat\workspace\anki-rwkv\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1775, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\jonat\workspace\anki-rwkv\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1786, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+NotImplementedError: The following operation failed in the TorchScript interpreter.
+Traceback of TorchScript (most recent call last):
+  File "C:\Users\jonat\workspace\wt\sm117\artifacts\compression\_generated\rwkv_model_state_quant.py", line 106, in forward
+        x_BTC, v0_BTC = in_BTC, torch.empty_like(in_BTC)
+        for _, block in enumerate(self.blocks):
+            x_BTC, v0_BTC = block(
+                            ~~~~~ <--- HERE
+                in_BTC=x_BTC,
+                v0_BTC=v0_BTC,
+  File "C:\Users\jonat\workspace\wt\sm117\artifacts\compression\_generated\rwkv_model_state_quant.py", line 124, in forward
+    @FunctionType
+    def forward(self, in_BTC, v0_BTC, time_shift_select_BT, skip_BT):
+        x_BTC, v0_BTC = self.time_mixer(
+                        ~~~~~~~~~~~~~~~ <--- HERE
+            in_BTC=in_BTC,
+            v0_BTC=v0_BTC,
+  File "C:\Users\jonat\workspace\wt\sm117\artifacts\compression\_generated\rwkv_model_state_quant.py", line 417, in forward
+            )
+        else:
+            out_BTHK = reference_rwkv7_q(
+                       ~~~~~~~~~~~~~~~~~ <--- HERE
+                r_BTHK, k_BTHK, v_BTHK, w_BTHK, a_BTHK, k_deformed_BTHK, skip_BT, self.state_bits
+            )
+  File "C:\Users\jonat\workspace\wt\sm117\artifacts\compression\_generated\rwkv_model_state_quant.py", line 18, in reference_rwkv7_q
+                      a_BTHK: torch.Tensor, k_deformed_BTHK: torch.Tensor, skip_BT: torch.Tensor, bits: int):
+    if r_BTHK.is_cuda:  # any length, optional state rounding: scripts/compress_wkv_cuda.py
+        return torch.ops.compress.wkv_q(r_BTHK, k_BTHK, v_BTHK, w_BTHK, a_BTHK, k_deformed_BTHK, skip_BT,
+               ~~~~~~~~~~~~~~~~~~~~~~~~ <--- HERE
+                                        bits).to(k_BTHK.dtype)
+    if bits == 0:
+RuntimeError: Could not run 'compress::wkv_q' with arguments from the 'CUDA' backend. This could be because the operator doesn't exist for this backend, or was omitted during the selective/custom build process (if using custom build). If you are a Facebook employee using PyTorch on mobile, please visit https://fburl.com/ptmfixes for possible resolutions. 'compress::wkv_q' is only available for these backends: [Meta, BackendSelect, Python, FuncTorchDynamicLayerBackMode, Functionalize, Named, Conjugate, Negative, ZeroTensor, ADInplaceOrView, AutogradOther, AutogradCPU, AutogradCUDA, AutogradXLA, AutogradMPS, AutogradXPU, AutogradHPU, AutogradLazy, AutogradMTIA, AutogradMAIA, AutogradMeta, Tracer, AutocastCPU, AutocastMTIA, AutocastMAIA, AutocastXPU, AutocastMPS, AutocastCUDA, FuncTorchBatched, BatchedNestedTensor, FuncTorchVmapMode, Batched, VmapMode, FuncTorchGradWrapper, PythonTLSSnapshot, FuncTorchDynamicLayerFrontMode, PreDispatch, PythonDispatcher].
+
+Meta: registered at C:\actions-runner\_work\pytorch\pytorch\pytorch\aten\src\ATen\core\MetaFallbackKernel.cpp:23 [backend fallback]
+BackendSelect: fallthrough registered at C:\actions-runner\_work\pytorch\pytorch\pytorch\aten\src\ATen\core\BackendSelectFallbackKernel.cpp:3 [backend fallback]
+Python: registered at C:\actions-runner\_work\pytorch\pytorch\pytorch\aten\src\ATen\core\PythonFallbackKernel.cpp:194 [backend fallback]
+FuncTorchDynamicLayerBackMode: registered at C:\actions-runner\_work\pytorch\pytorch\pytorch\aten\src\ATen\functorch\DynamicLayer.cpp:479 [backend fallback]
+Functionalize: registered at C:\actions-runner\_work\pytorch\pytorch\pytorch\aten\src\ATen\FunctionalizeFallbackKernel.cpp:387 [backend fallback]
+Named: registered at C:\actions-runner\_work\pytorch\pytorch\pytorch\aten\src\ATen\core\NamedRegistrations.cpp:7 [backend fallback]
+Conjugate: registered at C:\actions-runner\_work\pytorch\pytorch\pytorch\aten\src\ATen\ConjugateFallback.cpp:17 [backend fallback]
+Negative: registered at C:\actions-runner\_work\pytorch\pytorch\pytorch\aten\src\ATen\native\NegateFallback.cpp:18 [backend fallback]
+ZeroTensor: registered at C:\actions-runner\_work\pytorch\pytorch\pytorch\aten\src\ATen\ZeroTensorFallback.cpp:115 [backend fallback]
+ADInplaceOrView: fallthrough registered at C:\actions-runner\_work\pytorch\pytorch\pytorch\aten\src\ATen\core\VariableFallbackKernel.cpp:104 [backend fallback]
+AutogradOther: registered at C:\actions-runner\_work\pytorch\pytorch\pytorch\aten\src\ATen\core\VariableFallbackKernel.cpp:63 [backend fallback]
+AutogradCPU: registered at C:\actions-runner\_work\pytorch\pytorch\pytorch\aten\src\ATen\core\VariableFallbackKernel.cpp:67 [backend fallback]
+AutogradCUDA: registered at C:\actions-runner\_work\pytorch\pytorch\pytorch\aten\src\ATen\core\VariableFallbackKernel.cpp:75 [backend fallback]
+AutogradXLA: registered at C:\actions-runner\_work\pytorch\pytorch\pytorch\aten\src\ATen\core\VariableFallbackKernel.cpp:87 [backend fallback]
+AutogradMPS: registered at C:\actions-runner\_work\pytorch\pytorch\pytorch\aten\src\ATen\core\VariableFallbackKernel.cpp:95 [backend fallback]
+AutogradXPU: registered at C:\actions-runner\_work\pytorch\pytorch\pytorch\aten\src\ATen\core\VariableFallbackKernel.cpp:71 [backend fallback]
+AutogradHPU: registered at C:\actions-runner\_work\pytorch\pytorch\pytorch\aten\src\ATen\core\VariableFallbackKernel.cpp:108 [backend fallback]
+AutogradLazy: registered at C:\actions-runner\_work\pytorch\pytorch\pytorch\aten\src\ATen\core\VariableFallbackKernel.cpp:91 [backend fallback]
+AutogradMTIA: registered at C:\actions-runner\_work\pytorch\pytorch\pytorch\aten\src\ATen\core\VariableFallbackKernel.cpp:79 [backend fallback]
+AutogradMAIA: registered at C:\actions-runner\_work\pytorch\pytorch\pytorch\aten\src\ATen\core\VariableFallbackKernel.cpp:83 [backend fallback]
+AutogradMeta: registered at C:\actions-runner\_work\pytorch\pytorch\pytorch\aten\src\ATen\core\VariableFallbackKernel.cpp:99 [backend fallback]
+Tracer: registered at C:\actions-runner\_work\pytorch\pytorch\pytorch\torch\csrc\autograd\TraceTypeManual.cpp:294 [backend fallback]
+AutocastCPU: fallthrough registered at C:\actions-runner\_work\pytorch\pytorch\pytorch\aten\src\ATen\autocast_mode.cpp:324 [backend fallback]
+AutocastMTIA: fallthrough registered at C:\actions-runner\_work\pytorch\pytorch\pytorch\aten\src\ATen\autocast_mode.cpp:468 [backend fallback]
+AutocastMAIA: fallthrough registered at C:\actions-runner\_work\pytorch\pytorch\pytorch\aten\src\ATen\autocast_mode.cpp:506 [backend fallback]
+AutocastXPU: fallthrough registered at C:\actions-runner\_work\pytorch\pytorch\pytorch\aten\src\ATen\autocast_mode.cpp:544 [backend fallback]
+AutocastMPS: fallthrough registered at C:\actions-runner\_work\pytorch\pytorch\pytorch\aten\src\ATen\autocast_mode.cpp:209 [backend fallback]
+AutocastCUDA: fallthrough registered at C:\actions-runner\_work\pytorch\pytorch\pytorch\aten\src\ATen\autocast_mode.cpp:165 [backend fallback]
+FuncTorchBatched: registered at C:\actions-runner\_work\pytorch\pytorch\pytorch\aten\src\ATen\functorch\LegacyBatchingRegistrations.cpp:731 [backend fallback]
+BatchedNestedTensor: registered at C:\actions-runner\_work\pytorch\pytorch\pytorch\aten\src\ATen\functorch\LegacyBatchingRegistrations.cpp:758 [backend fallback]
+FuncTorchVmapMode: fallthrough registered at C:\actions-runner\_work\pytorch\pytorch\pytorch\aten\src\ATen\functorch\VmapModeRegistrations.cpp:27 [backend fallback]
+Batched: registered at C:\actions-runner\_work\pytorch\pytorch\pytorch\aten\src\ATen\LegacyBatchingRegistrations.cpp:1075 [backend fallback]
+VmapMode: fallthrough registered at C:\actions-runner\_work\pytorch\pytorch\pytorch\aten\src\ATen\VmapModeRegistrations.cpp:33 [backend fallback]
+FuncTorchGradWrapper: registered at C:\actions-runner\_work\pytorch\pytorch\pytorch\aten\src\ATen\functorch\TensorWrapper.cpp:210 [backend fallback]
+PythonTLSSnapshot: registered at C:\actions-runner\_work\pytorch\pytorch\pytorch\aten\src\ATen\core\PythonFallbackKernel.cpp:202 [backend fallback]
+FuncTorchDynamicLayerFrontMode: registered at C:\actions-runner\_work\pytorch\pytorch\pytorch\aten\src\ATen\functorch\DynamicLayer.cpp:475 [backend fallback]
+PreDispatch: registered at C:\actions-runner\_work\pytorch\pytorch\pytorch\aten\src\ATen\core\PythonFallbackKernel.cpp:206 [backend fallback]
+PythonDispatcher: registered at C:\actions-runner\_work\pytorch\pytorch\pytorch\aten\src\ATen\core\PythonFallbackKernel.cpp:198 [backend fallback]
+
+
+[queue] 001231-small-model finished with exit code 1 after 0:00:11; released gpu
+[queue] 001232-small-model registered for gpu: time heads for the family (SM117): the show-time instant-only big model (SM99): smoke (head training on 4 users: 3 small + the longest cut at 400k; time scoring of 3 users; grade check of 2 users)
+[queue] 001232-small-model started after 0:00:00; holds gpu
+[sm117-train] the show-time instant-only big model (SM99): 4 users (4 to go), 388,720 labelled rows planned, 380 steps of 1,024; inputs 1306 (6 x 128 + head_p 512 + 26); model parameters trainable [], in the optimizer 0; head 175,552 + ablation 11,712 values; device cuda
+[sm117-train] step 1: time loss 2.7726 / ablation 2.7726 nats over 1,024 rows (zero output layers: ln 16 = 2.7726)
+[sm117-train] step 5/380: time loss 2.7259 / ablation 2.7522 nats (last 5 steps), lr 1.25e-03, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 10/380: time loss 2.3819 / ablation 2.6202 nats (last 5 steps), lr 2.00e-03, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 15/380: time loss 2.2498 / ablation 2.4028 nats (last 5 steps), lr 2.00e-03, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 20/380: time loss 2.1015 / ablation 2.2288 nats (last 5 steps), lr 2.00e-03, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 25/380: time loss 1.9635 / ablation 2.1351 nats (last 5 steps), lr 1.99e-03, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 30/380: time loss 1.9020 / ablation 2.0699 nats (last 5 steps), lr 1.98e-03, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 35/380: time loss 1.8592 / ablation 2.0223 nats (last 5 steps), lr 1.98e-03, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 40/380: time loss 1.8166 / ablation 1.9946 nats (last 5 steps), lr 1.97e-03, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 45/380: time loss 1.8130 / ablation 1.9778 nats (last 5 steps), lr 1.95e-03, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 50/380: time loss 1.8046 / ablation 1.9603 nats (last 5 steps), lr 1.94e-03, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 55/380: time loss 1.7731 / ablation 1.9391 nats (last 5 steps), lr 1.93e-03, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 60/380: time loss 1.7709 / ablation 1.9288 nats (last 5 steps), lr 1.91e-03, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 65/380: time loss 1.7883 / ablation 1.9463 nats (last 5 steps), lr 1.89e-03, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 70/380: time loss 1.7564 / ablation 1.9143 nats (last 5 steps), lr 1.87e-03, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 75/380: time loss 1.7517 / ablation 1.9075 nats (last 5 steps), lr 1.85e-03, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 80/380: time loss 1.7478 / ablation 1.9013 nats (last 5 steps), lr 1.83e-03, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 85/380: time loss 1.7484 / ablation 1.8955 nats (last 5 steps), lr 1.80e-03, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 90/380: time loss 1.7688 / ablation 1.9279 nats (last 5 steps), lr 1.78e-03, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 95/380: time loss 1.7447 / ablation 1.9075 nats (last 5 steps), lr 1.75e-03, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 100/380: time loss 1.7407 / ablation 1.8992 nats (last 5 steps), lr 1.72e-03, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 105/380: time loss 1.7585 / ablation 1.9207 nats (last 5 steps), lr 1.69e-03, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 110/380: time loss 1.7303 / ablation 1.8729 nats (last 5 steps), lr 1.66e-03, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 115/380: time loss 1.7304 / ablation 1.8858 nats (last 5 steps), lr 1.63e-03, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 120/380: time loss 1.7092 / ablation 1.8836 nats (last 5 steps), lr 1.59e-03, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 125/380: time loss 1.7368 / ablation 1.8907 nats (last 5 steps), lr 1.56e-03, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 130/380: time loss 1.7474 / ablation 1.8932 nats (last 5 steps), lr 1.52e-03, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 135/380: time loss 1.7285 / ablation 1.8709 nats (last 5 steps), lr 1.49e-03, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 140/380: time loss 1.7410 / ablation 1.8791 nats (last 5 steps), lr 1.45e-03, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 145/380: time loss 1.7228 / ablation 1.8885 nats (last 5 steps), lr 1.41e-03, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 150/380: time loss 1.7073 / ablation 1.8530 nats (last 5 steps), lr 1.37e-03, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 155/380: time loss 1.7187 / ablation 1.8757 nats (last 5 steps), lr 1.33e-03, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 160/380: time loss 1.7191 / ablation 1.8670 nats (last 5 steps), lr 1.29e-03, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 165/380: time loss 1.7248 / ablation 1.8723 nats (last 5 steps), lr 1.25e-03, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 170/380: time loss 1.7155 / ablation 1.8546 nats (last 5 steps), lr 1.21e-03, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 175/380: time loss 1.7294 / ablation 1.8917 nats (last 5 steps), lr 1.17e-03, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 180/380: time loss 1.7330 / ablation 1.8771 nats (last 5 steps), lr 1.13e-03, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 185/380: time loss 1.7236 / ablation 1.8551 nats (last 5 steps), lr 1.08e-03, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 190/380: time loss 1.7187 / ablation 1.8564 nats (last 5 steps), lr 1.04e-03, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 195/380: time loss 1.7217 / ablation 1.8699 nats (last 5 steps), lr 1.00e-03, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 200/380: time loss 1.7172 / ablation 1.8684 nats (last 5 steps), lr 9.58e-04, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 205/380: time loss 1.6972 / ablation 1.8478 nats (last 5 steps), lr 9.16e-04, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 210/380: time loss 1.7120 / ablation 1.8678 nats (last 5 steps), lr 8.74e-04, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 215/380: time loss 1.7188 / ablation 1.8743 nats (last 5 steps), lr 8.32e-04, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 220/380: time loss 1.6996 / ablation 1.8497 nats (last 5 steps), lr 7.90e-04, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 225/380: time loss 1.7127 / ablation 1.8675 nats (last 5 steps), lr 7.49e-04, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 230/380: time loss 1.7034 / ablation 1.8383 nats (last 5 steps), lr 7.09e-04, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 235/380: time loss 1.7080 / ablation 1.8668 nats (last 5 steps), lr 6.69e-04, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 240/380: time loss 1.7141 / ablation 1.8649 nats (last 5 steps), lr 6.29e-04, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 245/380: time loss 1.6849 / ablation 1.8529 nats (last 5 steps), lr 5.90e-04, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 250/380: time loss 1.7092 / ablation 1.8435 nats (last 5 steps), lr 5.52e-04, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 255/380: time loss 1.6930 / ablation 1.8479 nats (last 5 steps), lr 5.15e-04, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 260/380: time loss 1.7260 / ablation 1.8598 nats (last 5 steps), lr 4.78e-04, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 265/380: time loss 1.7007 / ablation 1.8554 nats (last 5 steps), lr 4.43e-04, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 270/380: time loss 1.6994 / ablation 1.8631 nats (last 5 steps), lr 4.08e-04, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 275/380: time loss 1.6949 / ablation 1.8703 nats (last 5 steps), lr 3.75e-04, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 280/380: time loss 1.7110 / ablation 1.8639 nats (last 5 steps), lr 3.42e-04, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 285/380: time loss 1.7192 / ablation 1.8601 nats (last 5 steps), lr 3.11e-04, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 290/380: time loss 1.7071 / ablation 1.8529 nats (last 5 steps), lr 2.81e-04, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 295/380: time loss 1.6812 / ablation 1.8371 nats (last 5 steps), lr 2.52e-04, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 300/380: time loss 1.6979 / ablation 1.8524 nats (last 5 steps), lr 2.25e-04, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 305/380: time loss 1.7047 / ablation 1.8649 nats (last 5 steps), lr 1.99e-04, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 310/380: time loss 1.7014 / ablation 1.8592 nats (last 5 steps), lr 1.74e-04, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 315/380: time loss 1.6924 / ablation 1.8443 nats (last 5 steps), lr 1.51e-04, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 320/380: time loss 1.7042 / ablation 1.8593 nats (last 5 steps), lr 1.30e-04, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 325/380: time loss 1.7105 / ablation 1.8539 nats (last 5 steps), lr 1.10e-04, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 330/380: time loss 1.6863 / ablation 1.8419 nats (last 5 steps), lr 9.13e-05, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 335/380: time loss 1.7042 / ablation 1.8599 nats (last 5 steps), lr 7.45e-05, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 340/380: time loss 1.7053 / ablation 1.8556 nats (last 5 steps), lr 5.93e-05, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 345/380: time loss 1.6863 / ablation 1.8404 nats (last 5 steps), lr 4.59e-05, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 350/380: time loss 1.6844 / ablation 1.8337 nats (last 5 steps), lr 3.41e-05, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 355/380: time loss 1.6809 / ablation 1.8255 nats (last 5 steps), lr 2.40e-05, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 360/380: time loss 1.6972 / ablation 1.8537 nats (last 5 steps), lr 1.57e-05, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 365/380: time loss 1.6758 / ablation 1.8297 nats (last 5 steps), lr 9.12e-06, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 370/380: time loss 1.6973 / ablation 1.8588 nats (last 5 steps), lr 4.31e-06, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 375/380: time loss 1.6868 / ablation 1.8516 nats (last 5 steps), lr 1.28e-06, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 380/380: time loss 1.7079 / ablation 1.8631 nats (last 5 steps), lr 3.57e-08, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] complete: 4/4 users, 380 steps, 388,720 rows (87,506 same-day), mean time loss 1.7627 / ablation 1.9157, skipped 0, trunk unchanged True, 0.3 min -> C:\Users\jonat\workspace\wt\sm117\artifacts\small-model\sm117\work\smoke-sm117-sm99-train
+[sm117-score] the show-time instant-only big model (SM99): 3 users, 3 to score, heads ['model', 'ablation']
+[sm117-score] done 3 users in 11 s -> C:\Users\jonat\workspace\wt\sm117\artifacts\small-model\sm117\work\smoke-sm117-sm99-time.jsonl
+[small-model] CUDA recurrences vs float32 reference, max abs error: {'fork/bits0': 1.7881393432617188e-07, 'fork/bits8': 0.00021678954362869263, 'fork/bits4': 1.4901161193847656e-07, 'K16/bits0': 8.940696716308594e-08, 'K16/bits8': 0.00042257457971572876, 'K16/bits8h': 0.0012838095426559448, 'K16/bits4h': 7.425248622894287e-05, 'K32/bits0': 1.1920928955078125e-07, 'K32/bits8': 0.001328926533460617, 'K32/bits8h': 0.0011486411094665527, 'K32/bits4h': 0.00013078749179840088}
+[small-model] 2 users, 2 to score, grid ['sm99-rel/w8+s8@e2s-query', 'sm99-trunk/w8+s8@e2s-query'], scorer {'metrics': 'array', 'lanes': 1}
+C:\Users\jonat\workspace\anki-rwkv\.venv\Lib\site-packages\sklearn\metrics\_classification.py:3424: FutureWarning: `y_pred` was renamed to `y_proba` in version 1.9 and will be removed in 1.11. Use `y_proba` instead.
+  warnings.warn(
+C:\Users\jonat\workspace\anki-rwkv\.venv\Lib\site-packages\sklearn\metrics\_classification.py:3424: FutureWarning: `y_pred` was renamed to `y_proba` in version 1.9 and will be removed in 1.11. Use `y_proba` instead.
+  warnings.warn(
+C:\Users\jonat\workspace\anki-rwkv\.venv\Lib\site-packages\sklearn\metrics\_classification.py:3424: FutureWarning: `y_pred` was renamed to `y_proba` in version 1.9 and will be removed in 1.11. Use `y_proba` instead.
+  warnings.warn(
+C:\Users\jonat\workspace\anki-rwkv\.venv\Lib\site-packages\sklearn\metrics\_classification.py:3424: FutureWarning: `y_pred` was renamed to `y_proba` in version 1.9 and will be removed in 1.11. Use `y_proba` instead.
+  warnings.warn(
+C:\Users\jonat\workspace\anki-rwkv\.venv\Lib\site-packages\sklearn\metrics\_classification.py:3424: FutureWarning: `y_pred` was renamed to `y_proba` in version 1.9 and will be removed in 1.11. Use `y_proba` instead.
+  warnings.warn(
+C:\Users\jonat\workspace\anki-rwkv\.venv\Lib\site-packages\sklearn\metrics\_ranking.py:469: UndefinedMetricWarning: Only one class is present in y_true. ROC AUC score is not defined in that case.
+  warnings.warn(
+C:\Users\jonat\workspace\anki-rwkv\.venv\Lib\site-packages\sklearn\metrics\_classification.py:3424: FutureWarning: `y_pred` was renamed to `y_proba` in version 1.9 and will be removed in 1.11. Use `y_proba` instead.
+  warnings.warn(
+C:\Users\jonat\workspace\anki-rwkv\.venv\Lib\site-packages\sklearn\metrics\_ranking.py:469: UndefinedMetricWarning: Only one class is present in y_true. ROC AUC score is not defined in that case.
+  warnings.warn(
+C:\Users\jonat\workspace\anki-rwkv\.venv\Lib\site-packages\sklearn\metrics\_classification.py:3424: FutureWarning: `y_pred` was renamed to `y_proba` in version 1.9 and will be removed in 1.11. Use `y_proba` instead.
+  warnings.warn(
+C:\Users\jonat\workspace\anki-rwkv\.venv\Lib\site-packages\sklearn\metrics\_classification.py:3424: FutureWarning: `y_pred` was renamed to `y_proba` in version 1.9 and will be removed in 1.11. Use `y_proba` instead.
+  warnings.warn(
+C:\Users\jonat\workspace\anki-rwkv\.venv\Lib\site-packages\sklearn\metrics\_classification.py:3424: FutureWarning: `y_pred` was renamed to `y_proba` in version 1.9 and will be removed in 1.11. Use `y_proba` instead.
+  warnings.warn(
+C:\Users\jonat\workspace\anki-rwkv\.venv\Lib\site-packages\sklearn\metrics\_classification.py:3424: FutureWarning: `y_pred` was renamed to `y_proba` in version 1.9 and will be removed in 1.11. Use `y_proba` instead.
+  warnings.warn(
+C:\Users\jonat\workspace\anki-rwkv\.venv\Lib\site-packages\sklearn\metrics\_classification.py:3424: FutureWarning: `y_pred` was renamed to `y_proba` in version 1.9 and will be removed in 1.11. Use `y_proba` instead.
+  warnings.warn(
+C:\Users\jonat\workspace\anki-rwkv\.venv\Lib\site-packages\sklearn\metrics\_ranking.py:469: UndefinedMetricWarning: Only one class is present in y_true. ROC AUC score is not defined in that case.
+  warnings.warn(
+C:\Users\jonat\workspace\anki-rwkv\.venv\Lib\site-packages\sklearn\metrics\_classification.py:3424: FutureWarning: `y_pred` was renamed to `y_proba` in version 1.9 and will be removed in 1.11. Use `y_proba` instead.
+  warnings.warn(
+C:\Users\jonat\workspace\anki-rwkv\.venv\Lib\site-packages\sklearn\metrics\_ranking.py:469: UndefinedMetricWarning: Only one class is present in y_true. ROC AUC score is not defined in that case.
+  warnings.warn(
+[small-model] 1/2 user 2388 (3685 reviews) | 9s, 855 review-evals/s
+C:\Users\jonat\workspace\anki-rwkv\.venv\Lib\site-packages\sklearn\metrics\_classification.py:3424: FutureWarning: `y_pred` was renamed to `y_proba` in version 1.9 and will be removed in 1.11. Use `y_proba` instead.
+  warnings.warn(
+C:\Users\jonat\workspace\anki-rwkv\.venv\Lib\site-packages\sklearn\metrics\_classification.py:3424: FutureWarning: `y_pred` was renamed to `y_proba` in version 1.9 and will be removed in 1.11. Use `y_proba` instead.
+  warnings.warn(
+C:\Users\jonat\workspace\anki-rwkv\.venv\Lib\site-packages\sklearn\metrics\_classification.py:3424: FutureWarning: `y_pred` was renamed to `y_proba` in version 1.9 and will be removed in 1.11. Use `y_proba` instead.
+  warnings.warn(
+C:\Users\jonat\workspace\anki-rwkv\.venv\Lib\site-packages\sklearn\metrics\_classification.py:3424: FutureWarning: `y_pred` was renamed to `y_proba` in version 1.9 and will be removed in 1.11. Use `y_proba` instead.
+  warnings.warn(
+C:\Users\jonat\workspace\anki-rwkv\.venv\Lib\site-packages\sklearn\metrics\_classification.py:3424: FutureWarning: `y_pred` was renamed to `y_proba` in version 1.9 and will be removed in 1.11. Use `y_proba` instead.
+  warnings.warn(
+C:\Users\jonat\workspace\anki-rwkv\.venv\Lib\site-packages\sklearn\metrics\_classification.py:3424: FutureWarning: `y_pred` was renamed to `y_proba` in version 1.9 and will be removed in 1.11. Use `y_proba` instead.
+  warnings.warn(
+C:\Users\jonat\workspace\anki-rwkv\.venv\Lib\site-packages\sklearn\metrics\_classification.py:3424: FutureWarning: `y_pred` was renamed to `y_proba` in version 1.9 and will be removed in 1.11. Use `y_proba` instead.
+  warnings.warn(
+C:\Users\jonat\workspace\anki-rwkv\.venv\Lib\site-packages\sklearn\metrics\_classification.py:3424: FutureWarning: `y_pred` was renamed to `y_proba` in version 1.9 and will be removed in 1.11. Use `y_proba` instead.
+  warnings.warn(
+C:\Users\jonat\workspace\anki-rwkv\.venv\Lib\site-packages\sklearn\metrics\_classification.py:3424: FutureWarning: `y_pred` was renamed to `y_proba` in version 1.9 and will be removed in 1.11. Use `y_proba` instead.
+  warnings.warn(
+C:\Users\jonat\workspace\anki-rwkv\.venv\Lib\site-packages\sklearn\metrics\_classification.py:3424: FutureWarning: `y_pred` was renamed to `y_proba` in version 1.9 and will be removed in 1.11. Use `y_proba` instead.
+  warnings.warn(
+C:\Users\jonat\workspace\anki-rwkv\.venv\Lib\site-packages\sklearn\metrics\_classification.py:3424: FutureWarning: `y_pred` was renamed to `y_proba` in version 1.9 and will be removed in 1.11. Use `y_proba` instead.
+  warnings.warn(
+C:\Users\jonat\workspace\anki-rwkv\.venv\Lib\site-packages\sklearn\metrics\_classification.py:3424: FutureWarning: `y_pred` was renamed to `y_proba` in version 1.9 and will be removed in 1.11. Use `y_proba` instead.
+  warnings.warn(
+[small-model] 2/2 user 4676 (3716 reviews) | 10s, 1,476 review-evals/s
+[queue] 001232-small-model finished with exit code 0 after 0:00:53; released gpu
+[queue] 001235-small-model registered for gpu: time heads for the family (SM117): the show-time instant-only big model (SM99): smoke (head training on 4 users: 3 small + the longest cut at 400k; time scoring of 3 users; grade check of 2 users)
+[queue] 001235-small-model started after 0:00:00; holds gpu
+[sm117-train] the show-time instant-only big model (SM99): 4 users (4 to go), 388,720 labelled rows planned, 380 steps of 1,024; inputs 1306 (6 x 128 + head_p 512 + 26); model parameters trainable [], in the optimizer 0; head 175,552 + ablation 11,712 values; device cuda
+[sm117-train] step 1: time loss 2.7726 / ablation 2.7726 nats over 1,024 rows (zero output layers: ln 16 = 2.7726)
+[sm117-train] step 5/380: time loss 2.7259 / ablation 2.7522 nats (last 5 steps), lr 1.25e-03, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 10/380: time loss 2.3819 / ablation 2.6202 nats (last 5 steps), lr 2.00e-03, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 15/380: time loss 2.2498 / ablation 2.4028 nats (last 5 steps), lr 2.00e-03, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 20/380: time loss 2.1015 / ablation 2.2288 nats (last 5 steps), lr 2.00e-03, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 25/380: time loss 1.9635 / ablation 2.1351 nats (last 5 steps), lr 1.99e-03, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 30/380: time loss 1.9020 / ablation 2.0699 nats (last 5 steps), lr 1.98e-03, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 35/380: time loss 1.8592 / ablation 2.0223 nats (last 5 steps), lr 1.98e-03, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 40/380: time loss 1.8166 / ablation 1.9946 nats (last 5 steps), lr 1.97e-03, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 45/380: time loss 1.8130 / ablation 1.9778 nats (last 5 steps), lr 1.95e-03, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 50/380: time loss 1.8046 / ablation 1.9603 nats (last 5 steps), lr 1.94e-03, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 55/380: time loss 1.7731 / ablation 1.9391 nats (last 5 steps), lr 1.93e-03, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 60/380: time loss 1.7709 / ablation 1.9288 nats (last 5 steps), lr 1.91e-03, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 65/380: time loss 1.7883 / ablation 1.9463 nats (last 5 steps), lr 1.89e-03, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 70/380: time loss 1.7564 / ablation 1.9143 nats (last 5 steps), lr 1.87e-03, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 75/380: time loss 1.7517 / ablation 1.9075 nats (last 5 steps), lr 1.85e-03, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 80/380: time loss 1.7478 / ablation 1.9013 nats (last 5 steps), lr 1.83e-03, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 85/380: time loss 1.7484 / ablation 1.8955 nats (last 5 steps), lr 1.80e-03, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 90/380: time loss 1.7688 / ablation 1.9279 nats (last 5 steps), lr 1.78e-03, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 95/380: time loss 1.7447 / ablation 1.9075 nats (last 5 steps), lr 1.75e-03, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 100/380: time loss 1.7407 / ablation 1.8992 nats (last 5 steps), lr 1.72e-03, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 105/380: time loss 1.7585 / ablation 1.9207 nats (last 5 steps), lr 1.69e-03, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 110/380: time loss 1.7303 / ablation 1.8729 nats (last 5 steps), lr 1.66e-03, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 115/380: time loss 1.7304 / ablation 1.8858 nats (last 5 steps), lr 1.63e-03, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 120/380: time loss 1.7092 / ablation 1.8836 nats (last 5 steps), lr 1.59e-03, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 125/380: time loss 1.7368 / ablation 1.8907 nats (last 5 steps), lr 1.56e-03, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 130/380: time loss 1.7474 / ablation 1.8932 nats (last 5 steps), lr 1.52e-03, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 135/380: time loss 1.7285 / ablation 1.8709 nats (last 5 steps), lr 1.49e-03, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 140/380: time loss 1.7410 / ablation 1.8791 nats (last 5 steps), lr 1.45e-03, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 145/380: time loss 1.7228 / ablation 1.8885 nats (last 5 steps), lr 1.41e-03, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 150/380: time loss 1.7073 / ablation 1.8530 nats (last 5 steps), lr 1.37e-03, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 155/380: time loss 1.7187 / ablation 1.8757 nats (last 5 steps), lr 1.33e-03, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 160/380: time loss 1.7191 / ablation 1.8670 nats (last 5 steps), lr 1.29e-03, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 165/380: time loss 1.7248 / ablation 1.8723 nats (last 5 steps), lr 1.25e-03, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 170/380: time loss 1.7155 / ablation 1.8546 nats (last 5 steps), lr 1.21e-03, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 175/380: time loss 1.7294 / ablation 1.8917 nats (last 5 steps), lr 1.17e-03, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 180/380: time loss 1.7330 / ablation 1.8771 nats (last 5 steps), lr 1.13e-03, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 185/380: time loss 1.7236 / ablation 1.8551 nats (last 5 steps), lr 1.08e-03, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 190/380: time loss 1.7187 / ablation 1.8564 nats (last 5 steps), lr 1.04e-03, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 195/380: time loss 1.7217 / ablation 1.8699 nats (last 5 steps), lr 1.00e-03, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 200/380: time loss 1.7172 / ablation 1.8684 nats (last 5 steps), lr 9.58e-04, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 205/380: time loss 1.6972 / ablation 1.8478 nats (last 5 steps), lr 9.16e-04, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 210/380: time loss 1.7120 / ablation 1.8678 nats (last 5 steps), lr 8.74e-04, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 215/380: time loss 1.7188 / ablation 1.8743 nats (last 5 steps), lr 8.32e-04, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 220/380: time loss 1.6996 / ablation 1.8497 nats (last 5 steps), lr 7.90e-04, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 225/380: time loss 1.7127 / ablation 1.8675 nats (last 5 steps), lr 7.49e-04, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 230/380: time loss 1.7034 / ablation 1.8383 nats (last 5 steps), lr 7.09e-04, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 235/380: time loss 1.7080 / ablation 1.8668 nats (last 5 steps), lr 6.69e-04, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 240/380: time loss 1.7141 / ablation 1.8649 nats (last 5 steps), lr 6.29e-04, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 245/380: time loss 1.6849 / ablation 1.8529 nats (last 5 steps), lr 5.90e-04, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 250/380: time loss 1.7092 / ablation 1.8435 nats (last 5 steps), lr 5.52e-04, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 255/380: time loss 1.6930 / ablation 1.8479 nats (last 5 steps), lr 5.15e-04, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 260/380: time loss 1.7260 / ablation 1.8598 nats (last 5 steps), lr 4.78e-04, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 265/380: time loss 1.7007 / ablation 1.8554 nats (last 5 steps), lr 4.43e-04, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 270/380: time loss 1.6994 / ablation 1.8631 nats (last 5 steps), lr 4.08e-04, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 275/380: time loss 1.6949 / ablation 1.8703 nats (last 5 steps), lr 3.75e-04, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 280/380: time loss 1.7110 / ablation 1.8639 nats (last 5 steps), lr 3.42e-04, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 285/380: time loss 1.7192 / ablation 1.8601 nats (last 5 steps), lr 3.11e-04, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 290/380: time loss 1.7071 / ablation 1.8529 nats (last 5 steps), lr 2.81e-04, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 295/380: time loss 1.6812 / ablation 1.8371 nats (last 5 steps), lr 2.52e-04, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 300/380: time loss 1.6979 / ablation 1.8524 nats (last 5 steps), lr 2.25e-04, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 305/380: time loss 1.7047 / ablation 1.8649 nats (last 5 steps), lr 1.99e-04, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 310/380: time loss 1.7014 / ablation 1.8592 nats (last 5 steps), lr 1.74e-04, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 315/380: time loss 1.6924 / ablation 1.8443 nats (last 5 steps), lr 1.51e-04, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 320/380: time loss 1.7042 / ablation 1.8593 nats (last 5 steps), lr 1.30e-04, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 325/380: time loss 1.7105 / ablation 1.8539 nats (last 5 steps), lr 1.10e-04, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 330/380: time loss 1.6863 / ablation 1.8419 nats (last 5 steps), lr 9.13e-05, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 335/380: time loss 1.7042 / ablation 1.8599 nats (last 5 steps), lr 7.45e-05, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 340/380: time loss 1.7053 / ablation 1.8556 nats (last 5 steps), lr 5.93e-05, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 345/380: time loss 1.6863 / ablation 1.8404 nats (last 5 steps), lr 4.59e-05, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 350/380: time loss 1.6844 / ablation 1.8337 nats (last 5 steps), lr 3.41e-05, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 355/380: time loss 1.6809 / ablation 1.8255 nats (last 5 steps), lr 2.40e-05, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 360/380: time loss 1.6972 / ablation 1.8537 nats (last 5 steps), lr 1.57e-05, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 365/380: time loss 1.6758 / ablation 1.8297 nats (last 5 steps), lr 9.12e-06, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 370/380: time loss 1.6973 / ablation 1.8588 nats (last 5 steps), lr 4.31e-06, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 375/380: time loss 1.6868 / ablation 1.8516 nats (last 5 steps), lr 1.28e-06, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] step 380/380: time loss 1.7079 / ablation 1.8631 nats (last 5 steps), lr 3.57e-08, users 4/4, 421,997 reviews, 0.3 min this run
+[sm117-train] complete: 4/4 users, 380 steps, 388,720 rows (87,506 same-day), mean time loss 1.7627 / ablation 1.9157, skipped 0, trunk unchanged True, 0.3 min -> C:\Users\jonat\workspace\wt\sm117\artifacts\small-model\sm117\work\smoke-sm117-sm99-train
+[sm117-score] the show-time instant-only big model (SM99): 3 users, 3 to score, heads ['model', 'ablation']
+[sm117-score] done 3 users in 11 s -> C:\Users\jonat\workspace\wt\sm117\artifacts\small-model\sm117\work\smoke-sm117-sm99-time.jsonl
+[small-model] CUDA recurrences vs float32 reference, max abs error: {'fork/bits0': 1.7881393432617188e-07, 'fork/bits8': 0.00021678954362869263, 'fork/bits4': 1.4901161193847656e-07, 'K16/bits0': 8.940696716308594e-08, 'K16/bits8': 0.00042257457971572876, 'K16/bits8h': 0.0012838095426559448, 'K16/bits4h': 7.425248622894287e-05, 'K32/bits0': 1.1920928955078125e-07, 'K32/bits8': 0.001328926533460617, 'K32/bits8h': 0.0011486411094665527, 'K32/bits4h': 0.00013078749179840088}
+[small-model] 2 users, 2 to score, grid ['sm99-rel/w8+s8@e2s-query'], scorer {'metrics': 'array', 'lanes': 1}
+C:\Users\jonat\workspace\anki-rwkv\.venv\Lib\site-packages\sklearn\metrics\_classification.py:3424: FutureWarning: `y_pred` was renamed to `y_proba` in version 1.9 and will be removed in 1.11. Use `y_proba` instead.
+  warnings.warn(
+C:\Users\jonat\workspace\anki-rwkv\.venv\Lib\site-packages\sklearn\metrics\_classification.py:3424: FutureWarning: `y_pred` was renamed to `y_proba` in version 1.9 and will be removed in 1.11. Use `y_proba` instead.
+  warnings.warn(
+C:\Users\jonat\workspace\anki-rwkv\.venv\Lib\site-packages\sklearn\metrics\_classification.py:3424: FutureWarning: `y_pred` was renamed to `y_proba` in version 1.9 and will be removed in 1.11. Use `y_proba` instead.
+  warnings.warn(
+C:\Users\jonat\workspace\anki-rwkv\.venv\Lib\site-packages\sklearn\metrics\_classification.py:3424: FutureWarning: `y_pred` was renamed to `y_proba` in version 1.9 and will be removed in 1.11. Use `y_proba` instead.
+  warnings.warn(
+C:\Users\jonat\workspace\anki-rwkv\.venv\Lib\site-packages\sklearn\metrics\_classification.py:3424: FutureWarning: `y_pred` was renamed to `y_proba` in version 1.9 and will be removed in 1.11. Use `y_proba` instead.
+  warnings.warn(
+C:\Users\jonat\workspace\anki-rwkv\.venv\Lib\site-packages\sklearn\metrics\_ranking.py:469: UndefinedMetricWarning: Only one class is present in y_true. ROC AUC score is not defined in that case.
+  warnings.warn(
+C:\Users\jonat\workspace\anki-rwkv\.venv\Lib\site-packages\sklearn\metrics\_classification.py:3424: FutureWarning: `y_pred` was renamed to `y_proba` in version 1.9 and will be removed in 1.11. Use `y_proba` instead.
+  warnings.warn(
+C:\Users\jonat\workspace\anki-rwkv\.venv\Lib\site-packages\sklearn\metrics\_ranking.py:469: UndefinedMetricWarning: Only one class is present in y_true. ROC AUC score is not defined in that case.
+  warnings.warn(
+[small-model] 1/2 user 2388 (3685 reviews) | 7s, 524 review-evals/s
+C:\Users\jonat\workspace\anki-rwkv\.venv\Lib\site-packages\sklearn\metrics\_classification.py:3424: FutureWarning: `y_pred` was renamed to `y_proba` in version 1.9 and will be removed in 1.11. Use `y_proba` instead.
+  warnings.warn(
+C:\Users\jonat\workspace\anki-rwkv\.venv\Lib\site-packages\sklearn\metrics\_classification.py:3424: FutureWarning: `y_pred` was renamed to `y_proba` in version 1.9 and will be removed in 1.11. Use `y_proba` instead.
+  warnings.warn(
+C:\Users\jonat\workspace\anki-rwkv\.venv\Lib\site-packages\sklearn\metrics\_classification.py:3424: FutureWarning: `y_pred` was renamed to `y_proba` in version 1.9 and will be removed in 1.11. Use `y_proba` instead.
+  warnings.warn(
+C:\Users\jonat\workspace\anki-rwkv\.venv\Lib\site-packages\sklearn\metrics\_classification.py:3424: FutureWarning: `y_pred` was renamed to `y_proba` in version 1.9 and will be removed in 1.11. Use `y_proba` instead.
+  warnings.warn(
+C:\Users\jonat\workspace\anki-rwkv\.venv\Lib\site-packages\sklearn\metrics\_classification.py:3424: FutureWarning: `y_pred` was renamed to `y_proba` in version 1.9 and will be removed in 1.11. Use `y_proba` instead.
+  warnings.warn(
+C:\Users\jonat\workspace\anki-rwkv\.venv\Lib\site-packages\sklearn\metrics\_classification.py:3424: FutureWarning: `y_pred` was renamed to `y_proba` in version 1.9 and will be removed in 1.11. Use `y_proba` instead.
+  warnings.warn(
+[small-model] 2/2 user 4676 (3716 reviews) | 9s, 861 review-evals/s
+[small-model] CUDA recurrences vs float32 reference, max abs error: {'fork/bits0': 1.7881393432617188e-07, 'fork/bits8': 0.00021678954362869263, 'fork/bits4': 1.4901161193847656e-07, 'K16/bits0': 8.940696716308594e-08, 'K16/bits8': 0.00042257457971572876, 'K16/bits8h': 0.0012838095426559448, 'K16/bits4h': 7.425248622894287e-05, 'K32/bits0': 1.1920928955078125e-07, 'K32/bits8': 0.001328926533460617, 'K32/bits8h': 0.0011486411094665527, 'K32/bits4h': 0.00013078749179840088}
+[small-model] 2 users, 2 to score, grid ['sm99-trunk/w8+s8@e2s-query'], scorer {'metrics': 'array', 'lanes': 1}
+C:\Users\jonat\workspace\anki-rwkv\.venv\Lib\site-packages\sklearn\metrics\_classification.py:3424: FutureWarning: `y_pred` was renamed to `y_proba` in version 1.9 and will be removed in 1.11. Use `y_proba` instead.
+  warnings.warn(
+C:\Users\jonat\workspace\anki-rwkv\.venv\Lib\site-packages\sklearn\metrics\_classification.py:3424: FutureWarning: `y_pred` was renamed to `y_proba` in version 1.9 and will be removed in 1.11. Use `y_proba` instead.
+  warnings.warn(
+C:\Users\jonat\workspace\anki-rwkv\.venv\Lib\site-packages\sklearn\metrics\_classification.py:3424: FutureWarning: `y_pred` was renamed to `y_proba` in version 1.9 and will be removed in 1.11. Use `y_proba` instead.
+  warnings.warn(
+C:\Users\jonat\workspace\anki-rwkv\.venv\Lib\site-packages\sklearn\metrics\_classification.py:3424: FutureWarning: `y_pred` was renamed to `y_proba` in version 1.9 and will be removed in 1.11. Use `y_proba` instead.
+  warnings.warn(
+C:\Users\jonat\workspace\anki-rwkv\.venv\Lib\site-packages\sklearn\metrics\_classification.py:3424: FutureWarning: `y_pred` was renamed to `y_proba` in version 1.9 and will be removed in 1.11. Use `y_proba` instead.
+  warnings.warn(
+C:\Users\jonat\workspace\anki-rwkv\.venv\Lib\site-packages\sklearn\metrics\_ranking.py:469: UndefinedMetricWarning: Only one class is present in y_true. ROC AUC score is not defined in that case.
+  warnings.warn(
+C:\Users\jonat\workspace\anki-rwkv\.venv\Lib\site-packages\sklearn\metrics\_classification.py:3424: FutureWarning: `y_pred` was renamed to `y_proba` in version 1.9 and will be removed in 1.11. Use `y_proba` instead.
+  warnings.warn(
+C:\Users\jonat\workspace\anki-rwkv\.venv\Lib\site-packages\sklearn\metrics\_ranking.py:469: UndefinedMetricWarning: Only one class is present in y_true. ROC AUC score is not defined in that case.
+  warnings.warn(
+[small-model] 1/2 user 2388 (3685 reviews) | 7s, 517 review-evals/s
+C:\Users\jonat\workspace\anki-rwkv\.venv\Lib\site-packages\sklearn\metrics\_classification.py:3424: FutureWarning: `y_pred` was renamed to `y_proba` in version 1.9 and will be removed in 1.11. Use `y_proba` instead.
+  warnings.warn(
+C:\Users\jonat\workspace\anki-rwkv\.venv\Lib\site-packages\sklearn\metrics\_classification.py:3424: FutureWarning: `y_pred` was renamed to `y_proba` in version 1.9 and will be removed in 1.11. Use `y_proba` instead.
+  warnings.warn(
+C:\Users\jonat\workspace\anki-rwkv\.venv\Lib\site-packages\sklearn\metrics\_classification.py:3424: FutureWarning: `y_pred` was renamed to `y_proba` in version 1.9 and will be removed in 1.11. Use `y_proba` instead.
+  warnings.warn(
+C:\Users\jonat\workspace\anki-rwkv\.venv\Lib\site-packages\sklearn\metrics\_classification.py:3424: FutureWarning: `y_pred` was renamed to `y_proba` in version 1.9 and will be removed in 1.11. Use `y_proba` instead.
+  warnings.warn(
+C:\Users\jonat\workspace\anki-rwkv\.venv\Lib\site-packages\sklearn\metrics\_classification.py:3424: FutureWarning: `y_pred` was renamed to `y_proba` in version 1.9 and will be removed in 1.11. Use `y_proba` instead.
+  warnings.warn(
+C:\Users\jonat\workspace\anki-rwkv\.venv\Lib\site-packages\sklearn\metrics\_classification.py:3424: FutureWarning: `y_pred` was renamed to `y_proba` in version 1.9 and will be removed in 1.11. Use `y_proba` instead.
+  warnings.warn(
+[small-model] 2/2 user 4676 (3716 reviews) | 9s, 854 review-evals/s
+[queue] 001235-small-model finished with exit code 0 after 0:01:03; released gpu
