@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-16T19:57:11+01:00",
- "updated": "2026-11-16 19:57",
- "material": "4ed6c800d889bf03",
- "summary": "idle, finished 001264",
+ "generated_at": "2026-11-16T22:03:37+01:00",
+ "updated": "2026-11-16 22:03",
+ "material": "4960dbb4389c5fd4",
+ "summary": "idle",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring, show-time inputs for both heads (curve / instant)",
@@ -2436,6 +2436,17 @@
    "what": "Fast Good/Easy prediction (SM120): scoring only, no training. The answer-time heads already trained by the time heads for the family (SM117) and the time heads for the new candidates (SM119), scored again on the 732 set for new questions: how well the models predict that an answer is Good or Easy, or just Easy (from the grade probabilities alone), and that it is Good or Easy, or Easy, and answered within S seconds, at S = 2, 3, 4, 5, 6, 8, 10, 15, 20, 30 s (for example a Good or Easy within 4 s, without the slower Hard answers); how well they predict how fast a Good or an Easy answer is (P(within S s) and the predicted median time given that grade); and the grade-weighted answer time (the time distribution of each grade mixed by the grade probabilities, all grades and Good or Easy only). Answer time = front and back together, from the question shown to the grade pressed, capped at the maximum answer seconds; within S seconds always includes reading the back. Models: the six family models of the time heads for the family (SM117), then the longer Small Instant-Only model (SM113), the longer cool-down for Tiny (SM115), and the show-time two-head cool-down for Small (SM118) if the time heads for the new candidates (SM119) trains its head. CPU check passed: the recalled event reproduces the numbers of the time heads for the family (SM117) on 3 users.",
    "when": "Launched 18:25 Mon 11-16, waits for the launcher of the time heads for the new candidates (SM119) to end (roughly 06:00 to 08:00 Tue 11-17, later if the show-time two-head cool-down for Small (SM118) ends late); then about 15 to 25 min per model, about 2 to 2.5 GPU h; respects the 20:00-01:00 break",
    "decides": "For which values of S each prediction is reliable (fixed in advance, as in the time heads for the family (SM117): calibration error below 0.01 and LogLoss below the user&rsquo;s running rate and below the model&rsquo;s grade probabilities times the user&rsquo;s running time share, CI below 0), in particular Good or Easy within 4 s; whether the grade-weighted time beats the user&rsquo;s running time distribution; input for a scheduler aiming at a fast Good",
+   "state": "planned"
+  },
+  {
+   "id": "SM121",
+   "track": "small model",
+   "since": "11-16T22:01",
+   "kind": "cpu",
+   "minutes": 300,
+   "what": "Timed recall on your own collection (SM121): CPU only, no training, aggregate numbers only. The answer-time heads of the time heads for the family (SM117) (and of the time heads for the new candidates (SM119) once they exist) scored on your own collection: P(recalled, Good or Easy, or Easy, and answered within S seconds) at S = 2 to 30 s, on the benchmark test reviews and on the slice your Mac replay used (later-day reviews, latest 20%), for the whole collection and the deck subset the Mac checked. Models: the Small pair as the Mac ran it (the Small Instant-Only model (SM98) with the answer-time head release (SM83) of the show-time retrain (SM92)), the Small and Tiny pairs as the fork runs them today, each model with its own head, and Big if CPU time allows. Baselines: the raw recall probability, recall probability times your recent share of fast answers, the grade-weighted recent share, your running and rolling 2,000-review rates, and the same adjusted by each card&rsquo;s last three answer times. Also: does it discriminate between reviews or only predict an average (spread, deciles, AUC given Good, Brier resolution, within-card tracking), and a separate reproduction control of the Mac&rsquo;s numbers on the closest collection copy here. Answer time = front and back together, from the question shown to the grade pressed, capped at the maximum answer seconds; within S seconds always includes reading the back.",
+   "when": "Launched 22:01 Mon 11-16, sleeps until 01:05 Tue (break); CPU check, then about 3 to 5 CPU h (first result roughly 04:00 to 06:00 Tue); then waits until 18:30 at the latest for the heads of the longer Small Instant-Only model (SM113) and the longer cool-down for Tiny (SM115) from the time heads for the new candidates (SM119); respects the 20:00-01:00 break",
+   "decides": "For which values of S the time head is reliable on your own collection (fixed in advance, as in the time heads for the family (SM117): calibration error below 0.01 and LogLoss below every baseline, recent history and card history, with the day-block CI below 0), in particular recalled within 4 s; whether the head discriminates between reviews beyond the card-history baseline; whether the Mac&rsquo;s numbers reproduce",
    "state": "planned"
   }
  ],
