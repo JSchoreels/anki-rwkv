@@ -637,10 +637,26 @@ def train(args):
             stats["skipped"].append([user, error[:200]])
             done += 1
             continue
+        oom = None
+        for attempt in range(2):   # an OOM (also the TorchScript RuntimeError form of the big models) frees the cache and retries once
+            try:
+                gb = batch.to(device)
+                with torch.no_grad():
+                    qi, th, feats, _ = frozen.forward(gb)
+                oom = None
+                break
+            except (torch.OutOfMemoryError, RuntimeError) as err:
+                if not isinstance(err, torch.OutOfMemoryError) and "out of memory" not in str(err):
+                    raise
+                oom, gb = err, None
+                frozen.clear()
+                torch.cuda.empty_cache()
+                print(f"[sm117-train] user {user}: out of memory (attempt {attempt + 1} of 2), cache freed", flush=True)
+        if oom is not None:
+            stats["skipped"].append([user, f"OOM: {oom}"[:200]])
+            done += 1
+            continue
         try:
-            gb = batch.to(device)
-            with torch.no_grad():
-                qi, th, feats, _ = frozen.forward(gb)
             lower = torch.as_tensor(labels["lower"], device=device)
             cens = torch.as_tensor(labels["cens"], device=device)
             rating = torch.as_tensor(labels["rating"], device=device)
@@ -906,7 +922,9 @@ def score(args):
                 f.write(json.dumps({"user_id": user, "error": f"OOM: {oom}"[:300]}) + "\n"); f.flush()
                 continue
             except RuntimeError as err:   # e.g. a test review without an instant row: recorded, the user is left out
-                frozen.clear()
+                frozen.clear()            # (a TorchScript OOM of the big models lands here too: recorded, retried by pass 2)
+                if "out of memory" in str(err):
+                    torch.cuda.empty_cache()
                 print(f"[sm117-score] user {user}: {err}", flush=True)
                 f.write(json.dumps({"user_id": user, "error": f"{err}"[:300]}) + "\n"); f.flush()
                 continue
