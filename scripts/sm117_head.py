@@ -91,11 +91,36 @@ MODELS = {
              "shipped_head": WT / "sm92/artifacts/small-model/sm92-head/master.pth",
              "existing": WT / "sm92/artifacts/small-model/sm92/gpu/sm92-inputs.jsonl"},
 }
-ORDER = ("sm106", "sm98", "sm101", "sm99", "sm91s2", "sm92")
+# SM119 (time heads for the new candidates): the same recipe on three more models, masters read only, sha256 pinned here
+# (the sm118 one is filled in by the launcher through SM119_SM118_SHA256 once SM118 has ended with a go).
+WTD = Path("C:/Users/jonat/workspace/wt")
+MODELS["sm113"] = {"name": "the longer Small Instant-Only model (SM113)", "short": "Small Instant-Only (longer)", "kind": "expertium",
+                   "arch": "w64", "package": None, "two_head": False, "label": "sm113-inst-e35st-st-dec2ep32k-t99",
+                   "master": WTD / "sm113/artifacts/small-model/sm113-inst-e35st-st-dec2ep32k-t99-p2/expertium/E89-F65e-F77a/master.pth",
+                   "sha256": "e4574e2aa8b2cfe6360dbd86f2a75b71d23ea81677b00ffcc9c3abce6b4cb736",
+                   "existing": WTD / "sm113/artifacts/small-model/sm113/gpu/sm113-rows.jsonl"}
+MODELS["sm115"] = {"name": "the longer cool-down for Tiny (SM115)", "short": "Tiny Instant-Only (longer)", "kind": "expertium",
+                   "arch": "w64-c1", "package": None, "two_head": False, "label": "sm115-c1-e38st-st-dec2ep32k-t99",
+                   "master": WTD / "sm115/artifacts/small-model/sm115-c1-e38st-st-dec2ep32k-t99-p2/expertium/E89-F65e-F77a/master.pth",
+                   "sha256": "c59d70495f7a81541d3a70329313354b5f0ec07c9fdd98ced58f849c5890fb0a",
+                   "existing": WTD / "sm115/artifacts/small-model/sm115/gpu/sm115-rows.jsonl"}
+MODELS["sm118"] = {"name": "the show-time two-head cool-down for Small (SM118)", "short": "Small two-head (cool-down)",
+                   "kind": "expertium", "arch": "w64", "package": None, "two_head": True, "label": "sm118-e26-dec2ep32k-t91s2",
+                   "master": WTD / "sm118/artifacts/small-model/sm118-e26-dec2ep32k-t91s2-p2/expertium/E89-F65e-F77a/master.pth",
+                   "sha256": os.environ.get("SM119_SM118_SHA256", ""),
+                   "existing": WTD / "sm118/artifacts/small-model/sm118/gpu/sm118-rows.jsonl"}
+ORDER = ("sm106", "sm98", "sm101", "sm99", "sm91s2", "sm92", "sm113", "sm115", "sm118")
+OUT = ROOT / "artifacts/small-model/sm119"   # SM119 outputs (gate / result files); inputs (plan, priors, baselines) stay in HERE (SM117's)
 
 
 def model_info(key):
     m = dict(MODELS[key])
+    if m["package"] is None:   # SM119 models: label and sha256 pinned in MODELS
+        if not m["sha256"]:
+            raise SystemExit(f"{key}: no sha256 pinned (set SM119_SM118_SHA256)")
+        m["master"] = Path(m["master"])
+        m["existing_label"] = f"{m['label']}/{VARIANT}"
+        return m
     man = json.loads((HF / m["package"] / "manifest.json").read_text(encoding="utf-8"))
     m["label"] = man["label"]
     m["sha256"] = man["checkpoint"]["sha256"]
@@ -1116,7 +1141,7 @@ def args_baselines():
 
 def decide(args):
     res = evaluate(args.model, args.rows, args.grade_check, args.train_json)
-    atomic_json(HERE / f"{args.model}-gate.json", res)
+    atomic_json(OUT / f"{args.model}-gate.json", res)
     if res.get("refused"):
         print(f"[sm117-rule] {args.model}: REFUSE ({len(res['baseline_mismatch'])} users with other reviews than the baselines)")
         return 1
@@ -1143,8 +1168,8 @@ def ci(d, nd=4, pct=False):
 
 def report(args):
     """All six: artifacts/small-model/sm117/sm117-result.{md,json} from the <key>-gate.json files."""
-    res = {k: json.loads((HERE / f"{k}-gate.json").read_text()) for k in ORDER if (HERE / f"{k}-gate.json").exists()}
-    L = ["# Time heads for the family (SM117): result", "",
+    res = {k: json.loads((OUT / f"{k}-gate.json").read_text()) for k in ORDER if (OUT / f"{k}-gate.json").exists()}
+    L = ["# Time heads for the new candidates (SM119): result", "",
          "An answer-time head (the answer-time head on richer frozen features (SM82c) recipe) trained alone on each frozen "
          "family model, on show-time inputs with same-day reviews included, then scored on the 732 set (722 users), "
          "show-time inputs, leak-free. Pre-registered rules: `design.md`.", "",
@@ -1191,10 +1216,10 @@ def report(args):
     for k, r in res.items():
         if "rus" in r:
             L.append(f"| {r['name']} | " + " | ".join(f"{r['rus'][str(s)]['predictors']['model']['max_bin_gap']:.3f}" for s in S_GRID) + " |")
-    (HERE / "sm117-result.md").write_text("\n".join(L) + "\n", encoding="utf-8")
-    atomic_json(HERE / "sm117-result.json", res)
+    (OUT / "sm119-result.md").write_text("\n".join(L) + "\n", encoding="utf-8")
+    atomic_json(OUT / "sm119-result.json", res)
     print(f"[sm117-report] {len(res)} models: gate {[(k, r.get('gate', {}).get('pass')) for k, r in res.items()]}; reliable "
-          f"{[(k, r.get('reliable')) for k, r in res.items()]} -> {HERE / 'sm117-result.md'}")
+          f"{[(k, r.get('reliable')) for k, r in res.items()]} -> {OUT / 'sm119-result.md'}")
     return 0
 
 
