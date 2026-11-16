@@ -315,6 +315,10 @@ def now_charts(curated):
 
 def build(previous):
     curated = json.loads(CURATED.read_text(encoding="utf-8"))
+    for r in curated.get("results", []):  # factory.html maps detail.notes and table rows; a string there broke the page on 11-16
+        det = r.get("detail")
+        if isinstance(det, dict) and not isinstance(det.get("notes", []), list):
+            raise SystemExit(f"factory-curated.json: results row {r.get('id')}: detail.notes must be a list of strings")
     queue = queue_state()
     if queue is None:
         raise SystemExit("r01_queue.py status failed")

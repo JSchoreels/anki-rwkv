@@ -508,7 +508,8 @@
       if (!d) return r.takeaway;
       const tb = d.table ? `<div class="tk-wrap"><table class="tk-table"><thead><tr>${d.table.head.map((h) => `<th>${h}</th>`).join('')}</tr></thead>`
         + `<tbody>${d.table.rows.map((row) => `<tr>${row.map((c) => `<td>${c}</td>`).join('')}</tr>`).join('')}</tbody></table></div>` : '';
-      const ul = d.notes && d.notes.length ? `<ul>${d.notes.map((n) => `<li>${n}</li>`).join('')}</ul>` : '';
+      const notes = d.notes ? [].concat(d.notes) : [];  // a single string is accepted as one note
+      const ul = notes.length ? `<ul>${notes.map((n) => `<li>${n}</li>`).join('')}</ul>` : '';
       return `<div class="tk"><p class="verdict">${d.verdict}</p>${tb}${ul}</div>`;
     };
     // Show-time inputs are the standard since 11-11; rows whose LogLoss columns were scored on normal inputs say so.
