@@ -1,7 +1,7 @@
 {
- "generated_at": "2026-11-16T18:26:49+01:00",
- "updated": "2026-11-16 18:26",
- "material": "826ccbb1e58a2b7c",
+ "generated_at": "2026-11-16T18:27:27+01:00",
+ "updated": "2026-11-16 18:27",
+ "material": "5e11412e9a9b7371",
  "summary": "running 001264",
  "headline": [
   {
@@ -273,7 +273,7 @@
    "track": "small model",
    "ticket": "001264-sm118",
    "started": "16:15",
-   "elapsed": "2:10",
+   "elapsed": "2:11",
    "progress": null,
    "eta": "~19:54"
   }
@@ -2448,9 +2448,9 @@
    "since": "11-16T18:25",
    "kind": "gpu-eval",
    "minutes": 150,
-   "what": "Fast Good/Easy prediction (SM120): scoring only, no training. The answer-time heads already trained by the time heads for the family (SM117) and the time heads for the new candidates (SM119), scored again on the 732 set for new questions: how well the models predict that an answer is Good or Easy, or just Easy (from the grade probabilities alone), and that it is Good or Easy, or Easy, and answered within S seconds, at S = 2, 3, 4, 5, 6, 8, 10, 15, 20, 30 s (for example a Good or Easy within 4 s without the slower Hard answers); how well they predict how fast a Good or an Easy answer is (P(within S s) and the predicted median time given that grade); and the grade-weighted answer time (the time distributions of each grade mixed by the grade probabilities, all grades and Good or Easy only). Answer time = front and back together, from the question shown to the grade pressed, capped at the maximum answer seconds; within S seconds always includes reading the back. Models: the six family models of SM117, then the longer Small Instant-Only model (SM113), the longer cool-down for Tiny (SM115), and the show-time two-head cool-down for Small (SM118) if SM119 trains its head. CPU check passed: the recalled event reproduces the SM117 numbers on 3 users.",
+   "what": "Fast Good/Easy prediction (SM120): scoring only, no training. The answer-time heads already trained by the time heads for the family (SM117) and the time heads for the new candidates (SM119), scored again on the 732 set for new questions: how well the models predict that an answer is Good or Easy, or just Easy (from the grade probabilities alone), and that it is Good or Easy, or Easy, and answered within S seconds, at S = 2, 3, 4, 5, 6, 8, 10, 15, 20, 30 s (for example a Good or Easy within 4 s, without the slower Hard answers); how well they predict how fast a Good or an Easy answer is (P(within S s) and the predicted median time given that grade); and the grade-weighted answer time (the time distribution of each grade mixed by the grade probabilities, all grades and Good or Easy only). Answer time = front and back together, from the question shown to the grade pressed, capped at the maximum answer seconds; within S seconds always includes reading the back. Models: the six family models of the time heads for the family (SM117), then the longer Small Instant-Only model (SM113), the longer cool-down for Tiny (SM115), and the show-time two-head cool-down for Small (SM118) if the time heads for the new candidates (SM119) trains its head. CPU check passed: the recalled event reproduces the numbers of the time heads for the family (SM117) on 3 users.",
    "when": "Launched 18:25 Mon 11-16, waits for the launcher of the time heads for the new candidates (SM119) to end (roughly 06:00 to 08:00 Tue 11-17, later if the show-time two-head cool-down for Small (SM118) ends late); then about 15 to 25 min per model, about 2 to 2.5 GPU h; respects the 20:00-01:00 break",
-   "decides": "For which values of S each prediction is reliable (fixed in advance, as SM117: calibration error below 0.01 and LogLoss below the user&rsquo;s running rate and the model-grade times the user&rsquo;s running time share, CI below 0), in particular Good or Easy within 4 s; whether the grade-weighted time beats the user&rsquo;s running time distribution; input for a scheduler aiming at a fast Good",
+   "decides": "For which values of S each prediction is reliable (fixed in advance, as in the time heads for the family (SM117): calibration error below 0.01 and LogLoss below the user&rsquo;s running rate and below the model&rsquo;s grade probabilities times the user&rsquo;s running time share, CI below 0), in particular Good or Easy within 4 s; whether the grade-weighted time beats the user&rsquo;s running time distribution; input for a scheduler aiming at a fast Good",
    "state": "planned"
   }
  ],
