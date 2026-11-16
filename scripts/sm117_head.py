@@ -651,6 +651,7 @@ def train(args):
                 gb = batch.to(device)
                 with torch.no_grad():
                     qi, th, feats, _ = frozen.forward(gb)
+                del _   # the model output of every row (not needed here)
                 oom = None
                 break
             except (torch.OutOfMemoryError, RuntimeError) as err:
@@ -681,7 +682,8 @@ def train(args):
             x = torch.cat([feats, ex[th - 1]], -1)
             stats["nonfinite_features"] += int((~torch.isfinite(x)).any(-1).sum())
             rows = tuple(t.cpu() for t in (x, grade.clamp(0, 3), lower[th - 1], cens[th - 1]))   # buffer on the CPU (big: ~3.4 GB)
-            del gb, feats
+            del gb, feats, x, keep, lower, cens, rating, sday, ex   # nothing of this user may stay on the GPU during the
+            qi, th, grade = qi.cpu(), th.cpu(), grade.cpu()       # next user's forward (big: x is up to ~2 GB)
         except torch.OutOfMemoryError as oom:
             frozen.clear()
             torch.cuda.empty_cache()
