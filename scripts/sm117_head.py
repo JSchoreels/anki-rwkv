@@ -562,7 +562,7 @@ def train(args):
         step, done, passes, stats = ck["step"], ck["done"], ck["passes"], ck["stats"]
         gen.set_state(ck["generator"])
         if ck["leftover"] is not None:
-            buf = [tuple(t.to(device) for t in ck["leftover"])]
+            buf = [tuple(ck["leftover"])]   # the buffer lives on the CPU
         print(f"[sm117-train] resumed at user {done}/{len(order)}, step {step}/{total_steps}", flush=True)
     log = {"sum": 0.0, "abl": 0.0, "rows": 0, "last": step}
     fd = frozen.frozen_dim
@@ -571,8 +571,13 @@ def train(args):
         nonlocal step, buf, passes
         if not buf:
             return
-        x = torch.cat([b[0] for b in buf]); g = torch.cat([b[1] for b in buf])
-        lo = torch.cat([b[2] for b in buf]); ce = torch.cat([b[3] for b in buf])
+        def join(j):   # the CPU pieces copied into one device tensor (no second full copy in RAM or on the GPU)
+            out = torch.empty((sum(len(b[j]) for b in buf),) + tuple(buf[0][j].shape[1:]), dtype=buf[0][j].dtype, device=device)
+            at = 0
+            for b in buf:
+                out[at:at + len(b[j])].copy_(b[j]); at += len(b[j])
+            return out
+        x, g, lo, ce = (join(j) for j in range(4))
         buf = []
         perm = torch.randperm(len(x), generator=gen).to(device)
         full = len(x) // args.batch
@@ -607,8 +612,11 @@ def train(args):
         stats["loss_sum"] += ps; stats["loss_sum_ablation"] += pa; stats["loss_rows"] += pr
         stats["pass_losses"].append(round(ps / max(pr, 1), 5)); stats["pass_losses_ablation"].append(round(pa / max(pr, 1), 5))
         rest = perm[stop:]
-        buf = [(x[rest], g[rest], lo[rest], ce[rest])] if len(rest) else []
+        buf = [tuple(t[rest].cpu() for t in (x, g, lo, ce))] if len(rest) else []
         passes += 1
+        del x, g, lo, ce
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()   # the pass's copy must not fragment the next users' forward
 
     def save_resume():
         left = tuple(t.cpu() for t in buf[0]) if buf else None
@@ -672,7 +680,7 @@ def train(args):
             stats["grade_out_of_range"] += int(((grade < 0) | (grade > 3)).sum())
             x = torch.cat([feats, ex[th - 1]], -1)
             stats["nonfinite_features"] += int((~torch.isfinite(x)).any(-1).sum())
-            rows = (x, grade.clamp(0, 3), lower[th - 1], cens[th - 1])
+            rows = tuple(t.cpu() for t in (x, grade.clamp(0, 3), lower[th - 1], cens[th - 1]))   # buffer on the CPU (big: ~3.4 GB)
             del gb, feats
         except torch.OutOfMemoryError as oom:
             frozen.clear()
