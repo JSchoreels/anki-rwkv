@@ -1,0 +1,59 @@
+{
+ "key": "sm91s2",
+ "model": "the show-time big model (SM91s2)",
+ "master_sha256": "67ee8e9b0d0169733242c40646e0d2e5637845a25775762002ffc4e6396f9590",
+ "trunk_equals_fork": "RWKV_trained_on_5000_10000.bin: 504 tensors, names and values bit for bit",
+ "head_shapes": {
+  "time_mlps.0.hidden.weight": [
+   128,
+   1306
+  ],
+  "time_mlps.0.hidden.bias": [
+   128
+  ],
+  "time_mlps.0.out.weight": [
+   64,
+   128
+  ],
+  "time_mlps.0.out.bias": [
+   64
+  ],
+  "time_head.format_version": [
+   1
+  ]
+ },
+ "head_files": {
+  "RWKV_trained_on_5000_10000.time_head.f32.bin": 702386,
+  "RWKV_trained_on_5000_10000.time_head.int8.bin": 177082,
+  "RWKV_trained_on_5000_10000.time_head.json": 4416
+ },
+ "users": {
+  "900001": {
+   "time_rows": 1588,
+   "same_day": 329,
+   "later_day": 1259,
+   "first_500_rows": {
+    "time_rows": 233,
+    "same_day": 73,
+    "later_day": 160
+   }
+  },
+  "900002": {
+   "time_rows": 1406,
+   "same_day": 414,
+   "later_day": 992,
+   "first_500_rows": {
+    "time_rows": 228,
+    "same_day": 113,
+    "later_day": 115
+   }
+  }
+ },
+ "numpy_logit_selfcheck_max_abs": 2.9636185141512783e-06,
+ "fixture": {
+  "path": "C:\\Users\\jonat\\workspace\\wt\\fork-time-heads\\rslib\\src\\rwkv\\testdata\\legacy-time-vectors.json.gz",
+  "bytes": 894788,
+  "sha256": "81dc428af13a8ff09607e399e20e8082d41f2c12a0add4fcc653344c7ed7667f"
+ },
+ "int8_meaning": "f32 trunk + int8 head (the fork has no int8 Big weights)"
+}
