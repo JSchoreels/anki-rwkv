@@ -1,7 +1,7 @@
 {
- "generated_at": "2026-11-16T17:47:08+01:00",
- "updated": "2026-11-16 17:47",
- "material": "8b86dc02b970b864",
+ "generated_at": "2026-11-16T18:26:49+01:00",
+ "updated": "2026-11-16 18:26",
+ "material": "826ccbb1e58a2b7c",
  "summary": "running 001264",
  "headline": [
   {
@@ -273,7 +273,7 @@
    "track": "small model",
    "ticket": "001264-sm118",
    "started": "16:15",
-   "elapsed": "1:31",
+   "elapsed": "2:10",
    "progress": null,
    "eta": "~19:54"
   }
@@ -2440,6 +2440,17 @@
    "what": "Time heads for the new candidates (SM119): the answer-time head of the time heads for the family (SM117), exactly the same recipe and rules (an MLP on the frozen model&rsquo;s internal states and 26 causal time features, trained alone so no grade prediction changes, show-time inputs, same-day reviews included; then answer-time LogLoss and P(recall within S seconds) at S = 3, 5, 8, 10, 15, 20, 30 s on the 732 set), for the longer Small Instant-Only model (SM113) and the longer cool-down for Tiny (SM115), and for the show-time two-head cool-down for Small (SM118) only if that one ends with a go. Answer time = front and back together, from the question shown to the grade pressed, capped at the maximum answer seconds; recall within S seconds = recalled (Hard, Good or Easy) and answered within S seconds, reading the back included. Per model: smoke, grade-unchanged check (bitwise), head training, scoring",
    "when": "Launched 17:45 Mon 11-16, waits for the launcher of the show-time two-head cool-down for Small (SM118) to end (about 03:30 to 12:30 Tue 11-17, queue order); then about 1.5 GPU h for the two models (about 2.3 GPU h if the show-time two-head cool-down for Small (SM118) is a go); respects the 20:00-01:00 break",
    "decides": "Whether the heads of the two new candidates are as reliable as those of the family (gate per head fixed in advance: grade outputs bitwise unchanged, head beats the card&rsquo;s last time and the user&rsquo;s running median per grade, CI below 0), and then the time-head files for the fork branch of the family time heads",
+   "state": "planned"
+  },
+  {
+   "id": "SM120",
+   "track": "small model",
+   "since": "11-16T18:25",
+   "kind": "gpu-eval",
+   "minutes": 150,
+   "what": "Fast Good/Easy prediction (SM120): scoring only, no training. The answer-time heads already trained by the time heads for the family (SM117) and the time heads for the new candidates (SM119), scored again on the 732 set for new questions: how well the models predict that an answer is Good or Easy, or just Easy (from the grade probabilities alone), and that it is Good or Easy, or Easy, and answered within S seconds, at S = 2, 3, 4, 5, 6, 8, 10, 15, 20, 30 s (for example a Good or Easy within 4 s without the slower Hard answers); how well they predict how fast a Good or an Easy answer is (P(within S s) and the predicted median time given that grade); and the grade-weighted answer time (the time distributions of each grade mixed by the grade probabilities, all grades and Good or Easy only). Answer time = front and back together, from the question shown to the grade pressed, capped at the maximum answer seconds; within S seconds always includes reading the back. Models: the six family models of SM117, then the longer Small Instant-Only model (SM113), the longer cool-down for Tiny (SM115), and the show-time two-head cool-down for Small (SM118) if SM119 trains its head. CPU check passed: the recalled event reproduces the SM117 numbers on 3 users.",
+   "when": "Launched 18:25 Mon 11-16, waits for the launcher of the time heads for the new candidates (SM119) to end (roughly 06:00 to 08:00 Tue 11-17, later if the show-time two-head cool-down for Small (SM118) ends late); then about 15 to 25 min per model, about 2 to 2.5 GPU h; respects the 20:00-01:00 break",
+   "decides": "For which values of S each prediction is reliable (fixed in advance, as SM117: calibration error below 0.01 and LogLoss below the user&rsquo;s running rate and the model-grade times the user&rsquo;s running time share, CI below 0), in particular Good or Easy within 4 s; whether the grade-weighted time beats the user&rsquo;s running time distribution; input for a scheduler aiming at a fast Good",
    "state": "planned"
   }
  ],
