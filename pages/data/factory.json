@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-15T15:20:27+01:00",
- "updated": "2026-11-15 15:20",
- "material": "e71441d32380b95f",
- "summary": "idle, finished 001235",
+ "generated_at": "2026-11-16T06:08:17+01:00",
+ "updated": "2026-11-16 06:08",
+ "material": "1513896f7fafbb98",
+ "summary": "idle, finished 001254",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring, show-time inputs for both heads (curve / instant)",
@@ -432,58 +432,58 @@
  "waiting": [],
  "recent": [
   {
-   "ticket": "001235-small-model",
-   "id": "SM99",
-   "what": "time heads for the family (SM117): the show-time instant-only big model (SM99): smoke (head training on 4 users: 3 small + the longest cut at 400k; time scoring of 3 users; grade check of 2 users)",
-   "ended": "15:20",
-   "date": "11-15",
-   "exit": 0,
-   "ran": "0:01"
-  },
-  {
-   "ticket": "001234-small-model",
-   "id": "",
-   "what": "time heads for the family (SM117): scorer noise check, the show-time instant-only big model (SM99) release vs itself, 2 users",
-   "ended": "15:17",
-   "date": "11-15",
-   "exit": 0,
-   "ran": "0:00"
-  },
-  {
-   "ticket": "001233-small-model",
-   "id": "",
-   "what": "time heads for the family (SM117): scorer noise check, the show-time instant-only big model (SM99) release vs itself, 2 users",
-   "ended": "15:16",
-   "date": "11-15",
-   "exit": 2,
-   "ran": "0:00"
-  },
-  {
-   "ticket": "001232-small-model",
-   "id": "SM99",
-   "what": "time heads for the family (SM117): the show-time instant-only big model (SM99): smoke (head training on 4 users: 3 small + the longest cut at 400k; time scoring of 3 users; grade check of 2 users)",
-   "ended": "15:15",
-   "date": "11-15",
-   "exit": 0,
-   "ran": "0:00"
-  },
-  {
-   "ticket": "001231-small-model",
-   "id": "SM99",
-   "what": "time heads for the family (SM117): the show-time instant-only big model (SM99): smoke (head training on 4 users: 3 small + the longest cut at 400k; time scoring of 3 users; grade check of 2 users)",
-   "ended": "15:12",
-   "date": "11-15",
-   "exit": 1,
-   "ran": "0:00"
-  },
-  {
-   "ticket": "001230-small-model",
+   "ticket": "001254-small-model",
    "id": "SM117",
-   "what": "time heads for the family (SM117): the Tiny Instant-Only model (SM101): grade check (the release vs the trunk after head training, 5 users, show-time scorer rows and dumps bitwise)",
-   "ended": "15:12",
-   "date": "11-15",
+   "what": "time heads for the family (SM117): scoring the show-time retrain (SM92): answer time and P(recall within S seconds) on the 732 set (723 users, pass 1, cap 0.8)",
+   "ended": "06:01",
+   "date": "11-16",
+   "exit": 0,
+   "ran": "0:14"
+  },
+  {
+   "ticket": "001253-small-model",
+   "id": "",
+   "what": "time heads for the family (SM117): scoring the show-time big model (SM91s2): answer time and P(recall within S seconds) on the 732 set (missing users, pass 2, cap 0.92)",
+   "ended": "05:46",
+   "date": "11-16",
    "exit": 0,
    "ran": "0:00"
+  },
+  {
+   "ticket": "001252-small-model",
+   "id": "SM117",
+   "what": "time heads for the family (SM117): scoring the show-time big model (SM91s2): answer time and P(recall within S seconds) on the 732 set (723 users, pass 1, cap 0.8)",
+   "ended": "05:46",
+   "date": "11-16",
+   "exit": 0,
+   "ran": "0:16"
+  },
+  {
+   "ticket": "001251-small-model",
+   "id": "SM99",
+   "what": "time heads for the family (SM117): scoring the show-time instant-only big model (SM99): answer time and P(recall within S seconds) on the 732 set (missing users, pass 2, cap 0.92)",
+   "ended": "05:29",
+   "date": "11-16",
+   "exit": 0,
+   "ran": "0:00"
+  },
+  {
+   "ticket": "001250-small-model",
+   "id": "SM99",
+   "what": "time heads for the family (SM117): scoring the show-time instant-only big model (SM99): answer time and P(recall within S seconds) on the 732 set (723 users, pass 1, cap 0.8)",
+   "ended": "05:28",
+   "date": "11-16",
+   "exit": 0,
+   "ran": "0:16"
+  },
+  {
+   "ticket": "001249-small-model",
+   "id": "SM117",
+   "what": "time heads for the family (SM117): scoring the Tiny Instant-Only model (SM101): answer time and P(recall within S seconds) on the 732 set (723 users, pass 1, cap 0.8)",
+   "ended": "05:11",
+   "date": "11-16",
+   "exit": 0,
+   "ran": "0:14"
   }
  ],
  "plan": [
@@ -2316,14 +2316,11 @@
    "kind": "gpu-train",
    "minutes": 65,
    "what": "Time heads for the family (SM117): answer-time head for the Tiny two-head model (SM106), the recipe of the answer-time head on richer frozen features (SM82c): an MLP on the frozen model&rsquo;s internal states and 26 causal time features, trained alone so no grade prediction changes, on show-time inputs with same-day reviews included: smoke, head training (1,991 users, first 400k reviews each), grade check",
-   "when": "Queued behind the longer cool-down for Tiny (SM115, ends ~14:15 Sun): starts Sun only if smoke + training fit before the 16:00 break (needs the GPU by ~14:20), otherwise Mon 01:00; ~65 min",
+   "when": "Done 13:38 Sun 11-15: head trained, grade unchanged bitwise on 5 users",
    "decides": "Tiny has no answer-time estimate today; Gate per head (fixed in advance): grade outputs bitwise unchanged on 5 users, and the head beats the card&rsquo;s last time and the user&rsquo;s running median per grade on answer-time LogLoss and abs ln error, CI below 0",
    "state": "done",
-   "ended": "13:38",
-   "exit": 0,
-   "started": "12:51",
-   "started_at": "2026-11-15T12:51:37+01:00",
-   "ended_at": "2026-11-15T13:38:48+01:00"
+   "started_at": "2026-11-15T12:51+01:00",
+   "ended_at": "2026-11-15T13:38+01:00"
   },
   {
    "id": "SM117",
@@ -2332,14 +2329,11 @@
    "kind": "gpu-train",
    "minutes": 65,
    "what": "Time heads for the family (SM117): answer-time head for the Small Instant-Only model (SM98), the recipe of the answer-time head on richer frozen features (SM82c): an MLP on the frozen model&rsquo;s internal states and 26 causal time features, trained alone so no grade prediction changes, on show-time inputs with same-day reviews included: smoke, head training (1,991 users, first 400k reviews each), grade check",
-   "when": "After the Tiny two-head model (SM106): Mon from 01:00 (~65 min)",
+   "when": "Done 14:25 Sun 11-15: head trained, grade unchanged bitwise on 5 users",
    "decides": "Gate per head (fixed in advance): grade outputs bitwise unchanged on 5 users, and the head beats the card&rsquo;s last time and the user&rsquo;s running median per grade on answer-time LogLoss and abs ln error, CI below 0",
    "state": "done",
-   "ended": "14:25",
-   "exit": 0,
-   "started": "13:38",
-   "started_at": "2026-11-15T13:38:49+01:00",
-   "ended_at": "2026-11-15T14:25:48+01:00"
+   "started_at": "2026-11-15T13:38+01:00",
+   "ended_at": "2026-11-15T14:25+01:00"
   },
   {
    "id": "SM117",
@@ -2348,14 +2342,11 @@
    "kind": "gpu-train",
    "minutes": 65,
    "what": "Time heads for the family (SM117): answer-time head for the Tiny Instant-Only model (SM101), the recipe of the answer-time head on richer frozen features (SM82c): an MLP on the frozen model&rsquo;s internal states and 26 causal time features, trained alone so no grade prediction changes, on show-time inputs with same-day reviews included: smoke, head training (1,991 users, first 400k reviews each), grade check",
-   "when": "Mon, after the Small Instant-Only model (SM98) (~65 min)",
+   "when": "Done 15:12 Sun 11-15: head trained, grade unchanged bitwise on 5 users",
    "decides": "Gate per head (fixed in advance): grade outputs bitwise unchanged on 5 users, and the head beats the card&rsquo;s last time and the user&rsquo;s running median per grade on answer-time LogLoss and abs ln error, CI below 0",
    "state": "done",
-   "ended": "15:12",
-   "exit": 0,
-   "started": "14:25",
-   "started_at": "2026-11-15T14:25:49+01:00",
-   "ended_at": "2026-11-15T15:12:44+01:00"
+   "started_at": "2026-11-15T14:25+01:00",
+   "ended_at": "2026-11-15T15:12+01:00"
   },
   {
    "id": "SM117",
@@ -2364,11 +2355,11 @@
    "kind": "gpu-train",
    "minutes": 110,
    "what": "Time heads for the family (SM117): answer-time head for the show-time instant-only big model (SM99), the recipe of the answer-time head on richer frozen features (SM82c): an MLP on the frozen model&rsquo;s internal states and 26 causal time features, trained alone so no grade prediction changes, on show-time inputs with same-day reviews included: smoke, head training (1,991 users, first 400k reviews each), grade check",
-   "when": "Mon, after the Tiny Instant-Only model (SM101) (~110 min; Big rows are 1,306 inputs wide)",
+   "when": "Done 02:52 Mon 11-16: head trained, grade unchanged bitwise on 5 users",
    "decides": "Gate per head (fixed in advance): grade outputs bitwise unchanged on 5 users, and the head beats the card&rsquo;s last time and the user&rsquo;s running median per grade on answer-time LogLoss and abs ln error, CI below 0",
-   "state": "partial",
-   "ended": "15:20",
-   "ended_at": "2026-11-15T15:20:06+01:00"
+   "state": "done",
+   "started_at": "2026-11-15T15:12+01:00",
+   "ended_at": "2026-11-16T02:52+01:00"
   },
   {
    "id": "SM117",
@@ -2377,9 +2368,11 @@
    "kind": "gpu-train",
    "minutes": 110,
    "what": "Time heads for the family (SM117): answer-time head for the show-time big model (SM91s2), the recipe of the answer-time head on richer frozen features (SM82c): an MLP on the frozen model&rsquo;s internal states and 26 causal time features, trained alone so no grade prediction changes, on show-time inputs with same-day reviews included: smoke, head training (1,991 users, first 400k reviews each), grade check",
-   "when": "Mon, after the show-time instant-only big model (SM99) (~110 min)",
+   "when": "Done 03:44 Mon 11-16: head trained, grade unchanged bitwise on 5 users",
    "decides": "No Big model has an answer-time head yet (the family README says otherwise); Gate per head (fixed in advance): grade outputs bitwise unchanged on 5 users, and the head beats the card&rsquo;s last time and the user&rsquo;s running median per grade on answer-time LogLoss and abs ln error, CI below 0",
-   "state": "planned"
+   "state": "done",
+   "started_at": "2026-11-16T02:52+01:00",
+   "ended_at": "2026-11-16T03:44+01:00"
   },
   {
    "id": "SM117",
@@ -2388,9 +2381,11 @@
    "kind": "gpu-train",
    "minutes": 65,
    "what": "Time heads for the family (SM117): answer-time head for the show-time retrain (SM92), the recipe of the answer-time head on richer frozen features (SM82c): an MLP on the frozen model&rsquo;s internal states and 26 causal time features, trained alone so no grade prediction changes, on show-time inputs with same-day reviews included: smoke, head training (1,991 users, first 400k reviews each), grade check",
-   "when": "Mon, after the show-time big model (SM91s2) (~65 min)",
+   "when": "Done 04:28 Mon 11-16: head trained, grade unchanged bitwise on 5 users",
    "decides": "Its shipped head was trained on normal inputs while the fork runs show-time inputs: retrained under the same recipe, the shipped one scored as a reference; Gate per head (fixed in advance): grade outputs bitwise unchanged on 5 users, and the head beats the card&rsquo;s last time and the user&rsquo;s running median per grade on answer-time LogLoss and abs ln error, CI below 0",
-   "state": "planned"
+   "state": "done",
+   "started_at": "2026-11-16T03:44+01:00",
+   "ended_at": "2026-11-16T04:28+01:00"
   },
   {
    "id": "SM117",
@@ -2399,9 +2394,11 @@
    "kind": "gpu-score",
    "minutes": 125,
    "what": "Time heads for the family (SM117): score all six heads on the 732 set (722 users, show-time inputs): answer-time LogLoss, and P(recall within S seconds) = P(Hard, Good or Easy) &times; P(answer under S | grade) for S = 3, 5, 8, 10, 15, 20, 30 s (LogLoss, ECE, AUC, Brier, reliability tables) against the model&rsquo;s grade split &times; the user&rsquo;s running answer-time shares, and the user&rsquo;s running rate",
-   "when": "After the six trainings, Mon ~08:00 &rarr; ~10:30 (later if nothing ran Sun)",
+   "when": "Done 06:02 Mon 11-16: all six heads scored on the 732 set (722 users; 719 for the two big models)",
    "decides": "How reliable P(recall within S seconds) is per model, a report (rule fixed in advance): reliable at an S = ECE below 0.01 and LogLoss below both baselines with the CI below 0; reliable = at all seven S",
-   "state": "planned"
+   "state": "done",
+   "started_at": "2026-11-16T04:28+01:00",
+   "ended_at": "2026-11-16T06:02+01:00"
   }
  ],
  "gpu_break": {
@@ -2954,6 +2951,459 @@
   }
  ],
  "results": [
+  {
+   "date": "11-16",
+   "kind": "gpu-train",
+   "id": "SM117",
+   "track": "small model",
+   "name": "Time heads for the family (SM117): an answer-time head trained alone on each of the six frozen family models (the recipe of the answer-time head on richer frozen features (SM82c)), show-time inputs, same-day reviews included; P(recall within S seconds) at 3, 5, 8, 10, 15, 20, 30 s",
+   "eval": "732 set (722 users; 719 for the two big models), show-time inputs, leak-free, 30.1M time-labelled test reviews. Gate: grade unchanged bitwise on 5 users and answer-time LogLoss below both the card&rsquo;s last time and the user&rsquo;s running median, CI clear of zero. Reliable at S: ECE below 0.01 and LogLoss below baselines (a) and (b), CI clear of zero. User bootstrap 95% CI. The answer time is the whole time on the card, front and back together: from the moment the question is shown to the moment a grade button is pressed, capped at the preset&rsquo;s maximum answer seconds. The &ldquo;Show answer&rdquo; moment is not stored, so front-only and back-only times cannot be computed; &ldquo;recall within S seconds&rdquo; means recalled and answered within S seconds, reading the back included.",
+   "fork": "Not used yet: no new release soon (user 11-14)",
+   "takeaway": "<strong>All six heads pass the gate</strong> (grade unchanged bitwise on 5 users; answer-time LogLoss &minus;17.2% to &minus;18.3% vs the user&rsquo;s running median, every CI clear of zero): the Tiny two-head model (SM106) 1.9751 (&minus;17.2%), the Small Instant-Only model (SM98) 1.9625 (&minus;17.7%), the Tiny Instant-Only model (SM101) 1.9656 (&minus;17.6%), the show-time instant-only big model (SM99) 1.9523 (&minus;18.3%, the best head), the show-time big model (SM91s2) 1.9558 (&minus;18.2%), the show-time retrain (SM92) 1.9716 (&minus;17.3%), against 2.3849 for the user&rsquo;s running median (2.3903 on the 719 users of the two big models). P(recall within S seconds): <strong>&ldquo;reliable at every S&rdquo; is no for all six</strong>, only because at S = 3 s the ECE is 0.013 to 0.016 (above the 0.01 bar), and at 5 s for the Tiny two-head model (SM106) (0.0109) and the show-time retrain (SM92) (0.0129). From 8 s to 30 s all six are reliable (ECE 0.001 to 0.006, LogLoss 6% to 18% below baseline (a), the model&rsquo;s own grades with the user&rsquo;s running time share, and 20% to 24% below baseline (b), the user&rsquo;s running rate). On the later-day subset the retrained head of the show-time retrain (SM92) scores 1.9583 vs 1.9580 for its shipped head. The answer time is the whole time on the card, front and back together: from the moment the question is shown to the moment a grade button is pressed, capped at the preset&rsquo;s maximum answer seconds. The &ldquo;Show answer&rdquo; moment is not stored, so front-only and back-only times cannot be computed; &ldquo;recall within S seconds&rdquo; means recalled and answered within S seconds, reading the back included.",
+   "inputs": "show-time",
+   "started_at": "2026-11-15T12:51+01:00",
+   "ended_at": "2026-11-16T06:02+01:00",
+   "gpu_minutes": 384,
+   "tickets": 27,
+   "detail": {
+    "verdict": "All six pass the gate; reliable at every S: no for all six (ECE at 3 s, and at 5 s for two); branch sm117 (sm117-result.md, sm117-result.json)",
+    "table": {
+     "head": [
+      "Model",
+      "S",
+      "LogLoss of P(recall within S seconds), head",
+      "Head vs baseline (a): %, CI",
+      "Head vs baseline (b): %, CI",
+      "ECE",
+      "AUC",
+      "Reliable"
+     ],
+     "rows": [
+      [
+       "the Tiny two-head model (SM106)",
+       "3 s",
+       "0.3051",
+       "−24.2% [−0.1065, −0.0886]",
+       "−28.5% [−0.1324, −0.1116]",
+       "0.0163",
+       "0.8964",
+       "no"
+      ],
+      [
+       "the Tiny two-head model (SM106)",
+       "5 s",
+       "0.4304",
+       "−20.6% [−0.1194, −0.1041]",
+       "−25.7% [−0.1568, −0.1402]",
+       "0.0109",
+       "0.8693",
+       "no"
+      ],
+      [
+       "the Tiny two-head model (SM106)",
+       "8 s",
+       "0.4728",
+       "−17.2% [−0.1051, −0.0909]",
+       "−23.5% [−0.1525, −0.1380]",
+       "0.0038",
+       "0.8528",
+       "yes"
+      ],
+      [
+       "the Tiny two-head model (SM106)",
+       "10 s",
+       "0.4731",
+       "−15.3% [−0.0924, −0.0789]",
+       "−22.5% [−0.1441, −0.1302]",
+       "0.0028",
+       "0.8465",
+       "yes"
+      ],
+      [
+       "the Tiny two-head model (SM106)",
+       "15 s",
+       "0.4550",
+       "−11.8% [−0.0669, −0.0550]",
+       "−20.9% [−0.1265, −0.1130]",
+       "0.0052",
+       "0.8367",
+       "yes"
+      ],
+      [
+       "the Tiny two-head model (SM106)",
+       "20 s",
+       "0.4348",
+       "−9.5% [−0.0509, −0.0406]",
+       "−20.1% [−0.1158, −0.1027]",
+       "0.0039",
+       "0.8320",
+       "yes"
+      ],
+      [
+       "the Tiny two-head model (SM106)",
+       "30 s",
+       "0.3978",
+       "−6.1% [−0.0306, −0.0217]",
+       "−19.6% [−0.1039, −0.0901]",
+       "0.0024",
+       "0.8316",
+       "yes"
+      ],
+      [
+       "the Small Instant-Only model (SM98)",
+       "3 s",
+       "0.3016",
+       "−25.0% [−0.1100, −0.0917]",
+       "−29.3% [−0.1361, −0.1149]",
+       "0.0130",
+       "0.8987",
+       "no"
+      ],
+      [
+       "the Small Instant-Only model (SM98)",
+       "5 s",
+       "0.4272",
+       "−21.1% [−0.1223, −0.1066]",
+       "−26.2% [−0.1599, −0.1433]",
+       "0.0078",
+       "0.8713",
+       "yes"
+      ],
+      [
+       "the Small Instant-Only model (SM98)",
+       "8 s",
+       "0.4702",
+       "−17.6% [−0.1072, −0.0928]",
+       "−23.9% [−0.1552, −0.1404]",
+       "0.0043",
+       "0.8546",
+       "yes"
+      ],
+      [
+       "the Small Instant-Only model (SM98)",
+       "10 s",
+       "0.4705",
+       "−15.7% [−0.0945, −0.0807]",
+       "−22.9% [−0.1469, −0.1327]",
+       "0.0037",
+       "0.8483",
+       "yes"
+      ],
+      [
+       "the Small Instant-Only model (SM98)",
+       "15 s",
+       "0.4524",
+       "−12.2% [−0.0688, −0.0569]",
+       "−21.3% [−0.1293, −0.1157]",
+       "0.0041",
+       "0.8387",
+       "yes"
+      ],
+      [
+       "the Small Instant-Only model (SM98)",
+       "20 s",
+       "0.4323",
+       "−9.8% [−0.0527, −0.0422]",
+       "−20.5% [−0.1183, −0.1051]",
+       "0.0026",
+       "0.8341",
+       "yes"
+      ],
+      [
+       "the Small Instant-Only model (SM98)",
+       "30 s",
+       "0.3956",
+       "−6.5% [−0.0320, −0.0231]",
+       "−20.1% [−0.1060, −0.0924]",
+       "0.0013",
+       "0.8337",
+       "yes"
+      ],
+      [
+       "the Tiny Instant-Only model (SM101)",
+       "3 s",
+       "0.3028",
+       "−24.7% [−0.1089, −0.0906]",
+       "−29.1% [−0.1349, −0.1137]",
+       "0.0158",
+       "0.8981",
+       "no"
+      ],
+      [
+       "the Tiny Instant-Only model (SM101)",
+       "5 s",
+       "0.4283",
+       "−20.9% [−0.1215, −0.1059]",
+       "−26.0% [−0.1589, −0.1422]",
+       "0.0099",
+       "0.8707",
+       "yes"
+      ],
+      [
+       "the Tiny Instant-Only model (SM101)",
+       "8 s",
+       "0.4709",
+       "−17.5% [−0.1070, −0.0925]",
+       "−23.8% [−0.1545, −0.1398]",
+       "0.0043",
+       "0.8541",
+       "yes"
+      ],
+      [
+       "the Tiny Instant-Only model (SM101)",
+       "10 s",
+       "0.4711",
+       "−15.6% [−0.0942, −0.0804]",
+       "−22.8% [−0.1462, −0.1321]",
+       "0.0038",
+       "0.8479",
+       "yes"
+      ],
+      [
+       "the Tiny Instant-Only model (SM101)",
+       "15 s",
+       "0.4532",
+       "−12.1% [−0.0685, −0.0565]",
+       "−21.2% [−0.1285, −0.1149]",
+       "0.0059",
+       "0.8382",
+       "yes"
+      ],
+      [
+       "the Tiny Instant-Only model (SM101)",
+       "20 s",
+       "0.4332",
+       "−9.7% [−0.0521, −0.0418]",
+       "−20.4% [−0.1174, −0.1042]",
+       "0.0048",
+       "0.8334",
+       "yes"
+      ],
+      [
+       "the Tiny Instant-Only model (SM101)",
+       "30 s",
+       "0.3965",
+       "−6.3% [−0.0314, −0.0226]",
+       "−19.9% [−0.1052, −0.0914]",
+       "0.0020",
+       "0.8328",
+       "yes"
+      ],
+      [
+       "the show-time instant-only big model (SM99)",
+       "3 s",
+       "0.2996",
+       "−25.4% [−0.1115, −0.0933]",
+       "−29.7% [−0.1377, −0.1163]",
+       "0.0127",
+       "0.8980",
+       "no"
+      ],
+      [
+       "the show-time instant-only big model (SM99)",
+       "5 s",
+       "0.4263",
+       "−21.4% [−0.1246, −0.1088]",
+       "−26.5% [−0.1624, −0.1454]",
+       "0.0093",
+       "0.8711",
+       "yes"
+      ],
+      [
+       "the show-time instant-only big model (SM99)",
+       "8 s",
+       "0.4688",
+       "−18.0% [−0.1106, −0.0955]",
+       "−24.3% [−0.1584, −0.1434]",
+       "0.0055",
+       "0.8554",
+       "yes"
+      ],
+      [
+       "the show-time instant-only big model (SM99)",
+       "10 s",
+       "0.4689",
+       "−16.2% [−0.0979, −0.0835]",
+       "−23.3% [−0.1502, −0.1357]",
+       "0.0044",
+       "0.8497",
+       "yes"
+      ],
+      [
+       "the show-time instant-only big model (SM99)",
+       "15 s",
+       "0.4516",
+       "−12.6% [−0.0720, −0.0595]",
+       "−21.7% [−0.1324, −0.1185]",
+       "0.0020",
+       "0.8404",
+       "yes"
+      ],
+      [
+       "the show-time instant-only big model (SM99)",
+       "20 s",
+       "0.4320",
+       "−10.3% [−0.0552, −0.0443]",
+       "−20.9% [−0.1212, −0.1078]",
+       "0.0019",
+       "0.8359",
+       "yes"
+      ],
+      [
+       "the show-time instant-only big model (SM99)",
+       "30 s",
+       "0.3956",
+       "−6.9% [−0.0341, −0.0246]",
+       "−20.4% [−0.1086, −0.0946]",
+       "0.0011",
+       "0.8356",
+       "yes"
+      ],
+      [
+       "the show-time big model (SM91s2)",
+       "3 s",
+       "0.3002",
+       "−25.3% [−0.1110, −0.0927]",
+       "−29.6% [−0.1371, −0.1156]",
+       "0.0128",
+       "0.8975",
+       "no"
+      ],
+      [
+       "the show-time big model (SM91s2)",
+       "5 s",
+       "0.4273",
+       "−21.3% [−0.1237, −0.1079]",
+       "−26.3% [−0.1614, −0.1444]",
+       "0.0095",
+       "0.8705",
+       "yes"
+      ],
+      [
+       "the show-time big model (SM91s2)",
+       "8 s",
+       "0.4697",
+       "−17.8% [−0.1097, −0.0948]",
+       "−24.1% [−0.1574, −0.1424]",
+       "0.0048",
+       "0.8548",
+       "yes"
+      ],
+      [
+       "the show-time big model (SM91s2)",
+       "10 s",
+       "0.4698",
+       "−16.0% [−0.0971, −0.0828]",
+       "−23.2% [−0.1493, −0.1349]",
+       "0.0036",
+       "0.8491",
+       "yes"
+      ],
+      [
+       "the show-time big model (SM91s2)",
+       "15 s",
+       "0.4524",
+       "−12.5% [−0.0713, −0.0589]",
+       "−21.6% [−0.1316, −0.1177]",
+       "0.0039",
+       "0.8398",
+       "yes"
+      ],
+      [
+       "the show-time big model (SM91s2)",
+       "20 s",
+       "0.4328",
+       "−10.1% [−0.0545, −0.0437]",
+       "−20.7% [−0.1204, −0.1070]",
+       "0.0032",
+       "0.8353",
+       "yes"
+      ],
+      [
+       "the show-time big model (SM91s2)",
+       "30 s",
+       "0.3963",
+       "−6.7% [−0.0336, −0.0241]",
+       "−20.3% [−0.1078, −0.0939]",
+       "0.0022",
+       "0.8349",
+       "yes"
+      ],
+      [
+       "the show-time retrain (SM92)",
+       "3 s",
+       "0.3042",
+       "−24.4% [−0.1074, −0.0893]",
+       "−28.7% [−0.1335, −0.1126]",
+       "0.0155",
+       "0.8968",
+       "no"
+      ],
+      [
+       "the show-time retrain (SM92)",
+       "5 s",
+       "0.4296",
+       "−20.7% [−0.1199, −0.1045]",
+       "−25.8% [−0.1575, −0.1410]",
+       "0.0129",
+       "0.8700",
+       "no"
+      ],
+      [
+       "the show-time retrain (SM92)",
+       "8 s",
+       "0.4717",
+       "−17.3% [−0.1060, −0.0917]",
+       "−23.7% [−0.1536, −0.1391]",
+       "0.0056",
+       "0.8536",
+       "yes"
+      ],
+      [
+       "the show-time retrain (SM92)",
+       "10 s",
+       "0.4718",
+       "−15.5% [−0.0935, −0.0797]",
+       "−22.7% [−0.1454, −0.1314]",
+       "0.0039",
+       "0.8474",
+       "yes"
+      ],
+      [
+       "the show-time retrain (SM92)",
+       "15 s",
+       "0.4538",
+       "−12.0% [−0.0678, −0.0560]",
+       "−21.1% [−0.1279, −0.1143]",
+       "0.0030",
+       "0.8376",
+       "yes"
+      ],
+      [
+       "the show-time retrain (SM92)",
+       "20 s",
+       "0.4337",
+       "−9.6% [−0.0517, −0.0413]",
+       "−20.3% [−0.1169, −0.1037]",
+       "0.0032",
+       "0.8329",
+       "yes"
+      ],
+      [
+       "the show-time retrain (SM92)",
+       "30 s",
+       "0.3970",
+       "−6.3% [−0.0311, −0.0223]",
+       "−19.8% [−0.1047, −0.0911]",
+       "0.0023",
+       "0.8325",
+       "yes"
+      ]
+     ]
+    },
+    "notes": "Wall times: Sun 11-15 12:51 to 15:12 (the three small models), then the big models Mon 11-16 02:00 to 06:02 after three fixes; 27 tickets, about 384 GPU minutes (the failed attempts, about 21 more minutes, are not counted). Users skipped in head training for GPU memory (heaviest users): 3 for the Tiny two-head model (SM106), 6 for the Small Instant-Only model (SM98), 3 for the Tiny Instant-Only model (SM101), 2 each for the show-time instant-only big model (SM99) and the show-time big model (SM91s2), 1 for the show-time retrain (SM92). 3 test users are missing for the two big models (719 of 722 scored). Gate numbers: answer-time LogLoss head / user&rsquo;s running median: 1.9751 / 2.3849, 1.9625 / 2.3849, 1.9656 / 2.3849, 1.9523 / 2.3903, 1.9558 / 2.3903, 1.9716 / 2.3849, in the order of the takeaway; the head differences vs the user&rsquo;s running median are &minus;0.4098 [&minus;0.4368, &minus;0.3856], &minus;0.4225 [&minus;0.4489, &minus;0.3984], &minus;0.4194 [&minus;0.4462, &minus;0.3953], &minus;0.4380 [&minus;0.4646, &minus;0.4138], &minus;0.4345 [&minus;0.4608, &minus;0.4108], &minus;0.4134 [&minus;0.4402, &minus;0.3889]. The per-S CIs in the table are the LogLoss differences head minus baseline."
+   }
+  },
   {
    "date": "11-15",
    "kind": "gpu-train",
