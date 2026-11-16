@@ -1,0 +1,386 @@
+{
+ "commit": "c82b4203",
+ "minutes": 2.0,
+ "all_ok": true,
+ "partial": null,
+ "checks": {
+  "C1_code_sm115_launch_tree": {
+   "ok": true,
+   "trees": {
+    "scripts": "41479ae7aa43",
+    "expertium": "7f9693c3d7b8",
+    "rwkv": "47f4d0161135"
+   },
+   "uncommitted": [],
+   "vs_sm92_tree": {
+    "expertium/model/variant_model.py": [
+     11,
+     5
+    ],
+    "scripts/eval_pools.py": [
+     11,
+     4
+    ],
+    "scripts/expertium_decay.py": [
+     6,
+     1
+    ],
+    "scripts/expertium_options.py": [
+     8,
+     2
+    ],
+    "scripts/gpu_r01_prefetch.py": [
+     1,
+     1
+    ],
+    "scripts/gpu_r01_training.py": [
+     8,
+     0
+    ],
+    "scripts/sm91s2.py": [
+     5,
+     5
+    ],
+    "scripts/sm91s3.py": [
+     2,
+     2
+    ],
+    "scripts/small_model_heldout.py": [
+     4,
+     3
+    ]
+   },
+   "wt_sm92_equals_its_launch_tree_except": [
+    "scripts/sm91s2.py",
+    "scripts/sm91s3.py"
+   ],
+   "wt_sm92_uncommitted": []
+  },
+  "C2a_trainer_sm92_tree_equals_this_tree": {
+   "ok": true,
+   "users": [
+    4745,
+    9037
+   ],
+   "probes": {
+    "muon_cooldown_show_time": {
+     "ok": true,
+     "updates": 8,
+     "optimizer": "HybridOptimizer",
+     "scripted": true,
+     "weights": "ef1aa13ad1c3294f",
+     "losses": [
+      1.213015079498291,
+      0.967079758644104,
+      0.6427853107452393,
+      0.6582332253456116,
+      0.9853224754333496,
+      0.5398844480514526,
+      0.8303700089454651,
+      0.7472166419029236
+     ],
+     "curve_avg": [
+      0.3610706627368927,
+      0.33644822239875793,
+      0.054938141256570816,
+      0.18090830743312836
+     ]
+    },
+    "muon_cooldown_show_time_kd_replay": {
+     "ok": true,
+     "updates": 8,
+     "optimizer": "HybridOptimizer",
+     "scripted": true,
+     "weights": "53e468735f05d656",
+     "losses": [
+      1.226844310760498,
+      0.9583759903907776,
+      0.6677588820457458,
+      0.702812910079956,
+      0.9214185476303101,
+      0.514363706111908,
+      0.7718971967697144,
+      0.8048416972160339
+     ],
+     "curve_avg": [
+      0.35860109329223633,
+      0.2998600900173187,
+      0.12515687942504883,
+      0.21799343824386597
+     ]
+    }
+   },
+   "kd_changes_the_loss": true
+  },
+  "C2b_schedule_and_resume_unchanged": {
+   "ok": true,
+   "steps": [
+    {
+     "done": [
+      11,
+      12
+     ],
+     "files_equal": true,
+     "lr_resume": {
+      "total_reviews": 2000,
+      "reviews_offset": 800
+     }
+    },
+    {
+     "done": [
+      13
+     ],
+     "files_equal": true,
+     "lr_resume": {
+      "total_reviews": 2000,
+      "reviews_offset": 1000
+     }
+    },
+    {
+     "done": [],
+     "files_equal": true,
+     "lr_resume": {
+      "total_reviews": 2000,
+      "reviews_offset": 1000
+     }
+    }
+   ],
+   "real": {
+    "sm92_prepared": {
+     "equal": true,
+     "lr_resume": null,
+     "total": 581942724
+    },
+    "sm92_protocol_resumed": {
+     "equal": true,
+     "lr_resume": {
+      "total_reviews": 581942724,
+      "reviews_offset": 234332421
+     },
+     "total": 581942724
+    },
+    "recipe": {
+     "equal": true,
+     "lr_resume": null,
+     "total": 581942724
+    }
+   },
+   "check_decay_resume": {
+    "exit": 0,
+    "pass": 18,
+    "fail": []
+   }
+  },
+  "C3_segment_schedule": {
+   "ok": true,
+   "pass1_equal": true,
+   "pass2_equal": true,
+   "pass1_end_lr_over_peak": 0.29289321881345254,
+   "pass2_end_lr": 0.0,
+   "resumes": {
+    "p1": {
+     "lr_resume": {
+      "total_reviews": 4000,
+      "reviews_offset": 700,
+      "segment": true
+     },
+     "rows": [
+      2,
+      3
+     ],
+     "lr_equal": true
+    },
+    "p2": {
+     "lr_resume": {
+      "total_reviews": 4000,
+      "reviews_offset": 2700
+     },
+     "rows": [
+      2,
+      3
+     ],
+     "lr_equal": true
+    }
+   },
+   "refused": {
+    "segment_too_long": true,
+    "segment_flag_not_true": true,
+    "no_segment_short": true,
+    "negative_offset": true
+   }
+  },
+  "C4_inputs_pinned": {
+   "ok": true,
+   "teacher": "67ee8e9b0d01",
+   "st91_manifest_teacher": "67ee8e9b0d01",
+   "epoch26": "5a629e4e932a",
+   "sm92_cooldown": "complete",
+   "sm92_final": "2091f8a879a5",
+   "early_stop_reference": {
+    "snapshot": "expertium/E89-F65e-F77a/snapshots/users-00800",
+    "master": "e12a7ae7bbe5",
+    "attempts": [
+     "attempt-1"
+    ],
+    "users_done": 4056,
+    "reviews_done": 288456043,
+    "of": 581942724,
+    "fraction": 0.49568,
+    "last_update_lr_over_peak": 0.29774,
+    "formula_lr_over_peak": 0.29771,
+    "ok": true
+   },
+   "run_users": 8000,
+   "run_reviews": 581942738,
+   "st91_users": 1991,
+   "new_targets_users_now": 0
+  },
+  "C5_exporter_reproduces_sm91s3_targets_on_cpu": {
+   "ok": true,
+   "run": {
+    "exit": 0,
+    "seconds": 26.0,
+    "tail": "37 reviews/s\n[sm11] pass finished: 2 users, 17,253 reviews in 24s (730 reviews/s), 0 failed\n{\"out\": \"C:\\\\Users\\\\jonat\\\\workspace\\\\wt\\\\sm118\\\\artifacts\\\\small-model\\\\sm118\\\\work\\\\replay-sm91s2-e2s-cpu\", \"users\": 2, \"complete_users\": 2, \"missing_users\": 0, \"missing_sample\": [], \"reviews_done\": 17253, \"reviews_total\": 17253, \"bytes\": 174351, \"bytes_per_review\": 10.106, \"complete\": true, \"errors\": 0}\n"
+   },
+   "users": {
+    "4001": {
+     "reviews": 8630,
+     "cpu_vs_sm91s3_gpu": {
+      "same_nan": true,
+      "curve_max_abs": 0.00015020370483398438,
+      "rating_max_float16_steps": 1.0,
+      "bitwise": false
+     },
+     "same_nan_as_old": true,
+     "finite": true,
+     "rows_moved_vs_old_targets": 5444,
+     "mean_abs_p_again_change_vs_old": 0.00555,
+     "mean_abs_curve_logit_change_vs_old": 0.05305
+    },
+    "8081": {
+     "reviews": 8623,
+     "cpu_vs_sm91s3_gpu": {
+      "same_nan": true,
+      "curve_max_abs": 0.00016444921493530273,
+      "rating_max_float16_steps": 1.0,
+      "bitwise": false
+     },
+     "same_nan_as_old": true,
+     "finite": true,
+     "rows_moved_vs_old_targets": 6465,
+     "mean_abs_p_again_change_vs_old": 0.01166,
+     "mean_abs_curve_logit_change_vs_old": 0.07836
+    },
+    "manifest_differences_vs_sm91s3": []
+   }
+  },
+  "C6_recipe_smoke_and_pass1_folders": {
+   "ok": true,
+   "recipe": "8,000 users, 581,942,724 reviews per pass, update offset 574028, start 5a629e4e932a, arch w64, trims [5599]",
+   "sm92_as_pass1_refused": true,
+   "smoke0_as_pass1": "8,000 users, 581,942,724 reviews per pass, update offset 574028, start 5a629e4e932a, arch w64, trims [5599], schedule over 1,163,885,448",
+   "smoke0_differs_only_by_replay_and_note": true,
+   "mutated_refused": {
+    "lr_offset": true,
+    "no_segment": true,
+    "old_targets": true,
+    "st91_replay": true,
+    "curve_weight_0": true,
+    "curve_weight_1": true,
+    "decay_alpha": true,
+    "show_time_off": true,
+    "order": true,
+    "sm113_start": true
+   },
+   "schedule_total": 1163885448,
+   "lr_start": 0.0007,
+   "lr_at_R_over_peak": 0.29289321881345254,
+   "muon_fresh_exit": 0,
+   "label_windows": true,
+   "trims": [
+    5599
+   ],
+   "gpu_smoke0": {
+    "smoke": "sm118-smoke0-e26-dec2ep32k-st91",
+    "exit": 0,
+    "status": "complete",
+    "updates": 2,
+    "reviews": 1024,
+    "error": null,
+    "seconds": 11.9
+   }
+  },
+  "C7_pass2_prepare_and_pair": {
+   "ok": true,
+   "prepare": "[sm118-prepare] p2 sm118-c7-p2: 8,000 users, 581,942,724 reviews, from E89-F65e-F77a master 31545b7a48ab, update offset 596000, lr_resume {\"total_reviews\": 1163885448, \"reviews_offset\": 581942724}",
+   "pair": "8,000 users (new order), 581,942,724 reviews, from pass 1's end (master 31545b7a48ab, update offset 596000), lr_resume {\"total_reviews\": 1163885448, \"reviews_offset\": 581942724}",
+   "mutated_refused": {
+    "same_order": true,
+    "lr_offset": true,
+    "other_start": true,
+    "decay_alpha": true
+   },
+   "lr": {
+    "p1_at_R": 0.00020502525316941678,
+    "p2_at_0": 0.00020502525316941678,
+    "p2_end": 0.0,
+    "p2_mid_vs_formula": 0.0
+   }
+  },
+  "C8_rule_selftest": {
+   "ok": true,
+   "out": " {\"sm92_against_itself_zero_no_go_mid_stop\": true, \"sm92_minus_release_published_pair\": true, \"release_minus_sm92_no_go_instant_regression\": true, \"sm91s2_minus_sm92_published_go_both_gap_one\": true, \"synthetic_instant_0p04_no_go_continue\": true, \"synthetic_instant_gain_curve_0p06_worse_no_go_stop\": true, \"synthetic_curve_gain_only_go\": true, \"edges\": true, \"end_to_end_mid_and_decide\": true} -> OK",
+   "err": ""
+  },
+  "C9_scorer_reproduces_sm92_rows_and_scores_the_snapshot": {
+   "ok": true,
+   "same_state_dict_layout": true,
+   "max_abs_logloss_vs_committed_rows": {
+    "4676": 0.0,
+    "2388": 0.0
+   },
+   "snapshot_vs_final": {
+    "4676": {
+     "ahead": [
+      0.051698,
+      0.051719
+     ],
+     "instant": [
+      0.040214,
+      0.039884
+     ]
+    },
+    "2388": {
+     "ahead": [
+      0.129126,
+      0.133598
+     ],
+     "instant": [
+      0.074095,
+      0.073205
+     ]
+    }
+   },
+   "errors": {}
+  },
+  "C10_breaks": {
+   "ok": true,
+   "got": {
+    "mon_08:00": "NEXT 720",
+    "mon_20:30": "NOW 16260",
+    "tue_01:00": "NEXT 1140",
+    "tue_19:00": "NEXT 60",
+    "sat_15:00": "NEXT 300",
+    "sun_15:00": "NEXT 60",
+    "sun_16:30": "NOW 30660",
+    "real_now": "NEXT 801"
+   },
+   "code_equals_sm115_block": true
+  },
+  "C11_disk": {
+   "ok": true,
+   "free_gib": 1621.5,
+   "new_targets_folder_exists": false
+  }
+ }
+}
