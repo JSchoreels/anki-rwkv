@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-17T07:50:53+01:00",
- "updated": "2026-11-17 07:50",
- "material": "82fde35566a7c11d",
- "summary": "running 001295, finished 001294",
+ "generated_at": "2026-11-17T08:00:47+01:00",
+ "updated": "2026-11-17 08:00",
+ "material": "46cd0423300e5baf",
+ "summary": "running 001295",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring, show-time inputs for both heads (curve / instant)",
@@ -273,7 +273,7 @@
    "track": "small model",
    "ticket": "001295-small-model",
    "started": "07:50",
-   "elapsed": "0:00",
+   "elapsed": "0:10",
    "progress": null,
    "eta": "~08:35"
   }
@@ -2551,6 +2551,18 @@
    "started_at": "2026-11-17T07:15+01:00",
    "state": "done",
    "ended_at": "2026-11-17T07:40+01:00"
+  },
+  {
+   "id": "SM122",
+   "track": "small model",
+   "since": "11-17T08:30",
+   "kind": "cpu",
+   "minutes": 420,
+   "what": "Retrieval-effort probe (SM122): CPU only, no training, aggregate numbers only. Inspired by Pyc &amp; Rawson (2009) (harder but successful retrievals produce better later memory). Answer time (front and back together, from the question shown to the grade pressed, capped at the maximum answer seconds) is a model input, so the model may have learned an effect of how long a success took. (1) Counterfactual: for the last Good or Easy answer before a card&rsquo;s next later-day review, change only its recorded answer time (x0.5, x2, the card&rsquo;s own 10th and 90th percentile, the user&rsquo;s 10th and 90th percentile) and measure the change of predicted recall at the next review and after 1 day, 1 week and 30 days (curve head). (2) Real outcomes: is the actual later recall, against the model&rsquo;s prediction, different after slow or fast successes (within user and within card)? (3) Does one more same-day success raise predicted recall after 1 week and 30 days, and does real data agree? A pre-registered random 200 of the 732-user standard readout set (first 20,000 reviews each); models: the show-time retrain (SM92), the Tiny two-head model (SM106), and the show-time big model (SM91s2) on 60 of the users.",
+   "when": "Running from about 09:30 Tue 11-17, three CPU processes in parallel; about 6 h, pauses during the 20:00-01:00 break",
+   "decides": "Whether the model has learned &ldquo;slower success, higher later recall&rdquo; or the opposite (sign and size, 95% CI excluding 0 and at least 0.05%); whether real outcomes show a duration effect the model misses (cross-fitted LogLoss gain of a duration-quintile correction); whether an extra same-day success helps; what the scheduler simulator must do with answer times (it feeds sampled times back as inputs)",
+   "started_at": "2026-11-17T08:30+01:00",
+   "state": "planned"
   }
  ],
  "gpu_break": {
