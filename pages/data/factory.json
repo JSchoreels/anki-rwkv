@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-17T02:57:35+01:00",
- "updated": "2026-11-17 02:57",
- "material": "50882f4b12cf73b6",
- "summary": "running 001266, finished 001265",
+ "generated_at": "2026-11-17T03:08:52+01:00",
+ "updated": "2026-11-17 03:08",
+ "material": "898c2be0755d4e2c",
+ "summary": "running 001268, finished 001267",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring, show-time inputs for both heads (curve / instant)",
@@ -264,18 +264,18 @@
  "now": [
   {
    "what": "The show-time two-head cool-down for Small (SM118): the longer cool-down that went go for the Small and Tiny Instant-Only models (one learning-rate decay stretched over two passes of the 8,000 users) applied to the Small two-head model, the show-time retrain of the release (SM92), from its constant-LR epoch 26 (the checkpoint its own cool-down started from), both heads trained, with the curve and grade targets of the show-time big model (SM91s2) on show-time inputs for the 8,000 users (exported first, ~4 GPU h). Early stop after pass 1 unless a head beats the show-time retrain of the release (SM92)&rsquo;s own snapshot at about the same learning rate and neither is +0.05% worse; go = new &minus; the show-time retrain of the release (SM92) on show-time inputs: one head better (CI below 0 and at least 0.05%) and neither head worse (+0.05% or more, or CI above 0)",
-   "id": "SM118, ticket 001266",
+   "id": "SM118, ticket 001268",
    "kind": "gpu",
    "decides": "Whether the longer cool-down with the big two-head teacher lifts the Small two-head model on both heads (the show-time big model (SM91s2) is &minus;0.315% curve / &minus;0.251% instant better than the show-time retrain of the release (SM92)); a go is held for the next family release (no new release soon, user 11-14); the same recipe for the Tiny two-head model (SM106) comes next",
    "why": "",
-   "job": "the show-time two-head cool-down for Small (SM118): scoring sm118-e26-dec2ep32k-t91s2 on e2s-query inputs, the 732 set minus 9 never-fit (723 users) (pass 1, 0 done, cap 0.8)",
+   "job": "the show-time two-head cool-down for Small (SM118): scoring sm118-e26-dec2ep32k-t91s2 on e2s-query inputs, the 3 long users of the 732 set (pass 1, 723 done, cap 0.92)",
    "linked": true,
    "track": "small model",
-   "ticket": "001266-sm118",
-   "started": "02:57",
+   "ticket": "001268-sm118",
+   "started": "03:08",
    "elapsed": "0:00",
    "progress": null,
-   "eta": "~03:22"
+   "eta": "~03:23"
   }
  ],
  "charts": [
@@ -448,6 +448,24 @@
  "waiting": [],
  "recent": [
   {
+   "ticket": "001267-sm118",
+   "id": "SM118",
+   "what": "the show-time two-head cool-down for Small (SM118): scoring sm118-e26-dec2ep32k-t91s2 on e2s-query inputs, the 732 set minus 9 never-fit (723 users) (pass 2, 722 done, cap 0.8)",
+   "ended": "03:08",
+   "date": "11-17",
+   "exit": 0,
+   "ran": "0:00"
+  },
+  {
+   "ticket": "001266-sm118",
+   "id": "SM118",
+   "what": "the show-time two-head cool-down for Small (SM118): scoring sm118-e26-dec2ep32k-t91s2 on e2s-query inputs, the 732 set minus 9 never-fit (723 users) (pass 1, 0 done, cap 0.8)",
+   "ended": "03:08",
+   "date": "11-17",
+   "exit": 0,
+   "ran": "0:10"
+  },
+  {
    "ticket": "001265-sm118",
    "id": "SM118",
    "what": "the show-time two-head cool-down for Small (SM118): pass 2 of the two-epoch 32k Muon cool-down (0.29 x peak -&gt; 0, from pass 1&#x27;s end, new order), both heads (segment to the next break or the end)",
@@ -482,24 +500,6 @@
    "date": "11-16",
    "exit": 0,
    "ran": "0:00"
-  },
-  {
-   "ticket": "001261-sm118",
-   "id": "SM118",
-   "what": "the show-time two-head cool-down for Small (SM118): scoring sm118-dec2ep-p1 on e2s-query inputs, the 732 set minus 9 never-fit (723 users) (pass 1, 0 done, cap 0.8)",
-   "ended": "16:15",
-   "date": "11-16",
-   "exit": 0,
-   "ran": "0:10"
-  },
-  {
-   "ticket": "001260-sm118",
-   "id": "SM118",
-   "what": "the show-time two-head cool-down for Small (SM118): pass 1 of the two-epoch 32k Muon cool-down on show-time inputs from SM92&#x27;s epoch 26 (w64, both heads) with SM91s2&#x27;s show-time targets (7e-4 -&gt; 0.29 x peak) (segment to the next break or the end)",
-   "ended": "16:03",
-   "date": "11-16",
-   "exit": 0,
-   "ran": "5:35"
   }
  ],
  "plan": [
@@ -2427,8 +2427,8 @@
    "decides": "Whether the longer cool-down with the big two-head teacher lifts the Small two-head model on both heads (the show-time big model (SM91s2) is &minus;0.315% curve / &minus;0.251% instant better than the show-time retrain of the release (SM92)); a go is held for the next family release (no new release soon, user 11-14); the same recipe for the Tiny two-head model (SM106) comes next",
    "state": "running",
    "started_at": "2026-11-16T06:40:17+01:00",
-   "started": "02:57",
-   "ticket": "001266-sm118",
+   "started": "03:08",
+   "ticket": "001268-sm118",
    "ends_at": "2026-11-17T06:10:17+01:00"
   },
   {
