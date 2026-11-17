@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-17T03:54:54+01:00",
- "updated": "2026-11-17 03:54",
- "material": "0cc4011aa2224c01",
- "summary": "running 001278, finished 001277",
+ "generated_at": "2026-11-17T03:55:38+01:00",
+ "updated": "2026-11-17 03:55",
+ "material": "0abcda3be6adbdab",
+ "summary": "running 001279, finished 001278",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring, show-time inputs for both heads (curve / instant)",
@@ -264,18 +264,18 @@
  "now": [
   {
    "what": "The show-time two-head cool-down for Small (SM118): the longer cool-down that went go for the Small and Tiny Instant-Only models (one learning-rate decay stretched over two passes of the 8,000 users) applied to the Small two-head model, the show-time retrain of the release (SM92), from its constant-LR epoch 26 (the checkpoint its own cool-down started from), both heads trained, with the curve and grade targets of the show-time big model (SM91s2) on show-time inputs for the 8,000 users (exported first, ~4 GPU h). Early stop after pass 1 unless a head beats the show-time retrain of the release (SM92)&rsquo;s own snapshot at about the same learning rate and neither is +0.05% worse; go = new &minus; the show-time retrain of the release (SM92) on show-time inputs: one head better (CI below 0 and at least 0.05%) and neither head worse (+0.05% or more, or CI above 0)",
-   "id": "SM118, ticket 001278",
+   "id": "SM118, ticket 001279",
    "kind": "gpu",
    "decides": "Whether the longer cool-down with the big two-head teacher lifts the Small two-head model on both heads (the show-time big model (SM91s2) is &minus;0.315% curve / &minus;0.251% instant better than the show-time retrain of the release (SM92)); a go is held for the next family release (no new release soon, user 11-14); the same recipe for the Tiny two-head model (SM106) comes next",
    "why": "",
-   "job": "the show-time two-head cool-down for Small (SM118): scoring sm92-e26-dec1ep32k on e2s-query inputs, the 1,500 validation users outside the 732 set + 6 check users (SM92) (pass 3, 766 done, cap 0.92)",
+   "job": "the show-time two-head cool-down for Small (SM118): scoring sm92-e26-dec1ep32k on e2s-query inputs, the 1,500 validation users outside the 732 set + 6 check users (SM92) (pass 4, 767 done, cap 0.92)",
    "linked": true,
    "track": "small model",
-   "ticket": "001278-sm118",
-   "started": "03:54",
+   "ticket": "001279-sm118",
+   "started": "03:55",
    "elapsed": "0:00",
    "progress": null,
-   "eta": "~04:14"
+   "eta": "~04:15"
   }
  ],
  "charts": [
@@ -448,6 +448,15 @@
  "waiting": [],
  "recent": [
   {
+   "ticket": "001278-sm118",
+   "id": "SM118",
+   "what": "the show-time two-head cool-down for Small (SM118): scoring sm92-e26-dec1ep32k on e2s-query inputs, the 1,500 validation users outside the 732 set + 6 check users (SM92) (pass 3, 766 done, cap 0.92)",
+   "ended": "03:55",
+   "date": "11-17",
+   "exit": 0,
+   "ran": "0:00"
+  },
+  {
    "ticket": "001277-sm118",
    "id": "SM118",
    "what": "the show-time two-head cool-down for Small (SM118): scoring sm92-e26-dec1ep32k on e2s-query inputs, the 1,500 validation users outside the 732 set + 6 check users (SM92) (pass 2, 766 done, cap 0.8)",
@@ -491,15 +500,6 @@
    "date": "11-17",
    "exit": 0,
    "ran": "0:00"
-  },
-  {
-   "ticket": "001272-sm118",
-   "id": "SM118",
-   "what": "the show-time two-head cool-down for Small (SM118): scoring sm118-e26-dec2ep32k-t91s2 on e2s-query inputs, the 1,500 validation users outside the 732 set + 6 check users (pass 1, 0 done, cap 0.8)",
-   "ended": "03:36",
-   "date": "11-17",
-   "exit": 0,
-   "ran": "0:15"
   }
  ],
  "plan": [
@@ -2427,8 +2427,8 @@
    "decides": "Whether the longer cool-down with the big two-head teacher lifts the Small two-head model on both heads (the show-time big model (SM91s2) is &minus;0.315% curve / &minus;0.251% instant better than the show-time retrain of the release (SM92)); a go is held for the next family release (no new release soon, user 11-14); the same recipe for the Tiny two-head model (SM106) comes next",
    "state": "running",
    "started_at": "2026-11-16T06:40:17+01:00",
-   "started": "03:54",
-   "ticket": "001278-sm118",
+   "started": "03:55",
+   "ticket": "001279-sm118",
    "ends_at": "2026-11-17T06:10:17+01:00"
   },
   {
