@@ -204,6 +204,10 @@ def trunk(args):
         if MODELS[key]["kind"] == "fork":
             raise SystemExit("s4c8n is only wired for the small engine here")
         smh.set_expertium_state_bits(model, (4, 8))
+        # on CPU the expertium mixer calls reference_rwkv7 (no rounding); LongWKV is only reached on CUDA. Route the CPU
+        # path through LongWKV -> small_model_wkv.reference(bits), the per-step reference with the kernel's rounding.
+        from expertium.model import rwkv_model as erm
+        erm.reference_rwkv7 = lambda *a: smh.LongWKV.apply(*a)
     frozen = Frozen(model, MODELS[key]["kind"])
     heads = {}
     for name, (fname, prefix) in t_spec["heads"].items():
