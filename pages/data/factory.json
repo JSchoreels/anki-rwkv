@@ -1,7 +1,7 @@
 {
- "generated_at": "2026-11-17T11:06:12+01:00",
- "updated": "2026-11-17 11:06",
- "material": "fd66bbf1565bbeec",
+ "generated_at": "2026-11-17T11:07:19+01:00",
+ "updated": "2026-11-17 11:07",
+ "material": "09fc3c3aec7c6fd7",
  "summary": "running 001304",
  "headline": [
   {
@@ -263,17 +263,17 @@
  },
  "now": [
   {
-   "what": "the show-time two-head cool-down for Tiny (SM124): scoring sm106-dec-u4000 on e2s-query inputs, the 732 set minus 9 never-fit (723 users) (pass 1, 0 done, cap 0.8)",
-   "id": "001304-sm124",
-   "kind": "gpu-train",
-   "decides": "",
+   "what": "The show-time two-head cool-down for Tiny (SM124): the recipe of the show-time two-head cool-down for Small (SM118) (one learning-rate decay stretched over two passes of the 8,000 users) applied to the Tiny two-head model (SM106), from its constant-LR epoch 29 (the checkpoint its own cool-down started from), both heads trained, with the curve and grade targets of the show-time big model (SM91s2) on show-time inputs (the targets the show-time two-head cool-down for Small (SM118) exported, reused: no export). Early stop after pass 1 unless a head beats the Tiny two-head model (SM106)&rsquo;s own snapshot at about the same learning rate and neither is +0.05% worse; go = new &minus; the Tiny two-head model (SM106) on show-time inputs: one head better (CI below 0 and at least 0.05%) and neither head worse (+0.05% or more, or CI above 0)",
+   "id": "SM124, ticket 001304",
+   "kind": "gpu",
+   "decides": "Whether the longer cool-down with the big two-head teacher lifts the Tiny two-head model on both heads (the show-time big model (SM91s2) is &minus;0.422% curve / &minus;0.430% instant better than the Tiny two-head model (SM106)); a go is held for the 11-28 release decision",
    "why": "",
    "job": "the show-time two-head cool-down for Tiny (SM124): scoring sm106-dec-u4000 on e2s-query inputs, the 732 set minus 9 never-fit (723 users) (pass 1, 0 done, cap 0.8)",
-   "linked": false,
+   "linked": true,
    "track": "small model",
    "ticket": "001304-sm124",
    "started": "11:05",
-   "elapsed": "0:00",
+   "elapsed": "0:01",
    "progress": null,
    "eta": "~11:30"
   }
@@ -449,7 +449,7 @@
  "recent": [
   {
    "ticket": "001303-sm124",
-   "id": "",
+   "id": "SM124",
    "what": "the show-time two-head cool-down for Tiny (SM124): pre-launch trainer smoke of pass 1 with the show-time big model (SM91s2)&#x27;s targets (2 users x 512 reviews)",
    "ended": "10:51",
    "date": "11-17",
@@ -2415,6 +2415,21 @@
    "state": "done",
    "started_at": "2026-11-16T04:28+01:00",
    "ended_at": "2026-11-16T06:02+01:00"
+  },
+  {
+   "id": "SM124",
+   "track": "small model",
+   "since": "11-17T11:05",
+   "kind": "gpu",
+   "minutes": 900,
+   "what": "The show-time two-head cool-down for Tiny (SM124): the recipe of the show-time two-head cool-down for Small (SM118) (one learning-rate decay stretched over two passes of the 8,000 users) applied to the Tiny two-head model (SM106), from its constant-LR epoch 29 (the checkpoint its own cool-down started from), both heads trained, with the curve and grade targets of the show-time big model (SM91s2) on show-time inputs (the targets the show-time two-head cool-down for Small (SM118) exported, reused: no export). Early stop after pass 1 unless a head beats the Tiny two-head model (SM106)&rsquo;s own snapshot at about the same learning rate and neither is +0.05% worse; go = new &minus; the Tiny two-head model (SM106) on show-time inputs: one head better (CI below 0 and at least 0.05%) and neither head worse (+0.05% or more, or CI above 0)",
+   "when": "Running since 11:05 Tue 11-17: reference scoring, pass 1 (5.6 to 7.7 h), early stop, pass 2 across the 20:00-01:00 break; verdict expected about 05:00 to 09:40 Wed 11-18",
+   "decides": "Whether the longer cool-down with the big two-head teacher lifts the Tiny two-head model on both heads (the show-time big model (SM91s2) is &minus;0.422% curve / &minus;0.430% instant better than the Tiny two-head model (SM106)); a go is held for the 11-28 release decision",
+   "state": "running",
+   "started_at": "2026-11-17T11:05:48+01:00",
+   "started": "11:05",
+   "ticket": "001304-sm124",
+   "ends_at": "2026-11-18T02:05:48+01:00"
   },
   {
    "id": "SM118",
