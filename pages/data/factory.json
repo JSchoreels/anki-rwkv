@@ -1,7 +1,7 @@
 {
- "generated_at": "2026-11-17T07:01:05+01:00",
- "updated": "2026-11-17 07:01",
- "material": "bc6be6cd81cfaea4",
+ "generated_at": "2026-11-17T07:07:16+01:00",
+ "updated": "2026-11-17 07:07",
+ "material": "b6c8d945356364dd",
  "summary": "running 001292",
  "headline": [
   {
@@ -273,7 +273,7 @@
    "track": "small model",
    "ticket": "001292-small-model",
    "started": "07:00",
-   "elapsed": "0:00",
+   "elapsed": "0:06",
    "progress": null,
    "eta": "~07:30"
   }
@@ -2538,6 +2538,18 @@
    "started_at": "2026-11-17T01:06+01:00",
    "state": "done",
    "ended_at": "2026-11-17T05:49+01:00"
+  },
+  {
+   "id": "SM123",
+   "track": "small model",
+   "since": "11-17T07:15",
+   "kind": "cpu",
+   "minutes": 90,
+   "what": "Recalibrating timed recall on your own collection (SM123): CPU only, no training, no new model run, aggregate numbers only. The timed-recall analysis on your own collection (SM121) found that at 4 s every model beats every baseline but the calibration error is 0.011 to 0.041, above the 0.01 bar. This tests a simple per-collection recalibration fitted only on earlier reviews: Platt scaling per threshold, one shared shift and scale of the predicted answer-time distribution (consistent across thresholds), and isotonic regression as an upper reference, each fitted once on the reviews before the scored period and also refitted every 7 days on the latest 30,000 earlier reviews (what a scheduler could do). Scored on the same rows as the timed-recall analysis on your own collection (SM121) (benchmark rows, whole collection and the deck subset the Mac used) for Good or Easy, Easy, and recalled, answered within 2 to 10 s, reading the back included. Models: the longer Small Instant-Only model (SM113) with its own head, the current Small pair (grades of the Small Instant-Only model (SM98), time from the show-time retrain (SM92)&rsquo;s head), the Tiny two-head model (SM106), the show-time big model (SM91s2).",
+   "when": "Started 07:15 Tue 11-17, CPU only next to the running GPU job; check then full run, roughly 1 to 2 h",
+   "decides": "Whether recalibration brings the calibration error below 0.01 while LogLoss still beats every baseline (day-block CI below 0, at least 0.05%), per method, threshold and set; in particular whether the 7-day rolling refit makes Good or Easy within 4 s usable by a scheduler on a single collection",
+   "started_at": "2026-11-17T07:15+01:00",
+   "state": "planned"
   }
  ],
  "gpu_break": {
