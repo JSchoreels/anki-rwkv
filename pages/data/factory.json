@@ -1,7 +1,7 @@
 {
- "generated_at": "2026-11-17T10:46:31+01:00",
- "updated": "2026-11-17 10:46",
- "material": "72e991a37bc75191",
+ "generated_at": "2026-11-17T10:48:00+01:00",
+ "updated": "2026-11-17 10:48",
+ "material": "6bf2fe4b690dd0ae",
  "summary": "idle",
  "headline": [
   {
@@ -3094,6 +3094,68 @@
   }
  ],
  "results": [
+  {
+   "date": "11-17",
+   "kind": "gpu-train",
+   "id": "SM119",
+   "track": "small model",
+   "name": "Time heads for the new candidates (SM119): an answer-time head for the longer Small Instant-Only model (SM113), the longer cool-down for Tiny (SM115) and the show-time two-head cool-down for Small (SM118), trained alone on each frozen model",
+   "eval": "The 732 set (722 users, show-time inputs, leak-free), the recipe and gate of the time heads for the family (SM117): grade predictions unchanged bitwise on 5 users, and the head&rsquo;s answer-time LogLoss below both baselines (the card&rsquo;s last answer time and the user&rsquo;s running median) with the 95% CI (2,000 user bootstraps, seed 0) below 0. Answer time = front and back together, from the question shown to the grade pressed, capped at the preset&rsquo;s maximum answer seconds.",
+   "fork": "The heads of the longer Small Instant-Only model (SM113) and the longer cool-down for Tiny (SM115) added to the fork branch rwkv-time-heads-family (not merged to fork main, no release build; user 11-16)",
+   "takeaway": "<strong>All three heads pass the gate: answer-time LogLoss about 17.5% below the user&rsquo;s running median, grade predictions unchanged.</strong> Time LogLoss 1.9605 for the longer Small Instant-Only model (SM113), 1.9621 for the longer cool-down for Tiny (SM115) and 1.9700 for the show-time two-head cool-down for Small (SM118), against 2.4751 for the card&rsquo;s last answer time and 2.3849 for the user&rsquo;s running median. Recalled and answered within 10 s, reading the back included, is calibrated (error 0.0034 to 0.0041, bar 0.01); at 3 s none of the three is calibrated enough.",
+   "inputs": "show-time",
+   "started_at": "2026-11-16T17:45+01:00",
+   "ended_at": "2026-11-17T06:55+01:00",
+   "gpu_minutes": 180,
+   "tickets": 12,
+   "detail": {
+    "verdict": "Gate pass for all three heads; branch sm119 031e1d29 (sm119-result.md, sm119-result.json, gate files)",
+    "table": {
+     "head": [
+      "Model with its own answer-time head",
+      "Time LogLoss (head)",
+      "Lead over the user&rsquo;s running median",
+      "Mean abs ln error (head / running median)",
+      "Recalled within 10 s: calibration error (bar 0.01)",
+      "Gate"
+     ],
+     "rows": [
+      [
+       "the longer Small Instant-Only model (SM113)",
+       "1.9605",
+       "&minus;17.8%",
+       "0.4732 / 0.6533",
+       "0.0034",
+       "pass"
+      ],
+      [
+       "the longer cool-down for Tiny (SM115)",
+       "1.9621",
+       "&minus;17.7%",
+       "0.4737 / 0.6533",
+       "0.0041",
+       "pass"
+      ],
+      [
+       "the show-time two-head cool-down for Small (SM118)",
+       "1.9700",
+       "&minus;17.4%",
+       "0.4758 / 0.6533",
+       "0.0034",
+       "pass"
+      ]
+     ]
+    },
+    "notes": [
+     "Times: the launcher started 17:45 Mon 11-16 and waited for the show-time two-head cool-down for Small (SM118) to end (03:55 Tue); smoke, head training (about 42 to 43 min each on 1,991 users, first 400k reviews each, show-time inputs, same-day reviews included), grade check and scoring for each model one after another; done 06:55 Tue 11-17.",
+     "Grade predictions unchanged: the release model and the trunk after head training gave bitwise identical scorer rows and dumps on 5 users for all three models, because the head trains alone on the frozen model.",
+     "Answer-time LogLoss: 1.9605, 1.9621 and 1.9700 against 2.0420 for the explicit-time-features-only ablation, 2.4751 for the card&rsquo;s last answer time and 2.3849 for the user&rsquo;s running median; the lead over the running median is &minus;17.8% [CI &minus;0.4512 to &minus;0.4004 nats], &minus;17.7% and &minus;17.4%.",
+     "Recalled and answered within S s, reading the back included: the longer Small Instant-Only model (SM113) is reliable (calibration error below 0.01 and both baselines beaten with the CI below 0) from 5 s, the other two from 8 s; at 3 s all three beat both baselines by about 25% and 29% but miss the calibration bar (0.0128 to 0.0140).",
+     "One user (474) was skipped in head training after running out of GPU memory twice, as in the time heads for the family (SM117); 722 users scored for each model.",
+     "The heads of the longer Small Instant-Only model (SM113) and the longer cool-down for Tiny (SM115) were embedded in the fork branch rwkv-time-heads-family next to the heads of the time heads for the family (SM117); the head of the show-time two-head cool-down for Small (SM118) waits for the release decision; nothing released (user 11-14: no new release soon)."
+    ]
+   }
+  },
   {
    "date": "11-17",
    "kind": "gpu-eval",
