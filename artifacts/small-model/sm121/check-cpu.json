@@ -1,0 +1,267 @@
+{
+ "device": "cpu",
+ "cap_reviews": 800,
+ "pass": true,
+ "checks": {
+  "K1_trunk_outputs": {
+   "pass": true,
+   "rows": 589,
+   "seconds": {
+    "sm92-main-fp32": 1.2,
+    "sm98-main-fp32": 1.2,
+    "sm98-main-s4c8n": 1.2,
+    "sm98-repro-s4c8n": 1.2
+   },
+   "peak_gb": {
+    "sm92-main-fp32": 0.9,
+    "sm98-main-fp32": 0.89,
+    "sm98-main-s4c8n": 0.9,
+    "sm98-repro-s4c8n": 0.9
+   }
+  },
+  "K1b_state_s4c8n_vs_fp32": {
+   "pass": true,
+   "same_rows": true,
+   "max_abs_p_grade": 0.013011813163757324,
+   "mean_abs_p_grade": 0.0008444785487971305
+  },
+  "K1c_repro_copy_runs": {
+   "pass": true,
+   "rows": 589,
+   "same_first_rows_as_main": true
+  },
+  "K2_recent_baselines_match_sm117": {
+   "pass": true,
+   "max_abs_F": 0.0,
+   "max_abs_E": 0.0
+  },
+  "K3_baselines_naive_equal": {
+   "pass": true,
+   "max_abs": 0.0,
+   "rows": 589,
+   "test_window": 100
+  },
+  "K4_labels_and_probabilities": {
+   "pass": true,
+   "user_cap_s": 60.0,
+   "per_S": {
+    "2": {
+     "event_rate": {
+      "Rec": 0.0374,
+      "GE": 0.0374,
+      "E": 0.0085
+     },
+     "head_mean_p": {
+      "Rec": 0.0499,
+      "GE": 0.0494,
+      "E": 0.0055
+     }
+    },
+    "3": {
+     "event_rate": {
+      "Rec": 0.1545,
+      "GE": 0.1545,
+      "E": 0.0255
+     },
+     "head_mean_p": {
+      "Rec": 0.1693,
+      "GE": 0.167,
+      "E": 0.0206
+     }
+    },
+    "4": {
+     "event_rate": {
+      "Rec": 0.2716,
+      "GE": 0.2699,
+      "E": 0.034
+     },
+     "head_mean_p": {
+      "Rec": 0.2942,
+      "GE": 0.2881,
+      "E": 0.0348
+     }
+    },
+    "5": {
+     "event_rate": {
+      "Rec": 0.3939,
+      "GE": 0.382,
+      "E": 0.0441
+     },
+     "head_mean_p": {
+      "Rec": 0.4073,
+      "GE": 0.3942,
+      "E": 0.045
+     }
+    },
+    "6": {
+     "event_rate": {
+      "Rec": 0.4907,
+      "GE": 0.4686,
+      "E": 0.0526
+     },
+     "head_mean_p": {
+      "Rec": 0.492,
+      "GE": 0.4714,
+      "E": 0.0518
+     }
+    },
+    "8": {
+     "event_rate": {
+      "Rec": 0.6129,
+      "GE": 0.5772,
+      "E": 0.056
+     },
+     "head_mean_p": {
+      "Rec": 0.6079,
+      "GE": 0.5729,
+      "E": 0.0594
+     }
+    },
+    "10": {
+     "event_rate": {
+      "Rec": 0.6638,
+      "GE": 0.6163,
+      "E": 0.0577
+     },
+     "head_mean_p": {
+      "Rec": 0.6694,
+      "GE": 0.6234,
+      "E": 0.0624
+     }
+    },
+    "15": {
+     "event_rate": {
+      "Rec": 0.7385,
+      "GE": 0.6689,
+      "E": 0.0594
+     },
+     "head_mean_p": {
+      "Rec": 0.7392,
+      "GE": 0.6796,
+      "E": 0.0654
+     }
+    },
+    "20": {
+     "event_rate": {
+      "Rec": 0.7657,
+      "GE": 0.6927,
+      "E": 0.0628
+     },
+     "head_mean_p": {
+      "Rec": 0.7615,
+      "GE": 0.6975,
+      "E": 0.0662
+     }
+    },
+    "30": {
+     "event_rate": {
+      "Rec": 0.7844,
+      "GE": 0.708,
+      "E": 0.0628
+     },
+     "head_mean_p": {
+      "Rec": 0.7812,
+      "GE": 0.7139,
+      "E": 0.0669
+     }
+    }
+   }
+  },
+  "K5_bootstrap": {
+   "pass": true,
+   "identical_predictors_give_zero": {
+    "delta": 0.0,
+    "relative_pct": 0.0,
+    "ci_day": [
+     0.0,
+     0.0
+    ],
+    "ci_card": [
+     0.0,
+     0.0
+    ]
+   }
+  },
+  "K6_yomitan_decks": {
+   "pass": true,
+   "decks_used": 22,
+   "yomitan_decks": 2,
+   "yomitan_share_of_history": 0.8373
+  },
+  "K7_slices": {
+   "pass": true,
+   "bench_rows": 173384,
+   "mac_rows": 35256,
+   "mac_yomitan_rows": 26947,
+   "mac_date_rows": 33345,
+   "time_labelled_rows": 209410,
+   "history_rows": 223670
+  },
+  "K8_evaluation_runs": {
+   "pass": true,
+   "rec_4s_logloss": {
+    "head": 0.479016,
+    "raw": 1.408793,
+    "succ_hist": 0.557402,
+    "grade_hist": 0.544228,
+    "rate": 0.588398,
+    "roll": 0.588398,
+    "succ_card": 0.537995,
+    "grade_card": 0.531414,
+    "mac_succ": 0.598529,
+    "mac_grade": 0.610759,
+    "mac_succ_card": 0.557873,
+    "mac_grade_card": 0.57291,
+    "mac_succ_card_c1": 0.573936,
+    "mac_grade_card_c1": 0.580758,
+    "mac_succ_card_c10": 0.573954,
+    "mac_grade_card_c10": 0.588673
+   },
+   "rows": 589,
+   "spread_rows": 589,
+   "r2": {
+    "rows": 394,
+    "head": 0.38309,
+    "card": 0.03156,
+    "recent": -0.00766,
+    "head_minus_card_ci_day": [
+     0.085235,
+     0.450974
+    ],
+    "head_minus_recent_ci_day": [
+     0.079979,
+     0.512232
+    ]
+   }
+  },
+  "K9_fork_files": {
+   "pass": true,
+   "sm92/time_head.f32.bin": {
+    "exists": true,
+    "sha256_ok": true
+   },
+   "sm92/weights.f32.bin": {
+    "exists": true,
+    "sha256_ok": true
+   },
+   "sm98/weights.f32.bin": {
+    "exists": true,
+    "sha256_ok": true
+   },
+   "sm83_head_tensors_in_fork_file": true,
+   "sm92_largest_tensors_in_fork_file": true,
+   "sm98_largest_tensors_in_fork_file": true,
+   "note": "pass = the three files have the Mac's sha256; the tensor-in-file flags are informational (the container may store tensors in another layout)"
+  },
+  "K10_time_projection_minutes": {
+   "pass": true,
+   "cap": 800,
+   "projected_full_minutes": {
+    "sm92-fp32": 3.7,
+    "sm98-fp32": 3.7,
+    "sm98-s4c8n": 3.7
+   }
+  }
+ },
+ "seconds": 14.4
+}
