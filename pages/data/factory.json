@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-17T11:18:33+01:00",
- "updated": "2026-11-17 11:18",
- "material": "34c985b9a85a46cb",
- "summary": "running 001307, finished 001306",
+ "generated_at": "2026-11-17T13:50:03+01:00",
+ "updated": "2026-11-17 13:50",
+ "material": "7d35f6115dc82982",
+ "summary": "running 001307",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring, show-time inputs for both heads (curve / instant)",
@@ -273,7 +273,7 @@
    "track": "small model",
    "ticket": "001307-sm124",
    "started": "11:18",
-   "elapsed": "0:00",
+   "elapsed": "2:31",
    "progress": null,
    "eta": "~19:54"
   }
@@ -2569,10 +2569,11 @@
    "kind": "cpu",
    "minutes": 420,
    "what": "Retrieval-effort probe (SM122): CPU only, no training, aggregate numbers only. Inspired by Pyc &amp; Rawson (2009) (harder but successful retrievals produce better later memory). Answer time (front and back together, from the question shown to the grade pressed, capped at the maximum answer seconds) is a model input, so the model may have learned an effect of how long a success took. (1) Counterfactual: for the last Good or Easy answer before a card&rsquo;s next later-day review, change only its recorded answer time (x0.5, x2, the card&rsquo;s own 10th and 90th percentile, the user&rsquo;s 10th and 90th percentile) and measure the change of predicted recall at the next review and after 1 day, 1 week and 30 days (curve head). (2) Real outcomes: is the actual later recall, against the model&rsquo;s prediction, different after slow or fast successes (within user and within card)? (3) Does one more same-day success raise predicted recall after 1 week and 30 days, and does real data agree? A pre-registered random 200 of the 732-user standard readout set (first 20,000 reviews each); models: the show-time retrain (SM92), the Tiny two-head model (SM106), and the show-time big model (SM91s2) on 60 of the users.",
-   "when": "Running since 08:07 Tue 11-17, three CPU processes in parallel (Big after a 50 min check); expected end about 14:00-15:00, pauses during the 20:00-01:00 break",
+   "when": "Done 13:46 Tue 11-17: the models read a slower success as lower later recall (about 1.6% to 1.9% of R per doubling); real outcomes show no duration effect beyond it; see results",
    "decides": "Whether the model has learned &ldquo;slower success, higher later recall&rdquo; or the opposite (sign and size, 95% CI excluding 0 and at least 0.05%); whether real outcomes show a duration effect the model misses (cross-fitted LogLoss gain of a duration-quintile correction); whether an extra same-day success helps; what the scheduler simulator must do with answer times (it feeds sampled times back as inputs)",
    "started_at": "2026-11-17T08:07+01:00",
-   "state": "planned"
+   "state": "done",
+   "ended_at": "2026-11-17T13:46+01:00"
   }
  ],
  "gpu_break": {
@@ -3289,6 +3290,71 @@
      "Predicted median time given the grade against the user&rsquo;s running median (mean absolute ln error, uncensored rows): about 27% to 29% lower for Hard, Good and Easy answers for every model; the grade-weighted mixture beats both baselines for all nine models (median error about 29% to 31% below the running distribution).",
      "Odd: the show-time instant-only big model (SM99) and the show-time big model (SM91s2) scored 719 of 723 users, so their rows (28,995,499 instead of 30,093,623) are not exactly the same rows as the other seven. Speed of a Good answer is reliable only from 5 to 8 s and speed of an Easy answer from 3 to 8 s, much later than the combined events.",
      "Scoring only, no training; grades unchanged. Branch sm120 c009a738 (sm120-result.md, sm120-result.json, per-user rows and logs); nothing released."
+    ]
+   }
+  },
+  {
+   "date": "11-17",
+   "kind": "cpu",
+   "id": "SM122",
+   "track": "small model",
+   "name": "Retrieval-effort probe (SM122): what the models learned about how long a success took, whether real later recall depends on it, and one more same-day success, CPU only, aggregate numbers only",
+   "eval": "A pre-registered random 200 of the 732-user standard readout set (first 20,000 reviews each) for the show-time retrain (SM92) and the Tiny two-head model (SM106), and 60 of those users for the show-time big model (SM91s2): 1,219,157 later-day pairs (previous review Good or Easy, timed) and 29,014 counterfactual targets for the first two, 338,211 pairs and 8,323 targets for the big model. Answer time = front and back together, from the question shown to the grade pressed, capped at the preset&rsquo;s maximum answer seconds. User-block bootstrap (1,000 replicates). An effect counts only with the 95% CI excluding 0 and a size of at least 0.05%.",
+   "fork": "Not used: scoring only, nothing is released (user 11-14: no new release soon)",
+   "takeaway": "<strong>The models read a slower success as a weaker memory, the opposite of the paper, and real outcomes show no duration effect beyond what they already predict.</strong> The paper (Pyc &amp; Rawson 2009) says harder, slower successful recalls lead to better later memory. Doubling the recorded answer time of the last success lowers the predicted recall at the next review by 1.60% [&minus;1.78, &minus;1.44] for the show-time retrain (SM92), 1.57% for the Tiny two-head model (SM106) and 1.85% for the show-time big model (SM91s2) (halving raises it by about the same), and the curve recall after 30 days by 2.10%, 2.16% and 2.25%. In real outcomes, beyond the model&rsquo;s prediction, the slowest fifth of successes recalls only +0.23% [+0.03, +0.44] more than the fastest fifth within a user (instant head, show-time retrain (SM92)), and the LogLoss gain of per-fifth offsets is +0.001% [&minus;0.002, +0.003], far below the 0.05% bar; no model passes the rule. One more same-day success raises the model&rsquo;s predicted recall by +0.63%, +0.50% and +0.93%, but real data show no measurable change (later-day residual difference +0.03%, +0.07% and +0.35%, every CI spanning 0). So the duration effect inside the models is real-sized and the scheduler simulator, which feeds sampled answer times back as inputs, must draw them from a realistic time model.",
+   "inputs": "show-time",
+   "started_at": "2026-11-17T08:07+01:00",
+   "ended_at": "2026-11-17T13:46+01:00",
+   "gpu_minutes": 0,
+   "tickets": 0,
+   "detail": {
+    "verdict": "Done; branch sm122 2a3646b9 (sm122-result.md, sm122-result.json, check-cpu.json, launchers, HANDOFF.md; aggregates only, privacy scan clean). Design 08:12; the show-time retrain (SM92) and the Tiny two-head model (SM106) ran 08:07 to 12:49 on 200 users each; the CPU check of all three ended 08:38 and failed only on the second K3 bound (1.43e-6 and 1.13e-6 against 1e-6, float32 rounding), raised to 1e-5 by an amendment (3557c370); the show-time big model (SM91s2) ran 12:57 to 13:45 on 60 users; report 13:46. No GPU, no ticket.",
+    "table": {
+     "head": [
+      "Model",
+      "Doubling the time of the last success: instant R at the next review",
+      "Curve R after 30 d",
+      "Within user, slowest minus fastest fifth (instant residual)",
+      "LogLoss gain of per-fifth offsets (instant, user CI)",
+      "Extra same-day success: instant R at the next review (model)",
+      "Real later-day residual, 2 or more successes minus 1"
+     ],
+     "rows": [
+      [
+       "the show-time retrain (SM92), 200 users",
+       "&minus;1.60% [&minus;1.78, &minus;1.44]",
+       "&minus;2.10% [&minus;2.31, &minus;1.91]",
+       "+0.23% [+0.03, +0.44]",
+       "+0.001% [&minus;0.002, +0.003]",
+       "+0.63% [+0.40, +0.84]",
+       "+0.03% [&minus;0.53, +0.50]"
+      ],
+      [
+       "the Tiny two-head model (SM106), 200 users",
+       "&minus;1.57% [&minus;1.74, &minus;1.40]",
+       "&minus;2.16% [&minus;2.38, &minus;1.96]",
+       "+0.19% [+0.00, +0.39]",
+       "+0.001% [&minus;0.001, +0.003]",
+       "+0.50% [+0.32, +0.69]",
+       "+0.07% [&minus;0.48, +0.53]"
+      ],
+      [
+       "the show-time big model (SM91s2), 60 users",
+       "&minus;1.85% [&minus;2.19, &minus;1.55]",
+       "&minus;2.25% [&minus;2.62, &minus;1.89]",
+       "+0.32% [&minus;0.07, +0.70]",
+       "&minus;0.013% [&minus;0.024, &minus;0.003]",
+       "+0.93% [+0.62, +1.25]",
+       "+0.35% [&minus;0.45, +1.18]"
+      ]
+     ]
+    },
+    "notes": [
+     "Question 1 (what the models learned): the sign is the same for all three models and for every arm: a longer answer time of the last success lowers the predicted recall, a shorter one raises it (halving: +1.79%, +1.74% and +2.07% instant R). The effect is larger when the success was a same-day step (&minus;2.18% instant for the show-time retrain (SM92)) than when it was a later-day review (&minus;1.16%), and the curve effect after 1 week is &minus;1.66%, &minus;1.71% and &minus;1.92%.",
+     "Question 2 (real outcomes): the within-user slowest-minus-fastest-fifth residual is positive for every model, the direction of the paper, but tiny, and the cross-fitted LogLoss gain of per-fifth offsets is far below 0.05% for the instant and curve heads, within user and within card, so no effect passes the rule. For the show-time big model (SM91s2) the gain is slightly negative (the offsets overfit on 60 users), which is not evidence of an effect.",
+     "Question 3 (one more same-day success): the models raise predicted recall for the next review, after 1 week and after 30 days (curve 30 d +1.41%, +0.93% and +3.75%), but in real data the later-day recall after two successes is not measurably different from after one, and the first-day groups show no consistent residual, so real data do not confirm the model&rsquo;s same-day benefit.",
+     "The three models agree in sign and size on every question; the show-time big model (SM91s2) has wider intervals because it ran on 60 users instead of 200.",
+     "Scoring only, no training; branch sm122 2a3646b9; nothing released. CPU time: 16,881 s and 16,704 s for the two 200-user runs (84 s per user, all eight arms) and 2,882 s for the 60-user run (48 s per user, four arms), peak 1.7 to 2.2 GB."
     ]
    }
   },
