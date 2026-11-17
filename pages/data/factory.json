@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-16T22:03:37+01:00",
- "updated": "2026-11-16 22:03",
- "material": "4960dbb4389c5fd4",
- "summary": "idle",
+ "generated_at": "2026-11-17T01:01:05+01:00",
+ "updated": "2026-11-17 01:01",
+ "material": "4188d2a6b520b3eb",
+ "summary": "running 001265",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring, show-time inputs for both heads (curve / instant)",
@@ -261,7 +261,23 @@
    }
   ]
  },
- "now": [],
+ "now": [
+  {
+   "what": "The show-time two-head cool-down for Small (SM118): the longer cool-down that went go for the Small and Tiny Instant-Only models (one learning-rate decay stretched over two passes of the 8,000 users) applied to the Small two-head model, the show-time retrain of the release (SM92), from its constant-LR epoch 26 (the checkpoint its own cool-down started from), both heads trained, with the curve and grade targets of the show-time big model (SM91s2) on show-time inputs for the 8,000 users (exported first, ~4 GPU h). Early stop after pass 1 unless a head beats the show-time retrain of the release (SM92)&rsquo;s own snapshot at about the same learning rate and neither is +0.05% worse; go = new &minus; the show-time retrain of the release (SM92) on show-time inputs: one head better (CI below 0 and at least 0.05%) and neither head worse (+0.05% or more, or CI above 0)",
+   "id": "SM118, ticket 001265",
+   "kind": "gpu",
+   "decides": "Whether the longer cool-down with the big two-head teacher lifts the Small two-head model on both heads (the show-time big model (SM91s2) is &minus;0.315% curve / &minus;0.251% instant better than the show-time retrain of the release (SM92)); a go is held for the next family release (no new release soon, user 11-14); the same recipe for the Tiny two-head model (SM106) comes next",
+   "why": "",
+   "job": "the show-time two-head cool-down for Small (SM118): pass 2 of the two-epoch 32k Muon cool-down (0.29 x peak -&gt; 0, from pass 1&#x27;s end, new order), both heads (segment to the next break or the end)",
+   "linked": true,
+   "track": "small model",
+   "ticket": "001265-sm118",
+   "started": "01:00",
+   "elapsed": "0:00",
+   "progress": null,
+   "eta": "~10:20"
+  }
+ ],
  "charts": [
   {
    "title": "Small model, leak-free (SM72s): LogLoss per epoch, 458-user set (lower is better)",
@@ -2409,12 +2425,11 @@
    "what": "The show-time two-head cool-down for Small (SM118): the longer cool-down that went go for the Small and Tiny Instant-Only models (one learning-rate decay stretched over two passes of the 8,000 users) applied to the Small two-head model, the show-time retrain of the release (SM92), from its constant-LR epoch 26 (the checkpoint its own cool-down started from), both heads trained, with the curve and grade targets of the show-time big model (SM91s2) on show-time inputs for the 8,000 users (exported first, ~4 GPU h). Early stop after pass 1 unless a head beats the show-time retrain of the release (SM92)&rsquo;s own snapshot at about the same learning rate and neither is +0.05% worse; go = new &minus; the show-time retrain of the release (SM92) on show-time inputs: one head better (CI below 0 and at least 0.05%) and neither head worse (+0.05% or more, or CI above 0)",
    "when": "Started 06:40 Mon 11-16: the reference snapshot of the show-time retrain of the release (SM92) is scored first (~20 min), then the teacher targets of the show-time big model (SM91s2) (~4.2 h, to ~11:35), then pass 1 (~8 h; pauses for the 20:00 break if not done and resumes at 01:00); early check ~01:40 Tue; pass 2 to ~09:50 Tue; result ~12:30 Tue 11-17. About 23.5 GPU h (about 13 GPU h if the early stop fires)",
    "decides": "Whether the longer cool-down with the big two-head teacher lifts the Small two-head model on both heads (the show-time big model (SM91s2) is &minus;0.315% curve / &minus;0.251% instant better than the show-time retrain of the release (SM92)); a go is held for the next family release (no new release soon, user 11-14); the same recipe for the Tiny two-head model (SM106) comes next",
-   "state": "done",
+   "state": "running",
    "started_at": "2026-11-16T06:40:17+01:00",
-   "ended": "19:57",
-   "exit": 1,
-   "started": "06:40",
-   "ended_at": "2026-11-16T19:57:11+01:00"
+   "started": "01:00",
+   "ticket": "001265-sm118",
+   "ends_at": "2026-11-17T06:10:17+01:00"
   },
   {
    "id": "SM119",
