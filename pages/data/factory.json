@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-17T03:56:12+01:00",
- "updated": "2026-11-17 03:56",
- "material": "559a0f5e1b876a73",
- "summary": "idle, finished 001279",
+ "generated_at": "2026-11-17T03:57:59+01:00",
+ "updated": "2026-11-17 03:57",
+ "material": "784d12fd3d7899eb",
+ "summary": "idle",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring, show-time inputs for both heads (curve / instant)",
@@ -179,7 +179,7 @@
    "instant": 0.277157
   },
   "eval": "722 users of the 732 set, 30.13M reviews, leak-free w8+s8, show-time inputs for both heads",
-  "note": "Published as the GitHub release rwkv-family-2026-11-13 (SM108) on 11-13. Memory = card + note state at the fork&rsquo;s default precision (int4 cards + int8 notes).",
+  "note": "Held, not released: the show-time two-head cool-down for Small (SM118) is the Small two-head candidate (curve 0.300016, instant 0.276599, go on 11-17), for the 11-28 release decision. Published as the GitHub release rwkv-family-2026-11-13 (SM108) on 11-13. Memory = card + note state at the fork&rsquo;s default precision (int4 cards + int8 notes).",
   "rows": [
    {
     "size": "Big",
@@ -2405,16 +2405,13 @@
    "track": "small model",
    "since": "11-16T06:40",
    "kind": "gpu",
-   "minutes": 1410,
+   "minutes": 970,
    "what": "The show-time two-head cool-down for Small (SM118): the longer cool-down that went go for the Small and Tiny Instant-Only models (one learning-rate decay stretched over two passes of the 8,000 users) applied to the Small two-head model, the show-time retrain of the release (SM92), from its constant-LR epoch 26 (the checkpoint its own cool-down started from), both heads trained, with the curve and grade targets of the show-time big model (SM91s2) on show-time inputs for the 8,000 users (exported first, ~4 GPU h). Early stop after pass 1 unless a head beats the show-time retrain of the release (SM92)&rsquo;s own snapshot at about the same learning rate and neither is +0.05% worse; go = new &minus; the show-time retrain of the release (SM92) on show-time inputs: one head better (CI below 0 and at least 0.05%) and neither head worse (+0.05% or more, or CI above 0)",
-   "when": "Started 06:40 Mon 11-16: the reference snapshot of the show-time retrain of the release (SM92) is scored first (~20 min), then the teacher targets of the show-time big model (SM91s2) (~4.2 h, to ~11:35), then pass 1 (~8 h; pauses for the 20:00 break if not done and resumes at 01:00); early check ~01:40 Tue; pass 2 to ~09:50 Tue; result ~12:30 Tue 11-17. About 23.5 GPU h (about 13 GPU h if the early stop fires)",
+   "when": "Done 03:55 Tue 11-17: go (&minus;0.114% curve and &minus;0.100% instant vs the show-time retrain of the release (SM92)); held for the next release decision on 11-28 with the longer big instant-only teacher (SM113) and the longer cool-down for Tiny (SM115)",
    "decides": "Whether the longer cool-down with the big two-head teacher lifts the Small two-head model on both heads (the show-time big model (SM91s2) is &minus;0.315% curve / &minus;0.251% instant better than the show-time retrain of the release (SM92)); a go is held for the next family release (no new release soon, user 11-14); the same recipe for the Tiny two-head model (SM106) comes next",
    "state": "done",
-   "started_at": "2026-11-16T06:40:17+01:00",
-   "ended": "03:55",
-   "exit": 0,
-   "started": "06:40",
-   "ended_at": "2026-11-17T03:55:41+01:00"
+   "started_at": "2026-11-16T06:40+01:00",
+   "ended_at": "2026-11-17T03:55+01:00"
   },
   {
    "id": "SM119",
@@ -3000,6 +2997,117 @@
   }
  ],
  "results": [
+  {
+   "date": "11-17",
+   "kind": "gpu-train",
+   "id": "SM118",
+   "track": "small model",
+   "name": "The show-time two-head cool-down for Small (SM118): the longer cool-down (one learning-rate decay over two passes of the 8,000 users) applied to the Small two-head model, the show-time retrain of the release (SM92), from its constant-LR epoch 26, both heads trained, with the curve and grade targets of the show-time big model (SM91s2) on show-time inputs",
+   "eval": "Leak-free w8+s8, 722 users of the 732 set, show-time inputs, both heads; % of the big model (1 leak-free epoch)&rsquo;s LogLoss; paired user bootstrap 95% CI. Go = new minus the show-time retrain of the release (SM92): one head with CI below 0 and at least 0.05% better, and neither head worse (+0.05% or more, or CI above 0). Early stop after pass 1 against the snapshot of the show-time retrain of the release (SM92) at the same learning rate. Also the 1,500 validation users (1,487 scored)",
+   "fork": "Not used yet: held for the next release decision on 11-28 (user 11-14: no new release soon)",
+   "takeaway": "<strong>Go</strong>: &minus;0.114% [&minus;0.177, &minus;0.062] on the curve head and &minus;0.100% [&minus;0.110, &minus;0.091] on the instant head vs the show-time retrain of the release (SM92) (518 / 204 users better / worse on the curve, 607 / 114 on the instant); it closes 0.362 of the curve gap and 0.398 of the instant gap to the teacher, the show-time big model (SM91s2). LogLoss: curve 0.300016 (was 0.300356), instant 0.276599 (was 0.276876). It is still +0.201% (curve) and +0.151% (instant) behind the show-time big model (SM91s2). Same on the 1,500 validation users (&minus;0.102% curve, &minus;0.099% instant). Held for the 11-28 release decision with the longer big instant-only teacher (SM113) and the longer cool-down for Tiny (SM115).",
+   "inputs": "show-time",
+   "started_at": "2026-11-16T06:40+01:00",
+   "ended_at": "2026-11-17T03:55+01:00",
+   "gpu_minutes": 969,
+   "tickets": 24,
+   "detail": {
+    "verdict": "Go; branch sm118 c8f5abf7 (sm118-decision.md, sm118-mid.md, RESULT.md)",
+    "table": {
+     "head": [
+      "Show-time, new minus",
+      "Curve %",
+      "Curve 95% CI",
+      "Instant %",
+      "Instant 95% CI",
+      "Instant better / worse"
+     ],
+     "rows": [
+      [
+       "the show-time retrain of the release (SM92) (the rule)",
+       "&minus;0.114",
+       "[&minus;0.177, &minus;0.062]",
+       "&minus;0.100",
+       "[&minus;0.110, &minus;0.091]",
+       "607 / 114"
+      ],
+      [
+       "the show-time big model (SM91s2) (the teacher)",
+       "+0.201",
+       "[+0.051, +0.359]",
+       "+0.151",
+       "[+0.126, +0.176]",
+       "204 / 518"
+      ],
+      [
+       "the release (SM63)",
+       "&minus;0.133",
+       "[&minus;0.209, &minus;0.036]",
+       "&minus;0.406",
+       "[&minus;0.506, &minus;0.331]",
+       "641 / 81"
+      ],
+      [
+       "the big model (1 leak-free epoch)",
+       "+0.146",
+       "[&minus;0.030, +0.341]",
+       "&minus;0.202",
+       "[&minus;0.317, &minus;0.117]",
+       "403 / 319"
+      ],
+      [
+       "the Small Instant-Only model (SM98)",
+       "not trained",
+       "",
+       "+0.148",
+       "[+0.133, +0.164]",
+       "144 / 578"
+      ],
+      [
+       "the longer big instant-only teacher (SM113)",
+       "not trained",
+       "",
+       "+0.242",
+       "[+0.222, +0.262]",
+       "70 / 652"
+      ],
+      [
+       "the show-time retrain of the release (SM92), normal inputs (the show-time cost of the new model is +0.033% curve, +0.029% instant)",
+       "&minus;0.108",
+       "[&minus;0.172, &minus;0.056]",
+       "&minus;0.086",
+       "[&minus;0.097, &minus;0.076]",
+       "570 / 151"
+      ],
+      [
+       "early stop: after pass 1 vs the snapshot of the show-time retrain of the release (SM92)",
+       "&minus;0.147",
+       "[&minus;0.239, &minus;0.062]",
+       "&minus;0.093",
+       "[&minus;0.112, &minus;0.076]",
+       "480 / 241"
+      ],
+      [
+       "1,500 validation users (1,487 scored): vs the show-time retrain of the release (SM92)",
+       "&minus;0.102",
+       "[&minus;0.146, &minus;0.065]",
+       "&minus;0.099",
+       "[&minus;0.108, &minus;0.091]",
+       "not counted"
+      ]
+     ]
+    },
+    "notes": [
+     "Held for the next release decision on 11-28, together with the longer big instant-only teacher (SM113) and the longer cool-down for Tiny (SM115); nothing is released.",
+     "Wall time: started 06:40 Mon 11-16, ended 03:55 Tue 11-17 (about 21 h 15 min), about 969 GPU minutes in 24 tickets (the training pass 2 ran as two segments).",
+     "Teacher export from the show-time big model (SM91s2): 213 min for 581.9M reviews of the 8,000 users, 45,576 reviews/s.",
+     "Pass 1 (learning rate 7e-4 to 0.29 x peak): 335.9 min, 28,915 reviews/s; the early stop said continue (&minus;0.147% curve, &minus;0.093% instant vs the snapshot of the show-time retrain of the release (SM92)).",
+     "Pass 2 (0.29 x peak to 0): 221.6 min, then paused from a snapshot for the 20:00 to 01:00 break, then 116.9 min (28,690 reviews/s for the last segment); 338.5 min in total, about 28.7k reviews/s for 581.9M reviews.",
+     "Scoring: about 82 GPU minutes (reference snapshot, early stop, final 732 set on show-time and normal inputs, 1,500 validation users for both models).",
+     "On normal inputs the new model is still &minus;0.108% curve and &minus;0.086% instant vs the show-time retrain of the release (SM92); its show-time cost vs its own normal-input score is +0.033% curve, +0.029% instant."
+    ]
+   }
+  },
   {
    "date": "11-16",
    "kind": "gpu-train",
