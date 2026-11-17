@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-17T05:28:32+01:00",
- "updated": "2026-11-17 05:28",
- "material": "f521c037d700e1cf",
- "summary": "running 001287, finished 001286",
+ "generated_at": "2026-11-17T06:04:20+01:00",
+ "updated": "2026-11-17 06:04",
+ "material": "9e32bf23e79242b1",
+ "summary": "running 001287",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring, show-time inputs for both heads (curve / instant)",
@@ -273,7 +273,7 @@
    "track": "small model",
    "ticket": "001287-small-model",
    "started": "05:28",
-   "elapsed": "0:00",
+   "elapsed": "0:36",
    "progress": null,
    "eta": "~06:58"
   }
@@ -2465,9 +2465,11 @@
    "kind": "cpu",
    "minutes": 300,
    "what": "Timed recall on your own collection (SM121): CPU only, no training, aggregate numbers only. The answer-time heads of the time heads for the family (SM117) (and of the time heads for the new candidates (SM119) once they exist) scored on your own collection: P(recalled, Good or Easy, or Easy, and answered within S seconds) at S = 2 to 30 s, on the benchmark test reviews and on the slice your Mac replay used (later-day reviews, latest 20%), for the whole collection and the deck subset the Mac checked. Models: the Small pair as the Mac ran it (the Small Instant-Only model (SM98) with the answer-time head release (SM83) of the show-time retrain (SM92)), the Small and Tiny pairs as the fork runs them today, each model with its own head, and Big if CPU time allows. Baselines: the raw recall probability, recall probability times your recent share of fast answers, the grade-weighted recent share, your running and rolling 2,000-review rates, and the same adjusted by each card&rsquo;s last three answer times. Also: does it discriminate between reviews or only predict an average (spread, deciles, AUC given Good, Brier resolution, within-card tracking), and a separate reproduction control of the Mac&rsquo;s numbers on the closest collection copy here. Answer time = front and back together, from the question shown to the grade pressed, capped at the maximum answer seconds; within S seconds always includes reading the back.",
-   "when": "Launched 22:01 Mon 11-16, sleeps until 01:05 Tue (break); CPU check, then about 3 to 5 CPU h (first result roughly 04:00 to 06:00 Tue); then waits until 18:30 at the latest for the heads of the longer Small Instant-Only model (SM113) and the longer cool-down for Tiny (SM115) from the time heads for the new candidates (SM119); respects the 20:00-01:00 break",
+   "when": "Done 05:49 Tue 11-17: the heads beat every baseline at 4 s but are not calibrated enough to be reliable there; see results",
    "decides": "For which values of S the time head is reliable on your own collection (fixed in advance, as in the time heads for the family (SM117): calibration error below 0.01 and LogLoss below every baseline, recent history and card history, with the day-block CI below 0), in particular recalled within 4 s; whether the head discriminates between reviews beyond the card-history baseline; whether the Mac&rsquo;s numbers reproduce",
-   "state": "planned"
+   "started_at": "2026-11-17T01:06+01:00",
+   "state": "done",
+   "ended_at": "2026-11-17T05:49+01:00"
   }
  ],
  "gpu_break": {
@@ -3020,6 +3022,88 @@
   }
  ],
  "results": [
+  {
+   "date": "11-17",
+   "kind": "cpu",
+   "id": "SM121",
+   "track": "small model",
+   "name": "Timed recall on your own collection (SM121): the answer-time heads of the time heads for the family (SM117) and of the time heads for the new candidates (SM119) scored on your own collection, CPU only, aggregate numbers only",
+   "eval": "Your own collection (the copy of 2026-10-14, reviews up to 2026-10-04), full history, show-time inputs, fp32 state. Rows: the benchmark test reviews with a recorded time (173,384; the 732-set row rule) and the Mac&rsquo;s slice (later-day reviews, latest 20% from 2026-04; 35,256), each for the whole collection and for the subset of decks the Mac used. Reliable = calibration error (20 equal-mass bins) below 0.01 and LogLoss below every baseline (recent history and card history, the Mac&rsquo;s four included) with the 95% CI below 0 (2,000 day-block bootstraps, seed 0; card-block bootstraps as a sensitivity). The answer time is the whole time on the card, front and back together: from the moment the question is shown to the moment a grade button is pressed, capped at the preset&rsquo;s maximum answer seconds. The &ldquo;Show answer&rdquo; moment is not stored, so every &ldquo;within S s&rdquo; means recalled and answered within S s, reading the back included.",
+   "fork": "Not used: scoring only, nothing is released (user 11-14: no new release soon)",
+   "takeaway": "<strong>The timed heads beat every baseline at 4 s by a wide margin but are not calibrated enough to count as reliable there.</strong> Recalled and answered within 4 s, reading the back included: the longer Small Instant-Only model (SM113) with its own head scores 0.5019 LogLoss against 0.5455 for the strongest baseline (the Mac&rsquo;s grade-times-card-history, CI clear of zero), &minus;7.99%, on the whole collection&rsquo;s benchmark rows, and &minus;6.47% on the subset of decks the Mac used; but its calibration error at 4 s is 0.0175 and 0.0165, above the 0.01 bar, so 4 s is not reliable for any of the eleven combinations. Reliable values of S are few: 2 s and 30 s on the whole collection for the big models, 2 s on the Mac&rsquo;s slice, 2 s on the subset for most combinations. It is not just a big average: on reviews graded Good, the head ranks fast from slow answers with an AUC of 0.785 against 0.682 for card history and 0.510 for recent history (difference +0.103, CI [+0.099, +0.108]).",
+   "inputs": "show-time",
+   "started_at": "2026-11-17T01:06+01:00",
+   "ended_at": "2026-11-17T05:49+01:00",
+   "gpu_minutes": 0,
+   "tickets": 0,
+   "detail": {
+    "verdict": "Done; branch sm121 4e819746 (sm121-result.md, sm121-result.json, sm121-repro.md, check-cpu.json; aggregates only)",
+    "table": {
+     "head": [
+      "Recalled within 4 s, whole collection benchmark rows / subset of decks the Mac used",
+      "Head LogLoss (whole / subset)",
+      "Strongest baseline (whole / subset)",
+      "Head vs strongest, whole",
+      "Head vs strongest, subset",
+      "Calibration error (whole / subset)"
+     ],
+     "rows": [
+      [
+       "the longer Small Instant-Only model (SM113) with its own head (SM119)",
+       "0.5019 / 0.5123",
+       "0.5455 / 0.5478",
+       "&minus;7.99%",
+       "&minus;6.47%",
+       "0.0175 / 0.0165"
+      ],
+      [
+       "the Small Instant-Only model (SM98) with its own head (SM117)",
+       "0.5024 / 0.5129",
+       "0.5456 / 0.5479",
+       "&minus;7.92%",
+       "&minus;6.38%",
+       "0.0170 / 0.0160"
+      ],
+      [
+       "the longer cool-down for Tiny (SM115) with its own head (SM119)",
+       "0.5023 / 0.5133",
+       "0.5456 / 0.5478",
+       "&minus;7.93%",
+       "&minus;6.29%",
+       "0.0221 / 0.0214"
+      ],
+      [
+       "the Tiny two-head model (SM106) with its own head (SM117)",
+       "0.5030 / 0.5135",
+       "0.5460 / 0.5481",
+       "&minus;7.88%",
+       "&minus;6.30%",
+       "0.0157 / 0.0131"
+      ],
+      [
+       "Small pair as the fork runs it today: grades of the longer Small Instant-Only model (SM113), time from the show-time retrain (SM92)&rsquo;s head",
+       "0.5032 / 0.5140",
+       "0.5455 / 0.5478",
+       "&minus;7.75%",
+       "&minus;6.15%",
+       "0.0238 / 0.0237"
+      ]
+     ]
+    },
+    "notes": [
+     "Reliable values of S for recalled within S s on the benchmark rows (whole collection / subset of decks the Mac used): the Mac&rsquo;s Small pair (grades of the Small Instant-Only model (SM98), time from the answer-time head release (SM83) on the show-time retrain (SM92)) 2 s and 30 s / 2 s; the show-time big model (SM91s2) with its own head 2 s and 30 s / 30 s; the show-time instant-only big model (SM99) with its own head 2 s and 30 s / 2 s; the Tiny two-head model (SM106) with its own head 20 s and 30 s / none; the Small Instant-Only model (SM98), the longer cool-down for Tiny (SM115) and the Tiny pair as the fork runs it today 30 s / none; the longer Small Instant-Only model (SM113), the Small pair as the fork runs it today and the show-time retrain (SM92) with its own head none / none.",
+     "On the Mac&rsquo;s slice: 2 s is reliable for the subset of decks the Mac used in all eleven combinations; on the whole collection 2 s is reliable only for the two Small pairs built on the show-time retrain (SM92) and for the show-time retrain (SM92) itself, and 15 s only for the Tiny two-head model (SM106).",
+     "At 4 s every head beats every baseline with the CI below 0, so the miss is calibration (0.011 to 0.041 across the combinations and rows), not ranking; a recalibration step is the obvious follow-up.",
+     "The longer Small Instant-Only model (SM113) and the longer cool-down for Tiny (SM115) against the current pair: LogLoss at 4 s is about equal (0.5019 vs 0.5024 for the Small Instant-Only model (SM98); 0.5023 vs 0.5030 for the Tiny two-head model (SM106)); calibration at 4 s is slightly worse for the longer Small Instant-Only model (SM113) (0.0175 vs 0.0170) and worse for the longer cool-down for Tiny (SM115) (0.0221 vs 0.0157). Untimed grade LogLoss for recalled is 0.4356 for the longer Small Instant-Only model (SM113) and 0.4357 for the Small Instant-Only model (SM98), against 0.4728 for the rolling 2,000 baseline; kept apart from the timed outcomes. The longer Small Instant-Only model (SM113) and the longer cool-down for Tiny (SM115) do not widen the set of reliable S values on the benchmark rows.",
+     "Is it just a big average? No. Spread of the predicted median time given Good (whole collection): SD 2.33 s (IQR 2.35 s) for the longer Small Instant-Only model (SM113) with its own head against 1.35 s (1.72 s) for card history; P(within 4 s given Good) runs 0.09 to 0.72 (p10 to p90) against 0.21 to 0.65. Decile lift: of the reviews graded Good in the lowest decile of the predicted median, 88.6% are answered within 4 s (observed median 2.2 s), in the highest decile 8.2% (observed median 8.6 s); card history gives 78.6% and 20.1%.",
+     "AUC given Good at 4 s: 0.785 head / 0.682 card history / 0.510 recent history (whole collection), 0.751 / 0.643 / 0.509 on the subset; the difference to card history is +0.104, CI [+0.099, +0.108]. Brier resolution (the part that is more than an average) for recalled within 4 s: 0.0547 head vs 0.0353 card history (+0.0194, CI [+0.0184, +0.0203]). R&sup2; of the predicted mean ln time on uncensored Good reviews: 0.307 vs 0.125 (recent history &minus;0.035).",
+     "Within-card correlation (does the head follow a card getting faster or slower): 0.296 for the head against 0.024 for card history on the whole collection (difference CI [+0.256, +0.290]); on the Mac&rsquo;s slice 0.240 against &minus;0.130.",
+     "Reproduction of the Mac&rsquo;s replay (kept separate, sm121-repro.md): the control used a different copy of your own collection than the Mac&rsquo;s (the Mac&rsquo;s backup is not on this computer) and still landed within about 0.001 LogLoss of the Mac&rsquo;s values: the Mac&rsquo;s Small pair at 4 s, 0.504475 vs 0.503622 on the whole collection, 0.490821 vs 0.490168 on the subset of decks the Mac used; the four Mac baselines differ by 0.0004 to 0.002.",
+     "Check and timing: the first launch stopped at 01:06 because the CPU check caught that the int4 card / int8 note state setting was not applied on the CPU (predictions identical to full precision); fixed in 9dd70c1b (the CPU path now goes through the rounding reference), relaunched 01:15, check passed (P(grade) moves 0.08% on average, 1.3% at most). Trunks 01:15 to 01:30 (145 to 192 s of forward each), reproduction control 01:30 to 01:38, first report 01:38 to 01:45, then waited for the heads of the time heads for the new candidates (SM119) (the longer Small Instant-Only model (SM113) ready 04:44), their trunks 05:34 to 05:40, final report 05:40 to 05:49 (11 combinations, none missing). About 1 h 10 min of CPU work, no GPU.",
+     "Known issue for reruns: the trunk steps peak at 7.8 to 8.3 GB of RAM, above this computer&rsquo;s 6 GB guideline for CPU jobs. The result files are aggregates only (no deck names, no review rows, no card ids; the privacy scan passed); sm121-result.json is 77 MB, above GitHub&rsquo;s recommended 50 MB, which only triggered a warning."
+    ]
+   }
+  },
   {
    "date": "11-17",
    "kind": "gpu-train",
