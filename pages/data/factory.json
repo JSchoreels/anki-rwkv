@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-17T16:58:32+01:00",
- "updated": "2026-11-17 16:58",
- "material": "4eabe3016c8048ab",
- "summary": "idle, finished 001309",
+ "generated_at": "2026-11-17T16:59:07+01:00",
+ "updated": "2026-11-17 16:59",
+ "material": "9d6a2a15bcfe6833",
+ "summary": "running 001311, finished 001310",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring, show-time inputs for both heads (curve / instant)",
@@ -261,7 +261,23 @@
    }
   ]
  },
- "now": [],
+ "now": [
+  {
+   "what": "The show-time two-head cool-down for Tiny (SM124): the recipe of the show-time two-head cool-down for Small (SM118) (one learning-rate decay stretched over two passes of the 8,000 users) applied to the Tiny two-head model (SM106), from its constant-LR epoch 29 (the checkpoint its own cool-down started from), both heads trained, with the curve and grade targets of the show-time big model (SM91s2) on show-time inputs (the targets the show-time two-head cool-down for Small (SM118) exported, reused: no export). Early stop after pass 1 unless a head beats the Tiny two-head model (SM106)&rsquo;s own snapshot at about the same learning rate and neither is +0.05% worse; go = new &minus; the Tiny two-head model (SM106) on show-time inputs: one head better (CI below 0 and at least 0.05%) and neither head worse (+0.05% or more, or CI above 0)",
+   "id": "SM124, ticket 001311",
+   "kind": "gpu",
+   "decides": "Whether the longer cool-down with the big two-head teacher lifts the Tiny two-head model on both heads (the show-time big model (SM91s2) is &minus;0.422% curve / &minus;0.430% instant better than the Tiny two-head model (SM106)); a go is held for the 11-28 release decision",
+   "why": "",
+   "job": "the show-time two-head cool-down for Tiny (SM124): pass 2 of the two-epoch 32k Muon cool-down (0.29 x peak -&gt; 0, from pass 1&#x27;s end, new order), w64-c1, both heads (segment to the next break or the end)",
+   "linked": true,
+   "track": "small model",
+   "ticket": "001311-sm124",
+   "started": "16:58",
+   "elapsed": "0:00",
+   "progress": null,
+   "eta": "~19:54"
+  }
+ ],
  "charts": [
   {
    "title": "Small model, leak-free (SM72s): LogLoss per epoch, 458-user set (lower is better)",
@@ -432,6 +448,15 @@
  "waiting": [],
  "recent": [
   {
+   "ticket": "001310-sm124",
+   "id": "SM124",
+   "what": "the show-time two-head cool-down for Tiny (SM124): trainer smoke of pass 2 (pass 1&#x27;s Muon state loaded, show-time inputs, w64-c1, both heads) (2 users x 512 reviews)",
+   "ended": "16:58",
+   "date": "11-17",
+   "exit": 0,
+   "ran": "0:00"
+  },
+  {
    "ticket": "001309-sm124",
    "id": "SM124",
    "what": "the show-time two-head cool-down for Tiny (SM124): scoring sm124-dec2ep-p1 on e2s-query inputs, the 732 set minus 9 never-fit (723 users) (pass 2, 722 done, cap 0.8)",
@@ -475,15 +500,6 @@
    "date": "11-17",
    "exit": 0,
    "ran": "0:00"
-  },
-  {
-   "ticket": "001304-sm124",
-   "id": "SM124",
-   "what": "the show-time two-head cool-down for Tiny (SM124): scoring sm106-dec-u4000 on e2s-query inputs, the 732 set minus 9 never-fit (723 users) (pass 1, 0 done, cap 0.8)",
-   "ended": "11:17",
-   "date": "11-17",
-   "exit": 0,
-   "ran": "0:11"
   }
  ],
  "plan": [
@@ -2421,12 +2437,11 @@
    "what": "The show-time two-head cool-down for Tiny (SM124): the recipe of the show-time two-head cool-down for Small (SM118) (one learning-rate decay stretched over two passes of the 8,000 users) applied to the Tiny two-head model (SM106), from its constant-LR epoch 29 (the checkpoint its own cool-down started from), both heads trained, with the curve and grade targets of the show-time big model (SM91s2) on show-time inputs (the targets the show-time two-head cool-down for Small (SM118) exported, reused: no export). Early stop after pass 1 unless a head beats the Tiny two-head model (SM106)&rsquo;s own snapshot at about the same learning rate and neither is +0.05% worse; go = new &minus; the Tiny two-head model (SM106) on show-time inputs: one head better (CI below 0 and at least 0.05%) and neither head worse (+0.05% or more, or CI above 0)",
    "when": "Running since 11:05 Tue 11-17: reference scoring, pass 1 (5.6 to 7.7 h), early stop, pass 2 across the 20:00-01:00 break; verdict expected about 05:00 to 09:40 Wed 11-18",
    "decides": "Whether the longer cool-down with the big two-head teacher lifts the Tiny two-head model on both heads (the show-time big model (SM91s2) is &minus;0.422% curve / &minus;0.430% instant better than the Tiny two-head model (SM106)); a go is held for the 11-28 release decision",
-   "state": "done",
+   "state": "running",
    "started_at": "2026-11-17T11:05:48+01:00",
-   "ended": "16:58",
-   "exit": 0,
-   "started": "11:05",
-   "ended_at": "2026-11-17T16:58:30+01:00"
+   "started": "16:58",
+   "ticket": "001311-sm124",
+   "ends_at": "2026-11-18T02:05:48+01:00"
   },
   {
    "id": "SM118",
