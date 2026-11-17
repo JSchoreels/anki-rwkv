@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-17T04:00:56+01:00",
- "updated": "2026-11-17 04:00",
- "material": "9e8e7960837bf381",
- "summary": "running 001280",
+ "generated_at": "2026-11-17T04:01:51+01:00",
+ "updated": "2026-11-17 04:01",
+ "material": "0b1751b855b489a6",
+ "summary": "running 001281, finished 001280",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring, show-time inputs for both heads (curve / instant)",
@@ -264,18 +264,18 @@
  "now": [
   {
    "what": "Time heads for the new candidates (SM119): the answer-time head of the time heads for the family (SM117), exactly the same recipe and rules (an MLP on the frozen model&rsquo;s internal states and 26 causal time features, trained alone so no grade prediction changes, show-time inputs, same-day reviews included; then answer-time LogLoss and P(recall within S seconds) at S = 3, 5, 8, 10, 15, 20, 30 s on the 732 set), for the longer Small Instant-Only model (SM113) and the longer cool-down for Tiny (SM115), and for the show-time two-head cool-down for Small (SM118) only if that one ends with a go. Answer time = front and back together, from the question shown to the grade pressed, capped at the maximum answer seconds; recall within S seconds = recalled (Hard, Good or Easy) and answered within S seconds, reading the back included. Per model: smoke, grade-unchanged check (bitwise), head training, scoring",
-   "id": "SM119, ticket 001280",
+   "id": "SM119, ticket 001281",
    "kind": "gpu-train",
    "decides": "Whether the heads of the two new candidates are as reliable as those of the family (gate per head fixed in advance: grade outputs bitwise unchanged, head beats the card&rsquo;s last time and the user&rsquo;s running median per grade, CI below 0), and then the time-head files for the fork branch of the family time heads",
    "why": "",
-   "job": "time heads for the family (SM119): the longer Small Instant-Only model (SM113): smoke (head training on 4 users: 3 small + the longest cut at 400k; time scoring of 3 users; grade check of 2 users)",
+   "job": "time heads for the family (SM119): the longer Small Instant-Only model (SM113): head training (1,991 users, first 400k reviews each, show-time inputs, same-day reviews included, head + explicit-only ablation)",
    "linked": true,
    "track": "small model",
-   "ticket": "001280-small-model",
-   "started": "04:00",
+   "ticket": "001281-small-model",
+   "started": "04:01",
    "elapsed": "0:00",
    "progress": null,
-   "eta": "~04:12"
+   "eta": "~05:31"
   }
  ],
  "charts": [
@@ -448,6 +448,15 @@
  "waiting": [],
  "recent": [
   {
+   "ticket": "001280-small-model",
+   "id": "SM119",
+   "what": "time heads for the family (SM119): the longer Small Instant-Only model (SM113): smoke (head training on 4 users: 3 small + the longest cut at 400k; time scoring of 3 users; grade check of 2 users)",
+   "ended": "04:01",
+   "date": "11-17",
+   "exit": 0,
+   "ran": "0:00"
+  },
+  {
    "ticket": "001279-sm118",
    "id": "SM118",
    "what": "the show-time two-head cool-down for Small (SM118): scoring sm92-e26-dec1ep32k on e2s-query inputs, the 1,500 validation users outside the 732 set + 6 check users (SM92) (pass 4, 767 done, cap 0.92)",
@@ -487,15 +496,6 @@
    "ticket": "001275-sm118",
    "id": "SM118",
    "what": "the show-time two-head cool-down for Small (SM118): scoring sm118-e26-dec2ep32k-t91s2 on e2s-query inputs, the 1,500 validation users outside the 732 set + 6 check users (pass 4, 767 done, cap 0.92)",
-   "ended": "03:38",
-   "date": "11-17",
-   "exit": 0,
-   "ran": "0:00"
-  },
-  {
-   "ticket": "001274-sm118",
-   "id": "SM118",
-   "what": "the show-time two-head cool-down for Small (SM118): scoring sm118-e26-dec2ep32k-t91s2 on e2s-query inputs, the 1,500 validation users outside the 732 set + 6 check users (pass 3, 766 done, cap 0.92)",
    "ended": "03:38",
    "date": "11-17",
    "exit": 0,
@@ -2439,8 +2439,8 @@
    "when": "Launched 17:45 Mon 11-16, waits for the launcher of the show-time two-head cool-down for Small (SM118) to end (about 03:30 to 12:30 Tue 11-17, queue order); then about 1.5 GPU h for the two models (about 2.3 GPU h if the show-time two-head cool-down for Small (SM118) is a go); respects the 20:00-01:00 break",
    "decides": "Whether the heads of the two new candidates are as reliable as those of the family (gate per head fixed in advance: grade outputs bitwise unchanged, head beats the card&rsquo;s last time and the user&rsquo;s running median per grade, CI below 0), and then the time-head files for the fork branch of the family time heads",
    "state": "running",
-   "started": "04:00",
-   "ticket": "001280-small-model",
+   "started": "04:01",
+   "ticket": "001281-small-model",
    "started_at": "2026-11-17T04:00:33+01:00",
    "ends_at": "2026-11-17T05:30:33+01:00"
   },
