@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-17T07:34:25+01:00",
- "updated": "2026-11-17 07:34",
- "material": "625d71ac164d5f81",
- "summary": "running 001294, finished 001293",
+ "generated_at": "2026-11-17T07:42:07+01:00",
+ "updated": "2026-11-17 07:42",
+ "material": "c30372ffe757f4cf",
+ "summary": "running 001294",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring, show-time inputs for both heads (curve / instant)",
@@ -273,7 +273,7 @@
    "track": "small model",
    "ticket": "001294-small-model",
    "started": "07:34",
-   "elapsed": "0:00",
+   "elapsed": "0:08",
    "progress": null,
    "eta": "~08:04"
   }
@@ -2543,10 +2543,11 @@
    "kind": "cpu",
    "minutes": 90,
    "what": "Recalibrating timed recall on your own collection (SM123): CPU only, no training, no new model run, aggregate numbers only. The timed-recall analysis on your own collection (SM121) found that at 4 s every model beats every baseline but the calibration error is 0.011 to 0.041, above the 0.01 bar. This tests a simple per-collection recalibration fitted only on earlier reviews: Platt scaling per threshold, one shared shift and scale of the predicted answer-time distribution (consistent across thresholds), and isotonic regression as an upper reference, each fitted once on the reviews before the scored period and also refitted every 7 days on the latest 30,000 earlier reviews (what a scheduler could do). Scored on the same rows as the timed-recall analysis on your own collection (SM121) (benchmark rows, whole collection and the deck subset the Mac used) for Good or Easy, Easy, and recalled, answered within 2 to 10 s, reading the back included. Models: the longer Small Instant-Only model (SM113) with its own head, the current Small pair (grades of the Small Instant-Only model (SM98), time from the show-time retrain (SM92)&rsquo;s head), the Tiny two-head model (SM106), the show-time big model (SM91s2).",
-   "when": "Started 07:15 Tue 11-17, CPU only next to the running GPU job; check then full run, roughly 1 to 2 h",
+   "when": "Done 07:40 Tue 11-17: a 7-day rolling refit makes Good or Easy within 4 s reliable for every combination; see results",
    "decides": "Whether recalibration brings the calibration error below 0.01 while LogLoss still beats every baseline (day-block CI below 0, at least 0.05%), per method, threshold and set; in particular whether the 7-day rolling refit makes Good or Easy within 4 s usable by a scheduler on a single collection",
    "started_at": "2026-11-17T07:15+01:00",
-   "state": "planned"
+   "state": "done",
+   "ended_at": "2026-11-17T07:40+01:00"
   }
  ],
  "gpu_break": {
@@ -3099,6 +3100,78 @@
   }
  ],
  "results": [
+  {
+   "date": "11-17",
+   "kind": "cpu",
+   "id": "SM123",
+   "track": "small model",
+   "name": "Recalibrating timed recall on your own collection (SM123): Platt scaling, one shared time shift and scale, and isotonic regression, fitted once or refitted every 7 days on earlier reviews only, CPU only, aggregate numbers only",
+   "eval": "Your own collection (the copy of 2026-10-14, reviews up to 2026-10-04), the per-review outputs of the timed-recall analysis on your own collection (SM121) reused, the same scored rows: the benchmark test reviews with a recorded time (173,384) and the Mac&rsquo;s slice (35,256), each for the whole collection and for the subset of decks the Mac used. Static fit: the 34,727 reviews before the benchmark period (2024-01 to 2024-11). Rolling: 99 refits, every 7 days, each on the latest 30,000 reviews of earlier days. Reliable = calibration error (20 equal-mass bins) below 0.01 and LogLoss below every baseline (recent history and card history, the Mac&rsquo;s four included) with the 95% day-block CI below 0 and at least 0.05%. Good or Easy, Easy and recalled, answered within 2 to 10 s, reading the back included.",
+   "fork": "Not used: scoring only, nothing is released (user 11-14: no new release soon)",
+   "takeaway": "<strong>A 7-day rolling recalibration fitted only on earlier reviews makes Good or Easy within 4 s reliable on your own collection.</strong> Answered within 4 s, reading the back included: for the longer Small Instant-Only model (SM113) with its own head, the calibration error drops from 0.0185 to 0.0053 with rolling Platt scaling (0.0046 with rolling isotonic regression), LogLoss improves by 0.28% against the uncalibrated head, and the lead over the strongest baseline (recall probability times the card&rsquo;s own last answer times) grows from &minus;7.92% to &minus;8.18%; on the subset of decks the Mac used, 0.0175 to 0.0062 and &minus;6.67%. Rolling Platt and rolling isotonic are reliable for Good or Easy at every threshold from 2 to 10 s on the whole collection for all eleven combinations. A single fit on the reviews before the benchmark period mostly fails (that early period is a different regime), so a scheduler should refit as it goes.",
+   "inputs": "show-time",
+   "started_at": "2026-11-17T07:12+01:00",
+   "ended_at": "2026-11-17T07:40+01:00",
+   "gpu_minutes": 0,
+   "tickets": 0,
+   "detail": {
+    "verdict": "Done; branch sm123 bdb3ccb5 (sm123-result.md, sm123-result.json.gz, check-cpu.json; aggregates only). CPU check: all six proofs pass (time-ordered past-only fits, probabilities in [0, 1], monotone in S and nested across sets, uncalibrated numbers equal to the timed-recall analysis on your own collection (SM121))",
+    "table": {
+     "head": [
+      "Good or Easy within 4 s, benchmark rows (whole collection / subset of decks the Mac used)",
+      "Calibration error uncalibrated",
+      "Rolling Platt",
+      "Rolling isotonic",
+      "Rolling shared shift and scale",
+      "Rolling Platt vs strongest baseline (whole / subset)"
+     ],
+     "rows": [
+      [
+       "the longer Small Instant-Only model (SM113) with its own head (SM119)",
+       "0.0185 / 0.0175",
+       "0.0053 / 0.0062",
+       "0.0046 / 0.0050",
+       "0.0114 / 0.0132",
+       "&minus;8.18% / &minus;6.67%"
+      ],
+      [
+       "Small pair: grades of the Small Instant-Only model (SM98), time from the show-time retrain (SM92)&rsquo;s head",
+       "0.0240 / 0.0238",
+       "0.0046 / 0.0055",
+       "0.0047 / 0.0048",
+       "0.0080 / 0.0088",
+       "&minus;8.10% / &minus;6.55%"
+      ],
+      [
+       "the Tiny two-head model (SM106) with its own head (SM117)",
+       "0.0166 / 0.0140",
+       "0.0049 / 0.0066",
+       "0.0042 / 0.0056",
+       "0.0070 / 0.0074",
+       "&minus;8.03% / &minus;6.43%"
+      ],
+      [
+       "the show-time big model (SM91s2) with its own head (SM117)",
+       "0.0385 / 0.0412",
+       "0.0059 / 0.0064",
+       "0.0043 / 0.0058",
+       "0.0099 / 0.0115",
+       "&minus;7.60% / &minus;6.04%"
+      ]
+     ]
+    },
+    "notes": [
+     "Rolling Platt scaling (two numbers per threshold and set, refitted every 7 days): Good or Easy and recalled reliable at every threshold from 2 to 10 s on the whole collection for all eleven combinations; on the subset of decks the Mac used, 64 of 77 combination and threshold cells, missing mostly 6 and 8 s with a calibration error of 0.0103 to 0.011.",
+     "Rolling isotonic regression: Good or Easy reliable in 77 of 77 cells on the whole collection and 76 of 77 on the subset; Easy never, because its steps put near-zero probabilities on rare Easy answers (LogLoss 2% to 9% worse than uncalibrated).",
+     "Rolling shared shift and scale of the predicted answer-time distribution plus a grade temperature (consistent across thresholds by construction): reliable at 4 s for 9 of 11 combinations on the whole collection and 7 of 11 on the subset; it lowers the calibration error less than Platt scaling.",
+     "A single fit on the 34,727 reviews before the benchmark period (2024-01 to 2024-11) mostly fails: Platt scaling fitted once is reliable at 4 s for only 3 of 11 combinations, isotonic regression fitted once for none.",
+     "Easy is rare (0.1% to 1% of reviews), so its calibration error is always tiny; where Easy fails, a baseline is as good, not calibration.",
+     "Sensitivity: when the strongest baseline is also recalibrated by rolling Platt scaling, the recalibrated head still leads by 8.29% for the longer Small Instant-Only model (SM113), so the lead is not only calibration.",
+     "Platt scaling and isotonic regression need a small repair to stay non-decreasing in the threshold and nested across sets (about 4% and 14% of values per rolling refit); the shared shift and scale needs none.",
+     "CPU time: 20 min for the full run of eleven combinations (7 min for the four main ones), under 5 GB, 4 threads, below-normal priority; nothing rerun on the models."
+    ]
+   }
+  },
   {
    "date": "11-17",
    "kind": "cpu",
