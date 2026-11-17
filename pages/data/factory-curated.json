@@ -2383,9 +2383,11 @@
         "Fast Good/Easy prediction (SM120): "
      ],
      "what": "Fast Good/Easy prediction (SM120): scoring only, no training. The answer-time heads already trained by the time heads for the family (SM117) and the time heads for the new candidates (SM119), scored again on the 732 set for new questions: how well the models predict that an answer is Good or Easy, or just Easy (from the grade probabilities alone), and that it is Good or Easy, or Easy, and answered within S seconds, at S = 2, 3, 4, 5, 6, 8, 10, 15, 20, 30 s (for example a Good or Easy within 4 s, without the slower Hard answers); how well they predict how fast a Good or an Easy answer is (P(within S s) and the predicted median time given that grade); and the grade-weighted answer time (the time distribution of each grade mixed by the grade probabilities, all grades and Good or Easy only). Answer time = front and back together, from the question shown to the grade pressed, capped at the maximum answer seconds; within S seconds always includes reading the back. Models: the six family models of the time heads for the family (SM117), then the longer Small Instant-Only model (SM113), the longer cool-down for Tiny (SM115), and the show-time two-head cool-down for Small (SM118) if the time heads for the new candidates (SM119) trains its head. CPU check passed: the recalled event reproduces the numbers of the time heads for the family (SM117) on 3 users.",
-     "when": "Launched 18:25 Mon 11-16, waits for the launcher of the time heads for the new candidates (SM119) to end (roughly 06:00 to 08:00 Tue 11-17, later if the show-time two-head cool-down for Small (SM118) ends late); then about 15 to 25 min per model, about 2 to 2.5 GPU h; respects the 20:00-01:00 break",
+     "when": "Done 10:34 Tue 11-17: scored nine models; Good or Easy within 4 s is reliable only for the Small Instant-Only model (SM98), see results",
      "decides": "For which values of S each prediction is reliable (fixed in advance, as in the time heads for the family (SM117): calibration error below 0.01 and LogLoss below the user&rsquo;s running rate and below the model&rsquo;s grade probabilities times the user&rsquo;s running time share, CI below 0), in particular Good or Easy within 4 s; whether the grade-weighted time beats the user&rsquo;s running time distribution; input for a scheduler aiming at a fast Good",
-     "state": "planned"
+     "state": "done",
+     "started_at": "2026-11-17T07:00+01:00",
+     "ended_at": "2026-11-17T10:34+01:00"
   },
   {
    "id": "SM121",
@@ -2996,6 +2998,51 @@
   "s-w64kd-gate-ctx2048c-dec8-1ep/w8+s8"
  ],
  "results": [
+  {
+   "date": "11-17",
+   "kind": "gpu-eval",
+   "id": "SM120",
+   "track": "small model",
+   "name": "Fast Good/Easy prediction (SM120): how well nine models predict that an answer is Good or Easy, or Easy, and that it comes within S seconds, reading the back included",
+   "eval": "The 732 set (723 users, show-time inputs, leak-free, the time-labelled test reviews of the time heads for the family (SM117)); scoring only, no training. Reliable = calibration error (20 equal-mass bins) below 0.01 and LogLoss below every baseline with the 95% CI (2,000 user bootstraps, seed 0) below 0. Answer time = front and back together, from the question shown to the grade pressed, capped at the preset&rsquo;s maximum answer seconds; within S s always includes reading the back.",
+   "fork": "Not used: scoring only, nothing is released (user 11-14: no new release soon)",
+   "takeaway": "<strong>Good or Easy within 4 s beats both baselines by about 20% (model&rsquo;s own grades times running time share) and 29% (running rate) for all nine models, but only the Small Instant-Only model (SM98) is calibrated enough to be reliable there.</strong> Answered within 4 s, reading the back included: the show-time instant-only big model (SM99) leads with 0.3427 LogLoss (&minus;21.1% / &minus;29.5%), the Tiny two-head model (SM106) trails with 0.3469 (&minus;20.2% / &minus;28.6%); calibration error at 4 s is 0.0097 for the Small Instant-Only model (SM98) and 0.0105 to 0.0144 for the other eight, against the 0.01 bar. At 5 s seven models are reliable, Easy within S s is reliable from 2 s for all nine, and the grade-only events are reliable for all.",
+   "inputs": "show-time",
+   "started_at": "2026-11-17T07:00+01:00",
+   "ended_at": "2026-11-17T10:34+01:00",
+   "gpu_minutes": 150,
+   "tickets": 9,
+   "detail": {
+    "verdict": "Done; branch sm120 c009a738 (sm120-result.md, sm120-result.json, per-user rows, logs)",
+    "table": {
+     "head": ["Good or Easy within 4 s (answered within 4 s, reading the back included)", "LogLoss (model)", "Lead over the model&rsquo;s grades times the running time share", "Lead over the user&rsquo;s running rate", "Calibration error (bar 0.01)"],
+     "rows": [
+      ["the show-time instant-only big model (SM99)", "0.3427", "&minus;21.1%", "&minus;29.5%", "0.0108"],
+      ["the show-time big model (SM91s2)", "0.3435", "&minus;20.9%", "&minus;29.3%", "0.0116"],
+      ["the Small Instant-Only model (SM98)", "0.3440", "&minus;20.8%", "&minus;29.2%", "0.0097"],
+      ["the longer Small Instant-Only model (SM113)", "0.3439", "&minus;20.8%", "&minus;29.2%", "0.0105"],
+      ["the Tiny Instant-Only model (SM101)", "0.3448", "&minus;20.6%", "&minus;29.0%", "0.0113"],
+      ["the longer cool-down for Tiny (SM115)", "0.3447", "&minus;20.6%", "&minus;29.0%", "0.0111"],
+      ["the show-time two-head cool-down for Small (SM118)", "0.3457", "&minus;20.4%", "&minus;28.8%", "0.0128"],
+      ["the show-time retrain (SM92)", "0.3464", "&minus;20.2%", "&minus;28.7%", "0.0144"],
+      ["the Tiny two-head model (SM106)", "0.3469", "&minus;20.2%", "&minus;28.6%", "0.0134"]
+     ]
+    },
+    "notes": [
+     "Times: started 07:00 Tue 11-17 (when the launcher of the time heads for the new candidates (SM119) ended 06:55), nine models scored one after another, about 17 to 22 min each, the report at 10:34. 723 of 723 users for seven models, 719 of 723 for the show-time instant-only big model (SM99) and the show-time big model (SM91s2).",
+     "Answer time = front and back together, from the question shown to the grade pressed, capped at the preset&rsquo;s maximum answer seconds; every within S s means answered within S s, reading the back included.",
+     "Grades only (no time) are reliable for every model: P(Good or Easy), P(Easy) and P(recalled) all beat the user&rsquo;s running rate with the CI below 0, calibration error 0.0002 to 0.0019 (bar 0.01). For example P(Good or Easy) LogLoss 0.3657 for the Small Instant-Only model (SM98) against 0.5455 for the running rate (&minus;33.0%).",
+     "Smallest S where the models are reliable: recalled within S s 5 s for five models (the Small Instant-Only model (SM98), the Tiny Instant-Only model (SM101), the show-time instant-only big model (SM99), the show-time big model (SM91s2), the longer Small Instant-Only model (SM113)), 6 s for three (the Tiny two-head model (SM106), the longer cool-down for Tiny (SM115), the show-time two-head cool-down for Small (SM118)), 8 s for the show-time retrain (SM92).",
+     "Good or Easy within S s: 5 s for seven models, 4 s only for the Small Instant-Only model (SM98), 6 s for the show-time retrain (SM92). Easy within S s: reliable from 2 s, the smallest S tested, for all nine models.",
+     "Good or Easy within 4 s: all nine models beat both baselines with the CI below 0 (LogLoss lead over the model&rsquo;s own grade probabilities times the user&rsquo;s running time share, &minus;20.2% to &minus;21.1%; over the user&rsquo;s running rate, &minus;28.6% to &minus;29.5%), so the miss is calibration. Best lead: the show-time instant-only big model (SM99), 0.3427 LogLoss, &minus;21.1% and &minus;29.5%, but calibration error 0.0108. Weakest: the Tiny two-head model (SM106), 0.3469, &minus;20.2% and &minus;28.6%, calibration error 0.0134.",
+     "Calibration error at 4 s against the 0.01 bar (reliable only if below): the show-time retrain (SM92) 0.0144, the Tiny two-head model (SM106) 0.0134, the show-time two-head cool-down for Small (SM118) 0.0128, the show-time big model (SM91s2) 0.0116, the Tiny Instant-Only model (SM101) 0.0113, the longer cool-down for Tiny (SM115) 0.0111, the show-time instant-only big model (SM99) 0.0108, the longer Small Instant-Only model (SM113) 0.0105, the Small Instant-Only model (SM98) 0.0097 (passes). The Small Instant-Only model (SM98) passes by only 0.0003; the baselines&rsquo; own calibration error is 0.0268.",
+     "Easy within 4 s is reliable for all nine models: the event is rare (rate 0.032), LogLoss 0.060 against 0.069 for the model&rsquo;s own grade probabilities times the running time share (about &minus;13%) and 0.105 for the running rate (about &minus;43%), calibration error 0.0007 to 0.0016.",
+     "Predicted median time given the grade against the user&rsquo;s running median (mean absolute ln error, uncensored rows): about 27% to 29% lower for Hard, Good and Easy answers for every model; the grade-weighted mixture beats both baselines for all nine models (median error about 29% to 31% below the running distribution).",
+     "Odd: the show-time instant-only big model (SM99) and the show-time big model (SM91s2) scored 719 of 723 users, so their rows (28,995,499 instead of 30,093,623) are not exactly the same rows as the other seven. Speed of a Good answer is reliable only from 5 to 8 s and speed of an Easy answer from 3 to 8 s, much later than the combined events.",
+     "Scoring only, no training; grades unchanged. Branch sm120 c009a738 (sm120-result.md, sm120-result.json, per-user rows and logs); nothing released."
+    ]
+   }
+  },
   {
    "date": "11-17",
    "kind": "cpu",
