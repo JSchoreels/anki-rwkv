@@ -103,7 +103,8 @@ def spec(key, inputs, explicit_names, edges, cap_ms):
     stem = Path(TARGETS[key][4]).name
     return {
         "format": "anki-rwkv answer-time head", "format_version": FORMAT_VERSION,
-        "model": f"{name}: the head reads its frozen trunk (time heads for the family (SM117) recipe); queries use "
+        "model": f"{name}: the head reads its frozen trunk (time heads for the family (SM117) recipe"
+                 f"{', head trained in the SM119 run' if key in ('sm113', 'sm115') else ''}); queries use "
                  "show-time intervals (the package's INTEGRATION.md section 6.10)",
         "answer_time": "the answer time is the whole time on the card, front and back together: from the moment the "
                        "question is shown to the moment a grade button is pressed, capped at the preset's maximum "
