@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-17T07:17:47+01:00",
- "updated": "2026-11-17 07:17",
- "material": "b47598fcb188e389",
- "summary": "running 001293, finished 001292",
+ "generated_at": "2026-11-17T07:34:25+01:00",
+ "updated": "2026-11-17 07:34",
+ "material": "625d71ac164d5f81",
+ "summary": "running 001294, finished 001293",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring, show-time inputs for both heads (curve / instant)",
@@ -264,18 +264,18 @@
  "now": [
   {
    "what": "Fast Good/Easy prediction (SM120): scoring only, no training. The answer-time heads already trained by the time heads for the family (SM117) and the time heads for the new candidates (SM119), scored again on the 732 set for new questions: how well the models predict that an answer is Good or Easy, or just Easy (from the grade probabilities alone), and that it is Good or Easy, or Easy, and answered within S seconds, at S = 2, 3, 4, 5, 6, 8, 10, 15, 20, 30 s (for example a Good or Easy within 4 s, without the slower Hard answers); how well they predict how fast a Good or an Easy answer is (P(within S s) and the predicted median time given that grade); and the grade-weighted answer time (the time distribution of each grade mixed by the grade probabilities, all grades and Good or Easy only). Answer time = front and back together, from the question shown to the grade pressed, capped at the maximum answer seconds; within S seconds always includes reading the back. Models: the six family models of the time heads for the family (SM117), then the longer Small Instant-Only model (SM113), the longer cool-down for Tiny (SM115), and the show-time two-head cool-down for Small (SM118) if the time heads for the new candidates (SM119) trains its head. CPU check passed: the recalled event reproduces the numbers of the time heads for the family (SM117) on 3 users.",
-   "id": "SM120, ticket 001293",
+   "id": "SM120, ticket 001294",
    "kind": "gpu-eval",
    "decides": "For which values of S each prediction is reliable (fixed in advance, as in the time heads for the family (SM117): calibration error below 0.01 and LogLoss below the user&rsquo;s running rate and below the model&rsquo;s grade probabilities times the user&rsquo;s running time share, CI below 0), in particular Good or Easy within 4 s; whether the grade-weighted time beats the user&rsquo;s running time distribution; input for a scheduler aiming at a fast Good",
    "why": "",
-   "job": "Fast Good/Easy prediction (SM120): scoring the Small Instant-Only model (SM98): P(Good or Easy), P(Easy), P(set and answered within S s) on the 732 set (723 users, pass 1, cap 0.8)",
+   "job": "Fast Good/Easy prediction (SM120): scoring the Tiny Instant-Only model (SM101): P(Good or Easy), P(Easy), P(set and answered within S s) on the 732 set (723 users, pass 1, cap 0.8)",
    "linked": true,
    "track": "small model",
-   "ticket": "001293-small-model",
-   "started": "07:17",
+   "ticket": "001294-small-model",
+   "started": "07:34",
    "elapsed": "0:00",
    "progress": null,
-   "eta": "~07:47"
+   "eta": "~08:04"
   }
  ],
  "charts": [
@@ -448,6 +448,15 @@
  "waiting": [],
  "recent": [
   {
+   "ticket": "001293-small-model",
+   "id": "SM120",
+   "what": "Fast Good/Easy prediction (SM120): scoring the Small Instant-Only model (SM98): P(Good or Easy), P(Easy), P(set and answered within S s) on the 732 set (723 users, pass 1, cap 0.8)",
+   "ended": "07:34",
+   "date": "11-17",
+   "exit": 0,
+   "ran": "0:16"
+  },
+  {
    "ticket": "001292-small-model",
    "id": "SM106",
    "what": "Fast Good/Easy prediction (SM120): scoring the Tiny two-head model (SM106): P(Good or Easy), P(Easy), P(set and answered within S s) on the 732 set (723 users, pass 1, cap 0.8)",
@@ -491,15 +500,6 @@
    "date": "11-17",
    "exit": 0,
    "ran": "0:00"
-  },
-  {
-   "ticket": "001287-small-model",
-   "id": "SM118",
-   "what": "time heads for the family (SM119): the show-time two-head cool-down for Small (SM118): head training (1,991 users, first 400k reviews each, show-time inputs, same-day reviews included, head + explicit-only ablation)",
-   "ended": "06:11",
-   "date": "11-17",
-   "exit": 0,
-   "ran": "0:43"
   }
  ],
  "plan": [
@@ -2518,8 +2518,8 @@
    "when": "Launched 18:25 Mon 11-16, waits for the launcher of the time heads for the new candidates (SM119) to end (roughly 06:00 to 08:00 Tue 11-17, later if the show-time two-head cool-down for Small (SM118) ends late); then about 15 to 25 min per model, about 2 to 2.5 GPU h; respects the 20:00-01:00 break",
    "decides": "For which values of S each prediction is reliable (fixed in advance, as in the time heads for the family (SM117): calibration error below 0.01 and LogLoss below the user&rsquo;s running rate and below the model&rsquo;s grade probabilities times the user&rsquo;s running time share, CI below 0), in particular Good or Easy within 4 s; whether the grade-weighted time beats the user&rsquo;s running time distribution; input for a scheduler aiming at a fast Good",
    "state": "running",
-   "started": "07:17",
-   "ticket": "001293-small-model",
+   "started": "07:34",
+   "ticket": "001294-small-model",
    "started_at": "2026-11-17T07:00:41+01:00",
    "ends_at": "2026-11-17T09:30:41+01:00"
   },
