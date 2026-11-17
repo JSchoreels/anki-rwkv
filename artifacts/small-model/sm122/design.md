@@ -71,4 +71,4 @@ The three model runs take more than 30 min each, so they are launched detached (
 
 ## Amendments (after the CPU check only)
 
-(none yet)
+- 11-17 09:00, after the CPU check of the show-time retrain (SM92) only: K3 compared outputs up to the first target's update row, which includes that target's own query row; its show-time interval columns are meant to change (K2: show time = interval - duration) and it feeds no later row (max difference 2.4e-5 there). K3 now compares the rows before that query row. Nothing else changed; every other proof passed (K4: exact -1.15% of R against batched -1.12%, Pearson 0.9994, 48 targets; projected 5.7 h for the Small model alone).

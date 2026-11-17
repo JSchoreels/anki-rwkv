@@ -495,7 +495,7 @@ def check(args):
         # K3: before the first target's update row every output equals base; feature-8-only edit = raw-duration edit
         o_b = eng.forward(b)
         o_2 = eng.forward(b2)
-        first = int(upd_rows.min())
+        first = int(upd_rows.min()) - 1   # the first target's own query row (its show-time interval moves) is excluded
         K["K3_outputs_before_first_target_maxabs"] = float(max((x[0][:first] - y[0][:first]).abs().max() for x, y in zip(o_b, o_2) if x.dim() == 3))
         rd, _ = eng.readout(b2, rmap, ins, P)
         b3 = make_batch(data, u, raw)
