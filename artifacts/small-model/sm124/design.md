@@ -59,7 +59,7 @@ Per head h (curve, instant), x_h = the new model minus the Tiny two-head model (
 - Against it: a smaller model may absorb less of the teacher, the curve head is noisy (CI half-width ~0.09%), and a go mixes the longer cool-down and the new teacher (as for SM113 and SM118).
 - Central guess: curve -0.06% to -0.16%, instant -0.10% to -0.17%; chance of a go ~75%. A go would also widen SM106's margin under the smaller-model bar (it sat at +0.366% curve / +0.076% instant in the show-time unit of its own decision).
 
-## GPU hours and timeline (launch ~11:45 Tue 2026-11-17, queue empty)
+## GPU hours and timeline (launch ~11:10 Tue 2026-11-17, queue empty)
 
 Breaks (`sm124_block.py` = quiet.json + daily 20:00-01:00, Sunday from 16:00): Tue 20:00 -> Wed 01:00, Wed 20:00 -> Thu 01:00.
 
@@ -67,15 +67,15 @@ Speed basis: the Tiny two-head model (SM106)'s one-epoch cool-down ran at 20,941
 
 | step | GPU | ends about (29k / 21k reviews/s) |
 |---|---|---|
-| pre-launch GPU smoke of pass 1 (smoke copy; queue ticket 001303, 2 users x 512 reviews) | 0.01 h | done 11:00 |
-| early-stop reference: SM106's snapshot after 4,000 users scored on show-time (723 users) | 0.2 h | ~12:00 Tue |
-| CPU: targets status + manifest, pass-1 Muon check + pair; smoke of pass 1 | 0.02 h | ~12:05 Tue |
-| **pass 1** (snapshot stop <= 2 min before 20:00 if not finished) | 5.6 / 7.7 h | ~17:45 Tue / snapshot stop 19:58, rest ~01:15 Wed |
-| early stop: pass 1 scored on show-time (723 users), `mid` | 0.2 h | ~18:00 Tue / ~01:30 Wed |
+| pre-launch GPU smoke of pass 1 (smoke copy; queue ticket 001303, 2 users x 512 reviews) | 0.01 h | done before the launch |
+| early-stop reference: SM106's snapshot after 4,000 users scored on show-time (723 users) | 0.2 h | ~11:25 Tue |
+| CPU: targets status + manifest, pass-1 Muon check + pair; smoke of pass 1 | 0.02 h | ~11:30 Tue |
+| **pass 1** (snapshot stop <= 2 min before 20:00 if not finished) | 5.6 / 7.7 h | ~17:10 / ~19:15 Tue |
+| early stop: pass 1 scored on show-time (723 users), `mid` (needs 28 min before 20:00, else after 01:00) | 0.2 h | ~17:25 / ~19:30 Tue |
 | (if stop: done, verdict no go; ~6 / 8 GPU h in all) | | |
-| pass 2 prepare + pair (CPU), smoke | 0.02 h | ~18:10 Tue / ~01:35 Wed |
-| **pass 2** (29k: 1.8 h before the break, the rest after 01:00) | 5.6 / 7.7 h | ~04:50 / ~09:20 Wed |
-| lr check; final scoring: show-time + normal (723 + 3 long users each), the 1,500 pool for the new model, `decide` | 0.8 h | **~05:45 / ~10:15 Wed 2026-11-18** |
+| pass 2 prepare + pair (CPU), smoke | 0.02 h | ~17:30 / ~19:35 Tue |
+| **pass 2** (29k: ~2.4 h before the break, the rest after 01:00; 21k: starts 01:00, a start needs 33 min before a break) | 5.6 / 7.7 h | ~04:15 / ~08:45 Wed |
+| lr check; final scoring: show-time + normal (723 + 3 long users each), the 1,500 pool for the new model, `decide` | 0.8 h | **~05:05 / ~09:40 Wed 2026-11-18** |
 
 **Total: about 12.5 GPU h at 29k reviews/s, 16.5 GPU h at 21k** (about 6 / 8 GPU h if the early stop fires). No export (SM118's targets are reused) and no reference scoring on the 1,500 pool (SM106 already has those rows), so it is ~5 GPU h shorter than SM118. Margin to the Wednesday 20:00 break: ~10 h. Anything that slips into a break pauses and resumes by itself. 10-epoch ETA (8k tier = 581.94M reviews per epoch, 2k tier = 147.6M): at 21k reviews/s 77.0 h (8k) / 19.5 h (2k); at 29k 55.7 h (8k) / 14.1 h (2k).
 
