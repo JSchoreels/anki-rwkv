@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-17T09:07:40+01:00",
- "updated": "2026-11-17 09:07",
- "material": "712c7ebfcf7649c0",
- "summary": "running 001301, finished 001300",
+ "generated_at": "2026-11-17T09:24:48+01:00",
+ "updated": "2026-11-17 09:24",
+ "material": "2f9080a2a978b0e4",
+ "summary": "running 001302, finished 001301",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring, show-time inputs for both heads (curve / instant)",
@@ -263,19 +263,19 @@
  },
  "now": [
   {
-   "what": "The longer cool-down for Tiny (SM115): the recipe of the longer big instant-only teacher (SM113) applied to Tiny: the Tiny Instant-Only model (SM101)&rsquo;s cool-down stretched over two passes of the 8,000 users (one learning-rate decay over twice the reviews), from its constant-LR epoch 38 (the checkpoint its own cool-down started from), with the teacher targets of the show-time instant-only big model (SM99). Early stop after pass 1 unless it beats the Tiny Instant-Only model (SM101)&rsquo;s own snapshot at the same learning rate; go = new &minus; the Tiny Instant-Only model (SM101), show-time instant, CI below 0 and at least 0.05%",
-   "id": "SM115, ticket 001301",
+   "what": "The show-time two-head cool-down for Small (SM118): the longer cool-down that went go for the Small and Tiny Instant-Only models (one learning-rate decay stretched over two passes of the 8,000 users) applied to the Small two-head model, the show-time retrain of the release (SM92), from its constant-LR epoch 26 (the checkpoint its own cool-down started from), both heads trained, with the curve and grade targets of the show-time big model (SM91s2) on show-time inputs for the 8,000 users (exported first, ~4 GPU h). Early stop after pass 1 unless a head beats the show-time retrain of the release (SM92)&rsquo;s own snapshot at about the same learning rate and neither is +0.05% worse; go = new &minus; the show-time retrain of the release (SM92) on show-time inputs: one head better (CI below 0 and at least 0.05%) and neither head worse (+0.05% or more, or CI above 0)",
+   "id": "SM118, ticket 001302",
    "kind": "gpu",
-   "decides": "Whether the longer cool-down that went go for the Small Instant-Only model of the family (&minus;0.094%) also lifts the Tiny Instant-Only model (SM101), whose gap to the big model&rsquo;s instant model is almost three times larger (&minus;0.299%); a go is held for the next release (no new release soon, user 11-14)",
+   "decides": "Whether the longer cool-down with the big two-head teacher lifts the Small two-head model on both heads (the show-time big model (SM91s2) is &minus;0.315% curve / &minus;0.251% instant better than the show-time retrain of the release (SM92)); a go is held for the next family release (no new release soon, user 11-14); the same recipe for the Tiny two-head model (SM106) comes next",
    "why": "",
-   "job": "Fast Good/Easy prediction (SM120): scoring the longer cool-down for Tiny (SM115): P(Good or Easy), P(Easy), P(set and answered within S s) on the 732 set (723 users, pass 1, cap 0.8)",
+   "job": "Fast Good/Easy prediction (SM120): scoring the show-time two-head cool-down for Small (SM118): P(Good or Easy), P(Easy), P(set and answered within S s) on the 732 set (723 users, pass 1, cap 0.8)",
    "linked": true,
    "track": "small model",
-   "ticket": "001301-small-model",
-   "started": "09:07",
+   "ticket": "001302-small-model",
+   "started": "09:24",
    "elapsed": "0:00",
    "progress": null,
-   "eta": "~09:37"
+   "eta": "~09:54"
   }
  ],
  "charts": [
@@ -448,6 +448,15 @@
  "waiting": [],
  "recent": [
   {
+   "ticket": "001301-small-model",
+   "id": "SM115",
+   "what": "Fast Good/Easy prediction (SM120): scoring the longer cool-down for Tiny (SM115): P(Good or Easy), P(Easy), P(set and answered within S s) on the 732 set (723 users, pass 1, cap 0.8)",
+   "ended": "09:24",
+   "date": "11-17",
+   "exit": 0,
+   "ran": "0:17"
+  },
+  {
    "ticket": "001300-small-model",
    "id": "SM120",
    "what": "Fast Good/Easy prediction (SM120): scoring the longer Small Instant-Only model (SM113): P(Good or Easy), P(Easy), P(set and answered within S s) on the 732 set (723 users, pass 1, cap 0.8)",
@@ -491,15 +500,6 @@
    "date": "11-17",
    "exit": 0,
    "ran": "0:01"
-  },
-  {
-   "ticket": "001295-small-model",
-   "id": "SM99",
-   "what": "Fast Good/Easy prediction (SM120): scoring the show-time instant-only big model (SM99): P(Good or Easy), P(Easy), P(set and answered within S s) on the 732 set (723 users, pass 1, cap 0.8)",
-   "ended": "08:09",
-   "date": "11-17",
-   "exit": 0,
-   "ran": "0:18"
   }
  ],
  "plan": [
@@ -2295,12 +2295,9 @@
    "what": "The longer cool-down for Tiny (SM115): the recipe of the longer big instant-only teacher (SM113) applied to Tiny: the Tiny Instant-Only model (SM101)&rsquo;s cool-down stretched over two passes of the 8,000 users (one learning-rate decay over twice the reviews), from its constant-LR epoch 38 (the checkpoint its own cool-down started from), with the teacher targets of the show-time instant-only big model (SM99). Early stop after pass 1 unless it beats the Tiny Instant-Only model (SM101)&rsquo;s own snapshot at the same learning rate; go = new &minus; the Tiny Instant-Only model (SM101), show-time instant, CI below 0 and at least 0.05%",
    "when": "Done 12:47 Sun 11-15: go (&minus;0.099% vs the Tiny Instant-Only model (SM101)); held for the next release",
    "decides": "Whether the longer cool-down that went go for the Small Instant-Only model of the family (&minus;0.094%) also lifts the Tiny Instant-Only model (SM101), whose gap to the big model&rsquo;s instant model is almost three times larger (&minus;0.299%); a go is held for the next release (no new release soon, user 11-14)",
-   "state": "running",
-   "started_at": "2026-11-14T15:06:04+01:00",
-   "ended_at": "2026-11-15T12:47+01:00",
-   "started": "09:07",
-   "ticket": "001301-small-model",
-   "ends_at": "2026-11-15T07:56:04+01:00"
+   "state": "done",
+   "started_at": "2026-11-14T15:06+01:00",
+   "ended_at": "2026-11-15T12:47+01:00"
   },
   {
    "id": "SM111",
@@ -2428,9 +2425,12 @@
    "what": "The show-time two-head cool-down for Small (SM118): the longer cool-down that went go for the Small and Tiny Instant-Only models (one learning-rate decay stretched over two passes of the 8,000 users) applied to the Small two-head model, the show-time retrain of the release (SM92), from its constant-LR epoch 26 (the checkpoint its own cool-down started from), both heads trained, with the curve and grade targets of the show-time big model (SM91s2) on show-time inputs for the 8,000 users (exported first, ~4 GPU h). Early stop after pass 1 unless a head beats the show-time retrain of the release (SM92)&rsquo;s own snapshot at about the same learning rate and neither is +0.05% worse; go = new &minus; the show-time retrain of the release (SM92) on show-time inputs: one head better (CI below 0 and at least 0.05%) and neither head worse (+0.05% or more, or CI above 0)",
    "when": "Done 03:55 Tue 11-17: go (&minus;0.114% curve and &minus;0.100% instant vs the show-time retrain of the release (SM92)); held for the next release decision on 11-28 with the longer big instant-only teacher (SM113) and the longer cool-down for Tiny (SM115)",
    "decides": "Whether the longer cool-down with the big two-head teacher lifts the Small two-head model on both heads (the show-time big model (SM91s2) is &minus;0.315% curve / &minus;0.251% instant better than the show-time retrain of the release (SM92)); a go is held for the next family release (no new release soon, user 11-14); the same recipe for the Tiny two-head model (SM106) comes next",
-   "state": "done",
-   "started_at": "2026-11-16T06:40+01:00",
-   "ended_at": "2026-11-17T03:55+01:00"
+   "state": "running",
+   "started_at": "2026-11-16T06:40:17+01:00",
+   "ended_at": "2026-11-17T03:55+01:00",
+   "started": "09:24",
+   "ticket": "001302-small-model",
+   "ends_at": "2026-11-16T22:50:17+01:00"
   },
   {
    "id": "SM119",
@@ -2521,8 +2521,8 @@
    "when": "Launched 18:25 Mon 11-16, waits for the launcher of the time heads for the new candidates (SM119) to end (roughly 06:00 to 08:00 Tue 11-17, later if the show-time two-head cool-down for Small (SM118) ends late); then about 15 to 25 min per model, about 2 to 2.5 GPU h; respects the 20:00-01:00 break",
    "decides": "For which values of S each prediction is reliable (fixed in advance, as in the time heads for the family (SM117): calibration error below 0.01 and LogLoss below the user&rsquo;s running rate and below the model&rsquo;s grade probabilities times the user&rsquo;s running time share, CI below 0), in particular Good or Easy within 4 s; whether the grade-weighted time beats the user&rsquo;s running time distribution; input for a scheduler aiming at a fast Good",
    "state": "running",
-   "started": "09:07",
-   "ticket": "001301-small-model",
+   "started": "09:24",
+   "ticket": "001302-small-model",
    "started_at": "2026-11-17T07:00:41+01:00",
    "ends_at": "2026-11-17T09:30:41+01:00"
   },
