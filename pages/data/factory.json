@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-18T06:11:51+01:00",
- "updated": "2026-11-18 06:11",
- "material": "9c527a0df3f7bedf",
- "summary": "idle, finished 001329",
+ "generated_at": "2026-11-18T08:38:39+01:00",
+ "updated": "2026-11-18 08:38",
+ "material": "22774c618d037d94",
+ "summary": "idle",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring, show-time inputs for both heads (curve / instant)",
@@ -2407,14 +2407,11 @@
    "kind": "gpu",
    "minutes": 110,
    "what": "Rolling recalibration on the 732 set (SM125): fast Good/Easy prediction (SM120) found the timed events (for example Good or Easy and answered within 4 s, reading the back included) beat both baselines by about 20% and 29% LogLoss but only one model passes the calibration bar (ECE below 0.01). This experiment re-dumps per-review outputs of five release family candidates (the longer Small Instant-Only model (SM113), the longer cool-down for Tiny (SM115), the show-time two-head cool-down for Small (SM118), the Small Instant-Only model (SM98), the Tiny two-head model (SM106)) on the GPU, then recalibrates each user causally on the CPU: Platt scaling refitted every 7 days on the user&rsquo;s latest 30,000 earlier reviews, raw model before 1,000 (what a client could do with its own history). Go per model = every timed event at 2 to 10 s reliable after recalibration (ECE below 0.01 and LogLoss below both baselines, CI below 0 and at least 0.05%), Good or Easy within 4 s better than raw, no cell worse, P(Good or Easy) and P(Easy) still reliable",
-   "when": "Running since 04:49 Wed 11-18 (queued 14:02 Tue, started when the show-time two-head cool-down for Tiny (SM124) ended 04:46): GPU smoke passed, then 5 per-review dumps (about 30 min each) with the CPU recalibration of each model after its dump; result about 08:00 to 09:00 Wed 11-18",
+   "when": "Done 08:33 Wed 11-18: go for all five models (every timed cell of 2 to 10 s reliable after recalibration); started 04:49, 5 dumps to 06:11, CPU recalibration to 07:16",
    "decides": "Whether the Anki client should recalibrate the timed Good/Easy predictions per user from its own history before showing them, for which release models, and whether that keeps their LogLoss lead over the baselines",
    "state": "done",
-   "started_at": "2026-11-18T04:49:08+01:00",
-   "ended": "06:11",
-   "exit": 0,
-   "started": "04:49",
-   "ended_at": "2026-11-18T06:11:25+01:00"
+   "started_at": "2026-11-17T14:02+01:00",
+   "ended_at": "2026-11-18T08:33+01:00"
   },
   {
    "id": "SM124",
@@ -3124,6 +3121,108 @@
   }
  ],
  "results": [
+  {
+   "date": "11-18",
+   "kind": "gpu-score",
+   "id": "SM125",
+   "track": "small model",
+   "name": "Rolling recalibration on the 732 set (SM125): per-user causal Platt recalibration of the timed Good/Easy predictions (answered within S s, reading the back included) for five release family candidates",
+   "eval": "The 732 set (723 users dumped, 722 scored, 30,093,623 reviews, show-time inputs, leak-free), scoring only. Per user and event, Platt scaling refitted every 7 days on the user&rsquo;s latest 30,000 earlier reviews (earlier days only), raw model before 1,000 earlier reviews, then a repair step (non-decreasing in S). Reliable = ECE below 0.01 and LogLoss below both baselines of fast Good/Easy prediction (SM120), 95% CI (2,000 user bootstraps) below 0 and at least 0.05%. Go = all 21 cells of 2 to 10 s reliable after recalibration, Good or Easy within 4 s better than raw, no cell worse than raw, P(Good or Easy) and P(Easy) still reliable.",
+   "fork": "Nothing changed in the fork; a client would recalibrate with its own history, no release decision taken (held for 11-28)",
+   "takeaway": "<strong>Go for all five models.</strong> After recalibration all 21 timed cells of 2 to 10 s are reliable for every model (raw: 14 to 16 of 21), and Good or Easy answered within 4 s, reading the back included, becomes reliable for all five (only the Small Instant-Only model (SM98) was before). Its ECE falls from 0.0097&ndash;0.0134 to 0.0013&ndash;0.0016, LogLoss improves by 0.82% to 0.96% vs raw (CI below 0 everywhere), and the lead over both baselines stays at about 21% and 29.5%. 96.2% of the rows are recalibrated; grade-only P(Good or Easy) and P(Easy) stay reliable raw and are not changed by recalibration.",
+   "inputs": "show-time",
+   "started_at": "2026-11-17T14:02+01:00",
+   "ended_at": "2026-11-18T08:33+01:00",
+   "gpu_minutes": 82,
+   "tickets": 6,
+   "detail": {
+    "verdict": "Go for all five models; branch sm125 88869215 (sm125-result.md, sm125-result.json)",
+    "table": {
+     "head": [
+      "Model",
+      "Go",
+      "Reliable 2-10 s cells, raw to recalibrated",
+      "Good or Easy within 4 s reliable, raw to recalibrated",
+      "ECE of Good or Easy within 4 s",
+      "LogLoss of Good or Easy within 4 s",
+      "Recalibrated vs raw",
+      "Recalibrated vs baseline (a)",
+      "Recalibrated vs baseline (b)",
+      "Rows recalibrated"
+     ],
+     "rows": [
+      [
+       "the longer Small Instant-Only model (SM113)",
+       "go",
+       "15 of 21 to 21 of 21",
+       "no to yes",
+       "0.0105 to 0.0016",
+       "0.3439 to 0.3410",
+       "&minus;0.85%",
+       "&minus;21.43%",
+       "&minus;29.81%",
+       "96.2%"
+      ],
+      [
+       "the longer cool-down for Tiny (SM115)",
+       "go",
+       "14 of 21 to 21 of 21",
+       "no to yes",
+       "0.0111 to 0.0016",
+       "0.3447 to 0.3419",
+       "&minus;0.84%",
+       "&minus;21.27%",
+       "&minus;29.63%",
+       "96.2%"
+      ],
+      [
+       "the show-time two-head cool-down for Small (SM118)",
+       "go",
+       "14 of 21 to 21 of 21",
+       "no to yes",
+       "0.0128 to 0.0014",
+       "0.3457 to 0.3426",
+       "&minus;0.92%",
+       "&minus;21.11%",
+       "&minus;29.48%",
+       "96.2%"
+      ],
+      [
+       "the Small Instant-Only model (SM98)",
+       "go",
+       "16 of 21 to 21 of 21",
+       "yes to yes",
+       "0.0097 to 0.0013",
+       "0.3440 to 0.3412",
+       "&minus;0.82%",
+       "&minus;21.40%",
+       "&minus;29.77%",
+       "96.2%"
+      ],
+      [
+       "the Tiny two-head model (SM106)",
+       "go",
+       "14 of 21 to 21 of 21",
+       "no to yes",
+       "0.0134 to 0.0016",
+       "0.3469 to 0.3436",
+       "&minus;0.96%",
+       "&minus;20.92%",
+       "&minus;29.27%",
+       "96.2%"
+      ]
+     ]
+    },
+    "notes": [
+     "Answer time = front and back together, from the question shown to the grade pressed, capped at the preset&rsquo;s maximum answer seconds; every &lsquo;within S s&rsquo; means answered within S s, reading the back included.",
+     "Wall time: queued 14:02 Tue 11-17, started 04:49 Wed 11-18 (GPU smoke, matched the recorded sums of fast Good/Easy prediction (SM120)), 5 per-review dumps 04:49 to 06:11 (about 82 GPU minutes including the smoke), CPU recalibration until 07:16 (each model about 65 to 75 CPU minutes, 1 thread), report 08:33.",
+     "All five dumps reproduce the recorded sums of fast Good/Easy prediction (SM120) (all yes), 723 of 723 users dumped, 722 scored; 49,203 refits and 185,862 identity fits (reviews before 1,000 earlier reviews) per model; the repair step changed 18.6% to 18.9% of the values.",
+     "Where each timed event becomes reliable: Good or Easy within S s from 5 s upward raw (4 s upward for the Small Instant-Only model (SM98)) to every S from 2 s to 30 s recalibrated; recalled within S s from 5 or 6 s to every S; Easy within S s was already reliable at every S.",
+     "Grade only: P(Good or Easy) and P(Easy) are reliable raw (ECE 0.0002 to 0.0019, LogLoss 32.7% to 33.0% and 49.5% to 49.9% below baseline (b)) and are shipped unchanged; recalibrating them too changes LogLoss by 0.01% to 0.04% only.",
+     "Nothing is released and the fork is untouched; whether the client recalibrates is for the next release decision."
+    ]
+   }
+  },
   {
    "date": "11-18",
    "kind": "gpu-train",
