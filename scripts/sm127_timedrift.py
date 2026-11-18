@@ -171,6 +171,8 @@ def run(args):
            "decomp": dec, "identity_max_rel": ident, "lane_reviews": int(eng.lane_reviews),
            "warmup_seconds": round(tw, 1), "wall_seconds": round(wall, 1),
            "finished": f"{dt.datetime.now():%Y-%m-%d %H:%M:%S}"}
+    # numpy scalars (e.g. an int64 count) -> plain JSON numbers
+    res = json.loads(json.dumps(res, default=lambda o: o.item() if hasattr(o, "item") else str(o)))
     F.atomic_json(out, res)
     print(f"[sm127-td] {tag}: {eng.lane_reviews} lane reviews in {wall:.0f} s; identity {ident}", flush=True)
     return 0
