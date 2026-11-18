@@ -51,10 +51,11 @@ def main():
     # SM77 additions (zero-init biases and initial state, names sm77_*) are not matrices: AdamW, Muon set unchanged
     extra = sum(p.numel() for n, p in master.named_parameters() if n.split(".")[-1].startswith("sm77_"))
     expected = [309888, 21623 + extra]
-    from expertium.variants import SM73_PRESETS
-    if options.get("architecture") in SM73_PRESETS:
+    from expertium.variants import SM73_PRESETS, TINY_CUT
+    if options.get("architecture") in SM73_PRESETS or TINY_CUT.match(str(options.get("architecture"))):
         # smaller model (SM73) stage 2: w64 minus the removed card layer; each removed tensor leaves the group (Muon or
-        # AdamW) the same trainer puts it in for w64
+        # AdamW) the same trainer puts it in for w64 (six-layer Tiny (SM130): w64 minus the card, deck, preset and user
+        # layers it drops, the same derivation)
         w64 = VariantSrsRWKV(variant("w64")).float()
         split = catch_up.optimizer(w64)
         kept = {n for n, _ in master.named_parameters()}
