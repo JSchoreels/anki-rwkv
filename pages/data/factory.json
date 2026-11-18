@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-18T09:28:23+01:00",
+ "generated_at": "2026-11-18T09:28:57+01:00",
  "updated": "2026-11-18 09:28",
- "material": "97c28532a73ba4fe",
- "summary": "running 001332, finished 001331",
+ "material": "7fe8373d8a789ea9",
+ "summary": "running 001333, finished 001332",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring, show-time inputs for both heads (curve / instant)",
@@ -413,18 +413,18 @@
  "now": [
   {
    "what": "Time head for the show-time two-head cool-down for Tiny (SM126): the show-time two-head cool-down for Tiny (SM124) got a go at 04:46 Wed 11-18, but answer-time heads are tied to their trunk, so it needs its own. This run first trains the answer-time head of the time heads for the new candidates (SM119) on the frozen model (about 43 min), checks that the model's grades stay bitwise unchanged, and scores P(recall within S seconds) (recalled and answered within S s, reading the back included) on the 732 set against both baselines. Then it runs the rolling recalibration on the 732 set (SM125) on this model with its new head: per-review outputs on the GPU, a per-user causal Platt scaling refitted every 7 days on the latest 30,000 earlier reviews on the CPU (about 1.2 h), and the same pre-registered go rule (every timed event at 2 to 10 s reliable, Good or Easy within 4 s better than raw, no cell worse, P(Good or Easy) and P(Easy) reliable)",
-   "id": "SM126, ticket 001332",
+   "id": "SM126, ticket 001333",
    "kind": "gpu",
    "decides": "Whether the show-time two-head cool-down for Tiny (SM124) can ship an answer-time estimate like the other family models, and whether per-user recalibration of its timed Good/Easy predictions makes them reliable",
    "why": "",
-   "job": "time head for the show-time two-head cool-down for Tiny (SM126): the show-time two-head cool-down for Tiny (SM124): grade check (the release vs the trunk after head training, 5 users, show-time scorer rows and dumps bitwise)",
+   "job": "time head for the show-time two-head cool-down for Tiny (SM126): scoring the show-time two-head cool-down for Tiny (SM124): answer time and P(recall within S seconds) on the 732 set (723 users, pass 1, cap 0.8)",
    "linked": true,
    "track": "small model",
-   "ticket": "001332-small-model",
-   "started": "09:27",
+   "ticket": "001333-small-model",
+   "started": "09:28",
    "elapsed": "0:00",
    "progress": null,
-   "eta": "~09:37"
+   "eta": "~09:58"
   }
  ],
  "charts": [
@@ -597,6 +597,15 @@
  "waiting": [],
  "recent": [
   {
+   "ticket": "001332-small-model",
+   "id": "SM126",
+   "what": "time head for the show-time two-head cool-down for Tiny (SM126): the show-time two-head cool-down for Tiny (SM124): grade check (the release vs the trunk after head training, 5 users, show-time scorer rows and dumps bitwise)",
+   "ended": "09:28",
+   "date": "11-18",
+   "exit": 0,
+   "ran": "0:00"
+  },
+  {
    "ticket": "001331-small-model",
    "id": "SM126",
    "what": "time head for the show-time two-head cool-down for Tiny (SM126): the show-time two-head cool-down for Tiny (SM124): head training (1,991 users, first 400k reviews each, show-time inputs, same-day reviews included, head + explicit-only ablation)",
@@ -640,15 +649,6 @@
    "date": "11-18",
    "exit": 0,
    "ran": "0:16"
-  },
-  {
-   "ticket": "001326-small-model",
-   "id": "SM125",
-   "what": "Rolling recalibration on the 732 set (SM125): per-review dump of the longer cool-down for Tiny (SM115) on the 732 set (723 users, pass 1, cap 0.8)",
-   "ended": "05:17",
-   "date": "11-18",
-   "exit": 0,
-   "ran": "0:14"
   }
  ],
  "plan": [
@@ -2589,8 +2589,8 @@
    "decides": "Whether the show-time two-head cool-down for Tiny (SM124) can ship an answer-time estimate like the other family models, and whether per-user recalibration of its timed Good/Easy predictions makes them reliable",
    "state": "running",
    "started_at": "2026-11-18T08:44:07+01:00",
-   "started": "09:27",
-   "ticket": "001332-small-model",
+   "started": "09:28",
+   "ticket": "001333-small-model",
    "ends_at": "2026-11-18T10:24:07+01:00"
   },
   {
@@ -2605,8 +2605,8 @@
    "state": "running",
    "started_at": "2026-11-17T11:05:48+01:00",
    "ended_at": "2026-11-18T04:46+01:00",
-   "started": "09:27",
-   "ticket": "001332-small-model",
+   "started": "09:28",
+   "ticket": "001333-small-model",
    "ends_at": "2026-11-18T02:05:48+01:00"
   },
   {
