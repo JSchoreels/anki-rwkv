@@ -165,6 +165,12 @@
     <div class="table-wrap free tablewrap-sm"><table class="sm-table fam" id="family"></table></div>
     <div class="cardlist" id="family-cards"></div>
     <p class="hint" id="family-note"></p>
+    <div id="gen-wrap" hidden>
+      <h3 id="gen-title"></h3><p class="hint" id="gen-eval"></p>
+      <div class="table-wrap free tablewrap-sm"><table class="sm-table fam" id="family-gen"></table></div>
+      <div class="cardlist" id="gen-cards"></div>
+      <p class="hint" id="gen-note"></p>
+    </div>
   </section>
 
   <section class="panel" id="sec-now">
@@ -455,6 +461,55 @@
     const uses = [...new Map(F.rows.map((r) => [r.variant, r.use])).entries()];
     $('family-note').innerHTML = uses.map(([v, u]) => `<b>${v}</b>: ${u}.`).join(' ')
       + ' Curve and instant are show-time LogLoss. ' + (F.note || '');
+    drawGen(F.gen);
+  }
+
+  // Previous family generation -> current candidates: one row per size x variant, paired change with CI.
+  function drawGen(G) {
+    if (!G || !G.rows) return;
+    $('gen-wrap').hidden = false;
+    const f2 = (x) => `${x > 0 ? '+' : x < 0 ? '&minus;' : ''}${Math.abs(x).toFixed(3)}`;
+    const nm = (m) => `${m.name} <span class="id">(${m.id})</span>`;
+    const llv = (m, head) => (m && !none(m[head]) ? m[head].toFixed(5) : null);
+    // change cell: % with CI, green when CI below 0 and at least 0.05% better, grey otherwise
+    const dc = (d, bw) => {
+      if (!d) return '<span class="id">&ndash;</span>';
+      const cls = d[2] < 0 && d[0] <= -0.05 ? 'good' : d[1] > 0 ? 'bad' : 'flat';
+      return `<span class="d ${cls}">${f2(d[0])}%</span><div class="vs"><span class="id">[${f2(d[1])}, ${f2(d[2])}]</span></div>`
+        + (bw ? `<div class="vs"><span class="id">${bw} users</span></div>` : '');
+    };
+    const head = (r, h) => {
+      const io = r.variant === 'Instant-Only' && h === 'curve';
+      if (io) return { p: '<span class="id">not trained</span>', c: '', d: '' };
+      const p = llv(r.prev, h), c = llv(r.cur, h);
+      return { p: p ? `<b>${p}</b>` : '&ndash;', c: r.cur ? (c ? `<b>${c}</b>` : '&ndash;') : '<span class="id">unchanged</span>', d: r.cur ? dc(r['d_' + h], r['bw_' + h]) : '' };
+    };
+    $('gen-title').innerHTML = G.title;
+    $('gen-eval').innerHTML = `Previous = ${G.prev}; current = ${G.cur}. ${G.eval}.`;
+    const sizes = [...new Set(G.rows.map((r) => r.size))], trs = [], cs = [];
+    sizes.forEach((size) => {
+      const rows = G.rows.filter((r) => r.size === size);
+      rows.forEach((r, k) => {
+        const cu = head(r, 'curve'), ins = head(r, 'instant');
+        const cur = r.cur ? `${nm(r.cur)}${r.cur.go ? ` <span class="tag fam-done">go ${r.cur.go}</span>` : ''}` : `<span class="id">${r.why}</span>`;
+        trs.push(`<tr class="${k === 0 ? 'grp' : ''}">` + (k === 0 ? `<td class="size" rowspan="${rows.length}">${size}</td>` : '')
+          + `<td class="v"><b>${r.variant}</b></td><td>${nm(r.prev)}</td><td>${cur}</td>`
+          + `<td class="num sep">${cu.p}</td><td class="num">${cu.c}</td><td class="num">${cu.d}</td>`
+          + `<td class="num sep">${ins.p}</td><td class="num">${ins.c}</td><td class="num">${ins.d}</td>`
+          + `<td class="sep">${r.time_prev}</td><td>${r.time_cur}</td></tr>`);
+        cs.push(`<div class="card"><div class="k"><b>${size} ${r.variant}</b></div>`
+          + `<div class="fld"><b>Previous</b>${nm(r.prev)}</div><div class="fld"><b>Current</b>${cur}</div>`
+          + (r.variant === 'Two-head' ? `<div class="fld"><b>Curve</b>${cu.p} &rarr; ${cu.c} ${cu.d}</div>` : '')
+          + `<div class="fld"><b>Instant</b>${ins.p} &rarr; ${ins.c} ${ins.d}</div>`
+          + `<div class="fld"><b>Answer time</b>${r.time_prev} &rarr; ${r.time_cur}</div></div>`);
+      });
+    });
+    $('family-gen').innerHTML = '<thead><tr><th rowspan="2">Size</th><th rowspan="2">Variant</th><th rowspan="2">Previous (11-13 release)</th><th rowspan="2">Current candidate</th>'
+      + '<th class="grp sep" colspan="3">Curve LogLoss</th><th class="grp sep" colspan="3">Instant LogLoss</th><th class="grp sep" colspan="2">Answer-time head</th></tr>'
+      + '<tr><th class="sep">previous</th><th>current</th><th>change</th><th class="sep">previous</th><th>current</th><th>change</th><th class="sep">previous</th><th>current</th></tr></thead>'
+      + '<tbody>' + trs.join('') + '</tbody>';
+    $('gen-cards').innerHTML = cs.join('');
+    $('gen-note').innerHTML = G.note + '.';
   }
 
   function render(D) {

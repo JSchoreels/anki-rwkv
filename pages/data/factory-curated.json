@@ -11244,6 +11244,155 @@
   }
  ],
  "family": {
+  "gen": {
+   "title": "Previous generation &rarr; current candidates",
+   "prev": "the family release of 11-13 (rwkv-family-2026-11-13)",
+   "cur": "the candidates held for the 11-28 release decision",
+   "eval": "Same 722 users of the 732 set, show-time inputs. Each change is current minus previous, paired per user, with its 95% user-bootstrap CI, in % of the big model (1 leak-free epoch)&rsquo;s LogLoss like the rest of this page (negative = the current model is better). Better / worse = users whose LogLoss went down / up",
+   "rows": [
+    {
+     "size": "Big",
+     "variant": "Two-head",
+     "prev": {
+      "name": "the show-time big model",
+      "id": "SM91s2",
+      "curve": 0.299415,
+      "instant": 0.276183
+     },
+     "cur": null,
+     "why": "No new Big two-head model: it is the teacher of the new cool-downs",
+     "time_prev": "head trained after the release (SM117), in the fork branch",
+     "time_cur": "same head; per-user recalibration not yet tested on Big"
+    },
+    {
+     "size": "Big",
+     "variant": "Instant-Only",
+     "prev": {
+      "name": "the show-time instant-only big model",
+      "id": "SM99",
+      "curve": null,
+      "instant": 0.275894
+     },
+     "cur": null,
+     "why": "No new Big Instant-Only model: its one-pass cool-down (SM110) was a no go (&minus;0.023%, under the 0.05% bar)",
+     "time_prev": "head trained after the release (SM117), in the fork branch",
+     "time_cur": "same head; per-user recalibration not yet tested on Big"
+    },
+    {
+     "size": "Small",
+     "variant": "Two-head",
+     "prev": {
+      "name": "the show-time retrain",
+      "id": "SM92",
+      "curve": 0.300356,
+      "instant": 0.276876
+     },
+     "cur": {
+      "name": "the show-time two-head cool-down for Small",
+      "id": "SM118",
+      "curve": 0.300016,
+      "instant": 0.276599,
+      "go": "11-17"
+     },
+     "d_curve": [
+      -0.114,
+      -0.177,
+      -0.062
+     ],
+     "bw_curve": "518 / 204",
+     "d_instant": [
+      -0.1,
+      -0.11,
+      -0.091
+     ],
+     "bw_instant": "607 / 114",
+     "time_prev": "head trained after the release (SM117)",
+     "time_cur": "own head (SM119); with per-user recalibration (SM125) reliable from 2 s"
+    },
+    {
+     "size": "Small",
+     "variant": "Instant-Only",
+     "prev": {
+      "name": "the Small Instant-Only model",
+      "id": "SM98",
+      "curve": null,
+      "instant": 0.276191
+     },
+     "cur": {
+      "name": "the longer Small Instant-Only model",
+      "id": "SM113",
+      "curve": null,
+      "instant": 0.275933,
+      "go": "11-14"
+     },
+     "d_instant": [
+      -0.094,
+      -0.103,
+      -0.085
+     ],
+     "bw_instant": "628 / 94",
+     "time_prev": "head trained after the release (SM117); with per-user recalibration (SM125) reliable from 2 s",
+     "time_cur": "own head (SM119); with per-user recalibration (SM125) reliable from 2 s"
+    },
+    {
+     "size": "Tiny",
+     "variant": "Two-head",
+     "prev": {
+      "name": "the Tiny two-head model",
+      "id": "SM106",
+      "curve": 0.300676,
+      "instant": 0.277369
+     },
+     "cur": {
+      "name": "the show-time two-head cool-down for Tiny",
+      "id": "SM124",
+      "curve": 0.300369,
+      "instant": 0.277105,
+      "go": "11-18"
+     },
+     "d_curve": [
+      -0.103,
+      -0.142,
+      -0.067
+     ],
+     "bw_curve": "498 / 224",
+     "d_instant": [
+      -0.096,
+      -0.106,
+      -0.087
+     ],
+     "bw_instant": "609 / 111",
+     "time_prev": "head trained after the release (SM117); with per-user recalibration (SM125) reliable from 2 s",
+     "time_cur": "own head training now (SM126), result about 11:45 Wed 11-18"
+    },
+    {
+     "size": "Tiny",
+     "variant": "Instant-Only",
+     "prev": {
+      "name": "the Tiny Instant-Only model",
+      "id": "SM101",
+      "curve": null,
+      "instant": 0.27672
+     },
+     "cur": {
+      "name": "the longer cool-down for Tiny",
+      "id": "SM115",
+      "curve": null,
+      "instant": 0.276446,
+      "go": "11-15"
+     },
+     "d_instant": [
+      -0.099,
+      -0.108,
+      -0.091
+     ],
+     "bw_instant": "621 / 101",
+     "time_prev": "head trained after the release (SM117)",
+     "time_cur": "own head (SM119); with per-user recalibration (SM125) reliable from 2 s"
+    }
+   ],
+   "note": "Every current candidate passed the go rule against the model it replaces (CI below 0 and at least 0.05% better on one head, neither head worse); the 1,500 validation users agree (&minus;0.078% to &minus;0.103%). Sizes are unchanged: each candidate keeps the parameters and memory of the model it replaces. Answer time = front + back, from the question shown to the grade press, capped: &ldquo;within S s&rdquo; means answered within S s, reading the back included. The release (tag, GitHub release, fork build) waits for your OK on 11-28"
+  },
   "ref": {
    "name": "the big model (1 leak-free epoch)",
    "id": "SM72 big",
