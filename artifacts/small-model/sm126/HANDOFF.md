@@ -6,7 +6,8 @@ Design and pre-registered rules: `design.md`. Part A = the recipe of the time he
 
 ## The running launcher
 
-LAUNCH_INFO
+- Launched Wed 11-18 08:44 from `ff2d284b` (branch `sm126`), hidden via WMI: wrapper bash pid 20572, launcher bash pid 20312 (`bash .../launch-sm126.sh`). First ticket 001330 (part A smoke), running at 08:44. Dry run `gpu/launch-sm126-dryrun.log` DRYRUN OK; `bash -n` OK. No other launcher is waited for.
+- Expected end: part A (head training, grade check, scoring, `decide`, `report`) about 09:50; part B GPU (SM120-code scoring, dump smoke, dump) about 10:30; recalibration about 1.2 h CPU after it; `sm126-recal-result.md` and `done` about 11:45 Wed 11-18 (later if a window intervenes; the next break is 20:00).
 
 - Log: `C:/Users/jonat/workspace/wt/sm126/artifacts/small-model/sm126/gpu/launch-sm126.log` (lines `[sm126 MM-DD HH:MM:SS]`); stdout/stderr `gpu/launch-sm126.nohup`; ticket outputs `gpu/{check,train,grade,score}-sm124.out`, `gpu/sm120-score.out`, `gpu/smoke-b.out`, `gpu/dump-sm124.out`, `gpu/recal-sm124.out`.
 - Queue: owner `small-model`, purposes start with `time head for the show-time two-head cool-down for Tiny (SM126): `; GPU cap 0.8 (pass 2 for missing users 0.92). The launcher checks the GPU break itself before every ticket (quiet.json scope all/gpu, daily 20:00-01:00, Sunday from 16:00); the CPU recalibration stops 5 min before a window.
@@ -43,16 +44,16 @@ $si = New-CimInstance -ClassName Win32_ProcessStartup -ClientOnly -Property @{Sh
 {
  "id": "SM126",
  "track": "small model",
- "since": "11-18T08:55",
+ "since": "11-18T08:44",
  "kind": "gpu",
  "minutes": 100,
  "match": [
   "time head for the show-time two-head cool-down for Tiny (SM126): "
  ],
  "what": "Time head for the show-time two-head cool-down for Tiny (SM126): the show-time two-head cool-down for Tiny (SM124) got a go at 04:46 Wed 11-18, but answer-time heads are tied to their trunk, so it needs its own. SM126 first trains the answer-time head of the time heads for the new candidates (SM119) on the frozen model (about 43 min), checks that the model's grades stay bitwise unchanged, and scores P(recall within S seconds) (recalled and answered within S s, reading the back included) on the 732 set against both baselines. Then it runs the rolling recalibration on the 732 set (SM125) on this model with its new head: per-review outputs on the GPU, a per-user causal Platt scaling refitted every 7 days on the latest 30,000 earlier reviews on the CPU (about 1.2 h), and the same pre-registered go rule (every timed event at 2 to 10 s reliable, Good or Easy within 4 s better than raw, no cell worse, P(Good or Easy) and P(Easy) reliable)",
- "when": "Started 08:55 Wed 11-18; part A (head training, grade check, scoring) about 10:00; part B GPU (SM120-code scoring, dump) about 10:40; recalibration about 1.2 h of CPU after it; result about 12:00 Wed 11-18 (later if the 20:00 break intervenes)",
+ "when": "Started 08:44 Wed 11-18; part A (head training, grade check, scoring) about 09:50; part B GPU (SM120-code scoring, dump) about 10:30; recalibration about 1.2 h of CPU after it; result about 11:45 Wed 11-18 (later if the 20:00 break intervenes)",
  "decides": "Whether the show-time two-head cool-down for Tiny (SM124) can ship an answer-time estimate like the other family models, and whether per-user recalibration of its timed Good/Easy predictions makes them reliable",
  "state": "running",
- "started_at": "2026-11-18T08:55+01:00"
+ "started_at": "2026-11-18T08:44+01:00"
 }
 ```
