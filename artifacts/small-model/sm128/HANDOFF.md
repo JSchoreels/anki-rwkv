@@ -6,7 +6,7 @@ Exact recipe of rolling recalibration on the 732 set (SM125) (`../sm125/design.m
 
 ## The running launcher
 
-- Job: `C:/Users/jonat/workspace/wt/sm128/artifacts/small-model/sm128/launch-sm128.sh`, launched hidden via WMI (see relaunch). No waiting on another launcher.
+- Launched 12:15 Wed 11-18 from `51834bc5` (smoke passed 12:15:57, equals SM120 within 3e-7). Job: `C:/Users/jonat/workspace/wt/sm128/artifacts/small-model/sm128/launch-sm128.sh`, launched hidden via WMI (see relaunch). No waiting on another launcher.
 - Steps: GPU smoke (3 users 2388, 1952, 3922, show-time big model (SM91s2), equals SM120's recorded sums within 1e-5; 10 min budget) -> dump of the show-time big model (SM91s2) (45 min budget, about 20 expected; missing users at cap 0.92 like SM120) -> its CPU recalibration in the background -> dump of the show-time instant-only big model (SM99) -> its recalibration after the first one has ended (one at a time, 1 thread, under 6 GB RAM, about 1.2 h each; another CPU job (SM127) runs until about 14:00) -> `sm128-result.md` / `.json`.
 - Queue: owner `small-model`, purposes start with `rolling recalibration for the Big models (SM128): `, cap 0.8. Breaks (quiet.json, daily 20:00-01:00, Sunday from 16:00; CPU quiet too) checked before every ticket and before CPU work; the recalibration stops itself 5 min before a break and resumes after it.
 - Log: `C:/Users/jonat/workspace/wt/sm128/artifacts/small-model/sm128/gpu/launch-sm128.log` (lines `[sm128 MM-DD HH:MM:SS]`); stdout/stderr `gpu/launch-sm128.nohup`; per-step `gpu/smoke.out`, `gpu/dump-<key>.out`, `gpu/recal-<key>.out`.
@@ -38,16 +38,16 @@ $si = New-CimInstance -ClassName Win32_ProcessStartup -ClientOnly -Property @{Sh
 {
  "id": "SM128",
  "track": "small model",
- "since": "11-18T12:25",
+ "since": "11-18T12:15",
  "kind": "gpu",
  "minutes": 50,
  "match": [
   "rolling recalibration for the Big models (SM128): "
  ],
  "what": "Rolling recalibration for the Big models (SM128): the exact recipe of rolling recalibration on the 732 set (SM125), which got a go for all five release family candidates, applied to the show-time big model (SM91s2) and the show-time instant-only big model (SM99) with their time heads for the family (SM117). Per-review outputs on the GPU (fast Good/Easy prediction (SM120) already scored both, so the dump is checked against its sums), then a per-user causal Platt scaling refitted every 7 days on the latest 30,000 earlier reviews on the CPU (about 1.2 h per model, one model at a time), raw model before 1,000. Same pre-registered go rule (every timed event at 2 to 10 s reliable: ECE below 0.01 and LogLoss below both baselines, CI below 0 and at least 0.05%; Good or Easy answered within 4 s, reading the back included, better than raw; no cell worse; P(Good or Easy) and P(Easy) still reliable)",
- "when": "Started about 12:25 Wed 11-18; GPU (smoke + two dumps) about 50 min, then about 1.2 h of CPU per model one after the other; result about 15:45 Wed 11-18 (up to 16:30)",
+ "when": "Started 12:15 Wed 11-18; GPU (smoke + two dumps) about 50 min, then about 1.2 h of CPU per model one after the other; result about 15:45 Wed 11-18 (up to 16:30)",
  "decides": "Whether the Big models can ship timed Good/Easy predictions that are reliable after per-user recalibration from the client's own history, like the five other family models",
  "state": "running",
- "started_at": "2026-11-18T12:25+01:00"
+ "started_at": "2026-11-18T12:15+01:00"
 }
 ```
