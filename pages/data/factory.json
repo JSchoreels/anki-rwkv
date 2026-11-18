@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-18T05:34:21+01:00",
- "updated": "2026-11-18 05:34",
- "material": "7dcff931ea8b1de8",
- "summary": "running 001328, finished 001327",
+ "generated_at": "2026-11-18T05:52:11+01:00",
+ "updated": "2026-11-18 05:52",
+ "material": "a2183da88b5e46ca",
+ "summary": "running 001329, finished 001328",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring, show-time inputs for both heads (curve / instant)",
@@ -264,18 +264,18 @@
  "now": [
   {
    "what": "Rolling recalibration on the 732 set (SM125): fast Good/Easy prediction (SM120) found the timed events (for example Good or Easy and answered within 4 s, reading the back included) beat both baselines by about 20% and 29% LogLoss but only one model passes the calibration bar (ECE below 0.01). This experiment re-dumps per-review outputs of five release family candidates (the longer Small Instant-Only model (SM113), the longer cool-down for Tiny (SM115), the show-time two-head cool-down for Small (SM118), the Small Instant-Only model (SM98), the Tiny two-head model (SM106)) on the GPU, then recalibrates each user causally on the CPU: Platt scaling refitted every 7 days on the user&rsquo;s latest 30,000 earlier reviews, raw model before 1,000 (what a client could do with its own history). Go per model = every timed event at 2 to 10 s reliable after recalibration (ECE below 0.01 and LogLoss below both baselines, CI below 0 and at least 0.05%), Good or Easy within 4 s better than raw, no cell worse, P(Good or Easy) and P(Easy) still reliable",
-   "id": "SM125, ticket 001328",
+   "id": "SM125, ticket 001329",
    "kind": "gpu",
    "decides": "Whether the Anki client should recalibrate the timed Good/Easy predictions per user from its own history before showing them, for which release models, and whether that keeps their LogLoss lead over the baselines",
    "why": "",
-   "job": "Rolling recalibration on the 732 set (SM125): per-review dump of the Small Instant-Only model (SM98) on the 732 set (723 users, pass 1, cap 0.8)",
+   "job": "Rolling recalibration on the 732 set (SM125): per-review dump of the Tiny two-head model (SM106) on the 732 set (723 users, pass 1, cap 0.8)",
    "linked": true,
    "track": "small model",
-   "ticket": "001328-small-model",
-   "started": "05:33",
+   "ticket": "001329-small-model",
+   "started": "05:51",
    "elapsed": "0:00",
    "progress": null,
-   "eta": "~06:03"
+   "eta": "~06:21"
   }
  ],
  "charts": [
@@ -448,6 +448,15 @@
  "waiting": [],
  "recent": [
   {
+   "ticket": "001328-small-model",
+   "id": "SM125",
+   "what": "Rolling recalibration on the 732 set (SM125): per-review dump of the Small Instant-Only model (SM98) on the 732 set (723 users, pass 1, cap 0.8)",
+   "ended": "05:51",
+   "date": "11-18",
+   "exit": 0,
+   "ran": "0:17"
+  },
+  {
    "ticket": "001327-small-model",
    "id": "SM125",
    "what": "Rolling recalibration on the 732 set (SM125): per-review dump of the show-time two-head cool-down for Small (SM118) on the 732 set (723 users, pass 1, cap 0.8)",
@@ -488,15 +497,6 @@
    "id": "SM124",
    "what": "the show-time two-head cool-down for Tiny (SM124): scoring sm124-c1-e29st-dec2ep32k-t91s2 on e2s-query inputs, the 1,500 validation users outside the 732 set + 6 check users (pass 4, 767 done, cap 0.92)",
    "ended": "04:46",
-   "date": "11-18",
-   "exit": 0,
-   "ran": "0:00"
-  },
-  {
-   "ticket": "001322-sm124",
-   "id": "SM124",
-   "what": "the show-time two-head cool-down for Tiny (SM124): scoring sm124-c1-e29st-dec2ep32k-t91s2 on e2s-query inputs, the 1,500 validation users outside the 732 set + 6 check users (pass 3, 766 done, cap 0.92)",
-   "ended": "04:45",
    "date": "11-18",
    "exit": 0,
    "ran": "0:00"
@@ -2427,8 +2427,8 @@
    "decides": "Whether the Anki client should recalibrate the timed Good/Easy predictions per user from its own history before showing them, for which release models, and whether that keeps their LogLoss lead over the baselines",
    "state": "running",
    "started_at": "2026-11-18T04:49:08+01:00",
-   "started": "05:33",
-   "ticket": "001328-small-model",
+   "started": "05:51",
+   "ticket": "001329-small-model",
    "ends_at": "2026-11-18T06:39:08+01:00"
   },
   {
