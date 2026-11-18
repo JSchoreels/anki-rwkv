@@ -62,7 +62,7 @@ All: show-time inputs, leak-free (neighbour), w8 weights, 722 rule users of the 
 | int8 release file (outside review's estimate from the tensor headers) | 409,483 (released SM106) | ~238,585 | ~-42% |
 | state per card / note, fork default | 1,055 / 1,567 B | same | 0 |
 | state per card / note, compact (SM129) | 803 / 1,315 B | same | -24% card, -16% note |
-| CPU review step, PyTorch eager, 1 thread (`sm130_timing.py`, after the chains; a smoke on random-free cut weights gave 1.06 vs 2.03 ms, not a measurement) | | | |
+| CPU review step, PyTorch eager, 1 thread (`sm130_timing.py`, after the chains; a 20-step smoke on the untrained cut gave 1.06 vs 2.03 ms, not a measurement) | | | |
 
 The CPU number is an indication of the layer-count effect only (the fork runs its own Rust engine; a native benchmark needs the fork and is not part of this run, no installs).
 
