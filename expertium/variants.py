@@ -8,6 +8,7 @@ A variant is selected by ONE key, the R01 track option `"architecture"`:
     "architecture": "w80-sequential"            # same without the round-robin layer schedule
     "architecture": "w64"                       # s64h, his shipped d=64 trunk (w80 recipe, 4 heads, mults 2)
     "architecture": "iter36"                    # the default model through the variant class (KD-capable)
+    "architecture": "fork"                      # the fork's 2.76M RWKV (rwkv.architecture), stream-major (SM72)
     "architecture": {"base": "iter36", "zero_features": [22]}   # any preset plus field overrides
 
 Each field below mirrors one upstream environment switch, named in its comment. Upstream sources are pinned
@@ -29,6 +30,18 @@ class VariantConfig:
     interleave: bool = False          # RWKV_INTERLEAVE=1: round-robin layer schedule (front-loaded, iter 41)
     strip_l0_vlora: bool = False      # RWKV_STRIP_L0_VLORA=1: layer 0's dead value-residual LoRA becomes a 1x1 dummy
     strip_cmix: tuple = ()            # RWKV_STRIP_CMIX="<stream>:<layer>,...": channel mixers removed
+    # SM72: run the sequential (stream-major) layer order through the canonical gather/scatter path, so
+    # scripts/state_carry_train.py can carry state for a sequential model (stream-major == sequential exactly,
+    # scripts/check_expertium_catch_up.py). False = today's behaviour.
+    stream_major: bool = False
+    # Tiny architecture additions (SM77, expertium/model/sm77.py), zero-initialised so a warm start is function
+    # preserving; False / () = today's model, bit for bit (no new parameter, module or branch is created).
+    # key_extras: every time mixer gets separate removal / insertion key vectors (as in the RWKV-7 paper) and learnable
+    # r / k biases (as in Mamba-3), 4 x d_model values per layer.
+    key_extras: bool = False
+    # init_state: streams whose layers learn the initial WKV state and token-shift offsets of a never-seen entity
+    # (zero today), e.g. ("card_id", "note_id"); H x K x K + 2 x d_model values per layer.
+    init_state: tuple = ()
     extra: dict = field(default_factory=dict)
 
     def stream_names(self):
@@ -66,6 +79,19 @@ def w64_config():
     return w80_config(heads=4, mult=2)
 
 
+# SM77 presets: both additions (the stage-1 arm), and each one alone (for a split after a positive stage 1)
+SM77_PRESETS = {"w64-sm77": {"key_extras": True, "init_state": ("card_id", "note_id")},
+                "w64-sm77-keys": {"key_extras": True},
+                "w64-sm77-init": {"init_state": ("card_id", "note_id")}}
+
+
+# Smaller model (SM73) stage 2, candidate B (artifacts/small-model/sm73/DESIGN.md): the small model with its card stream cut
+# from 2 layers to 1. The removed layer is the card stream's last one (its channel mixer was already stripped), one
+# residual branch: the other 12 layer steps keep their round-robin order and their weights, so the SM72s weights minus
+# rwkv_modules.0.blocks.1.* load as they are (scripts/sm73s2_check.py: forward == w64 with that layer step skipped).
+SM73_PRESETS = {"w64-c1": {"card_layers": 1}}
+
+
 # rwkv.prepare_batch.prepare builds gathers in this order (rwkv.architecture.DEFAULT_ANKI_RWKV_CONFIG's tuples).
 BATCH_STREAMS = ["card_id", "deck_id", "note_id", "preset_id", "user_id"]
 # iter 53 runner (scratchpad/iter53_muonlora/run_iter53.cmd): RWKV_STRIP_CMIX value, verbatim.
@@ -77,17 +103,43 @@ W64_PARAMETERS = 331_511  # 332,922 upstream at 103 inputs, minus 11 x 128 input
 ITER36_PARAMETERS = 192_800
 
 
+def fork_config():
+    # SM72: the fork's 2,762,884-parameter RWKV (rwkv.architecture.DEFAULT_ANKI_RWKV_CONFIG, the shipped
+    # RWKV_trained_on_5000_10000.pth) in this package's config types; heads 128/128 and multipliers 4 = that class.
+    from dataclasses import asdict
+    from rwkv import architecture as fork
+    keep = {f.name for f in fields(RWKV7Config)}
+    modules = [(name, RWKV7Config(**{k: v for k, v in asdict(c).items() if k in keep}))
+               for name, c in fork.DEFAULT_ANKI_RWKV_CONFIG.modules]
+    return AnkiRWKVConfig(d_model=fork.DEFAULT_ANKI_RWKV_CONFIG.d_model, modules=modules,
+                          dropout=fork.DEFAULT_ANKI_RWKV_CONFIG.dropout, num_curves=128, num_points=128,
+                          head_fc_mult=4, features_fc_mult=4)
+
+
 def preset(name):
     if name == "iter36":
         return VariantConfig(name="iter36", base=DEFAULT_ANKI_RWKV_CONFIG)
+    if name == "fork":
+        return VariantConfig(name="fork", base=fork_config(), stream_major=True)
     if name in ("w80", "w80-sequential"):
         return VariantConfig(name=name, base=w80_config(), gru_head=3, no_ahead_residual=True, zero_features=(22,),
                              interleave=name == "w80", strip_l0_vlora=True, strip_cmix=W80_STRIP_CMIX)
     if name in ("w64", "w64-sequential"):
         return VariantConfig(name=name, base=w64_config(), gru_head=3, no_ahead_residual=True, zero_features=(22,),
                              interleave=name == "w64", strip_l0_vlora=True, strip_cmix=W80_STRIP_CMIX)
-    raise ValueError(f"Unknown Expertium architecture preset {name!r}; expected iter36, w64, w64-sequential, w80 or "
-                     "w80-sequential")
+    if name in SM73_PRESETS:
+        # SM73: w64 with fewer card layers; "card_id:1" leaves the channel-mixer strip list with the layer it named
+        w64 = preset("w64")
+        depth = SM73_PRESETS[name]["card_layers"]
+        modules = [(stream, replace(c, n_layers=depth, total_layers=depth) if stream == "card_id" else c)
+                   for stream, c in w64.base.modules]
+        strip = tuple(e for e in w64.strip_cmix if not (e.startswith("card_id:") and int(e.partition(":")[2]) >= depth))
+        return replace(w64, name=name, base=replace(w64.base, modules=modules), strip_cmix=strip)
+    if name in SM77_PRESETS:
+        # SM77: the small model (w64) plus the tiny additions; a preset name, so the scorer's TAG=KIND:ARCH:PATH takes it
+        return replace(preset("w64"), name=name, **SM77_PRESETS[name])
+    raise ValueError(f"Unknown Expertium architecture preset {name!r}; expected iter36, w64, w64-sequential, w80, "
+                     f"w80-sequential or one of {sorted(SM77_PRESETS) + sorted(SM73_PRESETS)}")
 
 
 def variant(spec):
@@ -103,7 +155,7 @@ def variant(spec):
         unknown = set(overrides) - allowed
         if unknown:
             raise ValueError(f"Unknown architecture fields {sorted(unknown)}; allowed: {sorted(allowed)}")
-        for key in ("zero_features", "strip_cmix"):
+        for key in ("zero_features", "strip_cmix", "init_state"):
             if key in overrides:
                 overrides[key] = tuple(overrides[key])
         config = replace(config, name=config.name + "+" + ",".join(f"{k}={v}" for k, v in sorted(overrides.items())),
@@ -120,6 +172,9 @@ def variant(spec):
         depth = dict(config.base.modules)[stream].n_layers if stream in names else -1
         if not layer.isdigit() or not 0 <= int(layer) < depth:
             raise ValueError(f"strip_cmix entry {entry!r} names no layer of {names}")
+    for stream in config.init_state:
+        if stream not in names:
+            raise ValueError(f"init_state stream {stream!r} is not one of {names}")
     for index in config.zero_features:
         if not 0 <= int(index) < 92:
             raise ValueError(f"zero_features index {index} outside the 92 input dims")

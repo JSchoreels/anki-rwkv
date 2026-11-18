@@ -1,0 +1,24 @@
+{
+ "users": [
+  1425,
+  1893,
+  2388
+ ],
+ "note": "every f16 scale rounding (WKV rows + stored shift vectors, card and note) during the CPU scorer run on the 3 check users; sub = positive scale < 2^-14 (float16 subnormal, kept: IEEE round-to-nearest-even on the 2^-24 grid); underflow_to_zero = rounded to 0 (< 2^-25), guarded to scale 1, i.e. the row/vector is stored as zeros (|values| < 127 * 2^-25 = 3.8e-6 for int8)",
+ "w8+s8hx8": {
+  "n": 4522288,
+  "sub": 2207350,
+  "zero_before_rounding": 0,
+  "min": 1.4104766833666904e-11,
+  "max": 0.039028797298669815,
+  "underflow_to_zero": 719
+ },
+ "w8+s4c8nhx8": {
+  "n": 4522288,
+  "sub": 628797,
+  "zero_before_rounding": 0,
+  "min": 3.6615675769180456e-11,
+  "max": 0.07815703004598618,
+  "underflow_to_zero": 192
+ }
+}

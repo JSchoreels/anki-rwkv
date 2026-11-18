@@ -1,0 +1,200 @@
+{
+ "users": [
+  1340,
+  8254
+ ],
+ "reviews": {
+  "1340": 5641,
+  "8254": 9872
+ },
+ "checkpoint": "C:\\Users\\jonat\\workspace\\wt\\small-model\\artifacts\\accuracy\\experiments\\scale-w64kd-gate-cached-ctx2048\\run\\epoch-06\\expertium\\E89-F65e-F77a\\master.pth",
+ "options": {
+  "prefetch_users": true,
+  "preparation_workers": 5,
+  "gpu_packed_features": true,
+  "async_transfer": true,
+  "batched_id_encodings": true,
+  "grouped_sync": true,
+  "main_threads": 1,
+  "bulk_transfer": true,
+  "parallel_evaluation": true,
+  "exact_shift": true,
+  "exact_index": true,
+  "batch_chunks": 16,
+  "gpu_memory_fraction": 0.8,
+  "fast_samples": true,
+  "prestart_pool": true,
+  "row_tiles_exact": 4,
+  "exact_group_norm": true,
+  "deferred_reads": true,
+  "shared_shift_orders": true,
+  "stream_launches": true,
+  "prefetch_rows": true,
+  "sync_free_loss": true,
+  "columnar_samples": true,
+  "skip_uninitialized_fill": true,
+  "skip_padding_sources": true,
+  "native_wkv": false,
+  "host_placement": "physical",
+  "process_qos": true,
+  "native_group_norm": false,
+  "native_index": false,
+  "deferred_read_depth": 2,
+  "bookkeeping_stride": 8,
+  "wkv_tile": false,
+  "lean_step_reset": true,
+  "native_glue": false,
+  "wddm_flush": true,
+  "architecture": "w64",
+  "chunk_reviews": 2048,
+  "training_seed": 2025
+ },
+ "checks": {
+  "A_option_absent_equals_before_sm21": {
+   "pass": true,
+   "base_revision": "7fada06ba1dc77d7760a67beeb25c55efe09b562",
+   "batches": 2,
+   "losses": [
+    [
+     1340,
+     0.9004842638969421,
+     "b1aa3cedc53a43424798f0164d6ff595594fa16bfca0a35881add04819f3ab19"
+    ],
+    [
+     8254,
+     0.8911028504371643,
+     "1ce450b7ae4871ad821430ade9a3bb8282a3bdce20ebafa34b787112bcf39d72"
+    ]
+   ],
+   "batch_digests_equal": true,
+   "loss_gradient_digests_equal": true
+  },
+  "B_empty_table_equals_stock_bitwise": {
+   "pass": true,
+   "rows": [
+    {
+     "user": 1340,
+     "stock": "94e251fd4662d9ea21e25b215f34af0e1f5a10751cc2dc6c1d0e27e55932a2bc",
+     "carry_empty_table": "94e251fd4662d9ea21e25b215f34af0e1f5a10751cc2dc6c1d0e27e55932a2bc",
+     "streams_calls": 1,
+     "equal": true
+    },
+    {
+     "user": 8254,
+     "stock": "edf7ae7192c0af1ca3688abf698a9bac68e6df749443b84a2811fc4d2b7efdaa",
+     "carry_empty_table": "edf7ae7192c0af1ca3688abf698a9bac68e6df749443b84a2811fc4d2b7efdaa",
+     "streams_calls": 1,
+     "equal": true
+    }
+   ]
+  },
+  "C_consistent_inputs_bitwise": {
+   "pass": true,
+   "rows": [
+    {
+     "user": 1340,
+     "windows": 3,
+     "rows": 9747,
+     "mismatched_rows": 0
+    },
+    {
+     "user": 8254,
+     "windows": 5,
+     "rows": 15910,
+     "mismatched_rows": 0
+    }
+   ]
+  },
+  "D_exact_carry_equals_full_history": {
+   "pass": true,
+   "rows": [
+    {
+     "user": 1340,
+     "windows": 3,
+     "fp32": {
+      "max_abs_dp": 4.76837158203125e-07,
+      "max_abs_dw": 3.5762786865234375e-07,
+      "mean_max_dp_labelled": 4.9768987197825425e-08,
+      "table_bytes": 15071005
+     },
+     "deploy": {
+      "max_abs_dp": 0.0013906359672546387,
+      "max_abs_dw": 0.0005753636360168457,
+      "mean_max_dp_labelled": 1.1409768322720865e-05,
+      "table_bytes": 4580381
+     },
+     "none": {
+      "max_abs_dp": 0.6543418169021606,
+      "max_abs_dw": 0.5528042316436768,
+      "mean_max_dp_labelled": 0.01545965694022122,
+      "table_bytes": 0
+     }
+    },
+    {
+     "user": 8254,
+     "windows": 5,
+     "fp32": {
+      "max_abs_dp": 5.960464477539062e-07,
+      "max_abs_dw": 2.980232238769531e-07,
+      "mean_max_dp_labelled": 5.705854885169694e-08,
+      "table_bytes": 52329521
+     },
+     "deploy": {
+      "max_abs_dp": 0.0007840394973754883,
+      "max_abs_dw": 0.0006276965141296387,
+      "mean_max_dp_labelled": 1.0268098891658123e-05,
+      "table_bytes": 15864753
+     },
+     "none": {
+      "max_abs_dp": 0.6414650082588196,
+      "max_abs_dw": 0.42624562978744507,
+      "mean_max_dp_labelled": 0.026812707977901952,
+      "table_bytes": 0
+     }
+    }
+   ]
+  },
+  "E_v1_equals_prototype_fresh_carry": {
+   "pass": true,
+   "rows": [
+    {
+     "user": 1340,
+     "updates": 2,
+     "offsets": [
+      0,
+      4096
+     ],
+     "bitwise_equal": true
+    },
+    {
+     "user": 8254,
+     "updates": 3,
+     "offsets": [
+      0,
+      4096,
+      8192
+     ],
+     "bitwise_equal": true
+    }
+   ]
+  },
+  "F_user_boundary": {
+   "pass": true,
+   "slots_after_new_user_attach": 0,
+   "first_update_equals_fresh_table": true,
+   "non_zero_offset_start_refused": true
+  },
+  "G_jit_hand_over": {
+   "pass": true,
+   "scripted": true,
+   "empty_table_max_abs_loss_diff": 0.0,
+   "carried_update_differs": true,
+   "carried_update_max_abs_dp": 0.4281424283981323,
+   "streams_calls": 2,
+   "teacher_calls": 0
+  }
+ },
+ "fails": [],
+ "passed": true,
+ "seconds": 470.2
+}

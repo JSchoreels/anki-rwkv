@@ -1,0 +1,42 @@
+[ok] a. online targets (decaying=False): new == code before SM11 (7fada06b) == kd_source online, bitwise: {'alpha': 0.9}
+[ok] a. online targets (decaying=True): new == code before SM11 (7fada06b) == kd_source online, bitwise: {'alpha': 0.5}
+[ok] a. KD cache: same folder digest, miss and hit targets and stored file bitwise equal to the code before SM11: {'folder': 'batches-029b8c90c12f', 'stats': {'hits': 1, 'writes': 1, 'online': 1}}
+[ok] a. CatchUp loss and every student gradient bitwise equal to the code before SM11 (online teacher): {'loss': 1.7724103927612305, 'gradients': 354}
+[ok] a. CatchUp with a cache hit: loss and gradients bitwise equal to the online pass: {'hits': 1, 'writes': 0, 'online': 0}
+[sm11] 2 users, 2 to export (6,830 reviews; 0 in several passes), device cpu, out C:\Users\jonat\AppData\Local\Temp\tmpghqjoa28\export
+[sm11] 1/2 user 793 (3,463 reviews, 1 pass(es), model 3.0s) | 3s, 1,087 reviews/s
+[sm11] 2/2 user 2188 (3,367 reviews, 1 pass(es), model 3.5s) | 7s, 993 reviews/s
+[sm11] pass finished: 2 users, 6,830 reviews in 7s (993 reviews/s), 0 failed
+{"out": "C:\\Users\\jonat\\AppData\\Local\\Temp\\tmpghqjoa28\\export", "users": 2, "complete_users": 2, "missing_users": 0, "missing_sample": [], "reviews_done": 6830, "reviews_total": 6830, "bytes": 70119, "bytes_per_review": 10.266, "complete": true, "errors": 0}
+[ok] b. CPU export of the check users completes (status exit 0): 0
+[sm11 verify] {'user_id': 793, 'reviews': 3463, 'device': 'cpu', 'same_nan_pattern': True, 'curve_max_abs': 9.232759475708008e-05, 'rating_max_abs': 0.00024366378784179688, 'ok': True}
+[sm11 verify] {'user_id': 2188, 'reviews': 3367, 'device': 'cpu', 'same_nan_pattern': True, 'curve_max_abs': 9.948015213012695e-05, 'rating_max_abs': 0.00024402141571044922, 'ok': True}
+{"out": "C:\\Users\\jonat\\AppData\\Local\\Temp\\tmpghqjoa28\\export", "users": 2, "ok": true}
+[ok] b. `verify` (the post-GPU spot check) passes on the CPU export: 0
+[ok] b. user 793: stored targets = full-history forward (scorer path) within float16 bounds (curve 0.00012, rating 0.00025), NaN exactly where no label: {'reviews': 3463, 'curve_targets': 2143, 'rating_targets': 2143, 'curve_max_abs': 9.232759475708008e-05, 'rating_max_abs': 0.00024366378784179688, 'instant_max_abs': 0.000225067138671875, 'rating_sum_max_dev': 0.00037384033203125, 'model_seconds': 3.018}
+[ok] b. user 793: window of 1024 reviews from the first review: online window teacher = full-history forward (float32, <= 2e-05); replay Teacher = window teacher within float16 bounds; zero at unlabelled rows: {'card_features_equal': True, 'window_vs_full_fp32_max_abs': 4.76837158203125e-07, 'replay_vs_window_curve_max_abs': 8.594989776611328e-05, 'replay_vs_window_rating_max_abs': 0.00024366378784179688, 'labelled': [878, 687]}
+[ok] b. user 2188: stored targets = full-history forward (scorer path) within float16 bounds (curve 0.00012, rating 0.00025), NaN exactly where no label: {'reviews': 3367, 'curve_targets': 2711, 'rating_targets': 2711, 'curve_max_abs': 9.948015213012695e-05, 'rating_max_abs': 0.00024402141571044922, 'instant_max_abs': 0.00024390220642089844, 'rating_sum_max_dev': 0.00036144256591796875, 'model_seconds': 3.542}
+[ok] b. user 2188: window of 1024 reviews from the first review: online window teacher = full-history forward (float32, <= 2e-05); replay Teacher = window teacher within float16 bounds; zero at unlabelled rows: {'card_features_equal': True, 'window_vs_full_fp32_max_abs': 3.5762786865234375e-07, 'replay_vs_window_curve_max_abs': 9.399652481079102e-05, 'replay_vs_window_rating_max_abs': 0.00024366378784179688, 'labelled': [1021, 761]}
+[info] window-local vs replay, training batch 4 x 512 of user 793: [{'chunk': 0, 'curve_mean_abs': 0.00152, 'curve_max_abs': 0.0194, 'rating_mean_abs': 0.00231}, {'chunk': 1, 'curve_mean_abs': 0.02811, 'curve_max_abs': 0.3217, 'rating_mean_abs': 0.04772}, {'chunk': 2, 'curve_mean_abs': 0.01118, 'curve_max_abs': 0.1498, 'rating_mean_abs': 0.04578}, {'chunk': 3, 'curve_mean_abs': 0.00889, 'curve_max_abs': 0.1038, 'rating_mean_abs': 0.05175}]
+[info] encoding noise floor: {793: {'encoding_noise_curve_mean_abs': 0.00085, 'encoding_noise_curve_max_abs': 0.0153}, 2188: {'encoding_noise_curve_mean_abs': 0.00288, 'encoding_noise_curve_max_abs': 0.0248}}
+[ok] b. replay Teacher through CatchUp.loss: finite loss, gradients, no teacher model loaded, decay_alpha on decay: {'loss': 1.7960596084594727, 'gradients': 354, 'alphas': [0.9, 0.5], 'describe': 'replay'}
+[ok] b. refusals: {'cache with replay': True, 'unknown kd_source': True, 'another teacher': True, 'missing user': True, 'no batch key (multi-user batch)': True, 'labelled row without a stored target': True, 'another dataset': True}
+[sm11] 2 users, 1 to export (3,463 reviews; 0 in several passes), device cpu, out C:\Users\jonat\AppData\Local\Temp\tmpghqjoa28\resumed
+[sm11] 1/1 user 793 (3,463 reviews, 1 pass(es), model 3.1s) | 3s, 1,074 reviews/s
+[sm11] pass finished: 1 users, 3,463 reviews in 3s (1,074 reviews/s), 0 failed
+{"out": "C:\\Users\\jonat\\AppData\\Local\\Temp\\tmpghqjoa28\\resumed", "users": 2, "complete_users": 1, "missing_users": 1, "missing_sample": [2188], "reviews_done": 3463, "reviews_total": 6830, "bytes": 35539, "bytes_per_review": 10.262, "complete": false, "errors": 0}
+[sm11] 2 users, 1 to export (3,367 reviews; 0 in several passes), device cpu, out C:\Users\jonat\AppData\Local\Temp\tmpghqjoa28\resumed
+[sm11] 1/1 user 2188 (3,367 reviews, 1 pass(es), model 3.6s) | 6s, 553 reviews/s
+[sm11] pass finished: 1 users, 3,367 reviews in 6s (519 reviews/s), 0 failed
+{"out": "C:\\Users\\jonat\\AppData\\Local\\Temp\\tmpghqjoa28\\resumed", "users": 2, "complete_users": 2, "missing_users": 0, "missing_sample": [], "reviews_done": 6830, "reviews_total": 6830, "bytes": 70119, "bytes_per_review": 10.266, "complete": true, "errors": 0}
+[ok] c. resume: stopped pass exits 3, rerun (through a loader worker) skips the finished user, ignores the stale .tmp, targets byte-identical to one uninterrupted export: {'exit_codes': [3, 0], 'exported_in_order': [793, 2188], 'stale_tmp_left': False}
+[ok] c. a folder written with other settings is refused: True
+[sm11] 1 users, 1 to export (3,463 reviews; 1 in several passes), device cpu, out C:\Users\jonat\AppData\Local\Temp\tmpghqjoa28\passes
+[sm11] 1/1 user 793 (3,463 reviews, 3 pass(es), model 3.9s) | 4s, 871 reviews/s
+[sm11] pass finished: 1 users, 3,463 reviews in 4s (871 reviews/s), 0 failed
+{"out": "C:\\Users\\jonat\\AppData\\Local\\Temp\\tmpghqjoa28\\passes", "users": 1, "complete_users": 1, "missing_users": 0, "missing_sample": [], "reviews_done": 3463, "reviews_total": 3463, "bytes": 35580, "bytes_per_review": 10.274, "complete": true, "errors": 0}
+[ok] c. multi-pass export (passes of 1,500 reviews, 500 burn-in): every review covered exactly once, same NaN pattern as one pass (values differ: burn-in context and encoding draws): {'passes': [[0, 0, 1500], [1000, 1500, 2500], [2000, 2500, 3463]], 'curve_mean_abs_vs_single_pass': 0.00406, 'curve_max_abs_vs_single_pass': 0.0603}
+[ok] c. pass plan tiles the history (production settings 600k / 300k): {599999: 1, 600000: 1, 600001: 2, 3910718: 13}
+[ok] d. disk per review (float16 [reviews, 5] + per-file npz header and meta): {'bytes': 70119, 'reviews': 6830, 'per_review': 10.266, 'payload_per_review': 10, 'per_file_overhead_bytes': 910, 'gate_5k_GB': 3.699, 'final_8k_GB': 5.827}
+109 s; C:\Users\jonat\workspace\wt\sm11\artifacts\small-model\check-sm11-replay-targets.json
+ALL OK

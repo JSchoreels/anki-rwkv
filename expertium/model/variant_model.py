@@ -19,6 +19,34 @@ from expertium.model.srs_model import (DTYPE_EXCLUDE, ExactIndexSelect, ExactPad
 
 # The GRU head's root parameters stay float32 like the linears they replace (upstream DTYPE_EXCLUDE "gru_").
 VARIANT_DTYPE_EXCLUDE = DTYPE_EXCLUDE + ["gru_"]
+# SM21 (scripts/state_carry_train.py): while a StateCarry is active for a model object, that model's interleaved
+# streams run with carried state. None (the default, always outside the opt-in `state_carry` option) = stock path.
+CARRY_HOOK = [None]
+# SM33: the last grade-order penalty value (detached tensor) and its pair count, for logging; untouched when off.
+GRADE_ORDER_LAST = [None, None]
+
+
+def grade_order_penalty(model, out_w, out_s_raw, out_d_raw, global_labels, horizons):
+    """relu(logit R_g(t) - logit R_{g+1}(t)) averaged over (probe pair, horizon). One host sync (the probe row count)."""
+    if not model.gru_on:
+        raise ValueError("grade_order needs the GRU curve head")
+    marker = global_labels[..., 1].reshape(-1)
+    grade = torch.where(marker < 0, -marker, torch.zeros_like(marker))          # 1..4 on probe rows, else 0
+    nxt = torch.nn.functional.pad(grade[1:], (0, 1))                             # the next row's grade
+    rows = torch.nonzero((grade >= 1) & (grade <= 3) & (nxt == grade + 1)).squeeze(1)  # probe g with g + 1 right after
+    n_curves = out_w.size(-1)
+    t = torch.tensor(horizons, dtype=torch.float32, device=out_w.device).view(1, -1, 1)
+    logits = []
+    for index in (rows, rows + 1):
+        w = out_w.reshape(-1, n_curves).index_select(0, index).float().unsqueeze(1)
+        s = out_s_raw.reshape(-1, n_curves).index_select(0, index).float().unsqueeze(1)
+        d = out_d_raw.reshape(-1, n_curves).index_select(0, index).float().unsqueeze(1)
+        r = model.gru_forgetting_curve(w, s, d, t)                               # [P, H]
+        logits.append(torch.log(r / (1 - r)))
+    hinge = torch.relu(logits[0] - logits[1])
+    value = hinge.sum() / (hinge.numel() + 1e-8)
+    GRADE_ORDER_LAST[0], GRADE_ORDER_LAST[1] = value.detach(), rows.numel()
+    return value
 
 
 def is_excluded(name):
@@ -96,10 +124,53 @@ class VariantRWKV7Layer(RWKV7Layer):
         return self.dropout(self.channel_mixer(x_BTC, time_shift_select_BT=time_shift_select_BT)), v0_BTC
 
 
+class Sm77Layer(VariantRWKV7Layer):
+    """SM77 (expertium/model/sm77.py): VariantRWKV7Layer with the tiny-addition mixers; built only when a flag is on."""
+    __constants__ = ["sm77_cm"]
+
+    def __init__(self, config: RWKV7Config, layer_id, strip_cmix=False, strip_v_lora=False, key_extras=False,
+                 init_state=False):
+        from expertium.model.sm77 import Sm77ChannelMixer, Sm77TimeMixer
+        ModuleType.__init__(self)
+        if strip_v_lora:
+            assert layer_id == 0
+            with _stripped_value_lora():
+                self.time_mixer = Sm77TimeMixer(config, layer_id, key_extras, init_state)
+        else:
+            self.time_mixer = Sm77TimeMixer(config, layer_id, key_extras, init_state)
+        self.cmix_stripped = bool(strip_cmix)
+        # the channel mixer needs the skip mask only for its first-review shift offset (init_state)
+        self.sm77_cm = bool(init_state) and not strip_cmix
+        if strip_cmix:
+            self.channel_mixer = StrippedChannelMixer()
+        elif init_state:
+            self.channel_mixer = Sm77ChannelMixer(config, layer_id)
+        else:
+            self.channel_mixer = RWKV7ChannelMixer(config, layer_id)
+        self.dropout = torch.nn.Dropout(p=config.dropout_layer)
+
+    @FunctionType
+    def forward(self, in_BTC, v0_BTC, time_shift_select_BT, skip_BT):
+        x_BTC, v0_BTC = self.time_mixer(in_BTC=in_BTC, v0_BTC=v0_BTC, time_shift_select_BT=time_shift_select_BT,
+                                        skip_BT=skip_BT)
+        if self.cmix_stripped:
+            return x_BTC, v0_BTC
+        if self.sm77_cm:
+            return self.dropout(self.channel_mixer(x_BTC, time_shift_select_BT, skip_BT)), v0_BTC
+        return self.dropout(self.channel_mixer(x_BTC, time_shift_select_BT=time_shift_select_BT)), v0_BTC
+
+
 class VariantRWKV7(RWKV7):
-    def __init__(self, config: RWKV7Config, stream_name, strip_cmix=(), strip_l0_vlora=False):
+    def __init__(self, config: RWKV7Config, stream_name, strip_cmix=(), strip_l0_vlora=False, key_extras=False,
+                 init_state=False):
         ModuleType.__init__(self)
         stripped = {int(entry.partition(":")[2]) for entry in strip_cmix if entry.partition(":")[0] == stream_name}
+        if key_extras or init_state:  # SM77; with both off the blocks are today's VariantRWKV7Layer
+            self.blocks = torch.nn.ModuleList([
+                Sm77Layer(config, layer_id, strip_cmix=layer_id in stripped, strip_v_lora=strip_l0_vlora and layer_id == 0,
+                          key_extras=key_extras, init_state=init_state)
+                for layer_id in range(config.layer_offset, config.layer_offset + config.n_layers)])
+            return
         self.blocks = torch.nn.ModuleList([
             VariantRWKV7Layer(config, layer_id, strip_cmix=layer_id in stripped,
                               strip_v_lora=strip_l0_vlora and layer_id == 0)
@@ -122,17 +193,31 @@ class VariantSrsRWKV(SrsRWKV):
         self.concurrent_split_limit = 0
         self.concurrent_splits = False
         self.sync_free_loss = False
+        # SM26: opt-in multiplier on the instant (rating) loss term; the default 1.0 keeps IMMEDIATE_SCALE = 1.0 exactly.
+        # A float, not None: TorchScript fixes the attribute type when the model is scripted, so None could not become 2.0.
+        self.instant_loss_weight = 1.0
+        # SM57 (track option "curve_loss_weight"): multiplier on every curve term of the training loss (the curve and
+        # raw-curve BCE, which carry the curve KD targets, and the curve head's three regularizers). 0.0 = instant-only
+        # training: the instant head and the shared trunk get all the gradient, the curve-only weights get zero
+        # gradients. The default 1.0 scales each constant by 1.0, so the loss and gradients are bit for bit today's.
+        self.curve_loss_weight = 1.0
+        # SM33 (track option "grade_order"): weight of the grade-order hinge on the probe rows' curves; 0.0 (default) =
+        # the term is never computed, so the loss and gradients are bit for bit today's.
+        self.grade_order_weight = 0.0
+        self.grade_order_horizons: List[float] = [86400.0]
 
         self.gru_n = int(variant.gru_head)
         self.gru_on = self.gru_n > 0
         self.no_ahead_residual = bool(variant.no_ahead_residual or self.gru_on)
         self.zero_features_on = len(variant.zero_features) > 0
         self.zero_features: List[int] = [int(i) for i in variant.zero_features] or [-1]
-        self.interleave_on = bool(variant.interleave)
+        self.interleave_on = bool(variant.interleave or variant.stream_major)
         self.stream_depths: List[int] = [config.n_layers for _, config in anki_rwkv_config.modules]
         # (stream, layer) execution order, round-major; check_expertium_catch_up.py swaps in stream-major order to
         # prove the canonical gather/scatter path reproduces the sequential forward.
         self.layer_steps: List[Tuple[int, int]] = layer_steps(interleave_schedule(self.stream_depths))
+        if variant.stream_major:  # SM72: the sequential order on the canonical path (where state carry hooks in)
+            self.layer_steps = [(i, layer) for i, depth in enumerate(self.stream_depths) for layer in range(depth)]
 
         self.card_features_dim = 92
         self.d_model = anki_rwkv_config.d_model
@@ -151,7 +236,9 @@ class VariantSrsRWKV(SrsRWKV):
                 torch.nn.SiLU(),
             )
             self.rwkv_modules = torch.nn.ModuleList([
-                VariantRWKV7(config, name, variant.strip_cmix, variant.strip_l0_vlora)
+                VariantRWKV7(config, name, variant.strip_cmix, variant.strip_l0_vlora,
+                             **({"key_extras": bool(variant.key_extras), "init_state": name in variant.init_state}
+                                if variant.key_extras or variant.init_state else {}))
                 for name, config in anki_rwkv_config.modules])
             self.prehead_norm = torch.nn.LayerNorm(self.d_model)
             self.prehead_dropout = torch.nn.Dropout(p=anki_rwkv_config.dropout)
@@ -205,6 +292,15 @@ class VariantSrsRWKV(SrsRWKV):
             torch.nn.init.zeros_(self.p_linear.weight)
             self.p_linear.bias.copy_(torch.tensor([-0.3512, -0.0802, 0.4297, -0.2041]))
 
+    # ---- SM33 grade-order hinge ----
+    @torch.jit.ignore
+    def _grade_order_penalty(self, out_w: torch.Tensor, out_s_raw: torch.Tensor, out_d_raw: torch.Tensor,
+                             global_labels: torch.Tensor) -> torch.Tensor:
+        """Mean over (probe pair, horizon) of relu(logit R_g(t) - logit R_{g+1}(t)) for the adjacent probe rows g, g + 1
+        (scripts/gpu_r01_samples.add_grade_probes marks probe g with label_elapsed_days = -g). Zero when every pair is
+        ordered; no host sync."""
+        return grade_order_penalty(self, out_w, out_s_raw, out_d_raw, global_labels, self.grade_order_horizons)
+
     # ---- GRU curve head (RWKV_GRU_HEAD) ----
     @torch.jit.ignore
     def _gru_heads(self, x_w: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
@@ -253,6 +349,9 @@ class VariantSrsRWKV(SrsRWKV):
         so x stays canonical and each layer-step is gather -> one layer -> scatter-back of the non-padding rows.
         v0 (value residual) stays stream-local: set by the stream's layer 0, reused by its later layers.
         """
+        carry = CARRY_HOOK[0]
+        if carry is not None and carry.owns(self):
+            return carry.streams(self, x, batch_sub_gather, batch_sub_gather_lens, batch_time_shift_selects, batch_skips)
         cur = torch.arange(x.size(0), dtype=torch.long, device=x.device)
         gathers, positions, targets = [], [], []
         for splits in batch_sub_gather:
@@ -282,10 +381,28 @@ class VariantSrsRWKV(SrsRWKV):
             fused_positions.append(torch.cat([keep + offset for keep, offset in zip(positions[i], offsets)]))
             fused_targets.append(torch.cat(targets[i]))
         v0s = [[None] * len(splits) for splits in batch_sub_gather]
+        exact = self.exact_index and x.is_cuda
+        if exact:
+            # Wide-kernels port: sort-free exact gather/scatter, one sort per stream reused by all its layers.
+            # Bitwise equal to the deterministic index_select / index_copy below (scripts/check_wide_kernels.py).
+            from rwkv.model.exact_index import ExactIndexCopy, OrderedIndexSelect, row_order
+            rows = x.size(0)
+            gather_orders, position_orders = [], []
+            for i in range(len(gathers)):
+                if self.skip_padding_sources:
+                    # F50: padding sources (-1) leave the backward sum; their gradients are +0 here.
+                    source = torch.cat(gathers[i])
+                else:
+                    source = fused_gather[i]
+                gather_orders.append(row_order(source, rows))
+                position_orders.append(row_order(fused_positions[i], fused_gather[i].numel()))
         for i, layer in self.layer_steps:
             # Scripted ModuleLists have no Python indexing; children are named by position.
             block = getattr(getattr(self.rwkv_modules, str(i)).blocks, str(layer))
-            inputs = x.index_select(0, fused_gather[i]).split(fused_sizes[i])
+            if exact:
+                inputs = OrderedIndexSelect.apply(x, fused_gather[i], *gather_orders[i]).split(fused_sizes[i])
+            else:
+                inputs = x.index_select(0, fused_gather[i]).split(fused_sizes[i])
             outputs = []
             for s, x_split in enumerate(inputs):
                 length = batch_sub_gather_lens[i][s]
@@ -295,7 +412,11 @@ class VariantSrsRWKV(SrsRWKV):
                                                  batch_skips[i][s].view(-1, length))
                 outputs.append(x_out.reshape(-1, self.d_model))
             flat = torch.cat(outputs)
-            x = x.index_copy(0, fused_targets[i], flat.index_select(0, fused_positions[i]))
+            if exact:
+                kept = OrderedIndexSelect.apply(flat, fused_positions[i], *position_orders[i])
+                x = ExactIndexCopy.apply(x, fused_targets[i], kept)
+            else:
+                x = x.index_copy(0, fused_targets[i], flat.index_select(0, fused_positions[i]))
         return x
 
     @FunctionType
@@ -458,27 +579,28 @@ class VariantSrsRWKV(SrsRWKV):
             out_p_binary, hard_y, reduction="none"
         )
         ahead_avg = (curve_loss * ahead_mask).sum() / (1e-8 + ahead_mask.sum())
-        AHEAD_SCALE = 0.5
+        CURVE_SCALE = self.curve_loss_weight
+        AHEAD_SCALE = 0.5 * CURVE_SCALE
         ahead_raw_avg = (curve_raw_loss * ahead_mask).sum() / (1e-8 + ahead_mask.sum())
-        AHEAD_RAW_SCALE = 0.5
+        AHEAD_RAW_SCALE = 0.5 * CURVE_SCALE
         immediate_avg = (p_loss * immediate_mask).sum() / (1e-8 + immediate_mask.sum())
-        IMMEDIATE_SCALE = 1.0
+        IMMEDIATE_SCALE = self.instant_loss_weight
         w_avg = (w_loss * ahead_mask).sum() / (1e-8 + ahead_mask.sum())
-        W_LOSS_SCALE = 1e-5
+        W_LOSS_SCALE = 1e-5 * CURVE_SCALE
         ahead_logits_mag_loss = torch.sqrt(
             1e-16 + out_ahead_logits.square().mean(dim=-1)
         )
         ahead_logits_mag_avg = (ahead_logits_mag_loss * ahead_mask).sum() / (
             1e-8 + ahead_mask.sum()
         )
-        AHEAD_LOGITS_MAG_LOSS_SCALE = 1e-4
+        AHEAD_LOGITS_MAG_LOSS_SCALE = 1e-4 * CURVE_SCALE
         ahead_logits_diff_loss = torch.sqrt(
             1e-16 + out_ahead_logits.diff().square().mean(dim=-1)
         )
         ahead_logits_diff_avg = (ahead_logits_diff_loss * ahead_mask).sum() / (
             1e-8 + ahead_mask.sum()
         )
-        AHEAD_LOGITS_DIFF_LOSS_SCALE = 1e-3
+        AHEAD_LOGITS_DIFF_LOSS_SCALE = 1e-3 * CURVE_SCALE
         loss_avg = (
             AHEAD_SCALE * ahead_avg
             + IMMEDIATE_SCALE * immediate_avg
@@ -487,9 +609,12 @@ class VariantSrsRWKV(SrsRWKV):
             + AHEAD_LOGITS_MAG_LOSS_SCALE * ahead_logits_mag_avg
             + AHEAD_LOGITS_DIFF_LOSS_SCALE * ahead_logits_diff_avg
         )
+        if self.grade_order_weight > 0.0:
+            loss_avg = loss_avg + self.grade_order_weight * self._grade_order_penalty(
+                out_w, out_s_raw, out_d_raw, global_labels)
         loss_tensor = (
             AHEAD_SCALE * curve_loss.detach()
-            + p_loss.detach()
+            + IMMEDIATE_SCALE * p_loss.detach()
             + AHEAD_RAW_SCALE * curve_raw_loss.detach()
             + W_LOSS_SCALE * w_loss.detach()
             + AHEAD_LOGITS_MAG_LOSS_SCALE * ahead_logits_mag_loss.detach()

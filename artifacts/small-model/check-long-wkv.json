@@ -1,0 +1,238 @@
+{
+ "parts": "parity,probe",
+ "cases": 35,
+ "failed": [],
+ "seconds": 38.37263480000547,
+ "gpu": "NVIDIA GeForce RTX 5080",
+ "torch": "2.9.1+cu128",
+ "results": {
+  "default guard still refuses T = 384": {
+   "ok": true,
+   "detail": true
+  },
+  "generic NVRTC float32 K=16 T=512 vs float64 reference (relative max error)": {
+   "ok": true,
+   "detail": {
+    "out": "9.7e-08",
+    "dr": "1.8e-07",
+    "dk": "9.0e-08",
+    "dv": "1.1e-07",
+    "dw": "1.7e-07",
+    "da": "1.4e-07",
+    "dkd": "9.3e-08"
+   }
+  },
+  "prefix K=16 T=512 bfloat16: first 383 outputs bit-identical": {
+   "ok": true,
+   "detail": null
+  },
+  "row-tiled exact K=16 T=512 bfloat16 == generic (forward + gradients)": {
+   "ok": true,
+   "detail": null
+  },
+  "prefix K=16 T=512 float32: first 383 outputs bit-identical": {
+   "ok": true,
+   "detail": null
+  },
+  "row-tiled exact K=16 T=512 float32 == generic (forward + gradients)": {
+   "ok": true,
+   "detail": null
+  },
+  "generic NVRTC float32 K=16 T=1024 vs float64 reference (relative max error)": {
+   "ok": true,
+   "detail": {
+    "out": "6.7e-08",
+    "dr": "1.4e-07",
+    "dk": "9.1e-08",
+    "dv": "1.5e-07",
+    "dw": "1.1e-07",
+    "da": "1.1e-07",
+    "dkd": "1.7e-07"
+   }
+  },
+  "prefix K=16 T=1024 bfloat16: first 383 outputs bit-identical": {
+   "ok": true,
+   "detail": null
+  },
+  "row-tiled exact K=16 T=1024 bfloat16 == generic (forward + gradients)": {
+   "ok": true,
+   "detail": null
+  },
+  "prefix K=16 T=1024 float32: first 383 outputs bit-identical": {
+   "ok": true,
+   "detail": null
+  },
+  "row-tiled exact K=16 T=1024 float32 == generic (forward + gradients)": {
+   "ok": true,
+   "detail": null
+  },
+  "generic NVRTC float32 K=16 T=2100 vs float64 reference (relative max error)": {
+   "ok": true,
+   "detail": {
+    "out": "7.7e-08",
+    "dr": "8.5e-08",
+    "dk": "1.0e-07",
+    "dv": "8.3e-08",
+    "dw": "1.5e-07",
+    "da": "1.7e-07",
+    "dkd": "1.1e-07"
+   }
+  },
+  "prefix K=16 T=2100 bfloat16: first 383 outputs bit-identical": {
+   "ok": true,
+   "detail": null
+  },
+  "row-tiled exact K=16 T=2100 bfloat16 == generic (forward + gradients)": {
+   "ok": true,
+   "detail": null
+  },
+  "prefix K=16 T=2100 float32: first 383 outputs bit-identical": {
+   "ok": true,
+   "detail": null
+  },
+  "row-tiled exact K=16 T=2100 float32 == generic (forward + gradients)": {
+   "ok": true,
+   "detail": null
+  },
+  "generic NVRTC float32 K=32 T=512 vs float64 reference (relative max error)": {
+   "ok": true,
+   "detail": {
+    "out": "1.2e-07",
+    "dr": "7.8e-08",
+    "dk": "8.6e-08",
+    "dv": "1.1e-07",
+    "dw": "1.4e-07",
+    "da": "1.4e-07",
+    "dkd": "1.3e-07"
+   }
+  },
+  "prefix K=32 T=512 bfloat16: first 383 outputs bit-identical": {
+   "ok": true,
+   "detail": null
+  },
+  "row-tiled exact K=32 T=512 bfloat16 == generic (forward + gradients)": {
+   "ok": true,
+   "detail": null
+  },
+  "prefix K=32 T=512 float32: first 383 outputs bit-identical": {
+   "ok": true,
+   "detail": null
+  },
+  "row-tiled exact K=32 T=512 float32 == generic (forward + gradients)": {
+   "ok": true,
+   "detail": null
+  },
+  "generic NVRTC float32 K=32 T=1024 vs float64 reference (relative max error)": {
+   "ok": true,
+   "detail": {
+    "out": "1.2e-07",
+    "dr": "8.1e-08",
+    "dk": "8.4e-08",
+    "dv": "7.3e-08",
+    "dw": "1.6e-07",
+    "da": "1.9e-07",
+    "dkd": "1.4e-07"
+   }
+  },
+  "prefix K=32 T=1024 bfloat16: first 383 outputs bit-identical": {
+   "ok": true,
+   "detail": null
+  },
+  "row-tiled exact K=32 T=1024 bfloat16 == generic (forward + gradients)": {
+   "ok": true,
+   "detail": null
+  },
+  "prefix K=32 T=1024 float32: first 383 outputs bit-identical": {
+   "ok": true,
+   "detail": null
+  },
+  "row-tiled exact K=32 T=1024 float32 == generic (forward + gradients)": {
+   "ok": true,
+   "detail": null
+  },
+  "generic NVRTC float32 K=32 T=2100 vs float64 reference (relative max error)": {
+   "ok": true,
+   "detail": {
+    "out": "8.7e-08",
+    "dr": "9.7e-08",
+    "dk": "1.1e-07",
+    "dv": "9.7e-08",
+    "dw": "1.1e-07",
+    "da": "1.0e-07",
+    "dkd": "9.0e-08"
+   }
+  },
+  "prefix K=32 T=2100 bfloat16: first 383 outputs bit-identical": {
+   "ok": true,
+   "detail": null
+  },
+  "row-tiled exact K=32 T=2100 bfloat16 == generic (forward + gradients)": {
+   "ok": true,
+   "detail": null
+  },
+  "prefix K=32 T=2100 float32: first 383 outputs bit-identical": {
+   "ok": true,
+   "detail": null
+  },
+  "row-tiled exact K=32 T=2100 float32 == generic (forward + gradients)": {
+   "ok": true,
+   "detail": null
+  },
+  "probe generic chunks of 128 reviews (32,768 reviews, teacher + student fwd/bwd)": {
+   "ok": true,
+   "detail": {
+    "samples": 65536,
+    "max_rows": 92,
+    "median_ms": 499.2,
+    "reviews_per_second_step_only": 65642,
+    "peak_allocated_mib": 5582,
+    "loss": 1.88759,
+    "users": [
+     101
+    ]
+   }
+  },
+  "probe row_tiles chunks of 128 reviews (32,768 reviews, teacher + student fwd/bwd)": {
+   "ok": true,
+   "detail": {
+    "samples": 65536,
+    "max_rows": 92,
+    "median_ms": 481.6,
+    "reviews_per_second_step_only": 68043,
+    "peak_allocated_mib": 5582,
+    "loss": 1.88759,
+    "users": [
+     101
+    ]
+   }
+  },
+  "probe generic chunks of 1024 reviews (32,768 reviews, teacher + student fwd/bwd)": {
+   "ok": true,
+   "detail": {
+    "samples": 65536,
+    "max_rows": 92,
+    "median_ms": 632.3,
+    "reviews_per_second_step_only": 51821,
+    "peak_allocated_mib": 6014,
+    "loss": 1.88906,
+    "users": [
+     101
+    ]
+   }
+  },
+  "probe row_tiles chunks of 1024 reviews (32,768 reviews, teacher + student fwd/bwd)": {
+   "ok": true,
+   "detail": {
+    "samples": 65536,
+    "max_rows": 92,
+    "median_ms": 652.0,
+    "reviews_per_second_step_only": 50257,
+    "peak_allocated_mib": 6014,
+    "loss": 1.88906,
+    "users": [
+     101
+    ]
+   }
+  }
+ }
+}

@@ -1,0 +1,203 @@
+{
+ "device": "NVIDIA GeForce RTX 5080",
+ "users": [
+  1340,
+  8254
+ ],
+ "long_user": 8745,
+ "largest_user": 6810,
+ "options": {
+  "prefetch_users": true,
+  "preparation_workers": 5,
+  "gpu_packed_features": true,
+  "async_transfer": true,
+  "batched_id_encodings": true,
+  "grouped_sync": true,
+  "main_threads": 1,
+  "bulk_transfer": true,
+  "parallel_evaluation": true,
+  "exact_shift": true,
+  "exact_index": true,
+  "batch_chunks": 16,
+  "gpu_memory_fraction": 0.8,
+  "fast_samples": true,
+  "prestart_pool": true,
+  "row_tiles_exact": 4,
+  "exact_group_norm": true,
+  "deferred_reads": true,
+  "shared_shift_orders": true,
+  "stream_launches": true,
+  "prefetch_rows": true,
+  "sync_free_loss": true,
+  "columnar_samples": true,
+  "skip_uninitialized_fill": true,
+  "skip_padding_sources": true,
+  "native_wkv": false,
+  "host_placement": "physical",
+  "process_qos": true,
+  "native_group_norm": false,
+  "native_index": false,
+  "deferred_read_depth": 2,
+  "bookkeeping_stride": 8,
+  "wkv_tile": false,
+  "lean_step_reset": true,
+  "native_glue": false,
+  "wddm_flush": true,
+  "architecture": "w64",
+  "chunk_reviews": 2048,
+  "training_seed": 2025
+ },
+ "checks": {
+  "P_v2_empty_table_vs_stock": {
+   "pass": true,
+   "rows": [
+    {
+     "user": 1340,
+     "lanes": [
+      13,
+      14,
+      15
+     ],
+     "bitwise": true,
+     "loss_rel_diff": 0.0,
+     "grad_rel_diff": 0.0
+    },
+    {
+     "user": 8254,
+     "lanes": [
+      11,
+      12,
+      13,
+      14,
+      15
+     ],
+     "bitwise": true,
+     "loss_rel_diff": 0.0,
+     "grad_rel_diff": 0.0
+    },
+    {
+     "user": 8745,
+     "lanes": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+     ],
+     "bitwise": true,
+     "loss_rel_diff": 0.0,
+     "grad_rel_diff": 0.0
+    }
+   ]
+  },
+  "X_v2_exact_carry_vs_full_history": {
+   "pass": true,
+   "rows": [
+    {
+     "user": 8254,
+     "lanes": 2,
+     "updates": 3,
+     "zero_fp32": {
+      "max_abs_dp_first_lane": 5.960464477539062e-07,
+      "max_abs_dp_other_lanes": 0.6217465996742249
+     },
+     "seeded_fp32": {
+      "max_abs_dp_first_lane": 5.960464477539062e-07,
+      "max_abs_dp_other_lanes": 6.556510925292969e-07
+     },
+     "zero_deploy": {
+      "max_abs_dp_first_lane": 0.00021570920944213867,
+      "max_abs_dp_other_lanes": 0.6217465996742249
+     },
+     "seeded_deploy": {
+      "max_abs_dp_first_lane": 0.00021570920944213867,
+      "max_abs_dp_other_lanes": 0.000789344310760498
+     }
+    },
+    {
+     "user": 8745,
+     "lanes": 16,
+     "updates": 3,
+     "zero_fp32": {
+      "max_abs_dp_first_lane": 4.76837158203125e-07,
+      "max_abs_dp_other_lanes": 0.7486767768859863
+     },
+     "seeded_fp32": {
+      "max_abs_dp_first_lane": 4.76837158203125e-07,
+      "max_abs_dp_other_lanes": 1.0132789611816406e-06
+     },
+     "zero_deploy": {
+      "max_abs_dp_first_lane": 0.000878453254699707,
+      "max_abs_dp_other_lanes": 0.7486767768859863
+     },
+     "seeded_deploy": {
+      "max_abs_dp_first_lane": 0.000878453254699707,
+      "max_abs_dp_other_lanes": 0.003359556198120117
+     }
+    }
+   ]
+  },
+  "T_update_cost": {
+   "stock": {
+    "median_seconds": 0.29726180000579916,
+    "peak_memory_mib": 7035.51611328125,
+    "reviews": 32768
+   },
+   "v1": {
+    "median_seconds": 0.3270617000234779,
+    "peak_memory_mib": 7307.048828125,
+    "reviews": 32768,
+    "table_bytes": 24598334
+   },
+   "v2": {
+    "median_seconds": 0.3316126000136137,
+    "peak_memory_mib": 7296.58349609375,
+    "reviews": 32768,
+    "table_bytes": 91987583
+   },
+   "v1_over_stock": 1.1002479969410714,
+   "v2_over_stock": 1.1155573975773019,
+   "v2_over_v1": 1.013914499893473
+  },
+  "M_largest_user_memory": {
+   "v1": {
+    "table_bytes": 327710858,
+    "slots": [
+     82122,
+     9,
+     75706,
+     7,
+     1
+    ],
+    "peak_memory_mib": 7400.72216796875,
+    "seconds_incl_preparation": 6.0
+   },
+   "v2": {
+    "table_bytes": 2171159149,
+    "slots": [
+     547888,
+     115,
+     493705,
+     88,
+     16
+    ],
+    "peak_memory_mib": 10532.6943359375,
+    "seconds_incl_preparation": 6.0
+   }
+  }
+ },
+ "fails": [],
+ "passed": true,
+ "seconds": 58.3
+}

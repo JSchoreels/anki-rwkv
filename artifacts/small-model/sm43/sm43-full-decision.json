@@ -1,0 +1,86 @@
+{
+ "child": "s-w64kd-sm43full-b-125u-110ep/w8+s8",
+ "parent": "s-w64kd-sm43full-a-1250u-11ep/w8+s8",
+ "users": 723,
+ "margin_pct": 0.25,
+ "arms": {
+  "a": {
+   "users": 1250,
+   "epochs": 11,
+   "constant_epochs": 10,
+   "decay_epochs": 1,
+   "reviews_per_epoch": 96446289,
+   "reviews_total": 1060909179,
+   "epochs_done": 11,
+   "training_hours": 2.87,
+   "wall_hours": 2.93,
+   "reviews_per_second": 102599
+  },
+  "b": {
+   "users": 125,
+   "epochs": 110,
+   "constant_epochs": 100,
+   "decay_epochs": 10,
+   "reviews_per_epoch": 9618195,
+   "reviews_total": 1058001450,
+   "epochs_done": 110,
+   "training_hours": 2.87,
+   "wall_hours": 3.44,
+   "reviews_per_second": 102296
+  }
+ },
+ "rule": "PASS upper95 <= +0.25% on both heads; EXTEND point <= +0.25% on both, an upper above; FAIL point > +0.25% on either",
+ "curve": {
+  "child": 0.31101567345176123,
+  "parent": 0.3086296532836537,
+  "fork": 0.3013888550533132,
+  "delta_pct": 0.7731013992730684,
+  "ci95_pct": [
+   0.5818046237967189,
+   0.9972639249426211
+  ],
+  "eval_reviews": 30479310,
+  "child_vs_fork_pct": 3.194152085267099,
+  "child_vs_fork_ci95_pct": [
+   2.7116181064196767,
+   3.8511541806245506
+  ],
+  "parent_vs_fork_pct": 2.402477101902023,
+  "parent_vs_fork_ci95_pct": [
+   2.015750505828595,
+   2.953216991317268
+  ],
+  "tertiles_delta_pct": {
+   "light": 0.9686234947021699,
+   "mid": 0.757001283565506,
+   "heavy": 0.7640759930018781
+  }
+ },
+ "instant": {
+  "child": 0.28618984540135584,
+  "parent": 0.28461741981937916,
+  "fork": 0.27785654475347377,
+  "delta_pct": 0.5524699025711621,
+  "ci95_pct": [
+   0.47336454398003824,
+   0.6454906012697119
+  ],
+  "eval_reviews": 30479310,
+  "child_vs_fork_pct": 2.9991377943880293,
+  "child_vs_fork_ci95_pct": [
+   2.817186690306686,
+   3.208089746345976
+  ],
+  "parent_vs_fork_pct": 2.4332250557221657,
+  "parent_vs_fork_ci95_pct": [
+   2.2985441333141003,
+   2.5823372335442296
+  ],
+  "tertiles_delta_pct": {
+   "light": 0.556999195123864,
+   "mid": 0.6228248320086394,
+   "heavy": 0.5363085509068721
+  }
+ },
+ "verdict": "FAIL"
+}

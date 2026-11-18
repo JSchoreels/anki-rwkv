@@ -7,10 +7,23 @@ LR from peak to 0). This does the same on the R01 trainer: it starts from an epo
 reviews, with the learning rate decaying from 7e-4 to 0 over exactly those reviews, then scores held-out users.
 
   prepare --source-run DIR --epoch N --out artifacts/... [--fraction 0.25 --shape one_minus_sin
-          --evaluate quick|validation|validation+final_test|none --seed 1 --extra-options JSON]
-  run     --out artifacts/...        (one GPU process; submit through scripts/r01_queue.py)
+          --evaluate quick|validation|validation+final_test|none --seed 1 --extra-options JSON
+          --fresh-optimizer --train-tier gate|final]   (fresh: start with an empty optimizer state instead of the source
+          optimizer.pth; train-tier: train on that accuracy-loop tier's users from artifacts/accuracy/tiers.json instead of
+          the source run's train_users, e.g. the 8k final tier from a gate-tier checkpoint; SM55)
+  run     --out artifacts/...        (one GPU process; submit through scripts/r01_queue.py). Weights and optimizer state are
+                                      snapshotted every --snapshot-users users (default 400, ~25 min at 8k users; 0 = off) and
+                                      on `save`/`stop`; running `run` again after an interruption resumes from the latest
+                                      snapshot (finished users skipped, the user in flight retrained, the learning rate
+                                      continuing over the whole decay's reviews; the attempt is kept in attempts/)
+  save    --out artifacts/...        (snapshot at the next user boundary; training continues)
+  stop    --out artifacts/...        (snapshot at the next user boundary, then the run exits; `run` resumes from it)
   auto    <prepare arguments>         (prepare unless --out exists, then run; lets a queued job wait for the epoch)
   compare --out artifacts/...        (decayed vs the source epoch on the same held-out users; summary.md/json)
+  smoke   --out artifacts/...        (60-120 s GPU smoke of a prepared decay: the same options and checkpoint on the
+                                      trainer's smoke rows, 2 users x 512 reviews, in a scratch copy under
+                                      artifacts/small-model/smoke/ that is deleted on success; the teacher cache is
+                                      not used. Put it at the start of a long ticket: `smoke ... && run ...`)
 
 The source run directory is only read. Its label database is opened read-only (lock=False) for the benchmark
 metrics. Compare against the source epoch's own scores on the same users (matched control).
@@ -25,7 +38,7 @@ import sys
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
-from scripts.run_full_training import atomic_json, rows_for  # noqa: E402
+from scripts.run_full_training import SNAPSHOT_USERS, atomic_json, rows_for  # noqa: E402
 
 MODEL = "expertium"
 
@@ -38,15 +51,34 @@ def source_case(source_run, config, epoch):
     return folder, result
 
 
-def prepare(source_run, epoch, out, fraction, shape, evaluate, seed, extra_options, final):
+def tier_users(config, name):
+    """Training users and reviews per epoch of accuracy-loop tier `name`, refused unless the tier comes from the same
+    split file and dataset as the source run (so the review counts and the held-out pools stay those of the source)."""
+    tiers = json.loads((ROOT / "artifacts/accuracy/tiers.json").read_text())
+    if not str(config.get("split", "")).endswith(f" of {tiers['split']}"):
+        raise RuntimeError(f"source run split {config.get('split')!r} is not a tier of {tiers['split']}")
+    if Path(tiers["dataset_path"]).resolve() != Path(config["dataset_path"]).resolve()             or tiers["dataset_revision"] != config["dataset_revision"]:
+        raise RuntimeError("tiers.json and the source run read different datasets")
+    tier = tiers["tiers"][name]
+    counts = config["review_counts"]
+    if sum(counts[str(u)] for u in tier["train_users"]) != tier["train_reviews"]:
+        raise RuntimeError(f"tier {name} review count does not match the source run's review_counts")
+    return tier["train_users"][:], tier["train_reviews"]
+
+
+def prepare(source_run, epoch, out, fraction, shape, evaluate, seed, extra_options, final, fresh_optimizer=False,
+            train_tier=None, snapshot_users=SNAPSHOT_USERS):
     if out.exists():
         raise FileExistsError(f"{out} exists; pick a new output")
     config = json.loads((source_run / "run.json").read_text())
     folder, result = source_case(source_run, config, epoch)
     counts = config["review_counts"]
-    order = config["train_users"][:]
+    if train_tier:
+        order, epoch_reviews = tier_users(config, train_tier)
+    else:
+        order, epoch_reviews = config["train_users"][:], config["training_reviews_per_epoch"]
     random.Random(seed).shuffle(order)
-    budget = fraction * config["training_reviews_per_epoch"]
+    budget = fraction * epoch_reviews
     users, reviews = [], 0
     for user in order:
         if reviews >= budget:
@@ -64,15 +96,21 @@ def prepare(source_run, epoch, out, fraction, shape, evaluate, seed, extra_optio
     schedule = {"decay_start": 0.0, "decay_end": 1.0, "shape": shape, "final": final}
     full_run = {"epoch": epoch, "evaluate": evaluate != "none", "init_master": str(folder / "master.pth"),
                 "init_optimizer": str(folder / "optimizer.pth"), "update_offset": result["update_offset_end"],
-                "lr_schedule": schedule, "benchmark_db": str(source_run / "label-db"), "evaluation_set": evaluate}
+                "lr_schedule": schedule, "benchmark_db": str(source_run / "label-db"), "evaluation_set": evaluate,
+                "snapshot_users": snapshot_users, "control_dir": (out / "control").relative_to(ROOT).as_posix()}
+    if fresh_optimizer:
+        # The source optimizer state is of another kind (AdamW vs Muon): start the decay from a new, empty state.
+        full_run.pop("init_optimizer")
+        full_run["optimizer_state"] = "fresh"
     protocol = {"rows": rows_for(users, counts), "evaluation_rows": rows_for(evaluation, counts),
                 "dataset_path": str(dataset), "dataset_revision": config["dataset_revision"],
-                "training": {"epochs": 1, "chunk_reviews": 128, "gpu_memory_fraction": 0.95},
+                "training": {"epochs": 1, "chunk_reviews": options.get("chunk_reviews", 128), "gpu_memory_fraction": 0.95},
                 "execution_mode": {"CUBLAS_WORKSPACE_CONFIG": ":4096:8"}, "full_run": full_run}
     decay = {"created_utc": datetime.now(timezone.utc).isoformat(), "source_run": str(source_run), "source_epoch": epoch,
              "source_case": str(folder), "source_update_offset_end": result["update_offset_end"], "model": MODEL,
              "track": config["track"], "options": options, "dropped_width32_options": dropped,
              "fraction_of_epoch_reviews": fraction, "training_users": len(users), "training_reviews": reviews,
+             "train_users_from": f"tier {train_tier} (artifacts/accuracy/tiers.json)" if train_tier else "source run.json",
              "shuffle_seed": seed, "lr": f"7e-4 -> {final * 7e-4:g}, shape {shape}, over all {reviews:,} reviews",
              "evaluation_set": evaluate, "evaluation_users": len(evaluation),
              "control": f"epoch-{epoch:02d} scores of the same users in {folder / 'result.json'}"}
@@ -98,8 +136,99 @@ def readonly_benchmark_info(db_path, db_size, user_id):
     return [], []
 
 
-def run(out):
+def smoke(out):
+    """Run the prepared decay `out` in the trainer's smoke mode on a scratch copy; never touches `out`."""
+    import shutil
+    import time
+    scratch = ROOT / "artifacts/small-model/smoke" / f"{out.name}-{os.getpid()}"
+    scratch.mkdir(parents=True)
     decay = json.loads((out / "decay.json").read_text())
+    distillation = decay["options"].get("distillation")
+    if isinstance(distillation, dict):
+        decay["options"]["distillation"] = {k: v for k, v in distillation.items() if k != "cache"}
+    atomic_json(scratch / "decay.json", decay)
+    protocol = json.loads((out / "protocol.json").read_text())
+    # a resumed decay's protocol.json says how many reviews are left (lr_resume); the smoke trains 2 users, not those
+    protocol.get("full_run", {}).pop("lr_resume", None)
+    atomic_json(scratch / "protocol.json", protocol)
+    started = time.perf_counter()
+    code = run(scratch, smoke=True)
+    result_path = scratch / decay.get("model", MODEL) / decay["track"] / "result.json"
+    result = json.loads(result_path.read_text()) if result_path.exists() else {}
+    print(json.dumps({"smoke": out.name, "exit": code, "status": result.get("status"), "updates": result.get("updates"),
+                      "reviews": result.get("review_presentations"), "error": result.get("error"),
+                      "seconds": round(time.perf_counter() - started, 1)}), flush=True)
+    if code == 0 and result.get("status") == "complete":
+        shutil.rmtree(scratch, ignore_errors=True)
+        return 0
+    return code or 1
+
+
+def resume_point(out, decay):
+    """Before a (re)run of `out`: set aside an interrupted attempt and, when it saved a snapshot, rewrite protocol.json to
+    train only the users not finished yet, from the snapshot's weights and optimizer state, with the learning rate
+    continuing where the snapshot left it. Returns "complete" when the decay already finished, else None."""
+    import shutil
+    model = decay.get("model", MODEL)  # SM72: "baseline" (the big model's architecture); earlier decays say expertium
+    case = out / model / decay["track"]
+    result = json.loads((case / "result.json").read_text()) if (case / "result.json").exists() else None
+    if result is None:
+        return None
+    if result.get("status") == "complete":
+        return "complete"
+    if "update_offset_end" in result and (case / "optimizer.pth").exists():
+        raise RuntimeError(f"{case} finished training and stopped during evaluation; score its master.pth instead of retraining")
+    prepared = out / "protocol.prepared.json"
+    if not prepared.exists():
+        shutil.copy(out / "protocol.json", prepared)
+    attempt = 1
+    while (out / "attempts" / f"attempt-{attempt}").exists():
+        attempt += 1
+    moved = out / "attempts" / f"attempt-{attempt}"
+    moved.mkdir(parents=True)
+    shutil.move(str(out / model), str(moved / model))
+    shutil.copy(out / "protocol.json", moved / "protocol.json")
+    latest = moved / model / decay["track"] / "snapshots" / "latest.json"
+    resume_file = out / "resume.json"
+    previous = json.loads(resume_file.read_text()) if resume_file.exists() else {"done_users": [], "attempts": []}
+    if latest.exists():
+        snapshot = json.loads(latest.read_text())
+        folder = latest.parent / Path(snapshot["folder"]).name
+        resume = {"done_users": sorted(set(previous["done_users"]) | set(snapshot["done_users"])),
+                  "master": (folder / "master.pth").relative_to(ROOT).as_posix(),
+                  "optimizer": (folder / "optimizer.pth").relative_to(ROOT).as_posix(),
+                  "update_offset_end": snapshot["update_offset_end"], "folder": folder.relative_to(ROOT).as_posix(),
+                  "attempts": previous["attempts"] + [moved.name], "exact": False,
+                  "note": "resumed: users fully trained before the snapshot are skipped; a user in flight is retrained from its start"}
+    elif "master" in previous:
+        resume = dict(previous, attempts=previous["attempts"] + [moved.name])  # failed before its first snapshot
+    else:
+        atomic_json(resume_file, dict(previous, attempts=previous["attempts"] + [moved.name], note="no snapshot: restarted"))
+        return None  # nothing saved yet: protocol.json is still the prepared one, start over
+    atomic_json(resume_file, resume)
+    protocol = json.loads(prepared.read_text())
+    done = set(resume["done_users"])
+    total = sum(row["train_range"][1] - row["train_range"][0] for row in protocol["rows"])
+    finished = sum(row["train_range"][1] - row["train_range"][0] for row in protocol["rows"] if row["user_id"] in done)
+    protocol["rows"] = [row for row in protocol["rows"] if row["user_id"] not in done]
+    protocol["full_run"].update(init_master=resume["master"], init_optimizer=resume["optimizer"], optimizer_state="snapshot",
+                                update_offset=resume["update_offset_end"],
+                                lr_resume={"total_reviews": total, "reviews_offset": finished},
+                                resumed={"done_users": len(done), "from": resume["folder"], "attempts": resume["attempts"]})
+    atomic_json(out / "protocol.json", protocol)
+    print(f"[decay] resuming {out.name} from {resume['folder']}: {len(done):,} users done "
+          f"({finished / total:.1%} of the reviews), {len(protocol['rows']):,} left", flush=True)
+    return None
+
+
+def run(out, smoke=False):
+    decay = json.loads((out / "decay.json").read_text())
+    if not smoke:
+        for name in ("STOP", "SAVE"):
+            (out / "control" / name).unlink(missing_ok=True)
+        if resume_point(out, decay) == "complete":
+            print(f"[decay] {out.name} already complete; not training again", flush=True)
+            return 0
     protocol = json.loads((out / "protocol.json").read_text())
     os.environ["GPU_BATCH1_DATA_PATH"] = protocol["dataset_path"]
     os.environ["CUBLAS_WORKSPACE_CONFIG"] = protocol["execution_mode"]["CUBLAS_WORKSPACE_CONFIG"]
@@ -123,7 +252,7 @@ def run(out):
     elif case.get("prefetch_users"):
         from scripts.gpu_r01_prefetch import training_batches
         gpu_batch1.training_batches = training_batches
-    args = Namespace(model=MODEL, track=decay["track"], smoke=False, expected_source=None,
+    args = Namespace(model=decay.get("model", MODEL), track=decay["track"], smoke=smoke, expected_source=None,
                      output=out.relative_to(ROOT).as_posix())
     return gpu_r01_training.run_case(args)
 
@@ -145,7 +274,7 @@ def summarize(per_user, users):
 
 def compare(out):
     decay = json.loads((out / "decay.json").read_text())
-    result = json.loads((out / MODEL / decay["track"] / "result.json").read_text())
+    result = json.loads((out / decay.get("model", MODEL) / decay["track"] / "result.json").read_text())
     if "per_user" not in result:  # trained with --evaluate none: nothing to compare, the checkpoint is the output
         print(f"[decay] {out}: no evaluation in result.json (--evaluate none); skipping compare")
         return 0
@@ -194,7 +323,7 @@ def compare(out):
 
 def main():
     parser = ArgumentParser(description=__doc__)
-    parser.add_argument("command", choices=("prepare", "run", "auto", "compare"))
+    parser.add_argument("command", choices=("prepare", "run", "auto", "compare", "smoke", "save", "stop"))
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--source-run", type=Path)
     parser.add_argument("--epoch", type=int)
@@ -204,17 +333,30 @@ def main():
     parser.add_argument("--evaluate", default="quick", choices=("quick", "validation", "validation+final_test", "none"))
     parser.add_argument("--seed", type=int, default=1)
     parser.add_argument("--extra-options", type=json.loads, default=None)
+    parser.add_argument("--fresh-optimizer", action="store_true",
+                        help="do not load the source epoch's optimizer.pth (needed when --extra-options changes the optimizer kind)")
+    parser.add_argument("--train-tier", choices=("screen", "gate", "final"), default=None,
+                        help="train on this accuracy-loop tier's users (artifacts/accuracy/tiers.json) instead of the source run's")
+    parser.add_argument("--snapshot-users", type=int, default=SNAPSHOT_USERS,
+                        help="prepare: snapshot every N trained users so an interrupted run resumes (0 = only on save/stop)")
     args = parser.parse_args()
     out = (ROOT / args.out).resolve()
     if not out.is_relative_to(ROOT / "artifacts"):
         parser.error("--out must be under this checkout's artifacts/")
     if args.command == "compare":
         return compare(out)
+    if args.command == "smoke":
+        return smoke(out)
+    if args.command in ("save", "stop"):
+        (out / "control").mkdir(exist_ok=True)
+        (out / "control" / args.command.upper()).touch()
+        print(f"[decay] {args.command.upper()} requested for {out.name}: snapshot at the next user boundary", flush=True)
+        return 0
     if args.command in ("prepare", "auto") and not (args.command == "auto" and out.exists()):
         if args.source_run is None or args.epoch is None or not 0 < args.fraction <= 1:
             parser.error("prepare needs --source-run, --epoch and 0 < --fraction <= 1")
         code = prepare(args.source_run.resolve(), args.epoch, out, args.fraction, args.shape, args.evaluate, args.seed,
-                       args.extra_options, args.final)
+                       args.extra_options, args.final, args.fresh_optimizer, args.train_tier, args.snapshot_users)
         if args.command == "prepare" or code:
             return code
     code = run(out)
