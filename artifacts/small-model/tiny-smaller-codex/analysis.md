@@ -1,6 +1,6 @@
 # Making Tiny smaller within +1% of Small: outside review (Codex, GPT-6.2-Astra, max effort, read-only), 11-18
 
-Brief: [brief.md](brief.md). Run 18:2x-21:59 Wed 11-18. Key numbers spot-checked against pages/data/factory-curated.json (SM15, SM47, SM49, pruning design layer counts): they match.
+Brief: [brief.md](brief.md). Run 21:45-21:59 Wed 11-18 (about 14 min). Key numbers spot-checked against pages/data/factory-curated.json (SM15, SM47, SM49, pruning design layer counts): they match.
 
 **I would test a six-layer Tiny with compact integer state first.** Keep Tiny’s one card layer and one note layer, and cut the deck, preset, and user streams to two, one, and one layers. With int8 weights, 16-bit row scales, and int8 token-shift vectors, I estimate **185,057 parameters, a 239 KB weight file, 803 bytes per card, and 1,315 bytes per note**. Against Small, that is **44% fewer parameters, a 45% smaller int8 weight file, and 40% less state for one card and one note**. The closest trained pruning result suggests a total cost around **+0.5% to +0.6% versus Small**. The combination has yet to be measured. [Pruning design](C:/Users/jonat/workspace/wt/prune/docs/SMALL_MODEL_PRUNING.md) · [Tiny package layout](C:/Users/jonat/workspace/wt/tiny-package/artifacts/small-model/sm106-package/sm106-package.md) · [Compact integer state results](C:/Users/jonat/workspace/wt/sm45/artifacts/small-model/sm47/sm47-summary.md)
 
