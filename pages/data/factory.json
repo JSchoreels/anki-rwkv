@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-18T09:43:24+01:00",
- "updated": "2026-11-18 09:43",
- "material": "4cef9006b5f4d0a6",
- "summary": "running 001334, finished 001333",
+ "generated_at": "2026-11-18T09:59:42+01:00",
+ "updated": "2026-11-18 09:59",
+ "material": "e98142f48bb727e6",
+ "summary": "running 001336, finished 001335",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring, show-time inputs for both heads (curve / instant)",
@@ -413,18 +413,18 @@
  "now": [
   {
    "what": "Time head for the show-time two-head cool-down for Tiny (SM126): the show-time two-head cool-down for Tiny (SM124) got a go at 04:46 Wed 11-18, but answer-time heads are tied to their trunk, so it needs its own. This run first trains the answer-time head of the time heads for the new candidates (SM119) on the frozen model (about 43 min), checks that the model's grades stay bitwise unchanged, and scores P(recall within S seconds) (recalled and answered within S s, reading the back included) on the 732 set against both baselines. Then it runs the rolling recalibration on the 732 set (SM125) on this model with its new head: per-review outputs on the GPU, a per-user causal Platt scaling refitted every 7 days on the latest 30,000 earlier reviews on the CPU (about 1.2 h), and the same pre-registered go rule (every timed event at 2 to 10 s reliable, Good or Easy within 4 s better than raw, no cell worse, P(Good or Easy) and P(Easy) reliable)",
-   "id": "SM126, ticket 001334",
+   "id": "SM126, ticket 001336",
    "kind": "gpu",
    "decides": "Whether the show-time two-head cool-down for Tiny (SM124) can ship an answer-time estimate like the other family models, and whether per-user recalibration of its timed Good/Easy predictions makes them reliable",
    "why": "",
-   "job": "time head for the show-time two-head cool-down for Tiny (SM126): the show-time two-head cool-down for Tiny (SM124): scoring with fast Good/Easy prediction (SM120)&#x27;s code, P(Good or Easy), P(Easy), P(set and answered within S s) and the baselines on the 732 set (723 users, pass 1, cap 0.8)",
+   "job": "time head for the show-time two-head cool-down for Tiny (SM126): per-review dump of the show-time two-head cool-down for Tiny (SM124) on the 732 set (723 users, pass 1, cap 0.8)",
    "linked": true,
    "track": "small model",
-   "ticket": "001334-small-model",
-   "started": "09:43",
+   "ticket": "001336-small-model",
+   "started": "09:59",
    "elapsed": "0:00",
    "progress": null,
-   "eta": "~10:13"
+   "eta": "~10:29"
   }
  ],
  "charts": [
@@ -597,6 +597,24 @@
  "waiting": [],
  "recent": [
   {
+   "ticket": "001335-small-model",
+   "id": "SM126",
+   "what": "time head for the show-time two-head cool-down for Tiny (SM126): the show-time two-head cool-down for Tiny (SM124): GPU smoke of the per-review dump on 3 users vs the SM120-code rows and the sums of the head scoring (cap 0.8)",
+   "ended": "09:59",
+   "date": "11-18",
+   "exit": 0,
+   "ran": "0:00"
+  },
+  {
+   "ticket": "001334-small-model",
+   "id": "SM126",
+   "what": "time head for the show-time two-head cool-down for Tiny (SM126): the show-time two-head cool-down for Tiny (SM124): scoring with fast Good/Easy prediction (SM120)&#x27;s code, P(Good or Easy), P(Easy), P(set and answered within S s) and the baselines on the 732 set (723 users, pass 1, cap 0.8)",
+   "ended": "09:59",
+   "date": "11-18",
+   "exit": 0,
+   "ran": "0:16"
+  },
+  {
    "ticket": "001333-small-model",
    "id": "SM126",
    "what": "time head for the show-time two-head cool-down for Tiny (SM126): scoring the show-time two-head cool-down for Tiny (SM124): answer time and P(recall within S seconds) on the 732 set (723 users, pass 1, cap 0.8)",
@@ -631,24 +649,6 @@
    "date": "11-18",
    "exit": 0,
    "ran": "0:00"
-  },
-  {
-   "ticket": "001329-small-model",
-   "id": "SM125",
-   "what": "Rolling recalibration on the 732 set (SM125): per-review dump of the Tiny two-head model (SM106) on the 732 set (723 users, pass 1, cap 0.8)",
-   "ended": "06:11",
-   "date": "11-18",
-   "exit": 0,
-   "ran": "0:19"
-  },
-  {
-   "ticket": "001328-small-model",
-   "id": "SM125",
-   "what": "Rolling recalibration on the 732 set (SM125): per-review dump of the Small Instant-Only model (SM98) on the 732 set (723 users, pass 1, cap 0.8)",
-   "ended": "05:51",
-   "date": "11-18",
-   "exit": 0,
-   "ran": "0:17"
   }
  ],
  "plan": [
@@ -2589,8 +2589,8 @@
    "decides": "Whether the show-time two-head cool-down for Tiny (SM124) can ship an answer-time estimate like the other family models, and whether per-user recalibration of its timed Good/Easy predictions makes them reliable",
    "state": "running",
    "started_at": "2026-11-18T08:44:07+01:00",
-   "started": "09:43",
-   "ticket": "001334-small-model",
+   "started": "09:59",
+   "ticket": "001336-small-model",
    "ends_at": "2026-11-18T10:24:07+01:00"
   },
   {
@@ -2602,12 +2602,9 @@
    "what": "The show-time two-head cool-down for Tiny (SM124): the recipe of the show-time two-head cool-down for Small (SM118) (one learning-rate decay stretched over two passes of the 8,000 users) applied to the Tiny two-head model (SM106), from its constant-LR epoch 29 (the checkpoint its own cool-down started from), both heads trained, with the curve and grade targets of the show-time big model (SM91s2) on show-time inputs (the targets the show-time two-head cool-down for Small (SM118) exported, reused: no export). Early stop after pass 1 unless a head beats the Tiny two-head model (SM106)&rsquo;s own snapshot at about the same learning rate and neither is +0.05% worse; go = new &minus; the Tiny two-head model (SM106) on show-time inputs: one head better (CI below 0 and at least 0.05%) and neither head worse (+0.05% or more, or CI above 0)",
    "when": "Done 04:46 Wed 11-18: go (&minus;0.103% curve and &minus;0.096% instant vs the Tiny two-head model (SM106)); launched 11:05 Tue 11-17",
    "decides": "Whether the longer cool-down with the big two-head teacher lifts the Tiny two-head model on both heads (the show-time big model (SM91s2) is &minus;0.422% curve / &minus;0.430% instant better than the Tiny two-head model (SM106)); a go is held for the 11-28 release decision",
-   "state": "running",
-   "started_at": "2026-11-17T11:05:48+01:00",
-   "ended_at": "2026-11-18T04:46+01:00",
-   "started": "09:43",
-   "ticket": "001334-small-model",
-   "ends_at": "2026-11-18T02:05:48+01:00"
+   "state": "done",
+   "started_at": "2026-11-17T11:05+01:00",
+   "ended_at": "2026-11-18T04:46+01:00"
   },
   {
    "id": "SM118",
