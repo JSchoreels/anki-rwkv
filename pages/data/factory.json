@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-18T12:17:19+01:00",
- "updated": "2026-11-18 12:17",
- "material": "1cbfc41f7bcaa6f7",
- "summary": "running 001338",
+ "generated_at": "2026-11-18T12:34:17+01:00",
+ "updated": "2026-11-18 12:34",
+ "material": "c4fcfa375c96e048",
+ "summary": "running 001339, finished 001338",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring, show-time inputs for both heads (curve / instant)",
@@ -413,18 +413,18 @@
  "now": [
   {
    "what": "Rolling recalibration for the Big models (SM128): the exact recipe of rolling recalibration on the 732 set (SM125), which got a go for all five release family candidates, applied to the show-time big model (SM91s2) and the show-time instant-only big model (SM99) with their time heads for the family (SM117). Per-review outputs on the GPU (fast Good/Easy prediction (SM120) already scored both, so the dump is checked against its sums), then a per-user causal Platt scaling refitted every 7 days on the latest 30,000 earlier reviews on the CPU (about 1.2 h per model, one model at a time), raw model before 1,000. Same pre-registered go rule (every timed event at 2 to 10 s reliable: ECE below 0.01 and LogLoss below both baselines, CI below 0 and at least 0.05%; Good or Easy answered within 4 s, reading the back included, better than raw; no cell worse; P(Good or Easy) and P(Easy) still reliable)",
-   "id": "SM128, ticket 001338",
+   "id": "SM128, ticket 001339",
    "kind": "gpu",
    "decides": "Whether the Big models can ship timed Good/Easy predictions that are reliable after per-user recalibration from the client&rsquo;s own history, like the five other family models",
    "why": "",
-   "job": "rolling recalibration for the Big models (SM128): per-review dump of the show-time big model (SM91s2) on the 732 set (723 users, pass 1, cap 0.8)",
+   "job": "rolling recalibration for the Big models (SM128): per-review dump of the show-time big model (SM91s2) on the 732 set (missing users, pass 2, cap 0.92)",
    "linked": true,
    "track": "small model",
-   "ticket": "001338-small-model",
-   "started": "12:15",
-   "elapsed": "0:01",
+   "ticket": "001339-small-model",
+   "started": "12:33",
+   "elapsed": "0:00",
    "progress": null,
-   "eta": "~13:00"
+   "eta": "~12:48"
   }
  ],
  "charts": [
@@ -597,6 +597,15 @@
  "waiting": [],
  "recent": [
   {
+   "ticket": "001338-small-model",
+   "id": "SM128",
+   "what": "rolling recalibration for the Big models (SM128): per-review dump of the show-time big model (SM91s2) on the 732 set (723 users, pass 1, cap 0.8)",
+   "ended": "12:33",
+   "date": "11-18",
+   "exit": 0,
+   "ran": "0:17"
+  },
+  {
    "ticket": "001337-small-model",
    "id": "SM128",
    "what": "rolling recalibration for the Big models (SM128): GPU smoke: dump of the show-time big model (SM91s2) on 3 users vs SM120&#x27;s recorded sums (cap 0.8)",
@@ -640,15 +649,6 @@
    "date": "11-18",
    "exit": 0,
    "ran": "0:14"
-  },
-  {
-   "ticket": "001332-small-model",
-   "id": "SM126",
-   "what": "time head for the show-time two-head cool-down for Tiny (SM126): the show-time two-head cool-down for Tiny (SM124): grade check (the release vs the trunk after head training, 5 users, show-time scorer rows and dumps bitwise)",
-   "ended": "09:28",
-   "date": "11-18",
-   "exit": 0,
-   "ran": "0:00"
   }
  ],
  "plan": [
@@ -2614,8 +2614,8 @@
    "decides": "Whether the Big models can ship timed Good/Easy predictions that are reliable after per-user recalibration from the client&rsquo;s own history, like the five other family models",
    "state": "running",
    "started_at": "2026-11-18T12:15:39+01:00",
-   "started": "12:15",
-   "ticket": "001338-small-model",
+   "started": "12:33",
+   "ticket": "001339-small-model",
    "ends_at": "2026-11-18T13:05:39+01:00"
   },
   {
