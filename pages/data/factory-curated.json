@@ -2333,6 +2333,21 @@
    "started_at": "2026-11-18T12:10+01:00"
   },
   {
+   "id": "SM128",
+   "track": "small model",
+   "since": "11-18T12:15",
+   "kind": "gpu",
+   "minutes": 50,
+   "match": [
+    "rolling recalibration for the Big models (SM128): "
+   ],
+   "what": "Rolling recalibration for the Big models (SM128): the exact recipe of rolling recalibration on the 732 set (SM125), which got a go for all five release family candidates, applied to the show-time big model (SM91s2) and the show-time instant-only big model (SM99) with their time heads for the family (SM117). Per-review outputs on the GPU (fast Good/Easy prediction (SM120) already scored both, so the dump is checked against its sums), then a per-user causal Platt scaling refitted every 7 days on the latest 30,000 earlier reviews on the CPU (about 1.2 h per model, one model at a time), raw model before 1,000. Same pre-registered go rule (every timed event at 2 to 10 s reliable: ECE below 0.01 and LogLoss below both baselines, CI below 0 and at least 0.05%; Good or Easy answered within 4 s, reading the back included, better than raw; no cell worse; P(Good or Easy) and P(Easy) still reliable)",
+   "when": "Started 12:15 Wed 11-18; GPU (smoke + two dumps) about 50 min, then about 1.2 h of CPU per model one after the other; result about 15:45 Wed 11-18 (up to 16:30)",
+   "decides": "Whether the Big models can ship timed Good/Easy predictions that are reliable after per-user recalibration from the client&rsquo;s own history, like the five other family models",
+   "state": "running",
+   "started_at": "2026-11-18T12:15+01:00"
+  },
+  {
    "id": "SM124",
    "track": "small model",
    "since": "11-17T11:05",
