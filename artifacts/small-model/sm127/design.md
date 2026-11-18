@@ -239,3 +239,78 @@ experiment always means answered within S s, reading the back included.
   - Pilot: about 5.7M lane reviews, about 3-4 CPU process-hours, about 1.5 h wall.
   - Full design (150 users): about 58M lane reviews, about 30 CPU process-hours, about 8 h wall on 4 processes. That
     is above the ~10 h bar and needs the user's go, so **only the pilot is launched**.
+
+## 12. Amendment, Wed 11-18 ~14:00 (after the pilot; written before the time-drift diagnostic runs)
+
+### 12.1 Comparison statistic (changed after seeing the pilot)
+
+- **What changed and why.** Section 6 fixed the comparison statistic as the mean over users of the per-user relative
+  gap (a / b - 1). The pilot showed that this statistic explodes when one user's b is near 0: the fluency scheduler
+  at 0.80 with vs without answer-time feedback reads +1012% on fluent cards, while the population means are 772 vs
+  768 fluent cards. This change is made **after seeing the pilot**, because of that defect; it is not a pre-registered
+  choice.
+- **New primary statistic:** the ratio of population totals, sum over users of a / sum over users of b - 1, with a
+  95% paired user-bootstrap CI (10,000 resamples, seed 127: one resample matrix shared by all comparisons). Reported
+  next to it: the median per-user ratio. The old statistic stays in the report as a secondary table, with its
+  numbers unchanged (same rng sequence).
+- **Decision rule:** section 7 unchanged, applied to the new statistic (G = the ratio-of-totals fluent gap of the
+  fluency scheduler at 0.80 over the best desired retention, with its CI; the memorised gap likewise). The pilot's
+  verdict is reported under both statistics. **A full run would use the ratio of totals as the primary statistic.**
+- Report code: `report` in `scripts/sm127_fluency.py`; pilot re-read into `report-pilot-v2.out`, `sm127-tables-v2.md`,
+  `sm127-result-v2.json`. No re-simulation.
+
+### 12.2 Time-drift diagnostic (pre-registered here, before it runs)
+
+**Question.** With answer-time feedback, desired retention 0.90 costs about 18.4 s per review against 15.5 s without
+feedback (later-day reviews: 19.3 s vs 15.7 s). Is this (a) a self-feeding loop of sampled answer times (a sampled slow
+time is fed back, the model then predicts the same card slower, and so on), or (b) a real effect of the policy
+reviewing different cards (other cards, other intervals, other grades)?
+
+**Already seen in the pilot rows (stated so that nothing below is chosen with hindsight).**
+- On the real schedule, sampled-and-fed-back later-day times (`fr-shared1`) are +7% over the real ones over the year
+  (pooled), month by month between 0.97x and 1.15x, with no rise over the year (months 1-6 about 1.08x, months 7-12
+  about 1.08x).
+- The feedback-vs-no-feedback gap in later-day seconds per review grows over the first three months and then stays
+  flat, only at desired retention 0.90 (1.10x in month 1, about 1.25x from month 3 on). At desired retention 0.98 and
+  for the fluency scheduler at 0.80 the feedback lanes end *faster* than their no-feedback twins (about 0.89x and
+  0.85x in month 13). A one-directional "slow begets slow" runaway would push every feedback lane up.
+
+**Run.** `scripts/sm127_timedrift.py`, the 12 pilot users, days 0-149 of the same 365-day set-up (same budget, same
+draws), 8 lanes with a per-review log kept in memory (only aggregates are written):
+- real schedule: teacher forcing (`tf`, real grades and times); sampled grades and times fed back, daily re-anchoring
+  (`fr-shared1#0`); the same without re-anchoring (`fr#0`); the same re-anchored, with the user's median time of the
+  grade in the trunk's duration input instead of the sampled one (`fr-shared1-nofb#0`, new);
+- the twins: desired retention 0.90 with and without feedback (`ihr-0.90#0`, `ihr-0.90-nofb#0`) and desired retention
+  0.98 with and without (`ihr-0.98#0`, `ihr-0.98-nofb#0`), seed 0.
+- Identity check: the lanes also in the pilot must reproduce the pilot rows' 15-day buckets (time and load) to 1e-4;
+  otherwise the diagnostic is not read.
+- Cost: about 1.3-1.6 CPU process-hours on 3 processes (budget 2).
+
+**Measures (later-day reviews; all pooled as ratios of totals over users, paired user bootstrap as in 12.1).**
+- **P, persistence:** the within-user correlation of the log answer time of consecutive later-day reviews of the same
+  card (pooled within-user covariance over pooled variances), days 0-74 and 75-149. Real answer times give the truth
+  (`tf`).
+- **T, twin decomposition** at desired retention 0.90 (and 0.98): the log of the feedback / no-feedback ratio of
+  seconds per later-day review is split into a **within-cell** part (the same card, in the same interval bucket
+  (<= 3, 4-15, 16-63, >= 64 days) and the same pass/fail, slower or faster) and a **selection** part (which cards,
+  intervals and grades get reviewed, including cards reviewed in only one lane). Both weightings (feedback's cell
+  counts, no-feedback's) are reported; the share is their mean.
+- **M, median vs sampled vs real on the real schedule:** seconds per later-day review and the model's own expected
+  time per review (bin midpoints, the `time_later` read-out) for real, sampled and median-in-trunk feedback.
+- **N, no re-anchoring:** `fr#0` against `fr-shared1#0`, by 30-day month.
+
+**Reading (fixed now).**
+- **(a) Drift, a self-feeding loop:** the within-cell share of the desired retention 0.90 gap is >= 1/2 **and** the
+  fed-back sampled times persist more than real ones (P of `fr-shared1#0` minus P of `tf` >= +0.05, or P of
+  `ihr-0.90#0` minus P of `ihr-0.90-nofb#0` >= +0.10).
+- **(b) A real effect of the policy reviewing different cards:** the selection share is >= 1/2 and the persistence
+  excess of `fr-shared1#0` over `tf` is below +0.05.
+- **Within-card but realistic:** within-cell share >= 1/2 but persistence within +0.05 of real: the same cards are
+  slower with feedback, while fed-back times persist no more than real ones. Read as the effort effect acting on the
+  lane's own card histories, not as a runaway loop; M then says whether the median-in-trunk arm is the biased one.
+- Otherwise: **mixed**, reported as measured.
+- **N** is informational: a rise of `fr#0` over `fr-shared1#0` of >= 5% by days 120-149 means user-level drift that the
+  daily re-anchoring removes (every policy lane is re-anchored).
+- **If (a):** propose the minimal fix with its cost (for example the per-user median of the grade, or the model's
+  expected time, as the fed-back duration of later-day reviews; or a daily re-anchoring of the time stream). No full
+  re-simulation is run here.

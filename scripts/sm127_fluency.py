@@ -233,6 +233,7 @@ class BudgetSession(E.PolicySession):
 # ------------------------------------------------------------------ the engine
 class Engine127(E.Engine):
     """sm41_engine.Engine + the fluency policy, the -nofb lanes, the budget and the fluency read-outs."""
+    NOFB_REPLAY = False     # True (time-drift diagnostic only): -nofb also allowed on replay lanes (fr-shared1-nofb)
 
     def __init__(self, model, warm, D, N, lane_names, budget_s, med_ms, pause=None, trace=False):
         bases, flags = zip(*[split_name(n) for n in lane_names])
@@ -244,7 +245,7 @@ class Engine127(E.Engine):
         self.nofb = np.array([f["nofb"] for f in flags])
         self.fb_r = np.array([f["fb"] if f["fb"] else np.nan for f in flags], np.float64)
         self.is_flu = np.array([c["kind"] == "policy" and c["policy"] == "flu" for c in self.cfg])
-        assert not (self.nofb & ~self.is_pol).any() and not (np.isfinite(self.fb_r) & ~self.is_flu).any()
+        assert (self.NOFB_REPLAY or not (self.nofb & ~self.is_pol).any()) and not (np.isfinite(self.fb_r) & ~self.is_flu).any()
         self.med_ms = {int(g): float(v) for g, v in med_ms.items()}
         model._med = np.array([0.0] + [float(DP.scale_duration(np.array([self.med_ms[g]], np.float64))[0])
                                        for g in (1, 2, 3, 4)], np.float32)
@@ -824,6 +825,37 @@ def boot_ci(x, rng, n=BOOT):
     return [float(np.percentile(m, 2.5)), float(np.percentile(m, 97.5))]
 
 
+def boot_idx(n, seed=SEED, n_boot=BOOT):
+    """One paired user-resample index matrix [n_boot, n] (the same resamples for every comparison)."""
+    return np.random.default_rng(seed).integers(0, n, (n_boot, n))
+
+
+def total_ratio(a, b, idx):
+    """Ratio of population totals minus 1 (sum over users of a / sum of b - 1), its paired user-bootstrap 95% CI and the
+    median per-user ratio minus 1. Robust to users whose b is near 0 (the mean of per-user ratios is not)."""
+    a, b = np.asarray(a, np.float64), np.asarray(b, np.float64)
+    v = float(a.sum() / max(b.sum(), 1e-9) - 1)
+    if len(a) < 2:
+        ci = [float("nan"), float("nan")]
+    else:
+        r = a[idx].sum(1) / np.maximum(b[idx].sum(1), 1e-9) - 1
+        ci = [float(np.percentile(r, 2.5)), float(np.percentile(r, 97.5))]
+    med = float(np.median(a / np.maximum(b, 1e-9) - 1))
+    return {"total": v, "ci": ci, "median": med, "n": int(len(a))}
+
+
+def rule(f_, m_, key="mean"):
+    """The decision rule of design.md 7 on one statistic (key 'mean' = mean of per-user ratios, 'total' = ratio of
+    population totals): f_ the fluent gap, m_ the memorised gap (or None)."""
+    if f_["ci"][1] < BAR:
+        return "a high desired retention is enough (the fluency scheduler adds less than 2% fluent cards)"
+    if f_[key] >= BAR and f_["ci"][0] > 0:
+        if m_ is None or m_[key] >= -BAR:
+            return "a fluency scheduler is needed"
+        return "a trade-off: the fluency scheduler gives more fluent cards but more than 2% fewer memorised"
+    return "inconclusive"
+
+
 def per_user(res):
     """Seed-averaged metrics per policy for one user row."""
     lanes = res["lanes"]
@@ -877,35 +909,59 @@ def report(args):
                  f"{g['fast_pass_share_end']:.3f} | {g['floor_share']:.3f} | {g['hit_days']:.0f} |")
     out = {"set": args.set, "users": [r["user"] for r in rows], "summary": summ}
 
-    def gap(a, b, key):
+    rng_extra = np.random.default_rng([SEED, 2])   # comparisons added after the pilot: their own draws
+
+    def gap(a, b, key, r=None):
         x = [u[a][key] / max(u[b][key], 1e-9) - 1 for u in P]
-        return {"mean": float(np.mean(x)), "ci": boot_ci(x, rng), "n": len(x)}
+        return {"mean": float(np.mean(x)), "ci": boot_ci(x, rng if r is None else r), "n": len(x)}
+    # primary statistic since the design.md amendment of 11-18 (after the pilot): the ratio of population totals with
+    # a paired user bootstrap (its own resamples, seed SEED, BOOT); the mean of per-user ratios stays as the secondary
+    # column, computed with the pilot report's rng sequence so its numbers are unchanged
+    idx = boot_idx(len(P)) if P else None
+
+    def tot(a, b, key):
+        return total_ratio([u[a][key] for u in P], [u[b][key] for u in P], idx)
+
+    def fmt(c):
+        return f"{100 * c['total']:+.2f}% [{100 * c['ci'][0]:+.2f}, {100 * c['ci'][1]:+.2f}] | {100 * c['median']:+.2f}%"
+
+    def fmt_m(c):
+        return f"{100 * c['mean']:+.2f}% [{100 * c['ci'][0]:+.2f}, {100 * c['ci'][1]:+.2f}]"
     dr = ["ihr-0.90", "ihr-0.95", "ihr-0.98"]
     best = max(dr, key=lambda p: summ[p]["fluent"]) if all(p in summ for p in dr) else None
+    keys = ("fluent", "memorised", "minutes")
     if best:
         L += ["", f"Best desired-retention arm by fluent cards (population): {best}.", "",
-              "| comparison | fluent | memorised | minutes |", "|---|---|---|---|"]
-        comps = {}
+              "Primary (design.md amendment 11-18): ratio of population totals (sum over users of a / sum of b - 1), "
+              f"95% paired user-bootstrap CI ({BOOT:,} resamples, seed {SEED}); then the median per-user ratio.", "",
+              "| comparison | fluent: totals [CI] | fluent: median user | memorised: totals [CI] | memorised: median user "
+              "| minutes: totals [CI] | minutes: median user |", "|" + "---|" * 7]
+        comps, sec = {}, []
         for a, b in [("flu-0.80", best)] + [("flu-0.80", p) for p in dr if p != best] + \
                     [("flu-0.70", best), ("flu-0.80-fb95", best), ("ihr-0.98", "ihr-0.90"),
                      ("flu-0.80-nofb", "ihr-0.98-nofb"), ("flu-0.80-nofb", "ihr-0.90-nofb"),
-                     ("ihr-0.98-nofb", "ihr-0.90-nofb"), ("flu-0.80", "flu-0.80-nofb"), ("ihr-0.98", "ihr-0.98-nofb")]:
+                     ("ihr-0.98-nofb", "ihr-0.90-nofb"), ("flu-0.80", "flu-0.80-nofb"), ("ihr-0.98", "ihr-0.98-nofb"),
+                     ("ihr-0.90", "ihr-0.90-nofb")]:
             if a in summ and b in summ:
-                c = {k: gap(a, b, k) for k in ("fluent", "memorised", "minutes")}
+                extra = (a, b) == ("ihr-0.90", "ihr-0.90-nofb")    # not in the pilot report: rng sequence kept
+                c = {k: gap(a, b, k, rng_extra if extra else None) for k in keys}
+                t = {k: tot(a, b, k) for k in keys}
+                for k in keys:
+                    c[k].update({"total": t[k]["total"], "total_ci": t[k]["ci"], "median": t[k]["median"]})
                 comps[f"{a} vs {b}"] = c
-                L.append(f"| {a} vs {b} | " + " | ".join(
-                    f"{100 * c[k]['mean']:+.2f}% [{100 * c[k]['ci'][0]:+.2f}, {100 * c[k]['ci'][1]:+.2f}]"
-                    for k in ("fluent", "memorised", "minutes")) + " |")
+                L.append(f"| {a} vs {b} | " + " | ".join(fmt(t[k]) for k in keys) + " |")
+                sec.append(f"| {a} vs {b} | " + " | ".join(fmt_m(c[k]) for k in keys) + " |")
+        L += ["", "Secondary (the pilot report's statistic, unchanged): mean of per-user ratios (a / b - 1), 95% user "
+                  "bootstrap CI. It explodes when a user's b is near 0.", "",
+              "| comparison | fluent | memorised | minutes |", "|---|---|---|---|"] + sec
         out["comparisons"] = comps
+        out["statistic"] = {"primary": "ratio of population totals - 1, paired user bootstrap (boot_idx)",
+                            "secondary": "mean of per-user ratios - 1 (the pilot report's)", "boot": BOOT, "seed": SEED}
         G = comps[f"flu-0.80 vs {best}"]
-        f_, m_ = G["fluent"], G["memorised"]
-        if f_["ci"][1] < BAR:
-            verdict = "a high desired retention is enough (the fluency scheduler adds less than 2% fluent cards)"
-        elif f_["mean"] >= BAR and f_["ci"][0] > 0:
-            verdict = ("a fluency scheduler is needed" if m_["mean"] >= -BAR else
-                       "a trade-off: the fluency scheduler gives more fluent cards but more than 2% fewer memorised")
-        else:
-            verdict = "inconclusive"
+        verdict_mean = rule(G["fluent"], G["memorised"], "mean")
+        tf_ = {"total": G["fluent"]["total"], "ci": G["fluent"]["total_ci"], "median": G["fluent"]["median"]}
+        tm_ = {"total": G["memorised"]["total"], "ci": G["memorised"]["total_ci"], "median": G["memorised"]["median"]}
+        verdict = rule(tf_, tm_, "total")
         # the same rule without answer-time feedback
         nof = [p for p in ("ihr-0.90-nofb", "ihr-0.98-nofb") if p in summ]
         v2 = None
@@ -915,11 +971,20 @@ def report(args):
             ci = boot_ci(x, rng)
             v2 = {"best": bn, "mean": float(np.mean(x)), "ci": ci,
                   "verdict": ("enough" if ci[1] < BAR else "needed" if np.mean(x) >= BAR and ci[0] > 0 else "inconclusive")}
-        out.update({"best_dr": best, "verdict": verdict, "nofb": v2})
-        L += ["", f"**Verdict (decision rule of design.md 7, feedback on): {verdict}.**"]
+            tn = tot("flu-0.80-nofb", bn, "fluent")
+            tnm = tot("flu-0.80-nofb", bn, "memorised")
+            v2["total"] = {"fluent": tn, "memorised": tnm, "verdict": rule(tn, tnm, "total")}
+        out.update({"best_dr": best, "verdict": verdict, "verdict_mean_of_ratios": verdict_mean, "nofb": v2})
+        L += ["", f"**Verdict (decision rule of design.md 7 on the primary statistic, the ratio of totals; feedback on): "
+                  f"{verdict}.** flu-0.80 vs {best}: fluent {fmt(tf_)}; memorised {fmt(tm_)}.",
+              f"On the secondary statistic (mean of per-user ratios), as in the pilot report: {verdict_mean}."]
         if v2:
-            L.append(f"Without answer-time feedback: flu-0.80-nofb vs {v2['best']} fluent {100 * v2['mean']:+.2f}% "
-                     f"[{100 * v2['ci'][0]:+.2f}, {100 * v2['ci'][1]:+.2f}] -> {v2['verdict']}.")
+            L.append(f"Without answer-time feedback (ratio of totals): flu-0.80-nofb vs {v2['best']} fluent "
+                     f"{fmt(v2['total']['fluent'])}; memorised {fmt(v2['total']['memorised'])} -> "
+                     f"{v2['total']['verdict']}.")
+            L.append(f"Without answer-time feedback (secondary, mean of per-user ratios): flu-0.80-nofb vs {v2['best']} "
+                     f"fluent {100 * v2['mean']:+.2f}% [{100 * v2['ci'][0]:+.2f}, {100 * v2['ci'][1]:+.2f}] -> "
+                     f"{v2['verdict']}.")
     # drift check: replay lane fr-shared1 vs tf, first-touch predicted pass (state drift), all days
     if "fr-shared1" in summ and "tf" in summ:
         x = [u["fr-shared1"]["first_touch_pred"] - u["tf"]["first_touch_pred"] for u in P]
