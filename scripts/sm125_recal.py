@@ -37,7 +37,8 @@ from scripts.sm117_head import (MODELS, ORDER, HIST_BINS, U732, verified_master,
                                 ScoreBatches, cdf_at, binary_sums, hist_of, ece_auc_from_hist, pool_users, bootstrap_idx, _diff)
 from scripts.sm117_timelib import BINS, label_db, test_reviews, first, atomic_json  # noqa: E402
 
-OUT = ROOT / "artifacts/small-model/sm125"
+TAG = os.environ.get("SM125_TAG", "sm125")                     # sm128 reuses this script with SM125_TAG=sm128 (output folder and file prefix)
+OUT = ROOT / "artifacts/small-model" / TAG
 WORK = OUT / "work"
 GPU = OUT / "gpu"
 ROWS = OUT / "rows"
@@ -49,7 +50,7 @@ SET_ORDER = ("E", "GE", "Rec")                              # nested: E within G
 SET_NAMES = f120.SET_NAMES
 COLS = [(sn, 0) for sn in SETS] + [(sn, s) for sn in SETS for s in S_GRID]   # s = 0: grade only, P(set)
 CI = {c: i for i, c in enumerate(COLS)}
-MAIN_MODELS = ("sm113", "sm115", "sm118", "sm98", "sm106")   # the release family candidates
+MAIN_MODELS = tuple(os.environ.get("SM125_MODELS", "sm113 sm115 sm118 sm98 sm106").split())   # the release family candidates (SM128: sm91s2 sm99)
 ROLL_DAYS, ROLL_ROWS = 7, 30000
 N_MIN, N_MIN_SENS = 1000, 5000                              # earlier rows needed before recalibrating (primary, sensitivity)
 MIN_CLASS = 20                                              # positives and negatives needed in the fit rows, else identity
@@ -379,7 +380,7 @@ def recal(args):
     key = args.model
     index = Path(args.index or GPU / f"dump-{key}.jsonl")
     dump_dir = Path(args.dump_dir or WORK / f"dump-{key}")
-    out = Path(args.out or ROWS / f"sm125-{key}-recal.jsonl")
+    out = Path(args.out or ROWS / f"{TAG}-{key}-recal.jsonl")
     hd = Path(args.hist_dir) if args.hist_dir else WORK / f"recal-{key}.hist"
     out.parent.mkdir(parents=True, exist_ok=True)
     hd.mkdir(parents=True, exist_ok=True)
@@ -414,7 +415,7 @@ def recal(args):
 
 # ------------------------------------------------------------------ evaluation + report (CPU)
 def evaluate(key, rows_path=None, hist_dir=None, users_only=None):
-    rows_path = Path(rows_path or ROWS / f"sm125-{key}-recal.jsonl")
+    rows_path = Path(rows_path or ROWS / f"{TAG}-{key}-recal.jsonl")
     hist_dir = Path(hist_dir or WORK / f"recal-{key}.hist")
     pool = users_only or pool_users()
     rows = {r["user_id"]: r for r in map(json.loads, rows_path.read_text().splitlines())}
@@ -527,7 +528,7 @@ def s_list(lst):
 
 
 def write_md(res, path):
-    L = ["# Rolling recalibration on the 732 set (SM125): result", "",
+    L = [("# Rolling recalibration for the Big models (SM128): result" if TAG == "sm128" else "# Rolling recalibration on the 732 set (SM125): result"), "",
          "**What answer time means.** The answer time is the whole time on the card, front and back together: from the moment the question is shown to the moment a grade button is pressed, capped at the preset's maximum answer seconds. Every \"within S s\" below means answered within S s, reading the back included.", "",
          f"Scoring only (no training), CPU recalibration of per-review outputs re-dumped on the GPU with fast Good/Easy prediction (SM120)'s code, on the 732 set (723 users, show-time inputs, leak-free, SM117's time-labelled test reviews). Pre-registered in `design.md`. Scheme: per user, Platt scaling per event refitted every {ROLL_DAYS} days on the user's latest {ROLL_ROWS:,} earlier reviews (earlier days only); raw model until {N_MIN:,} earlier reviews; repair (non-decreasing in S, Easy within Good or Easy within recalled, each timed event at most the raw P(set)). Grade-only P(set) is not recalibrated. Reliable = ECE (20 equal-mass bins) below 0.01 and LogLoss below every baseline of SM120 (not recalibrated), each difference with the 95% CI (2,000 user bootstraps, seed 0, review-weighted) below 0 and at least 0.05%.", ""]
     L += ["## Verdict per model (pre-registered rules)", "",
@@ -586,14 +587,14 @@ def report(args):
                       "n_min_sensitivity": N_MIN_SENS, "min_class": MIN_CLASS, "a_range": A_RANGE, "b_range": B_RANGE,
                       "bootstrap": 2000, "seed": 0, "min_rel_pct": MIN_REL_PCT, "arms": ARM_NAMES}, "models": {}}
     for key in args.models:
-        p = ROWS / f"sm125-{key}-recal.jsonl"
+        p = ROWS / f"{TAG}-{key}-recal.jsonl"
         if not p.exists():
             res["models"][key] = {"name": MODELS[key]["name"]}
             continue
         print(f"[sm125-report] {key}", flush=True)
         res["models"][key] = evaluate(key)
-    atomic_json(OUT / "sm125-result.json", res)
-    write_md(res, OUT / "sm125-result.md")
+    atomic_json(OUT / f"{TAG}-result.json", res)
+    write_md(res, OUT / f"{TAG}-result.md")
     gos = [(k, r.get("rules", {}).get("go")) for k, r in res["models"].items()]
     ge4 = [(k, r.get("rules", {}).get("GE4_reliable_raw"), r.get("rules", {}).get("GE4_reliable_cal")) for k, r in res["models"].items()]
     print(f"[sm125-report] {len(gos)} models: go {gos}; Good or Easy within 4 s reliable raw/recalibrated {ge4}")
