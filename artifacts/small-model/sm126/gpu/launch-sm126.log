@@ -1,0 +1,33 @@
+[sm126 11-18 08:44:06] started: ff2d284b Time head for the show-time two-head cool-down for Tiny (SM126): design, launcher, handoff, sm124 model entry (DRYRUN=0; models sm124)
+[sm126 11-18 08:44:07] plan (SM117's, read only): 1,991 users, 136,132,251 of 145,578,259 reviews (cap 400,000), 117,634,406 labelled rows (35,727,965 same-day)
+[sm126 11-18 08:44:07] CPU proof: SM117's (PASS at dfb04d14 (artifacts/small-model/sm117/check-cpu-sm117.json, 22 checks, 187 s, 2026-11-15 01:09)); only the model table differs
+[sm126 11-18 08:44:07] enqueue: the show-time two-head cool-down for Tiny (SM124): smoke (head training on 4 users: 3 small + the longest cut at 400k; time scoring of 3 users; grade check of 2 users) (expected 12 min, max wait 660 min, 675 min to the next window)
+[sm126 11-18 08:44:58] exit 0: the show-time two-head cool-down for Tiny (SM124): smoke (head training on 4 users: 3 small + the longest cut at 400k; time scoring of 3 users; grade check of 2 users)
+[sm126 11-18 08:44:58] sm124 smoke head training: skipped / peak GiB / seconds: 0 8.32 17.0 []
+[sm126 11-18 08:44:58] sm124 smoke: [sm117-train] step 1: time loss 2.7726 / ablation 2.7726 nats over 1,024 rows (zero output layers: ln 16 = 2.7726); [sm117-grade] sm124 2 users: released vs the trunk after head training bitwise True; vs the recorded show-time scores True
+[sm126 11-18 08:44:58] enqueue: the show-time two-head cool-down for Tiny (SM124): head training (1,991 users, first 400k reviews each, show-time inputs, same-day reviews included, head + explicit-only ablation) (expected 90 min, max wait 582 min, 675 min to the next window)
+[sm126 11-18 09:27:54] exit 0: the show-time two-head cool-down for Tiny (SM124): head training (1,991 users, first 400k reviews each, show-time inputs, same-day reviews included, head + explicit-only ablation)
+[sm126 11-18 09:27:54] sm124 head training: [sm117-train] complete: 1991/1991 users, 14,314 steps, 117,252,648 rows (35,682,727 same-day), mean time loss 1.9234 / ablation 1.9984, skipped 1, trunk unchanged True, 42.9 min -> C:\Users\jonat\workspace\wt\sm126\artifacts\small-model\sm126-sm124-head
+[sm126 11-18 09:27:54] enqueue: the show-time two-head cool-down for Tiny (SM124): grade check (the release vs the trunk after head training, 5 users, show-time scorer rows and dumps bitwise) (expected 10 min, max wait 619 min, 632 min to the next window)
+[sm126 11-18 09:28:26] exit 0: the show-time two-head cool-down for Tiny (SM124): grade check (the release vs the trunk after head training, 5 users, show-time scorer rows and dumps bitwise)
+[sm126 11-18 09:28:26] [sm117-grade] sm124 5 users: released vs the trunk after head training bitwise True; vs the recorded show-time scores True
+[sm126 11-18 09:28:27] enqueue: scoring the show-time two-head cool-down for Tiny (SM124): answer time and P(recall within S seconds) on the 732 set (723 users, pass 1, cap 0.8) (expected 30 min, max wait 598 min, 631 min to the next window)
+[sm126 11-18 09:43:00] exit 0: scoring the show-time two-head cool-down for Tiny (SM124): answer time and P(recall within S seconds) on the 732 set (723 users, pass 1, cap 0.8)
+[sm126 11-18 09:43:00] sm124 scored users: 723 of 723
+[sm126 11-18 09:43:06] decide sm124 exit 0: [sm117-rule] sm124: 722 users (0 missing): grade unchanged True; time LogLoss 1.9749 vs card's last 2.4751 / user median 2.3849; R under 10 s LogLoss 0.4728 ECE 0.0039; reliable at every S False: PASS
+[sm126 11-18 09:43:06] report (part A) exit 0: [sm117-report] 1 models: gate [('sm124', True)]; reliable [('sm124', False)] -> C:\Users\jonat\workspace\wt\sm126\artifacts\small-model\sm126\sm126-result.md
+[sm126 11-18 09:43:06] PART A done (time head of sm124 trained, grade-checked and scored)
+[sm126 11-18 09:43:06] enqueue: the show-time two-head cool-down for Tiny (SM124): scoring with fast Good/Easy prediction (SM120)'s code, P(Good or Easy), P(Easy), P(set and answered within S s) and the baselines on the 732 set (723 users, pass 1, cap 0.8) (expected 30 min, max wait 583 min, 616 min to the next window)
+[sm126 11-18 09:59:16] exit 0: the show-time two-head cool-down for Tiny (SM124): scoring with fast Good/Easy prediction (SM120)'s code, P(Good or Easy), P(Easy), P(set and answered within S s) and the baselines on the 732 set (723 users, pass 1, cap 0.8)
+[sm126 11-18 09:59:16] sm124 SM120-code scored users: 723 of 723
+[sm126 11-18 09:59:16] enqueue: the show-time two-head cool-down for Tiny (SM124): GPU smoke of the per-review dump on 3 users vs the SM120-code rows and the sums of the head scoring (cap 0.8) (expected 6 min, max wait 591 min, 600 min to the next window)
+[sm126 11-18 09:59:24] exit 0: the show-time two-head cool-down for Tiny (SM124): GPU smoke of the per-review dump on 3 users vs the SM120-code rows and the sums of the head scoring (cap 0.8)
+[sm126 11-18 09:59:25] part B GPU smoke passed: [sm126-stepa] 3 users, 21 user x S cells, max relative difference 0.00e+00 (tol 1e-05), 0 problems []: PASS smoke vs SM120-code rows [(True, 0.0), (True, 0.0), (True, 0.0)] 
+[sm126 11-18 09:59:25] enqueue: per-review dump of the show-time two-head cool-down for Tiny (SM124) on the 732 set (723 users, pass 1, cap 0.8) (expected 30 min, max wait 567 min, 600 min to the next window)
+[sm126 11-18 10:12:56] exit 0: per-review dump of the show-time two-head cool-down for Tiny (SM124) on the 732 set (723 users, pass 1, cap 0.8)
+[sm126 11-18 10:12:59] sm124 dumped users: 723 of 723 (4.1G)
+[sm126 11-18 10:12:59] dump vs head scoring (all users) exit 0: [sm126-stepa] 723 users, 5061 user x S cells, max relative difference 0.00e+00 (tol 1e-05), 0 problems []: PASS
+[sm126 11-18 10:12:59] CPU recalibration of sm124 (until 11-18 19:54)
+[sm126 11-18 11:11:09] sm124 recalibrated: [sm125-recal] done 722 users in 3489 s -> C:\Users\jonat\workspace\wt\sm126\artifacts\small-model\sm126\rows\sm125-sm124-recal.jsonl
+[sm126 11-18 11:26:54] report (part B) exit 0: [sm125-report] 1 models: go [('sm124', True)]; Good or Easy within 4 s reliable raw/recalibrated [('sm124', False, True)]
+[sm126 11-18 11:26:54] done
