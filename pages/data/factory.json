@@ -1,7 +1,7 @@
 {
- "generated_at": "2026-11-18T11:31:57+01:00",
- "updated": "2026-11-18 11:31",
- "material": "cfd1e11fa956d975",
+ "generated_at": "2026-11-18T12:12:20+01:00",
+ "updated": "2026-11-18 12:12",
+ "material": "8ee443c3d8cd3d30",
  "summary": "idle",
  "headline": [
   {
@@ -2574,6 +2574,18 @@
    "state": "done",
    "started_at": "2026-11-18T08:44+01:00",
    "ended_at": "2026-11-18T11:27+01:00"
+  },
+  {
+   "id": "SM127",
+   "track": "small model",
+   "since": "11-18T12:10",
+   "kind": "cpu",
+   "minutes": 110,
+   "what": "Fluency vs desired retention in the simulator with answer-time feedback (SM127): the user&rsquo;s question of 11-15, is a high desired retention enough for mastery or do we need a scheduler that keeps answer time? In the review simulator hosting the small model (SM41), with the show-time retrain (SM92) and its answer-time head from the time heads for the family (SM117), one simulated year per user at the same daily review time (the user&rsquo;s real mean minutes per day; an expensive policy shows fewer new cards): desired retention 0.90 / 0.95 / 0.98 against a fluency scheduler (the interval where P(recalled and answered within 8 s, reading the back included) falls to 0.80; also 0.70, 0.50 and a &lsquo;fluency where reachable&rsquo; variant). Sampled answer times are fed back into the model (the models read a slower success as weaker memory, the retrieval-effort probe (SM122)); a sensitivity arm feeds the user&rsquo;s median time instead. Read-out at day 365: expected memorised cards and expected fluent cards, user-bootstrap CIs. This is the pre-registered pilot: 12 users of the 732 set, 22 lanes, CPU only (CPU proof passed); the full run (150 users, about 30 CPU process-hours) needs the user's go",
+   "when": "Started 12:10 Wed 11-18 (CPU, 4 processes, no GPU); pilot result about 14:00 Wed 11-18 (13:30-14:30; a user still running at 20:00 pauses until 01:00)",
+   "decides": "Whether a high desired retention already gives the most fluent cards (answered within 8 s, reading the back included) at equal daily time, or a fluency scheduler adds at least 2% more; for the pilot only: go or no-go for the full run, and whether the 8 s / 0.80 target is feasible enough (share of cards already below it at a 1-day interval) or the user must pick another fluency definition",
+   "state": "planned",
+   "started_at": "2026-11-18T12:10+01:00"
   },
   {
    "id": "SM124",
