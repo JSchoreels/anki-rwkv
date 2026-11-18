@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-18T04:55:23+01:00",
- "updated": "2026-11-18 04:55",
- "material": "f97afd11ec5b41d5",
- "summary": "running 001325",
+ "generated_at": "2026-11-18T05:03:24+01:00",
+ "updated": "2026-11-18 05:03",
+ "material": "5af9e63398868ce8",
+ "summary": "running 001326, finished 001325",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring, show-time inputs for both heads (curve / instant)",
@@ -264,18 +264,18 @@
  "now": [
   {
    "what": "Rolling recalibration on the 732 set (SM125): fast Good/Easy prediction (SM120) found the timed events (for example Good or Easy and answered within 4 s, reading the back included) beat both baselines by about 20% and 29% LogLoss but only one model passes the calibration bar (ECE below 0.01). This experiment re-dumps per-review outputs of five release family candidates (the longer Small Instant-Only model (SM113), the longer cool-down for Tiny (SM115), the show-time two-head cool-down for Small (SM118), the Small Instant-Only model (SM98), the Tiny two-head model (SM106)) on the GPU, then recalibrates each user causally on the CPU: Platt scaling refitted every 7 days on the user&rsquo;s latest 30,000 earlier reviews, raw model before 1,000 (what a client could do with its own history). Go per model = every timed event at 2 to 10 s reliable after recalibration (ECE below 0.01 and LogLoss below both baselines, CI below 0 and at least 0.05%), Good or Easy within 4 s better than raw, no cell worse, P(Good or Easy) and P(Easy) still reliable",
-   "id": "SM125, ticket 001325",
+   "id": "SM125, ticket 001326",
    "kind": "gpu",
    "decides": "Whether the Anki client should recalibrate the timed Good/Easy predictions per user from its own history before showing them, for which release models, and whether that keeps their LogLoss lead over the baselines",
    "why": "",
-   "job": "Rolling recalibration on the 732 set (SM125): per-review dump of the longer Small Instant-Only model (SM113) on the 732 set (723 users, pass 1, cap 0.8)",
+   "job": "Rolling recalibration on the 732 set (SM125): per-review dump of the longer cool-down for Tiny (SM115) on the 732 set (723 users, pass 1, cap 0.8)",
    "linked": true,
    "track": "small model",
-   "ticket": "001325-small-model",
-   "started": "04:49",
-   "elapsed": "0:06",
+   "ticket": "001326-small-model",
+   "started": "05:03",
+   "elapsed": "0:00",
    "progress": null,
-   "eta": "~05:19"
+   "eta": "~05:33"
   }
  ],
  "charts": [
@@ -448,6 +448,15 @@
  "waiting": [],
  "recent": [
   {
+   "ticket": "001325-small-model",
+   "id": "SM125",
+   "what": "Rolling recalibration on the 732 set (SM125): per-review dump of the longer Small Instant-Only model (SM113) on the 732 set (723 users, pass 1, cap 0.8)",
+   "ended": "05:02",
+   "date": "11-18",
+   "exit": 0,
+   "ran": "0:13"
+  },
+  {
    "ticket": "001324-small-model",
    "id": "SM125",
    "what": "Rolling recalibration on the 732 set (SM125): GPU smoke: dump of the Tiny two-head model (SM106) on 3 users vs SM120&#x27;s recorded sums (cap 0.8)",
@@ -491,15 +500,6 @@
    "date": "11-18",
    "exit": 0,
    "ran": "0:15"
-  },
-  {
-   "ticket": "001319-sm124",
-   "id": "SM124",
-   "what": "the show-time two-head cool-down for Tiny (SM124): scoring sm124-c1-e29st-dec2ep32k-t91s2 on normal inputs, the 3 long users of the 732 set (pass 1, 723 done, cap 0.92)",
-   "ended": "04:28",
-   "date": "11-18",
-   "exit": 0,
-   "ran": "0:00"
   }
  ],
  "plan": [
@@ -2427,8 +2427,8 @@
    "decides": "Whether the Anki client should recalibrate the timed Good/Easy predictions per user from its own history before showing them, for which release models, and whether that keeps their LogLoss lead over the baselines",
    "state": "running",
    "started_at": "2026-11-18T04:49:08+01:00",
-   "started": "04:49",
-   "ticket": "001325-small-model",
+   "started": "05:03",
+   "ticket": "001326-small-model",
    "ends_at": "2026-11-18T06:39:08+01:00"
   },
   {
