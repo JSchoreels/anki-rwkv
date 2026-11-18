@@ -2343,10 +2343,11 @@
     "rolling recalibration for the Big models (SM128): "
    ],
    "what": "Rolling recalibration for the Big models (SM128): the exact recipe of rolling recalibration on the 732 set (SM125), which got a go for all five release family candidates, applied to the show-time big model (SM91s2) and the show-time instant-only big model (SM99) with their time heads for the family (SM117). Per-review outputs on the GPU (fast Good/Easy prediction (SM120) already scored both, so the dump is checked against its sums), then a per-user causal Platt scaling refitted every 7 days on the latest 30,000 earlier reviews on the CPU (about 1.2 h per model, one model at a time), raw model before 1,000. Same pre-registered go rule (every timed event at 2 to 10 s reliable: ECE below 0.01 and LogLoss below both baselines, CI below 0 and at least 0.05%; Good or Easy answered within 4 s, reading the back included, better than raw; no cell worse; P(Good or Easy) and P(Easy) still reliable)",
-   "when": "Started 12:15 Wed 11-18; GPU (smoke + two dumps) about 50 min, then about 1.2 h of CPU per model one after the other; result about 15:45 Wed 11-18 (up to 16:30)",
+   "when": "Done: started 12:15 Wed 11-18, ended 15:05 Wed 11-18; GPU (smoke + two dumps) about 39 min, then about 1 h of CPU per model one after the other",
    "decides": "Whether the Big models can ship timed Good/Easy predictions that are reliable after per-user recalibration from the client&rsquo;s own history, like the five other family models",
-   "state": "running",
-   "started_at": "2026-11-18T12:15+01:00"
+   "state": "done",
+   "started_at": "2026-11-18T12:15+01:00",
+   "ended_at": "2026-11-18T15:05+01:00"
   },
   {
    "id": "SM124",
@@ -3078,6 +3079,61 @@
   "s-w64kd-gate-ctx2048c-dec8-1ep/w8+s8"
  ],
  "results": [
+  {
+   "date": "11-18",
+   "kind": "gpu-score",
+   "id": "SM128",
+   "track": "small model",
+   "name": "Rolling recalibration for the Big models (SM128): per-user causal Platt recalibration of the timed Good/Easy predictions (answered within S s, reading the back included) for the show-time big model (SM91s2) and the show-time instant-only big model (SM99)",
+   "eval": "The 732 set (723 users, 719 dumped and scored, 28,995,499 reviews, show-time inputs, leak-free), scoring only, with the exact recipe and the same pre-registered go rule as the rolling recalibration on the 732 set (SM125): per user and event, Platt scaling refitted every 7 days on the user&rsquo;s latest 30,000 earlier reviews, raw model before 1,000 earlier reviews, then a repair step. Time heads from the time heads for the family (SM117). Go = all 21 cells of 2 to 10 s reliable after recalibration, Good or Easy within 4 s better than raw, no cell worse than raw, P(Good or Easy) and P(Easy) still reliable.",
+   "fork": "Nothing changed in the fork; a client would recalibrate with its own history, no release decision taken (held for 11-28)",
+   "takeaway": "<strong>Go for both Big models.</strong> After per-user recalibration all 21 timed cells of 2 to 10 s are reliable for the show-time big model (SM91s2) and the show-time instant-only big model (SM99) (raw: 15 of 21 for each), and Good or Easy answered within 4 s, reading the back included, becomes reliable: ECE 0.0116 to 0.0019 and 0.0108 to 0.0018, LogLoss &minus;0.71% and &minus;0.68% vs raw (CI below 0), about &minus;21.5% and &minus;29.9% vs the two baselines of fast Good/Easy prediction (SM120). 96.1% of the rows are recalibrated; grade-only P(Good or Easy) and P(Easy) stay reliable raw. The Big models now ship the same reliable timed predictions as the five other family models.",
+   "inputs": "show-time",
+   "started_at": "2026-11-18T12:15+01:00",
+   "ended_at": "2026-11-18T15:05+01:00",
+   "gpu_minutes": 39,
+   "cpu_minutes": 119,
+   "tickets": 5,
+   "detail": {
+    "verdict": "Go for both Big models; branch sm128 374c617c (sm128-result.md, sm128-result.json)",
+    "table": {
+     "head": [
+      "Model",
+      "Go",
+      "Reliable 2-10 s cells, raw to recalibrated",
+      "Good or Easy within 4 s reliable, raw to recalibrated",
+      "ECE of Good or Easy within 4 s, raw to recalibrated",
+      "LogLoss of Good or Easy within 4 s, recalibrated vs raw / vs both baselines"
+     ],
+     "rows": [
+      [
+       "the show-time big model (SM91s2)",
+       "go",
+       "15 / 21 to 21 / 21",
+       "no to yes",
+       "0.0116 to 0.0019",
+       "&minus;0.71% (CI [&minus;0.0028, &minus;0.0021]) / &minus;21.45% and &minus;29.82%"
+      ],
+      [
+       "the show-time instant-only big model (SM99)",
+       "go",
+       "15 / 21 to 21 / 21",
+       "no to yes",
+       "0.0108 to 0.0018",
+       "&minus;0.68% (CI [&minus;0.0027, &minus;0.0020]) / &minus;21.59% and &minus;29.96%"
+      ]
+     ]
+    },
+    "notes": [
+     "Answer time = front and back together, from the question shown to the grade pressed, capped at the preset&rsquo;s maximum answer seconds; every &lsquo;within S s&rsquo; means answered within S s, reading the back included.",
+     "719 users, not 722 like the small models: 4 of the 723 users (481, 2267, 3735 and 4852) ran out of GPU memory in the per-review dump of both Big models, even in the second pass with the cap raised to 0.92 (14.6 GB), so they are skipped; this removes 1,098,124 of the 30,093,623 reviews. The recorded sums of fast Good/Easy prediction (SM120) are reproduced on the 719 dumped users: yes.",
+     "Wall time: started 12:15 Wed 11-18; GPU: smoke 12:15, dump of the show-time big model (SM91s2) 12:16 to 12:35, dump of the show-time instant-only big model (SM99) 12:35 to 12:55 (5 tickets, about 39 GPU minutes); CPU recalibration, one model at a time, 1 thread: 62 minutes for the show-time big model (SM91s2) and 57 for the show-time instant-only big model (SM99) (about 119 CPU minutes); report 15:05.",
+     "48,670 refits and 185,588 identity fits per model; 96.1% of the rows recalibrated; the repair step changed 19.18% (SM91s2) and 19.45% (SM99) of the values.",
+     "Where each timed event becomes reliable, for both models: Good or Easy within S s and recalled within S s from 5 s upward raw to every S from 2 s to 30 s recalibrated; Easy within S s was already reliable at every S.",
+     "Nothing is released and the fork is untouched; the family release decision stays held for 11-28."
+    ]
+   }
+  },
   {
    "date": "11-18",
    "kind": "cpu",
@@ -11421,7 +11477,7 @@
      "cur": null,
      "why": "No new Big two-head model: it is the teacher of the new cool-downs",
      "time_prev": "head trained after the release (SM117), in the fork branch",
-     "time_cur": "same head; per-user recalibration not yet tested on Big"
+     "time_cur": "same head; with per-user recalibration (SM128) reliable from 2 s"
     },
     {
      "size": "Big",
@@ -11435,7 +11491,7 @@
      "cur": null,
      "why": "No new Big Instant-Only model: its one-pass cool-down (SM110) was a no go (&minus;0.023%, under the 0.05% bar)",
      "time_prev": "head trained after the release (SM117), in the fork branch",
-     "time_cur": "same head; per-user recalibration not yet tested on Big"
+     "time_cur": "same head; with per-user recalibration (SM128) reliable from 2 s"
     },
     {
      "size": "Small",
