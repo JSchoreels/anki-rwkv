@@ -2311,10 +2311,11 @@
     "time head for the show-time two-head cool-down for Tiny (SM126): "
    ],
    "what": "Time head for the show-time two-head cool-down for Tiny (SM126): the show-time two-head cool-down for Tiny (SM124) got a go at 04:46 Wed 11-18, but answer-time heads are tied to their trunk, so it needs its own. This run first trains the answer-time head of the time heads for the new candidates (SM119) on the frozen model (about 43 min), checks that the model's grades stay bitwise unchanged, and scores P(recall within S seconds) (recalled and answered within S s, reading the back included) on the 732 set against both baselines. Then it runs the rolling recalibration on the 732 set (SM125) on this model with its new head: per-review outputs on the GPU, a per-user causal Platt scaling refitted every 7 days on the latest 30,000 earlier reviews on the CPU (about 1.2 h), and the same pre-registered go rule (every timed event at 2 to 10 s reliable, Good or Easy within 4 s better than raw, no cell worse, P(Good or Easy) and P(Easy) reliable)",
-   "when": "Started 08:44 Wed 11-18; part A (head training, grade check, scoring) about 09:50; part B GPU (SM120-code scoring, dump) about 10:30; recalibration about 1.2 h of CPU after it; result about 11:45 Wed 11-18 (later if the 20:00 break intervenes)",
+   "when": "Done 11:27 Wed 11-18: part A gate passed, part B go (every timed cell of 2 to 10 s reliable after recalibration); started 08:44, head trained to 09:28, 723 users dumped by 10:13, CPU recalibration to 11:11",
    "decides": "Whether the show-time two-head cool-down for Tiny (SM124) can ship an answer-time estimate like the other family models, and whether per-user recalibration of its timed Good/Easy predictions makes them reliable",
-   "state": "running",
-   "started_at": "2026-11-18T08:44+01:00"
+   "state": "done",
+   "started_at": "2026-11-18T08:44+01:00",
+   "ended_at": "2026-11-18T11:27+01:00"
   },
   {
    "id": "SM124",
@@ -3046,6 +3047,65 @@
   "s-w64kd-gate-ctx2048c-dec8-1ep/w8+s8"
  ],
  "results": [
+  {
+   "date": "11-18",
+   "kind": "gpu-score",
+   "id": "SM126",
+   "track": "small model",
+   "name": "Time head for the show-time two-head cool-down for Tiny (SM126): answer-time head and per-user recalibration (answered within S s, reading the back included) for the show-time two-head cool-down for Tiny (SM124)",
+   "eval": "The 732 set (723 users dumped, 722 scored, 30,093,623 reviews, show-time inputs, leak-free). Part A: an answer-time head trained on the frozen model, gate = model grades unchanged bitwise on 5 users and time LogLoss below both baselines (the card&rsquo;s last time and the user median), CI clear of zero; then P(recall within S seconds) against both baselines of fast Good/Easy prediction (SM120). Part B: the rolling recalibration on the 732 set (SM125) on this model with its new head, same pre-registered go rule as before.",
+   "fork": "Nothing changed in the fork; the new head belongs to a model whose go is held for the 11-28 release decision",
+   "takeaway": "<strong>Gate passed, recalibration go.</strong> The show-time two-head cool-down for Tiny (SM124) got its own answer-time head: grades unchanged bitwise, time LogLoss 1.9749 vs 2.4751 for the card&rsquo;s last time and 2.3849 for the user median (&minus;17.2% vs the user median, CI below 0). Raw, P(recall within S seconds) is reliable from 8 s upward; after per-user recalibration all 21 timed cells of 2 to 10 s are reliable (raw: 13 of 21), and Good or Easy answered within 4 s, reading the back included, becomes reliable: ECE 0.0137 to 0.0018, LogLoss &minus;1.00% vs raw, about &minus;21% and &minus;29% vs the two baselines.",
+   "inputs": "show-time",
+   "started_at": "2026-11-18T08:44+01:00",
+   "ended_at": "2026-11-18T11:27+01:00",
+   "gpu_minutes": 89,
+   "tickets": 7,
+   "detail": {
+    "verdict": "Part A gate pass, part B go; branch sm126 428722b1 (sm126-result.md, sm126-recal-result.md)",
+    "table": {
+     "head": [
+      "Part",
+      "Result",
+      "Detail"
+     ],
+     "rows": [
+      [
+       "A: gate",
+       "pass",
+       "grades unchanged bitwise on 5 users; time LogLoss 1.9749 (ablation 2.0420) vs 2.4751 card&rsquo;s last and 2.3849 user median; &minus;17.2% vs user median, CI [&minus;0.4368, &minus;0.3856]"
+      ],
+      [
+       "A: P(recall within S seconds), raw",
+       "reliable from 8 s upward",
+       "not reliable at 3 s (ECE 0.0159) and 5 s (ECE 0.0122); LogLoss 24.2% to 6.2% below baseline (a) from 3 s to 30 s"
+      ],
+      [
+       "B: go",
+       "go",
+       "G1 to G4 all yes; 21 of 21 timed cells of 2 to 10 s reliable after recalibration (raw 13 of 21)"
+      ],
+      [
+       "B: Good or Easy within 4 s, raw to recalibrated",
+       "no to yes",
+       "ECE 0.0137 to 0.0018; LogLoss 0.3469 to 0.3434 (&minus;1.00% vs raw); &minus;20.94% vs baseline (a), &minus;29.30% vs baseline (b)"
+      ],
+      [
+       "B: grade only",
+       "reliable raw",
+       "P(Good or Easy) ECE 0.0014, P(Easy) ECE 0.0004; recalibrating them changes LogLoss by 0.01% to 0.04% only"
+      ]
+     ]
+    },
+    "notes": [
+     "Answer time = front and back together, from the question shown to the grade pressed, capped at the preset&rsquo;s maximum answer seconds; every &lsquo;within S s&rsquo; means answered within S s, reading the back included.",
+     "Wall time: started 08:44 Wed 11-18, head training 08:45 to 09:28 (about 43 GPU minutes), grade check 09:28, scoring to 09:43, scoring with fast Good/Easy prediction (SM120)&rsquo;s code to 09:59, 723-user dump 09:59 to 10:13, CPU recalibration 10:13 to 11:11 (722 users, 58 CPU minutes, 1 thread), report 11:27; 7 GPU tickets, about 89 GPU minutes.",
+     "The dump reproduces the head scoring on all 723 users (5,061 user by S cells, maximum relative difference 0) and the recorded sums of fast Good/Easy prediction (SM120): yes. 49,203 refits and 185,862 identity fits; 96.2% of the rows recalibrated; the repair step changed 18.85% of the values.",
+     "Where each timed event becomes reliable: Good or Easy within S s from 5 s upward raw to every S from 2 s to 30 s recalibrated; recalled within S s from 8 s raw to every S; Easy within S s was already reliable at every S.",
+     "Nothing is released and the fork is untouched; the show-time two-head cool-down for Tiny (SM124) go stays held for the 11-28 release decision."
+    ]
+   }
+  },
   {
    "date": "11-18",
    "kind": "gpu-score",
@@ -11363,7 +11423,7 @@
      ],
      "bw_instant": "609 / 111",
      "time_prev": "head trained after the release (SM117); with per-user recalibration (SM125) reliable from 2 s",
-     "time_cur": "own head training now (SM126), result about 11:45 Wed 11-18"
+     "time_cur": "own head (SM126); with per-user recalibration (SM126) reliable from 2 s"
     },
     {
      "size": "Tiny",
