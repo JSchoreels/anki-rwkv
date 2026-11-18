@@ -2359,10 +2359,11 @@
     "training-free state check (SM116): "
    ],
    "what": "Training-free state check (SM116): how much of the show-time retrain (SM92)&rsquo;s card and note state carries information, and what keeping only 70% of it costs with no training at all. Per-block state directions (a PCA of the stored states, 17 blocks) from 94 unseen validation users outside the scored pool: 90% of the variance sits in 4 to 74 of 256 directions per state head, but 99.9% needs 98 to 242; the 70% state keeps 98.65% to 99.98% of the variance. The stored state is projected onto the kept directions at every review (an exact fold into the weights for the token-shift part; for the main state no exact fold exists, so this is the upper bound of a fold); the 100% projection reproduces the model bit for bit. One pre-registered CPU score on show-time inputs, curve and instant, 629 users of the 732 set (those with at most 125,000 reviews, the CPU memory limit). Rule fixed before the score: it becomes the start of a trained smaller model only if both heads&rsquo; cost has its 95% CI upper bound below +0.05%; otherwise it is dropped",
-   "when": "Started 15:58 Wed 11-18 (directions and CPU proof 15:25-15:57); CPU score about 80 min on 3 processes, result about 17:20-17:45 Wed 11-18",
+   "when": "Started 15:58 Wed 11-18 (directions and CPU proof 15:25-15:57); pass 1 (3 long-lived processes) stopped by the memory guard at 17:11 with 357 users scored; pass 2 (one fresh process per user, 3 at a time) 17:22 to 18:04; done 18:04 Wed 11-18, verdict starting point",
    "decides": "Whether a 70% card and note state, folded in with no training, is cheap enough (both heads under +0.05%, CI included) to start a trained smaller model from; otherwise the idea is dropped",
-   "state": "running",
-   "started_at": "2026-11-18T15:25+01:00"
+   "state": "done",
+   "started_at": "2026-11-18T15:25+01:00",
+   "ended_at": "2026-11-18T18:04+01:00"
   },
   {
    "id": "SM124",
@@ -2535,7 +2536,7 @@
  ],
  "backlog": [
   {
-   "status": "next",
+   "status": "done",
    "id": "SM116",
    "track": "small model",
    "item": "Training-free state check (SM116): how much of the show-time retrain (SM92)&rsquo;s card and note state carries information (state directions on 100 of the 750 users), and the loss cost of folding a 70% card and note state into the weights without any training; one pre-registered score on the 750 users, curve and instant",
@@ -3094,6 +3095,60 @@
   "s-w64kd-gate-ctx2048c-dec8-1ep/w8+s8"
  ],
  "results": [
+  {
+   "date": "11-18",
+   "kind": "cpu-score",
+   "id": "SM116",
+   "track": "small model",
+   "name": "Training-free state check (SM116): the show-time retrain (SM92) with a 70% card and note state, no training",
+   "eval": "629 users of the 732 set (the show-time retrain (SM92)&rsquo;s 722-user rule pool with at most 125,000 reviews, the CPU memory limit; 21.4M reviews, 51% of the pool&rsquo;s reviews), show-time inputs, leak-free, w8+s8, CPU scorer; against the show-time retrain (SM92)&rsquo;s own rows; % of the big model (1 leak-free epoch) show-time LogLoss, paired user bootstrap 2,000, 95% CI. State directions from 94 other validation users (ids from 5,000 up), none of them scored.",
+   "fork": "Nothing changed in the fork",
+   "takeaway": "<strong>Starting point.</strong> Keeping 70% of the card and note state (2,373 of 3,392 values) with no training costs +0.015% [&minus;0.007, +0.032] on the curve and +0.032% [+0.025, +0.038] on instant, both with the 95% CI upper bound below the +0.05% limit fixed beforehand. It becomes the starting point for a trained smaller model. The state is concentrated (90% of the variance in 4 to 74 of 256 directions per state head) but its tail matters: 99.9% needs 98 to 242.",
+   "inputs": "show-time",
+   "started_at": "2026-11-18T15:25+01:00",
+   "ended_at": "2026-11-18T18:04+01:00",
+   "gpu_minutes": 0,
+   "tickets": 0,
+   "detail": {
+    "verdict": "Starting point; branch sm116 2c2f14e3 (design.md, sm116-decision.md, sm116-result.md)",
+    "table": {
+     "head": [
+      "Head",
+      "Unmodified",
+      "70% state",
+      "Cost (CI)",
+      "% of own LogLoss",
+      "Users better / worse"
+     ],
+     "rows": [
+      [
+       "curve",
+       "0.303053",
+       "0.303099",
+       "+0.015% [&minus;0.007, +0.032]",
+       "+0.015%",
+       "248 / 380"
+      ],
+      [
+       "instant",
+       "0.274177",
+       "0.274265",
+       "+0.032% [+0.025, +0.038]",
+       "+0.032%",
+       "203 / 426"
+      ]
+     ]
+    },
+    "notes": [
+     "State directions: a centered PCA per block (12 state heads of 16 x 16, 5 token-shift vectors of 64) from 94 unseen validation users; the 70% state keeps 179 of 256 and 45 of 64 directions of every block, 98.65% to 99.98% of the variance",
+     "Fold: exact for the token-shift vectors (static lerps followed by linear maps); for the main state no exact fold into the weights exists (data-dependent decay and removal, normalised keys and values, a per-head group norm), so the score projects the stored state at every review: the upper bound of a fold",
+     "CPU proof: the 100% projection equals the unmodified model bit for bit on 8 users (and its GPU rows within 2e-6)",
+     "Pool caveat: the 93 heaviest users of the 722 (above 125,000 reviews) are not scored, the CPU scorer needs more than 6 GB for them",
+     "Two passes, same command line and same users: pass 1, 3 long-lived scorer processes, 15:58 to 17:11 Wed 11-18, 357 users scored, about 1,450 to 1,540 review-evals/s each; the memory guard stopped two of them (at 5.93 and 5.97 GB) because the memory of a long-lived process only grows, not because a single user was too big. Pass 2, one fresh process per user, 3 at a time, 17:22 to 18:04, the remaining 272 users, about 1,457 review-evals/s per process, peak 5.61 GB, 0 killed, 0 failed",
+     "CPU: 3 processes, about 126 minutes wall in all (two passes), no GPU"
+    ]
+   }
+  },
   {
    "date": "11-18",
    "kind": "gpu-score",
