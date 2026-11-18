@@ -2366,6 +2366,36 @@
    "ended_at": "2026-11-18T18:04+01:00"
   },
   {
+   "id": "SM129",
+   "track": "small model",
+   "since": "11-18T22:57",
+   "kind": "gpu",
+   "minutes": 90,
+   "match": [
+    "Compact state for Tiny (SM129): "
+   ],
+   "what": "Compact state for Tiny (SM129): no training. The current Tiny candidates, the show-time two-head cool-down for Tiny (SM124) and the longer cool-down for Tiny (SM115), scored with the compact integer state of the compact int state test (SM47) (int4 cards + int8 notes, float16 row scales, int8 token-shift vectors: 803 B per card, 1,315 B per note; today 1,055 / 1,567 B) and with the card-only format of the second integer-state test (SM49) (619 B per card); show-time inputs, 722 users of the 732 set. Go per format = every head&rsquo;s CI upper bound &le; +1.00% vs the show-time two-head cool-down for Small (SM118) (two-head) and vs the longer Small Instant-Only model (SM113) (Instant-Only), both models",
+   "when": "Launcher started 22:57 Wed 11-18, waits for the break to end; CPU proofs at 01:00, then 4 scoring tickets; verdict expected about 02:45 Thu 11-19 (02:15 to 03:15)",
+   "decides": "Whether Tiny can store 24% smaller card states (41% with the card-only format) and stay within +1% of Small; if go, the six-layer Tiny (SM130) is also scored in that format",
+   "state": "running",
+   "started_at": "2026-11-18T22:57+01:00"
+  },
+  {
+   "id": "SM130",
+   "track": "small model",
+   "since": "11-18T22:58",
+   "kind": "gpu",
+   "minutes": 1620,
+   "match": [
+    "Six-layer Tiny (SM130): "
+   ],
+   "what": "Six-layer Tiny (SM130): Tiny with the deck / preset / user streams cut to 2 / 1 / 1 layers (the context-stream pruning (SM15) cut; 185,057 parameters, 6 layer steps instead of 12), both models: the two-head chain from the Tiny two-head model (SM106)&rsquo;s epoch 29 and the Instant-Only chain from the Tiny Instant-Only model (SM101)&rsquo;s epoch 38, three recovery epochs each, then the two-pass cool-down of the show-time two-head cool-down for Tiny (SM124) (targets of the show-time big model (SM91s2)) or of the longer cool-down for Tiny (SM115) (targets of the show-time Instant-Only big model (SM99)). Early stop if a head is more than +1.50% (after the first recovery epoch) or +1.20% (after the last) behind the uncut epoch; go = every trained head&rsquo;s CI upper bound &le; +1.00% vs the show-time two-head cool-down for Small (SM118) / the longer Small Instant-Only model (SM113)",
+   "when": "Queued behind the compact state for Tiny (SM129) (launcher started 22:58 Wed 11-18); two-head result expected about 16:30 Thu 11-19 (13:30 Thu to 02:30 Fri), Instant-Only about 12:00 Fri 11-20 (07:00 Fri to 10:00 Sat); about 27 GPU h, about 2 to 4 h per chain if an early stop fires",
+   "decides": "Whether a Tiny with 41% fewer parameters and half the sequential layers (faster per review) stays within +1% of Small on every head; held for the 11-28 release decision",
+   "state": "queued",
+   "started_at": "2026-11-18T22:58+01:00"
+  },
+  {
    "id": "SM124",
    "track": "small model",
    "since": "11-17T11:05",
