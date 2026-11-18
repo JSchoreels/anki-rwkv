@@ -2310,10 +2310,11 @@
     "the show-time two-head cool-down for Tiny (SM124): "
    ],
    "what": "The show-time two-head cool-down for Tiny (SM124): the recipe of the show-time two-head cool-down for Small (SM118) (one learning-rate decay stretched over two passes of the 8,000 users) applied to the Tiny two-head model (SM106), from its constant-LR epoch 29 (the checkpoint its own cool-down started from), both heads trained, with the curve and grade targets of the show-time big model (SM91s2) on show-time inputs (the targets the show-time two-head cool-down for Small (SM118) exported, reused: no export). Early stop after pass 1 unless a head beats the Tiny two-head model (SM106)&rsquo;s own snapshot at about the same learning rate and neither is +0.05% worse; go = new &minus; the Tiny two-head model (SM106) on show-time inputs: one head better (CI below 0 and at least 0.05%) and neither head worse (+0.05% or more, or CI above 0)",
-   "when": "Running since 11:05 Tue 11-17: reference scoring, pass 1 (5.6 to 7.7 h), early stop, pass 2 across the 20:00-01:00 break; verdict expected about 05:00 to 09:40 Wed 11-18",
+   "when": "Done 04:46 Wed 11-18: go (&minus;0.103% curve and &minus;0.096% instant vs the Tiny two-head model (SM106)); launched 11:05 Tue 11-17",
    "decides": "Whether the longer cool-down with the big two-head teacher lifts the Tiny two-head model on both heads (the show-time big model (SM91s2) is &minus;0.422% curve / &minus;0.430% instant better than the Tiny two-head model (SM106)); a go is held for the 11-28 release decision",
-   "state": "running",
-   "started_at": "2026-11-17T11:05+01:00"
+   "state": "done",
+   "started_at": "2026-11-17T11:05+01:00",
+   "ended_at": "2026-11-18T04:46+01:00"
   },
   {
    "id": "SM118",
@@ -3029,6 +3030,125 @@
   "s-w64kd-gate-ctx2048c-dec8-1ep/w8+s8"
  ],
  "results": [
+  {
+   "date": "11-18",
+   "kind": "gpu-train",
+   "id": "SM124",
+   "track": "small model",
+   "name": "The show-time two-head cool-down for Tiny (SM124): the longer cool-down (one learning-rate decay over two passes of the 8,000 users) applied to the Tiny two-head model (SM106), from its constant-LR epoch 29, both heads trained, with the curve and grade targets of the show-time big model (SM91s2) on show-time inputs",
+   "eval": "Leak-free w8+s8, 722 users of the 732 set, show-time inputs, both heads; % of the big model (1 leak-free epoch)&rsquo;s LogLoss; paired user bootstrap 95% CI. Go = new minus the Tiny two-head model (SM106): one head with CI below 0 and at least 0.05% better, and neither head worse (+0.05% or more, or CI above 0). Early stop after pass 1 against the snapshot of the Tiny two-head model (SM106) at the same learning rate. Also the 1,500 validation users (1,487 scored)",
+   "fork": "Not used yet: held for the next release decision on 11-28 (user 11-14: no new release soon)",
+   "takeaway": "<strong>Go</strong>: &minus;0.103% [&minus;0.142, &minus;0.067] on the curve head and &minus;0.096% [&minus;0.106, &minus;0.087] on the instant head vs the Tiny two-head model (SM106) (498 / 224 users better / worse on the curve, 609 / 111 on the instant); it closes 0.244 of the curve gap and 0.223 of the instant gap to the teacher, the show-time big model (SM91s2). LogLoss: curve 0.300369 (was 0.300676), instant 0.277105 (was 0.277369). It is still +0.319% (curve) and +0.334% (instant) behind the show-time big model (SM91s2). Same on the 1,500 validation users (&minus;0.078% curve, &minus;0.098% instant). Held for the 11-28 release decision.",
+   "inputs": "show-time",
+   "started_at": "2026-11-17T11:05+01:00",
+   "ended_at": "2026-11-18T04:46+01:00",
+   "gpu_minutes": 617,
+   "tickets": 20,
+   "detail": {
+    "verdict": "Go; branch sm124 7cbf3d6f (sm124-decision.md, sm124-mid.md, RESULT.md)",
+    "table": {
+     "head": [
+      "Show-time, new minus",
+      "Curve %",
+      "Curve 95% CI",
+      "Instant %",
+      "Instant 95% CI",
+      "Instant better / worse"
+     ],
+     "rows": [
+      [
+       "the Tiny two-head model (SM106) (the rule)",
+       "&minus;0.103",
+       "[&minus;0.142, &minus;0.067]",
+       "&minus;0.096",
+       "[&minus;0.106, &minus;0.087]",
+       "609 / 111"
+      ],
+      [
+       "the show-time big model (SM91s2) (the teacher)",
+       "+0.319",
+       "[+0.163, +0.483]",
+       "+0.334",
+       "[+0.304, +0.365]",
+       "100 / 622"
+      ],
+      [
+       "the release (SM63)",
+       "&minus;0.015",
+       "[&minus;0.105, +0.097]",
+       "&minus;0.222",
+       "[&minus;0.320, &minus;0.147]",
+       "445 / 277"
+      ],
+      [
+       "the show-time two-head cool-down for Small (SM118) (Small, the same recipe)",
+       "+0.118",
+       "[+0.057, +0.175]",
+       "+0.183",
+       "[+0.164, +0.204]",
+       "134 / 588"
+      ],
+      [
+       "the big model (1 leak-free epoch)",
+       "+0.264",
+       "[+0.087, +0.469]",
+       "&minus;0.019",
+       "[&minus;0.130, +0.065]",
+       "286 / 435"
+      ],
+      [
+       "the Tiny Instant-Only model (SM101)",
+       "not trained",
+       "",
+       "+0.140",
+       "[+0.125, +0.156]",
+       "145 / 577"
+      ],
+      [
+       "the longer cool-down for Tiny (SM115)",
+       "not trained",
+       "",
+       "+0.239",
+       "[+0.219, +0.261]",
+       "86 / 636"
+      ],
+      [
+       "the big model (1 leak-free epoch), normal inputs (the show-time cost of the new model is +0.032% curve, +0.031% instant)",
+       "+0.437",
+       "[+0.268, +0.639]",
+       "+0.458",
+       "[+0.421, +0.496]",
+       "75 / 647"
+      ],
+      [
+       "early stop: after pass 1 vs the snapshot of the Tiny two-head model (SM106) after 4,000 users",
+       "&minus;0.052",
+       "[&minus;0.148, +0.041]",
+       "&minus;0.127",
+       "[&minus;0.146, &minus;0.111]",
+       "532 / 189"
+      ],
+      [
+       "1,500 validation users (1,487 scored): vs the Tiny two-head model (SM106)",
+       "&minus;0.078",
+       "[&minus;0.100, &minus;0.055]",
+       "&minus;0.098",
+       "[&minus;0.109, &minus;0.090]",
+       "not counted"
+      ]
+     ]
+    },
+    "notes": [
+     "Held for the next release decision on 11-28; nothing is released and the fork is untouched (user 11-14: no new release soon). A go makes it the Tiny two-head candidate.",
+     "Wall time: launched 11:05 Tue 11-17 from branch sm124, final scoring done 04:46 Wed 11-18 (about 17 h 41 min), about 617 GPU minutes in 20 tickets (the stale ticket 001311 of the first launch was removed by the queue; the training pass 2 ran as three segments).",
+     "Pass 1 (learning rate 7e-4 to 0.29 x peak): 328.7 min, 29,511 reviews/s, ended 16:47; the early stop at 16:58 said continue (&minus;0.052% [&minus;0.148, +0.041] curve, &minus;0.127% [&minus;0.146, &minus;0.111] instant vs the snapshot of the Tiny two-head model (SM106) after 4,000 users).",
+     "Pass 2 (0.29 x peak to 0) started 16:58; all detached jobs were killed at 18:54 by a Windows power-off event (no reboot); relaunched 19:19 from the 2,800-user snapshot (about 6 min of training lost), paused for the 20:00 to 01:00 break, resumed at 01:00 and ended 04:04 (the verdict at 04:16 and the final scoring at 04:46); the last segment trained 319.7M reviews in 183.2 min, 29,083 reviews/s.",
+     "Run from the constant-learning-rate epoch 29 of the Tiny two-head model (SM106) with the show-time targets of the show-time big model (SM91s2) reused from the show-time two-head cool-down for Small (SM118); both heads trained.",
+     "Gap to the show-time big model (SM91s2) closed: 0.244 on the curve head, 0.223 on the instant head (the show-time big model (SM91s2) is &minus;0.422% curve and &minus;0.430% instant vs the Tiny two-head model (SM106)). On the 1,500 validation users it is still +1.017% curve and +0.489% instant behind it (that pool includes training users of the big models above id 5000).",
+     "Scoring: about 70 GPU minutes (reference snapshot, early stop, final 732 set on show-time and normal inputs, 1,500 validation users)."
+    ]
+   }
+  },
   {
    "date": "11-17",
    "kind": "gpu-train",
@@ -11013,7 +11133,7 @@
    "instant": 0.277157
   },
   "eval": "722 users of the 732 set, 30.13M reviews, leak-free w8+s8, show-time inputs for both heads",
-  "note": "Held, not released: the show-time two-head cool-down for Small (SM118) is the Small two-head candidate (curve 0.300016, instant 0.276599, go on 11-17), for the 11-28 release decision. Published as the GitHub release rwkv-family-2026-11-13 (SM108) on 11-13. Memory = card + note state at the fork&rsquo;s default precision (int4 cards + int8 notes).",
+  "note": "Held, not released: the show-time two-head cool-down for Small (SM118) is the Small two-head candidate (curve 0.300016, instant 0.276599, go on 11-17), for the 11-28 release decision. The show-time two-head cool-down for Tiny (SM124) is the Tiny two-head candidate (curve 0.300369, instant 0.277105, go on 11-18), held the same way. Published as the GitHub release rwkv-family-2026-11-13 (SM108) on 11-13. Memory = card + note state at the fork&rsquo;s default precision (int4 cards + int8 notes).",
   "rows": [
    {
     "size": "Big",
