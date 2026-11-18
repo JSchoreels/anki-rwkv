@@ -109,8 +109,16 @@ MODELS["sm118"] = {"name": "the show-time two-head cool-down for Small (SM118)",
                    "master": WTD / "sm118/artifacts/small-model/sm118-e26-dec2ep32k-t91s2-p2/expertium/E89-F65e-F77a/master.pth",
                    "sha256": os.environ.get("SM119_SM118_SHA256", ""),
                    "existing": WTD / "sm118/artifacts/small-model/sm118/gpu/sm118-rows.jsonl"}
-ORDER = ("sm106", "sm98", "sm101", "sm99", "sm91s2", "sm92", "sm113", "sm115", "sm118")
-OUT = ROOT / "artifacts/small-model/sm119"   # SM119 outputs (gate / result files); inputs (plan, priors, baselines) stay in HERE (SM117's)
+# SM126 (time head for the show-time two-head cool-down for Tiny (SM124)): the same recipe on one more model, master read only,
+# sha256 pinned here (the final model of SM124's launcher: the pass-2 folder, verdict go 11-18 04:46).
+MODELS["sm124"] = {"name": "the show-time two-head cool-down for Tiny (SM124)", "short": "Tiny two-head (cool-down)",
+                   "kind": "expertium", "arch": "w64-c1", "package": None, "two_head": True, "label": "sm124-c1-e29st-dec2ep32k-t91s2",
+                   "master": WTD / "sm124/artifacts/small-model/sm124-c1-e29st-dec2ep32k-t91s2-p2/expertium/E89-F65e-F77a/master.pth",
+                   "sha256": "c78b24d8ee187b58fd8c23c90476fb68a1aab88a137cc1f6a64c03530b7dcb3c",
+                   "existing": WTD / "sm124/artifacts/small-model/sm124/gpu/sm124-rows.jsonl"}
+ORDER = ("sm106", "sm98", "sm101", "sm99", "sm91s2", "sm92", "sm113", "sm115", "sm118", "sm124")
+# outputs (gate / result files): SM119's folder by default, SM126 sets SM117_OUT; inputs (plan, priors, baselines) stay in HERE (SM117's)
+OUT = ROOT / os.environ.get("SM117_OUT", "artifacts/small-model/sm119")
 
 
 def model_info(key):
@@ -1169,7 +1177,8 @@ def ci(d, nd=4, pct=False):
 def report(args):
     """All six: artifacts/small-model/sm117/sm117-result.{md,json} from the <key>-gate.json files."""
     res = {k: json.loads((OUT / f"{k}-gate.json").read_text()) for k in ORDER if (OUT / f"{k}-gate.json").exists()}
-    L = ["# Time heads for the new candidates (SM119): result", "",
+    title = "Time heads for the new candidates (SM119)" if OUT.name == "sm119" else "Time head for the show-time two-head cool-down for Tiny (SM126)"
+    L = [f"# {title}: result", "",
          "An answer-time head (the answer-time head on richer frozen features (SM82c) recipe) trained alone on each frozen "
          "family model, on show-time inputs with same-day reviews included, then scored on the 732 set (722 users), "
          "show-time inputs, leak-free. Pre-registered rules: `design.md`.", "",
@@ -1216,10 +1225,10 @@ def report(args):
     for k, r in res.items():
         if "rus" in r:
             L.append(f"| {r['name']} | " + " | ".join(f"{r['rus'][str(s)]['predictors']['model']['max_bin_gap']:.3f}" for s in S_GRID) + " |")
-    (OUT / "sm119-result.md").write_text("\n".join(L) + "\n", encoding="utf-8")
-    atomic_json(OUT / "sm119-result.json", res)
+    (OUT / f"{OUT.name}-result.md").write_text("\n".join(L) + "\n", encoding="utf-8")
+    atomic_json(OUT / f"{OUT.name}-result.json", res)
     print(f"[sm117-report] {len(res)} models: gate {[(k, r.get('gate', {}).get('pass')) for k, r in res.items()]}; reliable "
-          f"{[(k, r.get('reliable')) for k, r in res.items()]} -> {OUT / 'sm119-result.md'}")
+          f"{[(k, r.get('reliable')) for k, r in res.items()]} -> {OUT / f'{OUT.name}-result.md'}")
     return 0
 
 

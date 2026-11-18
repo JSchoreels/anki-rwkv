@@ -37,7 +37,8 @@ from scripts.sm117_head import (MODELS, ORDER, HIST_BINS, U732, verified_master,
                                 ScoreBatches, cdf_at, binary_sums, hist_of, ece_auc_from_hist, pool_users, bootstrap_idx, _diff)
 from scripts.sm117_timelib import BINS, label_db, test_reviews, first, atomic_json  # noqa: E402
 
-OUT = ROOT / "artifacts/small-model/sm125"
+OUT = ROOT / os.environ.get("SM125_OUT", "artifacts/small-model/sm125")   # SM126 sets SM125_OUT
+RESULT = "sm125-result" if OUT.name == "sm125" else f"{OUT.name}-recal-result"
 WORK = OUT / "work"
 GPU = OUT / "gpu"
 ROWS = OUT / "rows"
@@ -67,8 +68,11 @@ def key_of(c):
     return f"grade/{c[0]}" if c[1] == 0 else f"fast/{c[0]}/{c[1]}"
 
 
+HEAD_DIRS_126 = {"sm124": ROOT / "artifacts/small-model/sm126-sm124-head"}   # SM126: the head of step A
+
+
 def head_dir(key):
-    return f120.HEAD_DIRS[key]
+    return HEAD_DIRS_126.get(key) or f120.HEAD_DIRS[key]
 
 
 # ------------------------------------------------------------------ dump (GPU pass; also CPU for the check)
@@ -356,7 +360,9 @@ def load_dump(key, user, dump_dir=None):
 
 
 def sm120_rows(key):
-    return {r["user_id"]: r for r in map(json.loads, (SM120_ROWS / f"sm120-{key}-rows.jsonl").read_text().splitlines()) if "error" not in r}
+    # SM126: SM124 has no committed SM120 rows; its own are scored by SM120's code (gpu/sm120-sm124-rows.jsonl) before the dump
+    path = OUT / "gpu" / f"sm120-{key}-rows.jsonl" if key in HEAD_DIRS_126 else SM120_ROWS / f"sm120-{key}-rows.jsonl"
+    return {r["user_id"]: r for r in map(json.loads, path.read_text().splitlines()) if "error" not in r}
 
 
 def dump_matches_sm120(rec, old, tol=1e-5):
@@ -410,6 +416,35 @@ def recal(args):
                 print(f"[sm125-recal] {k + 1}/{len(users)} users, {time.time() - t0:.0f} s", flush=True)
     print(f"[sm125-recal] done {len(users)} users in {time.time() - t0:.0f} s -> {out}", flush=True)
     return 0
+
+
+def stepa(args):
+    """SM126: the dump's float64 raw sums of "recalled within S s" (S in the SM117 grid) equal the sums of step A's scoring rows
+    (sm117_head.py score, predictor `model`): same row counts and event counts, LogLoss / Brier / sum of p within --tol relative."""
+    idx = {r["user_id"]: r for r in map(json.loads, Path(args.index).read_text().splitlines()) if "error" not in r}
+    rows = {r["user_id"]: r for r in map(json.loads, Path(args.rows).read_text().splitlines()) if "error" not in r}
+    bad, worst, n = [], 0.0, 0
+    for u, rec in idx.items():
+        if u not in rows:
+            bad.append((u, "no step A row")); continue
+        if rec["review_th_sha256"] != rows[u]["review_th_sha256"]:
+            bad.append((u, "other reviews")); continue
+        for s in (3, 5, 8, 10, 15, 20, 30):
+            x = rec["raw_sums"][key_of(("Rec", s))]
+            y = rows[u]["rus"]["model"].get(str(s))
+            if y is None:
+                if x[0] != 0:
+                    bad.append((u, f"S={s}: dump has rows, step A none"))
+                continue
+            if x[0] != y[0] or x[4] != y[4]:
+                bad.append((u, f"S={s}: counts {x[0]}/{x[4]} vs {y[0]}/{y[4]}")); continue
+            for i in (1, 2, 3):
+                worst = max(worst, abs(x[i] - y[i]) / max(abs(y[i]), 1e-9))
+            n += 1
+    ok = not bad and worst <= args.tol and n > 0
+    print(f"[sm126-stepa] {len(idx)} users, {n} user x S cells, max relative difference {worst:.2e} (tol {args.tol:g}), "
+          f"{len(bad)} problems {bad[:3]}: {'PASS' if ok else 'FAIL'}", flush=True)
+    return 0 if ok else 1
 
 
 # ------------------------------------------------------------------ evaluation + report (CPU)
@@ -527,7 +562,7 @@ def s_list(lst):
 
 
 def write_md(res, path):
-    L = ["# Rolling recalibration on the 732 set (SM125): result", "",
+    L = ["# Rolling recalibration on the 732 set (SM125): result" if OUT.name == "sm125" else "# Rolling recalibration for the show-time two-head cool-down for Tiny (SM124) (SM126): result", "",
          "**What answer time means.** The answer time is the whole time on the card, front and back together: from the moment the question is shown to the moment a grade button is pressed, capped at the preset's maximum answer seconds. Every \"within S s\" below means answered within S s, reading the back included.", "",
          f"Scoring only (no training), CPU recalibration of per-review outputs re-dumped on the GPU with fast Good/Easy prediction (SM120)'s code, on the 732 set (723 users, show-time inputs, leak-free, SM117's time-labelled test reviews). Pre-registered in `design.md`. Scheme: per user, Platt scaling per event refitted every {ROLL_DAYS} days on the user's latest {ROLL_ROWS:,} earlier reviews (earlier days only); raw model until {N_MIN:,} earlier reviews; repair (non-decreasing in S, Easy within Good or Easy within recalled, each timed event at most the raw P(set)). Grade-only P(set) is not recalibrated. Reliable = ECE (20 equal-mass bins) below 0.01 and LogLoss below every baseline of SM120 (not recalibrated), each difference with the 95% CI (2,000 user bootstraps, seed 0, review-weighted) below 0 and at least 0.05%.", ""]
     L += ["## Verdict per model (pre-registered rules)", "",
@@ -577,7 +612,7 @@ def write_md(res, path):
             continue
         c = r["coverage"]
         L.append(f"| {r['name']} | {r['users']} | {c['rows']:,} | {c['active_rows']:,} ({100 * c['active_share']:.1f}%) | {c['users_with_recalibration']} | {c['fitted_blocks']:,} | {c['identity_fits']:,} | {c['clamped_fits']:,} | {100 * c['repair_changed_share_mean']:.2f}% | {'yes' if not r['dump_mismatch'] else 'no (' + str(len(r['dump_mismatch'])) + ' users)'} |")
-    L += ["", "Every per-S number, the sensitivity arm (5,000-review minimum), the arm before the repair and the recalibrated-rows-only comparison are in `sm125-result.json`."]
+    L += ["", f"Every per-S number, the sensitivity arm (5,000-review minimum), the arm before the repair and the recalibrated-rows-only comparison are in `{RESULT}.json`."]
     path.write_text("\n".join(L) + "\n", encoding="utf-8")
 
 
@@ -592,8 +627,8 @@ def report(args):
             continue
         print(f"[sm125-report] {key}", flush=True)
         res["models"][key] = evaluate(key)
-    atomic_json(OUT / "sm125-result.json", res)
-    write_md(res, OUT / "sm125-result.md")
+    atomic_json(OUT / f"{RESULT}.json", res)
+    write_md(res, OUT / f"{RESULT}.md")
     gos = [(k, r.get("rules", {}).get("go")) for k, r in res["models"].items()]
     ge4 = [(k, r.get("rules", {}).get("GE4_reliable_raw"), r.get("rules", {}).get("GE4_reliable_cal")) for k, r in res["models"].items()]
     print(f"[sm125-report] {len(gos)} models: go {gos}; Good or Easy within 4 s reliable raw/recalibrated {ge4}")
@@ -767,13 +802,18 @@ def main():
     p = sub.add_parser("check")
     p.add_argument("--model", default="sm106", choices=ORDER)
     p.add_argument("--out", default=str(OUT / "check-cpu.json"))
+    p = sub.add_parser("stepa")
+    p.add_argument("--model", default="sm124", choices=ORDER)
+    p.add_argument("--index", required=True)
+    p.add_argument("--rows", required=True)
+    p.add_argument("--tol", type=float, default=1e-5)
     p = sub.add_parser("report")
     p.add_argument("--models", nargs="*", default=list(MAIN_MODELS))
     a = p0.parse_args()
     if a.cmd == "dump":
         a.out_dir = a.out_dir or str(WORK / f"dump-{a.model}")
         a.index = a.index or str(GPU / f"dump-{a.model}.jsonl")
-    return {"dump": dump, "recal": recal, "check": check, "report": report}[a.cmd](a)
+    return {"dump": dump, "recal": recal, "check": check, "report": report, "stepa": stepa}[a.cmd](a)
 
 
 if __name__ == "__main__":

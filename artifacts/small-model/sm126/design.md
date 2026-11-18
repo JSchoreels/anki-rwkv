@@ -1,0 +1,44 @@
+# Time head for the show-time two-head cool-down for Tiny (SM126): design (pre-registered before any GPU run)
+
+User 2026-11-18: the show-time two-head cool-down for Tiny (SM124) got a go at 04:46 Wed 11-18. Answer-time heads are tied to their trunk, so it needs its own head. SM126 chains two finished recipes for this one model, without redesign:
+
+- **Part A**: the recipe of the time heads for the new candidates (SM119), itself the recipe of the time heads for the family (SM117). Code `scripts/sm117_head.py` (one entry added to its model table, one output-folder switch).
+- **Part B**: the recipe of the rolling recalibration on the 732 set (SM125), run on the show-time two-head cool-down for Tiny (SM124) with its new head. Code `scripts/sm125_recal.py` (output-folder switch, head folder, SM120 rows of this model, one new check command `stepa`) and `scripts/sm120_fast.py` (unchanged).
+
+Branch `sm126`, worktree `C:/Users/jonat/workspace/wt/sm126`, cut from `origin/sm125` with `origin/sm119` merged (no conflicts). Launcher `launch-sm126.sh`. Read only: `wt/sm124` (master, recorded rows), `wt/sm117`, `wt/sm119`, `wt/sm125`.
+
+**What answer time means.** The answer time is the whole time on the card, front and back together: from the moment the question is shown to the moment a grade button is pressed, capped at the preset's maximum answer seconds. Every "within S s" means answered within S s, reading the back included. The moment "Show answer" is pressed is not stored, so front-only time cannot be computed.
+
+## The model
+
+The show-time two-head cool-down for Tiny (SM124): Tiny two-head, scorer kind `expertium:w64-c1`, 474 head inputs (5 snapshots of 64, the instant head's hidden layer of 128, 26 explicit features, as the Tiny two-head model (SM106)). Master (read only): `wt/sm124/artifacts/small-model/sm124-c1-e29st-dec2ep32k-t91s2-p2/expertium/E89-F65e-F77a/master.pth`, sha256 `c78b24d8ee187b58fd8c23c90476fb68a1aab88a137cc1f6a64c03530b7dcb3c` (pinned in `sm117_head.py`; it is the checkpoint of its final scoring rows, verdict go 11-18 04:46). Key `sm124`. No other launcher is waited for.
+
+## Part A: rules (copied from SM119 / SM117; unchanged)
+
+Same recipe: MLP -> 128 -> 4 grades x 16 log-time bins, zero-initialised output, trained alone on the frozen model, explicit-only ablation in the same pass, 1,991 training users, first 400,000 reviews each, one pass, AdamW lr 2e-3, batch 8,192, seed 0, show-time inputs (`e2s-query`), same-day reviews included, leak-free; same gate per head, same S grid (3, 5, 8, 10, 15, 20, 30 s), same baselines, 732 set (722 users). Steps: smoke, head training, grade-unchanged check (bitwise, release and trunk in separate scorer processes), gate scoring, P(recall within S seconds), `decide`, `report`. The CPU proof of SM117 (22 checks) is not rerun: only the model table differs. Recall within S s = recalled (Hard, Good or Easy) and answered within S s, reading the back included: p(S) = sum over Hard, Good, Easy of P(g) x P(t <= S | g); baselines (a) the model's P(g) times the user's running share of earlier answers of that grade within S s, (b) the user's running rate of the event. The head passes the gate iff the grade is unchanged bitwise and the head beats both answer-time baselines (CI clear of zero), as in SM117. Reliable at every S = ECE below 0.01 and LogLoss below both baselines with the CI clear of zero (reported, not part of the gate).
+
+Outputs: `sm124-gate.json`, `sm126-result.md`, `sm126-result.json` here; head in `artifacts/small-model/sm126-sm124-head/`; logs and rows in `gpu/`.
+
+## Part B: rules (copied from SM125; unchanged)
+
+**Question.** Does a per-user causal rolling recalibration make the timed events reliable on the 732 set at 2 to 10 s without losing their LogLoss lead over the baselines, for this model with its new head?
+
+**Rows and per-review dump (GPU).** The 732 set (723 users), show-time inputs, leak-free (deleted cards: neighbour), fp32, SM117's time-labelled test reviews. Per review (`work/dump-sm124/<user>.npz`, gitignored, never committed): the 33 event probabilities (float32), grade, duration, day. Events for the grade sets recalled, Good or Easy, Easy: P(set) and P(set and answered within S s) for S in {2, 3, 4, 5, 6, 8, 10, 15, 20, 30} s; S counts only below the user's own maximum answer seconds.
+
+**Baselines and checks (the one change from SM125).** SM125 compared with SM120's recorded rows. There are none for the show-time two-head cool-down for Tiny (SM124) with this head, and baseline (a) depends on the model's own grades, so the launcher first scores this model with SM120's own code (`scripts/sm120_fast.py score`, one GPU ticket, about 17 min) into `gpu/sm120-sm124-rows.jsonl`: these are the baselines and the reference sums. Checks, all before the report: (1) a 3-user GPU smoke: the dump's float64 sums equal those SM120-code rows within 1e-5 relative (same review sha256, counts exact) and equal the sums of part A's scoring rows for "recalled within S s" at S = 3, 5, 8, 10, 15, 20, 30 (`sm125_recal.py stepa`, within 1e-5; checked on the finished SM113 data first: max difference 0); (2) the same step-A check on all 723 users after the dump; (3) `recal` compares every user's dump with the SM120-code rows (column "dump equals SM120" of the report). The "dump equals SM120" check therefore has a real reference here (SM120's code run on this model), not the CPU-only reference of SM125's proofs.
+
+**Scheme (CPU, `sm125_recal.py recal`).** Per user and event, probability through sigmoid(a logit(p) + b); 7-day blocks counted from the user's first scored review; each block predicted with (a, b) fitted on the user's latest 30,000 scored reviews of strictly earlier days; raw model before 1,000 earlier scored reviews. Newton with step halving warm-started from the previous block; an event with fewer than 20 positives or 20 negatives in the fit rows keeps the raw model in that block; clamps a in [0.05, 20], b in [-15, 15] (hits reported). Repair: running maximum over increasing S; then Easy within S at most Good or Easy within S at most recalled within S; then each timed event capped by the raw P(set). Grade-only P(set) is not recalibrated (diagnostic arm: recalibrated too). Arms: raw, scheme (primary), 5,000-review-minimum sensitivity, scheme before repair, raw and recalibrated on recalibrated rows only, grade-only diagnostic.
+
+**The bar.** Reliable = ECE (20 equal-mass bins, fine histograms) below 0.01 and LogLoss below every baseline of the event, each paired review-weighted difference with the 95% CI (2,000 user bootstraps, seed 0) below 0 and at least 0.05% of the baseline's LogLoss. Baselines (not recalibrated): (a) the model's P(grade) times the user's running share of earlier answers of that grade within S s, summed over the set; (b) the user's running rate of the event; grade-only events have (b) only. Same bar for the raw arm. Cells: 2-10 s (S in {2, 3, 4, 5, 6, 8, 10}) x {Good or Easy, recalled, Easy} = 21.
+
+- **G1:** all 21 cells reliable after recalibration.
+- **G2:** on "Good or Easy within 4 s", recalibrated LogLoss below raw, CI below 0 and at least 0.05%.
+- **G3:** no cell of the 21 where recalibrated LogLoss is worse than raw with the CI above 0.
+- **G4:** P(Good or Easy) and P(Easy) (grade only, raw) reliable.
+- **Go** iff G1, G2, G3, G4 all hold. The report also gives "Good or Easy within 4 s" reliable raw / recalibrated, reliable cells raw / recalibrated, the S values where each event is reliable, ECE per S, coverage and fits. Outputs: `sm126-recal-result.md` / `.json`, `rows/sm125-sm124-recal.jsonl` (commit gzipped), `gpu/dump-sm124.jsonl` (index, commit), `gpu/sm120-sm124-rows.jsonl`.
+
+The CPU proofs of SM125 (`../sm125/check-cpu.json`, PASS, 8 checks) are not rerun: the algorithm is unchanged; the changes since are the output folder, one head-folder entry, the SM120-rows path of this model and the `stepa` read-only check.
+
+## Order, budgets and breaks
+
+Part A: smoke (12 min budget; a few minutes), head training (90; about 42 for a Tiny head in SM119), grade check (10; about 1), scoring (30 + 15 retry; about 15), `decide` and `report` on CPU. Part B (runs whatever the gate verdict of part A, but only if its grade check is bitwise equal): SM120-code scoring (30 + 15), 3-user dump smoke (6), dump (30 + 15; about 17), CPU recalibration (about 1.2 h, one process, 1 thread, under 1.5 GB RAM), report. Total about 1.8 GPU h plus 1.2 h CPU. Every GPU ticket starts only when its budget fits before the next window (quiet.json scope all/gpu, daily 20:00-01:00, Sunday from 16:00, re-read at every check); the head training resumes from `resume.pt`; the recalibration stops 5 min before a window and resumes after. GPU cap 0.8 (missing users at 0.92). Queue owner `small-model`, purposes start with `time head for the show-time two-head cool-down for Tiny (SM126): `. A `STOP` file in `gpu/` stops between tickets.
