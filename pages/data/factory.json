@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-18T12:55:17+01:00",
- "updated": "2026-11-18 12:55",
- "material": "a0cf17ae383c329d",
- "summary": "idle, finished 001341",
+ "generated_at": "2026-11-18T13:44:31+01:00",
+ "updated": "2026-11-18 13:44",
+ "material": "0186fdebdec6b0fe",
+ "summary": "idle",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring, show-time inputs for both heads (curve / instant)",
@@ -2582,10 +2582,11 @@
    "kind": "cpu",
    "minutes": 110,
    "what": "Fluency vs desired retention in the simulator with answer-time feedback (SM127): the user&rsquo;s question of 11-15, is a high desired retention enough for mastery or do we need a scheduler that keeps answer time? In the review simulator hosting the small model (SM41), with the show-time retrain (SM92) and its answer-time head from the time heads for the family (SM117), one simulated year per user at the same daily review time (the user&rsquo;s real mean minutes per day; an expensive policy shows fewer new cards): desired retention 0.90 / 0.95 / 0.98 against a fluency scheduler (the interval where P(recalled and answered within 8 s, reading the back included) falls to 0.80; also 0.70, 0.50 and a &lsquo;fluency where reachable&rsquo; variant). Sampled answer times are fed back into the model (the models read a slower success as weaker memory, the retrieval-effort probe (SM122)); a sensitivity arm feeds the user&rsquo;s median time instead. Read-out at day 365: expected memorised cards and expected fluent cards, user-bootstrap CIs. This is the pre-registered pilot: 12 users of the 732 set, 22 lanes, CPU only (CPU proof passed); the full run (150 users, about 30 CPU process-hours) needs the user's go",
-   "when": "Started 12:10 Wed 11-18 (CPU, 4 processes, no GPU); pilot result about 14:00 Wed 11-18 (13:30-14:30; a user still running at 20:00 pauses until 01:00)",
+   "when": "Done 13:29 Wed 11-18: pilot on 12 users, verdict inconclusive (not decisive); see results",
    "decides": "Whether a high desired retention already gives the most fluent cards (answered within 8 s, reading the back included) at equal daily time, or a fluency scheduler adds at least 2% more; for the pilot only: go or no-go for the full run, and whether the 8 s / 0.80 target is feasible enough (share of cards already below it at a 1-day interval) or the user must pick another fluency definition",
-   "state": "planned",
-   "started_at": "2026-11-18T12:10+01:00"
+   "state": "done",
+   "started_at": "2026-11-18T12:10+01:00",
+   "ended_at": "2026-11-18T13:29+01:00"
   },
   {
    "id": "SM128",
@@ -3311,6 +3312,74 @@
   }
  ],
  "results": [
+  {
+   "date": "11-18",
+   "kind": "cpu",
+   "id": "SM127",
+   "track": "small model",
+   "name": "Fluency vs desired retention in the simulator with answer-time feedback (SM127): pilot on 12 users, CPU only, aggregate numbers only",
+   "eval": "Pre-registered pilot: 12 users of the 732 set, one simulated year each (365 days) in the review simulator hosting the small model (SM41), with the show-time retrain (SM92) and its answer-time head from the time heads for the family (SM117), 22 policy lanes at the same daily review time per user (the user&rsquo;s real mean minutes per day). Fluent = P(recalled and answered within 8 s, reading the back included). Read-out at day 365: expected memorised and fluent cards, user-bootstrap 95% CIs, statistic = mean of per-user ratios.",
+   "fork": "Not used: simulation only, nothing is released",
+   "takeaway": "<strong>Pilot only (12 users), not decisive: the rule verdict is inconclusive.</strong> The fluency scheduler at 0.80 against the best desired retention (0.90) gives +54.6% [&minus;29.3, +173.5] fluent cards but &minus;24.0% [&minus;38.1, &minus;8.3] memorised cards. The mean of per-user ratios explodes when a user&rsquo;s baseline is near zero, so the full run needs a ratio of totals with a paired user bootstrap. The fluency target is mostly out of reach (74% of the fluency 0.80 scheduler&rsquo;s decisions sit at the 1-day floor). At equal daily time every policy shows far fewer new cards than the users really did, so the time loop needs a check before any policy reading. Answer-time feedback changes the ranking. Open for you: the go for a full run (150 users, about 30 CPU process-hours) and the fluency definition.",
+   "inputs": "show-time",
+   "started_at": "2026-11-18T12:10+01:00",
+   "ended_at": "2026-11-18T13:29+01:00",
+   "gpu_minutes": 0,
+   "cpu_minutes": 278,
+   "tickets": 0,
+   "detail": {
+    "verdict": "Pilot done, inconclusive; branch sm127 c198d69e (report-pilot.out, sm127-tables.md, sm127-result.json, rows, logs; aggregates only). Ran 12:10 to 13:29 Wed 11-18, 12 of 12 users, 4 processes, no GPU, no ticket.",
+    "table": {
+     "head": [
+      "Comparison (12 users, day 365)",
+      "Fluent cards",
+      "Memorised cards",
+      "Daily minutes"
+     ],
+     "rows": [
+      [
+       "Fluency scheduler at 0.80 vs desired retention 0.90 (best desired retention)",
+       "+54.59% [&minus;29.31, +173.49]",
+       "&minus;23.95% [&minus;38.05, &minus;8.32]",
+       "+5.39% [&minus;1.80, +14.69]"
+      ],
+      [
+       "Fluency scheduler at 0.80 vs desired retention 0.95",
+       "+147.76% [&minus;8.95, +406.87]",
+       "+2.74% [&minus;20.77, +38.50]",
+       "+2.61% [&minus;0.85, +8.35]"
+      ],
+      [
+       "Fluency scheduler at 0.80 vs desired retention 0.98",
+       "+59.13% [&minus;13.72, +159.26]",
+       "+9.70% [&minus;12.35, +42.40]",
+       "+1.04% [&minus;0.45, +3.05]"
+      ],
+      [
+       "Fluency scheduler at 0.80 vs desired retention 0.90, both without answer-time feedback",
+       "&minus;41.39% [&minus;58.02, &minus;25.69]",
+       "&minus;45.00% [&minus;61.01, &minus;30.09]",
+       "+7.41% [&minus;2.57, +20.56]"
+      ],
+      [
+       "Fluency scheduler at 0.80, with vs without answer-time feedback",
+       "+1012.54% [+21.62, +2801.63]",
+       "+231.92% [&minus;2.95, +615.58]",
+       "+2.35% [&minus;2.78, +9.13]"
+      ]
+     ]
+    },
+    "notes": [
+     "Pilot only (12 users), not decisive: rule verdict inconclusive. Fluency scheduler at 0.80 vs the best desired retention (0.90): fluent +54.6% [&minus;29.3, +173.5], memorised &minus;24.0% [&minus;38.1, &minus;8.3].",
+     "The comparison statistic is the mean of per-user ratios, which explodes when a user&rsquo;s baseline is near zero (for example the fluency scheduler at 0.80 with vs without answer-time feedback: +1012% while the population totals are 772 vs 768 fluent cards); the full run needs a ratio of totals with a paired user bootstrap.",
+     "The fluency target is mostly out of reach: 74% of the fluency scheduler at 0.80&rsquo;s decisions sit at the 1-day floor (65% at 0.50, 71% at 0.70).",
+     "At equal daily time every policy shows far fewer new cards than the users really did (286 to 1,200 vs 3,078) and memorises fewer cards (1,361 to 2,184 vs 3,045 on the real schedule), with the daily budget binding on 288 to 352 of 365 days; with answer-time feedback a review costs about 18.5 s vs 15.6 s without (desired retention 0.90), so the time loop needs a check before any policy reading.",
+     "Feedback matters: it changes the ranking (without answer-time feedback the rule would read &lsquo;a high desired retention is enough&rsquo;: fluency scheduler at 0.80 vs desired retention 0.90 fluent &minus;41.4% [&minus;58.0, &minus;25.7]).",
+     "Drift check on the real schedule passes: &minus;0.28% [&minus;3.22, +2.51]. Cost 4.64 CPU process-hours, 383 lane reviews/s per process.",
+     "Open for you: the go for a full run (150 users, about 30 CPU process-hours) and the fluency definition."
+    ]
+   }
+  },
   {
    "date": "11-18",
    "kind": "gpu-score",
