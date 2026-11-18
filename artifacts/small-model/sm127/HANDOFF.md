@@ -102,7 +102,7 @@ $si = New-CimInstance -ClassName Win32_ProcessStartup -ClientOnly -Property @{Sh
    - Then `git fetch origin`, merge `origin/sm127` if it moved, and `git push`. Never force-push, never bypass hooks.
 5. **Factory page** (main checkout `C:/Users/jonat/workspace/anki-rwkv`; run
    `git fetch origin && git merge --ff-only origin/main` first).
-   - Close the SM127 plan row: `state` done, `ended_at`.
+   - Close the plan row of this experiment (id SM127): `state` done, `ended_at`.
    - Add a results row, with the times from `run/launch-sm127.log`, `cpu_minutes` instead of GPU minutes, and
      `detail.notes` as a JSON list of strings. It covers: the verdict (pilot, not decisive), the fluent and memorised
      gaps of `flu-0.80` against the best desired retention with CIs, the feedback effect, the floor share, the drift

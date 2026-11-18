@@ -1,6 +1,6 @@
 # Fluency vs desired retention in the simulator with answer-time feedback (SM127): design (pre-registered)
 
-Written Wed 11-18 ~11:50, before any SM127 result. Branch `sm127` (from `origin/sm41`), worktree
+Written Wed 11-18 ~11:50, before any result of this experiment. Branch `sm127` (from `origin/sm41`), worktree
 `C:/Users/jonat/workspace/wt/sm127`, code `scripts/sm127_fluency.py`. Everything below is fixed before the pilot.
 The only numbers used to write it are the real-data feasibility counts in section 9 and a 10-day mechanical smoke run
 (no policy outcome is read from it).
@@ -31,33 +31,33 @@ experiment always means answered within S s, reading the back included.
   - into the 26 explicit time features of the head (the card's last 3 times, the user's medians);
   - into the session clock and the workload.
 
-  The engine already did this in the earlier SM41 runs. The models read a slower success as weaker memory: doubling
+  The engine already did this in the earlier runs of the review simulator hosting the small model (SM41). The models read a slower success as weaker memory: doubling
   the last success's duration lowers the predicted next recall by about 1.6% for the show-time retrain (SM92). The
   comparison therefore includes that effort effect.
 - **Model: the show-time retrain (SM92) with its own head from the time heads for the family (SM117).** The combined
-  file is built by `prepare`: the SM92 trunk, with its sha256 equal to the family package manifest, plus the SM117 head
-  `wt/sm117/artifacts/small-model/sm117-sm92-head/head.pth` under the SM82c key prefix. Only the model table changed.
+  file is built by `prepare`: the trunk of the show-time retrain (SM92), with its sha256 equal to the family package manifest, plus its head from the time heads for the family (SM117)
+  `wt/sm117/artifacts/small-model/sm117-sm92-head/head.pth` under the key prefix of the answer-time head on richer frozen features (SM82c). Only the model table changed.
   Why this model and not the show-time two-head cool-down for Small (SM118) with its head from the time heads for the
   new candidates (SM119):
   1. The duration effect was measured on this exact model (SM122: -1.60% [-1.78, -1.44]), so the feedback arm's
      mechanism is quantified for the learner we simulate.
   2. Its head's reliability at every S was measured (SM117): at S = 8 s the raw head is reliable (ECE 0.001 to 0.006,
-     bar 0.01). The SM119 result reports calibration at 10 s, not at 8 s.
+     bar 0.01). The result of the time heads for the new candidates (SM119) reports calibration at 10 s, not at 8 s.
   3. The show-time retrain (SM92) is shipped as an option (draft build 112). The show-time two-head cool-down for
      Small (SM118) is held for the 11-28 release decision and may still change.
-  4. The engine's interval convention is the show-time (e2s-query) input SM92 and its SM117 head were trained and
+  4. The engine's interval convention is the show-time (e2s-query) input the show-time retrain (SM92) and its head from the time heads for the family (SM117) were trained and
      scored on.
 - **S = 8 s needs no recalibration.** The raw head is already reliable at 8 s on all tested models: the six family
   heads (SM117), the time heads for the new candidates (SM119), and the time head for the show-time two-head cool-down
   for Tiny (SM126), reliable from 8 s upward. The per-user rolling recalibration (SM125) is needed only below about
   5 s. So no recalibration is applied.
 - **Training-user overlap: none.** All users come from the 732 set (the 8k split's validation users with id < 5000).
-  The show-time retrain (SM92) trunk was trained on the 8,000 train users. Its SM117 head was trained on the 1,991 plan
-  users of the SM82c recipe. SM41 checked 0 overlap with the 732 set (DESIGN.md 10.1).
+  The show-time retrain (SM92) trunk was trained on the 8,000 train users. Its head from the time heads for the family (SM117) was trained on the 1,991 plan
+  users of the recipe of the answer-time head on richer frozen features (SM82c). The review simulator hosting the small model (SM41) checked 0 overlap with the 732 set (DESIGN.md 10.1).
 
 ## 3. Users (fixed list, `users.json`, `select`)
 
-- **Order:** the 732 set in numpy `default_rng(4141)` order (the SM41 order).
+- **Order:** the 732 set in numpy `default_rng(4141)` order (the order of the review simulator hosting the small model (SM41)).
 - **User filters:**
   - 8k-150k reviews, >= 95% of them timed;
   - later-day retention < 0.99 over the history (Good-only users excluded).
@@ -166,7 +166,7 @@ experiment always means answered within S s, reading the back included.
   note states carry the lane's own grades and times.
 - **What feedback can and cannot change.** Answer-time feedback acts on the cards' memory (the trunk) and on the head's
   card-level time features. It does not act on the user-level speed.
-- **Earlier drift numbers.** Measured in the earlier SM41 runs: -0.6 ± 1.0 at days 30-59, and about -3 at days 60-89
+- **Earlier drift numbers.** Measured in the earlier runs of the review simulator hosting the small model (SM41): -0.6 ± 1.0 at days 30-59, and about -3 at days 60-89
   of a 120-day run. One year was never measured.
   - The `fr-shared1#0` lane measures it here: first-touch predicted pass minus teacher forcing, over the year.
   - The drift is model state, not outcome noise.
@@ -198,15 +198,15 @@ experiment always means answered within S s, reading the back included.
 ## 10. CPU proof (`check`, `check-cpu.json`), bars fixed now
 
 - **K1 model:**
-  - the SM92 sha256 equals the manifest;
+  - the sha256 of the show-time retrain (SM92) equals the manifest;
   - the combined file equals the trunk and the head bitwise;
   - checks C1-C3 of the review simulator hosting the small model (SM41) pass on the combined model:
     - the builder equals the pipeline;
     - the recurrent path equals the parallel path, including the 448 frozen time-head features (instant and curve
       within 1e-4, features within 1e-3);
     - the explicit features within 1e-6.
-  - The checks run on user 722, the user of SM41's own proof. A first try on user 3876 failed C1b (3.0) and C2
-    (about 7e-2). It fails identically with the earlier SM82c master (diagnostic `check-c123-3876-sm82c.json`), so the
+  - The checks run on user 722, the user of the own proof of the review simulator hosting the small model (SM41). A first try on user 3876 failed C1b (3.0) and C2
+    (about 7e-2). It fails identically with the earlier master of the answer-time head on richer frozen features (SM82c) (diagnostic `check-c123-3876-sm82c.json`), so the
     model swap does not cause it. It was not investigated further; C1 and C3 pass on that user.
 - **K2:** the fluent CDF equals the sampler's share at or below 8 s: 64 rows, 200k draws each, max gap below 0.004.
 - **K3 feedback path (20 days):**
