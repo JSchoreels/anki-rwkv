@@ -2302,6 +2302,21 @@
    "ended_at": "2026-11-18T08:33+01:00"
   },
   {
+   "id": "SM126",
+   "track": "small model",
+   "since": "11-18T08:44",
+   "kind": "gpu",
+   "minutes": 100,
+   "match": [
+    "time head for the show-time two-head cool-down for Tiny (SM126): "
+   ],
+   "what": "Time head for the show-time two-head cool-down for Tiny (SM126): the show-time two-head cool-down for Tiny (SM124) got a go at 04:46 Wed 11-18, but answer-time heads are tied to their trunk, so it needs its own. This run first trains the answer-time head of the time heads for the new candidates (SM119) on the frozen model (about 43 min), checks that the model's grades stay bitwise unchanged, and scores P(recall within S seconds) (recalled and answered within S s, reading the back included) on the 732 set against both baselines. Then it runs the rolling recalibration on the 732 set (SM125) on this model with its new head: per-review outputs on the GPU, a per-user causal Platt scaling refitted every 7 days on the latest 30,000 earlier reviews on the CPU (about 1.2 h), and the same pre-registered go rule (every timed event at 2 to 10 s reliable, Good or Easy within 4 s better than raw, no cell worse, P(Good or Easy) and P(Easy) reliable)",
+   "when": "Started 08:44 Wed 11-18; part A (head training, grade check, scoring) about 09:50; part B GPU (SM120-code scoring, dump) about 10:30; recalibration about 1.2 h of CPU after it; result about 11:45 Wed 11-18 (later if the 20:00 break intervenes)",
+   "decides": "Whether the show-time two-head cool-down for Tiny (SM124) can ship an answer-time estimate like the other family models, and whether per-user recalibration of its timed Good/Easy predictions makes them reliable",
+   "state": "running",
+   "started_at": "2026-11-18T08:44+01:00"
+  },
+  {
    "id": "SM124",
    "track": "small model",
    "since": "11-17T11:05",
