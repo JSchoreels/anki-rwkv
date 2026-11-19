@@ -2406,7 +2406,7 @@
     "Compact state for Small and Big (SM131)"
    ],
    "what": "Compact state for Small and Big (SM131): the show-time two-head cool-down for Small (SM118), the longer Small Instant-Only model (SM113), the show-time big model (SM91s2) and the show-time instant-only big model (SM99) scored with the compact integer state of the compact int state test (SM47) (int4 cards + int8 notes, float16 row scales, int8 token-shift vectors) against the fork&rsquo;s default stored state (int4 cards + int8 notes), plus the card-only format as report only; no training, show-time inputs, leak-free, 722 users of the 732 set; one chained GPU ticket (GPU smoke, Big, Small) interleaved with the six-layer Tiny (SM130)",
-   "when": "Launched 14:04 Thu 11-19; ticket after the six-layer Tiny (SM130)&rsquo;s epoch 39 (about 15:40); result about 17:45 Thu 11-19 (17:15 to 20:00)",
+   "when": "Launched 14:04 Thu 11-19; first ticket 14:43 stopped at 14:46 on a non-finite LogLoss: user 3876 (58,826 reviews) has one card with 4,733 state updates, and the fork default int4 card state of the Big models overflows on it (row scales grow to 4e33; finite with int8 rows and with the compact format&rsquo;s float16 scales). The scorer now records such users as non-finite and goes on; relaunched 15:21, result about 18:45 Thu 11-19 (18:15 to 20:30)",
    "decides": "Whether the compact state is free for Small and for Big: free per model iff every head&rsquo;s 95% CI upper bound of compact vs fork default &lt; +0.05%; per size iff both models are free. State per card / note: Small 1,521 / 1,315 B vs 1,963 / 1,567 B (&minus;19.7% card + note), Big 7,747 / 9,267 B vs 9,271 / 10,283 B (&minus;13.0%)",
    "state": "running",
    "started_at": "2026-11-19T14:04+01:00"
