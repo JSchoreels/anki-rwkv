@@ -6,21 +6,23 @@ Bytes (fork layout, `sm131-bytes.json`): Small 1,963 / 1,567 B (card / note, for
 
 ## The running job
 
-- Launched 14:04 Thu 11-19 from branch `sm131` at 078d3f37, hidden via WMI. Windows PIDs: wrapper bash 22404 (the WMI process), launcher bash 31476 (`bash .../launch-sm131.sh`; its children are its subshells).
-- CPU proofs passed at 14:04:58 (`CPU proofs ALL OK (5 PASS lines, 16.1 s)`). Queue ticket `001373-sm131` (owner `sm131`, purpose prefix `Compact state for Small and Big (SM131): `), waiting behind the six-layer Tiny (SM130)'s Instant-Only epoch 39 (`001372-sm130`, started ~13:48, ~110 min).
-- ONE chained ticket (`sm131_ticket.sh 0.8 smoke big small`): GPU smoke (2 users, four formats, GPU vs the committed CPU rows; mismatch = `STOP`), then Big (both models x 3 formats), then Small (both models x 2 formats); each step retries missing users in a fresh process at cap 0.8, then at 0.92, inside the ticket. Further tickets only if users are still missing (each waits behind one SM130 ticket).
-- Quiet windows: quiet.json scope all / gpu only (`sm131_block.py`), re-read before every ticket. No daily or Sunday break (user 11-19 ~14:10). A running ticket is not interrupted; to pause, add a quiet.json window (the next ticket waits) or touch STOP.
-- Logs: main `artifacts/small-model/sm131/gpu/launch-sm131.log` (lines `[sm131 MM-DD HH:MM:SS] ...`); nohup `gpu/launch-sm131.nohup`; scorer and ticket steps `gpu/score.out` (lines `[sm131-ticket ...] step ...`, `[small-model] N/723 user ...`); CPU proofs `gpu/check.out` + `check-cpu-sm131.json`; GPU smoke `gpu/smoke-gpu-rows.jsonl` + `gpu/smoke-check.json` (marker `gpu/smoke-ok`); memory guard `gpu/memguard.log` (kill marker `gpu/memguard-kill`); `gpu/tickets.jsonl`; rows `gpu/sm131-rows.jsonl`.
+- **Relaunched 15:21 Thu 11-19** from branch `sm131` at 65b073a9, hidden via WMI. Windows PIDs: wrapper bash 23872 (the WMI process), launcher bash 9592 (`bash .../launch-sm131.sh`; its children are its subshells). CPU proofs passed again at 15:22:13 (`CPU proofs ALL OK`, new check code). Queue ticket `001378-sm131` (owner `sm131`), waiting behind the six-layer Tiny (SM130)'s Instant-Only epoch 40 (`001376-sm130`, started ~14:55, ~110 min).
+- First launch (14:04, 078d3f37): its ticket (14:43-14:46) passed the GPU smoke, scored 37 users in the Big step (kept: the fix changes no finite number) and stopped at user 3876 with `Non-finite evaluation loss`. Cause (design.md, amendment 11-19): the fork default `w8+s4c8n` (int4 card rows, float32 scales, as the fork's precision.rs) overflows float32 for 3876 **on CPU and GPU alike**, both Big models; a card-module row of 9,465 steps (4,733 updates) grows the int4 row scale from 0.04 to 4e33. Int8 rows stay small; the float16-scale formats (compact, card-only) clamp and stay finite. Not a GPU or kernel issue (user 2450, first suspected, had finished and matches the CPU within 7e-6).
+- Fix: scorer `--nonfinite-rows` (a `nonfinite` row, no `benchmark`, done and not retried); ticket `missing` and launcher `min_users` count it as scored; the rule (finite rows in both formats, floor 718 of 722) lists `nonfinite_rows`, so 3876 is one of the four allowed missing Big users. Smoke gate re-runs (`smoke-ok` removed) with users 2450 and 3876 added (3876: fork default non-finite on the GPU too, w8+s8 vs published 1e-5, compact / card-only finite with the difference reported only).
+- ONE chained ticket (`sm131_ticket.sh 0.8 smoke big small`): GPU smoke (2450, 3876 new; 2388, 4676 already in `gpu/smoke-gpu-rows.jsonl`), then Big (686 users left, both models x 3 formats), then Small (both models x 2 formats); in-ticket retries for missing users at cap 0.8, then 0.92. Further tickets only if users are still missing (each waits behind one SM130 ticket).
+- Quiet windows: quiet.json scope all / gpu only (`sm131_block.py`), re-read before every ticket. No daily or Sunday break. A running ticket is not interrupted; to pause, add a quiet.json window (the next ticket waits) or touch STOP.
+- Logs: main `artifacts/small-model/sm131/gpu/launch-sm131.log` (lines `[sm131 MM-DD HH:MM:SS] ...`); nohup `gpu/launch-sm131.nohup`; scorer and ticket steps `gpu/score.out` (lines `[sm131-ticket ...] step ...`, `[small-model] N/723 user ...`, `[small-model] user U LABEL: non-finite evaluation, row 'nonfinite' written`); CPU proofs `gpu/check.out` + `check-cpu-sm131.json`; GPU smoke `gpu/smoke-gpu-rows.jsonl` + `gpu/smoke-check.json` (marker `gpu/smoke-ok`); memory guard `gpu/memguard.log`; `gpu/tickets.jsonl`; rows `gpu/sm131-rows.jsonl`.
+- Diagnosis files (scratchpad, not committed): `C:/Users/jonat/AppData/Local/Temp/claude/eefeeb6d2df69e2b/41a2947b-8da0-4ee6-a033-bc96eb42a697/scratchpad/sm131diag3876/` (`cpu_locate.py`, `replay.py`, CPU rows of 3876).
 
 ## Expected timeline (no pause tonight)
 
 | step | ends about |
 |---|---|
-| queue wait behind SM130's epoch 39 | ~15:40 Thu 11-19 |
-| GPU smoke (~3 min), Big (~80-90 min), Small (~25-30 min), in-ticket retries | ~17:45 Thu |
-| `rule decide` -> `done (verdict Small ..., Big ...)` | **~17:45 Thu 19 Nov** (17:15-20:00; +~2 h if a retry ticket is needed) |
+| queue wait behind SM130's epoch 40 | ~16:45 Thu 11-19 |
+| GPU smoke (~5 min), Big (686 users, ~75-80 min), Small (~25-30 min), in-ticket retries | ~18:45 Thu |
+| `rule decide` -> `done (verdict Small ..., Big ...)` | **~18:45 Thu 19 Nov** (18:15-20:30; +~2 h if a retry ticket is needed) |
 
-About 2 GPU h (1.7-2.5 h).
+About 1.9 GPU h. If more than four Big users miss (3876 non-finite plus the four SM128 out-of-memory users 481, 2267, 3735, 4852), `decide` exits 2 (`STOP: the rule is pending`) and the main session decides.
 
 ## Log lines to watch
 
@@ -37,7 +39,7 @@ About 2 GPU h (1.7-2.5 h).
 - Relaunch (only if the launcher is gone and the log has neither `done (` nor a final `STOP:`; scored users and a passed smoke are skipped), PowerShell:
   `$si = New-CimInstance -ClassName Win32_ProcessStartup -ClientOnly -Property @{ShowWindow=[uint16]0}; Invoke-CimMethod -ClassName Win32_Process -MethodName Create -Arguments @{CommandLine='"C:\Program Files\Git\usr\bin\bash.exe" -c "export PATH=/usr/bin:/mingw64/bin:$PATH; bash C:/Users/jonat/workspace/wt/sm131/artifacts/small-model/sm131/launch-sm131.sh >> C:/Users/jonat/workspace/wt/sm131/artifacts/small-model/sm131/gpu/launch-sm131.nohup 2>&1"'; ProcessStartupInformation=$si}`
 - Never edit the running launcher or `scripts/` of `wt/sm131` while a ticket runs. Read-only inputs: `wt/sm91s2`, `wt/sm99`, `wt/sm118`, `wt/sm113` (models, rows), `wt/sm72s` (users file). `wt/sm130` is never touched.
-- If `STOP: GPU smoke mismatch`: read `gpu/smoke-check.json` (per user and format, GPU vs CPU max LogLoss difference; tolerance 1e-4, w8+s8 1e-5); do not relax the tolerance without the user.
+- If `STOP: GPU smoke mismatch`: read `gpu/smoke-check.json` (per user and format, GPU vs CPU max LogLoss difference; tolerance 1e-4, w8+s8 1e-5 for 2388 / 4676, vs published 1e-5 for all; 3876's compact / card-only are report only, its fork default must be `nonfinite` on both); do not relax the tolerance without the user.
 - If `STOP: the rule is pending`: `sm131_rule.py decide` prints which model has fewer than 718 users; check `score.out` for `OOM` rows; a relaunch retries them (cap 0.8, then 0.92).
 
 ## After `done` (a fresh Sonnet medium agent is enough)
@@ -77,4 +79,4 @@ About 2 GPU h (1.7-2.5 h).
 }
 ```
 
-3. Report to the user in % (never "points"), every model as "plain name (ID)": the verdict per size and model with CIs, the bytes and saving per card / note, the users covered (and any of 481, 2267, 3735, 4852 missing), and the card-only numbers as report only. Note: Small's fork-default shift vectors are float in the scorer (expertium path), Big's are float16 (fork path); each comparison is internally consistent.
+3. Report to the user in % (never "points"), every model as "plain name (ID)": the verdict per size and model with CIs, the bytes and saving per card / note, the users covered (and any of 481, 2267, 3735, 4852 missing), the non-finite fork default rows (`nonfinite_rows`, user 3876 at least: the int4 card state overflow on Big, a finding for the fork's default card state), and the card-only numbers as report only. Note: Small's fork-default shift vectors are float in the scorer (expertium path), Big's are float16 (fork path); each comparison is internally consistent.
