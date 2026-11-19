@@ -192,15 +192,23 @@ class LeakBatches(UserBatches):
     """SM71: full-history batches with the deleted-card signals neutralised (scripts/sm71_leak.py) and/or the id/day
     codes drawn with seed 2025 + user + seed_offset. Only used when --deleted-cards != keep or --seed-offset != 0."""
 
-    def __init__(self, users, data, counts, mode, seed_offset, inputs="normal"):
+    def __init__(self, users, data, counts, mode, seed_offset, inputs="normal", again_as_hard=None):
         super().__init__(users, data, counts)
         self.mode, self.seed_offset, self.inputs = mode, seed_offset, inputs
+        self.again_as_hard = again_as_hard   # SM132: None or (p, state mode)
 
     def __getitem__(self, index):
         user = self.users[index]
         started = time.perf_counter()
         try:
             from rwkv.prepare_batch import prepare
+            if self.again_as_hard is not None:   # SM132: Again recorded as Hard in the inputs (scripts/sm31_inputs.py)
+                from scripts import sm31_inputs
+                samples, info, flipped, again = sm31_inputs.samples(self.data, user, self.inputs, self.mode,
+                                                                    *self.again_as_hard)
+                batch = prepare(samples, seed=2025 + user + self.seed_offset)
+                batch.again_as_hard = (info, flipped, again)
+                return user, batch, None, time.perf_counter() - started
             if self.inputs != "normal":   # SM31 / SM29 input variants (scripts/sm31_inputs.py)
                 from scripts import sm31_inputs
                 samples = sm31_inputs.samples(self.data, user, self.inputs, self.mode)
@@ -285,6 +293,21 @@ def dump_sod(folder, user, label, labels, predictions, sod_predictions):
                         y=np.clip(got["rating"][keep], 0, 1).astype(np.int8),
                         **{k: got[k][keep].astype(np.float32) for k in ("p_curve", "p_instant", "p_sod")},
                         curve_sod_equal=np.array(bool(np.array_equal(got["p_curve"][keep], got["p_curve_sod"][keep]))))
+
+
+def again_as_hard_fields(user, labels, aah, predictions, bench_metrics):
+    """SM132 row entries: the corruption counts (also on the benchmark reviews) and the benchmark metrics of the same
+    predictions against the corrupted labels (a flipped Again counts as passed: label rating 2 -> y = 1)."""
+    import numpy as np
+    from scripts.heldout_fast_metrics import ArrayPredictions
+    info, flipped, again = aah
+    ths = np.asarray(labels[0], dtype=np.int64)
+    keys, values = predictions.heads["rating"]
+    corrupt = ArrayPredictions({**predictions.heads, "rating": (keys, np.where(np.isin(keys, flipped), 1.0, values))})
+    return {"again_as_hard": {**info, "benchmark_reviews": int(len(ths)),
+                              "benchmark_again": int(np.isin(ths, again).sum()),
+                              "benchmark_flipped": int(np.isin(ths, flipped).sum())},
+            "benchmark_corrupt_labels": bench_metrics(user, labels, corrupt)}
 
 
 class IntState(tuple):
@@ -416,7 +439,20 @@ def main():
     parser.add_argument("--inputs", default="normal", choices=("normal", "e2s-query", "e2s-all", "passfail", "notime",
                                                                "passfail-notime"),
                         help="SM31 / SM29: input variant (scripts/sm31_inputs.py); labels get the suffix @VARIANT")
+    parser.add_argument("--again-as-hard", type=float, default=None, metavar="P", help="SM132: every Again review is "
+                        "recorded as Hard in the model inputs with probability P (seed [132, user]; targets stay true; "
+                        "scripts/sm31_inputs.py again_as_hard); labels get the suffix +aah<100P> (+aah<100P>g with "
+                        "--again-as-hard-state keep); rows get 'again_as_hard' counts and 'benchmark_corrupt_labels' "
+                        "(the same predictions scored against the corrupted labels: flipped reviews count as passed)")
+    parser.add_argument("--again-as-hard-state", choices=("anki", "keep"), default="anki", help="SM132: anki = the "
+                        "card state Anki would have recorded (a flipped review-state Again does not lapse the card); "
+                        "keep = the recorded states (grade one-hot only)")
     args = parser.parse_args()
+    if args.again_as_hard is not None:
+        if not 0.0 <= args.again_as_hard <= 1.0:
+            raise SystemExit("--again-as-hard: P in [0, 1]")
+        if args.window or args.start_of_day or args.legacy_metrics:
+            raise SystemExit("--again-as-hard: full-history scoring, array metrics, no --window / --start-of-day")
     cpu = args.device == "cpu"
     if cpu:
         torch.set_num_threads(2)
@@ -459,6 +495,9 @@ def main():
         if args.window or args.start_of_day:
             raise SystemExit("--inputs: full-history scoring without --window / --start-of-day")
         grid = [f"{label}@{args.inputs}" for label in grid]
+    if args.again_as_hard is not None:
+        grid = [f"{label}+aah{args.again_as_hard * 100:g}{'g' if args.again_as_hard_state == 'keep' else ''}"
+                for label in grid]
     out = ROOT / args.out
     out.parent.mkdir(parents=True, exist_ok=True)
     done = {}
@@ -539,10 +578,12 @@ def main():
         if args.window or args.legacy_metrics or len(grid) != 1 or (not cpu and max(1, args.lanes) > 1):
             raise SystemExit("--start-of-day: full history, array metrics, one label, one lane")
         dataset = SodBatches(todo, cc.data_path(run), counts, args.deleted_cards, args.seed_offset)
-    elif args.deleted_cards != "keep" or args.seed_offset or args.inputs != "normal":
+    elif (args.deleted_cards != "keep" or args.seed_offset or args.inputs != "normal"
+          or args.again_as_hard is not None):
         if args.window:
             raise SystemExit("--deleted-cards / --seed-offset are for full-history scoring")
-        dataset = LeakBatches(todo, cc.data_path(run), counts, args.deleted_cards, args.seed_offset, args.inputs)
+        dataset = LeakBatches(todo, cc.data_path(run), counts, args.deleted_cards, args.seed_offset, args.inputs,
+                              None if args.again_as_hard is None else (args.again_as_hard, args.again_as_hard_state))
     else:
         dataset = (WindowBatches if args.window else UserBatches)(todo, cc.data_path(run), counts)
     sm71_fields = {**({"deleted_cards": args.deleted_cards} if args.deleted_cards != "keep" else {}),
@@ -684,6 +725,8 @@ def main():
                 for key, keep in (("benchmark_existing", ~is_gone), ("benchmark_deleted", is_gone)):
                     sub = ([t for t, k in zip(labels[0], keep) if k], [b for b, k in zip(labels[1], keep) if k])
                     rows[-1][key] = bench_metrics(user, sub, predictions)
+            if args.again_as_hard is not None:
+                rows[-1].update(again_as_hard_fields(user, labels, batch.again_as_hard, predictions, bench_metrics))
             if sod_batch is not None:
                 rows[-1]["start_of_day"] = sod_fields(user, labels, cc.data_path(run), predictions, sod_predictions,
                                                       bench_metrics, getattr(sod_batch, "sod_leading_fixed", None))
