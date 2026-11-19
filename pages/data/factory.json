@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-19T17:21:18+01:00",
- "updated": "2026-11-19 17:21",
- "material": "166e79deabc96607",
- "summary": "running 001379, finished 001378",
+ "generated_at": "2026-11-19T17:25:18+01:00",
+ "updated": "2026-11-19 17:25",
+ "material": "0054e7e7f7a10824",
+ "summary": "running 001379",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring, show-time inputs for both heads (curve / instant)",
@@ -422,7 +422,7 @@
    "track": "small model",
    "ticket": "001379-sm130",
    "started": "17:20",
-   "elapsed": "0:00",
+   "elapsed": "0:04",
    "progress": null,
    "eta": "~19:10"
   }
@@ -2672,14 +2672,11 @@
    "kind": "gpu",
    "minutes": 120,
    "what": "Compact state for Small and Big (SM131): the show-time two-head cool-down for Small (SM118), the longer Small Instant-Only model (SM113), the show-time big model (SM91s2) and the show-time instant-only big model (SM99) scored with the compact integer state of the compact int state test (SM47) (int4 cards + int8 notes, float16 row scales, int8 token-shift vectors) against the fork&rsquo;s default stored state (int4 cards + int8 notes), plus the card-only format as report only; no training, show-time inputs, leak-free, 722 users of the 732 set; one chained GPU ticket (GPU smoke, Big, Small) interleaved with the six-layer Tiny (SM130)",
-   "when": "Launched 14:04 Thu 11-19; first ticket 14:43 stopped at 14:46 on a non-finite LogLoss: user 3876 (58,826 reviews) has one card with 4,733 state updates, and the fork default int4 card state of the Big models overflows on it (row scales grow to 4e33; finite with int8 rows and with the compact format&rsquo;s float16 scales). The scorer now records such users as non-finite and goes on; relaunched 15:21, result about 18:45 Thu 11-19 (18:15 to 20:30)",
+   "when": "Launched 14:04 Thu 11-19; first ticket 14:43 stopped at 14:46 on a non-finite LogLoss: user 3876 (58,826 reviews) has one card with 4,733 state updates, and the fork default int4 card state of the Big models overflows on it (row scales grow to 4e33; finite with int8 rows and with the compact format&rsquo;s float16 scales). The scorer now records such users as non-finite and goes on; relaunched 15:21; ended 17:20 Thu 11-19 with &ldquo;Small free, Big free&rdquo; (see results)",
    "decides": "Whether the compact state is free for Small and for Big: free per model iff every head&rsquo;s 95% CI upper bound of compact vs fork default &lt; +0.05%; per size iff both models are free. State per card / note: Small 1,521 / 1,315 B vs 1,963 / 1,567 B (&minus;19.7% card + note), Big 7,747 / 9,267 B vs 9,271 / 10,283 B (&minus;13.0%)",
    "state": "done",
-   "started_at": "2026-11-19T14:43:16+01:00",
-   "ended": "17:20",
-   "exit": 0,
-   "started": "14:43",
-   "ended_at": "2026-11-19T17:20:48+01:00"
+   "started_at": "2026-11-19T14:04+01:00",
+   "ended_at": "2026-11-19T17:20+01:00"
   },
   {
    "id": "SM132",
@@ -3402,6 +3399,98 @@
   }
  ],
  "results": [
+  {
+   "date": "11-19",
+   "kind": "gpu-score",
+   "id": "SM131",
+   "track": "small model",
+   "name": "Compact state for Small and Big (SM131): the show-time two-head cool-down for Small (SM118), the longer Small Instant-Only model (SM113), the show-time big model (SM91s2) and the show-time instant-only big model (SM99) scored with the compact integer state of the compact int state test (SM47) (int4 cards + int8 notes, float16 row scales, int8 token-shift vectors) against the fork&rsquo;s default stored state (int4 cards + int8 notes), no training",
+   "eval": "Leak-free, 722 users of the 732 set (722 rule users; Big 721), show-time inputs, w8 weights; % = 100 &times; (compact / fork default &minus; 1) of the review-weighted LogLoss, paired user bootstrap 95% CI. Free per model = every head&rsquo;s CI upper bound &lt; +0.05%; free per size = both models free",
+   "fork": "Not used: the fork stores int4 cards + int8 notes today (Small 1,963 / 1,567 B, Big 9,271 / 10,283 B per card / note); the compact format needs a fork state-format change (not part of this run)",
+   "takeaway": "<strong>Small: compact state free; Big: compact state free</strong>. Compact vs fork default: the show-time two-head cool-down for Small (SM118) +0.000% [&minus;0.001, +0.001] curve, +0.001% [+0.000, +0.002] instant; the longer Small Instant-Only model (SM113) +0.001% [+0.000, +0.002]; the show-time big model (SM91s2) &minus;0.000% [&minus;0.001, +0.000] curve, +0.000% [&minus;0.000, +0.001] instant; the show-time instant-only big model (SM99) +0.000% [&minus;0.000, +0.001]. State per card / note: Small 1,521 / 1,315 B (card + note &minus;19.7%), Big 7,747 / 9,267 B (&minus;13.0%). The fork default overflowed (non-finite) for one Big user with a very long card history (4,733 updates on one card) on both Big models, while the compact and card-only formats stayed finite, so that user was counted as missing (721 of 722 users for Big; Small 722 of 722). Card-only format (report only, vs fork default): the show-time two-head cool-down for Small (SM118) +0.161% curve / +0.198% instant, the longer Small Instant-Only model (SM113) +0.278%, the show-time big model (SM91s2) +0.122% / +0.155%, the show-time instant-only big model (SM99) +0.160%.",
+   "inputs": "show-time",
+   "started_at": "2026-11-19T14:04+01:00",
+   "ended_at": "2026-11-19T17:20+01:00",
+   "gpu_minutes": 160,
+   "tickets": 2,
+   "detail": {
+    "verdict": "Small: compact state free; Big: compact state free; branch sm131 fbc5a368 (sm131-decision.md, RESULT.md)",
+    "table": {
+     "head": [
+      "Model",
+      "Head",
+      "Card / note bytes (compact vs fork default)",
+      "Compact vs fork default %",
+      "95% CI",
+      "Free",
+      "Compact vs published w8+s8 %",
+      "Card-only vs fork default % (report only)"
+     ],
+     "rows": [
+      [
+       "the show-time two-head cool-down for Small (SM118)",
+       "curve",
+       "1,521 / 1,315 vs 1,963 / 1,567",
+       "+0.000%",
+       "[&minus;0.001, +0.001]",
+       "yes",
+       "+0.015% [+0.011, +0.018]",
+       "+0.161% [+0.133, +0.190]"
+      ],
+      [
+       "the show-time two-head cool-down for Small (SM118)",
+       "instant",
+       "",
+       "+0.001%",
+       "[+0.000, +0.002]",
+       "",
+       "+0.020% [+0.016, +0.024]",
+       "+0.198% [+0.180, +0.218]"
+      ],
+      [
+       "the longer Small Instant-Only model (SM113)",
+       "instant",
+       "1,521 / 1,315 vs 1,963 / 1,567",
+       "+0.001%",
+       "[+0.000, +0.002]",
+       "yes",
+       "+0.025% [+0.020, +0.029]",
+       "+0.278% [+0.257, +0.301]"
+      ],
+      [
+       "the show-time big model (SM91s2)",
+       "curve",
+       "7,747 / 9,267 vs 9,271 / 10,283",
+       "&minus;0.000%",
+       "[&minus;0.001, +0.000]",
+       "yes",
+       "+0.015% [+0.010, +0.021]",
+       "+0.122% [+0.097, +0.151]"
+      ],
+      [
+       "the show-time big model (SM91s2)",
+       "instant",
+       "",
+       "+0.000%",
+       "[&minus;0.000, +0.001]",
+       "",
+       "+0.016% [+0.012, +0.021]",
+       "+0.155% [+0.135, +0.177]"
+      ],
+      [
+       "the show-time instant-only big model (SM99)",
+       "instant",
+       "7,747 / 9,267 vs 9,271 / 10,283",
+       "+0.000%",
+       "[&minus;0.000, +0.001]",
+       "yes",
+       "+0.017% [+0.014, +0.021]",
+       "+0.160% [+0.140, +0.182]"
+      ]
+     ]
+    }
+   }
+  },
   {
    "date": "11-19",
    "kind": "gpu-score",
