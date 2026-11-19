@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-19T20:02:56+01:00",
- "updated": "2026-11-19 20:02",
- "material": "d65343f13cb435a0",
- "summary": "running 001381, finished 001380",
+ "generated_at": "2026-11-19T20:05:46+01:00",
+ "updated": "2026-11-19 20:05",
+ "material": "dbdb432c14ac76f4",
+ "summary": "running 001381",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring, show-time inputs for both heads (curve / instant)",
@@ -422,7 +422,7 @@
    "track": "small model",
    "ticket": "001381-sm130",
    "started": "20:02",
-   "elapsed": "0:00",
+   "elapsed": "0:03",
    "progress": null,
    "eta": "~20:27"
   }
@@ -2678,14 +2678,11 @@
    "kind": "gpu",
    "minutes": 121,
    "what": "Again pressed as Hard (SM132): the show-time two-head cool-down for Small (SM118) scored on histories where each Again is recorded as Hard with probability p = 0, 5, 10, 20, 30, 50% (the grade and the card state Anki would record; targets stay the true outcomes; Again is 15.9% of reviews, so 20% changes 3.2% of reviews), plus a grade-only arm at 20% and the show-time big model (SM91s2) at 10% and 20%; no training, show-time inputs, leak-free, 732 set",
-   "when": "Queued 16:02 Thu 11-19 behind the compact state for Small and Big (SM131) and the six-layer Tiny (SM130)&rsquo;s epoch 41; result about 22:15 Thu 11-19 (21:30 to 23:30)",
+   "when": "Queued 16:02 Thu 11-19 behind the compact state for Small and Big (SM131) and the six-layer Tiny (SM130)&rsquo;s epoch 41; ended 20:02 Thu 11-19 with the verdict &ldquo;the bet does not hold (curve, instant)&rdquo; (see results)",
    "decides": "The user&rsquo;s bet: LogLoss at most +2% worse (95% CI upper bound, curve and instant) at every p up to 20%",
    "state": "done",
-   "started_at": "2026-11-19T18:14:08+01:00",
-   "ended": "20:02",
-   "exit": 0,
-   "started": "18:14",
-   "ended_at": "2026-11-19T20:02:35+01:00"
+   "started_at": "2026-11-19T16:01+01:00",
+   "ended_at": "2026-11-19T20:02+01:00"
   },
   {
    "id": "SM124",
@@ -3395,6 +3392,118 @@
   }
  ],
  "results": [
+  {
+   "date": "11-19",
+   "kind": "gpu-score",
+   "id": "SM132",
+   "track": "small model",
+   "name": "Again pressed as Hard (SM132): the show-time two-head cool-down for Small (SM118) scored on histories where each Again was recorded as Hard with probability p (5 to 50%; the grade and the card state Anki would record; targets true), plus the show-time big model (SM91s2) at 10% and 20%, no training",
+   "eval": "Leak-free, 722 users of the 732 set (722 rule users), show-time inputs, published format; % = 100 &times; (corrupted / clean &minus; 1) of the review-weighted LogLoss on the true outcomes, paired user bootstrap 95% CI. The user&rsquo;s bet holds per head iff the CI upper bound is &le; +2.0% at p = 5, 10 and 20%",
+   "fork": "Not used (robustness of the trained models to how people grade; no model change)",
+   "takeaway": "<strong>The bet does not hold (curve, instant)</strong>: it holds at 5% and 10% but fails at 20% (3.2% of all reviews changed; Again is 15.7% of reviews): curve +2.738% [+2.451, +3.043], instant +3.362% [+3.059, +3.677]; 5%: curve +0.509% [+0.439, +0.580], instant +0.582% [+0.515, +0.648]; 10%: curve +1.118% [+0.983, +1.261], instant +1.308% [+1.173, +1.447]; 30%: curve +5.000%, instant +6.348%; 50%: curve +12.204%, instant +16.100%. Grade only (card states kept) at 20% is identical to the Anki-state arm (+0.000% difference): the card-state input is switched off in these models (these w64 models zero the card-state input in training and evaluation), so only the recorded grade change matters and the whole cost comes from the grade. The show-time big model (SM91s2) at 20%: curve +3.120% [+2.757, +3.489], instant +3.630% [+3.322, +3.939] (Big minus Small +0.382% curve, +0.268% instant, so the bigger model is slightly less robust). Against the corrupted labels (what Anki&rsquo;s own metrics would show, dominated by label noise): &minus;8.299% curve, &minus;6.641% instant at 20%, so the metric looks better while the model is worse on what really happened. Limitation: the real timeline stays (short relearning intervals after a hidden lapse).",
+   "inputs": "show-time",
+   "started_at": "2026-11-19T16:01+01:00",
+   "ended_at": "2026-11-19T20:02+01:00",
+   "gpu_minutes": 240,
+   "tickets": 1,
+   "detail": {
+    "verdict": "The bet does not hold (curve, instant); branch sm132 a6647220 (sm132-decision.md, RESULT.md)",
+    "table": {
+     "head": [
+      "p",
+      "Share of all reviews changed",
+      "Curve % vs clean",
+      "95% CI",
+      "Instant % vs clean",
+      "95% CI",
+      "Within the bet",
+      "Corrupted labels: curve / instant % (label noise)"
+     ],
+     "rows": [
+      [
+       "5%",
+       "0.79%",
+       "+0.509%",
+       "[+0.439, +0.580]",
+       "+0.582%",
+       "[+0.515, +0.648]",
+       "yes",
+       "&minus;1.562% / &minus;0.983%"
+      ],
+      [
+       "10%",
+       "1.57%",
+       "+1.118%",
+       "[+0.983, +1.261]",
+       "+1.308%",
+       "[+1.173, +1.447]",
+       "yes",
+       "&minus;3.504% / &minus;2.493%"
+      ],
+      [
+       "20%",
+       "3.15%",
+       "+2.738%",
+       "[+2.451, +3.043]",
+       "+3.362%",
+       "[+3.059, +3.677]",
+       "no",
+       "&minus;8.299% / &minus;6.641%"
+      ],
+      [
+       "30%",
+       "4.72%",
+       "+5.000%",
+       "[+4.542, +5.487]",
+       "+6.348%",
+       "[+5.831, +6.880]",
+       "(not in the bet)",
+       "&minus;14.134% / &minus;12.023%"
+      ],
+      [
+       "50%",
+       "7.86%",
+       "+12.204%",
+       "[+11.290, +13.131]",
+       "+16.100%",
+       "[+15.005, +17.261]",
+       "(not in the bet)",
+       "&minus;29.040% / &minus;26.549%"
+      ],
+      [
+       "20%, grade only (report only)",
+       "3.15%",
+       "+2.738%",
+       "[+2.451, +3.043]",
+       "+3.362%",
+       "[+3.059, +3.677]",
+       "",
+       ""
+      ],
+      [
+       "the show-time big model (SM91s2), 10% (report only)",
+       "1.57%",
+       "+1.301%",
+       "[+1.122, +1.495]",
+       "+1.459%",
+       "[+1.324, +1.597]",
+       "yes",
+       "&minus;3.359% / &minus;2.428%"
+      ],
+      [
+       "the show-time big model (SM91s2), 20% (report only)",
+       "3.15%",
+       "+3.120%",
+       "[+2.757, +3.489]",
+       "+3.630%",
+       "[+3.322, +3.939]",
+       "no",
+       "&minus;8.069% / &minus;6.518%"
+      ]
+     ]
+    }
+   }
+  },
   {
    "date": "11-19",
    "kind": "gpu-score",
