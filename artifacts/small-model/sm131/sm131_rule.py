@@ -141,6 +141,16 @@ def decide(rows=ROWS, out_dir=HERE, r129=R129):
     with tempfile.TemporaryDirectory() as tmp:
         src = {"rows": clean_copy(rows, tmp, res["unparseable_lines"]) if Path(rows).exists() else None,
                "r129": clean_copy(r129, tmp, res["unparseable_lines"])}
+        # amendment 11-19 (design.md): rows marked 'nonfinite' (no benchmark; the int4 card state of a very long card
+        # overflowing float32, the same on CPU and GPU) are not finite rows; listed here, the users count as missing
+        nonfinite = {}
+        for which, path in src.items():
+            if path:
+                for line in open(path, encoding="utf-8"):
+                    row = json.loads(line)
+                    if "nonfinite" in row and "benchmark" not in row:
+                        nonfinite.setdefault(row.get("label"), set()).add(row.get("user_id"))
+        res["nonfinite_rows"] = {k: sorted(v) for k, v in sorted(nonfinite.items())}
 
         def load(model, fmt, which):
             if fmt == PUBLISHED:
@@ -226,6 +236,9 @@ def write_md(res, out_dir):
             L.append(f"| {m['name']} | {h} | {m['users']} | {c['ref']} | {c['new']} | {f(c)} | "
                      f"{'yes' if m['free'] else 'no'} | {f(m['compact_vs_published'][h])} | "
                      f"{f(m['fork_default_vs_published'][h])} | {f(co) if co else 'n/a'} |")
+    if res.get("nonfinite_rows"):
+        L += ["", "Non-finite rows (amendment 11-19; users count as missing): " + "; ".join(
+            f"{k} users {v}" for k, v in res["nonfinite_rows"].items())]
     for mm, m in res["models"].items():
         if m["missing_users"]:
             L.append(f"\n{m['name']}: rule on {m['users']} users; missing {m['missing_users']}")

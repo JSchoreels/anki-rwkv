@@ -403,6 +403,10 @@ def main():
                         "nearest existing card by card_id (scripts/sm71_leak.py)")
     parser.add_argument("--seed-offset", type=int, default=0, help="SM71 noise control: id/day codes drawn with seed "
                         "2025 + user + N (0 = today's seed)")
+    parser.add_argument("--nonfinite-rows", action="store_true", help="SM131: a non-finite evaluation (e.g. the int4 "
+                        "card state of a very long card overflowing float32) is written as a row with 'nonfinite' "
+                        "(no 'benchmark', no 'error': counted as done, not retried) and scoring goes on; without the "
+                        "flag it stops the run as before")
     parser.add_argument("--split-existing", action="store_true", help="SM71: also store benchmark metrics restricted "
                         "to reviews of cards in the cards table (benchmark_existing) and of deleted cards "
                         "(benchmark_deleted)")
@@ -638,6 +642,15 @@ def main():
                 if vq_held:   # the lane's own work must be finished before another lane changes state_vq.SCORE
                     torch.cuda.current_stream(device).synchronize()
             except (torch.OutOfMemoryError, RuntimeError) as oom:
+                if (args.nonfinite_rows and not isinstance(oom, torch.OutOfMemoryError)
+                        and "Non-finite evaluation loss" in str(oom)):
+                    # SM131: the same on CPU and GPU (deterministic), so a result row, not an error to retry
+                    rows.append({"user_id": user, "label": label, "tag": tag, "variant": variant, "kind": kind,
+                                 **state_fields(state_bits), "reviews": counts[str(user)],
+                                 "nonfinite": str(oom)[:300], **sm71_fields})
+                    print(f"[small-model] user {user} {label}: non-finite evaluation, row 'nonfinite' written",
+                          flush=True)
+                    continue
                 if not isinstance(oom, torch.OutOfMemoryError) and "out of memory" not in str(oom):
                     raise  # TorchScript wraps a CUDA OOM in a plain RuntimeError
                 torch.cuda.empty_cache()

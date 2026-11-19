@@ -18,6 +18,13 @@ K5 rule selftest (sm131_rule.py).
 scored on the GPU) vs the CPU rows: w8+s8 within 1e-5 per head of the CPU rows and of the published rows, every other
 format within 1e-4 per head of its CPU row (the GPU kernel's float16-scale / per-head flags vs the CPU reference;
 summation order differs, so a rare rounding flip is allowed up to 1e-4) -> gpu/smoke-check.json, exit 0 iff pass.
+Amendment 11-19 (design.md): the smoke also has users 2450 and 3876 (SMOKE_USERS; 3876 stopped the first ticket: the
+fork default's int4 card state of a 4,733-review card overflows float32 on CPU and GPU alike). A row marked
+'nonfinite' (scorer --nonfinite-rows) matches only a 'nonfinite' row of the CPU; for a user whose CPU fork default is
+non-finite (out of the rule, which needs finite rows in both formats) the other formats must be finite on the GPU and
+their GPU-vs-CPU difference is reported, not gated (a saturated int4 state need not agree to 1e-4). For the added users
+w8+s8 must match the published GPU rows within 1e-5 (as before) but the CPU rows only within 1e-4: user 3876's CPU w8+s8
+differs from its published GPU row by 1.8e-5 (summation order on 58,826 reviews); 2388 and 4676 keep 1e-5.
 """
 import json
 from pathlib import Path
@@ -33,6 +40,7 @@ PUB91 = Path("C:/Users/jonat/workspace/wt/sm91s2/artifacts/small-model/sm91s2/gp
 SMOKE = HERE / "cpu/smoke-cpu-rows.jsonl"
 TAG = "sm91s2-big-showtime"
 FORMATS = ("w8+s8", "w8+s4c8n", "w8+s4c8nhx8", "w8+s4hgx4c8hx8n")
+SMOKE_USERS = (2388, 4676, 2450, 3876)   # amendment 11-19: + 2450, 3876 (the user that stopped the first ticket)
 
 
 def k1():
@@ -110,7 +118,8 @@ def k4():
     rows = {}
     for line in open(SMOKE, encoding="utf-8"):
         r = json.loads(line)
-        rows[(r["user_id"], r["label"].split("/", 1)[1].split("@")[0])] = r["benchmark"]
+        if "benchmark" in r:   # amendment 11-19: 'nonfinite' rows of the added smoke users are checked by smoke()
+            rows[(r["user_id"], r["label"].split("/", 1)[1].split("@")[0])] = r["benchmark"]
     res = {}
     for u in (2388, 4676):
         res[f"{u}/w8+s8_vs_published"] = all(abs(rows[(u, "w8+s8")][h]["LogLoss"] - pub[u][h]["LogLoss"]) <= 2e-6
@@ -127,6 +136,8 @@ def k5():
 
 
 def smoke():
+    NONFINITE = "nonfinite"
+
     def rows_of(path):
         out = {}
         for line in open(path, encoding="utf-8"):
@@ -134,30 +145,43 @@ def smoke():
                 r = json.loads(line)
             except ValueError:
                 continue
+            key = (r.get("user_id"), str(r.get("label", "")).split("/", 1)[-1].split("@")[0])
             if "benchmark" in r:
-                out[(r["user_id"], r["label"].split("/", 1)[1].split("@")[0])] = r["benchmark"]
+                out[key] = r["benchmark"]
+            elif "nonfinite" in r and "error" not in r:
+                out[key] = NONFINITE
         return out
     cpu, gpu = rows_of(SMOKE), rows_of(HERE / "gpu/smoke-gpu-rows.jsonl")
     pub = {}
     for line in open(PUB91, encoding="utf-8"):
         r = json.loads(line)
-        if r.get("label") == f"{TAG}/w8+s8@e2s-query" and r["user_id"] in (2388, 4676):
+        if r.get("label") == f"{TAG}/w8+s8@e2s-query" and r["user_id"] in SMOKE_USERS:
             pub[(r["user_id"], "w8+s8")] = r["benchmark"]
-    res, diffs = {}, {}
-    for u in (2388, 4676):
+    res, diffs, report_only = {}, {}, {}
+    for u in SMOKE_USERS:
+        fork_nonfinite = cpu.get((u, "w8+s4c8n")) == NONFINITE
         for f in FORMATS:
             key = (u, f)
-            if key not in gpu:
+            if key not in gpu or key not in cpu:
                 res[f"{u}/{f}"] = False
                 continue
-            tol = 1e-5 if f == "w8+s8" else 1e-4
+            if cpu[key] == NONFINITE or gpu[key] == NONFINITE:
+                res[f"{u}/{f}"] = cpu[key] == gpu[key] == NONFINITE and f != "w8+s8"
+                diffs[f"{u}/{f}"] = "nonfinite (CPU and GPU)" if res[f"{u}/{f}"] else "nonfinite mismatch"
+                continue
+            tol = 1e-5 if f == "w8+s8" and u in (2388, 4676) else 1e-4
             d = max(abs(gpu[key][h]["LogLoss"] - cpu[key][h]["LogLoss"]) for h in ("ahead", "instant"))
             diffs[f"{u}/{f}"] = d
+            if fork_nonfinite and f != "w8+s8":   # the user is out of the rule: finite on the GPU, difference reported
+                report_only[f"{u}/{f}"] = d
+                res[f"{u}/{f}"] = all(gpu[key][h]["LogLoss"] == gpu[key][h]["LogLoss"] for h in ("ahead", "instant"))
+                continue
             ok = d <= tol
             if f == "w8+s8":
                 ok &= max(abs(gpu[key][h]["LogLoss"] - pub[key][h]["LogLoss"]) for h in ("ahead", "instant")) <= 1e-5
             res[f"{u}/{f}"] = bool(ok)
-    out = {"pass": all(res.values()), "checks": res, "max_abs_logloss_diff_gpu_vs_cpu": diffs}
+    out = {"pass": all(res.values()), "checks": res, "max_abs_logloss_diff_gpu_vs_cpu": diffs,
+           "report_only_users_with_nonfinite_fork_default": report_only}
     (HERE / "gpu/smoke-check.json").write_text(json.dumps(out, indent=1) + "\n", encoding="utf-8")
     print(f"[sm131-smoke] {'PASS' if out['pass'] else 'FAIL'} {json.dumps(diffs)}")
     return 0 if out["pass"] else 1

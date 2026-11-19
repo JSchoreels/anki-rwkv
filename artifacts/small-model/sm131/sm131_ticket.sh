@@ -2,12 +2,16 @@
 # Compact state for Small and Big (SM131): ONE GPU ticket = the steps given, in order (run by launch-sm131.sh through
 # scripts/r01_queue.py; chained in one ticket so the six-layer Tiny (SM130)'s ~110-min tickets do not sit between them).
 #   bash sm131_ticket.sh CAP STEP...     STEP = smoke | big | small
-#   smoke: the show-time big model (SM91s2), 2 small users (2388, 4676), the four formats, on the GPU -> gpu/smoke-gpu-rows.jsonl,
+#   smoke: the show-time big model (SM91s2), users 2388, 4676 (+ 2450, 3876 since the 11-19 amendment), the four formats,
+#          on the GPU -> gpu/smoke-gpu-rows.jsonl,
 #          then sm131_check.py smoke (GPU vs the committed CPU rows; w8+s8 also vs the published rows); exit 3 on a mismatch
 #   big:   the show-time big model (SM91s2) + the show-time instant-only big model (SM99), fork default / compact / card-only
 #   small: the show-time two-head cool-down for Small (SM118) + the longer Small Instant-Only model (SM113), compact / card-only
 #          (their fork-default rows come from the compact state for Tiny (SM129), same scorer tree)
 # All: 723 users of the 732 set, show-time inputs, leak-free (neighbour), w8 weights; finished users are skipped (resume).
+# Amendment 11-19 (design.md): --nonfinite-rows: a non-finite evaluation (user 3876: the fork default's int4 card state
+#   overflows float32 on a 4,733-review card, CPU and GPU alike) is a 'nonfinite' row (done, not retried) instead of
+#   stopping the ticket; `missing` counts those rows as scored.
 # In-ticket retries (this ticket holds the GPU, so a higher cap is safe): a big / small step whose labels still miss users
 #   runs again once in a fresh process at CAP (an OOM after fragmentation, as user 3735 in SM129), then once at cap 0.92.
 set -u
@@ -34,7 +38,7 @@ export OMP_NUM_THREADS=4 MKL_NUM_THREADS=4
 cd "$WT" || exit 1
 say() { echo "[sm131-ticket $(date '+%m-%d %H:%M:%S')] $*" >> "$G/score.out"; }
 run() { env -u RWKV_DELETED_CARDS -u EXPERTIUM_END_TO_START -u SM11_INPUTS HELDOUT_GPU_MEMORY_FRACTION=$CAP "$PY" -X utf8 "$SC" \
-          --pool 732 --inputs e2s-query --split-existing --deleted-cards neighbour "$@" >> "$G/score.out" 2>&1; }
+          --pool 732 --inputs e2s-query --split-existing --deleted-cards neighbour --nonfinite-rows "$@" >> "$G/score.out" 2>&1; }
 only() { local l; for l in "$@"; do echo -n "--only $l "; done; }
 missing() {  # missing LABEL...: users of the 723 without a row for some label (@e2s-query); unparseable lines skipped
   "$PY" -X utf8 -c "
@@ -47,7 +51,7 @@ except OSError:
 for raw in f:
     try:
         r = json.loads(raw.decode('utf-8', errors='replace'))
-        if 'benchmark' in r:
+        if 'benchmark' in r or ('nonfinite' in r and 'error' not in r):
             got.setdefault(r['label'], set()).add(r['user_id'])
     except (ValueError, KeyError, TypeError, AttributeError):
         pass

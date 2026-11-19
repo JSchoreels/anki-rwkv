@@ -47,7 +47,7 @@ BIG_LABELS="$T91/w8+s4c8n@e2s-query $T91/w8+s4c8nhx8@e2s-query $T91/w8+s4hgx4c8h
 SMALL_LABELS="$T118/w8+s4c8nhx8@e2s-query $T118/w8+s4hgx4c8hx8n@e2s-query $T113/w8+s4c8nhx8@e2s-query $T113/w8+s4hgx4c8hx8n@e2s-query"
 USERS732=$W/sm72s/artifacts/small-model/sm72s/eval-users-732-fit.json
 NUSERS=723
-MIN_SMOKE=5; MIN_BIG=95; MIN_SMALL=50; MIN_BIG_RETRY=25; MIN_SMALL_RETRY=15
+MIN_SMOKE=8; MIN_BIG=95; MIN_SMALL=50; MIN_BIG_RETRY=25; MIN_SMALL_RETRY=15
 NAME="Compact state for Small and Big (SM131)"
 export DRYRUN=${DRYRUN:-0}
 export OMP_NUM_THREADS=4 MKL_NUM_THREADS=4
@@ -120,7 +120,7 @@ if p.exists():
             continue
         try:
             r = json.loads(line)
-            if 'benchmark' in r:
+            if 'benchmark' in r or ('nonfinite' in r and 'error' not in r):   # amendment 11-19: nonfinite rows are scored
                 got.setdefault(r.get('label'), set()).add(r['user_id'])
         except (ValueError, KeyError, TypeError, AttributeError):
             bad += 1
