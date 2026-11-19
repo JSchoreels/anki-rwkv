@@ -332,6 +332,19 @@ def parse_variant(name):
     return scheme, {"": 0, "s8": 8, "s4": 4}[state]
 
 
+def fork_streams(state_bits):
+    """SM131: ((card WKV bits, card shift bits), (note WKV bits, note shift bits)) of a per-stream / IntState variant
+    for the fork model (compress_quant.set_state_streams). Plain (4, 8) = the fork's int4 cards + int8 notes with its
+    float16 shift vectors (shift bits 0)."""
+    if isinstance(state_bits, IntState):
+        wkv, shift = state_bits.wkv_bits, state_bits.shift_bits
+        wkv = wkv if isinstance(wkv, tuple) else (wkv, wkv)
+        shift = shift if isinstance(shift, tuple) else (shift, shift)
+        return (wkv[0], shift[0]), (wkv[1], shift[1])
+    card, note = state_bits
+    return (card, 0), (note, 0)
+
+
 def state_fields(state_bits):
     """Row fields describing the state precision (SM47 rows add scale / shift precision and bits per entity)."""
     if isinstance(state_bits, IntState):
@@ -446,9 +459,18 @@ def main():
     out.parent.mkdir(parents=True, exist_ok=True)
     done = {}
     if out.exists():
-        for row in map(json.loads, out.read_text().splitlines()):
+        bad = 0
+        for line in out.read_text(encoding="utf-8", errors="replace").splitlines():
+            try:   # SM131: an incomplete or NUL-filled line (a crash mid-write) is skipped and counted, not fatal
+                row = json.loads(line)
+                row["user_id"], row["label"]
+            except (ValueError, KeyError, TypeError):
+                bad += bool(line.strip())
+                continue
             if "error" not in row:  # an OOM row is retried (e.g. with more memory or expandable segments)
                 done.setdefault(row["user_id"], set()).add(row["label"])
+        if bad:
+            print(f"[small-model] {out.name}: {bad} unparseable line(s) skipped", flush=True)
     todo =[u for u in users if not set(grid) <= done.get(u, set())]
 
     def make_model(tag):
@@ -547,9 +569,10 @@ def main():
             vq_info = vq_path = None
             vq_held = False
             if kind == "fork":
-                if isinstance(state_bits, tuple):
-                    raise SystemExit("per-stream state bits are for expertium-kind models only")
-                cq.set_state_bits(model, state_bits)
+                if isinstance(state_bits, tuple):   # SM131: int4 cards + int8 notes, SM47 / SM49 formats on the fork model
+                    cq.set_state_streams(model, *fork_streams(state_bits))
+                else:
+                    cq.set_state_bits(model, state_bits)
             elif isinstance(state_bits, IntState):   # SM47
                 from scripts import state_vq
                 set_expertium_state_bits(model, 0)
@@ -666,11 +689,20 @@ def main():
 
     def write(user, rows, n):
         nonlocal scored, completed
-        with out.open("a", encoding="utf-8") as f:
-            for row in rows:
-                row["provenance_commit"] = prov["git_commit"]
-                row["provenance_dirty"] = prov["git_dirty"]
-                f.write(json.dumps(row) + "\n")
+        for row in rows:
+            row["provenance_commit"] = prov["git_commit"]
+            row["provenance_dirty"] = prov["git_dirty"]
+        text = "".join(json.dumps(row) + "\n" for row in rows)
+        # SM131: one write of complete lines, flushed to disk; a torn last line (crash) is closed first
+        with out.open("ab") as f:
+            if f.tell() > 0:
+                with out.open("rb") as g:
+                    g.seek(-1, 2)
+                    if g.read(1) != b"\n":
+                        text = "\n" + text
+            f.write(text.encode("utf-8"))
+            f.flush()
+            os.fsync(f.fileno())
         scored += n
         completed += 1
         elapsed = time.perf_counter() - started

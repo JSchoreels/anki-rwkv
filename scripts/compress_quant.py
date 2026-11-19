@@ -128,10 +128,23 @@ STATE_MODULES = (0, 2)  # rwkv_modules order: card, deck, note, preset, user -> 
 _PATCH_HELPERS = """
 
 def _quantize_rows(x: torch.Tensor, bits: int) -> torch.Tensor:
-    qmax = 127.0 if bits == 8 else 7.0
-    scale = x.abs().amax(dim=-1, keepdim=True) / qmax
+    # SM131: flags as scripts/small_model_wkv (256 = float16 scales, 512 = one scale per head); plain 8 / 4 unchanged
+    qmax = 127.0 if (bits & 255) == 8 else 7.0
+    if bits & 512:
+        scale = x.abs().amax(dim=[-2, -1], keepdim=True) / qmax
+    else:
+        scale = x.abs().amax(dim=-1, keepdim=True) / qmax
+    if bits & 256:
+        scale = torch.clamp(scale, max=65504.0).half().float()
     scale = torch.where(scale > 0, scale, torch.ones_like(scale))
     return torch.clamp(torch.round(x / scale), -qmax, qmax) * scale
+
+
+def _round_shift(x: torch.Tensor, bits: int) -> torch.Tensor:
+    # SM131: shift_bits 0 = the fork's float16 shift vectors (unchanged); 8 / 4 (| 256) = int codes, one scale per vector
+    if bits == 0:
+        return x.half().float()
+    return _quantize_rows(x, bits)
 
 
 def reference_rwkv7_q(r_BTHK: torch.Tensor, k_BTHK: torch.Tensor, v_BTHK: torch.Tensor, w_BTHK: torch.Tensor,
@@ -167,14 +180,14 @@ _PATCHES = [
     ("from rwkv.model.rwkv_ops import RWKV7_WKV, reference_rwkv7\n",
      "from rwkv.model.rwkv_ops import RWKV7_WKV, reference_rwkv7, single_timestep\n" + _PATCH_HELPERS),
     ("            channel_ratio = torch.ones(1, 1, config.d_model)\n",
-     "            self.state_bits = 0\n            channel_ratio = torch.ones(1, 1, config.d_model)\n"),
+     "            self.state_bits = 0\n            self.shift_bits = 0\n            channel_ratio = torch.ones(1, 1, config.d_model)\n"),
     ("        k_BTK = self.W_k(torch.lerp(x_BTC, x_shift_BTC, self.lerp_k))\n",
-     "        if self.state_bits > 0:\n            x_shift_BTC = x_shift_BTC.half().float()\n"
+     "        if self.state_bits > 0:\n            x_shift_BTC = _round_shift(x_shift_BTC, self.shift_bits)\n"
      "        k_BTK = self.W_k(torch.lerp(x_BTC, x_shift_BTC, self.lerp_k))\n"),
     ("        self.use_reference_wkv = config.use_reference_wkv\n",
-     "        self.use_reference_wkv = config.use_reference_wkv\n        self.state_bits = 0\n"),
+     "        self.use_reference_wkv = config.use_reference_wkv\n        self.state_bits = 0\n        self.shift_bits = 0\n"),
     ("            rkvdag_8BTC = torch.lerp(\n                x_BTC.unsqueeze(0), x_shift_BTC.unsqueeze(0)",
-     "            if self.state_bits > 0:\n                x_shift_BTC = x_shift_BTC.half().float()\n"
+     "            if self.state_bits > 0:\n                x_shift_BTC = _round_shift(x_shift_BTC, self.shift_bits)\n"
      "            rkvdag_8BTC = torch.lerp(\n                x_BTC.unsqueeze(0), x_shift_BTC.unsqueeze(0)"),
     ("            out_BTHK = reference_rwkv7(\n                r_BTHK, k_BTHK, v_BTHK, w_BTHK, a_BTHK, k_deformed_BTHK, skip_BT\n",
      "            out_BTHK = reference_rwkv7_q(\n"
@@ -221,4 +234,21 @@ def set_state_bits(model, bits):
             value = int(bits or 0) if index in STATE_MODULES else 0
             block.time_mixer.state_bits = value
             block.channel_mixer.state_bits = value
+            block.time_mixer.shift_bits = 0       # SM131: float16 shift vectors (the fork's own)
+            block.channel_mixer.shift_bits = 0
+    return model
+
+
+def set_state_streams(model, card, note):
+    """SM131: per-stream card / note state on the fork model. card, note = (WKV bits, shift bits), flags as
+    scripts/small_model_wkv (bits | F16_SCALE 256 = float16 row scales, | HEAD_SCALE 512 = one scale per head);
+    shift bits 0 = float16 shift vectors (as set_state_bits), 8 / 4 (| 256) = int codes with one scale per vector.
+    ((4, 0), (8, 0)) = the fork's int4 cards + int8 notes; set_state_bits(model, b) == set_state_streams(model, (b, 0), (b, 0))."""
+    per = {STATE_MODULES[0]: card, STATE_MODULES[1]: note}
+    for index, module in enumerate(model.rwkv_modules):
+        wkv, shift = per.get(index, (0, 0))
+        for block in module.blocks:
+            for mixer in (block.time_mixer, block.channel_mixer):
+                mixer.state_bits = int(wkv or 0)
+                mixer.shift_bits = int(shift or 0)
     return model

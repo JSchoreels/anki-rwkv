@@ -109,6 +109,9 @@ def define():
 
 
 def _forward(r, k, v, w, a, kd, skip, bits):
+    if bits & ~255:   # SM131: flagged bits (float16 scales 256, per-head scale 512) -> the flag kernel of small_model_wkv
+        from scripts.small_model_wkv import wkv_long
+        return wkv_long(r, k, v, w, a, kd, skip, bits)
     import cupy
     B, T, H, K = r.shape
     if K != 32:
