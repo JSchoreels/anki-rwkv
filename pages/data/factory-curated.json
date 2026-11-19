@@ -2375,10 +2375,11 @@
     "Compact state for Tiny (SM129): "
    ],
    "what": "Compact state for Tiny (SM129): no training. The current Tiny candidates, the show-time two-head cool-down for Tiny (SM124) and the longer cool-down for Tiny (SM115), scored with the compact integer state of the compact int state test (SM47) (int4 cards + int8 notes, float16 row scales, int8 token-shift vectors: 803 B per card, 1,315 B per note; today 1,055 / 1,567 B) and with the card-only format of the second integer-state test (SM49) (619 B per card); show-time inputs, 722 users of the 732 set. Go per format = every head&rsquo;s CI upper bound &le; +1.00% vs the show-time two-head cool-down for Small (SM118) (two-head) and vs the longer Small Instant-Only model (SM113) (Instant-Only), both models",
-   "when": "Launcher started 22:57 Wed 11-18, waits for the break to end; CPU proofs at 01:00, then 4 scoring tickets; verdict expected about 02:45 Thu 11-19 (02:15 to 03:15)",
+   "when": "Launcher started 22:57 Wed 11-18, waited for the break; scored 01:00 to 02:08 Thu 11-19 (64 GPU minutes, 4 scoring tickets); verdict: compact go, card-only go",
    "decides": "Whether Tiny can store 24% smaller card states (41% with the card-only format) and stay within +1% of Small; if go, the six-layer Tiny (SM130) is also scored in that format",
-   "state": "running",
-   "started_at": "2026-11-18T22:57+01:00"
+   "state": "done",
+   "started_at": "2026-11-18T22:57+01:00",
+   "ended_at": "2026-11-19T02:08+01:00"
   },
   {
    "id": "SM130",
@@ -3125,6 +3126,106 @@
   "s-w64kd-gate-ctx2048c-dec8-1ep/w8+s8"
  ],
  "results": [
+  {
+   "date": "11-19",
+   "kind": "gpu-score",
+   "id": "SM129",
+   "track": "small model",
+   "name": "Compact state for Tiny (SM129): the current Tiny candidates, the show-time two-head cool-down for Tiny (SM124) and the longer cool-down for Tiny (SM115), scored with the compact integer state of the compact int state test (SM47) (int4 cards + int8 notes, float16 row scales, int8 token-shift vectors) and with the card-only format of the second integer-state test (SM49), no training",
+   "eval": "Leak-free, 722 users of the 732 set, show-time inputs, w8 weights; % = 100 &times; (Tiny / Small &minus; 1) of the review-weighted LogLoss, paired user bootstrap 95% CI. Go per format = every head&rsquo;s CI upper bound &le; +1.00% vs the show-time two-head cool-down for Small (SM118) (two-head) and vs the longer Small Instant-Only model (SM113) (Instant-Only), both models",
+   "fork": "Not used: the fork stores int4 cards + int8 notes today (1,055 / 1,567 B for Tiny); the compact format needs a fork state-format change (not part of this run)",
+   "takeaway": "<strong>Go</strong> for the compact state: the show-time two-head cool-down for Tiny (SM124) is +0.134% [+0.072, +0.191] on the curve and +0.204% [+0.184, +0.227] on instant vs the show-time two-head cool-down for Small (SM118), and the longer cool-down for Tiny (SM115) is +0.221% [+0.199, +0.245] on instant vs the longer Small Instant-Only model (SM113). It costs +0.016% / +0.021% / +0.035% vs the unmodified Tiny, and about 0% vs the fork default int4-card format. State 803 B per card and 1,315 B per note (fork default 1,055 / 1,567 B: &minus;24% per card, &minus;19% card + note). Card-only format (619 B per card, 1,934 B card + note, &minus;26%): <strong>go</strong> as well (+0.296% [+0.239, +0.347] curve, +0.413% [+0.380, +0.446] instant, Instant-Only +0.502% [+0.467, +0.542]), costing +0.16% / +0.21% / +0.28% vs the fork default; all within +1% of Small.",
+   "inputs": "show-time",
+   "started_at": "2026-11-19T01:00+01:00",
+   "ended_at": "2026-11-19T02:08+01:00",
+   "gpu_minutes": 64,
+   "tickets": 8,
+   "detail": {
+    "verdict": "Compact state: go. Card-only state: go. Branch sm129 e31b15f7 (sm129-decision.md, sm129-result.md)",
+    "table": {
+     "head": [
+      "Format (Tiny model)",
+      "Card / note bytes",
+      "Curve % vs Small",
+      "Curve 95% CI",
+      "Instant % vs Small",
+      "Instant 95% CI",
+      "Cost vs Tiny published (curve / instant)"
+     ],
+     "rows": [
+      [
+       "published w8+s8 (the show-time two-head cool-down for Tiny (SM124))",
+       "1,567 / 1,567",
+       "+0.118",
+       "[+0.057, +0.174]",
+       "+0.183",
+       "[+0.164, +0.204]",
+       "0 / 0"
+      ],
+      [
+       "fork default w8+s4c8n (the show-time two-head cool-down for Tiny (SM124))",
+       "1,055 / 1,567",
+       "+0.134",
+       "[+0.072, +0.190]",
+       "+0.203",
+       "[+0.183, +0.225]",
+       "+0.016% / +0.020%"
+      ],
+      [
+       "compact w8+s4c8nhx8 (the show-time two-head cool-down for Tiny (SM124))",
+       "803 / 1,315",
+       "+0.134",
+       "[+0.072, +0.191]",
+       "+0.204",
+       "[+0.184, +0.227]",
+       "+0.016% / +0.021%"
+      ],
+      [
+       "card-only w8+s4hgx4c8hx8n (the show-time two-head cool-down for Tiny (SM124))",
+       "619 / 1,315",
+       "+0.296",
+       "[+0.239, +0.347]",
+       "+0.413",
+       "[+0.380, +0.446]",
+       "+0.178% / +0.230%"
+      ],
+      [
+       "published w8+s8 (the longer cool-down for Tiny (SM115), instant only)",
+       "1,567 / 1,567",
+       "",
+       "",
+       "+0.186",
+       "[+0.166, +0.208]",
+       "0"
+      ],
+      [
+       "compact w8+s4c8nhx8 (the longer cool-down for Tiny (SM115))",
+       "803 / 1,315",
+       "",
+       "",
+       "+0.221",
+       "[+0.199, +0.245]",
+       "+0.035%"
+      ],
+      [
+       "card-only w8+s4hgx4c8hx8n (the longer cool-down for Tiny (SM115))",
+       "619 / 1,315",
+       "",
+       "",
+       "+0.502",
+       "[+0.467, +0.542]",
+       "+0.316%"
+      ]
+     ]
+    },
+    "notes": [
+     "Bytes (fork layout, reference encoder that round-trips bit for bit): card + note 3,134 B published, 2,622 B fork default, 2,118 B compact (&minus;19% vs fork default), 1,934 B card-only (&minus;26%); the six-layer Tiny (SM130) has the same card and note streams",
+     "Largest 95% CI upper bound of any arm and head: +0.542% (card-only, Instant-Only), well under the +1.00% limit",
+     "Four scoring tickets (two Tiny candidates in three formats each, then the two Small references at the fork default), 723 users scored, 722 rule users; the second pass of each ticket was a no-op; 64 GPU minutes in all",
+     "The six-layer Tiny (SM130) is scored in the compact format, since the compact arm went"
+    ]
+   }
+  },
   {
    "date": "11-18",
    "kind": "cpu-score",
