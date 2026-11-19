@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-19T17:25:18+01:00",
- "updated": "2026-11-19 17:25",
- "material": "0054e7e7f7a10824",
- "summary": "running 001379",
+ "generated_at": "2026-11-19T18:14:34+01:00",
+ "updated": "2026-11-19 18:14",
+ "material": "66754ce6904d297b",
+ "summary": "running 001380, finished 001379",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring, show-time inputs for both heads (curve / instant)",
@@ -412,19 +412,19 @@
  },
  "now": [
   {
-   "what": "Six-layer Tiny (SM130): Tiny with the deck / preset / user streams cut to 2 / 1 / 1 layers (the context-stream pruning (SM15) cut; 185,057 parameters, 6 layer steps instead of 12), both models: the two-head chain from the Tiny two-head model (SM106)&rsquo;s epoch 29 and the Instant-Only chain from the Tiny Instant-Only model (SM101)&rsquo;s epoch 38, three recovery epochs each, then the two-pass cool-down of the show-time two-head cool-down for Tiny (SM124) (targets of the show-time big model (SM91s2)) or of the longer cool-down for Tiny (SM115) (targets of the show-time Instant-Only big model (SM99)). Early stop if a head is more than +1.50% (after the first recovery epoch) or +1.20% (after the last) behind the uncut epoch; go = every trained head&rsquo;s CI upper bound &le; +1.00% vs the show-time two-head cool-down for Small (SM118) / the longer Small Instant-Only model (SM113)",
-   "id": "SM130, ticket 001379",
+   "what": "Again pressed as Hard (SM132): the show-time two-head cool-down for Small (SM118) scored on histories where each Again is recorded as Hard with probability p = 0, 5, 10, 20, 30, 50% (the grade and the card state Anki would record; targets stay the true outcomes; Again is 15.9% of reviews, so 20% changes 3.2% of reviews), plus a grade-only arm at 20% and the show-time big model (SM91s2) at 10% and 20%; no training, show-time inputs, leak-free, 732 set",
+   "id": "SM132, ticket 001380",
    "kind": "gpu",
-   "decides": "Whether a Tiny with 41% fewer parameters and half the sequential layers (faster per review) stays within +1% of Small on every head; held for the 11-28 release decision",
+   "decides": "The user&rsquo;s bet: LogLoss at most +2% worse (95% CI upper bound, curve and instant) at every p up to 20%",
    "why": "",
-   "job": "Six-layer Tiny (SM130): Instant-Only epoch 41 (w64-c1-d2p1u1, the chain&#x27;s own constant-LR epoch step: 8k final tier, the run&#x27;s order rule, 2048 x 16 lanes, leak-free replay KD, AdamW 7e-4, instant head only, show-time inputs) (segment to the next break or the end)",
+   "job": "Again pressed as Hard (SM132): scoring pass 1:smoke s0 s5 s10 s20 s30 s50 s20g b10 b20 (users done per step 0/0/0/0/0/0/0/0/0/ of 723, cap 0.8)",
    "linked": true,
    "track": "small model",
-   "ticket": "001379-sm130",
-   "started": "17:20",
-   "elapsed": "0:04",
+   "ticket": "001380-sm132",
+   "started": "18:14",
+   "elapsed": "0:00",
    "progress": null,
-   "eta": "~19:10"
+   "eta": "~20:15"
   }
  ],
  "charts": [
@@ -594,15 +594,17 @@
    ]
   }
  ],
- "waiting": [
-  {
-   "ticket": "001380-sm132",
-   "id": "SM132",
-   "what": "Again pressed as Hard (SM132): scoring pass 1:smoke s0 s5 s10 s20 s30 s50 s20g b10 b20 (users done per step 0/0/0/0/0/0/0/0/0/ of 723, cap 0.8)",
-   "flags": "expected 121 min"
-  }
- ],
+ "waiting": [],
  "recent": [
+  {
+   "ticket": "001379-sm130",
+   "id": "SM130",
+   "what": "Six-layer Tiny (SM130): Instant-Only epoch 41 (w64-c1-d2p1u1, the chain&#x27;s own constant-LR epoch step: 8k final tier, the run&#x27;s order rule, 2048 x 16 lanes, leak-free replay KD, AdamW 7e-4, instant head only, show-time inputs) (segment to the next break or the end)",
+   "ended": "18:14",
+   "date": "11-19",
+   "exit": 0,
+   "ran": "0:53"
+  },
   {
    "ticket": "001378-sm131",
    "id": "SM131",
@@ -647,15 +649,6 @@
    "date": "11-19",
    "exit": 1,
    "ran": "0:02"
-  },
-  {
-   "ticket": "001372-sm130",
-   "id": "SM130",
-   "what": "Six-layer Tiny (SM130): Instant-Only epoch 39 (w64-c1-d2p1u1, the chain&#x27;s own constant-LR epoch step: 8k final tier, the run&#x27;s order rule, 2048 x 16 lanes, leak-free replay KD, AdamW 7e-4, instant head only, show-time inputs) (segment to the next break or the end)",
-   "ended": "14:43",
-   "date": "11-19",
-   "exit": 0,
-   "ran": "0:54"
   }
  ],
  "plan": [
@@ -2659,11 +2652,12 @@
    "what": "Six-layer Tiny (SM130): Tiny with the deck / preset / user streams cut to 2 / 1 / 1 layers (the context-stream pruning (SM15) cut; 185,057 parameters, 6 layer steps instead of 12), both models: the two-head chain from the Tiny two-head model (SM106)&rsquo;s epoch 29 and the Instant-Only chain from the Tiny Instant-Only model (SM101)&rsquo;s epoch 38, three recovery epochs each, then the two-pass cool-down of the show-time two-head cool-down for Tiny (SM124) (targets of the show-time big model (SM91s2)) or of the longer cool-down for Tiny (SM115) (targets of the show-time Instant-Only big model (SM99)). Early stop if a head is more than +1.50% (after the first recovery epoch) or +1.20% (after the last) behind the uncut epoch; go = every trained head&rsquo;s CI upper bound &le; +1.00% vs the show-time two-head cool-down for Small (SM118) / the longer Small Instant-Only model (SM113)",
    "when": "Started 02:13 Thu 11-19 after the compact state for Tiny (SM129). Two-head chain done 10:43 Thu 11-19: go (curve +0.467% [+0.398, +0.546], instant +0.524% [+0.484, +0.567] vs the show-time two-head cool-down for Small (SM118); compact format also go), 8.5 h, training at about 64,000 reviews/s. The PC shut down unexpectedly at 10:44 and came back at 13:34; the Instant-Only chain restarted 13:37 Thu 11-19 and runs through the evening (no planned break any more), sharing the GPU with the compact state check for Small and Big; result expected about 23:00 Thu 11-19 to 01:00 Fri 11-20",
    "decides": "Whether a Tiny with 41% fewer parameters and half the sequential layers (faster per review) stays within +1% of Small on every head; held for the 11-28 release decision",
-   "state": "running",
+   "state": "done",
    "started_at": "2026-11-19T02:13:02+01:00",
-   "started": "17:20",
-   "ticket": "001379-sm130",
-   "ends_at": "2026-11-20T05:13:02+01:00"
+   "ended": "18:14",
+   "exit": 0,
+   "started": "02:13",
+   "ended_at": "2026-11-19T18:14:08+01:00"
   },
   {
    "id": "SM131",
@@ -2687,9 +2681,11 @@
    "what": "Again pressed as Hard (SM132): the show-time two-head cool-down for Small (SM118) scored on histories where each Again is recorded as Hard with probability p = 0, 5, 10, 20, 30, 50% (the grade and the card state Anki would record; targets stay the true outcomes; Again is 15.9% of reviews, so 20% changes 3.2% of reviews), plus a grade-only arm at 20% and the show-time big model (SM91s2) at 10% and 20%; no training, show-time inputs, leak-free, 732 set",
    "when": "Queued 16:02 Thu 11-19 behind the compact state for Small and Big (SM131) and the six-layer Tiny (SM130)&rsquo;s epoch 41; result about 22:15 Thu 11-19 (21:30 to 23:30)",
    "decides": "The user&rsquo;s bet: LogLoss at most +2% worse (95% CI upper bound, curve and instant) at every p up to 20%",
-   "state": "waiting",
-   "started_at": "2026-11-19T16:01+01:00",
-   "ticket": "001380-sm132"
+   "state": "running",
+   "started_at": "2026-11-19T18:14:08+01:00",
+   "started": "18:14",
+   "ticket": "001380-sm132",
+   "ends_at": "2026-11-19T20:15:08+01:00"
   },
   {
    "id": "SM124",
