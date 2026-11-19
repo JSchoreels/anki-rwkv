@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-19T02:08:59+01:00",
- "updated": "2026-11-19 02:08",
- "material": "2f7102a975be3926",
- "summary": "idle, finished 001349",
+ "generated_at": "2026-11-19T02:13:24+01:00",
+ "updated": "2026-11-19 02:13",
+ "material": "05838ae9f57c2da4",
+ "summary": "running 001350",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring, show-time inputs for both heads (curve / instant)",
@@ -410,7 +410,23 @@
    }
   ]
  },
- "now": [],
+ "now": [
+  {
+   "what": "Six-layer Tiny (SM130): Tiny with the deck / preset / user streams cut to 2 / 1 / 1 layers (the context-stream pruning (SM15) cut; 185,057 parameters, 6 layer steps instead of 12), both models: the two-head chain from the Tiny two-head model (SM106)&rsquo;s epoch 29 and the Instant-Only chain from the Tiny Instant-Only model (SM101)&rsquo;s epoch 38, three recovery epochs each, then the two-pass cool-down of the show-time two-head cool-down for Tiny (SM124) (targets of the show-time big model (SM91s2)) or of the longer cool-down for Tiny (SM115) (targets of the show-time Instant-Only big model (SM99)). Early stop if a head is more than +1.50% (after the first recovery epoch) or +1.20% (after the last) behind the uncut epoch; go = every trained head&rsquo;s CI upper bound &le; +1.00% vs the show-time two-head cool-down for Small (SM118) / the longer Small Instant-Only model (SM113)",
+   "id": "SM130, ticket 001350",
+   "kind": "gpu",
+   "decides": "Whether a Tiny with 41% fewer parameters and half the sequential layers (faster per review) stays within +1% of Small on every head; held for the 11-28 release decision",
+   "why": "",
+   "job": "Six-layer Tiny (SM130): scoring sm106-c1-e29-st-const at w8+s8 on e2s-query inputs, the 732 set minus 9 never-fit (723 users) (pass 1, 0 done, cap 0.8)",
+   "linked": true,
+   "track": "small model",
+   "ticket": "001350-sm130",
+   "started": "02:13",
+   "elapsed": "0:00",
+   "progress": null,
+   "eta": "~02:38"
+  }
+ ],
  "charts": [
   {
    "title": "Small model, leak-free (SM72s): LogLoss per epoch, 458-user set (lower is better)",
@@ -2639,8 +2655,11 @@
    "what": "Six-layer Tiny (SM130): Tiny with the deck / preset / user streams cut to 2 / 1 / 1 layers (the context-stream pruning (SM15) cut; 185,057 parameters, 6 layer steps instead of 12), both models: the two-head chain from the Tiny two-head model (SM106)&rsquo;s epoch 29 and the Instant-Only chain from the Tiny Instant-Only model (SM101)&rsquo;s epoch 38, three recovery epochs each, then the two-pass cool-down of the show-time two-head cool-down for Tiny (SM124) (targets of the show-time big model (SM91s2)) or of the longer cool-down for Tiny (SM115) (targets of the show-time Instant-Only big model (SM99)). Early stop if a head is more than +1.50% (after the first recovery epoch) or +1.20% (after the last) behind the uncut epoch; go = every trained head&rsquo;s CI upper bound &le; +1.00% vs the show-time two-head cool-down for Small (SM118) / the longer Small Instant-Only model (SM113)",
    "when": "Queued behind the compact state for Tiny (SM129) (launcher started 22:58 Wed 11-18); two-head result expected about 16:30 Thu 11-19 (13:30 Thu to 02:30 Fri), Instant-Only about 12:00 Fri 11-20 (07:00 Fri to 10:00 Sat); about 27 GPU h, about 2 to 4 h per chain if an early stop fires",
    "decides": "Whether a Tiny with 41% fewer parameters and half the sequential layers (faster per review) stays within +1% of Small on every head; held for the 11-28 release decision",
-   "state": "planned",
-   "started_at": "2026-11-18T22:58+01:00"
+   "state": "running",
+   "started_at": "2026-11-19T02:13:02+01:00",
+   "started": "02:13",
+   "ticket": "001350-sm130",
+   "ends_at": "2026-11-20T05:13:02+01:00"
   },
   {
    "id": "SM124",
