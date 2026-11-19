@@ -1,7 +1,7 @@
 {
- "generated_at": "2026-11-19T14:05:20+01:00",
- "updated": "2026-11-19 14:05",
- "material": "24cf114365f4bb79",
+ "generated_at": "2026-11-19T14:06:44+01:00",
+ "updated": "2026-11-19 14:06",
+ "material": "b45de5056130bf61",
  "summary": "running 001372",
  "headline": [
   {
@@ -422,7 +422,7 @@
    "track": "small model",
    "ticket": "001372-sm130",
    "started": "13:48",
-   "elapsed": "0:16",
+   "elapsed": "0:18",
    "progress": null,
    "eta": "~15:38"
   }
@@ -597,7 +597,7 @@
  "waiting": [
   {
    "ticket": "001373-sm131",
-   "id": "",
+   "id": "SM131",
    "what": "Compact state for Small and Big (SM131): scoring pass 1:smoke big small (Big 0, Small 0 of 723 users done, cap 0.8)",
    "flags": "expected 150 min"
   }
@@ -2664,6 +2664,19 @@
    "started": "13:48",
    "ticket": "001372-sm130",
    "ends_at": "2026-11-20T05:13:02+01:00"
+  },
+  {
+   "id": "SM131",
+   "track": "small model",
+   "since": "11-19T14:04",
+   "kind": "gpu",
+   "minutes": 120,
+   "what": "Compact state for Small and Big (SM131): the show-time two-head cool-down for Small (SM118), the longer Small Instant-Only model (SM113), the show-time big model (SM91s2) and the show-time instant-only big model (SM99) scored with the compact integer state of the compact int state test (SM47) (int4 cards + int8 notes, float16 row scales, int8 token-shift vectors) against the fork&rsquo;s default stored state (int4 cards + int8 notes), plus the card-only format as report only; no training, show-time inputs, leak-free, 722 users of the 732 set; one chained GPU ticket (GPU smoke, Big, Small) interleaved with the six-layer Tiny (SM130)",
+   "when": "Launched 14:04 Thu 11-19; ticket after the six-layer Tiny (SM130)&rsquo;s epoch 39 (about 15:40); result about 17:45 Thu 11-19 (17:15 to 20:00)",
+   "decides": "Whether the compact state is free for Small and for Big: free per model iff every head&rsquo;s 95% CI upper bound of compact vs fork default &lt; +0.05%; per size iff both models are free. State per card / note: Small 1,521 / 1,315 B vs 1,963 / 1,567 B (&minus;19.7% card + note), Big 7,747 / 9,267 B vs 9,271 / 10,283 B (&minus;13.0%)",
+   "state": "waiting",
+   "started_at": "2026-11-19T14:04+01:00",
+   "ticket": "001373-sm131"
   },
   {
    "id": "SM124",
