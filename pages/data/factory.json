@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-19T13:48:18+01:00",
+ "generated_at": "2026-11-19T13:48:52+01:00",
  "updated": "2026-11-19 13:48",
- "material": "48349a8c79dbee6f",
- "summary": "running 001370, finished 001369",
+ "material": "820b815ca38e6861",
+ "summary": "running 001372, finished 001371",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring, show-time inputs for both heads (curve / instant)",
@@ -413,18 +413,18 @@
  "now": [
   {
    "what": "Six-layer Tiny (SM130): Tiny with the deck / preset / user streams cut to 2 / 1 / 1 layers (the context-stream pruning (SM15) cut; 185,057 parameters, 6 layer steps instead of 12), both models: the two-head chain from the Tiny two-head model (SM106)&rsquo;s epoch 29 and the Instant-Only chain from the Tiny Instant-Only model (SM101)&rsquo;s epoch 38, three recovery epochs each, then the two-pass cool-down of the show-time two-head cool-down for Tiny (SM124) (targets of the show-time big model (SM91s2)) or of the longer cool-down for Tiny (SM115) (targets of the show-time Instant-Only big model (SM99)). Early stop if a head is more than +1.50% (after the first recovery epoch) or +1.20% (after the last) behind the uncut epoch; go = every trained head&rsquo;s CI upper bound &le; +1.00% vs the show-time two-head cool-down for Small (SM118) / the longer Small Instant-Only model (SM113)",
-   "id": "SM130, ticket 001370",
+   "id": "SM130, ticket 001372",
    "kind": "gpu",
    "decides": "Whether a Tiny with 41% fewer parameters and half the sequential layers (faster per review) stays within +1% of Small on every head; held for the 11-28 release decision",
    "why": "",
-   "job": "Six-layer Tiny (SM130): scoring sm101-c1-e38-st-const at w8+s8 on e2s-query inputs, the 732 set minus 9 never-fit (723 users) (pass 2, 722 done, cap 0.8)",
+   "job": "Six-layer Tiny (SM130): Instant-Only epoch 39 (w64-c1-d2p1u1, the chain&#x27;s own constant-LR epoch step: 8k final tier, the run&#x27;s order rule, 2048 x 16 lanes, leak-free replay KD, AdamW 7e-4, instant head only, show-time inputs) (segment to the next break or the end)",
    "linked": true,
    "track": "small model",
-   "ticket": "001370-sm130",
-   "started": "13:47",
+   "ticket": "001372-sm130",
+   "started": "13:48",
    "elapsed": "0:00",
    "progress": null,
-   "eta": "~14:07"
+   "eta": "~15:38"
   }
  ],
  "charts": [
@@ -597,6 +597,24 @@
  "waiting": [],
  "recent": [
   {
+   "ticket": "001371-sm130",
+   "id": "SM130",
+   "what": "Six-layer Tiny (SM130): trainer smoke of Instant-Only epoch 39 (six-layer from the cut, constant LR) (2 users x 512 reviews)",
+   "ended": "13:48",
+   "date": "11-19",
+   "exit": 0,
+   "ran": "0:00"
+  },
+  {
+   "ticket": "001370-sm130",
+   "id": "SM130",
+   "what": "Six-layer Tiny (SM130): scoring sm101-c1-e38-st-const at w8+s8 on e2s-query inputs, the 732 set minus 9 never-fit (723 users) (pass 2, 722 done, cap 0.8)",
+   "ended": "13:48",
+   "date": "11-19",
+   "exit": 0,
+   "ran": "0:00"
+  },
+  {
    "ticket": "001369-sm130",
    "id": "SM130",
    "what": "Six-layer Tiny (SM130): scoring sm101-c1-e38-st-const at w8+s8 on e2s-query inputs, the 732 set minus 9 never-fit (723 users) (pass 1, 197 done, cap 0.8)",
@@ -631,24 +649,6 @@
    "date": "11-19",
    "exit": 0,
    "ran": "0:00"
-  },
-  {
-   "ticket": "001364-sm130",
-   "id": "SM130",
-   "what": "Six-layer Tiny (SM130): scoring sm130-th-dec2ep32k-t91s2 at w8+s8 w8+s4c8nhx8 on e2s-query inputs, the 732 set minus 9 never-fit (723 users) (pass 1, 0 done, cap 0.8)",
-   "ended": "10:42",
-   "date": "11-19",
-   "exit": 0,
-   "ran": "0:11"
-  },
-  {
-   "ticket": "001363-sm130",
-   "id": "SM130",
-   "what": "Six-layer Tiny (SM130): two-head cool-down pass 2 of 2 (0.29 x peak -&gt; 0, new order, six-layer) (segment to the next break or the end)",
-   "ended": "10:31",
-   "date": "11-19",
-   "exit": 0,
-   "ran": "2:31"
   }
  ],
  "plan": [
@@ -2654,8 +2654,8 @@
    "decides": "Whether a Tiny with 41% fewer parameters and half the sequential layers (faster per review) stays within +1% of Small on every head; held for the 11-28 release decision",
    "state": "running",
    "started_at": "2026-11-19T02:13:02+01:00",
-   "started": "13:47",
-   "ticket": "001370-sm130",
+   "started": "13:48",
+   "ticket": "001372-sm130",
    "ends_at": "2026-11-20T05:13:02+01:00"
   },
   {
