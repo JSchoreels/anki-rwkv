@@ -2391,10 +2391,11 @@
     "Six-layer Tiny (SM130): "
    ],
    "what": "Six-layer Tiny (SM130): Tiny with the deck / preset / user streams cut to 2 / 1 / 1 layers (the context-stream pruning (SM15) cut; 185,057 parameters, 6 layer steps instead of 12), both models: the two-head chain from the Tiny two-head model (SM106)&rsquo;s epoch 29 and the Instant-Only chain from the Tiny Instant-Only model (SM101)&rsquo;s epoch 38, three recovery epochs each, then the two-pass cool-down of the show-time two-head cool-down for Tiny (SM124) (targets of the show-time big model (SM91s2)) or of the longer cool-down for Tiny (SM115) (targets of the show-time Instant-Only big model (SM99)). Early stop if a head is more than +1.50% (after the first recovery epoch) or +1.20% (after the last) behind the uncut epoch; go = every trained head&rsquo;s CI upper bound &le; +1.00% vs the show-time two-head cool-down for Small (SM118) / the longer Small Instant-Only model (SM113)",
-   "when": "Started 02:13 Thu 11-19 after the compact state for Tiny (SM129). Two-head chain done 10:43 Thu 11-19: go (curve +0.467% [+0.398, +0.546], instant +0.524% [+0.484, +0.567] vs the show-time two-head cool-down for Small (SM118); compact format also go), 8.5 h, training at about 64,000 reviews/s. The PC shut down unexpectedly at 10:44 and came back at 13:34; the Instant-Only chain restarted 13:37 Thu 11-19 and runs through the evening (no planned break any more), sharing the GPU with the compact state check for Small and Big; result expected about 23:00 Thu 11-19 to 01:00 Fri 11-20",
+   "when": "Started 02:13 Thu 11-19 after the compact state for Tiny (SM129). Two-head chain done 10:43 Thu 11-19: go (curve +0.467% [+0.398, +0.546], instant +0.524% [+0.484, +0.567] vs the show-time two-head cool-down for Small (SM118); compact format also go). The PC shut down unexpectedly at 10:44 and came back at 13:34; the Instant-Only chain restarted 13:37 Thu 11-19. Ended 01:21 Fri 11-20: two-head go (compact go), Instant-Only go (+0.564% [+0.522, +0.607] vs the longer Small Instant-Only model (SM113); compact go +0.603%)",
    "decides": "Whether a Tiny with 41% fewer parameters and half the sequential layers (faster per review) stays within +1% of Small on every head; held for the 11-28 release decision",
-   "state": "queued",
-   "started_at": "2026-11-18T22:58+01:00"
+   "state": "done",
+   "started_at": "2026-11-18T22:58+01:00",
+   "ended_at": "2026-11-20T01:21+01:00"
   },
   {
    "id": "SM131",
@@ -3158,6 +3159,116 @@
   "s-w64kd-gate-ctx2048c-dec8-1ep/w8+s8"
  ],
  "results": [
+  {
+   "date": "11-20",
+   "kind": "gpu-train",
+   "id": "SM130",
+   "track": "small model",
+   "name": "Six-layer Tiny (SM130): Tiny with the deck / preset / user streams cut to 2 / 1 / 1 layers (the context-stream pruning (SM15) cut; 185,057 parameters, 6 layer steps instead of 12), three recovery epochs, then the two-pass cool-down of the show-time two-head cool-down for Tiny (SM124) (two-head) / the longer cool-down for Tiny (SM115) (Instant-Only)",
+   "eval": "Leak-free w8+s8, 722 users of the 732 set, show-time inputs; % = 100 &times; (six-layer / Small &minus; 1) of the review-weighted LogLoss, paired user bootstrap 95% CI. Go = every trained head&rsquo;s CI upper bound &le; +1.00% vs the show-time two-head cool-down for Small (SM118) (two-head) or the longer Small Instant-Only model (SM113) (Instant-Only). Early stops: +1.50% / +1.20% vs the uncut epoch after the first / last recovery epoch",
+   "fork": "Not used: the six-layer models are not in the fork yet, because the fork&rsquo;s engine has the layer counts compiled in (MODULE_LAYERS); adoption is a later release decision",
+   "takeaway": "<strong>Go (two-head, compact format also go)</strong> two-head: curve +0.467% [+0.398, +0.546], instant +0.524% [+0.484, +0.567] vs the show-time two-head cool-down for Small (SM118) (+0.349% / +0.340% vs the show-time two-head cool-down for Tiny (SM124)); <strong>go (Instant-Only, compact format also go)</strong> Instant-Only: +0.564% [+0.522, +0.607] vs the longer Small Instant-Only model (SM113) (+0.378% vs the longer cool-down for Tiny (SM115)). Compact format: two-head +0.483% / +0.545%, Instant-Only +0.603%. Early checks all continued (two-head after epochs 30 / 32: curve +1.378% / +1.022%, instant +0.918% / +0.637%; Instant-Only after epochs 39 / 41: +0.999% / +0.286%). 41% fewer parameters (185,057 vs 311,786), half the layer steps; training ran at 64,300-65,700 reviews/s in the cool-down passes (581.9M reviews per pass; Tiny: 21-29k), so an 8k / 2k 10-epoch run takes about 4.6 h. CPU review step (PyTorch, 1 thread): 1.062 vs 2.062 ms at batch 1 (&times;0.515); 33.4 vs 64.5 &micro;s per review at batch 256.",
+   "inputs": "show-time",
+   "started_at": "2026-11-19T02:13+01:00",
+   "ended_at": "2026-11-20T01:21+01:00",
+   "gpu_minutes": 1000,
+   "tickets": 25,
+   "detail": {
+    "verdict": "Go (two-head), go (Instant-Only); compact format go for both; branch sm130 2ce266f0 (sm130-decision-th.md, sm130-decision-io.md, RESULT.md). GPU minutes are real run time: the Instant-Only epoch 41 segment and its scoring ticket also counted about 90 + 105 min of waiting in the ticket log",
+    "table": {
+     "head": [
+      "Show-time",
+      "Curve %",
+      "Curve 95% CI",
+      "Instant %",
+      "Instant 95% CI",
+      "Better / worse users"
+     ],
+     "rows": [
+      [
+       "six-layer two-head minus the show-time two-head cool-down for Small (SM118) (the rule)",
+       "+0.467%",
+       "[+0.398, +0.546]",
+       "+0.524%",
+       "[+0.484, +0.567]",
+       "curve 138 / 584; instant 39 / 683"
+      ],
+      [
+       "six-layer two-head minus the show-time two-head cool-down for Tiny (SM124)",
+       "+0.349%",
+       "[+0.252, +0.450]",
+       "+0.340%",
+       "[+0.310, +0.372]",
+       "curve 177 / 544; instant 48 / 674"
+      ],
+      [
+       "six-layer two-head, compact state, minus the show-time two-head cool-down for Small (SM118)",
+       "+0.483%",
+       "[+0.415, +0.562]",
+       "+0.545%",
+       "[+0.505, +0.589]",
+       "curve 138 / 584; instant 37 / 685"
+      ],
+      [
+       "six-layer Instant-Only minus the longer Small Instant-Only model (SM113) (the rule)",
+       "",
+       "",
+       "+0.564%",
+       "[+0.522, +0.607]",
+       "29 / 693"
+      ],
+      [
+       "six-layer Instant-Only minus the longer cool-down for Tiny (SM115)",
+       "",
+       "",
+       "+0.378%",
+       "[+0.347, +0.412]",
+       "50 / 672"
+      ],
+      [
+       "six-layer Instant-Only, compact state, minus the longer Small Instant-Only model (SM113)",
+       "",
+       "",
+       "+0.603%",
+       "[+0.560, +0.647]",
+       "30 / 692"
+      ],
+      [
+       "early check 1 (epoch 30, six-layer epoch minus the uncut epoch), two-head",
+       "+1.378%",
+       "[+1.085, +1.657]",
+       "+0.918%",
+       "[+0.852, +0.990]",
+       "curve 117 / 605; instant 44 / 678"
+      ],
+      [
+       "early check 2 (epoch 32), two-head",
+       "+1.022%",
+       "[+0.710, +1.288]",
+       "+0.637%",
+       "[+0.578, +0.701]",
+       "curve 140 / 582; instant 61 / 661"
+      ],
+      [
+       "early check 1 (epoch 39), Instant-Only",
+       "",
+       "",
+       "+0.999%",
+       "[+0.873, +1.135]",
+       "47 / 675"
+      ],
+      [
+       "early check 2 (epoch 41), Instant-Only",
+       "",
+       "",
+       "+0.286%",
+       "[+0.242, +0.333]",
+       "210 / 512"
+      ]
+     ]
+    }
+   }
+  },
   {
    "date": "11-19",
    "kind": "gpu-score",
@@ -12052,7 +12163,7 @@
    "instant": 0.277157
   },
   "eval": "722 users of the 732 set, 30.13M reviews, leak-free w8+s8, show-time inputs for both heads",
-  "note": "Held, not released: the show-time two-head cool-down for Small (SM118) is the Small two-head candidate (curve 0.300016, instant 0.276599, go on 11-17), for the 11-28 release decision. The show-time two-head cool-down for Tiny (SM124) is the Tiny two-head candidate (curve 0.300369, instant 0.277105, go on 11-18), held the same way. Published as the GitHub release rwkv-family-2026-11-13 (SM108) on 11-13. Memory = card + note state at the fork&rsquo;s default precision (int4 cards + int8 notes).",
+  "note": "Held, not released: the show-time two-head cool-down for Small (SM118) is the Small two-head candidate (curve 0.300016, instant 0.276599, go on 11-17), for the 11-28 release decision. The show-time two-head cool-down for Tiny (SM124) is the Tiny two-head candidate (curve 0.300369, instant 0.277105, go on 11-18), held the same way. The six-layer Tiny (SM130) is held as a smaller Tiny option for both chains (go on 11-20, not in the fork: layer counts are compiled in): two-head curve 0.301416, instant 0.278049 (+0.349% / +0.340% vs the show-time two-head cool-down for Tiny (SM124)); Instant-Only instant 0.277490 (+0.378% vs the longer cool-down for Tiny (SM115)); 185,057 parameters instead of 311,786. Published as the GitHub release rwkv-family-2026-11-13 (SM108) on 11-13. Memory = card + note state at the fork&rsquo;s default precision (int4 cards + int8 notes).",
   "rows": [
    {
     "size": "Big",
