@@ -2455,22 +2455,23 @@
     "Six-layer Tiny with longer recovery (SM135):"
    ],
    "what": "Six-layer Tiny with longer recovery (SM135): the six-layer Tiny (SM130) gets up to 4 more constant-LR recovery epochs before the same two-pass cool-down (Instant-Only epochs 42&ndash;45 first, then two-head epochs 33&ndash;36), each epoch checked against the previous one; final scoring in the published, compact and card-only formats; show-time inputs, leak-free, 732 set",
-   "when": "Running since 02:01 Fri 11-20; Instant-Only result about 11:50 Fri (11:00&ndash;13:30); two-head recovery epochs about 16:15 Fri only if Instant-Only goes; the two-head cool-down (+5.3 GPU h) is held for the user&rsquo;s OK",
+   "when": "Stopped early at 03:06 Fri 11-20 after Instant-Only epoch 42 (about 65 GPU min); the Instant-Only model was significantly worse than the six-layer Tiny (SM130)&rsquo;s epoch 41, so the chain ended and the two-head chain did not run",
    "decides": "Whether more recovery buys headroom under the +1% Tiny budget: go per chain if every head&rsquo;s 95% CI upper bound vs the six-layer Tiny (SM130) is below 0 and the gain is at least 0.05%",
-   "state": "running",
-   "started_at": "2026-11-20T02:01+01:00"
+   "state": "done",
+   "started_at": "2026-11-20T02:01+01:00",
+   "ended_at": "2026-11-20T03:06+01:00"
   },
   {
    "id": "SM136",
    "track": "small model",
    "since": "11-20T02:40",
-   "kind": "gpu",
-   "minutes": 105,
+   "kind": "cpu",
+   "minutes": 1740,
    "match": [
     "Long-card state drift on real users (SM136):"
    ],
    "what": "Long-card state drift on real users (SM136): the fork&rsquo;s stored state re-quantizes int4 card rows after every answer, which drifted and overflowed on made-up long cards in a read-only fork check; this scores the Big, Small and Tiny candidates (the show-time big model (SM91s2), the show-time instant-only big model (SM99), the show-time two-head cool-down for Small (SM118), the longer Small Instant-Only model (SM113), the show-time two-head cool-down for Tiny (SM124), the longer cool-down for Tiny (SM115)) with int8, default int4-card, compact, int8-card compact and float32 state, LogLoss grouped by the card&rsquo;s number of prior answers; 66 users of the 732 set with a card of at least 128 prior answers, no training",
-   "when": "Queued 02:40 Fri 11-20 behind the six-layer Tiny with longer recovery (SM135)&rsquo;s epoch 42; result about 04:45 Fri (04:15&ndash;06:30)",
+   "when": "GPU smoke stopped 02:56 Fri 11-20: on long cards the quantized state turns tiny GPU-vs-CPU rounding differences into visible prediction differences (up to 0.0019 LogLoss on one user), so scoring moved to the CPU, which mirrors the fork (same rule, pool, models, formats); CPU since 03:15, 2 workers, Tiny about 10:45, Small about 18:45 Fri, Big about 08:30 Sat 21 Nov",
    "decides": "Which card state the fork should store in the 11-28 release: int4 card rows stay if no user goes non-finite and every head&rsquo;s 95% CI upper bound vs int8 is &le; +0.25% on cards with 128 or more prior answers; otherwise int8 card rows for that size",
    "state": "running",
    "started_at": "2026-11-20T02:40+01:00"
@@ -3205,6 +3206,42 @@
   "s-w64kd-gate-ctx2048c-dec8-1ep/w8+s8"
  ],
  "results": [
+  {
+   "date": "11-20",
+   "kind": "gpu-train",
+   "id": "SM135",
+   "track": "small model",
+   "name": "Six-layer Tiny with longer recovery (SM135): the six-layer Tiny (SM130) Instant-Only model gets constant-LR recovery epoch 42, checked against its epoch 41 before the cool-down",
+   "eval": "Constant-LR checkpoint, 722 rule users of the 732 set, show-time inputs, leak-free; % = 100 &times; (epoch 42 / epoch 41 &minus; 1) of the review-weighted LogLoss, paired user bootstrap 95% CI. Pre-registered: stop if the head is significantly worse than the previous epoch (CI lower bound &gt; 0)",
+   "fork": "Not used: needs the six-layer engine",
+   "takeaway": "<strong>No go (early stop)</strong> more constant-LR recovery made the six-layer Instant-Only model worse, not better: instant LogLoss 0.279924, +0.082% [+0.041, +0.121] vs the six-layer Tiny (SM130)&rsquo;s epoch 41, with 217 users better and 505 worse. The chain ended as pre-registered and the two-head chain did not run, so the final models of the six-layer Tiny (SM130) stay the six-layer candidates. Epoch 42 ran at 179,160 reviews/s (54.1 min of training, 581,942,724 reviews); about 65 GPU min in all.",
+   "inputs": "show-time",
+   "started_at": "2026-11-20T02:01+01:00",
+   "ended_at": "2026-11-20T03:06+01:00",
+   "gpu_minutes": 65,
+   "tickets": 3,
+   "detail": {
+    "verdict": "No go (early stop after epoch 42); branch sm135 (RESULT.md, sm135-early-io-e42.md)",
+    "table": {
+     "head": [
+      "Show-time",
+      "Epoch 42 LogLoss",
+      "vs the six-layer Tiny (SM130)&rsquo;s epoch 41 % [95% CI]",
+      "Users better / worse",
+      "Rule"
+     ],
+     "rows": [
+      [
+       "the Instant-Only six-layer Tiny (SM130), epoch 42, instant",
+       "0.279924",
+       "+0.082% [+0.041, +0.121] (worse)",
+       "217 / 505",
+       "stop"
+      ]
+     ]
+    }
+   }
+  },
   {
    "date": "11-20",
    "kind": "gpu-score",
