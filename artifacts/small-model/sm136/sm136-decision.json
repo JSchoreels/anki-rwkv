@@ -1,0 +1,824 @@
+{
+ "verdict": "int8 card rows recommended (amended coverage)",
+ "amended": true,
+ "amendment": "coverage rule changed from 64 of 66 users to the complete users; user 'continue' after the recommendation, 11-21",
+ "ceiling_pct": 0.25,
+ "pool_users": 66,
+ "nonfinite_user": 3876,
+ "nonfinite_note": "user 3876 is non-finite for the fork default format (w8+s4c8n) in the five models where it was scored; compact and int8-card formats stay finite",
+ "missing_users_per_size": {
+  "Big": 15,
+  "Small": 15,
+  "Tiny": 16
+ },
+ "killed_by_memory_guard": "15-16 longest users per size (186k-531k reviews)",
+ "per_size": {
+  "Big": {
+   "compact_int4": "fail",
+   "fork_default_int4": "fail",
+   "int8_card_compact_notes": "pass"
+  },
+  "Small": {
+   "compact_int4": "fail",
+   "fork_default_int4": "fail (two-head model above the ceiling; the Small Instant-Only model meets the ceiling on the complete users but user 3876 is non-finite)",
+   "int8_card_compact_notes": "pass"
+  },
+  "Tiny": {
+   "compact_int4": "fail",
+   "fork_default_int4": "fail",
+   "int8_card_compact_notes": "pass"
+  }
+ },
+ "models": {
+  "sm91s2": {
+   "name": "the show-time big model (SM91s2)",
+   "size": "Big",
+   "users_with_w8s8": 51,
+   "formats": {
+    "w8+s4c8nhx8": {
+     "rows": 51,
+     "complete_users": 51,
+     "nonfinite_users": [],
+     "vs_w8s8": {
+      "curve": {
+       "128-299": {
+        "users": 51,
+        "reviews": 23131,
+        "pct": 0.1155,
+        "ci": [
+         -0.0453,
+         0.6874
+        ]
+       },
+       "128+": {
+        "users": 51,
+        "reviews": 31651,
+        "pct": 0.1848,
+        "ci": [
+         -0.0343,
+         1.0917
+        ]
+       }
+      },
+      "instant": {
+       "128-299": {
+        "users": 51,
+        "reviews": 23131,
+        "pct": 0.066,
+        "ci": [
+         -0.1105,
+         0.6991
+        ]
+       },
+       "128+": {
+        "users": 51,
+        "reviews": 31651,
+        "pct": 0.0985,
+        "ci": [
+         -0.0897,
+         0.8455
+        ]
+       }
+      }
+     },
+     "max_ci_upper_pct": 1.0917,
+     "ceiling_ok": false,
+     "all_finite": true,
+     "passes": false
+    },
+    "w8+s4c8n": {
+     "rows": 51,
+     "complete_users": 50,
+     "nonfinite_users": [
+      3876
+     ],
+     "vs_w8s8": {
+      "curve": {
+       "128-299": {
+        "users": 50,
+        "reviews": 22787,
+        "pct": 0.0954,
+        "ci": [
+         -0.0495,
+         0.5726
+        ]
+       },
+       "128+": {
+        "users": 50,
+        "reviews": 23910,
+        "pct": 0.1486,
+        "ci": [
+         -0.0438,
+         0.8386
+        ]
+       }
+      },
+      "instant": {
+       "128-299": {
+        "users": 50,
+        "reviews": 22787,
+        "pct": 0.0856,
+        "ci": [
+         -0.1367,
+         0.7342
+        ]
+       },
+       "128+": {
+        "users": 50,
+        "reviews": 23910,
+        "pct": 0.1148,
+        "ci": [
+         -0.0934,
+         0.8237
+        ]
+       }
+      }
+     },
+     "max_ci_upper_pct": 0.8386,
+     "ceiling_ok": false,
+     "all_finite": false,
+     "passes": false
+    },
+    "w8+s8hx8": {
+     "rows": 51,
+     "complete_users": 51,
+     "nonfinite_users": [],
+     "vs_w8s8": {
+      "curve": {
+       "128-299": {
+        "users": 51,
+        "reviews": 23131,
+        "pct": -0.0023,
+        "ci": [
+         -0.0114,
+         0.0018
+        ]
+       },
+       "128+": {
+        "users": 51,
+        "reviews": 31651,
+        "pct": 0.0021,
+        "ci": [
+         -0.0085,
+         0.0287
+        ]
+       }
+      },
+      "instant": {
+       "128-299": {
+        "users": 51,
+        "reviews": 23131,
+        "pct": -0.0,
+        "ci": [
+         -0.0107,
+         0.0041
+        ]
+       },
+       "128+": {
+        "users": 51,
+        "reviews": 31651,
+        "pct": -0.0005,
+        "ci": [
+         -0.0109,
+         0.0034
+        ]
+       }
+      }
+     },
+     "max_ci_upper_pct": 0.0287,
+     "ceiling_ok": true,
+     "all_finite": true,
+     "passes": true
+    }
+   }
+  },
+  "sm99": {
+   "name": "the show-time instant-only big model (SM99)",
+   "size": "Big",
+   "users_with_w8s8": 51,
+   "formats": {
+    "w8+s4c8nhx8": {
+     "rows": 51,
+     "complete_users": 51,
+     "nonfinite_users": [],
+     "vs_w8s8": {
+      "instant": {
+       "128-299": {
+        "users": 51,
+        "reviews": 23131,
+        "pct": 0.0219,
+        "ci": [
+         -0.1195,
+         0.3773
+        ]
+       },
+       "128+": {
+        "users": 51,
+        "reviews": 31651,
+        "pct": 0.0409,
+        "ci": [
+         -0.0907,
+         0.4992
+        ]
+       }
+      }
+     },
+     "max_ci_upper_pct": 0.4992,
+     "ceiling_ok": false,
+     "all_finite": true,
+     "passes": false
+    },
+    "w8+s4c8n": {
+     "rows": 51,
+     "complete_users": 50,
+     "nonfinite_users": [
+      3876
+     ],
+     "vs_w8s8": {
+      "instant": {
+       "128-299": {
+        "users": 50,
+        "reviews": 22787,
+        "pct": 0.0274,
+        "ci": [
+         -0.117,
+         0.3819
+        ]
+       },
+       "128+": {
+        "users": 50,
+        "reviews": 23910,
+        "pct": 0.0539,
+        "ci": [
+         -0.1022,
+         0.5265
+        ]
+       }
+      }
+     },
+     "max_ci_upper_pct": 0.5265,
+     "ceiling_ok": false,
+     "all_finite": false,
+     "passes": false
+    },
+    "w8+s8hx8": {
+     "rows": 51,
+     "complete_users": 51,
+     "nonfinite_users": [],
+     "vs_w8s8": {
+      "instant": {
+       "128-299": {
+        "users": 51,
+        "reviews": 23131,
+        "pct": 0.0022,
+        "ci": [
+         -0.0062,
+         0.0134
+        ]
+       },
+       "128+": {
+        "users": 51,
+        "reviews": 31651,
+        "pct": 0.0005,
+        "ci": [
+         -0.011,
+         0.0107
+        ]
+       }
+      }
+     },
+     "max_ci_upper_pct": 0.0134,
+     "ceiling_ok": true,
+     "all_finite": true,
+     "passes": true
+    }
+   }
+  },
+  "sm118": {
+   "name": "the show-time two-head cool-down for Small (SM118)",
+   "size": "Small",
+   "users_with_w8s8": 51,
+   "formats": {
+    "w8+s4c8nhx8": {
+     "rows": 51,
+     "complete_users": 51,
+     "nonfinite_users": [],
+     "vs_w8s8": {
+      "curve": {
+       "128-299": {
+        "users": 51,
+        "reviews": 21608,
+        "pct": 0.2706,
+        "ci": [
+         0.1091,
+         0.8865
+        ]
+       },
+       "128+": {
+        "users": 51,
+        "reviews": 30092,
+        "pct": 0.7368,
+        "ci": [
+         0.1204,
+         3.7683
+        ]
+       }
+      },
+      "instant": {
+       "128-299": {
+        "users": 51,
+        "reviews": 21608,
+        "pct": 0.0801,
+        "ci": [
+         -0.0106,
+         0.2919
+        ]
+       },
+       "128+": {
+        "users": 51,
+        "reviews": 30092,
+        "pct": 0.1615,
+        "ci": [
+         0.0282,
+         0.776
+        ]
+       }
+      }
+     },
+     "max_ci_upper_pct": 3.7683,
+     "ceiling_ok": false,
+     "all_finite": true,
+     "passes": false
+    },
+    "w8+s4c8n": {
+     "rows": 51,
+     "complete_users": 50,
+     "nonfinite_users": [
+      3876
+     ],
+     "vs_w8s8": {
+      "curve": {
+       "128-299": {
+        "users": 50,
+        "reviews": 21264,
+        "pct": 0.1601,
+        "ci": [
+         0.0152,
+         0.2862
+        ]
+       },
+       "128+": {
+        "users": 50,
+        "reviews": 22351,
+        "pct": 0.1576,
+        "ci": [
+         0.0265,
+         0.3193
+        ]
+       }
+      },
+      "instant": {
+       "128-299": {
+        "users": 50,
+        "reviews": 21264,
+        "pct": 0.0667,
+        "ci": [
+         -0.0274,
+         0.226
+        ]
+       },
+       "128+": {
+        "users": 50,
+        "reviews": 22351,
+        "pct": 0.0784,
+        "ci": [
+         -0.0061,
+         0.2606
+        ]
+       }
+      }
+     },
+     "max_ci_upper_pct": 0.3193,
+     "ceiling_ok": false,
+     "all_finite": false,
+     "passes": false
+    },
+    "w8+s8hx8": {
+     "rows": 51,
+     "complete_users": 51,
+     "nonfinite_users": [],
+     "vs_w8s8": {
+      "curve": {
+       "128-299": {
+        "users": 51,
+        "reviews": 21608,
+        "pct": 0.0015,
+        "ci": [
+         -0.0025,
+         0.0115
+        ]
+       },
+       "128+": {
+        "users": 51,
+        "reviews": 30092,
+        "pct": 0.0175,
+        "ci": [
+         -0.0021,
+         0.1145
+        ]
+       }
+      },
+      "instant": {
+       "128-299": {
+        "users": 51,
+        "reviews": 21608,
+        "pct": 0.0031,
+        "ci": [
+         -0.0014,
+         0.0177
+        ]
+       },
+       "128+": {
+        "users": 51,
+        "reviews": 30092,
+        "pct": 0.0041,
+        "ci": [
+         -0.0002,
+         0.0235
+        ]
+       }
+      }
+     },
+     "max_ci_upper_pct": 0.1145,
+     "ceiling_ok": true,
+     "all_finite": true,
+     "passes": true
+    }
+   }
+  },
+  "sm113": {
+   "name": "the longer Small Instant-Only model (SM113)",
+   "size": "Small",
+   "users_with_w8s8": 51,
+   "formats": {
+    "w8+s4c8nhx8": {
+     "rows": 51,
+     "complete_users": 51,
+     "nonfinite_users": [],
+     "vs_w8s8": {
+      "instant": {
+       "128-299": {
+        "users": 51,
+        "reviews": 21608,
+        "pct": 0.019,
+        "ci": [
+         -0.0839,
+         0.2753
+        ]
+       },
+       "128+": {
+        "users": 51,
+        "reviews": 30092,
+        "pct": 0.0424,
+        "ci": [
+         -0.0573,
+         0.4649
+        ]
+       }
+      }
+     },
+     "max_ci_upper_pct": 0.4649,
+     "ceiling_ok": false,
+     "all_finite": true,
+     "passes": false
+    },
+    "w8+s4c8n": {
+     "rows": 51,
+     "complete_users": 50,
+     "nonfinite_users": [
+      3876
+     ],
+     "vs_w8s8": {
+      "instant": {
+       "128-299": {
+        "users": 50,
+        "reviews": 21264,
+        "pct": -0.0312,
+        "ci": [
+         -0.1782,
+         0.1345
+        ]
+       },
+       "128+": {
+        "users": 50,
+        "reviews": 22351,
+        "pct": -0.0229,
+        "ci": [
+         -0.1524,
+         0.2146
+        ]
+       }
+      }
+     },
+     "max_ci_upper_pct": 0.2146,
+     "ceiling_ok": true,
+     "all_finite": false,
+     "passes": false
+    },
+    "w8+s8hx8": {
+     "rows": 51,
+     "complete_users": 51,
+     "nonfinite_users": [],
+     "vs_w8s8": {
+      "instant": {
+       "128-299": {
+        "users": 51,
+        "reviews": 21608,
+        "pct": 0.0039,
+        "ci": [
+         -0.008,
+         0.0099
+        ]
+       },
+       "128+": {
+        "users": 51,
+        "reviews": 30092,
+        "pct": -0.0012,
+        "ci": [
+         -0.0308,
+         0.0061
+        ]
+       }
+      }
+     },
+     "max_ci_upper_pct": 0.0099,
+     "ceiling_ok": true,
+     "all_finite": true,
+     "passes": true
+    }
+   }
+  },
+  "sm124": {
+   "name": "the show-time two-head cool-down for Tiny (SM124)",
+   "size": "Tiny",
+   "users_with_w8s8": 50,
+   "formats": {
+    "w8+s4c8nhx8": {
+     "rows": 50,
+     "complete_users": 50,
+     "nonfinite_users": [],
+     "vs_w8s8": {
+      "curve": {
+       "128-299": {
+        "users": 50,
+        "reviews": 21605,
+        "pct": 0.0212,
+        "ci": [
+         -0.0938,
+         0.4203
+        ]
+       },
+       "128+": {
+        "users": 50,
+        "reviews": 30089,
+        "pct": 0.6503,
+        "ci": [
+         -0.0818,
+         4.546
+        ]
+       }
+      },
+      "instant": {
+       "128-299": {
+        "users": 50,
+        "reviews": 21605,
+        "pct": 0.0027,
+        "ci": [
+         -0.152,
+         0.4318
+        ]
+       },
+       "128+": {
+        "users": 50,
+        "reviews": 30089,
+        "pct": 0.0026,
+        "ci": [
+         -0.152,
+         0.4938
+        ]
+       }
+      }
+     },
+     "max_ci_upper_pct": 4.546,
+     "ceiling_ok": false,
+     "all_finite": true,
+     "passes": false
+    },
+    "w8+s4c8n": {
+     "rows": 50,
+     "complete_users": 49,
+     "nonfinite_users": [
+      3876
+     ],
+     "vs_w8s8": {
+      "curve": {
+       "128-299": {
+        "users": 49,
+        "reviews": 21261,
+        "pct": -0.0036,
+        "ci": [
+         -0.0973,
+         0.3287
+        ]
+       },
+       "128+": {
+        "users": 49,
+        "reviews": 22348,
+        "pct": -0.0002,
+        "ci": [
+         -0.091,
+         0.3524
+        ]
+       }
+      },
+      "instant": {
+       "128-299": {
+        "users": 49,
+        "reviews": 21261,
+        "pct": 0.0092,
+        "ci": [
+         -0.1224,
+         0.3987
+        ]
+       },
+       "128+": {
+        "users": 49,
+        "reviews": 22348,
+        "pct": 0.0031,
+        "ci": [
+         -0.1294,
+         0.4425
+        ]
+       }
+      }
+     },
+     "max_ci_upper_pct": 0.4425,
+     "ceiling_ok": false,
+     "all_finite": false,
+     "passes": false
+    },
+    "w8+s8hx8": {
+     "rows": 50,
+     "complete_users": 50,
+     "nonfinite_users": [],
+     "vs_w8s8": {
+      "curve": {
+       "128-299": {
+        "users": 50,
+        "reviews": 21605,
+        "pct": 0.0041,
+        "ci": [
+         -0.0077,
+         0.0085
+        ]
+       },
+       "128+": {
+        "users": 50,
+        "reviews": 30089,
+        "pct": -0.0027,
+        "ci": [
+         -0.0418,
+         0.0057
+        ]
+       }
+      },
+      "instant": {
+       "128-299": {
+        "users": 50,
+        "reviews": 21605,
+        "pct": 0.0018,
+        "ci": [
+         -0.0109,
+         0.0055
+        ]
+       },
+       "128+": {
+        "users": 50,
+        "reviews": 30089,
+        "pct": 0.0026,
+        "ci": [
+         -0.0089,
+         0.0073
+        ]
+       }
+      }
+     },
+     "max_ci_upper_pct": 0.0085,
+     "ceiling_ok": true,
+     "all_finite": true,
+     "passes": true
+    }
+   }
+  },
+  "sm115": {
+   "name": "the longer cool-down for Tiny (SM115)",
+   "size": "Tiny",
+   "users_with_w8s8": 50,
+   "formats": {
+    "w8+s4c8nhx8": {
+     "rows": 50,
+     "complete_users": 50,
+     "nonfinite_users": [],
+     "vs_w8s8": {
+      "instant": {
+       "128-299": {
+        "users": 50,
+        "reviews": 21605,
+        "pct": 0.0401,
+        "ci": [
+         -0.0799,
+         0.2595
+        ]
+       },
+       "128+": {
+        "users": 50,
+        "reviews": 30089,
+        "pct": 0.061,
+        "ci": [
+         -0.0441,
+         0.303
+        ]
+       }
+      }
+     },
+     "max_ci_upper_pct": 0.303,
+     "ceiling_ok": false,
+     "all_finite": true,
+     "passes": false
+    },
+    "w8+s4c8n": {
+     "rows": 50,
+     "complete_users": 50,
+     "nonfinite_users": [],
+     "vs_w8s8": {
+      "instant": {
+       "128-299": {
+        "users": 50,
+        "reviews": 21605,
+        "pct": 0.0312,
+        "ci": [
+         -0.0966,
+         0.3147
+        ]
+       },
+       "128+": {
+        "users": 50,
+        "reviews": 30089,
+        "pct": 0.0567,
+        "ci": [
+         -0.063,
+         0.3421
+        ]
+       }
+      }
+     },
+     "max_ci_upper_pct": 0.3421,
+     "ceiling_ok": false,
+     "all_finite": true,
+     "passes": false
+    },
+    "w8+s8hx8": {
+     "rows": 50,
+     "complete_users": 50,
+     "nonfinite_users": [],
+     "vs_w8s8": {
+      "instant": {
+       "128-299": {
+        "users": 50,
+        "reviews": 21605,
+        "pct": 0.0037,
+        "ci": [
+         -0.0129,
+         0.0184
+        ]
+       },
+       "128+": {
+        "users": 50,
+        "reviews": 30089,
+        "pct": 0.0049,
+        "ci": [
+         -0.0105,
+         0.0202
+        ]
+       }
+      }
+     },
+     "max_ci_upper_pct": 0.0202,
+     "ceiling_ok": true,
+     "all_finite": true,
+     "passes": true
+    }
+   }
+  }
+ }
+}

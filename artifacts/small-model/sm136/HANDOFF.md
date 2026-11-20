@@ -1,5 +1,7 @@
 # Handoff: long-card state drift on real users (SM136), CPU scoring
 
+**STATUS 11-21: CLOSED.** Decision on the complete users under an amended coverage rule (design.md, amendment 11-21): int8 card rows recommended. See `RESULT.md` and `sm136-decision.json`. Nothing is running; the older status text below is history. Open option, not needed: an exact time-chunked CPU layer to finish the 15-16 longest users per size.
+
 **STATUS 11-20 ~17:00, pass 2 NOT launched (blocked): the memory guard kills are not a label-count problem.** Findings (details
 below the line): the scorer's peak memory is per evaluation and grows with the user's review count (about 3.2 GB at 102,545
 reviews, 5.6 GB at 150,500 for one label; 3 labels in one process only add ~0.3 GB), so splitting labels across processes cannot
