@@ -1,5 +1,41 @@
 # Handoff: long-card state drift on real users (SM136), CPU scoring
 
+**STATUS 11-20 ~17:00, pass 2 NOT launched (blocked): the memory guard kills are not a label-count problem.** Findings (details
+below the line): the scorer's peak memory is per evaluation and grows with the user's review count (about 3.2 GB at 102,545
+reviews, 5.6 GB at 150,500 for one label; 3 labels in one process only add ~0.3 GB), so splitting labels across processes cannot
+bring the 15-16 killed users per size (186k to 531k reviews) under 5.9 GB. Coverage stays at 50-51 of 66 users per model and format
+(< 64), so `decide` stays pending. The real fix needs an exactly time-chunked layer forward (state carry for the token shift and
+the WKV recurrence) or a machine with ~20 GB free for the largest users. Nothing is running. Interim, non-decisive readout:
+`sm136-interim.json` (made by `sm136_interim.py`, never `sm136-decision.json`).
+
+## Memory finding (measured 11-20, CPU, 4 threads, one user per process, `peakrun.py` polls the working set every 2 s)
+
+| user (reviews), model | labels | peak working set |
+|---|---|---|
+| 1866 (5,673), Tiny (SM124) | w8+s4c8n | 0.67 GB |
+| 1015 (102,545), Tiny (SM124) | w8 / w8+s8 / w8+s4c8n | 3.23 / 3.23 / 3.24 GB |
+| 1015, 1 thread instead of 4 | w8 | 3.19 GB |
+| 1015, 3 labels in one process | w8, w8+s4c8n, w8+s8hx8 | 3.51 GB |
+| 1692 (150,500), Tiny (SM124) | w8+s4c8n | 5.57 GB |
+
+Cause: one `model.get_loss` over the whole history. The batch splits rows by sequence length; user 1015 has a single row of
+193,671 steps (the global stream) plus short-card splits. A time mixer holds about 40 tensors of [rows, steps, 64] floats at
+once (the 8-way shifted-lerp stack alone is 8 copies), about 10 KB per step of the longest stream, and the allocator keeps the
+high-water mark for the rest of the process (live tensors after a layer are ~0.9 GB while the working set stays at 3.2 GB). The
+label format does not change it (w8 without any state rounding is the same), the thread count does not, and the number of labels
+per process only adds ~0.3 GB. Row-chunking (at most 256 rows per layer call; tried, reverted) changes nothing, because the
+memory is one long row, not many rows. Heap trimming (`_heapmin`/`HeapCompact`) and `MIMALLOC` variables changed nothing (torch
+uses the CRT heap here). A 531,091-review user would need ~15-20 GB at this per-step cost.
+
+Options (main session decides; the pre-registered rule is untouched): (a) a CPU-only exact time-chunked layer (chunk the
+sequence, keep the layer-normed input for the shifted gathers, carry the WKV state and v0; the check is bitwise equality with the
+unchunked rows on users 1866 and 1015 at a tiny chunk size); the fork (Big) mixers have the same structure but a separate class;
+(b) a machine with >= 24 GB free RAM for the 15-16 killed users per size (Big ones are the largest per step); (c) amend the design
+(pool without the killed users) - changes the pre-registered coverage rule, needs the user.
+The old CPU run's state is unchanged below.
+
+---
+
 **STATUS 11-20 03:06: the GPU run stopped (`STOP: GPU smoke mismatch` 02:56: all-scope bucket means differed up to 1.85e-3 on
 long-card user 1866 for quantized formats, limit 1e-4; benchmark LogLoss agreed within 4.4e-5). Scoring was moved to the CPU
 (`design.md` amendment 11-20 03:00): same rule, pool, models, formats; no tolerance relaxed. The GPU plan below the CPU section
