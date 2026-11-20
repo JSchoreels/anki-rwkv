@@ -1,7 +1,7 @@
 {
- "generated_at": "2026-11-20T03:08:44+01:00",
- "updated": "2026-11-20 03:08",
- "material": "df152553e594f1b1",
+ "generated_at": "2026-11-21T00:36:13+01:00",
+ "updated": "2026-11-21 00:36",
+ "material": "8bcb2f428dda6fc9",
  "summary": "idle",
  "headline": [
   {
@@ -2699,14 +2699,11 @@
    "kind": "cpu",
    "minutes": 1740,
    "what": "Long-card state drift on real users (SM136): the fork&rsquo;s stored state re-quantizes int4 card rows after every answer, which drifted and overflowed on made-up long cards in a read-only fork check; this scores the Big, Small and Tiny candidates (the show-time big model (SM91s2), the show-time instant-only big model (SM99), the show-time two-head cool-down for Small (SM118), the longer Small Instant-Only model (SM113), the show-time two-head cool-down for Tiny (SM124), the longer cool-down for Tiny (SM115)) with int8, default int4-card, compact, int8-card compact and float32 state, LogLoss grouped by the card&rsquo;s number of prior answers; 66 users of the 732 set with a card of at least 128 prior answers, no training",
-   "when": "GPU smoke stopped 02:56 Fri 11-20: on long cards the quantized state turns tiny GPU-vs-CPU rounding differences into visible prediction differences (up to 0.0019 LogLoss on one user), so scoring moved to the CPU, which mirrors the fork (same rule, pool, models, formats); CPU since 03:15, 2 workers, Tiny about 10:45, Small about 18:45 Fri, Big about 08:30 Sat 21 Nov",
+   "when": "Done 16:02 Fri 11-20, decided 11-21 on the complete users (amended coverage rule, user &ldquo;continue&rdquo; after the recommendation): the CPU run scored 51 of 66 users per model (50 for Tiny); the 15&ndash;16 longest users per size were killed by the memory guard. <strong>Int8 card rows recommended</strong>: int4 card rows fail the +0.25% ceiling for every size (compact and fork default; only the longer Small Instant-Only model (SM113) meets it, with one non-finite user)",
    "decides": "Which card state the fork should store in the 11-28 release: int4 card rows stay if no user goes non-finite and every head&rsquo;s 95% CI upper bound vs int8 is &le; +0.25% on cards with 128 or more prior answers; otherwise int8 card rows for that size",
    "state": "done",
-   "started_at": "2026-11-20T02:56:05+01:00",
-   "ended": "02:56",
-   "exit": 3,
-   "started": "02:56",
-   "ended_at": "2026-11-20T02:56:27+01:00"
+   "started_at": "2026-11-20T02:40+01:00",
+   "ended_at": "2026-11-20T16:02+01:00"
   },
   {
    "id": "SM124",
@@ -3416,6 +3413,77 @@
   }
  ],
  "results": [
+  {
+   "date": "11-20",
+   "kind": "cpu-score",
+   "id": "SM136",
+   "track": "small model",
+   "name": "Long-card state drift on real users (SM136): the six Big, Small and Tiny candidates scored with int8, default int4-card, compact, int8-card compact and float32 state, LogLoss grouped by the card&rsquo;s prior answers; no training",
+   "eval": "CPU, leak-free, show-time inputs, 66 pre-registered users of the 732 set with a card of at least 128 prior answers; % = 100 &times; (format / published w8+s8 &minus; 1) of the review-weighted LogLoss in the 128&ndash;299 and 128+ prior-answer buckets, paired user bootstrap 95% CI. Rule: int4 card rows stay if no user is non-finite and every head&rsquo;s CI upper bound is &le; +0.25%. Amended 11-21: decided on the complete users (51 per model, 50 for Tiny) instead of at least 64 of 66",
+   "fork": "Not used: this is the scorer&rsquo;s emulation of the fork&rsquo;s state rounding",
+   "takeaway": "<strong>Int8 card rows recommended (amended coverage)</strong> int4 card rows fail the +0.25% ceiling for every size. Compact int4: Big two-head up to +1.09%, Small two-head curve +0.89% / +3.77% (128&ndash;299 / 128+), Tiny two-head curve +0.42% / +4.55%. Fork default int4: Big up to +0.84%, Small two-head +0.29% / +0.32%, Tiny two-head +0.40% / +0.44%; only the longer Small Instant-Only model (SM113) meets the ceiling, and one user is non-finite for the fork default in five of six models. Int8 cards with compact notes stay within +0.12% everywhere. The 15&ndash;16 longest users per size (186k&ndash;531k reviews) were killed by the 5.9 GB memory guard: the peak comes from one evaluation of the whole history, grows with the review count and needs about 6&ndash;20 GB for them, more than this PC has free; they are the longest, so they can only make int4 look worse. An exact time-chunked CPU layer could finish them for the record (not needed). The fork should store int8 card rows with compact notes (Tiny 1,315 bytes per card, Small 2,545, Big 13,891).",
+   "inputs": "show-time",
+   "started_at": "2026-11-20T03:15+01:00",
+   "ended_at": "2026-11-20T16:02+01:00",
+   "gpu_minutes": 0,
+   "tickets": 0,
+   "detail": {
+    "verdict": "Int8 card rows recommended (amended coverage); branch sm136 81ce614a (RESULT.md, sm136-decision.json, design.md amendment 11-21)",
+    "table": {
+     "head": [
+      "Show-time, 128+ bucket",
+      "Users complete",
+      "Compact int4 CI upper bound",
+      "Fork default int4 CI upper bound",
+      "Int8 cards, compact notes CI upper bound"
+     ],
+     "rows": [
+      [
+       "the show-time big model (SM91s2)",
+       "51",
+       "+1.09%",
+       "+0.84%",
+       "+0.03%"
+      ],
+      [
+       "the show-time instant-only big model (SM99)",
+       "51",
+       "+0.50%",
+       "+0.53%",
+       "+0.01%"
+      ],
+      [
+       "the show-time two-head cool-down for Small (SM118)",
+       "51",
+       "+3.77%",
+       "+0.32%",
+       "+0.11%"
+      ],
+      [
+       "the longer Small Instant-Only model (SM113)",
+       "51",
+       "+0.46%",
+       "+0.21% (one non-finite user)",
+       "+0.01%"
+      ],
+      [
+       "the show-time two-head cool-down for Tiny (SM124)",
+       "50",
+       "+4.55%",
+       "+0.44%",
+       "+0.01%"
+      ],
+      [
+       "the longer cool-down for Tiny (SM115)",
+       "50",
+       "+0.30%",
+       "+0.34%",
+       "+0.02%"
+      ]
+     ]
+    }
+   }
+  },
   {
    "date": "11-20",
    "kind": "gpu-train",
