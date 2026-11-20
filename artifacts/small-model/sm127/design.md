@@ -314,3 +314,110 @@ draws), 8 lanes with a per-review log kept in memory (only aggregates are writte
 - **If (a):** propose the minimal fix with its cost (for example the per-user median of the grade, or the model's
   expected time, as the fed-back duration of later-day reviews; or a daily re-anchoring of the time stream). No full
   re-simulation is run here.
+
+## 13. Amendment, Sat 11-21 ~01:00 (full run v3; written before any v3 simulation; the user's decisions of 11-21 are in 13.0)
+
+### 13.0 Decisions and what was seen
+
+- **User decisions, 11-21 (chat, "as you recommend"):** (1) fix the answer-time level bias found by the time-drift
+  diagnostic (12.2); (2) define the fluency target per user instead of one global value (section 9, open decision);
+  (3) go for the full run: 150 users, about 2.65M window reviews.
+- **Time-drift diagnostic, read (timedrift/timedrift-tables.md; 12 users, 150 days, finished clean: 12 rows, no
+  Traceback, identity with the pilot rows 1.9e-07).** The reading line is (a), but the numbers say something narrower
+  than a runaway loop:
+  - on the real schedule, sampled-and-fed-back later-day times are +7.9% over the real ones [+1.1, +15.4] pooled, over
+    the whole run and already in month 1 (+6.9%); the model's own expected seconds equal the sampled ones (13.45 vs
+    13.47), so this is a level shift, not a drawing error;
+  - fed-back sampled times persist no more than real ones (persistence -0.050 [-0.109, +0.022]), so there is no
+    self-feeding loop at the card level; the within-cell share of the 0.90 feedback gap is 0.57 [0.42, 0.70];
+  - the median-in-trunk arm removes the level (+2.7%) but destroys the persistence (0.13 against 0.33 real), so it is
+    not the fix; the no-re-anchoring lane drifts to 1.14x by month 5 (the daily re-anchoring already removes that).
+- **Real-data counts used for 13.2 (pre-split, 150 users, no simulated outcome):** share of users whose real
+  P(passed and within S) reaches 0.8 / 0.7 / 0.5 is 4% / 10% / 37% for the global S = 8 s, 36% / 69% / 94% for S = each
+  user's own 90th percentile of passed-review time, and 0.7% / 28% / 91% for the 75th percentile.
+
+### 13.1 Fix 1: per-user answer-time level anchor (applies to every lane that samples times, not to `tf`)
+
+- **What.** Sampled later-day times (the head's log-uniform draw inside the bin) are multiplied by a per-user scale tc,
+  rounded to ms. Rows in the 60 s cap bin keep the cap. The scaled time is what the trunk's duration input, the head's
+  explicit time features, the session clock, the workload and the budget all see (so feedback stays feedback). In the
+  `-nofb` lanes the trunk input stays the user's median as before. Same-day pool times are real and unscaled.
+- **Calibration (same real schedule; it uses only what the daily re-anchoring already uses).** On the real schedule, the
+  `fr-shared1#0` lane draws raw times for exactly the reviews that `tf` has real times for. After every simulated day,
+  tc = (real seconds of `tf` - capped seconds of `fr-shared1#0`) / raw uncapped sampled seconds of `fr-shared1#0`, over
+  all later-day reviews of the days before. This is the scale that makes the reference lane's sampled seconds equal the
+  real seconds. tc = 1 until 300 later-day reviews have been seen, then clipped to [0.5, 1.5]. One tc per user per day,
+  the same for all lanes.
+- **Consistency of the fluent probability.** The fluent probability and the realised fast share must use the scaled
+  clock: P(t x tc <= S) = P(t <= S / tc), so the head's CDF is read at S / tc (set every day; the final read-out uses
+  the last tc).
+- **What it deliberately does not do:** no change of grades, of the trunk or of the head weights; `tf` (real times) is
+  untouched; the cap, the same-day pools and the grade draws are untouched.
+- **Residual to be reported, not corrected:** `fr-shared1#0` seconds per later-day review against `tf`, pooled ratio of
+  totals with its paired bootstrap CI (the report prints it). The first ~300 reviews of every user run with tc = 1.
+
+### 13.2 Fix 2: the fluency threshold per user
+
+- **Definition.** "Fluent" for a user = recalled and answered within **S_u**, reading the back included, where S_u is
+  the 90th percentile of the user's own later-day answer time over passed reviews (Hard, Good, Easy) before the split
+  day: the last 60 days before the split when they hold at least 100 such reviews, else all pre-split ones; clipped to
+  3-45 s. Pre-split reviews only; no window data.
+- **Everything else is unchanged:** the target levels 0.80 (primary `flu-0.80`), 0.70, 0.50 and the fallback arm
+  `flu-0.80-fb95` keep their names and meaning, now on P(recalled and answered within S_u). The fluent-card read-out,
+  the threshold counts ("fluent >= 0.8"), the realised share "passed within S_u" and the `-nofb` arms use S_u. Lane
+  names in the tables keep "0.80" etc.; the text says "answered within the user's own S_u, reading the back included".
+- **Why the 90th percentile and not the median or the 75th:** with the median, almost no user reaches a target of 0.8 or
+  0.7; with the 75th, 0.7% reach 0.8 (13.0 counts). The 90th keeps the 0.80 target a stretch that 36% of users already
+  meet on their real history and that 69% meet at 0.70, instead of an unreachable one, so the floor rule does not send
+  everything to daily reviews. This was chosen on those real pre-split counts, not on any simulated outcome.
+- **Caveat stated now:** S_u is lenient for slow users (a median S_u of about 32 s). The result is read as "a fluency
+  scheduler against desired retention, each user at their own usual slow tail", not as "within 8 s". The global 8 s
+  pilot stays the reference for that wording.
+
+### 13.3 Users, lanes, equal time (unchanged from sections 3-5)
+
+- **Users:** all 150 users of `users.json` (`users`, the first 150 that qualify out of 538 looked at; benchmark users
+  of the 732 set only; no synthetic or own-collection users; the 12 pilot users are re-run from scratch under the new
+  definitions, the pilot rows are not reused). 2,645,757 window reviews.
+- **Lanes:** the same 22 (`LANES`): `tf`, `fr-shared1#0`, and per seed 0 and 1 `ihr-0.90`, `ihr-0.95`, `ihr-0.98`,
+  `flu-0.50`, `flu-0.70`, `flu-0.80`, `flu-0.80-fb95`, `ihr-0.90-nofb`, `ihr-0.98-nofb`, `flu-0.80-nofb`.
+- **Budget, horizon, model, engine:** unchanged (sections 2 and 4). 365 days, same daily budget for every lane.
+- **Output:** aggregates only (`rows-v3/<user>.json`), no review rows.
+
+### 13.4 Decision rule (unchanged, sections 7 and 12.1) and the primary statistic
+
+- Primary statistic: ratio of population totals with the paired user bootstrap (10,000 resamples, seed 127, one shared
+  resample matrix); median per-user ratio and the old mean of per-user ratios as secondary tables.
+- DR\* = the desired-retention arm with the most fluent cards (totals). G = fluent gap of `flu-0.80` over DR\* with its
+  CI; memorised gap likewise. "A high desired retention is enough" if G's CI upper bound is below +2%; "a fluency
+  scheduler is needed" if G >= +2% with CI lower bound above 0 and the memorised gap no worse than -2% (else reported as
+  a trade-off); otherwise inconclusive. Feedback check: the same rule on `flu-0.80-nofb` against the better of
+  `ihr-0.90-nofb` and `ihr-0.98-nofb`; the feedback arm stays the primary one.
+- Secondary arms (`flu-0.70`, `flu-0.50`, `flu-0.80-fb95`) are reported against DR\*; none replaces the primary verdict.
+- The v3 verdict replaces the pilot's as the answer to the question; the pilot's (global 8 s, no anchor) stays as the
+  earlier reading and is reported next to it.
+
+### 13.5 Run and stop rule
+
+- **Runner:** CPU only, no GPU. At most 3 processes x 1 thread, below-normal priority, each under 6 GB (a process holds
+  while less than 6 GB is free). Users run largest first; a user whose `rows-v3/<user>.json` exists is skipped.
+- **Breaks:** since 11-19 there is no planned daily break, so the built-in daily 20:00-01:00 hold is off for this run
+  (`SM127_DAILY_BREAK` unset); only `quiet.json` windows (scope all / cpu) and the STOP file hold or stop it.
+- **Stop rule (fixed now):** the run stops when (1) the STOP file exists (checked before every user and every simulated
+  day); (2) any user log shows a Traceback (that user writes nothing; the launcher finishes the others, then logs
+  `STOP: incomplete`; no relaunch before reading the traceback); (3) a finished row has `budget_violations` > 0 on a
+  policy lane or `nofb_rows` = 0 (the launcher logs `STOP:` after the last user and the follow-up reads it); (4) the
+  scripts have uncommitted changes at launch. There is no interim look at the verdict and no stopping for a promising
+  or disappointing interim result; the run ends when all 150 rows exist, then the report runs.
+- **Level check (read-out, not a stop):** pooled `fr-shared1#0` over `tf` seconds per later-day review. Anchor accepted
+  if the ratio is within [0.97, 1.03]. Outside that band the absolute seconds are read with the caveat that the anchor
+  under- or over-corrected, and the paired policy gaps are still interpreted.
+
+### 13.6 CPU proof (bars fixed now; two users, 1901 and 4752, 365 days, full 22 lanes)
+
+- **(a) Fix off, global S = 8 s:** the run reproduces the pilot rows of the same users exactly: every pilot key equal
+  (JSON equality, wall time and finish stamps excluded).
+- **(b) Fix on, per-user S:** only what should change changes: the `tf` lane's accumulators equal the pilot's except the
+  fluent read-out (threshold-dependent); `budget_violations` 0; `nofb_rows` > 0; S_u within [3, 45] s; tc_final in
+  [0.85, 1.0]; `fr-shared1#0` seconds per later-day review within 3% of `tf` (against about +8% before the fix).
+- The proof results and the launch details are added in `HANDOFF-v3.md`, before the launch.
