@@ -221,3 +221,7 @@ buckets. Its whole-pool numbers for the default and compact formats already exis
 4. This is the scorer's emulation of the fork's state rounding. SM133 confirmed that the fork's Rust runtime follows the
    same arithmetic.
 5. The heads of the Instant-Only models: only the instant head is judged.
+
+## Amendment 11-20 03:00
+
+11-20 03:00: scoring moved from GPU to CPU after the GPU smoke mismatch on long-card buckets (amplified kernel rounding); same rule, pool, models, formats; the CPU mirrors the fork. Launcher `launch-sm136-cpu.sh`: one fresh process per user, 2 workers, users from the smallest to the largest review count, rows in `cpu/rows/`, merged into `gpu/sm136-rows.jsonl` and `gpu/sm136-ext-rows.jsonl` for the unchanged rule. No tolerance was relaxed.

@@ -1,0 +1,30 @@
+[sm136 11-20 02:32:43] started: 314c539f Long-card state drift on real users (SM136): pre-registered design, rule, scorer flag, CPU proofs, launcher (DRYRUN=0; quiet.json windows only, no daily break; formats w8+s8 w8+s4c8n w8+s4c8nhx8 w8+s8hx8 w8)
+[sm136-rule] verdict Big: int4 card rows acceptable (keep the compact format); Small: int4 card rows acceptable (keep the compact format); Tiny: int4 card rows acceptable (keep the compact format)
+[sm136-rule] verdict Big: recommend int8 card rows (the show-time instant-only big model (SM99) not acceptable with compact int4 cards); Small: int4 card rows acceptable (keep the compact format); Tiny: int4 card rows acceptable (keep the compact format)
+[sm136-rule] verdict Big: int4 card rows acceptable (keep the compact format); Small: int4 card rows acceptable (keep the compact format); Tiny: int4 card rows acceptable (keep the compact format)
+[sm136-rule] verdict Big: int4 card rows acceptable (keep the compact format); Small: int4 card rows acceptable (keep the compact format); Tiny: int4 card rows acceptable (keep the compact format)
+[sm136-rule] verdict Big: int4 card rows acceptable (keep the compact format); Small: int4 card rows acceptable (keep the compact format); Tiny: recommend int8 card rows (the show-time two-head cool-down for Tiny (SM124) not acceptable with compact int4 cards)
+[sm136-rule] decide pending: sm113 w8+s8hx8: 63 of 66 users
+[sm136-rule] verdict Big: int4 card rows acceptable (keep the compact format); Small: int4 card rows acceptable (keep the compact format); Tiny: int4 card rows acceptable (keep the compact format)
+[sm136-rule] verdict Big: int4 card rows acceptable (keep the compact format); Small: int4 card rows acceptable (keep the compact format); Tiny: int4 card rows acceptable (keep the compact format)
+PASS identical: acceptable everywhere
+PASS identical: zero cost
+PASS rule buckets = 128-299, 128+
+PASS bucket users 66/66/66/6/1
+PASS torn and NUL lines counted
+PASS extension reported
+PASS hand statistic 25%
+PASS Big compact +0.4% on 128-299 -> int8 for Big
+PASS report-only bucket does not decide
+PASS non-finite default user
+PASS Tiny curve +0.3% -> int8 for Tiny
+PASS 3 missing -> pending
+PASS 2 missing -> decided
+PASS count mismatch raises
+PASS markdown
+[sm136-rule] selftest PASS (15/15)
+[sm136 11-20 02:34:58] CPU proofs ALL OK (14 PASS lines, 112.7 s)
+[sm136 11-20 02:34:59] enqueue: scoring pass 1:smoke big small tiny ext (missing Big 66, Small 66, Tiny 66 of 66, extension 10 of 10, cap 0.8) (expected 105 min, max wait 99892 min, 100000 min to the next quiet window)
+[sm136 11-20 02:56:28] exit 3: scoring pass 1:smoke big small tiny ext (missing Big 66, Small 66, Tiny 66 of 66, extension 10 of 10, cap 0.8) (nvidia-smi max 14798 MiB, baseline 13746 MiB)
+[sm136 11-20 02:56:28] STOP: GPU smoke mismatch (GPU vs CPU rows, see C:/Users/jonat/workspace/wt/sm136/artifacts/small-model/sm136/gpu/smoke-check.json)
+[sm136 11-20 02:56:28] STOP: ended with exit 1

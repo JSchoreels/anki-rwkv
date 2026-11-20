@@ -15,10 +15,10 @@ import re
 QUIET = Path("C:/Users/jonat/workspace/anki-rwkv/artifacts/coordination/queue/quiet.json")
 
 
-def windows(quiet_path):
+def windows(quiet_path, scopes=("all", "gpu")):
     text = Path(quiet_path).read_text(encoding="utf-8")
     try:
-        wins = [(w["start"], w["end"]) for w in json.loads(text) if w.get("scope", "all") in ("all", "gpu")]
+        wins = [(w["start"], w["end"]) for w in json.loads(text) if w.get("scope", "all") in scopes]
     except (ValueError, KeyError, TypeError):   # malformed JSON: every start/end pair, scope assumed "all"
         wins = re.findall(r'"start"\s*:\s*"([^"]+)"[^{}]*?"end"\s*:\s*"([^"]+)"', text, re.S)
     blocks = sorted((datetime.fromisoformat(s), datetime.fromisoformat(e)) for s, e in wins)
@@ -35,10 +35,11 @@ def main():
     p = argparse.ArgumentParser()
     p.add_argument("--quiet", default=str(QUIET))
     p.add_argument("--now", default="")
+    p.add_argument("--scopes", default="all,gpu", help="quiet.json scopes that block (CPU launcher: all,cpu,gpu)")
     args = p.parse_args()
     now = datetime.fromisoformat(args.now) if args.now else datetime.now()
     try:
-        merged = windows(args.quiet)
+        merged = windows(args.quiet, tuple(args.scopes.split(",")))
     except (OSError, ValueError) as error:
         print(f"ERR quiet.json unreadable: {error}")
         return 0
