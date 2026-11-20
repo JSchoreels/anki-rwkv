@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-20T02:02:04+01:00",
- "updated": "2026-11-20 02:02",
- "material": "97f5d915d17f572b",
- "summary": "running 001392, finished 001391",
+ "generated_at": "2026-11-20T02:03:14+01:00",
+ "updated": "2026-11-20 02:03",
+ "material": "496df7b1ca0eb787",
+ "summary": "running 001392",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring, show-time inputs for both heads (curve / instant)",
@@ -412,17 +412,17 @@
  },
  "now": [
   {
-   "what": "Six-layer Tiny with longer recovery (SM135): Instant-Only epoch 42 (w64-c1-d2p1u1, the six-layer chain&#x27;s constant-LR epoch step: 8k final tier, the run&#x27;s order rule, 2048 x 16 lanes, leak-free replay KD, AdamW 7e-4, instant head only, show-time inputs) (segment to the next quiet window or the end)",
-   "id": "001392-sm135",
-   "kind": "gpu-train",
-   "decides": "",
+   "what": "Six-layer Tiny with longer recovery (SM135): the six-layer Tiny (SM130) gets up to 4 more constant-LR recovery epochs before the same two-pass cool-down (Instant-Only epochs 42&ndash;45 first, then two-head epochs 33&ndash;36), each epoch checked against the previous one; final scoring in the published, compact and card-only formats; show-time inputs, leak-free, 732 set",
+   "id": "SM135, ticket 001392",
+   "kind": "gpu",
+   "decides": "Whether more recovery buys headroom under the +1% Tiny budget: go per chain if every head&rsquo;s 95% CI upper bound vs the six-layer Tiny (SM130) is below 0 and the gain is at least 0.05%",
    "why": "",
    "job": "Six-layer Tiny with longer recovery (SM135): Instant-Only epoch 42 (w64-c1-d2p1u1, the six-layer chain&#x27;s constant-LR epoch step: 8k final tier, the run&#x27;s order rule, 2048 x 16 lanes, leak-free replay KD, AdamW 7e-4, instant head only, show-time inputs) (segment to the next quiet window or the end)",
-   "linked": false,
+   "linked": true,
    "track": "small model",
    "ticket": "001392-sm135",
    "started": "02:01",
-   "elapsed": "0:00",
+   "elapsed": "0:01",
    "progress": null,
    "eta": "~03:11"
   }
@@ -598,7 +598,7 @@
  "recent": [
   {
    "ticket": "001391-sm135",
-   "id": "",
+   "id": "SM135",
    "what": "Six-layer Tiny with longer recovery (SM135): trainer smoke of Instant-Only epoch 42 (six-layer, from SM130&#x27;s last recovery epoch, constant LR) (2 users x 512 reviews)",
    "ended": "02:01",
    "date": "11-20",
@@ -2694,6 +2694,21 @@
    "state": "done",
    "started_at": "2026-11-20T01:30+01:00",
    "ended_at": "2026-11-20T01:43+01:00"
+  },
+  {
+   "id": "SM135",
+   "track": "small model",
+   "since": "11-20T02:01",
+   "kind": "gpu",
+   "minutes": 846,
+   "what": "Six-layer Tiny with longer recovery (SM135): the six-layer Tiny (SM130) gets up to 4 more constant-LR recovery epochs before the same two-pass cool-down (Instant-Only epochs 42&ndash;45 first, then two-head epochs 33&ndash;36), each epoch checked against the previous one; final scoring in the published, compact and card-only formats; show-time inputs, leak-free, 732 set",
+   "when": "Running since 02:01 Fri 11-20; Instant-Only result about 11:50 Fri (11:00&ndash;13:30); two-head recovery epochs about 16:15 Fri only if Instant-Only goes; the two-head cool-down (+5.3 GPU h) is held for the user&rsquo;s OK",
+   "decides": "Whether more recovery buys headroom under the +1% Tiny budget: go per chain if every head&rsquo;s 95% CI upper bound vs the six-layer Tiny (SM130) is below 0 and the gain is at least 0.05%",
+   "state": "running",
+   "started_at": "2026-11-20T02:01:37+01:00",
+   "started": "02:01",
+   "ticket": "001392-sm135",
+   "ends_at": "2026-11-20T16:07:37+01:00"
   },
   {
    "id": "SM124",
