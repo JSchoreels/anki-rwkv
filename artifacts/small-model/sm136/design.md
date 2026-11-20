@@ -231,3 +231,14 @@ buckets. Its whole-pool numbers for the default and compact formats already exis
 11-21: the pre-registered coverage rule (at least 64 of 66 main-pool users per model and format) is not met: 51 users are complete per model (50 for Tiny). The 15-16 longest users per size (186k to 531k reviews) were killed by the 5.9 GB memory guard. The scorer's peak memory is one evaluation of the whole history, grows with the review count and does not depend on the format or the label split, so the killed users need about 6-20 GB each and cannot run on this PC (31 GB total, about 18 GB free) with the code as it stands.
 
 Recommendation of the main session (not a decision, not accepted by the user): decide on the complete users. The missing users are the longest, where the drift is largest, so they can only make int4 look worse. On the complete users int4 card rows already fail the +0.25% ceiling for every size, so the recommended release choice is int8 card rows with compact notes (w8+s8hx8). What this cannot rule out: a pass of int4 on the complete users would not have covered the missing users (not the case here). The rule stays pending until the user decides; the readout is `sm136-interim.json` and `sm136-recommendation.json` (`decided: false`).
+
+## User decision 11-21
+
+Decided by the user in chat, 11-21 about 01:00: "yeah agree before we tried to squeeze because we didn't have small/tiny but now we do it makes sense that we don't risk the break".
+
+Decision: the release-candidate state format for all three sizes (Big, Small, Tiny) is **int8 card rows with float16 row scales and int8 shifts (scorer label w8+s8hx8 for cards) plus the compact note format**, replacing int4 cards. The reason is robustness, not average accuracy. The pre-registered coverage rule (64 of 66 users) was not met; the decision is the user's, not the rule's.
+
+Supporting numbers (from `sm136-interim.json`, 51 complete users, 50 for Tiny):
+- Cards with 128 or more earlier answers are about 0.8% of these users' reviews (about 30,000 of 3.66 million for the Small users). The dataset-wide cost of today's int4 default is about +0.001% or less.
+- Mean cost on those long cards vs w8+s8 for today's default (int4): Big two-head curve +0.15%, Small two-head curve +0.16%, Tiny two-head curve 0.00%. For compact int4: +0.18% / +0.74% / +0.65%. For int8 cards: at most +0.02%.
+- Robustness: user 3876 is non-finite with today's default in 5 of 6 models; on synthetic cards the int4 scale drift breaks the state and crashes the bulk warm-up.

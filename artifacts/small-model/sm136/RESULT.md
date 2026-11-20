@@ -1,6 +1,6 @@
 # Long-card state drift on real users (SM136): result
 
-Status: **stopped early: the 15-16 longest users per size do not fit in memory. The interim readout on the complete users recommends int8 card rows with compact notes (format w8+s8hx8) for Big, Small and Tiny. Decision pending the user.** The pre-registered rule is unchanged and not met.
+Status: **stopped early: the 15-16 longest users per size do not fit in memory. The interim readout on the complete users recommends int8 card rows with compact notes (format w8+s8hx8) for Big, Small and Tiny. Decided by the user 11-21 (see the last section).** The pre-registered rule is unchanged and not met.
 
 ## Question
 
@@ -35,3 +35,14 @@ Open option (not needed for the recommendation): an exact time-chunked CPU layer
 ## Files
 
 `sm136-recommendation.json` (per-model numbers, coverage, `decided: false`), `sm136-interim.json`, `design.md` (amendment 11-21), `cpu/` run logs, `HANDOFF.md`. No raw review data.
+
+## User decision 11-21
+
+Decided by the user in chat, 11-21 about 01:00: "yeah agree before we tried to squeeze because we didn't have small/tiny but now we do it makes sense that we don't risk the break".
+
+Decision: the release-candidate state format for all three sizes (Big, Small, Tiny) is **int8 card rows with float16 row scales and int8 shifts (scorer label w8+s8hx8 for cards) plus the compact note format**, replacing int4 cards. The reason is robustness, not average accuracy. The pre-registered coverage rule (64 of 66 users) was not met; the decision is the user's, not the rule's.
+
+Supporting numbers (from `sm136-interim.json`, 51 complete users, 50 for Tiny):
+- Cards with 128 or more earlier answers are about 0.8% of these users' reviews (about 30,000 of 3.66 million for the Small users). The dataset-wide cost of today's int4 default is about +0.001% or less.
+- Mean cost on those long cards vs w8+s8 for today's default (int4): Big two-head curve +0.15%, Small two-head curve +0.16%, Tiny two-head curve 0.00%. For compact int4: +0.18% / +0.74% / +0.65%. For int8 cards: at most +0.02%.
+- Robustness: user 3876 is non-finite with today's default in 5 of 6 models; on synthetic cards the int4 scale drift breaks the state and crashes the bulk warm-up.

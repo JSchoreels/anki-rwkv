@@ -1,6 +1,6 @@
 # Handoff: long-card state drift on real users (SM136), CPU scoring
 
-**STATUS 11-21: stopped early, decision pending the user.** The 15-16 longest users per size do not fit in memory, so the pre-registered coverage rule (64 of 66) is not met. Interim readout on the complete users recommends int8 card rows with compact notes (`RESULT.md`, `sm136-recommendation.json`, design.md 11-21). Nothing is running; the older status text below is history. Open option, not needed: an exact time-chunked CPU layer to finish the 15-16 longest users per size.
+**STATUS 11-21: CLOSED. The user decided: int8 card rows + compact notes for all sizes (robustness); see design.md 'User decision 11-21'. The time-chunked CPU layer for the 15-16 longest users stays an optional record-only follow-up.** Earlier status: stopped early, decision pending the user. The 15-16 longest users per size do not fit in memory, so the pre-registered coverage rule (64 of 66) is not met. Interim readout on the complete users recommends int8 card rows with compact notes (`RESULT.md`, `sm136-recommendation.json`, design.md 11-21). Nothing is running; the older status text below is history. Open option, not needed: an exact time-chunked CPU layer to finish the 15-16 longest users per size.
 
 **STATUS 11-20 ~17:00, pass 2 NOT launched (blocked): the memory guard kills are not a label-count problem.** Findings (details
 below the line): the scorer's peak memory is per evaluation and grows with the user's review count (about 3.2 GB at 102,545
