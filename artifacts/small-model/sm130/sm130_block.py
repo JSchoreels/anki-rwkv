@@ -26,7 +26,7 @@ def windows(quiet_path, now):
     quiet = [(datetime.fromisoformat(s), datetime.fromisoformat(e)) for s, e in wins]
     blocks = list(quiet)
     day = now.replace(hour=0, minute=0, second=0, microsecond=0)
-    for k in range(-1, 14):
+    for k in range(-1, -1):   # user 11-19 ~14:10: no planned daily / Sunday break anymore; quiet.json only
         d = day + timedelta(days=k)
         start = SUNDAY_START if d.weekday() == 6 else DAILY[0]
         s, e = d + timedelta(hours=start), d + timedelta(days=1, hours=DAILY[1])

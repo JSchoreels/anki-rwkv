@@ -1,0 +1,71 @@
+{
+ "threads": 1,
+ "torch": "2.9.1+cu128",
+ "models": {
+  "tiny w64-c1": {
+   "arch": "w64-c1",
+   "checkpoint": "C:/Users/jonat/workspace/wt/sm124/artifacts/small-model/sm124-c1-e29st-dec2ep32k-t91s2-p2/expertium/E89-F65e-F77a/master.pth",
+   "real_weights": true,
+   "parameters": 311786,
+   "fp32_state_dict_bytes": 1395571,
+   "macs": {
+    "linear": 282624,
+    "wkv": 36864,
+    "gru_head": 1152,
+    "total": 320640
+   },
+   "batch1": [
+    2.0672999999078456,
+    2.06274999800371,
+    2.042600004642736,
+    2.2057999995013233,
+    2.06034999791882,
+    2.0011000015074387
+   ],
+   "batch256": [
+    0.06590292967700861,
+    0.06430312498650892,
+    0.06345312498012845,
+    0.06464941405681657,
+    0.06470429688931745,
+    0.06344550781989255
+   ],
+   "batch1_median_ms": 2.061549997961265,
+   "batch256_median_ms": 0.06447626952166274
+  },
+  "six-layer w64-c1-d2p1u1": {
+   "arch": "w64-c1-d2p1u1",
+   "checkpoint": "C:/Users/jonat/workspace/wt/sm130/artifacts/small-model/sm130-th-dec2ep32k-p2/expertium/E89-F65e-F77a/master.pth",
+   "real_weights": true,
+   "parameters": 185057,
+   "fp32_state_dict_bytes": 819419,
+   "macs": {
+    "linear": 169984,
+    "wkv": 18432,
+    "gru_head": 1152,
+    "total": 189568
+   },
+   "batch1": [
+    1.0898500004259404,
+    1.058750000083819,
+    1.0489000014786143,
+    1.0774999973364174,
+    1.0661999986041337,
+    1.0443999999552034
+   ],
+   "batch256": [
+    0.03416015626100943,
+    0.03373906248782532,
+    0.03713105468250433,
+    0.032961328116698496,
+    0.03252773437623091,
+    0.032889453137840974
+   ],
+   "batch1_median_ms": 1.0624749993439764,
+   "batch256_median_ms": 0.03335019530226191
+  }
+ },
+ "six_over_tiny_batch1": 0.5153767797990313,
+ "six_over_tiny_batch256": 0.5172475943425496,
+ "six_over_tiny_macs": 0.5912175648702594
+}
