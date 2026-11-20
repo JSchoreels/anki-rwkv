@@ -1,7 +1,7 @@
 {
- "generated_at": "2026-11-20T02:35:26+01:00",
- "updated": "2026-11-20 02:35",
- "material": "93e35ae4c557fdcd",
+ "generated_at": "2026-11-20T02:36:47+01:00",
+ "updated": "2026-11-20 02:36",
+ "material": "72f9e1bb978f16f4",
  "summary": "running 001392",
  "headline": [
   {
@@ -422,7 +422,7 @@
    "track": "small model",
    "ticket": "001392-sm135",
    "started": "02:01",
-   "elapsed": "0:33",
+   "elapsed": "0:34",
    "progress": null,
    "eta": "~03:11"
   }
@@ -597,7 +597,7 @@
  "waiting": [
   {
    "ticket": "001393-sm136",
-   "id": "",
+   "id": "SM136",
    "what": "Long-card state drift on real users (SM136): scoring pass 1:smoke big small tiny ext (missing Big 66, Small 66, Tiny 66 of 66, extension 10 of 10, cap 0.8)",
    "flags": "expected 105 min"
   }
@@ -2716,6 +2716,19 @@
    "started": "02:01",
    "ticket": "001392-sm135",
    "ends_at": "2026-11-20T16:07:37+01:00"
+  },
+  {
+   "id": "SM136",
+   "track": "small model",
+   "since": "11-20T02:40",
+   "kind": "gpu",
+   "minutes": 105,
+   "what": "Long-card state drift on real users (SM136): the fork&rsquo;s stored state re-quantizes int4 card rows after every answer, which drifted and overflowed on made-up long cards in a read-only fork check; this scores the Big, Small and Tiny candidates (the show-time big model (SM91s2), the show-time instant-only big model (SM99), the show-time two-head cool-down for Small (SM118), the longer Small Instant-Only model (SM113), the show-time two-head cool-down for Tiny (SM124), the longer cool-down for Tiny (SM115)) with int8, default int4-card, compact, int8-card compact and float32 state, LogLoss grouped by the card&rsquo;s number of prior answers; 66 users of the 732 set with a card of at least 128 prior answers, no training",
+   "when": "Queued 02:40 Fri 11-20 behind the six-layer Tiny with longer recovery (SM135)&rsquo;s epoch 42; result about 04:45 Fri (04:15&ndash;06:30)",
+   "decides": "Which card state the fork should store in the 11-28 release: int4 card rows stay if no user goes non-finite and every head&rsquo;s 95% CI upper bound vs int8 is &le; +0.25% on cards with 128 or more prior answers; otherwise int8 card rows for that size",
+   "state": "waiting",
+   "started_at": "2026-11-20T02:40+01:00",
+   "ticket": "001393-sm136"
   },
   {
    "id": "SM124",
