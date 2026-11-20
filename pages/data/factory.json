@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-20T01:43:26+01:00",
- "updated": "2026-11-20 01:43",
- "material": "32a39a97a7b2846e",
- "summary": "idle, finished 001390",
+ "generated_at": "2026-11-20T01:45:07+01:00",
+ "updated": "2026-11-20 01:45",
+ "material": "c0359688a4f531c5",
+ "summary": "idle",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring, show-time inputs for both heads (curve / instant)",
@@ -2673,14 +2673,11 @@
    "kind": "gpu",
    "minutes": 55,
    "what": "Six-layer Tiny with the card-only state (SM134): the two six-layer Tiny models (SM130) (two-head and Instant-Only) scored with the card-only state format of the second integer-state experiment (SM49) (619 bytes per card instead of 803 compact, notes unchanged at 1,315); no training, show-time inputs, leak-free, 732 set",
-   "when": "Running since 01:30 Fri 11-20 (one ticket, about 55 min); result expected about 02:00&ndash;02:30 Fri",
+   "when": "Ran 01:30&ndash;01:43 Fri 11-20 (one ticket, about 12 min); verdict go for both chains",
    "decides": "Whether Tiny can store 23% fewer bytes per card than the compact format: go if every head&rsquo;s 95% CI upper bound stays &le; +1.00% vs Small (the show-time two-head cool-down for Small (SM118), the longer Small Instant-Only model (SM113))",
    "state": "done",
-   "started_at": "2026-11-20T01:30:49+01:00",
-   "ended": "01:43",
-   "exit": 0,
-   "started": "01:30",
-   "ended_at": "2026-11-20T01:43:04+01:00"
+   "started_at": "2026-11-20T01:30+01:00",
+   "ended_at": "2026-11-20T01:43+01:00"
   },
   {
    "id": "SM124",
@@ -3390,6 +3387,68 @@
   }
  ],
  "results": [
+  {
+   "date": "11-20",
+   "kind": "gpu-score",
+   "id": "SM134",
+   "track": "small model",
+   "name": "Six-layer Tiny with the card-only state (SM134): the two six-layer Tiny models (SM130) scored with the card-only state of the second integer-state experiment (SM49) (one scale per card head, 4-bit card shifts; notes unchanged), no training",
+   "eval": "Leak-free, 722 rule users of the 732 set, show-time inputs; % = 100 &times; (card-only six-layer / Small published w8+s8 &minus; 1) of the review-weighted LogLoss, paired user bootstrap 95% CI (2,000 resamples, seed 0). Go = every trained head&rsquo;s CI upper bound &le; +1.00% vs the show-time two-head cool-down for Small (SM118) (two-head) or the longer Small Instant-Only model (SM113) (Instant-Only)",
+   "fork": "Not used: needs both the six-layer engine and a fork state-format change (later release decision)",
+   "takeaway": "<strong>Go (both chains)</strong> two-head card-only vs the show-time two-head cool-down for Small (SM118): curve +0.659% [+0.585, +0.743], instant +0.780% [+0.730, +0.833]; Instant-Only card-only: +0.888% [+0.832, +0.943] vs the longer Small Instant-Only model (SM113). That is the tightest chain and leaves about 0.06% of the +1.00% budget. Cost over the six-layer compact format: +0.175% curve / +0.233% instant (two-head), +0.283% (Instant-Only). State per card: 619 bytes vs 803 compact (&minus;23%) vs 1,055 fork default (&minus;41%); per note 1,315 (unchanged).",
+   "inputs": "show-time",
+   "started_at": "2026-11-20T01:30+01:00",
+   "ended_at": "2026-11-20T01:43+01:00",
+   "gpu_minutes": 12,
+   "tickets": 1,
+   "detail": {
+    "verdict": "Go (two-head), go (Instant-Only); branch sm134 ee94b15c (sm134-decision.md, RESULT.md)",
+    "table": {
+     "head": [
+      "Show-time",
+      "Card-only LogLoss",
+      "Card-only vs Small published % [95% CI]",
+      "Go",
+      "Card-only vs six-layer compact",
+      "Card-only vs six-layer published",
+      "Compact vs Small (SM130)",
+      "Published vs Small (SM130)"
+     ],
+     "rows": [
+      [
+       "the two-head six-layer Tiny (SM130), curve, vs the show-time two-head cool-down for Small (SM118)",
+       "0.301994",
+       "+0.659% [+0.585, +0.743]",
+       "yes",
+       "+0.175% [+0.150, +0.202]",
+       "+0.191% [+0.164, +0.222]",
+       "+0.483% [+0.415, +0.562]",
+       "+0.467% [+0.398, +0.546]"
+      ],
+      [
+       "the two-head six-layer Tiny (SM130), instant, vs the show-time two-head cool-down for Small (SM118)",
+       "0.278757",
+       "+0.780% [+0.730, +0.833]",
+       "yes",
+       "+0.233% [+0.214, +0.255]",
+       "+0.255% [+0.233, +0.279]",
+       "+0.545% [+0.505, +0.589]",
+       "+0.524% [+0.484, +0.567]"
+      ],
+      [
+       "the Instant-Only six-layer Tiny (SM130), instant, vs the longer Small Instant-Only model (SM113)",
+       "0.278382",
+       "+0.888% [+0.832, +0.943]",
+       "yes",
+       "+0.283% [+0.263, +0.305]",
+       "+0.322% [+0.296, +0.349]",
+       "+0.603% [+0.560, +0.647]",
+       "+0.564% [+0.522, +0.607]"
+      ]
+     ]
+    }
+   }
+  },
   {
    "date": "11-20",
    "kind": "gpu-train",
