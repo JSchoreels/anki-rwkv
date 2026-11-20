@@ -47,6 +47,8 @@ Local baseline adaptations include FSRS feature selection for benchmark-label al
 
 The code written for this repository is released under the [MIT License](LICENSE). That covers the training speedups, the scoring and experiment scripts, the factory tooling and the pages.
 
+The released model weights are not covered by the MIT License; see [WEIGHTS-NOTICE.md](WEIGHTS-NOTICE.md).
+
 Third-party code keeps its own terms and is **not** relicensed here:
 
 - **srs-benchmark** (`rwkv/`, `features/`, `config.py`, `utils.py`; files and hashes in [`upstream.json`](upstream.json)): the upstream repository has no license file yet. Licensing and checkpoint redistribution are discussed in [srs-benchmark issue #353](https://github.com/open-spaced-repetition/srs-benchmark/issues/353).
