@@ -9,12 +9,15 @@ A variant is selected by ONE key, the R01 track option `"architecture"`:
     "architecture": "w64"                       # s64h, his shipped d=64 trunk (w80 recipe, 4 heads, mults 2)
     "architecture": "iter36"                    # the default model through the variant class (KD-capable)
     "architecture": "fork"                      # the fork's 2.76M RWKV (rwkv.architecture), stream-major (SM72)
+    "architecture": "w64-c1-d2p1u1"             # Tiny (w64-c1) with the trailing deck/preset/user layers dropped (SM130:
+                                                # the context-stream depth cut of SM15 applied to Tiny)
     "architecture": {"base": "iter36", "zero_features": [22]}   # any preset plus field overrides
 
 Each field below mirrors one upstream environment switch, named in its comment. Upstream sources are pinned
 in expertium/upstream.json ("catch_up").
 """
 from dataclasses import dataclass, field, fields, replace
+import re
 
 from expertium.architecture import AnkiRWKVConfig, DEFAULT_ANKI_RWKV_CONFIG
 from expertium.model.rwkv_model import RWKV7Config
@@ -92,6 +95,25 @@ SM77_PRESETS = {"w64-sm77": {"key_extras": True, "init_state": ("card_id", "note
 SM73_PRESETS = {"w64-c1": {"card_layers": 1}}
 
 
+# Six-layer Tiny (SM130, artifacts/small-model/sm130/design.md): the context-stream pruning (SM15)'s depth cut
+# (docs/SMALL_MODEL_PRUNING.md on branch prune: w64-d{D}p{P}u{U}) applied to Tiny (w64-c1). `w64-c{C}-d{D}p{P}u{U}` keeps
+# the LEADING C card, D deck, P preset and U user layers (note stays 1): interleave_schedule runs layer r of every stream in
+# round r, so the survivors are an exact subsequence of w64's execution order and the cut is "drop whole residual
+# branches". Width, heads, mults, LoRAs, GRU head, interleave and zero_features are w64's; strip_cmix keeps only the
+# entries of surviving layers. w64-c1-d2p1u1 = 6 layer steps (card 1, deck 2, note 1, preset 1, user 1).
+TINY_CUT = re.compile(r"^w64-c([12])-d([1-4])p([1-3])u([1-3])$")
+TINY_CUT_PARAMETERS = {"w64-c1-d2p1u1": 185_057, "w64-c2-d2p1u1": 204_782}   # CPU counts (SM15's d2p1u1 = 204,782)
+
+
+def tiny_cut(name, cards, decks, presets, users):
+    parent = preset("w64")
+    depths = {"card_id": cards, "deck_id": decks, "note_id": 1, "preset_id": presets, "user_id": users}
+    modules = [(stream, replace(config, n_layers=depths[stream], total_layers=depths[stream]))
+               for stream, config in parent.base.modules]
+    strip = tuple(e for e in parent.strip_cmix if int(e.partition(":")[2]) < depths[e.partition(":")[0]])
+    return replace(parent, name=name, base=replace(parent.base, modules=modules), strip_cmix=strip)
+
+
 # rwkv.prepare_batch.prepare builds gathers in this order (rwkv.architecture.DEFAULT_ANKI_RWKV_CONFIG's tuples).
 BATCH_STREAMS = ["card_id", "deck_id", "note_id", "preset_id", "user_id"]
 # iter 53 runner (scratchpad/iter53_muonlora/run_iter53.cmd): RWKV_STRIP_CMIX value, verbatim.
@@ -127,6 +149,9 @@ def preset(name):
     if name in ("w64", "w64-sequential"):
         return VariantConfig(name=name, base=w64_config(), gru_head=3, no_ahead_residual=True, zero_features=(22,),
                              interleave=name == "w64", strip_l0_vlora=True, strip_cmix=W80_STRIP_CMIX)
+    cut = TINY_CUT.match(name) if isinstance(name, str) else None
+    if cut:   # SM130: Tiny with the context streams cut
+        return tiny_cut(name, *(int(g) for g in cut.groups()))
     if name in SM73_PRESETS:
         # SM73: w64 with fewer card layers; "card_id:1" leaves the channel-mixer strip list with the layer it named
         w64 = preset("w64")
@@ -139,7 +164,7 @@ def preset(name):
         # SM77: the small model (w64) plus the tiny additions; a preset name, so the scorer's TAG=KIND:ARCH:PATH takes it
         return replace(preset("w64"), name=name, **SM77_PRESETS[name])
     raise ValueError(f"Unknown Expertium architecture preset {name!r}; expected iter36, w64, w64-sequential, w80, "
-                     f"w80-sequential or one of {sorted(SM77_PRESETS) + sorted(SM73_PRESETS)}")
+                     f"w80-sequential, w64-c{1,2}-d{1-4}p{1-3}u{1-3} or one of {sorted(SM77_PRESETS) + sorted(SM73_PRESETS)}")
 
 
 def variant(spec):
