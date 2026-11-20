@@ -40,6 +40,10 @@ p_instant and p_sod (float32, the heads' own precision) instead of the plain dum
 --inputs V (duration-leak scoring (SM31), robustness to other apps (SM29); scripts/sm31_inputs.py): score the history
 with input variant V (e2s-query = show-time intervals, e2s-all = end-to-start on every row, passfail, notime,
 passfail-notime); labels get the suffix "@V" and rows the field "inputs". Default normal = today's scorer.
+--prior-buckets E0,E1,... (SM136, long-card state drift): each row also gets "prior_buckets": per head (ahead, instant)
+the review count and LogLoss sum bucketed by the card's number of prior answers in the revlog (bucket k = [E_k, E_k+1),
+last bucket open), for the benchmark reviews (same kept set and sklearn log_loss as the benchmark LogLoss) and for every
+review the scorer predicts (the benchmark set ends at 127 prior answers). Off (default) = today's rows, bit for bit.
 
 usage: small_model_heldout.py --model fork=fork::<pth> --model decay=expertium:iter36:<pth> --variants fp32,w8+s8
        --out artifacts/small-model/heldout.jsonl --time-limit 3000 [--device cpu --count 2]
@@ -169,6 +173,55 @@ def dump_predictions(folder, user, label, labels, predictions):
                         y=np.clip(np.array([predictions["rating"][th] for th in ths]), 0, 1),
                         p_ahead=np.array([predictions["ahead"][th] for th in ths]),
                         p_instant=np.array([predictions["instant"][th] for th in ths]))
+
+
+def card_prior_answers(data_path, user):
+    """SM136: per revlog row (review_th - 1) the number of earlier revlog rows of the same card (get_rwkv_data's frame
+    order: review_th = 1 + the parquet row index)."""
+    import pandas as pd
+    cid = pd.read_parquet(data_path / "revlogs" / f"user_id={user}", columns=["card_id"])["card_id"]
+    return cid.groupby(cid).cumcount().to_numpy()
+
+
+def _bucket_sums(edges, prior, ths, y, p):
+    """(counts, LogLoss sums) of the reviews `ths` by bucket of the card's prior answers (sklearn log_loss, sums)."""
+    import numpy as np
+    from sklearn.metrics import log_loss
+    pr = prior[ths - 1]
+    bucket = np.searchsorted(np.asarray(edges[1:]), pr, side="right")
+    n, ll = [], []
+    for k in range(len(edges)):
+        m = bucket == k
+        n.append(int(m.sum()))
+        ll.append(float(log_loss(y[m], p[m], labels=[0, 1], normalize=False)) if m.any() else 0.0)
+    return {"n": n, "ll": ll, "min_prior": int(pr.min()), "max_prior": int(pr.max())}
+
+
+def prior_bucket_fields(edges, prior, labels, predictions):
+    """SM136 --prior-buckets, per head (ahead, instant), by bucket of the card's prior answers (counts n, LogLoss sums ll):
+    "benchmark" = the benchmark reviews (metrics_arrays' kept set, sklearn log_loss: sum(ll) / sum(n) = the head's
+    benchmark LogLoss before its 6-decimal rounding); "all" = every review the scorer predicts for that head (the
+    benchmark set stops at 127 prior answers of a card, so long cards appear only here)."""
+    import numpy as np
+    review_ths, _ = labels
+    out = {"edges": list(edges), "benchmark": {}, "all": {}}
+    if review_ths:
+        ths = np.asarray(review_ths, dtype=np.int64)
+        out["benchmark_unique"] = bool(len(np.unique(ths)) == len(ths))
+        has_rating, ratings = predictions.lookup("rating", ths)
+        for head in ("ahead", "instant"):
+            has_pred, preds = predictions.lookup(head, ths)
+            kept = has_pred & has_rating
+            if kept.any():
+                out["benchmark"][head] = _bucket_sums(edges, prior, ths[kept], np.clip(ratings[kept], 0, 1), preds[kept])
+    for head in ("ahead", "instant"):
+        keys, preds = predictions.heads[head]
+        if len(keys):
+            has_rating, ratings = predictions.lookup("rating", keys)
+            keys, preds, ratings = keys[has_rating], preds[has_rating], ratings[has_rating]
+        if len(keys):
+            out["all"][head] = _bucket_sums(edges, prior, keys.astype(np.int64), np.clip(ratings, 0, 1), preds)
+    return out
 
 
 class WindowBatches(UserBatches):
@@ -413,11 +466,19 @@ def main():
     parser.add_argument("--start-of-day", action="store_true", help="SM81: also score the instant head from the state "
                         "at the start of each review's day (scripts/sm81_sod.py); row entry start_of_day, --dump "
                         "writes p_curve / p_instant / p_sod")
+    parser.add_argument("--prior-buckets", default="", help="SM136: comma-separated lower edges of buckets of the card's "
+                        "number of prior answers, e.g. 0,32,128,300,1000; rows get prior_buckets (count + LogLoss sum per "
+                        "head and bucket). Off = unchanged rows")
     parser.add_argument("--inputs", default="normal", choices=("normal", "e2s-query", "e2s-all", "passfail", "notime",
                                                                "passfail-notime"),
                         help="SM31 / SM29: input variant (scripts/sm31_inputs.py); labels get the suffix @VARIANT")
     args = parser.parse_args()
     cpu = args.device == "cpu"
+    prior_edges = [int(e) for e in args.prior_buckets.split(",")] if args.prior_buckets else None
+    if prior_edges is not None and (prior_edges[0] != 0 or prior_edges != sorted(set(prior_edges))):
+        raise SystemExit("--prior-buckets: increasing edges starting at 0")
+    if prior_edges is not None and (args.legacy_metrics or args.window):
+        raise SystemExit("--prior-buckets: array metrics and full-history scoring only")
     if cpu:
         torch.set_num_threads(2)
         args.workers = 0
@@ -561,6 +622,7 @@ def main():
         if isinstance(batch, tuple):   # SM81 --start-of-day: (normal, start of day)
             batch, sod_batch = batch
         gpu_batch = batch.to(device)
+        prior = card_prior_answers(cc.data_path(run), user) if prior_edges is not None else None
         for label in grid:
             if label in done.get(user, set()):
                 continue
@@ -684,6 +746,8 @@ def main():
                 for key, keep in (("benchmark_existing", ~is_gone), ("benchmark_deleted", is_gone)):
                     sub = ([t for t, k in zip(labels[0], keep) if k], [b for b, k in zip(labels[1], keep) if k])
                     rows[-1][key] = bench_metrics(user, sub, predictions)
+            if prior is not None:   # SM136
+                rows[-1]["prior_buckets"] = prior_bucket_fields(prior_edges, prior, labels, predictions)
             if sod_batch is not None:
                 rows[-1]["start_of_day"] = sod_fields(user, labels, cc.data_path(run), predictions, sod_predictions,
                                                       bench_metrics, getattr(sod_batch, "sod_leading_fixed", None))

@@ -1,0 +1,79 @@
+{
+ "K1_bytes": {
+  "pass": true,
+  "detail": [
+   "Small (w64): w8+s8 card 2,987 / note 1,567 B; w8+s4c8n card 1,963 / note 1,567 B; w8+s4c8nhx8 card 1,521 / note 1,315 B; w8+s4hgx4c8hx8n card 1,185 / note 1,315 B; w8+s8hx8 card 2,545 / note 1,315 B",
+   "Tiny (w64-c1): w8+s8 card 1,567 / note 1,567 B; w8+s4c8n card 1,055 / note 1,567 B; w8+s4c8nhx8 card 803 / note 1,315 B; w8+s4hgx4c8hx8n card 619 / note 1,315 B; w8+s8hx8 card 1,315 / note 1,315 B",
+   "Big (fork): w8+s8 card 15,415 / note 10,283 B; w8+s4c8n card 9,271 / note 10,283 B; w8+s4c8nhx8 card 7,747 / note 9,267 B; w8+s4hgx4c8hx8n card 6,619 / note 9,267 B; w8+s8hx8 card 13,891 / note 9,267 B",
+   "[sm136-bytes] known totals {'small_int8_4554': True, 'small_card_int4_1963': True, 'tiny_fork_default_1055_1567': True, 'tiny_compact_803_1315': True, 'tiny_cardonly_619': True, 'big_fork_default_9271_10283': True, 'big_int8_card_15415': True, 'big_layers_3_2_all_channel_mixers': True} -> ALL OK"
+  ],
+  "seconds": 1.9
+ },
+ "K2_pool": {
+  "pass": true,
+  "detail": [
+   "[sm136-pool] check OK"
+  ],
+  "seconds": 7.3
+ },
+ "K3_formats": {
+  "pass": true,
+  "detail": {
+   "w8+s8 = 8": true,
+   "w8+s4c8n = (4, 8), fork ((4, 0), (8, 0))": true,
+   "w8+s4c8nhx8 compact": true,
+   "w8+s8hx8 int8 cards + notes, f16 scales, int8 shifts": true,
+   "w8 = w8 weights, no state rounding": true
+  },
+  "seconds": 1.5
+ },
+ "K4_default_unchanged": {
+  "pass": true,
+  "detail": {
+   "a. scorer diff additive": true,
+   "b. flag off == SM131 committed CPU rows (8 rows)": true,
+   "c. flag on == flag off + prior_buckets (8 rows, fork and expertium)": true
+  },
+  "seconds": 88.7
+ },
+ "K6_cpu_smoke_rows": {
+  "pass": true,
+  "detail": {
+   "failed": [],
+   "w8s8_vs_published_max_abs": {
+    "1866/sm91s2": 1.000000000001e-06,
+    "1866/sm99": 1.000000000001e-06,
+    "1866/sm118": 0.0,
+    "1866/sm113": 1.000000000001e-06,
+    "1866/sm124": 1.000000000001e-06,
+    "1866/sm115": 0.0,
+    "2883/sm91s2": 1.0000000000287557e-06,
+    "2883/sm99": 2.000000000002e-06,
+    "2883/sm118": 3.000000000030756e-06,
+    "2883/sm113": 1.0000000000287557e-06,
+    "2883/sm124": 9.999999999732445e-07,
+    "2883/sm115": 0.0
+   },
+   "rows": 60
+  },
+  "seconds": 3.5
+ },
+ "K5_bucket_sums": {
+  "pass": true,
+  "detail": {
+   "rows": 68,
+   "failed": [],
+   "max_bench_ll_diff": 4.998769787545321e-07
+  },
+  "seconds": 0.0
+ },
+ "K7_rule_selftest": {
+  "pass": true,
+  "detail": [
+   "[sm136-rule] selftest PASS (15/15)"
+  ],
+  "seconds": 9.7
+ },
+ "pass": true,
+ "seconds": 112.7
+}

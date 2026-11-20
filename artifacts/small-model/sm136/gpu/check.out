@@ -1,0 +1,16 @@
+PASS K1_bytes (1.9 s): ["Small (w64): w8+s8 card 2,987 / note 1,567 B; w8+s4c8n card 1,963 / note 1,567 B; w8+s4c8nhx8 card 1,521 / note 1,315 B; w8+s4hgx4c8hx8n card 1,185 / note 1,315 B; w8+s8hx8 card 2,545 / note 1,315 B", "Tiny (w64-c1): w8+s8 card 1,567 / note 1,567 B; w8+s4c8n card 1,055 / note 1,567 B; w8+s4c8nhx8 card 803 / note 1,315 B; w8+s4hgx4c8hx8n card 619 / note 1,315 B; w8+s8hx8 card 1,315 / note 1,315 B", "Big (fork): w8+s8 card 15,415 / note 10,283 B; w8+s4c8n card 9,271 / note 10,283 B; w8+s4c8nhx8 
+PASS K2_pool (8.2 s): ["[sm136-pool] check OK"]
+PASS K3_formats (1.3 s): {"w8+s8 = 8": true, "w8+s4c8n = (4, 8), fork ((4, 0), (8, 0))": true, "w8+s4c8nhx8 compact": true, "w8+s8hx8 int8 cards + notes, f16 scales, int8 shifts": true, "w8 = w8 weights, no state rounding": true}
+PASS K4_default_unchanged (109.8 s): {"a. scorer diff additive": true, "b. flag off == SM131 committed CPU rows (8 rows)": true, "c. flag on == flag off + prior_buckets (8 rows, fork and expertium)": true}
+PASS K6_cpu_smoke_rows (3.8 s): {"failed": [], "w8s8_vs_published_max_abs": {"1866/sm91s2": 1.000000000001e-06, "1866/sm99": 1.000000000001e-06, "1866/sm118": 0.0, "1866/sm113": 1.000000000001e-06, "1866/sm124": 1.000000000001e-06, "1866/sm115": 0.0, "2883/sm91s2": 1.0000000000287557e-06, "2883/sm99": 2.000000000002e-06, "2883/sm118": 3.000000000030756e-06, "2883/sm113": 1.0000000000287557e-06, "2883/sm124": 9.999999999732445e-07, "2883/sm115": 0.0}, "rows": 60}
+PASS K5_bucket_sums (0.0 s): {"rows": 68, "failed": [], "max_bench_ll_diff": 4.998769787545321e-07}
+PASS K7_rule_selftest (9.8 s): ["[sm136-rule] selftest PASS (15/15)"]
+[sm136-check] ALL OK (134.9 s)
+PASS K1_bytes (1.9 s): ["Small (w64): w8+s8 card 2,987 / note 1,567 B; w8+s4c8n card 1,963 / note 1,567 B; w8+s4c8nhx8 card 1,521 / note 1,315 B; w8+s4hgx4c8hx8n card 1,185 / note 1,315 B; w8+s8hx8 card 2,545 / note 1,315 B", "Tiny (w64-c1): w8+s8 card 1,567 / note 1,567 B; w8+s4c8n card 1,055 / note 1,567 B; w8+s4c8nhx8 card 803 / note 1,315 B; w8+s4hgx4c8hx8n card 619 / note 1,315 B; w8+s8hx8 card 1,315 / note 1,315 B", "Big (fork): w8+s8 card 15,415 / note 10,283 B; w8+s4c8n card 9,271 / note 10,283 B; w8+s4c8nhx8 
+PASS K2_pool (7.3 s): ["[sm136-pool] check OK"]
+PASS K3_formats (1.5 s): {"w8+s8 = 8": true, "w8+s4c8n = (4, 8), fork ((4, 0), (8, 0))": true, "w8+s4c8nhx8 compact": true, "w8+s8hx8 int8 cards + notes, f16 scales, int8 shifts": true, "w8 = w8 weights, no state rounding": true}
+PASS K4_default_unchanged (88.7 s): {"a. scorer diff additive": true, "b. flag off == SM131 committed CPU rows (8 rows)": true, "c. flag on == flag off + prior_buckets (8 rows, fork and expertium)": true}
+PASS K6_cpu_smoke_rows (3.5 s): {"failed": [], "w8s8_vs_published_max_abs": {"1866/sm91s2": 1.000000000001e-06, "1866/sm99": 1.000000000001e-06, "1866/sm118": 0.0, "1866/sm113": 1.000000000001e-06, "1866/sm124": 1.000000000001e-06, "1866/sm115": 0.0, "2883/sm91s2": 1.0000000000287557e-06, "2883/sm99": 2.000000000002e-06, "2883/sm118": 3.000000000030756e-06, "2883/sm113": 1.0000000000287557e-06, "2883/sm124": 9.999999999732445e-07, "2883/sm115": 0.0}, "rows": 60}
+PASS K5_bucket_sums (0.0 s): {"rows": 68, "failed": [], "max_bench_ll_diff": 4.998769787545321e-07}
+PASS K7_rule_selftest (9.7 s): ["[sm136-rule] selftest PASS (15/15)"]
+[sm136-check] ALL OK (112.7 s)
