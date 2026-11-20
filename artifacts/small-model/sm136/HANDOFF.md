@@ -1,4 +1,63 @@
-# Handoff: long-card state drift on real users (SM136)
+# Handoff: long-card state drift on real users (SM136), CPU scoring
+
+**STATUS 11-20 03:06: the GPU run stopped (`STOP: GPU smoke mismatch` 02:56: all-scope bucket means differed up to 1.85e-3 on
+long-card user 1866 for quantized formats, limit 1e-4; benchmark LogLoss agreed within 4.4e-5). Scoring was moved to the CPU
+(`design.md` amendment 11-20 03:00): same rule, pool, models, formats; no tolerance relaxed. The GPU plan below the CPU section
+is kept for reference (rule, design facts and after-done steps still apply).**
+
+## The CPU run (launch-sm136-cpu.sh)
+
+- **Launched 03:05:45 Fri 11-20** from branch `sm136` at f54d4c39, hidden via WMI. Free RAM at launch 9.6 GB (the six-layer
+  Tiny with longer recovery (SM135) training holds ~11 GB; scorers use 1.3-2 GB each at the start).
+- Windows PIDs: wrapper bash 16612 (WMI process), launcher bash 28156, memory guard powershell 16880 (5.9 GB per scorer),
+  workers 13128 and 24920 (2 workers, one fresh python scorer per user).
+- Log: `C:/Users/jonat/workspace/wt/sm136/artifacts/small-model/sm136/cpu/launch-sm136-cpu.log`
+  (nohup `cpu/launch-sm136-cpu.nohup`; per-user score output `cpu/rows/<stage>/score-<user>.out`; rows `cpu/rows/<stage>/u-<user>.jsonl`,
+  merged after each stage into `gpu/sm136-rows.jsonl` and `gpu/sm136-ext-rows.jsonl`, which the unchanged rule reads;
+  also `cpu/progress.out`, `cpu/memguard.log`, `cpu/oom.txt`, `cpu/failed.txt`).
+- Done or STOP regex: `grep -E '\] (done \(verdict|STOP:)' <the log>`
+- Design as scored: per user ONE process = one stage (2 models x 5 formats w8+s8, w8+s4c8n, w8+s4c8nhx8, w8+s8hx8, w8), `--device cpu`,
+  show-time inputs, leak-free (neighbour), `--nonfinite-rows`, `--prior-buckets 0,32,128,300,1000`. Stages in the order of
+  `cpu/STAGES` = `tiny small big ext` (Tiny: SM124 + SM115; Small: SM118 + SM113; Big: SM91s2 + SM99; ext = the 10 extension users with
+  all six models, report only). Users from the smallest to the largest review count (`cpu/order.json`; the 66 main users range from
+  5,673 to 531,091 reviews).
+- Quiet windows: quiet.json scope all / cpu / gpu only (`sm136_block.py --scopes all,cpu,gpu`); a user starts only if it fits before
+  the next window. No daily or Sunday break. The GPU queue is not used.
+- Resume: complete users are skipped (all labels present, no error). Users killed by the guard are in `cpu/oom.txt` and skipped on
+  resume (delete their line to retry); the run goes on and STOPs before the rule if any.
+
+## Runtime estimate (measured on CPU, 4 threads per scorer; user 1866 = 5,673 reviews, user 954 = 85,171 reviews)
+
+| model x 5 formats | ms per review |
+|---|---|
+| the show-time big model (SM91s2) | ~5.8 (33 s for user 1866; the show-time instant-only big model (SM99) assumed equal) |
+| the show-time two-head cool-down for Small (SM118) | ~3.4 (23 s for user 1866, 292 s for user 954; the longer Small Instant-Only model (SM113) assumed equal) |
+| the show-time two-head cool-down for Tiny (SM124) | ~3.2 (18 s for user 1866; the longer cool-down for Tiny (SM115) assumed equal) |
+
+All six models: ~25 ms per review. Main pool 8.41 M review rows: ~58 h serial = **~29 h with 2 workers**; extension 2.78 M rows: ~19 h
+serial = ~10 h with 2 workers (report only). Per stage with 2 workers: Tiny ~7.5 h, Small ~8 h, Big ~14 h (the largest Big user alone
+~50 min), extension ~10 h. **This exceeds 14 h. Proposed reduction (the main session decides; the pre-registered design is untouched
+until then):** Tiny + Small first (~15.5 h); raise to 3 workers once SM135's training ends (~1.5x faster); optionally skip the
+report-only formats w8+s8hx8 and w8 (saves 40%) or the extension. Edit `cpu/STAGES` (read at every stage start) to cut stages; the
+rule stays `pending` (exit 2) unless Tiny, Small and Big all have >= 64 of 66 users.
+
+## Commands
+
+- Alive (PowerShell): `Get-CimInstance Win32_Process -Filter "Name='bash.exe'" | Where-Object { $_.CommandLine -like '*launch-sm136-cpu.sh*' } | Select ProcessId, CommandLine`
+- Progress: `tail -5 <the log>`; `wc -l C:/Users/jonat/workspace/wt/sm136/artifacts/small-model/sm136/cpu/progress.out`
+- Verdict by hand (CPU, seconds): `C:/Users/jonat/workspace/anki-rwkv/.venv/Scripts/python.exe -X utf8 C:/Users/jonat/workspace/wt/sm136/artifacts/small-model/sm136/sm136_rule.py decide` (exit 2 = pending, 3 = bucket counts differ: a bug)
+- Stop: `touch C:/Users/jonat/workspace/wt/sm136/artifacts/small-model/sm136/cpu/STOP2` (workers end after their current user); remove before a relaunch.
+- Relaunch (only if the launcher is gone and the log has neither `done (` nor a final `STOP:`), PowerShell:
+  `$si = New-CimInstance -ClassName Win32_ProcessStartup -ClientOnly -Property @{ShowWindow=[uint16]0}; Invoke-CimMethod -ClassName Win32_Process -MethodName Create -Arguments @{CommandLine='"C:\Program Files\Git\usr\bin\bash.exe" -c "export PATH=/usr/bin:/mingw64/bin:$PATH; bash C:/Users/jonat/workspace/wt/sm136/artifacts/small-model/sm136/launch-sm136-cpu.sh >> C:/Users/jonat/workspace/wt/sm136/artifacts/small-model/sm136/cpu/launch-sm136-cpu.nohup 2>&1"'; ProcessStartupInformation=$si}`
+- Do not edit the launcher or `scripts/` of `wt/sm136` while it runs. Never touch `wt/sm135` or the fork.
+- After `done` (a fresh Sonnet medium agent is enough): the steps in "After `done`" below, with the CPU files: add `cpu/launch-sm136-cpu.log`,
+  `cpu/progress.out`, `cpu/order.json`, `cpu/oom.txt` (if any), `gpu/sm136-rows.jsonl`, `gpu/sm136-ext-rows.jsonl`,
+  `sm136-decision.{md,json}`, `gpu/smoke-check.json` (the GPU mismatch evidence); `RESULT.md` mentions the GPU smoke mismatch and the move to the CPU.
+
+---
+
+## Original GPU plan (stopped, reference only)
+
 
 Design: `design.md` (pre-registered Fri 11-20 ~02:30, before any GPU ticket). Training-free.
 
