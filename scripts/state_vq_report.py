@@ -22,13 +22,21 @@ S8_BITS = {"card": 2 * 64 * (16 * 8 + 32) + 3 * 64 * 32, "note": 64 * (16 * 8 + 
 STUDENT = {"card": (2, 3), "note": (1, 2)}   # (WKV layers, token-shift vectors); 4 heads x 16 rows of 16, d_model 64
 
 
-def int_entity_bits(wkv_bits, scale_bits=32, shift_bits=0):
-    """(card, note) bits of the int state variants (SM45/SM47): per WKV row 16 codes of wkv_bits + one scale of
-    scale_bits; per shift vector 64 float32 (shift_bits 0 / 32) or 64 codes of shift_bits + one scale of scale_bits.
-    wkv_bits = int or (card, note). int8 card = 2*64*(16*8+32) + 3*64*32 = 26,624."""
-    per = dict(zip(("card", "note"), wkv_bits)) if isinstance(wkv_bits, (tuple, list)) else dict.fromkeys(STUDENT, wkv_bits)
-    vec = 64 * 32 if shift_bits in (0, 32) else 64 * shift_bits + scale_bits
-    return tuple(layers * 64 * (16 * per[e] + scale_bits) + shifts * vec for e, (layers, shifts) in STUDENT.items())
+def int_entity_bits(wkv_bits, scale_bits=32, shift_bits=0, head_scale=False):
+    """(card, note) bits of the int state variants (SM45/SM47/SM49): per WKV row 16 codes of wkv_bits + one scale of
+    scale_bits (SM49 head_scale: one scale per head of 16 rows instead); per shift vector 64 float32 (shift_bits 0 / 32)
+    or 64 codes of shift_bits + one scale of scale_bits. wkv_bits / shift_bits / head_scale = one value or (card, note).
+    int8 card = 2*64*(16*8+32) + 3*64*32 = 26,624."""
+    def per(x):
+        return dict(zip(("card", "note"), x)) if isinstance(x, (tuple, list)) else dict.fromkeys(STUDENT, x)
+    wkv, shift, head = per(wkv_bits), per(shift_bits), per(head_scale)
+
+    def vec(b):
+        return 64 * 32 if b in (0, 32) else 64 * b + scale_bits
+
+    def layer(e):   # 4 heads x 16 rows of 16
+        return 4 * (16 * 16 * wkv[e] + scale_bits) if head[e] else 64 * (16 * wkv[e] + scale_bits)
+    return tuple(layers * layer(e) + shifts * vec(shift[e]) for e, (layers, shifts) in STUDENT.items())
 
 
 def load(paths):

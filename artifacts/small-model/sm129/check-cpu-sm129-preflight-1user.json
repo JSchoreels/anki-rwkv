@@ -1,0 +1,56 @@
+{
+ "started": "2026-11-18 22:50:05",
+ "K1_bytes_round_trip": {
+  "tail": [
+   "Small (w64): w8+s8 card 2,987 / note 1,567 B; w8+s4c8n card 1,963 / note 1,567 B; w8+s4c8nhx8 card 1,521 / note 1,315 B; w8+s4hgx4c8hx8n card 1,185 / note 1,315 B",
+   "Tiny (w64-c1): w8+s8 card 1,567 / note 1,567 B; w8+s4c8n card 1,055 / note 1,567 B; w8+s4c8nhx8 card 803 / note 1,315 B; w8+s4hgx4c8hx8n card 619 / note 1,315 B",
+   "[sm129-bytes] known totals {'small_int8_4554': True, 'small_card_int4_1963': True, 'tiny_fork_default_1055_1567': True, 'tiny_compact_803_1315': True, 'tiny_cardonly_619': True} -> ALL OK"
+  ],
+  "ok": true
+ },
+ "K2_unchanged_variants_bitwise_vs_sm124_tree": {
+  "users": [
+   2388
+  ],
+  "reviews": [
+   3685
+  ],
+  "variants": [
+   "w8+s8",
+   "w8+s4c8n",
+   "w8+s4c8nhx8"
+  ],
+  "equal": {
+   "2388/w8+s4c8n": true,
+   "2388/w8+s4c8nhx8": true,
+   "2388/w8+s8": true
+  },
+  "ok": true
+ },
+ "K3_gpu_path_on_cpu_vs_cpu": {
+  "max_abs_dlogloss_benchmark": 0.0,
+  "card_only_differs_from_compact": true,
+  "entity_bits": {
+   "w8+s4c8nhx8": {
+    "card": 11824,
+    "note": 10272
+   },
+   "w8+s4hgx4c8hx8n": {
+    "card": 9136,
+    "note": 10272
+   }
+  },
+  "dlogloss_card_only_minus_compact": {
+   "2388/ahead": 0.000324,
+   "2388/instant": 0.000445
+  },
+  "ok": true
+ },
+ "K4_rule_selftest": {
+  "tail": "[sm129-rule] selftest {\"sm124_vs_sm118_review\": true, \"sm115_vs_sm113_review\": true, \"end_to_end_compact_go_zero_cost\": true, \"end_to_end_card_only_scaled_fails\": true, \"markdown\": true} -> OK",
+  "ok": true
+ },
+ "fails": [],
+ "all_ok": true,
+ "seconds": 31.3
+}

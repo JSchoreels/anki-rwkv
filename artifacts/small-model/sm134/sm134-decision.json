@@ -1,0 +1,208 @@
+{
+ "rule": "go(chain) iff every trained head's 95% CI upper bound of 100 x (card-only six-layer / Small published w8+s8 - 1) <= +1.00% on all 722 rule users with finite rows; verdict go iff both chains go",
+ "pool_users": 722,
+ "chains": {
+  "th": {
+   "model": "the two-head six-layer Tiny (SM130)",
+   "small": "the show-time two-head cool-down for Small (SM118)",
+   "heads": [
+    "curve",
+    "instant"
+   ],
+   "users": 722,
+   "missing_users": [],
+   "card_only_vs_small": {
+    "curve": {
+     "value": 0.659,
+     "ci": [
+      0.585,
+      0.743
+     ],
+     "new": 0.301994,
+     "ref": 0.300016
+    },
+    "instant": {
+     "value": 0.78,
+     "ci": [
+      0.73,
+      0.833
+     ],
+     "new": 0.278757,
+     "ref": 0.276599
+    }
+   },
+   "pass": true,
+   "verdict": "go",
+   "card_only_vs_compact": {
+    "curve": {
+     "value": 0.175,
+     "ci": [
+      0.15,
+      0.202
+     ],
+     "new": 0.301994,
+     "ref": 0.301466
+    },
+    "instant": {
+     "value": 0.233,
+     "ci": [
+      0.214,
+      0.255
+     ],
+     "new": 0.278757,
+     "ref": 0.278108
+    }
+   },
+   "card_only_vs_published": {
+    "curve": {
+     "value": 0.191,
+     "ci": [
+      0.164,
+      0.222
+     ],
+     "new": 0.301994,
+     "ref": 0.301416
+    },
+    "instant": {
+     "value": 0.255,
+     "ci": [
+      0.233,
+      0.279
+     ],
+     "new": 0.278757,
+     "ref": 0.278049
+    }
+   },
+   "published_vs_small": {
+    "curve": {
+     "value": 0.467,
+     "ci": [
+      0.398,
+      0.546
+     ],
+     "new": 0.301416,
+     "ref": 0.300016
+    },
+    "instant": {
+     "value": 0.524,
+     "ci": [
+      0.484,
+      0.567
+     ],
+     "new": 0.278049,
+     "ref": 0.276599
+    }
+   },
+   "compact_vs_small": {
+    "curve": {
+     "value": 0.483,
+     "ci": [
+      0.415,
+      0.562
+     ],
+     "new": 0.301466,
+     "ref": 0.300016
+    },
+    "instant": {
+     "value": 0.545,
+     "ci": [
+      0.505,
+      0.589
+     ],
+     "new": 0.278108,
+     "ref": 0.276599
+    }
+   }
+  },
+  "io": {
+   "model": "the Instant-Only six-layer Tiny (SM130)",
+   "small": "the longer Small Instant-Only model (SM113)",
+   "heads": [
+    "instant"
+   ],
+   "users": 722,
+   "missing_users": [],
+   "card_only_vs_small": {
+    "instant": {
+     "value": 0.888,
+     "ci": [
+      0.832,
+      0.943
+     ],
+     "new": 0.278382,
+     "ref": 0.275933
+    }
+   },
+   "pass": true,
+   "verdict": "go",
+   "card_only_vs_compact": {
+    "instant": {
+     "value": 0.283,
+     "ci": [
+      0.263,
+      0.305
+     ],
+     "new": 0.278382,
+     "ref": 0.277597
+    }
+   },
+   "card_only_vs_published": {
+    "instant": {
+     "value": 0.322,
+     "ci": [
+      0.296,
+      0.349
+     ],
+     "new": 0.278382,
+     "ref": 0.27749
+    }
+   },
+   "published_vs_small": {
+    "instant": {
+     "value": 0.564,
+     "ci": [
+      0.522,
+      0.607
+     ],
+     "new": 0.27749,
+     "ref": 0.275933
+    }
+   },
+   "compact_vs_small": {
+    "instant": {
+     "value": 0.603,
+     "ci": [
+      0.56,
+      0.647
+     ],
+     "new": 0.277597,
+     "ref": 0.275933
+    }
+   }
+  }
+ },
+ "unparseable_lines": {
+  "C:\\Users\\jonat\\workspace\\wt\\sm134\\artifacts\\small-model\\sm134\\inputs\\sm130-rows.jsonl": 0,
+  "C:\\Users\\jonat\\workspace\\wt\\sm134\\artifacts\\small-model\\sm134\\gpu\\sm134-rows.jsonl": 0
+ },
+ "nonfinite_rows": {},
+ "verdict": "go",
+ "bytes_tiny_per_card_note": {
+  "w8+s8": [
+   1567,
+   1567
+  ],
+  "w8+s4c8n": [
+   1055,
+   1567
+  ],
+  "w8+s4c8nhx8": [
+   803,
+   1315
+  ],
+  "w8+s4hgx4c8hx8n": [
+   619,
+   1315
+  ]
+ }
+}
