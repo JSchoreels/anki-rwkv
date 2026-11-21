@@ -1,0 +1,121 @@
+[sm137 11-21 03:19:16] started full plan: 4b466ade Trained smaller state for Tiny (SM137): pilot go, full-plan launcher, two-head cu (DRYRUN=0; chains: io th; TH_FORCE=0; arch w64-c1-d2p1u1-v16k8; dirty source files: 0)
+[sm137 11-21 03:19:16] memory guard on (launcher Windows PID 34152, limit 5.9 GB per CPU process)
+[sm135-block] selftest {"no_daily_break_at_20h": true, "inside_all_window": true, "timing_scope_ignored": true, "no_sunday_break": true, "gpu_scope_counts": true, "malformed_read_as_all": true, "no_hardcoded_hours": true} -> OK
+[sm137-rule] pilot v16k8 go: instant vs SM135 e42 +0.000% [+0.000, +0.000]
+[sm137-rule] selftest OK
+[sm137-pair] selfcheck sm124-c1-e29st-dec2ep32k-t91s2-p1 vs sm118-e26-dec2ep32k-t91s2-p1: OK
+[sm137-pair] selfcheck sm115-c1-e38st-st-dec2ep32k-t99-p1 vs sm113-inst-e35st-st-dec2ep32k-t99-p1: OK
+[sm137-pair] selfcheck sm130-th-dec2ep32k-p1 vs sm124-c1-e29st-dec2ep32k-t91s2-p1: OK
+[sm137-pair] selfcheck sm130-io-dec2ep32k-p1 vs sm115-c1-e38st-st-dec2ep32k-t99-p1: OK
+[sm137 11-21 03:19:17] Instant-Only chain: start (w64-c1-d2p1u1-v16k8, from sm137-io-v16k8-e42-st)
+[sm137-muon] sm137-io-v16k8-dec2ep32k-p1 PASS lines: 7
+[sm137-muon-zero] PASS: 5 Muon steps, dropped W_k / W_v rows exactly 0, kept rows moved
+[sm137-pair] p1 io OK: sm137-io-v16k8-dec2ep32k-p1 == the longer cool-down for Tiny (SM115)'s pass 1 and SM130's pass 1 except the start (sm137-io-v16k8-e42-st), the architecture (w64-c1-d2p1u1-v16k8) and paths (8,000 users, 581,942,724 reviews per pass, schedule over 1,163,885,448, update offset 927276, start 5d802d3c64d0, arch w64-c1-d2p1u1-v16k8, trims [5599])
+[sm137 11-21 03:19:28] enqueue: trainer smoke of Instant-Only cool-down pass 1 (fresh Muon, the teacher's show-time targets, w64-c1-d2p1u1-v16k8, from sm137-io-v16k8-e42-st) (2 users x 512 reviews) (expected 15 min, max wait 99982 min, 100000 min to the next quiet window)
+[sm137 11-21 03:19:41] exit 0: trainer smoke of Instant-Only cool-down pass 1 (fresh Muon, the teacher's show-time targets, w64-c1-d2p1u1-v16k8, from sm137-io-v16k8-e42-st) (2 users x 512 reviews) (nvidia-smi max 1812 MiB, baseline 1812 MiB)
+[sm137 11-21 03:19:42] smoke io-p1: {"smoke": "sm137-io-v16k8-dec2ep32k-p1", "exit": 0, "status": "complete", "updates": 2, "reviews": 1024, "error": null, "seconds": 12.1}
+[sm137 11-21 03:19:42] enqueue: Instant-Only cool-down pass 1 of 2 (32k Muon, 7e-4 -> 0.29 x peak, w64-c1-d2p1u1-v16k8, from sm137-io-v16k8-e42-st, instant head only) (expected 180 min of ~180, 100000 min to the next quiet window, 13778 MiB RAM free)
+[sm137 11-21 05:51:47] exit 0: Instant-Only cool-down pass 1 of 2 (32k Muon, 7e-4 -> 0.29 x peak, w64-c1-d2p1u1-v16k8, from sm137-io-v16k8-e42-st, instant head only) segment (nvidia-smi max 11327 MiB, baseline 1812 MiB)
+[sm137 11-21 05:51:48] Instant-Only cool-down pass 1 of 2 (32k Muon, 7e-4 -> 0.29 x peak, w64-c1-d2p1u1-v16k8, from sm137-io-v16k8-e42-st, instant head only) complete: 581,942,724 reviews, 151.7 min training, 63,916 reviews/s, peak allocated 4,209 MiB, reserved 9,134 MiB, process tree RSS 10,986 MiB, curve_loss_weight 0.0, schedule total 1163885448, init 4567f5b072de, trained fcc1e9d3ab52, update offset end 949354
+[sm137 11-21 05:51:48] lr check: Instant-Only pass 1 ended at 0.2928988531491633 x peak (expected [0.2925, 0.2935])
+[sm137-lanes] verify C:\Users\jonat\workspace\wt\sm137\artifacts\small-model\sm137-io-v16k8-dec2ep32k-p1\expertium\E89-F65e-F77a\master.pth: dropped W_k / W_v rows exactly 0
+[sm137-prepare] p2 sm137-io-v16k8-dec2ep32k-p2: 8,000 users, 581,942,724 reviews, from E89-F65e-F77a master ee8471e8679b, update offset 949354, lr_resume {"total_reviews": 1163885448, "reviews_offset": 581942724}
+[sm137-pair] p2 th OK: sm137-io-v16k8-dec2ep32k-p2 == pass 1 except the start (pass 1's end), the new order and lr_resume (second half) (8,000 users (new order), 581,942,724 reviews, from pass 1's end (master ee8471e8679b, update offset 949354), lr_resume {"total_reviews": 1163885448, "reviews_offset": 581942724})
+[sm137 11-21 05:51:50] enqueue: trainer smoke of Instant-Only cool-down pass 2 (pass 1's Muon state loaded) (2 users x 512 reviews) (expected 15 min, max wait 99982 min, 100000 min to the next quiet window)
+[sm137 11-21 05:52:13] exit 0: trainer smoke of Instant-Only cool-down pass 2 (pass 1's Muon state loaded) (2 users x 512 reviews) (nvidia-smi max 1812 MiB, baseline 1812 MiB)
+[sm137 11-21 05:52:14] smoke io-p2: {"smoke": "sm137-io-v16k8-dec2ep32k-p2", "exit": 0, "status": "complete", "updates": 2, "reviews": 1024, "error": null, "seconds": 22.0}
+[sm137 11-21 05:52:14] enqueue: Instant-Only cool-down pass 2 of 2 (0.29 x peak -> 0, new order, w64-c1-d2p1u1-v16k8, instant head only) (expected 180 min of ~180, 100000 min to the next quiet window, 13997 MiB RAM free)
+[sm137 11-21 08:24:49] exit 0: Instant-Only cool-down pass 2 of 2 (0.29 x peak -> 0, new order, w64-c1-d2p1u1-v16k8, instant head only) segment (nvidia-smi max 12191 MiB, baseline 1812 MiB)
+[sm137 11-21 08:24:49] Instant-Only cool-down pass 2 of 2 (0.29 x peak -> 0, new order, w64-c1-d2p1u1-v16k8, instant head only) complete: 581,942,724 reviews, 151.9 min training, 63,853 reviews/s, peak allocated 4,211 MiB, reserved 9,998 MiB, process tree RSS 11,178 MiB, curve_loss_weight 0.0, schedule total 1163885448, init fcc1e9d3ab52, trained 7ac8d42877c4, update offset end 971432
+[sm137 11-21 08:24:50] lr check: Instant-Only pass 2 ended at 5.776323863670996e-11 x peak (expected [0, 0.0005])
+[sm137-lanes] verify C:\Users\jonat\workspace\wt\sm137\artifacts\small-model\sm137-io-v16k8-dec2ep32k-p2\expertium\E89-F65e-F77a\master.pth: dropped W_k / W_v rows exactly 0
+[sm137 11-21 08:24:51] final scoring (Instant-Only): student w8+s8 + w8+s8hx8 (--nonfinite-rows), then the SM130 final at w8+s8hx8
+[sm137 11-21 08:24:52] enqueue: scoring sm137-io-v16k8-dec2ep32k-t99 at w8+s8 w8+s8hx8 on e2s-query inputs, the 732 set minus 9 never-fit (723 users) (pass 1, 0 done, cap 0.8) (expected 35 min, max wait 99962 min, 100000 min to the next quiet window)
+[sm137 11-21 08:37:10] exit 0: scoring sm137-io-v16k8-dec2ep32k-t99 at w8+s8 w8+s8hx8 on e2s-query inputs, the 732 set minus 9 never-fit (723 users) (pass 1, 0 done, cap 0.8) (nvidia-smi max 14953 MiB, baseline 1812 MiB)
+[sm137 11-21 08:37:10] enqueue: scoring sm137-io-v16k8-dec2ep32k-t99 at w8+s8 w8+s8hx8 on e2s-query inputs, the 732 set minus 9 never-fit (723 users) (pass 2, 721 done, cap 0.8) (expected 20 min, max wait 99977 min, 100000 min to the next quiet window)
+[sm137 11-21 08:37:38] exit 0: scoring sm137-io-v16k8-dec2ep32k-t99 at w8+s8 w8+s8hx8 on e2s-query inputs, the 732 set minus 9 never-fit (723 users) (pass 2, 721 done, cap 0.8) (nvidia-smi max 1812 MiB, baseline 1812 MiB)
+[sm137 11-21 08:37:38] enqueue: scoring sm137-io-v16k8-dec2ep32k-t99 at w8+s8 w8+s8hx8 on e2s-query inputs, the 732 set minus 9 never-fit (723 users) (pass 3, 722 done, cap 0.8) (expected 20 min, max wait 99977 min, 100000 min to the next quiet window)
+[sm137 11-21 08:38:05] exit 0: scoring sm137-io-v16k8-dec2ep32k-t99 at w8+s8 w8+s8hx8 on e2s-query inputs, the 732 set minus 9 never-fit (723 users) (pass 3, 722 done, cap 0.8) (nvidia-smi max 1812 MiB, baseline 1812 MiB)
+[sm137 11-21 08:38:05] sm137-io-v16k8-dec2ep32k-t99: 723 users scored for sm137-io-v16k8-dec2ep32k-t99/w8+s8@e2s-query sm137-io-v16k8-dec2ep32k-t99/w8+s8hx8@e2s-query
+[sm137 11-21 08:38:05] enqueue: scoring sm130-io-dec2ep32k-t99 at w8+s8hx8 on e2s-query inputs, the 732 set minus 9 never-fit (723 users) (pass 1, 0 done, cap 0.8) (expected 25 min, max wait 99972 min, 100000 min to the next quiet window)
+[sm137 11-21 08:48:37] exit 0: scoring sm130-io-dec2ep32k-t99 at w8+s8hx8 on e2s-query inputs, the 732 set minus 9 never-fit (723 users) (pass 1, 0 done, cap 0.8) (nvidia-smi max 15067 MiB, baseline 1812 MiB)
+[sm137 11-21 08:48:38] sm130-io-dec2ep32k-t99: 723 users scored for sm130-io-dec2ep32k-t99/w8+s8hx8@e2s-query
+[sm137 11-21 08:48:39] long-card CPU rows (Instant-Only): 50 of 50 users to score (2 processes at a time, 15377 MiB RAM free)
+[sm137 11-21 08:48:52] done (full: io not run, th not run)
+[sm137 11-21 08:54:45] started full plan: 2ce902f8 SM137 full launcher: strip CR from the long-card user list (the arithmetic aborte (DRYRUN=0; chains: io th; TH_FORCE=0; arch w64-c1-d2p1u1-v16k8; dirty source files: 0)
+[sm137 11-21 08:54:45] memory guard on (launcher Windows PID 7020, limit 5.9 GB per CPU process)
+[sm135-block] selftest {"no_daily_break_at_20h": true, "inside_all_window": true, "timing_scope_ignored": true, "no_sunday_break": true, "gpu_scope_counts": true, "malformed_read_as_all": true, "no_hardcoded_hours": true} -> OK
+[sm137-rule] pilot v16k8 go: instant vs SM135 e42 +0.000% [+0.000, +0.000]
+[sm137-rule] selftest OK
+[sm137-pair] selfcheck sm124-c1-e29st-dec2ep32k-t91s2-p1 vs sm118-e26-dec2ep32k-t91s2-p1: OK
+[sm137-pair] selfcheck sm115-c1-e38st-st-dec2ep32k-t99-p1 vs sm113-inst-e35st-st-dec2ep32k-t99-p1: OK
+[sm137-pair] selfcheck sm130-th-dec2ep32k-p1 vs sm124-c1-e29st-dec2ep32k-t91s2-p1: OK
+[sm137-pair] selfcheck sm130-io-dec2ep32k-p1 vs sm115-c1-e38st-st-dec2ep32k-t99-p1: OK
+[sm137 11-21 08:54:46] Instant-Only chain: start (w64-c1-d2p1u1-v16k8, from sm137-io-v16k8-e42-st)
+[sm137 11-21 08:54:46] Instant-Only cool-down pass 1 of 2 (32k Muon, 7e-4 -> 0.29 x peak, w64-c1-d2p1u1-v16k8, from sm137-io-v16k8-e42-st, instant head only) complete: 581,942,724 reviews, 151.7 min training, 63,916 reviews/s, peak allocated 4,209 MiB, reserved 9,134 MiB, process tree RSS 10,986 MiB, curve_loss_weight 0.0, schedule total 1163885448, init 4567f5b072de, trained fcc1e9d3ab52, update offset end 949354
+[sm137 11-21 08:54:47] lr check: Instant-Only pass 1 ended at 0.2928988531491633 x peak (expected [0.2925, 0.2935])
+[sm137-lanes] verify C:\Users\jonat\workspace\wt\sm137\artifacts\small-model\sm137-io-v16k8-dec2ep32k-p1\expertium\E89-F65e-F77a\master.pth: dropped W_k / W_v rows exactly 0
+[sm137-pair] p2 th OK: sm137-io-v16k8-dec2ep32k-p2 == pass 1 except the start (pass 1's end), the new order and lr_resume (second half) (8,000 users (new order), 581,942,724 reviews, from pass 1's end (master ee8471e8679b, update offset 949354), lr_resume {"total_reviews": 1163885448, "reviews_offset": 581942724})
+[sm137 11-21 08:54:49] Instant-Only cool-down pass 2 of 2 (0.29 x peak -> 0, new order, w64-c1-d2p1u1-v16k8, instant head only) complete: 581,942,724 reviews, 151.9 min training, 63,853 reviews/s, peak allocated 4,211 MiB, reserved 9,998 MiB, process tree RSS 11,178 MiB, curve_loss_weight 0.0, schedule total 1163885448, init fcc1e9d3ab52, trained 7ac8d42877c4, update offset end 971432
+[sm137 11-21 08:54:49] lr check: Instant-Only pass 2 ended at 5.776323863670996e-11 x peak (expected [0, 0.0005])
+[sm137-lanes] verify C:\Users\jonat\workspace\wt\sm137\artifacts\small-model\sm137-io-v16k8-dec2ep32k-p2\expertium\E89-F65e-F77a\master.pth: dropped W_k / W_v rows exactly 0
+[sm137 11-21 08:54:51] final scoring (Instant-Only): student w8+s8 + w8+s8hx8 (--nonfinite-rows), then the SM130 final at w8+s8hx8
+[sm137 11-21 08:54:51] sm137-io-v16k8-dec2ep32k-t99: 723 users scored for sm137-io-v16k8-dec2ep32k-t99/w8+s8@e2s-query sm137-io-v16k8-dec2ep32k-t99/w8+s8hx8@e2s-query
+[sm137 11-21 08:54:51] sm130-io-dec2ep32k-t99: 723 users scored for sm130-io-dec2ep32k-t99/w8+s8hx8@e2s-query
+[sm137 11-21 08:54:53] long-card CPU rows (Instant-Only): 50 of 50 users to score (2 processes at a time, 15205 MiB RAM free)
+[sm137 11-21 08:54:59] long-card io user 1866 done: [small-model] 1/1 user 1866 (5673 reviews) | 3s, 3,244 review-evals/s
+[sm137 11-21 08:55:02] long-card io user 2883 done: [small-model] 1/1 user 2883 (9451 reviews) | 7s, 2,596 review-evals/s
+[sm137 11-21 08:55:13] long-card io user 3882 done: [small-model] 1/1 user 3882 (12325 reviews) | 8s, 3,082 review-evals/s
+[sm137 11-21 08:55:17] long-card io user 1215 done: [small-model] 1/1 user 1215 (17626 reviews) | 12s, 2,914 review-evals/s
+[sm137 11-21 08:55:36] long-card io user 280 done: [small-model] 1/1 user 280 (17954 reviews) | 11s, 3,219 review-evals/s
+[sm137 11-21 08:55:38] long-card io user 4407 done: [small-model] 1/1 user 4407 (23053 reviews) | 12s, 3,717 review-evals/s
+[sm137 11-21 08:55:56] long-card io user 3502 done: [small-model] 1/1 user 3502 (23883 reviews) | 11s, 4,418 review-evals/s
+[sm137 11-21 08:55:58] long-card io user 966 done: [small-model] 1/1 user 966 (24396 reviews) | 13s, 3,849 review-evals/s
+[sm137 11-21 08:56:28] long-card io user 4811 done: [small-model] 1/1 user 4811 (31752 reviews) | 22s, 2,839 review-evals/s
+[sm137 11-21 08:56:31] long-card io user 4727 done: [small-model] 1/1 user 4727 (35610 reviews) | 25s, 2,874 review-evals/s
+[sm137 11-21 08:56:57] long-card io user 2824 done: [small-model] 1/1 user 2824 (40269 reviews) | 21s, 3,895 review-evals/s
+[sm137 11-21 08:56:57] long-card io user 4374 done: [small-model] 1/1 user 4374 (37342 reviews) | 21s, 3,542 review-evals/s
+[sm137 11-21 08:57:26] long-card io user 446 done: [small-model] 1/1 user 446 (40443 reviews) | 20s, 4,093 review-evals/s
+[sm137 11-21 08:57:33] long-card io user 3432 done: [small-model] 1/1 user 3432 (40900 reviews) | 27s, 2,992 review-evals/s
+[sm137 11-21 08:58:06] long-card io user 3152 done: [small-model] 1/1 user 3152 (42469 reviews) | 29s, 2,885 review-evals/s
+[sm137 11-21 08:58:06] long-card io user 2820 done: [small-model] 1/1 user 2820 (42596 reviews) | 30s, 2,854 review-evals/s
+[sm137 11-21 08:58:44] long-card io user 4896 done: [small-model] 1/1 user 4896 (50907 reviews) | 27s, 3,711 review-evals/s
+[sm137 11-21 08:58:45] long-card io user 1323 done: [small-model] 1/1 user 1323 (51778 reviews) | 28s, 3,688 review-evals/s
+[sm137 11-21 08:59:20] long-card io user 563 done: [small-model] 1/1 user 563 (55506 reviews) | 34s, 3,305 review-evals/s
+[sm137 11-21 08:59:30] long-card io user 2499 done: [small-model] 1/1 user 2499 (56549 reviews) | 33s, 3,391 review-evals/s
+[sm137 11-21 09:00:03] long-card io user 1624 done: [small-model] 1/1 user 1624 (58353 reviews) | 36s, 3,239 review-evals/s
+[sm137 11-21 09:00:05] long-card io user 1331 done: [small-model] 1/1 user 1331 (58699 reviews) | 27s, 4,284 review-evals/s
+[sm137 11-21 09:00:43] long-card io user 4540 done: [small-model] 1/1 user 4540 (69105 reviews) | 35s, 3,952 review-evals/s
+[sm137 11-21 09:00:47] long-card io user 3876 done: [small-model] 1/1 user 3876 (58826 reviews) | 39s, 3,007 review-evals/s
+[sm137 11-21 09:01:36] long-card io user 4898 done: [small-model] 1/1 user 4898 (69185 reviews) | 48s, 2,881 review-evals/s
+[sm137 11-21 09:01:44] long-card io user 1376 done: [small-model] 1/1 user 1376 (69351 reviews) | 46s, 3,000 review-evals/s
+[sm137 11-21 09:02:34] long-card io user 1678 done: [small-model] 1/1 user 1678 (74506 reviews) | 46s, 3,248 review-evals/s
+[sm137 11-21 09:02:36] long-card io user 4380 done: [small-model] 1/1 user 4380 (73553 reviews) | 48s, 3,057 review-evals/s
+[sm137 11-21 09:03:25] long-card io user 3982 done: [small-model] 1/1 user 3982 (76880 reviews) | 36s, 4,214 review-evals/s
+[sm137 11-21 09:03:31] long-card io user 3220 done: [small-model] 1/1 user 3220 (76630 reviews) | 52s, 2,940 review-evals/s
+[sm137 11-21 09:04:08] long-card io user 4282 done: [small-model] 1/1 user 4282 (77124 reviews) | 40s, 3,868 review-evals/s
+[sm137 11-21 09:04:31] long-card io user 1497 done: [small-model] 1/1 user 1497 (83887 reviews) | 53s, 3,191 review-evals/s
+[sm137 11-21 09:05:18] long-card io user 2807 done: [small-model] 1/1 user 2807 (85011 reviews) | 59s, 2,859 review-evals/s
+[sm137 11-21 09:05:25] long-card io user 954 done: [small-model] 1/1 user 954 (85171 reviews) | 47s, 3,652 review-evals/s
+[sm137 11-21 09:06:10] long-card io user 4479 done: [small-model] 1/1 user 4479 (87390 reviews) | 41s, 4,268 review-evals/s
+[sm137 11-21 09:06:30] long-card io user 4620 done: [small-model] 1/1 user 4620 (91079 reviews) | 61s, 2,984 review-evals/s
+[sm137 11-21 09:07:19] long-card io user 3260 done: [small-model] 1/1 user 3260 (92013 reviews) | 60s, 3,070 review-evals/s
+[sm137 11-21 09:07:42] long-card io user 1458 done: [small-model] 1/1 user 1458 (92307 reviews) | 63s, 2,933 review-evals/s
+[sm137 11-21 09:08:25] long-card io user 1015 done: [small-model] 1/1 user 1015 (102545 reviews) | 55s, 3,712 review-evals/s
+[sm137 11-21 09:08:55] long-card io user 4566 done: [small-model] 1/1 user 4566 (102807 reviews) | 65s, 3,155 review-evals/s
+[sm137 11-21 09:09:38] long-card io user 2119 done: [small-model] 1/1 user 2119 (107589 reviews) | 68s, 3,165 review-evals/s
+[sm137 11-21 09:09:54] long-card io user 4132 done: [small-model] 1/1 user 4132 (108689 reviews) | 54s, 4,036 review-evals/s
+[sm137 11-21 09:10:55] long-card io user 1717 done: [small-model] 1/1 user 1717 (121628 reviews) | 55s, 4,417 review-evals/s
+[sm137 11-21 09:10:58] long-card io user 4912 done: [small-model] 1/1 user 4912 (120123 reviews) | 67s, 3,561 review-evals/s
+[sm137 11-21 09:12:27] long-card io user 2393 done: [small-model] 1/1 user 2393 (125447 reviews) | 87s, 2,886 review-evals/s
+[sm137 11-21 09:12:30] long-card io user 596 done: [small-model] 1/1 user 596 (125767 reviews) | 89s, 2,825 review-evals/s
+[sm137 11-21 09:13:30] long-card io user 1399 done: [small-model] 1/1 user 1399 (126540 reviews) | 59s, 4,312 review-evals/s
+[sm137 11-21 09:13:56] long-card io user 1714 done: [small-model] 1/1 user 1714 (131660 reviews) | 75s, 3,501 review-evals/s
+[sm137 11-21 09:14:57] long-card io user 2289 done: [small-model] 1/1 user 2289 (142062 reviews) | 76s, 3,741 review-evals/s
+[sm137 11-21 09:15:45] long-card io user 4965 done: [small-model] 1/1 user 4965 (151106 reviews) | 104s, 2,908 review-evals/s
+[sm137 11-21 09:15:51] long-card rows merged: 100 rows in C:/Users/jonat/workspace/wt/sm137/artifacts/small-model/sm137/cpu/sm137-longcard-rows.jsonl
+[sm137 11-21 09:15:51] rule longcard --chain io --lanes v16k8 exit 0: [sm137-rule] longcard io v16k8 fail: instant excess -0.008% [-0.175, +0.412]
+[sm137 11-21 09:15:52] rule decide --chain io --lanes v16k8 exit 0: [sm137-rule] decide io v16k8 no go: instant +0.576% [+0.534, +0.619]
+[sm137 11-21 09:15:52] Instant-Only chain verdict: no go (vs Small at w8+s8hx8: instant +0.576% [+0.534, +0.619]; long-card fail instant excess -0.008% [.., +0.412])
+[sm137 11-21 09:15:52] two-head chain skipped: not run (the Instant-Only chain did not go: no go (vs Small at w8+s8hx8: instant +0.576% [+0.534, +0.619]; long-card fail instant excess -0.008% [.., +0.412]))
+[sm137 11-21 09:16:04] done (full: io no go (vs Small at w8+s8hx8: instant +0.576% [+0.534, +0.619]; long-card fail instant excess -0.008% [.., +0.412]), th not run (the Instant-Only chain did not go: no go (vs Small at w8+s8hx8: instant +0.576% [+0.534, +0.619]; long-card fail instant excess -0.008% [.., +0.412])))

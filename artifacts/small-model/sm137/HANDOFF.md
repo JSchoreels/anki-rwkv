@@ -1,5 +1,7 @@
 # Handoff: trained smaller state for Tiny (SM137), full plan
 
+**CLOSED 11-21 09:30:** the full plan ended at 09:16 with the Instant-Only chain **no go** (main rule passed, long-card check failed on a wide interval); the two-head chain did not run. Write-up: `RESULT.md`. Nothing is left to watch or relaunch.
+
 Design: `design.md` (pre-registered 11-21; section "Pilot result and full-plan launch" records what changed since: checks only, **no rule changed**). The pick: the six-layer Tiny (SM130)'s card and note WKV state cut to 16 value rows x 8 of 16 key lanes per head (`w64-c1-d2p1u1-v16k8`), **803 B per card and per note** instead of 1,315 B at the release-candidate format.
 
 ## State on 11-21 03:20
