@@ -2489,6 +2489,20 @@
    "ended_at": "2026-11-21T09:16+01:00"
   },
   {
+   "id": "SM138",
+   "track": "small model",
+   "kind": "gpu",
+   "minutes": 130,
+   "match": [
+    "Answer-time heads for the six-layer Tiny (SM138): "
+   ],
+   "what": "Answer-time heads for the six-layer Tiny (SM138): the six-layer Tiny (SM130) replaces the current Tiny models in the next family release (user decision 11-21), and every family model ships with an answer-time head tied to its trunk, so both final six-layer models (two-head and Instant-Only) get one. Exactly the recipe and rules of the time heads for the new candidates (SM119): a small head trained alone on the frozen model (346 inputs for this shallower trunk instead of 474), show-time inputs, same-day reviews included, then P(recall within S seconds) at S = 3, 5, 8, 10, 15, 20, 30 s on the 732 set. Answer time = front + back (question shown to grade press); recall within S s = recalled and answered within S s, reading the back included. CPU proof on both models passed (16 checks) before launch",
+   "when": "Running since 09:34 Sat 11-21 (queue ticket 001412 onwards): per model a smoke, the head training (about 40 min), the grade-unchanged check, then the scoring of both models (about 15 min each); gate results for both heads expected about 11:45 Sat 11-21",
+   "decides": "Per head: go if the grade outputs stay bitwise unchanged and the head beats both answer-time baselines (the card&rsquo;s last time, the user&rsquo;s running median per grade) on time LogLoss and on the mean |ln error|, each 95% CI below zero; P(recall within S seconds) is reported as reliable at an S if its ECE is below 0.01 and it beats both recall-under-S baselines",
+   "state": "running",
+   "started_at": "2026-11-21T09:34+01:00"
+  },
+  {
    "id": "SM124",
    "track": "small model",
    "since": "11-17T11:05",
