@@ -1,5 +1,7 @@
 # Handoff: answer-time heads for the six-layer Tiny (SM138)
 
+**CLOSED 11-21 ~12:00.** The launcher printed `done` at 11:26; both heads PASS (write-up at the top of `sm138-result.md`). Remaining: only the fork packaging step 4 (another agent; 346-input heads).
+
 Design: `design.md` (pre-registered 11-21 before any GPU ticket; exactly the rules of the time heads for the new candidates (SM119); models: the six-layer Tiny two-head model (SM130), key `sm130th`, and the six-layer Tiny Instant-Only model (SM130), key `sm130io`; 346 head inputs). CPU proof PASS (16 checks, `check-cpu-sm138.json`); dry run OK (`gpu/launch-sm138-dryrun.log`).
 
 ## The running launcher

@@ -1,0 +1,33 @@
+[sm138 11-21 09:34:13] started: da00e745 Answer-time heads for the six-layer Tiny (SM138): design, model entries, launcher, CPU proof PASS (DRYRUN=0; models sm130th sm130io)
+[sm138 11-21 09:34:13] plan (SM117's, read only): 1,991 users, 136,132,251 of 145,578,259 reviews (cap 400,000), 117,634,406 labelled rows (35,727,965 same-day)
+[sm138 11-21 09:34:14] CPU proof: PASS 16 checks, 83.9 s (check-cpu-sm138.json)
+[sm138 11-21 09:34:14] enqueue: the six-layer Tiny two-head model (SM130): smoke (head training on 4 users: 3 small + the longest cut at 400k; time scoring of 3 users; grade check of 2 users) (expected 12 min, max wait 99985 min, 100000 min to the next window)
+[sm138 11-21 09:35:04] exit 0: the six-layer Tiny two-head model (SM130): smoke (head training on 4 users: 3 small + the longest cut at 400k; time scoring of 3 users; grade check of 2 users)
+[sm138 11-21 09:35:04] sm130th smoke head training: skipped / peak GiB / seconds: 0 7.96 16.4 []
+[sm138 11-21 09:35:05] sm130th smoke: [sm117-train] step 1: time loss 2.7726 / ablation 2.7726 nats over 1,024 rows (zero output layers: ln 16 = 2.7726); [sm117-grade] sm130th 2 users: released vs the trunk after head training bitwise True; vs the recorded show-time scores True
+[sm138 11-21 09:35:05] enqueue: the six-layer Tiny two-head model (SM130): head training (1,991 users, first 400k reviews each, show-time inputs, same-day reviews included, head + explicit-only ablation) (expected 90 min, max wait 99907 min, 100000 min to the next window)
+[sm138 11-21 10:15:51] exit 0: the six-layer Tiny two-head model (SM130): head training (1,991 users, first 400k reviews each, show-time inputs, same-day reviews included, head + explicit-only ablation)
+[sm138 11-21 10:15:51] sm130th head training: [sm117-train] complete: 1991/1991 users, 14,314 steps, 117,252,648 rows (35,682,727 same-day), mean time loss 1.9389 / ablation 1.9987, skipped 1, trunk unchanged True, 40.7 min -> C:\Users\jonat\workspace\wt\sm138\artifacts\small-model\sm138-sm130th-head
+[sm138 11-21 10:15:51] enqueue: the six-layer Tiny two-head model (SM130): grade check (the release vs the trunk after head training, 5 users, show-time scorer rows and dumps bitwise) (expected 10 min, max wait 99987 min, 100000 min to the next window)
+[sm138 11-21 10:16:23] exit 0: the six-layer Tiny two-head model (SM130): grade check (the release vs the trunk after head training, 5 users, show-time scorer rows and dumps bitwise)
+[sm138 11-21 10:16:24] [sm117-grade] sm130th 5 users: released vs the trunk after head training bitwise True; vs the recorded show-time scores True
+[sm138 11-21 10:16:24] enqueue: the six-layer Tiny Instant-Only model (SM130): smoke (head training on 4 users: 3 small + the longest cut at 400k; time scoring of 3 users; grade check of 2 users) (expected 12 min, max wait 99985 min, 100000 min to the next window)
+[sm138 11-21 10:17:14] exit 0: the six-layer Tiny Instant-Only model (SM130): smoke (head training on 4 users: 3 small + the longest cut at 400k; time scoring of 3 users; grade check of 2 users)
+[sm138 11-21 10:17:14] sm130io smoke head training: skipped / peak GiB / seconds: 0 7.96 16.1 []
+[sm138 11-21 10:17:14] sm130io smoke: [sm117-train] step 1: time loss 2.7726 / ablation 2.7726 nats over 1,024 rows (zero output layers: ln 16 = 2.7726); [sm117-grade] sm130io 2 users: released vs the trunk after head training bitwise True; vs the recorded show-time scores True
+[sm138 11-21 10:17:15] enqueue: the six-layer Tiny Instant-Only model (SM130): head training (1,991 users, first 400k reviews each, show-time inputs, same-day reviews included, head + explicit-only ablation) (expected 90 min, max wait 99907 min, 100000 min to the next window)
+[sm138 11-21 10:57:50] exit 0: the six-layer Tiny Instant-Only model (SM130): head training (1,991 users, first 400k reviews each, show-time inputs, same-day reviews included, head + explicit-only ablation)
+[sm138 11-21 10:57:51] sm130io head training: [sm117-train] complete: 1991/1991 users, 14,314 steps, 117,252,648 rows (35,682,727 same-day), mean time loss 1.9353 / ablation 1.9987, skipped 1, trunk unchanged True, 40.5 min -> C:\Users\jonat\workspace\wt\sm138\artifacts\small-model\sm138-sm130io-head
+[sm138 11-21 10:57:51] enqueue: the six-layer Tiny Instant-Only model (SM130): grade check (the release vs the trunk after head training, 5 users, show-time scorer rows and dumps bitwise) (expected 10 min, max wait 99987 min, 100000 min to the next window)
+[sm138 11-21 10:58:23] exit 0: the six-layer Tiny Instant-Only model (SM130): grade check (the release vs the trunk after head training, 5 users, show-time scorer rows and dumps bitwise)
+[sm138 11-21 10:58:23] [sm117-grade] sm130io 5 users: released vs the trunk after head training bitwise True; vs the recorded show-time scores True
+[sm138 11-21 10:58:24] enqueue: scoring the six-layer Tiny two-head model (SM130): answer time and P(recall within S seconds) on the 732 set (723 users, pass 1, cap 0.8) (expected 30 min, max wait 99967 min, 100000 min to the next window)
+[sm138 11-21 11:12:18] exit 0: scoring the six-layer Tiny two-head model (SM130): answer time and P(recall within S seconds) on the 732 set (723 users, pass 1, cap 0.8)
+[sm138 11-21 11:12:18] sm130th scored users: 723 of 723
+[sm138 11-21 11:12:18] enqueue: scoring the six-layer Tiny Instant-Only model (SM130): answer time and P(recall within S seconds) on the 732 set (723 users, pass 1, cap 0.8) (expected 30 min, max wait 99967 min, 100000 min to the next window)
+[sm138 11-21 11:26:04] exit 0: scoring the six-layer Tiny Instant-Only model (SM130): answer time and P(recall within S seconds) on the 732 set (723 users, pass 1, cap 0.8)
+[sm138 11-21 11:26:04] sm130io scored users: 723 of 723
+[sm138 11-21 11:26:10] decide sm130th exit 0: [sm117-rule] sm130th: 722 users (0 missing): grade unchanged True; time LogLoss 1.9931 vs card's last 2.4751 / user median 2.3849; R under 10 s LogLoss 0.4772 ECE 0.0027; reliable at every S False: PASS
+[sm138 11-21 11:26:16] decide sm130io exit 0: [sm117-rule] sm130io: 722 users (0 missing): grade unchanged True; time LogLoss 1.9877 vs card's last 2.4751 / user median 2.3849; R under 10 s LogLoss 0.4757 ECE 0.0027; reliable at every S False: PASS
+[sm138 11-21 11:26:16] report exit 0: [sm117-report] 2 models: gate [('sm130th', True), ('sm130io', True)]; reliable [('sm130th', False), ('sm130io', False)] -> C:\Users\jonat\workspace\wt\sm138\artifacts\small-model\sm138\sm138-result.md
+[sm138 11-21 11:26:16] done
