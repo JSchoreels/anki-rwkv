@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-22T00:47:13+01:00",
+ "generated_at": "2026-11-22T00:47:48+01:00",
  "updated": "2026-11-22 00:47",
- "material": "83b46946a2926123",
- "summary": "running 001464, finished 001463",
+ "material": "35bb8f34a21636a2",
+ "summary": "running 001465, finished 001464",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring, show-time inputs for both heads (curve / instant)",
@@ -413,18 +413,18 @@
  "now": [
   {
    "what": "Per-user adaptation (SM143): the user&rsquo;s question of 11-21. The released models only read a new user&rsquo;s history; does adapting the model to each user from that user&rsquo;s own earlier reviews improve the later reviews, in LogLoss and above all in within-user discrimination (AUC)? A recalibration cannot change AUC, so the candidates change the network: (b) a per-user vector of 64 values added to the instant head&rsquo;s input, (c) the instant head itself (8,964 values for Small), (d) a short fine-tune of every weight with a pull back to the released weights (an upper bound, too heavy for a phone); (a) a Platt recalibration is the control. Time split = the benchmark&rsquo;s own: the 5 time-series folds of the published FSRS-7 protocol, each fold adapted only on the reviews before it and compared with FSRS-7 fitted per user on the same reviews. Pilot: 200 users of the 732 set (the full fine-tune on 50 of them); the longer Small Instant-Only model (SM113) primary, the six-layer Tiny Instant-Only model (SM130) secondary, the show-time instant-only big model (SM99) unadapted as a reference; show-time inputs, leak-free",
-   "id": "SM143, ticket 001464",
+   "id": "SM143, ticket 001465",
    "kind": "gpu",
    "decides": "Go per variant: LogLoss change vs the same model unadapted with a 95% CI below 0 and at least &minus;0.05%; then the full 722-user run. Also reported: the AUC change with its CI, the gap to FSRS-7 before and after, Small adapted vs Big, and the gain by amount of earlier history",
    "why": "",
-   "job": "Per-user adaptation (SM143): variant d (full fine-tune) + a,b,c of the longer Small Instant-Only model (SM113), the 50 users of the d subset (pass 2, 49 done, cap 0.8)",
+   "job": "Per-user adaptation (SM143): variant d (full fine-tune) + a,b,c of the longer Small Instant-Only model (SM113), the 50 users of the d subset (pass 3, 49 done, cap 0.92)",
    "linked": true,
    "track": "small model",
-   "ticket": "001464-sm143",
-   "started": "00:46",
+   "ticket": "001465-sm143",
+   "started": "00:47",
    "elapsed": "0:00",
    "progress": null,
-   "eta": "~01:11"
+   "eta": "~01:12"
   }
  ],
  "charts": [
@@ -597,6 +597,15 @@
  "waiting": [],
  "recent": [
   {
+   "ticket": "001464-sm143",
+   "id": "SM143",
+   "what": "Per-user adaptation (SM143): variant d (full fine-tune) + a,b,c of the longer Small Instant-Only model (SM113), the 50 users of the d subset (pass 2, 49 done, cap 0.8)",
+   "ended": "00:47",
+   "date": "11-22",
+   "exit": 0,
+   "ran": "0:00"
+  },
+  {
    "ticket": "001463-sm141",
    "id": "SM141",
    "what": "Tiered card state by answer count (SM141): scoring big (2 models x int8 / A / AN / B4 / B8 / D4) on e2s-query inputs, the 732 set minus 9 never-fit (723 users) (pass 2, 722 done, cap 0.8)",
@@ -640,15 +649,6 @@
    "date": "11-21",
    "exit": 0,
    "ran": "0:01"
-  },
-  {
-   "ticket": "001458-sm142",
-   "id": "SM142",
-   "what": "Answer-time expressiveness (SM142): per-review answer-time distributions of the show-time instant-only big model (SM99) (missing users, pass 2, cap 0.92)",
-   "ended": "21:26",
-   "date": "11-21",
-   "exit": 0,
-   "ran": "0:00"
   }
  ],
  "plan": [
@@ -2755,8 +2755,8 @@
    "decides": "Go per variant: LogLoss change vs the same model unadapted with a 95% CI below 0 and at least &minus;0.05%; then the full 722-user run. Also reported: the AUC change with its CI, the gap to FSRS-7 before and after, Small adapted vs Big, and the gain by amount of earlier history",
    "state": "running",
    "started_at": "2026-11-21T18:54:15+01:00",
-   "started": "00:46",
-   "ticket": "001464-sm143",
+   "started": "00:47",
+   "ticket": "001465-sm143",
    "ends_at": "2026-11-21T23:44:15+01:00"
   },
   {
