@@ -51,3 +51,7 @@ Plan row (kind `gpu`, minutes 100, match `"Answer-time expressiveness (SM142): "
 - decides: "Whether the answer-time predictions are exploitable card by card (which card is slow, which card is erratic), not only right on average; it shapes what the time features may promise in the client"
 
 Results row (fill in after `report`; kind `cpu-analysis` or as the SM137-style rows, inputs `show-time`, tickets 001444 onwards, gpu_minutes from the log): takeaway = the plain-language read-out of `sm142-result.md` section 6 (per model: curves per user, AUC vs the card median at 2 / 4 / 8 s, between-card share explained vs the card median and the ablation, the label); detail.verdict = the labels; detail.table = the summary table.
+
+## CLOSED 11-21 (evening)
+
+All five dumps verified (the show-time instant-only big model (SM99): 719 of 722 users), `analyse` run for all models (about 7 min each, `gpu/analyse-*.out`), `report` written, read-out added at the top of `sm142-result.md`. Nothing remains here; factory page rows are written by the analysis agent.
