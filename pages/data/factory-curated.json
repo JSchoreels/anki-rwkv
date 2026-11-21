@@ -2505,6 +2505,20 @@
    "ended_at": "2026-11-21T11:26+01:00"
   },
   {
+   "id": "SM142",
+   "track": "small model",
+   "kind": "gpu",
+   "minutes": 100,
+   "match": [
+    "Answer-time expressiveness (SM142): "
+   ],
+   "what": "Answer-time expressiveness (SM142): does the answer-time head give each card its own predicted time curve, in location and in shape, or only a few templates around the user&rsquo;s average? One GPU dump per model of the full predicted time distributions (4 grades &times; 16 bins) with card ids, for the longer Small Instant-Only model (SM113), the show-time two-head cool-down for Small (SM118), the six-layer Tiny two-head and Instant-Only models (SM130) and the show-time instant-only big model (SM99); then on CPU, within each user and grade: the AUC of P(answered within S s, reading the back included) against the card&rsquo;s running median, the card&rsquo;s last time and the user&rsquo;s running median; calibration slopes and the out-of-sample spread between cards; the share of the persistent card-to-card differences explained; the number of genuinely different curves per user (PCA, 10% grid) and whether wider predicted curves really vary more; and how the prediction moves over a card&rsquo;s life. A description, not a gate.",
+   "when": "Started 17:31 Sat 11-21 (queue ticket 001444 onwards): GPU about 1.5 h (five dumps), dumps done about 19:00; CPU analysis afterwards (about 1 h), read-out Sat evening or Sun morning",
+   "decides": "Whether the answer-time predictions are exploitable card by card (which card is slow, which card is erratic), not only right on average; it shapes what the time features may promise in the client",
+   "state": "running",
+   "started_at": "2026-11-21T17:31+01:00"
+  },
+  {
    "id": "SM141",
    "track": "small model",
    "kind": "gpu",
