@@ -1,6 +1,6 @@
 # Handoff v3: full run of fluency vs desired retention (SM127), 150 users
 
-**Status: running (CPU only), launched 01:28 Sat 11-21.** Branch `sm127`, worktree
+**Status: done 15:46:56 Sat 11-21 (150 of 150 rows; 3 users rerun after commit 083e5ae9). Result: sm127-result-v3.md.** Launched 01:28 Sat 11-21.
 `C:/Users/jonat/workspace/wt/sm127`. Pre-registration: [design.md](design.md) section 13 (13.0-13.6 committed in
 4b4852e2 before any v3 simulation; 13.7 amendment + CPU proof result committed in 9ff4e930, before the launch).
 Earlier: pilot ([HANDOFF.md](HANDOFF.md)), time-drift diagnostic ([HANDOFF-v2.md](HANDOFF-v2.md)).

@@ -1,0 +1,22 @@
+Traceback (most recent call last):
+  File "C:\Users\jonat\workspace\wt\sm127\scripts\sm127_fluency.py", line 1158, in <module>
+    main()
+  File "C:\Users\jonat\workspace\wt\sm127\scripts\sm127_fluency.py", line 1153, in main
+    rc = fn(a) if a.cmd != "prepare" else (fn(), 0)[1]
+         ^^^^^
+  File "C:\Users\jonat\workspace\wt\sm127\scripts\sm127_fluency.py", line 725, in run
+    eng, warm = make_engine(model, args.user, D, args.days, args.lanes.split(","), pause=pause, fix=args.fix,
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\jonat\workspace\wt\sm127\scripts\sm127_fluency.py", line 704, in make_engine
+    eng = Engine127(model, warm, D, N, lanes, b, medians_later(rev, end), pause=pause, trace=trace, fix=fix,
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\jonat\workspace\wt\sm127\scripts\sm127_fluency.py", line 247, in __init__
+    super().__init__(model, warm, D, N, list(bases), trace=trace, fsrs=None, fsrs_source="none (not used)")
+  File "C:\Users\jonat\workspace\wt\sm127\scripts\sm41_engine.py", line 593, in __init__
+    _, ti, aim = choose_interval(self.init_p, r)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\jonat\workspace\wt\sm127\scripts\sm41_engine.py", line 200, in choose_interval
+    p0, p1 = pg[rows, jm], pg[rows, j]
+             ~~^^^^^^^^^^
+TypeError: 'NoneType' object is not subscriptable
+exit 1 11-21 03:36:08
