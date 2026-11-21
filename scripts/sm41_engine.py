@@ -584,6 +584,8 @@ class Engine:
         if need_ihr and len(old_idx):
             self.init_p = self.candidates_p(np.zeros(len(old_idx), np.int64), old_idx, None,
                                             self.last_day[0, old_idx], T_GRID)
+        elif not len(old_idx):   # SM127 11-21: a user with no old card at the split; the policies get zero rows, not None
+            self.init_p = np.zeros((0, len(T_GRID)))
         for bl, c in enumerate(self.cfg):
             if c["kind"] != "policy":
                 continue

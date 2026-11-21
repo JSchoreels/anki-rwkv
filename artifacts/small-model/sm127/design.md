@@ -459,3 +459,12 @@ which is the one the full run uses:
 All bars of 13.6, as amended here, pass. Note for reading: user 1901 has a floor share of 0.97 even with its own S_u (45 s
 clip, mean answer 44 s, answers often at the cap), so for such users `flu-0.80` is a "review everything daily" policy; this
 is a property of those users and is reported through the floor share, not hidden.
+
+### 13.8 Crash fix during the full run (11-21 ~15:40; no result read)
+
+The v3 full run stopped at 15:26 with 147 of 150 rows: users 1190, 3339 and 4070 crashed in the engine's set-up
+(`sm41_engine.py` `choose_interval(self.init_p, r)` with `self.init_p = None`), because they have no old card at the
+split, so the first-interval table was never built. Fix: with no old card the table is an empty array (zero rows), so every policy lane
+starts with no scheduled old card, which is what the engine already meant. The changed line runs only when a user has
+no old card, so the 147 finished rows cannot change; they are kept, and only the three users are rerun. No table, row
+or report of the full run was read before this fix (the launcher's report step had not run).
