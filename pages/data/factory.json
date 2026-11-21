@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-21T19:11:00+01:00",
- "updated": "2026-11-21 19:11",
- "material": "8bd9bb780f654c78",
- "summary": "running 001452, finished 001451",
+ "generated_at": "2026-11-21T19:25:07+01:00",
+ "updated": "2026-11-21 19:25",
+ "material": "b1d4c7c1220683d7",
+ "summary": "running 001453, finished 001452",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring, show-time inputs for both heads (curve / instant)",
@@ -412,19 +412,19 @@
  },
  "now": [
   {
-   "what": "Answer-time expressiveness (SM142): does the answer-time head give each card its own predicted time curve, in location and in shape, or only a few templates around the user&rsquo;s average? One GPU dump per model of the full predicted time distributions (4 grades &times; 16 bins) with card ids, for the longer Small Instant-Only model (SM113), the show-time two-head cool-down for Small (SM118), the six-layer Tiny two-head and Instant-Only models (SM130) and the show-time instant-only big model (SM99); then on CPU, within each user and grade: the AUC of P(answered within S s, reading the back included) against the card&rsquo;s running median, the card&rsquo;s last time and the user&rsquo;s running median; calibration slopes and the out-of-sample spread between cards; the share of the persistent card-to-card differences explained; the number of genuinely different curves per user (PCA, 10% grid) and whether wider predicted curves really vary more; and how the prediction moves over a card&rsquo;s life. A description, not a gate.",
-   "id": "SM142, ticket 001452",
+   "what": "Tiered card state by answer count (SM141): the user&rsquo;s idea of 11-21. The fork stores a state for every answered card and note; the release-candidate format keeps int8 rows for both (Big 13,891 / 9,267 bytes per card / note, Small 2,545 / 1,315, Tiny 1,315 / 1,315), because the long-card state drift on real users (SM136) showed that int4 rows cost LogLoss on cards with 128 or more answers. Here each card and note picks its width by its own answer count at every write: int4 for normal cards, int8 once it has 128 answers, and int3 (or, as a second option, int2) for very young cards. On the 732 set the median answered card has 5 answers (P10 2, P25 3, P75 8, P90 14, P99 42; notes are similar), only 0.04% of cards reach 128 answers, and cards that were never answered store nothing at all. Five schemes against int8 everywhere, on the six release-candidate models, no retraining: int4 below 128 answers for cards only, then for cards and notes (about &minus;28% and &minus;39% to &minus;44% of the state bytes), plus int3 for the first 4 or the first 8 answers (&minus;43% to &minus;49%, &minus;46% to &minus;53%), and int2 for the first 4 answers (&minus;48% to &minus;54%). No earlier run tested 3-bit or 2-bit state; young states are read by many reviews (48% of predictions read a card state of at most 4 answers), so that is the open part. The 732 set (723 users) is scored on the GPU; the 50 users with very long cards are scored on the CPU, because there the GPU&rsquo;s rounding differs too much from the CPU&rsquo;s.",
+   "id": "SM141, ticket 001453",
    "kind": "gpu",
-   "decides": "Whether the answer-time predictions are exploitable card by card (which card is slow, which card is erratic), not only right on average; it shapes what the time features may promise in the client",
+   "decides": "Per size, the smallest scheme where both models (two-head and Instant-Only) keep every user finite, cost at most +0.05% LogLoss over the whole 732 set (95% CI upper bound, each head), cost at most +0.15% on reviews of cards with 128 or more answers, and, for the int3 / int2 schemes, at most +0.10% on reviews of young cards; if none passes, int8 stays. A pass means fork work: choosing the width by answer count (the codecs for int4 and int8 exist) and, for int3 or int2, a new codec",
    "why": "",
-   "job": "Answer-time expressiveness (SM142): per-review answer-time distributions of the show-time two-head cool-down for Small (SM118) on the 732 set (722 users, pass 1, cap 0.8)",
+   "job": "Tiered card state by answer count (SM141): scoring tiny (2 models x int8 / A / AN / B4 / B8 / D4) on e2s-query inputs, the 732 set minus 9 never-fit (723 users) (pass 3, 722 done, cap 0.8)",
    "linked": true,
    "track": "small model",
-   "ticket": "001452-sm142",
-   "started": "19:10",
+   "ticket": "001453-sm141",
+   "started": "19:24",
    "elapsed": "0:00",
    "progress": null,
-   "eta": "~19:35"
+   "eta": "~19:44"
   }
  ],
  "charts": [
@@ -596,19 +596,28 @@
  ],
  "waiting": [
   {
-   "ticket": "001453-sm141",
-   "id": "SM141",
-   "what": "Tiered card state by answer count (SM141): scoring tiny (2 models x int8 / A / AN / B4 / B8 / D4) on e2s-query inputs, the 732 set minus 9 never-fit (723 users) (pass 3, 722 done, cap 0.8)",
-   "flags": "expected 20 min"
-  },
-  {
    "ticket": "001454-sm143",
    "id": "SM143",
    "what": "Per-user adaptation (SM143): variants a,b,c of the longer Small Instant-Only model (SM113), 200 pilot users (pass 1, 0 done, cap 0.8)",
    "flags": "expected 45 min"
+  },
+  {
+   "ticket": "001455-sm142",
+   "id": "SM142",
+   "what": "Answer-time expressiveness (SM142): per-review answer-time distributions of the show-time instant-only big model (SM99) on the 732 set (722 users, pass 1, cap 0.8)",
+   "flags": "expected 35 min"
   }
  ],
  "recent": [
+  {
+   "ticket": "001452-sm142",
+   "id": "SM142",
+   "what": "Answer-time expressiveness (SM142): per-review answer-time distributions of the show-time two-head cool-down for Small (SM118) on the 732 set (722 users, pass 1, cap 0.8)",
+   "ended": "19:24",
+   "date": "11-21",
+   "exit": 0,
+   "ran": "0:14"
+  },
   {
    "ticket": "001451-sm143",
    "id": "SM143",
@@ -653,15 +662,6 @@
    "date": "11-21",
    "exit": 0,
    "ran": "0:50"
-  },
-  {
-   "ticket": "001446-sm142",
-   "id": "SM142",
-   "what": "Answer-time expressiveness (SM142): per-review answer-time distributions of the six-layer Tiny Instant-Only model (SM130) on the 732 set (722 users, pass 1, cap 0.8)",
-   "ended": "18:03",
-   "date": "11-21",
-   "exit": 0,
-   "ran": "0:16"
   }
  ],
  "plan": [
@@ -2778,11 +2778,9 @@
    "what": "Answer-time expressiveness (SM142): does the answer-time head give each card its own predicted time curve, in location and in shape, or only a few templates around the user&rsquo;s average? One GPU dump per model of the full predicted time distributions (4 grades &times; 16 bins) with card ids, for the longer Small Instant-Only model (SM113), the show-time two-head cool-down for Small (SM118), the six-layer Tiny two-head and Instant-Only models (SM130) and the show-time instant-only big model (SM99); then on CPU, within each user and grade: the AUC of P(answered within S s, reading the back included) against the card&rsquo;s running median, the card&rsquo;s last time and the user&rsquo;s running median; calibration slopes and the out-of-sample spread between cards; the share of the persistent card-to-card differences explained; the number of genuinely different curves per user (PCA, 10% grid) and whether wider predicted curves really vary more; and how the prediction moves over a card&rsquo;s life. A description, not a gate.",
    "when": "Started 17:31 Sat 11-21 (queue ticket 001444 onwards): GPU about 1.5 h (five dumps), dumps done about 19:00; CPU analysis afterwards (about 1 h), read-out Sat evening or Sun morning",
    "decides": "Whether the answer-time predictions are exploitable card by card (which card is slow, which card is erratic), not only right on average; it shapes what the time features may promise in the client",
-   "state": "running",
-   "started_at": "2026-11-21T17:31:24+01:00",
-   "started": "19:10",
-   "ticket": "001452-sm142",
-   "ends_at": "2026-11-21T19:11:24+01:00"
+   "state": "waiting",
+   "started_at": "2026-11-21T17:31+01:00",
+   "ticket": "001455-sm142"
   },
   {
    "id": "SM141",
@@ -2792,9 +2790,11 @@
    "what": "Tiered card state by answer count (SM141): the user&rsquo;s idea of 11-21. The fork stores a state for every answered card and note; the release-candidate format keeps int8 rows for both (Big 13,891 / 9,267 bytes per card / note, Small 2,545 / 1,315, Tiny 1,315 / 1,315), because the long-card state drift on real users (SM136) showed that int4 rows cost LogLoss on cards with 128 or more answers. Here each card and note picks its width by its own answer count at every write: int4 for normal cards, int8 once it has 128 answers, and int3 (or, as a second option, int2) for very young cards. On the 732 set the median answered card has 5 answers (P10 2, P25 3, P75 8, P90 14, P99 42; notes are similar), only 0.04% of cards reach 128 answers, and cards that were never answered store nothing at all. Five schemes against int8 everywhere, on the six release-candidate models, no retraining: int4 below 128 answers for cards only, then for cards and notes (about &minus;28% and &minus;39% to &minus;44% of the state bytes), plus int3 for the first 4 or the first 8 answers (&minus;43% to &minus;49%, &minus;46% to &minus;53%), and int2 for the first 4 answers (&minus;48% to &minus;54%). No earlier run tested 3-bit or 2-bit state; young states are read by many reviews (48% of predictions read a card state of at most 4 answers), so that is the open part. The 732 set (723 users) is scored on the GPU; the 50 users with very long cards are scored on the CPU, because there the GPU&rsquo;s rounding differs too much from the CPU&rsquo;s.",
    "when": "Launched 17:38 Sat 11-21 (detached launcher, queue ticket 001445 onwards): a GPU smoke first, then Tiny, Small and Big on the 732 set (about 4.5 GPU hours in the FIFO queue), while the CPU scores the long-card users (about 4-6 hours, in parallel). Result expected about 23:00 Sat 11-21 to 01:00 Sun 11-22",
    "decides": "Per size, the smallest scheme where both models (two-head and Instant-Only) keep every user finite, cost at most +0.05% LogLoss over the whole 732 set (95% CI upper bound, each head), cost at most +0.15% on reviews of cards with 128 or more answers, and, for the int3 / int2 schemes, at most +0.10% on reviews of young cards; if none passes, int8 stays. A pass means fork work: choosing the width by answer count (the codecs for int4 and int8 exist) and, for int3 or int2, a new codec",
-   "state": "waiting",
-   "started_at": "2026-11-21T17:38+01:00",
-   "ticket": "001453-sm141"
+   "state": "running",
+   "started_at": "2026-11-21T17:46:31+01:00",
+   "started": "19:24",
+   "ticket": "001453-sm141",
+   "ends_at": "2026-11-21T22:46:31+01:00"
   },
   {
    "id": "SM140",
