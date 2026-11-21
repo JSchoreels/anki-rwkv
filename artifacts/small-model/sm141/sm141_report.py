@@ -289,7 +289,9 @@ def report():
         common = set(old.get(L, {})) & set(r732.get(L, {}))
         integ[key] = {"users": len(common), "max_abs_benchmark_logloss": max(
             (abs(old[L][u]["benchmark"][h]["LogLoss"] - r732[L][u]["benchmark"][h]["LogLoss"])
-             for u in common for h in old[L][u]["benchmark"] if h in r732[L][u]["benchmark"]), default=None)}
+             for u in common for h in old[L][u]["benchmark"]
+             if isinstance(old[L][u]["benchmark"][h], dict) and isinstance(r732[L][u]["benchmark"].get(h), dict)),
+            default=None)}   # 11-22 00:49: skip the scalar fields (size, *_coverage) of the benchmark dict
         lc = set(rl.get(L, {})) & set(r732.get(L, {}))
         diffs = []
         for u in lc:
