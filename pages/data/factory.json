@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-21T08:38:06+01:00",
- "updated": "2026-11-21 08:38",
- "material": "a83cc0c69cea2f0d",
- "summary": "running 001411, finished 001410",
+ "generated_at": "2026-11-21T08:49:03+01:00",
+ "updated": "2026-11-21 08:49",
+ "material": "eb42356ae3829111",
+ "summary": "idle, finished 001411",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring, show-time inputs for both heads (curve / instant)",
@@ -410,23 +410,7 @@
    }
   ]
  },
- "now": [
-  {
-   "what": "Trained smaller state for Tiny (SM137): the six-layer Tiny (SM130)&rsquo;s card and note state cut to 8 of the 16 key lanes of every head (all 16 value rows kept), so a card and a note each store 803 bytes instead of 1,315 at the release-candidate format (39% less). The model zeroes the dropped lanes, the stored state keeps exact zeros, and the fork needs only a storage change. Pilot: one constant-LR Instant-Only epoch from the cut of SM130&rsquo;s epoch 41, compared with the same epoch without the cut from the six-layer Tiny with longer recovery (SM135); show-time inputs, leak-free, 732 set",
-   "id": "SM137, ticket 001411",
-   "kind": "gpu",
-   "decides": "Pilot: continue if the cut costs at most +0.30% instant against the same epoch without the cut (otherwise one more pilot keeping 12 key lanes, 1,059 bytes; stop above +5% or on a non-finite user). Final, per chain: go if every trained head&rsquo;s 95% CI upper bound is &le; +1.00% vs Small (the longer Small Instant-Only model (SM113), the show-time two-head cool-down for Small (SM118)) at the release-candidate format, and on cards with 128 or more answers the extra cost stays &le; +0.25%",
-   "why": "",
-   "job": "Trained smaller state for Tiny (SM137): scoring sm130-io-dec2ep32k-t99 at w8+s8hx8 on e2s-query inputs, the 732 set minus 9 never-fit (723 users) (pass 1, 0 done, cap 0.8)",
-   "linked": true,
-   "track": "small model",
-   "ticket": "001411-sm137",
-   "started": "08:38",
-   "elapsed": "0:00",
-   "progress": null,
-   "eta": "~09:03"
-  }
- ],
+ "now": [],
  "charts": [
   {
    "title": "Small model, leak-free (SM72s): LogLoss per epoch, 458-user set (lower is better)",
@@ -597,6 +581,15 @@
  "waiting": [],
  "recent": [
   {
+   "ticket": "001411-sm137",
+   "id": "SM137",
+   "what": "Trained smaller state for Tiny (SM137): scoring sm130-io-dec2ep32k-t99 at w8+s8hx8 on e2s-query inputs, the 732 set minus 9 never-fit (723 users) (pass 1, 0 done, cap 0.8)",
+   "ended": "08:48",
+   "date": "11-21",
+   "exit": 0,
+   "ran": "0:10"
+  },
+  {
    "ticket": "001410-sm137",
    "id": "SM137",
    "what": "Trained smaller state for Tiny (SM137): scoring sm137-io-v16k8-dec2ep32k-t99 at w8+s8 w8+s8hx8 on e2s-query inputs, the 732 set minus 9 never-fit (723 users) (pass 3, 722 done, cap 0.8)",
@@ -640,15 +633,6 @@
    "date": "11-21",
    "exit": 0,
    "ran": "0:00"
-  },
-  {
-   "ticket": "001405-sm137",
-   "id": "SM137",
-   "what": "Trained smaller state for Tiny (SM137): Instant-Only cool-down pass 1 of 2 (32k Muon, 7e-4 -&gt; 0.29 x peak, w64-c1-d2p1u1-v16k8, from sm137-io-v16k8-e42-st, instant head only) (segment to the next quiet window or the end)",
-   "ended": "05:51",
-   "date": "11-21",
-   "exit": 0,
-   "ran": "2:31"
   }
  ],
  "plan": [
@@ -2728,11 +2712,12 @@
    "what": "Trained smaller state for Tiny (SM137): the six-layer Tiny (SM130)&rsquo;s card and note state cut to 8 of the 16 key lanes of every head (all 16 value rows kept), so a card and a note each store 803 bytes instead of 1,315 at the release-candidate format (39% less). The model zeroes the dropped lanes, the stored state keeps exact zeros, and the fork needs only a storage change. Pilot: one constant-LR Instant-Only epoch from the cut of SM130&rsquo;s epoch 41, compared with the same epoch without the cut from the six-layer Tiny with longer recovery (SM135); show-time inputs, leak-free, 732 set",
    "when": "Running since 01:31 Sat 11-21. Pilot done 02:58: <strong>go</strong> (+0.065% instant vs the same epoch without the cut). Full plan running since 03:19 (queue ticket 001404 onwards): the Instant-Only two-pass cool-down (about 5.5 GPU h), final scoring and the long-card CPU check, Instant-Only verdict expected about 10:15 Sat 11-21; then, only if it goes, the two-head chain (one lane epoch with an early check, the two-pass cool-down, scoring, long-card check), two-head verdict expected about 18:30 Sat 11-21",
    "decides": "Pilot: continue if the cut costs at most +0.30% instant against the same epoch without the cut (otherwise one more pilot keeping 12 key lanes, 1,059 bytes; stop above +5% or on a non-finite user). Final, per chain: go if every trained head&rsquo;s 95% CI upper bound is &le; +1.00% vs Small (the longer Small Instant-Only model (SM113), the show-time two-head cool-down for Small (SM118)) at the release-candidate format, and on cards with 128 or more answers the extra cost stays &le; +0.25%",
-   "state": "running",
+   "state": "done",
    "started_at": "2026-11-21T01:31:59+01:00",
-   "started": "08:38",
-   "ticket": "001411-sm137",
-   "ends_at": "2026-11-21T18:31:59+01:00"
+   "ended": "08:48",
+   "exit": 0,
+   "started": "01:31",
+   "ended_at": "2026-11-21T08:48:37+01:00"
   },
   {
    "id": "SM124",
