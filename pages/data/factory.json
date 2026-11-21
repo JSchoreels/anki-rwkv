@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-21T19:10:25+01:00",
- "updated": "2026-11-21 19:10",
- "material": "b1b6542acba0c16b",
- "summary": "running 001451, finished 001450",
+ "generated_at": "2026-11-21T19:11:00+01:00",
+ "updated": "2026-11-21 19:11",
+ "material": "8bd9bb780f654c78",
+ "summary": "running 001452, finished 001451",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring, show-time inputs for both heads (curve / instant)",
@@ -412,19 +412,19 @@
  },
  "now": [
   {
-   "what": "Per-user adaptation (SM143): the user&rsquo;s question of 11-21. The released models only read a new user&rsquo;s history; does adapting the model to each user from that user&rsquo;s own earlier reviews improve the later reviews, in LogLoss and above all in within-user discrimination (AUC)? A recalibration cannot change AUC, so the candidates change the network: (b) a per-user vector of 64 values added to the instant head&rsquo;s input, (c) the instant head itself (8,964 values for Small), (d) a short fine-tune of every weight with a pull back to the released weights (an upper bound, too heavy for a phone); (a) a Platt recalibration is the control. Time split = the benchmark&rsquo;s own: the 5 time-series folds of the published FSRS-7 protocol, each fold adapted only on the reviews before it and compared with FSRS-7 fitted per user on the same reviews. Pilot: 200 users of the 732 set (the full fine-tune on 50 of them); the longer Small Instant-Only model (SM113) primary, the six-layer Tiny Instant-Only model (SM130) secondary, the show-time instant-only big model (SM99) unadapted as a reference; show-time inputs, leak-free",
-   "id": "SM143, ticket 001451",
+   "what": "Answer-time expressiveness (SM142): does the answer-time head give each card its own predicted time curve, in location and in shape, or only a few templates around the user&rsquo;s average? One GPU dump per model of the full predicted time distributions (4 grades &times; 16 bins) with card ids, for the longer Small Instant-Only model (SM113), the show-time two-head cool-down for Small (SM118), the six-layer Tiny two-head and Instant-Only models (SM130) and the show-time instant-only big model (SM99); then on CPU, within each user and grade: the AUC of P(answered within S s, reading the back included) against the card&rsquo;s running median, the card&rsquo;s last time and the user&rsquo;s running median; calibration slopes and the out-of-sample spread between cards; the share of the persistent card-to-card differences explained; the number of genuinely different curves per user (PCA, 10% grid) and whether wider predicted curves really vary more; and how the prediction moves over a card&rsquo;s life. A description, not a gate.",
+   "id": "SM142, ticket 001452",
    "kind": "gpu",
-   "decides": "Go per variant: LogLoss change vs the same model unadapted with a 95% CI below 0 and at least &minus;0.05%; then the full 722-user run. Also reported: the AUC change with its CI, the gap to FSRS-7 before and after, Small adapted vs Big, and the gain by amount of earlier history",
+   "decides": "Whether the answer-time predictions are exploitable card by card (which card is slow, which card is erratic), not only right on average; it shapes what the time features may promise in the client",
    "why": "",
-   "job": "Per-user adaptation (SM143): GPU real-step smoke: every variant with its steps on user 2388",
+   "job": "Answer-time expressiveness (SM142): per-review answer-time distributions of the show-time two-head cool-down for Small (SM118) on the 732 set (722 users, pass 1, cap 0.8)",
    "linked": true,
    "track": "small model",
-   "ticket": "001451-sm143",
-   "started": "19:09",
+   "ticket": "001452-sm142",
+   "started": "19:10",
    "elapsed": "0:00",
    "progress": null,
-   "eta": "~19:29"
+   "eta": "~19:35"
   }
  ],
  "charts": [
@@ -596,19 +596,28 @@
  ],
  "waiting": [
   {
-   "ticket": "001452-sm142",
-   "id": "SM142",
-   "what": "Answer-time expressiveness (SM142): per-review answer-time distributions of the show-time two-head cool-down for Small (SM118) on the 732 set (722 users, pass 1, cap 0.8)",
-   "flags": "expected 25 min"
-  },
-  {
    "ticket": "001453-sm141",
    "id": "SM141",
    "what": "Tiered card state by answer count (SM141): scoring tiny (2 models x int8 / A / AN / B4 / B8 / D4) on e2s-query inputs, the 732 set minus 9 never-fit (723 users) (pass 3, 722 done, cap 0.8)",
    "flags": "expected 20 min"
+  },
+  {
+   "ticket": "001454-sm143",
+   "id": "SM143",
+   "what": "Per-user adaptation (SM143): variants a,b,c of the longer Small Instant-Only model (SM113), 200 pilot users (pass 1, 0 done, cap 0.8)",
+   "flags": "expected 45 min"
   }
  ],
  "recent": [
+  {
+   "ticket": "001451-sm143",
+   "id": "SM143",
+   "what": "Per-user adaptation (SM143): GPU real-step smoke: every variant with its steps on user 2388",
+   "ended": "19:10",
+   "date": "11-21",
+   "exit": 0,
+   "ran": "0:00"
+  },
   {
    "ticket": "001450-sm141",
    "id": "SM141",
@@ -653,15 +662,6 @@
    "date": "11-21",
    "exit": 0,
    "ran": "0:16"
-  },
-  {
-   "ticket": "001445-sm141",
-   "id": "SM141",
-   "what": "Tiered card state by answer count (SM141): GPU smoke: tier kernel self-test + 3 users (2 small, 1 long-card), 6 models x 7 labels, vs the CPU rows",
-   "ended": "17:47",
-   "date": "11-21",
-   "exit": 0,
-   "ran": "0:00"
   }
  ],
  "plan": [
@@ -2766,11 +2766,9 @@
    "what": "Per-user adaptation (SM143): the user&rsquo;s question of 11-21. The released models only read a new user&rsquo;s history; does adapting the model to each user from that user&rsquo;s own earlier reviews improve the later reviews, in LogLoss and above all in within-user discrimination (AUC)? A recalibration cannot change AUC, so the candidates change the network: (b) a per-user vector of 64 values added to the instant head&rsquo;s input, (c) the instant head itself (8,964 values for Small), (d) a short fine-tune of every weight with a pull back to the released weights (an upper bound, too heavy for a phone); (a) a Platt recalibration is the control. Time split = the benchmark&rsquo;s own: the 5 time-series folds of the published FSRS-7 protocol, each fold adapted only on the reviews before it and compared with FSRS-7 fitted per user on the same reviews. Pilot: 200 users of the 732 set (the full fine-tune on 50 of them); the longer Small Instant-Only model (SM113) primary, the six-layer Tiny Instant-Only model (SM130) secondary, the show-time instant-only big model (SM99) unadapted as a reference; show-time inputs, leak-free",
    "when": "Queued 17:56 Sat 11-21 behind the answer-time expressiveness (SM142) and the tiered card state (SM141); about 4.8 GPU hours over 6 tickets; result expected about 00:30 to 02:00 Sun 11-22",
    "decides": "Go per variant: LogLoss change vs the same model unadapted with a 95% CI below 0 and at least &minus;0.05%; then the full 722-user run. Also reported: the AUC change with its CI, the gap to FSRS-7 before and after, Small adapted vs Big, and the gain by amount of earlier history",
-   "state": "running",
-   "started_at": "2026-11-21T18:54:15+01:00",
-   "started": "19:09",
-   "ticket": "001451-sm143",
-   "ends_at": "2026-11-21T23:44:15+01:00"
+   "state": "waiting",
+   "started_at": "2026-11-21T17:56+01:00",
+   "ticket": "001454-sm143"
   },
   {
    "id": "SM142",
@@ -2780,9 +2778,11 @@
    "what": "Answer-time expressiveness (SM142): does the answer-time head give each card its own predicted time curve, in location and in shape, or only a few templates around the user&rsquo;s average? One GPU dump per model of the full predicted time distributions (4 grades &times; 16 bins) with card ids, for the longer Small Instant-Only model (SM113), the show-time two-head cool-down for Small (SM118), the six-layer Tiny two-head and Instant-Only models (SM130) and the show-time instant-only big model (SM99); then on CPU, within each user and grade: the AUC of P(answered within S s, reading the back included) against the card&rsquo;s running median, the card&rsquo;s last time and the user&rsquo;s running median; calibration slopes and the out-of-sample spread between cards; the share of the persistent card-to-card differences explained; the number of genuinely different curves per user (PCA, 10% grid) and whether wider predicted curves really vary more; and how the prediction moves over a card&rsquo;s life. A description, not a gate.",
    "when": "Started 17:31 Sat 11-21 (queue ticket 001444 onwards): GPU about 1.5 h (five dumps), dumps done about 19:00; CPU analysis afterwards (about 1 h), read-out Sat evening or Sun morning",
    "decides": "Whether the answer-time predictions are exploitable card by card (which card is slow, which card is erratic), not only right on average; it shapes what the time features may promise in the client",
-   "state": "waiting",
-   "started_at": "2026-11-21T17:31+01:00",
-   "ticket": "001452-sm142"
+   "state": "running",
+   "started_at": "2026-11-21T17:31:24+01:00",
+   "started": "19:10",
+   "ticket": "001452-sm142",
+   "ends_at": "2026-11-21T19:11:24+01:00"
   },
   {
    "id": "SM141",
