@@ -56,6 +56,8 @@ LN_VAL = np.r_[(LOG_LO[:-1] + LOG_HI[:-1]) / 2, math.log(60.0)]   # bin value in
 HEAD_DIRS = {k: Path(f"C:/Users/jonat/workspace/wt/sm117/artifacts/small-model/sm117-{k}-head")
              for k in ("sm106", "sm98", "sm101", "sm99", "sm91s2", "sm92")}
 HEAD_DIRS.update({k: Path(f"C:/Users/jonat/workspace/wt/sm119/artifacts/small-model/sm119-{k}-head") for k in ("sm113", "sm115", "sm118")})
+# SM140 (rolling recalibration for the six-layer Tiny): the answer-time heads of SM138 for the two six-layer Tiny models (SM130), read only
+HEAD_DIRS.update({k: Path(f"C:/Users/jonat/workspace/wt/sm138/artifacts/small-model/sm138-{k}-head") for k in ("sm130th", "sm130io")})
 SM117_ROWS = Path("C:/Users/jonat/workspace/wt/sm117/artifacts/small-model/sm117/gpu")
 
 
