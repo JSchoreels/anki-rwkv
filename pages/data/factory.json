@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-21T12:19:07+01:00",
- "updated": "2026-11-21 12:19",
- "material": "403e0b60b5e82f29",
- "summary": "running 001424, finished 001423",
+ "generated_at": "2026-11-21T13:01:01+01:00",
+ "updated": "2026-11-21 13:01",
+ "material": "bda9afb60a5268de",
+ "summary": "running 001425, finished 001424",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring, show-time inputs for both heads (curve / instant)",
@@ -413,18 +413,18 @@
  "now": [
   {
    "what": "Release-candidate checks for the family (SM139): no training. The six models of the next family release (Big: the show-time big model (SM91s2) and the show-time instant-only big model (SM99), unchanged; Small: the show-time two-head cool-down for Small (SM118) and the longer Small Instant-Only model (SM113); Tiny: the six-layer Tiny two-head and Instant-Only models (SM130)) scored in the release-candidate state format (int8 card rows with float16 row scales and int8 shifts, plus the compact note format; user decision 11-21) and in the published format, together with the published 11-13 Small and Tiny models, on the 732 set (722 users) and on 765 more validation users of the 1,500 pool; show-time inputs, leak-free",
-   "id": "SM139, ticket 001424",
+   "id": "SM139, ticket 001425",
    "kind": "gpu",
    "decides": "Pre-registered checks per release candidate: every user finite in the release-candidate format, and the format cost (release-candidate format vs the same model in the published format) with a 95% CI upper bound of at most +0.05% per trained head on both user sets (earlier format experiments measured about +0.001%). Report only, no go / no-go: what users get from the update, each candidate in the release-candidate format vs the published 11-13 model of its size and kind",
    "why": "",
-   "job": "Release-candidate checks for the family (SM139): scoring small (sm118-e26-dec2ep32k-t91s2/w8+s8 sm118-e26-dec2ep32k-t91s2/w8+s8hx8 sm113-inst-e35st-st-dec2ep32k-t99/w8+s8 sm113-inst-e35st-st-dec2ep32k-t99/w8+s8hx8 sm92-e26-dec1ep32k/w8+s8 sm98-inst-e35st-st-dec1ep32k/w8+s8) on e2s-query inputs, the 732 set minus 9 never-fit (723 users) (pass 1, 0 done, cap 0.8)",
+   "job": "Release-candidate checks for the family (SM139): scoring small (sm118-e26-dec2ep32k-t91s2/w8+s8 sm118-e26-dec2ep32k-t91s2/w8+s8hx8 sm113-inst-e35st-st-dec2ep32k-t99/w8+s8 sm113-inst-e35st-st-dec2ep32k-t99/w8+s8hx8 sm92-e26-dec1ep32k/w8+s8 sm98-inst-e35st-st-dec1ep32k/w8+s8) on e2s-query inputs, the 732 set minus 9 never-fit (723 users) (pass 2, 721 done, cap 0.8)",
    "linked": true,
    "track": "small model",
-   "ticket": "001424-sm139",
-   "started": "12:18",
+   "ticket": "001425-sm139",
+   "started": "13:00",
    "elapsed": "0:00",
    "progress": null,
-   "eta": "~13:08"
+   "eta": "~13:20"
   }
  ],
  "charts": [
@@ -597,6 +597,15 @@
  "waiting": [],
  "recent": [
   {
+   "ticket": "001424-sm139",
+   "id": "SM139",
+   "what": "Release-candidate checks for the family (SM139): scoring small (sm118-e26-dec2ep32k-t91s2/w8+s8 sm118-e26-dec2ep32k-t91s2/w8+s8hx8 sm113-inst-e35st-st-dec2ep32k-t99/w8+s8 sm113-inst-e35st-st-dec2ep32k-t99/w8+s8hx8 sm92-e26-dec1ep32k/w8+s8 sm98-inst-e35st-st-dec1ep32k/w8+s8) on e2s-query inputs, the 732 set minus 9 never-fit (723 users) (pass 1, 0 done, cap 0.8)",
+   "ended": "13:00",
+   "date": "11-21",
+   "exit": 0,
+   "ran": "0:41"
+  },
+  {
    "ticket": "001423-sm139",
    "id": "SM139",
    "what": "Release-candidate checks for the family (SM139): scoring tiny (sm130-th-dec2ep32k-t91s2/w8+s8 sm130-th-dec2ep32k-t91s2/w8+s8hx8 sm130-io-dec2ep32k-t99/w8+s8 sm130-io-dec2ep32k-t99/w8+s8hx8 sm106-c1-e29st-st-dec1ep32k/w8+s8 sm101-c1-e38st-st-dec1ep32k/w8+s8) on e2s-query inputs, the 732 set minus 9 never-fit (723 users) (pass 3, 721 done, cap 0.92)",
@@ -637,15 +646,6 @@
    "id": "SM138",
    "what": "Answer-time heads for the six-layer Tiny (SM138): scoring the six-layer Tiny Instant-Only model (SM130): answer time and P(recall within S seconds) on the 732 set (723 users, pass 1, cap 0.8)",
    "ended": "11:26",
-   "date": "11-21",
-   "exit": 0,
-   "ran": "0:13"
-  },
-  {
-   "ticket": "001418-sm138",
-   "id": "SM138",
-   "what": "Answer-time heads for the six-layer Tiny (SM138): scoring the six-layer Tiny two-head model (SM130): answer time and P(recall within S seconds) on the 732 set (723 users, pass 1, cap 0.8)",
-   "ended": "11:12",
    "date": "11-21",
    "exit": 0,
    "ran": "0:13"
@@ -2754,8 +2754,8 @@
    "decides": "Pre-registered checks per release candidate: every user finite in the release-candidate format, and the format cost (release-candidate format vs the same model in the published format) with a 95% CI upper bound of at most +0.05% per trained head on both user sets (earlier format experiments measured about +0.001%). Report only, no go / no-go: what users get from the update, each candidate in the release-candidate format vs the published 11-13 model of its size and kind",
    "state": "running",
    "started_at": "2026-11-21T11:46:00+01:00",
-   "started": "12:18",
-   "ticket": "001424-sm139",
+   "started": "13:00",
+   "ticket": "001425-sm139",
    "ends_at": "2026-11-21T18:26:00+01:00"
   },
   {
