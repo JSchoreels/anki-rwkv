@@ -1,0 +1,60 @@
+[sm119 11-16 17:45:27] started: 17e0ea19 Time heads for the new candidates (SM119): launcher (DRYRUN=0; models sm113 sm115)
+[sm119 11-16 17:45:27] waiting for the show-time two-head cool-down for Small (SM118) to end (no done / STOP line in its launcher log yet)
+[sm119 11-16 18:45:28] waiting for the show-time two-head cool-down for Small (SM118) to end (no done / STOP line in its launcher log yet)
+[sm119 11-16 19:45:28] waiting for the show-time two-head cool-down for Small (SM118) to end (no done / STOP line in its launcher log yet)
+[sm119 11-16 20:45:29] waiting for the show-time two-head cool-down for Small (SM118) to end (no done / STOP line in its launcher log yet)
+[sm119 11-16 21:45:29] waiting for the show-time two-head cool-down for Small (SM118) to end (no done / STOP line in its launcher log yet)
+[sm119 11-16 22:45:29] waiting for the show-time two-head cool-down for Small (SM118) to end (no done / STOP line in its launcher log yet)
+[sm119 11-16 23:45:30] waiting for the show-time two-head cool-down for Small (SM118) to end (no done / STOP line in its launcher log yet)
+[sm119 11-17 00:45:30] waiting for the show-time two-head cool-down for Small (SM118) to end (no done / STOP line in its launcher log yet)
+[sm119 11-17 01:45:31] waiting for the show-time two-head cool-down for Small (SM118) to end (no done / STOP line in its launcher log yet)
+[sm119 11-17 02:45:31] waiting for the show-time two-head cool-down for Small (SM118) to end (no done / STOP line in its launcher log yet)
+[sm119 11-17 03:45:31] waiting for the show-time two-head cool-down for Small (SM118) to end (no done / STOP line in its launcher log yet)
+[sm119 11-17 04:00:31] the show-time two-head cool-down for Small (SM118) has ended: [sm118 11-17 03:55:44] done (verdict go)
+[sm119 11-17 04:00:32] SM118 verdict go: its final model is added (sha256 b4fe1175d25a7e6abff70e87ac0af1f4d76db9622d54f7cb53196fbf35117eb6); models: sm113 sm115 sm118
+[sm119 11-17 04:00:32] plan (SM117's, read only): 1,991 users, 136,132,251 of 145,578,259 reviews (cap 400,000), 117,634,406 labelled rows (35,727,965 same-day)
+[sm119 11-17 04:00:33] CPU proof: SM117's (PASS at dfb04d14 (artifacts/small-model/sm117/check-cpu-sm117.json, 22 checks, 187 s, 2026-11-15 01:09)); only the model table differs
+[sm119 11-17 04:00:33] enqueue: the longer Small Instant-Only model (SM113): smoke (head training on 4 users: 3 small + the longest cut at 400k; time scoring of 3 users; grade check of 2 users) (expected 12 min, max wait 944 min, 959 min to the next window)
+[sm119 11-17 04:01:20] exit 0: the longer Small Instant-Only model (SM113): smoke (head training on 4 users: 3 small + the longest cut at 400k; time scoring of 3 users; grade check of 2 users)
+[sm119 11-17 04:01:21] sm113 smoke head training: skipped / peak GiB / seconds: 0 8.32 16.1 []
+[sm119 11-17 04:01:21] sm113 smoke: [sm117-train] step 1: time loss 2.7726 / ablation 2.7726 nats over 1,024 rows (zero output layers: ln 16 = 2.7726); [sm117-grade] sm113 2 users: released vs the trunk after head training bitwise True; vs the recorded show-time scores True
+[sm119 11-17 04:01:21] enqueue: the longer Small Instant-Only model (SM113): head training (1,991 users, first 400k reviews each, show-time inputs, same-day reviews included, head + explicit-only ablation) (expected 90 min, max wait 865 min, 958 min to the next window)
+[sm119 11-17 04:43:37] exit 0: the longer Small Instant-Only model (SM113): head training (1,991 users, first 400k reviews each, show-time inputs, same-day reviews included, head + explicit-only ablation)
+[sm119 11-17 04:43:37] sm113 head training: [sm117-train] complete: 1991/1991 users, 14,314 steps, 117,252,648 rows (35,682,727 same-day), mean time loss 1.9128 / ablation 1.9984, skipped 1, trunk unchanged True, 42.2 min -> C:\Users\jonat\workspace\wt\sm119\artifacts\small-model\sm119-sm113-head
+[sm119 11-17 04:43:37] enqueue: the longer Small Instant-Only model (SM113): grade check (the release vs the trunk after head training, 5 users, show-time scorer rows and dumps bitwise) (expected 10 min, max wait 903 min, 916 min to the next window)
+[sm119 11-17 04:44:08] exit 0: the longer Small Instant-Only model (SM113): grade check (the release vs the trunk after head training, 5 users, show-time scorer rows and dumps bitwise)
+[sm119 11-17 04:44:08] [sm117-grade] sm113 5 users: released vs the trunk after head training bitwise True; vs the recorded show-time scores True
+[sm119 11-17 04:44:08] enqueue: the longer cool-down for Tiny (SM115): smoke (head training on 4 users: 3 small + the longest cut at 400k; time scoring of 3 users; grade check of 2 users) (expected 12 min, max wait 900 min, 915 min to the next window)
+[sm119 11-17 04:44:53] exit 0: the longer cool-down for Tiny (SM115): smoke (head training on 4 users: 3 small + the longest cut at 400k; time scoring of 3 users; grade check of 2 users)
+[sm119 11-17 04:44:54] sm115 smoke head training: skipped / peak GiB / seconds: 0 8.32 15.7 []
+[sm119 11-17 04:44:54] sm115 smoke: [sm117-train] step 1: time loss 2.7726 / ablation 2.7726 nats over 1,024 rows (zero output layers: ln 16 = 2.7726); [sm117-grade] sm115 2 users: released vs the trunk after head training bitwise True; vs the recorded show-time scores True
+[sm119 11-17 04:44:54] enqueue: the longer cool-down for Tiny (SM115): head training (1,991 users, first 400k reviews each, show-time inputs, same-day reviews included, head + explicit-only ablation) (expected 90 min, max wait 822 min, 915 min to the next window)
+[sm119 11-17 05:26:50] exit 0: the longer cool-down for Tiny (SM115): head training (1,991 users, first 400k reviews each, show-time inputs, same-day reviews included, head + explicit-only ablation)
+[sm119 11-17 05:26:50] sm115 head training: [sm117-train] complete: 1991/1991 users, 14,314 steps, 117,252,648 rows (35,682,727 same-day), mean time loss 1.9160 / ablation 1.9984, skipped 1, trunk unchanged True, 41.9 min -> C:\Users\jonat\workspace\wt\sm119\artifacts\small-model\sm119-sm115-head
+[sm119 11-17 05:26:50] enqueue: the longer cool-down for Tiny (SM115): grade check (the release vs the trunk after head training, 5 users, show-time scorer rows and dumps bitwise) (expected 10 min, max wait 860 min, 873 min to the next window)
+[sm119 11-17 05:27:21] exit 0: the longer cool-down for Tiny (SM115): grade check (the release vs the trunk after head training, 5 users, show-time scorer rows and dumps bitwise)
+[sm119 11-17 05:27:21] [sm117-grade] sm115 5 users: released vs the trunk after head training bitwise True; vs the recorded show-time scores True
+[sm119 11-17 05:27:22] enqueue: the show-time two-head cool-down for Small (SM118): smoke (head training on 4 users: 3 small + the longest cut at 400k; time scoring of 3 users; grade check of 2 users) (expected 12 min, max wait 857 min, 872 min to the next window)
+[sm119 11-17 05:28:07] exit 0: the show-time two-head cool-down for Small (SM118): smoke (head training on 4 users: 3 small + the longest cut at 400k; time scoring of 3 users; grade check of 2 users)
+[sm119 11-17 05:28:07] sm118 smoke head training: skipped / peak GiB / seconds: 0 8.32 15.7 []
+[sm119 11-17 05:28:07] sm118 smoke: [sm117-train] step 1: time loss 2.7726 / ablation 2.7726 nats over 1,024 rows (zero output layers: ln 16 = 2.7726); [sm117-grade] sm118 2 users: released vs the trunk after head training bitwise True; vs the recorded show-time scores True
+[sm119 11-17 05:28:07] enqueue: the show-time two-head cool-down for Small (SM118): head training (1,991 users, first 400k reviews each, show-time inputs, same-day reviews included, head + explicit-only ablation) (expected 90 min, max wait 778 min, 871 min to the next window)
+[sm119 11-17 06:11:29] exit 0: the show-time two-head cool-down for Small (SM118): head training (1,991 users, first 400k reviews each, show-time inputs, same-day reviews included, head + explicit-only ablation)
+[sm119 11-17 06:11:29] sm118 head training: [sm117-train] complete: 1991/1991 users, 14,314 steps, 117,252,648 rows (35,682,727 same-day), mean time loss 1.9193 / ablation 1.9984, skipped 1, trunk unchanged True, 43.3 min -> C:\Users\jonat\workspace\wt\sm119\artifacts\small-model\sm119-sm118-head
+[sm119 11-17 06:11:29] enqueue: the show-time two-head cool-down for Small (SM118): grade check (the release vs the trunk after head training, 5 users, show-time scorer rows and dumps bitwise) (expected 10 min, max wait 815 min, 828 min to the next window)
+[sm119 11-17 06:12:00] exit 0: the show-time two-head cool-down for Small (SM118): grade check (the release vs the trunk after head training, 5 users, show-time scorer rows and dumps bitwise)
+[sm119 11-17 06:12:01] [sm117-grade] sm118 5 users: released vs the trunk after head training bitwise True; vs the recorded show-time scores True
+[sm119 11-17 06:12:01] enqueue: scoring the longer Small Instant-Only model (SM113): answer time and P(recall within S seconds) on the 732 set (723 users, pass 1, cap 0.8) (expected 30 min, max wait 794 min, 827 min to the next window)
+[sm119 11-17 06:26:31] exit 0: scoring the longer Small Instant-Only model (SM113): answer time and P(recall within S seconds) on the 732 set (723 users, pass 1, cap 0.8)
+[sm119 11-17 06:26:31] sm113 scored users: 723 of 723
+[sm119 11-17 06:26:31] enqueue: scoring the longer cool-down for Tiny (SM115): answer time and P(recall within S seconds) on the 732 set (723 users, pass 1, cap 0.8) (expected 30 min, max wait 780 min, 813 min to the next window)
+[sm119 11-17 06:40:57] exit 0: scoring the longer cool-down for Tiny (SM115): answer time and P(recall within S seconds) on the 732 set (723 users, pass 1, cap 0.8)
+[sm119 11-17 06:40:57] sm115 scored users: 723 of 723
+[sm119 11-17 06:40:57] enqueue: scoring the show-time two-head cool-down for Small (SM118): answer time and P(recall within S seconds) on the 732 set (723 users, pass 1, cap 0.8) (expected 30 min, max wait 766 min, 799 min to the next window)
+[sm119 11-17 06:55:24] exit 0: scoring the show-time two-head cool-down for Small (SM118): answer time and P(recall within S seconds) on the 732 set (723 users, pass 1, cap 0.8)
+[sm119 11-17 06:55:25] sm118 scored users: 723 of 723
+[sm119 11-17 06:55:30] decide sm113 exit 0: [sm117-rule] sm113: 722 users (0 missing): grade unchanged True; time LogLoss 1.9605 vs card's last 2.4751 / user median 2.3849; R under 10 s LogLoss 0.4702 ECE 0.0034; reliable at every S False: PASS
+[sm119 11-17 06:55:36] decide sm115 exit 0: [sm117-rule] sm115: 722 users (0 missing): grade unchanged True; time LogLoss 1.9621 vs card's last 2.4751 / user median 2.3849; R under 10 s LogLoss 0.4706 ECE 0.0041; reliable at every S False: PASS
+[sm119 11-17 06:55:41] decide sm118 exit 0: [sm117-rule] sm118: 722 users (0 missing): grade unchanged True; time LogLoss 1.9700 vs card's last 2.4751 / user median 2.3849; R under 10 s LogLoss 0.4714 ECE 0.0034; reliable at every S False: PASS
+[sm119 11-17 06:55:42] report exit 0: [sm117-report] 3 models: gate [('sm113', True), ('sm115', True), ('sm118', True)]; reliable [('sm113', False), ('sm115', False), ('sm118', False)] -> C:\Users\jonat\workspace\wt\sm119\artifacts\small-model\sm119\sm119-result.md
+[sm119 11-17 06:55:42] done

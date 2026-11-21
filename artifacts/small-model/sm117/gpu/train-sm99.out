@@ -1,0 +1,144 @@
+[queue] 001236-small-model registered for gpu: time heads for the family (SM117): the show-time instant-only big model (SM99): head training (1,991 users, first 400k reviews each, show-time inputs, same-day reviews included, head + explicit-only ablation)
+[queue] 001236-small-model started after 0:00:00; holds gpu
+[sm117-train] the show-time instant-only big model (SM99): 1991 users (1991 to go), 117,634,406 labelled rows planned, 14,360 steps of 8,192; inputs 1306 (6 x 128 + head_p 512 + 26); model parameters trainable [], in the optimizer 0; head 175,552 + ablation 11,712 values; device cuda
+[sm117-train] step 1: time loss 2.7726 / ablation 2.7726 nats over 8,192 rows (zero output layers: ln 16 = 2.7726)
+[sm117-train] step 500/14360: time loss 2.0550 / ablation 2.1908 nats (last 500 steps), lr 2.00e-03, users 101/1991, 5,541,083 reviews, 2.2 min this run
+Traceback (most recent call last):
+  File "C:\Users\jonat\workspace\wt\sm117\scripts\sm117_head.py", line 1252, in <module>
+    sys.exit(main())
+             ^^^^^^
+  File "C:\Users\jonat\workspace\wt\sm117\scripts\sm117_head.py", line 1247, in main
+    return {"plan": plan, "baselines": baselines, "train": train, "score": score, "check": check,
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\jonat\workspace\wt\sm117\scripts\sm117_head.py", line 643, in train
+    qi, th, feats, _ = frozen.forward(gb)
+                       ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\jonat\workspace\wt\sm117\scripts\sm117_head.py", line 292, in forward
+    o, snaps, hp_all = fork_forward_capture(self.model, gb, qi)
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\jonat\workspace\wt\sm117\scripts\sm117_head.py", line 243, in fork_forward_capture
+    module_out = submodule(module_in, time_shift_select_BT=time_shift_select_BT, skip_BT=skip_BT)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\jonat\workspace\anki-rwkv\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1775, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\jonat\workspace\anki-rwkv\.venv\Lib\site-packages\torch\nn\modules\module.py", line 1786, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: The following operation failed in the TorchScript interpreter.
+Traceback of TorchScript (most recent call last):
+RuntimeError: CUDA out of memory. Tried to allocate 2.29 GiB. GPU 0 has a total capacity of 15.89 GiB of which 3.54 GiB is free. 12.72 GiB allowed; Of the allocated memory 5.21 GiB is allocated by PyTorch, and 5.48 GiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)
+
+[queue] 001236-small-model finished with exit code 1 after 0:03:54; released gpu
+[queue] 001237-small-model registered for gpu: time heads for the family (SM117): the show-time instant-only big model (SM99): head training (1,991 users, first 400k reviews each, show-time inputs, same-day reviews included, head + explicit-only ablation)
+[queue] 001237-small-model started after 0:00:00; holds gpu
+[sm117-train] resumed at user 158/1991, step 976/14360
+[sm117-train] the show-time instant-only big model (SM99): 1991 users (1833 to go), 117,634,406 labelled rows planned, 14,360 steps of 8,192; inputs 1306 (6 x 128 + head_p 512 + 26); model parameters trainable [], in the optimizer 0; head 175,552 + ablation 11,712 values; device cuda
+[sm117-train] user 9570: out of memory (attempt 1 of 2), cache freed
+[sm117-train] user 9570: out of memory (attempt 2 of 2), cache freed
+[sm117-train] step 1476/14360: time loss 1.9824 / ablation 2.0888 nats (last 500 steps), lr 1.97e-03, users 232/1991, 14,390,470 reviews, 2.3 min this run
+[sm117-train] step 1976/14360: time loss 1.9006 / ablation 2.0168 nats (last 500 steps), lr 1.93e-03, users 319/1991, 19,341,247 reviews, 4.2 min this run
+[sm117-train] step 2476/14360: time loss 1.9053 / ablation 2.0122 nats (last 500 steps), lr 1.88e-03, users 390/1991, 24,335,550 reviews, 6.0 min this run
+[sm117-train] user 2890: out of memory (attempt 1 of 2), cache freed
+[sm117-train] user 2890: out of memory (attempt 2 of 2), cache freed
+[sm117-train] step 2976/14360: time loss 1.9136 / ablation 2.0071 nats (last 500 steps), lr 1.83e-03, users 466/1991, 28,462,584 reviews, 7.6 min this run
+[sm117-train] user 2060: out of memory (attempt 1 of 2), cache freed
+[sm117-train] user 2060: out of memory (attempt 2 of 2), cache freed
+[sm117-train] user 474: out of memory (attempt 1 of 2), cache freed
+[sm117-train] user 474: out of memory (attempt 2 of 2), cache freed
+[sm117-train] user 1916: out of memory (attempt 1 of 2), cache freed
+[sm117-train] user 1916: out of memory (attempt 2 of 2), cache freed
+[sm117-train] step 3476/14360: time loss 1.9349 / ablation 2.0291 nats (last 500 steps), lr 1.76e-03, users 548/1991, 33,617,534 reviews, 9.8 min this run
+[sm117-train] user 3691: out of memory (attempt 1 of 2), cache freed
+[sm117-train] user 3691: out of memory (attempt 2 of 2), cache freed
+[sm117-train] user 6126: out of memory (attempt 1 of 2), cache freed
+[sm117-train] user 6126: out of memory (attempt 2 of 2), cache freed
+[sm117-train] step 3976/14360: time loss 1.8166 / ablation 1.9180 nats (last 500 steps), lr 1.68e-03, users 618/1991, 38,043,532 reviews, 11.8 min this run
+[sm117-train] user 8559: out of memory (attempt 1 of 2), cache freed
+[sm117-train] user 8559: out of memory (attempt 2 of 2), cache freed
+[sm117-train] user 7511: out of memory (attempt 1 of 2), cache freed
+[sm117-train] user 7511: out of memory (attempt 2 of 2), cache freed
+[sm117-train] user 7244: out of memory (attempt 1 of 2), cache freed
+[sm117-train] user 7244: out of memory (attempt 2 of 2), cache freed
+[sm117-train] user 9493: out of memory (attempt 1 of 2), cache freed
+[sm117-train] user 9493: out of memory (attempt 2 of 2), cache freed
+[sm117-train] step 4476/14360: time loss 1.8563 / ablation 1.9417 nats (last 500 steps), lr 1.59e-03, users 711/1991, 43,293,546 reviews, 14.4 min this run
+[sm117-train] step 4976/14360: time loss 1.8627 / ablation 1.9593 nats (last 500 steps), lr 1.50e-03, users 771/1991, 47,587,639 reviews, 16.0 min this run
+Traceback (most recent call last):
+  File "C:\Users\jonat\workspace\wt\sm117\scripts\sm117_head.py", line 1270, in <module>
+    sys.exit(main())
+             ^^^^^^
+  File "C:\Users\jonat\workspace\wt\sm117\scripts\sm117_head.py", line 1265, in main
+    return {"plan": plan, "baselines": baselines, "train": train, "score": score, "check": check,
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\jonat\workspace\wt\sm117\scripts\sm117_head.py", line 691, in train
+    run_pass(final=False)
+  File "C:\Users\jonat\workspace\wt\sm117\scripts\sm117_head.py", line 574, in run_pass
+    x = torch.cat([b[0] for b in buf]); g = torch.cat([b[1] for b in buf])
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+torch.OutOfMemoryError: CUDA out of memory. Tried to allocate 3.43 GiB. GPU 0 has a total capacity of 15.89 GiB of which 3.70 GiB is free. 12.72 GiB allowed; Of the allocated memory 4.15 GiB is allocated by PyTorch, and 6.39 GiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)
+[queue] 001237-small-model finished with exit code 1 after 0:17:08; released gpu
+[queue] 001238-small-model registered for gpu: time heads for the family (SM117): the show-time instant-only big model (SM99): head training (1,991 users, first 400k reviews each, show-time inputs, same-day reviews included, head + explicit-only ablation)
+[queue] 001238-small-model started after 0:00:00; holds gpu
+[sm117-train] the show-time instant-only big model (SM99): 1991 users (1991 to go), 117,634,406 labelled rows planned, 14,360 steps of 8,192; inputs 1306 (6 x 128 + head_p 512 + 26); model parameters trainable [], in the optimizer 0; head 175,552 + ablation 11,712 values; device cuda
+[sm117-train] step 1: time loss 2.7726 / ablation 2.7726 nats over 8,192 rows (zero output layers: ln 16 = 2.7726)
+[sm117-train] step 500/14360: time loss 2.0550 / ablation 2.1908 nats (last 500 steps), lr 2.00e-03, users 101/1991, 5,541,083 reviews, 2.2 min this run
+[sm117-train] step 1000/14360: time loss 1.8393 / ablation 1.9968 nats (last 500 steps), lr 1.99e-03, users 160/1991, 9,995,356 reviews, 3.8 min this run
+[sm117-train] step 1500/14360: time loss 1.9914 / ablation 2.0972 nats (last 500 steps), lr 1.96e-03, users 232/1991, 14,676,038 reviews, 5.7 min this run
+[sm117-train] step 2000/14360: time loss 1.8866 / ablation 2.0031 nats (last 500 steps), lr 1.93e-03, users 302/1991, 19,312,113 reviews, 7.4 min this run
+[sm117-train] step 2500/14360: time loss 1.8836 / ablation 1.9907 nats (last 500 steps), lr 1.88e-03, users 382/1991, 24,156,100 reviews, 9.2 min this run
+[sm117-train] user 2890: out of memory (attempt 1 of 2), cache freed
+[sm117-train] user 2890: out of memory (attempt 2 of 2), cache freed
+[sm117-train] step 3000/14360: time loss 1.9246 / ablation 2.0149 nats (last 500 steps), lr 1.82e-03, users 447/1991, 28,534,476 reviews, 10.9 min this run
+[sm117-train] user 2060: out of memory (attempt 1 of 2), cache freed
+[sm117-train] user 2060: out of memory (attempt 2 of 2), cache freed
+[sm117-train] user 474: out of memory (attempt 1 of 2), cache freed
+[sm117-train] user 474: out of memory (attempt 2 of 2), cache freed
+[sm117-train] step 3500/14360: time loss 1.9028 / ablation 1.9967 nats (last 500 steps), lr 1.75e-03, users 520/1991, 33,300,922 reviews, 12.8 min this run
+[sm117-train] step 4000/14360: time loss 1.8739 / ablation 1.9667 nats (last 500 steps), lr 1.68e-03, users 590/1991, 38,126,346 reviews, 14.6 min this run
+[sm117-train] user 6126: out of memory (attempt 1 of 2), cache freed
+[sm117-train] user 6126: out of memory (attempt 2 of 2), cache freed
+[sm117-train] user 7511: out of memory (attempt 1 of 2), cache freed
+[sm117-train] user 7511: out of memory (attempt 2 of 2), cache freed
+[sm117-train] step 4500/14360: time loss 1.8465 / ablation 1.9522 nats (last 500 steps), lr 1.59e-03, users 661/1991, 42,785,352 reviews, 16.9 min this run
+[sm117-train] step 5000/14360: time loss 1.8216 / ablation 1.9187 nats (last 500 steps), lr 1.50e-03, users 730/1991, 47,464,787 reviews, 18.7 min this run
+[sm117-train] step 5500/14360: time loss 1.8964 / ablation 1.9911 nats (last 500 steps), lr 1.40e-03, users 802/1991, 52,681,134 reviews, 20.6 min this run
+[sm117-train] step 6000/14360: time loss 1.9239 / ablation 2.0225 nats (last 500 steps), lr 1.29e-03, users 893/1991, 57,345,647 reviews, 22.4 min this run
+[queue] 001239-small-model registered for gpu: time heads for the family (SM117): the show-time instant-only big model (SM99): head training (1,991 users, first 400k reviews each, show-time inputs, same-day reviews included, head + explicit-only ablation)
+[queue] 001239-small-model started after 0:00:00; holds gpu
+[sm117-train] the show-time instant-only big model (SM99): 1991 users (1991 to go), 117,634,406 labelled rows planned, 14,360 steps of 8,192; inputs 1306 (6 x 128 + head_p 512 + 26); model parameters trainable [], in the optimizer 0; head 175,552 + ablation 11,712 values; device cuda
+[sm117-train] step 1: time loss 2.7726 / ablation 2.7726 nats over 8,192 rows (zero output layers: ln 16 = 2.7726)
+[sm117-train] step 500/14360: time loss 2.0550 / ablation 2.1908 nats (last 500 steps), lr 2.00e-03, users 101/1991, 5,541,083 reviews, 2.2 min this run
+[sm117-train] step 1000/14360: time loss 1.8393 / ablation 1.9968 nats (last 500 steps), lr 1.99e-03, users 160/1991, 9,995,356 reviews, 3.9 min this run
+[sm117-train] step 1500/14360: time loss 1.9794 / ablation 2.0825 nats (last 500 steps), lr 1.96e-03, users 224/1991, 14,235,916 reviews, 5.4 min this run
+[sm117-train] step 2000/14360: time loss 1.9035 / ablation 2.0218 nats (last 500 steps), lr 1.93e-03, users 286/1991, 19,111,273 reviews, 7.3 min this run
+[sm117-train] step 2500/14360: time loss 1.8820 / ablation 1.9873 nats (last 500 steps), lr 1.88e-03, users 375/1991, 23,912,343 reviews, 9.0 min this run
+[sm117-train] step 3000/14360: time loss 1.8980 / ablation 1.9957 nats (last 500 steps), lr 1.82e-03, users 446/1991, 29,127,609 reviews, 10.9 min this run
+[sm117-train] user 2060: out of memory (attempt 1 of 2), cache freed
+[sm117-train] user 2060: out of memory (attempt 2 of 2), cache freed
+[sm117-train] step 3500/14360: time loss 1.8783 / ablation 1.9826 nats (last 500 steps), lr 1.75e-03, users 505/1991, 33,084,278 reviews, 12.3 min this run
+[sm117-train] step 4000/14360: time loss 1.8878 / ablation 1.9800 nats (last 500 steps), lr 1.68e-03, users 572/1991, 38,149,145 reviews, 14.4 min this run
+[sm117-train] step 4500/14360: time loss 1.8186 / ablation 1.9229 nats (last 500 steps), lr 1.59e-03, users 630/1991, 42,977,282 reviews, 16.1 min this run
+[sm117-train] step 5000/14360: time loss 1.8809 / ablation 1.9677 nats (last 500 steps), lr 1.50e-03, users 679/1991, 47,286,420 reviews, 17.8 min this run
+[sm117-train] step 5500/14360: time loss 1.8106 / ablation 1.9046 nats (last 500 steps), lr 1.40e-03, users 752/1991, 52,036,991 reviews, 19.6 min this run
+[sm117-train] step 6000/14360: time loss 1.9222 / ablation 2.0259 nats (last 500 steps), lr 1.29e-03, users 822/1991, 56,972,349 reviews, 21.4 min this run
+[sm117-train] step 6500/14360: time loss 1.8940 / ablation 1.9924 nats (last 500 steps), lr 1.18e-03, users 912/1991, 61,570,803 reviews, 23.2 min this run
+[sm117-train] step 7000/14360: time loss 1.8637 / ablation 1.9641 nats (last 500 steps), lr 1.07e-03, users 968/1991, 66,079,773 reviews, 25.0 min this run
+[sm117-train] user 1573: out of memory (attempt 1 of 2), cache freed
+[sm117-train] user 1573: out of memory (attempt 2 of 2), cache freed
+[sm117-train] step 7500/14360: time loss 1.8724 / ablation 1.9605 nats (last 500 steps), lr 9.61e-04, users 1035/1991, 70,841,184 reviews, 26.9 min this run
+[sm117-train] step 8000/14360: time loss 1.9077 / ablation 1.9946 nats (last 500 steps), lr 8.50e-04, users 1110/1991, 75,536,030 reviews, 28.8 min this run
+[sm117-train] step 8500/14360: time loss 1.8703 / ablation 1.9519 nats (last 500 steps), lr 7.41e-04, users 1161/1991, 80,393,761 reviews, 30.7 min this run
+[sm117-train] step 9000/14360: time loss 1.9238 / ablation 2.0140 nats (last 500 steps), lr 6.35e-04, users 1240/1991, 85,435,995 reviews, 32.5 min this run
+[sm117-train] step 9500/14360: time loss 1.9004 / ablation 2.0023 nats (last 500 steps), lr 5.33e-04, users 1294/1991, 90,094,508 reviews, 34.2 min this run
+[sm117-train] step 10000/14360: time loss 1.9307 / ablation 2.0070 nats (last 500 steps), lr 4.38e-04, users 1359/1991, 94,925,332 reviews, 35.9 min this run
+[sm117-train] step 10500/14360: time loss 1.9068 / ablation 2.0087 nats (last 500 steps), lr 3.49e-04, users 1427/1991, 99,312,070 reviews, 37.4 min this run
+[sm117-train] step 11000/14360: time loss 1.8573 / ablation 1.9492 nats (last 500 steps), lr 2.69e-04, users 1501/1991, 104,314,921 reviews, 39.4 min this run
+[sm117-train] step 11500/14360: time loss 1.9322 / ablation 2.0231 nats (last 500 steps), lr 1.97e-04, users 1570/1991, 109,428,237 reviews, 41.3 min this run
+[sm117-train] step 12000/14360: time loss 1.9033 / ablation 1.9896 nats (last 500 steps), lr 1.36e-04, users 1639/1991, 113,395,272 reviews, 42.7 min this run
+[sm117-train] step 12500/14360: time loss 1.8772 / ablation 1.9686 nats (last 500 steps), lr 8.51e-05, users 1720/1991, 118,710,606 reviews, 44.7 min this run
+[sm117-train] step 13000/14360: time loss 1.9494 / ablation 2.0342 nats (last 500 steps), lr 4.58e-05, users 1788/1991, 123,284,501 reviews, 46.3 min this run
+[sm117-train] step 13500/14360: time loss 1.9485 / ablation 2.0281 nats (last 500 steps), lr 1.84e-05, users 1881/1991, 128,334,587 reviews, 48.1 min this run
+[sm117-train] step 14000/14360: time loss 1.9807 / ablation 2.0656 nats (last 500 steps), lr 3.25e-06, users 1946/1991, 133,354,264 reviews, 50.1 min this run
+[sm117-train] complete: 1991/1991 users, 14,273 steps, 116,923,138 rows (35,598,447 same-day), mean time loss 1.9031 / ablation 2.0007, skipped 2, trunk unchanged True, 50.8 min -> C:\Users\jonat\workspace\wt\sm117\artifacts\small-model\sm117-sm99-head
+[queue] 001239-small-model finished with exit code 0 after 0:50:53; released gpu
