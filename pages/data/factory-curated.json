@@ -2542,10 +2542,11 @@
     "Tiered card state by answer count (SM141): "
    ],
    "what": "Tiered card state by answer count (SM141): the user&rsquo;s idea of 11-21. The fork stores a state for every answered card and note; the release-candidate format keeps int8 rows for both (Big 13,891 / 9,267 bytes per card / note, Small 2,545 / 1,315, Tiny 1,315 / 1,315), because the long-card state drift on real users (SM136) showed that int4 rows cost LogLoss on cards with 128 or more answers. Here each card and note picks its width by its own answer count at every write: int4 for normal cards, int8 once it has 128 answers, and int3 (or, as a second option, int2) for very young cards. On the 732 set the median answered card has 5 answers (P10 2, P25 3, P75 8, P90 14, P99 42; notes are similar), only 0.04% of cards reach 128 answers, and cards that were never answered store nothing at all. Five schemes against int8 everywhere, on the six release-candidate models, no retraining: int4 below 128 answers for cards only, then for cards and notes (about &minus;28% and &minus;39% to &minus;44% of the state bytes), plus int3 for the first 4 or the first 8 answers (&minus;43% to &minus;49%, &minus;46% to &minus;53%), and int2 for the first 4 answers (&minus;48% to &minus;54%). No earlier run tested 3-bit or 2-bit state; young states are read by many reviews (48% of predictions read a card state of at most 4 answers), so that is the open part. The 732 set (723 users) is scored on the GPU; the 50 users with very long cards are scored on the CPU, because there the GPU&rsquo;s rounding differs too much from the CPU&rsquo;s.",
-   "when": "Launched 17:38 Sat 11-21 (detached launcher, queue ticket 001445 onwards): a GPU smoke first, then Tiny, Small and Big on the 732 set (about 4.5 GPU hours in the FIFO queue), while the CPU scores the long-card users (about 4-6 hours, in parallel). Result expected about 23:00 Sat 11-21 to 01:00 Sun 11-22",
+   "when": "Done 00:52 Sun 11-22: <strong>no scheme passes; int8 cards and notes stay for every size</strong>. Int4 below 128 answers (scheme A) passes the dataset-wide rule for all six models (upper bounds at most +0.045%) and fails only on cards with 128 or more answers (its value taken from the scheme with int4 notes too); int3 and int2 for young cards cost more than +0.05% dataset-wide for several models or fail clearly. About 7 GPU hours and 7 CPU hours. The follow-up earlier int8 switch (SM144) tests switching at 16 or 32 answers",
    "decides": "Per size, the smallest scheme where both models (two-head and Instant-Only) keep every user finite, cost at most +0.05% LogLoss over the whole 732 set (95% CI upper bound, each head), cost at most +0.15% on reviews of cards with 128 or more answers, and, for the int3 / int2 schemes, at most +0.10% on reviews of young cards; if none passes, int8 stays. A pass means fork work: choosing the width by answer count (the codecs for int4 and int8 exist) and, for int3 or int2, a new codec",
-   "state": "running",
-   "started_at": "2026-11-21T17:38+01:00"
+   "state": "done",
+   "started_at": "2026-11-21T17:38+01:00",
+   "ended_at": "2026-11-22T00:52+01:00"
   },
   {
    "id": "SM140",
@@ -3307,6 +3308,315 @@
   "s-w64kd-gate-ctx2048c-dec8-1ep/w8+s8"
  ],
  "results": [
+  {
+   "date": "11-22",
+   "kind": "gpu-score",
+   "id": "SM141",
+   "track": "small model",
+   "name": "Tiered card state by answer count (SM141): int4 cards and notes below 128 answers, int8 from 128, with optional int3 or int2 for very young cards, against int8 everywhere on the six release-candidate models",
+   "eval": "The 732 set (723 users, 722 rule users, show-time inputs, leak-free) scored on the GPU for the six release-candidate models in five schemes against int8 cards and notes (w8+s8hx8): A (int4 cards below 128 answers, int8 from 128; notes int8), AN (same for cards and notes), B4 and B8 (AN plus int3 for the first 4 or 8 answers) and D4 (AN plus int2, ternary, for the first 4 answers). The 49 of 50 long-card users (cards with 128 or more answers) scored on the CPU, because the GPU&rsquo;s rounding flips differ too much there. No training. Pre-registered rules: R1 every user finite; R2 dataset-wide benchmark LogLoss, 95% CI upper bound at most +0.05% per head; R3 reviews of cards with 128 or more earlier answers at most +0.15%; R4 reviews of young cards at most +0.10% (int3 and int2 schemes); R5 coverage at least 720 of 722 GPU users and 48 of 50 long-card users. Paired user bootstrap, 2,000 draws, seed 0.",
+   "fork": "Nothing changes in the fork: the release-candidate format stays int8 cards and notes (w8+s8hx8) for every size. No int3 or int2 codec and no answer-count tiering to build",
+   "takeaway": "<strong>No scheme passes for any size: int8 cards and notes stay for Big, Small and Tiny.</strong> Scheme A (int4 cards below 128 answers) passes the dataset-wide rule R2 for all six models (every upper bound at most +0.045%) and fails only R3, the cards with 128 or more answers; its R3 was not measured directly but taken from scheme AN by dominance. AN, B8 and D4 have R3 point estimates of +0.14% to +0.48% with wide intervals (49 users). The int3 tier for young cards (B4 and B8) mostly passes the young-card rule R4 but pushes the dataset-wide cost over +0.05% for several models; the int2 tier (D4) clearly fails R2 and R4. <strong>In plain words:</strong> the cost of int4 lands on long cards even though they switch to int8 at 128 answers, so the damage is done during the int4 period; the follow-up earlier int8 switch (SM144) tests switching at 16 or 32 answers.",
+   "inputs": "show-time",
+   "started_at": "2026-11-21T17:38+01:00",
+   "ended_at": "2026-11-22T00:52+01:00",
+   "gpu_minutes": 421,
+   "cpu_minutes": 426,
+   "tickets": 8,
+   "detail": {
+    "verdict": "No scheme passes for any size; int8 cards and notes stay; branch sm141 (RESULT.md, sm141-result.md, sm141-result.json, design.md)",
+    "table": {
+     "head": [
+      "Model",
+      "Scheme",
+      "State bytes vs int8 (732 set)",
+      "Dataset-wide cost, value [95% CI] (limit: upper bound +0.05%): curve / instant",
+      "Cards with 128+ answers (limit +0.15%): curve / instant",
+      "Young cards (limit +0.10%): curve / instant",
+      "Rules"
+     ],
+     "rows": [
+      [
+       "the show-time big model (SM91s2)",
+       "A: int4 cards below 128 answers, notes int8",
+       "&minus;27.7%",
+       "+0.015% [+0.009%, +0.021%] / +0.016% [+0.012%, +0.021%]",
+       "+0.177% [&minus;0.025%, +0.404%] / +0.256% [&minus;0.119%, +0.515%] (AN)",
+       "-",
+       "fails R3"
+      ],
+      [
+       "the show-time big model (SM91s2)",
+       "AN: int4 below 128 for cards and notes",
+       "&minus;44.2%",
+       "+0.033% [+0.020%, +0.046%] / +0.043% [+0.035%, +0.052%]",
+       "+0.177% [&minus;0.025%, +0.404%] / +0.256% [&minus;0.119%, +0.515%] (AN)",
+       "-",
+       "fails R2, R3"
+      ],
+      [
+       "the show-time big model (SM91s2)",
+       "B4: AN plus int3 for the first 4 answers",
+       "&minus;49.3%",
+       "+0.041% [+0.025%, +0.060%] / +0.054% [+0.046%, +0.063%]",
+       "+0.155% [&minus;0.071%, +0.395%] / +0.252% [&minus;0.139%, +0.494%] (B8)",
+       "+0.021% [+0.011%, +0.032%] / +0.039% [+0.034%, +0.044%]",
+       "fails R2, R3"
+      ],
+      [
+       "the show-time big model (SM91s2)",
+       "B8: AN plus int3 for the first 8 answers",
+       "&minus;52.6%",
+       "+0.051% [+0.034%, +0.073%] / +0.068% [+0.059%, +0.078%]",
+       "+0.155% [&minus;0.071%, +0.395%] / +0.252% [&minus;0.139%, +0.494%] (B8)",
+       "+0.026% [+0.012%, +0.039%] / +0.050% [+0.045%, +0.056%]",
+       "fails R2, R3"
+      ],
+      [
+       "the show-time big model (SM91s2)",
+       "D4: AN plus int2 for the first 4 answers",
+       "&minus;54.4%",
+       "+0.090% [+0.064%, +0.114%] / +0.152% [+0.140%, +0.166%]",
+       "+0.170% [&minus;0.023%, +0.340%] / +0.245% [&minus;0.144%, +0.465%] (D4)",
+       "+0.077% [+0.052%, +0.105%] / +0.165% [+0.149%, +0.182%]",
+       "fails R2, R3, R4"
+      ],
+      [
+       "the show-time instant-only big model (SM99)",
+       "A: int4 cards below 128 answers, notes int8",
+       "&minus;27.7%",
+       "+0.017% [+0.014%, +0.021%]",
+       "+0.295% [&minus;0.155%, +0.647%] (AN)",
+       "-",
+       "fails R3"
+      ],
+      [
+       "the show-time instant-only big model (SM99)",
+       "AN: int4 below 128 for cards and notes",
+       "&minus;44.2%",
+       "+0.053% [+0.043%, +0.066%]",
+       "+0.295% [&minus;0.155%, +0.647%] (AN)",
+       "-",
+       "fails R2, R3"
+      ],
+      [
+       "the show-time instant-only big model (SM99)",
+       "B4: AN plus int3 for the first 4 answers",
+       "&minus;49.3%",
+       "+0.065% [+0.055%, +0.078%]",
+       "+0.269% [&minus;0.180%, +0.621%] (B8)",
+       "+0.041% [+0.036%, +0.046%]",
+       "fails R2, R3"
+      ],
+      [
+       "the show-time instant-only big model (SM99)",
+       "B8: AN plus int3 for the first 8 answers",
+       "&minus;52.6%",
+       "+0.079% [+0.069%, +0.093%]",
+       "+0.269% [&minus;0.180%, +0.621%] (B8)",
+       "+0.054% [+0.049%, +0.061%]",
+       "fails R2, R3"
+      ],
+      [
+       "the show-time instant-only big model (SM99)",
+       "D4: AN plus int2 for the first 4 answers",
+       "&minus;54.4%",
+       "+0.164% [+0.150%, +0.180%]",
+       "+0.323% [&minus;0.147%, +0.665%] (D4)",
+       "+0.174% [+0.158%, +0.193%]",
+       "fails R2, R3, R4"
+      ],
+      [
+       "the show-time two-head cool-down for Small (SM118)",
+       "A: int4 cards below 128 answers, notes int8",
+       "&minus;27.6%",
+       "+0.015% [+0.011%, +0.020%] / +0.020% [+0.015%, +0.024%]",
+       "+0.475% [+0.061%, +2.047%] / +0.226% [&minus;0.051%, +0.475%] (AN)",
+       "-",
+       "fails R3"
+      ],
+      [
+       "the show-time two-head cool-down for Small (SM118)",
+       "AN: int4 below 128 for cards and notes",
+       "&minus;39.8%",
+       "+0.021% [+0.015%, +0.027%] / +0.034% [+0.027%, +0.041%]",
+       "+0.475% [+0.061%, +2.047%] / +0.226% [&minus;0.051%, +0.475%] (AN)",
+       "-",
+       "fails R3"
+      ],
+      [
+       "the show-time two-head cool-down for Small (SM118)",
+       "B4: AN plus int3 for the first 4 answers",
+       "&minus;44.4%",
+       "+0.032% [+0.025%, +0.040%] / +0.045% [+0.038%, +0.052%]",
+       "+0.387% [+0.016%, +1.468%] / +0.240% [&minus;0.059%, +0.529%] (B8)",
+       "+0.015% [+0.008%, +0.023%] / +0.024% [+0.021%, +0.027%]",
+       "fails R2, R3"
+      ],
+      [
+       "the show-time two-head cool-down for Small (SM118)",
+       "B8: AN plus int3 for the first 8 answers",
+       "&minus;47.4%",
+       "+0.041% [+0.034%, +0.050%] / +0.059% [+0.052%, +0.066%]",
+       "+0.387% [+0.016%, +1.468%] / +0.240% [&minus;0.059%, +0.529%] (B8)",
+       "+0.024% [+0.018%, +0.031%] / +0.039% [+0.036%, +0.043%]",
+       "fails R2, R3"
+      ],
+      [
+       "the show-time two-head cool-down for Small (SM118)",
+       "D4: AN plus int2 for the first 4 answers",
+       "&minus;49.0%",
+       "+0.099% [+0.084%, +0.117%] / +0.147% [+0.137%, +0.157%]",
+       "+0.048% [&minus;0.670%, +0.233%] / +0.211% [&minus;0.186%, +0.410%] (D4)",
+       "+0.099% [+0.076%, +0.127%] / +0.164% [+0.152%, +0.178%]",
+       "fails R2, R3, R4"
+      ],
+      [
+       "the longer Small Instant-Only model (SM113)",
+       "A: int4 cards below 128 answers, notes int8",
+       "&minus;27.6%",
+       "+0.024% [+0.019%, +0.029%]",
+       "+0.142% [&minus;0.052%, +0.321%] (AN)",
+       "-",
+       "fails R3"
+      ],
+      [
+       "the longer Small Instant-Only model (SM113)",
+       "AN: int4 below 128 for cards and notes",
+       "&minus;39.8%",
+       "+0.036% [+0.030%, +0.043%]",
+       "+0.142% [&minus;0.052%, +0.321%] (AN)",
+       "-",
+       "fails R3"
+      ],
+      [
+       "the longer Small Instant-Only model (SM113)",
+       "B4: AN plus int3 for the first 4 answers",
+       "&minus;44.4%",
+       "+0.055% [+0.048%, +0.062%]",
+       "+0.199% [&minus;0.015%, +0.426%] (B8)",
+       "+0.035% [+0.031%, +0.041%]",
+       "fails R2, R3"
+      ],
+      [
+       "the longer Small Instant-Only model (SM113)",
+       "B8: AN plus int3 for the first 8 answers",
+       "&minus;47.4%",
+       "+0.072% [+0.065%, +0.079%]",
+       "+0.199% [&minus;0.015%, +0.426%] (B8)",
+       "+0.052% [+0.047%, +0.058%]",
+       "fails R2, R3"
+      ],
+      [
+       "the longer Small Instant-Only model (SM113)",
+       "D4: AN plus int2 for the first 4 answers",
+       "&minus;49.0%",
+       "+0.212% [+0.201%, +0.225%]",
+       "+0.196% [&minus;0.061%, +0.348%] (D4)",
+       "+0.247% [+0.231%, +0.264%]",
+       "fails R2, R3, R4"
+      ],
+      [
+       "the six-layer Tiny two-head model (SM130)",
+       "A: int4 cards below 128 answers, notes int8",
+       "&minus;20.6%",
+       "+0.016% [+0.012%, +0.020%] / +0.021% [+0.017%, +0.026%]",
+       "+0.297% [+0.182%, +0.705%] / +0.265% [+0.077%, +0.435%] (AN)",
+       "-",
+       "fails R3"
+      ],
+      [
+       "the six-layer Tiny two-head model (SM130)",
+       "AN: int4 below 128 for cards and notes",
+       "&minus;38.9%",
+       "+0.036% [+0.028%, +0.044%] / +0.060% [+0.051%, +0.071%]",
+       "+0.297% [+0.182%, +0.705%] / +0.265% [+0.077%, +0.435%] (AN)",
+       "-",
+       "fails R2, R3"
+      ],
+      [
+       "the six-layer Tiny two-head model (SM130)",
+       "B4: AN plus int3 for the first 4 answers",
+       "&minus;43.4%",
+       "+0.049% [+0.041%, +0.059%] / +0.082% [+0.072%, +0.093%]",
+       "+0.305% [+0.174%, +0.823%] / +0.291% [+0.178%, +0.502%] (B8)",
+       "+0.030% [+0.022%, +0.038%] / +0.057% [+0.051%, +0.064%]",
+       "fails R2, R3"
+      ],
+      [
+       "the six-layer Tiny two-head model (SM130)",
+       "B8: AN plus int3 for the first 8 answers",
+       "&minus;46.3%",
+       "+0.062% [+0.052%, +0.072%] / +0.103% [+0.092%, +0.114%]",
+       "+0.305% [+0.174%, +0.823%] / +0.291% [+0.178%, +0.502%] (B8)",
+       "+0.041% [+0.034%, +0.049%] / +0.079% [+0.073%, +0.086%]",
+       "fails R2, R3"
+      ],
+      [
+       "the six-layer Tiny two-head model (SM130)",
+       "D4: AN plus int2 for the first 4 answers",
+       "&minus;47.8%",
+       "+0.162% [+0.140%, +0.184%] / +0.261% [+0.245%, +0.278%]",
+       "+0.266% [+0.146%, +0.558%] / +0.265% [&minus;0.048%, +0.406%] (D4)",
+       "+0.169% [+0.143%, +0.195%] / +0.303% [+0.281%, +0.326%]",
+       "fails R2, R3, R4"
+      ],
+      [
+       "the six-layer Tiny Instant-Only model (SM130)",
+       "A: int4 cards below 128 answers, notes int8",
+       "&minus;20.6%",
+       "+0.038% [+0.031%, +0.045%]",
+       "+0.283% [+0.045%, +0.383%] (AN)",
+       "-",
+       "fails R3"
+      ],
+      [
+       "the six-layer Tiny Instant-Only model (SM130)",
+       "AN: int4 below 128 for cards and notes",
+       "&minus;38.9%",
+       "+0.086% [+0.073%, +0.100%]",
+       "+0.283% [+0.045%, +0.383%] (AN)",
+       "-",
+       "fails R2, R3"
+      ],
+      [
+       "the six-layer Tiny Instant-Only model (SM130)",
+       "B4: AN plus int3 for the first 4 answers",
+       "&minus;43.4%",
+       "+0.115% [+0.103%, +0.129%]",
+       "+0.227% [&minus;0.047%, +0.357%] (B8)",
+       "+0.070% [+0.064%, +0.077%]",
+       "fails R2, R3"
+      ],
+      [
+       "the six-layer Tiny Instant-Only model (SM130)",
+       "B8: AN plus int3 for the first 8 answers",
+       "&minus;46.3%",
+       "+0.150% [+0.137%, +0.164%]",
+       "+0.227% [&minus;0.047%, +0.357%] (B8)",
+       "+0.103% [+0.096%, +0.111%]",
+       "fails R2, R3, R4"
+      ],
+      [
+       "the six-layer Tiny Instant-Only model (SM130)",
+       "D4: AN plus int2 for the first 4 answers",
+       "&minus;47.8%",
+       "+0.367% [+0.348%, +0.387%]",
+       "+0.268% [+0.029%, +0.419%] (D4)",
+       "+0.410% [+0.386%, +0.435%]",
+       "fails R2, R3, R4"
+      ]
+     ]
+    },
+    "notes": [
+     "State bytes vs int8 are the end-of-history estimates on the 732 set (cards plus notes, compact layout): int4 below 128 answers for cards only &minus;27.7% (Big), &minus;27.6% (Small), &minus;20.6% (Tiny); for cards and notes &minus;44.2%, &minus;39.8%, &minus;38.9%; with int3 &minus;43% to &minus;53%; with int2 &minus;48% to &minus;54%. R3 for scheme A is taken from scheme AN, and for B4 from B8 (dominance: the long-card review reads the same state widths or coarser).",
+     "The 17:47 GPU smoke stopped on two tolerance edges, fixed in commit d7d02555 (design.md, smoke fix 11-21); the GPU chain resumed with the GPU-only resume launcher. The report crashed once at 00:49 on a report-only integrity loop (scalar fields in the benchmark dict); fixed in sm141_report.py, the decision is unaffected.",
+     "Long-card user 1714 was killed by the memory guard: 49 of 50 long-card users scored, coverage rule R5 (48 of 50) still met; 722 of 723 GPU users counted.",
+     "Report only: the int8 rows equal the release-candidate check rows (SM139) exactly (benchmark LogLoss difference 0.0 for all six models); the GPU against the CPU on the cards with 128+ answers differs by at most 0.0015 in mean LogLoss, the known flip noise of discrete state codecs.",
+     "Wall time: launched 17:38 Sat 11-21, report 00:52 Sun 11-22. GPU 8 tickets, about 421 GPU minutes (smoke 8, Tiny 61 + 16 + 15, Small 115 + 8, Big 149 + 49); the CPU long-card chain ran in parallel 17:38 to 00:44 (about 426 minutes, 3 processes). Nothing is released; no fork change."
+    ]
+   }
+  },
   {
    "date": "11-21",
    "kind": "cpu-analysis",
