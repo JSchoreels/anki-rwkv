@@ -279,6 +279,13 @@ class RWKV7TimeMixer(ModuleType):
         self.native_group_tree_handle = 0
         # SM32b state-VQ QAT (expertium/model/state_vq_hooks.py): stream index of the codec, -1 = off.
         self.state_vq_slot = -1
+        # SM137 trained smaller state (expertium.variants state_value_lanes / state_key_lanes): when lane_masked, the
+        # key and value lanes outside the kept ones are zeroed after W_k / W_v (before the per-head L2 norm), so the WKV
+        # state keeps exact zeros outside its first V rows x first K columns of every head. False = today's model, bit
+        # for bit (plain int attributes: no parameter or buffer, state_dict unchanged).
+        self.lane_masked = False
+        self.lane_value_keep = config.d_model // config.n_heads
+        self.lane_key_keep = config.d_model // config.n_heads
         assert config.d_model % config.n_heads == 0
         self.layer_id = layer_id
         C = config.d_model
@@ -383,6 +390,15 @@ class RWKV7TimeMixer(ModuleType):
             )
             self.dropout = torch.nn.Dropout(p=config.dropout)
 
+    def set_state_lanes(self, value_lanes: int, key_lanes: int):
+        """SM137: keep the first `value_lanes` value lanes (state rows) and the first `key_lanes` key lanes (state
+        columns) of every head; the other lanes of k and v are zeroed in every forward."""
+        if not (0 < value_lanes <= self.K and 0 < key_lanes <= self.K):
+            raise ValueError(f"state lanes {value_lanes} x {key_lanes} outside the head size {self.K}")
+        self.lane_value_keep = int(value_lanes)
+        self.lane_key_keep = int(key_lanes)
+        self.lane_masked = value_lanes < self.K or key_lanes < self.K
+
     @FunctionType
     def forward(self, in_BTC, v0_BTC, time_shift_select_BT, skip_BT):
         B, T, C = in_BTC.shape
@@ -411,15 +427,21 @@ class RWKV7TimeMixer(ModuleType):
         )
         r_BTC = self.W_r(r_BTC)
         k_BTC = self.W_k(k_BTC)
+        if self.lane_masked:   # SM137: key lanes >= lane_key_keep of every head -> 0
+            k_BTC = k_BTC * ((torch.arange(C, device=k_BTC.device) % K) < self.lane_key_keep).to(k_BTC.dtype)
         k_scale_BTH = torch.nn.functional.sigmoid(self.k_scale_linear(k_scale_BTC))
         v_scale_BTH = torch.nn.functional.sigmoid(self.v_scale_linear(v_scale_BTC))
 
         if self.layer_id == 0:
             v_BTC = self.W_v(v_BTC)
+            if self.lane_masked:   # SM137: value lanes >= lane_value_keep of every head -> 0
+                v_BTC = v_BTC * ((torch.arange(C, device=v_BTC.device) % K) < self.lane_value_keep).to(v_BTC.dtype)
             v0_BTC = v_BTC
         else:
             v_lerp_BTC = torch.nn.functional.sigmoid(self.v_lora_simple(v_BTC))
             v_BTC = torch.lerp(self.W_v(v_BTC), v0_BTC, v_lerp_BTC)
+            if self.lane_masked:   # SM137: value lanes >= lane_value_keep of every head -> 0
+                v_BTC = v_BTC * ((torch.arange(C, device=v_BTC.device) % K) < self.lane_value_keep).to(v_BTC.dtype)
 
         a_BTC = torch.nn.functional.sigmoid(self.a_lora_simple(a_BTC))
         g_BTC = self.lora_B_g(torch.nn.functional.sigmoid(self.lora_A_g(g_BTC)))

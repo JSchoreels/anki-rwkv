@@ -240,6 +240,13 @@ class VariantSrsRWKV(SrsRWKV):
                              **({"key_extras": bool(variant.key_extras), "init_state": name in variant.init_state}
                                 if variant.key_extras or variant.init_state else {}))
                 for name, config in anki_rwkv_config.modules])
+            if variant.state_value_lanes or variant.state_key_lanes:   # SM137 trained smaller state
+                from expertium.variants import STATE_LANE_STREAMS
+                for (name, _), module in zip(anki_rwkv_config.modules, self.rwkv_modules):
+                    if name in STATE_LANE_STREAMS:
+                        for sub in module.modules():
+                            if isinstance(sub, RWKV7TimeMixer):
+                                sub.set_state_lanes(variant.state_value_lanes or sub.K, variant.state_key_lanes or sub.K)
             self.prehead_norm = torch.nn.LayerNorm(self.d_model)
             self.prehead_dropout = torch.nn.Dropout(p=anki_rwkv_config.dropout)
             if self.gru_on:

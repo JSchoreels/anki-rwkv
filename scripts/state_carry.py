@@ -97,14 +97,20 @@ def carry_layer(block, in_BTC, v0_BTC, select, skip, init):
     r_BTC, k_BTC, v_BTC, d_BTC, a_BTC, g_BTC, k_scale_BTC, v_scale_BTC = rkvdag.unbind(dim=0)
     r_BTC = tm.W_r(r_BTC)
     k_BTC = tm.W_k(k_BTC)
+    if getattr(tm, "lane_masked", False):   # SM137 trained smaller state: the same lane mask as RWKV7TimeMixer.forward
+        k_BTC = k_BTC * ((torch.arange(k_BTC.shape[-1], device=k_BTC.device) % K) < tm.lane_key_keep).to(k_BTC.dtype)
     k_scale = torch.nn.functional.sigmoid(tm.k_scale_linear(k_scale_BTC))
     v_scale = torch.nn.functional.sigmoid(tm.v_scale_linear(v_scale_BTC))
     if tm.layer_id == 0:
         v_BTC = tm.W_v(v_BTC)
+        if getattr(tm, "lane_masked", False):   # SM137
+            v_BTC = v_BTC * ((torch.arange(v_BTC.shape[-1], device=v_BTC.device) % K) < tm.lane_value_keep).to(v_BTC.dtype)
         v0_BTC = v_BTC
     else:
         v_lerp = torch.nn.functional.sigmoid(tm.v_lora_simple(v_BTC))
         v_BTC = torch.lerp(tm.W_v(v_BTC), v0_BTC, v_lerp)
+        if getattr(tm, "lane_masked", False):   # SM137
+            v_BTC = v_BTC * ((torch.arange(v_BTC.shape[-1], device=v_BTC.device) % K) < tm.lane_value_keep).to(v_BTC.dtype)
     a_BTC = torch.nn.functional.sigmoid(tm.a_lora_simple(a_BTC))
     g_BTC = tm.lora_B_g(torch.nn.functional.sigmoid(tm.lora_A_g(g_BTC)))
     _d = -0.5 - torch.nn.functional.softplus(-tm.d_lora_mlp(d_BTC))

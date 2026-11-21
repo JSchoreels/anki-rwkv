@@ -45,6 +45,12 @@ class VariantConfig:
     # init_state: streams whose layers learn the initial WKV state and token-shift offsets of a never-seen entity
     # (zero today), e.g. ("card_id", "note_id"); H x K x K + 2 x d_model values per layer.
     init_state: tuple = ()
+    # Trained smaller state (SM137, artifacts/small-model/sm137/design.md): the card and note streams' time mixers keep
+    # only the first state_value_lanes value lanes (WKV state rows) and the first state_key_lanes key lanes (columns) of
+    # every head (RWKV7TimeMixer.set_state_lanes: k and v lanes outside are zeroed, so the stored state is exactly a
+    # V x K block per head). 0 = off = today's model, bit for bit (no parameter, module or branch is added).
+    state_value_lanes: int = 0
+    state_key_lanes: int = 0
     extra: dict = field(default_factory=dict)
 
     def stream_names(self):
@@ -105,6 +111,12 @@ TINY_CUT = re.compile(r"^w64-c([12])-d([1-4])p([1-3])u([1-3])$")
 TINY_CUT_PARAMETERS = {"w64-c1-d2p1u1": 185_057, "w64-c2-d2p1u1": 204_782}   # CPU counts (SM15's d2p1u1 = 204,782)
 
 
+# Trained smaller state (SM137): `<preset>-v{V}k{K}` = <preset> with the card and note WKV state cut to the first V value
+# lanes (rows) and the first K key lanes (columns) of every head, e.g. w64-c1-d2p1u1-v8k16.
+STATE_LANES = re.compile(r"^(.+)-v([0-9]+)k([0-9]+)$")
+STATE_LANE_STREAMS = ("card_id", "note_id")
+
+
 def tiny_cut(name, cards, decks, presets, users):
     parent = preset("w64")
     depths = {"card_id": cards, "deck_id": decks, "note_id": 1, "preset_id": presets, "user_id": users}
@@ -160,6 +172,10 @@ def preset(name):
                    for stream, c in w64.base.modules]
         strip = tuple(e for e in w64.strip_cmix if not (e.startswith("card_id:") and int(e.partition(":")[2]) >= depth))
         return replace(w64, name=name, base=replace(w64.base, modules=modules), strip_cmix=strip)
+    lanes = STATE_LANES.match(name) if isinstance(name, str) else None
+    if lanes:   # SM137: <preset>-v{V}k{K}, the card and note state cut to V value x K key lanes per head
+        return replace(preset(lanes.group(1)), name=name, state_value_lanes=int(lanes.group(2)),
+                       state_key_lanes=int(lanes.group(3)))
     if name in SM77_PRESETS:
         # SM77: the small model (w64) plus the tiny additions; a preset name, so the scorer's TAG=KIND:ARCH:PATH takes it
         return replace(preset("w64"), name=name, **SM77_PRESETS[name])
