@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-21T11:26:25+01:00",
- "updated": "2026-11-21 11:26",
- "material": "3cac77220c09ea5a",
- "summary": "idle, finished 001419",
+ "generated_at": "2026-11-21T11:30:41+01:00",
+ "updated": "2026-11-21 11:30",
+ "material": "c0a915df149c8519",
+ "summary": "idle",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring, show-time inputs for both heads (curve / instant)",
@@ -2722,14 +2722,11 @@
    "kind": "gpu",
    "minutes": 130,
    "what": "Answer-time heads for the six-layer Tiny (SM138): the six-layer Tiny (SM130) replaces the current Tiny models in the next family release (user decision 11-21), and every family model ships with an answer-time head tied to its trunk, so both final six-layer models (two-head and Instant-Only) get one. Exactly the recipe and rules of the time heads for the new candidates (SM119): a small head trained alone on the frozen model (346 inputs for this shallower trunk instead of 474), show-time inputs, same-day reviews included, then P(recall within S seconds) at S = 3, 5, 8, 10, 15, 20, 30 s on the 732 set. Answer time = front + back (question shown to grade press); recall within S s = recalled and answered within S s, reading the back included. CPU proof on both models passed (16 checks) before launch",
-   "when": "Running since 09:34 Sat 11-21 (queue ticket 001412 onwards): per model a smoke, the head training (about 40 min), the grade-unchanged check, then the scoring of both models (about 15 min each); gate results for both heads expected about 11:45 Sat 11-21",
+   "when": "Done 11:26 Sat 11-21: <strong>both heads pass</strong>. The six-layer Tiny two-head model (SM130): time LogLoss 1.9931 (&minus;16.4% vs the user&rsquo;s running median), recalled within 10 s LogLoss 0.4772, calibration error 0.0027. The six-layer Tiny Instant-Only model (SM130): 1.9877 (&minus;16.6%), 0.4757, 0.0027. Grade unchanged bitwise for both; not reliable at every S (3 s and 5 s miss the calibration bar), as for the time heads for the new candidates (SM119). Heads take 346 inputs, which the fork packaging must accept",
    "decides": "Per head: go if the grade outputs stay bitwise unchanged and the head beats both answer-time baselines (the card&rsquo;s last time, the user&rsquo;s running median per grade) on time LogLoss and on the mean |ln error|, each 95% CI below zero; P(recall within S seconds) is reported as reliable at an S if its ECE is below 0.01 and it beats both recall-under-S baselines",
    "state": "done",
-   "started_at": "2026-11-21T09:34:14+01:00",
-   "ended": "11:26",
-   "exit": 0,
-   "started": "09:34",
-   "ended_at": "2026-11-21T11:26:04+01:00"
+   "started_at": "2026-11-21T09:34+01:00",
+   "ended_at": "2026-11-21T11:26+01:00"
   },
   {
    "id": "SM124",
@@ -3439,6 +3436,92 @@
   }
  ],
  "results": [
+  {
+   "date": "11-21",
+   "kind": "gpu-train",
+   "id": "SM138",
+   "track": "small model",
+   "name": "Answer-time heads for the six-layer Tiny (SM138): an answer-time head for the six-layer Tiny Instant-Only model (SM130), trained alone on the frozen model, for the next family release",
+   "eval": "The 732 set (722 users, show-time inputs, leak-free), the recipe and gate of the time heads for the new candidates (SM119): grade predictions unchanged bitwise on 5 users, and the head&rsquo;s answer-time LogLoss below both baselines (the card&rsquo;s last answer time and the user&rsquo;s running median) with the 95% CI (2,000 user bootstraps, seed 0) below 0. Answer time = front and back together, from the question shown to the grade pressed, capped at the preset&rsquo;s maximum answer seconds; recall within S s = recalled (Hard, Good or Easy) and answered within S s, reading the back included.",
+   "fork": "Not packaged yet: the fork&rsquo;s head runtime must accept a 346-input head for the six-layer Tiny (the four-round Tiny heads have 474); packaging on the fork branch rwkv-time-heads-family is another agent&rsquo;s step",
+   "takeaway": "<strong>Gate pass.</strong> Time LogLoss 1.9877 against 2.4751 for the card&rsquo;s last answer time and 2.3849 for the user&rsquo;s running median (&minus;16.6%), grade predictions unchanged bitwise. Recalled and answered within 10 s, reading the back included: LogLoss 0.4757, calibration error 0.0027 (bar 0.01); reliable from 8 s, not at 3 s and 5 s, so not reliable at every S (as for the time heads for the new candidates (SM119); informational). Against the four-round Tiny head (the longer cool-down for Tiny (SM115), 1.9621) the six-layer head is +1.3% higher on time LogLoss: the shallower trunk gives fewer features. 346 head inputs instead of 474",
+   "inputs": "show-time",
+   "started_at": "2026-11-21T09:34+01:00",
+   "ended_at": "2026-11-21T11:26+01:00",
+   "gpu_minutes": 56,
+   "tickets": 4,
+   "detail": {
+    "verdict": "Gate pass; branch sm138 75266753 (sm138-result.md, sm138-result.json, sm130io-gate.json, design.md)",
+    "table": {
+     "head": [
+      "Model with its own answer-time head",
+      "Time LogLoss (head)",
+      "Lead over the user&rsquo;s running median [95% CI, nats]",
+      "Mean abs ln error (head / running median)",
+      "Recalled within 10 s: LogLoss / calibration error (bar 0.01)",
+      "Gate"
+     ],
+     "rows": [
+      [
+       "the six-layer Tiny Instant-Only model (SM130)",
+       "1.9877",
+       "&minus;0.3972 [&minus;0.4241, &minus;0.3733] (&minus;16.6%)",
+       "0.4817 / 0.6533",
+       "0.4757 / 0.0027",
+       "pass"
+      ]
+     ]
+    },
+    "notes": [
+     "Head training: 1,991 of 1,991 users (one skipped, as in the time heads for the family (SM117) and for the new candidates (SM119)), 14,314 steps over 117.3M rows (first 400k reviews per user, show-time inputs, same-day reviews included), 40.5 min, mean time loss 1.9353 against 1.9987 for the explicit-time-features-only ablation; the trunk unchanged.",
+     "GPU minutes are this model&rsquo;s share of the launcher (09:34&ndash;11:26 Sat 11-21, queue tickets 001412&ndash;001419 for both models): smoke under a minute, head training, the 5-user grade check under a minute, scoring about 14 min (723 of 723 users).",
+     "Head inputs: 3 trunk snapshots &times; 64 (after the input encoder and each of the 2 schedule rounds) + the instant head&rsquo;s hidden layer (128) + 26 explicit time features = 346 (head 52,672 values instead of 69,056)."
+    ]
+   }
+  },
+  {
+   "date": "11-21",
+   "kind": "gpu-train",
+   "id": "SM138",
+   "track": "small model",
+   "name": "Answer-time heads for the six-layer Tiny (SM138): an answer-time head for the six-layer Tiny two-head model (SM130), trained alone on the frozen model, for the next family release",
+   "eval": "The 732 set (722 users, show-time inputs, leak-free), the recipe and gate of the time heads for the new candidates (SM119): grade predictions unchanged bitwise on 5 users, and the head&rsquo;s answer-time LogLoss below both baselines (the card&rsquo;s last answer time and the user&rsquo;s running median) with the 95% CI (2,000 user bootstraps, seed 0) below 0. Answer time = front and back together, from the question shown to the grade pressed, capped at the preset&rsquo;s maximum answer seconds; recall within S s = recalled (Hard, Good or Easy) and answered within S s, reading the back included.",
+   "fork": "Not packaged yet: the fork&rsquo;s head runtime must accept a 346-input head for the six-layer Tiny (the four-round Tiny heads have 474); packaging on the fork branch rwkv-time-heads-family is another agent&rsquo;s step",
+   "takeaway": "<strong>Gate pass.</strong> Time LogLoss 1.9931 against 2.4751 for the card&rsquo;s last answer time and 2.3849 for the user&rsquo;s running median (&minus;16.4%), grade predictions unchanged bitwise. Recalled and answered within 10 s, reading the back included: LogLoss 0.4772, calibration error 0.0027 (bar 0.01); reliable from 8 s, not at 3 s and 5 s, so not reliable at every S (as for the time heads for the new candidates (SM119); informational). Against the four-round Tiny head (the longer cool-down for Tiny (SM115), 1.9621) the six-layer head is +1.6% higher on time LogLoss: the shallower trunk gives fewer features. 346 head inputs instead of 474",
+   "inputs": "show-time",
+   "started_at": "2026-11-21T09:34+01:00",
+   "ended_at": "2026-11-21T11:26+01:00",
+   "gpu_minutes": 56,
+   "tickets": 4,
+   "detail": {
+    "verdict": "Gate pass; branch sm138 75266753 (sm138-result.md, sm138-result.json, sm130th-gate.json, design.md)",
+    "table": {
+     "head": [
+      "Model with its own answer-time head",
+      "Time LogLoss (head)",
+      "Lead over the user&rsquo;s running median [95% CI, nats]",
+      "Mean abs ln error (head / running median)",
+      "Recalled within 10 s: LogLoss / calibration error (bar 0.01)",
+      "Gate"
+     ],
+     "rows": [
+      [
+       "the six-layer Tiny two-head model (SM130)",
+       "1.9931",
+       "&minus;0.3919 [&minus;0.4186, &minus;0.3681] (&minus;16.4%)",
+       "0.4844 / 0.6533",
+       "0.4772 / 0.0027",
+       "pass"
+      ]
+     ]
+    },
+    "notes": [
+     "Head training: 1,991 of 1,991 users (one skipped, as in the time heads for the family (SM117) and for the new candidates (SM119)), 14,314 steps over 117.3M rows (first 400k reviews per user, show-time inputs, same-day reviews included), 40.7 min, mean time loss 1.9389 against 1.9987 for the explicit-time-features-only ablation; the trunk unchanged.",
+     "GPU minutes are this model&rsquo;s share of the launcher (09:34&ndash;11:26 Sat 11-21, queue tickets 001412&ndash;001419 for both models): smoke under a minute, head training, the 5-user grade check under a minute, scoring about 14 min (723 of 723 users).",
+     "Head inputs: 3 trunk snapshots &times; 64 (after the input encoder and each of the 2 schedule rounds) + the instant head&rsquo;s hidden layer (128) + 26 explicit time features = 346 (head 52,672 values instead of 69,056)."
+    ]
+   }
+  },
   {
    "date": "11-21",
    "kind": "gpu-train",
