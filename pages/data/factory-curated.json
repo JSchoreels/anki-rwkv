@@ -2324,10 +2324,11 @@
    "kind": "cpu",
    "minutes": 990,
    "what": "Full run of fluency vs desired retention in the simulator with answer-time feedback (SM127), v3. 150 benchmark users of the 732 set, 365 simulated days, 22 lanes at the same daily review time, with the show-time retrain (SM92) and its head from the time heads for the family (SM117). Two fixes decided on 11-21: (1) a per-user answer-time level anchor that removes the +8% level bias of sampled times found by the time-drift diagnostic, and (2) a per-user fluency threshold S_u, the user&rsquo;s own 90th-percentile passed-review time (clipped to 3-45 s), instead of 8 s. Decision rule unchanged: ratio of population totals with a paired user bootstrap; a fluency scheduler is needed only if it gives at least 2% more fluent cards than the best desired retention (CI lower bound above 0) without losing more than 2% of memorised cards. CPU only, 3 processes.",
-   "when": "Running since 01:28 Sat 11-21; ETA about 18:00 Sat 11-21 (17:00-20:00); about 2,900 CPU process-minutes (48 h), 0 GPU minutes",
+   "when": "Done 15:46 Sat 11-21: 150 of 150 users, started 01:28; 3 users (1190, 3339, 4070) crashed at 15:26 in the engine set-up (no old card at the split), fixed in 083e5ae9 and rerun 15:30 to 15:46; 41.5 CPU process-hours, 0 GPU minutes",
    "decides": "Whether a high desired retention already gives the most fluent cards at equal daily time, or a fluency scheduler adds at least 2%; also the feedback check (with vs without answer-time feedback).",
-   "state": "running",
-   "started_at": "2026-11-21T01:28+01:00"
+   "state": "done",
+   "started_at": "2026-11-21T01:28+01:00",
+   "ended_at": "2026-11-21T15:46+01:00"
   },
   {
    "id": "SM128",
@@ -3247,6 +3248,79 @@
   "s-w64kd-gate-ctx2048c-dec8-1ep/w8+s8"
  ],
  "results": [
+  {
+   "date": "11-21",
+   "kind": "cpu",
+   "id": "SM127",
+   "track": "small model",
+   "name": "Fluency vs desired retention in the simulator with answer-time feedback (SM127): full run, 150 users, CPU only, aggregate numbers only",
+   "eval": "Pre-registered full run (design.md 13): 150 benchmark users of the 732 set, 365 simulated days in the review simulator hosting the small model (SM41), with the show-time retrain (SM92) and its answer-time head from the time heads for the family (SM117), 22 policy lanes at the same daily review time per user. Fluent = P(recalled and answered within the user&rsquo;s own S, reading the back included), S = the 90th percentile of the user&rsquo;s own pre-split passed-review time (3 to 45 s), with a per-user answer-time level anchor. Statistic = ratio of population totals with a paired user bootstrap.",
+   "fork": "Not used: simulation only, nothing is released",
+   "takeaway": "<strong>A high desired retention is enough.</strong> The fluency scheduler at 0.80 gives &minus;22.8% [&minus;26.9, &minus;18.8] fluent cards and &minus;22.5% [&minus;26.5, &minus;18.5] memorised cards against the best desired retention (0.90) at equal daily time, so it does not add the 2% the rule asks for. Without answer-time feedback the verdict is the same (&minus;2.6% [&minus;5.8, +0.3]). The level check is accepted (0.960 [0.902, 1.005]). Three users crashed in the engine set-up at 15:26, were fixed and rerun alone; the other 147 rows are from the original run.",
+   "inputs": "show-time",
+   "started_at": "2026-11-21T01:28+01:00",
+   "ended_at": "2026-11-21T15:46+01:00",
+   "gpu_minutes": 0,
+   "cpu_minutes": 2488,
+   "tickets": 0,
+   "detail": {
+    "verdict": "Full run done, a high desired retention is enough; branch sm127 aa5a1155 (sm127-result-v3.md, sm127-tables-v3.md, sm127-result-v3.json, report-v3.out, rows-v3, logs-v3; aggregates only). Ran 01:28 to 15:46 Sat 11-21, 150 of 150 users, 3 processes, no GPU, no ticket.",
+    "table": {
+     "head": [
+      "Comparison (150 users, day 365)",
+      "Fluent cards",
+      "Memorised cards",
+      "Daily minutes"
+     ],
+     "rows": [
+       [
+        "Fluency scheduler at 0.80 vs desired retention 0.90 (best desired retention)",
+        "&minus;22.78% [&minus;26.91, &minus;18.78]",
+        "&minus;22.49% [&minus;26.50, &minus;18.54]",
+        "+15.14% [+8.81, +23.12]"
+       ],
+       [
+        "Fluency scheduler at 0.80 vs desired retention 0.95",
+        "&minus;18.39% [&minus;22.73, &minus;14.36]",
+        "&minus;17.11% [&minus;21.25, &minus;13.13]",
+        "+8.89% [+4.51, +14.27]"
+       ],
+       [
+        "Fluency scheduler at 0.80 vs desired retention 0.98",
+        "&minus;16.07% [&minus;20.58, &minus;11.95]",
+        "&minus;12.84% [&minus;17.19, &minus;8.69]",
+        "+2.83% [&minus;0.07, +6.33]"
+       ],
+       [
+        "Fluency scheduler at 0.80 with fallback at 0.95 vs desired retention 0.90",
+        "&minus;8.66% [&minus;10.86, &minus;6.52]",
+        "&minus;8.11% [&minus;10.26, &minus;6.17]",
+        "+5.57% [+3.06, +8.53]"
+       ],
+       [
+        "Both without answer-time feedback: fluency scheduler at 0.80 vs desired retention 0.90",
+        "&minus;2.58% [&minus;5.80, +0.28]",
+        "&minus;5.94% [&minus;9.83, &minus;2.45]",
+        "+12.46% [+5.95, +20.50]"
+       ],
+       [
+        "Fluency scheduler at 0.80, with vs without answer-time feedback",
+        "&minus;25.75% [&minus;30.80, &minus;20.62]",
+        "&minus;19.85% [&minus;24.60, &minus;15.13]",
+        "+3.90% [+1.57, +6.52]"
+       ]
+     ]
+    },
+    "notes": [
+     "Verdict as pre-registered (ratio of population totals, paired user bootstrap, 10,000 resamples): a high desired retention is enough, the fluency scheduler adds less than 2% fluent cards. Fluency scheduler at 0.80 vs the best desired retention (0.90): fluent &minus;22.78% [&minus;26.91, &minus;18.78], memorised &minus;22.49% [&minus;26.50, &minus;18.54]. The mean of per-user ratios gives the same verdict.",
+     "Feedback check (arms without answer-time feedback): the same verdict, fluent &minus;2.58% [&minus;5.80, +0.28], memorised &minus;5.94% [&minus;9.83, &minus;2.45]. So the result does not come from the feedback loop alone.",
+     "Level check (accepted band 0.95 to 1.05): seconds per later-day review of the daily re-anchored lane over the real schedule 0.960 [0.902, 1.005]: accepted. Drift check on the first-touch predicted pass: &minus;0.75% [&minus;2.28, +0.47].",
+     "Floor shares of the fluency schedulers: 47.6% at 0.80, 38.4% at 0.70, 22.5% at 0.50. Fluent means recalled and answered within the user&rsquo;s own S, reading the back included (median S 31.9 s, quartiles 17.1 to 45.0 s), so it is lenient for slow users; the 8 s pilot stays the reference for within 8 s.",
+     "Run note: 3 users (1190, 3339, 4070) crashed at 15:26 in the engine set-up because they have no old card at the split; fixed in commit 083e5ae9 (design 13.8) and only those 3 users were rerun (15:30 to 15:46). Their crash logs are kept. The other 147 rows come from the original run and could not change; no table was read before the fix.",
+     "Cost 52.2 million lane reviews, 41.5 CPU process-hours, 400.6 lane reviews/s per process, 3 processes, no GPU, no ticket. The earlier 12-user pilot (inconclusive) is the entry below."
+    ]
+   }
+  },
   {
    "date": "11-21",
    "kind": "gpu-train",
