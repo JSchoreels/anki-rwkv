@@ -416,7 +416,7 @@ longcard() {  # the long-card CPU rows of this chain (2 processes at a time, < 5
   [ -f "$S130M" ] || { log "STOP: SM130 final $S130M missing"; return 1; }
   local u n need todo
   LC_PIDS=()
-  todo=$(lc_users)
+  todo=$(lc_users | tr -d '\r')   # Windows Python prints CRLF; a CR in $n broke the arithmetic below (11-21 08:48)
   log "long-card CPU rows ($CNAME): $(echo "$todo" | grep -c .) of 50 users to score ($LC_WORKERS processes at a time, $(free_mib) MiB RAM free)"
   while read -r u n; do
     [ -z "$u" ] && continue
@@ -551,6 +551,9 @@ for c in $CHAINS; do
   run_chain "$c" || rc=1
 done
 [ -n "${MG:-}" ] && { memguard_off || rc=1; }
+if [ $rc -eq 0 ] && [ "$DRYRUN" != 1 ]; then   # a shell error can abort the chain loop without a STOP (11-21 08:48): every chain needs its verdict file
+  for c in $CHAINS; do [ -s "$G/verdict-full-$c" ] || { log "STOP: no verdict file for the $c chain (the chain was aborted; see $G/launch-sm137-full.nohup)"; rc=1; }; done
+fi
 if [ $rc -eq 0 ]; then
   if [ "$DRYRUN" = 1 ]; then log "DRYRUN OK"; else log "done (full: io $VERDICT_io, th $VERDICT_th)"; fi
 else
