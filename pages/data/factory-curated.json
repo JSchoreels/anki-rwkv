@@ -2505,6 +2505,20 @@
    "ended_at": "2026-11-21T11:26+01:00"
   },
   {
+   "id": "SM140",
+   "track": "small model",
+   "kind": "gpu",
+   "minutes": 180,
+   "match": [
+    "Rolling recalibration for the six-layer Tiny (SM140): "
+   ],
+   "what": "Rolling recalibration for the six-layer Tiny (SM140): the exact recipe and go rule of rolling recalibration for the Big models (SM128) (itself the recipe of rolling recalibration on the 732 set (SM125), a go for five release candidates) applied to the six-layer Tiny two-head model (SM130) and the six-layer Tiny Instant-Only model (SM130) with their new answer-time heads (SM138), the models that replace the Tiny models in the next release. A first GPU step scores the two models the way fast Good/Easy prediction (SM120) did for the others (its recorded sums are the baselines), then per-review outputs on the GPU, then a per-user causal Platt scaling refitted every 7 days on the latest 30,000 earlier reviews on the CPU (about 1.2 h per model, both in parallel), raw model before 1,000. Same pre-registered go rule: every timed event at 2 to 10 s reliable (ECE below 0.01 and LogLoss below both baselines, CI below 0 and at least 0.05%), Good or Easy answered within 4 s, reading the back included, better than raw, no cell worse, P(Good or Easy) and P(Easy) still reliable",
+   "when": "Started 16:25 Sat 11-21 (queue ticket 001439 onwards): GPU about 1.7 h (two scorings, a smoke, two dumps), then the CPU recalibrations behind each dump; verdict expected about 19:30 Sat 11-21 (up to 20:15)",
+   "decides": "Whether the six-layer Tiny models can ship timed Good/Easy predictions that are reliable after per-user recalibration from the client&rsquo;s own history, like the five other family candidates and the two Big models",
+   "state": "running",
+   "started_at": "2026-11-21T16:25+01:00"
+  },
+  {
    "id": "SM139",
    "track": "small model",
    "kind": "gpu",
