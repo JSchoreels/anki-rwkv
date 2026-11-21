@@ -1,7 +1,7 @@
 {
- "generated_at": "2026-11-21T17:39:22+01:00",
- "updated": "2026-11-21 17:39",
- "material": "bbfacd79f3e9c9e2",
+ "generated_at": "2026-11-21T17:40:12+01:00",
+ "updated": "2026-11-21 17:40",
+ "material": "bec9818256b79013",
  "summary": "running 001444",
  "headline": [
   {
@@ -422,7 +422,7 @@
    "track": "small model",
    "ticket": "001444-sm142",
    "started": "17:31",
-   "elapsed": "0:07",
+   "elapsed": "0:08",
    "progress": null,
    "eta": "~17:56"
   }
@@ -597,7 +597,7 @@
  "waiting": [
   {
    "ticket": "001445-sm141",
-   "id": "",
+   "id": "SM141",
    "what": "Tiered card state by answer count (SM141): GPU smoke: tier kernel self-test + 3 users (2 small, 1 long-card), 6 models x 7 labels, vs the CPU rows",
    "flags": "expected 15 min"
   }
@@ -2751,6 +2751,18 @@
    "state": "done",
    "started_at": "2026-11-21T09:34+01:00",
    "ended_at": "2026-11-21T11:26+01:00"
+  },
+  {
+   "id": "SM141",
+   "track": "small model",
+   "kind": "gpu",
+   "minutes": 300,
+   "what": "Tiered card state by answer count (SM141): the user&rsquo;s idea of 11-21. The fork stores a state for every answered card and note; the release-candidate format keeps int8 rows for both (Big 13,891 / 9,267 bytes per card / note, Small 2,545 / 1,315, Tiny 1,315 / 1,315), because the long-card state drift on real users (SM136) showed that int4 rows cost LogLoss on cards with 128 or more answers. Here each card and note picks its width by its own answer count at every write: int4 for normal cards, int8 once it has 128 answers, and int3 (or, as a second option, int2) for very young cards. On the 732 set the median answered card has 5 answers (P10 2, P25 3, P75 8, P90 14, P99 42; notes are similar), only 0.04% of cards reach 128 answers, and cards that were never answered store nothing at all. Five schemes against int8 everywhere, on the six release-candidate models, no retraining: int4 below 128 answers for cards only, then for cards and notes (about &minus;28% and &minus;39% to &minus;44% of the state bytes), plus int3 for the first 4 or the first 8 answers (&minus;43% to &minus;49%, &minus;46% to &minus;53%), and int2 for the first 4 answers (&minus;48% to &minus;54%). No earlier run tested 3-bit or 2-bit state; young states are read by many reviews (48% of predictions read a card state of at most 4 answers), so that is the open part. The 732 set (723 users) is scored on the GPU; the 50 users with very long cards are scored on the CPU, because there the GPU&rsquo;s rounding differs too much from the CPU&rsquo;s.",
+   "when": "Launched 17:38 Sat 11-21 (detached launcher, queue ticket 001445 onwards): a GPU smoke first, then Tiny, Small and Big on the 732 set (about 4.5 GPU hours in the FIFO queue), while the CPU scores the long-card users (about 4-6 hours, in parallel). Result expected about 23:00 Sat 11-21 to 01:00 Sun 11-22",
+   "decides": "Per size, the smallest scheme where both models (two-head and Instant-Only) keep every user finite, cost at most +0.05% LogLoss over the whole 732 set (95% CI upper bound, each head), cost at most +0.15% on reviews of cards with 128 or more answers, and, for the int3 / int2 schemes, at most +0.10% on reviews of young cards; if none passes, int8 stays. A pass means fork work: choosing the width by answer count (the codecs for int4 and int8 exist) and, for int3 or int2, a new codec",
+   "state": "waiting",
+   "started_at": "2026-11-21T17:38+01:00",
+   "ticket": "001445-sm141"
   },
   {
    "id": "SM140",
