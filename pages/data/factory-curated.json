@@ -2504,6 +2504,20 @@
    "ended_at": "2026-11-21T11:26+01:00"
   },
   {
+   "id": "SM139",
+   "track": "small model",
+   "kind": "gpu",
+   "minutes": 400,
+   "match": [
+    "Release-candidate checks for the family (SM139): "
+   ],
+   "what": "Release-candidate checks for the family (SM139): no training. The six models of the next family release (Big: the show-time big model (SM91s2) and the show-time instant-only big model (SM99), unchanged; Small: the show-time two-head cool-down for Small (SM118) and the longer Small Instant-Only model (SM113); Tiny: the six-layer Tiny two-head and Instant-Only models (SM130)) scored in the release-candidate state format (int8 card rows with float16 row scales and int8 shifts, plus the compact note format; user decision 11-21) and in the published format, together with the published 11-13 Small and Tiny models, on the 732 set (722 users) and on 765 more validation users of the 1,500 pool; show-time inputs, leak-free",
+   "when": "Running since 11:45 Sat 11-21 (queue ticket 001420 onwards): the GPU smoke passed at 11:46 (GPU = CPU within 3e-6 on 2 users and 16 labels); then Tiny, Small, Big on the 732 set, then the same on the extension; result expected about 18:30&ndash;19:30 Sat 11-21",
+   "decides": "Pre-registered checks per release candidate: every user finite in the release-candidate format, and the format cost (release-candidate format vs the same model in the published format) with a 95% CI upper bound of at most +0.05% per trained head on both user sets (earlier format experiments measured about +0.001%). Report only, no go / no-go: what users get from the update, each candidate in the release-candidate format vs the published 11-13 model of its size and kind",
+   "state": "running",
+   "started_at": "2026-11-21T11:45+01:00"
+  },
+  {
    "id": "SM124",
    "track": "small model",
    "since": "11-17T11:05",
