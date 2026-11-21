@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-21T18:54:42+01:00",
- "updated": "2026-11-21 18:54",
- "material": "1bfe07c2660accd6",
- "summary": "running 001449, finished 001448",
+ "generated_at": "2026-11-21T19:06:16+01:00",
+ "updated": "2026-11-21 19:06",
+ "material": "72813a94b508bb7a",
+ "summary": "running 001449",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring, show-time inputs for both heads (curve / instant)",
@@ -422,7 +422,7 @@
    "track": "small model",
    "ticket": "001449-sm142",
    "started": "18:54",
-   "elapsed": "0:00",
+   "elapsed": "0:11",
    "progress": null,
    "eta": "~19:19"
   }
@@ -2805,11 +2805,8 @@
    "when": "Started 16:25 Sat 11-21 (queue ticket 001439 onwards): GPU about 1.7 h (two scorings, a smoke, two dumps), then the CPU recalibrations behind each dump; verdict expected about 19:30 Sat 11-21 (up to 20:15)",
    "decides": "Whether the six-layer Tiny models can ship timed Good/Easy predictions that are reliable after per-user recalibration from the client&rsquo;s own history, like the five other family candidates and the two Big models",
    "state": "done",
-   "started_at": "2026-11-21T16:25:48+01:00",
-   "ended": "17:18",
-   "exit": 0,
-   "started": "16:25",
-   "ended_at": "2026-11-21T17:18:04+01:00"
+   "started_at": "2026-11-21T16:25+01:00",
+   "ended_at": "2026-11-21T19:00+01:00"
   },
   {
    "id": "SM139",
@@ -3531,6 +3528,61 @@
   }
  ],
  "results": [
+  {
+   "date": "11-21",
+   "kind": "gpu-score",
+   "id": "SM140",
+   "track": "small model",
+   "name": "Rolling recalibration for the six-layer Tiny (SM140): per-user causal Platt recalibration of the timed Good/Easy predictions (answered within S s, reading the back included) for the six-layer Tiny two-head model (SM130) and the six-layer Tiny Instant-Only model (SM130), with the answer-time heads of the answer-time heads for the six-layer Tiny (SM138)",
+   "eval": "The 732 set (723 users, 30,093,623 reviews, show-time inputs, leak-free), scoring only, with the exact recipe and the same pre-registered go rule as rolling recalibration for the Big models (SM128) and rolling recalibration on the 732 set (SM125): per user and event, Platt scaling refitted every 7 days on the user&rsquo;s latest 30,000 earlier reviews, raw model before 1,000 earlier reviews, then a repair step. Baselines from fast Good/Easy prediction (SM120), scored first for these two models. Go = all 21 cells of 2 to 10 s reliable after recalibration, Good or Easy within 4 s better than raw, no cell worse than raw, P(Good or Easy) and P(Easy) still reliable.",
+   "fork": "Nothing changed in the fork; a client would recalibrate with its own history, no release decision taken (held for 11-28)",
+   "takeaway": "<strong>Go for both six-layer Tiny models.</strong> After per-user recalibration all 21 timed cells of 2 to 10 s are reliable for the six-layer Tiny two-head model (SM130) and the six-layer Tiny Instant-Only model (SM130) (raw: 13 and 14 of 21), and Good or Easy answered within 4 s, reading the back included, becomes reliable: ECE 0.0143 to 0.0016 and 0.0131 to 0.0022, LogLoss &minus;1.24% and &minus;1.09% vs raw (CI below 0), about &minus;20.1% and &minus;20.4% vs the first baseline and &minus;28.5% and &minus;28.8% vs the second baseline of fast Good/Easy prediction (SM120). 96.2% of the rows are recalibrated; grade-only P(Good or Easy) and P(Easy) stay reliable raw. The six-layer Tiny models can now ship the same reliable timed predictions as the other family models.",
+   "inputs": "show-time",
+   "started_at": "2026-11-21T16:25+01:00",
+   "ended_at": "2026-11-21T19:00+01:00",
+   "gpu_minutes": 53,
+   "cpu_minutes": 137,
+   "tickets": 5,
+   "detail": {
+    "verdict": "Go for both six-layer Tiny models; branch sm140 f7a32b48 (sm140-result.md, sm140-result.json)",
+    "table": {
+     "head": [
+      "Model",
+      "Go",
+      "Reliable 2-10 s cells, raw to recalibrated",
+      "Good or Easy within 4 s reliable, raw to recalibrated",
+      "ECE of Good or Easy within 4 s, raw to recalibrated",
+      "LogLoss of Good or Easy within 4 s, recalibrated vs raw / vs both baselines"
+     ],
+     "rows": [
+      [
+       "the six-layer Tiny two-head model (SM130)",
+       "go",
+       "13 / 21 to 21 / 21",
+       "no to yes",
+       "0.0143 to 0.0016",
+       "&minus;1.24% (CI [&minus;0.0049, &minus;0.0038]) / &minus;20.11% and &minus;28.50%"
+      ],
+      [
+       "the six-layer Tiny Instant-Only model (SM130)",
+       "go",
+       "14 / 21 to 21 / 21",
+       "no to yes",
+       "0.0131 to 0.0022",
+       "&minus;1.09% (CI [&minus;0.0044, &minus;0.0033]) / &minus;20.41% and &minus;28.80%"
+      ]
+     ]
+    },
+    "notes": [
+     "Answer time = front and back together, from the question shown to the grade pressed, capped at the preset&rsquo;s maximum answer seconds; every &lsquo;within S s&rsquo; means answered within S s, reading the back included.",
+     "All 723 users were scored and dumped on the GPU (no user skipped, unlike the Big models); 722 users carry reviews in the recalibration, 30,093,623 reviews. The recorded sums of fast Good/Easy prediction (SM120), scored here first for both models, are reproduced by the dump: yes.",
+     "Wall time: started 16:25 Sat 11-21; GPU (5 tickets, about 53 GPU minutes): scoring of the two-head model 16:25 to 16:39, scoring of the Instant-Only model 16:39 to 16:53, smoke 16:53, dump of the two-head model 16:53 to 17:05, dump of the Instant-Only model 17:05 to 17:18; CPU recalibration, both in parallel, 1 thread each: 68 minutes for the two-head model and 69 for the Instant-Only model (about 137 CPU minutes); report 19:00.",
+     "49,203 refits and 185,862 identity fits per model; 96.2% of the rows recalibrated; the repair step changed 19.30% (two-head) and 19.44% (Instant-Only) of the values.",
+     "Where each timed event becomes reliable: Good or Easy within S s from 5 s upward raw to every S from 2 s to 30 s recalibrated, for both models; recalled within S s from 8 s (two-head) or 6 s (Instant-Only) upward raw to every S recalibrated; Easy within S s was already reliable at every S.",
+     "Nothing is released and the fork is untouched; the family release decision stays held for 11-28."
+    ]
+   }
+  },
   {
    "date": "11-21",
    "kind": "gpu-eval",
