@@ -2477,12 +2477,12 @@
    "id": "SM137",
    "track": "small model",
    "kind": "gpu",
-   "minutes": 95,
+   "minutes": 1020,
    "match": [
     "Trained smaller state for Tiny (SM137):"
    ],
    "what": "Trained smaller state for Tiny (SM137): the six-layer Tiny (SM130)&rsquo;s card and note state cut to 8 of the 16 key lanes of every head (all 16 value rows kept), so a card and a note each store 803 bytes instead of 1,315 at the release-candidate format (39% less). The model zeroes the dropped lanes, the stored state keeps exact zeros, and the fork needs only a storage change. Pilot: one constant-LR Instant-Only epoch from the cut of SM130&rsquo;s epoch 41, compared with the same epoch without the cut from the six-layer Tiny with longer recovery (SM135); show-time inputs, leak-free, 732 set",
-   "when": "Running since 01:31 Sat 11-21: GPU pilot launched (queue ticket 001396 onwards), about 1.5 GPU h, result expected about 03:00; if the pilot is a go, the full plan (Instant-Only cool-down, then the two-head chain, plus a long-card check on the CPU) takes about 12 GPU h more",
+   "when": "Running since 01:31 Sat 11-21. Pilot done 02:58: <strong>go</strong> (+0.065% instant vs the same epoch without the cut). Full plan running since 03:19 (queue ticket 001404 onwards): the Instant-Only two-pass cool-down (about 5.5 GPU h), final scoring and the long-card CPU check, Instant-Only verdict expected about 10:15 Sat 11-21; then, only if it goes, the two-head chain (one lane epoch with an early check, the two-pass cool-down, scoring, long-card check), two-head verdict expected about 18:30 Sat 11-21",
    "decides": "Pilot: continue if the cut costs at most +0.30% instant against the same epoch without the cut (otherwise one more pilot keeping 12 key lanes, 1,059 bytes; stop above +5% or on a non-finite user). Final, per chain: go if every trained head&rsquo;s 95% CI upper bound is &le; +1.00% vs Small (the longer Small Instant-Only model (SM113), the show-time two-head cool-down for Small (SM118)) at the release-candidate format, and on cards with 128 or more answers the extra cost stays &le; +0.25%",
    "state": "running",
    "started_at": "2026-11-21T01:31+01:00"
@@ -3217,6 +3217,39 @@
   "s-w64kd-gate-ctx2048c-dec8-1ep/w8+s8"
  ],
  "results": [
+  {
+   "date": "11-21",
+   "kind": "gpu-train",
+   "id": "SM137",
+   "track": "small model",
+   "name": "Trained smaller state for Tiny (SM137), pilot: the six-layer Tiny (SM130)&rsquo;s card and note state cut to 8 of the 16 key lanes of every head (803 instead of 1,315 bytes per card and per note at the release-candidate format, 39% less), then one constant-LR Instant-Only epoch 42 from the cut of its epoch 41",
+   "eval": "Constant-LR checkpoint, 722 rule users of the 732 set, show-time inputs, leak-free, w8+s8; % = 100 &times; (lane epoch 42 / the six-layer Tiny with longer recovery (SM135)&rsquo;s epoch 42 &minus; 1) of the review-weighted instant LogLoss, paired user bootstrap 95% CI (2,000 resamples, seed 0). The six-layer Tiny with longer recovery (SM135)&rsquo;s epoch 42 is the matched control: the same start without the cut, the same data order and options. Pre-registered: go if &le; +0.30%; stop above +5.00% or on a non-finite user",
+   "fork": "Not used: needs the six-layer engine; the cut itself needs only a storage (codec) change in the fork, no math change (the dropped lanes are exact zeros)",
+   "takeaway": "<strong>Go (pilot)</strong> after one epoch the cut costs instant +0.065% [+0.054, +0.077] (0.280106 vs 0.279924; 207 users better, 514 worse), far inside the +0.30% bar; untrained, the same cut cost +0.389% [+0.364, +0.412]. The epoch trained at 163,493 reviews/s (59.3 min; the same epoch without the cut ran at 179,160), and the dropped key rows stayed exactly 0. The full plan (Instant-Only cool-down, then the two-head chain, each with a long-card check) started 03:19",
+   "inputs": "show-time",
+   "started_at": "2026-11-21T01:31+01:00",
+   "ended_at": "2026-11-21T02:58+01:00",
+   "gpu_minutes": 85,
+   "tickets": 9,
+   "detail": {
+    "verdict": "Go (pilot); branch sm137 4b466ade (sm137-pilot-io-v16k8.md, design.md). GPU minutes are real run time: scorer smoke and trainer smoke under a minute each, zero-shot scoring 13 min, the lane epoch 59.5 min, final scoring 12 min",
+    "table": {
+     "head": [
+      "Show-time, instant head",
+      "LogLoss",
+      "vs the six-layer Tiny with longer recovery (SM135)&rsquo;s epoch 42 % [95% CI]",
+      "Users better / worse",
+      "Bytes per card / note"
+     ],
+     "rows": [
+      ["lane epoch 42 at w8+s8 (the rule)", "0.280106", "+0.065% [+0.054, +0.077]", "207 / 514", "803 / 803"],
+      ["lane epoch 42 at the release format w8+s8hx8", "0.280109", "+0.066% [+0.055, +0.078]", "202 / 517", "803 / 803"],
+      ["the zero-shot cut of the six-layer Tiny (SM130)&rsquo;s epoch 41 (no training), vs that epoch 41 uncut", "0.280782", "+0.389% [+0.364, +0.412] (vs epoch 41)", "63 / 659", "803 / 803"],
+      ["the six-layer Tiny with longer recovery (SM135), epoch 42 without the cut (control)", "0.279924", "reference", "&ndash;", "1,315 / 1,315"]
+     ]
+    }
+   }
+  },
   {
    "date": "11-20",
    "kind": "cpu-score",
