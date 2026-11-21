@@ -2505,6 +2505,20 @@
    "ended_at": "2026-11-21T11:26+01:00"
   },
   {
+   "id": "SM143",
+   "track": "small model",
+   "kind": "gpu",
+   "minutes": 290,
+   "match": [
+    "Per-user adaptation (SM143): "
+   ],
+   "what": "Per-user adaptation (SM143): the user&rsquo;s question of 11-21. The released models only read a new user&rsquo;s history; does adapting the model to each user from that user&rsquo;s own earlier reviews improve the later reviews, in LogLoss and above all in within-user discrimination (AUC)? A recalibration cannot change AUC, so the candidates change the network: (b) a per-user vector of 64 values added to the instant head&rsquo;s input, (c) the instant head itself (8,964 values for Small), (d) a short fine-tune of every weight with a pull back to the released weights (an upper bound, too heavy for a phone); (a) a Platt recalibration is the control. Time split = the benchmark&rsquo;s own: the 5 time-series folds of the published FSRS-7 protocol, each fold adapted only on the reviews before it and compared with FSRS-7 fitted per user on the same reviews. Pilot: 200 users of the 732 set (the full fine-tune on 50 of them); the longer Small Instant-Only model (SM113) primary, the six-layer Tiny Instant-Only model (SM130) secondary, the show-time instant-only big model (SM99) unadapted as a reference; show-time inputs, leak-free",
+   "when": "Queued 17:56 Sat 11-21 behind the answer-time expressiveness (SM142) and the tiered card state (SM141); about 4.8 GPU hours over 6 tickets; result expected about 00:30 to 02:00 Sun 11-22",
+   "decides": "Go per variant: LogLoss change vs the same model unadapted with a 95% CI below 0 and at least &minus;0.05%; then the full 722-user run. Also reported: the AUC change with its CI, the gap to FSRS-7 before and after, Small adapted vs Big, and the gain by amount of earlier history",
+   "state": "running",
+   "started_at": "2026-11-21T17:56+01:00"
+  },
+  {
    "id": "SM142",
    "track": "small model",
    "kind": "gpu",
