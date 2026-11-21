@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-21T08:49:03+01:00",
- "updated": "2026-11-21 08:49",
- "material": "eb42356ae3829111",
- "summary": "idle, finished 001411",
+ "generated_at": "2026-11-21T09:22:46+01:00",
+ "updated": "2026-11-21 09:22",
+ "material": "2b65334535d7f8ae",
+ "summary": "idle",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring, show-time inputs for both heads (curve / instant)",
@@ -2710,14 +2710,11 @@
    "kind": "gpu",
    "minutes": 1020,
    "what": "Trained smaller state for Tiny (SM137): the six-layer Tiny (SM130)&rsquo;s card and note state cut to 8 of the 16 key lanes of every head (all 16 value rows kept), so a card and a note each store 803 bytes instead of 1,315 at the release-candidate format (39% less). The model zeroes the dropped lanes, the stored state keeps exact zeros, and the fork needs only a storage change. Pilot: one constant-LR Instant-Only epoch from the cut of SM130&rsquo;s epoch 41, compared with the same epoch without the cut from the six-layer Tiny with longer recovery (SM135); show-time inputs, leak-free, 732 set",
-   "when": "Running since 01:31 Sat 11-21. Pilot done 02:58: <strong>go</strong> (+0.065% instant vs the same epoch without the cut). Full plan running since 03:19 (queue ticket 001404 onwards): the Instant-Only two-pass cool-down (about 5.5 GPU h), final scoring and the long-card CPU check, Instant-Only verdict expected about 10:15 Sat 11-21; then, only if it goes, the two-head chain (one lane epoch with an early check, the two-pass cool-down, scoring, long-card check), two-head verdict expected about 18:30 Sat 11-21",
+   "when": "Done 09:16 Sat 11-21: <strong>no go</strong>. Pilot done 02:58: go (+0.065% instant vs the same epoch without the cut). Full Instant-Only chain 03:19&ndash;09:16: the main rule passes (+0.576% [+0.534, +0.619] instant vs the longer Small Instant-Only model (SM113), under +1%), but the long-card check fails on a wide interval (excess &minus;0.008% [&minus;0.175, +0.412], ceiling +0.25%). The two-head chain did not run (it needed an Instant-Only go). The trained smaller state stays experimental; the six-layer Tiny (SM130) stays the release Tiny",
    "decides": "Pilot: continue if the cut costs at most +0.30% instant against the same epoch without the cut (otherwise one more pilot keeping 12 key lanes, 1,059 bytes; stop above +5% or on a non-finite user). Final, per chain: go if every trained head&rsquo;s 95% CI upper bound is &le; +1.00% vs Small (the longer Small Instant-Only model (SM113), the show-time two-head cool-down for Small (SM118)) at the release-candidate format, and on cards with 128 or more answers the extra cost stays &le; +0.25%",
    "state": "done",
-   "started_at": "2026-11-21T01:31:59+01:00",
-   "ended": "08:48",
-   "exit": 0,
-   "started": "01:31",
-   "ended_at": "2026-11-21T08:48:37+01:00"
+   "started_at": "2026-11-21T01:31+01:00",
+   "ended_at": "2026-11-21T09:16+01:00"
   },
   {
    "id": "SM124",
@@ -3427,6 +3424,77 @@
   }
  ],
  "results": [
+  {
+   "date": "11-21",
+   "kind": "gpu-train",
+   "id": "SM137",
+   "track": "small model",
+   "name": "Trained smaller state for Tiny (SM137), full Instant-Only chain: the lane-cut six-layer Tiny (803 instead of 1,315 bytes per card and per note at the release-candidate format) after the same two-pass Instant-Only cool-down as the six-layer Tiny (SM130), then final scoring and the long-card CPU check",
+   "eval": "Final checkpoint, 722 rule users of the 732 set, show-time inputs, leak-free; % = 100 &times; (the student at the release format w8+s8hx8 / the longer Small Instant-Only model (SM113) at its published w8+s8 &minus; 1) of the review-weighted instant LogLoss, paired user bootstrap 95% CI. Pre-registered: go iff the CI upper bound is &le; +1.00%, every rule user is finite, and the long-card check passes (50 users with a card of 128+ prior answers, CPU, the student and the six-layer Tiny (SM130) final both at w8+s8hx8; excess = cost on reviews of cards with 128+ prior answers &minus; cost on all reviews; pass iff the excess CI upper bound is &le; +0.25%)",
+   "fork": "Not used: needs the six-layer engine and a storage (codec) change for the cut lanes",
+   "takeaway": "<strong>No go</strong> the main rule passes (instant +0.576% [+0.534, +0.619] vs the longer Small Instant-Only model (SM113), under +1%; only +0.010% [+0.005, +0.015] vs the six-layer Tiny (SM130)), but the long-card check fails: excess &minus;0.008% [&minus;0.175, +0.412], upper bound above +0.25%. The point estimate is about zero; the failure is a wide interval (50 users, 30,089 reviews, about 0.8% of reviews), not a measured loss, and the rule is kept as pre-registered. The two-head chain did not run. The trained smaller state stays experimental and is not in this release; the six-layer Tiny (SM130) at 1,315 bytes stays the release Tiny. Pass 1 63,916 reviews/s (151.7 min), pass 2 63,853 reviews/s (151.9 min)",
+   "inputs": "show-time",
+   "started_at": "2026-11-21T03:19+01:00",
+   "ended_at": "2026-11-21T09:16+01:00",
+   "gpu_minutes": 329,
+   "tickets": 8,
+   "detail": {
+    "verdict": "No go (long-card check failed on a wide interval; main rule passed); branch sm137 934b6bf2 (RESULT.md, sm137-decision-io-v16k8.md, sm137-longcard-io-v16k8.json, design.md). GPU minutes are real run time: two trainer smokes under a minute each, pass 1 152 min (03:19&ndash;05:51), pass 2 153 min (05:52&ndash;08:24), final scoring 24 min (08:24&ndash;08:48); the long-card check ran on the CPU 08:54&ndash;09:15 (2 processes, 5.9 GB guard). Launcher bug: at 08:48 the long-card step aborted on a carriage return in the Windows Python output (a bash arithmetic error) and wrote a false done line; fixed in 2ce902f8 (carriage return stripped, a chain without a verdict file now ends in STOP), relaunched 08:54 with the finished steps skipped; no result changed. Idea only, for a later release: a long-card check with more power (more long-card users from outside the 732 set, pre-registered, CPU-only under the 5.9 GB guard)",
+    "table": {
+     "head": [
+      "Show-time, instant head",
+      "LogLoss",
+      "% [95% CI]",
+      "Users better / worse",
+      "Bytes per card / note"
+     ],
+     "rows": [
+      [
+       "the student at w8+s8hx8 vs the longer Small Instant-Only model (SM113) at w8+s8 (the rule)",
+       "0.277522 / 0.275933",
+       "+0.576% [+0.534, +0.619]",
+       "27 / 695",
+       "803 / 803"
+      ],
+      [
+       "the student at w8+s8 vs the longer Small Instant-Only model (SM113) at w8+s8",
+       "0.277518 / 0.275933",
+       "+0.575% [+0.533, +0.618]",
+       "29 / 693",
+       "803 / 803"
+      ],
+      [
+       "the student vs the six-layer Tiny (SM130), both at w8+s8hx8",
+       "0.277522 / 0.277494",
+       "+0.010% [+0.005, +0.015]",
+       "305 / 417",
+       "803 / 1,315"
+      ],
+      [
+       "long-card check, 50 users: cost on reviews of cards with 128+ prior answers (30,089 reviews) vs the six-layer Tiny (SM130)",
+       "&ndash;",
+       "&minus;0.003% [&minus;0.167, +0.417]",
+       "&ndash;",
+       "803 / 1,315"
+      ],
+      [
+       "long-card check: cost on all reviews",
+       "&ndash;",
+       "+0.005% [&minus;0.010, +0.020]",
+       "&ndash;",
+       "803 / 1,315"
+      ],
+      [
+       "long-card check: excess (the rule, ceiling +0.25%)",
+       "&ndash;",
+       "&minus;0.008% [&minus;0.175, +0.412] (fail)",
+       "&ndash;",
+       "803 / 1,315"
+      ]
+     ]
+    }
+   }
+  },
   {
    "date": "11-21",
    "kind": "gpu-train",
