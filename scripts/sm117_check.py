@@ -108,7 +108,8 @@ def run_check(args):
             bitwise = same_keys and all(torch.equal(trunk[k], released[k]) and trunk[k].dtype == released[k].dtype for k in released)
             moved = [float(head["out.weight"].abs().max()), float(head["out.bias"].abs().max()), float(abl["out.weight"].abs().max())]
             inputs = ta["inputs"]["total"]
-            want_inputs = 1306 if H.MODELS[key]["kind"] == "fork" else 474
+            # SM138: the six-layer Tiny (w64-c1-d2p1u1) runs 2 interleaved rounds -> 3 snapshots x 64 + 128 + 26 = 346
+            want_inputs = 1306 if H.MODELS[key]["kind"] == "fork" else 346 if H.MODELS[key]["arch"] == "w64-c1-d2p1u1" else 474
             f1 = (bitwise and min(moved) > 0 and ta["trunk_unchanged_in_memory"] and ta["trainable_model_parameters"] == []
                   and ta["model_parameters_in_optimizer"] == 0 and ta["step"] >= 5 and abs(ta["first_loss"] - math.log(BINS)) < 1e-5
                   and abs(ta["first_loss_ablation"] - math.log(BINS)) < 1e-5 and inputs == want_inputs

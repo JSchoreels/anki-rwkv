@@ -109,8 +109,25 @@ MODELS["sm118"] = {"name": "the show-time two-head cool-down for Small (SM118)",
                    "master": WTD / "sm118/artifacts/small-model/sm118-e26-dec2ep32k-t91s2-p2/expertium/E89-F65e-F77a/master.pth",
                    "sha256": os.environ.get("SM119_SM118_SHA256", ""),
                    "existing": WTD / "sm118/artifacts/small-model/sm118/gpu/sm118-rows.jsonl"}
-ORDER = ("sm106", "sm98", "sm101", "sm99", "sm91s2", "sm92", "sm113", "sm115", "sm118")
-OUT = ROOT / "artifacts/small-model/sm119"   # SM119 outputs (gate / result files); inputs (plan, priors, baselines) stay in HERE (SM117's)
+# SM138 (answer-time heads for the six-layer Tiny): the same recipe on the two final models of the six-layer Tiny (SM130)
+# (arch w64-c1-d2p1u1: interleaved rounds 0-1, so 3 snapshots x 64 + head_p 128 + 26 explicit = 346 head inputs; the
+# Frozen class derives the width from the model, as for every other size). Masters read only, sha256 pinned here
+# (read 11-21 from the files; no release package exists yet). Labels = the scorer labels of SM130's recorded rows.
+MODELS["sm130th"] = {"name": "the six-layer Tiny two-head model (SM130)", "short": "Tiny two-head (six-layer)",
+                     "kind": "expertium", "arch": "w64-c1-d2p1u1", "package": None, "two_head": True,
+                     "label": "sm130-th-dec2ep32k-t91s2",
+                     "master": WTD / "sm130/artifacts/small-model/sm130-th-dec2ep32k-p2/expertium/E89-F65e-F77a/master.pth",
+                     "sha256": "48a5e724cf38b53a32d570d4d034791f1da2cfcbe878572ff03ad434d7fb75af",
+                     "existing": WTD / "sm130/artifacts/small-model/sm130/gpu/sm130-rows.jsonl"}
+MODELS["sm130io"] = {"name": "the six-layer Tiny Instant-Only model (SM130)", "short": "Tiny Instant-Only (six-layer)",
+                     "kind": "expertium", "arch": "w64-c1-d2p1u1", "package": None, "two_head": False,
+                     "label": "sm130-io-dec2ep32k-t99",
+                     "master": WTD / "sm130/artifacts/small-model/sm130-io-dec2ep32k-p2/expertium/E89-F65e-F77a/master.pth",
+                     "sha256": "23f037282379199bd113a5297737c920fcbefd702b7b76eecc0095b8a31186a2",
+                     "existing": WTD / "sm130/artifacts/small-model/sm130/gpu/sm130-rows.jsonl"}
+ORDER = ("sm106", "sm98", "sm101", "sm99", "sm91s2", "sm92", "sm113", "sm115", "sm118", "sm130th", "sm130io")
+RUN = "sm138"   # SM138 outputs (gate / result files); inputs (plan, priors, baselines) stay in HERE (SM117's)
+OUT = ROOT / f"artifacts/small-model/{RUN}"
 
 
 def model_info(key):
@@ -1169,10 +1186,12 @@ def ci(d, nd=4, pct=False):
 def report(args):
     """All six: artifacts/small-model/sm117/sm117-result.{md,json} from the <key>-gate.json files."""
     res = {k: json.loads((OUT / f"{k}-gate.json").read_text()) for k in ORDER if (OUT / f"{k}-gate.json").exists()}
-    L = ["# Time heads for the new candidates (SM119): result", "",
+    L = ["# Answer-time heads for the six-layer Tiny (SM138): result", "",
          "An answer-time head (the answer-time head on richer frozen features (SM82c) recipe) trained alone on each frozen "
          "family model, on show-time inputs with same-day reviews included, then scored on the 732 set (722 users), "
-         "show-time inputs, leak-free. Pre-registered rules: `design.md`.", "",
+         "show-time inputs, leak-free. Pre-registered rules: `design.md`. Answer time = front + back together, from the moment "
+         "the question is shown to the moment a grade button is pressed, capped at the maximum answer seconds; recall within S s = "
+         "recalled (Hard, Good or Easy) and answered within S s, reading the back included.", "",
          "## Gate per head (grade unchanged bitwise on 5 users; the head beats both answer-time baselines, CI clear of zero)", "",
          "| model | users | grade unchanged | time LogLoss (head / ablation / card's last / user median) | head vs user median | "
          "mean abs ln error (head / user median) | gate |", "|---|---|---|---|---|---|---|"]
@@ -1216,10 +1235,10 @@ def report(args):
     for k, r in res.items():
         if "rus" in r:
             L.append(f"| {r['name']} | " + " | ".join(f"{r['rus'][str(s)]['predictors']['model']['max_bin_gap']:.3f}" for s in S_GRID) + " |")
-    (OUT / "sm119-result.md").write_text("\n".join(L) + "\n", encoding="utf-8")
-    atomic_json(OUT / "sm119-result.json", res)
+    (OUT / f"{RUN}-result.md").write_text("\n".join(L) + "\n", encoding="utf-8")
+    atomic_json(OUT / f"{RUN}-result.json", res)
     print(f"[sm117-report] {len(res)} models: gate {[(k, r.get('gate', {}).get('pass')) for k, r in res.items()]}; reliable "
-          f"{[(k, r.get('reliable')) for k, r in res.items()]} -> {OUT / 'sm119-result.md'}")
+          f"{[(k, r.get('reliable')) for k, r in res.items()]} -> {OUT / (RUN + '-result.md')}")
     return 0
 
 
