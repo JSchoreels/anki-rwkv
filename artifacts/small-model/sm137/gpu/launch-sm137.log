@@ -1,0 +1,32 @@
+[sm137 11-21 01:31:58] start (pilot v16k8 = w64-c1-d2p1u1-v16k8, 31bce4ea, dirty: 0 source files)
+[sm137-rule] pilot v16k8 go: instant vs SM135 e42 +0.000% [+0.000, +0.000]
+[sm137-rule] selftest OK
+[sm137 11-21 01:31:58] checks OK (rule selftest, CPU proofs check-cpu-sm137-v16k8.json)
+[sm137 11-21 01:31:58] memory guard on (launcher Windows PID 33744, limit 5.9 GB per CPU process)
+{"epoch": 42, "architecture": "w64-c1-d2p1u1-v16k8", "training_users": 8000, "training_reviews": 581942724, "start": "sm137-io-v16k8-e41", "note": "SM137 (io): the six-layer Tiny with longer recovery (SM135)'s io epoch step, epoch 42 (the run's order rule), architecture w64-c1-d2p1u1-v16k8 (card / note state cut to 16 value x 8 key lanes per head), start = sm137-io-v16k8-e41 (the lane cut of the six-layer Tiny (SM130)'s Instant-Only epoch 41)"}
+{"folder": "sm137-io-v16k8-e42-st", "reference": "sm135-io-e42-st (trained, on disk)", "differs_where_allowed": ["decay/architecture", "decay/created_utc", "decay/init_master_sha256", "decay/init_optimizer_sha256", "decay/note", "decay/options/architecture", "decay/start", "protocol/full_run/control_dir", "protocol/full_run/init_master", "protocol/full_run/init_optimizer"], "bad": []}
+[sm137-epoch] pair io v16k8: OK
+[sm137 11-21 01:31:59] enqueue: GPU scorer smoke of the v16k8 lane cut (2 users, w8+s8 + w8+s8hx8, vs CPU rows) (expected 15 min, max wait 99982 min, 100000 min to the next quiet window)
+[sm137 11-21 01:32:13] exit 0: GPU scorer smoke of the v16k8 lane cut (2 users, w8+s8 + w8+s8hx8, vs CPU rows) (nvidia-smi max 2266 MiB, baseline 2266 MiB)
+[sm137 11-21 01:32:13] GPU smoke: [sm137-rule] smoke OK: 8 (user, label, head) values, max |GPU - CPU| 0.00e+00 (tol 1e-05)
+[sm137 11-21 01:32:14] enqueue: trainer smoke of Instant-Only lane epoch 42 (w64-c1-d2p1u1-v16k8, from the lane cut of SM130's epoch 41) (2 users x 512 reviews) (expected 15 min, max wait 99982 min, 100000 min to the next quiet window)
+[sm137 11-21 01:32:27] exit 0: trainer smoke of Instant-Only lane epoch 42 (w64-c1-d2p1u1-v16k8, from the lane cut of SM130's epoch 41) (2 users x 512 reviews) (nvidia-smi max 2266 MiB, baseline 2266 MiB)
+[sm137 11-21 01:32:27] smoke io-v16k8: {"smoke": "sm137-io-v16k8-e42-st", "exit": 0, "status": "complete", "updates": 2, "reviews": 1024, "error": null, "seconds": 11.8}
+[sm137 11-21 01:32:27] enqueue: scoring sm137-io-v16k8-e41-cut at w8+s8 on e2s-query inputs, the 732 set minus 9 never-fit (723 users) (pass 1, 0 done, cap 0.8) (expected 25 min, max wait 99972 min, 100000 min to the next quiet window)
+[sm137 11-21 01:44:58] exit 0: scoring sm137-io-v16k8-e41-cut at w8+s8 on e2s-query inputs, the 732 set minus 9 never-fit (723 users) (pass 1, 0 done, cap 0.8) (nvidia-smi max 15110 MiB, baseline 2266 MiB)
+[sm137 11-21 01:44:59] enqueue: scoring sm137-io-v16k8-e41-cut at w8+s8 on e2s-query inputs, the 732 set minus 9 never-fit (723 users) (pass 2, 722 done, cap 0.8) (expected 20 min, max wait 99977 min, 100000 min to the next quiet window)
+[sm137 11-21 01:45:28] exit 0: scoring sm137-io-v16k8-e41-cut at w8+s8 on e2s-query inputs, the 732 set minus 9 never-fit (723 users) (pass 2, 722 done, cap 0.8) (nvidia-smi max 1802 MiB, baseline 1802 MiB)
+[sm137 11-21 01:45:28] sm137-io-v16k8-e41-cut: 723 users scored for sm137-io-v16k8-e41-cut/w8+s8@e2s-query
+[sm137 11-21 01:45:29] enqueue: Instant-Only lane epoch 42 (w64-c1-d2p1u1-v16k8 = SM135's epoch 42 with the card / note state cut to 16 x 8 lanes per head: 8k final tier, the run's order rule, 2048 x 16 lanes, leak-free replay KD, AdamW 7e-4, instant head only, show-time inputs) (expected 70 min of ~70, 100000 min to the next quiet window, 11709 MiB RAM free)
+[sm137 11-21 02:45:01] exit 0: Instant-Only lane epoch 42 (w64-c1-d2p1u1-v16k8 = SM135's epoch 42 with the card / note state cut to 16 x 8 lanes per head: 8k final tier, the run's order rule, 2048 x 16 lanes, leak-free replay KD, AdamW 7e-4, instant head only, show-time inputs) segment (nvidia-smi max 14789 MiB, baseline 1802 MiB)
+[sm137 11-21 02:45:02] Instant-Only lane epoch 42 (w64-c1-d2p1u1-v16k8 = SM135's epoch 42 with the card / note state cut to 16 x 8 lanes per head: 8k final tier, the run's order rule, 2048 x 16 lanes, leak-free replay KD, AdamW 7e-4, instant head only, show-time inputs) complete: 581,942,724 reviews, 59.3 min training, 163,493 reviews/s, peak allocated 6,601 MiB, reserved 12,596 MiB, process tree RSS 10,802 MiB, curve_loss_weight 0.0, schedule total None, init 597744816246, trained 4567f5b072de, update offset end 927276
+[sm137-lanes] verify C:\Users\jonat\workspace\wt\sm137\artifacts\small-model\sm137-io-v16k8-e42-st\expertium\E89-F65e-F77a\master.pth: dropped W_k / W_v rows exactly 0
+[sm137 11-21 02:45:03] enqueue: scoring sm137-io-v16k8-e42-st-const at w8+s8 w8+s8hx8 on e2s-query inputs, the 732 set minus 9 never-fit (723 users) (pass 1, 0 done, cap 0.8) (expected 35 min, max wait 99962 min, 100000 min to the next quiet window)
+[sm137 11-21 02:57:14] exit 0: scoring sm137-io-v16k8-e42-st-const at w8+s8 w8+s8hx8 on e2s-query inputs, the 732 set minus 9 never-fit (723 users) (pass 1, 0 done, cap 0.8) (nvidia-smi max 14955 MiB, baseline 1812 MiB)
+[sm137 11-21 02:57:15] enqueue: scoring sm137-io-v16k8-e42-st-const at w8+s8 w8+s8hx8 on e2s-query inputs, the 732 set minus 9 never-fit (723 users) (pass 2, 721 done, cap 0.8) (expected 20 min, max wait 99977 min, 100000 min to the next quiet window)
+[sm137 11-21 02:57:43] exit 0: scoring sm137-io-v16k8-e42-st-const at w8+s8 w8+s8hx8 on e2s-query inputs, the 732 set minus 9 never-fit (723 users) (pass 2, 721 done, cap 0.8) (nvidia-smi max 1812 MiB, baseline 1812 MiB)
+[sm137 11-21 02:57:43] enqueue: scoring sm137-io-v16k8-e42-st-const at w8+s8 w8+s8hx8 on e2s-query inputs, the 732 set minus 9 never-fit (723 users) (pass 3, 722 done, cap 0.8) (expected 20 min, max wait 99977 min, 100000 min to the next quiet window)
+[sm137 11-21 02:58:11] exit 0: scoring sm137-io-v16k8-e42-st-const at w8+s8 w8+s8hx8 on e2s-query inputs, the 732 set minus 9 never-fit (723 users) (pass 3, 722 done, cap 0.8) (nvidia-smi max 1812 MiB, baseline 1812 MiB)
+[sm137 11-21 02:58:11] sm137-io-v16k8-e42-st-const: 723 users scored for sm137-io-v16k8-e42-st-const/w8+s8@e2s-query sm137-io-v16k8-e42-st-const/w8+s8hx8@e2s-query
+[sm137 11-21 02:58:24] rule pilot (v16k8) exit 0: [sm137-rule] pilot v16k8 go: instant vs SM135 e42 +0.065% [+0.054, +0.077]
+[sm137 11-21 02:58:24] done (pilot v16k8: go)
