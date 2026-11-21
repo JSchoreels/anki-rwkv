@@ -59,7 +59,7 @@ from rwkv import data_processing as DP  # noqa: E402
 HERE = ROOT / "artifacts/small-model/sm127"
 WORK = HERE / "work"
 RUN = HERE / "run"
-STOP = RUN / "STOP"
+STOP = Path(os.environ.get("SM127_STOP", str(RUN / "STOP")))   # v3 sets it to run-v3/STOP
 WT = Path("C:/Users/jonat/workspace/wt")
 SM92_MASTER = WT / "sm92/artifacts/small-model/sm92-e26-dec-1ep32k-muon/expertium/E89-F65e-F77a/master.pth"   # read only
 SM92_SHA = "2091f8a879a56cf96a3df3b820fdacfa64c6467e8502a3a5eb17436524100d7f"   # = hf-family rwkv-small-two-head manifest
@@ -67,6 +67,9 @@ SM117_HEAD = WT / "sm117/artifacts/small-model/sm117-sm92-head/head.pth"        
 COMBINED = WORK / "sm92-sm117head-master.pth"
 QUIET = Path("C:/Users/jonat/workspace/anki-rwkv/artifacts/coordination/queue/quiet.json")
 U732 = ROOT / "artifacts/small-model/eval-users-732.json"
+TC_MIN_N, TC_PRIOR_N, TC_LO, TC_HI = 30, 100, 0.5, 1.5   # time-level anchor: first reviews, shrink weight, clip
+TC_WIN_DAYS, TC_WIN_N = 60, 300                         # calibration window: last days, at least this many reviews
+CAP_MS = 60000                                          # the preset's maximum answer time (the cap bin)
 S_FAST = 8.0               # seconds: "answered within 8 s, reading the back included"
 HORIZON = 365
 POLICIES = ("ihr-0.90", "ihr-0.95", "ihr-0.98", "flu-0.50", "flu-0.70", "flu-0.80", "flu-0.80-fb95",
@@ -126,9 +129,12 @@ class Model127(S.Model):
         if not COMBINED.exists():
             prepare()
         super().__init__(master=COMBINED, threads=threads)
-        lnS = math.log(S_FAST)
+        self.set_frac(S_FAST)
+
+    def set_frac(self, s_sec):
+        """Share of each bin at or below s_sec under the sampler's log-uniform draw (bin 15 = the 60 s cap: 0 for S < 60)."""
+        lnS = math.log(s_sec)
         lo, hi = self.lo, self.hi
-        # share of each bin at or below S under the sampler's log-uniform draw (bin 15 = the 60 s cap: 0 for S < 60)
         self.frac = np.where(hi <= lnS, 1.0, np.where(lo >= lnS, 0.0, (lnS - lo) / np.where(hi > lo, hi - lo, 1.0)))
 
 
@@ -235,13 +241,25 @@ class Engine127(E.Engine):
     """sm41_engine.Engine + the fluency policy, the -nofb lanes, the budget and the fluency read-outs."""
     NOFB_REPLAY = False     # True (time-drift diagnostic only): -nofb also allowed on replay lanes (fr-shared1-nofb)
 
-    def __init__(self, model, warm, D, N, lane_names, budget_s, med_ms, pause=None, trace=False):
+    def __init__(self, model, warm, D, N, lane_names, budget_s, med_ms, pause=None, trace=False, fix=False,
+                 s_fast=S_FAST):
         bases, flags = zip(*[split_name(n) for n in lane_names])
         super().__init__(model, warm, D, N, list(bases), trace=trace, fsrs=None, fsrs_source="none (not used)")
         for b, n in enumerate(lane_names):
             self.cfg[b]["name"] = n
         B = self.B
         self.pause = pause
+        # SM127 v3 (design.md 13): fix = per-user answer-time level anchor (sampled later-day times of every non-teacher
+        # lane scaled by tc, calibrated on the real schedule from the tf and fr-shared1#0 lanes; the fluency CDF reads
+        # S / tc); s_fast = the fluency threshold in seconds (global 8 s, or the user's own S). Off = the pilot code.
+        self.fix = bool(fix)
+        self.s_fast = float(s_fast)
+        self.tc, self.tc_log = 1.0, []
+        self.cal_n, self.cal_cap, self.cal_real, self.cal_raw = 0, 0.0, 0.0, []     # today's accumulators
+        self.cal_hist = []      # one (n, capped ms, real ms, raw uncapped draws) per finished day
+        self.ref_lane = list(lane_names).index("fr-shared1#0") if "fr-shared1#0" in lane_names else None
+        assert not self.fix or (self.ref_lane is not None and self.cfg[0]["teacher"]), "the anchor needs tf + fr-shared1#0"
+        model.set_frac(self.s_fast)
         self.nofb = np.array([f["nofb"] for f in flags])
         self.fb_r = np.array([f["fb"] if f["fb"] else np.nan for f in flags], np.float64)
         self.is_flu = np.array([c["kind"] == "policy" and c["policy"] == "flu" for c in self.cfg])
@@ -404,7 +422,7 @@ class Engine127(E.Engine):
             st = self.expl[A[j]].cards[self.cards[e[j]]]
             g[jj] = st[2]
             ms[jj] = float(self.rev["duration"][ridx[j]]) if ridx[j] >= 0 else 1000.0 * math.exp(st[0][0])
-        fast = (g > 1) & (ms > 0) & (ms <= S_FAST * 1000.0 + 1e-6)
+        fast = (g > 1) & (ms > 0) & (ms <= self.s_fast * 1000.0 + 1e-6)
         bkt = d // E.BUCKET
         acc = self.acc["fluent_later"]
         np.add.at(acc, (A[k2], bkt, 0), 1.0)
@@ -412,9 +430,69 @@ class Engine127(E.Engine):
         np.add.at(acc, (A[k2], bkt, 2), pfl)
         np.add.at(acc, (A[k2], bkt, 3), (g > 1).astype(np.float64))
 
+    def time_hook(self, A2, bins, ms_s, ex_s, tch, u_real):
+        """Per-user answer-time level anchor (design.md 13.1): sampled later-day times of non-teacher lanes are scaled
+        by tc (rows in the 60 s cap bin keep the cap). Calibration rows: the fr-shared1#0 lane's raw sampled draws and
+        the tf lane's real times on the same real schedule."""
+        if not self.fix:
+            return ms_s, ex_s
+        cap = bins == 15
+        r = A2 == self.ref_lane
+        if r.any():
+            self.cal_n += int(r.sum())
+            self.cal_raw.append(ms_s[r & ~cap].astype(np.float64))
+            self.cal_cap += float(ms_s[r & cap].sum())
+        self.cal_real += float(u_real[A2 == 0].sum())
+        mv = ~tch & ~cap
+        ms2 = np.where(mv, np.minimum(CAP_MS, np.maximum(1, np.round(ms_s * self.tc))), ms_s).astype(np.int64)
+        return ms2, np.where(tch, ex_s, ex_s * self.tc)
+
+    def _solve_tc(self):
+        """The scale c with sum(min(c * raw, cap)) + capped = real over the calibration window: the reference lane's raw
+        uncapped draws of the last TC_WIN_DAYS days, extended back until at least TC_WIN_N reviews (or all days)
+        (bisection, clipped to [TC_LO, TC_HI]), shrunk towards 1 on the log scale with weight n / (n + TC_PRIOR_N).
+        A window and not the whole year: the raw draws depend on the scaled history, so old days would be stale."""
+        h = self.cal_hist
+        k, n = len(h), 0
+        while k > 0 and (len(h) - k < TC_WIN_DAYS or n < TC_WIN_N):
+            k -= 1
+            n += h[k][0]
+        if n < TC_MIN_N:
+            return 1.0
+        win = h[k:]
+        raw = np.concatenate([x[3] for x in win])
+        want = sum(x[2] for x in win) - sum(x[1] for x in win)
+
+        def f(c):
+            return float(np.minimum(raw * c, CAP_MS).sum()) - want
+        lo, hi = TC_LO, TC_HI
+        if not len(raw):
+            return 1.0
+        if f(hi) <= 0:
+            c = hi
+        elif f(lo) >= 0:
+            c = lo
+        else:
+            for _ in range(40):
+                mid = 0.5 * (lo + hi)
+                lo, hi = (mid, hi) if f(mid) < 0 else (lo, mid)
+            c = 0.5 * (lo + hi)
+        w = n / (n + TC_PRIOR_N)
+        return float(math.exp(w * math.log(c)))
+
     def day(self, d):
         if self.pause is not None:
             self.pause(d)
+        if self.fix:
+            # tc = the scale that makes the reference lane's sampled seconds equal the real ones so far (past days only);
+            # 1 until 300 later-day reviews are seen
+            if self.cal_n or self.cal_raw:
+                self.cal_hist.append((self.cal_n, self.cal_cap, self.cal_real,
+                                      np.concatenate(self.cal_raw) if self.cal_raw else np.zeros(0)))
+                self.cal_n, self.cal_cap, self.cal_real, self.cal_raw = 0, 0.0, 0.0, []
+            self.tc = self._solve_tc()
+            self.model.set_frac(self.s_fast / self.tc)
+            self.tc_log.append(round(self.tc, 4))
         super().day(d)
 
     # -------------------------------------------------------------- the horizon
@@ -460,7 +538,8 @@ class Engine127(E.Engine):
             if s is not None:
                 s.finish()
         res.update({
-            "s_fast": S_FAST, "budget_seconds_per_day": round(self.budget, 2), "med_ms": self.med_ms,
+            "s_fast": self.s_fast, "time_anchor": self.fix, "time_scale_final": round(self.tc, 4),
+            "time_scale_by_day": self.tc_log, "budget_seconds_per_day": round(self.budget, 2), "med_ms": self.med_ms,
             "new_cards": int((~self.old).sum()),
             **{f"h_{k}": np.round(np.asarray(v, np.float64), 3).tolist() for k, v in self.h.items()},
             "flu_decisions": self.dec_n.tolist(), "flu_floor_decisions": self.floor_n.tolist(),
@@ -484,6 +563,8 @@ def quiet_blocks(now):
                 blocks.append((dt.datetime.fromisoformat(w["start"]), dt.datetime.fromisoformat(w["end"])))
     except Exception:  # noqa: BLE001  unreadable: the daily break below still applies
         pass
+    if os.environ.get("SM127_DAILY_BREAK", "0") != "1":
+        return blocks            # since 11-19 there is no planned daily break: only quiet.json windows (design.md 13.5)
     day = now.replace(hour=0, minute=0, second=0, microsecond=0)
     blocks += [(day + dt.timedelta(days=k, hours=20), day + dt.timedelta(days=k + 1, hours=1)) for k in range(-1, 3)]
     blocks += [(day + dt.timedelta(days=k, hours=16), day + dt.timedelta(days=k, hours=20)) for k in range(-1, 3)
@@ -589,7 +670,21 @@ def medians_later(rev, end, recent_days=60, min_n=100):
     return out
 
 
-def make_engine(model, user, D, N, lanes, budget=None, pause=None, trace=False, cache=None):
+def user_s_fast(rev, end, q=90.0, recent_days=60, min_n=100, lo=3.0, hi=45.0):
+    """The user's own fluency threshold (design.md 13.2): the 90th percentile of the pre-split later-day answer time of
+    passed reviews (Hard / Good / Easy), the last `recent_days` days when they hold >= min_n of them, else all
+    pre-split; clipped to [lo, hi] seconds (the 60 s cap bin is never within S)."""
+    day = rev["day_offset"][:end]; ed = rev["elapsed_days"][:end]; g = rev["rating"][:end]; u = rev["duration"][:end]
+    ps = (ed >= 1) & (u > 0) & (g > 1)
+    rc = ps & (day >= day[end - 1] - recent_days + 1)
+    m = rc if rc.sum() >= min_n else ps
+    if not m.any():
+        return S_FAST
+    return float(np.clip(np.percentile(u[m], q) / 1000.0, lo, hi))
+
+
+def make_engine(model, user, D, N, lanes, budget=None, pause=None, trace=False, cache=None, fix=False,
+                per_user_s=False):
     """Warm-up (every real review before D, the training convention) + the engine. budget None = the user's real mean
     review seconds per calendar day over [D, D + N); float('inf') = no budget."""
     warm = cache.get(user) if cache is not None else None     # the engine only reads the warm-up (proof K6)
@@ -605,7 +700,9 @@ def make_engine(model, user, D, N, lanes, budget=None, pause=None, trace=False, 
     stop = int(np.searchsorted(rev["day_offset"], D + N, side="left"))
     real_s = float(rev["duration"][end:stop].sum()) / 1000.0
     b = real_s / N if budget is None else budget
-    eng = Engine127(model, warm, D, N, lanes, b, medians_later(rev, end), pause=pause, trace=trace)
+    s_fast = user_s_fast(rev, end) if per_user_s else S_FAST
+    eng = Engine127(model, warm, D, N, lanes, b, medians_later(rev, end), pause=pause, trace=trace, fix=fix,
+                    s_fast=s_fast)
     return eng, warm
 
 
@@ -625,10 +722,11 @@ def run(args):
 
         def pause(d):
             quiet_wait(f"{tag} day {d}", margin_min=0)
-        eng, warm = make_engine(model, args.user, D, args.days, args.lanes.split(","), pause=pause)
+        eng, warm = make_engine(model, args.user, D, args.days, args.lanes.split(","), pause=pause, fix=args.fix,
+                                per_user_s=args.per_user_s)
         tw = time.perf_counter() - t0
         print(f"[sm127] {tag} split {D}: warm-up {warm.i} reviews {tw:.0f} s; {eng.C} cards, {eng.B} lanes, budget "
-              f"{eng.budget:.0f} s/day", flush=True)
+              f"{eng.budget:.0f} s/day, S {eng.s_fast:.1f} s, time anchor {eng.fix}", flush=True)
         res = eng.run()
     except Stopped as ex:
         print(f"[sm127] {ex}: exiting without output", flush=True)
@@ -891,12 +989,14 @@ def report(args):
     P = [per_user(r) for r in rows]
     pols = [p.split("#")[0] for p in LANES.split(",")]
     pols = list(dict.fromkeys(pols))
+    own = any(abs(r.get("s_fast", S_FAST) - S_FAST) > 1e-9 for r in rows)
+    swords = ("answered within the user's own S s, reading the back included (S = the 90th percentile of the user's own "
+              "pre-split passed-review times)" if own else "answered within 8 s, reading the back included")
     L = [f"# Fluency vs desired retention (SM127): {args.set}, {len(rows)} of {len(want)} users", "",
-         "Answer time = the whole time on the card, question shown to grade press, capped (\"answered within 8 s, "
-         "reading the back included\"). Equal daily time: every policy lane has the user's real mean review seconds "
+         f"Answer time = the whole time on the card, question shown to grade press, capped (\"{swords}\"). Equal daily time: every policy lane has the user's real mean review seconds "
          "per day. Memorised / fluent = expected cards at day 365 (sums of P).", "",
          "| policy | min/day | reviews/day | memorised | fluent | P>=0.9 | fluent>=0.8 | both | new cards shown | "
-         "retention | passed within 8 s (all / last 65 d) | floor share | budget-hit days |", "|" + "---|" * 13]
+         "retention | passed within " + ("own S" if own else "8 s") + " (all / last 65 d) | floor share | budget-hit days |", "|" + "---|" * 13]
     summ = {}
     for p in pols:
         if not all(p in u for u in P):
@@ -992,6 +1092,32 @@ def report(args):
         L += ["", f"Drift check (daily shared-stream re-anchoring (fr-shared1) minus teacher forcing, first-touch "
                   f"predicted pass, whole year): {100 * np.mean(x):+.2f}% [{100 * out['drift_first_touch']['ci'][0]:+.2f}, "
                   f"{100 * out['drift_first_touch']['ci'][1]:+.2f}]."]
+    # level check (design.md 13.5): seconds per later-day review of fr-shared1#0 over tf, ratio of totals, paired bootstrap
+    tf_s, fr_s = [], []
+    for r in rows:
+        tl = np.asarray(r["acc"]["time_later"])
+        k_tf, k_fr = r["lanes"].index("tf"), r["lanes"].index("fr-shared1#0")
+        tf_s.append(tl[k_tf, :, :2].sum(0)); fr_s.append(tl[k_fr, :, :2].sum(0))
+    tf_s, fr_s = np.array(tf_s), np.array(fr_s)
+    bi = boot_idx(len(rows))
+    ratio = (fr_s[:, 1].sum() / fr_s[:, 0].sum()) / (tf_s[:, 1].sum() / tf_s[:, 0].sum())
+    rb = (fr_s[bi, 1].sum(1) / fr_s[bi, 0].sum(1)) / (tf_s[bi, 1].sum(1) / tf_s[bi, 0].sum(1))
+    lv = [float(ratio), float(np.percentile(rb, 2.5)), float(np.percentile(rb, 97.5))]
+    out["level_check"] = {"ratio": lv[0], "ci": lv[1:], "accepted": bool(0.95 <= lv[0] <= 1.05),
+                          "tf_seconds_per_review": float(tf_s[:, 1].sum() / tf_s[:, 0].sum()),
+                          "fr_shared1_seconds_per_review": float(fr_s[:, 1].sum() / fr_s[:, 0].sum())}
+    L += ["", f"Level check (design.md 13.5): seconds per later-day review, daily re-anchoring (fr-shared1) over teacher forcing "
+              f"(real times), ratio of totals: {lv[0]:.3f} [{lv[1]:.3f}, {lv[2]:.3f}] (tf "
+              f"{out['level_check']['tf_seconds_per_review']:.2f} s, fr-shared1 "
+              f"{out['level_check']['fr_shared1_seconds_per_review']:.2f} s); accepted band [0.95, 1.05]: "
+              f"{'accepted' if out['level_check']['accepted'] else 'OUTSIDE'}."]
+    if own or any(r.get("time_anchor") for r in rows):
+        sv = np.array([r.get("s_fast", S_FAST) for r in rows]); tcs = np.array([r.get("time_scale_final", 1.0) for r in rows])
+        L += ["", f"Per-user S (s): median {np.median(sv):.1f}, quartiles {np.percentile(sv, 25):.1f}-{np.percentile(sv, 75):.1f}, "
+                  f"range {sv.min():.1f}-{sv.max():.1f}. Final answer-time level scale: median {np.median(tcs):.3f}, "
+                  f"quartiles {np.percentile(tcs, 25):.3f}-{np.percentile(tcs, 75):.3f}, range {tcs.min():.3f}-{tcs.max():.3f}."]
+        out["s_user"] = {"median": float(np.median(sv)), "min": float(sv.min()), "max": float(sv.max())}
+        out["time_scale_final"] = {"median": float(np.median(tcs)), "min": float(tcs.min()), "max": float(tcs.max())}
     lr = [r["lane_reviews"] for r in rows]; ws = [r["wall_seconds"] + r.get("warmup_seconds", 0) for r in rows]
     out["cost"] = {"lane_reviews": int(sum(lr)), "process_hours": round(sum(ws) / 3600, 2),
                    "lane_reviews_per_s": round(sum(lr) / max(sum(r["wall_seconds"] for r in rows), 1e-9), 1)}
@@ -1017,6 +1143,8 @@ def main():
     r.add_argument("--threads", type=int, default=1); r.add_argument("--margin", type=float, default=60.0,
                                                                      help="minutes before a quiet window: no new user")
     r.add_argument("--min-free-gb", type=float, default=6.0); r.add_argument("--out", required=True)
+    r.add_argument("--fix", action="store_true", help="design.md 13.1: per-user answer-time level anchor")
+    r.add_argument("--per-user-s", action="store_true", help="design.md 13.2: the user's own fluency threshold S")
     t = sub.add_parser("report"); t.add_argument("--rows", default=str(HERE / "rows"))
     t.add_argument("--set", default="pilot", choices=("pilot", "full"))
     t.add_argument("--md", default=str(HERE / "sm127-tables.md")); t.add_argument("--json", default=str(HERE / "sm127-result.json"))

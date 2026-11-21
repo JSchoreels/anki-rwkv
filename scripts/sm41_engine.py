@@ -823,6 +823,10 @@ class Engine:
             pg = self.candidates_p(pend["A"], pend["e"], pend["st"], np.full(mrows, self.D + pend["d"], np.int64), T_GRID)
             self.resolve(pend, pg)
 
+    def time_hook(self, A2, bins, ms_s, ex_s, tch, u_real):
+        """Hook on the sampled later-day times of a tick (identity here; SM127 overrides it with a per-user level scale)."""
+        return ms_s, ex_s
+
     def tick(self, d, A, e, kind, ed, ridx):
         torch = self.model.torch
         m = self.model
@@ -922,6 +926,7 @@ class Engine:
             lo, hi = m.lo[bins], m.hi[bins]
             ms_s = np.where(bins == 15, 60000, np.round(1000 * np.exp(lo + U[k2, 2] * (hi - lo)))).astype(np.int64)
             ex_s = (pb * np.exp(self.mid)).sum(-1)
+            ms_s, ex_s = self.time_hook(A[k2], bins, ms_s, ex_s, teacher[k2], u_r[k2])
             if tfac is not None:
                 pk = tmask[k2]
                 ms_s = np.where(pk, np.maximum(1, np.round(ms_s * tfac[k2])), ms_s).astype(np.int64)
