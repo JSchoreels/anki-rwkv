@@ -1,50 +1,51 @@
-# Handoff: trained smaller state for Tiny (SM137)
+# Handoff: trained smaller state for Tiny (SM137), full plan
 
-Design: `design.md` (pre-registered 11-21, before any GPU ticket). **Nothing is launched.** The pilot needs the main session's (or the user's) OK and a free GPU.
+Design: `design.md` (pre-registered 11-21; section "Pilot result and full-plan launch" records what changed since: checks only, **no rule changed**). The pick: the six-layer Tiny (SM130)'s card and note WKV state cut to 16 value rows x 8 of 16 key lanes per head (`w64-c1-d2p1u1-v16k8`), **803 B per card and per note** instead of 1,315 B at the release-candidate format.
 
-The pick: the six-layer Tiny (SM130)'s card and note WKV state cut to all 16 value rows x 8 of 16 key lanes per head (architecture `w64-c1-d2p1u1-v16k8`): **803 B per card and per note** at the release-candidate format, instead of 1,315 B (39% less). The model zeroes the dropped lanes, so the stored state keeps exact zeros; the fork needs a storage (codec) change only.
+## State on 11-21 03:20
 
-## State on 11-21
+- Pilot done 02:58: **go**, instant +0.065% [+0.054, +0.077] vs the six-layer Tiny with longer recovery (SM135)'s epoch 42 (w8+s8, 722 users); readout `sm137-pilot-io-v16k8.md`, log `gpu/launch-sm137.log`.
+- **Full plan launched 03:19** (branch sm137 at 4b466ade): `launch-sm137-full.sh`, launcher bash Windows PID **15372** (WMI hidden), first queue ticket **001404** (trainer smoke of pass 1, exit 0), then **001405** = Instant-Only cool-down pass 1 (enqueued 03:19:42).
+- Prepared and proved before launch (CPU): the Instant-Only pass 1 folder `artifacts/small-model/sm137-io-v16k8-dec2ep32k-p1` (Muon fresh check 7 PASS, `sm137_muon_zero.py` PASS, `sm137_pair.py p1` OK vs SM115's and SM130's pass 1); the two-head cut `artifacts/small-model/sm137-th-v16k8-e32` (sha256 101523b5a8b3, local, not committed) with `check-cpu-sm137-th-v16k8.json` ALL OK, CPU smoke rows `cpu/smoke-cpu-th-v16k8-rows.jsonl`, `sm137_epoch.py pair --chain th` OK.
 
-- CPU proofs: `check-cpu-sm137-v16k8.json` (log `cpu/check-cpu-v16k8.out`), ALL OK (see design.md section "CPU proofs").
-- Cut checkpoint (local, not committed): `C:/Users/jonat/workspace/wt/sm137/artifacts/small-model/sm137-io-v16k8-e41/` (`master.pth`, `optimizer.pth`, `extend.json` with the sha256 pins and the lane permutations), from SM130's Instant-Only epoch 41 (sha256 af16139e28bb).
-- CPU smoke rows for the GPU check: `cpu/smoke-cpu-v16k8-rows.jsonl` (users 2388, 4676).
-- Zero-shot screen (17 users outside the 732 set, information only): `sm137-zero-shot-screen.json`.
-- The pilot folder `sm137-io-v16k8-e42-st` is written by the launcher (`sm137_epoch.py prepare`); `sm137_epoch.py pair --chain io` already passes (== SM135's epoch 42 except the architecture and the start).
+## Stages and ETA (Sat 11-21)
 
-## Launch the pilot (about 1.5 GPU h)
-
-Dry run first (no GPU, no folder written):
-
-    DRYRUN=1 bash C:/Users/jonat/workspace/wt/sm137/artifacts/small-model/sm137/launch-sm137.sh; tail -30 C:/Users/jonat/workspace/wt/sm137/artifacts/small-model/sm137/gpu/launch-sm137-dryrun.log
-
-Launch, hidden via WMI (PowerShell):
-
-    $si = New-CimInstance -ClassName Win32_ProcessStartup -ClientOnly -Property @{ShowWindow=[uint16]0}; Invoke-CimMethod -ClassName Win32_Process -MethodName Create -Arguments @{CommandLine='"C:\Program Files\Git\usr\bin\bash.exe" -c "export PATH=/usr/bin:/mingw64/bin:$PATH; bash C:/Users/jonat/workspace/wt/sm137/artifacts/small-model/sm137/launch-sm137.sh >> C:/Users/jonat/workspace/wt/sm137/artifacts/small-model/sm137/gpu/launch-sm137.nohup 2>&1"'; ProcessStartupInformation=$si}
-
-Steps (all GPU steps through `scripts/r01_queue.py`, owner `sm137`, purposes start with `Trained smaller state for Tiny (SM137): `; GPU memory cap 0.8): checks -> memory guard -> prepare + pair -> GPU scorer smoke (~5 min) -> trainer smoke (~3 min) -> zero-shot score of the cut (~10 min) -> Instant-Only lane epoch 42 (~55 min at ~179k reviews/s) -> dropped-row check -> scoring w8+s8 + w8+s8hx8 (~20 min) -> `sm137_rule.py pilot`.
+| stage | ETA end |
+|---|---|
+| Instant-Only pass 1 (~150-165 min at ~60-66k reviews/s) | ~06:00-06:25 |
+| pass 2 (prepared + paired by the launcher, then trained) | ~08:40-09:10 |
+| final scoring (student w8+s8 + w8+s8hx8; SM130 final w8+s8hx8), ~30 min | ~09:40 |
+| long-card CPU rows (50 users, 2 processes, ~25-35 min), `longcard --chain io`, `decide --chain io` | **Instant-Only verdict ~10:15** |
+| two-head (only if io = go): GPU smoke, prepare + pair, smoke, lane epoch 33 (~60-65 min), w8+s8, `early-th` | ~11:40 |
+| two-head pass 1 + pass 2 (~2 x 165 min) | ~17:15 |
+| final scoring + long-card + `decide --chain th` | **two-head verdict ~18:30** |
 
 ## Watch
 
-- Log: `C:/Users/jonat/workspace/wt/sm137/artifacts/small-model/sm137/gpu/launch-sm137.log` (lines `[sm137 MM-DD HH:MM:SS] ...`); trainer `gpu/train.out`, scorer `gpu/score.out`, smokes `gpu/check.out`, `gpu/segments.jsonl`, `gpu/tickets.jsonl`, rows `gpu/sm137-early-rows.jsonl`.
-- Done: `grep -E '\] done \(pilot' .../gpu/launch-sm137.log` -> `done (pilot v16k8: go | pilot_v16k12 | stop)`; verdict file `gpu/verdict-pilot-v16k8`; readout `sm137-pilot-io-v16k8.{json,md}`.
-- Failure: `grep -E '\] STOP:' .../gpu/launch-sm137.log`. Report, do not relaunch blindly.
-- Alive (PowerShell): `Get-CimInstance Win32_Process -Filter "Name='bash.exe'" | Where-Object { $_.CommandLine -like '*launch-sm137.sh*' } | Select ProcessId, CommandLine`
-- Stop: `touch C:/Users/jonat/workspace/wt/sm137/artifacts/small-model/sm137/gpu/STOP` (a running epoch snapshot-stops at the next user boundary); resume = the same launch command after removing STOP.
-- Rule by hand (CPU, seconds): `C:/Users/jonat/workspace/anki-rwkv/.venv/Scripts/python.exe -X utf8 C:/Users/jonat/workspace/wt/sm137/artifacts/small-model/sm137/sm137_rule.py pilot --lanes v16k8` (exit 2 = rows missing).
-- Do not edit `scripts/`, `expertium/`, `rwkv/` of the sm137 worktree while the epoch runs (SourceWatch).
+- Log: `C:/Users/jonat/workspace/wt/sm137/artifacts/small-model/sm137/gpu/launch-sm137-full.log` (stdout/stderr of the launcher: `gpu/launch-sm137-full.nohup`); trainer `gpu/train.out`, scorer `gpu/score.out`, smokes `gpu/check.out`, `gpu/segments.jsonl`, `gpu/tickets.jsonl`; long-card per-user rows and logs `cpu/longcard/<chain>/`.
+- Done: `grep -E '\] done \(full' .../gpu/launch-sm137-full.log` -> `done (full: io <verdict>, th <verdict>)`. Per chain: `gpu/verdict-full-io`, `gpu/verdict-full-th`, and the line `<chain> chain verdict: ...`.
+- Failure: `grep -E '\] STOP:' .../gpu/launch-sm137-full.log` (the last one is `STOP: ended with exit 1`; the one before it is the reason). Report; do not relaunch blindly.
+- Alive (PowerShell): `Get-CimInstance Win32_Process -Filter "Name='bash.exe'" | Where-Object { $_.CommandLine -like '*launch-sm137-full.sh*' } | Select ProcessId, CommandLine`
+- Stop: `touch C:/Users/jonat/workspace/wt/sm137/artifacts/small-model/sm137/gpu/STOP` (a running pass snapshot-stops at the next user boundary). Resume: `rm` the STOP file, then the same launch command (finished steps are skipped: `p1-<chain>-ok`, `smoke-*-ok`, complete folders, scored rows, complete long-card users, `verdict-full-<chain>`).
+- Launch command (PowerShell):
 
-## After the pilot
+      $si = New-CimInstance -ClassName Win32_ProcessStartup -ClientOnly -Property @{ShowWindow=[uint16]0}; Invoke-CimMethod -ClassName Win32_Process -MethodName Create -Arguments @{CommandLine='"C:\Program Files\Git\usr\bin\bash.exe" -c "export PATH=/usr/bin:/mingw64/bin:$PATH; bash C:/Users/jonat/workspace/wt/sm137/artifacts/small-model/sm137/launch-sm137-full.sh >> C:/Users/jonat/workspace/wt/sm137/artifacts/small-model/sm137/gpu/launch-sm137-full.nohup 2>&1"'; ProcessStartupInformation=$si}
 
-- `go`: prepare the full plan (design.md "Full plan"): the Instant-Only two-pass cool-down from `sm137-io-v16k8-e42-st` with SM115's / SM130's recipe (adapt `artifacts/small-model/sm135/launch-sm135.sh`'s cool-down functions and `sm135_pair.py` / `sm135_prepare.py` with `ARCH=w64-c1-d2p1u1-v16k8`; the cool-down's fresh Muon check `scripts/check_muon_fresh_decay.py` must accept the lane preset), final scoring (student w8+s8 + w8+s8hx8, SM130 final w8+s8hx8), the long-card CPU check (`users-longcard.json`, `--prior-buckets 0,32,128,300,1000`, under `memguard.ps1`), `sm137_rule.py longcard --chain io` and `decide --chain io`; then the two-head chain (cut of SM130's epoch 32: `sm137_lanes.py mask --chain th --value-lanes 16 --key-lanes 8 --stats work/stats-th-src.json --out artifacts/small-model/sm137-th-v16k8-e32`, `sm137_epoch.py prepare --chain th`, epoch 33, `early-th`, cool-down with SM91s2's targets, `decide --chain th`). About 12 GPU h.
-- `pilot_v16k12`: make the milder cut and its CPU proofs, then relaunch with `LANES=v16k12`:
+- Do not edit `scripts/`, `expertium/`, `rwkv/` of the sm137 worktree, and do not merge into it, while a training ticket runs (SourceWatch); edits under `artifacts/` are fine.
+- A memory-guard kill (any CPU process of this run above 5.9 GB) writes `gpu/memguard-kill` + `gpu/STOP`; the long-card step then stops the launcher before the rule.
 
-      cd C:/Users/jonat/workspace/wt/sm137
-      PY=C:/Users/jonat/workspace/anki-rwkv/.venv/Scripts/python.exe; D=artifacts/small-model/sm137; export CUDA_VISIBLE_DEVICES=
-      $PY -X utf8 $D/sm137_lanes.py mask --chain io --value-lanes 16 --key-lanes 12 --stats $D/work/stats-io-src.json --out artifacts/small-model/sm137-io-v16k12-e41
-      $PY -X utf8 $D/sm137_lanes.py stats --chain io --users-file $D/users-screen.json --arch w64-c1-d2p1u1-v16k12 --checkpoint artifacts/small-model/sm137-io-v16k12-e41/master.pth --value-lanes 16 --key-lanes 12 --keep-states --tag io-v16k12-cut
-      SM137_TMP=C:/Users/jonat/AppData/Local/Temp $PY -X utf8 $D/sm137_lanes.py cpu-check --cut artifacts/small-model/sm137-io-v16k12-e41 --cut-stats $D/work/stats-io-v16k12-cut.json --value-lanes 16 --key-lanes 12 --out $D/check-cpu-sm137-v16k12.json
-      env -u RWKV_DELETED_CARDS -u EXPERTIUM_END_TO_START PYTHONDONTWRITEBYTECODE=1 $PY -X utf8 scripts/small_model_heldout.py --device cpu --pool 732 --users-file $D/users-smoke.json --count 2 --model "smoke=expertium:w64-c1-d2p1u1-v16k12:C:/Users/jonat/workspace/wt/sm137/artifacts/small-model/sm137-io-v16k12-e41/master.pth" --variants w8+s8,w8+s8hx8 --inputs e2s-query --time-limit 600 --split-existing --deleted-cards neighbour --out $D/cpu/smoke-cpu-v16k12-rows.jsonl
-  then the WMI launch with `export LANES=v16k12;` added before `bash`.
-- `stop`: write the result (no cool-down).
-- In every case: update `pages/data/factory-curated.json` (results row with times and detail; the SM137 plan row's state), publish, `--check` SYNC 0.
+## After each chain: write-up (CPU, seconds; fresh agent, Sonnet medium is enough)
+
+    cd C:/Users/jonat/workspace/wt/sm137
+    PY=C:/Users/jonat/workspace/anki-rwkv/.venv/Scripts/python.exe; D=artifacts/small-model/sm137
+    cat $D/gpu/verdict-full-io                        # or verdict-full-th
+    $PY -X utf8 $D/sm137_rule.py longcard --chain io --lanes v16k8   # re-print (writes sm137-longcard-io-v16k8.json)
+    $PY -X utf8 $D/sm137_rule.py decide --chain io --lanes v16k8     # re-print (writes sm137-decision-io-v16k8.{json,md}); exit 2 = rows missing
+    $PY C:/Users/jonat/workspace/anki-rwkv/scripts/r01_inspect.py $D/sm137-decision-io-v16k8.json --field vs_small_release_format --field vs_small_published --field vs_sm130_release_format --field long_card --field verdict
+    grep -E 'complete:|lr check|verify|final scoring|rule ' $D/gpu/launch-sm137-full.log | cut -c1-400   # reviews/s, minutes, dropped-row checks
+
+For the two-head chain also `sm137-early-th-v16k8.json` (epoch 33 vs SM130's epoch 32). Then:
+
+- write `RESULT.md` (both chains: verdict, the rule numbers vs Small at w8+s8hx8 and w8+s8, vs SM130 at both formats, long-card excess, reviews/s per pass and the 8k/2k 10-epoch ETA, bytes 803 vs 1,315), commit with `git add -f` the readouts, `gpu/launch-sm137-full.log`, `gpu/sm137-rows.jsonl`, `gpu/tickets.jsonl`, `gpu/segments.jsonl`, `gpu/verdict-full-*`, `cpu/sm137-longcard-rows.jsonl` (never .pth / .npz), fetch + merge origin, push sm137;
+- factory page in the MAIN repo (git fetch + ff first): in `pages/data/factory-curated.json` add a results row per chain (times, reviews/s, the rule table, long-card excess) like the SM137 pilot row of 11-21, and update the SM137 plan row (`when`, `state`, `ended_at` once both chains are decided). Targeted byte edits only (CRLF + HTML entities; never json.dumps the whole file); then `.venv/Scripts/python.exe scripts/publish_factory_page.py` and `--check` (must print SYNC 0); commit only `pages/data/factory-curated.json` and `pages/data/factory.json`; push main. Never "Expertium" in page text; models as "plain name (ID)".
+- The two-head chain runs only if `verdict-full-io` starts with `go`; otherwise it writes `not run (...)`. A two-head run without the io go needs the main session's OK: relaunch with `export TH_FORCE=1;` before `bash` in the launch command.
