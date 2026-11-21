@@ -1,0 +1,96 @@
+[queue] 001340-small-model registered for gpu: rolling recalibration for the Big models (SM128): per-review dump of the show-time instant-only big model (SM99) on the 732 set (723 users, pass 1, cap 0.8)
+[queue] 001340-small-model started after 0:00:00; holds gpu
+[sm125-dump] the show-time instant-only big model (SM99): 723 users, 723 to dump
+[sm125-dump] 50/723 users, 90 s, 0.21 GB
+[sm125-dump] 100/723 users, 185 s, 0.53 GB
+[sm125-dump] 150/723 users, 280 s, 0.87 GB
+[sm125-dump] 200/723 users, 369 s, 1.20 GB
+[sm125-dump] 250/723 users, 433 s, 1.45 GB
+[sm125-dump] 300/723 users, 511 s, 1.73 GB
+[sm125-dump] 350/723 users, 600 s, 1.99 GB
+[sm125-dump] 400/723 users, 683 s, 2.33 GB
+[sm125-dump] 450/723 users, 749 s, 2.57 GB
+[sm125-dump] 500/723 users, 815 s, 2.87 GB
+[sm125-dump] 550/723 users, 894 s, 3.12 GB
+[sm125-dump] 600/723 users, 963 s, 3.37 GB
+[sm125-dump] 650/723 users, 1020 s, 3.61 GB
+[sm125-dump] 700/723 users, 1091 s, 3.89 GB
+[sm125-dump] user 4852: The following operation failed in the TorchScript interpreter.
+Traceback of TorchScript (most recent call last):
+  File "C:\Users\jonat\workspace\wt\sm128\artifacts\compression\_generated\rwkv_model_state_quant.py", line 106, in forward
+        x_BTC, v0_BTC = in_BTC, torch.empty_like(in_BTC)
+        for _, block in enumerate(self.blocks):
+            x_BTC, v0_BTC = block(
+                            ~~~~~ <--- HERE
+                in_BTC=x_BTC,
+                v0_BTC=v0_BTC,
+  File "C:\Users\jonat\workspace\wt\sm128\artifacts\compression\_generated\rwkv_model_state_quant.py", line 124, in forward
+    @FunctionType
+    def forward(self, in_BTC, v0_BTC, time_shift_select_BT, skip_BT):
+        x_BTC, v0_BTC = self.time_mixer(
+                        ~~~~~~~~~~~~~~~ <--- HERE
+            in_BTC=in_BTC,
+            v0_BTC=v0_BTC,
+  File "C:\Users\jonat\workspace\wt\sm128\artifacts\compression\_generated\rwkv_model_state_quant.py", line 392, in forward
+        else:
+            v_lerp_BTC = torch.nn.functional.sigmoid(self.v_lora_simple(v_BTC))
+            v_BTC = torch.lerp(self.W_v(v_BTC), v0_BTC, v_lerp_BTC)
+                               ~~~~~~~~ <--- HERE
+    
+        a_BTC = torch.nn.functional.sigmoid(self.a_lora_simple(a_BTC))
+  File "C:\Users\jonat\workspace\anki-rwkv\.venv\Lib\site-packages\torch\nn\modules\linear.py", line 134, in forward
+        Runs the forward pass.
+        """
+        return F.linear(input, self.weight, self.bias)
+               ~~~~~~~~ <--- HERE
+RuntimeError: CUDA out of memory. Tried to allocate 626.00 MiB. GPU 0 has a total capacity of 15.89 GiB of which 2.29 GiB is free. 12.72 GiB allowed; Of the allocated memory 10.48 GiB is allocated by PyTorch, and 1.78 GiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)
+
+[sm125-dump] done 723 users in 1131 s, 4.00 GB -> C:\Users\jonat\workspace\wt\sm128\artifacts\small-model\sm128\work\dump-sm99
+[queue] 001340-small-model finished with exit code 0 after 0:18:55; released gpu
+[queue] 001341-small-model registered for gpu: rolling recalibration for the Big models (SM128): per-review dump of the show-time instant-only big model (SM99) on the 732 set (missing users, pass 2, cap 0.92)
+[queue] 001341-small-model started after 0:00:00; holds gpu
+[sm125-dump] the show-time instant-only big model (SM99): 723 users, 6 to dump
+[sm125-dump] user 481: The following operation failed in the TorchScript interpreter.
+Traceback of TorchScript (most recent call last):
+RuntimeError: CUDA out of memory. Tried to allocate 2.96 GiB. GPU 0 has a total capacity of 15.89 GiB of which 632.67 MiB is free. 14.62 GiB allowed; Of the allocated memory 6.99 GiB is allocated by PyTorch, and 6.72 GiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)
+
+[sm125-dump] user 2267: The following operation failed in the TorchScript interpreter.
+Traceback of TorchScript (most recent call last):
+RuntimeError: CUDA out of memory. Tried to allocate 3.50 GiB. GPU 0 has a total capacity of 15.89 GiB of which 1.57 GiB is free. 14.62 GiB allowed; Of the allocated memory 6.87 GiB is allocated by PyTorch, and 5.88 GiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)
+
+[sm125-dump] user 3735: The following operation failed in the TorchScript interpreter.
+Traceback of TorchScript (most recent call last):
+  File "C:\Users\jonat\workspace\wt\sm128\artifacts\compression\_generated\rwkv_model_state_quant.py", line 106, in forward
+        x_BTC, v0_BTC = in_BTC, torch.empty_like(in_BTC)
+        for _, block in enumerate(self.blocks):
+            x_BTC, v0_BTC = block(
+                            ~~~~~ <--- HERE
+                in_BTC=x_BTC,
+                v0_BTC=v0_BTC,
+  File "C:\Users\jonat\workspace\wt\sm128\artifacts\compression\_generated\rwkv_model_state_quant.py", line 124, in forward
+    @FunctionType
+    def forward(self, in_BTC, v0_BTC, time_shift_select_BT, skip_BT):
+        x_BTC, v0_BTC = self.time_mixer(
+                        ~~~~~~~~~~~~~~~ <--- HERE
+            in_BTC=in_BTC,
+            v0_BTC=v0_BTC,
+  File "C:\Users\jonat\workspace\wt\sm128\artifacts\compression\_generated\rwkv_model_state_quant.py", line 392, in forward
+        else:
+            v_lerp_BTC = torch.nn.functional.sigmoid(self.v_lora_simple(v_BTC))
+            v_BTC = torch.lerp(self.W_v(v_BTC), v0_BTC, v_lerp_BTC)
+                               ~~~~~~~~ <--- HERE
+    
+        a_BTC = torch.nn.functional.sigmoid(self.a_lora_simple(a_BTC))
+  File "C:\Users\jonat\workspace\anki-rwkv\.venv\Lib\site-packages\torch\nn\modules\linear.py", line 134, in forward
+        Runs the forward pass.
+        """
+        return F.linear(input, self.weight, self.bias)
+               ~~~~~~~~ <--- HERE
+RuntimeError: CUDA out of memory. Tried to allocate 504.00 MiB. GPU 0 has a total capacity of 15.89 GiB of which 0 bytes is free. 14.62 GiB allowed; Of the allocated memory 13.02 GiB is allocated by PyTorch, and 1.58 GiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)
+
+[sm125-dump] user 4852: The following operation failed in the TorchScript interpreter.
+Traceback of TorchScript (most recent call last):
+RuntimeError: CUDA out of memory. Tried to allocate 4.89 GiB. GPU 0 has a total capacity of 15.89 GiB of which 3.90 GiB is free. 14.62 GiB allowed; Of the allocated memory 7.29 GiB is allocated by PyTorch, and 3.37 GiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)
+
+[sm125-dump] done 6 users in 58 s, 0.09 GB -> C:\Users\jonat\workspace\wt\sm128\artifacts\small-model\sm128\work\dump-sm99
+[queue] 001341-small-model finished with exit code 0 after 0:01:02; released gpu
