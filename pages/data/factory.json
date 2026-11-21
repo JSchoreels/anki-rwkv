@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-21T21:41:13+01:00",
- "updated": "2026-11-21 21:41",
- "material": "4e7e7e815b8e15bd",
- "summary": "running 001461, finished 001460",
+ "generated_at": "2026-11-21T21:57:00+01:00",
+ "updated": "2026-11-21 21:57",
+ "material": "65a4329e6e3da8bc",
+ "summary": "running 001461",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring, show-time inputs for both heads (curve / instant)",
@@ -422,7 +422,7 @@
    "track": "small model",
    "ticket": "001461-sm141",
    "started": "21:40",
-   "elapsed": "0:00",
+   "elapsed": "0:16",
    "progress": null,
    "eta": "~23:50"
   }
@@ -2773,11 +2773,8 @@
    "when": "Started 17:31 Sat 11-21 (queue ticket 001444 onwards): GPU about 1.5 h (five dumps), dumps done about 19:00; CPU analysis afterwards (about 1 h), read-out Sat evening or Sun morning",
    "decides": "Whether the answer-time predictions are exploitable card by card (which card is slow, which card is erratic), not only right on average; it shapes what the time features may promise in the client",
    "state": "done",
-   "started_at": "2026-11-21T17:31:24+01:00",
-   "ended": "21:26",
-   "exit": 0,
-   "started": "17:31",
-   "ended_at": "2026-11-21T21:26:12+01:00"
+   "started_at": "2026-11-21T17:31+01:00",
+   "ended_at": "2026-11-21T21:56+01:00"
   },
   {
    "id": "SM141",
@@ -3525,6 +3522,91 @@
   }
  ],
  "results": [
+  {
+   "date": "11-21",
+   "kind": "cpu-analysis",
+   "id": "SM142",
+   "track": "small model",
+   "name": "Answer-time expressiveness (SM142): how card-specific, in location and in shape, the predicted answer-time curves of five heads are, against the card&rsquo;s own history",
+   "eval": "The 732 set (722 users with time rows, 719 for the show-time instant-only big model (SM99)), show-time inputs, leak-free, fp32. Per review the head&rsquo;s predicted time distribution (4 grades &times; 16 bins) for the longer Small Instant-Only model (SM113), the show-time two-head cool-down for Small (SM118), the six-layer Tiny two-head and Instant-Only models (SM130) and the show-time instant-only big model (SM99), each with its explicit-features-only ablation head; within user and grade AUC against the card&rsquo;s running median, the card&rsquo;s last time and the user&rsquo;s running median; calibration slopes and spread; persistent card-to-card variance explained; distinct curves and PCA; shape calibration; life of a card. Every CI: 2,000 paired user bootstraps, seed 0.",
+   "fork": "Nothing changed in the fork; this is a description of the heads, not a gate",
+   "takeaway": "<strong>The answer-time heads are not a handful of templates, but their card-to-card gaps are about 1.7 times too wide.</strong> For all five models, within one user and one grade, the head tells fast cards from slow cards clearly better than the card&rsquo;s own running median does: AUC of answered within S s, reading the back included, 0.83 to 0.84 at 2 s against 0.690 for the card&rsquo;s median (gain +0.14 to +0.15, every CI above 0), and 0.82 to 0.83 at 4 s against 0.727 (gain +0.09 to +0.10); the user&rsquo;s running median per grade scores only about 0.55. The heads explain 51% to 54% of the persistent card-to-card differences against 44% for the card&rsquo;s own median (gain +6.5% to +9.4%, CI above 0) and 47% for the explicit-features-only head. Each user gets about 680 to 800 distinguishable curves (10% grid, location included) and 74 to 87 distinguishable shapes once the location is removed, so no 3-or-4-template pattern. But the between-card slope is only 0.59 (required 0.8 to 1.25): the predicted spread between cards is 1.1 to 1.15 times the real persistent spread where about 0.73 would be right, so a client should shrink the card gaps by about 0.6 (the explicit-features-only head has the same 0.61). The curve shapes carry only a weak signal: card-level correlation of the predicted width with the realised spread 0.085 to 0.100 (CI above 0, but not better than the card&rsquo;s own earlier spread). Label by the pre-registered rule: partly expressive for every model (not template-like; not card-expressive because the slope fails; so not shape-expressive). The show-time instant-only big model (SM99) and the longer Small Instant-Only model (SM113) are the most expressive, the six-layer Tiny models (SM130) about 0.01 AUC and 2% to 3% of explained variance lower.",
+   "inputs": "show-time",
+   "started_at": "2026-11-21T17:31+01:00",
+   "ended_at": "2026-11-21T21:56+01:00",
+   "gpu_minutes": 77,
+   "cpu_minutes": 35,
+   "tickets": 6,
+   "detail": {
+    "verdict": "Partly expressive for all five models: not template-like, but the between-card slope is 0.59 (card gaps about 1.7 times too wide) and the shapes are weakly informative; branch sm142 c8764a2e (sm142-result.md, sm142-result.json, design.md)",
+    "table": {
+     "head": [
+      "Model",
+      "Label",
+      "AUC at 2 s / 4 s (card median 0.690 / 0.727)",
+      "Between-card slope / spread ratio",
+      "Persistent card differences explained (card median 44.1%)",
+      "Distinct curves per user: location included / shape only",
+      "Card-level shape calibration"
+     ],
+     "rows": [
+      [
+       "the six-layer Tiny two-head model (SM130)",
+       "partly expressive",
+       "0.828 / 0.817",
+       "0.589 / 1.109",
+       "50.6% [48.8, 52.4]",
+       "717 / 81",
+       "0.086 [0.077, 0.095]"
+      ],
+      [
+       "the six-layer Tiny Instant-Only model (SM130)",
+       "partly expressive",
+       "0.828 / 0.818",
+       "0.590 / 1.114",
+       "51.2% [49.4, 53.0]",
+       "709 / 76",
+       "0.085 [0.076, 0.094]"
+      ],
+      [
+       "the longer Small Instant-Only model (SM113)",
+       "partly expressive",
+       "0.839 / 0.825",
+       "0.592 / 1.135",
+       "53.0% [51.2, 54.8]",
+       "711 / 80",
+       "0.093 [0.084, 0.102]"
+      ],
+      [
+       "the show-time two-head cool-down for Small (SM118)",
+       "partly expressive",
+       "0.836 / 0.823",
+       "0.590 / 1.131",
+       "52.6% [50.8, 54.4]",
+       "681 / 74",
+       "0.090 [0.081, 0.099]"
+      ],
+      [
+       "the show-time instant-only big model (SM99)",
+       "partly expressive",
+       "0.836 / 0.826",
+       "0.589 / 1.147",
+       "53.5% [51.7, 55.3]",
+       "804 / 87",
+       "0.100 [0.091, 0.110]"
+      ]
+     ]
+    },
+    "notes": [
+     "Answer time = front and back together, from the question shown to the grade pressed, capped at the preset&rsquo;s maximum answer seconds; every &lsquo;within S s&rsquo; means answered within S s, reading the back included. Everything is within one user and one true grade, so the head gets no credit for knowing the grade.",
+     "Rows: the 732 set (722 users with time rows), show-time inputs, leak-free, fp32; reviews on a later day than the card&rsquo;s previous review whose card has an earlier timed review. One GPU dump per model of the full predicted distributions with card ids, checked against each model&rsquo;s recorded scoring sums (all users match, worst difference 0.0). The show-time instant-only big model (SM99) has 719 of 722 users (3 users missing after a second pass at GPU cap 0.92); its card baselines agree with the 722-user values to the third decimal.",
+     "Pre-registered rule (a description, not a gate): E1 AUC above the card&rsquo;s running median at 2, 3, 4 and 6 s (holds for all models); E2 review-level slope at least 0.8 and between-card slope 0.8 to 1.25 (review-level 0.93 holds, between-card 0.59 fails); E3 more persistent card-to-card variance explained than the card&rsquo;s median (holds); E4 shapes need 2 or more PCA components and a card-level shape correlation above 0 (holds: 7 to 8 components for 95%, correlation 0.085 to 0.100). Labels: partly expressive = E1, E3, E4 hold and E2 fails.",
+     "Shape calibration: the predicted width is not better than the card&rsquo;s own earlier spread (0.093 to 0.094; difference &minus;0.008 to +0.007, every CI contains 0 except the six-layer Tiny Instant-Only model (SM130) at &minus;0.008 [&minus;0.016, &minus;0.000]); the interquartile range covers 52% to 54% of answers in every width quintile (ideal 50%).",
+     "Life of a card: the head&rsquo;s median is 3% to 4% too low at every card age, for Good answers 4% to 6% (up to 9% for the show-time instant-only big model (SM99) on cards with 32 or more earlier reviews); predicted widths are about 8% wider than the realised ones.",
+     "Wall time: started 17:31 Sat 11-21; GPU 6 tickets, about 77 GPU minutes (dumps 13 to 17 minutes each, plus a 52 second second pass for 5 users; the rest was queue waiting behind other jobs), last dump 21:26; CPU analysis one process per model, about 7 minutes each (about 35 CPU minutes), report and read-out 21:56. Nothing is released; no GPU or fork change."
+    ]
+   }
+  },
   {
    "date": "11-21",
    "kind": "gpu-score",
