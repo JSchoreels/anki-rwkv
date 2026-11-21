@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-21T10:17:43+01:00",
- "updated": "2026-11-21 10:17",
- "material": "e2222c56f7780f09",
- "summary": "running 001416, finished 001415",
+ "generated_at": "2026-11-21T10:58:16+01:00",
+ "updated": "2026-11-21 10:58",
+ "material": "f233f31b7f19fd5a",
+ "summary": "running 001417, finished 001416",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring, show-time inputs for both heads (curve / instant)",
@@ -413,18 +413,18 @@
  "now": [
   {
    "what": "Answer-time heads for the six-layer Tiny (SM138): the six-layer Tiny (SM130) replaces the current Tiny models in the next family release (user decision 11-21), and every family model ships with an answer-time head tied to its trunk, so both final six-layer models (two-head and Instant-Only) get one. Exactly the recipe and rules of the time heads for the new candidates (SM119): a small head trained alone on the frozen model (346 inputs for this shallower trunk instead of 474), show-time inputs, same-day reviews included, then P(recall within S seconds) at S = 3, 5, 8, 10, 15, 20, 30 s on the 732 set. Answer time = front + back (question shown to grade press); recall within S s = recalled and answered within S s, reading the back included. CPU proof on both models passed (16 checks) before launch",
-   "id": "SM138, ticket 001416",
+   "id": "SM138, ticket 001417",
    "kind": "gpu",
    "decides": "Per head: go if the grade outputs stay bitwise unchanged and the head beats both answer-time baselines (the card&rsquo;s last time, the user&rsquo;s running median per grade) on time LogLoss and on the mean |ln error|, each 95% CI below zero; P(recall within S seconds) is reported as reliable at an S if its ECE is below 0.01 and it beats both recall-under-S baselines",
    "why": "",
-   "job": "Answer-time heads for the six-layer Tiny (SM138): the six-layer Tiny Instant-Only model (SM130): head training (1,991 users, first 400k reviews each, show-time inputs, same-day reviews included, head + explicit-only ablation)",
+   "job": "Answer-time heads for the six-layer Tiny (SM138): the six-layer Tiny Instant-Only model (SM130): grade check (the release vs the trunk after head training, 5 users, show-time scorer rows and dumps bitwise)",
    "linked": true,
    "track": "small model",
-   "ticket": "001416-sm138",
-   "started": "10:17",
+   "ticket": "001417-sm138",
+   "started": "10:57",
    "elapsed": "0:00",
    "progress": null,
-   "eta": "~11:47"
+   "eta": "~11:07"
   }
  ],
  "charts": [
@@ -597,6 +597,15 @@
  "waiting": [],
  "recent": [
   {
+   "ticket": "001416-sm138",
+   "id": "SM138",
+   "what": "Answer-time heads for the six-layer Tiny (SM138): the six-layer Tiny Instant-Only model (SM130): head training (1,991 users, first 400k reviews each, show-time inputs, same-day reviews included, head + explicit-only ablation)",
+   "ended": "10:57",
+   "date": "11-21",
+   "exit": 0,
+   "ran": "0:40"
+  },
+  {
    "ticket": "001415-sm138",
    "id": "SM138",
    "what": "Answer-time heads for the six-layer Tiny (SM138): the six-layer Tiny Instant-Only model (SM130): smoke (head training on 4 users: 3 small + the longest cut at 400k; time scoring of 3 users; grade check of 2 users)",
@@ -640,15 +649,6 @@
    "date": "11-21",
    "exit": 0,
    "ran": "0:10"
-  },
-  {
-   "ticket": "001410-sm137",
-   "id": "SM137",
-   "what": "Trained smaller state for Tiny (SM137): scoring sm137-io-v16k8-dec2ep32k-t99 at w8+s8 w8+s8hx8 on e2s-query inputs, the 732 set minus 9 never-fit (723 users) (pass 3, 722 done, cap 0.8)",
-   "ended": "08:38",
-   "date": "11-21",
-   "exit": 0,
-   "ran": "0:00"
   }
  ],
  "plan": [
@@ -2742,8 +2742,8 @@
    "decides": "Per head: go if the grade outputs stay bitwise unchanged and the head beats both answer-time baselines (the card&rsquo;s last time, the user&rsquo;s running median per grade) on time LogLoss and on the mean |ln error|, each 95% CI below zero; P(recall within S seconds) is reported as reliable at an S if its ECE is below 0.01 and it beats both recall-under-S baselines",
    "state": "running",
    "started_at": "2026-11-21T09:34:14+01:00",
-   "started": "10:17",
-   "ticket": "001416-sm138",
+   "started": "10:57",
+   "ticket": "001417-sm138",
    "ends_at": "2026-11-21T11:44:14+01:00"
   },
   {
