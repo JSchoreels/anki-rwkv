@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-22T00:46:39+01:00",
- "updated": "2026-11-22 00:46",
- "material": "c6808c3bb73e0a1c",
- "summary": "running 001463, finished 001462",
+ "generated_at": "2026-11-22T00:47:13+01:00",
+ "updated": "2026-11-22 00:47",
+ "material": "83b46946a2926123",
+ "summary": "running 001464, finished 001463",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring, show-time inputs for both heads (curve / instant)",
@@ -412,19 +412,19 @@
  },
  "now": [
   {
-   "what": "Tiered card state by answer count (SM141): the user&rsquo;s idea of 11-21. The fork stores a state for every answered card and note; the release-candidate format keeps int8 rows for both (Big 13,891 / 9,267 bytes per card / note, Small 2,545 / 1,315, Tiny 1,315 / 1,315), because the long-card state drift on real users (SM136) showed that int4 rows cost LogLoss on cards with 128 or more answers. Here each card and note picks its width by its own answer count at every write: int4 for normal cards, int8 once it has 128 answers, and int3 (or, as a second option, int2) for very young cards. On the 732 set the median answered card has 5 answers (P10 2, P25 3, P75 8, P90 14, P99 42; notes are similar), only 0.04% of cards reach 128 answers, and cards that were never answered store nothing at all. Five schemes against int8 everywhere, on the six release-candidate models, no retraining: int4 below 128 answers for cards only, then for cards and notes (about &minus;28% and &minus;39% to &minus;44% of the state bytes), plus int3 for the first 4 or the first 8 answers (&minus;43% to &minus;49%, &minus;46% to &minus;53%), and int2 for the first 4 answers (&minus;48% to &minus;54%). No earlier run tested 3-bit or 2-bit state; young states are read by many reviews (48% of predictions read a card state of at most 4 answers), so that is the open part. The 732 set (723 users) is scored on the GPU; the 50 users with very long cards are scored on the CPU, because there the GPU&rsquo;s rounding differs too much from the CPU&rsquo;s.",
-   "id": "SM141, ticket 001463",
+   "what": "Per-user adaptation (SM143): the user&rsquo;s question of 11-21. The released models only read a new user&rsquo;s history; does adapting the model to each user from that user&rsquo;s own earlier reviews improve the later reviews, in LogLoss and above all in within-user discrimination (AUC)? A recalibration cannot change AUC, so the candidates change the network: (b) a per-user vector of 64 values added to the instant head&rsquo;s input, (c) the instant head itself (8,964 values for Small), (d) a short fine-tune of every weight with a pull back to the released weights (an upper bound, too heavy for a phone); (a) a Platt recalibration is the control. Time split = the benchmark&rsquo;s own: the 5 time-series folds of the published FSRS-7 protocol, each fold adapted only on the reviews before it and compared with FSRS-7 fitted per user on the same reviews. Pilot: 200 users of the 732 set (the full fine-tune on 50 of them); the longer Small Instant-Only model (SM113) primary, the six-layer Tiny Instant-Only model (SM130) secondary, the show-time instant-only big model (SM99) unadapted as a reference; show-time inputs, leak-free",
+   "id": "SM143, ticket 001464",
    "kind": "gpu",
-   "decides": "Per size, the smallest scheme where both models (two-head and Instant-Only) keep every user finite, cost at most +0.05% LogLoss over the whole 732 set (95% CI upper bound, each head), cost at most +0.15% on reviews of cards with 128 or more answers, and, for the int3 / int2 schemes, at most +0.10% on reviews of young cards; if none passes, int8 stays. A pass means fork work: choosing the width by answer count (the codecs for int4 and int8 exist) and, for int3 or int2, a new codec",
+   "decides": "Go per variant: LogLoss change vs the same model unadapted with a 95% CI below 0 and at least &minus;0.05%; then the full 722-user run. Also reported: the AUC change with its CI, the gap to FSRS-7 before and after, Small adapted vs Big, and the gain by amount of earlier history",
    "why": "",
-   "job": "Tiered card state by answer count (SM141): scoring big (2 models x int8 / A / AN / B4 / B8 / D4) on e2s-query inputs, the 732 set minus 9 never-fit (723 users) (pass 2, 722 done, cap 0.8)",
+   "job": "Per-user adaptation (SM143): variant d (full fine-tune) + a,b,c of the longer Small Instant-Only model (SM113), the 50 users of the d subset (pass 2, 49 done, cap 0.8)",
    "linked": true,
    "track": "small model",
-   "ticket": "001463-sm141",
+   "ticket": "001464-sm143",
    "started": "00:46",
    "elapsed": "0:00",
    "progress": null,
-   "eta": "~01:06"
+   "eta": "~01:11"
   }
  ],
  "charts": [
@@ -594,15 +594,17 @@
    ]
   }
  ],
- "waiting": [
-  {
-   "ticket": "001464-sm143",
-   "id": "SM143",
-   "what": "Per-user adaptation (SM143): variant d (full fine-tune) + a,b,c of the longer Small Instant-Only model (SM113), the 50 users of the d subset (pass 2, 49 done, cap 0.8)",
-   "flags": "expected 25 min"
-  }
- ],
+ "waiting": [],
  "recent": [
+  {
+   "ticket": "001463-sm141",
+   "id": "SM141",
+   "what": "Tiered card state by answer count (SM141): scoring big (2 models x int8 / A / AN / B4 / B8 / D4) on e2s-query inputs, the 732 set minus 9 never-fit (723 users) (pass 2, 722 done, cap 0.8)",
+   "ended": "00:46",
+   "date": "11-22",
+   "exit": 0,
+   "ran": "0:00"
+  },
   {
    "ticket": "001462-sm143",
    "id": "SM143",
@@ -647,15 +649,6 @@
    "date": "11-21",
    "exit": 0,
    "ran": "0:00"
-  },
-  {
-   "ticket": "001457-sm143",
-   "id": "SM143",
-   "what": "Per-user adaptation (SM143): the big instant-only model (SM99), unadapted, fp32 on e2s-query inputs with --dump, 200 pilot users (pass 1, 0 done, cap 0.8)",
-   "ended": "21:25",
-   "date": "11-21",
-   "exit": 0,
-   "ran": "0:04"
   }
  ],
  "plan": [
@@ -2760,9 +2753,11 @@
    "what": "Per-user adaptation (SM143): the user&rsquo;s question of 11-21. The released models only read a new user&rsquo;s history; does adapting the model to each user from that user&rsquo;s own earlier reviews improve the later reviews, in LogLoss and above all in within-user discrimination (AUC)? A recalibration cannot change AUC, so the candidates change the network: (b) a per-user vector of 64 values added to the instant head&rsquo;s input, (c) the instant head itself (8,964 values for Small), (d) a short fine-tune of every weight with a pull back to the released weights (an upper bound, too heavy for a phone); (a) a Platt recalibration is the control. Time split = the benchmark&rsquo;s own: the 5 time-series folds of the published FSRS-7 protocol, each fold adapted only on the reviews before it and compared with FSRS-7 fitted per user on the same reviews. Pilot: 200 users of the 732 set (the full fine-tune on 50 of them); the longer Small Instant-Only model (SM113) primary, the six-layer Tiny Instant-Only model (SM130) secondary, the show-time instant-only big model (SM99) unadapted as a reference; show-time inputs, leak-free",
    "when": "Queued 17:56 Sat 11-21 behind the answer-time expressiveness (SM142) and the tiered card state (SM141); about 4.8 GPU hours over 6 tickets; result expected about 00:30 to 02:00 Sun 11-22",
    "decides": "Go per variant: LogLoss change vs the same model unadapted with a 95% CI below 0 and at least &minus;0.05%; then the full 722-user run. Also reported: the AUC change with its CI, the gap to FSRS-7 before and after, Small adapted vs Big, and the gain by amount of earlier history",
-   "state": "waiting",
-   "started_at": "2026-11-21T17:56+01:00",
-   "ticket": "001464-sm143"
+   "state": "running",
+   "started_at": "2026-11-21T18:54:15+01:00",
+   "started": "00:46",
+   "ticket": "001464-sm143",
+   "ends_at": "2026-11-21T23:44:15+01:00"
   },
   {
    "id": "SM142",
@@ -2784,11 +2779,12 @@
    "what": "Tiered card state by answer count (SM141): the user&rsquo;s idea of 11-21. The fork stores a state for every answered card and note; the release-candidate format keeps int8 rows for both (Big 13,891 / 9,267 bytes per card / note, Small 2,545 / 1,315, Tiny 1,315 / 1,315), because the long-card state drift on real users (SM136) showed that int4 rows cost LogLoss on cards with 128 or more answers. Here each card and note picks its width by its own answer count at every write: int4 for normal cards, int8 once it has 128 answers, and int3 (or, as a second option, int2) for very young cards. On the 732 set the median answered card has 5 answers (P10 2, P25 3, P75 8, P90 14, P99 42; notes are similar), only 0.04% of cards reach 128 answers, and cards that were never answered store nothing at all. Five schemes against int8 everywhere, on the six release-candidate models, no retraining: int4 below 128 answers for cards only, then for cards and notes (about &minus;28% and &minus;39% to &minus;44% of the state bytes), plus int3 for the first 4 or the first 8 answers (&minus;43% to &minus;49%, &minus;46% to &minus;53%), and int2 for the first 4 answers (&minus;48% to &minus;54%). No earlier run tested 3-bit or 2-bit state; young states are read by many reviews (48% of predictions read a card state of at most 4 answers), so that is the open part. The 732 set (723 users) is scored on the GPU; the 50 users with very long cards are scored on the CPU, because there the GPU&rsquo;s rounding differs too much from the CPU&rsquo;s.",
    "when": "Launched 17:38 Sat 11-21 (detached launcher, queue ticket 001445 onwards): a GPU smoke first, then Tiny, Small and Big on the 732 set (about 4.5 GPU hours in the FIFO queue), while the CPU scores the long-card users (about 4-6 hours, in parallel). Result expected about 23:00 Sat 11-21 to 01:00 Sun 11-22",
    "decides": "Per size, the smallest scheme where both models (two-head and Instant-Only) keep every user finite, cost at most +0.05% LogLoss over the whole 732 set (95% CI upper bound, each head), cost at most +0.15% on reviews of cards with 128 or more answers, and, for the int3 / int2 schemes, at most +0.10% on reviews of young cards; if none passes, int8 stays. A pass means fork work: choosing the width by answer count (the codecs for int4 and int8 exist) and, for int3 or int2, a new codec",
-   "state": "running",
+   "state": "done",
    "started_at": "2026-11-21T17:46:31+01:00",
-   "started": "00:46",
-   "ticket": "001463-sm141",
-   "ends_at": "2026-11-21T22:46:31+01:00"
+   "ended": "00:46",
+   "exit": 0,
+   "started": "17:46",
+   "ended_at": "2026-11-22T00:46:40+01:00"
   },
   {
    "id": "SM140",
