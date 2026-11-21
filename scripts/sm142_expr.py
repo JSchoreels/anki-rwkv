@@ -807,7 +807,7 @@ def write_md(allres, path):
         def d(sv):
             e = st.get(sv)
             return f"{e['head-a'][0]:+.3f}" if e else "n/a"
-        L.append(f"- {names[k]}: a typical user gets about {s['head_loc_0.1']['median']:.0f} distinguishable time curves (location included, 10% grid) and about {s['head_norm_0.1']['median']:.0f} distinguishable shapes once the location is removed. "
+        L.append(f"- {names[k][0].upper() + names[k][1:]}: a typical user gets about {s['head_loc_0.1']['median']:.0f} distinguishable time curves (location included, 10% grid) and about {s['head_norm_0.1']['median']:.0f} distinguishable shapes once the location is removed. "
                  f"Within a grade, the head ranks this user's reviews by speed with AUC {st['4']['head'][0]:.3f} at 4 s against {st['4']['a'][0]:.3f} for the card's own running median ({d('2')} at 2 s, {d('4')} at 4 s, {d('8')} at 8 s). "
                  f"It explains {c['head']['explained'][0]:.0%} of the persistent card-to-card differences against {c['a']['explained'][0]:.0%} for the card's own median and {c['abl']['explained'][0]:.0%} for the explicit-features-only head. Label: {r['labels']['label']}." if "4" in st else f"- {names[k]}: not enough users.")
     Path(path).write_text("\n".join(L) + "\n", encoding="utf-8")
