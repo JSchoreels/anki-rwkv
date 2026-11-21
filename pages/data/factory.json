@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-21T01:32:55+01:00",
- "updated": "2026-11-21 01:32",
- "material": "668047780122114d",
- "summary": "running 001398, finished 001397",
+ "generated_at": "2026-11-21T01:38:16+01:00",
+ "updated": "2026-11-21 01:38",
+ "material": "d914b0a083430894",
+ "summary": "running 001398",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring, show-time inputs for both heads (curve / instant)",
@@ -422,7 +422,7 @@
    "track": "small model",
    "ticket": "001398-sm137",
    "started": "01:32",
-   "elapsed": "0:00",
+   "elapsed": "0:05",
    "progress": null,
    "eta": "~01:57"
   }
@@ -2596,13 +2596,12 @@
    "track": "small model",
    "since": "11-18T12:10",
    "kind": "cpu",
-   "minutes": 110,
-   "what": "Fluency vs desired retention in the simulator with answer-time feedback (SM127): the user&rsquo;s question of 11-15, is a high desired retention enough for mastery or do we need a scheduler that keeps answer time? In the review simulator hosting the small model (SM41), with the show-time retrain (SM92) and its answer-time head from the time heads for the family (SM117), one simulated year per user at the same daily review time (the user&rsquo;s real mean minutes per day; an expensive policy shows fewer new cards): desired retention 0.90 / 0.95 / 0.98 against a fluency scheduler (the interval where P(recalled and answered within 8 s, reading the back included) falls to 0.80; also 0.70, 0.50 and a &lsquo;fluency where reachable&rsquo; variant). Sampled answer times are fed back into the model (the models read a slower success as weaker memory, the retrieval-effort probe (SM122)); a sensitivity arm feeds the user&rsquo;s median time instead. Read-out at day 365: expected memorised cards and expected fluent cards, user-bootstrap CIs. This is the pre-registered pilot: 12 users of the 732 set, 22 lanes, CPU only (CPU proof passed); the full run (150 users, about 30 CPU process-hours) needs the user's go",
-   "when": "Done 13:29 Wed 11-18: pilot on 12 users, verdict inconclusive (not decisive); see results",
-   "decides": "Whether a high desired retention already gives the most fluent cards (answered within 8 s, reading the back included) at equal daily time, or a fluency scheduler adds at least 2% more; for the pilot only: go or no-go for the full run, and whether the 8 s / 0.80 target is feasible enough (share of cards already below it at a 1-day interval) or the user must pick another fluency definition",
-   "state": "done",
-   "started_at": "2026-11-18T12:10+01:00",
-   "ended_at": "2026-11-18T13:29+01:00"
+   "minutes": 990,
+   "what": "Full run of fluency vs desired retention in the simulator with answer-time feedback (SM127), v3. 150 benchmark users of the 732 set, 365 simulated days, 22 lanes at the same daily review time, with the show-time retrain (SM92) and its head from the time heads for the family (SM117). Two fixes decided on 11-21: (1) a per-user answer-time level anchor that removes the +8% level bias of sampled times found by the time-drift diagnostic, and (2) a per-user fluency threshold S_u, the user&rsquo;s own 90th-percentile passed-review time (clipped to 3-45 s), instead of 8 s. Decision rule unchanged: ratio of population totals with a paired user bootstrap; a fluency scheduler is needed only if it gives at least 2% more fluent cards than the best desired retention (CI lower bound above 0) without losing more than 2% of memorised cards. CPU only, 3 processes.",
+   "when": "Running since 01:28 Sat 11-21; ETA about 18:00 Sat 11-21 (17:00-20:00); about 2,900 CPU process-minutes (48 h), 0 GPU minutes",
+   "decides": "Whether a high desired retention already gives the most fluent cards at equal daily time, or a fluency scheduler adds at least 2%; also the feedback check (with vs without answer-time feedback).",
+   "state": "running",
+   "started_at": "2026-11-21T01:28+01:00"
   },
   {
    "id": "SM128",
@@ -2727,12 +2726,12 @@
    "kind": "gpu",
    "minutes": 95,
    "what": "Trained smaller state for Tiny (SM137): the six-layer Tiny (SM130)&rsquo;s card and note state cut to 8 of the 16 key lanes of every head (all 16 value rows kept), so a card and a note each store 803 bytes instead of 1,315 at the release-candidate format (39% less). The model zeroes the dropped lanes, the stored state keeps exact zeros, and the fork needs only a storage change. Pilot: one constant-LR Instant-Only epoch from the cut of SM130&rsquo;s epoch 41, compared with the same epoch without the cut from the six-layer Tiny with longer recovery (SM135); show-time inputs, leak-free, 732 set",
-   "when": "Designed 11-21 (CPU checks done, not launched); the pilot takes about 1.5 GPU h. If it goes, the full plan (Instant-Only cool-down, then the two-head chain, plus a long-card check on the CPU) takes about 12 GPU h more",
+   "when": "Running since 01:31 Sat 11-21: GPU pilot launched (queue ticket 001396 onwards), about 1.5 GPU h, result expected about 03:00; if the pilot is a go, the full plan (Instant-Only cool-down, then the two-head chain, plus a long-card check on the CPU) takes about 12 GPU h more",
    "decides": "Pilot: continue if the cut costs at most +0.30% instant against the same epoch without the cut (otherwise one more pilot keeping 12 key lanes, 1,059 bytes; stop above +5% or on a non-finite user). Final, per chain: go if every trained head&rsquo;s 95% CI upper bound is &le; +1.00% vs Small (the longer Small Instant-Only model (SM113), the show-time two-head cool-down for Small (SM118)) at the release-candidate format, and on cards with 128 or more answers the extra cost stays &le; +0.25%",
    "state": "running",
+   "started_at": "2026-11-21T01:31:59+01:00",
    "started": "01:32",
    "ticket": "001398-sm137",
-   "started_at": "2026-11-21T01:31:59+01:00",
    "ends_at": "2026-11-21T03:06:59+01:00"
   },
   {
