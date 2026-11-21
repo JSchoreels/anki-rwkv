@@ -2513,10 +2513,11 @@
     "Release-candidate checks for the family (SM139): "
    ],
    "what": "Release-candidate checks for the family (SM139): no training. The six models of the next family release (Big: the show-time big model (SM91s2) and the show-time instant-only big model (SM99), unchanged; Small: the show-time two-head cool-down for Small (SM118) and the longer Small Instant-Only model (SM113); Tiny: the six-layer Tiny two-head and Instant-Only models (SM130)) scored in the release-candidate state format (int8 card rows with float16 row scales and int8 shifts, plus the compact note format; user decision 11-21) and in the published format, together with the published 11-13 Small and Tiny models, on the 732 set (722 users) and on 765 more validation users of the 1,500 pool; show-time inputs, leak-free",
-   "when": "Running since 11:45 Sat 11-21 (queue ticket 001420 onwards): the GPU smoke passed at 11:46 (GPU = CPU within 3e-6 on 2 users and 16 labels); then Tiny, Small, Big on the 732 set, then the same on the extension; result expected about 18:30&ndash;19:30 Sat 11-21",
+   "when": "Done 16:15 Sat 11-21: <strong>status pass</strong>. Every user finite for all six release candidates, the format cost of the release-candidate format at most +0.002% on every head (ceiling +0.05%), coverage 722 users on the 732 set plus 761 to 764 extension users. Update vs the published 11-13 models (report only): Big unchanged (format only, +0.000%); Small two-head (the show-time two-head cool-down for Small (SM118) vs the show-time retrain of the release (SM92)) &minus;0.086% curve, &minus;0.095% instant; Small Instant-Only (the longer Small Instant-Only model (SM113) vs the Small Instant-Only model (SM98)) &minus;0.091%; six-layer Tiny two-head (SM130) vs the Tiny two-head model (SM106) +0.264% curve, +0.242% instant; six-layer Tiny Instant-Only (SM130) vs the Tiny Instant-Only model (SM101) +0.269%. The Tiny cost is the known price of the faster six-layer Tiny chosen on 11-21",
    "decides": "Pre-registered checks per release candidate: every user finite in the release-candidate format, and the format cost (release-candidate format vs the same model in the published format) with a 95% CI upper bound of at most +0.05% per trained head on both user sets (earlier format experiments measured about +0.001%). Report only, no go / no-go: what users get from the update, each candidate in the release-candidate format vs the published 11-13 model of its size and kind",
-   "state": "running",
-   "started_at": "2026-11-21T11:45+01:00"
+   "state": "done",
+   "started_at": "2026-11-21T11:45+01:00",
+   "ended_at": "2026-11-21T16:15+01:00"
   },
   {
    "id": "SM124",
@@ -3248,6 +3249,43 @@
   "s-w64kd-gate-ctx2048c-dec8-1ep/w8+s8"
  ],
  "results": [
+  {
+   "date": "11-21",
+   "kind": "gpu-eval",
+   "id": "SM139",
+   "track": "small model",
+   "name": "Release-candidate checks for the family (SM139): the six release-candidate models in the release-candidate state format, no training",
+   "eval": "The 732 set (722 rule users) and 765 more validation users of the 1,500 pool outside it (761 to 764 scored per model; ids from 5000, never seen by Small and Tiny, but training users of the two Big models, so Big on the extension is a format check only), show-time inputs, leak-free, w8 weights. Checks: C1 every user finite, C2 the format cost (int8 card rows with float16 row scales and int8 shifts) with a 95% CI upper bound of at most +0.05% per trained head, C3 coverage. Percentages are of the reference&rsquo;s own LogLoss, paired user bootstrap, 95% CI. The update part is report only",
+   "fork": "Not used: release packaging is the fork agent&rsquo;s step",
+   "takeaway": "<strong>Pass: C1, C2 and C3 hold for all six models.</strong> The format cost is at most +0.002% on every head (ceiling +0.05%). What users get, report only: Big unchanged (format only); Small slightly better (&minus;0.086% curve and &minus;0.095% instant for the show-time two-head cool-down for Small (SM118) vs the show-time retrain of the release (SM92), &minus;0.091% for the longer Small Instant-Only model (SM113) vs the Small Instant-Only model (SM98)); six-layer Tiny costs +0.264% curve [+0.218, +0.309] and +0.242% instant for the six-layer Tiny two-head model (SM130) vs the Tiny two-head model (SM106), +0.269% for the six-layer Tiny Instant-Only model (SM130) vs the Tiny Instant-Only model (SM101): the known price of the faster six-layer Tiny chosen on 11-21 (the fork bench showed the pair replaying 39% faster)",
+   "inputs": "show-time",
+   "started_at": "2026-11-21T11:45+01:00",
+   "ended_at": "2026-11-21T16:15+01:00",
+   "gpu_minutes": 271,
+   "tickets": 19,
+   "detail": {
+    "verdict": "Pass (branch sm139: sm139-result.md, sm139-result.json, design.md)",
+    "table": {
+     "head": ["Release candidate", "Head", "Compared with the published 11-13 model", "Format cost (release-candidate format vs published format, same model), all users [95% CI]", "Update at the release-candidate format vs the published model, all users [95% CI]"],
+     "rows": [
+      ["Big two-head: the show-time big model (SM91s2)", "curve", "same model", "+0.000% [&minus;0.000, +0.001]", "+0.000% [&minus;0.000, +0.001]"],
+      ["Big two-head: the show-time big model (SM91s2)", "instant", "same model", "+0.000% [+0.000, +0.000]", "+0.000% [+0.000, +0.000]"],
+      ["Big Instant-Only: the show-time instant-only big model (SM99)", "instant", "same model", "+0.000% [&minus;0.000, +0.000]", "+0.000% [+0.000, +0.000]"],
+      ["Small two-head: the show-time two-head cool-down for Small (SM118)", "curve", "the show-time retrain of the release (SM92)", "+0.000% [&minus;0.000, +0.000]", "&minus;0.086% [&minus;0.116, &minus;0.060]"],
+      ["Small two-head: the show-time two-head cool-down for Small (SM118)", "instant", "the show-time retrain of the release (SM92)", "+0.001% [+0.000, +0.001]", "&minus;0.095% [&minus;0.102, &minus;0.088]"],
+      ["Small Instant-Only: the longer Small Instant-Only model (SM113)", "instant", "the Small Instant-Only model (SM98)", "+0.001% [+0.001, +0.001]", "&minus;0.091% [&minus;0.097, &minus;0.085]"],
+      ["Tiny two-head: the six-layer Tiny two-head model (SM130)", "curve", "the Tiny two-head model (SM106)", "+0.000% [+0.000, +0.000]", "+0.264% [+0.218, +0.309]"],
+      ["Tiny two-head: the six-layer Tiny two-head model (SM130)", "instant", "the Tiny two-head model (SM106)", "+0.001% [+0.000, +0.001]", "+0.242% [+0.224, +0.261]"],
+      ["Tiny Instant-Only: the six-layer Tiny Instant-Only model (SM130)", "instant", "the Tiny Instant-Only model (SM101)", "+0.001% [+0.001, +0.002]", "+0.269% [+0.252, +0.287]"]
+     ]
+    },
+    "notes": [
+     "Users: 722 rule users on the 732 set (723 scored) plus the extension of 771 users (765 validation users outside the 732 set plus 6 check users, pool 1,500); 761 to 764 scored per model for every label, so 722 + 761 to 764 users in the checks.",
+     "GPU: 19 queue tickets from 11:45 to 16:15 Sat 11-21, 271 minutes (the 2-user GPU smoke matched the CPU within 3e-6; the 6 check users agree between the two user sets exactly, and recorded rows of earlier runs reproduce exactly).",
+     "Time heads were not rescored: the answer-time heads are scored in fp32 today (an idea recorded, not run)."
+    ]
+   }
+  },
   {
    "date": "11-21",
    "kind": "cpu",
