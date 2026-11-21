@@ -1,4 +1,4 @@
-# Handoff: release-candidate checks for the family (SM139)
+# Handoff: release-candidate checks for the family (SM139) -- CLOSED 11-21 (result status pass, written up and pushed)
 
 Design: `design.md` (pre-registered 11-21 before any GPU ticket). Models (sha256 pinned in `models.sh`): Big the show-time big model (SM91s2) + the show-time instant-only big model (SM99) (both unchanged since 11-13); Small the show-time two-head cool-down for Small (SM118) + the longer Small Instant-Only model (SM113); Tiny the six-layer Tiny two-head + Instant-Only models (SM130). Release candidates at `w8+s8` and `w8+s8hx8`; the published 11-13 Small / Tiny models (SM92, SM98, SM106, SM101) at `w8+s8`. Users: the 732 set (723 scored, 722 rule users) and the extension (`users-sm93-score.json`, 771 = 765 outside the 732 set + 6 check users, `--pool 1500`). Open questions in `design.md` (which Tiny is "published": SM106 / SM101, not SM124 / SM115; rolling recalibration; fork mapping).
 
