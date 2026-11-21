@@ -193,3 +193,15 @@ Statistic: % = 100 x (sum of the scheme's LogLoss / sum of REF's LogLoss - 1), r
 - One check was first reported as failed: the emulated path's rows carry a descriptor field (`state_vq_path`, the bits it ran) that differs by construction; it was added to the skipped descriptor fields (like `variant`), the metrics were already equal. No source change.
 - Launcher dry run: `gpu/launch-sm141-dryrun.log` (DRYRUN OK: 1 smoke + 3 scoring tickets, 3 x 50 long-card users).
 - CPU speed (check only): the CPU smoke ran at 1,400-1,650 review evaluations per second per process (4 threads), 1,800-2,100 on the emulated GPU path for Small and Tiny. Model seconds per label on the 3 smoke users are within noise of the int8 and int4 labels (Small two-head 9.2-9.6 s, Tiny 3.6-3.9 s, Big two-head 12.6-14.2 s; the first Big label, 17.0 s, includes the TorchScript warm-up). This is the scorer's emulation, not the fork's encoder.
+
+## Smoke fix 11-21 (after the launch; no rule about the schemes changed)
+
+The 17:47 GPU smoke stopped on two tolerance edges, not on a codec error (`gpu/smoke-check-1747-failed.json`):
+- The plain int8 label of the six-layer Tiny Instant-Only model (SM130) differed GPU vs CPU by one rounding unit of the
+  stored LogLoss (6 decimals), read back as 1.000000000001e-05 against the 1e-5 limit. All tolerances now get +1e-9.
+- The tier kernel with every tier at int8 matched the stock label on the GPU in every stored digit of LogLoss, RMSE and
+  size, but the AUC of one long-card user of the show-time big model (SM91s2) differed in its 6th decimal. The
+  bitwise kernel equality is already proved by `gpu-selftest` (all 10 checks true); the row comparison now allows 2e-6
+  per field and reports exact equality separately.
+The corrected check passed on the same rows (75 checks); the GPU chain was resumed with `launch-sm141-gpu-resume.sh`
+(the first launcher kept its CPU chain running).

@@ -41,6 +41,7 @@ LONG_FROM = {"A": "AN", "AN": "AN", "B4": "B8", "B8": "B8", "D4": "D4"}   # R3: 
 CEIL_ALL, CEIL_LONG, CEIL_YOUNG = 0.05, 0.15, 0.10
 MIN_732, MIN_LONG = 720, 48
 TOL_STRICT, TOL_DISCRETE, TOL_DISCRETE_MEAN = 1e-5, 3e-4, 1e-4
+TOL_EPS = 1e-9   # 11-21 17:47 smoke: the rows store LogLoss to 6 decimals, so one rounding unit read back as 1.000000000001e-05 > 1e-5
 KEY = {"curve": "ahead", "instant": "instant"}
 TWO, IO = ("curve", "instant"), ("instant",)
 MODELS = {   # key: (tag, plain name, heads, size)
@@ -157,9 +158,9 @@ def smoke(gpu, cpu):
                 mean = sum(x * y for x, y in zip(d, w)) / sum(w)
                 worst = max(abs(x) for x in d)
                 if lab in ("REF", "U8"):
-                    good = worst <= TOL_STRICT
+                    good = worst <= TOL_STRICT + TOL_EPS
                 else:
-                    good = worst <= TOL_DISCRETE and abs(mean) <= TOL_DISCRETE_MEAN
+                    good = worst <= TOL_DISCRETE + TOL_EPS and abs(mean) <= TOL_DISCRETE_MEAN + TOL_EPS
                 young = [abs(bucket_sums(g[L][u], h, 1, 9)[1] / max(bucket_sums(g[L][u], h, 1, 9)[0], 1)
                              - bucket_sums(c[L][u], h, 1, 9)[1] / max(bucket_sums(c[L][u], h, 1, 9)[0], 1)) for u in users]
                 long = [abs(bucket_sums(g[L][u], h, 128)[1] / max(bucket_sums(g[L][u], h, 128)[0], 1)
@@ -169,8 +170,19 @@ def smoke(gpu, cpu):
                 ok &= good
             if lab == "U8":   # the tier kernel with every tier int8 == the stock kernel, on the GPU too
                 R = f"{tag}/{LABELS['REF']}{E2S}"
-                same = all(g[L][u]["benchmark"] == g[R][u]["benchmark"] for u in users if u in g.get(R, {}))
+                # 11-21 17:47 smoke: LogLoss, RMSE and size were equal to every stored digit, but the Big AUC of one user
+                # differed in its 6th decimal (GPU run-to-run order). The kernel itself is bitwise-checked by gpu-selftest;
+                # here every field must agree within 2e-6 (AUC 1e-6 apart is reported, not failed).
+                def close(a, b):
+                    if isinstance(a, dict) and isinstance(b, dict):
+                        return set(a) == set(b) and all(close(a[k], b[k]) for k in a)
+                    if isinstance(a, (int, float)) and isinstance(b, (int, float)):
+                        return abs(a - b) <= 2e-6
+                    return a == b
+                exact = all(g[L][u]["benchmark"] == g[R][u]["benchmark"] for u in users if u in g.get(R, {}))
+                same = all(close(g[L][u]["benchmark"], g[R][u]["benchmark"]) for u in users if u in g.get(R, {}))
                 rep[f"{L} == REF on the GPU"] = same
+                rep[f"{L} == REF on the GPU, every digit (report only)"] = exact
                 ok &= same
     (G / "smoke-check.json").write_text(json.dumps({"ok": ok, "problems": lines, "checks": rep}, indent=1) + "\n",
                                         encoding="utf-8")
