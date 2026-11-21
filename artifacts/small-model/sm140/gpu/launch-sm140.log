@@ -1,0 +1,24 @@
+[sm140 11-21 16:25:47] started: 8c05294a Rolling recalibration for the six-layer Tiny (SM140): design (pre-registered), launcher, dry run (DRYRUN=0)
+[sm135-block] selftest {"no_daily_break_at_20h": true, "inside_all_window": true, "timing_scope_ignored": true, "no_sunday_break": true, "gpu_scope_counts": true, "malformed_read_as_all": true, "no_hardcoded_hours": true} -> OK
+[sm140 11-21 16:25:48] enqueue: SM120 scoring of the six-layer Tiny two-head model (SM130): P(Good or Easy), P(Easy), P(set and answered within S s) on the 732 set (723 users, pass 1, cap 0.8; the baselines of the recalibration) (expected 30 min, max wait 99967 min, 100000 min to the next window)
+[sm140 11-21 16:39:44] exit 0: SM120 scoring of the six-layer Tiny two-head model (SM130): P(Good or Easy), P(Easy), P(set and answered within S s) on the 732 set (723 users, pass 1, cap 0.8; the baselines of the recalibration)
+[sm140 11-21 16:39:45] sm130th SM120 sums scored users: 723 of 723
+[sm140 11-21 16:39:45] enqueue: SM120 scoring of the six-layer Tiny Instant-Only model (SM130): P(Good or Easy), P(Easy), P(set and answered within S s) on the 732 set (723 users, pass 1, cap 0.8; the baselines of the recalibration) (expected 30 min, max wait 99967 min, 100000 min to the next window)
+[sm140 11-21 16:53:34] exit 0: SM120 scoring of the six-layer Tiny Instant-Only model (SM130): P(Good or Easy), P(Easy), P(set and answered within S s) on the 732 set (723 users, pass 1, cap 0.8; the baselines of the recalibration)
+[sm140 11-21 16:53:34] sm130io SM120 sums scored users: 723 of 723
+[sm140 11-21 16:53:34] enqueue: GPU smoke: dump of the six-layer Tiny two-head model (SM130) on 3 users vs SM120's recorded sums (cap 0.8) (expected 12 min, max wait 99985 min, 100000 min to the next window)
+[sm140 11-21 16:53:42] exit 0: GPU smoke: dump of the six-layer Tiny two-head model (SM130) on 3 users vs SM120's recorded sums (cap 0.8)
+[sm140 11-21 16:53:42] GPU smoke passed: smoke [(True, 0.0), (True, 0.0), (True, 0.0)]
+[sm140 11-21 16:53:43] enqueue: per-review dump of the six-layer Tiny two-head model (SM130) on the 732 set (723 users, pass 1, cap 0.8) (expected 30 min, max wait 99967 min, 100000 min to the next window)
+[sm140 11-21 17:05:12] exit 0: per-review dump of the six-layer Tiny two-head model (SM130) on the 732 set (723 users, pass 1, cap 0.8)
+[sm140 11-21 17:05:14] sm130th dumped users: 723 of 723 (4.1G)
+[sm140 11-21 17:05:15] background CPU recalibration of sm130th (until 01-30 03:40)
+[sm140 11-21 17:05:15] enqueue: per-review dump of the six-layer Tiny Instant-Only model (SM130) on the 732 set (723 users, pass 1, cap 0.8) (expected 30 min, max wait 99967 min, 100000 min to the next window)
+[sm140 11-21 17:18:04] exit 0: per-review dump of the six-layer Tiny Instant-Only model (SM130) on the 732 set (723 users, pass 1, cap 0.8)
+[sm140 11-21 17:18:07] sm130io dumped users: 723 of 723 (4.1G)
+[sm140 11-21 17:18:07] background CPU recalibration of sm130io (until 01-30 03:53)
+[sm140 11-21 17:18:07] waiting for the background recalibrations
+[sm140 11-21 18:27:16] sm130th recalibrated: [sm125-recal] done 722 users in 4077 s -> C:\Users\jonat\workspace\wt\sm140\artifacts\small-model\sm140\rows\sm140-sm130th-recal.jsonl
+[sm140 11-21 18:27:16] sm130io recalibrated: [sm125-recal] done 722 users in 4149 s -> C:\Users\jonat\workspace\wt\sm140\artifacts\small-model\sm140\rows\sm140-sm130io-recal.jsonl
+[sm140 11-21 19:00:02] report exit 0: [sm125-report] 2 models: go [('sm130th', True), ('sm130io', True)]; Good or Easy within 4 s reliable raw/recalibrated [('sm130th', False, True), ('sm130io', False, True)]
+[sm140 11-21 19:00:02] done
