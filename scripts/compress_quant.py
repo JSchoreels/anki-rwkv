@@ -140,6 +140,37 @@ def _quantize_rows(x: torch.Tensor, bits: int) -> torch.Tensor:
     return torch.clamp(torch.round(x / scale), -qmax, qmax) * scale
 
 
+def _qmax_of(b: int) -> float:
+    # SM141: symmetric code range of a tier width (8 / 4 / 3 / 2 bits)
+    if b == 8:
+        return 127.0
+    if b == 4:
+        return 7.0
+    if b == 3:
+        return 3.0
+    return 1.0
+
+
+def _quantize_tier(x: torch.Tensor, bits: int, cnt: torch.Tensor) -> torch.Tensor:
+    # SM141: TIER bits (1024, scripts/small_model_wkv.tier_bits): per batch row b the width of its update count cnt[b]
+    # (young if cnt <= M, old if cnt >= N, else mid), same arithmetic as _quantize_rows with a per-row qmax
+    young = (bits >> 12) & 15
+    m = (bits >> 20) & 65535
+    old = (bits >> 16) & 15
+    n = (bits >> 36) & 65535
+    ones = torch.ones(cnt.shape, dtype=torch.float32, device=x.device)
+    q = torch.where(cnt <= m, ones * _qmax_of(young), ones * _qmax_of(bits & 255))
+    q = torch.where(cnt >= n, ones * _qmax_of(old), q).view(-1, 1, 1, 1)
+    if bits & 512:
+        scale = x.abs().amax(dim=[-2, -1], keepdim=True) / q
+    else:
+        scale = x.abs().amax(dim=-1, keepdim=True) / q
+    if bits & 256:
+        scale = torch.clamp(scale, max=65504.0).half().float()
+    scale = torch.where(scale > 0, scale, torch.ones_like(scale))
+    return torch.maximum(torch.minimum(torch.round(x / scale), q), -q) * scale
+
+
 def _round_shift(x: torch.Tensor, bits: int) -> torch.Tensor:
     # SM131: shift_bits 0 = the fork's float16 shift vectors (unchanged); 8 / 4 (| 256) = int codes, one scale per vector
     if bits == 0:
@@ -165,12 +196,18 @@ def reference_rwkv7_q(r_BTHK: torch.Tensor, k_BTHK: torch.Tensor, v_BTHK: torch.
     B, T, H, K = r_BTHK.shape
     out_BTHK = torch.empty(B, T, H, K, dtype=torch.float32, device=r_BTHK.device)
     state_BHKK = torch.zeros(B, H, K, K, dtype=torch.float32, device=r_BTHK.device)
+    cnt = torch.zeros([B], dtype=torch.int64, device=r_BTHK.device)
     for t in range(T):
         out_t, next_state_BHKK = single_timestep(
             r_BTHK[:, t], k_BTHK[:, t], v_BTHK[:, t], w_BTHK[:, t], a_BTHK[:, t], k_deformed_BTHK[:, t], state_BHKK)
         out_BTHK[:, t] = out_t
         # The answer's output used the f32 update; the stored state is rounded before the next answer reads it.
-        next_state_BHKK = _quantize_rows(next_state_BHKK, bits)
+        if bits & 1024:
+            # SM141: tiered width by the row's update count (non-skipped steps so far, this one included)
+            cnt = cnt + torch.logical_not(skip_BT[:, t].to(torch.bool)).to(torch.int64)
+            next_state_BHKK = _quantize_tier(next_state_BHKK, bits, cnt)
+        else:
+            next_state_BHKK = _quantize_rows(next_state_BHKK, bits)
         state_BHKK = torch.where(skip_BT111[:, t], state_BHKK, next_state_BHKK)
     return out_BTHK.to(out_dtype)
 

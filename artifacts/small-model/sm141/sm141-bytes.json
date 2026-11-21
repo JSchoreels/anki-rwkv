@@ -1,0 +1,321 @@
+{
+ "layout": "fork compact ModuleState; int8 shift vectors in every tier; matrix row = f16 scale + packed codes",
+ "bytes": {
+  "Big": {
+   "card": {
+    "8": 13891,
+    "4": 7747,
+    "3": 6211,
+    "2": 4675
+   },
+   "note": {
+    "8": 9267,
+    "4": 5171,
+    "3": 4147,
+    "2": 3123
+   }
+  },
+  "Small": {
+   "card": {
+    "8": 2545,
+    "4": 1521,
+    "3": 1265,
+    "2": 1009
+   },
+   "note": {
+    "8": 1315,
+    "4": 803,
+    "3": 675,
+    "2": 547
+   }
+  },
+  "Tiny": {
+   "card": {
+    "8": 1315,
+    "4": 803,
+    "3": 675,
+    "2": 547
+   },
+   "note": {
+    "8": 1315,
+    "4": 803,
+    "3": 675,
+    "2": 547
+   }
+  }
+ },
+ "check_vs_sm136": {
+  "Big": {
+   "sm136": {
+    "card8": 13891,
+    "note8": 9267,
+    "card4": 7747
+   },
+   "formula": {
+    "card8": 13891,
+    "note8": 9267,
+    "card4": 7747
+   },
+   "equal": true
+  },
+  "Small": {
+   "sm136": {
+    "card8": 2545,
+    "note8": 1315,
+    "card4": 1521
+   },
+   "formula": {
+    "card8": 2545,
+    "note8": 1315,
+    "card4": 1521
+   },
+   "equal": true
+  },
+  "Tiny": {
+   "sm136": {
+    "card8": 1315,
+    "note8": 1315,
+    "card4": 803
+   },
+   "formula": {
+    "card8": 1315,
+    "note8": 1315,
+    "card4": 803
+   },
+   "equal": true
+  }
+ },
+ "pack_round_trip": {
+  "int3/K16": true,
+  "int3/K32": true,
+  "int2/K16": true,
+  "int2/K32": true,
+  "int4/K16": true,
+  "int4/K32": true
+ },
+ "schemes": {
+  "REF": {
+   "card": [
+    8,
+    0,
+    8,
+    null,
+    8
+   ],
+   "note": [
+    8,
+    0,
+    8,
+    null,
+    8
+   ]
+  },
+  "A": {
+   "card": [
+    4,
+    0,
+    4,
+    128,
+    8
+   ],
+   "note": [
+    8,
+    0,
+    8,
+    null,
+    8
+   ]
+  },
+  "AN": {
+   "card": [
+    4,
+    0,
+    4,
+    128,
+    8
+   ],
+   "note": [
+    4,
+    0,
+    4,
+    128,
+    8
+   ]
+  },
+  "B4": {
+   "card": [
+    3,
+    4,
+    4,
+    128,
+    8
+   ],
+   "note": [
+    3,
+    4,
+    4,
+    128,
+    8
+   ]
+  },
+  "B8": {
+   "card": [
+    3,
+    8,
+    4,
+    128,
+    8
+   ],
+   "note": [
+    3,
+    8,
+    4,
+    128,
+    8
+   ]
+  },
+  "D4": {
+   "card": [
+    2,
+    4,
+    4,
+    128,
+    8
+   ],
+   "note": [
+    2,
+    4,
+    4,
+    128,
+    8
+   ]
+  }
+ },
+ "scheme_bytes_732": {
+  "REF": {
+   "Big": {
+    "mean_card_bytes": 13891,
+    "mean_note_bytes": 9267,
+    "total_mb_732": 135852.3,
+    "vs_REF_pct": 0.0
+   },
+   "Small": {
+    "mean_card_bytes": 2545,
+    "mean_note_bytes": 1315,
+    "total_mb_732": 22798.8,
+    "vs_REF_pct": 0.0
+   },
+   "Tiny": {
+    "mean_card_bytes": 1315,
+    "mean_note_bytes": 1315,
+    "total_mb_732": 15251.4,
+    "vs_REF_pct": 0.0
+   }
+  },
+  "A": {
+   "Big": {
+    "mean_card_bytes": 7749.2,
+    "mean_note_bytes": 9267,
+    "total_mb_732": 98165.4,
+    "vs_REF_pct": -27.74
+   },
+   "Small": {
+    "mean_card_bytes": 1521.4,
+    "mean_note_bytes": 1315,
+    "total_mb_732": 16517.9,
+    "vs_REF_pct": -27.55
+   },
+   "Tiny": {
+    "mean_card_bytes": 803.2,
+    "mean_note_bytes": 1315,
+    "total_mb_732": 12110.9,
+    "vs_REF_pct": -20.59
+   }
+  },
+  "AN": {
+   "Big": {
+    "mean_card_bytes": 7749.2,
+    "mean_note_bytes": 5174.2,
+    "total_mb_732": 75811.0,
+    "vs_REF_pct": -44.2
+   },
+   "Small": {
+    "mean_card_bytes": 1521.4,
+    "mean_note_bytes": 803.4,
+    "total_mb_732": 13723.6,
+    "vs_REF_pct": -39.81
+   },
+   "Tiny": {
+    "mean_card_bytes": 803.2,
+    "mean_note_bytes": 803.4,
+    "total_mb_732": 9316.6,
+    "vs_REF_pct": -38.91
+   }
+  },
+  "B4": {
+   "Big": {
+    "mean_card_bytes": 7033.5,
+    "mean_note_bytes": 4712.9,
+    "total_mb_732": 68899.8,
+    "vs_REF_pct": -49.28
+   },
+   "Small": {
+    "mean_card_bytes": 1402.1,
+    "mean_note_bytes": 745.7,
+    "total_mb_732": 12676.4,
+    "vs_REF_pct": -44.4
+   },
+   "Tiny": {
+    "mean_card_bytes": 743.5,
+    "mean_note_bytes": 745.7,
+    "total_mb_732": 8635.1,
+    "vs_REF_pct": -43.38
+   }
+  },
+  "B8": {
+   "Big": {
+    "mean_card_bytes": 6563.3,
+    "mean_note_bytes": 4416.1,
+    "total_mb_732": 64393.5,
+    "vs_REF_pct": -52.6
+   },
+   "Small": {
+    "mean_card_bytes": 1323.7,
+    "mean_note_bytes": 708.6,
+    "total_mb_732": 11992.7,
+    "vs_REF_pct": -47.4
+   },
+   "Tiny": {
+    "mean_card_bytes": 704.4,
+    "mean_note_bytes": 708.6,
+    "total_mb_732": 8192.6,
+    "vs_REF_pct": -46.28
+   }
+  },
+  "D4": {
+   "Big": {
+    "mean_card_bytes": 6317.9,
+    "mean_note_bytes": 4251.6,
+    "total_mb_732": 61989.2,
+    "vs_REF_pct": -54.37
+   },
+   "Small": {
+    "mean_card_bytes": 1282.8,
+    "mean_note_bytes": 688.1,
+    "total_mb_732": 11629.8,
+    "vs_REF_pct": -48.99
+   },
+   "Tiny": {
+    "mean_card_bytes": 683.9,
+    "mean_note_bytes": 688.1,
+    "total_mb_732": 7954.8,
+    "vs_REF_pct": -47.84
+   }
+  }
+ },
+ "entities_732": {
+  "answered_cards": 6136137,
+  "notes_with_answers": 5461876,
+  "never_answered_cards (0 bytes)": 10932675
+ }
+}

@@ -509,6 +509,31 @@ def int_row_quant(bits):
     return quant
 
 
+class TierQuant:
+    """SM141: tiered WKV state rounding by the entity's answer count (scripts/small_model_wkv.tier_bits): rows whose
+    stored state has n updates (n = non-skipped steps so far, this one included) use qmax(young) if n <= M, qmax(old)
+    if n >= N, else qmax(mid); otherwise exactly int_row_quant's arithmetic (per-row qmax as a [rows, 1, 1, 1] tensor;
+    with every tier at one width the result is int_row_quant(width | flags) bit for bit)."""
+    tiered = True
+
+    def __init__(self, bits):
+        from scripts.small_model_wkv import F16_SCALE, HEAD_SCALE, TIER
+        if not bits & TIER:
+            raise ValueError("TierQuant needs TIER bits")
+        self.bits = bits
+        self.f16 = bool(bits & F16_SCALE)
+        self.dims = (-2, -1) if bits & HEAD_SCALE else -1
+
+    def __call__(self, nxt, cur, rows, t, n):
+        from scripts.small_model_wkv import round_scale_f16, tier_qmax
+        q = tier_qmax(self.bits, n).view(-1, *([1] * (nxt.dim() - 1)))
+        scale = nxt.abs().amax(self.dims, keepdim=True) / q
+        if self.f16:
+            scale = round_scale_f16(scale)
+        scale = torch.where(scale > 0, scale, torch.ones_like(scale))
+        return torch.maximum(torch.minimum(torch.round(nxt / scale), q), -q) * scale
+
+
 # ------------------------------------------------------------------------------------------------ model hooks
 
 class Hooks:
@@ -532,6 +557,8 @@ def _reference_wkv_q(r, k, v, w, a, kd, skip, state0=None):
     out = torch.empty(B, T, H, Kh, dtype=torch.float32)
     state = (torch.zeros(B, H, Kh, Kh, dtype=torch.float32) if state0 is None
              else state0.detach().float().clone())
+    # SM141: a tiered quantizer gets each row's update count (non-skipped steps so far, this one included)
+    counts = torch.cumsum((~skip.bool()).long(), 1) if getattr(quant, "tiered", False) else None
     for t in range(T):
         out[:, t], nxt = single_timestep(r[:, t], k[:, t], v[:, t], w[:, t], a[:, t], kd[:, t], state)
         keep = skip[:, t]
@@ -542,7 +569,8 @@ def _reference_wkv_q(r, k, v, w, a, kd, skip, state0=None):
         if rows.numel():
             # The answer's output used the float update; the stored state is the codec's reconstruction.
             state = state.clone()
-            state[rows] = quant(nxt[rows], cur, rows, t)
+            state[rows] = (quant(nxt[rows], cur, rows, t) if counts is None
+                           else quant(nxt[rows], cur, rows, t, counts[rows, t]))
     return out.to(out_dtype)
 
 
@@ -623,6 +651,10 @@ def configure(layout, codecs=None, int_bits=0, shift_bits=0):
                 # SM45: int_bits may be a (card, note) tuple of per-stream bits
                 bits = dict(zip((0, 2), int_bits)).get(stream, 0) if isinstance(int_bits, tuple) else int_bits
                 if not bits:
+                    continue
+                from scripts.small_model_wkv import TIER
+                if bits & TIER:   # SM141: tiered by answer count (TierQuant takes the row counts)
+                    Hooks.wkv[(stream, layer)] = TierQuant(bits)
                     continue
                 q = int_row_quant(bits)
                 Hooks.wkv[(stream, layer)] = lambda s, cur, rows, t, q=q: q(s)

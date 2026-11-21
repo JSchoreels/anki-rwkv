@@ -16,6 +16,12 @@ SM47: `bits | F16_SCALE` (8 | 256, 4 | 256) rounds every row scale (absmax / qma
 are computed with it (round to nearest even, subnormals kept, clamped to the float16 maximum 65504; a scale that is 0,
 or underflows to 0, or is NaN becomes 1 like the float32 path). Without the flag the kernel is unchanged.
 
+SM141: `bits | TIER` (1024, tier_bits()) = tiered precision by the entity's answer count: per (batch row) the kernel
+counts the non-skipped steps n (the stored state's update count, the card's or note's answers so far) and rounds the
+state written after update n with qmax(young) if n <= M, qmax(old) if n >= N, else qmax(mid) (qmax 127 / 7 / 3 / 1 for
+8 / 4 / 3 / 2 bits; symmetric codes, as int8 and int4). A separate kernel "wkv_q_tier" built from the same text; without
+the flag the stock kernel runs unchanged.
+
 SM49: `bits | HEAD_SCALE` (512) uses one scale per head (the absmax of the whole K x K head state, a warp max over the
 K rows) instead of one per row; with F16_SCALE that head scale is rounded to float16. Without the flag nothing changes.
 """
@@ -32,6 +38,34 @@ _handles = []
 F16_SCALE = 256   # flag on `bits`: float16 row scales (SM47)
 F16_MAX = 65504.0
 HEAD_SCALE = 512  # flag on `bits`: one scale per head shared by its K rows (SM49)
+TIER = 1024       # flag on `bits`: tiered precision by answer count (SM141); parts in bits >> 12 (tier_bits)
+QMAX = {8: 127.0, 4: 7.0, 3: 3.0, 2: 1.0}
+TIER_NEVER = 65535  # N of a spec without an old tier
+
+
+def tier_bits(young, M, mid, N, old, flags=F16_SCALE):
+    """SM141: one int carrying a tiered state precision: bits `young` for answer counts n <= M, `mid` for M < n < N,
+    `old` for n >= N (n = the stored state's update count, counted from 1). Low byte = mid (so `bits & 255` stays a
+    valid plain width), flags kept, then young / old (4 bits each), M and N (16 bits each)."""
+    for b in (young, mid, old):
+        if b not in QMAX:
+            raise ValueError(f"tier bits must be one of {sorted(QMAX)}, got {b}")
+    if not (0 <= M < 65536 and 0 < N <= TIER_NEVER and M < N):
+        raise ValueError(f"tier thresholds need 0 <= M < N <= {TIER_NEVER}, got M={M} N={N}")
+    return mid | flags | TIER | (young << 12) | (old << 16) | (M << 20) | (N << 36)
+
+
+def tier_parts(bits):
+    """(young, M, mid, N, old) of a TIER bits value (tier_bits inverse)."""
+    return (bits >> 12) & 15, (bits >> 20) & 65535, bits & 255, (bits >> 36) & 65535, (bits >> 16) & 15
+
+
+def tier_qmax(bits, n):
+    """SM141: per-row qmax (float32 tensor shaped like n) of TIER bits for answer counts n (int tensor, >= 1)."""
+    young, M, mid, N, old = tier_parts(bits)
+    q = torch.full(n.shape, QMAX[mid], dtype=torch.float32, device=n.device)
+    q = torch.where(n <= M, torch.full_like(q, QMAX[young]), q)
+    return torch.where(n >= N, torch.full_like(q, QMAX[old]), q)
 
 # The f32 -> f16 -> f32 rounding of a non-negative scale in the kernel: RNE to 10 mantissa bits in the normal range,
 # to multiples of 2^-24 below 2^-14 (the float16 subnormals); NaN passes through (then becomes 1).
@@ -77,6 +111,25 @@ def _source(K):
     return text
 
 
+def _tier_source(K):
+    """SM141: the kernel text with tiered qmax by the per-row update count, renamed wkv_q_tier (5 more arguments)."""
+    text = _source(K)
+    for old, new in (('void wkv_q(', 'void wkv_q_tier('),
+                     ("const int B, const int T, const int H, const int bits) {",
+                      "const int B, const int T, const int H, const int bits,\n"
+                      "                                 const int tier_m, const int tier_n, const float q_young,\n"
+                      "                                 const float q_mid, const float q_old) {"),
+                     ("const float qmax = (bits & 255) == 8 ? 127.0f : 7.0f;",
+                      "float qmax = q_mid;\n    int cnt = 0;"),
+                     ("        if (!skip_t) {\n",
+                      "        if (!skip_t) {\n            cnt++;\n"
+                      "            qmax = cnt <= tier_m ? q_young : (cnt >= tier_n ? q_old : q_mid);\n")):
+        if text.count(old) != 1:
+            raise RuntimeError(f"kernel source changed (tier rewrite): {old!r}")
+        text = text.replace(old, new)
+    return text
+
+
 def _state_source(K):
     """SM77: the kernel text with the state loaded from `state0` (one more pointer), renamed wkv_q_s0."""
     text = _source(K)
@@ -92,9 +145,16 @@ def _state_source(K):
     return text
 
 
-def _kernel(K, state=False):
+def _kernel(K, state=False, tier=False):
     if K not in (16, 32):
         raise ValueError(f"head size {K} not supported (16 or 32)")
+    if tier:   # SM141
+        key = (K, "tier")
+        if key not in _kernels:
+            _kernel(K)  # the DLL directory set-up
+            import cupy
+            _kernels[key] = cupy.RawKernel(_tier_source(K), "wkv_q_tier", options=("--std=c++14",))
+        return _kernels[key]
     if state:
         key = (K, "state")
         if key not in _kernels:
@@ -117,7 +177,10 @@ def wkv_long(r, k, v, w, a, kd, skip, bits=0, state0=None):
     if not r.is_cuda:
         return reference(r, k, v, w, a, kd, skip, bits, state0)
     import cupy
-    kernel = _kernel(K, state=state0 is not None)
+    tier = bool(bits & TIER)
+    if tier and state0 is not None:
+        raise ValueError("TIER bits with state0 are not supported")
+    kernel = _kernel(K, state=state0 is not None, tier=tier)
     tensors = [x.detach().float().contiguous() for x in (r, k, v, w, a, kd)]  # forward-only kernel: no autograd
     skip = skip.to(torch.uint8).contiguous()
     out = torch.empty_like(tensors[0])
@@ -125,8 +188,12 @@ def wkv_long(r, k, v, w, a, kd, skip, bits=0, state0=None):
         return out
     with cupy.cuda.Device(r.device.index), cupy.cuda.ExternalStream(torch.cuda.current_stream(r.device).cuda_stream):
         args = tuple(cupy.from_dlpack(x) for x in (*tensors, skip, out))
-        scalars = (cupy.int32(B), cupy.int32(T), cupy.int32(H), cupy.int32(bits))
-        if state0 is None:
+        scalars = (cupy.int32(B), cupy.int32(T), cupy.int32(H), cupy.int32(bits & 1023))
+        if tier:   # SM141: the flags stay in `bits`, the tiers in five more arguments
+            young, M, mid, N, old = tier_parts(bits)
+            kernel((B * H,), (K,), (*args, *scalars, cupy.int32(M), cupy.int32(N), cupy.float32(QMAX[young]),
+                                    cupy.float32(QMAX[mid]), cupy.float32(QMAX[old])))
+        elif state0 is None:
             kernel((B * H,), (K,), (*args, *scalars))
         else:
             s0 = state0.detach().float().contiguous()  # the arm's learned start state is a parameter (requires grad)
@@ -145,11 +212,13 @@ def reference(r, k, v, w, a, kd, skip, bits=0, state0=None, steps=None):
     state = (torch.zeros(B, H, K, K, dtype=torch.float32, device=r.device) if state0 is None
              else state0.float().clone())
     out = torch.empty(B, T, H, K, dtype=torch.float32, device=r.device)
+    counts = torch.cumsum((~skip.bool()).long(), 1) if bits & TIER else None   # SM141: update count after step t
     for t in range(T):
         o, nxt = single_timestep(r[:, t], k[:, t], v[:, t], w[:, t], a[:, t], kd[:, t], state)
         out[:, t] = o
         if bits:
-            qmax = 127.0 if (bits & 255) == 8 else 7.0
+            qmax = (tier_qmax(bits, counts[:, t]).view(B, 1, 1, 1) if counts is not None
+                    else 127.0 if (bits & 255) == 8 else 7.0)
             scale = nxt.abs().amax((-2, -1) if bits & HEAD_SCALE else -1, keepdim=True) / qmax
             if bits & F16_SCALE:
                 scale = round_scale_f16(scale)

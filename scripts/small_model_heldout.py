@@ -363,6 +363,26 @@ def parse_variant(name):
         return int(wkv) | flag | (HEAD_SCALE if g else 0), (int(x[1:]) | flag) if x else 0
     # SM47: f16 row scales (h), int8 shift vectors (x8); SM49: s4 (int4 card and note rows), per-head scales (g),
     # int4 shift vectors (x4), e.g. w8+s4hx8, w8+s4hx4, w8+s4hgx4
+    # SM141: tiered card / note state by answer count, card spec + "c", note spec + "n", then "hx8" (float16 row
+    # scales, int8 shift vectors in every tier). spec = b0 | b0.N.b1 | b0.T.b1.N.b2: b0 below the first threshold,
+    # ..., the last width from the last threshold on (thresholds = answer counts n of the stored state, from 1), e.g.
+    # w8+t4.128.8c8nhx8 = int4 cards below 128 answers, int8 from 128, int8 notes; w8+t3.5.4.128.8c3.5.4.128.8nhx8 =
+    # int3 up to 4 answers, int4 5-127, int8 from 128, cards and notes. Always the tier code path (a uniform spec too).
+    m = re.fullmatch(r"t([0-9.]+)c([0-9.]+)nhx8", state)
+    if scheme is not None and m:
+        from scripts.small_model_wkv import TIER_NEVER, tier_bits
+        tiers = []
+        for spec in m.groups():
+            v = [int(x) for x in spec.split(".")]
+            if len(v) == 1:
+                tiers.append(tier_bits(v[0], 0, v[0], TIER_NEVER, v[0]))
+            elif len(v) == 3:
+                tiers.append(tier_bits(v[0], 0, v[0], v[1], v[2]))
+            elif len(v) == 5 and 1 < v[1] < v[3]:
+                tiers.append(tier_bits(v[0], v[1] - 1, v[2], v[3], v[4]))
+            else:
+                raise SystemExit(f"{name}: tier spec {spec!r} must be b0, b0.N.b1 or b0.T.b1.N.b2 with 1 < T < N")
+        return scheme, IntState((tuple(tiers), 8 | F16_SCALE, 16))
     m = re.fullmatch(r"(s8|s4c8n|s4)(h?)(g?)(x8|x4)?", state)
     if scheme is not None and m and (m.group(2) or m.group(3) or m.group(4)):
         h, g, x = m.group(2), m.group(3), m.group(4)
@@ -413,6 +433,11 @@ def state_fields(state_bits):
                   "state_shift_bits": shift, "state_entity_bits": {"card": card, "note": note}}
         if any(head) if isinstance(head, list) else head:   # SM49 (older rows keep their fields)
             fields["state_scale_per"] = ["head" if x else "row" for x in head] if isinstance(head, list) else "head"
+        from scripts.small_model_wkv import TIER, tier_parts
+        if any(b & TIER for b in (wkv if isinstance(wkv, tuple) else (wkv,))):   # SM141 (entity bits: the mid tier)
+            fields["state_tiers"] = {name: dict(zip(("young_bits", "young_max", "mid_bits", "old_from", "old_bits"),
+                                                    tier_parts(b)))
+                                     for name, b in zip(("card", "note"), wkv if isinstance(wkv, tuple) else (wkv, wkv))}
         return fields
     return {"state_bits": list(state_bits) if isinstance(state_bits, tuple) else state_bits or 32}
 
