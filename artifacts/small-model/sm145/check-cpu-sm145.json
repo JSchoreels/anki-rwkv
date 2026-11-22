@@ -1,0 +1,76 @@
+{
+ "ok": true,
+ "checks": {
+  "K1 bytes (sm145_bytes.py)": true,
+  "TierQuant uniform int8 == int_row_quant K16": true,
+  "TierQuant uniform int4 == int_row_quant K16": true,
+  "TierQuant 3/4/8 picks the width of each row's count K16": true,
+  "TierQuant uniform int8 == int_row_quant K32": true,
+  "TierQuant uniform int4 == int_row_quant K32": true,
+  "TierQuant 3/4/8 picks the width of each row's count K32": true,
+  "fork _quantize_tier uniform int8 == _quantize_rows": true,
+  "fork _quantize_tier uniform int4 == _quantize_rows": true,
+  "fork _quantize_tier == state_vq TierQuant (3/4/8)": true,
+  "reference uniform int8 TIER == plain K16": true,
+  "reference uniform int4 TIER == plain K16": true,
+  "reference 3/4/8 (M 4, N 40) == manual per-count loop K16": true,
+  "reference uniform int8 TIER == plain K32": true,
+  "reference uniform int4 TIER == plain K32": true,
+  "reference 3/4/8 (M 4, N 40) == manual per-count loop K32": true,
+  "fork reference_rwkv7_q TIER == small_model_wkv.reference (K32)": true,
+  "fork reference_rwkv7_q uniform int8 TIER == plain": true,
+  "every CPU smoke row finite": true,
+  "every (user, model, label) CPU smoke row present": true,
+  "U8 == REF": true,
+  "U4 == C4": true,
+  "P4 == AN16": true,
+  "Y2N differs from AN16 (every user)": true,
+  "Y4C differs from AN16 (every user)": true,
+  "Y4N differs from AN16 (every user)": true,
+  "Y4N differs from Y4C (every user)": true,
+  "Y4N differs from Y2N (every user)": true,
+  "K4 REF and AN16 CPU rows == SM144's committed CPU smoke rows (every field, prior_buckets included)": true,
+  "emulate-gpu-path U8 == REF": true,
+  "K5 a dump for every (user, model, label)": true,
+  "K5 dumped reviews per bucket == the rows' all-scope counts": true,
+  "K5 same reviews in every label's dump": true,
+  "K5 |dR| U8 vs REF == 0 exactly": true,
+  "K5 |dR| AN16 vs REF > 0 somewhere": true,
+  "K5 sm145_dr.py aggregates the smoke dumps (finite, complete)": true
+ },
+ "info": {
+  "users": [
+   1866,
+   2388,
+   4676
+  ],
+  "tags": [
+   "sm113-inst-e35st-st-dec2ep32k-t99",
+   "sm118-e26-dec2ep32k-t91s2",
+   "sm130-io-dec2ep32k-t99",
+   "sm130-th-dec2ep32k-t91s2",
+   "sm91s2-big-showtime",
+   "sm99-big-inst-e2"
+  ],
+  "rows": 162,
+  "emulate_rows": 48,
+  "failures": {},
+  "k4_compared": 36,
+  "k4_diffs": [],
+  "emulate_vs_cpu_max_abs_benchmark_logloss": {
+   "w8+s8hx8": 0.0,
+   "w8+t8.5.8.128.8c8.5.8.128.8nhx8": 0.0,
+   "w8+t4.16.8c4.16.8nhx8": 0.0,
+   "w8+t3.5.4.16.8c3.5.4.16.8nhx8": 0.0
+  },
+  "k5": {
+   "files": 162,
+   "missing": [],
+   "count_bad": [],
+   "keys_bad": [],
+   "dr_stdout": "[sm145-dr] finite, complete; largest |dR| 0.0769; -> C:\\Users\\jonat\\workspace\\wt\\sm145\\artifacts\\small-model\\sm145\\cpu\\smoke-dr.json\n",
+   "dr_stderr": ""
+  }
+ },
+ "seconds": 3.5
+}

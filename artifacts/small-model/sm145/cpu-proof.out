@@ -1,0 +1,37 @@
+  OK  K1 bytes (sm145_bytes.py)
+  OK  TierQuant uniform int8 == int_row_quant K16
+  OK  TierQuant uniform int4 == int_row_quant K16
+  OK  TierQuant 3/4/8 picks the width of each row's count K16
+  OK  TierQuant uniform int8 == int_row_quant K32
+  OK  TierQuant uniform int4 == int_row_quant K32
+  OK  TierQuant 3/4/8 picks the width of each row's count K32
+  OK  fork _quantize_tier uniform int8 == _quantize_rows
+  OK  fork _quantize_tier uniform int4 == _quantize_rows
+  OK  fork _quantize_tier == state_vq TierQuant (3/4/8)
+  OK  reference uniform int8 TIER == plain K16
+  OK  reference uniform int4 TIER == plain K16
+  OK  reference 3/4/8 (M 4, N 40) == manual per-count loop K16
+  OK  reference uniform int8 TIER == plain K32
+  OK  reference uniform int4 TIER == plain K32
+  OK  reference 3/4/8 (M 4, N 40) == manual per-count loop K32
+  OK  fork reference_rwkv7_q TIER == small_model_wkv.reference (K32)
+  OK  fork reference_rwkv7_q uniform int8 TIER == plain
+  OK  every CPU smoke row finite
+  OK  every (user, model, label) CPU smoke row present
+  OK  U8 == REF
+  OK  U4 == C4
+  OK  P4 == AN16
+  OK  Y2N differs from AN16 (every user)
+  OK  Y4C differs from AN16 (every user)
+  OK  Y4N differs from AN16 (every user)
+  OK  Y4N differs from Y4C (every user)
+  OK  Y4N differs from Y2N (every user)
+  OK  K4 REF and AN16 CPU rows == SM144's committed CPU smoke rows (every field, prior_buckets included)
+  OK  emulate-gpu-path U8 == REF
+  OK  K5 a dump for every (user, model, label)
+  OK  K5 dumped reviews per bucket == the rows' all-scope counts
+  OK  K5 same reviews in every label's dump
+  OK  K5 |dR| U8 vs REF == 0 exactly
+  OK  K5 |dR| AN16 vs REF > 0 somewhere
+  OK  K5 sm145_dr.py aggregates the smoke dumps (finite, complete)
+[sm145-check] CPU proofs ALL OK (3 s)

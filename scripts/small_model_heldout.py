@@ -175,6 +175,23 @@ def dump_predictions(folder, user, label, labels, predictions):
                         p_instant=np.array([predictions["instant"][th] for th in ths]))
 
 
+def dump_all_scope(folder, user, label, predictions):
+    """SM145 --dump-scope all: every review the scorer predicts per head (the "all" scope of --prior-buckets: keys with a
+    rating), review_th as int64 and the head's probability as float32 (the heads' own precision, lossless), so long cards
+    (128+ earlier answers, outside the benchmark set) are included. Array metrics only."""
+    import numpy as np
+    out = {}
+    for head in ("ahead", "instant"):
+        keys, preds = predictions.heads[head]
+        if len(keys):
+            has_rating, _ = predictions.lookup("rating", keys)
+            keys, preds = keys[has_rating], preds[has_rating]
+        out[f"{head}_th"] = np.asarray(keys, dtype=np.int64)
+        out[f"{head}_p"] = np.asarray(preds, dtype=np.float32)
+    folder.mkdir(parents=True, exist_ok=True)
+    np.savez_compressed(folder / f"{user}_{label.replace('/', '_')}.npz", **out)
+
+
 def card_prior_answers(data_path, user):
     """SM136: per revlog row (review_th - 1) the number of earlier revlog rows of the same card (get_rwkv_data's frame
     order: review_th = 1 + the parquet row index)."""
@@ -475,6 +492,9 @@ def main():
                         "the reviews in flight stay <= this (~25 KB GPU memory per review; a larger user runs alone)")
     parser.add_argument("--dump", default="", help="also write per-review benchmark predictions (review_th, bin, y, "
                         "p_ahead, p_instant) to DIR/<user>_<tag>_<variant>.npz, for calibration diagnostics")
+    parser.add_argument("--dump-scope", choices=("benchmark", "all"), default="benchmark", help="SM145: with --dump, "
+                        "'all' writes every predicted review per head (review_th, p as float32: the 'all' scope of "
+                        "--prior-buckets, long cards included) instead of the benchmark reviews; array metrics only")
     parser.add_argument("--deleted-cards", choices=("keep", "flags", "neighbour"), default="keep",
                         help="SM71: inputs of reviews of cards missing from the cards table (deleted before the export): "
                         "keep = today's inputs; flags = *_is_nan flags 0; neighbour = flags 0 + deck/preset of the "
@@ -504,6 +524,8 @@ def main():
         raise SystemExit("--prior-buckets: increasing edges starting at 0")
     if prior_edges is not None and (args.legacy_metrics or args.window):
         raise SystemExit("--prior-buckets: array metrics and full-history scoring only")
+    if args.dump_scope == "all" and (not args.dump or args.legacy_metrics or args.window or args.start_of_day):
+        raise SystemExit("--dump-scope all: needs --dump, array metrics, full-history scoring, no --start-of-day")
     if cpu:
         torch.set_num_threads(2)
         args.workers = 0
@@ -776,7 +798,9 @@ def main():
             if sod_batch is not None:
                 rows[-1]["start_of_day"] = sod_fields(user, labels, cc.data_path(run), predictions, sod_predictions,
                                                       bench_metrics, getattr(sod_batch, "sod_leading_fixed", None))
-            if args.dump and sod_batch is not None:
+            if args.dump and args.dump_scope == "all":   # SM145
+                dump_all_scope(ROOT / args.dump, user, label, predictions)
+            elif args.dump and sod_batch is not None:
                 dump_sod(ROOT / args.dump, user, label, labels, predictions, sod_predictions)
             elif args.dump:
                 dump_predictions(ROOT / args.dump, user, label, labels,
