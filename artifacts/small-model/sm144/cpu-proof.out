@@ -1,0 +1,34 @@
+  OK  K1 bytes (sm144_bytes.py)
+  OK  TierQuant uniform int8 == int_row_quant K16
+  OK  TierQuant uniform int4 == int_row_quant K16
+  OK  TierQuant 3/4/8 picks the width of each row's count K16
+  OK  TierQuant uniform int8 == int_row_quant K32
+  OK  TierQuant uniform int4 == int_row_quant K32
+  OK  TierQuant 3/4/8 picks the width of each row's count K32
+  OK  fork _quantize_tier uniform int8 == _quantize_rows
+  OK  fork _quantize_tier uniform int4 == _quantize_rows
+  OK  fork _quantize_tier == state_vq TierQuant (3/4/8)
+  OK  reference uniform int8 TIER == plain K16
+  OK  reference uniform int4 TIER == plain K16
+  OK  reference 3/4/8 (M 4, N 40) == manual per-count loop K16
+  OK  reference uniform int8 TIER == plain K32
+  OK  reference uniform int4 TIER == plain K32
+  OK  reference 3/4/8 (M 4, N 40) == manual per-count loop K32
+  OK  fork reference_rwkv7_q TIER == small_model_wkv.reference (K32)
+  OK  fork reference_rwkv7_q uniform int8 TIER == plain
+  OK  every CPU smoke row finite
+  OK  every (user, model, label) CPU smoke row present
+  OK  U8 == REF
+  OK  U4 == C4
+  OK  A vs C4 by the 128-answer threshold
+  OK  A32 vs C4 by the 32-answer threshold
+  OK  A16 vs C4 by the 16-answer threshold
+  OK  A16 differs from A32 (long user)
+  OK  A32 differs from A (long user)
+  OK  AN32 differs from A32 (notes tier) (long user)
+  OK  AN16 differs from A16 (notes tier) (long user)
+  OK  AN16 differs from AN32 (long user)
+  OK  REF and A CPU rows == SM141's committed CPU smoke rows
+  OK  emulate-gpu-path U8 == REF
+  OK  K4 w8+s8hx8 rows == SM139 committed CPU rows
+[sm144-check] CPU proofs ALL OK (1 s)

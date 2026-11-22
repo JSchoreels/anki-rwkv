@@ -1,0 +1,67 @@
+{
+ "ok": true,
+ "checks": {
+  "K1 bytes (sm144_bytes.py)": true,
+  "TierQuant uniform int8 == int_row_quant K16": true,
+  "TierQuant uniform int4 == int_row_quant K16": true,
+  "TierQuant 3/4/8 picks the width of each row's count K16": true,
+  "TierQuant uniform int8 == int_row_quant K32": true,
+  "TierQuant uniform int4 == int_row_quant K32": true,
+  "TierQuant 3/4/8 picks the width of each row's count K32": true,
+  "fork _quantize_tier uniform int8 == _quantize_rows": true,
+  "fork _quantize_tier uniform int4 == _quantize_rows": true,
+  "fork _quantize_tier == state_vq TierQuant (3/4/8)": true,
+  "reference uniform int8 TIER == plain K16": true,
+  "reference uniform int4 TIER == plain K16": true,
+  "reference 3/4/8 (M 4, N 40) == manual per-count loop K16": true,
+  "reference uniform int8 TIER == plain K32": true,
+  "reference uniform int4 TIER == plain K32": true,
+  "reference 3/4/8 (M 4, N 40) == manual per-count loop K32": true,
+  "fork reference_rwkv7_q TIER == small_model_wkv.reference (K32)": true,
+  "fork reference_rwkv7_q uniform int8 TIER == plain": true,
+  "every CPU smoke row finite": true,
+  "every (user, model, label) CPU smoke row present": true,
+  "U8 == REF": true,
+  "U4 == C4": true,
+  "A vs C4 by the 128-answer threshold": true,
+  "A32 vs C4 by the 32-answer threshold": true,
+  "A16 vs C4 by the 16-answer threshold": true,
+  "A16 differs from A32 (long user)": true,
+  "A32 differs from A (long user)": true,
+  "AN32 differs from A32 (notes tier) (long user)": true,
+  "AN16 differs from A16 (notes tier) (long user)": true,
+  "AN16 differs from AN32 (long user)": true,
+  "REF and A CPU rows == SM141's committed CPU smoke rows": true,
+  "emulate-gpu-path U8 == REF": true,
+  "K4 w8+s8hx8 rows == SM139 committed CPU rows": true
+ },
+ "info": {
+  "users": [
+   1866,
+   2388,
+   4676
+  ],
+  "tags": [
+   "sm113-inst-e35st-st-dec2ep32k-t99",
+   "sm118-e26-dec2ep32k-t91s2",
+   "sm130-io-dec2ep32k-t99",
+   "sm130-th-dec2ep32k-t91s2",
+   "sm91s2-big-showtime",
+   "sm99-big-inst-e2"
+  ],
+  "rows": 162,
+  "emulate_rows": 48,
+  "sm141_rows_compared": 36,
+  "sm141_rows_diffs": [],
+  "failures": {},
+  "emulate_vs_cpu_max_abs_benchmark_logloss": {
+   "w8+s8hx8": 0.0,
+   "w8+t8.5.8.128.8c8.5.8.128.8nhx8": 0.0,
+   "w8+t4.16.8c8nhx8": 0.0,
+   "w8+t4.16.8c4.16.8nhx8": 0.0
+  },
+  "k4_compared": 12,
+  "k4_diffs": []
+ },
+ "seconds": 0.8
+}
