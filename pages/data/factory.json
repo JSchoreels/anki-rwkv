@@ -1,7 +1,7 @@
 {
- "generated_at": "2026-11-23T00:17:10+01:00",
- "updated": "2026-11-23 00:17",
- "material": "4f6725c1e39a8a58",
+ "generated_at": "2026-11-23T00:49:58+01:00",
+ "updated": "2026-11-23 00:49",
+ "material": "185640586823f9b1",
  "summary": "idle",
  "headline": [
   {
@@ -2735,10 +2735,11 @@
    "kind": "cpu",
    "minutes": 80,
    "what": "Low-rank structure of the card and note states (SM147): a cheap pointer, not a gate, prompted by outside research that stores each card and note state matrix as rank-2 and rank-1 int8 factors. On 8 benchmark users (the 3 smoke users plus 5 long-card users) and the six release-candidate models, CPU only: how much of each stored float32 state matrix the best rank 1, 2, 4 and 8 approximations keep, per layer, head and answer-count bucket; and a post-training test where every write is cut to rank 1, 2 or 4 (float factors, no quantization), scored against the int8 format and the float state. No retraining.",
-   "when": "Started 00:15 Mon 11-23 on the CPU (2 processes); results expected about 01:20&ndash;01:40, read-out afterwards",
+   "when": "Done 00:46 Mon 11-23: rank 4 is free within noise for all six models (at most +0.01% vs int8), rank 2 costs 0.00% to +0.08%, rank 1 +0.16% to +0.42%; a pointer on 8 users",
    "decides": "Whether a low-rank card and note state is worth a proper GPU test, with or without a short cool-down trained with the compressed state",
-   "state": "planned",
-   "started_at": "2026-11-23T00:15+01:00"
+   "state": "done",
+   "started_at": "2026-11-23T00:15+01:00",
+   "ended_at": "2026-11-23T00:46+01:00"
   },
   {
    "id": "SM146",
@@ -3544,6 +3545,96 @@
   }
  ],
  "results": [
+  {
+   "date": "11-23",
+   "kind": "cpu-analysis",
+   "id": "SM147",
+   "track": "small model",
+   "name": "Low-rank structure of the card and note states (SM147): how much energy the best rank 1, 2, 4 and 8 approximations of each stored state matrix keep, and what cutting every write to rank 1, 2 or 4 costs, on the six release-candidate models",
+   "eval": "CPU only, 8 public benchmark users (about 100k reviews: the 3 smoke users plus 5 long-card users), show-time inputs, the six release-candidate models (the show-time two-head and Instant-Only big models (SM91s2) and (SM99), the show-time two-head cool-down for Small (SM118) and the longer Small Instant-Only model (SM113), the six-layer Tiny two-head and Instant-Only models (SM130)), int8 weights. Labels: float32 state with the spectrum of every write; the int8 reference format (int8 cards and notes, float16 row scales, int8 shift vectors); rank 1, 2 and 4 truncation of each head&rsquo;s matrix at every write (float32 factors, no quantization of the factors). Energy = share of the Frobenius energy kept; LogLoss read as review-weighted benchmark LogLoss, % against the int8 reference, paired user bootstrap 95% (2,000 draws, seed 0; with 8 users only a rough width). A pointer, not a gate: no verdict rules. Checks C1 to C4 passed (truncation selftest; float32 probe equals plain int8 weights, 18 of 18; int8 reference equals the committed int3 young tier (SM145) CPU smoke rows, 18 of 18; 240 finite rows).",
+   "fork": "Nothing changed in the fork; this is a pointer for a possible later GPU test",
+   "takeaway": "<strong>Rank 4 is free within noise for all six models; rank 1 is clearly visible; rank 2 sits in between.</strong> Against the int8 reference, rank 4 costs at most +0.01% LogLoss on every model and head (intervals contain 0); rank 2 costs +0.04% (curve) and +0.08% (instant) for the show-time two-head big model (SM91s2), +0.06% for the show-time instant-only big model (SM99), +0.07% for both six-layer Tiny instant heads (SM130) and nothing measurable for the Small models (SM118) and (SM113); rank 1 costs +0.16% to +0.42%, more on instant than on curve. <strong>Energy:</strong> an entity with n answers has a state of rank at most n, so 1&ndash;2 answers are exact at rank 2 and 3&ndash;4 at rank 4 by construction; from 5&ndash;8 answers up, rank 1 / 2 / 4 keep about 74% / 91% / 99% (cards, big models), 77&ndash;80% / 93&ndash;94% / 99.4% (Small) and 75&ndash;79% / 92.5&ndash;93.5% / 99.4% (six-layer Tiny); at 32&ndash;127 answers about 71% / 87% / 97% (big), 75% / 93% / 99% (Small cards) and 68&ndash;73% / 91&ndash;93% / 99% (Tiny cards). Notes drift lower with the answer count (128+ answers: 94% at rank 4 for the big models); cards stay flat. Rank 8 keeps 99.8% to 99.99% overall. <strong>By answer count</strong> rank-1 cost grows from about zero (1&ndash;4 earlier answers) to +0.6% to +1.2% at 32&ndash;127; rank 4 stays within +/-0.03% up to 31 and at most +0.09% at 32&ndash;127. <strong>Reading:</strong> worth a proper GPU test at rank 4, cheaply for the big models where the bytes shrink most (rank-4 int8 factors would take about 3,955 bytes per card against 13,891 and 2,643 per note against 9,267; Small 1,297 / 691 against 2,545 / 1,315; Tiny 691 against 1,315), and perhaps rank 2 with a short cool-down trained with the compressed state; rank 1 only with a cool-down. These are post-training truncations; the sample is 8 users and the 128+ bucket has 209 reviews, so the 732-user set would decide.",
+   "inputs": "show-time",
+   "started_at": "2026-11-23T00:15+01:00",
+   "ended_at": "2026-11-23T00:46+01:00",
+   "gpu_minutes": 0,
+   "cpu_minutes": 60,
+   "tickets": 0,
+   "detail": {
+    "verdict": "Pointer only (no gate): rank 4 free within noise, rank 2 costs 0.00% to +0.08%, rank 1 +0.16% to +0.42%. Branch sm147 (RESULT.md, sm147-result.md, sm147-result.json, design.md)",
+    "table": {
+     "head": [
+      "Model",
+      "Head",
+      "Rank 1 vs int8",
+      "Rank 2 vs int8",
+      "Rank 4 vs int8",
+      "Energy kept by rank 1 / 2 / 4, 5&ndash;8 answers, card ; note",
+      "Energy kept by rank 1 / 2 / 4, 32&ndash;127 answers, card ; note"
+     ],
+     "rows": [
+      [
+       "Big two-head (SM91s2)",
+       "curve / instant",
+       "+0.16% [+0.01, +0.30] / +0.34% [+0.30, +0.41]",
+       "+0.04% [+0.01, +0.07] / +0.08% [+0.04, +0.13]",
+       "+0.01% [&minus;0.01, +0.03] / +0.00% [&minus;0.02, +0.03]",
+       "74 / 91 / 98.9% ; 79 / 93 / 99.2%",
+       "71 / 87 / 97% ; 72 / 87 / 96.6%"
+      ],
+      [
+       "Big Instant-Only (SM99)",
+       "instant",
+       "+0.42% [+0.34, +0.54]",
+       "+0.06% [+0.04, +0.08]",
+       "&minus;0.01% [&minus;0.04, +0.02]",
+       "74 / 91 / 98.9% ; 79 / 93 / 99.2%",
+       "71 / 87.5 / 96.8% ; 70 / 86 / 96.2%"
+      ],
+      [
+       "Small two-head (SM118)",
+       "curve / instant",
+       "+0.21% [+0.10, +0.28] / +0.22% [+0.19, +0.31]",
+       "+0.01% [&minus;0.01, +0.05] / &minus;0.02% [&minus;0.07, +0.05]",
+       "+0.01% [&minus;0.01, +0.03] / +0.01% [&minus;0.01, +0.03]",
+       "77 / 93 / 99.4% ; 76 / 94 / 99.5%",
+       "75 / 93 / 99% ; 71 / 89 / 97.9%"
+      ],
+      [
+       "Small Instant-Only (SM113)",
+       "instant",
+       "+0.26% [+0.11, +0.35]",
+       "+0.01% [&minus;0.02, +0.06]",
+       "&minus;0.01% [&minus;0.02, +0.01]",
+       "80 / 94 / 99.5% ; 80 / 95 / 99.6%",
+       "76 / 93 / 99.2% ; 71 / 89 / 97.9%"
+      ],
+      [
+       "the six-layer Tiny two-head model (SM130)",
+       "curve / instant",
+       "+0.21% [+0.08, +0.31] / +0.37% [+0.25, +0.63]",
+       "+0.02% [&minus;0.01, +0.05] / +0.07% [+0.01, +0.21]",
+       "+0.00% [&minus;0.02, +0.02] / &minus;0.01% [&minus;0.01, +0.01]",
+       "75 / 92.5 / 99.4% ; 78 / 94 / 99.5%",
+       "68 / 91 / 98.8% ; 71 / 89 / 97.8%"
+      ],
+      [
+       "the six-layer Tiny Instant-Only model (SM130)",
+       "instant",
+       "+0.37% [+0.19, +0.63]",
+       "+0.07% [&minus;0.01, +0.17]",
+       "&minus;0.00% [&minus;0.02, +0.03]",
+       "79 / 93 / 99.5% ; 81 / 95 / 99.6%",
+       "73 / 93 / 99.1% ; 74 / 91 / 98.3%"
+      ]
+     ]
+    },
+    "notes": [
+     "Coverage: 8 users x 6 models x 5 labels = 240 rows, all finite; no card ids or review rows are stored. The int8 format&rsquo;s own cost against the float state is within 0.006% for every model and head.",
+     "Wall time: about 30 minutes in two CPU processes (about 558 review-evaluations per second for the big models, about 1,858 for the Small and Tiny models); about 60 process-minutes. No GPU job."
+    ]
+   }
+  },
   {
    "date": "11-23",
    "kind": "gpu-score",
