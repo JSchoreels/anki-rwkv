@@ -372,6 +372,10 @@ def parse_variant(name):
     scheme = {"fp32": "fp32", "w8": "w8-pc", "w4": "w4-g32"}.get(weights)
     if state.startswith("vq") and scheme is not None:
         return scheme, state
+    from scripts import state_lowrank   # SM147: +lr1 / +lr2 / +lr4 rank-r truncation, +lrsv float state + spectrum
+    lowrank = state_lowrank.parse(state)
+    if scheme is not None and lowrank is not None:
+        return scheme, lowrank
     import re
     from scripts.small_model_wkv import F16_SCALE, HEAD_SCALE
 
@@ -456,6 +460,9 @@ def state_fields(state_bits):
                                                     tier_parts(b)))
                                      for name, b in zip(("card", "note"), wkv if isinstance(wkv, tuple) else (wkv, wkv))}
         return fields
+    from scripts.state_lowrank import LowRankState
+    if isinstance(state_bits, LowRankState):   # SM147
+        return {"state_bits": 32, "state_lowrank": {"rank": state_bits.rank, "spectrum": state_bits.spectrum}}
     return {"state_bits": list(state_bits) if isinstance(state_bits, tuple) else state_bits or 32}
 
 
@@ -595,6 +602,9 @@ def main():
             for module in model.rwkv_modules:
                 for block in module.blocks:
                     block.time_mixer.use_reference_wkv = True
+            if lowrank_grid:   # SM147 (PYTORCH_JIT=0): wrap the reference WKV, name the time mixers
+                from scripts import state_lowrank
+                state_lowrank.install_fork(model)
         else:
             model = build_expertium(arch, base)
             from scripts import state_vq
@@ -603,6 +613,11 @@ def main():
                       else state_vq.install_scoring(model))
         return (kind, model.to(device), base, cq.linear_weight_names(base)), layout
 
+    from scripts import state_lowrank
+    lowrank_grid = any(isinstance(parse_variant(label.split("@")[0].split("/", 1)[1])[1], state_lowrank.LowRankState)
+                       for label in grid)
+    if lowrank_grid and (not cpu or args.emulate_gpu_path):
+        raise SystemExit("SM147 low-rank labels (+lr<r>, +lrsv): CPU reference path only")
     models, states, layouts, codecs = {}, {}, {}, {}
     for label in grid:
         tag, variant = label.split("@")[0].split("/", 1)
@@ -681,7 +696,17 @@ def main():
             model.load_state_dict(state)
             vq_info = vq_path = None
             vq_held = False
-            if kind == "fork":
+            lowrank = isinstance(state_bits, state_lowrank.LowRankState)
+            state_lowrank.SPECTRUM.reset()
+            state_lowrank.SPECTRUM.tag = tag
+            if kind == "fork" and lowrank_grid:
+                state_lowrank.set_fork(state_bits if lowrank else None)
+            if kind == "fork" and lowrank:   # SM147: float int-state path, the wrapped reference WKV truncates
+                cq.set_state_bits(model, 0)
+            elif lowrank:   # SM147, expertium CPU: state_vq.Hooks with the low-rank callables
+                set_expertium_state_bits(model, 0)
+                state_lowrank.configure_expertium(lane_layouts[tag], state_bits)
+            elif kind == "fork":
                 if isinstance(state_bits, tuple):   # SM131: int4 cards + int8 notes, SM47 / SM49 formats on the fork model
                     cq.set_state_streams(model, *fork_streams(state_bits))
                 else:
@@ -784,6 +809,9 @@ def main():
                          "prepare_seconds": round(prep_seconds, 2),
                          "model_seconds": model_seconds, **values,
                          "benchmark": bench_metrics(user, labels, predictions), "scorer": scorer_mode, **sm71_fields})
+            if lowrank and state_bits.spectrum:   # SM147: aggregates over this user's writes (no ids)
+                rows[-1]["lowrank_spectrum"] = state_lowrank.SPECTRUM.export(tag)
+            state_lowrank.SPECTRUM.reset()
             if args.split_existing:
                 import numpy as np
                 from scripts import sm71_leak
