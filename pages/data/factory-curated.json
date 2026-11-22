@@ -2513,10 +2513,11 @@
     "Int3 young tier on the early switch (SM145): "
    ],
    "what": "Int3 young tier on the early switch (SM145): follow-up of the earlier int8 switch (SM144), where int4 cards and notes with an int8 switch at 16 answers passed for all six release-candidate models under the user&rsquo;s long-card tolerance (&minus;40% Big, &minus;36% Small, &minus;35% Tiny state bytes). Does an int3 state for the youngest cards still pass on top of it, and is it worth its bytes? Three int3 labels, all with int8 from 16 answers: int3 for 1&ndash;2 answers on cards and notes, int3 for 1&ndash;4 answers on cards only, and int3 for 1&ndash;4 answers on cards and notes (2.2% to 5.1% more of the int8 bytes saved). They are scored with int8 and the int4 switch at 16 as paired baselines, on the 732 set on the GPU and on the 50 users with very long cards on the CPU. New: a per-card worst-case read-out of how far each card&rsquo;s predicted retention moves against int8 (percentiles, worst review per card, share of reviews and cards off by more than 0.05 and 0.10). No retraining; int2 is not tested again.",
-   "when": "Started 12:56 Sun 11-22 (queue ticket 001474 onwards): GPU about 3.9 h, done about 17:00&ndash;17:30; the long-card CPU chain is the long pole, verdict about 22:00&ndash;00:00 Sun",
+   "when": "Done 22:42 Sun 11-22: <strong>pre-registered go picks: Big Y4N (int3 for 1&ndash;4 answers on cards and notes, &minus;45.3% state bytes), Small Y2N (&minus;38.6%), Tiny Y4C (&minus;37.7%); recommended by the &ldquo;worth its bytes&rdquo; criterion: Big Y4C (&minus;43.5%)</strong>; Tiny under the user&rsquo;s 11-22 Tiny rule (not pre-registered): Y4N (&minus;39.8%). GPU about 229 minutes, CPU 9.6 hours wall",
    "decides": "Whether Big, Small and Tiny take an int3 young tier on top of the int4 switch at 16 answers or stay with the int4 switch alone, and whether any individual card loses a real retention prediction under the tiered states",
-   "state": "running",
-   "started_at": "2026-11-22T12:56+01:00"
+   "state": "done",
+   "started_at": "2026-11-22T12:56+01:00",
+   "ended_at": "2026-11-22T22:42+01:00"
   },
   {
    "id": "SM144",
@@ -3338,6 +3339,308 @@
   "s-w64kd-gate-ctx2048c-dec8-1ep/w8+s8"
  ],
  "results": [
+  {
+   "date": "11-22",
+   "kind": "gpu-score",
+   "id": "SM145",
+   "track": "small model",
+   "name": "Int3 young tier on the early switch (SM145): int3 for the youngest cards on top of the int4 switch at 16 answers, three labels against int8 and the int4 switch, on the six release-candidate models",
+   "eval": "The 732 set (723 users, 722 rule users, show-time inputs, leak-free) scored on the GPU for the six release-candidate models in four labels against int8 cards and notes (w8+s8hx8): AN16 (int4 below 16 answers, cards and notes), Y2N (int3 for 1&ndash;2 answers, cards and notes), Y4C (int3 for 1&ndash;4 answers, cards only), Y4N (int3 for 1&ndash;4 answers, cards and notes), all int8 from 16 answers. The 49 or 50 long-card users scored on the CPU, every label directly, with a per-review and per-card |dR| read-out against int8. No training. Pre-registered rules: R1 every user finite; R2 dataset-wide benchmark LogLoss, 95% CI upper bound at most +0.05% per head; R3 reviews of cards with 128 or more earlier answers, value at most +0.5% and upper bound at most +1.0%; R4 reviews of young cards (the int3 tier), upper bound at most +0.1%; recommendation by a &ldquo;worth its bytes&rdquo; criterion. Paired user bootstrap, 2,000 draws, seed 0.",
+   "fork": "Pre-registered go picks: Big Y4N (&minus;45.3% state bytes), Small Y2N (&minus;38.6%), Tiny Y4C (&minus;37.7%); recommended by the &ldquo;worth its bytes&rdquo; criterion: Big Y4C (&minus;43.5%), Small Y2N, Tiny Y4C; Tiny under the user&rsquo;s 11-22 Tiny rule: Y4N (&minus;39.8%). Not decided: Big Y4N or Y4C, Tiny Y4C or Y4N",
+   "takeaway": "<strong>Pre-registered go picks: Big Y4N (int3 for 1&ndash;4 answers on cards and notes, &minus;45.3% state bytes), Small Y2N (int3 for 1&ndash;2 answers on cards and notes, &minus;38.6%), Tiny Y4C (int3 for 1&ndash;4 answers on cards only, &minus;37.7%), all on top of the int4 switch at 16 answers.</strong> <strong>Recommended under the pre-registered &ldquo;worth its bytes&rdquo; criterion: Big Y4C (&minus;43.5%), not Y4N</strong>: Y4N&rsquo;s share of cards with a review off by more than 0.10 is 0.0648% (show-time big model (SM91s2), instant head) against 0.0251% for the int4 switch at 16 answers (AN16), more than twice (2.6x); Y4C is 0.0294% (1.2x). Small Y2N and Tiny Y4C are unchanged by it. The go pick and the recommendation differ for Big, so that choice is the user&rsquo;s. Small: Y4N and Y4C fail the long-card rule on the show-time two-head cool-down for Small (SM118) curve head (upper bounds +1.110% and +1.017%); Tiny: Y4N fails the dataset-wide rule on the six-layer Tiny Instant-Only model (SM130) (+0.058% [+0.054%, +0.063%]). <strong>Per-card read-out</strong> (|dR| = how far a review&rsquo;s predicted retention moves against int8, 50 long-card users): typical moves are tiny (median 0.0008 to 0.0021, 99th percentile 0.011 to 0.028), the largest single move is 0.387 (Y4C, show-time big model (SM91s2), instant head); the largest share of cards with a review off by more than 0.10 is 0.0648% for Big (Y4N), 0.0020% for Small (Y4N) and 0.0086% for Tiny (Y4N), always on the instant head; for the passing labels it is 0.0294% (Big Y4C), 0.0016% (Small Y2N) and 0.0024% (Tiny Y4C). <strong>Tiny re-read under the user&rsquo;s 11-22 Tiny rule (not pre-registered; upper bound at most +1.00% per head against the matching Small model at int8, R1, R3, R4 unchanged):</strong> every Tiny label passes (the Tiny models already sit +0.47% to +0.56% above the Small ones at int8; largest upper bound +0.667%), so the pick is Y4N (&minus;39.8%), not the pre-registered Y4C. A Tiny-only follow-up with more aggressive tiers (SM146) is being prepared separately.",
+   "inputs": "show-time",
+   "started_at": "2026-11-22T12:56+01:00",
+   "ended_at": "2026-11-22T22:42+01:00",
+   "gpu_minutes": 229,
+   "cpu_minutes": 574,
+   "tickets": 8,
+   "detail": {
+    "verdict": "Pre-registered go: Big Y4N, Small Y2N, Tiny Y4C. Recommended (worth its bytes): Big Y4C, Small Y2N, Tiny Y4C. Tiny under the 11-22 Tiny rule (not pre-registered): Y4N. Branch sm145 (RESULT.md, sm145-result.md, sm145-result.json, sm145-dr.json, sm145-tiny-reread.json, design.md)",
+    "table": {
+     "head": [
+      "Model",
+      "Label",
+      "State bytes vs int8",
+      "Dataset-wide cost vs int8, value [95% CI] (limit: upper bound +0.05%): curve / instant",
+      "Cards with 128+ answers (CPU): curve / instant (limit: value +0.5%, upper bound +1.0%)",
+      "Young cards, int3 tier (limit: upper bound +0.1%): curve / instant",
+      "Share of cards with a review |dR| &gt; 0.10 (50 long-card users): curve / instant",
+      "Pre-registered rules",
+      "Tiny only, under the user&rsquo;s 11-22 Tiny rule (not pre-registered): cost vs the matching Small model at int8, upper bound at most +1.00%"
+     ],
+     "rows": [
+      [
+       "the show-time big model (SM91s2)",
+       "AN16: int4 below 16 answers, int8 from 16 (cards and notes)",
+       "&minus;40.25%",
+       "+0.008% [+0.002%, +0.014%] / +0.012% [+0.010%, +0.013%]",
+       "&minus;0.011% [&minus;0.065%, +0.009%] / &minus;0.002% [&minus;0.025%, +0.022%]",
+       "&ndash;",
+       "0.0095% / 0.0251%",
+       "passes",
+       "&ndash;"
+      ],
+      [
+       "the show-time big model (SM91s2)",
+       "Y2N: int3 for 1&ndash;2 answers, cards and notes",
+       "&minus;42.75%",
+       "+0.012% [+0.003%, +0.021%] / +0.016% [+0.014%, +0.018%]",
+       "&minus;0.005% [&minus;0.025%, +0.014%] / &minus;0.004% [&minus;0.019%, +0.019%]",
+       "+0.009% [+0.002%, +0.015%] / +0.014% [+0.012%, +0.017%]",
+       "0.0072% / 0.0330%",
+       "passes",
+       "&ndash;"
+      ],
+      [
+       "the show-time big model (SM91s2)",
+       "Y4C: int3 for 1&ndash;4 answers, cards only",
+       "&minus;43.48%",
+       "+0.008% [&minus;0.001%, +0.017%] / +0.015% [+0.013%, +0.016%]",
+       "+0.004% [&minus;0.014%, +0.063%] / &minus;0.006% [&minus;0.028%, +0.006%]",
+       "+0.004% [+0.000%, +0.008%] / +0.012% [+0.010%, +0.014%]",
+       "0.0080% / 0.0294%",
+       "passes",
+       "&ndash;"
+      ],
+      [
+       "the show-time big model (SM91s2)",
+       "Y4N: int3 for 1&ndash;4 answers, cards and notes",
+       "&minus;45.34%",
+       "+0.014% [+0.003%, +0.024%] / +0.023% [+0.020%, +0.025%]",
+       "+0.004% [&minus;0.015%, +0.066%] / &minus;0.003% [&minus;0.021%, +0.017%]",
+       "+0.010% [+0.006%, +0.015%] / +0.023% [+0.020%, +0.027%]",
+       "0.0167% / 0.0648%",
+       "passes",
+       "&ndash;"
+      ],
+      [
+       "the show-time instant-only big model (SM99)",
+       "AN16: int4 below 16 answers, int8 from 16 (cards and notes)",
+       "&minus;40.25%",
+       "+0.013% [+0.012%, +0.015%]",
+       "&minus;0.005% [&minus;0.041%, +0.008%]",
+       "&ndash;",
+       "0.0183%",
+       "passes",
+       "&ndash;"
+      ],
+      [
+       "the show-time instant-only big model (SM99)",
+       "Y2N: int3 for 1&ndash;2 answers, cards and notes",
+       "&minus;42.75%",
+       "+0.018% [+0.016%, +0.020%]",
+       "&minus;0.000% [&minus;0.053%, +0.011%]",
+       "+0.014% [+0.011%, +0.018%]",
+       "0.0211%",
+       "passes",
+       "&ndash;"
+      ],
+      [
+       "the show-time instant-only big model (SM99)",
+       "Y4C: int3 for 1&ndash;4 answers, cards only",
+       "&minus;43.48%",
+       "+0.016% [+0.014%, +0.019%]",
+       "&minus;0.005% [&minus;0.056%, +0.009%]",
+       "+0.012% [+0.010%, +0.014%]",
+       "0.0203%",
+       "passes",
+       "&ndash;"
+      ],
+      [
+       "the show-time instant-only big model (SM99)",
+       "Y4N: int3 for 1&ndash;4 answers, cards and notes",
+       "&minus;45.34%",
+       "+0.025% [+0.023%, +0.028%]",
+       "&minus;0.003% [&minus;0.053%, +0.009%]",
+       "+0.025% [+0.021%, +0.029%]",
+       "0.0605%",
+       "passes",
+       "&ndash;"
+      ],
+      [
+       "the show-time two-head cool-down for Small (SM118)",
+       "AN16: int4 below 16 answers, int8 from 16 (cards and notes)",
+       "&minus;36.32%",
+       "+0.007% [+0.005%, +0.008%] / +0.011% [+0.009%, +0.013%]",
+       "+0.065% [&minus;0.014%, +0.386%] / +0.009% [&minus;0.017%, +0.034%]",
+       "&ndash;",
+       "0.0000% / 0.0000%",
+       "passes",
+       "&ndash;"
+      ],
+      [
+       "the show-time two-head cool-down for Small (SM118)",
+       "Y2N: int3 for 1&ndash;2 answers, cards and notes",
+       "&minus;38.57%",
+       "+0.012% [+0.009%, +0.016%] / +0.016% [+0.014%, +0.018%]",
+       "+0.152% [&minus;0.009%, +0.917%] / +0.009% [&minus;0.009%, +0.035%]",
+       "+0.007% [+0.002%, +0.014%] / +0.010% [+0.008%, +0.013%]",
+       "0.0004% / 0.0000%",
+       "passes",
+       "&ndash;"
+      ],
+      [
+       "the show-time two-head cool-down for Small (SM118)",
+       "Y4C: int3 for 1&ndash;4 answers, cards only",
+       "&minus;39.53%",
+       "+0.016% [+0.012%, +0.021%] / +0.018% [+0.016%, +0.020%]",
+       "+0.166% [&minus;0.014%, +1.017%] / +0.014% [&minus;0.003%, +0.064%]",
+       "+0.012% [+0.005%, +0.019%] / +0.014% [+0.012%, +0.016%]",
+       "0.0000% / 0.0004%",
+       "fails R3",
+       "&ndash;"
+      ],
+      [
+       "the show-time two-head cool-down for Small (SM118)",
+       "Y4N: int3 for 1&ndash;4 answers, cards and notes",
+       "&minus;40.91%",
+       "+0.017% [+0.013%, +0.022%] / +0.022% [+0.020%, +0.024%]",
+       "+0.185% [&minus;0.006%, +1.110%] / +0.022% [+0.000%, +0.103%]",
+       "+0.013% [+0.007%, +0.020%] / +0.018% [+0.016%, +0.021%]",
+       "0.0000% / 0.0008%",
+       "fails R3",
+       "&ndash;"
+      ],
+      [
+       "the longer Small Instant-Only model (SM113)",
+       "AN16: int4 below 16 answers, int8 from 16 (cards and notes)",
+       "&minus;36.32%",
+       "+0.015% [+0.013%, +0.016%]",
+       "+0.015% [+0.004%, +0.073%]",
+       "&ndash;",
+       "0.0000%",
+       "passes",
+       "&ndash;"
+      ],
+      [
+       "the longer Small Instant-Only model (SM113)",
+       "Y2N: int3 for 1&ndash;2 answers, cards and notes",
+       "&minus;38.57%",
+       "+0.023% [+0.020%, +0.026%]",
+       "+0.019% [+0.009%, +0.081%]",
+       "+0.019% [+0.014%, +0.027%]",
+       "0.0016%",
+       "passes",
+       "&ndash;"
+      ],
+      [
+       "the longer Small Instant-Only model (SM113)",
+       "Y4C: int3 for 1&ndash;4 answers, cards only",
+       "&minus;39.53%",
+       "+0.026% [+0.024%, +0.029%]",
+       "+0.017% [+0.008%, +0.060%]",
+       "+0.021% [+0.018%, +0.023%]",
+       "0.0008%",
+       "passes",
+       "&ndash;"
+      ],
+      [
+       "the longer Small Instant-Only model (SM113)",
+       "Y4N: int3 for 1&ndash;4 answers, cards and notes",
+       "&minus;40.91%",
+       "+0.032% [+0.029%, +0.036%]",
+       "+0.016% [+0.003%, +0.070%]",
+       "+0.029% [+0.025%, +0.035%]",
+       "0.0020%",
+       "passes",
+       "&ndash;"
+      ],
+      [
+       "the six-layer Tiny two-head model (SM130)",
+       "AN16: int4 below 16 answers, int8 from 16 (cards and notes)",
+       "&minus;35.34%",
+       "+0.012% [+0.010%, +0.014%] / +0.019% [+0.017%, +0.022%]",
+       "+0.047% [&minus;0.006%, +0.299%] / &minus;0.007% [&minus;0.040%, +0.008%]",
+       "&ndash;",
+       "0.0000% / 0.0004%",
+       "passes",
+       "+0.478% [+0.410%, +0.550%] / +0.538% [+0.497%, +0.584%] (passes)"
+      ],
+      [
+       "the six-layer Tiny two-head model (SM130)",
+       "Y2N: int3 for 1&ndash;2 answers, cards and notes",
+       "&minus;37.53%",
+       "+0.021% [+0.016%, +0.027%] / +0.030% [+0.027%, +0.034%]",
+       "+0.011% [&minus;0.001%, +0.059%] / &minus;0.007% [&minus;0.048%, +0.013%]",
+       "+0.014% [+0.007%, +0.023%] / +0.025% [+0.021%, +0.030%]",
+       "0.0000% / 0.0012%",
+       "passes",
+       "+0.487% [+0.419%, +0.559%] / +0.549% [+0.507%, +0.595%] (passes)"
+      ],
+      [
+       "the six-layer Tiny two-head model (SM130)",
+       "Y4C: int3 for 1&ndash;4 answers, cards only",
+       "&minus;37.74%",
+       "+0.019% [+0.016%, +0.023%] / +0.029% [+0.026%, +0.032%]",
+       "+0.046% [&minus;0.002%, +0.290%] / &minus;0.001% [&minus;0.023%, +0.030%]",
+       "+0.010% [+0.007%, +0.014%] / +0.018% [+0.015%, +0.021%]",
+       "0.0000% / 0.0008%",
+       "passes",
+       "+0.486% [+0.417%, +0.559%] / +0.548% [+0.506%, +0.595%] (passes)"
+      ],
+      [
+       "the six-layer Tiny two-head model (SM130)",
+       "Y4N: int3 for 1&ndash;4 answers, cards and notes",
+       "&minus;39.80%",
+       "+0.026% [+0.021%, +0.032%] / +0.041% [+0.037%, +0.045%]",
+       "+0.030% [&minus;0.002%, +0.173%] / &minus;0.003% [&minus;0.028%, +0.023%]",
+       "+0.019% [+0.014%, +0.026%] / +0.037% [+0.032%, +0.042%]",
+       "0.0000% / 0.0012%",
+       "passes",
+       "+0.493% [+0.425%, +0.565%] / +0.560% [+0.517%, +0.607%] (passes)"
+      ],
+      [
+       "the six-layer Tiny Instant-Only model (SM130)",
+       "AN16: int4 below 16 answers, int8 from 16 (cards and notes)",
+       "&minus;35.34%",
+       "+0.030% [+0.027%, +0.033%]",
+       "&minus;0.008% [&minus;0.024%, +0.027%]",
+       "&ndash;",
+       "0.0008%",
+       "passes",
+       "+0.591% [+0.547%, +0.638%] (passes)"
+      ],
+      [
+       "the six-layer Tiny Instant-Only model (SM130)",
+       "Y2N: int3 for 1&ndash;2 answers, cards and notes",
+       "&minus;37.53%",
+       "+0.044% [+0.040%, +0.047%]",
+       "&minus;0.006% [&minus;0.020%, +0.028%]",
+       "+0.029% [+0.024%, +0.034%]",
+       "0.0035%",
+       "passes",
+       "+0.604% [+0.562%, +0.651%] (passes)"
+      ],
+      [
+       "the six-layer Tiny Instant-Only model (SM130)",
+       "Y4C: int3 for 1&ndash;4 answers, cards only",
+       "&minus;37.74%",
+       "+0.042% [+0.039%, +0.045%]",
+       "+0.009% [&minus;0.005%, +0.058%]",
+       "+0.027% [+0.024%, +0.031%]",
+       "0.0024%",
+       "passes",
+       "+0.603% [+0.560%, +0.650%] (passes)"
+      ],
+      [
+       "the six-layer Tiny Instant-Only model (SM130)",
+       "Y4N: int3 for 1&ndash;4 answers, cards and notes",
+       "&minus;39.80%",
+       "+0.058% [+0.054%, +0.063%]",
+       "+0.010% [&minus;0.003%, +0.067%]",
+       "+0.048% [+0.044%, +0.053%]",
+       "0.0086%",
+       "fails R2",
+       "+0.619% [+0.576%, +0.667%] (passes)"
+      ]
+     ]
+    },
+    "notes": [
+     "Coverage: 723 GPU users per model (722 rule users), no non-finite user; long-card CPU users 50 of 50 for Tiny and Small, 49 of 50 for Big (user 1714 killed by the memory guard; the 48-user minimum is met). The int8 and AN16 rows reproduce the earlier int8 switch (SM144) rows exactly.",
+     "Wall time: launched 12:56 Sun 11-22, report decided 22:42. GPU about 229 minutes in 8 tickets (smoke 1, Tiny 41 + 1 + 0, Small 74 + 2, Big 110 + 1); CPU long-card chain 9.6 hours wall with 2 processes. The launcher&rsquo;s report step failed at 22:31 (a one-line indexing error in the report script, fixed and rerun by hand at 22:42)."
+    ]
+   }
+  },
   {
    "date": "11-22",
    "kind": "gpu-score",
