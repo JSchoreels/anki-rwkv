@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-22T02:01:58+01:00",
- "updated": "2026-11-22 02:01",
- "material": "e442e5adab0aa9db",
- "summary": "running 001470",
+ "generated_at": "2026-11-22T03:29:51+01:00",
+ "updated": "2026-11-22 03:29",
+ "material": "b4ba98ed5bb044b3",
+ "summary": "running 001471, finished 001470",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring, show-time inputs for both heads (curve / instant)",
@@ -413,18 +413,18 @@
  "now": [
   {
    "what": "Earlier int8 switch (SM144): follow-up of the tiered card state by answer count (SM141), where no scheme passed because int4 cards cost LogLoss on cards with 128 or more answers even though they switch to int8 at 128. Does switching cards (and notes) from int4 to int8 earlier, at 16 or 32 answers instead of 128, remove that long-card cost while keeping most of the saving? About 9% of answered cards reach 16 answers and 1.5% to 2% reach 32, so the state bytes stay close to the 128 scheme (&minus;19% to &minus;27% for cards only and &minus;35% to &minus;43% with int4 notes, against &minus;21% to &minus;28% and &minus;39% to &minus;44% at 128). Five labels against int8 cards and notes: int4 cards with an int8 switch at 128 (now measured directly, not by dominance), 32 and 16, and int4 cards and notes with a switch at 32 and at 16, on the six release-candidate models, no retraining. The 732 set (723 users) is scored on the GPU; every label is scored directly on the 50 users with very long cards on the CPU (two processes at a time, so the memory guard does not kill users), with the cost per answer-count bucket reported for each label.",
-   "id": "SM144, ticket 001470",
+   "id": "SM144, ticket 001471",
    "kind": "gpu",
    "decides": "Same pre-registered rules as the tiered card state by answer count (SM141): per size, the smallest scheme by bytes where both models (two-head and Instant-Only) keep every user finite, cost at most +0.05% LogLoss over the whole 732 set (95% CI upper bound, each head) and at most +0.15% on reviews of cards with 128 or more answers; if none passes, int8 stays. A pass means fork work: choosing the width by answer count (the codecs for int4 and int8 exist)",
    "why": "",
-   "job": "Earlier int8 switch (SM144): scoring small (2 models x int8 / A / A32 / A16 / AN32 / AN16) on e2s-query inputs, the 732 set minus 9 never-fit (723 users) (pass 1, 0 done, cap 0.8)",
+   "job": "Earlier int8 switch (SM144): scoring small (2 models x int8 / A / A32 / A16 / AN32 / AN16) on e2s-query inputs, the 732 set minus 9 never-fit (723 users) (pass 2, 721 done, cap 0.8)",
    "linked": true,
    "track": "small model",
-   "ticket": "001470-sm144",
-   "started": "02:01",
+   "ticket": "001471-sm144",
+   "started": "03:29",
    "elapsed": "0:00",
    "progress": null,
-   "eta": "~04:01"
+   "eta": "~03:49"
   }
  ],
  "charts": [
@@ -597,6 +597,15 @@
  "waiting": [],
  "recent": [
   {
+   "ticket": "001470-sm144",
+   "id": "SM144",
+   "what": "Earlier int8 switch (SM144): scoring small (2 models x int8 / A / A32 / A16 / AN32 / AN16) on e2s-query inputs, the 732 set minus 9 never-fit (723 users) (pass 1, 0 done, cap 0.8)",
+   "ended": "03:29",
+   "date": "11-22",
+   "exit": 0,
+   "ran": "1:28"
+  },
+  {
    "ticket": "001469-sm144",
    "id": "SM144",
    "what": "Earlier int8 switch (SM144): scoring tiny (2 models x int8 / A / A32 / A16 / AN32 / AN16) on e2s-query inputs, the 732 set minus 9 never-fit (723 users) (pass 3, 722 done, cap 0.8)",
@@ -640,15 +649,6 @@
    "date": "11-22",
    "exit": 0,
    "ran": "0:03"
-  },
-  {
-   "ticket": "001464-sm143",
-   "id": "SM143",
-   "what": "Per-user adaptation (SM143): variant d (full fine-tune) + a,b,c of the longer Small Instant-Only model (SM113), the 50 users of the d subset (pass 2, 49 done, cap 0.8)",
-   "ended": "00:47",
-   "date": "11-22",
-   "exit": 0,
-   "ran": "0:00"
   }
  ],
  "plan": [
@@ -2755,8 +2755,8 @@
    "decides": "Same pre-registered rules as the tiered card state by answer count (SM141): per size, the smallest scheme by bytes where both models (two-head and Instant-Only) keep every user finite, cost at most +0.05% LogLoss over the whole 732 set (95% CI upper bound, each head) and at most +0.15% on reviews of cards with 128 or more answers; if none passes, int8 stays. A pass means fork work: choosing the width by answer count (the codecs for int4 and int8 exist)",
    "state": "running",
    "started_at": "2026-11-22T01:10:47+01:00",
-   "started": "02:01",
-   "ticket": "001470-sm144",
+   "started": "03:29",
+   "ticket": "001471-sm144",
    "ends_at": "2026-11-22T15:10:47+01:00"
   },
   {
