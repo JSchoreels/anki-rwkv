@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-22T12:58:24+01:00",
- "updated": "2026-11-22 12:58",
- "material": "42222d7c867eb690",
- "summary": "running 001475, finished 001474",
+ "generated_at": "2026-11-22T12:59:36+01:00",
+ "updated": "2026-11-22 12:59",
+ "material": "e4263bf01e3708df",
+ "summary": "running 001475",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring, show-time inputs for both heads (curve / instant)",
@@ -412,17 +412,17 @@
  },
  "now": [
   {
-   "what": "Int3 young tier on the early switch (SM145): scoring tiny (2 models x int8 / AN16 / Y2N / Y4C / Y4N) on e2s-query inputs, the 732 set minus 9 never-fit (723 users) (pass 1, 0 done, cap 0.8)",
-   "id": "001475-sm145",
-   "kind": "gpu-train",
-   "decides": "",
+   "what": "Int3 young tier on the early switch (SM145): follow-up of the earlier int8 switch (SM144), where int4 cards and notes with an int8 switch at 16 answers passed for all six release-candidate models under the user&rsquo;s long-card tolerance (&minus;40% Big, &minus;36% Small, &minus;35% Tiny state bytes). Does an int3 state for the youngest cards still pass on top of it, and is it worth its bytes? Three int3 labels, all with int8 from 16 answers: int3 for 1&ndash;2 answers on cards and notes, int3 for 1&ndash;4 answers on cards only, and int3 for 1&ndash;4 answers on cards and notes (2.2% to 5.1% more of the int8 bytes saved). They are scored with int8 and the int4 switch at 16 as paired baselines, on the 732 set on the GPU and on the 50 users with very long cards on the CPU. New: a per-card worst-case read-out of how far each card&rsquo;s predicted retention moves against int8 (percentiles, worst review per card, share of reviews and cards off by more than 0.05 and 0.10). No retraining; int2 is not tested again.",
+   "id": "SM145, ticket 001475",
+   "kind": "gpu",
+   "decides": "Whether Big, Small and Tiny take an int3 young tier on top of the int4 switch at 16 answers or stay with the int4 switch alone, and whether any individual card loses a real retention prediction under the tiered states",
    "why": "",
    "job": "Int3 young tier on the early switch (SM145): scoring tiny (2 models x int8 / AN16 / Y2N / Y4C / Y4N) on e2s-query inputs, the 732 set minus 9 never-fit (723 users) (pass 1, 0 done, cap 0.8)",
-   "linked": false,
+   "linked": true,
    "track": "small model",
    "ticket": "001475-sm145",
    "started": "12:57",
-   "elapsed": "0:00",
+   "elapsed": "0:01",
    "progress": null,
    "eta": "~13:47"
   }
@@ -598,7 +598,7 @@
  "recent": [
   {
    "ticket": "001474-sm145",
-   "id": "",
+   "id": "SM145",
    "what": "Int3 young tier on the early switch (SM145): GPU smoke: tier kernel self-test + 3 users (2 small, 1 long-card), 6 models x 6 labels, vs the CPU rows",
    "ended": "12:57",
    "date": "11-22",
@@ -2744,6 +2744,20 @@
    "state": "done",
    "started_at": "2026-11-21T09:34+01:00",
    "ended_at": "2026-11-21T11:26+01:00"
+  },
+  {
+   "id": "SM145",
+   "track": "small model",
+   "kind": "gpu",
+   "minutes": 235,
+   "what": "Int3 young tier on the early switch (SM145): follow-up of the earlier int8 switch (SM144), where int4 cards and notes with an int8 switch at 16 answers passed for all six release-candidate models under the user&rsquo;s long-card tolerance (&minus;40% Big, &minus;36% Small, &minus;35% Tiny state bytes). Does an int3 state for the youngest cards still pass on top of it, and is it worth its bytes? Three int3 labels, all with int8 from 16 answers: int3 for 1&ndash;2 answers on cards and notes, int3 for 1&ndash;4 answers on cards only, and int3 for 1&ndash;4 answers on cards and notes (2.2% to 5.1% more of the int8 bytes saved). They are scored with int8 and the int4 switch at 16 as paired baselines, on the 732 set on the GPU and on the 50 users with very long cards on the CPU. New: a per-card worst-case read-out of how far each card&rsquo;s predicted retention moves against int8 (percentiles, worst review per card, share of reviews and cards off by more than 0.05 and 0.10). No retraining; int2 is not tested again.",
+   "when": "Started 12:56 Sun 11-22 (queue ticket 001474 onwards): GPU about 3.9 h, done about 17:00&ndash;17:30; the long-card CPU chain is the long pole, verdict about 22:00&ndash;00:00 Sun",
+   "decides": "Whether Big, Small and Tiny take an int3 young tier on top of the int4 switch at 16 answers or stay with the int4 switch alone, and whether any individual card loses a real retention prediction under the tiered states",
+   "state": "running",
+   "started_at": "2026-11-22T12:57:25+01:00",
+   "started": "12:57",
+   "ticket": "001475-sm145",
+   "ends_at": "2026-11-22T16:52:25+01:00"
   },
   {
    "id": "SM144",

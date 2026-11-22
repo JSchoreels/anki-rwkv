@@ -2505,6 +2505,20 @@
    "ended_at": "2026-11-21T11:26+01:00"
   },
   {
+   "id": "SM145",
+   "track": "small model",
+   "kind": "gpu",
+   "minutes": 235,
+   "match": [
+    "Int3 young tier on the early switch (SM145): "
+   ],
+   "what": "Int3 young tier on the early switch (SM145): follow-up of the earlier int8 switch (SM144), where int4 cards and notes with an int8 switch at 16 answers passed for all six release-candidate models under the user&rsquo;s long-card tolerance (&minus;40% Big, &minus;36% Small, &minus;35% Tiny state bytes). Does an int3 state for the youngest cards still pass on top of it, and is it worth its bytes? Three int3 labels, all with int8 from 16 answers: int3 for 1&ndash;2 answers on cards and notes, int3 for 1&ndash;4 answers on cards only, and int3 for 1&ndash;4 answers on cards and notes (2.2% to 5.1% more of the int8 bytes saved). They are scored with int8 and the int4 switch at 16 as paired baselines, on the 732 set on the GPU and on the 50 users with very long cards on the CPU. New: a per-card worst-case read-out of how far each card&rsquo;s predicted retention moves against int8 (percentiles, worst review per card, share of reviews and cards off by more than 0.05 and 0.10). No retraining; int2 is not tested again.",
+   "when": "Started 12:56 Sun 11-22 (queue ticket 001474 onwards): GPU about 3.9 h, done about 17:00&ndash;17:30; the long-card CPU chain is the long pole, verdict about 22:00&ndash;00:00 Sun",
+   "decides": "Whether Big, Small and Tiny take an int3 young tier on top of the int4 switch at 16 answers or stay with the int4 switch alone, and whether any individual card loses a real retention prediction under the tiered states",
+   "state": "running",
+   "started_at": "2026-11-22T12:56+01:00"
+  },
+  {
    "id": "SM144",
    "track": "small model",
    "kind": "gpu",
