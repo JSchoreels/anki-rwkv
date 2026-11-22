@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-22T22:47:58+01:00",
- "updated": "2026-11-22 22:47",
- "material": "e3e3ce5ea95e33e5",
- "summary": "running 001483",
+ "generated_at": "2026-11-22T23:31:49+01:00",
+ "updated": "2026-11-22 23:31",
+ "material": "ab7f39b3ce53f6ec",
+ "summary": "running 001484, finished 001483",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring, show-time inputs for both heads (curve / instant)",
@@ -413,18 +413,18 @@
  "now": [
   {
    "what": "Aggressive state tiers for Tiny (SM146): the user&rsquo;s 11-22 Tiny rule lets the Tiny state cost more than the usual +0.05% as long as Tiny stays within +1.00% of the matching Small model at int8. Tiny only (the six-layer Tiny two-head and Instant-Only models (SM130)), cards and notes alike, int8 from 16 answers in every label: int3 for 1&ndash;4 answers then int4 (&minus;39.8% state bytes vs int8), int3 for 1&ndash;8 then int4 (&minus;42.7%), int2 (ternary) for 1&ndash;4 then int4 (&minus;44.3%), int2 for 1&ndash;4 then int3 to 15 (&minus;48.6%), against int8 and the int4 switch at 16 (&minus;35.3%). Rules: Tiny vs the show-time two-head cool-down for Small (SM118) and the longer Small Instant-Only model (SM113) at int8, paired on the 723 users, CI upper bound &le; +1.00% per head; the long-card tolerance (point &le; +0.5%, upper bound &le; +1.0%) on the 50 long-card users; at most 1% of cards with a review whose predicted retention moves by more than 0.10. The Small int8 rows are reused from the earlier runs (bit-identical); no retraining.",
-   "id": "SM146, ticket 001483",
+   "id": "SM146, ticket 001484",
    "kind": "gpu",
    "decides": "The smallest Tiny state format (down to &minus;48.6% bytes vs int8) whose cost stays within +1.00% of Small for both Tiny models without any card losing a real retention prediction",
    "why": "",
-   "job": "Aggressive state tiers for Tiny (SM146): scoring tiny (2 models x int8 / AN16 / I3a / I3b / I2a / I2b) on e2s-query inputs, the 732 set minus 9 never-fit (723 users) (pass 1, 0 done, cap 0.8)",
+   "job": "Aggressive state tiers for Tiny (SM146): scoring tiny (2 models x int8 / AN16 / I3a / I3b / I2a / I2b) on e2s-query inputs, the 732 set minus 9 never-fit (723 users) (pass 2, 721 done, cap 0.8)",
    "linked": true,
    "track": "small model",
-   "ticket": "001483-sm146",
-   "started": "22:42",
-   "elapsed": "0:05",
+   "ticket": "001484-sm146",
+   "started": "23:31",
+   "elapsed": "0:00",
    "progress": null,
-   "eta": "~23:32"
+   "eta": "~23:51"
   }
  ],
  "charts": [
@@ -597,6 +597,15 @@
  "waiting": [],
  "recent": [
   {
+   "ticket": "001483-sm146",
+   "id": "SM146",
+   "what": "Aggressive state tiers for Tiny (SM146): scoring tiny (2 models x int8 / AN16 / I3a / I3b / I2a / I2b) on e2s-query inputs, the 732 set minus 9 never-fit (723 users) (pass 1, 0 done, cap 0.8)",
+   "ended": "23:31",
+   "date": "11-22",
+   "exit": 0,
+   "ran": "0:49"
+  },
+  {
    "ticket": "001482-sm146",
    "id": "SM146",
    "what": "Aggressive state tiers for Tiny (SM146): GPU smoke: tier kernel self-test + 3 users, 2 Tiny models x 7 labels, vs the CPU rows",
@@ -640,15 +649,6 @@
    "date": "11-22",
    "exit": 0,
    "ran": "1:13"
-  },
-  {
-   "ticket": "001477-sm145",
-   "id": "SM145",
-   "what": "Int3 young tier on the early switch (SM145): scoring tiny (2 models x int8 / AN16 / Y2N / Y4C / Y4N) on e2s-query inputs, the 732 set minus 9 never-fit (723 users) (pass 3, 722 done, cap 0.8)",
-   "ended": "13:39",
-   "date": "11-22",
-   "exit": 0,
-   "ran": "0:00"
   }
  ],
  "plan": [
@@ -2755,8 +2755,8 @@
    "decides": "The smallest Tiny state format (down to &minus;48.6% bytes vs int8) whose cost stays within +1.00% of Small for both Tiny models without any card losing a real retention prediction",
    "state": "running",
    "started_at": "2026-11-22T22:41:50+01:00",
-   "started": "22:42",
-   "ticket": "001483-sm146",
+   "started": "23:31",
+   "ticket": "001484-sm146",
    "ends_at": "2026-11-23T00:26:50+01:00"
   },
   {
