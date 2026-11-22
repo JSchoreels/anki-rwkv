@@ -2513,10 +2513,11 @@
     "Earlier int8 switch (SM144): "
    ],
    "what": "Earlier int8 switch (SM144): follow-up of the tiered card state by answer count (SM141), where no scheme passed because int4 cards cost LogLoss on cards with 128 or more answers even though they switch to int8 at 128. Does switching cards (and notes) from int4 to int8 earlier, at 16 or 32 answers instead of 128, remove that long-card cost while keeping most of the saving? About 9% of answered cards reach 16 answers and 1.5% to 2% reach 32, so the state bytes stay close to the 128 scheme (&minus;19% to &minus;27% for cards only and &minus;35% to &minus;43% with int4 notes, against &minus;21% to &minus;28% and &minus;39% to &minus;44% at 128). Five labels against int8 cards and notes: int4 cards with an int8 switch at 128 (now measured directly, not by dominance), 32 and 16, and int4 cards and notes with a switch at 32 and at 16, on the six release-candidate models, no retraining. The 732 set (723 users) is scored on the GPU; every label is scored directly on the 50 users with very long cards on the CPU (two processes at a time, so the memory guard does not kill users), with the cost per answer-count bucket reported for each label.",
-   "when": "Launched 01:10 Sun 11-22 (detached launcher, queue ticket 001466 onwards): GPU smoke passed at 01:11, then Tiny, Small and Big on the 732 set (about 5.5 to 7 GPU hours in the FIFO queue), while the CPU scores the long-card users (about 12 to 16 hours, in parallel). Result expected about 14:00 to 18:00 Sun 11-22",
+   "when": "Done 12:32 Sun 11-22: <strong>pre-registered verdict: Big goes to AN32 (int4 below 32 answers, int8 from 32; &minus;43.2% state bytes); Small and Tiny keep int8</strong> (every scheme fails the long-card rule R3 there). Re-read under the user&rsquo;s 11-22 long-card tolerance (not pre-registered): Small and Tiny take AN16 (&minus;36.3% and &minus;35.3%). GPU about 274 minutes, CPU 11.4 hours wall",
    "decides": "Same pre-registered rules as the tiered card state by answer count (SM141): per size, the smallest scheme by bytes where both models (two-head and Instant-Only) keep every user finite, cost at most +0.05% LogLoss over the whole 732 set (95% CI upper bound, each head) and at most +0.15% on reviews of cards with 128 or more answers; if none passes, int8 stays. A pass means fork work: choosing the width by answer count (the codecs for int4 and int8 exist)",
-   "state": "running",
-   "started_at": "2026-11-22T01:10+01:00"
+   "state": "done",
+   "started_at": "2026-11-22T01:10+01:00",
+   "ended_at": "2026-11-22T12:32+01:00"
   },
   {
    "id": "SM143",
@@ -3323,6 +3324,312 @@
   "s-w64kd-gate-ctx2048c-dec8-1ep/w8+s8"
  ],
  "results": [
+  {
+   "date": "11-22",
+   "kind": "gpu-score",
+   "id": "SM144",
+   "track": "small model",
+   "name": "Earlier int8 switch (SM144): int4 cards and notes switching to int8 at 16 or 32 answers instead of 128, against int8 everywhere on the six release-candidate models",
+   "eval": "The 732 set (723 users, 722 rule users, show-time inputs, leak-free) scored on the GPU for the six release-candidate models in five schemes against int8 cards and notes (w8+s8hx8): A (int4 cards below 128 answers, notes int8; now scored directly), A32 and A16 (the same with the switch at 32 or 16 answers), AN32 and AN16 (cards and notes int4 below 32 or 16 answers). The 49 or 50 long-card users (cards with 128 or more answers) scored on the CPU, every scheme directly (no dominance shortcut). No training. Pre-registered rules: R1 every user finite; R2 dataset-wide benchmark LogLoss, 95% CI upper bound at most +0.05% per head; R3 reviews of cards with 128 or more earlier answers, CI upper bound at most +0.15% per head. Paired user bootstrap, 2,000 draws, seed 0.",
+   "fork": "Under the pre-registered rules only Big changes: int4 cards and notes below 32 answers, int8 from 32 (&minus;43.2% state bytes); Small and Tiny keep int8 cards and notes. Not decided: whether the user&rsquo;s 11-22 long-card tolerance is adopted (then Small and Tiny take AN16, &minus;36.3% and &minus;35.3% bytes)",
+   "takeaway": "<strong>Pre-registered verdict: Big goes to AN32 (&minus;43.2% state bytes; AN32, AN16, A32 and A16 all pass); Small and Tiny stay int8 (no scheme passes).</strong> The earlier switch removes the long-card cost: with the switch at 128 (A, now measured directly) cards with 128 or more answers cost +0.09% to +0.33%, with the switch at 16 or 32 they are back near 0, and what remains is a small cost in the 5 to 31 answer buckets (+0.01% to +0.13%). Small and Tiny fail only on the long-card rule R3 (limit +0.15%): the show-time two-head cool-down for Small (SM118) curve head with 50 users has wide intervals (AN16: +0.065% [&minus;0.014%, +0.386%]; AN32 upper bound +1.381%), the six-layer Tiny two-head model (SM130) curve head AN16 +0.047% [&minus;0.006%, +0.299%]; AN32 also fails the dataset-wide rule for the six-layer Tiny Instant-Only model (SM130) (+0.049% [+0.044%, +0.055%]). <strong>Re-read under the user&rsquo;s 11-22 long-card tolerance (not pre-registered; point estimate at most +0.5% and CI upper bound at most +1.0% per head, R2 unchanged):</strong> Big &rarr; AN32 (&minus;43.2%); Small &rarr; AN16 (&minus;36.3%; AN32 fails only on the show-time two-head cool-down for Small (SM118) curve head, upper bound +1.381%); Tiny &rarr; AN16 (&minus;35.3%; AN32 fails the dataset-wide rule for the six-layer Tiny Instant-Only model (SM130)). The bucket tables give bucket means only, not per-card worst cases, so they do not show whether a few individual long cards are badly off.",
+   "inputs": "show-time",
+   "started_at": "2026-11-22T01:10+01:00",
+   "ended_at": "2026-11-22T12:32+01:00",
+   "gpu_minutes": 274,
+   "cpu_minutes": 682,
+   "tickets": 9,
+   "detail": {
+    "verdict": "Pre-registered: Big AN32, Small and Tiny int8 stay. Under the 11-22 long-card tolerance (not pre-registered): Big AN32, Small AN16, Tiny AN16. Branch sm144 (RESULT.md, sm144-result.md, sm144-result.json, design.md)",
+    "table": {
+     "head": [
+      "Model",
+      "Scheme",
+      "State bytes vs int8 (732 set)",
+      "Dataset-wide cost, value [95% CI] (limit: upper bound +0.05%): curve / instant",
+      "Cards with 128+ answers (CPU, direct): curve / instant",
+      "Pre-registered rules (R3 limit +0.15%)",
+      "Under the 11-22 tolerance (R3: value at most +0.5%, upper bound at most +1.0%)"
+     ],
+     "rows": [
+      [
+       "the show-time big model (SM91s2)",
+       "AN32: int4 below 32 answers, int8 from 32 (cards and notes)",
+       "&minus;43.2%",
+       "+0.017% [+0.010%, +0.025%] / +0.023% [+0.020%, +0.027%]",
+       "&minus;0.015% [&minus;0.182%, +0.029%] / +0.028% [&minus;0.008%, +0.114%]",
+       "passes",
+       "passes"
+      ],
+      [
+       "the show-time big model (SM91s2)",
+       "AN16: int4 below 16 answers, int8 from 16 (cards and notes)",
+       "&minus;40.2%",
+       "+0.008% [+0.002%, +0.014%] / +0.012% [+0.010%, +0.013%]",
+       "&minus;0.011% [&minus;0.065%, +0.009%] / &minus;0.002% [&minus;0.025%, +0.022%]",
+       "passes",
+       "passes"
+      ],
+      [
+       "the show-time big model (SM91s2)",
+       "A: int4 cards below 128 answers, notes int8",
+       "&minus;27.7%",
+       "+0.015% [+0.009%, +0.021%] / +0.016% [+0.012%, +0.021%]",
+       "+0.111% [&minus;0.000%, +0.356%] / +0.153% [&minus;0.157%, +0.354%]",
+       "fails R3 curve, R3 instant",
+       "passes"
+      ],
+      [
+       "the show-time big model (SM91s2)",
+       "A32: int4 cards below 32 answers, notes int8",
+       "&minus;27.2%",
+       "+0.010% [+0.006%, +0.017%] / +0.011% [+0.009%, +0.013%]",
+       "+0.005% [&minus;0.041%, +0.025%] / +0.015% [&minus;0.012%, +0.062%]",
+       "passes",
+       "passes"
+      ],
+      [
+       "the show-time big model (SM91s2)",
+       "A16: int4 cards below 16 answers, notes int8",
+       "&minus;25.5%",
+       "+0.005% [+0.002%, +0.010%] / +0.005% [+0.004%, +0.006%]",
+       "&minus;0.007% [&minus;0.048%, +0.010%] / &minus;0.002% [&minus;0.016%, +0.019%]",
+       "passes",
+       "passes"
+      ],
+      [
+       "the show-time instant-only big model (SM99)",
+       "AN32: int4 below 32 answers, int8 from 32 (cards and notes)",
+       "&minus;43.2%",
+       "+0.026% [+0.022%, +0.030%]",
+       "+0.023% [&minus;0.019%, +0.075%]",
+       "passes",
+       "passes"
+      ],
+      [
+       "the show-time instant-only big model (SM99)",
+       "AN16: int4 below 16 answers, int8 from 16 (cards and notes)",
+       "&minus;40.2%",
+       "+0.013% [+0.012%, +0.015%]",
+       "&minus;0.005% [&minus;0.041%, +0.008%]",
+       "passes",
+       "passes"
+      ],
+      [
+       "the show-time instant-only big model (SM99)",
+       "A: int4 cards below 128 answers, notes int8",
+       "&minus;27.7%",
+       "+0.017% [+0.014%, +0.021%]",
+       "+0.119% [&minus;0.185%, +0.353%]",
+       "fails R3 instant",
+       "passes"
+      ],
+      [
+       "the show-time instant-only big model (SM99)",
+       "A32: int4 cards below 32 answers, notes int8",
+       "&minus;27.2%",
+       "+0.012% [+0.010%, +0.014%]",
+       "+0.008% [&minus;0.039%, +0.041%]",
+       "passes",
+       "passes"
+      ],
+      [
+       "the show-time instant-only big model (SM99)",
+       "A16: int4 cards below 16 answers, notes int8",
+       "&minus;25.5%",
+       "+0.006% [+0.005%, +0.007%]",
+       "&minus;0.007% [&minus;0.043%, +0.006%]",
+       "passes",
+       "passes"
+      ],
+      [
+       "the show-time two-head cool-down for Small (SM118)",
+       "AN32: int4 below 32 answers, int8 from 32 (cards and notes)",
+       "&minus;38.9%",
+       "+0.013% [+0.010%, +0.016%] / +0.020% [+0.017%, +0.023%]",
+       "+0.230% [&minus;0.021%, +1.381%] / +0.022% [&minus;0.016%, +0.111%]",
+       "fails R3 curve",
+       "fails R3 curve"
+      ],
+      [
+       "the show-time two-head cool-down for Small (SM118)",
+       "AN16: int4 below 16 answers, int8 from 16 (cards and notes)",
+       "&minus;36.3%",
+       "+0.007% [+0.005%, +0.008%] / +0.011% [+0.009%, +0.013%]",
+       "+0.065% [&minus;0.014%, +0.386%] / +0.009% [&minus;0.017%, +0.034%]",
+       "fails R3 curve",
+       "passes"
+      ],
+      [
+       "the show-time two-head cool-down for Small (SM118)",
+       "A: int4 cards below 128 answers, notes int8",
+       "&minus;27.6%",
+       "+0.015% [+0.011%, +0.020%] / +0.020% [+0.015%, +0.024%]",
+       "+0.334% [+0.002%, +1.489%] / +0.143% [&minus;0.072%, +0.288%]",
+       "fails R3 curve, R3 instant",
+       "fails R3 curve"
+      ],
+      [
+       "the show-time two-head cool-down for Small (SM118)",
+       "A32: int4 cards below 32 answers, notes int8",
+       "&minus;27.0%",
+       "+0.010% [+0.008%, +0.012%] / +0.014% [+0.011%, +0.016%]",
+       "+0.147% [&minus;0.002%, +0.867%] / +0.018% [&minus;0.003%, +0.097%]",
+       "fails R3 curve",
+       "passes"
+      ],
+      [
+       "the show-time two-head cool-down for Small (SM118)",
+       "A16: int4 cards below 16 answers, notes int8",
+       "&minus;25.4%",
+       "+0.006% [+0.004%, +0.007%] / +0.008% [+0.007%, +0.009%]",
+       "+0.125% [&minus;0.012%, +0.761%] / +0.004% [&minus;0.013%, +0.033%]",
+       "fails R3 curve",
+       "passes"
+      ],
+      [
+       "the longer Small Instant-Only model (SM113)",
+       "AN32: int4 below 32 answers, int8 from 32 (cards and notes)",
+       "&minus;38.9%",
+       "+0.023% [+0.020%, +0.026%]",
+       "+0.028% [+0.005%, +0.110%]",
+       "passes",
+       "passes"
+      ],
+      [
+       "the longer Small Instant-Only model (SM113)",
+       "AN16: int4 below 16 answers, int8 from 16 (cards and notes)",
+       "&minus;36.3%",
+       "+0.015% [+0.013%, +0.016%]",
+       "+0.015% [+0.004%, +0.073%]",
+       "passes",
+       "passes"
+      ],
+      [
+       "the longer Small Instant-Only model (SM113)",
+       "A: int4 cards below 128 answers, notes int8",
+       "&minus;27.6%",
+       "+0.024% [+0.019%, +0.029%]",
+       "+0.086% [&minus;0.087%, +0.270%]",
+       "fails R3 instant",
+       "passes"
+      ],
+      [
+       "the longer Small Instant-Only model (SM113)",
+       "A32: int4 cards below 32 answers, notes int8",
+       "&minus;27.0%",
+       "+0.017% [+0.015%, +0.019%]",
+       "+0.031% [+0.014%, +0.119%]",
+       "passes",
+       "passes"
+      ],
+      [
+       "the longer Small Instant-Only model (SM113)",
+       "A16: int4 cards below 16 answers, notes int8",
+       "&minus;25.4%",
+       "+0.011% [+0.010%, +0.013%]",
+       "+0.009% [+0.000%, +0.050%]",
+       "passes",
+       "passes"
+      ],
+      [
+       "the six-layer Tiny two-head model (SM130)",
+       "AN32: int4 below 32 answers, int8 from 32 (cards and notes)",
+       "&minus;38.0%",
+       "+0.020% [+0.016%, +0.023%] / +0.032% [+0.029%, +0.036%]",
+       "+0.045% [&minus;0.012%, +0.272%] / &minus;0.009% [&minus;0.088%, +0.008%]",
+       "fails R3 curve",
+       "passes"
+      ],
+      [
+       "the six-layer Tiny two-head model (SM130)",
+       "AN16: int4 below 16 answers, int8 from 16 (cards and notes)",
+       "&minus;35.3%",
+       "+0.012% [+0.010%, +0.014%] / +0.019% [+0.017%, +0.022%]",
+       "+0.047% [&minus;0.006%, +0.299%] / &minus;0.007% [&minus;0.040%, +0.008%]",
+       "fails R3 curve",
+       "passes"
+      ],
+      [
+       "the six-layer Tiny two-head model (SM130)",
+       "A: int4 cards below 128 answers, notes int8",
+       "&minus;20.6%",
+       "+0.016% [+0.012%, +0.020%] / +0.021% [+0.017%, +0.026%]",
+       "+0.135% [+0.064%, +0.366%] / +0.107% [&minus;0.053%, +0.172%]",
+       "fails R3 curve, R3 instant",
+       "passes"
+      ],
+      [
+       "the six-layer Tiny two-head model (SM130)",
+       "A32: int4 cards below 32 answers, notes int8",
+       "&minus;20.2%",
+       "+0.011% [+0.009%, +0.014%] / +0.015% [+0.013%, +0.018%]",
+       "+0.036% [&minus;0.011%, +0.214%] / &minus;0.010% [&minus;0.078%, +0.005%]",
+       "fails R3 curve",
+       "passes"
+      ],
+      [
+       "the six-layer Tiny two-head model (SM130)",
+       "A16: int4 cards below 16 answers, notes int8",
+       "&minus;19.0%",
+       "+0.008% [+0.006%, +0.009%] / +0.010% [+0.009%, +0.012%]",
+       "+0.051% [&minus;0.011%, +0.341%] / &minus;0.008% [&minus;0.033%, +0.012%]",
+       "fails R3 curve",
+       "passes"
+      ],
+      [
+       "the six-layer Tiny Instant-Only model (SM130)",
+       "AN32: int4 below 32 answers, int8 from 32 (cards and notes)",
+       "&minus;38.0%",
+       "+0.049% [+0.044%, +0.055%]",
+       "&minus;0.014% [&minus;0.043%, +0.052%]",
+       "fails R2 instant",
+       "fails R2 instant"
+      ],
+      [
+       "the six-layer Tiny Instant-Only model (SM130)",
+       "AN16: int4 below 16 answers, int8 from 16 (cards and notes)",
+       "&minus;35.3%",
+       "+0.030% [+0.027%, +0.033%]",
+       "&minus;0.008% [&minus;0.024%, +0.027%]",
+       "passes",
+       "passes"
+      ],
+      [
+       "the six-layer Tiny Instant-Only model (SM130)",
+       "A: int4 cards below 128 answers, notes int8",
+       "&minus;20.6%",
+       "+0.038% [+0.031%, +0.045%]",
+       "+0.127% [&minus;0.165%, +0.188%]",
+       "fails R3 instant",
+       "passes"
+      ],
+      [
+       "the six-layer Tiny Instant-Only model (SM130)",
+       "A32: int4 cards below 32 answers, notes int8",
+       "&minus;20.2%",
+       "+0.027% [+0.024%, +0.030%]",
+       "&minus;0.005% [&minus;0.027%, +0.034%]",
+       "passes",
+       "passes"
+      ],
+      [
+       "the six-layer Tiny Instant-Only model (SM130)",
+       "A16: int4 cards below 16 answers, notes int8",
+       "&minus;19.0%",
+       "+0.018% [+0.016%, +0.020%]",
+       "&minus;0.005% [&minus;0.017%, +0.028%]",
+       "passes",
+       "passes"
+      ]
+     ]
+    },
+    "notes": [
+     "Coverage: 722 GPU users per model, no non-finite user; long-card CPU users 50 of 50 for Tiny and Small, 49 of 50 for Big (user 1714 killed by the memory guard; the 48-user minimum is met). The int8 reference reproduces the tiered card state by answer count (SM141) GPU rows exactly.",
+     "Wall time: launched 01:10 Sun 11-22, report 12:32. GPU about 274 minutes in 9 tickets (smoke 1, Tiny 49 + 1, Small 88 + 2, Big 132 + 1); CPU long-card chain 11.4 hours wall with 2 processes."
+    ]
+   }
+  },
   {
    "date": "11-22",
    "kind": "gpu-eval",
