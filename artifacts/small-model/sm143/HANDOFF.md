@@ -1,5 +1,7 @@
 # Per-user adaptation (SM143): handoff
 
+Status: closed 11-22 00:50, no go (see sm143-result.md).
+
 Question (user 11-21): does adapting an instant-only model to each user from that user's own earlier reviews give a real further gain in LogLoss and within-user AUC, on many benchmark users? Design (pre-registered before any GPU ticket): `design.md`. Branch `sm143`, worktree `C:/Users/jonat/workspace/wt/sm143`.
 
 ## Launch

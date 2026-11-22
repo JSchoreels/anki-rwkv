@@ -1,0 +1,30 @@
+[sm143 11-21 17:56:50] started: 72c038e3 Per-user adaptation (SM143): design (pre-registered), adaptation script, CPU proo (DRYRUN=0; dirty source files: 0)
+[sm135-block] selftest {"no_daily_break_at_20h": true, "inside_all_window": true, "timing_scope_ignored": true, "no_sunday_break": true, "gpu_scope_counts": true, "malformed_read_as_all": true, "no_hardcoded_hours": true} -> OK
+sm143 selftest OK
+sm143 report selftest OK
+pins OK
+[sm143 11-21 17:56:52] enqueue: GPU smoke: 2 users, Small and Tiny, every variant at 0 steps vs the CPU rows (expected 20 min, max wait 99977 min, 100000 min to the next quiet window)
+[sm143 11-21 18:54:32] exit 0: GPU smoke: 2 users, Small and Tiny, every variant at 0 steps vs the CPU rows (nvidia-smi max 13851 MiB, baseline 11945 MiB)
+[sm143 11-21 18:54:32] small: smoke OK: 2 rows within 1e-05 | tiny: smoke OK: 2 rows within 1e-05
+[sm143 11-21 18:54:32] enqueue: GPU real-step smoke: every variant with its steps on user 2388 (expected 20 min, max wait 99977 min, 100000 min to the next quiet window)
+[sm143 11-21 19:10:34] exit 0: GPU real-step smoke: every variant with its steps on user 2388 (nvidia-smi max 13836 MiB, baseline 546 MiB)
+[sm143 11-21 19:10:35] steps: steps OK: 1 rows
+[sm143 11-21 19:10:35] enqueue: variants a,b,c of the longer Small Instant-Only model (SM113), 200 pilot users (pass 1, 0 done, cap 0.8) (expected 45 min, max wait 99952 min, 100000 min to the next quiet window)
+[sm143 11-21 19:36:19] exit 0: variants a,b,c of the longer Small Instant-Only model (SM113), 200 pilot users (pass 1, 0 done, cap 0.8) (nvidia-smi max 13670 MiB, baseline 570 MiB)
+[sm143 11-21 19:36:19] small: 200 of 200 users done
+[sm143 11-21 19:36:19] enqueue: the big instant-only model (SM99), unadapted, fp32 on e2s-query inputs with --dump, 200 pilot users (pass 1, 0 done, cap 0.8) (expected 30 min, max wait 99967 min, 100000 min to the next quiet window)
+[sm143 11-21 21:25:17] exit 0: the big instant-only model (SM99), unadapted, fp32 on e2s-query inputs with --dump, 200 pilot users (pass 1, 0 done, cap 0.8) (nvidia-smi max 14685 MiB, baseline 570 MiB)
+[sm143 11-21 21:25:17] big: 200 of 200 users done
+[sm143 11-21 21:25:17] enqueue: variants a,b,c of the six-layer Tiny Instant-Only model (SM130), 200 pilot users (pass 1, 0 done, cap 0.8) (expected 35 min, max wait 99962 min, 100000 min to the next quiet window)
+[sm143 11-21 21:40:45] exit 0: variants a,b,c of the six-layer Tiny Instant-Only model (SM130), 200 pilot users (pass 1, 0 done, cap 0.8) (nvidia-smi max 13494 MiB, baseline 1397 MiB)
+[sm143 11-21 21:40:45] tiny: 200 of 200 users done
+[sm143 11-21 21:40:46] enqueue: variant d (full fine-tune) + a,b,c of the longer Small Instant-Only model (SM113), the 50 users of the d subset (pass 1, 0 done, cap 0.8) (expected 150 min, max wait 99847 min, 100000 min to the next quiet window)
+[sm143 11-22 00:46:09] exit 0: variant d (full fine-tune) + a,b,c of the longer Small Instant-Only model (SM113), the 50 users of the d subset (pass 1, 0 done, cap 0.8) (nvidia-smi max 13693 MiB, baseline 336 MiB)
+[sm143 11-22 00:46:09] enqueue: variant d (full fine-tune) + a,b,c of the longer Small Instant-Only model (SM113), the 50 users of the d subset (pass 2, 49 done, cap 0.8) (expected 25 min, max wait 99972 min, 100000 min to the next quiet window)
+[sm143 11-22 00:47:26] exit 0: variant d (full fine-tune) + a,b,c of the longer Small Instant-Only model (SM113), the 50 users of the d subset (pass 2, 49 done, cap 0.8) (nvidia-smi max 13375 MiB, baseline 445 MiB)
+[sm143 11-22 00:47:26] no progress on full (49 of 50 users): next pass at cap 0.92 (memory only, same numerics)
+[sm143 11-22 00:47:26] enqueue: variant d (full fine-tune) + a,b,c of the longer Small Instant-Only model (SM113), the 50 users of the d subset (pass 3, 49 done, cap 0.92) (expected 25 min, max wait 99972 min, 100000 min to the next quiet window)
+[sm143 11-22 00:50:37] exit 0: variant d (full fine-tune) + a,b,c of the longer Small Instant-Only model (SM113), the 50 users of the d subset (pass 3, 49 done, cap 0.92) (nvidia-smi max 14854 MiB, baseline 445 MiB)
+[sm143 11-22 00:50:37] full: 50 of 50 users done
+[sm143 11-22 00:50:43] report exit 0: [sm143-report] no go: No go on the pilot for the longer Small Instant-Only model (SM113): no candidate variant improved LogLoss with a CI below 0 and at least 0.05%.
+[sm143 11-22 00:50:43] done (status no go)
