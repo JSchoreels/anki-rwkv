@@ -151,8 +151,8 @@ def dataset_cmp(new, ref, heads, common, st):
     if not common:
         return {}
     if st is not None:
-        c = st.compare(as_loss(new), as_loss(ref), as_loss(ref), common)
-        return {h: {"value": c[KEY[h]]["pct_of_ref"], "ci": c[KEY[h]]["pct_of_ref_ci"], "users": c["users"]} for h in heads}
+        c = st.compare(as_loss(new), as_loss(ref), as_loss(ref), common)   # keyed by "curve" / "instant" (as in SM144), not by the row key
+        return {h: {"value": c[h]["pct_of_ref"], "ci": c[h]["pct_of_ref_ci"], "users": c["users"]} for h in heads}
     return {h: _bench_cmp(new, ref, KEY[h], common) for h in heads}   # selftest: the same ratio-of-sums bootstrap
 
 
