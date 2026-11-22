@@ -1,0 +1,12 @@
+[sm144 11-22 01:10:23] started: fc5b437f Earlier int8 switch (SM144): design (pre-registered), scorer labels, CPU proofs A (DRYRUN=0; dirty source files: 0)
+[sm135-block] selftest {"no_daily_break_at_20h": true, "inside_all_window": true, "timing_scope_ignored": true, "no_sunday_break": true, "gpu_scope_counts": true, "malformed_read_as_all": true, "no_hardcoded_hours": true} -> OK
+[sm144] pins OK
+[sm144] selftest OK
+[sm144 11-22 01:10:47] memory guard on (launcher Windows PID 26920, limit 5.9 GB per CPU process)
+[sm144 11-22 01:10:47] enqueue: GPU smoke: tier kernel self-test + 3 users (2 small, 1 long-card), 6 models x 7 labels, vs the CPU rows (expected 15 min, max wait 99982 min, 100000 min to the next quiet window)
+[sm144 11-22 01:10:48] long-card CPU rows (tiny): 50 of 50 users to score (2 processes at a time, 18614 MiB RAM free)
+[sm144 11-22 01:11:05] long-card tiny user 1866 done in 0 min: [small-model] 1/1 user 1866 (5673 reviews) | 15s, 4,530 review-evals/s
+[sm144 11-22 01:11:17] exit 0: GPU smoke: tier kernel self-test + 3 users (2 small, 1 long-card), 6 models x 7 labels, vs the CPU rows (nvidia-smi max 450 MiB, baseline 450 MiB)
+[sm144 11-22 01:11:17] [sm144] smoke OK: 75 checks; int8 labels max |GPU - CPU| 1.00e-05 (tol 1e-05); tiered labels max 4.50e-05 (tol 0.0003, mean 0.0001)
+[sm144 11-22 01:11:17] enqueue: scoring tiny (2 models x int8 / A / A32 / A16 / AN32 / AN16) on e2s-query inputs, the 732 set minus 9 never-fit (723 users) (pass 1, 0 done, cap 0.8) (expected 65 min, max wait 99932 min, 100000 min to the next quiet window)
+[sm144 11-22 01:11:48] long-card tiny user 2883 done in 0 min: [small-model] 1/1 user 2883 (9451 reviews) | 37s, 3,058 review-evals/s
