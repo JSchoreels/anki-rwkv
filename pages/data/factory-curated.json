@@ -2513,10 +2513,11 @@
     "Aggressive state tiers for Tiny (SM146): "
    ],
    "what": "Aggressive state tiers for Tiny (SM146): the user&rsquo;s 11-22 Tiny rule lets the Tiny state cost more than the usual +0.05% as long as Tiny stays within +1.00% of the matching Small model at int8. Tiny only (the six-layer Tiny two-head and Instant-Only models (SM130)), cards and notes alike, int8 from 16 answers in every label: int3 for 1&ndash;4 answers then int4 (&minus;39.8% state bytes vs int8), int3 for 1&ndash;8 then int4 (&minus;42.7%), int2 (ternary) for 1&ndash;4 then int4 (&minus;44.3%), int2 for 1&ndash;4 then int3 to 15 (&minus;48.6%), against int8 and the int4 switch at 16 (&minus;35.3%). Rules: Tiny vs the show-time two-head cool-down for Small (SM118) and the longer Small Instant-Only model (SM113) at int8, paired on the 723 users, CI upper bound &le; +1.00% per head; the long-card tolerance (point &le; +0.5%, upper bound &le; +1.0%) on the 50 long-card users; at most 1% of cards with a review whose predicted retention moves by more than 0.10. The Small int8 rows are reused from the earlier runs (bit-identical); no retraining.",
-   "when": "Started 22:41 Sun 11-22 (queue ticket 001483): GPU about 50 min, to about 23:35; long-card CPU chain to about 00:30 Mon; verdict about 00:30&ndash;00:45 Mon 11-23",
+   "when": "Done 00:00 Mon 11-23: go I3b (int3 for 1&ndash;8 answers, int4 for 9&ndash;15, int8 from 16; &minus;42.71% state bytes vs int8); the int2 tiers fail the per-card guard",
    "decides": "The smallest Tiny state format (down to &minus;48.6% bytes vs int8) whose cost stays within +1.00% of Small for both Tiny models without any card losing a real retention prediction",
-   "state": "running",
-   "started_at": "2026-11-22T22:41+01:00"
+   "state": "done",
+   "started_at": "2026-11-22T22:41+01:00",
+   "ended_at": "2026-11-23T00:00+01:00"
   },
   {
    "id": "SM145",
@@ -3353,6 +3354,143 @@
   "s-w64kd-gate-ctx2048c-dec8-1ep/w8+s8"
  ],
  "results": [
+ {
+  "date": "11-23",
+  "kind": "gpu-score",
+  "id": "SM146",
+  "track": "small model",
+  "name": "Aggressive state tiers for Tiny (SM146): int3 and ternary int2 for the youngest cards and notes, four labels against the int4 switch at 16 answers, on the two six-layer Tiny release-candidate models",
+  "eval": "The 732 set (723 users, 722 rule users, show-time inputs, leak-free) scored on the GPU for the six-layer Tiny two-head model (SM130) and the six-layer Tiny Instant-Only model (SM130) in six labels, cards and notes alike, int8 from 16 answers: int8 (w8+s8hx8), AN16 (int4 below 16 answers), I3a (int3 for 1&ndash;4 answers, int4 for 5&ndash;15), I3b (int3 for 1&ndash;8, int4 for 9&ndash;15), I2a (ternary int2 for 1&ndash;4, int4 for 5&ndash;15), I2b (int2 for 1&ndash;4, int3 for 5&ndash;15). The 50 long-card users scored on the CPU, every label directly, with a per-review and per-card |dR| read-out against int8. No training. Pre-registered rules (the user&rsquo;s 11-22 Tiny rule): R1 every user finite; R2 cost against the matching Small model at int8 (the show-time two-head cool-down for Small (SM118) and the longer Small Instant-Only model (SM113)), paired by user, 95% CI upper bound at most +1.00% per head; R3 reviews of cards with 128 or more earlier answers, value at most +0.5% and upper bound at most +1.0%; G at most 1% of long-card-user cards with a review whose predicted retention moves by more than 0.10. Go: the label with the fewest state bytes that passes for both models. Paired user bootstrap, 2,000 draws, seed 0.",
+  "fork": "Go pick: I3b (int3 for 1&ndash;8 answers, int4 for 9&ndash;15, int8 from 16 answers, cards and notes), &minus;42.71% state bytes vs int8, for both six-layer Tiny models. Not taken: the int2 tiers",
+  "takeaway": "<strong>Go pick: I3b (int3 for cards and notes with 1&ndash;8 answers, int4 up to 15, int8 from 16 answers), &minus;42.71% state bytes vs int8 (the int4 switch at 16 answers, AN16, is &minus;35.34%), for both six-layer Tiny models.</strong> I3b, the more conservative I3a (&minus;39.80%) and AN16 pass every rule for the six-layer Tiny two-head model (SM130) and the six-layer Tiny Instant-Only model (SM130). I2a (int2 for 1&ndash;4 answers then int4, &minus;44.27%) fails only the per-card guard, only on the six-layer Tiny Instant-Only model (SM130): 1.99% of cards have a review off by more than 0.10 against the 1% limit. I2b (int2 for 1&ndash;4 answers then int3, &minus;48.64%) fails the guard on both models (1.25% on the two-head instant head, 2.91% on the Instant-Only model). <strong>Cost:</strong> I3b against the matching Small model at int8 has upper bounds of +0.585% (curve) and +0.631% (instant) for the six-layer Tiny two-head model (SM130) and +0.702% (instant) for the six-layer Tiny Instant-Only model (SM130), under the +1.00% line; its extra dataset-wide cost over AN16 is +0.026% / +0.042% (two-head) and +0.061% (Instant-Only). Long cards (128+ answers): every label passes, I3b upper bounds at most +0.310%. <strong>Per-card read-out</strong> (|dR| = how far a review&rsquo;s predicted retention moves against int8, 50 long-card users): for I3b the median is 0.0018 to 0.0025, the 99th percentile 0.022 to 0.035, the largest move 0.267; the share of cards with a review above 0.10 is 0.0020% (curve) and 0.0098% (instant) for the two-head model and 0.0407% for the Instant-Only model. The int2 tiers move predictions much more (largest move 0.679). Whether to take I3b or the safer I3a is the user&rsquo;s call; the fork copy and the family release are not changed by this run.",
+  "inputs": "show-time",
+  "started_at": "2026-11-22T22:41+01:00",
+  "ended_at": "2026-11-23T00:00+01:00",
+  "gpu_minutes": 50,
+  "cpu_minutes": 194,
+  "tickets": 3,
+  "detail": {
+   "verdict": "Go: I3b (&minus;42.71% state bytes vs int8) for both six-layer Tiny models; I2a fails the per-card guard on the six-layer Tiny Instant-Only model (SM130); I2b fails it on both. Branch sm146 (RESULT.md, sm146-result.md, sm146-result.json, sm146-dr.json, design.md)",
+   "table": {
+    "head": [
+     "Model",
+     "Label",
+     "State bytes vs int8",
+     "Cost vs the matching Small model at int8, value [95% CI] (limit: upper bound +1.00%): curve / instant",
+     "Dataset-wide cost vs Tiny int8, no verdict: curve / instant",
+     "Cards with 128+ answers (CPU) vs Tiny int8 (limit: value +0.5%, upper bound +1.0%): curve / instant",
+     "Share of cards with a review |dR| &gt; 0.10 (50 long-card users; limit 1%): curve / instant",
+     "Verdict"
+    ],
+    "rows": [
+     [
+      "the six-layer Tiny two-head model (SM130)",
+      "I3b: int3 for 1&ndash;8 answers, int4 for 9&ndash;15, int8 from 16",
+      "&minus;42.71%",
+      "+0.505% [+0.438, +0.585] / +0.586% [+0.544, +0.631]",
+      "+0.038% [+0.032, +0.044] / +0.061% [+0.057, +0.067]",
+      "+0.049% [&minus;0.006, +0.310] / +0.003% [&minus;0.018, +0.056]",
+      "0.0020% / 0.0098%",
+      "passes"
+     ],
+     [
+      "the six-layer Tiny two-head model (SM130)",
+      "I3a: int3 for 1&ndash;4 answers, int4 for 5&ndash;15, int8 from 16",
+      "&minus;39.80%",
+      "+0.493% [+0.426, +0.574] / +0.565% [+0.525, +0.610]",
+      "+0.026% [+0.021, +0.032] / +0.041% [+0.037, +0.045]",
+      "+0.030% [&minus;0.002, +0.173] / &minus;0.003% [&minus;0.028, +0.023]",
+      "0.0000% / 0.0012%",
+      "passes"
+     ],
+     [
+      "the six-layer Tiny two-head model (SM130)",
+      "AN16: int4 below 16 answers, int8 from 16 (cards and notes)",
+      "&minus;35.34%",
+      "+0.479% [+0.409, +0.558] / +0.543% [+0.503, +0.587]",
+      "+0.012% [+0.010, +0.014] / +0.019% [+0.017, +0.022]",
+      "+0.047% [&minus;0.006, +0.299] / &minus;0.007% [&minus;0.040, +0.008]",
+      "0.0000% / 0.0004%",
+      "passes"
+     ],
+     [
+      "the six-layer Tiny two-head model (SM130)",
+      "I2a: int2 for 1&ndash;4 answers, int4 for 5&ndash;15, int8 from 16",
+      "&minus;44.27%",
+      "+0.607% [+0.538, +0.686] / +0.746% [+0.699, +0.797]",
+      "+0.139% [+0.116, +0.162] / +0.221% [+0.206, +0.238]",
+      "+0.081% [+0.015, +0.419] / &minus;0.010% [&minus;0.141, +0.028]",
+      "0.2590% / 0.8964%",
+      "passes"
+     ],
+     [
+      "the six-layer Tiny two-head model (SM130)",
+      "I2b: int2 for 1&ndash;4 answers, int3 for 5&ndash;15, int8 from 16",
+      "&minus;48.64%",
+      "+0.643% [+0.573, +0.723] / +0.805% [+0.757, +0.858]",
+      "+0.175% [+0.150, +0.199] / +0.279% [+0.261, +0.299]",
+      "+0.153% [+0.023, +0.847] / +0.005% [&minus;0.148, +0.056]",
+      "0.3887% / 1.2490%",
+      "fails the per-card guard (curve, instant head)"
+     ],
+     [
+      "the six-layer Tiny Instant-Only model (SM130)",
+      "I3b: int3 for 1&ndash;8 answers, int4 for 9&ndash;15, int8 from 16",
+      "&minus;42.71%",
+      "+0.657% [+0.613, +0.702]",
+      "+0.091% [+0.086, +0.097]",
+      "+0.003% [&minus;0.017, +0.064]",
+      "0.0407%",
+      "passes"
+     ],
+     [
+      "the six-layer Tiny Instant-Only model (SM130)",
+      "I3a: int3 for 1&ndash;4 answers, int4 for 5&ndash;15, int8 from 16",
+      "&minus;39.80%",
+      "+0.623% [+0.580, +0.667]",
+      "+0.058% [+0.054, +0.063]",
+      "+0.010% [&minus;0.003, +0.067]",
+      "0.0086%",
+      "passes"
+     ],
+     [
+      "the six-layer Tiny Instant-Only model (SM130)",
+      "AN16: int4 below 16 answers, int8 from 16 (cards and notes)",
+      "&minus;35.34%",
+      "+0.595% [+0.552, +0.640]",
+      "+0.030% [+0.027, +0.033]",
+      "&minus;0.008% [&minus;0.024, +0.027]",
+      "0.0008%",
+      "passes"
+     ],
+     [
+      "the six-layer Tiny Instant-Only model (SM130)",
+      "I2a: int2 for 1&ndash;4 answers, int4 for 5&ndash;15, int8 from 16",
+      "&minus;44.27%",
+      "+0.876% [+0.826, +0.931]",
+      "+0.309% [+0.291, +0.329]",
+      "+0.010% [&minus;0.057, +0.089]",
+      "1.9875%",
+      "fails the per-card guard"
+     ],
+     [
+      "the six-layer Tiny Instant-Only model (SM130)",
+      "I2b: int2 for 1&ndash;4 answers, int3 for 5&ndash;15, int8 from 16",
+      "&minus;48.64%",
+      "+0.967% [+0.914, +1.026]",
+      "+0.400% [+0.379, +0.423]",
+      "+0.032% [&minus;0.026, +0.166]",
+      "2.9121%",
+      "fails the per-card guard and the cost rule (upper bound +1.026%)"
+     ]
+    ]
+   },
+   "notes": [
+    "Coverage: 723 of 723 GPU users per model and label, no non-finite user; long-card CPU users 50 of 50 per model and label (none killed or failed). The int8 and AN16 rows equal the earlier int3 young-tier run (SM145) rows exactly (largest difference 0.0).",
+    "Wall time: launched 22:41 Sun 11-22, report decided 00:00 Mon 11-23. GPU about 50 minutes in 3 scoring tickets (001483 49 minutes, 1 and 0 minutes of retry passes) plus a 28-second smoke; CPU long-card chain 194 process-minutes (about 78 minutes wall with 3 processes)."
+   ]
+  }
+ },
   {
    "date": "11-22",
    "kind": "gpu-score",
