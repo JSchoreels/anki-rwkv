@@ -2505,6 +2505,20 @@
    "ended_at": "2026-11-21T11:26+01:00"
   },
   {
+   "id": "SM147",
+   "track": "small model",
+   "kind": "cpu",
+   "minutes": 80,
+   "match": [
+    "Low-rank structure of the card and note states (SM147): "
+   ],
+   "what": "Low-rank structure of the card and note states (SM147): a cheap pointer, not a gate, prompted by outside research that stores each card and note state matrix as rank-2 and rank-1 int8 factors. On 8 benchmark users (the 3 smoke users plus 5 long-card users) and the six release-candidate models, CPU only: how much of each stored float32 state matrix the best rank 1, 2, 4 and 8 approximations keep, per layer, head and answer-count bucket; and a post-training test where every write is cut to rank 1, 2 or 4 (float factors, no quantization), scored against the int8 format and the float state. No retraining.",
+   "when": "Started 00:15 Mon 11-23 on the CPU (2 processes); results expected about 01:20&ndash;01:40, read-out afterwards",
+   "decides": "Whether a low-rank card and note state is worth a proper GPU test, with or without a short cool-down trained with the compressed state",
+   "state": "running",
+   "started_at": "2026-11-23T00:15+01:00"
+  },
+  {
    "id": "SM146",
    "track": "small model",
    "kind": "gpu",
