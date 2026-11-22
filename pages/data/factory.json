@@ -1,7 +1,7 @@
 {
- "generated_at": "2026-11-22T01:12:26+01:00",
- "updated": "2026-11-22 01:12",
- "material": "10baef73d11feebc",
+ "generated_at": "2026-11-22T01:14:19+01:00",
+ "updated": "2026-11-22 01:14",
+ "material": "f5e9b48303a5c6c1",
  "summary": "running 001467",
  "headline": [
   {
@@ -422,7 +422,7 @@
    "track": "small model",
    "ticket": "001467-sm144",
    "started": "01:11",
-   "elapsed": "0:01",
+   "elapsed": "0:03",
    "progress": null,
    "eta": "~02:16"
   }
@@ -2765,14 +2765,11 @@
    "kind": "gpu",
    "minutes": 290,
    "what": "Per-user adaptation (SM143): the user&rsquo;s question of 11-21. The released models only read a new user&rsquo;s history; does adapting the model to each user from that user&rsquo;s own earlier reviews improve the later reviews, in LogLoss and above all in within-user discrimination (AUC)? A recalibration cannot change AUC, so the candidates change the network: (b) a per-user vector of 64 values added to the instant head&rsquo;s input, (c) the instant head itself (8,964 values for Small), (d) a short fine-tune of every weight with a pull back to the released weights (an upper bound, too heavy for a phone); (a) a Platt recalibration is the control. Time split = the benchmark&rsquo;s own: the 5 time-series folds of the published FSRS-7 protocol, each fold adapted only on the reviews before it and compared with FSRS-7 fitted per user on the same reviews. Pilot: 200 users of the 732 set (the full fine-tune on 50 of them); the longer Small Instant-Only model (SM113) primary, the six-layer Tiny Instant-Only model (SM130) secondary, the show-time instant-only big model (SM99) unadapted as a reference; show-time inputs, leak-free",
-   "when": "Queued 17:56 Sat 11-21 behind the answer-time expressiveness (SM142) and the tiered card state (SM141); about 4.8 GPU hours over 6 tickets; result expected about 00:30 to 02:00 Sun 11-22",
+   "when": "Launched 17:56 Sat 11-21; done 00:50 Sun 11-22 (about 413 GPU minutes over 8 tickets): no go, no variant improves LogLoss with a CI below 0 and at least 0.05%",
    "decides": "Go per variant: LogLoss change vs the same model unadapted with a 95% CI below 0 and at least &minus;0.05%; then the full 722-user run. Also reported: the AUC change with its CI, the gap to FSRS-7 before and after, Small adapted vs Big, and the gain by amount of earlier history",
    "state": "done",
-   "started_at": "2026-11-21T18:54:15+01:00",
-   "ended": "00:50",
-   "exit": 0,
-   "started": "18:54",
-   "ended_at": "2026-11-22T00:50:37+01:00"
+   "started_at": "2026-11-21T17:56+01:00",
+   "ended_at": "2026-11-22T00:50+01:00"
   },
   {
    "id": "SM142",
@@ -3530,6 +3527,100 @@
   }
  ],
  "results": [
+  {
+   "date": "11-22",
+   "kind": "gpu-eval",
+   "id": "SM143",
+   "track": "small model",
+   "name": "Per-user adaptation (SM143): the instant-only models adapted to each user from that user&rsquo;s earlier reviews (per-user vector, instant head, full fine-tune; Platt control)",
+   "eval": "200 users of the 732 set (the full fine-tune on 50 of them), show-time inputs, leak-free, fp32. Rolling split = the 5 time-series folds of the published FSRS-7 protocol: each fold adapted only on the user&rsquo;s reviews before it (the last 10% as a validation slice that can keep the released weights), scored on the fold&rsquo;s reviews that are also benchmark reviews; FSRS-7 fitted per user on the same early reviews. Review-weighted LogLoss, within-user AUC, ECE; paired user bootstrap, 95% CI. Go per variant: LogLoss CI below 0 and at least &minus;0.05% vs the same model unadapted",
+   "fork": "Not used: research step (a client-side adaptation would be a later fork step)",
+   "takeaway": "<strong>No go: no per-user adaptation improves either instant-only model.</strong> For the longer Small Instant-Only model (SM113), the Platt control, the per-user vector, the instant head and the full fine-tune change LogLoss by +0.00%, &minus;0.00%, +0.02% [&minus;0.00, +0.05] and +0.03% [+0.01, +0.05] and within-user AUC by &minus;0.0001 to &minus;0.0002 against the same model unadapted, so none reaches a CI below 0 with at least 0.05%; the six-layer Tiny Instant-Only model (SM130) likewise (&minus;0.01% to &minus;0.00%, AUC &minus;0.0001 to +0.0000). Adaptation hurts users with little history (the instant head +2.39% under 1,000 fit reviews) and gives only &minus;0.01% to &minus;0.03% from 20,000 reviews. Against FSRS-7 fitted per user on the same early reviews, the unadapted the longer Small Instant-Only model (SM113) is &minus;13.64% LogLoss and +0.09 within-user AUC (0.83 vs 0.74), and it matches the show-time instant-only big model (SM99) (&minus;0.01%, CI spans 0). Cost per user: 0.3 to 0.7 s for the light variants, 58 s for the full fine-tune. The full run is not needed.",
+   "inputs": "show-time",
+   "started_at": "2026-11-21T17:56+01:00",
+   "ended_at": "2026-11-22T00:50+01:00",
+   "gpu_minutes": 413,
+   "tickets": 8,
+   "detail": {
+    "verdict": "No go (branch sm143 df871c08: sm143-result.md, sm143-result.json, design.md)",
+    "table": {
+     "head": [
+      "Model",
+      "Variant",
+      "Users",
+      "LogLoss vs unadapted [95% CI]",
+      "AUC difference vs unadapted [95% CI]",
+      "LogLoss vs FSRS-7 [95% CI]"
+     ],
+     "rows": [
+      [
+       "the longer Small Instant-Only model (SM113)",
+       "(a) Platt control (control)",
+       "200",
+       "+0.00% [&minus;0.01, +0.01]",
+       "&minus;0.0001 [&minus;0.0002, &minus;0.0001]",
+       "&minus;13.64% [&minus;16.66, &minus;11.19]"
+      ],
+      [
+       "the longer Small Instant-Only model (SM113)",
+       "(b) per-user vector: no go",
+       "200",
+       "&minus;0.00% [&minus;0.01, +0.01]",
+       "&minus;0.0001 [&minus;0.0003, &minus;0.0001]",
+       "&minus;13.64% [&minus;16.67, &minus;11.19]"
+      ],
+      [
+       "the longer Small Instant-Only model (SM113)",
+       "(c) instant head: no go",
+       "200",
+       "+0.02% [&minus;0.00, +0.05]",
+       "&minus;0.0002 [&minus;0.0004, &minus;0.0001]",
+       "&minus;13.62% [&minus;16.64, &minus;11.18]"
+      ],
+      [
+       "the longer Small Instant-Only model (SM113)",
+       "(d) full fine-tune: no go",
+       "50",
+       "+0.03% [+0.01, +0.05]",
+       "&minus;0.0001 [&minus;0.0001, &minus;0.0000]",
+       "&minus;17.21% [&minus;20.94, &minus;14.07] (unadapted &minus;17.23%)"
+      ],
+      [
+       "the six-layer Tiny Instant-Only model (SM130)",
+       "(a) Platt control (control)",
+       "200",
+       "&minus;0.01% [&minus;0.02, &minus;0.00]",
+       "&minus;0.0001 [&minus;0.0002, +0.0000]",
+       "&minus;13.14% [&minus;16.10, &minus;10.78]"
+      ],
+      [
+       "the six-layer Tiny Instant-Only model (SM130)",
+       "(b) per-user vector: no go",
+       "200",
+       "&minus;0.01% [&minus;0.03, +0.00]",
+       "&minus;0.0001 [&minus;0.0002, +0.0000]",
+       "&minus;13.14% [&minus;16.10, &minus;10.78]"
+      ],
+      [
+       "the six-layer Tiny Instant-Only model (SM130)",
+       "(c) instant head: no go",
+       "200",
+       "&minus;0.00% [&minus;0.05, +0.04]",
+       "+0.0000 [&minus;0.0003, +0.0003]",
+       "&minus;13.13% [&minus;16.08, &minus;10.78]"
+      ]
+     ]
+    },
+    "notes": [
+     "FSRS-7 here is fitted per user on the same early reviews (the published protocol, 5 time-series folds); a negative LogLoss % is better than FSRS-7. Unadapted, the longer Small Instant-Only model (SM113) has LogLoss 0.28122 and within-user AUC 0.8278 against 0.32562 and 0.7372 for FSRS-7 (AUC +0.0905 [+0.0789, +0.1032]); the six-layer Tiny Instant-Only model (SM130) has 0.28287 and 0.8250 (&minus;13.13%, AUC +0.0877).",
+     "Against the show-time instant-only big model (SM99), unadapted on the same reviews (200 users): the longer Small Instant-Only model (SM113) is &minus;0.01% LogLoss [&minus;0.05, +0.03] and +0.0000 AUC [&minus;0.0003, +0.0003], so the two match; adapted variants stay within +0.01% to &minus;0.03% of it and the full fine-tune (50 users) is &minus;0.03% [&minus;0.11, +0.06].",
+     "By amount of earlier history, adaptation hurts the users with little of it: the instant head costs +2.39% LogLoss [+0.61, +4.91] for the longer Small Instant-Only model (SM113) and +1.02% [+0.40, +1.83] for the six-layer Tiny Instant-Only model (SM130) under 1,000 fit reviews (20 users), +0.44% and +0.54% from 1,000 to 5,000 reviews; the per-user vector +0.61% and +1.91% under 1,000 reviews. For users with 20,000 or more fit reviews the gain is only &minus;0.01% to &minus;0.03% for the longer Small Instant-Only model (SM113) (&minus;0.04% to &minus;0.08% for the six-layer Tiny Instant-Only model (SM130)). The models already adapt through their state.",
+     "Cost per user (all 5 folds, this run&rsquo;s GPU): Platt control 0.30 s, per-user vector 0.44 s, instant head 0.65 s (longer Small Instant-Only model (SM113)); the full fine-tune 58 s mean, 81 s at the 90th percentile; a full-history forward 0.48 s. For the six-layer Tiny Instant-Only model (SM130): 0.33 s, 0.49 s, 0.72 s and 0.20 s. The validation slice kept the released weights in 33% to 56% of the folds.",
+     "The full 723-user run is not needed (pilot no go); the full fine-tune ran on 50 of the 200 users. Nothing is released; no fork change.",
+     "Wall time: launched 17:56 Sat 11-21, report 00:50 Sun 11-22. GPU 8 tickets, about 413 GPU minutes (smokes 58 + 16, the longer Small Instant-Only model (SM113) 26, the show-time instant-only big model (SM99) 109, the six-layer Tiny Instant-Only model (SM130) 15, full fine-tune with the three light variants 185 + 1 + 3 for the second and third passes that finished the missing users)."
+    ]
+   }
+  },
   {
    "date": "11-22",
    "kind": "gpu-score",
