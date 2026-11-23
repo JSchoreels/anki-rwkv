@@ -47,3 +47,7 @@ The compact low-rank format is lossless in practice for rank 4 at every size (R2
 ## Files added for the coverage attempt
 
 `coverage-lc.sh`, `coverage-run.sh` (CPU retry), `gpu-coverage.sh` (GPU ticket 001503), `memprobe.py` (memory probe), `cpu/cov/` (logs), `gpu/cov.log`.
+
+## Main-session decision (11-23)
+
+The Big go is accepted as rank 4 (Q4, -74.4%) on 718 of 720 GPU rule users and 37 of 48 long-card users. Neither the 5 largest GPU users (424k to 532k reviews) nor 13 long-card users fit in memory on this machine, and the scorer has no chunk option. A check on the Small and Tiny models, which did score those 5 users, puts rank 4's instant cost for them at -0.01% to +0.04% (median over all users +0.005% to +0.010%). Two missing users cannot move Big's dataset-wide upper bound from about +0.02% to +0.05%. This is a coverage shortfall, not a failed rule. A machine with more memory can still confirm it.
