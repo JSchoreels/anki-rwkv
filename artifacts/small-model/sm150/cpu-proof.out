@@ -1,0 +1,32 @@
+state_lowrank selftest OK
+Traceback (most recent call last):
+  File "C:\Users\jonat\workspace\wt\sm150\artifacts\small-model\sm150\sm150_check.py", line 315, in <module>
+    raise SystemExit(main())
+                     ^^^^^^
+  File "C:\Users\jonat\workspace\wt\sm150\artifacts\small-model\sm150\sm150_check.py", line 310, in main
+    return cpu(a.out or str(HERE / "check-cpu-sm150.json"))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\jonat\workspace\wt\sm150\artifacts\small-model\sm150\sm150_check.py", line 232, in cpu
+    r2, i2 = k2()
+             ^^^^
+  File "C:\Users\jonat\workspace\wt\sm150\artifacts\small-model\sm150\sm150_check.py", line 68, in k2
+    info = state_lowrank.selftest_sm150("cpu")
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'scripts.state_lowrank' has no attribute 'selftest_sm150'. Did you mean: 'selftest_sm148'?
+exit 1
+state_lowrank selftest OK
+state_lowrank SM148 selftest OK {'K16_trunc_rel_err_max': 6.36205664896589e-06, 'K16_young_exact_rel_err_max': 9.070166129276913e-07, 'K32_trunc_rel_err_max': 8.62586098327698e-06, 'K32_young_exact_rel_err_max': 9.449376534576004e-07, 'int8_roundtrip
+  OK  K1 bytes (sm150_bytes.py)
+  OK  K2 state_lowrank selftests (SM147, SM150 on the CPU)
+  OK  K3 a row for every (user, model, label)
+  OK  K3 every row finite
+  OK  K3 REF rescored == SM148's committed CPU smoke rows (benchmark LogLoss within 1e-6, same counts)
+  OK  K3 F1X0 (factored solve) == SM147's lr1 (float64 SVD) within 2e-05 per user and head
+  OK  K3 R1 and R12 differ from REF on every (user, model)
+  OK  K3 R12 differs from R1 on at least one user per model
+  OK  K5 a dump for every (user, model, dumped label)
+  OK  K5 dumped reviews per bucket == the rows' all-scope counts
+  OK  K5 same reviews in every label's dump
+  OK  K5 |dR| R1 vs REF > 0 somewhere
+  OK  K5 sm150_dr.py aggregates the smoke dumps (finite, complete)
+[sm150-check] CPU proofs ALL OK (5 s)

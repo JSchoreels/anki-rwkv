@@ -1,0 +1,108 @@
+{
+ "ok": true,
+ "checks": {
+  "K1 bytes (sm150_bytes.py)": true,
+  "K2 state_lowrank selftests (SM147, SM150 on the CPU)": true,
+  "K3 a row for every (user, model, label)": true,
+  "K3 every row finite": true,
+  "K3 REF rescored == SM148's committed CPU smoke rows (benchmark LogLoss within 1e-6, same counts)": true,
+  "K3 F1X0 (factored solve) == SM147's lr1 (float64 SVD) within 2e-05 per user and head": true,
+  "K3 R1 and R12 differ from REF on every (user, model)": true,
+  "K3 R12 differs from R1 on at least one user per model": true,
+  "K5 a dump for every (user, model, dumped label)": true,
+  "K5 dumped reviews per bucket == the rows' all-scope counts": true,
+  "K5 same reviews in every label's dump": true,
+  "K5 |dR| R1 vs REF > 0 somewhere": true,
+  "K5 sm150_dr.py aggregates the smoke dumps (finite, complete)": true
+ },
+ "info": {
+  "rows": 108,
+  "sm148": [],
+  "f4x0": [],
+  "differ_ref": [],
+  "finite": [],
+  "missing": [],
+  "f4x0_vs_lr4_max_abs_logloss": 0.0,
+  "cpu_review_evals_per_second": {
+   "sm113-inst-e35st-st-dec2ep32k-t99 REF": 1441,
+   "sm113-inst-e35st-st-dec2ep32k-t99 R1": 1329,
+   "sm113-inst-e35st-st-dec2ep32k-t99 R12": 1296,
+   "sm113-inst-e35st-st-dec2ep32k-t99 F1": 1355,
+   "sm113-inst-e35st-st-dec2ep32k-t99 F1X0": 1365,
+   "sm113-inst-e35st-st-dec2ep32k-t99 LR1": 1037,
+   "sm118-e26-dec2ep32k-t91s2 REF": 1428,
+   "sm118-e26-dec2ep32k-t91s2 R1": 1345,
+   "sm118-e26-dec2ep32k-t91s2 R12": 1314,
+   "sm118-e26-dec2ep32k-t91s2 F1": 1352,
+   "sm118-e26-dec2ep32k-t91s2 F1X0": 1387,
+   "sm118-e26-dec2ep32k-t91s2 LR1": 1025,
+   "sm130-io-dec2ep32k-t99 REF": 3430,
+   "sm130-io-dec2ep32k-t99 R1": 3203,
+   "sm130-io-dec2ep32k-t99 R12": 2954,
+   "sm130-io-dec2ep32k-t99 F1": 3208,
+   "sm130-io-dec2ep32k-t99 F1X0": 3257,
+   "sm130-io-dec2ep32k-t99 LR1": 2143,
+   "sm130-th-dec2ep32k-t91s2 REF": 3508,
+   "sm130-th-dec2ep32k-t91s2 R1": 3048,
+   "sm130-th-dec2ep32k-t91s2 R12": 2881,
+   "sm130-th-dec2ep32k-t91s2 F1": 3153,
+   "sm130-th-dec2ep32k-t91s2 F1X0": 3127,
+   "sm130-th-dec2ep32k-t91s2 LR1": 2099,
+   "sm91s2-big-showtime REF": 899,
+   "sm91s2-big-showtime R1": 830,
+   "sm91s2-big-showtime R12": 807,
+   "sm91s2-big-showtime F1": 850,
+   "sm91s2-big-showtime F1X0": 867,
+   "sm91s2-big-showtime LR1": 357,
+   "sm99-big-inst-e2 REF": 892,
+   "sm99-big-inst-e2 R1": 834,
+   "sm99-big-inst-e2 R12": 811,
+   "sm99-big-inst-e2 F1": 857,
+   "sm99-big-inst-e2 F1X0": 838,
+   "sm99-big-inst-e2 LR1": 354
+  },
+  "k2": {
+   "K16_trunc_rel_err_max": 6.36205664896589e-06,
+   "K16_young_exact_rel_err_max": 9.070166129276913e-07,
+   "K32_trunc_rel_err_max": 8.62586098327698e-06,
+   "K32_young_exact_rel_err_max": 9.449376534576004e-07,
+   "int8_roundtrip": true,
+   "tiers": true
+  },
+  "k5": {
+   "files": 54,
+   "missing": [],
+   "count_bad": [],
+   "keys_bad": [],
+   "dr_stdout": "[sm145-dr] finite, complete; largest |dR| 0.1924; -> C:\\Users\\jonat\\workspace\\wt\\sm150\\artifacts\\small-model\\sm150\\cpu\\smoke-dr.json\n",
+   "dr_stderr": ""
+  },
+  "per_write_microseconds_cpu_1_thread (report only)": {
+   "K16 N256": {
+    "REF int8 rows": 1.39,
+    "rank 4 int8 factors": 7.4,
+    "rank 2 int8 factors": 4.79,
+    "rank 1 int8 factors": 2.95
+   },
+   "K16 N1": {
+    "REF int8 rows": 6.59,
+    "rank 4 int8 factors": 73.42,
+    "rank 2 int8 factors": 66.93,
+    "rank 1 int8 factors": 64.2
+   },
+   "K32 N256": {
+    "REF int8 rows": 1.45,
+    "rank 4 int8 factors": 11.38,
+    "rank 2 int8 factors": 8.67,
+    "rank 1 int8 factors": 5.7
+   },
+   "K32 N1": {
+    "REF int8 rows": 6.79,
+    "rank 4 int8 factors": 78.89,
+    "rank 2 int8 factors": 72.82,
+    "rank 1 int8 factors": 68.48
+   }
+  }
+ },
+ "seconds": 5.4
+}
