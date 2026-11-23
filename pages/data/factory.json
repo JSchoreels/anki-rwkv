@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-23T04:43:43+01:00",
- "updated": "2026-11-23 04:43",
- "material": "20ae2c5e1312ebe4",
- "summary": "running 001498, finished 001497",
+ "generated_at": "2026-11-23T07:30:56+01:00",
+ "updated": "2026-11-23 07:30",
+ "material": "6c86dad24f5ebf1b",
+ "summary": "running 001499, finished 001498",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring, show-time inputs for both heads (curve / instant)",
@@ -413,18 +413,18 @@
  "now": [
   {
    "what": "Low-rank int8 states (SM148): follow-up of the CPU pointer on low-rank states (SM147), where rank 4 per head cost nothing measurable on 8 users. Post-training rank-r card and note states with int8 factors (one float16 scale per factor vector, shift vectors int8) on the six release-candidate models: rank 4, rank 2 below 16 answers then rank 4, and rank 2, against int8 rows. A card with n answers stores rank min(n, r), which is exact for young cards. Bytes vs int8: rank 4 &minus;74.4% / &minus;52.3% / &minus;51.1%, rank 2 then 4 &minus;81.7% / &minus;66.3% / &minus;64.7%, rank 2 &minus;82.8% / &minus;68.2% / &minus;66.7% (Big / Small / Tiny), against &minus;43.5% / &minus;38.6% / &minus;42.7% for the best tiered formats. The 732 set (723 users) on the GPU with a fused rank-r encode kernel, the 50 long-card users on the CPU with the per-card read-out; also the speed cost per write (CPU scorer: rank 4 at 0.81&times; to 0.88&times; of int8). No retraining.",
-   "id": "SM148, ticket 001498",
+   "id": "SM148, ticket 001499",
    "kind": "gpu",
    "decides": "Which rank per size passes the dataset-wide rule (+0.05%; Tiny: within +1.00% of the matching Small at int8), the long-card tolerance and the per-card guard; the go is the smallest-bytes passing label per size",
    "why": "",
-   "job": "Low-rank int8 states (SM148): scoring big (2 models x int8 / rank 4 / rank 2-then-4 / rank 2, int8 factors) on e2s-query inputs, the 732 set minus 9 never-fit (723 users) (pass 1, 0 done, cap 0.8)",
+   "job": "Low-rank int8 states (SM148): scoring big (2 models x int8 / rank 4 / rank 2-then-4 / rank 2, int8 factors) on e2s-query inputs, the 732 set minus 9 never-fit (723 users) (pass 2, 713 done, cap 0.8)",
    "linked": true,
    "track": "small model",
-   "ticket": "001498-sm148",
-   "started": "04:43",
+   "ticket": "001499-sm148",
+   "started": "07:30",
    "elapsed": "0:00",
    "progress": null,
-   "eta": "~08:23"
+   "eta": "~08:00"
   }
  ],
  "charts": [
@@ -597,6 +597,15 @@
  "waiting": [],
  "recent": [
   {
+   "ticket": "001498-sm148",
+   "id": "SM148",
+   "what": "Low-rank int8 states (SM148): scoring big (2 models x int8 / rank 4 / rank 2-then-4 / rank 2, int8 factors) on e2s-query inputs, the 732 set minus 9 never-fit (723 users) (pass 1, 0 done, cap 0.8)",
+   "ended": "07:30",
+   "date": "11-23",
+   "exit": 0,
+   "ran": "2:47"
+  },
+  {
    "ticket": "001497-sm148",
    "id": "SM148",
    "what": "Low-rank int8 states (SM148): scoring small (2 models x int8 / rank 4 / rank 2-then-4 / rank 2, int8 factors) on e2s-query inputs, the 732 set minus 9 never-fit (723 users) (pass 2, 721 done, cap 0.8)",
@@ -640,15 +649,6 @@
    "date": "11-23",
    "exit": 0,
    "ran": "1:08"
-  },
-  {
-   "ticket": "001492-sm148",
-   "id": "SM148",
-   "what": "Low-rank int8 states (SM148): GPU smoke: low-rank kernel self-test + 3 users (2 small, 1 long-card), 6 models x 6 labels, vs the CPU rows",
-   "ended": "01:51",
-   "date": "11-23",
-   "exit": 0,
-   "ran": "0:00"
   }
  ],
  "plan": [
@@ -2755,8 +2755,8 @@
    "decides": "Which rank per size passes the dataset-wide rule (+0.05%; Tiny: within +1.00% of the matching Small at int8), the long-card tolerance and the per-card guard; the go is the smallest-bytes passing label per size",
    "state": "running",
    "started_at": "2026-11-23T01:07:13+01:00",
-   "started": "04:43",
-   "ticket": "001498-sm148",
+   "started": "07:30",
+   "ticket": "001499-sm148",
    "ends_at": "2026-11-23T06:52:13+01:00"
   },
   {
