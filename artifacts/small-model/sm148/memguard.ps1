@@ -4,7 +4,9 @@
 # <Dir>\memguard-kill and <Dir>\STOP. Ends when <Dir>\memguard.off exists or the -ParentPid process (the launcher's Windows
 # PID) is gone. GPU tickets are never matched (the groups name CPU-only commands).
 param([string]$Dir, [string]$Match, [double]$LimitGB = 5.9, [int]$ParentPid = 0)
-$groups = $Match.Split(';') | ForEach-Object { , ($_.Split('&')) }
+# SM148 fix: with a single group the pipeline above unrolled into the words themselves, so ANY word matched (a GPU
+# ticket whose command line held only 'sm148' was killed); build the array of word arrays explicitly.
+$groups = @(); foreach ($part in $Match.Split(';')) { $groups += , ($part.Split('&')) }
 while (-not (Test-Path "$Dir\memguard.off")) {
   if ($ParentPid -gt 0 -and $null -eq (Get-Process -Id $ParentPid -ErrorAction SilentlyContinue)) { break }
   $t = Get-Date -Format 'MM-dd HH:mm:ss'
