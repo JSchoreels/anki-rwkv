@@ -2505,6 +2505,34 @@
    "ended_at": "2026-11-21T11:26+01:00"
   },
   {
+   "id": "SM153",
+   "track": "small model",
+   "kind": "cpu",
+   "minutes": 90,
+   "match": [
+    "Answer-time spread shrink (SM153): "
+   ],
+   "what": "Answer-time spread shrink (SM153): the answer-time expressiveness test (SM142) found that the answer-time heads rank cards well within a user but spread them about 1.7 times too widely. This CPU test shrinks each card&rsquo;s predicted time distribution toward the user&rsquo;s running distribution, with the shrink fitted without leakage, and scores time LogLoss before and after the existing rolling recalibration, plus within-user AUC and card-level expressiveness.",
+   "when": "Started 23:10 Mon 11-23 (CPU only, about 1 to 2 h, from the step-back review of outside research methods)",
+   "decides": "Whether a fitted shrink lowers answer-time LogLoss (go rule: CI below 0 and at least 0.05%) without losing card-level expressiveness",
+   "state": "running",
+   "started_at": "2026-11-23T23:10+01:00"
+  },
+  {
+   "id": "SM154",
+   "track": "small model",
+   "kind": "cpu",
+   "minutes": 60,
+   "match": [
+    "State-format rate-distortion table (SM154): "
+   ],
+   "what": "State-format rate-distortion table (SM154): one table per release model of every state format scored so far (compact, tiered, int3 young tier, low rank, rank 1) with its bytes vs int8 and its cost per head, the lower convex hull of bytes against cost, which formats are dominated, and where the chosen format (rank 2 below 16 answers then rank 4) sits against the user&rsquo;s budgets. Existing rows only, no scoring.",
+   "when": "Started 23:10 Mon 11-23 (CPU only, under 1 h)",
+   "decides": "Where per-head rank allocation could save the most bytes, as the first step before any new scoring",
+   "state": "running",
+   "started_at": "2026-11-23T23:10+01:00"
+  },
+  {
    "id": "SM151",
    "track": "small model",
    "kind": "cpu",
