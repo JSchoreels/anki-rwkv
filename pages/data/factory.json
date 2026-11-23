@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-23T14:01:02+01:00",
- "updated": "2026-11-23 14:01",
- "material": "a0b4aa01dc359159",
- "summary": "running 001521, finished 001520",
+ "generated_at": "2026-11-23T14:02:43+01:00",
+ "updated": "2026-11-23 14:02",
+ "material": "7acb4d84d986e89e",
+ "summary": "running 001521",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring, show-time inputs for both heads (curve / instant)",
@@ -422,7 +422,7 @@
    "track": "small model",
    "ticket": "001521-sm149b",
    "started": "14:00",
-   "elapsed": "0:00",
+   "elapsed": "0:01",
    "progress": null,
    "eta": "~16:15"
   }
@@ -2744,6 +2744,17 @@
    "state": "done",
    "started_at": "2026-11-21T09:34+01:00",
    "ended_at": "2026-11-21T11:26+01:00"
+  },
+  {
+   "id": "SM149b",
+   "track": "small model",
+   "kind": "gpu",
+   "minutes": 165,
+   "what": "Rank-2 states with a tail-energy penalty (SM149b): the rank-2 cool-down (SM149) halved too little of the rank-2 cost (a third). Outside research found the same with the straight-through gradient alone, and removed the cost by adding a training term: the share of each state&rsquo;s energy that rank 2 throws away (&lambda; = 1, sampled on one write in eight). Same stage 1 as SM149 (Small two-head (SM118), same data, seed and steps), one new arm with the penalty; the SM149 control and the original&rsquo;s rows are reused. Same rules, against the original at int8 (dataset-wide +0.05%, long cards, per-card guard, the cooled model&rsquo;s own int8 within +0.05%).",
+   "when": "Started 14:00 Mon 11-23 (smoke ticket 001520 OK, training 001521 at about 9,100 reviews/s): training about 2 h, 732-set scoring about 35 min, GPU part done about 16:45; long-card CPU step and verdict Monday evening",
+   "decides": "Pass: the main session proposes the same cool-down for the other five models. Partial (rank-2 cost at most half the control&rsquo;s): one more run at &lambda; = 3. No effect: every size keeps rank 4",
+   "state": "planned",
+   "started_at": "2026-11-23T14:00+01:00"
   },
   {
    "id": "SM149",

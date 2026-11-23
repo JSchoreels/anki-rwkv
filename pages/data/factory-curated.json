@@ -2505,6 +2505,20 @@
    "ended_at": "2026-11-21T11:26+01:00"
   },
   {
+   "id": "SM149b",
+   "track": "small model",
+   "kind": "gpu",
+   "minutes": 165,
+   "match": [
+    "Rank-2 states with a tail-energy penalty (SM149b): "
+   ],
+   "what": "Rank-2 states with a tail-energy penalty (SM149b): the rank-2 cool-down (SM149) halved too little of the rank-2 cost (a third). Outside research found the same with the straight-through gradient alone, and removed the cost by adding a training term: the share of each state&rsquo;s energy that rank 2 throws away (&lambda; = 1, sampled on one write in eight). Same stage 1 as SM149 (Small two-head (SM118), same data, seed and steps), one new arm with the penalty; the SM149 control and the original&rsquo;s rows are reused. Same rules, against the original at int8 (dataset-wide +0.05%, long cards, per-card guard, the cooled model&rsquo;s own int8 within +0.05%).",
+   "when": "Started 14:00 Mon 11-23 (smoke ticket 001520 OK, training 001521 at about 9,100 reviews/s): training about 2 h, 732-set scoring about 35 min, GPU part done about 16:45; long-card CPU step and verdict Monday evening",
+   "decides": "Pass: the main session proposes the same cool-down for the other five models. Partial (rank-2 cost at most half the control&rsquo;s): one more run at &lambda; = 3. No effect: every size keeps rank 4",
+   "state": "running",
+   "started_at": "2026-11-23T14:00+01:00"
+  },
+  {
    "id": "SM149",
    "track": "small model",
    "kind": "gpu",
