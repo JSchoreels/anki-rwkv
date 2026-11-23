@@ -2505,6 +2505,34 @@
    "ended_at": "2026-11-21T11:26+01:00"
   },
   {
+   "id": "SM152",
+   "track": "small model",
+   "kind": "gpu",
+   "minutes": 300,
+   "match": [
+    "Smaller shift vectors and factors on T24 states (SM152): "
+   ],
+   "what": "Smaller shift vectors and factors on T24 states (SM152): on top of the chosen state format (rank 2 below 16 answers then rank 4, int8 factors), this post-training run scores three smaller variants on the six release models on the 732 set (GPU): int4 shift vectors (&minus;84.5% / &minus;70.4% / &minus;69.5% of the int8 state bytes for Big / Small / Tiny), int6 factors (&minus;84.6% / &minus;71.4% / &minus;69.7%), and both (&minus;87.4% / &minus;75.6% / &minus;74.6%, about 28% to 31% fewer bytes than the chosen format), against the user&rsquo;s budgets; the long-card CPU warnings run later.",
+   "when": "Started 23:25 Mon 11-23 (GPU smoke passed 23:26); Tiny about 00:30, Small about 02:00, Big about 04:30 Tue 11-24 (range 04:00 to 05:30)",
+   "decides": "Whether the state can shrink further than the chosen format within the user&rsquo;s budgets (Big at most +0.15% vs its own int8; Small and Tiny at most +0.5% and +1.0% total vs Big at int8)",
+   "state": "running",
+   "started_at": "2026-11-23T23:25+01:00"
+  },
+  {
+   "id": "SM155",
+   "track": "small model",
+   "kind": "cpu",
+   "minutes": 600,
+   "match": [
+    "Bounded-memory long-card scorer (SM155): "
+   ],
+   "what": "Bounded-memory long-card scorer (SM155): the CPU scorer&rsquo;s memory grows with each user&rsquo;s review count, so the 6 GB limit drops the longest users (13 Big long-card users in the low-rank int8 states test (SM148), the 15 to 16 longest per size in the long-card state drift check (SM136), and 5 Big users that never fit on the GPU). This builds a scorer mode that steps through reviews one at a time and keeps only each card&rsquo;s and note&rsquo;s state, checked to give the same predictions as the current scorer within 1e-5, then scores the missing Big users at the chosen format.",
+   "when": "Started 23:45 Mon 11-23 (CPU code and short exactness tests only tonight; the missing-user scoring waits until the fork speed measurement is done)",
+   "decides": "Whether every long-card user fits, so long-card checks can say &ldquo;no loss&rdquo; instead of &ldquo;cannot tell&rdquo;, starting with Big&rsquo;s missing users at the chosen format",
+   "state": "running",
+   "started_at": "2026-11-23T23:45+01:00"
+  },
+  {
    "id": "SM153",
    "track": "small model",
    "kind": "cpu",
@@ -2527,10 +2555,11 @@
     "State-format rate-distortion table (SM154): "
    ],
    "what": "State-format rate-distortion table (SM154): one table per release model of every state format scored so far (compact, tiered, int3 young tier, low rank, rank 1) with its bytes vs int8 and its cost per head, the lower convex hull of bytes against cost, which formats are dominated, and where the chosen format (rank 2 below 16 answers then rank 4) sits against the user&rsquo;s budgets. Existing rows only, no scoring.",
-   "when": "Started 23:10 Mon 11-23 (CPU only, under 1 h)",
+   "when": "Done 23:35 Mon 11-23: the chosen format (rank 2 below 16 answers then rank 4) is on the size-versus-cost frontier for all six models, at the first bend; every tiered int4 / int3 format is dominated by the low-rank ones except int4 cards below 16 answers on Big",
    "decides": "Where per-head rank allocation could save the most bytes, as the first step before any new scoring",
-   "state": "running",
-   "started_at": "2026-11-23T23:10+01:00"
+   "state": "done",
+   "started_at": "2026-11-23T23:10+01:00",
+   "ended_at": "2026-11-23T23:35+01:00"
   },
   {
    "id": "SM151",
@@ -3471,6 +3500,23 @@
   "s-w64kd-gate-ctx2048c-dec8-1ep/w8+s8"
  ],
  "results": [
+ {
+  "date": "11-23",
+  "kind": "cpu-analysis",
+  "id": "SM154",
+  "track": "small model",
+  "name": "State-format rate-distortion table (SM154): every state format scored so far on the six release models, bytes vs int8 against the 95% upper-bound cost per head, with the lower convex hull and the dominated formats",
+  "eval": "CPU only, existing per-user rows only (no scoring), 732 set, show-time inputs, 718 common users; cost vs each model&rsquo;s own int8 rows and, for Small and Tiny, total vs the matching Big model at int8; paired user bootstrap 95%.",
+  "fork": "Nothing changed in the fork; a pointer for the next state-format steps",
+  "takeaway": "<strong>The chosen format (rank 2 below 16 answers then rank 4) sits on the size-versus-cost frontier for all six models, at the first bend.</strong> Low-rank formats dominate every tiered int4 / int3 format (except int4 cards below 16 answers on Big). Below rank 2 a per-head search does not look worth it; between rank 4 and rank 2 it could, with Big first because its margin is thinnest.",
+  "inputs": "show-time",
+  "started_at": "2026-11-23T23:10+01:00",
+  "ended_at": "2026-11-23T23:35+01:00",
+  "gpu_minutes": 0,
+  "cpu_minutes": 10,
+  "tickets": 0,
+  "detail": {"verdict": "Table only (no gate). The chosen format (rank 2 below 16 answers then rank 4) is on the frontier for every model and head. Branch sm154 (RESULT.md, sm154-tables.md, sm154-tables.json, sm154_table.py)", "table": {"head": ["Model", "Head", "T24 upper vs budget", "Budget crossed at (bytes vs int8)"], "rows": [["Big two-head (SM91s2)", "curve / instant", "+0.043% / +0.059% of +0.15%", "about &minus;83.4% (instant)"], ["Big Instant-Only (SM99)", "instant", "+0.065% of +0.15%", "about &minus;83.2%"], ["Small two-head (SM118)", "curve / instant", "+0.405% / +0.227% of +0.5%", "&minus;72.7% (curve)"], ["Small Instant-Only (SM113)", "instant", "+0.096% of +0.5%", "&minus;77.7%"], ["six-layer Tiny two-head (SM130)", "curve / instant", "+0.899% / +0.802% of +1.0%", "&minus;69.0% (curve)"], ["six-layer Tiny Instant-Only (SM130)", "instant", "+0.717% of +1.0%", "&minus;71.7%"]]}, "notes": ["20 formats per Big and Small model and 21 per six-layer Tiny model, from compact state (SM131), the int8 switch (SM144), tiered states (SM141), the int3 young tier (SM145), aggressive Tiny tiers (SM146), low-rank int8 states (SM148) and rank-1 int8 states (SM150), on one common set of 718 users; upper bounds match 33 published low-rank verdict numbers within 0.004%.", "Cost per saved % of bytes along the frontier: int8 to rank 4 0.0001% to 0.0003%; rank 4 to the chosen format 0.002% to 0.006%; to rank 2 0.009% to 0.034%; to rank 1 then 2 0.017% to 0.06%; to rank 1 0.09% to 0.35%.", "For Small and Tiny most of the budget is the size gap to Big before any state format (Small two-head (SM118) curve +0.374% of +0.5%, six-layer Tiny two-head (SM130) curve +0.861% of +1.0%); the segment worth a per-head allocation is rank 4 to rank 2.", "Left out: compact Tiny state (SM129) rows (older one-layer Tiny), the fork&rsquo;s old int4 default (different scale layout), formats with bytes only, and smaller shift vectors and factors on T24 states (SM152), still running."]}
+ },
  {
   "date": "11-23",
   "kind": "gpu-score",
