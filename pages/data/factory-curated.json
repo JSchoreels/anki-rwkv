@@ -2519,6 +2519,20 @@
    "started_at": "2026-11-23T23:25+01:00"
   },
   {
+   "id": "SM155",
+   "track": "small model",
+   "kind": "cpu",
+   "minutes": 600,
+   "match": [
+    "Bounded-memory long-card scorer (SM155): "
+   ],
+   "what": "Bounded-memory long-card scorer (SM155): the CPU scorer&rsquo;s memory grows with each user&rsquo;s review count, so the 6 GB limit drops the longest users (13 Big long-card users in the low-rank int8 states test (SM148), the 15 to 16 longest per size in the long-card state drift check (SM136), and 5 Big users that never fit on the GPU). This builds a scorer mode that steps through reviews one at a time and keeps only each card&rsquo;s and note&rsquo;s state, checked to give the same predictions as the current scorer within 1e-5, then scores the missing Big users at the chosen format.",
+   "when": "Started 23:45 Mon 11-23 (CPU code and short exactness tests only tonight; the missing-user scoring waits until the fork speed measurement is done)",
+   "decides": "Whether every long-card user fits, so long-card checks can say &ldquo;no loss&rdquo; instead of &ldquo;cannot tell&rdquo;, starting with Big&rsquo;s missing users at the chosen format",
+   "state": "running",
+   "started_at": "2026-11-23T23:45+01:00"
+  },
+  {
    "id": "SM153",
    "track": "small model",
    "kind": "cpu",
