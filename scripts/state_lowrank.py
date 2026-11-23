@@ -351,14 +351,20 @@ class LowRankCodec:
         tier = torch.bucketize(n, edges, right=True) if len(self.edges) else torch.zeros_like(n)
         return kinds[tier]
 
-    def encode(self, nxt, left_prev, v, n, rows_quant):
+    def encode(self, nxt, left_prev, v, n, rows_quant, return_right=False):
         """nxt [N, H, K, K] float32 updated states (written rows), left_prev [N, H, K, rmax] their stored left factors
         (zero columns beyond the stored rank), v [N, H, K] this write's v, n [N] update counts.
-        -> stored states [N, H, K, K] float32 and left factors [N, H, K, rmax] float32."""
+        -> stored states [N, H, K, K] float32 and left factors [N, H, K, rmax] float32.
+        SM155 return_right (CPU torch path only): also the right factors [N, H, rmax, K] (zero where the stored state is
+        not their product), so a bounded-memory scorer can keep factors instead of matrices; values unchanged."""
         kind = self.kind_of(n)
         stored = nxt
         left_new = torch.zeros_like(left_prev)
+        right_new = torch.zeros(*left_prev.shape[:-2], left_prev.shape[-1], left_prev.shape[-2], dtype=left_prev.dtype,
+                                device=left_prev.device) if return_right else None
         if self.rmax and nxt.is_cuda and FUSED_CUDA:   # one fused kernel (scripts/state_lowrank_cuda.encode)
+            if return_right:
+                raise RuntimeError("SM155 return_right: CPU torch path only")
             from scripts import state_lowrank_cuda
             r_eff = torch.minimum(n, kind.clamp(min=0))
             stored, left_new = state_lowrank_cuda.encode(nxt, left_prev, v, r_eff, self.qmax)
@@ -378,15 +384,19 @@ class LowRankCodec:
                 rf = quant_vectors(rf, -1, self.qmax)                         # per row (right factor vector)
             stored = torch.where(fin4, lf @ rf, nxt)
             left_new = torch.where(fin4, lf, torch.zeros_like(lf))
+            if return_right:
+                right_new = torch.where(fin4, rf, torch.zeros_like(rf))
         if self.has_rows:
             rowsel = (kind < 0)
             if self.rmax == 0:
-                return rows_quant(nxt), left_new
+                return (rows_quant(nxt), left_new, right_new) if return_right else (rows_quant(nxt), left_new)
             if bool(rowsel.any()):
                 stored = stored.clone()
                 stored[rowsel] = rows_quant(nxt[rowsel])
                 left_new[rowsel] = 0
-        return stored, left_new
+                if return_right:
+                    right_new[rowsel] = 0
+        return (stored, left_new, right_new) if return_right else (stored, left_new)
 
 
 def lowrank_factors(S, P, r):

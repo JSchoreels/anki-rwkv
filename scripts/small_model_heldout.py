@@ -44,6 +44,10 @@ passfail-notime); labels get the suffix "@V" and rows the field "inputs". Defaul
 the review count and LogLoss sum bucketed by the card's number of prior answers in the revlog (bucket k = [E_k, E_k+1),
 last bucket open), for the benchmark reviews (same kept set and sklearn log_loss as the benchmark LogLoss) and for every
 review the scorer predicts (the benchmark set ends at 127 prior answers). Off (default) = today's rows, bit for bit.
+--engine stream (SM155, bounded-memory long-card scorer; scripts/stream_scorer.py): CPU only; the history is replayed in
+chunks of --chunk-rows reviews with only the per-entity card / deck / note / preset / user states carried between
+chunks, so memory follows the entity count instead of the review count; same modules, codecs, heads and loss as the
+default engine (parallel = today's scorer, bit for bit). Rows get scorer.engine / scorer.chunk_rows and stream_engine.
 
 usage: small_model_heldout.py --model fork=fork::<pth> --model decay=expertium:iter36:<pth> --variants fp32,w8+s8
        --out artifacts/small-model/heldout.jsonl --time-limit 3000 [--device cpu --count 2]
@@ -530,7 +534,13 @@ def main():
     parser.add_argument("--inputs", default="normal", choices=("normal", "e2s-query", "e2s-all", "passfail", "notime",
                                                                "passfail-notime"),
                         help="SM31 / SM29: input variant (scripts/sm31_inputs.py); labels get the suffix @VARIANT")
+    parser.add_argument("--engine", choices=("parallel", "stream"), default="parallel", help="SM155: stream = the "
+                        "bounded-memory CPU engine (scripts/stream_scorer.py); parallel = today's whole-history pass")
+    parser.add_argument("--chunk-rows", type=int, default=16384, help="SM155 --engine stream: reviews per chunk "
+                        "(a multiple of 64)")
     args = parser.parse_args()
+    if args.engine == "stream" and (args.device != "cpu" or args.emulate_gpu_path or args.window or args.legacy_metrics):
+        raise SystemExit("--engine stream: --device cpu, full-history scoring, array metrics, no --emulate-gpu-path")
     cpu = args.device == "cpu"
     prior_edges = [int(e) for e in args.prior_buckets.split(",")] if args.prior_buckets else None
     if prior_edges is not None and (prior_edges[0] != 0 or prior_edges != sorted(set(prior_edges))):
@@ -664,6 +674,16 @@ def main():
         from scripts.heldout_fast_metrics import evaluate_with_arrays as evaluate
         from scripts.heldout_fast_metrics import metrics_arrays as bench_metrics
     scorer_mode = {"metrics": "dict" if args.legacy_metrics else "array", "lanes": n_lanes}
+    if args.engine == "stream":   # SM155 (default rows keep today's scorer field)
+        scorer_mode.update({"engine": "stream", "chunk_rows": args.chunk_rows})
+        from scripts import stream_scorer
+        evaluate_parallel = evaluate
+
+        def evaluate(model, batches):   # noqa: F811  (same signature and result as evaluate_with_arrays)
+            kind = "fork" if model.__class__.__module__.startswith("rwkv.") else "expertium"
+            if len(batches) != 1:
+                return evaluate_parallel(model, batches)
+            return stream_scorer.evaluate(model, kind, batches[0]["batch"], args.chunk_rows)
     env = lmdb.open(str(cc.RUN / "label-db"), readonly=True, lock=False, map_size=10_000_000_000)
     prov = process_provenance()
     print(f"[small-model] {len(users)} users, {len(todo)} to score, grid {grid}, scorer {scorer_mode}", flush=True)
@@ -834,6 +854,8 @@ def main():
                          "prepare_seconds": round(prep_seconds, 2),
                          "model_seconds": model_seconds, **values,
                          "benchmark": bench_metrics(user, labels, predictions), "scorer": scorer_mode, **sm71_fields})
+            if args.engine == "stream":   # SM155: chunks, entity counts, state-table bytes and storage kinds
+                rows[-1]["stream_engine"] = dict(stream_scorer.LAST)
             if lowrank and state_bits.spectrum:   # SM147: aggregates over this user's writes (no ids)
                 rows[-1]["lowrank_spectrum"] = state_lowrank.SPECTRUM.export(tag)
             state_lowrank.SPECTRUM.reset()
