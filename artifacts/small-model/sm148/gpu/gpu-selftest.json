@@ -1,0 +1,117 @@
+{
+ "ok": true,
+ "checks": {
+  "G1 Jacobi eigen kernel == torch.linalg.eigh (eigenvalues, reconstruction, orthonormality)": true,
+  "G2 selftest_sm148 on CUDA (fused encode: truncation, young states exact, int8 round trip)": true,
+  "G3 fused kernel finite K16 4 f": true,
+  "G3 fused kernel finite K16 2 f": true,
+  "G3 fused kernel finite K16 2.16.4 f": true,
+  "G3 fused kernel finite K16 4 q8": true,
+  "G3 fused kernel finite K16 2 q8": true,
+  "G3 fused kernel finite K16 2.16.4 q8": true,
+  "G3 fused kernel finite K32 4 f": true,
+  "G3 fused kernel finite K32 2 f": true,
+  "G3 fused kernel finite K32 2.16.4 f": true,
+  "G3 fused kernel finite K32 4 q8": true,
+  "G3 fused kernel finite K32 2 q8": true,
+  "G3 fused kernel finite K32 2.16.4 q8": true,
+  "G3 fused kernel == CPU loop, float factors (relative <= 1e-5)": true
+ },
+ "report_only": {
+  "jacobi": {
+   "1": {
+    "reconstruction": 0.0,
+    "orthonormality": 0.0,
+    "eigenvalues": 0.0
+   },
+   "2": {
+    "reconstruction": 2.2959363832342206e-07,
+    "orthonormality": 1.1920928955078125e-07,
+    "eigenvalues": 5.8558330732986956e-08
+   },
+   "3": {
+    "reconstruction": 2.3445377905773057e-07,
+    "orthonormality": 1.1920928955078125e-07,
+    "eigenvalues": 5.7922375754465095e-08
+   },
+   "5": {
+    "reconstruction": 1.7746619107583683e-07,
+    "orthonormality": 1.7881393432617188e-07,
+    "eigenvalues": 5.305907663987137e-08
+   },
+   "8": {
+    "reconstruction": 1.481746210174606e-07,
+    "orthonormality": 2.384185791015625e-07,
+    "eigenvalues": 5.029618998260277e-08
+   }
+  },
+  "selftest_sm148_cuda": {
+   "K16_trunc_rel_err_max": 2.3571592971913372e-06,
+   "K16_young_exact_rel_err_max": 9.370708653477777e-07,
+   "K32_trunc_rel_err_max": 2.403944625639537e-06,
+   "K32_young_exact_rel_err_max": 8.741373562770605e-07,
+   "int8_roundtrip": true,
+   "tiers": true
+  },
+  "K16 4 f": {
+   "fused_vs_cpu": 8.18194621388102e-07,
+   "fused_vs_torch_cuda": 6.448258318414446e-07,
+   "finite": true
+  },
+  "K16 2 f": {
+   "fused_vs_cpu": 6.638493914579158e-07,
+   "fused_vs_torch_cuda": 4.985423061043548e-07,
+   "finite": true
+  },
+  "K16 2.16.4 f": {
+   "fused_vs_cpu": 8.52136793128011e-07,
+   "fused_vs_torch_cuda": 5.934750788583187e-07,
+   "finite": true
+  },
+  "K16 4 q8": {
+   "fused_vs_cpu": 0.003058686153963208,
+   "fused_vs_torch_cuda": 0.00248893559910357,
+   "finite": true
+  },
+  "K16 2 q8": {
+   "fused_vs_cpu": 0.00139929901342839,
+   "fused_vs_torch_cuda": 0.0012045023031532764,
+   "finite": true
+  },
+  "K16 2.16.4 q8": {
+   "fused_vs_cpu": 0.002441833959892392,
+   "fused_vs_torch_cuda": 0.0021093932446092367,
+   "finite": true
+  },
+  "K32 4 f": {
+   "fused_vs_cpu": 8.545819127903087e-07,
+   "fused_vs_torch_cuda": 6.693608725072409e-07,
+   "finite": true
+  },
+  "K32 2 f": {
+   "fused_vs_cpu": 6.69682208354061e-07,
+   "fused_vs_torch_cuda": 4.832789954889449e-07,
+   "finite": true
+  },
+  "K32 2.16.4 f": {
+   "fused_vs_cpu": 8.120719598991855e-07,
+   "fused_vs_torch_cuda": 6.896056561345176e-07,
+   "finite": true
+  },
+  "K32 4 q8": {
+   "fused_vs_cpu": 0.0037259687669575214,
+   "fused_vs_torch_cuda": 0.003284275997430086,
+   "finite": true
+  },
+  "K32 2 q8": {
+   "fused_vs_cpu": 0.0015612451825290918,
+   "fused_vs_torch_cuda": 0.001368529861792922,
+   "finite": true
+  },
+  "K32 2.16.4 q8": {
+   "fused_vs_cpu": 0.003230104921385646,
+   "fused_vs_torch_cuda": 0.0025709711480885744,
+   "finite": true
+  }
+ }
+}
