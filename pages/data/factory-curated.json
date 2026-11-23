@@ -2513,10 +2513,11 @@
     "Rank-2 states through a short cool-down (SM149): "
    ],
    "what": "Rank-2 states through a short cool-down (SM149): rank-4 card and note states passed after training (SM148), rank 2 did not (+0.05% to +0.16% dataset-wide, rising with answer count). A short cool-down from the final weights of the Small two-head model (SM118) stores every card and note write in the deployed rank-2 int8-factor format during training (straight-through gradient), against a control arm with the identical cool-down and the codec off. Stage 1 only: Small two-head, both arms, then the 732 set on the GPU and the 50 long-card users on the CPU. The same rules as SM148, measured against the original model at int8; the cooled model at int8 must also stay within +0.05% of the original. If it passes, the other five models follow (about 21 GPU hours more), bringing Big from &minus;74.4% to &minus;82.8% of the int8 state bytes.",
-   "when": "Started 09:52 Mon 11-23: rank-2 arm about 2 h (3.08&times; the control&rsquo;s time, measured), control about 40 min, 732-set scoring about 1 h; long-card CPU scoring about 2.5 h alongside; verdict Monday evening",
+   "when": "Done 13:21 Mon 11-23 (stage 1 only): no effect, every size keeps rank 4 (Q4); the long-card CPU step was skipped because no rank-2 label passes the dataset-wide rule",
    "decides": "Pass: the other five models get the same cool-down. Partial (rank-2 instant cost at most halved vs the control, but no label passes): one more Small run with 4&times; the reviews. No effect: every size keeps rank 4",
-   "state": "running",
-   "started_at": "2026-11-23T09:52+01:00"
+   "state": "done",
+   "started_at": "2026-11-23T09:52+01:00",
+   "ended_at": "2026-11-23T13:21+01:00"
   },
   {
    "id": "SM148",
@@ -3398,6 +3399,98 @@
   "s-w64kd-gate-ctx2048c-dec8-1ep/w8+s8"
  ],
  "results": [
+ {
+  "date": "11-23",
+  "kind": "gpu-train",
+  "id": "SM149",
+  "track": "small model",
+  "name": "Rank-2 states through a short cool-down (SM149), stage 1: rank-2 card and note states stored during a short cool-down of the Small two-head model (SM118), against a control with the codec off",
+  "eval": "The 732 set (723 users, show-time inputs, leak-free) on the GPU. Short cool-down from the final weights of the Small two-head model (SM118), 67.3M reviews in two arms: QAT (every card and note write stored in the deployed rank-2 int8-factor format during training, straight-through gradient) and a control with the identical cool-down and the codec off. Scored at int8 (w8+s8hx8), rank 2 (Q2) and, for the QAT arm, rank 2 below 16 answers then rank 4 (T24), against the original model&rsquo;s rows of SM148. The long-card CPU step was skipped. Pre-registered: dataset-wide cost vs the original at int8, upper bound +0.05% per head; gate: QAT rank-2 instant cost at most half the control&rsquo;s (pass or partial), else no effect.",
+  "fork": "No change for the fork: rank 4 stays the go for every size",
+  "takeaway": "<strong>No effect: every size keeps rank 4 with int8 factors (Q4): Big &minus;74.4%, Small &minus;52.3%, Tiny &minus;51.1% state bytes vs int8.</strong> Rank-2-aware training with a short cool-down buys about a third of the rank-2 cost on Small: the instant cost of rank 2 against the arm&rsquo;s own int8 rows falls from +0.079% (control) to +0.052% (QAT), a ratio of 0.66 against the pre-registered line of 0.5. Against the original model at int8, the QAT arm at rank 2 costs +0.038% (curve) and +0.073% (instant, upper bound +0.080%), and at rank 2 then 4 +0.026% / +0.051% (upper bound +0.057%): no rank-2 label passes the +0.05% rule. The cooled model at int8 itself passes (+0.009% / +0.021%). Stage 1b (4&times; the reviews) and stage 2 (the other five models, about 21 GPU hours) are not run. <strong>Training:</strong> the QAT arm ran at 9,993 reviews/s (112.2 min, peak 8.6 GB allocated), the control at 28,883 reviews/s (38.8 min).",
+  "inputs": "show-time",
+  "started_at": "2026-11-23T09:52+01:00",
+  "ended_at": "2026-11-23T13:21+01:00",
+  "gpu_minutes": 209,
+  "cpu_minutes": 0,
+  "tickets": 6,
+  "detail": {
+   "verdict": "No effect, stop: every size keeps Q4 (Big &minus;74.4%, Small &minus;52.3%, Tiny &minus;51.1% state bytes vs int8). Branch sm149 (RESULT.md, sm149-stage1.json, sm149_report.py, design.md)",
+   "table": {
+    "head": [
+     "Model",
+     "Label",
+     "State bytes vs int8",
+     "Cost vs the original model at int8, value [95% CI] (limit: upper bound +0.05%): curve / instant",
+     "Cost vs the arm&rsquo;s own int8 rows, value [95% CI] (no verdict): curve / instant",
+     "Verdict"
+    ],
+    "rows": [
+     [
+      "Small two-head (SM118)",
+      "Cooled with rank-2 training (QAT), at int8",
+      "0% (int8 rows)",
+      "+0.009% [&minus;0.037, +0.046] / +0.021% [+0.016, +0.026]",
+      "-",
+      "passes (the new model at int8)"
+     ],
+     [
+      "Small two-head (SM118)",
+      "Control (same cool-down, codec off), at int8",
+      "0% (int8 rows)",
+      "&minus;0.003% [&minus;0.050, +0.035] / +0.003% [&minus;0.000, +0.007]",
+      "-",
+      "passes"
+     ],
+     [
+      "Small two-head (SM118)",
+      "Cooled with rank-2 training (QAT), Q2: rank 2",
+      "&minus;68.2%",
+      "+0.038% [&minus;0.009, +0.074] / +0.073% [+0.066, +0.080]",
+      "+0.029% [+0.020, +0.039] / +0.052% [+0.046, +0.058]",
+      "fails (instant)"
+     ],
+     [
+      "Small two-head (SM118)",
+      "Cooled with rank-2 training (QAT), T24: rank 2 below 16 answers, rank 4 from 16",
+      "&minus;66.3%",
+      "+0.026% [&minus;0.021, +0.061] / +0.051% [+0.045, +0.057]",
+      "+0.016% [+0.010, +0.023] / +0.030% [+0.026, +0.035]",
+      "fails (instant upper bound above +0.05%)"
+     ],
+     [
+      "Small two-head (SM118)",
+      "Control, Q2: rank 2",
+      "&minus;68.2%",
+      "+0.048% [+0.000, +0.089] / +0.082% [+0.074, +0.090]",
+      "+0.051% [+0.041, +0.061] / +0.079% [+0.072, +0.086]",
+      "fails"
+     ],
+     [
+      "Small two-head (SM118)",
+      "Original model (SM148), Q2: rank 2",
+      "&minus;68.2%",
+      "+0.047% / +0.079% (own int8 rows)",
+      "-",
+      "fails"
+     ],
+     [
+      "Small two-head (SM118)",
+      "Original model (SM148), T24",
+      "&minus;66.3%",
+      "+0.029% / +0.050% (own int8 rows)",
+      "-",
+      "fails"
+     ]
+    ]
+   },
+   "notes": [
+    "Gate: C_qat (QAT rank 2 vs QAT int8, instant) +0.052%, C_ctl (control rank 2 vs control int8, instant) +0.079%, ratio 0.66, above the 0.5 line, so no effect. QAT rank 2 vs control rank 2: &minus;0.010% [&minus;0.022, +0.001] curve, &minus;0.009% [&minus;0.013, &minus;0.005] instant. Rank 2 then 4 vs its own int8 rows would pass (instant upper bound +0.035%), but the rule is against the original model at int8, and the QAT arm&rsquo;s int8 rows are +0.021% worse than the original on the instant head.",
+    "Cost by answer count (instant head, QAT rank 2 vs original at int8; control in brackets): 1-2 answers +0.032% (+0.031%), 3-4 +0.046% (+0.052%), 5-8 +0.075% (+0.085%), 9-15 +0.098% (+0.109%), 16-31 +0.112% (+0.134%), 32-127 +0.109% (+0.142%), 128+ +0.123% (+0.176%). The cost rises with answer count as in SM148; QAT trims buckets from 9 answers up by a fifth to a third.",
+    "Wall time: launched 09:52 Mon 11-23, GPU part done 13:21, about 209 minutes in 6 tickets: trainer smoke 0.3, QAT arm 112.2, control arm 38.8, integrity check 0.2, scoring 55.7 plus a 1.0 retry for the last 2 users. Training speed: QAT 9,993 reviews/s (peak 8.6 GB allocated, 13.0 GB reserved), control 28,883 reviews/s (peak 7.3 GB). Coverage 723 of 723 users per label."
+   ]
+  }
+ },
  {
   "date": "11-23",
   "kind": "gpu-score",
