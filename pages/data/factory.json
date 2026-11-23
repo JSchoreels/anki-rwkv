@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-23T07:56:03+01:00",
- "updated": "2026-11-23 07:56",
- "material": "2527e96a624ada8d",
- "summary": "idle, finished 001502",
+ "generated_at": "2026-11-23T08:46:50+01:00",
+ "updated": "2026-11-23 08:46",
+ "material": "1235e4bab4aad5ea",
+ "summary": "running 001503",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring, show-time inputs for both heads (curve / instant)",
@@ -410,7 +410,23 @@
    }
   ]
  },
- "now": [],
+ "now": [
+  {
+   "what": "Low-rank int8 states (SM148): follow-up of the CPU pointer on low-rank states (SM147), where rank 4 per head cost nothing measurable on 8 users. Post-training rank-r card and note states with int8 factors (one float16 scale per factor vector, shift vectors int8) on the six release-candidate models: rank 4, rank 2 below 16 answers then rank 4, and rank 2, against int8 rows. A card with n answers stores rank min(n, r), which is exact for young cards. Bytes vs int8: rank 4 &minus;74.4% / &minus;52.3% / &minus;51.1%, rank 2 then 4 &minus;81.7% / &minus;66.3% / &minus;64.7%, rank 2 &minus;82.8% / &minus;68.2% / &minus;66.7% (Big / Small / Tiny), against &minus;43.5% / &minus;38.6% / &minus;42.7% for the best tiered formats. The 732 set (723 users) on the GPU with a fused rank-r encode kernel, the 50 long-card users on the CPU with the per-card read-out; also the speed cost per write (CPU scorer: rank 4 at 0.81&times; to 0.88&times; of int8). No retraining.",
+   "id": "SM148, ticket 001503",
+   "kind": "gpu",
+   "decides": "Which rank per size passes the dataset-wide rule (+0.05%; Tiny: within +1.00% of the matching Small at int8), the long-card tolerance and the per-card guard; the go is the smallest-bytes passing label per size",
+   "why": "",
+   "job": "Low-rank int8 states (SM148): coverage, the 5 Big users that ran out of GPU memory (one process per model and label, cap 0.92)",
+   "linked": true,
+   "track": "small model",
+   "ticket": "001503-sm148",
+   "started": "08:46",
+   "elapsed": "0:00",
+   "progress": null,
+   "eta": "~09:26"
+  }
+ ],
  "charts": [
   {
    "title": "Small model, leak-free (SM72s): LogLoss per epoch, 458-user set (lower is better)",
@@ -2737,12 +2753,11 @@
    "what": "Low-rank int8 states (SM148): follow-up of the CPU pointer on low-rank states (SM147), where rank 4 per head cost nothing measurable on 8 users. Post-training rank-r card and note states with int8 factors (one float16 scale per factor vector, shift vectors int8) on the six release-candidate models: rank 4, rank 2 below 16 answers then rank 4, and rank 2, against int8 rows. A card with n answers stores rank min(n, r), which is exact for young cards. Bytes vs int8: rank 4 &minus;74.4% / &minus;52.3% / &minus;51.1%, rank 2 then 4 &minus;81.7% / &minus;66.3% / &minus;64.7%, rank 2 &minus;82.8% / &minus;68.2% / &minus;66.7% (Big / Small / Tiny), against &minus;43.5% / &minus;38.6% / &minus;42.7% for the best tiered formats. The 732 set (723 users) on the GPU with a fused rank-r encode kernel, the 50 long-card users on the CPU with the per-card read-out; also the speed cost per write (CPU scorer: rank 4 at 0.81&times; to 0.88&times; of int8). No retraining.",
    "when": "Started 01:50 Mon 11-23 (relaunch after a memory-guard fix; smoke ticket 001492 OK, Tiny 001493, then Small and Big): GPU about 5.7 h; done about 08:00&ndash;09:30 Mon",
    "decides": "Which rank per size passes the dataset-wide rule (+0.05%; Tiny: within +1.00% of the matching Small at int8), the long-card tolerance and the per-card guard; the go is the smallest-bytes passing label per size",
-   "state": "done",
+   "state": "running",
    "started_at": "2026-11-23T01:07:13+01:00",
-   "ended": "07:55",
-   "exit": 0,
-   "started": "01:07",
-   "ended_at": "2026-11-23T07:55:42+01:00"
+   "started": "08:46",
+   "ticket": "001503-sm148",
+   "ends_at": "2026-11-23T06:52:13+01:00"
   },
   {
    "id": "SM147",
