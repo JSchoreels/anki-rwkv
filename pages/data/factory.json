@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-24T00:46:08+01:00",
- "updated": "2026-11-24 00:46",
- "material": "c4e54dbadc0d45be",
- "summary": "running 001539, finished 001538",
+ "generated_at": "2026-11-24T00:47:09+01:00",
+ "updated": "2026-11-24 00:47",
+ "material": "f42652c2cbfa11f7",
+ "summary": "running 001540, finished 001539",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring, show-time inputs for both heads (curve / instant)",
@@ -413,18 +413,18 @@
  "now": [
   {
    "what": "Smaller shift vectors and factors on T24 states (SM152): on top of the chosen state format (rank 2 below 16 answers then rank 4, int8 factors), this post-training run scores three smaller variants on the six release models on the 732 set (GPU): int4 shift vectors (&minus;84.5% / &minus;70.4% / &minus;69.5% of the int8 state bytes for Big / Small / Tiny), int6 factors (&minus;84.6% / &minus;71.4% / &minus;69.7%), and both (&minus;87.4% / &minus;75.6% / &minus;74.6%, about 28% to 31% fewer bytes than the chosen format), against the user&rsquo;s budgets; the long-card CPU warnings run later.",
-   "id": "SM152, ticket 001539",
+   "id": "SM152, ticket 001540",
    "kind": "gpu",
    "decides": "Whether the state can shrink further than the chosen format within the user&rsquo;s budgets (Big at most +0.15% vs its own int8; Small and Tiny at most +0.5% and +1.0% total vs Big at int8)",
    "why": "",
-   "job": "Smaller shift vectors and factors on T24 states (SM152): scoring tiny (2 models x T24 + int4 shift vectors / int6 factors / both) on e2s-query inputs, the 732 set minus 9 never-fit (723 users) (pass 3, 722 done, cap 0.8)",
+   "job": "Smaller shift vectors and factors on T24 states (SM152): scoring small (2 models x T24 + int4 shift vectors / int6 factors / both) on e2s-query inputs, the 732 set minus 9 never-fit (723 users) (pass 1, 0 done, cap 0.8)",
    "linked": true,
    "track": "small model",
-   "ticket": "001539-sm152",
-   "started": "00:45",
+   "ticket": "001540-sm152",
+   "started": "00:46",
    "elapsed": "0:00",
    "progress": null,
-   "eta": "~01:15"
+   "eta": "~02:26"
   }
  ],
  "charts": [
@@ -597,6 +597,15 @@
  "waiting": [],
  "recent": [
   {
+   "ticket": "001539-sm152",
+   "id": "SM152",
+   "what": "Smaller shift vectors and factors on T24 states (SM152): scoring tiny (2 models x T24 + int4 shift vectors / int6 factors / both) on e2s-query inputs, the 732 set minus 9 never-fit (723 users) (pass 3, 722 done, cap 0.8)",
+   "ended": "00:46",
+   "date": "11-24",
+   "exit": 0,
+   "ran": "0:00"
+  },
+  {
    "ticket": "001538-sm152",
    "id": "SM152",
    "what": "Smaller shift vectors and factors on T24 states (SM152): scoring tiny (2 models x T24 + int4 shift vectors / int6 factors / both) on e2s-query inputs, the 732 set minus 9 never-fit (723 users) (pass 2, 721 done, cap 0.8)",
@@ -640,15 +649,6 @@
    "date": "11-23",
    "exit": 0,
    "ran": "0:03"
-  },
-  {
-   "ticket": "001533-sm150",
-   "id": "SM150",
-   "what": "Rank-1 int8 states (SM150): scoring big (2 models x rank 1 and rank 1-then-2, int8 factors) on e2s-query inputs, the 732 set minus 9 never-fit (723 users) (pass 2, 713 done, cap 0.8)",
-   "ended": "21:29",
-   "date": "11-23",
-   "exit": 0,
-   "ran": "0:02"
   }
  ],
  "plan": [
@@ -2755,8 +2755,8 @@
    "decides": "Whether the state can shrink further than the chosen format within the user&rsquo;s budgets (Big at most +0.15% vs its own int8; Small and Tiny at most +0.5% and +1.0% total vs Big at int8)",
    "state": "running",
    "started_at": "2026-11-23T23:26:00+01:00",
-   "started": "00:45",
-   "ticket": "001539-sm152",
+   "started": "00:46",
+   "ticket": "001540-sm152",
    "ends_at": "2026-11-24T04:26:00+01:00"
   },
   {
