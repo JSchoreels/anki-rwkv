@@ -1,0 +1,588 @@
+{
+ "code_tree": "C:\\Users\\jonat\\workspace\\wt\\sm148",
+ "code_head": "cea0f931460996830736bdaa06e3a7d66418479b",
+ "code_dirty": false,
+ "torch": "2.9.1+cu128",
+ "checks": {
+  "P1_forward_equals_sm148_scorer": {
+   "pass": true,
+   "seconds": 0.1,
+   "detail": {
+    "K16": {
+     "max_abs_diff_vs_scorer": 0.0,
+     "bitwise": true,
+     "codec_active_max_abs_vs_rank16_float": 1.9834967851638794,
+     "final_rank_max": 2
+    },
+    "K32": {
+     "max_abs_diff_vs_scorer": 0.0,
+     "bitwise": true,
+     "codec_active_max_abs_vs_rank16_float": 2.1654434204101562,
+     "final_rank_max": 2
+    },
+    "codec_equals_scorer_parse": {
+     "ours": {
+      "spec": "2",
+      "quant": "q8",
+      "kinds": [
+       "2"
+      ],
+      "edges": [],
+      "shift_bits": 264,
+      "rows_bits": 264
+     },
+     "scorer": {
+      "spec": "2",
+      "quant": "q8",
+      "kinds": [
+       "2"
+      ],
+      "edges": [],
+      "shift_bits": 264,
+      "rows_bits": 264
+     }
+    }
+   }
+  },
+  "P2_ste_gradients": {
+   "pass": true,
+   "seconds": 0.2,
+   "detail": {
+    "K16_zero_start": {
+     "grad_rel_diff_max": 1.901465509490663e-07,
+     "forward_max_abs_diff": 0.0,
+     "final_state_max_abs_diff": 0.0,
+     "finite": true,
+     "nonzero": true
+    },
+    "K16_carried": {
+     "grad_rel_diff_max": 1.9984348398338625e-07,
+     "forward_max_abs_diff": 0.0,
+     "final_state_max_abs_diff": 0.0,
+     "finite": true,
+     "nonzero": true
+    },
+    "K32_zero_start": {
+     "grad_rel_diff_max": 2.0780396425834624e-07,
+     "forward_max_abs_diff": 0.0,
+     "final_state_max_abs_diff": 0.0,
+     "finite": true,
+     "nonzero": true
+    },
+    "K32_carried": {
+     "grad_rel_diff_max": 2.57511430845625e-07,
+     "forward_max_abs_diff": 0.0,
+     "final_state_max_abs_diff": 0.0,
+     "finite": true,
+     "nonzero": true
+    }
+   }
+  },
+  "P3_carried_windows": {
+   "pass": true,
+   "seconds": 0.1,
+   "detail": {
+    "K16": {
+     "out_rel_diff_max": 0.0,
+     "final_rel_diff_max": 0.0
+    },
+    "K32": {
+     "out_rel_diff_max": 0.0,
+     "final_rel_diff_max": 0.0
+    }
+   }
+  },
+  "P4_small_two_head_sm118_updates": {
+   "pass": true,
+   "seconds": 29.2,
+   "detail": {
+    "model": "sm118",
+    "architecture": "w64",
+    "users": [
+     4745,
+     2308
+    ],
+    "chunk_reviews": 256,
+    "checkpoint": "C:\\Users\\jonat\\workspace\\wt\\sm118\\artifacts\\small-model\\sm118-e26-dec2ep32k-t91s2-p2\\expertium\\E89-F65e-F77a\\master.pth",
+    "reviews": {
+     "4745": 636,
+     "2308": 939
+    },
+    "arms": {
+     "control": {
+      "steps": [
+       {
+        "user": 4745,
+        "offset": 0,
+        "reviews": 256,
+        "loss": 1.146355152130127,
+        "grad_norm": 0.056333988904953,
+        "card_note_grads_finite": true,
+        "card_note_grad_abs_sum": 2.574265241622925,
+        "card_note_grad_tensors": 79,
+        "seconds": 1.66
+       },
+       {
+        "user": 4745,
+        "offset": 256,
+        "reviews": 256,
+        "loss": 1.008271336555481,
+        "grad_norm": 0.06518358737230301,
+        "card_note_grads_finite": true,
+        "card_note_grad_abs_sum": 2.7563178539276123,
+        "card_note_grad_tensors": 79,
+        "seconds": 1.97
+       },
+       {
+        "user": 4745,
+        "offset": 512,
+        "reviews": 124,
+        "loss": 0.6827481389045715,
+        "grad_norm": 0.08608341217041016,
+        "card_note_grads_finite": true,
+        "card_note_grad_abs_sum": 2.2869646549224854,
+        "card_note_grad_tensors": 79,
+        "seconds": 1.01
+       },
+       {
+        "user": 2308,
+        "offset": 0,
+        "reviews": 256,
+        "loss": 1.1035208702087402,
+        "grad_norm": 0.1298680305480957,
+        "card_note_grads_finite": true,
+        "card_note_grad_abs_sum": 3.820105791091919,
+        "card_note_grad_tensors": 79,
+        "seconds": 1.5
+       },
+       {
+        "user": 2308,
+        "offset": 256,
+        "reviews": 256,
+        "loss": 1.7357776165008545,
+        "grad_norm": 0.12087734043598175,
+        "card_note_grads_finite": true,
+        "card_note_grad_abs_sum": 2.2194719314575195,
+        "card_note_grad_tensors": 79,
+        "seconds": 1.65
+       },
+       {
+        "user": 2308,
+        "offset": 512,
+        "reviews": 256,
+        "loss": 0.6899308562278748,
+        "grad_norm": 0.33528032898902893,
+        "card_note_grads_finite": true,
+        "card_note_grad_abs_sum": 6.6881279945373535,
+        "card_note_grad_tensors": 79,
+        "seconds": 1.0
+       }
+      ],
+      "weights_finite_after_steps": true,
+      "hook": null,
+      "carry": {
+       "precision": "deploy",
+       "carry": true,
+       "lanes": "strided",
+       "mode": "strided lanes (v2): update u holds window u of every lane; lane starts from zero",
+       "stats": {
+        "users": 2,
+        "updates": 6,
+        "streams_calls": 6,
+        "peak_table_bytes": 2268014
+       }
+      }
+     },
+     "qat": {
+      "steps": [
+       {
+        "user": 4745,
+        "offset": 0,
+        "reviews": 256,
+        "loss": 1.1468994617462158,
+        "grad_norm": 0.05992390960454941,
+        "card_note_grads_finite": true,
+        "card_note_grad_abs_sum": 2.771073579788208,
+        "card_note_grad_tensors": 79,
+        "seconds": 1.68
+       },
+       {
+        "user": 4745,
+        "offset": 256,
+        "reviews": 256,
+        "loss": 1.0106579065322876,
+        "grad_norm": 0.0732216164469719,
+        "card_note_grads_finite": true,
+        "card_note_grad_abs_sum": 2.974588394165039,
+        "card_note_grad_tensors": 79,
+        "seconds": 2.07
+       },
+       {
+        "user": 4745,
+        "offset": 512,
+        "reviews": 124,
+        "loss": 0.6839902997016907,
+        "grad_norm": 0.08133456110954285,
+        "card_note_grads_finite": true,
+        "card_note_grad_abs_sum": 2.3782248497009277,
+        "card_note_grad_tensors": 79,
+        "seconds": 1.04
+       },
+       {
+        "user": 2308,
+        "offset": 0,
+        "reviews": 256,
+        "loss": 1.1032719612121582,
+        "grad_norm": 0.13041336834430695,
+        "card_note_grads_finite": true,
+        "card_note_grad_abs_sum": 3.82185435295105,
+        "card_note_grad_tensors": 79,
+        "seconds": 1.35
+       },
+       {
+        "user": 2308,
+        "offset": 256,
+        "reviews": 256,
+        "loss": 1.7362297773361206,
+        "grad_norm": 0.12322131544351578,
+        "card_note_grads_finite": true,
+        "card_note_grad_abs_sum": 2.2925679683685303,
+        "card_note_grad_tensors": 79,
+        "seconds": 1.63
+       },
+       {
+        "user": 2308,
+        "offset": 512,
+        "reviews": 256,
+        "loss": 0.6901576519012451,
+        "grad_norm": 0.3374795615673065,
+        "card_note_grads_finite": true,
+        "card_note_grad_abs_sum": 6.760159969329834,
+        "card_note_grad_tensors": 79,
+        "seconds": 1.06
+       }
+      ],
+      "weights_finite_after_steps": true,
+      "hook": {
+       "recipe": "lr2q8x8",
+       "codec": "LowRankCodec('2', 'q8')",
+       "fields": {
+        "spec": "2",
+        "quant": "q8",
+        "kinds": [
+         "2"
+        ],
+        "edges": [],
+        "shift_bits": 264
+       },
+       "prototype": "C:\\Users\\jonat\\workspace\\wt\\sm149\\artifacts\\small-model\\sm149\\sm149_qat.py",
+       "prototype_sha256": "df6c629cee0bdc6defa8a98e2f16bf78cdd7ce49f22cb59e585bc55160814c32",
+       "gradient": "straight-through (identity through the codec)",
+       "streams": {
+        "0": {
+         "wkv_layers": 2,
+         "heads": 4,
+         "shift_vectors": 3
+        },
+        "2": {
+         "wkv_layers": 1,
+         "heads": 4,
+         "shift_vectors": 2
+        }
+       }
+      },
+      "carry": {
+       "precision": "deploy",
+       "carry": true,
+       "lanes": "strided",
+       "mode": "strided lanes (v2): update u holds window u of every lane; lane starts from zero",
+       "stats": {
+        "users": 2,
+        "updates": 6,
+        "streams_calls": 6,
+        "peak_table_bytes": 1233774
+       }
+      },
+      "hook_calls": {
+       "window": 38,
+       "carried": 26
+      }
+     }
+    },
+    "first_update_loss_delta_qat_minus_control": 0.0005443096160888672,
+    "seconds_per_update": {
+     "control": 1.4649999999999999,
+     "qat": 1.4716666666666667
+    }
+   }
+  },
+  "P4b_big_two_head_sm91s2_updates": {
+   "pass": true,
+   "seconds": 28.4,
+   "detail": {
+    "model": "sm91s2",
+    "architecture": "fork",
+    "users": [
+     9037,
+     6013
+    ],
+    "chunk_reviews": 256,
+    "checkpoint": "C:\\Users\\jonat\\workspace\\wt\\sm91s2\\artifacts\\small-model\\sm91s2-big-showtime\\expertium\\big-showtime\\master.pth",
+    "reviews": {
+     "9037": 1231,
+     "6013": 1450
+    },
+    "arms": {
+     "control": {
+      "steps": [
+       {
+        "user": 9037,
+        "offset": 0,
+        "reviews": 256,
+        "loss": 0.9079270362854004,
+        "grad_norm": 0.3821660280227661,
+        "card_note_grads_finite": true,
+        "card_note_grad_abs_sum": 42.15267562866211,
+        "card_note_grad_tensors": 144,
+        "seconds": 1.77
+       },
+       {
+        "user": 9037,
+        "offset": 256,
+        "reviews": 256,
+        "loss": 0.6983439326286316,
+        "grad_norm": 0.4949968159198761,
+        "card_note_grads_finite": true,
+        "card_note_grad_abs_sum": 38.43438720703125,
+        "card_note_grad_tensors": 144,
+        "seconds": 2.6
+       },
+       {
+        "user": 9037,
+        "offset": 512,
+        "reviews": 256,
+        "loss": 0.4692629277706146,
+        "grad_norm": 0.5108234286308289,
+        "card_note_grads_finite": true,
+        "card_note_grad_abs_sum": 23.679231643676758,
+        "card_note_grad_tensors": 144,
+        "seconds": 2.35
+       },
+       {
+        "user": 6013,
+        "offset": 0,
+        "reviews": 256,
+        "loss": 0.7704538106918335,
+        "grad_norm": 0.3335829973220825,
+        "card_note_grads_finite": true,
+        "card_note_grad_abs_sum": 44.22256851196289,
+        "card_note_grad_tensors": 144,
+        "seconds": 2.38
+       },
+       {
+        "user": 6013,
+        "offset": 256,
+        "reviews": 256,
+        "loss": 0.1810292899608612,
+        "grad_norm": 0.21305251121520996,
+        "card_note_grads_finite": true,
+        "card_note_grad_abs_sum": 7.097086429595947,
+        "card_note_grad_tensors": 144,
+        "seconds": 2.23
+       },
+       {
+        "user": 6013,
+        "offset": 512,
+        "reviews": 256,
+        "loss": 0.13908082246780396,
+        "grad_norm": 0.14993299543857574,
+        "card_note_grads_finite": true,
+        "card_note_grad_abs_sum": 6.821584701538086,
+        "card_note_grad_tensors": 144,
+        "seconds": 2.08
+       }
+      ],
+      "weights_finite_after_steps": true,
+      "hook": null,
+      "carry": {
+       "precision": "deploy",
+       "carry": true,
+       "lanes": "strided",
+       "table_gpu_mib": 768,
+       "mode": "strided lanes (v2): update u holds window u of every lane; lane starts from zero",
+       "stats": {
+        "users": 2,
+        "updates": 6,
+        "streams_calls": 6,
+        "peak_table_bytes": 7393255,
+        "host_table_users": 0
+       }
+      }
+     },
+     "qat": {
+      "steps": [
+       {
+        "user": 9037,
+        "offset": 0,
+        "reviews": 256,
+        "loss": 0.9069835543632507,
+        "grad_norm": 0.3804282546043396,
+        "card_note_grads_finite": true,
+        "card_note_grad_abs_sum": 42.07609939575195,
+        "card_note_grad_tensors": 144,
+        "seconds": 2.0
+       },
+       {
+        "user": 9037,
+        "offset": 256,
+        "reviews": 256,
+        "loss": 0.6969950199127197,
+        "grad_norm": 0.49832409620285034,
+        "card_note_grads_finite": true,
+        "card_note_grad_abs_sum": 40.37191390991211,
+        "card_note_grad_tensors": 144,
+        "seconds": 2.53
+       },
+       {
+        "user": 9037,
+        "offset": 512,
+        "reviews": 256,
+        "loss": 0.47055768966674805,
+        "grad_norm": 0.5083274841308594,
+        "card_note_grads_finite": true,
+        "card_note_grad_abs_sum": 24.02423858642578,
+        "card_note_grad_tensors": 144,
+        "seconds": 2.34
+       },
+       {
+        "user": 6013,
+        "offset": 0,
+        "reviews": 256,
+        "loss": 0.7754168510437012,
+        "grad_norm": 0.3481716811656952,
+        "card_note_grads_finite": true,
+        "card_note_grad_abs_sum": 44.879703521728516,
+        "card_note_grad_tensors": 144,
+        "seconds": 2.45
+       },
+       {
+        "user": 6013,
+        "offset": 256,
+        "reviews": 256,
+        "loss": 0.181013822555542,
+        "grad_norm": 0.21309399604797363,
+        "card_note_grads_finite": true,
+        "card_note_grad_abs_sum": 7.1081414222717285,
+        "card_note_grad_tensors": 144,
+        "seconds": 2.16
+       },
+       {
+        "user": 6013,
+        "offset": 512,
+        "reviews": 256,
+        "loss": 0.13950952887535095,
+        "grad_norm": 0.1448892205953598,
+        "card_note_grads_finite": true,
+        "card_note_grad_abs_sum": 7.336073875427246,
+        "card_note_grad_tensors": 144,
+        "seconds": 2.38
+       }
+      ],
+      "weights_finite_after_steps": true,
+      "hook": {
+       "recipe": "lr2q8x8",
+       "codec": "LowRankCodec('2', 'q8')",
+       "fields": {
+        "spec": "2",
+        "quant": "q8",
+        "kinds": [
+         "2"
+        ],
+        "edges": [],
+        "shift_bits": 264
+       },
+       "prototype": "C:\\Users\\jonat\\workspace\\wt\\sm149\\artifacts\\small-model\\sm149\\sm149_qat.py",
+       "prototype_sha256": "df6c629cee0bdc6defa8a98e2f16bf78cdd7ce49f22cb59e585bc55160814c32",
+       "gradient": "straight-through (identity through the codec)",
+       "streams": {
+        "0": {
+         "wkv_layers": 3,
+         "heads": 4,
+         "shift_vectors": 6
+        },
+        "2": {
+         "wkv_layers": 2,
+         "heads": 4,
+         "shift_vectors": 4
+        }
+       }
+      },
+      "carry": {
+       "precision": "deploy",
+       "carry": true,
+       "lanes": "strided",
+       "table_gpu_mib": 768,
+       "mode": "strided lanes (v2): update u holds window u of every lane; lane starts from zero",
+       "stats": {
+        "users": 2,
+        "updates": 6,
+        "streams_calls": 6,
+        "peak_table_bytes": 2788243,
+        "host_table_users": 0
+       }
+      },
+      "hook_calls": {
+       "window": 58,
+       "carried": 33
+      }
+     }
+    },
+    "first_update_loss_delta_qat_minus_control": -0.0009434819221496582,
+    "seconds_per_update": {
+     "control": 2.235,
+     "qat": 2.31
+    }
+   }
+  },
+  "P5_unhooked_is_stock": {
+   "pass": true,
+   "seconds": 8.4,
+   "detail": {
+    "user": 4745,
+    "digests": [
+     "1f61e8f6f1c4cbf073f4400e368a76523af831bf4f025dec7e60442f2150d36c",
+     "1f61e8f6f1c4cbf073f4400e368a76523af831bf4f025dec7e60442f2150d36c"
+    ]
+   }
+  },
+  "P6_cpu_step_cost": {
+   "pass": true,
+   "seconds": 0.5,
+   "detail": [
+    {
+     "rows": 512,
+     "steps": 16,
+     "qat_forward_s": 0.067,
+     "qat_backward_s": 0.039,
+     "plain_reference_fwd_bwd_s": 0.054
+    },
+    {
+     "rows": 2048,
+     "steps": 4,
+     "qat_forward_s": 0.058,
+     "qat_backward_s": 0.037,
+     "plain_reference_fwd_bwd_s": 0.045
+    },
+    {
+     "rows": 128,
+     "steps": 64,
+     "qat_forward_s": 0.088,
+     "qat_backward_s": 0.043,
+     "plain_reference_fwd_bwd_s": 0.063
+    }
+   ]
+  }
+ },
+ "all_ok": true,
+ "seconds": 66.9
+}

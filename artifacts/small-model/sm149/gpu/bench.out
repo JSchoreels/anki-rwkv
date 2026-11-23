@@ -1,0 +1,30 @@
+[queue] 001505-sm149 registered for gpu: SM149 rank-2 QAT GPU micro-benchmark (design only, <= 10 min)
+[queue] 001505-sm149 started after 0:00:00; holds gpu
+{
+ "checks": {
+  "K16": {
+   "cuda_vs_cpu_forward_max_abs": 0.03323468565940857,
+   "kernel_vs_torch_backward_rel": 2.1958052798254357e-07
+  },
+  "K32": {
+   "cuda_vs_cpu_forward_max_abs": 0.02123868465423584,
+   "kernel_vs_torch_backward_rel": 0.0
+  }
+ },
+ "shapes": {},
+ "code_head": "cea0f931460996830736bdaa06e3a7d66418479b",
+ "updates_measured": 12,
+ "mean_seconds_per_32k_update_card_plus_note_one_layer_each": {
+  "K16_plain_s_per_layer_pair": 0.012416666666666666,
+  "K16_qat_s_per_layer_pair": 0.46241666666666664,
+  "K32_plain_s_per_layer_pair": 0.043666666666666666,
+  "K32_qat_s_per_layer_pair": 0.8514166666666667
+ },
+ "extra_seconds_per_update": {
+  "small (2 card + 1 note)": 0.675,
+  "tiny (1 card + 1 note)": 0.45,
+  "big (3 card + 2 note, 16k reviews)": 1.01
+ },
+ "peak_allocated_mib": 2800.630859375
+}
+[queue] 001505-sm149 finished with exit code 0 after 0:00:36; released gpu

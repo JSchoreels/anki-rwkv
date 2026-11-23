@@ -1,0 +1,57 @@
+[queue] 001511-sm149 registered for gpu: SM149 real-data throughput, Small two-head (SM118) QAT arm, ~4 min (design only)
+[queue] 001511-sm149 started after 0:00:00; holds gpu
+expertium/E89-F65e-F77a: 794 users, 67,256,032 reviews
+Monitoring GPU power; leaving the 400 W cap unchanged
+[....................]   0.1%   1/794 users  0.07M |  11,834 rev/s avg  11,834 now |     6s ETA 5677s Traceback (most recent call last):
+  File "C:\Users\jonat\workspace\wt\sm149-run\scripts\gpu_r01_training.py", line 758, in run_case
+    catch_up.loss(active, batch, report["review_presentations"],
+  File "C:\Users\jonat\workspace\wt\sm149-run\scripts\expertium_options.py", line 437, in loss
+    return self.loss(model, batch, reviews_done, key, labels)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\jonat\workspace\wt\sm149-run\scripts\expertium_options.py", line 441, in loss
+    return model.get_loss(batch, kd_mix=self.teacher.targets(batch, decaying, key, labels))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\jonat\workspace\wt\sm149-run\expertium\model\variant_model.py", line 675, in get_loss
+    return self._get_loss_variant(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: The following operation failed in the TorchScript interpreter.
+Traceback of TorchScript (most recent call last):
+  File "C:\Users\jonat\workspace\wt\sm149-run\expertium\model\variant_model.py", line 503, in _get_loss_variant
+        kd_mix: Optional[Tuple[torch.Tensor, torch.Tensor, float]] = None,
+    ):
+        out_ahead_logits, out_w, out_w_log_p, out_p_logits, out_s_raw, out_d_raw = self.forward_batch_variant(
+                                                                                   ~~~~~~~~~~~~~~~~~~~~~~~~~~ <--- HERE
+            batch_start,
+            batch_sub_gather,
+  File "C:\Users\jonat\workspace\wt\sm149-run\expertium\model\variant_model.py", line 447, in forward_batch_variant
+        assert len(batch_sub_gather) == len(self.rwkv_modules)
+        if self.interleave_on:
+            x = self._interleaved_streams(x, batch_sub_gather, batch_sub_gather_lens, batch_time_shift_selects,
+                ~~~~~~~~~~~~~~~~~~~~~~~~~ <--- HERE
+                                          batch_skips)
+        else:
+RuntimeError: torch.OutOfMemoryError: CUDA out of memory. Tried to allocate 8.38 GiB. GPU 0 has a total capacity of 15.89 GiB of which 4.89 GiB is free. 12.72 GiB allowed; Of the allocated memory 3.92 GiB is allocated by PyTorch, and 5.66 GiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)
+
+At:
+  C:\Users\jonat\workspace\wt\sm149\artifacts\small-model\sm149\sm149_qat.py(119): carried_left
+  C:\Users\jonat\workspace\wt\sm149\artifacts\small-model\sm149\sm149_qat.py(142): forward
+  C:\Users\jonat\workspace\anki-rwkv\.venv\Lib\site-packages\torch\autograd\function.py(581): apply
+  C:\Users\jonat\workspace\wt\sm149\artifacts\small-model\sm149\sm149_qat.py(199): apply
+  C:\Users\jonat\workspace\wt\sm149-run\expertium\model\state_vq_hooks.py(198): vq_wkv_state
+  C:\Users\jonat\workspace\wt\sm149-run\scripts\state_carry_train.py(500): carry_layer
+  C:\Users\jonat\workspace\wt\sm149-run\scripts\state_carry_train.py(719): streams
+  C:\Users\jonat\workspace\wt\sm149-run\expertium\model\variant_model.py(361): _interleaved_streams
+  C:\Users\jonat\workspace\anki-rwkv\.venv\Lib\site-packages\torch\jit\_recursive.py(1056): lazy_binding_method
+  C:\Users\jonat\workspace\wt\sm149-run\expertium\model\variant_model.py(675): get_loss
+  C:\Users\jonat\workspace\wt\sm149-run\scripts\expertium_options.py(441): loss
+  C:\Users\jonat\workspace\wt\sm149-run\scripts\expertium_options.py(437): loss
+  C:\Users\jonat\workspace\wt\sm149-run\scripts\gpu_r01_training.py(758): run_case
+  C:\Users\jonat\workspace\wt\sm149-run\scripts\expertium_decay.py(262): run
+  C:\Users\jonat\workspace\wt\sm149-run\scripts\expertium_decay.py(367): main
+  C:\Users\jonat\workspace\wt\sm149\artifacts\small-model\sm149\sm149_run.py(52): <module>
+
+
+[sm149] low-rank hook calls: {"window": 67, "carried": 37}
+[decay] STOP requested for sm149-timing-qat: snapshot at the next user boundary
+arm qat exit 1
+[queue] 001511-sm149 finished with exit code 0 after 0:03:22; released gpu

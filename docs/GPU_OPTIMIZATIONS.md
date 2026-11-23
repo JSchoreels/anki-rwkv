@@ -357,3 +357,19 @@ Measured (branch `sm41`, commit `f75ca975`, [note](../artifacts/small-model/sm41
 ## 2026-11-07: per-review dump scoring of fast-recall prediction (SM94)
 
 Measured, not optimized (branch `sm94`, commit `edcfee21`, [design](https://github.com/JSchoreels/anki-rwkv/blob/sm94/artifacts/small-model/sm94/DESIGN.md)). A scoring pass that writes every later-day review's grade probabilities and per-grade answer-time predictions to files runs at 13,558 scored reviews/s at 50 users, about half the earlier time scoring without per-review output (about 26k/s). Untested causes / ideas: the per-review file writes on the main thread (write from a background thread or buffer per user into one array per column), the launcher's below-normal priority (the queue already serializes the GPU; normal priority for a scorer alone on the GPU).
+
+## 2026-11-23: rank-2 low-rank state QAT step loop (SM149)
+
+Measured on the design's throughput tickets (branch `sm149`, `artifacts/small-model/sm149/design.md`, prototype
+`sm149_qat.py`): the rank-2 low-rank state cool-down (SM149) runs the card and note recurrences of the training model
+as a per-step torch loop (float step + the fused rank-r encode kernel of the low-rank int8 states experiment (SM148) per step, `torch.nonzero` row selection,
+straight-through backward: the fused K = 16 backward kernel of the state-VQ QAT (SM32b), the torch `ste_backward` loop for K = 32). Small
+two-head (SM118), release options, 32k windows: control 29,369 reviews/s (GPU time), QAT 9,344 reviews/s on the same
+first 80 updates (3.08 x the control's GPU time); about 11.3 GB of 13.0 GB in use. Untested ideas, status pending, values `—`:
+
+| ID | Idea | Status | Measured | Next step |
+|---|---|---|---|---|
+| LR01 | Sync-free QAT step: encode every row of the step (skipped rows keep their state by `torch.where`) instead of `torch.nonzero` + index, so the host never waits per step (GPU utilisation 19-79% in the measurement) | Proposed 2026-11-23, pending | — | Bitwise forward check vs the current loop on CPU, then the 3-minute throughput ticket |
+| LR02 | One fused forward kernel per split for the low-rank codec (all steps in one launch, as the fused step of the state-VQ QAT (SM32b, track S09) did for the VQ codec) | Proposed, pending | — | Only if LR01 leaves the QAT arm above 2x the control |
+| LR03 | Written-steps-only state record for the STE backward (31% of the row steps in the sample of the state-VQ QAT (SM32b); the backward gathers each row's last write) | Proposed, pending; needed for Big if its QAT peak exceeds 12.5 GB | — | CPU proof: gradients equal to the full record |
+| LR04 | K = 32 fused STE backward kernel for Big (today the torch `ste_backward` loop) | Proposed, pending | — | Compile `rwkv7_wkv_backward_kernel<1, float>` for K = 32 along a stored trajectory; compare with `ste_backward` |
