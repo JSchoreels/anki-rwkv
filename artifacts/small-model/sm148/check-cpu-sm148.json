@@ -1,0 +1,121 @@
+{
+ "ok": true,
+ "checks": {
+  "K1 bytes (sm148_bytes.py)": true,
+  "K2 state_lowrank selftests (SM147, SM148 on the CPU)": true,
+  "K3 a row for every (user, model, label)": true,
+  "K3 every row finite": true,
+  "K3 U8 == REF in every metric field": true,
+  "K3 REF == SM145's committed CPU smoke rows in every metric field": true,
+  "K3 F4X0 (factored solve) == SM147's lr4 (float64 SVD) within 2e-05 per user and head": true,
+  "K3 Q4, T24, Q2 differ from REF on every (user, model)": true,
+  "K3 T24 differs from Q4 on every (user, model)": true,
+  "K3 T24 differs from Q2 on at least one user per model": true,
+  "K5 a dump for every (user, model, dumped label)": true,
+  "K5 dumped reviews per bucket == the rows' all-scope counts": true,
+  "K5 same reviews in every label's dump": true,
+  "K5 |dR| U8 vs REF == 0 exactly": true,
+  "K5 |dR| Q4 vs REF > 0 somewhere": true,
+  "K5 sm148_dr.py aggregates the smoke dumps (finite, complete)": true
+ },
+ "info": {
+  "rows": 144,
+  "u8": [],
+  "sm145": [],
+  "f4x0": [],
+  "differ_ref": [],
+  "t24_q4": [],
+  "finite": [],
+  "missing": [],
+  "f4x0_vs_lr4_max_abs_logloss": 0.0,
+  "cpu_review_evals_per_second": {
+   "sm113-inst-e35st-st-dec2ep32k-t99 REF": 1414,
+   "sm113-inst-e35st-st-dec2ep32k-t99 Q4": 1274,
+   "sm113-inst-e35st-st-dec2ep32k-t99 T24": 1258,
+   "sm113-inst-e35st-st-dec2ep32k-t99 Q2": 1332,
+   "sm113-inst-e35st-st-dec2ep32k-t99 U8": 1478,
+   "sm113-inst-e35st-st-dec2ep32k-t99 F4": 1279,
+   "sm113-inst-e35st-st-dec2ep32k-t99 F4X0": 1298,
+   "sm113-inst-e35st-st-dec2ep32k-t99 LR4": 1032,
+   "sm118-e26-dec2ep32k-t91s2 REF": 1430,
+   "sm118-e26-dec2ep32k-t91s2 Q4": 1261,
+   "sm118-e26-dec2ep32k-t91s2 T24": 1269,
+   "sm118-e26-dec2ep32k-t91s2 Q2": 1300,
+   "sm118-e26-dec2ep32k-t91s2 U8": 1426,
+   "sm118-e26-dec2ep32k-t91s2 F4": 1321,
+   "sm118-e26-dec2ep32k-t91s2 F4X0": 1297,
+   "sm118-e26-dec2ep32k-t91s2 LR4": 1028,
+   "sm130-io-dec2ep32k-t99 REF": 3372,
+   "sm130-io-dec2ep32k-t99 Q4": 2842,
+   "sm130-io-dec2ep32k-t99 T24": 2915,
+   "sm130-io-dec2ep32k-t99 Q2": 3053,
+   "sm130-io-dec2ep32k-t99 U8": 3375,
+   "sm130-io-dec2ep32k-t99 F4": 2938,
+   "sm130-io-dec2ep32k-t99 F4X0": 3021,
+   "sm130-io-dec2ep32k-t99 LR4": 2249,
+   "sm130-th-dec2ep32k-t91s2 REF": 3497,
+   "sm130-th-dec2ep32k-t91s2 Q4": 2824,
+   "sm130-th-dec2ep32k-t91s2 T24": 2982,
+   "sm130-th-dec2ep32k-t91s2 Q2": 3067,
+   "sm130-th-dec2ep32k-t91s2 U8": 3451,
+   "sm130-th-dec2ep32k-t91s2 F4": 2807,
+   "sm130-th-dec2ep32k-t91s2 F4X0": 2970,
+   "sm130-th-dec2ep32k-t91s2 LR4": 2143,
+   "sm91s2-big-showtime REF": 910,
+   "sm91s2-big-showtime Q4": 776,
+   "sm91s2-big-showtime T24": 783,
+   "sm91s2-big-showtime Q2": 802,
+   "sm91s2-big-showtime U8": 944,
+   "sm91s2-big-showtime F4": 801,
+   "sm91s2-big-showtime F4X0": 792,
+   "sm91s2-big-showtime LR4": 358,
+   "sm99-big-inst-e2 REF": 890,
+   "sm99-big-inst-e2 Q4": 783,
+   "sm99-big-inst-e2 T24": 779,
+   "sm99-big-inst-e2 Q2": 794,
+   "sm99-big-inst-e2 U8": 938,
+   "sm99-big-inst-e2 F4": 802,
+   "sm99-big-inst-e2 F4X0": 811,
+   "sm99-big-inst-e2 LR4": 361
+  },
+  "k2": {
+   "K16_trunc_rel_err_max": 6.36205664896589e-06,
+   "K16_young_exact_rel_err_max": 9.070166129276913e-07,
+   "K32_trunc_rel_err_max": 8.62586098327698e-06,
+   "K32_young_exact_rel_err_max": 9.449376534576004e-07,
+   "int8_roundtrip": true,
+   "tiers": true
+  },
+  "k5": {
+   "files": 90,
+   "missing": [],
+   "count_bad": [],
+   "keys_bad": [],
+   "dr_stdout": "[sm145-dr] finite, complete; largest |dR| 0.1145; -> C:\\Users\\jonat\\workspace\\wt\\sm148\\artifacts\\small-model\\sm148\\cpu\\smoke-dr.json\n",
+   "dr_stderr": ""
+  },
+  "per_write_microseconds_cpu_1_thread (report only)": {
+   "K16 N256": {
+    "REF int8 rows": 1.2,
+    "rank 4 int8 factors": 7.33,
+    "rank 2 int8 factors": 4.85
+   },
+   "K16 N1": {
+    "REF int8 rows": 6.59,
+    "rank 4 int8 factors": 72.39,
+    "rank 2 int8 factors": 67.37
+   },
+   "K32 N256": {
+    "REF int8 rows": 1.46,
+    "rank 4 int8 factors": 11.58,
+    "rank 2 int8 factors": 8.55
+   },
+   "K32 N1": {
+    "REF int8 rows": 7.5,
+    "rank 4 int8 factors": 74.7,
+    "rank 2 int8 factors": 70.83
+   }
+  }
+ },
+ "seconds": 4.9
+}

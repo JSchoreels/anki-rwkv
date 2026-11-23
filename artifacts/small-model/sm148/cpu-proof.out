@@ -1,0 +1,19 @@
+state_lowrank selftest OK
+state_lowrank SM148 selftest OK {'K16_trunc_rel_err_max': 6.36205664896589e-06, 'K16_young_exact_rel_err_max': 9.070166129276913e-07, 'K32_trunc_rel_err_max': 8.62586098327698e-06, 'K32_young_exact_rel_err_max': 9.449376534576004e-07, 'int8_roundtrip': True, 'tiers': True}
+  OK  K1 bytes (sm148_bytes.py)
+  OK  K2 state_lowrank selftests (SM147, SM148 on the CPU)
+  OK  K3 a row for every (user, model, label)
+  OK  K3 every row finite
+  OK  K3 U8 == REF in every metric field
+  OK  K3 REF == SM145's committed CPU smoke rows in every metric field
+  OK  K3 F4X0 (factored solve) == SM147's lr4 (float64 SVD) within 2e-05 per user and head
+  OK  K3 Q4, T24, Q2 differ from REF on every (user, model)
+  OK  K3 T24 differs from Q4 on every (user, model)
+  OK  K3 T24 differs from Q2 on at least one user per model
+  OK  K5 a dump for every (user, model, dumped label)
+  OK  K5 dumped reviews per bucket == the rows' all-scope counts
+  OK  K5 same reviews in every label's dump
+  OK  K5 |dR| U8 vs REF == 0 exactly
+  OK  K5 |dR| Q4 vs REF > 0 somewhere
+  OK  K5 sm148_dr.py aggregates the smoke dumps (finite, complete)
+[sm148-check] CPU proofs ALL OK (5 s)
