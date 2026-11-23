@@ -377,7 +377,7 @@ def parse_variant(name):
     if scheme is not None and lowrank is not None:
         if isinstance(lowrank, state_lowrank.LowRankCodec):   # SM148: shift vectors and the R tier in REF's formats
             ref = parse_variant(weights + "+s8hx8")[1]
-            lowrank.rows_bits, lowrank.shift_bits = ref.wkv_bits, ref.shift_bits
+            lowrank.set_ref(ref.wkv_bits, ref.shift_bits)   # SM152: x4 = int4 shift vectors
         return scheme, lowrank
     import re
     from scripts.small_model_wkv import F16_SCALE, HEAD_SCALE

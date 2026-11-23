@@ -1,0 +1,444 @@
+{
+ "note": "aggregates only; bytes per answered card / note with answers, 723 fit users of the 732 set",
+ "layout": "fork compact module state, bit-packed codes; vector = float16 scale + ceil(n bits / 8) bytes; +1 rank byte for the low-rank labels",
+ "labels": {
+  "REF": {
+   "tiers": null,
+   "factor_bits": 8,
+   "shift_bits": 8
+  },
+  "T24": {
+   "tiers": [
+    [
+     1,
+     2
+    ],
+    [
+     16,
+     4
+    ]
+   ],
+   "factor_bits": 8,
+   "shift_bits": 8
+  },
+  "S4": {
+   "tiers": [
+    [
+     1,
+     2
+    ],
+    [
+     16,
+     4
+    ]
+   ],
+   "factor_bits": 8,
+   "shift_bits": 4
+  },
+  "F6": {
+   "tiers": [
+    [
+     1,
+     2
+    ],
+    [
+     16,
+     4
+    ]
+   ],
+   "factor_bits": 6,
+   "shift_bits": 8
+  },
+  "F6S4": {
+   "tiers": [
+    [
+     1,
+     2
+    ],
+    [
+     16,
+     4
+    ]
+   ],
+   "factor_bits": 6,
+   "shift_bits": 4
+  },
+  "Q2": {
+   "tiers": [
+    [
+     1,
+     2
+    ]
+   ],
+   "factor_bits": 8,
+   "shift_bits": 8
+  }
+ },
+ "shares": {
+  "card": {
+   "1": 0.09761939800235882,
+   "2": 0.13116167386745115,
+   "3": 0.12575860023985774,
+   "4-15": 0.5657210717426941,
+   "16-127": 0.07937958360447295,
+   "128+": 0.00035967254316515707
+  },
+  "note": {
+   "1": 0.0940230060147832,
+   "2": 0.12754958186527854,
+   "3": 0.12044927420541951,
+   "4-15": 0.551291168089499,
+   "16-127": 0.10591251064652507,
+   "128+": 0.0007744591784947241
+  }
+ },
+ "sizes": {
+  "Big": {
+   "REF": {
+    "card_mean": 13891.0,
+    "note_mean": 9267.0,
+    "card_parts_mean": {
+     "header": 55.0,
+     "shifts": 780.0,
+     "wkv": 13056.0
+    },
+    "note_parts_mean": {
+     "header": 43.0,
+     "shifts": 520.0,
+     "wkv": 8704.0
+    },
+    "total": 135852283959,
+    "vs_int8_pct": 0.0,
+    "vs_T24_pct": 447.1
+   },
+   "T24": {
+    "card_mean": 2518.5,
+    "note_mean": 1716.9,
+    "card_parts_mean": {
+     "header": 56.0,
+     "shifts": 780.0,
+     "wkv": 1682.5
+    },
+    "note_parts_mean": {
+     "header": 44.0,
+     "shifts": 520.0,
+     "wkv": 1152.9
+    },
+    "total": 24831362004,
+    "vs_int8_pct": -81.72,
+    "vs_T24_pct": 0.0
+   },
+   "S4": {
+    "card_mean": 2134.5,
+    "note_mean": 1460.9,
+    "card_parts_mean": {
+     "header": 56.0,
+     "shifts": 396.0,
+     "wkv": 1682.5
+    },
+    "note_parts_mean": {
+     "header": 44.0,
+     "shifts": 264.0,
+     "wkv": 1152.9
+    },
+    "total": 21076845140,
+    "vs_int8_pct": -84.49,
+    "vs_T24_pct": -15.12
+   },
+   "F6": {
+    "card_mean": 2122.6,
+    "note_mean": 1445.6,
+    "card_parts_mean": {
+     "header": 56.0,
+     "shifts": 780.0,
+     "wkv": 1286.6
+    },
+    "note_parts_mean": {
+     "header": 44.0,
+     "shifts": 520.0,
+     "wkv": 881.6
+    },
+    "total": 20920525908,
+    "vs_int8_pct": -84.6,
+    "vs_T24_pct": -15.75
+   },
+   "F6S4": {
+    "card_mean": 1738.6,
+    "note_mean": 1189.6,
+    "card_parts_mean": {
+     "header": 56.0,
+     "shifts": 396.0,
+     "wkv": 1286.6
+    },
+    "note_parts_mean": {
+     "header": 44.0,
+     "shifts": 264.0,
+     "wkv": 881.6
+    },
+    "total": 17166009044,
+    "vs_int8_pct": -87.36,
+    "vs_T24_pct": -30.87
+   },
+   "Q2": {
+    "card_mean": 2388.3,
+    "note_mean": 1600.9,
+    "card_parts_mean": {
+     "header": 56.0,
+     "shifts": 780.0,
+     "wkv": 1552.3
+    },
+    "note_parts_mean": {
+     "header": 44.0,
+     "shifts": 520.0,
+     "wkv": 1036.9
+    },
+    "total": 23398849524,
+    "vs_int8_pct": -82.78,
+    "vs_T24_pct": -5.77
+   }
+  },
+  "Small": {
+   "REF": {
+    "card_mean": 2545.0,
+    "note_mean": 1315.0,
+    "card_parts_mean": {
+     "header": 43.0,
+     "shifts": 198.0,
+     "wkv": 2304.0
+    },
+    "note_parts_mean": {
+     "header": 31.0,
+     "shifts": 132.0,
+     "wkv": 1152.0
+    },
+    "total": 22798835605,
+    "vs_int8_pct": 0.0,
+    "vs_T24_pct": 196.42
+   },
+   "T24": {
+    "card_mean": 835.8,
+    "note_mean": 469.2,
+    "card_parts_mean": {
+     "header": 44.0,
+     "shifts": 198.0,
+     "wkv": 593.8
+    },
+    "note_parts_mean": {
+     "header": 32.0,
+     "shifts": 132.0,
+     "wkv": 305.2
+    },
+    "total": 7691316626,
+    "vs_int8_pct": -66.26,
+    "vs_T24_pct": 0.0
+   },
+   "S4": {
+    "card_mean": 739.8,
+    "note_mean": 405.2,
+    "card_parts_mean": {
+     "header": 44.0,
+     "shifts": 102.0,
+     "wkv": 593.8
+    },
+    "note_parts_mean": {
+     "header": 32.0,
+     "shifts": 68.0,
+     "wkv": 305.2
+    },
+    "total": 6752687410,
+    "vs_int8_pct": -70.38,
+    "vs_T24_pct": -12.2
+   },
+   "F6": {
+    "card_mean": 703.9,
+    "note_mean": 401.4,
+    "card_parts_mean": {
+     "header": 44.0,
+     "shifts": 198.0,
+     "wkv": 461.9
+    },
+    "note_parts_mean": {
+     "header": 32.0,
+     "shifts": 132.0,
+     "wkv": 237.4
+    },
+    "total": 6511178002,
+    "vs_int8_pct": -71.44,
+    "vs_T24_pct": -15.34
+   },
+   "F6S4": {
+    "card_mean": 607.9,
+    "note_mean": 337.4,
+    "card_parts_mean": {
+     "header": 44.0,
+     "shifts": 102.0,
+     "wkv": 461.9
+    },
+    "note_parts_mean": {
+     "header": 32.0,
+     "shifts": 68.0,
+     "wkv": 237.4
+    },
+    "total": 5572548786,
+    "vs_int8_pct": -75.56,
+    "vs_T24_pct": -27.55
+   },
+   "Q2": {
+    "card_mean": 789.9,
+    "note_mean": 438.5,
+    "card_parts_mean": {
+     "header": 44.0,
+     "shifts": 198.0,
+     "wkv": 547.9
+    },
+    "note_parts_mean": {
+     "header": 32.0,
+     "shifts": 132.0,
+     "wkv": 274.5
+    },
+    "total": 7241664242,
+    "vs_int8_pct": -68.24,
+    "vs_T24_pct": -5.85
+   }
+  },
+  "Tiny": {
+   "REF": {
+    "card_mean": 1315.0,
+    "note_mean": 1315.0,
+    "card_parts_mean": {
+     "header": 31.0,
+     "shifts": 132.0,
+     "wkv": 1152.0
+    },
+    "note_parts_mean": {
+     "header": 31.0,
+     "shifts": 132.0,
+     "wkv": 1152.0
+    },
+    "total": 15251387095,
+    "vs_int8_pct": 0.0,
+    "vs_T24_pct": 182.91
+   },
+   "T24": {
+    "card_mean": 460.9,
+    "note_mean": 469.2,
+    "card_parts_mean": {
+     "header": 32.0,
+     "shifts": 132.0,
+     "wkv": 296.9
+    },
+    "note_parts_mean": {
+     "header": 32.0,
+     "shifts": 132.0,
+     "wkv": 305.2
+    },
+    "total": 5390831540,
+    "vs_int8_pct": -64.65,
+    "vs_T24_pct": 0.0
+   },
+   "S4": {
+    "card_mean": 396.9,
+    "note_mean": 405.2,
+    "card_parts_mean": {
+     "header": 32.0,
+     "shifts": 68.0,
+     "wkv": 296.9
+    },
+    "note_parts_mean": {
+     "header": 32.0,
+     "shifts": 68.0,
+     "wkv": 305.2
+    },
+    "total": 4648558708,
+    "vs_int8_pct": -69.52,
+    "vs_T24_pct": -13.77
+   },
+   "F6": {
+    "card_mean": 394.9,
+    "note_mean": 401.4,
+    "card_parts_mean": {
+     "header": 32.0,
+     "shifts": 132.0,
+     "wkv": 230.9
+    },
+    "note_parts_mean": {
+     "header": 32.0,
+     "shifts": 132.0,
+     "wkv": 237.4
+    },
+    "total": 4615552116,
+    "vs_int8_pct": -69.74,
+    "vs_T24_pct": -14.38
+   },
+   "F6S4": {
+    "card_mean": 330.9,
+    "note_mean": 337.4,
+    "card_parts_mean": {
+     "header": 32.0,
+     "shifts": 68.0,
+     "wkv": 230.9
+    },
+    "note_parts_mean": {
+     "header": 32.0,
+     "shifts": 68.0,
+     "wkv": 237.4
+    },
+    "total": 3873279284,
+    "vs_int8_pct": -74.6,
+    "vs_T24_pct": -28.15
+   },
+   "Q2": {
+    "card_mean": 437.9,
+    "note_mean": 438.5,
+    "card_parts_mean": {
+     "header": 32.0,
+     "shifts": 132.0,
+     "wkv": 273.9
+    },
+    "note_parts_mean": {
+     "header": 32.0,
+     "shifts": 132.0,
+     "wkv": 274.5
+    },
+    "total": 5082094964,
+    "vs_int8_pct": -66.68,
+    "vs_T24_pct": -5.73
+   }
+  }
+ },
+ "order": {
+  "Big": [
+   "F6S4",
+   "F6",
+   "S4",
+   "T24"
+  ],
+  "Small": [
+   "F6S4",
+   "F6",
+   "S4",
+   "T24"
+  ],
+  "Tiny": [
+   "F6S4",
+   "F6",
+   "S4",
+   "T24"
+  ]
+ },
+ "roundtrip": {
+  "int8 n16": 16,
+  "int8 n32": 32,
+  "int8 n64": 64,
+  "int8 n128": 128,
+  "int6 n16": 12,
+  "int6 n32": 24,
+  "int6 n64": 48,
+  "int6 n128": 96,
+  "int4 n16": 8,
+  "int4 n32": 16,
+  "int4 n64": 32,
+  "int4 n128": 64,
+  "decode_equals_codec": true
+ }
+}

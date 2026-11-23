@@ -289,7 +289,11 @@ def selftest():
 # q = q8 (int8 factors, symmetric, one float16 scale per factor vector) or f (float32 factors). Shift vectors and the
 # R tier use REF's (`w8+s8hx8`) int8 formats (bits filled in by the scorer from REF's IntState); proof only: `x0` =
 # float32 shift vectors (as SM147's lr<r> labels), so lr<r>fx0 is SM147's truncation through the factored solve.
+# SM152: q6 = int6 factor vectors (codes in [-31, 31], one float16 scale per vector, the q8 arithmetic with qmax 31);
+# x4 = int4 shift vectors (codes in [-7, 7], one float16 scale per vector: REF's shift format at width 4, as `+s8hx4`).
+# q8 and x8 are unchanged (bit for bit: the same expressions with qmax 127 and REF's shift bits).
 _SM148 = None
+FACTOR_QMAX = {"q8": 127, "q6": 31, "f": 0}
 
 
 class LowRankCodec:
@@ -303,7 +307,11 @@ class LowRankCodec:
             raise ValueError(f"SM148 spec {spec!r}: ranks >= 1, R only as the last tier")
         if any(e < 2 for e in edges) or edges != sorted(set(edges)):
             raise ValueError(f"SM148 spec {spec!r}: thresholds increasing, >= 2")
+        if quant not in FACTOR_QMAX:
+            raise ValueError(f"SM148 factor format {quant!r}: q8, q6 or f")
         self.spec, self.quant = spec, quant
+        self.qmax = FACTOR_QMAX[quant]
+        self.shift_width = 8   # SM152: 8 = REF's int8 shift vectors, 4 = int4 (same flags), 0 = float (float_shift)
         self.kinds, self.edges = kinds, edges
         self.rmax = max([k for k in kinds if k != "R"], default=0)
         self.has_rows = "R" in kinds
@@ -317,9 +325,18 @@ class LowRankCodec:
     def __repr__(self):
         return f"LowRankCodec({self.spec!r}, {self.quant!r})"
 
+    def set_ref(self, rows_bits, shift_bits):
+        """REF's formats (the scorer's parse_variant): the R tier's rows bits; the shift vectors in REF's format, at
+        int4 (codes in [-7, 7], REF's flags: float16 per-vector scale) when shift_width = 4 (SM152)."""
+        self.rows_bits = rows_bits
+        self.shift_bits = shift_bits if self.shift_width != 4 else (4 | (int(shift_bits) & ~255))
+
     def fields(self):
-        return {"spec": self.spec, "quant": self.quant, "kinds": [str(k) for k in self.kinds], "edges": self.edges,
-                "shift_bits": 0 if self.float_shift else self.shift_bits}
+        out = {"spec": self.spec, "quant": self.quant, "kinds": [str(k) for k in self.kinds], "edges": self.edges,
+               "shift_bits": 0 if self.float_shift else self.shift_bits}
+        if self.shift_width == 4:   # SM152 (q8 / x8 rows keep SM148's descriptor)
+            out["shift_width"] = 4
+        return out
 
     def _tables(self, device):
         if device not in self._dev:
@@ -344,7 +361,7 @@ class LowRankCodec:
         if self.rmax and nxt.is_cuda and FUSED_CUDA:   # one fused kernel (scripts/state_lowrank_cuda.encode)
             from scripts import state_lowrank_cuda
             r_eff = torch.minimum(n, kind.clamp(min=0))
-            stored, left_new = state_lowrank_cuda.encode(nxt, left_prev, v, r_eff, self.quant == "q8")
+            stored, left_new = state_lowrank_cuda.encode(nxt, left_prev, v, r_eff, self.qmax)
         elif self.rmax:
             r_eff = torch.minimum(n, kind.clamp(min=0))                      # exact rank n for young states
             P = torch.cat([left_prev, v.unsqueeze(-1)], -1)
@@ -356,9 +373,9 @@ class LowRankCodec:
             comp = (torch.arange(self.rmax, device=nxt.device)[None, :] < r_eff[:, None]).to(lf.dtype)   # [N, r]
             lf = lf * comp[:, None, None, :]
             rf = rf * comp[:, None, :, None]
-            if self.quant == "q8":
-                lf = quant_vectors(lf, -2)                                    # per column (left factor vector)
-                rf = quant_vectors(rf, -1)                                    # per row (right factor vector)
+            if self.qmax:
+                lf = quant_vectors(lf, -2, self.qmax)                         # per column (left factor vector)
+                rf = quant_vectors(rf, -1, self.qmax)                         # per row (right factor vector)
             stored = torch.where(fin4, lf @ rf, nxt)
             left_new = torch.where(fin4, lf, torch.zeros_like(lf))
         if self.has_rows:
@@ -423,12 +440,14 @@ def _eigh(A):
     return lam, vec
 
 
-def quant_vectors(x, dim):
-    """Symmetric int8 per vector along `dim` with a float16 scale (max |x| / 127, as REF's row scales): dequantised."""
+def quant_vectors(x, dim, qmax=127):
+    """Symmetric int per vector along `dim` with a float16 scale (max |x| / qmax, as REF's row scales): dequantised.
+    qmax 127 = int8 (SM148), 31 = int6 (SM152)."""
     from scripts.small_model_wkv import round_scale_f16
-    scale = round_scale_f16(x.abs().amax(dim, keepdim=True) / 127.0)
+    q = float(qmax)
+    scale = round_scale_f16(x.abs().amax(dim, keepdim=True) / q)
     scale = torch.where(scale > 0, scale, torch.ones_like(scale))
-    return torch.clamp(torch.round(x / scale), -127.0, 127.0) * scale
+    return torch.clamp(torch.round(x / scale), -q, q) * scale
 
 
 def lowrank_loop(codec, r, k, v, w, a, kd, skip, step, rows_quant):
@@ -498,11 +517,12 @@ def configure_expertium_sm148(layout, codec):
 
 def parse_sm148(state):
     import re
-    m = re.fullmatch(r"lr([0-9R][0-9R.]*?)(q8|f)x(8|0)", state)
+    m = re.fullmatch(r"lr([0-9R][0-9R.]*?)(q8|q6|f)x(8|4|0)", state)
     if not m:
         return None
     codec = LowRankCodec(m.group(1), m.group(2))
     codec.float_shift = m.group(3) == "0"   # proof only: float32 shift vectors (SM147's lr<r> placement)
+    codec.shift_width = int(m.group(3))      # SM152: x4 = int4 shift vectors
     return codec
 
 
@@ -557,11 +577,29 @@ def selftest_sm148(device="cpu"):
     assert torch.equal(quant_vectors(-x, -2), -q)
     assert torch.equal(quant_vectors(q, -2), q)   # idempotent (re-encoding a decoded factor is exact)
     out["int8_roundtrip"] = True
+    # SM152: int6 factor round trip (codes in [-31, 31], max error <= scale / 2); qmax 127 is the int8 path
+    q6 = quant_vectors(x, -2, 31)
+    s6 = round_scale_f16(x.abs().amax(-2, keepdim=True) / 31.0)
+    c6 = q6 / s6
+    assert torch.equal(c6, torch.round(c6)) and float(c6.abs().max()) <= 31
+    assert float(((q6 - x).abs() / s6).max()) <= 0.5 + 1e-6
+    assert torch.equal(quant_vectors(q6, -2, 31), q6) and torch.equal(quant_vectors(x, -2, 127), q)
+    assert not torch.equal(q6, q)
+    out["int6_roundtrip"] = True
     # tier selection
     c = LowRankCodec("2.16.4.128.R", "q8")
     assert c.kind_of(torch.tensor([1, 15, 16, 127, 128, 900])).tolist() == [2, 2, 4, 4, -1, -1]
     assert c.rmax == 4 and c.has_rows and parse_sm148("lr2.16.4.128.Rq8x8").spec == "2.16.4.128.R"
     assert parse_sm148("lrRx8") is None and parse_sm148("lrRq8x8").kinds == ["R"]
+    c6 = parse_sm148("lr2.16.4q6x4")   # SM152 grammar
+    assert c6.qmax == 31 and c6.shift_width == 4 and not c6.float_shift and parse_sm148("lr2.16.4q8x8").qmax == 127
+    c6.set_ref(264, 264)
+    assert c6.shift_bits == 260 and c6.rows_bits == 264 and c6.fields()["shift_width"] == 4
+    c8 = parse_sm148("lr2.16.4q8x8")
+    c8.set_ref(264, 264)
+    assert c8.shift_bits == 264 and "shift_width" not in c8.fields()
+    assert parse_sm148("lr2q6x6") is None and parse_sm148("lr2q4x8") is None
+    out["sm152_grammar"] = True
     out["tiers"] = True
     print("state_lowrank SM148 selftest OK", out)
     return out

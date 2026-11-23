@@ -202,11 +202,12 @@ extern "C" __global__ void lowrank_encode(const float* S_, const float* Lp_, con
         float l = t * g;
         r = g > 0.0f ? r / g : r;
         if (i >= reff) { l = 0.0f; r = 0.0f; }
-        if (quant) {
-            float sc = f16r(wmax(fabsf(l)) / 127.0f); if (!(sc > 0.0f)) sc = 1.0f;
-            l = fminf(fmaxf(rintf(l / sc), -127.0f), 127.0f) * sc;
-            sc = f16r(wmax(fabsf(r)) / 127.0f); if (!(sc > 0.0f)) sc = 1.0f;
-            r = fminf(fmaxf(rintf(r / sc), -127.0f), 127.0f) * sc;
+        if (quant) {   // quant = qmax of the factor codes (127 int8, 31 int6 (SM152)); 0 = float factors
+            const float qm = (float)quant;
+            float sc = f16r(wmax(fabsf(l)) / qm); if (!(sc > 0.0f)) sc = 1.0f;
+            l = fminf(fmaxf(rintf(l / sc), -qm), qm) * sc;
+            sc = f16r(wmax(fabsf(r)) / qm); if (!(sc > 0.0f)) sc = 1.0f;
+            r = fminf(fmaxf(rintf(r / sc), -qm), qm) * sc;
         }
         lf[i] = on ? l : 0.0f;
         rf[i] = on ? r : 0.0f;
@@ -236,7 +237,8 @@ def _encode_kernel(K, R):
 
 def encode(nxt, left_prev, v, r_eff, quant):
     """nxt [N, H, K, K], left_prev [N, H, K, R], v [N, H, K] float32 CUDA, r_eff [N] (rank kept per row, <= R),
-    quant = int8 factor vectors -> (stored [N, H, K, K], left [N, H, K, R])."""
+    quant = the factor codes' qmax (127 int8, 31 int6 (SM152); True = 127, False / 0 = float factors)
+    -> (stored [N, H, K, K], left [N, H, K, R])."""
     import cupy
     N, H, K, _ = nxt.shape
     R = left_prev.shape[-1]
@@ -244,6 +246,7 @@ def encode(nxt, left_prev, v, r_eff, quant):
     Lp = left_prev.contiguous()
     vv = v.contiguous()
     re = r_eff.to(torch.int32).contiguous()
+    qm = 127 if quant is True else int(quant or 0)
     out = torch.empty_like(S)
     Lo = torch.empty_like(Lp)
     M = N * H
@@ -253,7 +256,7 @@ def encode(nxt, left_prev, v, r_eff, quant):
             _encode_kernel(K, R)(((M + 3) // 4,), (128,),   # one warp per matrix, 4 per block
                                  (cupy.from_dlpack(S), cupy.from_dlpack(Lp), cupy.from_dlpack(vv),
                                   cupy.from_dlpack(re), cupy.from_dlpack(out), cupy.from_dlpack(Lo), cupy.int32(M),
-                                  cupy.int32(H), cupy.int32(1 if quant else 0)))
+                                  cupy.int32(H), cupy.int32(qm)))
     return out, Lo
 
 

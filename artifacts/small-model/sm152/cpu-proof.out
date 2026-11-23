@@ -1,0 +1,16 @@
+state_lowrank selftest OK
+state_lowrank SM148 selftest OK {'K16_trunc_rel_err_max': 6.36205664896589e-06, 'K16_young_exact_rel_err_max': 9.070166129276913e-07, 'K32_trunc_rel_err_max': 8.62586098327698e-06, 'K32_young_exact_rel_err_max': 9.449376534576004e-07, 'int8_roundtrip': True, 'int6_roundtrip': True, 'sm152_grammar': True, 'tiers': True}
+  OK  K1 bytes and bit-packing round trip (sm152_bytes.py)
+  OK  K2 state_lowrank selftests (SM147, SM148 + SM152 int6 / grammar, CPU)
+  OK  K3 a row for every (user, model, label)
+  OK  K3 every row finite
+  OK  K3 REF, T24 and Q2 rescored == SM148's committed CPU smoke rows (benchmark LogLoss within 1e-6, same counts)
+  OK  K3 S4, F6 and F6S4 differ from T24 on every (user, model)
+  OK  K3 F6S4 differs from S4 and from F6 on at least one user per model
+  OK  K3 codec descriptors (spec 2.16.4; q8 / q6 factors; shift bits 264 int8 / 260 int4, float16 scale)
+  OK  K5 a dump for every (user, model, dumped label)
+  OK  K5 dumped reviews per bucket == the rows' all-scope counts
+  OK  K5 same reviews in every label's dump
+  OK  K5 |dR| S4 vs REF > 0 somewhere
+  OK  K5 sm152_dr.py aggregates the smoke dumps (finite, complete)
+[sm152-check] CPU proofs ALL OK (11 s)
