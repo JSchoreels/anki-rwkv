@@ -373,3 +373,17 @@ first 80 updates (3.08 x the control's GPU time); about 11.3 GB of 13.0 GB in us
 | LR02 | One fused forward kernel per split for the low-rank codec (all steps in one launch, as the fused step of the state-VQ QAT (SM32b, track S09) did for the VQ codec) | Proposed, pending | — | Only if LR01 leaves the QAT arm above 2x the control |
 | LR03 | Written-steps-only state record for the STE backward (31% of the row steps in the sample of the state-VQ QAT (SM32b); the backward gathers each row's last write) | Proposed, pending; needed for Big if its QAT peak exceeds 12.5 GB | — | CPU proof: gradients equal to the full record |
 | LR04 | K = 32 fused STE backward kernel for Big (today the torch `ste_backward` loop) | Proposed, pending | — | Compile `rwkv7_wkv_backward_kernel<1, float>` for K = 32 along a stored trajectory; compare with `ste_backward` |
+
+## 2026-11-23: tail-energy penalty in the rank-2 QAT step loop (SM149b)
+
+Measured on the GPU smoke of rank-2 states with a tail-energy penalty (SM149b) (branch `sm149b`, `artifacts/small-model/sm149b/design.md`,
+ticket 001519): the penalty (lambda x mean tail energy beyond rank 2 of the pre-codec state, one write step in 8 per
+stream) adds the float rank-2 truncation (the same fused encode kernel, float factors) at the sampled steps and moves
+every backward with sampled entries from the fused K = 16 STE backward kernel to the torch `ste_backward` loop with the
+penalty's gradient injected. Small two-head (SM118), the same first 126 updates as the QAT arm of the rank-2 cool-down (SM149): 9,401 vs 10,327
+reviews/s (GPU time), 1.10 x; peak allocated 8,440 MiB (8,556 for SM149's whole run).
+
+| ID | Idea | Status | Measured | Next step |
+|---|---|---|---|---|
+| LR05 | K = 16 fused STE backward kernel with a per-step state-gradient input (add `dL/dS'` of the sampled writes inside `rwkv7_wkv_backward_kernel<1, float>`), so penalised calls keep the kernel | Proposed 2026-11-23, pending | — (the torch loop it would replace costs +10% of the QAT arm's GPU time) | Patch a copy of the kernel source as the dstored variant of SM32c does; compare with `ste_backward_tail` on CPU / GPU |
+| LR06 | Call-level sampling: sample every 8th hook call per stream instead of every 8th step, so 7 of 8 calls keep the kernel without LR05 | Proposed 2026-11-23, pending; changes the sampling (not the same experiment) | — | Only for a later penalised run if LR05 is not done |
