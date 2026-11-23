@@ -4,7 +4,14 @@ Design and rules: `design.md` (pre-registered before any scoring of the new labe
 
 ## Launch
 
-Status: __STATUS__
+Status 11-23 23:28 (machine clock): **running**. Launched **23:25:04 Mon 11-23** from branch `sm152` at a2554b1c (source committed and pushed; the launcher logged 0 dirty source files).
+
+- Launcher: `launch-sm152.sh` (PART=gpu), hidden via WMI (`Win32_Process.Create`, ShowWindow 0): WMI PID 3636 (`bash -c` wrapper), launcher bash Windows PID 12984.
+- Proofs: CPU proofs ALL OK (`check-cpu-sm152.json`, 13 checks; REF, T24 and Q2 rescored on the 3 smoke users equal SM148's rows, largest difference 0; S4, F6 and F6S4 differ from T24 on every user and model; bit-packing round trip and decode OK). GPU smoke ticket passed 23:26 (63 checks; REF max GPU vs CPU 1.0e-5, low-rank labels max 1.6e-4; REF and T24 on the GPU vs SM148's GPU smoke rows max 2.0e-6; G4: the fused kernel's int6 output is closer to the CPU int6 loop (0.7% to 0.8% relative) than to the CPU int8 loop (2.6% to 2.9%)). Tiny scoring ticket 001537 running since 23:27.
+- **GPU ETA** (queue, owner sm152, cap 0.8, `PYTORCH_JIT=0`, 2 models x {S4, F6, F6S4}, 723 users): Tiny about 60 to 65 min (done about 00:30 Tue 11-24), Small about 85 to 90 min (done about 02:00), Big about 140 to 160 min plus retry passes (done about 04:30; range 04:00 to 05:30; Big expects 718 users, the 5 largest never fit). GPU part about 5 h in all (SM150 took 43 / 59 / 105 min for 2 labels). FIFO, other owners' tickets can slip in.
+- No CPU chain in this launch (the long-card step is the later `PART=longcard` launch below, not started).
+- Then `sm152_report.py report` -> `sm152-result.{json,md}` (long-card warnings "not run yet") and `done`.
+- ETA of `done`: about 04:30 Tue 11-24 (range 04:00 to 05:30).
 
 ## Patterns
 
