@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-23T16:43:10+01:00",
- "updated": "2026-11-23 16:43",
- "material": "a1838d896f40ca7c",
- "summary": "idle, finished 001524",
+ "generated_at": "2026-11-23T16:46:02+01:00",
+ "updated": "2026-11-23 16:46",
+ "material": "5356b0e0c7e2a6ad",
+ "summary": "idle",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring, show-time inputs for both heads (curve / instant)",
@@ -2735,10 +2735,11 @@
    "kind": "gpu",
    "minutes": 165,
    "what": "Rank-2 states with a tail-energy penalty (SM149b): the rank-2 cool-down (SM149) halved too little of the rank-2 cost (a third). Outside research found the same with the straight-through gradient alone, and removed the cost by adding a training term: the share of each state&rsquo;s energy that rank 2 throws away (&lambda; = 1, sampled on one write in eight). Same stage 1 as SM149 (Small two-head (SM118), same data, seed and steps), one new arm with the penalty; the SM149 control and the original&rsquo;s rows are reused. Same rules, against the original at int8 (dataset-wide +0.05%, long cards, per-card guard, the cooled model&rsquo;s own int8 within +0.05%).",
-   "when": "Started 14:00 Mon 11-23 (smoke ticket 001520 OK, training 001521 at about 9,100 reviews/s): training about 2 h, 732-set scoring about 35 min, GPU part done about 16:45; long-card CPU step and verdict Monday evening",
+   "when": "Done 16:42 Mon 11-23: no effect, and the penalty made the cooled model itself worse at int8 (+0.20% instant against the original); every size keeps rank 4 (Q4); the &lambda; = 3 follow-up is not run, the long-card CPU step was skipped",
    "decides": "Pass: the main session proposes the same cool-down for the other five models. Partial (rank-2 cost at most half the control&rsquo;s): one more run at &lambda; = 3. No effect: every size keeps rank 4",
-   "state": "planned",
-   "started_at": "2026-11-23T14:00+01:00"
+   "state": "done",
+   "started_at": "2026-11-23T14:00+01:00",
+   "ended_at": "2026-11-23T16:42+01:00"
   },
   {
    "id": "SM149",
@@ -3580,6 +3581,83 @@
   }
  ],
  "results": [
+  {
+   "date": "11-23",
+   "kind": "gpu-train",
+   "id": "SM149b",
+   "track": "small model",
+   "name": "Rank-2 states with a tail-energy penalty (SM149b), stage 1: the rank-2 cool-down (SM149) plus a penalty on the energy rank 2 throws away, Small two-head model (SM118)",
+   "eval": "The 732 set (723 users, show-time inputs, leak-free) on the GPU. Short cool-down from the final weights of the Small two-head model (SM118), 67.3M reviews, one new arm: every card and note write stored in the deployed rank-2 int8-factor format with the straight-through gradient (as SM149) plus a tail-energy penalty in the loss (&lambda; = 1, one write step in eight). Scored at int8 (w8+s8hx8), rank 2 (Q2) and rank 2 below 16 answers then rank 4 (T24), against the original model&rsquo;s rows of SM148; the SM149 arms are reused. The long-card CPU step was skipped. Pre-registered: dataset-wide cost vs the original at int8, upper bound +0.05% per head, also for the cooled model at int8; gate: rank-2 instant cost at most half the SM149 control&rsquo;s (+0.079%), else no effect.",
+   "fork": "No change for the fork: rank 4 stays the go for every size",
+   "takeaway": "<strong>No effect, and the penalty made the model itself worse: every size keeps rank 4 with int8 factors (Q4).</strong> The cooled model at int8 is +0.142% (curve) and +0.204% (instant, upper bound +0.220%) worse than the original, about 4&times; over the +0.05% limit (SM149 without the penalty: +0.009% / +0.021%). Rank 2 costs +0.170% / +0.249% and rank 2 then 4 +0.159% / +0.232% against the original: no label passes. Against its own int8 rows rank 2 costs +0.045% on the instant head, a ratio of 0.57 to the SM149 control&rsquo;s +0.079% (line 0.5; SM149 without the penalty: 0.66). The tail energy fell about 5&times; (0.0184 to 0.0035), against about 45&times; reported by outside research on its own model. On our Small model, &lambda; = 1 (about 2&ndash;3% of the loss at the start) pushes the states toward rank 2 at a large price in accuracy; the outside model is different (d = 32, one head, card 1 layer and note 3 layers; its penalty fell to about 0.26% of the loss). The &lambda; = 3 follow-up (only for a partial result) and the other five models are not run. <strong>Training:</strong> 8,907 reviews/s (125.8 min, peak 8.6 GB allocated).",
+   "inputs": "show-time",
+   "started_at": "2026-11-23T14:00+01:00",
+   "ended_at": "2026-11-23T16:42+01:00",
+   "gpu_minutes": 162,
+   "cpu_minutes": 0,
+   "tickets": 5,
+   "detail": {
+    "verdict": "No effect, stop: every size keeps Q4 (Big &minus;74.4%, Small &minus;52.3%, Tiny &minus;51.1% state bytes vs int8). Branch sm149b (RESULT.md, sm149b-stage1.json, sm149b_report.py, design.md)",
+    "table": {
+     "head": [
+      "Model",
+      "Label",
+      "State bytes vs int8",
+      "Cost vs the original model at int8, value [95% CI] (limit: upper bound +0.05%): curve / instant",
+      "Cost vs the arm&rsquo;s own int8 rows, value [95% CI] (no verdict): curve / instant",
+      "Verdict"
+     ],
+     "rows": [
+      [
+       "Small two-head (SM118)",
+       "Cooled with rank-2 training and the tail penalty, at int8",
+       "0% (int8 rows)",
+       "+0.142% [+0.107, +0.179] / +0.204% [+0.189, +0.220]",
+       "-",
+       "fails (the new model at int8)"
+      ],
+      [
+       "Small two-head (SM118)",
+       "Cooled with rank-2 training and the tail penalty, Q2: rank 2",
+       "&minus;68.2%",
+       "+0.170% [+0.135, +0.208] / +0.249% [+0.231, +0.270]",
+       "+0.028% [+0.022, +0.034] / +0.045% [+0.040, +0.051]",
+       "fails (both heads)"
+      ],
+      [
+       "Small two-head (SM118)",
+       "Cooled with rank-2 training and the tail penalty, T24: rank 2 below 16 answers, rank 4 from 16",
+       "&minus;66.3%",
+       "+0.159% [+0.125, +0.196] / +0.232% [+0.215, +0.250]",
+       "+0.018% [+0.014, +0.021] / +0.028% [+0.025, +0.031]",
+       "fails (both heads)"
+      ],
+      [
+       "Small two-head (SM118)",
+       "Rank-2 cool-down (SM149) QAT arm, Q2 (reference)",
+       "&minus;68.2%",
+       "+0.038% [&minus;0.009, +0.074] / +0.073% [+0.066, +0.080]",
+       "+0.029% [+0.020, +0.039] / +0.052% [+0.046, +0.058]",
+       "fails (instant)"
+      ],
+      [
+       "Small two-head (SM118)",
+       "Rank-2 cool-down (SM149) control, Q2 (reference)",
+       "&minus;68.2%",
+       "+0.048% [+0.000, +0.089] / +0.082% [+0.074, +0.090]",
+       "+0.051% [+0.041, +0.061] / +0.079% [+0.072, +0.086]",
+       "fails"
+      ]
+     ]
+    },
+    "notes": [
+     "Gate: C_new (new rank 2 vs the new arm&rsquo;s own int8, instant) +0.045%, C_ctl (SM149 control, instant) +0.079%, ratio 0.57, above the 0.5 line (partial needed C_new at most +0.0395%), so no effect. The penalty&rsquo;s own effect against the SM149 QAT arm at the same label: int8 +0.133% / +0.183%, Q2 +0.132% / +0.176%, T24 +0.134% / +0.180% (curve / instant). The long-card CPU step was skipped: it cannot rescue labels that fail dataset-wide. Integrity check (SM149 QAT arm re-scored on 3 users) identical.",
+     "Cost by answer count (instant head, new rank 2 vs original at int8): 1-2 answers +0.191%, 3-4 +0.219%, 5-8 +0.252%, 9-15 +0.271%, 16-31 +0.315%, 32-127 +0.339%, 128+ +0.240%. The loss is spread over every bucket, including 1-2 answers where rank 2 costs almost nothing (+0.010% vs the arm&rsquo;s own int8): the model&rsquo;s weights moved, not the truncation.",
+     "Tail energy (mean over update passes, first 3 passes of primer dropped): first 100 passes 0.0184, passes 401-500 0.0091, 801-900 0.0050, 2001-2100 0.0029, last 100 passes 0.0035; about 5&times; lower, against about 45&times; reported by outside research on its own model. Penalty about 2-3% of the loss at the start.",
+     "Wall time: launched 14:00 Mon 11-23, GPU part done 16:42, about 162 minutes in 5 tickets: trainer smoke 0.2, training 126.1, integrity check 0.2, scoring 34.9 plus a 0.8 retry for the last 2 users. Training speed 8,907 reviews/s (peak 8.6 GB allocated, 13.0 GB reserved). Coverage 723 of 723 users per label."
+    ]
+   }
+  },
   {
    "date": "11-23",
    "kind": "gpu-train",
