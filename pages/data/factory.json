@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-23T09:52:49+01:00",
- "updated": "2026-11-23 09:52",
- "material": "0d8fcd31a7f1390d",
- "summary": "running 001514, finished 001513",
+ "generated_at": "2026-11-23T09:53:11+01:00",
+ "updated": "2026-11-23 09:53",
+ "material": "ab2a8f724f93db3c",
+ "summary": "running 001514",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring, show-time inputs for both heads (curve / instant)",
@@ -2744,6 +2744,17 @@
    "state": "done",
    "started_at": "2026-11-21T09:34+01:00",
    "ended_at": "2026-11-21T11:26+01:00"
+  },
+  {
+   "id": "SM149",
+   "track": "small model",
+   "kind": "gpu",
+   "minutes": 220,
+   "what": "Rank-2 states through a short cool-down (SM149): rank-4 card and note states passed after training (SM148), rank 2 did not (+0.05% to +0.16% dataset-wide, rising with answer count). A short cool-down from the final weights of the Small two-head model (SM118) stores every card and note write in the deployed rank-2 int8-factor format during training (straight-through gradient), against a control arm with the identical cool-down and the codec off. Stage 1 only: Small two-head, both arms, then the 732 set on the GPU and the 50 long-card users on the CPU. The same rules as SM148, measured against the original model at int8; the cooled model at int8 must also stay within +0.05% of the original. If it passes, the other five models follow (about 21 GPU hours more), bringing Big from &minus;74.4% to &minus;82.8% of the int8 state bytes.",
+   "when": "Started 09:52 Mon 11-23: rank-2 arm about 2 h (3.08&times; the control&rsquo;s time, measured), control about 40 min, 732-set scoring about 1 h; long-card CPU scoring about 2.5 h alongside; verdict Monday evening",
+   "decides": "Pass: the other five models get the same cool-down. Partial (rank-2 instant cost at most halved vs the control, but no label passes): one more Small run with 4&times; the reviews. No effect: every size keeps rank 4",
+   "state": "planned",
+   "started_at": "2026-11-23T09:52+01:00"
   },
   {
    "id": "SM148",
