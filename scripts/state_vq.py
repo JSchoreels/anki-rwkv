@@ -551,6 +551,8 @@ def _reference_wkv_q(r, k, v, w, a, kd, skip, state0=None):
     from expertium.model.rwkv_ops import single_timestep
     cur = Hooks.current
     quant = Hooks.wkv.get(cur[:2]) if cur is not None and cur[2] == "t" else None
+    if getattr(quant, "loop", None) is not None:   # SM148: the codec runs the whole step loop (state_lowrank)
+        return quant.loop(r, k, v, w, a, kd, skip, state0)
     out_dtype = k.dtype
     r, k, v, w, a, kd = (x.float() for x in (r, k, v, w, a, kd))
     B, T, H, Kh = r.shape
@@ -966,6 +968,8 @@ def _score_kernel(kc, r, k, v, w, a, kd, skip):
 def score_wkv(r_BTHK, k_BTHK, v_BTHK, w_BTHK, a_BTHK, k_deformed_BTHK, skip_BT, slot):
     """Forward-only card/note WKV with the stored state coded after every non-skipped step (scoring)."""
     codec = SCORE[slot]
+    if getattr(codec, "loop", None) is not None:   # SM148: state_lowrank.LowRankScoreCodec (torch step loop, device)
+        return codec.loop(r_BTHK, k_BTHK, v_BTHK, w_BTHK, a_BTHK, k_deformed_BTHK, skip_BT)
     out_dtype = k_BTHK.dtype
     if isinstance(codec, IntScoreCodec):   # SM47: the int kernel (scripts/small_model_wkv), any device
         from scripts.small_model_wkv import wkv_long

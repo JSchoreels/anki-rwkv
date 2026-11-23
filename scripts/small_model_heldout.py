@@ -375,6 +375,9 @@ def parse_variant(name):
     from scripts import state_lowrank   # SM147: +lr1 / +lr2 / +lr4 rank-r truncation, +lrsv float state + spectrum
     lowrank = state_lowrank.parse(state)
     if scheme is not None and lowrank is not None:
+        if isinstance(lowrank, state_lowrank.LowRankCodec):   # SM148: shift vectors and the R tier in REF's formats
+            ref = parse_variant(weights + "+s8hx8")[1]
+            lowrank.rows_bits, lowrank.shift_bits = ref.wkv_bits, ref.shift_bits
         return scheme, lowrank
     import re
     from scripts.small_model_wkv import F16_SCALE, HEAD_SCALE
@@ -461,6 +464,9 @@ def state_fields(state_bits):
                                      for name, b in zip(("card", "note"), wkv if isinstance(wkv, tuple) else (wkv, wkv))}
         return fields
     from scripts.state_lowrank import LowRankState
+    from scripts.state_lowrank import LowRankCodec
+    if isinstance(state_bits, LowRankCodec):   # SM148
+        return {"state_bits": 32, "state_lowrank": state_bits.fields()}
     if isinstance(state_bits, LowRankState):   # SM147
         return {"state_bits": 32, "state_lowrank": {"rank": state_bits.rank, "spectrum": state_bits.spectrum}}
     return {"state_bits": list(state_bits) if isinstance(state_bits, tuple) else state_bits or 32}
@@ -602,7 +608,7 @@ def main():
             for module in model.rwkv_modules:
                 for block in module.blocks:
                     block.time_mixer.use_reference_wkv = True
-            if lowrank_grid:   # SM147 (PYTORCH_JIT=0): wrap the reference WKV, name the time mixers
+            if lowrank_grid or sm148_grid:   # SM147 / SM148 (PYTORCH_JIT=0): wrap the reference WKV, name the mixers
                 from scripts import state_lowrank
                 state_lowrank.install_fork(model)
         else:
@@ -618,6 +624,10 @@ def main():
                        for label in grid)
     if lowrank_grid and (not cpu or args.emulate_gpu_path):
         raise SystemExit("SM147 low-rank labels (+lr<r>, +lrsv): CPU reference path only")
+    sm148_grid = any(isinstance(parse_variant(label.split("@")[0].split("/", 1)[1])[1], state_lowrank.LowRankCodec)
+                     for label in grid)
+    if sm148_grid and (args.emulate_gpu_path or args.lanes > 1):
+        raise SystemExit("SM148 low-rank codec labels: no --emulate-gpu-path, no --lanes")
     models, states, layouts, codecs = {}, {}, {}, {}
     for label in grid:
         tag, variant = label.split("@")[0].split("/", 1)
@@ -699,9 +709,24 @@ def main():
             lowrank = isinstance(state_bits, state_lowrank.LowRankState)
             state_lowrank.SPECTRUM.reset()
             state_lowrank.SPECTRUM.tag = tag
-            if kind == "fork" and lowrank_grid:
-                state_lowrank.set_fork(state_bits if lowrank else None)
-            if kind == "fork" and lowrank:   # SM147: float int-state path, the wrapped reference WKV truncates
+            sm148 = isinstance(state_bits, state_lowrank.LowRankCodec)
+            if kind == "fork" and (lowrank_grid or sm148_grid):
+                state_lowrank.set_fork(state_bits if lowrank or sm148 else None)
+            if kind == "fork" and sm148 and state_bits.float_shift:   # SM148 proof label x0: float state path
+                cq.set_state_bits(model, 0)
+            elif kind == "fork" and sm148:   # SM148: REF's int8 shift vectors (state_bits > 0), the wrapped WKV codes
+                cq.set_state_streams(model, (state_bits.rows_bits, state_bits.shift_bits),
+                                     (state_bits.rows_bits, state_bits.shift_bits))
+            elif sm148 and cpu:   # SM148, expertium CPU: Hooks with REF's shift codec, the WKV loop replaced
+                set_expertium_state_bits(model, 0)
+                state_lowrank.configure_expertium_sm148(lane_layouts[tag], state_bits)
+            elif sm148:   # SM148, expertium CUDA: the state-VQ slots with the low-rank codec (torch step loop)
+                from scripts import state_vq
+                set_expertium_state_bits(model, 0)
+                state_vq.set_scoring(lane_layouts[tag], {s: state_lowrank.LowRankScoreCodec(state_bits)
+                                                         for s in state_vq.STATE_STREAMS})
+                vq_path = f"SM148 low-rank codec {state_bits.spec} {state_bits.quant}, torch step loop"
+            elif kind == "fork" and lowrank:   # SM147: float int-state path, the wrapped reference WKV truncates
                 cq.set_state_bits(model, 0)
             elif lowrank:   # SM147, expertium CPU: state_vq.Hooks with the low-rank callables
                 set_expertium_state_bits(model, 0)
