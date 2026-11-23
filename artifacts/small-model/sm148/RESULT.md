@@ -51,3 +51,83 @@ The compact low-rank format is lossless in practice for rank 4 at every size (R2
 ## Main-session decision (11-23)
 
 The Big go is accepted as rank 4 (Q4, -74.4%) on 718 of 720 GPU rule users and 37 of 48 long-card users. Neither the 5 largest GPU users (424k to 532k reviews) nor 13 long-card users fit in memory on this machine, and the scorer has no chunk option. A check on the Small and Tiny models, which did score those 5 users, puts rank 4's instant cost for them at -0.01% to +0.04% (median over all users +0.005% to +0.010%). Two missing users cannot move Big's dataset-wide upper bound from about +0.02% to +0.05%. This is a coverage shortfall, not a failed rule. A machine with more memory can still confirm it.
+
+
+## Verdict under the user's 11-23 budgets
+
+These budgets were set by the user on 11-23, after all the rows existed. They replace the pre-registered rules in `design.md` for the go. Nothing was rescored: the numbers come from the existing rows (`gpu/sm148-rows-732.jsonl`) with the same paired-user bootstrap helper as `sm148_report.py` (`showtime_report.compare`, 2,000 draws, seed 0, 95% CI), run by `sm148_verdict_1123.py` (output `sm148-verdict-1123.json`). The cross-model comparison passes the Big rows as the reference. Pairing is per user on the 718 users common to both models.
+
+Rules:
+- Small and Tiny: total cost against the matching Big model at int8 (`w8+s8hx8`), CI upper bound per head. Small at most +0.5%, Tiny at most +1.0%. Matching: Small two-head (SM118) and six-layer Tiny two-head (SM130) against Big two-head (SM91s2), curve and instant heads; Small Instant-Only (SM113) and six-layer Tiny Instant-Only (SM130) against Big Instant-Only (SM99), instant head only.
+- Big: at most +0.15% against its own int8, CI upper bound per head.
+- Long-card (128+ answers) cost (R3) and the per-card |dR| guard (G) are warnings only.
+- The go per size is the smallest-bytes label that passes for both models of the size, among int8 (REF), rank 4 (Q4), rank 2 then 4 (T24) and rank 2 (Q2).
+
+### Every label, model and head (cost in %, 95% CI, upper bound against the budget)
+
+| size | model | label | head | cost vs reference | CI upper | budget | margin | pass |
+|---|---|---|---|---|---|---|---|---|
+| Big | Big two-head (SM91s2) | rank 4 (Q4) | curve | +0.014% [+0.008, +0.020] | +0.020% | +0.15% | +0.130% | yes |
+| Big | Big two-head (SM91s2) | rank 4 (Q4) | instant | +0.018% [+0.015, +0.021] | +0.021% | +0.15% | +0.129% | yes |
+| Big | Big two-head (SM91s2) | rank 2 then 4 (T24) | curve | +0.034% [+0.024, +0.043] | +0.043% | +0.15% | +0.107% | yes |
+| Big | Big two-head (SM91s2) | rank 2 then 4 (T24) | instant | +0.054% [+0.049, +0.059] | +0.059% | +0.15% | +0.091% | yes |
+| Big | Big two-head (SM91s2) | rank 2 (Q2) | curve | +0.080% [+0.061, +0.101] | +0.101% | +0.15% | +0.049% | yes |
+| Big | Big two-head (SM91s2) | rank 2 (Q2) | instant | +0.109% [+0.096, +0.122] | +0.122% | +0.15% | +0.028% | yes |
+| Big | Big Instant-Only (SM99) | rank 4 (Q4) | instant | +0.019% [+0.016, +0.022] | +0.022% | +0.15% | +0.128% | yes |
+| Big | Big Instant-Only (SM99) | rank 2 then 4 (T24) | instant | +0.059% [+0.054, +0.065] | +0.065% | +0.15% | +0.085% | yes |
+| Big | Big Instant-Only (SM99) | rank 2 (Q2) | instant | +0.118% [+0.107, +0.132] | +0.132% | +0.15% | +0.018% | yes |
+| Small | Small two-head (SM118) | int8 cards and notes (REF) | curve | +0.213% [+0.057, +0.374] | +0.374% | +0.50% | +0.126% | yes |
+| Small | Small two-head (SM118) | int8 cards and notes (REF) | instant | +0.151% [+0.126, +0.176] | +0.176% | +0.50% | +0.324% | yes |
+| Small | Small two-head (SM118) | rank 4 (Q4) | curve | +0.218% [+0.061, +0.379] | +0.379% | +0.50% | +0.121% | yes |
+| Small | Small two-head (SM118) | rank 4 (Q4) | instant | +0.160% [+0.135, +0.186] | +0.186% | +0.50% | +0.314% | yes |
+| Small | Small two-head (SM118) | rank 2 then 4 (T24) | curve | +0.241% [+0.083, +0.405] | +0.405% | +0.50% | +0.095% | yes |
+| Small | Small two-head (SM118) | rank 2 then 4 (T24) | instant | +0.201% [+0.175, +0.227] | +0.227% | +0.50% | +0.273% | yes |
+| Small | Small two-head (SM118) | rank 2 (Q2) | curve | +0.258% [+0.098, +0.422] | +0.422% | +0.50% | +0.078% | yes |
+| Small | Small two-head (SM118) | rank 2 (Q2) | instant | +0.229% [+0.202, +0.257] | +0.257% | +0.50% | +0.243% | yes |
+| Small | Small Instant-Only (SM113) | int8 cards and notes (REF) | instant | +0.016% [-0.010, +0.042] | +0.042% | +0.50% | +0.458% | yes |
+| Small | Small Instant-Only (SM113) | rank 4 (Q4) | instant | +0.025% [-0.001, +0.050] | +0.050% | +0.50% | +0.450% | yes |
+| Small | Small Instant-Only (SM113) | rank 2 then 4 (T24) | instant | +0.071% [+0.046, +0.096] | +0.096% | +0.50% | +0.404% | yes |
+| Small | Small Instant-Only (SM113) | rank 2 (Q2) | instant | +0.101% [+0.075, +0.127] | +0.127% | +0.50% | +0.373% | yes |
+| Tiny | six-layer Tiny two-head (SM130) | int8 cards and notes (REF) | curve | +0.681% [+0.505, +0.861] | +0.861% | +1.00% | +0.139% | yes |
+| Tiny | six-layer Tiny two-head (SM130) | int8 cards and notes (REF) | instant | +0.672% [+0.620, +0.727] | +0.727% | +1.00% | +0.273% | yes |
+| Tiny | six-layer Tiny two-head (SM130) | rank 4 (Q4) | curve | +0.688% [+0.513, +0.866] | +0.866% | +1.00% | +0.134% | yes |
+| Tiny | six-layer Tiny two-head (SM130) | rank 4 (Q4) | instant | +0.687% [+0.635, +0.742] | +0.742% | +1.00% | +0.258% | yes |
+| Tiny | six-layer Tiny two-head (SM130) | rank 2 then 4 (T24) | curve | +0.722% [+0.548, +0.899] | +0.899% | +1.00% | +0.101% | yes |
+| Tiny | six-layer Tiny two-head (SM130) | rank 2 then 4 (T24) | instant | +0.746% [+0.693, +0.802] | +0.802% | +1.00% | +0.198% | yes |
+| Tiny | six-layer Tiny two-head (SM130) | rank 2 (Q2) | curve | +0.759% [+0.584, +0.939] | +0.939% | +1.00% | +0.061% | yes |
+| Tiny | six-layer Tiny two-head (SM130) | rank 2 (Q2) | instant | +0.802% [+0.745, +0.861] | +0.861% | +1.00% | +0.139% | yes |
+| Tiny | six-layer Tiny Instant-Only (SM130) | int8 cards and notes (REF) | instant | +0.579% [+0.533, +0.625] | +0.625% | +1.00% | +0.375% | yes |
+| Tiny | six-layer Tiny Instant-Only (SM130) | rank 4 (Q4) | instant | +0.595% [+0.549, +0.642] | +0.642% | +1.00% | +0.358% | yes |
+| Tiny | six-layer Tiny Instant-Only (SM130) | rank 2 then 4 (T24) | instant | +0.668% [+0.619, +0.717] | +0.717% | +1.00% | +0.283% | yes |
+| Tiny | six-layer Tiny Instant-Only (SM130) | rank 2 (Q2) | instant | +0.735% [+0.684, +0.785] | +0.785% | +1.00% | +0.215% | yes |
+
+The reference is the model's own int8 for Big, and the matching Big model at int8 for Small and Tiny (so the int8 row of a Small or Tiny model is the pure size cost, before any state compression). Big has no int8 row of its own (cost 0 by definition).
+
+### Go per size
+
+Every label passes for both models of every size, so the smallest-bytes label, rank 2 (Q2), is the go for all three sizes.
+
+| size | go label | state bytes vs int8 | worst CI upper bound (any model, head) | budget | margin left |
+|---|---|---|---|---|---|
+| Big | rank 2 (Q2) | -82.8% | +0.132% (Big Instant-Only (SM99)) | +0.15% | 0.018% |
+| Small | rank 2 (Q2) | -68.2% | +0.422% (Small two-head (SM118), curve) | +0.5% | 0.078% |
+| Tiny | rank 2 (Q2) | -66.7% | +0.939% (six-layer Tiny two-head (SM130), curve) | +1.0% | 0.061% |
+
+Next smallest, if a margin is judged too thin: rank 2 then 4 (T24), -81.7% / -66.3% / -64.7% (Big / Small / Tiny), margins 0.085% / 0.095% / 0.101%; rank 4 (Q4), -74.4% / -52.3% / -51.1%, margins 0.128% / 0.121% / 0.134%. Margin per model and head for every label is in the table above. The Tiny and Small margins are mostly the size cost against Big (the int8 rows already use +0.58% to +0.68% of the Tiny budget and +0.15% to +0.21% of the Small curve/instant budget); the state compression itself adds +0.08% to +0.12% (Big, Q2), +0.04% to +0.08% (Small, Q2) and +0.08% to +0.13% (Tiny, Q2).
+
+### Warnings (not rules)
+
+Long-card (128+) cost R3 and the share G of cards whose worst review changes by more than 0.10 in predicted retention, for the go label rank 2 (Q2) against each model's own int8 (long-card users on the CPU):
+
+| model | R3 curve (point, CI upper) | R3 instant (point, CI upper) | G curve | G instant |
+|---|---|---|---|---|
+| Big two-head (SM91s2) | +0.137% / +0.428% | +0.324% / +0.740% | 0.155% | 0.289% |
+| Big Instant-Only (SM99) | - | +0.363% / +0.741% | - | 0.353% |
+| Small two-head (SM118) | -0.172% / +0.309% | +0.292% / +0.516% | 0.016% | 0.039% |
+| Small Instant-Only (SM113) | - | +0.310% / +0.775% | - | 0.083% |
+| six-layer Tiny two-head (SM130) | +0.548% / +1.724% | +0.304% / +0.463% | 0.129% | 0.283% |
+| six-layer Tiny Instant-Only (SM130) | - | +0.273% / +0.713% | - | 0.316% |
+
+- Against the old hard limits (long-card point +0.5%, upper +1.0%, G 1%), rank 2 (Q2) would have breached one: the six-layer Tiny two-head (SM130) curve at 128+ answers is +0.548% (upper +1.724%). Every other point is under +0.4% and every upper bound under +0.78%. Every G is under 0.32% (limit was 1%). Per-review read-out: rank 2 (Q2) reaches a change of 0.7 in predicted retention for one Tiny curve review.
+- Big coverage note: both Big models cover 718 of 720 GPU users (the five largest users ran out of memory; two of them are rule users) and 37 of 48 long-card users (13 killed by the memory guard), and the Big per-review read-out is incomplete. The 11-23 check on the missing users was done for rank 4 (Q4) only; for rank 2 (Q2) the Big margin is 0.018% and was not checked on those users. Small and Tiny, which scored them, show the compression cost of those users is not larger than the median, so the Big go is unlikely to move, but the thin margin is the thing to watch.
+- Speed warning from the main result stays: low-rank GPU path is 0.28x to 0.46x of int8 speed in this scorer (a step loop, not a fused kernel).
