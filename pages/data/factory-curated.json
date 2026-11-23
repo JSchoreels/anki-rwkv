@@ -2513,10 +2513,11 @@
     "Rank-1 int8 states (SM150): "
    ],
    "what": "Rank-1 int8 states (SM150): under the user&rsquo;s 11-23 budgets (Small and Tiny judged by their total cost vs the matching Big model at int8, at most +0.5% and +1.0%; Big at most +0.15% vs its own int8), rank 2 passes every size (SM148 rows). This run scores the next step down on the six release models, post-training: rank 1 everywhere (&minus;88.1% / &minus;78.4% / &minus;76.6% of the int8 state bytes for Big / Small / Tiny) and rank 1 below 16 answers then rank 2 (&minus;87.6% / &minus;77.4% / &minus;75.6%), on the 732 set (GPU), reusing the low-rank test&rsquo;s int8, rank-4 and rank-2 rows; long-card users on the CPU for Small and Tiny as warnings.",
-   "when": "Started 18:12 Mon 11-23 (smoke OK, integrity vs SM148 OK): GPU Tiny about 19:00, Small about 20:00, Big about 21:45; verdict about 22:30&ndash;23:00 Mon",
+   "when": "Done 21:38 Mon 11-23: <strong>rank 1 and rank 1 then 2 fail every size</strong> (only the Small Instant-Only model (SM113) passes rank 1 then 2; the Small two-head model (SM118) fails at +0.581% curve / +0.525% instant vs Big at int8); <strong>rank 2 (Q2) is the go pick for Big, Small and Tiny</strong> (&minus;82.8% / &minus;68.2% / &minus;66.7% state bytes vs int8)",
    "decides": "The smallest state format per size within the user&rsquo;s budgets, against rank 2 below 16 answers then rank 4 (&minus;81.7% / &minus;66.3% / &minus;64.7%), the current recommendation",
-   "state": "running",
-   "started_at": "2026-11-23T18:12+01:00"
+   "state": "done",
+   "started_at": "2026-11-23T18:12+01:00",
+   "ended_at": "2026-11-23T21:38+01:00"
   },
   {
    "id": "SM149b",
@@ -3428,6 +3429,224 @@
   "s-w64kd-gate-ctx2048c-dec8-1ep/w8+s8"
  ],
  "results": [
+ {
+  "date": "11-23",
+  "kind": "gpu-score",
+  "id": "SM150",
+  "track": "small model",
+  "name": "Rank-1 int8 states (SM150): post-training rank 1 and rank 1 then 2 card and note states with int8 factors against int8 rows, on the six release-candidate models",
+  "eval": "The 732 set (723 users, show-time inputs, leak-free) scored on the GPU for the six release-candidate models (the show-time two-head and Instant-Only big models (SM91s2) and (SM99), the show-time two-head cool-down for Small (SM118) and the longer Small Instant-Only model (SM113), the six-layer Tiny two-head and Instant-Only models (SM130)), in two new labels, cards and notes alike: R1 (rank 1 everywhere) and R12 (rank 1 below 16 answers, rank 2 from 16), int8 factor vectors and float16 scales; the int8 and Q2 rows come from the low-rank test (SM148). The 50 long-card users scored on the CPU for Small and Tiny only, as warnings. No training. Rules (user budgets 11-23): upper bound of the 95% CI per head; Big at most +0.15% vs its own int8; Small and Tiny judged by their total cost vs the matching Big model at int8, at most +0.5% (Small) and +1.0% (Tiny).",
+  "fork": "Rank 2 (Q2) is the smallest passing format for every size (&minus;82.8% / &minus;68.2% / &minus;66.7% state bytes vs int8); the recommendation of the main session stays rank 2 below 16 answers then rank 4 (T24); the final format per size is the user&rsquo;s decision",
+  "takeaway": "<strong>Rank 1 and rank 1 then 2 fail every size; rank 2 (Q2) is the go pick for Big, Small and Tiny.</strong> R1 (&minus;88.1% / &minus;78.4% / &minus;76.6% state bytes vs int8) costs up to +0.59% vs its own int8 on Big (limit +0.15%), +0.67% vs Big at int8 on Small (limit +0.5%) and +1.45% on Tiny (limit +1.0%). R12 (&minus;87.6% / &minus;77.4% / &minus;75.6%) costs up to +0.41% on Big, +0.58% on the Small two-head model (SM118, fails) but +0.45% on the Small Instant-Only model (SM113, the only model to pass), and +1.19% on Tiny. Q2 passes everywhere (Big +0.13%, Small +0.42%, Tiny +0.94%). Cards with 128+ answers cost more under R1 and R12 (up to +2.05% point on the six-layer Tiny Instant-Only model (SM130) with R1), a warning only.",
+  "inputs": "show-time",
+  "started_at": "2026-11-23T18:12+01:00",
+  "ended_at": "2026-11-23T21:38+01:00",
+  "gpu_minutes": 208,
+  "tickets": 11,
+  "detail": {
+   "verdict": "Rank 2 (Q2) for Big (&minus;82.8% state bytes vs int8), Small (&minus;68.2%) and Tiny (&minus;66.7%); rank 1 and rank 1 then 2 fail. Branch sm150 (RESULT.md, sm150-result.md, sm150-result.json, design.md)",
+   "table": {
+    "head": [
+     "Model",
+     "Label",
+     "State bytes vs int8",
+     "Cost vs Big at int8, value [95% CI] (Small limit: upper bound +0.5%, Tiny +1.0%): curve / instant",
+     "Cost vs own int8, value [95% CI] (Big limit: upper bound +0.15%): curve / instant",
+     "Cards with 128+ answers (CPU, warning): curve / instant",
+     "Share of cards with a review |dR| &gt; 0.10 (long-card users, warning): curve / instant",
+     "Verdict"
+    ],
+    "rows": [
+     [
+      "Big two-head (SM91s2)",
+      "R1: rank 1, int8 factors, every state",
+      "&minus;88.1%",
+      "-",
+      "+0.403% [+0.327, +0.507] / +0.501% [+0.465, +0.543]",
+      "not run",
+      "-",
+      "fails"
+     ],
+     [
+      "Big two-head (SM91s2)",
+      "R12: rank 1 below 16 answers, rank 2 from 16",
+      "&minus;87.6%",
+      "-",
+      "+0.262% [+0.211, +0.331] / +0.344% [+0.320, +0.368]",
+      "not run",
+      "-",
+      "fails"
+     ],
+     [
+      "Big two-head (SM91s2)",
+      "Q2: rank 2, int8 factors, every state",
+      "&minus;82.8%",
+      "-",
+      "+0.080% [+0.061, +0.101] / +0.109% [+0.096, +0.122]",
+      "not run",
+      "-",
+      "passes"
+     ],
+     [
+      "Big Instant-Only (SM99)",
+      "R1: rank 1, int8 factors, every state",
+      "&minus;88.1%",
+      "-",
+      "+0.550% [+0.510, +0.592]",
+      "not run",
+      "-",
+      "fails"
+     ],
+     [
+      "Big Instant-Only (SM99)",
+      "R12: rank 1 below 16 answers, rank 2 from 16",
+      "&minus;87.6%",
+      "-",
+      "+0.381% [+0.355, +0.408]",
+      "not run",
+      "-",
+      "fails"
+     ],
+     [
+      "Big Instant-Only (SM99)",
+      "Q2: rank 2, int8 factors, every state",
+      "&minus;82.8%",
+      "-",
+      "+0.118% [+0.107, +0.132]",
+      "not run",
+      "-",
+      "passes"
+     ],
+     [
+      "Small two-head (SM118)",
+      "R1: rank 1, int8 factors, every state",
+      "&minus;78.4%",
+      "+0.499% [+0.334, +0.666] / +0.608% [+0.565, +0.659]",
+      "+0.290% [+0.258, +0.321] / +0.462% [+0.430, +0.500]",
+      "&minus;0.423% [&minus;5.767, +0.719] / +0.729% [+0.459, +1.325]",
+      "1.7156% / 3.7843%",
+      "fails"
+     ],
+     [
+      "Small two-head (SM118)",
+      "R12: rank 1 below 16 answers, rank 2 from 16",
+      "&minus;77.4%",
+      "+0.419% [+0.256, +0.581] / +0.490% [+0.457, +0.525]",
+      "+0.207% [+0.186, +0.229] / +0.341% [+0.319, +0.364]",
+      "&minus;0.225% [&minus;2.759, +0.384] / +0.291% [+0.109, +0.527]",
+      "0.6335% / 1.9664%",
+      "fails"
+     ],
+     [
+      "Small two-head (SM118)",
+      "Q2: rank 2, int8 factors, every state",
+      "&minus;68.2%",
+      "+0.258% [+0.098, +0.422] / +0.229% [+0.202, +0.257]",
+      "+0.047% [+0.038, +0.056] / +0.079% [+0.072, +0.087]",
+      "&minus;0.172% [&minus;2.221, +0.309] / +0.292% [+0.242, +0.516]",
+      "-",
+      "passes"
+     ],
+     [
+      "Small Instant-Only (SM113)",
+      "R1: rank 1, int8 factors, every state",
+      "&minus;78.4%",
+      "+0.542% [+0.500, +0.589]",
+      "+0.539% [+0.499, +0.581]",
+      "+1.235% [+0.935, +2.201]",
+      "4.3645%",
+      "fails"
+     ],
+     [
+      "Small Instant-Only (SM113)",
+      "R12: rank 1 below 16 answers, rank 2 from 16",
+      "&minus;77.4%",
+      "+0.411% [+0.379, +0.446]",
+      "+0.401% [+0.374, +0.433]",
+      "+0.338% [+0.203, +0.838]",
+      "2.4824%",
+      "passes"
+     ],
+     [
+      "Small Instant-Only (SM113)",
+      "Q2: rank 2, int8 factors, every state",
+      "&minus;68.2%",
+      "+0.101% [+0.075, +0.127]",
+      "+0.089% [+0.080, +0.098]",
+      "+0.310% [+0.194, +0.775]",
+      "-",
+      "passes"
+     ],
+     [
+      "the six-layer Tiny two-head model (SM130)",
+      "R1: rank 1, int8 factors, every state",
+      "&minus;76.6%",
+      "+1.162% [+0.972, +1.355] / +1.361% [+1.276, +1.454]",
+      "+0.492% [+0.428, +0.559] / +0.696% [+0.639, +0.760]",
+      "+1.193% [+0.870, +1.955] / +0.812% [+0.566, +1.912]",
+      "4.5776% / 6.7571%",
+      "fails"
+     ],
+     [
+      "the six-layer Tiny two-head model (SM130)",
+      "R12: rank 1 below 16 answers, rank 2 from 16",
+      "&minus;75.6%",
+      "+0.989% [+0.807, +1.175] / +1.118% [+1.051, +1.188]",
+      "+0.311% [+0.273, +0.345] / +0.449% [+0.417, +0.482]",
+      "+0.581% [+0.067, +1.887] / +0.351% [+0.056, +0.576]",
+      "1.7372% / 3.3043%",
+      "fails"
+     ],
+     [
+      "the six-layer Tiny two-head model (SM130)",
+      "Q2: rank 2, int8 factors, every state",
+      "&minus;66.7%",
+      "+0.759% [+0.584, +0.939] / +0.802% [+0.745, +0.861]",
+      "+0.081% [+0.066, +0.095] / +0.131% [+0.119, +0.144]",
+      "+0.548% [+0.043, +1.724] / +0.304% [+0.052, +0.463]",
+      "-",
+      "passes"
+     ],
+     [
+      "the six-layer Tiny Instant-Only model (SM130)",
+      "R1: rank 1, int8 factors, every state",
+      "&minus;76.6%",
+      "+1.358% [+1.284, +1.434]",
+      "+0.791% [+0.734, +0.851]",
+      "+2.049% [+1.534, +2.928]",
+      "7.4338%",
+      "fails"
+     ],
+     [
+      "the six-layer Tiny Instant-Only model (SM130)",
+      "R12: rank 1 below 16 answers, rank 2 from 16",
+      "&minus;75.6%",
+      "+1.104% [+1.042, +1.168]",
+      "+0.527% [+0.494, +0.564]",
+      "+0.264% [+0.157, +0.788]",
+      "4.2372%",
+      "fails"
+     ],
+     [
+      "the six-layer Tiny Instant-Only model (SM130)",
+      "Q2: rank 2, int8 factors, every state",
+      "&minus;66.7%",
+      "+0.735% [+0.684, +0.785]",
+      "+0.159% [+0.145, +0.174]",
+      "+0.273% [+0.180, +0.713]",
+      "-",
+      "passes"
+     ]
+    ]
+   },
+   "notes": [
+    "Coverage: Big 718 of 718 scorable users on the GPU (both models), Small and Tiny 723 of 723 GPU users and 50 of 50 long-card users per model and label (400 long-card rows), 0 users killed, 0 failed. Big has no long-card run. The reference rescored on the 3 smoke users equals the low-rank test (SM148) rows within 1e-6.",
+    "Where the cost sits (Big two-head model (SM91s2), curve head, % vs own int8, by answer count 1-2 / 3-4 / 5-8 / 9-15 / 16-31 / 32-127 / 128+): R1 +0.125 / +0.237 / +0.426 / +0.577 / +0.641 / +0.706 / +0.739; R12 +0.073 / +0.171 / +0.312 / +0.466 / +0.332 / +0.201 / +0.195; Q2 +0.050 / +0.042 / +0.085 / +0.089 / +0.118 / +0.149 / +0.165. Rank 1 below 16 answers is where most of the R12 cost remains.",
+    "The earlier low-rank test (SM148) result for rank 2 below 16 answers then rank 4 (T24) also passed every size with more headroom than Q2; the recommendation of the main session stays T24 (&minus;81.7% / &minus;66.3% / &minus;64.7% state bytes vs int8), and the final format per size is the user&rsquo;s decision.",
+    "Wall time: launched 18:12 Mon 11-23, done 21:38. GPU about 208 minutes in 11 tickets (smoke 1, six-layer Tiny 43, Small 59, Big 105 including retry passes). Speed against int8, review evaluations per second on the GPU (732 set), reference vs R1 / R12 / Q2: Big 76,714 vs 30,824 / 30,392 / 29,769 (about 0.39x), Small 124,598 vs 57,718 / 56,718 / 57,783 (about 0.46x), Tiny 295,619 vs 84,726 / 83,121 / 85,607 (about 0.28x); on the CPU (long-card users) 0.86x to 0.96x of int8."
+   ]
+  }
+ },
  {
   "date": "11-23",
   "kind": "gpu-train",
