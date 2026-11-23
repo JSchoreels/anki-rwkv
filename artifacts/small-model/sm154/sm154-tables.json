@@ -1,0 +1,5094 @@
+{
+ "note": "aggregates only; costs in % of the reference LogLoss (review-weighted, paired user bootstrap, 95% CI); bytes are state bytes per answered card and note summed over the 732 set vs int8 rows (%, negative = smaller)",
+ "users": 718,
+ "excluded": [
+  {
+   "what": "SM129 compact state for Tiny, rows w8+s4c8nhx8 and w8+s4hgx4c8hx8n",
+   "why": "scored on earlier Tiny checkpoints (tags sm124 and sm115, one layer), not on the six-layer Tiny models (SM130); no int8 rows of the same checkpoint on the same pool. The six-layer Tiny models get the same compact int4 cards as scheme A of SM141."
+  },
+  {
+   "what": "SM131 fork default w8+s4c8n (int4 cards with float32 row scales)",
+   "why": "its int8 base is the older w8+s8 layout (float32 scales, larger shift vectors), not the release-candidate w8+s8hx8 layout, so its bytes are not on the same scale; and it overflows for Big user 3876."
+  },
+  {
+   "what": "SM129 rows for Small (w8+s4c8n on SM118 and SM113)",
+   "why": "same fork-default layout as above."
+  },
+  {
+   "what": "SM146 report-only labels (t3.16.8, I2c, I2d) and SM145 bytes-only labels (Y8N, Y8C, Y2C)",
+   "why": "bytes were computed but the formats were never scored."
+  },
+  {
+   "what": "SM144 earlier int8 switch (SM144) rows",
+   "why": "included (rows exist: A32, A16, AN32, AN16, same pool and inputs)."
+  },
+  {
+   "what": "SM152 smaller shift vectors and factors on T24 states",
+   "why": "still running when this table was built; no result rows."
+  }
+ ],
+ "models": {
+  "sm91s2": {
+   "name": "Big two-head (SM91s2)",
+   "size": "Big",
+   "heads": [
+    "curve",
+    "instant"
+   ],
+   "budget_ref": "its own int8",
+   "budget_pct": 0.15,
+   "budget_text": "at most +0.15% vs its own int8",
+   "formats": {
+    "REF": {
+     "variant": "w8+s8hx8",
+     "description": "int8 rows, float16 row scales, int8 shift vectors (the reference)",
+     "source": "SM141",
+     "rows_from": "SM141",
+     "bytes_vs_int8_pct": 0.0,
+     "vs_own_int8": {
+      "curve": {
+       "value": 0.0,
+       "lo": 0.0,
+       "up": 0.0
+      },
+      "instant": {
+       "value": 0.0,
+       "lo": 0.0,
+       "up": 0.0
+      }
+     },
+     "vs_budget_ref": {
+      "curve": {
+       "value": 0.0,
+       "lo": 0.0,
+       "up": 0.0
+      },
+      "instant": {
+       "value": 0.0,
+       "lo": 0.0,
+       "up": 0.0
+      }
+     }
+    },
+    "C4": {
+     "variant": "w8+s4c8nhx8",
+     "description": "compact int4 cards, int8 notes",
+     "source": "SM131",
+     "rows_from": "SM131",
+     "bytes_vs_int8_pct": -27.75,
+     "vs_own_int8": {
+      "curve": {
+       "value": 0.014,
+       "lo": 0.009,
+       "up": 0.021
+      },
+      "instant": {
+       "value": 0.015,
+       "lo": 0.011,
+       "up": 0.019
+      }
+     },
+     "vs_budget_ref": {
+      "curve": {
+       "value": 0.014,
+       "lo": 0.009,
+       "up": 0.021
+      },
+      "instant": {
+       "value": 0.015,
+       "lo": 0.011,
+       "up": 0.019
+      }
+     }
+    },
+    "CO4": {
+     "variant": "w8+s4hgx4c8hx8n",
+     "description": "card-only int4 (one scale per head, int4 shifts), int8 notes",
+     "source": "SM131",
+     "rows_from": "SM131",
+     "bytes_vs_int8_pct": -32.85,
+     "vs_own_int8": {
+      "curve": {
+       "value": 0.131,
+       "lo": 0.102,
+       "up": 0.162
+      },
+      "instant": {
+       "value": 0.161,
+       "lo": 0.14,
+       "up": 0.184
+      }
+     },
+     "vs_budget_ref": {
+      "curve": {
+       "value": 0.131,
+       "lo": 0.102,
+       "up": 0.162
+      },
+      "instant": {
+       "value": 0.161,
+       "lo": 0.14,
+       "up": 0.184
+      }
+     }
+    },
+    "A": {
+     "variant": "w8+t4.128.8c8nhx8",
+     "description": "cards int4 below 128 answers, int8 from 128; notes int8",
+     "source": "SM141",
+     "rows_from": "SM141",
+     "bytes_vs_int8_pct": -27.74,
+     "vs_own_int8": {
+      "curve": {
+       "value": 0.014,
+       "lo": 0.009,
+       "up": 0.02
+      },
+      "instant": {
+       "value": 0.015,
+       "lo": 0.011,
+       "up": 0.019
+      }
+     },
+     "vs_budget_ref": {
+      "curve": {
+       "value": 0.014,
+       "lo": 0.009,
+       "up": 0.02
+      },
+      "instant": {
+       "value": 0.015,
+       "lo": 0.011,
+       "up": 0.019
+      }
+     }
+    },
+    "AN": {
+     "variant": "w8+t4.128.8c4.128.8nhx8",
+     "description": "cards and notes int4 below 128 answers, int8 from 128",
+     "source": "SM141",
+     "rows_from": "SM141",
+     "bytes_vs_int8_pct": -44.2,
+     "vs_own_int8": {
+      "curve": {
+       "value": 0.03,
+       "lo": 0.018,
+       "up": 0.043
+      },
+      "instant": {
+       "value": 0.039,
+       "lo": 0.032,
+       "up": 0.046
+      }
+     },
+     "vs_budget_ref": {
+      "curve": {
+       "value": 0.03,
+       "lo": 0.018,
+       "up": 0.043
+      },
+      "instant": {
+       "value": 0.039,
+       "lo": 0.032,
+       "up": 0.046
+      }
+     }
+    },
+    "B4": {
+     "variant": "w8+t3.5.4.128.8c3.5.4.128.8nhx8",
+     "description": "AN with int3 for 1-4 answers",
+     "source": "SM141",
+     "rows_from": "SM141",
+     "bytes_vs_int8_pct": -49.28,
+     "vs_own_int8": {
+      "curve": {
+       "value": 0.039,
+       "lo": 0.022,
+       "up": 0.058
+      },
+      "instant": {
+       "value": 0.05,
+       "lo": 0.044,
+       "up": 0.057
+      }
+     },
+     "vs_budget_ref": {
+      "curve": {
+       "value": 0.039,
+       "lo": 0.022,
+       "up": 0.058
+      },
+      "instant": {
+       "value": 0.05,
+       "lo": 0.044,
+       "up": 0.057
+      }
+     }
+    },
+    "B8": {
+     "variant": "w8+t3.9.4.128.8c3.9.4.128.8nhx8",
+     "description": "AN with int3 for 1-8 answers",
+     "source": "SM141",
+     "rows_from": "SM141",
+     "bytes_vs_int8_pct": -52.6,
+     "vs_own_int8": {
+      "curve": {
+       "value": 0.048,
+       "lo": 0.03,
+       "up": 0.071
+      },
+      "instant": {
+       "value": 0.064,
+       "lo": 0.056,
+       "up": 0.071
+      }
+     },
+     "vs_budget_ref": {
+      "curve": {
+       "value": 0.048,
+       "lo": 0.03,
+       "up": 0.071
+      },
+      "instant": {
+       "value": 0.064,
+       "lo": 0.056,
+       "up": 0.071
+      }
+     }
+    },
+    "D4": {
+     "variant": "w8+t2.5.4.128.8c2.5.4.128.8nhx8",
+     "description": "AN with int2 (ternary) for 1-4 answers",
+     "source": "SM141",
+     "rows_from": "SM141",
+     "bytes_vs_int8_pct": -54.37,
+     "vs_own_int8": {
+      "curve": {
+       "value": 0.088,
+       "lo": 0.063,
+       "up": 0.113
+      },
+      "instant": {
+       "value": 0.149,
+       "lo": 0.136,
+       "up": 0.162
+      }
+     },
+     "vs_budget_ref": {
+      "curve": {
+       "value": 0.088,
+       "lo": 0.063,
+       "up": 0.113
+      },
+      "instant": {
+       "value": 0.149,
+       "lo": 0.136,
+       "up": 0.162
+      }
+     }
+    },
+    "A32": {
+     "variant": "w8+t4.32.8c8nhx8",
+     "description": "cards int4 below 32 answers, int8 from 32; notes int8",
+     "source": "SM144",
+     "rows_from": "SM144",
+     "bytes_vs_int8_pct": -27.22,
+     "vs_own_int8": {
+      "curve": {
+       "value": 0.011,
+       "lo": 0.006,
+       "up": 0.017
+      },
+      "instant": {
+       "value": 0.011,
+       "lo": 0.009,
+       "up": 0.013
+      }
+     },
+     "vs_budget_ref": {
+      "curve": {
+       "value": 0.011,
+       "lo": 0.006,
+       "up": 0.017
+      },
+      "instant": {
+       "value": 0.011,
+       "lo": 0.009,
+       "up": 0.013
+      }
+     }
+    },
+    "A16": {
+     "variant": "w8+t4.16.8c8nhx8",
+     "description": "cards int4 below 16 answers, int8 from 16; notes int8",
+     "source": "SM144",
+     "rows_from": "SM144",
+     "bytes_vs_int8_pct": -25.54,
+     "vs_own_int8": {
+      "curve": {
+       "value": 0.006,
+       "lo": 0.002,
+       "up": 0.011
+      },
+      "instant": {
+       "value": 0.005,
+       "lo": 0.004,
+       "up": 0.006
+      }
+     },
+     "vs_budget_ref": {
+      "curve": {
+       "value": 0.006,
+       "lo": 0.002,
+       "up": 0.011
+      },
+      "instant": {
+       "value": 0.005,
+       "lo": 0.004,
+       "up": 0.006
+      }
+     }
+    },
+    "AN32": {
+     "variant": "w8+t4.32.8c4.32.8nhx8",
+     "description": "cards and notes int4 below 32 answers, int8 from 32",
+     "source": "SM144",
+     "rows_from": "SM144",
+     "bytes_vs_int8_pct": -43.21,
+     "vs_own_int8": {
+      "curve": {
+       "value": 0.017,
+       "lo": 0.009,
+       "up": 0.025
+      },
+      "instant": {
+       "value": 0.022,
+       "lo": 0.019,
+       "up": 0.026
+      }
+     },
+     "vs_budget_ref": {
+      "curve": {
+       "value": 0.017,
+       "lo": 0.009,
+       "up": 0.025
+      },
+      "instant": {
+       "value": 0.022,
+       "lo": 0.019,
+       "up": 0.026
+      }
+     }
+    },
+    "AN16": {
+     "variant": "w8+t4.16.8c4.16.8nhx8",
+     "description": "cards and notes int4 below 16 answers, int8 from 16",
+     "source": "SM144",
+     "rows_from": "SM144",
+     "bytes_vs_int8_pct": -40.25,
+     "vs_own_int8": {
+      "curve": {
+       "value": 0.008,
+       "lo": 0.002,
+       "up": 0.014
+      },
+      "instant": {
+       "value": 0.012,
+       "lo": 0.01,
+       "up": 0.013
+      }
+     },
+     "vs_budget_ref": {
+      "curve": {
+       "value": 0.008,
+       "lo": 0.002,
+       "up": 0.014
+      },
+      "instant": {
+       "value": 0.012,
+       "lo": 0.01,
+       "up": 0.013
+      }
+     }
+    },
+    "Y2N": {
+     "variant": "w8+t3.3.4.16.8c3.3.4.16.8nhx8",
+     "description": "AN16 with int3 for 1-2 answers",
+     "source": "SM145",
+     "rows_from": "SM145",
+     "bytes_vs_int8_pct": -42.75,
+     "vs_own_int8": {
+      "curve": {
+       "value": 0.012,
+       "lo": 0.003,
+       "up": 0.021
+      },
+      "instant": {
+       "value": 0.016,
+       "lo": 0.014,
+       "up": 0.018
+      }
+     },
+     "vs_budget_ref": {
+      "curve": {
+       "value": 0.012,
+       "lo": 0.003,
+       "up": 0.021
+      },
+      "instant": {
+       "value": 0.016,
+       "lo": 0.014,
+       "up": 0.018
+      }
+     }
+    },
+    "Y4C": {
+     "variant": "w8+t3.5.4.16.8c4.16.8nhx8",
+     "description": "AN16 with int3 for 1-4 answers on cards only",
+     "source": "SM145",
+     "rows_from": "SM145",
+     "bytes_vs_int8_pct": -43.48,
+     "vs_own_int8": {
+      "curve": {
+       "value": 0.008,
+       "lo": -0.002,
+       "up": 0.017
+      },
+      "instant": {
+       "value": 0.015,
+       "lo": 0.013,
+       "up": 0.016
+      }
+     },
+     "vs_budget_ref": {
+      "curve": {
+       "value": 0.008,
+       "lo": -0.002,
+       "up": 0.017
+      },
+      "instant": {
+       "value": 0.015,
+       "lo": 0.013,
+       "up": 0.016
+      }
+     }
+    },
+    "Y4N": {
+     "variant": "w8+t3.5.4.16.8c3.5.4.16.8nhx8",
+     "description": "AN16 with int3 for 1-4 answers on cards and notes (also SM146 I3a)",
+     "source": "SM145",
+     "rows_from": "SM145",
+     "bytes_vs_int8_pct": -45.34,
+     "vs_own_int8": {
+      "curve": {
+       "value": 0.013,
+       "lo": 0.002,
+       "up": 0.024
+      },
+      "instant": {
+       "value": 0.023,
+       "lo": 0.02,
+       "up": 0.025
+      }
+     },
+     "vs_budget_ref": {
+      "curve": {
+       "value": 0.013,
+       "lo": 0.002,
+       "up": 0.024
+      },
+      "instant": {
+       "value": 0.023,
+       "lo": 0.02,
+       "up": 0.025
+      }
+     }
+    },
+    "Q4": {
+     "variant": "w8+lr4q8x8",
+     "description": "rank 4 int8 factors, every entity",
+     "source": "SM148",
+     "rows_from": "SM148",
+     "bytes_vs_int8_pct": -74.41,
+     "vs_own_int8": {
+      "curve": {
+       "value": 0.014,
+       "lo": 0.008,
+       "up": 0.02
+      },
+      "instant": {
+       "value": 0.018,
+       "lo": 0.015,
+       "up": 0.021
+      }
+     },
+     "vs_budget_ref": {
+      "curve": {
+       "value": 0.014,
+       "lo": 0.008,
+       "up": 0.02
+      },
+      "instant": {
+       "value": 0.018,
+       "lo": 0.015,
+       "up": 0.021
+      }
+     }
+    },
+    "T24": {
+     "variant": "w8+lr2.16.4q8x8",
+     "description": "rank 2 below 16 answers, rank 4 from 16 (the user's choice)",
+     "source": "SM148",
+     "rows_from": "SM148",
+     "bytes_vs_int8_pct": -81.72,
+     "vs_own_int8": {
+      "curve": {
+       "value": 0.034,
+       "lo": 0.024,
+       "up": 0.043
+      },
+      "instant": {
+       "value": 0.054,
+       "lo": 0.049,
+       "up": 0.059
+      }
+     },
+     "vs_budget_ref": {
+      "curve": {
+       "value": 0.034,
+       "lo": 0.024,
+       "up": 0.043
+      },
+      "instant": {
+       "value": 0.054,
+       "lo": 0.049,
+       "up": 0.059
+      }
+     }
+    },
+    "Q2": {
+     "variant": "w8+lr2q8x8",
+     "description": "rank 2 int8 factors, every entity",
+     "source": "SM148",
+     "rows_from": "SM148",
+     "bytes_vs_int8_pct": -82.78,
+     "vs_own_int8": {
+      "curve": {
+       "value": 0.08,
+       "lo": 0.061,
+       "up": 0.101
+      },
+      "instant": {
+       "value": 0.109,
+       "lo": 0.096,
+       "up": 0.122
+      }
+     },
+     "vs_budget_ref": {
+      "curve": {
+       "value": 0.08,
+       "lo": 0.061,
+       "up": 0.101
+      },
+      "instant": {
+       "value": 0.109,
+       "lo": 0.096,
+       "up": 0.122
+      }
+     }
+    },
+    "R12": {
+     "variant": "w8+lr1.16.2q8x8",
+     "description": "rank 1 below 16 answers, rank 2 from 16",
+     "source": "SM150",
+     "rows_from": "SM150",
+     "bytes_vs_int8_pct": -87.56,
+     "vs_own_int8": {
+      "curve": {
+       "value": 0.262,
+       "lo": 0.211,
+       "up": 0.331
+      },
+      "instant": {
+       "value": 0.344,
+       "lo": 0.32,
+       "up": 0.368
+      }
+     },
+     "vs_budget_ref": {
+      "curve": {
+       "value": 0.262,
+       "lo": 0.211,
+       "up": 0.331
+      },
+      "instant": {
+       "value": 0.344,
+       "lo": 0.32,
+       "up": 0.368
+      }
+     }
+    },
+    "R1": {
+     "variant": "w8+lr1q8x8",
+     "description": "rank 1 int8 factors, every entity",
+     "source": "SM150",
+     "rows_from": "SM150",
+     "bytes_vs_int8_pct": -88.08,
+     "vs_own_int8": {
+      "curve": {
+       "value": 0.403,
+       "lo": 0.327,
+       "up": 0.507
+      },
+      "instant": {
+       "value": 0.501,
+       "lo": 0.465,
+       "up": 0.543
+      }
+     },
+     "vs_budget_ref": {
+      "curve": {
+       "value": 0.403,
+       "lo": 0.327,
+       "up": 0.507
+      },
+      "instant": {
+       "value": 0.501,
+       "lo": 0.465,
+       "up": 0.543
+      }
+     }
+    }
+   },
+   "hull": {
+    "curve_upper": {
+     "frontier": [
+      "REF",
+      "Q4",
+      "T24",
+      "R12",
+      "R1"
+     ],
+     "segments": [
+      {
+       "from": "REF",
+       "to": "Q4",
+       "bytes_saved_pct_of_int8": 74.41,
+       "cost_added_pct": 0.02,
+       "cost_per_saved_pct": 0.0003
+      },
+      {
+       "from": "Q4",
+       "to": "T24",
+       "bytes_saved_pct_of_int8": 7.31,
+       "cost_added_pct": 0.023,
+       "cost_per_saved_pct": 0.0031
+      },
+      {
+       "from": "T24",
+       "to": "R12",
+       "bytes_saved_pct_of_int8": 5.84,
+       "cost_added_pct": 0.288,
+       "cost_per_saved_pct": 0.0493
+      },
+      {
+       "from": "R12",
+       "to": "R1",
+       "bytes_saved_pct_of_int8": 0.52,
+       "cost_added_pct": 0.176,
+       "cost_per_saved_pct": 0.3385
+      }
+     ],
+     "pareto_dominated": [
+      "A",
+      "A32",
+      "AN",
+      "AN32",
+      "B4",
+      "B8",
+      "C4",
+      "CO4",
+      "D4",
+      "Y2N",
+      "Y4N"
+     ],
+     "inside_hull_only": [
+      "A16",
+      "AN16",
+      "Q2",
+      "Y4C"
+     ]
+    },
+    "curve_point": {
+     "frontier": [
+      "REF",
+      "Y4C",
+      "Q4",
+      "T24",
+      "R12",
+      "R1"
+     ],
+     "segments": [
+      {
+       "from": "REF",
+       "to": "Y4C",
+       "bytes_saved_pct_of_int8": 43.48,
+       "cost_added_pct": 0.008,
+       "cost_per_saved_pct": 0.0002
+      },
+      {
+       "from": "Y4C",
+       "to": "Q4",
+       "bytes_saved_pct_of_int8": 30.93,
+       "cost_added_pct": 0.006,
+       "cost_per_saved_pct": 0.0002
+      },
+      {
+       "from": "Q4",
+       "to": "T24",
+       "bytes_saved_pct_of_int8": 7.31,
+       "cost_added_pct": 0.02,
+       "cost_per_saved_pct": 0.0027
+      },
+      {
+       "from": "T24",
+       "to": "R12",
+       "bytes_saved_pct_of_int8": 5.84,
+       "cost_added_pct": 0.228,
+       "cost_per_saved_pct": 0.039
+      },
+      {
+       "from": "R12",
+       "to": "R1",
+       "bytes_saved_pct_of_int8": 0.52,
+       "cost_added_pct": 0.141,
+       "cost_per_saved_pct": 0.2712
+      }
+     ],
+     "pareto_dominated": [
+      "A",
+      "A32",
+      "AN",
+      "AN16",
+      "AN32",
+      "B4",
+      "B8",
+      "C4",
+      "CO4",
+      "D4",
+      "Y2N"
+     ],
+     "inside_hull_only": [
+      "A16",
+      "Q2",
+      "Y4N"
+     ]
+    },
+    "instant_upper": {
+     "frontier": [
+      "REF",
+      "A16",
+      "Q4",
+      "T24",
+      "R12",
+      "R1"
+     ],
+     "segments": [
+      {
+       "from": "REF",
+       "to": "A16",
+       "bytes_saved_pct_of_int8": 25.54,
+       "cost_added_pct": 0.006,
+       "cost_per_saved_pct": 0.0002
+      },
+      {
+       "from": "A16",
+       "to": "Q4",
+       "bytes_saved_pct_of_int8": 48.87,
+       "cost_added_pct": 0.015,
+       "cost_per_saved_pct": 0.0003
+      },
+      {
+       "from": "Q4",
+       "to": "T24",
+       "bytes_saved_pct_of_int8": 7.31,
+       "cost_added_pct": 0.038,
+       "cost_per_saved_pct": 0.0052
+      },
+      {
+       "from": "T24",
+       "to": "R12",
+       "bytes_saved_pct_of_int8": 5.84,
+       "cost_added_pct": 0.309,
+       "cost_per_saved_pct": 0.0529
+      },
+      {
+       "from": "R12",
+       "to": "R1",
+       "bytes_saved_pct_of_int8": 0.52,
+       "cost_added_pct": 0.175,
+       "cost_per_saved_pct": 0.3365
+      }
+     ],
+     "pareto_dominated": [
+      "A",
+      "A32",
+      "AN",
+      "AN32",
+      "B4",
+      "B8",
+      "C4",
+      "CO4",
+      "D4",
+      "Y2N",
+      "Y4N"
+     ],
+     "inside_hull_only": [
+      "AN16",
+      "Q2",
+      "Y4C"
+     ]
+    },
+    "instant_point": {
+     "frontier": [
+      "REF",
+      "A16",
+      "Q4",
+      "T24",
+      "R12",
+      "R1"
+     ],
+     "segments": [
+      {
+       "from": "REF",
+       "to": "A16",
+       "bytes_saved_pct_of_int8": 25.54,
+       "cost_added_pct": 0.005,
+       "cost_per_saved_pct": 0.0002
+      },
+      {
+       "from": "A16",
+       "to": "Q4",
+       "bytes_saved_pct_of_int8": 48.87,
+       "cost_added_pct": 0.013,
+       "cost_per_saved_pct": 0.0003
+      },
+      {
+       "from": "Q4",
+       "to": "T24",
+       "bytes_saved_pct_of_int8": 7.31,
+       "cost_added_pct": 0.036,
+       "cost_per_saved_pct": 0.0049
+      },
+      {
+       "from": "T24",
+       "to": "R12",
+       "bytes_saved_pct_of_int8": 5.84,
+       "cost_added_pct": 0.29,
+       "cost_per_saved_pct": 0.0497
+      },
+      {
+       "from": "R12",
+       "to": "R1",
+       "bytes_saved_pct_of_int8": 0.52,
+       "cost_added_pct": 0.157,
+       "cost_per_saved_pct": 0.3019
+      }
+     ],
+     "pareto_dominated": [
+      "A",
+      "AN",
+      "AN32",
+      "B4",
+      "B8",
+      "C4",
+      "CO4",
+      "D4",
+      "Y2N",
+      "Y4N"
+     ],
+     "inside_hull_only": [
+      "A32",
+      "AN16",
+      "Q2",
+      "Y4C"
+     ]
+    }
+   },
+   "passing_budget": [
+    "Q2",
+    "T24",
+    "Q4",
+    "B8",
+    "B4",
+    "Y4N",
+    "AN",
+    "Y4C",
+    "AN32",
+    "Y2N",
+    "AN16",
+    "C4",
+    "A",
+    "A32",
+    "A16",
+    "REF"
+   ],
+   "smallest_passing": "Q2",
+   "budget_crossing_on_upper_frontier": {
+    "curve": -83.89,
+    "instant": -83.44
+   }
+  },
+  "sm99": {
+   "name": "Big Instant-Only (SM99)",
+   "size": "Big",
+   "heads": [
+    "instant"
+   ],
+   "budget_ref": "its own int8",
+   "budget_pct": 0.15,
+   "budget_text": "at most +0.15% vs its own int8",
+   "formats": {
+    "REF": {
+     "variant": "w8+s8hx8",
+     "description": "int8 rows, float16 row scales, int8 shift vectors (the reference)",
+     "source": "SM141",
+     "rows_from": "SM141",
+     "bytes_vs_int8_pct": 0.0,
+     "vs_own_int8": {
+      "instant": {
+       "value": 0.0,
+       "lo": 0.0,
+       "up": 0.0
+      }
+     },
+     "vs_budget_ref": {
+      "instant": {
+       "value": 0.0,
+       "lo": 0.0,
+       "up": 0.0
+      }
+     }
+    },
+    "C4": {
+     "variant": "w8+s4c8nhx8",
+     "description": "compact int4 cards, int8 notes",
+     "source": "SM131",
+     "rows_from": "SM131",
+     "bytes_vs_int8_pct": -27.75,
+     "vs_own_int8": {
+      "instant": {
+       "value": 0.016,
+       "lo": 0.013,
+       "up": 0.02
+      }
+     },
+     "vs_budget_ref": {
+      "instant": {
+       "value": 0.016,
+       "lo": 0.013,
+       "up": 0.02
+      }
+     }
+    },
+    "CO4": {
+     "variant": "w8+s4hgx4c8hx8n",
+     "description": "card-only int4 (one scale per head, int4 shifts), int8 notes",
+     "source": "SM131",
+     "rows_from": "SM131",
+     "bytes_vs_int8_pct": -32.85,
+     "vs_own_int8": {
+      "instant": {
+       "value": 0.166,
+       "lo": 0.147,
+       "up": 0.187
+      }
+     },
+     "vs_budget_ref": {
+      "instant": {
+       "value": 0.166,
+       "lo": 0.147,
+       "up": 0.187
+      }
+     }
+    },
+    "A": {
+     "variant": "w8+t4.128.8c8nhx8",
+     "description": "cards int4 below 128 answers, int8 from 128; notes int8",
+     "source": "SM141",
+     "rows_from": "SM141",
+     "bytes_vs_int8_pct": -27.74,
+     "vs_own_int8": {
+      "instant": {
+       "value": 0.016,
+       "lo": 0.013,
+       "up": 0.02
+      }
+     },
+     "vs_budget_ref": {
+      "instant": {
+       "value": 0.016,
+       "lo": 0.013,
+       "up": 0.02
+      }
+     }
+    },
+    "AN": {
+     "variant": "w8+t4.128.8c4.128.8nhx8",
+     "description": "cards and notes int4 below 128 answers, int8 from 128",
+     "source": "SM141",
+     "rows_from": "SM141",
+     "bytes_vs_int8_pct": -44.2,
+     "vs_own_int8": {
+      "instant": {
+       "value": 0.046,
+       "lo": 0.039,
+       "up": 0.054
+      }
+     },
+     "vs_budget_ref": {
+      "instant": {
+       "value": 0.046,
+       "lo": 0.039,
+       "up": 0.054
+      }
+     }
+    },
+    "B4": {
+     "variant": "w8+t3.5.4.128.8c3.5.4.128.8nhx8",
+     "description": "AN with int3 for 1-4 answers",
+     "source": "SM141",
+     "rows_from": "SM141",
+     "bytes_vs_int8_pct": -49.28,
+     "vs_own_int8": {
+      "instant": {
+       "value": 0.059,
+       "lo": 0.051,
+       "up": 0.068
+      }
+     },
+     "vs_budget_ref": {
+      "instant": {
+       "value": 0.059,
+       "lo": 0.051,
+       "up": 0.068
+      }
+     }
+    },
+    "B8": {
+     "variant": "w8+t3.9.4.128.8c3.9.4.128.8nhx8",
+     "description": "AN with int3 for 1-8 answers",
+     "source": "SM141",
+     "rows_from": "SM141",
+     "bytes_vs_int8_pct": -52.6,
+     "vs_own_int8": {
+      "instant": {
+       "value": 0.072,
+       "lo": 0.064,
+       "up": 0.081
+      }
+     },
+     "vs_budget_ref": {
+      "instant": {
+       "value": 0.072,
+       "lo": 0.064,
+       "up": 0.081
+      }
+     }
+    },
+    "D4": {
+     "variant": "w8+t2.5.4.128.8c2.5.4.128.8nhx8",
+     "description": "AN with int2 (ternary) for 1-4 answers",
+     "source": "SM141",
+     "rows_from": "SM141",
+     "bytes_vs_int8_pct": -54.37,
+     "vs_own_int8": {
+      "instant": {
+       "value": 0.159,
+       "lo": 0.146,
+       "up": 0.173
+      }
+     },
+     "vs_budget_ref": {
+      "instant": {
+       "value": 0.159,
+       "lo": 0.146,
+       "up": 0.173
+      }
+     }
+    },
+    "A32": {
+     "variant": "w8+t4.32.8c8nhx8",
+     "description": "cards int4 below 32 answers, int8 from 32; notes int8",
+     "source": "SM144",
+     "rows_from": "SM144",
+     "bytes_vs_int8_pct": -27.22,
+     "vs_own_int8": {
+      "instant": {
+       "value": 0.012,
+       "lo": 0.01,
+       "up": 0.014
+      }
+     },
+     "vs_budget_ref": {
+      "instant": {
+       "value": 0.012,
+       "lo": 0.01,
+       "up": 0.014
+      }
+     }
+    },
+    "A16": {
+     "variant": "w8+t4.16.8c8nhx8",
+     "description": "cards int4 below 16 answers, int8 from 16; notes int8",
+     "source": "SM144",
+     "rows_from": "SM144",
+     "bytes_vs_int8_pct": -25.54,
+     "vs_own_int8": {
+      "instant": {
+       "value": 0.006,
+       "lo": 0.005,
+       "up": 0.007
+      }
+     },
+     "vs_budget_ref": {
+      "instant": {
+       "value": 0.006,
+       "lo": 0.005,
+       "up": 0.007
+      }
+     }
+    },
+    "AN32": {
+     "variant": "w8+t4.32.8c4.32.8nhx8",
+     "description": "cards and notes int4 below 32 answers, int8 from 32",
+     "source": "SM144",
+     "rows_from": "SM144",
+     "bytes_vs_int8_pct": -43.21,
+     "vs_own_int8": {
+      "instant": {
+       "value": 0.025,
+       "lo": 0.022,
+       "up": 0.029
+      }
+     },
+     "vs_budget_ref": {
+      "instant": {
+       "value": 0.025,
+       "lo": 0.022,
+       "up": 0.029
+      }
+     }
+    },
+    "AN16": {
+     "variant": "w8+t4.16.8c4.16.8nhx8",
+     "description": "cards and notes int4 below 16 answers, int8 from 16",
+     "source": "SM144",
+     "rows_from": "SM144",
+     "bytes_vs_int8_pct": -40.25,
+     "vs_own_int8": {
+      "instant": {
+       "value": 0.013,
+       "lo": 0.012,
+       "up": 0.015
+      }
+     },
+     "vs_budget_ref": {
+      "instant": {
+       "value": 0.013,
+       "lo": 0.012,
+       "up": 0.015
+      }
+     }
+    },
+    "Y2N": {
+     "variant": "w8+t3.3.4.16.8c3.3.4.16.8nhx8",
+     "description": "AN16 with int3 for 1-2 answers",
+     "source": "SM145",
+     "rows_from": "SM145",
+     "bytes_vs_int8_pct": -42.75,
+     "vs_own_int8": {
+      "instant": {
+       "value": 0.018,
+       "lo": 0.016,
+       "up": 0.02
+      }
+     },
+     "vs_budget_ref": {
+      "instant": {
+       "value": 0.018,
+       "lo": 0.016,
+       "up": 0.02
+      }
+     }
+    },
+    "Y4C": {
+     "variant": "w8+t3.5.4.16.8c4.16.8nhx8",
+     "description": "AN16 with int3 for 1-4 answers on cards only",
+     "source": "SM145",
+     "rows_from": "SM145",
+     "bytes_vs_int8_pct": -43.48,
+     "vs_own_int8": {
+      "instant": {
+       "value": 0.016,
+       "lo": 0.014,
+       "up": 0.018
+      }
+     },
+     "vs_budget_ref": {
+      "instant": {
+       "value": 0.016,
+       "lo": 0.014,
+       "up": 0.018
+      }
+     }
+    },
+    "Y4N": {
+     "variant": "w8+t3.5.4.16.8c3.5.4.16.8nhx8",
+     "description": "AN16 with int3 for 1-4 answers on cards and notes (also SM146 I3a)",
+     "source": "SM145",
+     "rows_from": "SM145",
+     "bytes_vs_int8_pct": -45.34,
+     "vs_own_int8": {
+      "instant": {
+       "value": 0.025,
+       "lo": 0.023,
+       "up": 0.028
+      }
+     },
+     "vs_budget_ref": {
+      "instant": {
+       "value": 0.025,
+       "lo": 0.023,
+       "up": 0.028
+      }
+     }
+    },
+    "Q4": {
+     "variant": "w8+lr4q8x8",
+     "description": "rank 4 int8 factors, every entity",
+     "source": "SM148",
+     "rows_from": "SM148",
+     "bytes_vs_int8_pct": -74.41,
+     "vs_own_int8": {
+      "instant": {
+       "value": 0.019,
+       "lo": 0.016,
+       "up": 0.022
+      }
+     },
+     "vs_budget_ref": {
+      "instant": {
+       "value": 0.019,
+       "lo": 0.016,
+       "up": 0.022
+      }
+     }
+    },
+    "T24": {
+     "variant": "w8+lr2.16.4q8x8",
+     "description": "rank 2 below 16 answers, rank 4 from 16 (the user's choice)",
+     "source": "SM148",
+     "rows_from": "SM148",
+     "bytes_vs_int8_pct": -81.72,
+     "vs_own_int8": {
+      "instant": {
+       "value": 0.059,
+       "lo": 0.054,
+       "up": 0.065
+      }
+     },
+     "vs_budget_ref": {
+      "instant": {
+       "value": 0.059,
+       "lo": 0.054,
+       "up": 0.065
+      }
+     }
+    },
+    "Q2": {
+     "variant": "w8+lr2q8x8",
+     "description": "rank 2 int8 factors, every entity",
+     "source": "SM148",
+     "rows_from": "SM148",
+     "bytes_vs_int8_pct": -82.78,
+     "vs_own_int8": {
+      "instant": {
+       "value": 0.118,
+       "lo": 0.107,
+       "up": 0.132
+      }
+     },
+     "vs_budget_ref": {
+      "instant": {
+       "value": 0.118,
+       "lo": 0.107,
+       "up": 0.132
+      }
+     }
+    },
+    "R12": {
+     "variant": "w8+lr1.16.2q8x8",
+     "description": "rank 1 below 16 answers, rank 2 from 16",
+     "source": "SM150",
+     "rows_from": "SM150",
+     "bytes_vs_int8_pct": -87.56,
+     "vs_own_int8": {
+      "instant": {
+       "value": 0.381,
+       "lo": 0.355,
+       "up": 0.408
+      }
+     },
+     "vs_budget_ref": {
+      "instant": {
+       "value": 0.381,
+       "lo": 0.355,
+       "up": 0.408
+      }
+     }
+    },
+    "R1": {
+     "variant": "w8+lr1q8x8",
+     "description": "rank 1 int8 factors, every entity",
+     "source": "SM150",
+     "rows_from": "SM150",
+     "bytes_vs_int8_pct": -88.08,
+     "vs_own_int8": {
+      "instant": {
+       "value": 0.55,
+       "lo": 0.51,
+       "up": 0.592
+      }
+     },
+     "vs_budget_ref": {
+      "instant": {
+       "value": 0.55,
+       "lo": 0.51,
+       "up": 0.592
+      }
+     }
+    }
+   },
+   "hull": {
+    "instant_upper": {
+     "frontier": [
+      "REF",
+      "A16",
+      "Q4",
+      "T24",
+      "R12",
+      "R1"
+     ],
+     "segments": [
+      {
+       "from": "REF",
+       "to": "A16",
+       "bytes_saved_pct_of_int8": 25.54,
+       "cost_added_pct": 0.007,
+       "cost_per_saved_pct": 0.0003
+      },
+      {
+       "from": "A16",
+       "to": "Q4",
+       "bytes_saved_pct_of_int8": 48.87,
+       "cost_added_pct": 0.015,
+       "cost_per_saved_pct": 0.0003
+      },
+      {
+       "from": "Q4",
+       "to": "T24",
+       "bytes_saved_pct_of_int8": 7.31,
+       "cost_added_pct": 0.043,
+       "cost_per_saved_pct": 0.0059
+      },
+      {
+       "from": "T24",
+       "to": "R12",
+       "bytes_saved_pct_of_int8": 5.84,
+       "cost_added_pct": 0.343,
+       "cost_per_saved_pct": 0.0587
+      },
+      {
+       "from": "R12",
+       "to": "R1",
+       "bytes_saved_pct_of_int8": 0.52,
+       "cost_added_pct": 0.184,
+       "cost_per_saved_pct": 0.3538
+      }
+     ],
+     "pareto_dominated": [
+      "A",
+      "AN",
+      "AN32",
+      "B4",
+      "B8",
+      "C4",
+      "CO4",
+      "D4",
+      "Y2N",
+      "Y4N"
+     ],
+     "inside_hull_only": [
+      "A32",
+      "AN16",
+      "Q2",
+      "Y4C"
+     ]
+    },
+    "instant_point": {
+     "frontier": [
+      "REF",
+      "A16",
+      "Q4",
+      "T24",
+      "R12",
+      "R1"
+     ],
+     "segments": [
+      {
+       "from": "REF",
+       "to": "A16",
+       "bytes_saved_pct_of_int8": 25.54,
+       "cost_added_pct": 0.006,
+       "cost_per_saved_pct": 0.0002
+      },
+      {
+       "from": "A16",
+       "to": "Q4",
+       "bytes_saved_pct_of_int8": 48.87,
+       "cost_added_pct": 0.013,
+       "cost_per_saved_pct": 0.0003
+      },
+      {
+       "from": "Q4",
+       "to": "T24",
+       "bytes_saved_pct_of_int8": 7.31,
+       "cost_added_pct": 0.04,
+       "cost_per_saved_pct": 0.0055
+      },
+      {
+       "from": "T24",
+       "to": "R12",
+       "bytes_saved_pct_of_int8": 5.84,
+       "cost_added_pct": 0.322,
+       "cost_per_saved_pct": 0.0551
+      },
+      {
+       "from": "R12",
+       "to": "R1",
+       "bytes_saved_pct_of_int8": 0.52,
+       "cost_added_pct": 0.169,
+       "cost_per_saved_pct": 0.325
+      }
+     ],
+     "pareto_dominated": [
+      "A",
+      "AN",
+      "AN32",
+      "B4",
+      "B8",
+      "C4",
+      "CO4",
+      "D4",
+      "Y2N",
+      "Y4N"
+     ],
+     "inside_hull_only": [
+      "A32",
+      "AN16",
+      "Q2",
+      "Y4C"
+     ]
+    }
+   },
+   "passing_budget": [
+    "Q2",
+    "T24",
+    "Q4",
+    "B8",
+    "B4",
+    "Y4N",
+    "AN",
+    "Y4C",
+    "AN32",
+    "Y2N",
+    "AN16",
+    "C4",
+    "A",
+    "A32",
+    "A16",
+    "REF"
+   ],
+   "smallest_passing": "Q2",
+   "budget_crossing_on_upper_frontier": {
+    "instant": -83.17
+   }
+  },
+  "sm118": {
+   "name": "Small two-head (SM118)",
+   "size": "Small",
+   "heads": [
+    "curve",
+    "instant"
+   ],
+   "budget_ref": "Big two-head (SM91s2) at int8",
+   "budget_pct": 0.5,
+   "budget_text": "at most +0.5% total vs Big at int8",
+   "formats": {
+    "REF": {
+     "variant": "w8+s8hx8",
+     "description": "int8 rows, float16 row scales, int8 shift vectors (the reference)",
+     "source": "SM141",
+     "rows_from": "SM141",
+     "bytes_vs_int8_pct": 0.0,
+     "vs_own_int8": {
+      "curve": {
+       "value": 0.0,
+       "lo": 0.0,
+       "up": 0.0
+      },
+      "instant": {
+       "value": 0.0,
+       "lo": 0.0,
+       "up": 0.0
+      }
+     },
+     "vs_budget_ref": {
+      "curve": {
+       "value": 0.213,
+       "lo": 0.057,
+       "up": 0.374
+      },
+      "instant": {
+       "value": 0.151,
+       "lo": 0.126,
+       "up": 0.176
+      }
+     }
+    },
+    "C4": {
+     "variant": "w8+s4c8nhx8",
+     "description": "compact int4 cards, int8 notes",
+     "source": "SM131",
+     "rows_from": "SM131",
+     "bytes_vs_int8_pct": -27.56,
+     "vs_own_int8": {
+      "curve": {
+       "value": 0.013,
+       "lo": 0.01,
+       "up": 0.017
+      },
+      "instant": {
+       "value": 0.019,
+       "lo": 0.015,
+       "up": 0.023
+      }
+     },
+     "vs_budget_ref": {
+      "curve": {
+       "value": 0.226,
+       "lo": 0.071,
+       "up": 0.388
+      },
+      "instant": {
+       "value": 0.17,
+       "lo": 0.145,
+       "up": 0.196
+      }
+     }
+    },
+    "CO4": {
+     "variant": "w8+s4hgx4c8hx8n",
+     "description": "card-only int4 (one scale per head, int4 shifts), int8 notes",
+     "source": "SM131",
+     "rows_from": "SM131",
+     "bytes_vs_int8_pct": -36.6,
+     "vs_own_int8": {
+      "curve": {
+       "value": 0.171,
+       "lo": 0.141,
+       "up": 0.201
+      },
+      "instant": {
+       "value": 0.211,
+       "lo": 0.191,
+       "up": 0.232
+      }
+     },
+     "vs_budget_ref": {
+      "curve": {
+       "value": 0.385,
+       "lo": 0.221,
+       "up": 0.559
+      },
+      "instant": {
+       "value": 0.362,
+       "lo": 0.328,
+       "up": 0.399
+      }
+     }
+    },
+    "A": {
+     "variant": "w8+t4.128.8c8nhx8",
+     "description": "cards int4 below 128 answers, int8 from 128; notes int8",
+     "source": "SM141",
+     "rows_from": "SM141",
+     "bytes_vs_int8_pct": -27.55,
+     "vs_own_int8": {
+      "curve": {
+       "value": 0.015,
+       "lo": 0.011,
+       "up": 0.019
+      },
+      "instant": {
+       "value": 0.019,
+       "lo": 0.015,
+       "up": 0.023
+      }
+     },
+     "vs_budget_ref": {
+      "curve": {
+       "value": 0.228,
+       "lo": 0.071,
+       "up": 0.389
+      },
+      "instant": {
+       "value": 0.17,
+       "lo": 0.145,
+       "up": 0.196
+      }
+     }
+    },
+    "AN": {
+     "variant": "w8+t4.128.8c4.128.8nhx8",
+     "description": "cards and notes int4 below 128 answers, int8 from 128",
+     "source": "SM141",
+     "rows_from": "SM141",
+     "bytes_vs_int8_pct": -39.81,
+     "vs_own_int8": {
+      "curve": {
+       "value": 0.019,
+       "lo": 0.014,
+       "up": 0.026
+      },
+      "instant": {
+       "value": 0.031,
+       "lo": 0.026,
+       "up": 0.037
+      }
+     },
+     "vs_budget_ref": {
+      "curve": {
+       "value": 0.233,
+       "lo": 0.076,
+       "up": 0.394
+      },
+      "instant": {
+       "value": 0.182,
+       "lo": 0.157,
+       "up": 0.209
+      }
+     }
+    },
+    "B4": {
+     "variant": "w8+t3.5.4.128.8c3.5.4.128.8nhx8",
+     "description": "AN with int3 for 1-4 answers",
+     "source": "SM141",
+     "rows_from": "SM141",
+     "bytes_vs_int8_pct": -44.4,
+     "vs_own_int8": {
+      "curve": {
+       "value": 0.031,
+       "lo": 0.024,
+       "up": 0.039
+      },
+      "instant": {
+       "value": 0.042,
+       "lo": 0.036,
+       "up": 0.048
+      }
+     },
+     "vs_budget_ref": {
+      "curve": {
+       "value": 0.244,
+       "lo": 0.086,
+       "up": 0.405
+      },
+      "instant": {
+       "value": 0.193,
+       "lo": 0.168,
+       "up": 0.22
+      }
+     }
+    },
+    "B8": {
+     "variant": "w8+t3.9.4.128.8c3.9.4.128.8nhx8",
+     "description": "AN with int3 for 1-8 answers",
+     "source": "SM141",
+     "rows_from": "SM141",
+     "bytes_vs_int8_pct": -47.4,
+     "vs_own_int8": {
+      "curve": {
+       "value": 0.039,
+       "lo": 0.032,
+       "up": 0.048
+      },
+      "instant": {
+       "value": 0.056,
+       "lo": 0.05,
+       "up": 0.062
+      }
+     },
+     "vs_budget_ref": {
+      "curve": {
+       "value": 0.253,
+       "lo": 0.095,
+       "up": 0.416
+      },
+      "instant": {
+       "value": 0.207,
+       "lo": 0.182,
+       "up": 0.233
+      }
+     }
+    },
+    "D4": {
+     "variant": "w8+t2.5.4.128.8c2.5.4.128.8nhx8",
+     "description": "AN with int2 (ternary) for 1-4 answers",
+     "source": "SM141",
+     "rows_from": "SM141",
+     "bytes_vs_int8_pct": -48.99,
+     "vs_own_int8": {
+      "curve": {
+       "value": 0.1,
+       "lo": 0.084,
+       "up": 0.118
+      },
+      "instant": {
+       "value": 0.146,
+       "lo": 0.137,
+       "up": 0.156
+      }
+     },
+     "vs_budget_ref": {
+      "curve": {
+       "value": 0.313,
+       "lo": 0.155,
+       "up": 0.477
+      },
+      "instant": {
+       "value": 0.298,
+       "lo": 0.273,
+       "up": 0.325
+      }
+     }
+    },
+    "A32": {
+     "variant": "w8+t4.32.8c8nhx8",
+     "description": "cards int4 below 32 answers, int8 from 32; notes int8",
+     "source": "SM144",
+     "rows_from": "SM144",
+     "bytes_vs_int8_pct": -27.04,
+     "vs_own_int8": {
+      "curve": {
+       "value": 0.01,
+       "lo": 0.008,
+       "up": 0.013
+      },
+      "instant": {
+       "value": 0.014,
+       "lo": 0.012,
+       "up": 0.016
+      }
+     },
+     "vs_budget_ref": {
+      "curve": {
+       "value": 0.223,
+       "lo": 0.067,
+       "up": 0.384
+      },
+      "instant": {
+       "value": 0.165,
+       "lo": 0.14,
+       "up": 0.19
+      }
+     }
+    },
+    "A16": {
+     "variant": "w8+t4.16.8c8nhx8",
+     "description": "cards int4 below 16 answers, int8 from 16; notes int8",
+     "source": "SM144",
+     "rows_from": "SM144",
+     "bytes_vs_int8_pct": -25.36,
+     "vs_own_int8": {
+      "curve": {
+       "value": 0.006,
+       "lo": 0.004,
+       "up": 0.008
+      },
+      "instant": {
+       "value": 0.008,
+       "lo": 0.007,
+       "up": 0.009
+      }
+     },
+     "vs_budget_ref": {
+      "curve": {
+       "value": 0.219,
+       "lo": 0.063,
+       "up": 0.38
+      },
+      "instant": {
+       "value": 0.159,
+       "lo": 0.135,
+       "up": 0.184
+      }
+     }
+    },
+    "AN32": {
+     "variant": "w8+t4.32.8c4.32.8nhx8",
+     "description": "cards and notes int4 below 32 answers, int8 from 32",
+     "source": "SM144",
+     "rows_from": "SM144",
+     "bytes_vs_int8_pct": -38.94,
+     "vs_own_int8": {
+      "curve": {
+       "value": 0.013,
+       "lo": 0.01,
+       "up": 0.016
+      },
+      "instant": {
+       "value": 0.02,
+       "lo": 0.017,
+       "up": 0.023
+      }
+     },
+     "vs_budget_ref": {
+      "curve": {
+       "value": 0.226,
+       "lo": 0.07,
+       "up": 0.387
+      },
+      "instant": {
+       "value": 0.171,
+       "lo": 0.146,
+       "up": 0.197
+      }
+     }
+    },
+    "AN16": {
+     "variant": "w8+t4.16.8c4.16.8nhx8",
+     "description": "cards and notes int4 below 16 answers, int8 from 16",
+     "source": "SM144",
+     "rows_from": "SM144",
+     "bytes_vs_int8_pct": -36.32,
+     "vs_own_int8": {
+      "curve": {
+       "value": 0.007,
+       "lo": 0.005,
+       "up": 0.008
+      },
+      "instant": {
+       "value": 0.011,
+       "lo": 0.01,
+       "up": 0.013
+      }
+     },
+     "vs_budget_ref": {
+      "curve": {
+       "value": 0.22,
+       "lo": 0.064,
+       "up": 0.381
+      },
+      "instant": {
+       "value": 0.162,
+       "lo": 0.138,
+       "up": 0.187
+      }
+     }
+    },
+    "Y2N": {
+     "variant": "w8+t3.3.4.16.8c3.3.4.16.8nhx8",
+     "description": "AN16 with int3 for 1-2 answers",
+     "source": "SM145",
+     "rows_from": "SM145",
+     "bytes_vs_int8_pct": -38.57,
+     "vs_own_int8": {
+      "curve": {
+       "value": 0.012,
+       "lo": 0.009,
+       "up": 0.016
+      },
+      "instant": {
+       "value": 0.016,
+       "lo": 0.014,
+       "up": 0.019
+      }
+     },
+     "vs_budget_ref": {
+      "curve": {
+       "value": 0.225,
+       "lo": 0.067,
+       "up": 0.387
+      },
+      "instant": {
+       "value": 0.168,
+       "lo": 0.143,
+       "up": 0.193
+      }
+     }
+    },
+    "Y4C": {
+     "variant": "w8+t3.5.4.16.8c4.16.8nhx8",
+     "description": "AN16 with int3 for 1-4 answers on cards only",
+     "source": "SM145",
+     "rows_from": "SM145",
+     "bytes_vs_int8_pct": -39.53,
+     "vs_own_int8": {
+      "curve": {
+       "value": 0.017,
+       "lo": 0.012,
+       "up": 0.021
+      },
+      "instant": {
+       "value": 0.018,
+       "lo": 0.016,
+       "up": 0.021
+      }
+     },
+     "vs_budget_ref": {
+      "curve": {
+       "value": 0.23,
+       "lo": 0.072,
+       "up": 0.392
+      },
+      "instant": {
+       "value": 0.17,
+       "lo": 0.145,
+       "up": 0.195
+      }
+     }
+    },
+    "Y4N": {
+     "variant": "w8+t3.5.4.16.8c3.5.4.16.8nhx8",
+     "description": "AN16 with int3 for 1-4 answers on cards and notes (also SM146 I3a)",
+     "source": "SM145",
+     "rows_from": "SM145",
+     "bytes_vs_int8_pct": -40.91,
+     "vs_own_int8": {
+      "curve": {
+       "value": 0.017,
+       "lo": 0.013,
+       "up": 0.022
+      },
+      "instant": {
+       "value": 0.022,
+       "lo": 0.02,
+       "up": 0.024
+      }
+     },
+     "vs_budget_ref": {
+      "curve": {
+       "value": 0.231,
+       "lo": 0.073,
+       "up": 0.393
+      },
+      "instant": {
+       "value": 0.173,
+       "lo": 0.149,
+       "up": 0.198
+      }
+     }
+    },
+    "Q4": {
+     "variant": "w8+lr4q8x8",
+     "description": "rank 4 int8 factors, every entity",
+     "source": "SM148",
+     "rows_from": "SM148",
+     "bytes_vs_int8_pct": -52.3,
+     "vs_own_int8": {
+      "curve": {
+       "value": 0.005,
+       "lo": 0.003,
+       "up": 0.007
+      },
+      "instant": {
+       "value": 0.009,
+       "lo": 0.007,
+       "up": 0.011
+      }
+     },
+     "vs_budget_ref": {
+      "curve": {
+       "value": 0.218,
+       "lo": 0.061,
+       "up": 0.379
+      },
+      "instant": {
+       "value": 0.16,
+       "lo": 0.135,
+       "up": 0.186
+      }
+     }
+    },
+    "T24": {
+     "variant": "w8+lr2.16.4q8x8",
+     "description": "rank 2 below 16 answers, rank 4 from 16 (the user's choice)",
+     "source": "SM148",
+     "rows_from": "SM148",
+     "bytes_vs_int8_pct": -66.26,
+     "vs_own_int8": {
+      "curve": {
+       "value": 0.028,
+       "lo": 0.022,
+       "up": 0.035
+      },
+      "instant": {
+       "value": 0.049,
+       "lo": 0.045,
+       "up": 0.054
+      }
+     },
+     "vs_budget_ref": {
+      "curve": {
+       "value": 0.241,
+       "lo": 0.083,
+       "up": 0.405
+      },
+      "instant": {
+       "value": 0.201,
+       "lo": 0.175,
+       "up": 0.227
+      }
+     }
+    },
+    "Q2": {
+     "variant": "w8+lr2q8x8",
+     "description": "rank 2 int8 factors, every entity",
+     "source": "SM148",
+     "rows_from": "SM148",
+     "bytes_vs_int8_pct": -68.24,
+     "vs_own_int8": {
+      "curve": {
+       "value": 0.045,
+       "lo": 0.036,
+       "up": 0.055
+      },
+      "instant": {
+       "value": 0.078,
+       "lo": 0.07,
+       "up": 0.085
+      }
+     },
+     "vs_budget_ref": {
+      "curve": {
+       "value": 0.258,
+       "lo": 0.098,
+       "up": 0.422
+      },
+      "instant": {
+       "value": 0.229,
+       "lo": 0.202,
+       "up": 0.257
+      }
+     }
+    },
+    "R12": {
+     "variant": "w8+lr1.16.2q8x8",
+     "description": "rank 1 below 16 answers, rank 2 from 16",
+     "source": "SM150",
+     "rows_from": "SM150",
+     "bytes_vs_int8_pct": -77.37,
+     "vs_own_int8": {
+      "curve": {
+       "value": 0.206,
+       "lo": 0.184,
+       "up": 0.227
+      },
+      "instant": {
+       "value": 0.339,
+       "lo": 0.316,
+       "up": 0.362
+      }
+     },
+     "vs_budget_ref": {
+      "curve": {
+       "value": 0.419,
+       "lo": 0.256,
+       "up": 0.581
+      },
+      "instant": {
+       "value": 0.49,
+       "lo": 0.457,
+       "up": 0.525
+      }
+     }
+    },
+    "R1": {
+     "variant": "w8+lr1q8x8",
+     "description": "rank 1 int8 factors, every entity",
+     "source": "SM150",
+     "rows_from": "SM150",
+     "bytes_vs_int8_pct": -78.36,
+     "vs_own_int8": {
+      "curve": {
+       "value": 0.285,
+       "lo": 0.253,
+       "up": 0.319
+      },
+      "instant": {
+       "value": 0.456,
+       "lo": 0.421,
+       "up": 0.495
+      }
+     },
+     "vs_budget_ref": {
+      "curve": {
+       "value": 0.499,
+       "lo": 0.334,
+       "up": 0.666
+      },
+      "instant": {
+       "value": 0.608,
+       "lo": 0.565,
+       "up": 0.659
+      }
+     }
+    }
+   },
+   "hull": {
+    "curve_upper": {
+     "frontier": [
+      "REF",
+      "Q4",
+      "T24",
+      "Q2",
+      "R12",
+      "R1"
+     ],
+     "segments": [
+      {
+       "from": "REF",
+       "to": "Q4",
+       "bytes_saved_pct_of_int8": 52.3,
+       "cost_added_pct": 0.005,
+       "cost_per_saved_pct": 0.0001
+      },
+      {
+       "from": "Q4",
+       "to": "T24",
+       "bytes_saved_pct_of_int8": 13.96,
+       "cost_added_pct": 0.026,
+       "cost_per_saved_pct": 0.0019
+      },
+      {
+       "from": "T24",
+       "to": "Q2",
+       "bytes_saved_pct_of_int8": 1.98,
+       "cost_added_pct": 0.017,
+       "cost_per_saved_pct": 0.0086
+      },
+      {
+       "from": "Q2",
+       "to": "R12",
+       "bytes_saved_pct_of_int8": 9.13,
+       "cost_added_pct": 0.159,
+       "cost_per_saved_pct": 0.0174
+      },
+      {
+       "from": "R12",
+       "to": "R1",
+       "bytes_saved_pct_of_int8": 0.99,
+       "cost_added_pct": 0.085,
+       "cost_per_saved_pct": 0.0859
+      }
+     ],
+     "pareto_dominated": [
+      "A",
+      "A16",
+      "A32",
+      "AN",
+      "AN16",
+      "AN32",
+      "B4",
+      "B8",
+      "C4",
+      "CO4",
+      "D4",
+      "Y2N",
+      "Y4C",
+      "Y4N"
+     ],
+     "inside_hull_only": []
+    },
+    "curve_point": {
+     "frontier": [
+      "REF",
+      "Q4",
+      "T24",
+      "Q2",
+      "R12",
+      "R1"
+     ],
+     "segments": [
+      {
+       "from": "REF",
+       "to": "Q4",
+       "bytes_saved_pct_of_int8": 52.3,
+       "cost_added_pct": 0.005,
+       "cost_per_saved_pct": 0.0001
+      },
+      {
+       "from": "Q4",
+       "to": "T24",
+       "bytes_saved_pct_of_int8": 13.96,
+       "cost_added_pct": 0.023,
+       "cost_per_saved_pct": 0.0016
+      },
+      {
+       "from": "T24",
+       "to": "Q2",
+       "bytes_saved_pct_of_int8": 1.98,
+       "cost_added_pct": 0.017,
+       "cost_per_saved_pct": 0.0086
+      },
+      {
+       "from": "Q2",
+       "to": "R12",
+       "bytes_saved_pct_of_int8": 9.13,
+       "cost_added_pct": 0.161,
+       "cost_per_saved_pct": 0.0176
+      },
+      {
+       "from": "R12",
+       "to": "R1",
+       "bytes_saved_pct_of_int8": 0.99,
+       "cost_added_pct": 0.08,
+       "cost_per_saved_pct": 0.0808
+      }
+     ],
+     "pareto_dominated": [
+      "A",
+      "A16",
+      "A32",
+      "AN",
+      "AN16",
+      "AN32",
+      "B4",
+      "B8",
+      "C4",
+      "CO4",
+      "D4",
+      "Y2N",
+      "Y4C",
+      "Y4N"
+     ],
+     "inside_hull_only": []
+    },
+    "instant_upper": {
+     "frontier": [
+      "REF",
+      "Q4",
+      "T24",
+      "Q2",
+      "R12",
+      "R1"
+     ],
+     "segments": [
+      {
+       "from": "REF",
+       "to": "Q4",
+       "bytes_saved_pct_of_int8": 52.3,
+       "cost_added_pct": 0.01,
+       "cost_per_saved_pct": 0.0002
+      },
+      {
+       "from": "Q4",
+       "to": "T24",
+       "bytes_saved_pct_of_int8": 13.96,
+       "cost_added_pct": 0.041,
+       "cost_per_saved_pct": 0.0029
+      },
+      {
+       "from": "T24",
+       "to": "Q2",
+       "bytes_saved_pct_of_int8": 1.98,
+       "cost_added_pct": 0.03,
+       "cost_per_saved_pct": 0.0152
+      },
+      {
+       "from": "Q2",
+       "to": "R12",
+       "bytes_saved_pct_of_int8": 9.13,
+       "cost_added_pct": 0.268,
+       "cost_per_saved_pct": 0.0294
+      },
+      {
+       "from": "R12",
+       "to": "R1",
+       "bytes_saved_pct_of_int8": 0.99,
+       "cost_added_pct": 0.134,
+       "cost_per_saved_pct": 0.1354
+      }
+     ],
+     "pareto_dominated": [
+      "A",
+      "A32",
+      "AN",
+      "AN16",
+      "AN32",
+      "B4",
+      "B8",
+      "C4",
+      "CO4",
+      "D4",
+      "Y2N",
+      "Y4C",
+      "Y4N"
+     ],
+     "inside_hull_only": [
+      "A16"
+     ]
+    },
+    "instant_point": {
+     "frontier": [
+      "REF",
+      "Q4",
+      "T24",
+      "Q2",
+      "R12",
+      "R1"
+     ],
+     "segments": [
+      {
+       "from": "REF",
+       "to": "Q4",
+       "bytes_saved_pct_of_int8": 52.3,
+       "cost_added_pct": 0.009,
+       "cost_per_saved_pct": 0.0002
+      },
+      {
+       "from": "Q4",
+       "to": "T24",
+       "bytes_saved_pct_of_int8": 13.96,
+       "cost_added_pct": 0.041,
+       "cost_per_saved_pct": 0.0029
+      },
+      {
+       "from": "T24",
+       "to": "Q2",
+       "bytes_saved_pct_of_int8": 1.98,
+       "cost_added_pct": 0.028,
+       "cost_per_saved_pct": 0.0141
+      },
+      {
+       "from": "Q2",
+       "to": "R12",
+       "bytes_saved_pct_of_int8": 9.13,
+       "cost_added_pct": 0.261,
+       "cost_per_saved_pct": 0.0286
+      },
+      {
+       "from": "R12",
+       "to": "R1",
+       "bytes_saved_pct_of_int8": 0.99,
+       "cost_added_pct": 0.118,
+       "cost_per_saved_pct": 0.1192
+      }
+     ],
+     "pareto_dominated": [
+      "A",
+      "A32",
+      "AN",
+      "AN16",
+      "AN32",
+      "B4",
+      "B8",
+      "C4",
+      "CO4",
+      "D4",
+      "Y2N",
+      "Y4C",
+      "Y4N"
+     ],
+     "inside_hull_only": [
+      "A16"
+     ]
+    }
+   },
+   "passing_budget": [
+    "Q2",
+    "T24",
+    "Q4",
+    "D4",
+    "B8",
+    "B4",
+    "Y4N",
+    "AN",
+    "Y4C",
+    "AN32",
+    "Y2N",
+    "AN16",
+    "C4",
+    "A",
+    "A32",
+    "A16",
+    "REF"
+   ],
+   "smallest_passing": "Q2",
+   "budget_crossing_on_upper_frontier": {
+    "curve": -72.72,
+    "instant": -76.52
+   }
+  },
+  "sm113": {
+   "name": "Small Instant-Only (SM113)",
+   "size": "Small",
+   "heads": [
+    "instant"
+   ],
+   "budget_ref": "Big Instant-Only (SM99) at int8",
+   "budget_pct": 0.5,
+   "budget_text": "at most +0.5% total vs Big at int8",
+   "formats": {
+    "REF": {
+     "variant": "w8+s8hx8",
+     "description": "int8 rows, float16 row scales, int8 shift vectors (the reference)",
+     "source": "SM141",
+     "rows_from": "SM141",
+     "bytes_vs_int8_pct": 0.0,
+     "vs_own_int8": {
+      "instant": {
+       "value": 0.0,
+       "lo": 0.0,
+       "up": 0.0
+      }
+     },
+     "vs_budget_ref": {
+      "instant": {
+       "value": 0.016,
+       "lo": -0.01,
+       "up": 0.042
+      }
+     }
+    },
+    "C4": {
+     "variant": "w8+s4c8nhx8",
+     "description": "compact int4 cards, int8 notes",
+     "source": "SM131",
+     "rows_from": "SM131",
+     "bytes_vs_int8_pct": -27.56,
+     "vs_own_int8": {
+      "instant": {
+       "value": 0.022,
+       "lo": 0.018,
+       "up": 0.026
+      }
+     },
+     "vs_budget_ref": {
+      "instant": {
+       "value": 0.038,
+       "lo": 0.012,
+       "up": 0.064
+      }
+     }
+    },
+    "CO4": {
+     "variant": "w8+s4hgx4c8hx8n",
+     "description": "card-only int4 (one scale per head, int4 shifts), int8 notes",
+     "source": "SM131",
+     "rows_from": "SM131",
+     "bytes_vs_int8_pct": -36.6,
+     "vs_own_int8": {
+      "instant": {
+       "value": 0.29,
+       "lo": 0.267,
+       "up": 0.315
+      }
+     },
+     "vs_budget_ref": {
+      "instant": {
+       "value": 0.306,
+       "lo": 0.273,
+       "up": 0.341
+      }
+     }
+    },
+    "A": {
+     "variant": "w8+t4.128.8c8nhx8",
+     "description": "cards int4 below 128 answers, int8 from 128; notes int8",
+     "source": "SM141",
+     "rows_from": "SM141",
+     "bytes_vs_int8_pct": -27.55,
+     "vs_own_int8": {
+      "instant": {
+       "value": 0.022,
+       "lo": 0.018,
+       "up": 0.026
+      }
+     },
+     "vs_budget_ref": {
+      "instant": {
+       "value": 0.038,
+       "lo": 0.012,
+       "up": 0.064
+      }
+     }
+    },
+    "AN": {
+     "variant": "w8+t4.128.8c4.128.8nhx8",
+     "description": "cards and notes int4 below 128 answers, int8 from 128",
+     "source": "SM141",
+     "rows_from": "SM141",
+     "bytes_vs_int8_pct": -39.81,
+     "vs_own_int8": {
+      "instant": {
+       "value": 0.033,
+       "lo": 0.028,
+       "up": 0.038
+      }
+     },
+     "vs_budget_ref": {
+      "instant": {
+       "value": 0.049,
+       "lo": 0.023,
+       "up": 0.076
+      }
+     }
+    },
+    "B4": {
+     "variant": "w8+t3.5.4.128.8c3.5.4.128.8nhx8",
+     "description": "AN with int3 for 1-4 answers",
+     "source": "SM141",
+     "rows_from": "SM141",
+     "bytes_vs_int8_pct": -44.4,
+     "vs_own_int8": {
+      "instant": {
+       "value": 0.052,
+       "lo": 0.046,
+       "up": 0.058
+      }
+     },
+     "vs_budget_ref": {
+      "instant": {
+       "value": 0.068,
+       "lo": 0.042,
+       "up": 0.094
+      }
+     }
+    },
+    "B8": {
+     "variant": "w8+t3.9.4.128.8c3.9.4.128.8nhx8",
+     "description": "AN with int3 for 1-8 answers",
+     "source": "SM141",
+     "rows_from": "SM141",
+     "bytes_vs_int8_pct": -47.4,
+     "vs_own_int8": {
+      "instant": {
+       "value": 0.069,
+       "lo": 0.062,
+       "up": 0.075
+      }
+     },
+     "vs_budget_ref": {
+      "instant": {
+       "value": 0.085,
+       "lo": 0.06,
+       "up": 0.11
+      }
+     }
+    },
+    "D4": {
+     "variant": "w8+t2.5.4.128.8c2.5.4.128.8nhx8",
+     "description": "AN with int2 (ternary) for 1-4 answers",
+     "source": "SM141",
+     "rows_from": "SM141",
+     "bytes_vs_int8_pct": -48.99,
+     "vs_own_int8": {
+      "instant": {
+       "value": 0.212,
+       "lo": 0.199,
+       "up": 0.226
+      }
+     },
+     "vs_budget_ref": {
+      "instant": {
+       "value": 0.228,
+       "lo": 0.204,
+       "up": 0.253
+      }
+     }
+    },
+    "A32": {
+     "variant": "w8+t4.32.8c8nhx8",
+     "description": "cards int4 below 32 answers, int8 from 32; notes int8",
+     "source": "SM144",
+     "rows_from": "SM144",
+     "bytes_vs_int8_pct": -27.04,
+     "vs_own_int8": {
+      "instant": {
+       "value": 0.017,
+       "lo": 0.015,
+       "up": 0.019
+      }
+     },
+     "vs_budget_ref": {
+      "instant": {
+       "value": 0.033,
+       "lo": 0.008,
+       "up": 0.059
+      }
+     }
+    },
+    "A16": {
+     "variant": "w8+t4.16.8c8nhx8",
+     "description": "cards int4 below 16 answers, int8 from 16; notes int8",
+     "source": "SM144",
+     "rows_from": "SM144",
+     "bytes_vs_int8_pct": -25.36,
+     "vs_own_int8": {
+      "instant": {
+       "value": 0.011,
+       "lo": 0.01,
+       "up": 0.013
+      }
+     },
+     "vs_budget_ref": {
+      "instant": {
+       "value": 0.027,
+       "lo": 0.002,
+       "up": 0.052
+      }
+     }
+    },
+    "AN32": {
+     "variant": "w8+t4.32.8c4.32.8nhx8",
+     "description": "cards and notes int4 below 32 answers, int8 from 32",
+     "source": "SM144",
+     "rows_from": "SM144",
+     "bytes_vs_int8_pct": -38.94,
+     "vs_own_int8": {
+      "instant": {
+       "value": 0.022,
+       "lo": 0.02,
+       "up": 0.025
+      }
+     },
+     "vs_budget_ref": {
+      "instant": {
+       "value": 0.038,
+       "lo": 0.013,
+       "up": 0.064
+      }
+     }
+    },
+    "AN16": {
+     "variant": "w8+t4.16.8c4.16.8nhx8",
+     "description": "cards and notes int4 below 16 answers, int8 from 16",
+     "source": "SM144",
+     "rows_from": "SM144",
+     "bytes_vs_int8_pct": -36.32,
+     "vs_own_int8": {
+      "instant": {
+       "value": 0.014,
+       "lo": 0.013,
+       "up": 0.016
+      }
+     },
+     "vs_budget_ref": {
+      "instant": {
+       "value": 0.03,
+       "lo": 0.005,
+       "up": 0.056
+      }
+     }
+    },
+    "Y2N": {
+     "variant": "w8+t3.3.4.16.8c3.3.4.16.8nhx8",
+     "description": "AN16 with int3 for 1-2 answers",
+     "source": "SM145",
+     "rows_from": "SM145",
+     "bytes_vs_int8_pct": -38.57,
+     "vs_own_int8": {
+      "instant": {
+       "value": 0.023,
+       "lo": 0.02,
+       "up": 0.026
+      }
+     },
+     "vs_budget_ref": {
+      "instant": {
+       "value": 0.039,
+       "lo": 0.015,
+       "up": 0.064
+      }
+     }
+    },
+    "Y4C": {
+     "variant": "w8+t3.5.4.16.8c4.16.8nhx8",
+     "description": "AN16 with int3 for 1-4 answers on cards only",
+     "source": "SM145",
+     "rows_from": "SM145",
+     "bytes_vs_int8_pct": -39.53,
+     "vs_own_int8": {
+      "instant": {
+       "value": 0.027,
+       "lo": 0.024,
+       "up": 0.029
+      }
+     },
+     "vs_budget_ref": {
+      "instant": {
+       "value": 0.043,
+       "lo": 0.018,
+       "up": 0.068
+      }
+     }
+    },
+    "Y4N": {
+     "variant": "w8+t3.5.4.16.8c3.5.4.16.8nhx8",
+     "description": "AN16 with int3 for 1-4 answers on cards and notes (also SM146 I3a)",
+     "source": "SM145",
+     "rows_from": "SM145",
+     "bytes_vs_int8_pct": -40.91,
+     "vs_own_int8": {
+      "instant": {
+       "value": 0.033,
+       "lo": 0.029,
+       "up": 0.036
+      }
+     },
+     "vs_budget_ref": {
+      "instant": {
+       "value": 0.049,
+       "lo": 0.025,
+       "up": 0.073
+      }
+     }
+    },
+    "Q4": {
+     "variant": "w8+lr4q8x8",
+     "description": "rank 4 int8 factors, every entity",
+     "source": "SM148",
+     "rows_from": "SM148",
+     "bytes_vs_int8_pct": -52.3,
+     "vs_own_int8": {
+      "instant": {
+       "value": 0.009,
+       "lo": 0.007,
+       "up": 0.011
+      }
+     },
+     "vs_budget_ref": {
+      "instant": {
+       "value": 0.025,
+       "lo": -0.001,
+       "up": 0.05
+      }
+     }
+    },
+    "T24": {
+     "variant": "w8+lr2.16.4q8x8",
+     "description": "rank 2 below 16 answers, rank 4 from 16 (the user's choice)",
+     "source": "SM148",
+     "rows_from": "SM148",
+     "bytes_vs_int8_pct": -66.26,
+     "vs_own_int8": {
+      "instant": {
+       "value": 0.055,
+       "lo": 0.05,
+       "up": 0.061
+      }
+     },
+     "vs_budget_ref": {
+      "instant": {
+       "value": 0.071,
+       "lo": 0.046,
+       "up": 0.096
+      }
+     }
+    },
+    "Q2": {
+     "variant": "w8+lr2q8x8",
+     "description": "rank 2 int8 factors, every entity",
+     "source": "SM148",
+     "rows_from": "SM148",
+     "bytes_vs_int8_pct": -68.24,
+     "vs_own_int8": {
+      "instant": {
+       "value": 0.085,
+       "lo": 0.077,
+       "up": 0.094
+      }
+     },
+     "vs_budget_ref": {
+      "instant": {
+       "value": 0.101,
+       "lo": 0.075,
+       "up": 0.127
+      }
+     }
+    },
+    "R12": {
+     "variant": "w8+lr1.16.2q8x8",
+     "description": "rank 1 below 16 answers, rank 2 from 16",
+     "source": "SM150",
+     "rows_from": "SM150",
+     "bytes_vs_int8_pct": -77.37,
+     "vs_own_int8": {
+      "instant": {
+       "value": 0.395,
+       "lo": 0.367,
+       "up": 0.429
+      }
+     },
+     "vs_budget_ref": {
+      "instant": {
+       "value": 0.411,
+       "lo": 0.379,
+       "up": 0.446
+      }
+     }
+    },
+    "R1": {
+     "variant": "w8+lr1q8x8",
+     "description": "rank 1 int8 factors, every entity",
+     "source": "SM150",
+     "rows_from": "SM150",
+     "bytes_vs_int8_pct": -78.36,
+     "vs_own_int8": {
+      "instant": {
+       "value": 0.526,
+       "lo": 0.486,
+       "up": 0.57
+      }
+     },
+     "vs_budget_ref": {
+      "instant": {
+       "value": 0.542,
+       "lo": 0.5,
+       "up": 0.589
+      }
+     }
+    }
+   },
+   "hull": {
+    "instant_upper": {
+     "frontier": [
+      "REF",
+      "Q4",
+      "T24",
+      "Q2",
+      "R12",
+      "R1"
+     ],
+     "segments": [
+      {
+       "from": "REF",
+       "to": "Q4",
+       "bytes_saved_pct_of_int8": 52.3,
+       "cost_added_pct": 0.008,
+       "cost_per_saved_pct": 0.0002
+      },
+      {
+       "from": "Q4",
+       "to": "T24",
+       "bytes_saved_pct_of_int8": 13.96,
+       "cost_added_pct": 0.046,
+       "cost_per_saved_pct": 0.0033
+      },
+      {
+       "from": "T24",
+       "to": "Q2",
+       "bytes_saved_pct_of_int8": 1.98,
+       "cost_added_pct": 0.031,
+       "cost_per_saved_pct": 0.0157
+      },
+      {
+       "from": "Q2",
+       "to": "R12",
+       "bytes_saved_pct_of_int8": 9.13,
+       "cost_added_pct": 0.319,
+       "cost_per_saved_pct": 0.0349
+      },
+      {
+       "from": "R12",
+       "to": "R1",
+       "bytes_saved_pct_of_int8": 0.99,
+       "cost_added_pct": 0.143,
+       "cost_per_saved_pct": 0.1444
+      }
+     ],
+     "pareto_dominated": [
+      "A",
+      "A16",
+      "A32",
+      "AN",
+      "AN16",
+      "AN32",
+      "B4",
+      "B8",
+      "C4",
+      "CO4",
+      "D4",
+      "Y2N",
+      "Y4C",
+      "Y4N"
+     ],
+     "inside_hull_only": []
+    },
+    "instant_point": {
+     "frontier": [
+      "REF",
+      "Q4",
+      "T24",
+      "Q2",
+      "R12",
+      "R1"
+     ],
+     "segments": [
+      {
+       "from": "REF",
+       "to": "Q4",
+       "bytes_saved_pct_of_int8": 52.3,
+       "cost_added_pct": 0.009,
+       "cost_per_saved_pct": 0.0002
+      },
+      {
+       "from": "Q4",
+       "to": "T24",
+       "bytes_saved_pct_of_int8": 13.96,
+       "cost_added_pct": 0.046,
+       "cost_per_saved_pct": 0.0033
+      },
+      {
+       "from": "T24",
+       "to": "Q2",
+       "bytes_saved_pct_of_int8": 1.98,
+       "cost_added_pct": 0.03,
+       "cost_per_saved_pct": 0.0152
+      },
+      {
+       "from": "Q2",
+       "to": "R12",
+       "bytes_saved_pct_of_int8": 9.13,
+       "cost_added_pct": 0.31,
+       "cost_per_saved_pct": 0.034
+      },
+      {
+       "from": "R12",
+       "to": "R1",
+       "bytes_saved_pct_of_int8": 0.99,
+       "cost_added_pct": 0.131,
+       "cost_per_saved_pct": 0.1323
+      }
+     ],
+     "pareto_dominated": [
+      "A",
+      "A16",
+      "A32",
+      "AN",
+      "AN16",
+      "AN32",
+      "B4",
+      "B8",
+      "C4",
+      "CO4",
+      "D4",
+      "Y2N",
+      "Y4C",
+      "Y4N"
+     ],
+     "inside_hull_only": []
+    }
+   },
+   "passing_budget": [
+    "R12",
+    "Q2",
+    "T24",
+    "Q4",
+    "D4",
+    "B8",
+    "B4",
+    "Y4N",
+    "AN",
+    "Y4C",
+    "AN32",
+    "Y2N",
+    "CO4",
+    "AN16",
+    "C4",
+    "A",
+    "A32",
+    "A16",
+    "REF"
+   ],
+   "smallest_passing": "R12",
+   "budget_crossing_on_upper_frontier": {
+    "instant": -77.74
+   }
+  },
+  "sm130th": {
+   "name": "six-layer Tiny two-head (SM130)",
+   "size": "Tiny",
+   "heads": [
+    "curve",
+    "instant"
+   ],
+   "budget_ref": "Big two-head (SM91s2) at int8",
+   "budget_pct": 1.0,
+   "budget_text": "at most +1.0% total vs Big at int8",
+   "formats": {
+    "REF": {
+     "variant": "w8+s8hx8",
+     "description": "int8 rows, float16 row scales, int8 shift vectors (the reference)",
+     "source": "SM141",
+     "rows_from": "SM141",
+     "bytes_vs_int8_pct": 0.0,
+     "vs_own_int8": {
+      "curve": {
+       "value": 0.0,
+       "lo": 0.0,
+       "up": 0.0
+      },
+      "instant": {
+       "value": 0.0,
+       "lo": 0.0,
+       "up": 0.0
+      }
+     },
+     "vs_budget_ref": {
+      "curve": {
+       "value": 0.681,
+       "lo": 0.505,
+       "up": 0.861
+      },
+      "instant": {
+       "value": 0.672,
+       "lo": 0.62,
+       "up": 0.727
+      }
+     }
+    },
+    "A": {
+     "variant": "w8+t4.128.8c8nhx8",
+     "description": "cards int4 below 128 answers, int8 from 128; notes int8",
+     "source": "SM141",
+     "rows_from": "SM141",
+     "bytes_vs_int8_pct": -20.59,
+     "vs_own_int8": {
+      "curve": {
+       "value": 0.015,
+       "lo": 0.012,
+       "up": 0.018
+      },
+      "instant": {
+       "value": 0.02,
+       "lo": 0.016,
+       "up": 0.023
+      }
+     },
+     "vs_budget_ref": {
+      "curve": {
+       "value": 0.696,
+       "lo": 0.518,
+       "up": 0.878
+      },
+      "instant": {
+       "value": 0.692,
+       "lo": 0.64,
+       "up": 0.747
+      }
+     }
+    },
+    "AN": {
+     "variant": "w8+t4.128.8c4.128.8nhx8",
+     "description": "cards and notes int4 below 128 answers, int8 from 128",
+     "source": "SM141",
+     "rows_from": "SM141",
+     "bytes_vs_int8_pct": -38.91,
+     "vs_own_int8": {
+      "curve": {
+       "value": 0.032,
+       "lo": 0.026,
+       "up": 0.039
+      },
+      "instant": {
+       "value": 0.054,
+       "lo": 0.047,
+       "up": 0.061
+      }
+     },
+     "vs_budget_ref": {
+      "curve": {
+       "value": 0.713,
+       "lo": 0.536,
+       "up": 0.895
+      },
+      "instant": {
+       "value": 0.726,
+       "lo": 0.673,
+       "up": 0.782
+      }
+     }
+    },
+    "B4": {
+     "variant": "w8+t3.5.4.128.8c3.5.4.128.8nhx8",
+     "description": "AN with int3 for 1-4 answers",
+     "source": "SM141",
+     "rows_from": "SM141",
+     "bytes_vs_int8_pct": -43.38,
+     "vs_own_int8": {
+      "curve": {
+       "value": 0.046,
+       "lo": 0.038,
+       "up": 0.055
+      },
+      "instant": {
+       "value": 0.076,
+       "lo": 0.069,
+       "up": 0.084
+      }
+     },
+     "vs_budget_ref": {
+      "curve": {
+       "value": 0.727,
+       "lo": 0.55,
+       "up": 0.91
+      },
+      "instant": {
+       "value": 0.749,
+       "lo": 0.695,
+       "up": 0.807
+      }
+     }
+    },
+    "B8": {
+     "variant": "w8+t3.9.4.128.8c3.9.4.128.8nhx8",
+     "description": "AN with int3 for 1-8 answers",
+     "source": "SM141",
+     "rows_from": "SM141",
+     "bytes_vs_int8_pct": -46.28,
+     "vs_own_int8": {
+      "curve": {
+       "value": 0.059,
+       "lo": 0.049,
+       "up": 0.069
+      },
+      "instant": {
+       "value": 0.097,
+       "lo": 0.089,
+       "up": 0.105
+      }
+     },
+     "vs_budget_ref": {
+      "curve": {
+       "value": 0.74,
+       "lo": 0.562,
+       "up": 0.923
+      },
+      "instant": {
+       "value": 0.77,
+       "lo": 0.715,
+       "up": 0.828
+      }
+     }
+    },
+    "D4": {
+     "variant": "w8+t2.5.4.128.8c2.5.4.128.8nhx8",
+     "description": "AN with int2 (ternary) for 1-4 answers",
+     "source": "SM141",
+     "rows_from": "SM141",
+     "bytes_vs_int8_pct": -47.84,
+     "vs_own_int8": {
+      "curve": {
+       "value": 0.16,
+       "lo": 0.136,
+       "up": 0.183
+      },
+      "instant": {
+       "value": 0.258,
+       "lo": 0.241,
+       "up": 0.275
+      }
+     },
+     "vs_budget_ref": {
+      "curve": {
+       "value": 0.842,
+       "lo": 0.665,
+       "up": 1.021
+      },
+      "instant": {
+       "value": 0.931,
+       "lo": 0.872,
+       "up": 0.994
+      }
+     }
+    },
+    "A32": {
+     "variant": "w8+t4.32.8c8nhx8",
+     "description": "cards int4 below 32 answers, int8 from 32; notes int8",
+     "source": "SM144",
+     "rows_from": "SM144",
+     "bytes_vs_int8_pct": -20.21,
+     "vs_own_int8": {
+      "curve": {
+       "value": 0.011,
+       "lo": 0.009,
+       "up": 0.014
+      },
+      "instant": {
+       "value": 0.016,
+       "lo": 0.013,
+       "up": 0.018
+      }
+     },
+     "vs_budget_ref": {
+      "curve": {
+       "value": 0.692,
+       "lo": 0.516,
+       "up": 0.874
+      },
+      "instant": {
+       "value": 0.688,
+       "lo": 0.636,
+       "up": 0.744
+      }
+     }
+    },
+    "A16": {
+     "variant": "w8+t4.16.8c8nhx8",
+     "description": "cards int4 below 16 answers, int8 from 16; notes int8",
+     "source": "SM144",
+     "rows_from": "SM144",
+     "bytes_vs_int8_pct": -18.96,
+     "vs_own_int8": {
+      "curve": {
+       "value": 0.008,
+       "lo": 0.006,
+       "up": 0.009
+      },
+      "instant": {
+       "value": 0.01,
+       "lo": 0.009,
+       "up": 0.012
+      }
+     },
+     "vs_budget_ref": {
+      "curve": {
+       "value": 0.689,
+       "lo": 0.513,
+       "up": 0.87
+      },
+      "instant": {
+       "value": 0.683,
+       "lo": 0.631,
+       "up": 0.738
+      }
+     }
+    },
+    "AN32": {
+     "variant": "w8+t4.32.8c4.32.8nhx8",
+     "description": "cards and notes int4 below 32 answers, int8 from 32",
+     "source": "SM144",
+     "rows_from": "SM144",
+     "bytes_vs_int8_pct": -38.01,
+     "vs_own_int8": {
+      "curve": {
+       "value": 0.019,
+       "lo": 0.016,
+       "up": 0.022
+      },
+      "instant": {
+       "value": 0.032,
+       "lo": 0.028,
+       "up": 0.036
+      }
+     },
+     "vs_budget_ref": {
+      "curve": {
+       "value": 0.7,
+       "lo": 0.523,
+       "up": 0.881
+      },
+      "instant": {
+       "value": 0.704,
+       "lo": 0.652,
+       "up": 0.761
+      }
+     }
+    },
+    "AN16": {
+     "variant": "w8+t4.16.8c4.16.8nhx8",
+     "description": "cards and notes int4 below 16 answers, int8 from 16",
+     "source": "SM144",
+     "rows_from": "SM144",
+     "bytes_vs_int8_pct": -35.34,
+     "vs_own_int8": {
+      "curve": {
+       "value": 0.012,
+       "lo": 0.01,
+       "up": 0.014
+      },
+      "instant": {
+       "value": 0.02,
+       "lo": 0.017,
+       "up": 0.022
+      }
+     },
+     "vs_budget_ref": {
+      "curve": {
+       "value": 0.693,
+       "lo": 0.517,
+       "up": 0.874
+      },
+      "instant": {
+       "value": 0.692,
+       "lo": 0.64,
+       "up": 0.748
+      }
+     }
+    },
+    "Y2N": {
+     "variant": "w8+t3.3.4.16.8c3.3.4.16.8nhx8",
+     "description": "AN16 with int3 for 1-2 answers",
+     "source": "SM145",
+     "rows_from": "SM145",
+     "bytes_vs_int8_pct": -37.53,
+     "vs_own_int8": {
+      "curve": {
+       "value": 0.021,
+       "lo": 0.016,
+       "up": 0.027
+      },
+      "instant": {
+       "value": 0.031,
+       "lo": 0.028,
+       "up": 0.034
+      }
+     },
+     "vs_budget_ref": {
+      "curve": {
+       "value": 0.702,
+       "lo": 0.525,
+       "up": 0.883
+      },
+      "instant": {
+       "value": 0.703,
+       "lo": 0.651,
+       "up": 0.759
+      }
+     }
+    },
+    "Y4C": {
+     "variant": "w8+t3.5.4.16.8c4.16.8nhx8",
+     "description": "AN16 with int3 for 1-4 answers on cards only",
+     "source": "SM145",
+     "rows_from": "SM145",
+     "bytes_vs_int8_pct": -37.74,
+     "vs_own_int8": {
+      "curve": {
+       "value": 0.02,
+       "lo": 0.016,
+       "up": 0.023
+      },
+      "instant": {
+       "value": 0.029,
+       "lo": 0.026,
+       "up": 0.032
+      }
+     },
+     "vs_budget_ref": {
+      "curve": {
+       "value": 0.701,
+       "lo": 0.524,
+       "up": 0.882
+      },
+      "instant": {
+       "value": 0.701,
+       "lo": 0.649,
+       "up": 0.757
+      }
+     }
+    },
+    "Y4N": {
+     "variant": "w8+t3.5.4.16.8c3.5.4.16.8nhx8",
+     "description": "AN16 with int3 for 1-4 answers on cards and notes (also SM146 I3a)",
+     "source": "SM145",
+     "rows_from": "SM145",
+     "bytes_vs_int8_pct": -39.8,
+     "vs_own_int8": {
+      "curve": {
+       "value": 0.026,
+       "lo": 0.021,
+       "up": 0.033
+      },
+      "instant": {
+       "value": 0.041,
+       "lo": 0.038,
+       "up": 0.046
+      }
+     },
+     "vs_budget_ref": {
+      "curve": {
+       "value": 0.707,
+       "lo": 0.531,
+       "up": 0.888
+      },
+      "instant": {
+       "value": 0.714,
+       "lo": 0.661,
+       "up": 0.77
+      }
+     }
+    },
+    "I3b": {
+     "variant": "w8+t3.9.4.16.8c3.9.4.16.8nhx8",
+     "description": "AN16 with int3 for 1-8 answers on cards and notes (Tiny only)",
+     "source": "SM146",
+     "rows_from": "SM146",
+     "bytes_vs_int8_pct": -42.71,
+     "vs_own_int8": {
+      "curve": {
+       "value": 0.038,
+       "lo": 0.032,
+       "up": 0.045
+      },
+      "instant": {
+       "value": 0.062,
+       "lo": 0.057,
+       "up": 0.067
+      }
+     },
+     "vs_budget_ref": {
+      "curve": {
+       "value": 0.719,
+       "lo": 0.542,
+       "up": 0.901
+      },
+      "instant": {
+       "value": 0.734,
+       "lo": 0.682,
+       "up": 0.792
+      }
+     }
+    },
+    "I2a": {
+     "variant": "w8+t2.5.4.16.8c2.5.4.16.8nhx8",
+     "description": "AN16 with int2 for 1-4 answers on cards and notes (Tiny only)",
+     "source": "SM146",
+     "rows_from": "SM146",
+     "bytes_vs_int8_pct": -44.27,
+     "vs_own_int8": {
+      "curve": {
+       "value": 0.14,
+       "lo": 0.118,
+       "up": 0.163
+      },
+      "instant": {
+       "value": 0.224,
+       "lo": 0.208,
+       "up": 0.24
+      }
+     },
+     "vs_budget_ref": {
+      "curve": {
+       "value": 0.822,
+       "lo": 0.649,
+       "up": 1.001
+      },
+      "instant": {
+       "value": 0.897,
+       "lo": 0.839,
+       "up": 0.959
+      }
+     }
+    },
+    "I2b": {
+     "variant": "w8+t2.5.3.16.8c2.5.3.16.8nhx8",
+     "description": "int2 for 1-4 answers, int3 for 5-15, int8 from 16 (Tiny only)",
+     "source": "SM146",
+     "rows_from": "SM146",
+     "bytes_vs_int8_pct": -48.64,
+     "vs_own_int8": {
+      "curve": {
+       "value": 0.176,
+       "lo": 0.151,
+       "up": 0.202
+      },
+      "instant": {
+       "value": 0.282,
+       "lo": 0.265,
+       "up": 0.3
+      }
+     },
+     "vs_budget_ref": {
+      "curve": {
+       "value": 0.858,
+       "lo": 0.684,
+       "up": 1.038
+      },
+      "instant": {
+       "value": 0.956,
+       "lo": 0.896,
+       "up": 1.019
+      }
+     }
+    },
+    "Q4": {
+     "variant": "w8+lr4q8x8",
+     "description": "rank 4 int8 factors, every entity",
+     "source": "SM148",
+     "rows_from": "SM148",
+     "bytes_vs_int8_pct": -51.06,
+     "vs_own_int8": {
+      "curve": {
+       "value": 0.007,
+       "lo": 0.003,
+       "up": 0.011
+      },
+      "instant": {
+       "value": 0.015,
+       "lo": 0.012,
+       "up": 0.018
+      }
+     },
+     "vs_budget_ref": {
+      "curve": {
+       "value": 0.688,
+       "lo": 0.513,
+       "up": 0.866
+      },
+      "instant": {
+       "value": 0.687,
+       "lo": 0.635,
+       "up": 0.742
+      }
+     }
+    },
+    "T24": {
+     "variant": "w8+lr2.16.4q8x8",
+     "description": "rank 2 below 16 answers, rank 4 from 16 (the user's choice)",
+     "source": "SM148",
+     "rows_from": "SM148",
+     "bytes_vs_int8_pct": -64.65,
+     "vs_own_int8": {
+      "curve": {
+       "value": 0.04,
+       "lo": 0.031,
+       "up": 0.049
+      },
+      "instant": {
+       "value": 0.074,
+       "lo": 0.066,
+       "up": 0.082
+      }
+     },
+     "vs_budget_ref": {
+      "curve": {
+       "value": 0.722,
+       "lo": 0.548,
+       "up": 0.899
+      },
+      "instant": {
+       "value": 0.746,
+       "lo": 0.693,
+       "up": 0.802
+      }
+     }
+    },
+    "Q2": {
+     "variant": "w8+lr2q8x8",
+     "description": "rank 2 int8 factors, every entity",
+     "source": "SM148",
+     "rows_from": "SM148",
+     "bytes_vs_int8_pct": -66.68,
+     "vs_own_int8": {
+      "curve": {
+       "value": 0.078,
+       "lo": 0.063,
+       "up": 0.092
+      },
+      "instant": {
+       "value": 0.129,
+       "lo": 0.116,
+       "up": 0.142
+      }
+     },
+     "vs_budget_ref": {
+      "curve": {
+       "value": 0.759,
+       "lo": 0.584,
+       "up": 0.939
+      },
+      "instant": {
+       "value": 0.802,
+       "lo": 0.745,
+       "up": 0.861
+      }
+     }
+    },
+    "R12": {
+     "variant": "w8+lr1.16.2q8x8",
+     "description": "rank 1 below 16 answers, rank 2 from 16",
+     "source": "SM150",
+     "rows_from": "SM150",
+     "bytes_vs_int8_pct": -75.57,
+     "vs_own_int8": {
+      "curve": {
+       "value": 0.306,
+       "lo": 0.266,
+       "up": 0.344
+      },
+      "instant": {
+       "value": 0.443,
+       "lo": 0.41,
+       "up": 0.478
+      }
+     },
+     "vs_budget_ref": {
+      "curve": {
+       "value": 0.989,
+       "lo": 0.807,
+       "up": 1.175
+      },
+      "instant": {
+       "value": 1.118,
+       "lo": 1.051,
+       "up": 1.188
+      }
+     }
+    },
+    "R1": {
+     "variant": "w8+lr1q8x8",
+     "description": "rank 1 int8 factors, every entity",
+     "source": "SM150",
+     "rows_from": "SM150",
+     "bytes_vs_int8_pct": -76.58,
+     "vs_own_int8": {
+      "curve": {
+       "value": 0.478,
+       "lo": 0.411,
+       "up": 0.548
+      },
+      "instant": {
+       "value": 0.684,
+       "lo": 0.625,
+       "up": 0.751
+      }
+     },
+     "vs_budget_ref": {
+      "curve": {
+       "value": 1.162,
+       "lo": 0.972,
+       "up": 1.355
+      },
+      "instant": {
+       "value": 1.361,
+       "lo": 1.276,
+       "up": 1.454
+      }
+     }
+    }
+   },
+   "hull": {
+    "curve_upper": {
+     "frontier": [
+      "REF",
+      "Q4",
+      "T24",
+      "Q2",
+      "R12",
+      "R1"
+     ],
+     "segments": [
+      {
+       "from": "REF",
+       "to": "Q4",
+       "bytes_saved_pct_of_int8": 51.06,
+       "cost_added_pct": 0.005,
+       "cost_per_saved_pct": 0.0001
+      },
+      {
+       "from": "Q4",
+       "to": "T24",
+       "bytes_saved_pct_of_int8": 13.59,
+       "cost_added_pct": 0.033,
+       "cost_per_saved_pct": 0.0024
+      },
+      {
+       "from": "T24",
+       "to": "Q2",
+       "bytes_saved_pct_of_int8": 2.03,
+       "cost_added_pct": 0.04,
+       "cost_per_saved_pct": 0.0197
+      },
+      {
+       "from": "Q2",
+       "to": "R12",
+       "bytes_saved_pct_of_int8": 8.89,
+       "cost_added_pct": 0.236,
+       "cost_per_saved_pct": 0.0265
+      },
+      {
+       "from": "R12",
+       "to": "R1",
+       "bytes_saved_pct_of_int8": 1.01,
+       "cost_added_pct": 0.18,
+       "cost_per_saved_pct": 0.1782
+      }
+     ],
+     "pareto_dominated": [
+      "A",
+      "A16",
+      "A32",
+      "AN",
+      "AN16",
+      "AN32",
+      "B4",
+      "B8",
+      "D4",
+      "I2a",
+      "I2b",
+      "I3b",
+      "Y2N",
+      "Y4C",
+      "Y4N"
+     ],
+     "inside_hull_only": []
+    },
+    "curve_point": {
+     "frontier": [
+      "REF",
+      "Q4",
+      "T24",
+      "Q2",
+      "R12",
+      "R1"
+     ],
+     "segments": [
+      {
+       "from": "REF",
+       "to": "Q4",
+       "bytes_saved_pct_of_int8": 51.06,
+       "cost_added_pct": 0.007,
+       "cost_per_saved_pct": 0.0001
+      },
+      {
+       "from": "Q4",
+       "to": "T24",
+       "bytes_saved_pct_of_int8": 13.59,
+       "cost_added_pct": 0.034,
+       "cost_per_saved_pct": 0.0025
+      },
+      {
+       "from": "T24",
+       "to": "Q2",
+       "bytes_saved_pct_of_int8": 2.03,
+       "cost_added_pct": 0.037,
+       "cost_per_saved_pct": 0.0182
+      },
+      {
+       "from": "Q2",
+       "to": "R12",
+       "bytes_saved_pct_of_int8": 8.89,
+       "cost_added_pct": 0.23,
+       "cost_per_saved_pct": 0.0259
+      },
+      {
+       "from": "R12",
+       "to": "R1",
+       "bytes_saved_pct_of_int8": 1.01,
+       "cost_added_pct": 0.173,
+       "cost_per_saved_pct": 0.1713
+      }
+     ],
+     "pareto_dominated": [
+      "A",
+      "A16",
+      "A32",
+      "AN",
+      "AN16",
+      "AN32",
+      "B4",
+      "B8",
+      "D4",
+      "I2a",
+      "I2b",
+      "I3b",
+      "Y2N",
+      "Y4C",
+      "Y4N"
+     ],
+     "inside_hull_only": []
+    },
+    "instant_upper": {
+     "frontier": [
+      "REF",
+      "Q4",
+      "T24",
+      "Q2",
+      "R12",
+      "R1"
+     ],
+     "segments": [
+      {
+       "from": "REF",
+       "to": "Q4",
+       "bytes_saved_pct_of_int8": 51.06,
+       "cost_added_pct": 0.015,
+       "cost_per_saved_pct": 0.0003
+      },
+      {
+       "from": "Q4",
+       "to": "T24",
+       "bytes_saved_pct_of_int8": 13.59,
+       "cost_added_pct": 0.06,
+       "cost_per_saved_pct": 0.0044
+      },
+      {
+       "from": "T24",
+       "to": "Q2",
+       "bytes_saved_pct_of_int8": 2.03,
+       "cost_added_pct": 0.059,
+       "cost_per_saved_pct": 0.0291
+      },
+      {
+       "from": "Q2",
+       "to": "R12",
+       "bytes_saved_pct_of_int8": 8.89,
+       "cost_added_pct": 0.327,
+       "cost_per_saved_pct": 0.0368
+      },
+      {
+       "from": "R12",
+       "to": "R1",
+       "bytes_saved_pct_of_int8": 1.01,
+       "cost_added_pct": 0.266,
+       "cost_per_saved_pct": 0.2634
+      }
+     ],
+     "pareto_dominated": [
+      "A",
+      "A32",
+      "AN",
+      "AN16",
+      "AN32",
+      "B4",
+      "B8",
+      "D4",
+      "I2a",
+      "I2b",
+      "I3b",
+      "Y2N",
+      "Y4C",
+      "Y4N"
+     ],
+     "inside_hull_only": [
+      "A16"
+     ]
+    },
+    "instant_point": {
+     "frontier": [
+      "REF",
+      "Q4",
+      "T24",
+      "Q2",
+      "R12",
+      "R1"
+     ],
+     "segments": [
+      {
+       "from": "REF",
+       "to": "Q4",
+       "bytes_saved_pct_of_int8": 51.06,
+       "cost_added_pct": 0.015,
+       "cost_per_saved_pct": 0.0003
+      },
+      {
+       "from": "Q4",
+       "to": "T24",
+       "bytes_saved_pct_of_int8": 13.59,
+       "cost_added_pct": 0.059,
+       "cost_per_saved_pct": 0.0043
+      },
+      {
+       "from": "T24",
+       "to": "Q2",
+       "bytes_saved_pct_of_int8": 2.03,
+       "cost_added_pct": 0.056,
+       "cost_per_saved_pct": 0.0276
+      },
+      {
+       "from": "Q2",
+       "to": "R12",
+       "bytes_saved_pct_of_int8": 8.89,
+       "cost_added_pct": 0.316,
+       "cost_per_saved_pct": 0.0355
+      },
+      {
+       "from": "R12",
+       "to": "R1",
+       "bytes_saved_pct_of_int8": 1.01,
+       "cost_added_pct": 0.243,
+       "cost_per_saved_pct": 0.2406
+      }
+     ],
+     "pareto_dominated": [
+      "A",
+      "A32",
+      "AN",
+      "AN16",
+      "AN32",
+      "B4",
+      "B8",
+      "D4",
+      "I2a",
+      "I2b",
+      "I3b",
+      "Y2N",
+      "Y4C",
+      "Y4N"
+     ],
+     "inside_hull_only": [
+      "A16"
+     ]
+    }
+   },
+   "passing_budget": [
+    "Q2",
+    "T24",
+    "Q4",
+    "B8",
+    "B4",
+    "I3b",
+    "Y4N",
+    "AN",
+    "AN32",
+    "Y4C",
+    "Y2N",
+    "AN16",
+    "A",
+    "A32",
+    "A16",
+    "REF"
+   ],
+   "smallest_passing": "Q2",
+   "budget_crossing_on_upper_frontier": {
+    "curve": -68.98,
+    "instant": -70.46
+   }
+  },
+  "sm130io": {
+   "name": "six-layer Tiny Instant-Only (SM130)",
+   "size": "Tiny",
+   "heads": [
+    "instant"
+   ],
+   "budget_ref": "Big Instant-Only (SM99) at int8",
+   "budget_pct": 1.0,
+   "budget_text": "at most +1.0% total vs Big at int8",
+   "formats": {
+    "REF": {
+     "variant": "w8+s8hx8",
+     "description": "int8 rows, float16 row scales, int8 shift vectors (the reference)",
+     "source": "SM141",
+     "rows_from": "SM141",
+     "bytes_vs_int8_pct": 0.0,
+     "vs_own_int8": {
+      "instant": {
+       "value": 0.0,
+       "lo": 0.0,
+       "up": 0.0
+      }
+     },
+     "vs_budget_ref": {
+      "instant": {
+       "value": 0.579,
+       "lo": 0.533,
+       "up": 0.625
+      }
+     }
+    },
+    "A": {
+     "variant": "w8+t4.128.8c8nhx8",
+     "description": "cards int4 below 128 answers, int8 from 128; notes int8",
+     "source": "SM141",
+     "rows_from": "SM141",
+     "bytes_vs_int8_pct": -20.59,
+     "vs_own_int8": {
+      "instant": {
+       "value": 0.035,
+       "lo": 0.03,
+       "up": 0.04
+      }
+     },
+     "vs_budget_ref": {
+      "instant": {
+       "value": 0.614,
+       "lo": 0.567,
+       "up": 0.66
+      }
+     }
+    },
+    "AN": {
+     "variant": "w8+t4.128.8c4.128.8nhx8",
+     "description": "cards and notes int4 below 128 answers, int8 from 128",
+     "source": "SM141",
+     "rows_from": "SM141",
+     "bytes_vs_int8_pct": -38.91,
+     "vs_own_int8": {
+      "instant": {
+       "value": 0.078,
+       "lo": 0.068,
+       "up": 0.089
+      }
+     },
+     "vs_budget_ref": {
+      "instant": {
+       "value": 0.657,
+       "lo": 0.61,
+       "up": 0.704
+      }
+     }
+    },
+    "B4": {
+     "variant": "w8+t3.5.4.128.8c3.5.4.128.8nhx8",
+     "description": "AN with int3 for 1-4 answers",
+     "source": "SM141",
+     "rows_from": "SM141",
+     "bytes_vs_int8_pct": -43.38,
+     "vs_own_int8": {
+      "instant": {
+       "value": 0.108,
+       "lo": 0.098,
+       "up": 0.118
+      }
+     },
+     "vs_budget_ref": {
+      "instant": {
+       "value": 0.687,
+       "lo": 0.64,
+       "up": 0.735
+      }
+     }
+    },
+    "B8": {
+     "variant": "w8+t3.9.4.128.8c3.9.4.128.8nhx8",
+     "description": "AN with int3 for 1-8 answers",
+     "source": "SM141",
+     "rows_from": "SM141",
+     "bytes_vs_int8_pct": -46.28,
+     "vs_own_int8": {
+      "instant": {
+       "value": 0.144,
+       "lo": 0.132,
+       "up": 0.155
+      }
+     },
+     "vs_budget_ref": {
+      "instant": {
+       "value": 0.723,
+       "lo": 0.675,
+       "up": 0.772
+      }
+     }
+    },
+    "D4": {
+     "variant": "w8+t2.5.4.128.8c2.5.4.128.8nhx8",
+     "description": "AN with int2 (ternary) for 1-4 answers",
+     "source": "SM141",
+     "rows_from": "SM141",
+     "bytes_vs_int8_pct": -47.84,
+     "vs_own_int8": {
+      "instant": {
+       "value": 0.364,
+       "lo": 0.345,
+       "up": 0.384
+      }
+     },
+     "vs_budget_ref": {
+      "instant": {
+       "value": 0.945,
+       "lo": 0.891,
+       "up": 1.001
+      }
+     }
+    },
+    "A32": {
+     "variant": "w8+t4.32.8c8nhx8",
+     "description": "cards int4 below 32 answers, int8 from 32; notes int8",
+     "source": "SM144",
+     "rows_from": "SM144",
+     "bytes_vs_int8_pct": -20.21,
+     "vs_own_int8": {
+      "instant": {
+       "value": 0.026,
+       "lo": 0.023,
+       "up": 0.03
+      }
+     },
+     "vs_budget_ref": {
+      "instant": {
+       "value": 0.606,
+       "lo": 0.559,
+       "up": 0.652
+      }
+     }
+    },
+    "A16": {
+     "variant": "w8+t4.16.8c8nhx8",
+     "description": "cards int4 below 16 answers, int8 from 16; notes int8",
+     "source": "SM144",
+     "rows_from": "SM144",
+     "bytes_vs_int8_pct": -18.96,
+     "vs_own_int8": {
+      "instant": {
+       "value": 0.018,
+       "lo": 0.016,
+       "up": 0.02
+      }
+     },
+     "vs_budget_ref": {
+      "instant": {
+       "value": 0.597,
+       "lo": 0.551,
+       "up": 0.643
+      }
+     }
+    },
+    "AN32": {
+     "variant": "w8+t4.32.8c4.32.8nhx8",
+     "description": "cards and notes int4 below 32 answers, int8 from 32",
+     "source": "SM144",
+     "rows_from": "SM144",
+     "bytes_vs_int8_pct": -38.01,
+     "vs_own_int8": {
+      "instant": {
+       "value": 0.047,
+       "lo": 0.043,
+       "up": 0.052
+      }
+     },
+     "vs_budget_ref": {
+      "instant": {
+       "value": 0.627,
+       "lo": 0.58,
+       "up": 0.674
+      }
+     }
+    },
+    "AN16": {
+     "variant": "w8+t4.16.8c4.16.8nhx8",
+     "description": "cards and notes int4 below 16 answers, int8 from 16",
+     "source": "SM144",
+     "rows_from": "SM144",
+     "bytes_vs_int8_pct": -35.34,
+     "vs_own_int8": {
+      "instant": {
+       "value": 0.03,
+       "lo": 0.027,
+       "up": 0.033
+      }
+     },
+     "vs_budget_ref": {
+      "instant": {
+       "value": 0.609,
+       "lo": 0.562,
+       "up": 0.656
+      }
+     }
+    },
+    "Y2N": {
+     "variant": "w8+t3.3.4.16.8c3.3.4.16.8nhx8",
+     "description": "AN16 with int3 for 1-2 answers",
+     "source": "SM145",
+     "rows_from": "SM145",
+     "bytes_vs_int8_pct": -37.53,
+     "vs_own_int8": {
+      "instant": {
+       "value": 0.043,
+       "lo": 0.04,
+       "up": 0.047
+      }
+     },
+     "vs_budget_ref": {
+      "instant": {
+       "value": 0.622,
+       "lo": 0.576,
+       "up": 0.67
+      }
+     }
+    },
+    "Y4C": {
+     "variant": "w8+t3.5.4.16.8c4.16.8nhx8",
+     "description": "AN16 with int3 for 1-4 answers on cards only",
+     "source": "SM145",
+     "rows_from": "SM145",
+     "bytes_vs_int8_pct": -37.74,
+     "vs_own_int8": {
+      "instant": {
+       "value": 0.042,
+       "lo": 0.038,
+       "up": 0.045
+      }
+     },
+     "vs_budget_ref": {
+      "instant": {
+       "value": 0.621,
+       "lo": 0.575,
+       "up": 0.668
+      }
+     }
+    },
+    "Y4N": {
+     "variant": "w8+t3.5.4.16.8c3.5.4.16.8nhx8",
+     "description": "AN16 with int3 for 1-4 answers on cards and notes (also SM146 I3a)",
+     "source": "SM145",
+     "rows_from": "SM145",
+     "bytes_vs_int8_pct": -39.8,
+     "vs_own_int8": {
+      "instant": {
+       "value": 0.058,
+       "lo": 0.054,
+       "up": 0.063
+      }
+     },
+     "vs_budget_ref": {
+      "instant": {
+       "value": 0.638,
+       "lo": 0.591,
+       "up": 0.686
+      }
+     }
+    },
+    "I3b": {
+     "variant": "w8+t3.9.4.16.8c3.9.4.16.8nhx8",
+     "description": "AN16 with int3 for 1-8 answers on cards and notes (Tiny only)",
+     "source": "SM146",
+     "rows_from": "SM146",
+     "bytes_vs_int8_pct": -42.71,
+     "vs_own_int8": {
+      "instant": {
+       "value": 0.092,
+       "lo": 0.086,
+       "up": 0.099
+      }
+     },
+     "vs_budget_ref": {
+      "instant": {
+       "value": 0.672,
+       "lo": 0.624,
+       "up": 0.72
+      }
+     }
+    },
+    "I2a": {
+     "variant": "w8+t2.5.4.16.8c2.5.4.16.8nhx8",
+     "description": "AN16 with int2 for 1-4 answers on cards and notes (Tiny only)",
+     "source": "SM146",
+     "rows_from": "SM146",
+     "bytes_vs_int8_pct": -44.27,
+     "vs_own_int8": {
+      "instant": {
+       "value": 0.313,
+       "lo": 0.295,
+       "up": 0.334
+      }
+     },
+     "vs_budget_ref": {
+      "instant": {
+       "value": 0.894,
+       "lo": 0.842,
+       "up": 0.949
+      }
+     }
+    },
+    "I2b": {
+     "variant": "w8+t2.5.3.16.8c2.5.3.16.8nhx8",
+     "description": "int2 for 1-4 answers, int3 for 5-15, int8 from 16 (Tiny only)",
+     "source": "SM146",
+     "rows_from": "SM146",
+     "bytes_vs_int8_pct": -48.64,
+     "vs_own_int8": {
+      "instant": {
+       "value": 0.402,
+       "lo": 0.38,
+       "up": 0.425
+      }
+     },
+     "vs_budget_ref": {
+      "instant": {
+       "value": 0.984,
+       "lo": 0.929,
+       "up": 1.042
+      }
+     }
+    },
+    "Q4": {
+     "variant": "w8+lr4q8x8",
+     "description": "rank 4 int8 factors, every entity",
+     "source": "SM148",
+     "rows_from": "SM148",
+     "bytes_vs_int8_pct": -51.06,
+     "vs_own_int8": {
+      "instant": {
+       "value": 0.016,
+       "lo": 0.014,
+       "up": 0.019
+      }
+     },
+     "vs_budget_ref": {
+      "instant": {
+       "value": 0.595,
+       "lo": 0.549,
+       "up": 0.642
+      }
+     }
+    },
+    "T24": {
+     "variant": "w8+lr2.16.4q8x8",
+     "description": "rank 2 below 16 answers, rank 4 from 16 (the user's choice)",
+     "source": "SM148",
+     "rows_from": "SM148",
+     "bytes_vs_int8_pct": -64.65,
+     "vs_own_int8": {
+      "instant": {
+       "value": 0.088,
+       "lo": 0.08,
+       "up": 0.098
+      }
+     },
+     "vs_budget_ref": {
+      "instant": {
+       "value": 0.668,
+       "lo": 0.619,
+       "up": 0.717
+      }
+     }
+    },
+    "Q2": {
+     "variant": "w8+lr2q8x8",
+     "description": "rank 2 int8 factors, every entity",
+     "source": "SM148",
+     "rows_from": "SM148",
+     "bytes_vs_int8_pct": -66.68,
+     "vs_own_int8": {
+      "instant": {
+       "value": 0.155,
+       "lo": 0.14,
+       "up": 0.17
+      }
+     },
+     "vs_budget_ref": {
+      "instant": {
+       "value": 0.735,
+       "lo": 0.684,
+       "up": 0.785
+      }
+     }
+    },
+    "R12": {
+     "variant": "w8+lr1.16.2q8x8",
+     "description": "rank 1 below 16 answers, rank 2 from 16",
+     "source": "SM150",
+     "rows_from": "SM150",
+     "bytes_vs_int8_pct": -75.57,
+     "vs_own_int8": {
+      "instant": {
+       "value": 0.522,
+       "lo": 0.487,
+       "up": 0.561
+      }
+     },
+     "vs_budget_ref": {
+      "instant": {
+       "value": 1.104,
+       "lo": 1.042,
+       "up": 1.168
+      }
+     }
+    },
+    "R1": {
+     "variant": "w8+lr1q8x8",
+     "description": "rank 1 int8 factors, every entity",
+     "source": "SM150",
+     "rows_from": "SM150",
+     "bytes_vs_int8_pct": -76.58,
+     "vs_own_int8": {
+      "instant": {
+       "value": 0.775,
+       "lo": 0.716,
+       "up": 0.837
+      }
+     },
+     "vs_budget_ref": {
+      "instant": {
+       "value": 1.358,
+       "lo": 1.284,
+       "up": 1.434
+      }
+     }
+    }
+   },
+   "hull": {
+    "instant_upper": {
+     "frontier": [
+      "REF",
+      "Q4",
+      "T24",
+      "Q2",
+      "R12",
+      "R1"
+     ],
+     "segments": [
+      {
+       "from": "REF",
+       "to": "Q4",
+       "bytes_saved_pct_of_int8": 51.06,
+       "cost_added_pct": 0.017,
+       "cost_per_saved_pct": 0.0003
+      },
+      {
+       "from": "Q4",
+       "to": "T24",
+       "bytes_saved_pct_of_int8": 13.59,
+       "cost_added_pct": 0.075,
+       "cost_per_saved_pct": 0.0055
+      },
+      {
+       "from": "T24",
+       "to": "Q2",
+       "bytes_saved_pct_of_int8": 2.03,
+       "cost_added_pct": 0.068,
+       "cost_per_saved_pct": 0.0335
+      },
+      {
+       "from": "Q2",
+       "to": "R12",
+       "bytes_saved_pct_of_int8": 8.89,
+       "cost_added_pct": 0.383,
+       "cost_per_saved_pct": 0.0431
+      },
+      {
+       "from": "R12",
+       "to": "R1",
+       "bytes_saved_pct_of_int8": 1.01,
+       "cost_added_pct": 0.266,
+       "cost_per_saved_pct": 0.2634
+      }
+     ],
+     "pareto_dominated": [
+      "A",
+      "A16",
+      "A32",
+      "AN",
+      "AN16",
+      "AN32",
+      "B4",
+      "B8",
+      "D4",
+      "I2a",
+      "I2b",
+      "I3b",
+      "Y2N",
+      "Y4C",
+      "Y4N"
+     ],
+     "inside_hull_only": []
+    },
+    "instant_point": {
+     "frontier": [
+      "REF",
+      "Q4",
+      "T24",
+      "Q2",
+      "R12",
+      "R1"
+     ],
+     "segments": [
+      {
+       "from": "REF",
+       "to": "Q4",
+       "bytes_saved_pct_of_int8": 51.06,
+       "cost_added_pct": 0.016,
+       "cost_per_saved_pct": 0.0003
+      },
+      {
+       "from": "Q4",
+       "to": "T24",
+       "bytes_saved_pct_of_int8": 13.59,
+       "cost_added_pct": 0.073,
+       "cost_per_saved_pct": 0.0054
+      },
+      {
+       "from": "T24",
+       "to": "Q2",
+       "bytes_saved_pct_of_int8": 2.03,
+       "cost_added_pct": 0.067,
+       "cost_per_saved_pct": 0.033
+      },
+      {
+       "from": "Q2",
+       "to": "R12",
+       "bytes_saved_pct_of_int8": 8.89,
+       "cost_added_pct": 0.369,
+       "cost_per_saved_pct": 0.0415
+      },
+      {
+       "from": "R12",
+       "to": "R1",
+       "bytes_saved_pct_of_int8": 1.01,
+       "cost_added_pct": 0.254,
+       "cost_per_saved_pct": 0.2515
+      }
+     ],
+     "pareto_dominated": [
+      "A",
+      "A16",
+      "A32",
+      "AN",
+      "AN16",
+      "AN32",
+      "B4",
+      "B8",
+      "D4",
+      "I2a",
+      "I2b",
+      "I3b",
+      "Y2N",
+      "Y4C",
+      "Y4N"
+     ],
+     "inside_hull_only": []
+    }
+   },
+   "passing_budget": [
+    "Q2",
+    "T24",
+    "Q4",
+    "B8",
+    "I2a",
+    "B4",
+    "I3b",
+    "Y4N",
+    "AN",
+    "AN32",
+    "Y4C",
+    "Y2N",
+    "AN16",
+    "A",
+    "A32",
+    "A16",
+    "REF"
+   ],
+   "smallest_passing": "Q2",
+   "budget_crossing_on_upper_frontier": {
+    "instant": -71.67
+   }
+  }
+ },
+ "duplicate_label_check_max_abs_logloss_diff": {
+  "sm91s2/REF/SM144": 0.0,
+  "sm91s2/REF/SM145": 0.0,
+  "sm91s2/REF/SM148": 1.000000000001e-06,
+  "sm91s2/A/SM144": 0.0,
+  "sm91s2/AN16/SM145": 0.0,
+  "sm99/REF/SM144": 0.0,
+  "sm99/REF/SM145": 0.0,
+  "sm99/REF/SM148": 1.000000000001e-06,
+  "sm99/A/SM144": 0.0,
+  "sm99/AN16/SM145": 0.0,
+  "sm118/REF/SM144": 0.0,
+  "sm118/REF/SM145": 0.0,
+  "sm118/REF/SM148": 0.0,
+  "sm118/A/SM144": 0.0,
+  "sm118/AN16/SM145": 0.0,
+  "sm113/REF/SM144": 0.0,
+  "sm113/REF/SM145": 0.0,
+  "sm113/REF/SM148": 0.0,
+  "sm113/A/SM144": 0.0,
+  "sm113/AN16/SM145": 0.0,
+  "sm130th/REF/SM144": 0.0,
+  "sm130th/REF/SM145": 0.0,
+  "sm130th/REF/SM146": 0.0,
+  "sm130th/REF/SM148": 0.0,
+  "sm130th/A/SM144": 0.0,
+  "sm130th/AN16/SM145": 0.0,
+  "sm130th/AN16/SM146": 0.0,
+  "sm130th/Y4N/SM146": 0.0,
+  "sm130io/REF/SM144": 0.0,
+  "sm130io/REF/SM145": 0.0,
+  "sm130io/REF/SM146": 0.0,
+  "sm130io/REF/SM148": 0.0,
+  "sm130io/A/SM144": 0.0,
+  "sm130io/AN16/SM145": 0.0,
+  "sm130io/AN16/SM146": 0.0,
+  "sm130io/Y4N/SM146": 0.0
+ },
+ "reproduction_vs_published_SM148_verdict": [
+  {
+   "model": "Big two-head (SM91s2)",
+   "format": "Q4",
+   "head": "curve",
+   "published_users": 718,
+   "published": [
+    0.014,
+    0.02
+   ],
+   "here": [
+    0.014,
+    0.02
+   ]
+  },
+  {
+   "model": "Big two-head (SM91s2)",
+   "format": "Q4",
+   "head": "instant",
+   "published_users": 718,
+   "published": [
+    0.018,
+    0.021
+   ],
+   "here": [
+    0.018,
+    0.021
+   ]
+  },
+  {
+   "model": "Big two-head (SM91s2)",
+   "format": "T24",
+   "head": "curve",
+   "published_users": 718,
+   "published": [
+    0.034,
+    0.043
+   ],
+   "here": [
+    0.034,
+    0.043
+   ]
+  },
+  {
+   "model": "Big two-head (SM91s2)",
+   "format": "T24",
+   "head": "instant",
+   "published_users": 718,
+   "published": [
+    0.054,
+    0.059
+   ],
+   "here": [
+    0.054,
+    0.059
+   ]
+  },
+  {
+   "model": "Big two-head (SM91s2)",
+   "format": "Q2",
+   "head": "curve",
+   "published_users": 718,
+   "published": [
+    0.08,
+    0.101
+   ],
+   "here": [
+    0.08,
+    0.101
+   ]
+  },
+  {
+   "model": "Big two-head (SM91s2)",
+   "format": "Q2",
+   "head": "instant",
+   "published_users": 718,
+   "published": [
+    0.109,
+    0.122
+   ],
+   "here": [
+    0.109,
+    0.122
+   ]
+  },
+  {
+   "model": "Big Instant-Only (SM99)",
+   "format": "Q4",
+   "head": "instant",
+   "published_users": 718,
+   "published": [
+    0.019,
+    0.022
+   ],
+   "here": [
+    0.019,
+    0.022
+   ]
+  },
+  {
+   "model": "Big Instant-Only (SM99)",
+   "format": "T24",
+   "head": "instant",
+   "published_users": 718,
+   "published": [
+    0.059,
+    0.065
+   ],
+   "here": [
+    0.059,
+    0.065
+   ]
+  },
+  {
+   "model": "Big Instant-Only (SM99)",
+   "format": "Q2",
+   "head": "instant",
+   "published_users": 718,
+   "published": [
+    0.118,
+    0.132
+   ],
+   "here": [
+    0.118,
+    0.132
+   ]
+  },
+  {
+   "model": "Small two-head (SM118)",
+   "format": "REF",
+   "head": "curve",
+   "published_users": 718,
+   "published": [
+    0.213,
+    0.374
+   ],
+   "here": [
+    0.213,
+    0.374
+   ]
+  },
+  {
+   "model": "Small two-head (SM118)",
+   "format": "REF",
+   "head": "instant",
+   "published_users": 718,
+   "published": [
+    0.151,
+    0.176
+   ],
+   "here": [
+    0.151,
+    0.176
+   ]
+  },
+  {
+   "model": "Small two-head (SM118)",
+   "format": "Q4",
+   "head": "curve",
+   "published_users": 718,
+   "published": [
+    0.218,
+    0.379
+   ],
+   "here": [
+    0.218,
+    0.379
+   ]
+  },
+  {
+   "model": "Small two-head (SM118)",
+   "format": "Q4",
+   "head": "instant",
+   "published_users": 718,
+   "published": [
+    0.16,
+    0.186
+   ],
+   "here": [
+    0.16,
+    0.186
+   ]
+  },
+  {
+   "model": "Small two-head (SM118)",
+   "format": "T24",
+   "head": "curve",
+   "published_users": 718,
+   "published": [
+    0.241,
+    0.405
+   ],
+   "here": [
+    0.241,
+    0.405
+   ]
+  },
+  {
+   "model": "Small two-head (SM118)",
+   "format": "T24",
+   "head": "instant",
+   "published_users": 718,
+   "published": [
+    0.201,
+    0.227
+   ],
+   "here": [
+    0.201,
+    0.227
+   ]
+  },
+  {
+   "model": "Small two-head (SM118)",
+   "format": "Q2",
+   "head": "curve",
+   "published_users": 718,
+   "published": [
+    0.258,
+    0.422
+   ],
+   "here": [
+    0.258,
+    0.422
+   ]
+  },
+  {
+   "model": "Small two-head (SM118)",
+   "format": "Q2",
+   "head": "instant",
+   "published_users": 718,
+   "published": [
+    0.229,
+    0.257
+   ],
+   "here": [
+    0.229,
+    0.257
+   ]
+  },
+  {
+   "model": "Small Instant-Only (SM113)",
+   "format": "REF",
+   "head": "instant",
+   "published_users": 718,
+   "published": [
+    0.016,
+    0.042
+   ],
+   "here": [
+    0.016,
+    0.042
+   ]
+  },
+  {
+   "model": "Small Instant-Only (SM113)",
+   "format": "Q4",
+   "head": "instant",
+   "published_users": 718,
+   "published": [
+    0.025,
+    0.05
+   ],
+   "here": [
+    0.025,
+    0.05
+   ]
+  },
+  {
+   "model": "Small Instant-Only (SM113)",
+   "format": "T24",
+   "head": "instant",
+   "published_users": 718,
+   "published": [
+    0.071,
+    0.096
+   ],
+   "here": [
+    0.071,
+    0.096
+   ]
+  },
+  {
+   "model": "Small Instant-Only (SM113)",
+   "format": "Q2",
+   "head": "instant",
+   "published_users": 718,
+   "published": [
+    0.101,
+    0.127
+   ],
+   "here": [
+    0.101,
+    0.127
+   ]
+  },
+  {
+   "model": "six-layer Tiny two-head (SM130)",
+   "format": "REF",
+   "head": "curve",
+   "published_users": 718,
+   "published": [
+    0.681,
+    0.861
+   ],
+   "here": [
+    0.681,
+    0.861
+   ]
+  },
+  {
+   "model": "six-layer Tiny two-head (SM130)",
+   "format": "REF",
+   "head": "instant",
+   "published_users": 718,
+   "published": [
+    0.672,
+    0.727
+   ],
+   "here": [
+    0.672,
+    0.727
+   ]
+  },
+  {
+   "model": "six-layer Tiny two-head (SM130)",
+   "format": "Q4",
+   "head": "curve",
+   "published_users": 718,
+   "published": [
+    0.688,
+    0.866
+   ],
+   "here": [
+    0.688,
+    0.866
+   ]
+  },
+  {
+   "model": "six-layer Tiny two-head (SM130)",
+   "format": "Q4",
+   "head": "instant",
+   "published_users": 718,
+   "published": [
+    0.687,
+    0.742
+   ],
+   "here": [
+    0.687,
+    0.742
+   ]
+  },
+  {
+   "model": "six-layer Tiny two-head (SM130)",
+   "format": "T24",
+   "head": "curve",
+   "published_users": 718,
+   "published": [
+    0.722,
+    0.899
+   ],
+   "here": [
+    0.722,
+    0.899
+   ]
+  },
+  {
+   "model": "six-layer Tiny two-head (SM130)",
+   "format": "T24",
+   "head": "instant",
+   "published_users": 718,
+   "published": [
+    0.746,
+    0.802
+   ],
+   "here": [
+    0.746,
+    0.802
+   ]
+  },
+  {
+   "model": "six-layer Tiny two-head (SM130)",
+   "format": "Q2",
+   "head": "curve",
+   "published_users": 718,
+   "published": [
+    0.759,
+    0.939
+   ],
+   "here": [
+    0.759,
+    0.939
+   ]
+  },
+  {
+   "model": "six-layer Tiny two-head (SM130)",
+   "format": "Q2",
+   "head": "instant",
+   "published_users": 718,
+   "published": [
+    0.802,
+    0.861
+   ],
+   "here": [
+    0.802,
+    0.861
+   ]
+  },
+  {
+   "model": "six-layer Tiny Instant-Only (SM130)",
+   "format": "REF",
+   "head": "instant",
+   "published_users": 718,
+   "published": [
+    0.579,
+    0.625
+   ],
+   "here": [
+    0.579,
+    0.625
+   ]
+  },
+  {
+   "model": "six-layer Tiny Instant-Only (SM130)",
+   "format": "Q4",
+   "head": "instant",
+   "published_users": 718,
+   "published": [
+    0.595,
+    0.642
+   ],
+   "here": [
+    0.595,
+    0.642
+   ]
+  },
+  {
+   "model": "six-layer Tiny Instant-Only (SM130)",
+   "format": "T24",
+   "head": "instant",
+   "published_users": 718,
+   "published": [
+    0.668,
+    0.717
+   ],
+   "here": [
+    0.668,
+    0.717
+   ]
+  },
+  {
+   "model": "six-layer Tiny Instant-Only (SM130)",
+   "format": "Q2",
+   "head": "instant",
+   "published_users": 718,
+   "published": [
+    0.735,
+    0.785
+   ],
+   "here": [
+    0.735,
+    0.785
+   ]
+  }
+ ]
+}
