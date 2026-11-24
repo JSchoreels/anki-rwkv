@@ -81,18 +81,12 @@ See the "Status" section at the end (updated at each milestone).
 - TypeScript: `ts/routes/deck-options/rwkv-model-estimates.test.ts` (new default bytes), and the deck-options
   end-to-end test `ts/tests/e2e/deck-options.test.ts` (unchanged, still uses an explicit `compact_cards_int8`).
 
-## Status (updated 11-23, end of the first agent's run)
+## Status (updated 11-24, second agent)
 
-- Milestones done: format design note (sm151 `f8dd34b9`), Rust codec + unit parity (rc-lowrank `bc6f67dcd`),
-  integration + default switch + rebuild (rc-lowrank `1824d455d`). All pushed. Not merged into rc-2026-11.
-- Codec parity (synthetic, from the scorer's `LowRankCodec.encode`): int8 factors identical on 625 of 630 head
-  writes (head size 32: all 252; head size 16: 249 of 252 per schedule, the rest at most 3.5e-3 relative); float
-  factors at most 2.2e-6; the Rust chain on its own follows the scorer's (mean at most 1.3e-3, int8, head size 16).
-- `cargo test -p anki --lib rwkv::`: 416 passed, 0 failed, 35 ignored (default features); 416 passed, 34 ignored
-  (`--no-default-features`). Full `cargo test -p anki --lib` (default features): 1,560 passed, 0 failed, 42 ignored. The brief quotes 402/402 at base; that count does not match this command (it may be a different filter or crate), so the next agent should run the same command on the base worktree build to confirm the base count before the merge.
-- Not done yet: items 1 to 7 of "Remaining work" (end to end, speed, long-card full run, clippy, RESULT.md, merge).
-- Open questions for the user (do not decide): (a) moving saved `compact_cards_int8` profiles to the new default
-  (follows the 11-21 precedent for `cards_int4_notes_int8`; the alternative keeps it as an explicit option, but the
-  Deck Options page re-saves the loaded value, so most RC profiles would then stay on int8 rows); (b) Deck Options
-  shows the mean low-rank bytes over the benchmark answer counts (the real size grows with a card's answers, 1,657 to
-  4,105 B per Big card).
+- Items 1 to 6 done; see `artifacts/small-model/sm151/RESULT.md`. Fork `rc-lowrank` at 316111fc1 (end-to-end tests,
+  Jacobi stop, speed, Deck Options range and replay savings). End to end: every gate passes (Big vs the scorer, all six
+  release models vs the low-rank int8 states experiment (SM148) deltas). Long-card full run: 180 runs green.
+  Clippy clean, fmt clean. Full suite on the branch: 1,560 passed, 46 ignored.
+- Item 7 done: merge commit 514f3a41d pushed to `rc-2026-11` (merged-tree suite 1,560 passed, 46 ignored; base aecc5b09d: 1,546 passed, 42 ignored).
+- Follow-ups: clean re-time without a GPU job; cheaper exact codec code (allocations); Mac tests (list above, plus
+  the updated deck-options end-to-end test and the new tooltip string).
