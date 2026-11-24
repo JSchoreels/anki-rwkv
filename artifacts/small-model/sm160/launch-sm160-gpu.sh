@@ -40,7 +40,7 @@ USMOKE=$S/users-smoke.json
 SMOKEROWS=$G/smoke-gpu-rows.jsonl
 WFITROWS=$G/sm160-rows-wfit.jsonl
 ROWS732=$G/sm160-rows-732.jsonl
-DSMOKE=work/sm160-dump/smoke; DWFIT=work/sm160-dump/wfit; D732=work/sm160-dump/e732   # relative to the worktree root
+DSMOKE=$WT/work/sm160-dump/smoke; DWFIT=$WT/work/sm160-dump/wfit; D732=$WT/work/sm160-dump/e732   # absolute (the queue refuses relative paths)
 TICKETS=$G/tickets.jsonl
 STOPF=$G/STOP
 NAME="Deploy-time ensemble of the two instant predictions (SM160)"
@@ -224,7 +224,7 @@ for L in $PHASES; do
   [ $rc -eq 0 ] && [ "$L" = T24 ] && [ "$DRYRUN" != 1 ] && log "SM160 T24 PHASE DONE: the decision label is scored (rows $ROWS732, fit $G/wfit-T24.json)"
 done
 if [ $rc -eq 0 ]; then
-  if [ "$DRYRUN" = 1 ]; then log "DRYRUN OK"; else log "SM160 GPU DONE: rows in $ROWS732 and $WFITROWS, dumps in $WT/$D732 and $WT/$DWFIT (labels $PHASES; the read-out is the next agent's step)"; fi
+  if [ "$DRYRUN" = 1 ]; then log "DRYRUN OK"; else log "SM160 GPU DONE: rows in $ROWS732 and $WFITROWS, dumps in $D732 and $DWFIT (labels $PHASES; the read-out is the next agent's step)"; fi
 else
   log "SM160 GPU STOP: ended with exit $rc"
 fi
