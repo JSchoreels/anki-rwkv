@@ -2520,6 +2520,20 @@
    "ended_at": "2026-11-24T10:18+01:00"
   },
   {
+   "id": "SM160",
+   "track": "small model",
+   "kind": "gpu",
+   "minutes": 330,
+   "match": [
+    "Instant ensemble (SM160): "
+   ],
+   "what": "Instant ensemble (SM160): in its default mode the fork runs both models of a size on every review, and the two-head model&rsquo;s own instant prediction is thrown away; this tests a fixed weighted average of the two instant predictions (one weight per size, fitted on 100 users outside the evaluation pools) against the Instant-Only model alone, at the chosen state format, on the 732 set (GPU), at no extra deploy cost",
+   "when": "Launched 12:07 Tue 11-24 (smoke passed 12:09); decision phase (chosen format) done about 14:00 to 15:00, the int8 rows for information about 16:30 to 18:00",
+   "decides": "Whether the fork should average the two instant predictions (go: CI below 0 and at least &minus;0.05% vs the Instant-Only model alone)",
+   "state": "running",
+   "started_at": "2026-11-24T12:07+01:00"
+  },
+  {
    "id": "SM161",
    "track": "small model",
    "kind": "cpu",
