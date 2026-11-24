@@ -2513,10 +2513,11 @@
     "Smaller shift vectors and factors on T24 states (SM152): "
    ],
    "what": "Smaller shift vectors and factors on T24 states (SM152): on top of the chosen state format (rank 2 below 16 answers then rank 4, int8 factors), this post-training run scores three smaller variants on the six release models on the 732 set (GPU): int4 shift vectors (&minus;84.5% / &minus;70.4% / &minus;69.5% of the int8 state bytes for Big / Small / Tiny), int6 factors (&minus;84.6% / &minus;71.4% / &minus;69.7%), and both (&minus;87.4% / &minus;75.6% / &minus;74.6%, about 28% to 31% fewer bytes than the chosen format), against the user&rsquo;s budgets; the long-card CPU warnings run later.",
-   "when": "GPU part done 06:42 Tue 11-24 (722 users): int6 factors pass for every size (Big &minus;84.6%, Small &minus;71.4%, Tiny &minus;69.7% of the int8 bytes, at most +0.023% beyond the chosen format); int4 shift vectors pass only for Big (both together: Big &minus;87.4%, worst upper +0.125% vs its own int8) and break the budget for Small and Tiny (upper +0.507% Small two-head (SM118) curve, +1.006% to +1.114% Tiny). Long-card warnings on the CPU since 06:46, about 3 to 4 h (done about 10:00 to 11:00); then the user decides",
+   "when": "Done 10:18 Tue 11-24: int6 factors pass every size (Big &minus;84.6%, Small &minus;71.4%, Tiny &minus;69.7% of the int8 bytes, at most +0.023% beyond the chosen format); int4 shift vectors pass only for Big; one long-card warning (six-layer Tiny two-head (SM130) curve on 128+ cards with int6 factors, +0.205%, upper +1.852%). The user decides whether the fork moves to int6 factors",
    "decides": "Whether the state can shrink further than the chosen format within the user&rsquo;s budgets (Big at most +0.15% vs its own int8; Small and Tiny at most +0.5% and +1.0% total vs Big at int8)",
-   "state": "running",
-   "started_at": "2026-11-23T23:25+01:00"
+   "state": "done",
+   "started_at": "2026-11-23T23:25+01:00",
+   "ended_at": "2026-11-24T10:18+01:00"
   },
   {
    "id": "SM158",
@@ -3547,6 +3548,23 @@
   "s-w64kd-gate-ctx2048c-dec8-1ep/w8+s8"
  ],
  "results": [
+ {
+  "date": "11-24",
+  "kind": "gpu",
+  "id": "SM152",
+  "track": "small model",
+  "name": "Smaller shift vectors and factors on T24 states (SM152): on top of the chosen state format (rank 2 below 16 answers then rank 4, int8 factors), int6 factors, int4 shift vectors, or both, post-training, six release models",
+  "eval": "732 set (722 rule users; Big 718), show-time inputs, CI upper bound per head: Big vs its own int8 at most +0.15%, Small and Tiny total vs the matching Big model at int8 at most +0.5% / +1.0%; long-card (128+ answers) and per-card |dR| warnings on the 50 long-card users (CPU, Small and Tiny).",
+  "fork": "Nothing changed in the fork yet (the fork runs the chosen format; moving to int6 factors needs the user&rsquo;s OK)",
+  "takeaway": "<strong>Int6 factors are almost free for every size:</strong> at most +0.023% beyond the chosen format, saving about 3% to 5% more of the int8 bytes (Big &minus;84.6%, Small &minus;71.4%, Tiny &minus;69.7%); int4 shift vectors fit only Big (both together &minus;87.4%, upper +0.125%).",
+  "inputs": "show-time",
+  "started_at": "2026-11-23T23:25+01:00",
+  "ended_at": "2026-11-24T10:18+01:00",
+  "gpu_minutes": 436,
+  "cpu_minutes": 420,
+  "tickets": 11,
+  "detail": {"verdict": "Decided by the pre-registered rule: Big int6 factors + int4 shifts, Small int6 factors, Tiny int6 factors. One long-card warning: six-layer Tiny two-head (SM130) curve on 128+ cards with int6 factors (+0.205%, upper +1.852%; the chosen format +0.002%, upper +0.371%). Branch sm152 (RESULT.md, sm152-result.md)", "table": {"head": ["Model", "Variant", "Bytes vs int8", "Cost, CI upper (curve / instant)", "Extra vs chosen format", "Long-card 128+ point (warning)", "Pass"], "rows": [["Big two-head (SM91s2)", "int6 factors + int4 shifts", "&minus;87.4%", "+0.093% / +0.119% (own int8)", "+0.038% / +0.056%", "not run", "yes"], ["Big two-head (SM91s2)", "int6 factors", "&minus;84.6%", "+0.056% / +0.076% (own int8)", "+0.010% / +0.015%", "not run", "yes"], ["Big Instant-Only (SM99)", "int6 factors + int4 shifts", "&minus;87.4%", "+0.125% (own int8)", "+0.056%", "not run", "yes"], ["Small two-head (SM118)", "int6 factors", "&minus;71.4%", "+0.409% / +0.238% (vs Big)", "+0.005% / +0.011%", "&minus;0.158% / +0.016%", "yes"], ["Small two-head (SM118)", "int4 shifts", "&minus;70.4%", "+0.507% / +0.364% (vs Big)", "+0.091% / +0.135%", "&minus;0.003% / +0.090%", "no"], ["Small Instant-Only (SM113)", "int6 factors", "&minus;71.4%", "+0.106% (vs Big)", "+0.010%", "+0.061%", "yes"], ["six-layer Tiny two-head (SM130)", "int6 factors", "&minus;69.7%", "+0.911% / +0.826% (vs Big)", "+0.011% / +0.023%", "+0.205% (upper +1.852%, warning) / &minus;0.034%", "yes"], ["six-layer Tiny two-head (SM130)", "int4 shifts", "&minus;69.5%", "+1.012% / +1.006% (vs Big)", "+0.110% / +0.199%", "+0.105% / +0.094%", "no"], ["six-layer Tiny Instant-Only (SM130)", "int6 factors", "&minus;69.7%", "+0.739% (vs Big)", "+0.023%", "+0.071%", "yes"]]}, "notes": ["Per-card share with a review |dR| above 0.10 under int6 factors: at most 0.107%; int4 shift vectors go above 1% for Small Instant-Only (SM113) and both Tiny models.", "GPU 436 min over 11 tickets (Tiny 80, Small 107, Big 248); long-card CPU part 06:46 to 10:18 on 2 processes."]}
+ },
  {
   "date": "11-24",
   "kind": "cpu",
