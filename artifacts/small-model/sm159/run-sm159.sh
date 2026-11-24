@@ -84,7 +84,7 @@ probe() {   # probe GROUP OUTSUFFIX ONLY-LINES...
   for x in "$@"; do O+=(--only "$x"); done
   run "${M[@]}" "${O[@]}" --out "$C/sm159-rows-$g$suf.jsonl" >> "$C/probe-$g$suf.out" 2>&1
 }
-for g in a b c; do mapfile -t "ONLY_$g" < <("$PY" -X utf8 "$S/sm159_report.py" labels --group "$(keys $g)"); done
+for g in a b c; do mapfile -t "ONLY_$g" < <("$PY" -X utf8 "$S/sm159_report.py" labels --group "$(keys $g)" | tr -d '\r'); done
 log "probe grid: a ${#ONLY_a[@]} b ${#ONLY_b[@]} c ${#ONLY_c[@]} (model, label) pairs"
 probe a "" "${ONLY_a[@]}" & pa=$!; probe b "" "${ONLY_b[@]}" & pb=$!; probe c "" "${ONLY_c[@]}" & pc=$!
 wait $pa; ra=$?; wait $pb; rb=$?; wait $pc; rc=$?
@@ -93,7 +93,7 @@ cat "$C/sm159-rows-a.jsonl" "$C/sm159-rows-b.jsonl" "$C/sm159-rows-c.jsonl" > "$
 log "probe done"
 stopcheck
 # step 4: fallback (bytes only)
-mapfile -t EXTRA < <("$PY" -X utf8 "$S/sm159_report.py" fallback 2>> "$LOG") || fail fallback
+mapfile -t EXTRA < <("$PY" -X utf8 "$S/sm159_report.py" fallback 2>> "$LOG" | tr -d '\r') || fail fallback
 log "fallback: ${#EXTRA[@]} extra (model, label) pairs ${EXTRA[*]:-}"
 if [ ${#EXTRA[@]} -gt 0 ]; then
   XA=(); XB=(); XC=()
