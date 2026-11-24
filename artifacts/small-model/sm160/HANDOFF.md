@@ -1,6 +1,6 @@
 # Deploy-time ensemble of the two instant predictions (SM160): handoff
 
-Status: GPU chain RUNNING (final launch 11-24 12:07:40; GPU smoke OK at 12:09, training users scoring from 12:09). The agent that launched it has stopped; a fresh agent (Sonnet, medium effort) does the read-out.
+Status: DONE 11-24 (read-out finished; result in `RESULT.md`, `sm160-result.json`, `sm160-result.md`). Verdict at T24: Tiny GO (D -0.067%, CI [-0.072, -0.061], w 0.69); Small NO (-0.022%, w 0.78); Big NO (-0.012%, w 0.80; also 5 users out of memory). The dumps in `work/sm160-dump/` are kept until the main session agrees to delete them.
 
 Design and rules: `design.md` (pre-registered in 064b6878 before any row or dump of this run existed). Question: per size, does the logit average `sigmoid(w * logit(p_IO) + (1 - w) * logit(p_TH))` of the Instant-Only model's and the two-head model's instant predictions, w fitted on 100 training users, beat the Instant-Only model alone on the instant head at T24 by at least 0.05% (CI upper bound below 0)?
 

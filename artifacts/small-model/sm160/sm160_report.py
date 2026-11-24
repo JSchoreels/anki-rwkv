@@ -361,7 +361,7 @@ def report_cmd():
             "NO GO for every size: the Instant-Only model alone stays"
     else:
         doc["verdict"] = {2: "pending (missing fit or fewer than 715 users)", 3: "invalid (dump vs row mismatch)"}[status]
-    (HERE / "sm160-result.json").write_text(json.dumps(doc, indent=1) + "\n")
+    (HERE / "sm160-result.json").write_text(json.dumps(doc, indent=1, default=lambda o: o.item() if hasattr(o, "item") else str(o)) + "\n")
     write_md(doc)
     print(f"[sm160] {doc['verdict']}")
     return status
