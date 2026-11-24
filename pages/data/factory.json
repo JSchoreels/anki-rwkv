@@ -1,7 +1,7 @@
 {
- "generated_at": "2026-11-24T11:53:21+01:00",
- "updated": "2026-11-24 11:53",
- "material": "a91a25e887ad064c",
+ "generated_at": "2026-11-24T11:56:21+01:00",
+ "updated": "2026-11-24 11:56",
+ "material": "24bfa5981b67d40b",
  "summary": "idle",
  "headline": [
   {
@@ -2747,10 +2747,11 @@
    "kind": "cpu",
    "minutes": 120,
    "what": "Energy-triggered rank growth (SM159): instead of moving every card and note from rank 2 to rank 4 at 16 answers, each one stays at rank 2 and gains a rank (up to 4) only when the part of its state dropped by the truncation grows past a threshold, so bytes go to the histories that need them; CPU pointer on 8 probe users, six release models, against the chosen format and its int6-factor version at matched mean bytes",
-   "when": "Started 10:30 Tue 11-24 (design, then CPU scoring, about 1 to 2 h)",
+   "when": "Done 11:55 Tue 11-24: no go; at the same bytes the adaptive rank is no better than rank 2 then 4 at 16 answers, and worse on the Tiny and Big instant heads, so the fixed schedule stays",
    "decides": "Whether an adaptive rank beats the fixed rank 2 then 4 at the same bytes, which would earn a 732-set GPU run",
-   "state": "planned",
-   "started_at": "2026-11-24T10:30+01:00"
+   "state": "done",
+   "started_at": "2026-11-24T10:30+01:00",
+   "ended_at": "2026-11-24T11:55+01:00"
   },
   {
    "id": "SM158",
@@ -3700,6 +3701,103 @@
   }
  ],
  "results": [
+  {
+   "date": "11-24",
+   "kind": "cpu-analysis",
+   "id": "SM159",
+   "track": "small model",
+   "name": "Energy-triggered rank growth (SM159): each card and note starts at rank 2 and gains a rank (up to 4) only when the truncation would drop more than a threshold share of its state, instead of everyone moving to rank 4 at 16 answers; CPU pointer on 8 probe users",
+   "eval": "CPU only, 8 probe users, six release models, show-time inputs; thresholds calibrated on 20 training users, then matched to the chosen format&rsquo;s bytes on the probe users (within 2%); with int8 and int6 factors; paired user bootstrap 95%.",
+   "fork": "Nothing changed in the fork",
+   "takeaway": "<strong>No go:</strong> at the same bytes the adaptive rank is no better than the fixed rank 2 then 4, and worse on the six-layer Tiny (SM130) and Big two-head (SM91s2) instant heads (+0.022% to +0.050%); the fixed schedule stays.",
+   "inputs": "show-time",
+   "started_at": "2026-11-24T10:30+01:00",
+   "ended_at": "2026-11-24T11:55+01:00",
+   "gpu_minutes": 0,
+   "cpu_minutes": 150,
+   "tickets": 0,
+   "detail": {
+    "verdict": "No go under the pre-registered rule, with int8 factors (against the chosen format) and with int6 factors (against its int6 version). Branch sm159 (RESULT.md, sm159-result.md)",
+    "table": {
+     "head": [
+      "Model",
+      "Head",
+      "Chosen format vs int8",
+      "Adaptive rank at the same bytes",
+      "Adaptive minus chosen [95% CI]"
+     ],
+     "rows": [
+      [
+       "Big two-head (SM91s2)",
+       "curve",
+       "+0.022%",
+       "&minus;0.008%",
+       "&minus;0.031% [&minus;0.150, +0.045]"
+      ],
+      [
+       "Big two-head (SM91s2)",
+       "instant",
+       "+0.034%",
+       "+0.056%",
+       "+0.022% [+0.010, +0.037]"
+      ],
+      [
+       "Big Instant-Only (SM99)",
+       "instant",
+       "+0.023%",
+       "+0.032%",
+       "+0.009% [&minus;0.021, +0.048]"
+      ],
+      [
+       "Small two-head (SM118)",
+       "curve",
+       "+0.008%",
+       "&minus;0.001%",
+       "&minus;0.009% [&minus;0.016, +0.000]"
+      ],
+      [
+       "Small two-head (SM118)",
+       "instant",
+       "&minus;0.021%",
+       "&minus;0.024%",
+       "&minus;0.003% [&minus;0.022, +0.016]"
+      ],
+      [
+       "Small Instant-Only (SM113)",
+       "instant",
+       "&minus;0.010%",
+       "+0.012%",
+       "+0.023% [&minus;0.026, +0.094]"
+      ],
+      [
+       "six-layer Tiny two-head (SM130)",
+       "curve",
+       "&minus;0.003%",
+       "+0.004%",
+       "+0.008% [&minus;0.016, +0.031]"
+      ],
+      [
+       "six-layer Tiny two-head (SM130)",
+       "instant",
+       "+0.018%",
+       "+0.068%",
+       "+0.050% [+0.023, +0.125]"
+      ],
+      [
+       "six-layer Tiny Instant-Only (SM130)",
+       "instant",
+       "+0.032%",
+       "+0.075%",
+       "+0.043% [+0.000, +0.084]"
+      ]
+     ]
+    },
+    "notes": [
+     "The chosen format grows few entities, so the threshold matched on training users gave about 6% to 7% fewer bytes on the probe users; the probe-matched thresholds (within 0.2% of the bytes) are the comparison.",
+     "The first run stopped at 11:11 on a Windows line-ending bug in the launcher (fixed, relaunched 11:13, calibration reused)."
+    ]
+   }
+  },
   {
    "date": "11-24",
    "kind": "gpu",
