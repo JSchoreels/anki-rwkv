@@ -2557,9 +2557,9 @@
     "Deploy-time ensemble of the two instant predictions (SM160): "
    ],
    "what": "Instant ensemble (SM160): in its default mode the fork runs both models of a size on every review, and the two-head model&rsquo;s own instant prediction is thrown away; this tests a fixed weighted average of the two instant predictions (one weight per size, fitted on 100 users outside the evaluation pools) against the Instant-Only model alone, at the chosen state format, on the 732 set (GPU), at no extra deploy cost",
-   "when": "Launched 12:07 Tue 11-24; GPU scoring finished 15:26 Tue (all 723 Small and 718 Big users, both formats); read-out on the CPU started 23:20 Tue",
+   "when": "Launched 12:07 Tue 11-24; GPU scoring finished 15:26; read-out done 23:55 Tue: go for Tiny only",
    "decides": "Whether the fork should average the two instant predictions (go: CI below 0 and at least &minus;0.05% vs the Instant-Only model alone)",
-   "state": "running",
+   "state": "done",
    "started_at": "2026-11-24T12:07+01:00"
   },
   {
@@ -3622,6 +3622,62 @@
   "s-w64kd-gate-ctx2048c-dec8-1ep/w8+s8"
  ],
  "results": [
+  {
+   "date": "11-24",
+   "kind": "gpu",
+   "id": "SM160",
+   "track": "small model",
+   "name": "Deploy-time ensemble of the two instant predictions (SM160): a fixed logit average of the Instant-Only model&rsquo;s and the two-head model&rsquo;s instant predictions (one weight per size, fitted on 100 users outside the evaluation pools) against the Instant-Only model alone, at the chosen state format",
+   "eval": "GPU, the 732 set (723 Small and Tiny users, 718 Big users; 5 Big users never fit in GPU memory, as in earlier tests), show-time inputs, instant head, paired user bootstrap 95%; weights fitted on 100 users with id 5000 or more before any evaluation row existed.",
+   "fork": "Nothing changed in the fork yet; a go means the fork&rsquo;s default two-model mode averages the two instant predictions for that size",
+   "takeaway": "<strong>Go for Tiny only:</strong> the six-layer Tiny ensemble gains &minus;0.067% instant LogLoss [&minus;0.072, &minus;0.061] at no extra deploy cost; Small (&minus;0.022%) and Big (&minus;0.012%) gain less than the 0.05% bar.",
+   "inputs": "show-time",
+   "started_at": "2026-11-24T12:07+01:00",
+   "ended_at": "2026-11-24T23:55+01:00",
+   "gpu_minutes": 194,
+   "cpu_minutes": 60,
+   "tickets": 12,
+   "detail": {
+    "verdict": "Go for Tiny, no go for Small and Big, under the pre-registered rule (CI upper bound below 0 and a gain of at least 0.05%). Branch sm160, commit 3a5530cc (RESULT.md, sm160-result.md)",
+    "table": {
+     "head": [
+      "Size (models)",
+      "Fitted weight on the Instant-Only model",
+      "Ensemble minus Instant-Only alone [95% CI]",
+      "Verdict",
+      "At int8 (information)"
+     ],
+     "rows": [
+      [
+       "six-layer Tiny two-head and Instant-Only (SM130)",
+       "0.69",
+       "&minus;0.067% [&minus;0.072, &minus;0.061]",
+       "go",
+       "&minus;0.048% (w 0.73)"
+      ],
+      [
+       "Small two-head (SM118) + Small Instant-Only (SM113)",
+       "0.78",
+       "&minus;0.022% [&minus;0.024, &minus;0.019]",
+       "no go",
+       "&minus;0.014% (w 0.82)"
+      ],
+      [
+       "Big two-head (SM91s2) + Big Instant-Only (SM99)",
+       "0.80",
+       "&minus;0.012% [&minus;0.014, &minus;0.009]",
+       "no go",
+       "&minus;0.008% (w 0.85)"
+      ]
+     ]
+    },
+    "notes": [
+     "The ensemble only applies in the fork&rsquo;s default mode, where both models of a size already run on every review; the one-model options are unchanged.",
+     "The rows match the low-rank int8 states test (SM148) on every user and model; the largest difference is 1.2e-4 LogLoss, GPU noise; the dumps reproduce their rows within 5.0e-7.",
+     "GPU time about 194 minutes (127 for the chosen format, 67 for int8). The finish at 15:26 went unnoticed for 8 hours because a watcher died; the hourly idle check now covers that."
+    ]
+   }
+  },
  {
   "date": "11-24",
   "kind": "cpu",

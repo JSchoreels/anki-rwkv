@@ -15,6 +15,19 @@ bootstrap; "732 set" = the standard 732-user evaluation pool (722 to 723 rule us
 
 ## 2026-11-24
 
+### D-1124-13 - Ensemble of the two instant predictions: go for Tiny only (Agent, pre-registered rule)
+- **Result:** the deploy-time ensemble test (SM160), branch sm160 commit 3a5530cc. Logit average with a fixed weight on the
+  Instant-Only model, against the Instant-Only model alone, instant head, chosen format (T24), the 732 set:
+  six-layer Tiny (SM130) -0.067% [-0.072, -0.061] w 0.69 = go; Small (SM118 + SM113) -0.022% w 0.78 = no go;
+  Big (SM91s2 + SM99) -0.012% w 0.80 = no go (also 5 Big users never fit in GPU memory, as in SM148).
+- **Next:** a small fork change for Tiny's default two-model mode (one weight, w = 0.69); it touches the same fork files
+  as the 6-bit factor work (SM162), so it waits until SM162 lands. Whether it ships in the weekend release is the user's call.
+- **Undo:** nothing changed yet.
+
+### D-1124-12 - 6-bit factor fork work (SM162) resumed (You)
+- **Decision:** "yep implement it" (23:40). Agent resumes from the partial edits in wt/fork-int6 (branch rc-int6) and lands
+  on fork main + rc-2026-11 when both Rust suites, the vectors and the end-to-end check pass.
+
 ### D-1124-11 - Hourly factory idle check; SM160 read-out and release-candidate re-check started (Agent, asked by You)
 - **Why:** the deploy-time ensemble test (SM160) finished its GPU work at 15:26; the watcher that should have woken
   the main session died at the interrupt, so the GPU sat idle about 8 hours. User: "we should have a simple 1h/2h check".

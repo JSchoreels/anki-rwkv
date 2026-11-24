@@ -5,6 +5,9 @@ and logged here for review. Details, evidence and how to undo each one: [DECISIO
 
 ## 2026-11-24
 
+- **Agent** - Instant ensemble (SM160): go for six-layer Tiny only (-0.067%, weight 0.69); Small and Big gain under 0.05%.
+  The Tiny fork change waits for the 6-bit factor work (SM162); weekend inclusion is your call.
+- **You** - Resume the 6-bit factor fork work (SM162).
 - **Agent** - Hourly idle check (`scripts/factory_idle_check.py`, cron at :17) after the GPU sat idle 8 hours
   when a watcher died; started the ensemble test (SM160) read-out and the release-candidate re-check (SM164).
 - **You** - Fork work goes straight to fork **main** (your Mac follows main only). The release candidate
