@@ -258,10 +258,46 @@ def selftest():
     return 0
 
 
+def smoke(gpu, cpu, names):
+    """GPU follow-up smoke (launch-sm157-gpu.sh): GPU vs CPU rows on the 3 smoke users. REF strict (1e-5 per user and
+    head); the low-rank labels by SM150's discrete-codec rule (per user <= 3e-4, review-weighted mean signed difference
+    <= 1e-4, per head). exit 0 = smoke OK."""
+    g, c = read_rows(gpu), read_rows(cpu)
+    users = json.loads((HERE / "users-smoke.json").read_text())["users"]
+    ok, problems, rep = True, [], {}
+    for mk, (tag, name, heads) in MODELS.items():
+        for n in names:
+            lab = LABELS[n]
+            gg, cc = g.get((tag, lab), {}), c.get((tag, lab), {})
+            if set(gg) != set(users) or set(cc) != set(users) or not all(finite(x[u]) for x in (gg, cc) for u in users):
+                ok = False
+                problems.append(f"{tag}/{lab}: rows missing or non-finite (GPU {sorted(gg)}, CPU {sorted(cc)})")
+                continue
+            for h in sorted({KEY[x] for x in heads}):
+                d = [gg[u]["benchmark"][h]["LogLoss"] - cc[u]["benchmark"][h]["LogLoss"] for u in users]
+                w = [cc[u]["benchmark"][h]["size"] for u in users]
+                mean = sum(x * y for x, y in zip(d, w)) / sum(w)
+                worst = max(abs(x) for x in d)
+                good = worst <= 1e-5 + 1e-9 if n == "REF" else (worst <= 3e-4 + 1e-9 and abs(mean) <= 1e-4 + 1e-9)
+                rep[f"{tag}/{lab} {h}"] = {"max_abs": worst, "mean_signed": mean, "pass": good}
+                ok &= good
+    (HERE / "gpu").mkdir(exist_ok=True)
+    (HERE / "gpu" / "smoke-check.json").write_text(json.dumps({"ok": ok, "problems": problems, "checks": rep}, indent=1),
+                                                  encoding="utf-8")
+    print(f"[sm157] smoke {'OK' if ok else 'FAILED'}: {len(rep)} checks, max |GPU - CPU| "
+          f"{max((v['max_abs'] for v in rep.values()), default=0):.2e}" + (f"; {problems[:3]}" if problems else ""))
+    return 0 if ok else 1
+
+
 def main():
     p = argparse.ArgumentParser()
-    p.add_argument("mode", choices=("report", "selftest"))
+    p.add_argument("mode", choices=("report", "selftest", "smoke"))
+    p.add_argument("--gpu")
+    p.add_argument("--cpu")
+    p.add_argument("--names", default="REF", help="smoke: label names (LABELS keys), space separated")
     a = p.parse_args()
+    if a.mode == "smoke":
+        sys.exit(smoke(a.gpu, a.cpu, a.names.split()))
     sys.exit(report() if a.mode == "report" else selftest())
 
 
