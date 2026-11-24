@@ -528,7 +528,7 @@ def main():
                         "number of prior answers, e.g. 0,32,128,300,1000; rows get prior_buckets (count + LogLoss sum per "
                         "head and bucket). Off = unchanged rows")
     parser.add_argument("--inputs", default="normal", choices=("normal", "e2s-query", "e2s-all", "passfail", "notime",
-                                                               "passfail-notime"),
+                                                               "passfail-notime", "e2s-query-daylearn"),
                         help="SM31 / SM29: input variant (scripts/sm31_inputs.py); labels get the suffix @VARIANT")
     args = parser.parse_args()
     cpu = args.device == "cpu"

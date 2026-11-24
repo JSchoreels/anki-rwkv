@@ -24,7 +24,11 @@ import os
 
 import numpy as np
 
-VARIANTS = ("normal", "e2s-query", "e2s-all", "passfail", "notime", "passfail-notime")
+VARIANTS = ("normal", "e2s-query", "e2s-all", "passfail", "notime", "passfail-notime", "e2s-query-daylearn")
+# fork input parity (SM161): e2s-query-daylearn = e2s-query with the fork reviewer's show-time interval for a Learning
+# review (state 1) shown on a later day than the card's previous answer: Anki's DayLearn state counts whole days, so the
+# query interval is elapsed_days * 86,400 s instead of the show-time seconds (other rows as e2s-query).
+SHOW_TIME_VARIANTS = ("e2s-query", "e2s-query-daylearn")
 SECONDS_PER_DAY = 86400
 QUERY_INTERVAL_COLUMNS = ("elapsed_seconds", "elapsed_seconds_sin", "elapsed_seconds_cos", "elapsed_seconds_cumulative",
                           "elapsed_seconds_cumulative_sin", "elapsed_seconds_cumulative_cos", "scaled_elapsed_seconds",
@@ -65,7 +69,7 @@ def apply_frame(frame, variant):
     if variant in ("normal", "e2s-all"):
         return frame
     frame = frame.copy()
-    if variant == "e2s-query":
+    if variant in SHOW_TIME_VARIANTS:
         show = show_time_seconds(frame["elapsed_seconds"].to_numpy(), frame["duration"].to_numpy())
         nxt = frame.assign(_show=show).groupby("card_id")["_show"].shift(-1)
         frame["label_elapsed_seconds"] = nxt.fillna(np.pi).astype(frame["label_elapsed_seconds"].dtype)
@@ -80,7 +84,7 @@ def apply_frame(frame, variant):
     return frame
 
 
-def _query_rows_show_time(section_df):
+def _query_rows_show_time(section_df, daylearn=False):
     """e2s-query: the add_queries frame with the instant query rows' interval columns at show time."""
     from rwkv import data_processing as dp
     q = section_df["is_query"].to_numpy() == 1
@@ -94,6 +98,12 @@ def _query_rows_show_time(section_df):
         raise RuntimeError("e2s-query: a query row without its update row")
     es = sub["elapsed_seconds"].to_numpy().astype("float64")
     show = show_time_seconds(es, duration)
+    if daylearn:   # SM161: the fork reviewer's DayLearn interval (whole days) for Learning reviews on a later day
+        state = section_df.loc[~q, ["review_th", "state"]].set_index("review_th")["state"]
+        own_state = state.reindex(sub["review_th"].to_numpy()).to_numpy()
+        days = sub["elapsed_days"].to_numpy().astype("float64")
+        whole = (own_state == 1) & (days > 0)
+        show = np.where(whole, days * SECONDS_PER_DAY, show)
     cum = sub["elapsed_seconds_cumulative"].to_numpy().astype("float64") - es + show
     new = {"elapsed_seconds": show, "elapsed_seconds_cumulative": cum,
            "elapsed_seconds_sin": np.sin((show % SECONDS_PER_DAY) * 2 * np.pi / SECONDS_PER_DAY),
@@ -111,14 +121,14 @@ def _query_rows_show_time(section_df):
 @contextlib.contextmanager
 def query_patch(variant):
     """e2s-query: rwkv.data_processing.add_queries rewrites the query rows' intervals while samples are built."""
-    if variant != "e2s-query":
+    if variant not in SHOW_TIME_VARIANTS:
         yield
         return
     from rwkv import data_processing as dp
     original = dp.add_queries
 
     def add_queries(section_df, equalize_review_ths):
-        return _query_rows_show_time(original(section_df, equalize_review_ths))
+        return _query_rows_show_time(original(section_df, equalize_review_ths), daylearn=variant == "e2s-query-daylearn")
 
     dp.add_queries = add_queries
     try:
