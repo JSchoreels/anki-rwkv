@@ -2542,10 +2542,11 @@
     "Output-aware T24 on the 732 set (SM158): "
    ],
    "what": "Output-aware T24 on the 732 set (SM158): a separate, pre-registered test of the weighting that looked promising in the output-aware truncation pointer (SM157): the chosen state format (rank 2 below 16 answers then rank 4) truncated with a receptance-plus-removal weight fitted on 100 training users, against plain T24 at the same bytes, on the six release models on the 732 set (GPU); rank 2 weighted for information.",
-   "when": "Launched 03:34 Tue 11-24; Tiny done 06:36 (723 users), Small running since 06:36, then Big (done roughly 10:00 to 12:00)",
+   "when": "Done 11:49 Tue 11-24: no go; the weighting helps every instant head a little (&minus;0.008% to &minus;0.027%) but far from the &minus;0.05% bar on Big, so the plain chosen format stays",
    "decides": "Whether to ship the weighted truncation: on each Big model a head at least 0.05% better than plain T24 with the CI below 0, no head of any model significantly worse, and the user&rsquo;s budgets met",
-   "state": "running",
-   "started_at": "2026-11-24T03:34+01:00"
+   "state": "done",
+   "started_at": "2026-11-24T03:34+01:00",
+   "ended_at": "2026-11-24T11:49+01:00"
   },
   {
    "id": "SM157",
@@ -3562,6 +3563,23 @@
   "s-w64kd-gate-ctx2048c-dec8-1ep/w8+s8"
  ],
  "results": [
+ {
+  "date": "11-24",
+  "kind": "gpu",
+  "id": "SM158",
+  "track": "small model",
+  "name": "Output-aware T24 on the 732 set (SM158): the chosen state format (rank 2 below 16 answers then rank 4, int8 factors) with each truncation weighted by what the model reads (receptance plus removal), one small matrix per layer and head fitted on training users; pre-registered confirmation of the output-aware truncation pointer (SM157)",
+  "eval": "732 set (Big 718, Small and Tiny 722 to 723 users), six release models, show-time inputs, against the plain chosen format and rank 2; paired user bootstrap 95%; go needed at least &minus;0.05% on the Big instant heads with no head significantly worse.",
+  "fork": "Nothing changed in the fork",
+  "takeaway": "<strong>No go:</strong> the weighting lowers every instant head&rsquo;s cost a little (&minus;0.008% to &minus;0.027%), far from the &minus;0.05% bar on Big, and it halves the GPU scoring speed; the plain chosen format stays.",
+  "inputs": "show-time",
+  "started_at": "2026-11-24T03:34+01:00",
+  "ended_at": "2026-11-24T11:49+01:00",
+  "gpu_minutes": 495,
+  "cpu_minutes": 30,
+  "tickets": 11,
+  "detail": {"verdict": "No go under the pre-registered rule: Big two-head (SM91s2) instant &minus;0.008% and Big Instant-Only (SM99) &minus;0.012%, bar &minus;0.05%; no head significantly worse; every model stays inside its budget either way. Branch sm158 (RESULT.md, sm158-result.md)", "table": {"head": ["Model", "Chosen format vs own int8 (curve / instant)", "Weighted vs own int8", "Weighted minus chosen [95% CI]"], "rows": [["Big two-head (SM91s2)", "+0.034% / +0.054%", "+0.040% / +0.046%", "+0.006% [&minus;0.006, +0.020] / &minus;0.008% [&minus;0.011, &minus;0.006]"], ["Big Instant-Only (SM99)", "+0.059%", "+0.047%", "&minus;0.012% [&minus;0.015, &minus;0.009]"], ["Small two-head (SM118)", "+0.029% / +0.050%", "+0.021% / +0.037%", "&minus;0.008% [&minus;0.013, &minus;0.003] / &minus;0.013%"], ["Small Instant-Only (SM113)", "+0.056%", "+0.039%", "&minus;0.017%"], ["six-layer Tiny two-head (SM130)", "+0.040% / +0.074%", "+0.042% / +0.062%", "+0.001% [&minus;0.006, +0.008] / &minus;0.012%"], ["six-layer Tiny Instant-Only (SM130)", "+0.089%", "+0.063%", "&minus;0.027% [&minus;0.031, &minus;0.022]"]]}, "notes": ["Rank 2 with the weighting: six-layer Tiny two-head (SM130) curve gets significantly worse (+0.018%).", "The weighted format scores at about half the GPU speed of the plain one and is worse on cards with 128+ answers on 8 of 9 heads (warning only)."]}
+ },
  {
   "date": "11-24",
   "kind": "gpu",
