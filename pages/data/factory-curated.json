@@ -2528,10 +2528,24 @@
     "Int6 factors in the fork (SM162): "
    ],
    "what": "Int6 factors in the fork (SM162): the user chose (11-24) to move Big and Small from the chosen state format to the same format with 6-bit factors (&minus;84.6% and &minus;71.4% of the int8 state bytes, at most +0.023% beyond it); Tiny stays on the chosen format because of a long-card warning. Fork work on a branch, exact against the reference codec, tests, end-to-end and speed checks, then merged into the release candidate (rc-2026-11) if everything passes",
-   "when": "Started 13:35 Tue 11-24 (CPU only; about half a day)",
+   "when": "Started 13:35 Tue 11-24; paused about 15:00 Tue at an interrupt, partial work kept on its branch, waiting for the user to resume it",
    "decides": "Whether the 6-bit factor format is ready in the fork&rsquo;s release candidate for Big and Small",
-   "state": "running",
+   "state": "hold",
    "started_at": "2026-11-24T13:35+01:00"
+  },
+  {
+   "id": "SM164",
+   "track": "small model",
+   "kind": "gpu",
+   "minutes": 270,
+   "match": [
+    "Release-candidate re-check of the final state formats (SM164): "
+   ],
+   "what": "Release-candidate re-check of the final state formats (SM164): the formats the user chose on 11-24 (Big and Small on the chosen low-rank format with 6-bit factors, Tiny on the chosen low-rank format with 8-bit factors) scored against the size budgets (Small at most +0.5% and Tiny at most +1.0% vs the Big model at int8, Big at most +0.15% vs its own int8; CI upper bound per head) on the 732 set and on the 1,500 validation users; rows already scored by earlier tests are reused, only the missing ones are scored",
+   "when": "Launched 23:20 Tue 11-24 (smoke passed); done about 03:00 to 04:00 Wed 11-25",
+   "decides": "Whether the final state formats of the weekend release stay inside their budgets on both user sets (a size that fails only the 1,500-user check is held for the user)",
+   "state": "running",
+   "started_at": "2026-11-24T23:20+01:00"
   },
   {
    "id": "SM160",
@@ -2543,7 +2557,7 @@
     "Deploy-time ensemble of the two instant predictions (SM160): "
    ],
    "what": "Instant ensemble (SM160): in its default mode the fork runs both models of a size on every review, and the two-head model&rsquo;s own instant prediction is thrown away; this tests a fixed weighted average of the two instant predictions (one weight per size, fitted on 100 users outside the evaluation pools) against the Instant-Only model alone, at the chosen state format, on the 732 set (GPU), at no extra deploy cost",
-   "when": "Launched 12:07 Tue 11-24 (smoke passed 12:09); decision phase (chosen format) done about 14:00 to 15:00, the int8 rows for information about 16:30 to 18:00",
+   "when": "Launched 12:07 Tue 11-24; GPU scoring finished 15:26 Tue (all 723 Small and 718 Big users, both formats); read-out on the CPU started 23:20 Tue",
    "decides": "Whether the fork should average the two instant predictions (go: CI below 0 and at least &minus;0.05% vs the Instant-Only model alone)",
    "state": "running",
    "started_at": "2026-11-24T12:07+01:00"
