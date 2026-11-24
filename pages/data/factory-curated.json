@@ -2543,10 +2543,11 @@
     "Fork input parity (SM161): "
    ],
    "what": "Fork input parity (SM161): checks that the fork builds, from an Anki collection, exactly the same model inputs for each review as the dataset rows the models were trained on, column by column, on a throwaway collection made from a few benchmark users (never a real profile); the existing checks only compare the fork&rsquo;s engine with PyTorch on exported inputs, so a drifted input column would not show there",
-   "when": "Started 12:00 Tue 11-24 (CPU only; first checks whether such a test already exists; about a day if it must be built)",
+   "when": "Done 12:35 Tue 11-24: the history rebuild is exact; the live show-time path gives Learning cards shown on a later day a whole-day interval instead of the real time (8.2% of show-time queries, about +0.05% instant LogLoss for Small); fix being prepared on a separate fork branch",
    "decides": "Whether the fork&rsquo;s inputs are exact before the release, or a column drifts and costs accuracy for real users",
-   "state": "running",
-   "started_at": "2026-11-24T12:00+01:00"
+   "state": "done",
+   "started_at": "2026-11-24T12:00+01:00",
+   "ended_at": "2026-11-24T12:35+01:00"
   },
   {
    "id": "SM159",
@@ -3593,6 +3594,23 @@
   "s-w64kd-gate-ctx2048c-dec8-1ep/w8+s8"
  ],
  "results": [
+ {
+  "date": "11-24",
+  "kind": "cpu",
+  "id": "SM161",
+  "track": "small model",
+  "name": "Fork input parity (SM161): the fork&rsquo;s own input building from an Anki collection compared column by column with the dataset rows the models were trained on, on throwaway collections built from 8 benchmark users (never a real profile)",
+  "eval": "8 benchmark users, 62,758 reviews (deleted cards, filtered decks, relearning included), show-time inputs; the history rebuild run through the fork&rsquo;s code, the live paths emulated from the code; LogLoss cost of the drift scored on 12 users on the CPU.",
+  "fork": "Nothing merged; a test on a local fork branch, and a fix being prepared on a separate fork branch for the user&rsquo;s OK",
+  "takeaway": "<strong>One real drift found before the release:</strong> the history rebuild is exact, but the live path gives Learning cards shown on a later day a whole-day interval instead of the real time, on 8.2% of show-time queries, costing about +0.05% instant LogLoss for Small; a one-line fix.",
+  "inputs": "show-time",
+  "started_at": "2026-11-24T12:00+01:00",
+  "ended_at": "2026-11-24T12:35+01:00",
+  "gpu_minutes": 0,
+  "cpu_minutes": 60,
+  "tickets": 0,
+  "detail": {"verdict": "History rebuild clean; live show-time path drifts for Learning cards on a later day (fix: treat Learning like Review, Relearning and Filtered when computing the time since the last review). Branch sm161 (RESULT.md, aggregate.json)", "table": {"head": ["Path", "Columns", "Rows affected", "Size or cost"], "rows": [["History rebuild (start-up, rebuilds, cache)", "All 24 input columns and 28 day inputs", "0 of all answered reviews", "exact (at most 8.3e-7)"], ["Live show-time query, Learning card on a later day", "elapsed time, time-of-day sine and cosine", "4,258 of 51,970 queries (8.2%)", "Small two-head (SM118) +0.054%, Small Instant-Only (SM113) +0.059% instant LogLoss on 12 users"], ["Batch path, Learning cards", "elapsed days", "2,674 rows", "one-line fix"], ["Live intervals", "elapsed seconds", "rounded to whole seconds", "1 to 2 s, negligible"]]}, "notes": ["In an exported collection the reviews of deleted cards are missing from the fork&rsquo;s history, which changes counters for many later reviews; this is structural, not a builder bug.", "Side finding in our own pipeline: placeholder note ids for deleted cards collapse (485 cards on 35 notes); fixing it changes training inputs, so only with a retrain."]}
+ },
  {
   "date": "11-24",
   "kind": "cpu-analysis",
