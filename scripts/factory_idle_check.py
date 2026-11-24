@@ -1,7 +1,7 @@
 """One-line factory liveness check: prints BUSY, QUIET or IDLE and exits 0, 3 or 4.
 
 BUSY  - the GPU queue has a running or waiting ticket, the GPU is loaded, or a launcher/scorer process is alive.
-QUIET - nothing runs, but a GPU quiet window (coordination/queue/quiet.json) is active, so idle is expected.
+QUIET - nothing runs, but a GPU quiet window (artifacts/coordination/queue/quiet.json) is active, so idle is expected.
 IDLE  - nothing runs and no quiet window: the factory is wasting time; start the next backlog item.
 
 Used by the main session's hourly check (cron) so a dead watcher never leaves the GPU idle for hours.
@@ -15,7 +15,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 PY = ROOT / ".venv" / "Scripts" / "python.exe"
-QUIET = ROOT / "coordination" / "queue" / "quiet.json"
+QUIET = ROOT / "artifacts" / "coordination" / "queue" / "quiet.json"
 PATTERNS = ("launch-sm", "run-sm", "launch_", "r01_queue.py run", "score_", "train_", "_report.py")
 
 
