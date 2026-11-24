@@ -5,6 +5,8 @@ and logged here for review. Details, evidence and how to undo each one: [DECISIO
 
 ## 2026-11-24
 
+- **You** - Fork work goes straight to fork **main** (your Mac follows main only). The release candidate
+  (rc-2026-11) is merged into fork main: fb9f59a18, Rust tests 1,596 passed. Release build and tags still need you.
 - **Agent** - Old Tiny weights dropped from the weekend packages. The six-layer Tiny (SM130) replaces the
   13 Nov Tiny (SM106 two-head, SM101 Instant-Only); the 13 Nov release stays downloadable as it is. (You confirmed.)
 - **You** - Per-user recalibration of the timed predictions (SM125, SM128, SM140) waits until after the

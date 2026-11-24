@@ -5,7 +5,7 @@ evidence (experiment, branch, commit), scope, how to undo it, and status. "You" 
 call the agent took alone (allowed since 11-24: obvious decisions need no approval, but every one is logged here).
 
 What still needs Jonathan, always: releases, tags, release assets, Hugging Face uploads, the fork release build,
-merges into fork main, any software install, anything touching the private Anki profile, and any real trade-off
+any software install, anything touching the private Anki profile, and any real trade-off
 (accuracy vs size or speed beyond the agreed budgets, scope changes to a release).
 
 Conventions: every model as "plain name (ID)"; costs are LogLoss changes in %, CI upper bounds are 95% paired user
@@ -14,6 +14,17 @@ bootstrap; "732 set" = the standard 732-user evaluation pool (722 to 723 rule us
 ---
 
 ## 2026-11-24
+
+### D-1124-10 - Fork work goes to fork main; release candidate merged into main (You)
+- **Decision:** "For Anki you can just push straight to main, otherwise the other Mac won't see it". Finished,
+  tested fork work is merged into fork `main` and pushed; `rc-2026-11` was only visible as a side branch.
+- **Done:** fork main afa298cbe..fb9f59a18 (merge of rc-2026-11 b04e3d117 into main, which had 21 commits from the
+  other machine). Only conflict: `RELEASE.md` bullet lists, resolved as the union of both sides; the older
+  "Explore recall by answer time" bullet (still said estimates need the Small Curve model) dropped for the
+  release-candidate version. Rust `cargo test -p anki --lib` 1,596 passed, `--no-default-features` 1,596 passed
+  (run in `wt/fork-lowrank-speed` detached at fb9f59a18; the main checkout lacks the extracted `protoc`).
+- **Still needs the user:** fork release build, releases, tags. Python/TS tests and `just check` on the Mac.
+- **Undo:** revert merge fb9f59a18 (first parent afa298cbe).
 
 ### D-1124-09 - Old Tiny weights dropped from the weekend packages (Agent, confirmed by You)
 - **Decision:** the weekend packages ship only the six-layer Tiny two-head and Instant-Only models (SM130). The
