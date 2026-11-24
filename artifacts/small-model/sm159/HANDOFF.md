@@ -1,0 +1,29 @@
+# Energy-triggered rank growth (SM159): handoff
+
+**Status 11-24 10:45: CPU chain running** (no GPU, no queue). Design and rule pre-registered in `design.md`, committed and pushed in 54bbdcef before any probe row of an energy label was scored. The agent that launched the chain has stopped (the wait is over 10 minutes); a fresh agent (Sonnet, medium effort) processes the result.
+
+## Done
+
+- Codec: `scripts/state_lowrank.py` SM159 block (label suffix `g<max>e<code>`, `LowRankCodec.encode_energy`, `discarded_share`, the rank read-out `RANK_READOUT`) and `scripts/small_model_heldout.py` (aggregate `lowrank_ranks` field on rank-only SM148 codec rows). Existing labels' code paths unchanged; the bit-identity proof against SM157's probe rows is part of the report (K2).
+- Selftests passed at the chain's start (`cpu/selftest.out`): SM147, SM148, SM157, SM159 identities, `sm159_bytes.py`, `sm159_report.py selftest`.
+- Exploration (2 training users of `users-explore.json`, not in the calibration set, never a probe user; numbers in design.md): matched tau about 0.13 to 0.18.
+
+## Running (CPU only)
+
+- Chain `run-sm159.sh`, launched 11-24 10:42 hidden via WMI (`Win32_Process.Create`, ShowWindow 0) from 54bbdcef; WMI PID 9212 (bash), the script's bash PID 20936, memory guard PowerShell PID 31556. Three python processes at a time, 3 threads each, memory guard 5.9 GB each.
+- Steps: 0 selftests (done 10:42); 1 calibration on the 20 training users x 6 models x 6 codes, three processes (about 35 to 45 minutes) -> `work/sm159-calib/calib-{a,b,c}.json` merged into `cpu/calib-train.json`; 2 `sm159_report.py select` -> `sm159-taus.json`; 3 probe scoring, 8 probe users x 6 models x 10 labels, three processes (about 45 to 55 minutes) -> `cpu/sm159-rows-{a,b,c}.jsonl` -> `cpu/sm159-rows.jsonl`; 4 fallback (bytes only; extra rows in `cpu/sm159-rows-*-x.jsonl` if any model's matched label misses T24's bytes by more than 2%, about 10 to 15 minutes); 5 `sm159_report.py report` -> `sm159-result.json`, `sm159-result.md`.
+- **ETA about 12:30 to 12:50 (machine clock), Tue 11-24.**
+- Done pattern: the last line of `cpu/run.out` is `SM159 RUN DONE` or `SM159 RUN FAILED (...)`. Logs: `cpu/calib-{a,b,c}.out`, `cpu/probe-{a,b,c}.out` (and `-x`), raw stdout `cpu/run.nohup`, memory `cpu/memguard.log` (a kill writes `cpu/memguard-kill` and `cpu/STOP`).
+- Alive (PowerShell): `Get-CimInstance Win32_Process | Where-Object { $_.CommandLine -like '*sm159*' } | Select ProcessId, Name`.
+- Wait without polling (Bash, run_in_background): `until grep -qE 'SM159 RUN (DONE|FAILED)' C:/Users/jonat/workspace/wt/sm159/artifacts/small-model/sm159/cpu/run.out; do sleep 60; done; tail -4 C:/Users/jonat/workspace/wt/sm159/artifacts/small-model/sm159/cpu/run.out`
+- Rerun after a failure or a machine restart (finished calibration labels and scored (user, label) rows are skipped; delete `cpu/STOP`, `cpu/memguard-kill` first; if `cpu/calib-train.json` exists the calibration is skipped):
+  `$si = New-CimInstance -ClassName Win32_ProcessStartup -ClientOnly -Property @{ShowWindow=[uint16]0}; Invoke-CimMethod -ClassName Win32_Process -MethodName Create -Arguments @{CommandLine='"C:\Program Files\Git\usr\bin\bash.exe" -c "export PATH=/usr/bin:/mingw64/bin:$PATH; bash C:/Users/jonat/workspace/wt/sm159/artifacts/small-model/sm159/run-sm159.sh >> C:/Users/jonat/workspace/wt/sm159/artifacts/small-model/sm159/cpu/run.nohup 2>&1"'; ProcessStartupInformation=$si}`
+  (Without the `>> ... 2>&1` redirect the hidden bash hangs before its first line.)
+- If the report exits 3 (proof failed): read `sm159-result.json` `proof.problems`; do not write a verdict.
+
+## Follow-up steps (fresh agent)
+
+1. `git -C C:/Users/jonat/workspace/wt/sm159 fetch` (+ merge origin/sm159 if it moved). When `cpu/run.out` ends with `SM159 RUN DONE`: read `sm159-result.md` and `sm159-result.json` (`verdict`, `rule`, `proof`, `match`, `bytes`, `ranks`, `fewer_bytes_at_t24_cost`, `taus`, `cpu_minutes`).
+2. Write `RESULT.md`: the verdict (GO / NO GO / INCONCLUSIVE by the pre-registered rule, int8 vs T24 and int6 vs F6 separately); the proof (K2 rows compared, K3); the matched codes (training, and probe fallback if used) with their bytes vs T24; a verdict table per model and head: T24 cost, the matched energy label's cost (CIs), the paired difference, and the mean bytes of each (vs int8 and vs T24); the same for F6 and the int6 analog; the cost of every scored label against REF; mean bytes vs int8 per label; the rank distribution (share of entities at rank 2 / 3 / 4, cards vs notes, and for entities with 16 or more answers); the "at T24's cost, fewer bytes" read-out; CPU minutes (probe `cpu_minutes`, calibration from `cpu/calib-train.json` provenance and `seconds`). Plus a small `sm159-verdict.json` (verdict, per-cell T24 / matched costs and bytes; aggregates only). Every model as "plain name (ID)" (Big two-head (SM91s2), Big Instant-Only (SM99), Small two-head (SM118), Small Instant-Only (SM113), six-layer Tiny two-head (SM130), six-layer Tiny Instant-Only (SM130)); "%" never "points"; never name the outside research's author.
+3. Commit with `git add -f`: `RESULT.md`, `HANDOFF.md` (status updated), `sm159-verdict.json`, `sm159-taus.json`, `sm159-result.json`, `sm159-result.md`, `cpu/calib-train.json`, `cpu/sm159-rows*.jsonl`, `cpu/*.out`, `cpu/run.out`, `cpu/run.nohup`, `cpu/memguard.log`. Never `work/`, `.npz`, `.pth`, `quiet.json`, `docs/GPU_OPTIMIZATIONS_LOG.md`, `.claude/`. Identity `git -c user.name="Jonathan Schoreels" -c user.email="jonathan.schoreels@gmail.com" commit`, message ending with a blank line and `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`; fetch + merge origin/sm159 before the push; push `sm159`.
+4. GPU follow-up only if GO and the main session agrees: a separate pre-registered 732-set design (not prepared here).
