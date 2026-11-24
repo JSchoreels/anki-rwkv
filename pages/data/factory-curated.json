@@ -2519,6 +2519,20 @@
    "started_at": "2026-11-23T23:25+01:00"
   },
   {
+   "id": "SM156",
+   "track": "small model",
+   "kind": "cpu",
+   "minutes": 480,
+   "match": [
+    "Faster low-rank codec in the fork (SM156): "
+   ],
+   "what": "Faster low-rank codec in the fork (SM156): the new state format makes full state rebuilds slower on long histories (about 1.15&times; Big, 1.6&times; Small, 1.75&times; Tiny), because each write runs small eigen solves per head. This removes per-head allocations and uses fixed-size arrays and fused loops, keeping the stored bytes identical to the current codec where possible, with the same parity and end-to-end tests, then times old and new back to back.",
+   "when": "Started 01:25 Tue 11-24 (CPU code only); merging into the release-candidate branch waits for the user&rsquo;s OK",
+   "decides": "How much of the rebuild slowdown for Small and Tiny an exact rewrite removes",
+   "state": "running",
+   "started_at": "2026-11-24T01:25+01:00"
+  },
+  {
    "id": "SM155",
    "track": "small model",
    "kind": "cpu",
