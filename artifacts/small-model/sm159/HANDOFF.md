@@ -1,6 +1,6 @@
 # Energy-triggered rank growth (SM159): handoff
 
-**Status 11-24 10:45: CPU chain running** (no GPU, no queue). Design and rule pre-registered in `design.md`, committed and pushed in 54bbdcef before any probe row of an energy label was scored. The agent that launched the chain has stopped (the wait is over 10 minutes); a fresh agent (Sonnet, medium effort) processes the result.
+**Status 11-24 (final): DONE, NO GO.** The chain finished 11:55 with `SM159 RUN DONE` (verdict `go: false`; the first run failed at 11:11 on CRLF labels, fixed in 283c5422, relaunched 11:13). Write-up in `RESULT.md` and `sm159-verdict.json`; the verdict table uses the probe-matched labels EMP / EMP6. Nothing is running; no GPU follow-up. The notes below are kept for the record.
 
 ## Done
 
