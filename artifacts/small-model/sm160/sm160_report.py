@@ -217,8 +217,8 @@ def smoke_cmd():
                         ok = False; lines.append(f"missing GPU smoke row {u} {L}"); continue
                     if o is None or "benchmark" not in o:
                         ok = False; lines.append(f"missing SM148 GPU smoke row {u} {L}"); continue
-                    for h in r["benchmark"]:
-                        if h in o["benchmark"]:
+                    for h in ("ahead", "instant"):
+                        if isinstance(r["benchmark"].get(h), dict) and isinstance(o["benchmark"].get(h), dict):
                             worst_old = max(worst_old, abs(r["benchmark"][h]["LogLoss"] - o["benchmark"][h]["LogLoss"]))
                     f = dump_file(DUMP / "smoke", u, L)
                     if not f.exists():
