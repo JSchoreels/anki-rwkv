@@ -2519,6 +2519,20 @@
    "started_at": "2026-11-23T23:25+01:00"
   },
   {
+   "id": "SM157",
+   "track": "small model",
+   "kind": "cpu",
+   "minutes": 120,
+   "match": [
+    "Output-aware low-rank truncation (SM157): "
+   ],
+   "what": "Output-aware low-rank truncation (SM157): the state is only read through products on its key side, so instead of keeping the rank-2 part with the most energy, this keeps the part that matters most for what the model reads, using one small matrix per layer and head fitted offline on training users (three variants, one borrowed from balanced truncation in control theory). CPU pointer on 8 probe users for the six release models, plain against weighted, rank 2 and the chosen format; same stored bytes.",
+   "when": "Started 01:50 Tue 11-24 (CPU only, about 1 to 2 h); a 732-set GPU run (about 3.5 h) only if the pointer cuts the rank-2 cost by at least a third",
+   "decides": "Whether weighting the truncation widens Big&rsquo;s thin margin or allows fewer bytes at the same cost",
+   "state": "running",
+   "started_at": "2026-11-24T01:50+01:00"
+  },
+  {
    "id": "SM156",
    "track": "small model",
    "kind": "cpu",
