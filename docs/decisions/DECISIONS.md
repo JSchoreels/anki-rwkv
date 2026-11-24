@@ -3,6 +3,11 @@
 One line per decision, newest first. **You** = decided by Jonathan; **Agent** = obvious call taken by the agent
 and logged here for review. Details, evidence and how to undo each one: [DECISIONS-full.md](DECISIONS-full.md).
 
+## 2026-11-25
+
+- **Agent** - 6-bit factors (SM162) merged into fork main (eda153ddb): Big and Small states -84.6% / -71.3% of int8 bytes,
+  Tiny unchanged; 1,603 Rust tests pass. Mac Python/TS tests and the clean speed re-measure (SM163) still to do.
+
 ## 2026-11-24
 
 - **Agent** - Instant ensemble (SM160): go for six-layer Tiny only (-0.067%, weight 0.69); Small and Big gain under 0.05%.

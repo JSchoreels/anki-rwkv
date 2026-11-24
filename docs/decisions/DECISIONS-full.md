@@ -15,6 +15,17 @@ bootstrap; "732 set" = the standard 732-user evaluation pool (722 to 723 rule us
 
 ## 2026-11-24
 
+### D-1125-01 - 6-bit factors (SM162) merged into fork main (Agent, under D-1124-10 and the user's 11-24 choice)
+- **Done:** fork main eda153ddb (merge of rc-int6 6bbd23b18; rc-2026-11 fast-forwarded to 6bbd23b18). Precision byte 0x26,
+  default profile `compact_lowrank` (factor width per size from the card layers: Tiny int8, Big/Small int6),
+  `compact_lowrank_int8`/`_int6` stay valid; cache version 16; old 0x28 states decode; downgrade rebuilds with int8.
+- **Evidence:** both Rust suites 1,603 passed; 504/504 synthetic head writes bit-identical to the scorer; SM91s2 end to end
+  on 2 synthetic users within 1.0e-4 per-user LogLoss (limit 3e-4); live vs rebuild identical bytes on every size.
+  The one-ulp floor gate for low-rank formats was replaced by the LogLoss rule (int6 failed the floor, passes the rule).
+- **Open:** Small has no end-to-end model check against the scorer (codec is bit-exact); Mac Python/TS tests + just check;
+  clean speed re-measure SM163 (int6 decode 23-33% slower in a noisy sanity run).
+- **Undo:** revert merge eda153ddb.
+
 ### D-1124-13 - Ensemble of the two instant predictions: go for Tiny only (Agent, pre-registered rule)
 - **Result:** the deploy-time ensemble test (SM160), branch sm160 commit 3a5530cc. Logit average with a fixed weight on the
   Instant-Only model, against the Instant-Only model alone, instant head, chosen format (T24), the 732 set:
