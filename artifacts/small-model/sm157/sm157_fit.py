@@ -79,16 +79,17 @@ def merge(paths, out):
     res = {"models": {}, "provenance": {}, "parts": [n for n, _ in docs]}
     for name, d in docs:
         for tag, layers in d["models"].items():
-            prov = dict(d["provenance"][tag], file=name)
+            src = d["provenance"][tag]
+            prov = [dict(x) for x in src] if isinstance(src, list) else [dict(src, file=name)]
             if tag not in res["models"]:
                 res["models"][tag] = layers
-                res["provenance"][tag] = [prov]
+                res["provenance"][tag] = prov
                 continue
             if sorted(layers) != sorted(res["models"][tag]):
                 raise SystemExit(f"SM157 merge: {tag} has different layers in {name}")
             res["models"][tag] = {key: {k: add(res["models"][tag][key][k], layers[key][k]) for k in layers[key]}
                                   for key in layers}
-            res["provenance"][tag].append(prov)
+            res["provenance"][tag].extend(prov)
     Path(out).write_text(json.dumps(res), encoding="utf-8")
 
 
