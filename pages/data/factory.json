@@ -1,7 +1,7 @@
 {
- "generated_at": "2026-11-24T01:29:43+01:00",
- "updated": "2026-11-24 01:29",
- "material": "04c52b757b182d73",
+ "generated_at": "2026-11-24T01:45:40+01:00",
+ "updated": "2026-11-24 01:45",
+ "material": "1d57d167f28f06d4",
  "summary": "running 001540",
  "headline": [
   {
@@ -422,7 +422,7 @@
    "track": "small model",
    "ticket": "001540-sm152",
    "started": "00:46",
-   "elapsed": "0:43",
+   "elapsed": "0:59",
    "progress": null,
    "eta": "~02:26"
   }
@@ -2787,10 +2787,11 @@
    "kind": "cpu",
    "minutes": 90,
    "what": "Answer-time spread shrink (SM153): the answer-time expressiveness test (SM142) found that the answer-time heads rank cards well within a user but spread them about 1.7 times too widely. This CPU test shrinks each card&rsquo;s predicted time distribution toward the user&rsquo;s running distribution, with the shrink fitted without leakage, and scores time LogLoss before and after the existing rolling recalibration, plus within-user AUC and card-level expressiveness.",
-   "when": "Started 23:10 Mon 11-23 (CPU only, about 1 to 2 h, from the step-back review of outside research methods)",
+   "when": "Done 01:40 Tue 11-24: <strong>no go for all five models</strong>; held-out answer-time LogLoss &minus;0.02% to &minus;0.08% with every CI including 0, and the 21 timed cells slightly worse even after the rolling recalibration (+0.04% to +0.10%)",
    "decides": "Whether a fitted shrink lowers answer-time LogLoss (go rule: CI below 0 and at least 0.05%) without losing card-level expressiveness",
-   "state": "planned",
-   "started_at": "2026-11-23T23:10+01:00"
+   "state": "done",
+   "started_at": "2026-11-23T23:10+01:00",
+   "ended_at": "2026-11-24T01:40+01:00"
   },
   {
    "id": "SM154",
@@ -3680,6 +3681,70 @@
   }
  ],
  "results": [
+  {
+   "date": "11-24",
+   "kind": "cpu-analysis",
+   "id": "SM153",
+   "track": "small model",
+   "name": "Answer-time spread shrink (SM153): shrink each card&rsquo;s predicted answer-time distribution toward the user&rsquo;s running per-grade distribution, fitted on half the users and read on the other half, before and after the rolling recalibration",
+   "eval": "CPU only, saved time distributions of the answer-time expressiveness test (SM142) and the recalibration dumps, 722 users split 361 / 361, paired user bootstrap 95%; go rule CI below 0 and at least 0.05% on answer-time LogLoss, with an expressiveness guard.",
+   "fork": "Nothing changed in the fork; Card Info answer-time estimates stay as they are",
+   "takeaway": "<strong>No go: the shrink barely moves answer-time LogLoss (&minus;0.02% to &minus;0.08%, every CI includes 0) and makes the timed cells slightly worse after recalibration.</strong> The existing rolling recalibration (&minus;0.65% to &minus;1.10% on the fastest cell) stays the right tool.",
+   "inputs": "show-time",
+   "started_at": "2026-11-23T23:10+01:00",
+   "ended_at": "2026-11-24T01:40+01:00",
+   "gpu_minutes": 0,
+   "cpu_minutes": 216,
+   "tickets": 0,
+   "detail": {
+    "verdict": "No go for all five models under the pre-registered rule (CI below 0 and at least 0.05%), before and after the rolling recalibration. Branch sm153 (RESULT.md, sm153-result.json, design.md)",
+    "table": {
+     "head": [
+      "Model",
+      "Answer-time LogLoss change, held-out (95% CI)",
+      "21 timed cells after recalibration (95% CI)",
+      "Verdict"
+     ],
+     "rows": [
+      [
+       "Big Instant-Only (SM99)",
+       "&minus;0.015% [&minus;0.103, +0.076]",
+       "+0.039% [+0.020, +0.058]",
+       "no go"
+      ],
+      [
+       "Small Instant-Only (SM113)",
+       "&minus;0.052% [&minus;0.112, +0.010]",
+       "+0.079% [+0.059, +0.102]",
+       "no go"
+      ],
+      [
+       "Small two-head (SM118)",
+       "&minus;0.073% [&minus;0.156, +0.007]",
+       "+0.075% [+0.055, +0.099]",
+       "no go"
+      ],
+      [
+       "six-layer Tiny two-head (SM130)",
+       "&minus;0.084% [&minus;0.192, +0.017]",
+       "+0.097% [+0.067, +0.129]",
+       "no go"
+      ],
+      [
+       "six-layer Tiny Instant-Only (SM130)",
+       "&minus;0.083% [&minus;0.178, +0.006]",
+       "+0.073% [+0.048, +0.101]",
+       "no go"
+      ]
+     ]
+    },
+    "notes": [
+     "Shrink fitted on 361 users, read on the other 361 (seed 153); the user&rsquo;s running per-grade distribution uses only earlier reviews. The location shift fitted to no shift for every model; the small gain came only from blending in 6% to 10% of the user&rsquo;s distribution (tail widening), not from fixing the 1.7&times; between-card spread (slope stays about 0.58 to 0.62).",
+     "Expressiveness warning on the Small and Tiny models: distinct curves per user fall 3% to 6% and the spread of predicted medians 3% to 4.5%.",
+     "Checks C1 to C4 passed (raw arm equals the recorded sums; events rebuilt from the answer-time expressiveness test (SM142) distributions match the recalibration dumps within 3e-8)."
+    ]
+   }
+  },
   {
    "date": "11-24",
    "kind": "cpu",
