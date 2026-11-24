@@ -1,0 +1,65 @@
+{
+ "all_ok": true,
+ "checks": {
+  "K1 state_lowrank selftests (SM147, SM148 + SM152, SM157; CPU)": true,
+  "K2 REF, Q2 and T24 rows == SM148's committed CPU smoke rows (every metric and descriptor field identical)": true,
+  "K3 pipeline rows: 6 models x 3 weighted labels, finite, weight descriptor, differ from plain": true
+ },
+ "info": {
+  "K1": {
+   "sm148": {
+    "K16_trunc_rel_err_max": 6.36205664896589e-06,
+    "K16_young_exact_rel_err_max": 9.070166129276913e-07,
+    "K32_trunc_rel_err_max": 8.62586098327698e-06,
+    "K32_young_exact_rel_err_max": 9.449376534576004e-07,
+    "int8_roundtrip": true,
+    "int6_roundtrip": true,
+    "sm152_grammar": true,
+    "tiers": true
+   },
+   "sm157": {
+    "K16_weighted_fit_rel_err_max": 9.638843850333185e-06,
+    "K16_identity_weight_max_abs": 0.0,
+    "K16_young_exact_weighted_rel_err_max": 9.880885727397981e-07,
+    "K32_weighted_fit_rel_err_max": 1.1328425582519552e-05,
+    "K32_identity_weight_max_abs": 0.0,
+    "K32_young_exact_weighted_rel_err_max": 7.788034963596147e-07,
+    "gramian_residual": 2.7038567928866374e-16,
+    "sm157_grammar": true
+   }
+  },
+  "K2": {
+   "compared_rows": 54,
+   "users": [
+    1866,
+    2388,
+    4676
+   ],
+   "models": 6,
+   "fields_compared": 25,
+   "mismatches": []
+  },
+  "K3": {
+   "rows": 18,
+   "bad": []
+  },
+  "bench": {
+   "K16_us_per_write_4_heads": {
+    "plain": 20.35308593804075,
+    "weighted": 22.560078105016146,
+    "extra_pct": 10.843526007279515,
+    "madds_per_head_SxMh_dense": 4096,
+    "madds_per_head_SxMh_factored": 768,
+    "madds_per_head_decode": 512
+   },
+   "K32_us_per_write_4_heads": {
+    "plain": 36.54695312889089,
+    "weighted": 54.03863281117083,
+    "extra_pct": 47.86084251836718,
+    "madds_per_head_SxMh_dense": 32768,
+    "madds_per_head_SxMh_factored": 3072,
+    "madds_per_head_decode": 2048
+   }
+  }
+ }
+}

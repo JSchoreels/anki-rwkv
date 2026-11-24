@@ -723,6 +723,8 @@ def main():
             elif sm148:   # SM148, expertium CUDA: the state-VQ slots with the low-rank codec (torch step loop)
                 from scripts import state_vq
                 set_expertium_state_bits(model, 0)
+                if state_bits.weight:   # SM157: the weighted codec needs the running (stream, layer)
+                    state_lowrank.name_layers(lane_layouts[tag])
                 state_vq.set_scoring(lane_layouts[tag], {s: state_lowrank.LowRankScoreCodec(state_bits)
                                                          for s in state_vq.STATE_STREAMS})
                 vq_path = f"SM148 low-rank codec {state_bits.spec} {state_bits.quant}, torch step loop"

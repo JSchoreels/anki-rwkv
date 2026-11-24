@@ -207,7 +207,7 @@ def _fork_wkv(r_BTHK, k_BTHK, v_BTHK, w_BTHK, a_BTHK, k_deformed_BTHK, skip_BT, 
         mod = sys.modules["rwkv.model.rwkv_model"]
         rows_bits = st.rows_bits
         return lowrank_loop(st, r_BTHK, k_BTHK, v_BTHK, w_BTHK, a_BTHK, k_deformed_BTHK, skip_BT, single_timestep,
-                            lambda x: mod._quantize_rows(x, rows_bits))
+                            lambda x: mod._quantize_rows(x, rows_bits), where=(cur[0], cur[1]))
     if st is None or isinstance(st, LowRankCodec) or cur is None or cur[0] not in STREAMS or r_BTHK.is_cuda:
         return _Fork.original(r_BTHK, k_BTHK, v_BTHK, w_BTHK, a_BTHK, k_deformed_BTHK, skip_BT, bits)
     if bits:
@@ -317,13 +317,14 @@ class LowRankCodec:
         self.has_rows = "R" in kinds
         self.rows_bits = self.shift_bits = None
         self.float_shift = False
+        self.weight = None     # SM157: output-aware truncation, "r" / "rk" / "g" (label suffix w<kind>), None = plain
         self._dev = {}
 
     def __bool__(self):
         return True
 
     def __repr__(self):
-        return f"LowRankCodec({self.spec!r}, {self.quant!r})"
+        return f"LowRankCodec({self.spec!r}, {self.quant!r})" + (f" w{self.weight}" if self.weight else "")
 
     def set_ref(self, rows_bits, shift_bits):
         """REF's formats (the scorer's parse_variant): the R tier's rows bits; the shift vectors in REF's format, at
@@ -336,6 +337,12 @@ class LowRankCodec:
                "shift_bits": 0 if self.float_shift else self.shift_bits}
         if self.shift_width == 4:   # SM152 (q8 / x8 rows keep SM148's descriptor)
             out["shift_width"] = 4
+        if self.weight:   # SM157 (plain labels keep SM148's descriptor)
+            out["weight"] = self.weight
+            out["weight_stats_sha256"] = _W.sha256
+            out["weight_ridge"] = RIDGE
+            if self.weight == "g":
+                out["weight_decay_max"] = DECAY_MAX
         return out
 
     def _tables(self, device):
@@ -351,14 +358,17 @@ class LowRankCodec:
         tier = torch.bucketize(n, edges, right=True) if len(self.edges) else torch.zeros_like(n)
         return kinds[tier]
 
-    def encode(self, nxt, left_prev, v, n, rows_quant):
+    def encode(self, nxt, left_prev, v, n, rows_quant, wts=None):
         """nxt [N, H, K, K] float32 updated states (written rows), left_prev [N, H, K, rmax] their stored left factors
         (zero columns beyond the stored rank), v [N, H, K] this write's v, n [N] update counts.
-        -> stored states [N, H, K, K] float32 and left factors [N, H, K, rmax] float32."""
+        -> stored states [N, H, K, K] float32 and left factors [N, H, K, rmax] float32.
+        SM157 wts = (M^(1/2), M^(-1/2)) [H, K, K] float32: the rank-r fit of S M^(1/2) (same column space as S, so the
+        factored solve's basis span(P) still holds), right factors quantized in the weighted space, then x M^(-1/2).
+        wts None = SM148 / SM152 (the expressions below unchanged)."""
         kind = self.kind_of(n)
         stored = nxt
         left_new = torch.zeros_like(left_prev)
-        if self.rmax and nxt.is_cuda and FUSED_CUDA:   # one fused kernel (scripts/state_lowrank_cuda.encode)
+        if self.rmax and nxt.is_cuda and FUSED_CUDA and wts is None:   # one fused kernel (scripts/state_lowrank_cuda.encode)
             from scripts import state_lowrank_cuda
             r_eff = torch.minimum(n, kind.clamp(min=0))
             stored, left_new = state_lowrank_cuda.encode(nxt, left_prev, v, r_eff, self.qmax)
@@ -368,14 +378,20 @@ class LowRankCodec:
             finite = torch.isfinite(nxt).flatten(2).all(-1) & torch.isfinite(P).flatten(2).all(-1)   # [N, H]
             fin4 = finite[..., None, None]
             # a non-finite matrix is stored as it is (the scorer's non-finite handling sees it), as in SM147
-            lf, rf = lowrank_factors(torch.where(fin4, nxt, torch.zeros_like(nxt)),
-                                     torch.where(fin4, P, torch.zeros_like(P)), self.rmax)
+            if wts is None:
+                lf, rf = lowrank_factors(torch.where(fin4, nxt, torch.zeros_like(nxt)),
+                                         torch.where(fin4, P, torch.zeros_like(P)), self.rmax)
+            else:   # SM157: weighted fit (S M^(1/2)); rf in the weighted space
+                lf, rf = lowrank_factors(torch.where(fin4, nxt, torch.zeros_like(nxt)) @ wts[0],
+                                         torch.where(fin4, P, torch.zeros_like(P)), self.rmax)
             comp = (torch.arange(self.rmax, device=nxt.device)[None, :] < r_eff[:, None]).to(lf.dtype)   # [N, r]
             lf = lf * comp[:, None, None, :]
             rf = rf * comp[:, None, :, None]
             if self.qmax:
                 lf = quant_vectors(lf, -2, self.qmax)                         # per column (left factor vector)
                 rf = quant_vectors(rf, -1, self.qmax)                         # per row (right factor vector)
+            if wts is not None:   # SM157: decode the right factors, x M^(-1/2)
+                rf = rf @ wts[1]
             stored = torch.where(fin4, lf @ rf, nxt)
             left_new = torch.where(fin4, lf, torch.zeros_like(lf))
         if self.has_rows:
@@ -450,7 +466,7 @@ def quant_vectors(x, dim, qmax=127):
     return torch.clamp(torch.round(x / scale), -q, q) * scale
 
 
-def lowrank_loop(codec, r, k, v, w, a, kd, skip, step, rows_quant):
+def lowrank_loop(codec, r, k, v, w, a, kd, skip, step, rows_quant, where=None):
     """The scorer's WKV step loop (expertium state_vq._reference_wkv_q / the fork's reference_rwkv7_q placement: the
     answer's output uses the float update, the stored state is the codec's reconstruction), any device."""
     # Inputs are cast to float32 per step and the output is written in the input dtype (no full-size float copies:
@@ -462,13 +478,19 @@ def lowrank_loop(codec, r, k, v, w, a, kd, skip, step, rows_quant):
     left = torch.zeros(B, H, K, codec.rmax, dtype=torch.float32, device=dev)
     skip = skip.bool()
     counts = torch.cumsum((~skip).long(), 1)
+    wts = weight_mats(SPECTRUM.tag, where, codec.weight, dev) if codec.weight else None   # SM157
+    collect = _W.stats is not None   # SM157 fit (sm157_fit.py): key-side statistics of the written rows
+    if collect and where is None:
+        raise RuntimeError("SM157 statistics: the WKV call has no (stream, layer)")
     for t in range(T):
         vt = v[:, t].float()
         out[:, t], nxt = step(r[:, t].float(), k[:, t].float(), vt, w[:, t].float(), a[:, t].float(),
                               kd[:, t].float(), state)
         rows = torch.nonzero(~skip[:, t]).flatten()
         if rows.numel():
-            s_new, l_new = codec.encode(nxt[rows], left[rows], vt[rows], counts[rows, t], rows_quant)
+            if collect:
+                record_stats(where, r[rows, t], kd[rows, t], w[rows, t])
+            s_new, l_new = codec.encode(nxt[rows], left[rows], vt[rows], counts[rows, t], rows_quant, wts)
             state = state.clone()
             state[rows] = s_new
             left[rows] = l_new
@@ -476,10 +498,12 @@ def lowrank_loop(codec, r, k, v, w, a, kd, skip, step, rows_quant):
 
 
 class ExpertiumLoop:
-    """state_vq.Hooks.wkv entry for an SM148 codec: state_vq._reference_wkv_q hands the whole loop to `.loop`."""
+    """state_vq.Hooks.wkv entry for an SM148 codec: state_vq._reference_wkv_q hands the whole loop to `.loop`.
+    SM157: `where` = (stream, layer) of the CPU hook; None (GPU scoring slots) = _W.current (name_layers)."""
 
-    def __init__(self, codec):
+    def __init__(self, codec, where=None):
         self.codec = codec
+        self.where = where
         from scripts.state_vq import int_row_quant
         self.rows_quant = int_row_quant(codec.rows_bits) if codec.has_rows else None
 
@@ -487,7 +511,8 @@ class ExpertiumLoop:
         if state0 is not None:
             raise RuntimeError("SM148 low-rank codec: no learned initial state")
         from expertium.model.rwkv_ops import single_timestep
-        return lowrank_loop(self.codec, r, k, v, w, a, kd, skip, single_timestep, self.rows_quant)
+        return lowrank_loop(self.codec, r, k, v, w, a, kd, skip, single_timestep, self.rows_quant,
+                            where=self.where if self.where is not None else _W.current)
 
     def __call__(self, *a, **kw):
         raise RuntimeError("SM148: ExpertiumLoop runs through .loop")
@@ -512,17 +537,21 @@ def configure_expertium_sm148(layout, codec):
     state_vq.configure(layout, None, codec.rows_bits, 0 if codec.float_shift else codec.shift_bits)
     for stream, info in layout.items():
         for layer in range(info["wkv_layers"]):
-            state_vq.Hooks.wkv[(stream, layer)] = ExpertiumLoop(codec)
+            state_vq.Hooks.wkv[(stream, layer)] = ExpertiumLoop(codec, (stream, layer))
 
 
 def parse_sm148(state):
     import re
-    m = re.fullmatch(r"lr([0-9R][0-9R.]*?)(q8|q6|f)x(8|4|0)", state)
+    m = re.fullmatch(r"lr([0-9R][0-9R.]*?)(q8|q6|f)x(8|4|0)(w(?:rk|r|g))?", state)
     if not m:
         return None
     codec = LowRankCodec(m.group(1), m.group(2))
     codec.float_shift = m.group(3) == "0"   # proof only: float32 shift vectors (SM147's lr<r> placement)
     codec.shift_width = int(m.group(3))      # SM152: x4 = int4 shift vectors
+    if m.group(4):                           # SM157: output-aware truncation (WEIGHT_KINDS)
+        if codec.rmax == 0:
+            raise ValueError(f"SM157 weighted truncation {state!r}: needs a rank tier")
+        codec.weight = m.group(4)[1:]
     return codec
 
 
@@ -605,6 +634,215 @@ def selftest_sm148(device="cpu"):
     return out
 
 
+# ------------------------------------------------------------------------------------------------ SM157
+
+# SM157: output-aware (weighted) truncation (artifacts/small-model/sm157/design.md). Label suffix w<kind> on an SM148
+# codec label, e.g. lr2q8x8wr, lr2.16.4q8x8wg. The rank-r fit minimises ||(S - S_hat) M^(1/2)||_F (the expected read
+# error E||(S - S_hat) x||^2 for x with second moment M) instead of ||S - S_hat||_F: truncate S M^(1/2), multiply the
+# right factors back by M^(-1/2). M per (model, stream, layer, head), K x K, from key-side statistics of the written rows
+# on training users (sm157_fit.py -> the JSON named by SM157_STATS):
+#   r   M = R = E[r r^T]                                   (the read S r)
+#   rk  M = R + beta E[kd kd^T], beta = tr R / tr E[kd kd^T] (the removal term S kd as well, equal trace)
+#   g   M = R + D M D, D = diag(E[w]) (the head's mean per-channel decay, clamped to DECAY_MAX): the discounted
+#       observability Gramian, M_ij = R_ij / (1 - d_i d_j) (the Stein equation with a diagonal D, solved elementwise)
+# Then M / (tr M / K) + RIDGE x I, rounded to float16 (as shipped), M^(1/2) and M^(-1/2) from its eigh in float64.
+WEIGHT_KINDS = ("r", "rk", "g")
+RIDGE = 1e-3
+DECAY_MAX = 1 - 1 / 64   # g: mean decays clamped (a channel with d -> 1 would get an unbounded weight 1 / (1 - d^2))
+
+
+class _W:
+    stats = None      # sm157_fit.py: {(tag, stream, layer): accumulators} while collecting, else None
+    file = None       # the loaded SM157_STATS document
+    sha256 = None
+    mats = {}         # (tag, stream, layer, kind, device) -> (M^(1/2), M^(-1/2)) float32 [H, K, K]
+    current = None    # (stream, layer) of the running expertium time mixer on the GPU scoring path (name_layers)
+
+
+def record_stats(where, r, kd, w):
+    """Accumulate the written rows' r r^T, kd kd^T (float64 [H, K, K]) and w, log w (float64 [H, K]) of (tag, where)."""
+    key = (SPECTRUM.tag, int(where[0]), int(where[1]))
+    r, kd, w = r.double().cpu(), kd.double().cpu(), w.double().cpu()
+    H, K = r.shape[1], r.shape[2]
+    c = _W.stats.get(key)
+    if c is None:
+        c = _W.stats[key] = {"count": 0, "rr": torch.zeros(H, K, K, dtype=torch.float64),
+                             "kk": torch.zeros(H, K, K, dtype=torch.float64), "w": torch.zeros(H, K, dtype=torch.float64),
+                             "logw": torch.zeros(H, K, dtype=torch.float64)}
+    c["count"] += int(r.shape[0])
+    c["rr"] += torch.einsum("nhi,nhj->hij", r, r)
+    c["kk"] += torch.einsum("nhi,nhj->hij", kd, kd)
+    c["w"] += w.sum(0)
+    c["logw"] += torch.log(w.clamp(min=1e-30)).sum(0)
+
+
+def export_stats():
+    """{tag: {"stream,layer": {count, rr, kk, w, logw}}} (JSON-ready sums, float64 as Python floats)."""
+    out = {}
+    for (tag, stream, layer), c in sorted(_W.stats.items()):
+        out.setdefault(tag, {})[f"{stream},{layer}"] = {"count": c["count"], "rr": c["rr"].tolist(),
+                                                        "kk": c["kk"].tolist(), "w": c["w"].tolist(),
+                                                        "logw": c["logw"].tolist()}
+    return out
+
+
+def gramian(R, d):
+    """Solution of M = R + D M D for D = diag(d) ([..., K, K], [..., K], 0 <= d < 1): M_ij = R_ij / (1 - d_i d_j)."""
+    return R / (1 - d.unsqueeze(-1) * d.unsqueeze(-2))
+
+
+def weight_matrix(stat, kind):
+    """float64 [H, K, K] shipped M (normalised, ridge, float16-rounded) from one (stream, layer) statistics entry."""
+    n = float(stat["count"])
+    R = torch.tensor(stat["rr"], dtype=torch.float64) / n
+    if kind == "r":
+        M = R
+    elif kind == "rk":
+        Kd = torch.tensor(stat["kk"], dtype=torch.float64) / n
+        tr = lambda x: x.diagonal(dim1=-2, dim2=-1).sum(-1)   # noqa: E731
+        M = R + (tr(R) / tr(Kd))[:, None, None] * Kd
+    elif kind == "g":
+        d = (torch.tensor(stat["w"], dtype=torch.float64) / n).clamp(0, DECAY_MAX)
+        M = gramian(R, d)
+    else:
+        raise ValueError(f"SM157 weight kind {kind!r}: one of {WEIGHT_KINDS}")
+    M = (M + M.mT) / 2
+    K = M.shape[-1]
+    M = M / (M.diagonal(dim1=-2, dim2=-1).sum(-1) / K)[:, None, None] + RIDGE * torch.eye(K, dtype=torch.float64)
+    return M.half().double()
+
+
+def sqrt_pair(M):
+    """(M^(1/2), M^(-1/2)) float32 of symmetric positive definite M (float64 eigh)."""
+    lam, V = torch.linalg.eigh((M + M.mT) / 2)
+    if float(lam.min()) <= 0:
+        raise ValueError(f"SM157: M not positive definite (min eigenvalue {float(lam.min())})")
+    s = lam.sqrt()
+    return ((V * s.unsqueeze(-2)) @ V.mT).float(), ((V / s.unsqueeze(-2)) @ V.mT).float()
+
+
+def load_stats(path=None):
+    import hashlib
+    import json
+    import os
+    path = path or os.environ.get("SM157_STATS")
+    if not path:
+        raise SystemExit("SM157 weighted labels (w<kind>) need SM157_STATS = the statistics JSON of sm157_fit.py")
+    raw = open(path, "rb").read()
+    _W.file, _W.sha256, _W.mats = json.loads(raw.decode("utf-8")), hashlib.sha256(raw).hexdigest(), {}
+    return _W.file
+
+
+def weight_mats(tag, where, kind, device):
+    """(M^(1/2), M^(-1/2)) on `device` for model `tag`, (stream, layer) `where`, weight kind (cached)."""
+    if where is None:
+        raise RuntimeError("SM157 weighted truncation: the WKV call has no (stream, layer)")
+    key = (tag, int(where[0]), int(where[1]), kind, str(device))
+    if key not in _W.mats:
+        if _W.file is None:
+            load_stats()
+        try:
+            stat = _W.file["models"][tag][f"{int(where[0])},{int(where[1])}"]
+        except KeyError:
+            raise SystemExit(f"SM157: no statistics for model {tag!r}, stream / layer {tuple(where)}") from None
+        _W.mats[key] = tuple(x.to(device) for x in sqrt_pair(weight_matrix(stat, kind)))
+    return _W.mats[key]
+
+
+def name_layers(layout):
+    """Expertium GPU scoring slots (state_vq.install_scoring layout): pre-hooks name the running time mixer in
+    _W.current, once per module."""
+    for stream, info in layout.items():
+        for layer, module in enumerate(info["time"]):
+            if not getattr(module, "_sm157_named", False):
+                module.register_forward_pre_hook(lambda _m, _i, name=(stream, layer): setattr(_W, "current", name))
+                module._sm157_named = True
+
+
+def selftest_sm157(device="cpu"):
+    """SM157 identities (seeded): the weighted factored fit == the weighted optimum (float64 SVD of S M^(1/2), times
+    M^(-1/2)); its weighted error <= plain truncation's, its plain error >= plain truncation's; young states exact with
+    weights; M = I gives the plain fit; the Gramian solves M = R + D M D; grammar and descriptors."""
+    g = torch.Generator().manual_seed(157)
+    out = {}
+    for K in (16, 32):
+        N, H, r = 48, 4, 4
+        L = torch.randn(N, H, K, r, generator=g)
+        R = torch.randn(N, H, r, K, generator=g)
+        G = torch.randn(N, H, K, K, generator=g) * 0.3
+        vv = torch.randn(N, H, K, generator=g)
+        kk = torch.randn(N, H, K, generator=g)
+        S = L @ R @ G + vv.unsqueeze(-1) @ kk.unsqueeze(-2)
+        P = torch.cat([L, vv.unsqueeze(-1)], -1)
+        X = torch.randn(H, 4 * K, K, generator=g) * torch.linspace(0.05, 2.0, K)
+        Mw = (X.mT @ X).double() / (4 * K)
+        Mw = Mw / (Mw.diagonal(dim1=-2, dim2=-1).sum(-1) / K)[:, None, None] + RIDGE * torch.eye(K, dtype=torch.float64)
+        Mh, Mih = sqrt_pair(Mw)
+        worst = 0.0
+        for rr in (1, 2, 4):
+            lf, rf = lowrank_factors(S.to(device) @ Mh.to(device), P.to(device), rr)
+            got = (lf @ (rf @ Mih.to(device))).double().cpu()
+            U, Sv, Vh = torch.linalg.svd(S.double() @ Mh.double())
+            ref = ((U[..., :rr] * Sv[..., None, :rr]) @ Vh[..., :rr, :]) @ Mih.double()
+            err = (got - ref).flatten(2).norm(dim=-1) / ref.flatten(2).norm(dim=-1)
+            worst = max(worst, float(err.max()))
+            U0, S0, V0 = torch.linalg.svd(S.double())
+            plain = (U0[..., :rr] * S0[..., None, :rr]) @ V0[..., :rr, :]
+            werr = lambda A: ((S.double() - A) @ Mh.double()).flatten(2).norm(dim=-1)   # noqa: E731
+            ferr = lambda A: (S.double() - A).flatten(2).norm(dim=-1)                   # noqa: E731
+            assert bool((werr(ref) <= werr(plain) * (1 + 1e-6) + 1e-9).all()), rr
+            assert bool((ferr(ref) >= ferr(plain) * (1 - 1e-6) - 1e-9).all()), rr
+        assert worst < 1e-3, worst
+        out[f"K{K}_weighted_fit_rel_err_max"] = worst
+        # M = I: the weighted fit is the plain fit
+        I = torch.eye(K)
+        lf, rf = lowrank_factors(S.to(device) @ I.to(device), P.to(device), 2)
+        lp, rp = lowrank_factors(S.to(device), P.to(device), 2)
+        out[f"K{K}_identity_weight_max_abs"] = float((lf @ rf - lp @ rp).abs().max())
+        assert out[f"K{K}_identity_weight_max_abs"] < 1e-4
+        # young states exact through the codec with weights (float factors)
+        codec = LowRankCodec("4", "f")
+        wts = (Mh.to(device), Mih.to(device))
+        lp4 = torch.zeros(N, H, K, 4, device=device)
+        state = torch.zeros(N, H, K, K, device=device)
+        ex = 0.0
+        for n in range(1, 5):
+            v1 = torch.randn(N, H, K, generator=g).to(device)
+            k1 = torch.randn(N, H, K, generator=g).to(device)
+            Gm = (torch.eye(K) * 0.9 + 0.05 * torch.randn(N, H, K, K, generator=g)).to(device)
+            nxt = state @ Gm + v1.unsqueeze(-1) @ k1.unsqueeze(-2)
+            state, lp4 = codec.encode(nxt, lp4, v1, torch.full((N,), n, dtype=torch.int64, device=device), None, wts)
+            ex = max(ex, float(((state - nxt).flatten(2).norm(dim=-1) / nxt.flatten(2).norm(dim=-1)).max()))
+        assert ex < 5e-4, ex
+        out[f"K{K}_young_exact_weighted_rel_err_max"] = ex
+    # Gramian
+    Rm = torch.randn(3, 8, 8, generator=g, dtype=torch.float64)
+    Rm = Rm @ Rm.mT
+    d = torch.rand(3, 8, generator=g, dtype=torch.float64) * 0.98
+    Mg = gramian(Rm, d)
+    D = torch.diag_embed(d)
+    out["gramian_residual"] = float((Mg - (Rm + D @ Mg @ D)).abs().max() / Rm.abs().max())
+    assert out["gramian_residual"] < 1e-10
+    # grammar: plain labels unchanged, weighted labels parsed
+    for lab in ("lr2q8x8", "lr2.16.4q8x8", "lr2.16.4q6x4", "lr4fx0", "lrRq8x8"):
+        c = parse_sm148(lab)
+        c.set_ref(264, 264)
+        assert c.weight is None and "weight" not in c.fields(), lab
+    for lab, kind in (("lr2q8x8wr", "r"), ("lr2q8x8wrk", "rk"), ("lr2.16.4q8x8wg", "g")):
+        c = parse_sm148(lab)
+        assert c.weight == kind and c.spec in ("2", "2.16.4") and c.qmax == 127, lab
+    assert parse_sm148("lr2q8x8wx") is None and parse_sm148("lr2q8x8w") is None and parse("lr2q8x8wr").weight == "r"
+    try:
+        parse_sm148("lrRq8x8wr")
+        raise AssertionError("lrRq8x8wr accepted")
+    except ValueError:
+        pass
+    out["sm157_grammar"] = True
+    print("state_lowrank SM157 selftest OK", out)
+    return out
+
+
 if __name__ == "__main__":
     selftest()
     selftest_sm148()
+    selftest_sm157()
