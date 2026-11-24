@@ -2541,10 +2541,11 @@
     "Faster low-rank codec in the fork (SM156): "
    ],
    "what": "Faster low-rank codec in the fork (SM156): the new state format makes full state rebuilds slower on long histories (about 1.15&times; Big, 1.6&times; Small, 1.75&times; Tiny), because each write runs small eigen solves per head. This removes per-head allocations and uses fixed-size arrays and fused loops, keeping the stored bytes identical to the current codec where possible, with the same parity and end-to-end tests, then times old and new back to back.",
-   "when": "Started 01:25 Tue 11-24 (CPU code only); merging into the release-candidate branch waits for the user&rsquo;s OK",
+   "when": "Done 02:45 Tue 11-24: stored bytes bit-identical to the merged codec; one layer write about twice as fast; T24 replay overhead vs int8 rows down from +31 to +13 &micro;s per review (Small) and +23 to +8 &micro;s (Tiny), Big within noise (under load); waiting for the user&rsquo;s OK to merge into the release-candidate branch",
    "decides": "How much of the rebuild slowdown for Small and Tiny an exact rewrite removes",
-   "state": "running",
-   "started_at": "2026-11-24T01:25+01:00"
+   "state": "done",
+   "started_at": "2026-11-24T01:25+01:00",
+   "ended_at": "2026-11-24T02:45+01:00"
   },
   {
    "id": "SM155",
@@ -3530,6 +3531,23 @@
   "s-w64kd-gate-ctx2048c-dec8-1ep/w8+s8"
  ],
  "results": [
+ {
+  "date": "11-24",
+  "kind": "cpu",
+  "id": "SM156",
+  "track": "small model",
+  "name": "Faster low-rank codec in the fork (SM156): an exact rewrite of the chosen state format&rsquo;s write path (no allocations, heads solved side by side), bit-identical stored bytes",
+  "eval": "Rust bit-identity tests against a frozen copy of the merged codec, scorer parity counts, replay benchmarks old and new back to back (release build, one thread, under load).",
+  "fork": "Branch rc-lowrank-speed (47163a997), ready to fast-forward into rc-2026-11; waiting for the user&rsquo;s OK",
+  "takeaway": "<strong>Same stored bytes, about half the rebuild overhead gone:</strong> T24 replay is now within noise of int8 rows for Big, +13 &micro;s per review for Small and +8 &micro;s for Tiny (was +31 and +23).",
+  "inputs": "show-time",
+  "started_at": "2026-11-24T01:25+01:00",
+  "ended_at": "2026-11-24T02:45+01:00",
+  "gpu_minutes": 0,
+  "cpu_minutes": 90,
+  "tickets": 0,
+  "detail": {"verdict": "Bit-identical stored bytes, about 2&times; faster layer writes; fork branch rc-lowrank-speed 47163a997 (one commit on rc-2026-11), not merged; write-up branch sm156 (RESULT.md)", "table": {"head": ["Size", "int8 rows", "T24 before", "T24 after"], "rows": [["Big", "about 3,960 reviews/s", "3,316 reviews/s", "4,219 reviews/s (within noise of int8 rows)"], ["Small", "about 16,900 reviews/s", "11,075 reviews/s", "13,804 reviews/s"], ["Tiny", "about 32,200 reviews/s", "18,334 reviews/s", "25,541 reviews/s"]]}, "notes": ["Replay of 1,000 cards &times; 24 answers, release build, one thread, medians of alternated old/new runs, timed under load (a GPU job ran and CPU load was 46% to 96%); a clean re-time is a follow-up.", "Changes: fixed-size stack arrays instead of per-head allocations, the four heads&rsquo; small eigen solves run side by side in one loop with the same operations in the same order, no second decode. Codec alone at rank 4: 21.6 &rarr; 11.0 &micro;s per layer write at head size 16, 33.2 &rarr; 16.0 &micro;s at head size 32.", "Tests: a frozen copy of the merged codec checks 9,900 layer writes per head size and 1,332 single-head solves bit for bit; 1,564 Rust tests pass (base 1,560); clippy and fmt clean."]}
+ },
  {
   "date": "11-24",
   "kind": "cpu-analysis",
