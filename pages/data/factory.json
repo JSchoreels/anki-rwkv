@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-24T13:23:09+01:00",
- "updated": "2026-11-24 13:23",
- "material": "2e793332fe6e6425",
- "summary": "running 001567",
+ "generated_at": "2026-11-24T14:11:10+01:00",
+ "updated": "2026-11-24 14:11",
+ "material": "69bf4ee82121f9ff",
+ "summary": "running 001568, finished 001567",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring, show-time inputs for both heads (curve / instant)",
@@ -413,18 +413,18 @@
  "now": [
   {
    "what": "Instant ensemble (SM160): in its default mode the fork runs both models of a size on every review, and the two-head model&rsquo;s own instant prediction is thrown away; this tests a fixed weighted average of the two instant predictions (one weight per size, fitted on 100 users outside the evaluation pools) against the Instant-Only model alone, at the chosen state format, on the 732 set (GPU), at no extra deploy cost",
-   "id": "SM160, ticket 001567",
+   "id": "SM160, ticket 001568",
    "kind": "gpu",
    "decides": "Whether the fork should average the two instant predictions (go: CI below 0 and at least &minus;0.05% vs the Instant-Only model alone)",
    "why": "",
-   "job": "Deploy-time ensemble of the two instant predictions (SM160): T24, big (2 models), the 732 set with the per-review dump, e2s-query inputs (pass 1, 0 done, cap 0.8)",
+   "job": "Deploy-time ensemble of the two instant predictions (SM160): T24, big (2 models), the 732 set with the per-review dump, e2s-query inputs (pass 2, 713 done, cap 0.8)",
    "linked": true,
    "track": "small model",
-   "ticket": "001567-sm160",
-   "started": "13:21",
-   "elapsed": "0:02",
+   "ticket": "001568-sm160",
+   "started": "14:10",
+   "elapsed": "0:00",
    "progress": null,
-   "eta": "~14:56"
+   "eta": "~14:50"
   }
  ],
  "charts": [
@@ -597,6 +597,15 @@
  "waiting": [],
  "recent": [
   {
+   "ticket": "001567-sm160",
+   "id": "SM160",
+   "what": "Deploy-time ensemble of the two instant predictions (SM160): T24, big (2 models), the 732 set with the per-review dump, e2s-query inputs (pass 1, 0 done, cap 0.8)",
+   "ended": "14:10",
+   "date": "11-24",
+   "exit": 0,
+   "ran": "0:49"
+  },
+  {
    "ticket": "001566-sm160",
    "id": "SM160",
    "what": "Deploy-time ensemble of the two instant predictions (SM160): T24, small (2 models), the 732 set with the per-review dump, e2s-query inputs (pass 3, 722 done, cap 0.8)",
@@ -640,15 +649,6 @@
    "date": "11-24",
    "exit": 0,
    "ran": "0:23"
-  },
-  {
-   "ticket": "001561-sm160",
-   "id": "SM160",
-   "what": "Deploy-time ensemble of the two instant predictions (SM160): T24 on the 100 training users (6 models) with the per-review dump, e2s-query inputs (pass 3, 99 done, cap 0.92)",
-   "ended": "12:24",
-   "date": "11-24",
-   "exit": 0,
-   "ran": "0:00"
   }
  ],
  "plan": [
@@ -2778,8 +2778,8 @@
    "decides": "Whether the fork should average the two instant predictions (go: CI below 0 and at least &minus;0.05% vs the Instant-Only model alone)",
    "state": "running",
    "started_at": "2026-11-24T12:03:33+01:00",
-   "started": "13:21",
-   "ticket": "001567-sm160",
+   "started": "14:10",
+   "ticket": "001568-sm160",
    "ends_at": "2026-11-24T17:33:33+01:00"
   },
   {
