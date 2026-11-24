@@ -1,6 +1,6 @@
 # Output-aware T24 on the 732 set (SM158): design
 
-Written Tue 11-24 about 03:40, before any 732-set row of a weighted label was scored. Branch `sm158`, worktree `C:/Users/jonat/workspace/wt/sm158`, cut from `origin/sm157` (4b2a86b6, the result commit of output-aware low-rank truncation (SM157)). GPU scoring only, no training, no refit.
+Written Tue 11-24 about 03:28 (machine clock), before any 732-set row of a weighted label was scored. Branch `sm158`, worktree `C:/Users/jonat/workspace/wt/sm158`, cut from `origin/sm157` (4b2a86b6, the result commit of output-aware low-rank truncation (SM157)). GPU scoring only, no training, no refit.
 
 ## Why a separate test
 
