@@ -1,7 +1,7 @@
 {
- "generated_at": "2026-11-24T02:46:48+01:00",
- "updated": "2026-11-24 02:46",
- "material": "8b7bb241a486db69",
+ "generated_at": "2026-11-24T03:20:18+01:00",
+ "updated": "2026-11-24 03:20",
+ "material": "115ca26f02605c05",
  "summary": "running 001543",
  "headline": [
   {
@@ -422,7 +422,7 @@
    "track": "small model",
    "ticket": "001543-sm152",
    "started": "02:34",
-   "elapsed": "0:12",
+   "elapsed": "0:45",
    "progress": null,
    "eta": "~05:19"
   }
@@ -2765,10 +2765,11 @@
    "kind": "cpu",
    "minutes": 120,
    "what": "Output-aware low-rank truncation (SM157): the state is only read through products on its key side, so instead of keeping the rank-2 part with the most energy, this keeps the part that matters most for what the model reads, using one small matrix per layer and head fitted offline on training users (three variants, one borrowed from balanced truncation in control theory). CPU pointer on 8 probe users for the six release models, plain against weighted, rank 2 and the chosen format; same stored bytes.",
-   "when": "Started 01:50 Tue 11-24 (CPU only, about 1 to 2 h); a 732-set GPU run (about 3.5 h) only if the pointer cuts the rank-2 cost by at least a third",
+   "when": "Done 03:19 Tue 11-24: pointer <strong>no go</strong> under its own rule (one Small head slightly worse on 8 users), but the receptance-plus-removal weighting cut the rank-2 cost by a median 57% and looked strongest on the Big instant heads; confirmed separately on the 732 set (SM158)",
    "decides": "Whether weighting the truncation widens Big&rsquo;s thin margin or allows fewer bytes at the same cost",
-   "state": "planned",
-   "started_at": "2026-11-24T01:50+01:00"
+   "state": "done",
+   "started_at": "2026-11-24T01:50+01:00",
+   "ended_at": "2026-11-24T03:19+01:00"
   },
   {
    "id": "SM156",
@@ -3693,6 +3694,114 @@
   }
  ],
  "results": [
+  {
+   "date": "11-24",
+   "kind": "cpu-analysis",
+   "id": "SM157",
+   "track": "small model",
+   "name": "Output-aware low-rank truncation (SM157): keep the part of each state that matters most for what the model reads, with one small matrix per layer and head fitted on training users; CPU pointer on 8 probe users",
+   "eval": "CPU only, 8 probe users, six release models, show-time inputs, rank 2 and the chosen format, plain against three weightings; paired user bootstrap 95%.",
+   "fork": "Nothing changed in the fork",
+   "takeaway": "<strong>No go as a pointer, but one weighting looks promising on Big:</strong> on the Big instant heads it cut the chosen format&rsquo;s cost from +0.034% / +0.023% to +0.002% / +0.004% on these 8 users; a separate 732-set run decides.",
+   "inputs": "show-time",
+   "started_at": "2026-11-24T01:50+01:00",
+   "ended_at": "2026-11-24T03:19+01:00",
+   "gpu_minutes": 0,
+   "cpu_minutes": 130,
+   "tickets": 0,
+   "detail": {
+    "verdict": "Pointer no go under its pre-registered rule (no weight kind passed: the best one was more than 0.01% worse than plain on one Small head); the receptance-plus-removal weighting goes to a separate 732-set confirmation (SM158). Branch sm157",
+    "table": {
+     "head": [
+      "Model",
+      "Head",
+      "T24 plain",
+      "T24 weighted (receptance + removal key)",
+      "Q2 plain",
+      "Q2 weighted"
+     ],
+     "rows": [
+      [
+       "Big two-head (SM91s2)",
+       "curve",
+       "+0.022%",
+       "&minus;0.041%",
+       "+0.030%",
+       "&minus;0.032%"
+      ],
+      [
+       "Big two-head (SM91s2)",
+       "instant",
+       "+0.034%",
+       "+0.002%",
+       "+0.079%",
+       "+0.039%"
+      ],
+      [
+       "Big Instant-Only (SM99)",
+       "instant",
+       "+0.023%",
+       "+0.004%",
+       "+0.063%",
+       "+0.043%"
+      ],
+      [
+       "Small two-head (SM118)",
+       "curve",
+       "+0.008%",
+       "+0.005%",
+       "+0.011%",
+       "+0.004%"
+      ],
+      [
+       "Small two-head (SM118)",
+       "instant",
+       "&minus;0.021%",
+       "&minus;0.004%",
+       "&minus;0.023%",
+       "+0.003%"
+      ],
+      [
+       "Small Instant-Only (SM113)",
+       "instant",
+       "&minus;0.010%",
+       "&minus;0.001%",
+       "+0.015%",
+       "+0.001%"
+      ],
+      [
+       "six-layer Tiny two-head (SM130)",
+       "curve",
+       "&minus;0.003%",
+       "&minus;0.003%",
+       "+0.017%",
+       "&minus;0.028%"
+      ],
+      [
+       "six-layer Tiny two-head (SM130)",
+       "instant",
+       "+0.018%",
+       "+0.025%",
+       "+0.078%",
+       "+0.061%"
+      ],
+      [
+       "six-layer Tiny Instant-Only (SM130)",
+       "instant",
+       "+0.032%",
+       "+0.045%",
+       "+0.066%",
+       "+0.066%"
+      ]
+     ]
+    },
+    "notes": [
+     "8 probe users of the low-rank structure probe (SM147), CPU, cost vs int8 rows; intervals are wide with 8 users.",
+     "One small matrix per layer and head, fitted on 100 training users kept out of every eval pool: 40,960 bytes for Big, 6,144 for Small, 4,096 for the six-layer Tiny (float16). The discounted-Gramian variant made the cost worse; receptance only cut the median by 39%.",
+     "Existing labels rescored bit-identically on the 3 smoke users (54 of 54 rows)."
+    ]
+   }
+  },
   {
    "date": "11-24",
    "kind": "cpu",
