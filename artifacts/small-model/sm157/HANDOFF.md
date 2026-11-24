@@ -1,5 +1,7 @@
 # Output-aware low-rank truncation (SM157): handoff
 
+**Status 11-24: finished.** The CPU chain ended 03:19 with `SM157 RUN DONE`; verdict NO GO (see `RESULT.md`). The GPU follow-up below (`launch-sm157-gpu.sh`) is NOT run. The receptance plus removal key (`rk`) hypothesis is tested separately in output-aware T24 on the 732 set (SM158), branch `sm158`.
+
 Design and rule: `design.md` (pre-registered and committed in 92e1ace3 before any probe row of a weighted label was scored). The agent that launched the CPU chain has stopped (the wait is over 20 minutes); a fresh agent (Sonnet, medium effort) processes the result.
 
 ## Done
