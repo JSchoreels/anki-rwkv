@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-24T12:24:37+01:00",
- "updated": "2026-11-24 12:24",
- "material": "b2d3216772fad5f3",
- "summary": "idle, finished 001561",
+ "generated_at": "2026-11-24T12:25:12+01:00",
+ "updated": "2026-11-24 12:25",
+ "material": "5dc3a4a11c6a2f53",
+ "summary": "running 001562",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring, show-time inputs for both heads (curve / instant)",
@@ -410,7 +410,23 @@
    }
   ]
  },
- "now": [],
+ "now": [
+  {
+   "what": "Instant ensemble (SM160): in its default mode the fork runs both models of a size on every review, and the two-head model&rsquo;s own instant prediction is thrown away; this tests a fixed weighted average of the two instant predictions (one weight per size, fitted on 100 users outside the evaluation pools) against the Instant-Only model alone, at the chosen state format, on the 732 set (GPU), at no extra deploy cost",
+   "id": "SM160, ticket 001562",
+   "kind": "gpu",
+   "decides": "Whether the fork should average the two instant predictions (go: CI below 0 and at least &minus;0.05% vs the Instant-Only model alone)",
+   "why": "",
+   "job": "Deploy-time ensemble of the two instant predictions (SM160): T24, tiny (2 models), the 732 set with the per-review dump, e2s-query inputs (pass 1, 0 done, cap 0.8)",
+   "linked": true,
+   "track": "small model",
+   "ticket": "001562-sm160",
+   "started": "12:24",
+   "elapsed": "0:00",
+   "progress": null,
+   "eta": "~13:04"
+  }
+ ],
  "charts": [
   {
    "title": "Small model, leak-free (SM72s): LogLoss per epoch, 458-user set (lower is better)",
@@ -2749,10 +2765,11 @@
    "what": "Instant ensemble (SM160): in its default mode the fork runs both models of a size on every review, and the two-head model&rsquo;s own instant prediction is thrown away; this tests a fixed weighted average of the two instant predictions (one weight per size, fitted on 100 users outside the evaluation pools) against the Instant-Only model alone, at the chosen state format, on the 732 set (GPU), at no extra deploy cost",
    "when": "Launched 12:07 Tue 11-24 (smoke passed 12:09); decision phase (chosen format) done about 14:00 to 15:00, the int8 rows for information about 16:30 to 18:00",
    "decides": "Whether the fork should average the two instant predictions (go: CI below 0 and at least &minus;0.05% vs the Instant-Only model alone)",
-   "state": "partial",
-   "started_at": "2026-11-24T12:07+01:00",
-   "ended": "12:24",
-   "ended_at": "2026-11-24T12:24:07+01:00"
+   "state": "running",
+   "started_at": "2026-11-24T12:03:33+01:00",
+   "started": "12:24",
+   "ticket": "001562-sm160",
+   "ends_at": "2026-11-24T17:33:33+01:00"
   },
   {
    "id": "SM161",
