@@ -1,0 +1,34 @@
+[sm158 11-24 03:33:53] started: 60c0b603 Output-aware T24 on the 732 set (SM158): CPU proofs ALL OK, launcher dry run OK (DRYRUN=0; dirty source files: 0)
+[sm158] selftest OK
+[sm158] pins OK
+[sm158 11-24 03:34:02] weight kind rk (fixed for SM158)
+[sm158 11-24 03:34:02] enqueue: GPU smoke: 3 smoke users, 6 models x REF / T24 / Q2 and T24 weighted (rk), vs the CPU rows (expected 25 min, max wait 99972 min, 100000 min to the next quiet window)
+[sm158 11-24 05:10:52] exit 0: GPU smoke: 3 smoke users, 6 models x REF / T24 / Q2 and T24 weighted (rk), vs the CPU rows (nvidia-smi max 14017 MiB, baseline 12019 MiB)
+[sm158 11-24 05:10:53] [sm158] smoke OK: 54 checks; REF max |GPU - CPU| 1.00e-05 (tol 1e-05); low-rank labels max 2.50e-05 (tol 0.0003, mean 0.0001); REF and T24 vs SM148's GPU rows max 2.00e-06 (tol 1e-05)
+[sm158 11-24 05:10:53] LABELS T24RK Q2RK
+MINUTES Tiny=98 Small=142 Big=282
+[sm158] ETA 7.81 GPU hours for T24RK, Q2RK (limit 8.0 h; T24RK only 4.07 h): scoring T24RK, Q2RK
+[sm158 11-24 05:10:54] ETA rule: labels T24RK Q2RK; expected minutes tiny 98, small 142, big 282
+[sm158 11-24 05:10:54] enqueue: scoring tiny (2 models x T24RK Q2RK, output-aware rk, int8 factors) on e2s-query inputs, the 732 set (pass 1, 0 done, cap 0.8) (expected 98 min, max wait 99899 min, 100000 min to the next quiet window)
+[sm158 11-24 06:29:44] exit 0: scoring tiny (2 models x T24RK Q2RK, output-aware rk, int8 factors) on e2s-query inputs, the 732 set (pass 1, 0 done, cap 0.8) (nvidia-smi max 13969 MiB, baseline 995 MiB)
+[sm158 11-24 06:29:44] enqueue: scoring tiny (2 models x T24RK Q2RK, output-aware rk, int8 factors) on e2s-query inputs, the 732 set (pass 2, 722 done, cap 0.8) (expected 40 min, max wait 99957 min, 100000 min to the next quiet window)
+[sm158 11-24 06:36:32] exit 0: scoring tiny (2 models x T24RK Q2RK, output-aware rk, int8 factors) on e2s-query inputs, the 732 set (pass 2, 722 done, cap 0.8) (nvidia-smi max 15743 MiB, baseline 691 MiB)
+[sm158 11-24 06:36:32] tiny: 723 of 723 users scored for every label (4 labels)
+[sm158 11-24 06:36:32] enqueue: scoring small (2 models x T24RK Q2RK, output-aware rk, int8 factors) on e2s-query inputs, the 732 set (pass 1, 0 done, cap 0.8) (expected 142 min, max wait 99855 min, 100000 min to the next quiet window)
+[sm158 11-24 08:21:50] exit 0: scoring small (2 models x T24RK Q2RK, output-aware rk, int8 factors) on e2s-query inputs, the 732 set (pass 1, 0 done, cap 0.8) (nvidia-smi max 15770 MiB, baseline 664 MiB)
+[sm158 11-24 08:21:51] enqueue: scoring small (2 models x T24RK Q2RK, output-aware rk, int8 factors) on e2s-query inputs, the 732 set (pass 2, 721 done, cap 0.8) (expected 40 min, max wait 99957 min, 100000 min to the next quiet window)
+[sm158 11-24 08:22:45] exit 0: scoring small (2 models x T24RK Q2RK, output-aware rk, int8 factors) on e2s-query inputs, the 732 set (pass 2, 721 done, cap 0.8) (nvidia-smi max 13548 MiB, baseline 659 MiB)
+[sm158 11-24 08:22:45] enqueue: scoring small (2 models x T24RK Q2RK, output-aware rk, int8 factors) on e2s-query inputs, the 732 set (pass 3, 722 done, cap 0.8) (expected 40 min, max wait 99957 min, 100000 min to the next quiet window)
+[sm158 11-24 08:23:42] exit 0: scoring small (2 models x T24RK Q2RK, output-aware rk, int8 factors) on e2s-query inputs, the 732 set (pass 3, 722 done, cap 0.8) (nvidia-smi max 12810 MiB, baseline 659 MiB)
+[sm158 11-24 08:23:43] small: 723 of 723 users scored for every label (4 labels)
+[sm158 11-24 08:23:43] enqueue: scoring big (2 models x T24RK Q2RK, output-aware rk, int8 factors) on e2s-query inputs, the 732 set (pass 1, 0 done, cap 0.8) (expected 282 min, max wait 99715 min, 100000 min to the next quiet window)
+[sm158 11-24 11:22:57] exit 0: scoring big (2 models x T24RK Q2RK, output-aware rk, int8 factors) on e2s-query inputs, the 732 set (pass 1, 0 done, cap 0.8) (nvidia-smi max 14522 MiB, baseline 659 MiB)
+[sm158 11-24 11:22:58] enqueue: scoring big (2 models x T24RK Q2RK, output-aware rk, int8 factors) on e2s-query inputs, the 732 set (pass 2, 712 done, cap 0.8) (expected 40 min, max wait 99957 min, 100000 min to the next quiet window)
+[sm158 11-24 11:28:25] exit 0: scoring big (2 models x T24RK Q2RK, output-aware rk, int8 factors) on e2s-query inputs, the 732 set (pass 2, 712 done, cap 0.8) (nvidia-smi max 14581 MiB, baseline 1277 MiB)
+[sm158 11-24 11:28:25] no progress on big (712 of 718 users): next pass at cap 0.92 (memory only, same numerics)
+[sm158 11-24 11:28:25] enqueue: scoring big (2 models x T24RK Q2RK, output-aware rk, int8 factors) on e2s-query inputs, the 732 set (pass 3, 712 done, cap 0.92) (expected 40 min, max wait 99957 min, 100000 min to the next quiet window)
+[sm158 11-24 11:43:07] exit 0: scoring big (2 models x T24RK Q2RK, output-aware rk, int8 factors) on e2s-query inputs, the 732 set (pass 3, 712 done, cap 0.92) (nvidia-smi max 15648 MiB, baseline 1277 MiB)
+[sm158 11-24 11:43:08] enqueue: scoring big (2 models x T24RK Q2RK, output-aware rk, int8 factors) on e2s-query inputs, the 732 set (pass 4, 714 done, cap 0.92) (expected 40 min, max wait 99957 min, 100000 min to the next quiet window)
+[sm158 11-24 11:49:00] exit 0: scoring big (2 models x T24RK Q2RK, output-aware rk, int8 factors) on e2s-query inputs, the 732 set (pass 4, 714 done, cap 0.92) (nvidia-smi max 15590 MiB, baseline 310 MiB)
+[sm158 11-24 11:49:00] big: 718 of 718 users scored for every label (4 labels)
+[sm158 11-24 11:49:00] SM158 GPU DONE: rows in C:/Users/jonat/workspace/wt/sm158/artifacts/small-model/sm158/gpu/sm158-rows-732.jsonl (labels T24RK Q2RK; the read-out vs SM148's REF / Q2 / T24 rows is the next agent's step)

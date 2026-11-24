@@ -1,5 +1,7 @@
 # Output-aware T24 on the 732 set (SM158): handoff
 
+Status 11-24: DONE. GPU chain finished 11:49, read-out decided: go NO, T24 stays for every size (RESULT.md). Nothing pending (the factory page is the main session step).
+
 Design and rules: `design.md` (pre-registered in 8604dbbd before any 732-set row of a weighted label existed). The agent that launched the GPU chain has stopped (the wait is hours); a fresh agent (Sonnet, medium effort) processes the result.
 
 ## Done
