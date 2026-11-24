@@ -318,13 +318,16 @@ class LowRankCodec:
         self.rows_bits = self.shift_bits = None
         self.float_shift = False
         self.weight = None     # SM157: output-aware truncation, "r" / "rk" / "g" (label suffix w<kind>), None = plain
+        self.grow = None       # SM159: energy-triggered rank growth, tau (label suffix g<max>e<tau x 1e4>), None = off
+        self.grow_code = None  # SM159: the label's integer tau code (tau = code / 1e4)
         self._dev = {}
 
     def __bool__(self):
         return True
 
     def __repr__(self):
-        return f"LowRankCodec({self.spec!r}, {self.quant!r})" + (f" w{self.weight}" if self.weight else "")
+        return (f"LowRankCodec({self.spec!r}, {self.quant!r})" + (f" w{self.weight}" if self.weight else "")
+                + (f" g{self.rmax}e{self.grow_code}" if self.grow is not None else ""))
 
     def set_ref(self, rows_bits, shift_bits):
         """REF's formats (the scorer's parse_variant): the R tier's rows bits; the shift vectors in REF's format, at
@@ -343,6 +346,10 @@ class LowRankCodec:
             out["weight_ridge"] = RIDGE
             if self.weight == "g":
                 out["weight_decay_max"] = DECAY_MAX
+        if self.grow is not None:   # SM159 (other labels keep their descriptor)
+            out["grow_base"] = self.kinds[0]
+            out["grow_max"] = self.rmax
+            out["grow_tau"] = self.grow
         return out
 
     def _tables(self, device):
@@ -405,7 +412,43 @@ class LowRankCodec:
         return stored, left_new
 
 
-def lowrank_factors(S, P, r):
+    def encode_energy(self, nxt, left_prev, v, n, cur):
+        """SM159 energy-triggered rank growth (artifacts/small-model/sm159/design.md). nxt, left_prev, v, n as encode;
+        cur [N, H] int64 the rank cap of each written (entity, head) before this write. Per head: the share of the
+        Frobenius energy of the exact update `nxt` that a truncation at the cap would discard, 1 - (sum of the cap's
+        largest squared singular values) / (sum of all), from the factored solve's eigenvalues; when it exceeds tau and
+        the cap is below rmax, the cap grows by one (never shrinks). The head is then stored at rank min(n, cap) with
+        the codec's factor format, as encode. -> stored, left factors, the new caps (non-finite heads: cap unchanged)."""
+        P = torch.cat([left_prev, v.unsqueeze(-1)], -1)
+        finite = torch.isfinite(nxt).flatten(2).all(-1) & torch.isfinite(P).flatten(2).all(-1)   # [N, H]
+        fin4 = finite[..., None, None]
+        lf, rf, s2 = lowrank_factors(torch.where(fin4, nxt, torch.zeros_like(nxt)),
+                                     torch.where(fin4, P, torch.zeros_like(P)), self.rmax, with_s2=True)
+        share = discarded_share(s2, cur)
+        cur_new = torch.where(finite & (share > self.grow) & (cur < self.rmax), cur + 1, cur)
+        r_eff = torch.minimum(n[:, None], cur_new)                                  # [N, H]
+        comp = (torch.arange(self.rmax, device=nxt.device)[None, None, :] < r_eff[..., None]).to(lf.dtype)
+        lf = lf * comp[:, :, None, :]
+        rf = rf * comp[..., None]
+        if self.qmax:
+            lf = quant_vectors(lf, -2, self.qmax)
+            rf = quant_vectors(rf, -1, self.qmax)
+        stored = torch.where(fin4, lf @ rf, nxt)
+        left_new = torch.where(fin4, lf, torch.zeros_like(lf))
+        return stored, left_new, cur_new
+
+
+def discarded_share(s2, cap):
+    """SM159: s2 [N, H, m] eigenvalues of B B^T (ascending, the squared singular values of the update), cap [N, H] ->
+    float32 [N, H] share of the energy outside the cap's largest components (0 for a zero matrix)."""
+    sd = s2.flip(-1).clamp(min=0).float()
+    total = sd.sum(-1)
+    kept = sd.cumsum(-1).gather(-1, (cap.clamp(1, sd.shape[-1]) - 1).unsqueeze(-1)).squeeze(-1)
+    return torch.where(total > 0, (1 - kept / torch.where(total > 0, total, torch.ones_like(total))).clamp(min=0),
+                       torch.zeros_like(total))
+
+
+def lowrank_factors(S, P, r, with_s2=False):
     """Best rank-r approximation of S [N, H, K, K] (float32) whose column space lies in span(P) (P [N, H, K, m],
     m >= r): orthonormal basis Q of span(P) (eigh of the column-normalised Gram, float64; directions with a Gram
     eigenvalue below 1e-12 x the largest dropped), B = Q^T S, eigh of B B^T (float64) -> left = Q U_r sqrt(sigma),
@@ -428,6 +471,8 @@ def lowrank_factors(S, P, r):
     g = sigma.sqrt()
     lf = left * g.unsqueeze(-2)
     rf = right / torch.where(g > 0, g, torch.ones_like(g)).unsqueeze(-1)
+    if with_s2:   # SM159: the squared singular values of S (ascending), for the energy trigger
+        return lf.float(), rf.float(), s2
     return lf.float(), rf.float()
 
 
@@ -482,6 +527,8 @@ def lowrank_loop(codec, r, k, v, w, a, kd, skip, step, rows_quant, where=None):
     collect = _W.stats is not None   # SM157 fit (sm157_fit.py): key-side statistics of the written rows
     if collect and where is None:
         raise RuntimeError("SM157 statistics: the WKV call has no (stream, layer)")
+    grow = codec.grow is not None   # SM159: per (entity, head) rank caps, from the base rank
+    cap = torch.full((B, H), codec.kinds[0] if grow else 0, dtype=torch.int64, device=dev)
     for t in range(T):
         vt = v[:, t].float()
         out[:, t], nxt = step(r[:, t].float(), k[:, t].float(), vt, w[:, t].float(), a[:, t].float(),
@@ -490,10 +537,19 @@ def lowrank_loop(codec, r, k, v, w, a, kd, skip, step, rows_quant, where=None):
         if rows.numel():
             if collect:
                 record_stats(where, r[rows, t], kd[rows, t], w[rows, t])
-            s_new, l_new = codec.encode(nxt[rows], left[rows], vt[rows], counts[rows, t], rows_quant, wts)
+            if grow:
+                s_new, l_new, c_new = codec.encode_energy(nxt[rows], left[rows], vt[rows], counts[rows, t], cap[rows])
+                cap[rows] = c_new
+            else:
+                s_new, l_new = codec.encode(nxt[rows], left[rows], vt[rows], counts[rows, t], rows_quant, wts)
             state = state.clone()
             state[rows] = s_new
             left[rows] = l_new
+    if RANK_READOUT.on and where is not None and codec.rmax and not codec.has_rows and T:   # SM159 byte read-out
+        n_end = counts[:, -1]
+        r_end = (torch.minimum(n_end[:, None], cap) if grow
+                 else torch.minimum(n_end, codec.kind_of(n_end))[:, None].expand(B, H))
+        RANK_READOUT.record(where, n_end, r_end, K)
     return out
 
 
@@ -542,16 +598,24 @@ def configure_expertium_sm148(layout, codec):
 
 def parse_sm148(state):
     import re
-    m = re.fullmatch(r"lr([0-9R][0-9R.]*?)(q8|q6|f)x(8|4|0)(w(?:rk|r|g))?", state)
+    m = re.fullmatch(r"lr([0-9R][0-9R.]*?)(q8|q6|f)x(8|4|0)(?:g([2-8])e([0-9]{1,5}))?(w(?:rk|r|g))?", state)
     if not m:
         return None
     codec = LowRankCodec(m.group(1), m.group(2))
     codec.float_shift = m.group(3) == "0"   # proof only: float32 shift vectors (SM147's lr<r> placement)
     codec.shift_width = int(m.group(3))      # SM152: x4 = int4 shift vectors
-    if m.group(4):                           # SM157: output-aware truncation (WEIGHT_KINDS)
+    if m.group(6):                           # SM157: output-aware truncation (WEIGHT_KINDS)
         if codec.rmax == 0:
             raise ValueError(f"SM157 weighted truncation {state!r}: needs a rank tier")
-        codec.weight = m.group(4)[1:]
+        codec.weight = m.group(6)[1:]
+    if m.group(4):                           # SM159: energy-triggered rank growth g<max>e<tau x 1e4>
+        if len(codec.kinds) != 1 or codec.kinds[0] == "R" or codec.weight:
+            raise ValueError(f"SM159 rank growth {state!r}: one base rank, no tiers, no R, no weights")
+        if not codec.kinds[0] < int(m.group(4)):
+            raise ValueError(f"SM159 rank growth {state!r}: the maximum rank must exceed the base rank")
+        codec.rmax = int(m.group(4))
+        codec.grow_code = int(m.group(5))
+        codec.grow = codec.grow_code / 1e4
     return codec
 
 
@@ -842,7 +906,210 @@ def selftest_sm157(device="cpu"):
     return out
 
 
+# ------------------------------------------------------------------------------------------------ SM159
+
+# SM159: energy-triggered rank growth (artifacts/small-model/sm159/design.md). Label suffix g<max>e<code> after the
+# shift width of a single-rank SM148 label, e.g. lr2q8x8g4e150: every (entity, layer, head) starts with a rank cap of
+# 2; at each write, when truncation at the cap would discard more than tau = code / 1e4 of the exact update's
+# Frobenius energy, the cap grows by one (at most <max>, never shrinks); the head is stored at rank min(n, cap).
+# RANK_READOUT: per scorer row (one user, one label), the end-of-history rank of every answered entity's heads (aggregates
+# only), for the byte read-out of any rank-only SM148 codec (plain tiers too: rank min(n, tier rank)).
+
+class RankStats:
+    """The scorer runs each stream's layers once per group of entities of similar length (srs_model.forward_batch; on
+    the expertium CPU path layer by layer over all groups, on the fork path group by group), so a (stream, layer) is
+    recorded once per group, in the same group order for every layer: the g-th call of a layer is group g. Sums add
+    up over groups, entities are counted at layer 0, and an entity's maximum rank over its layers is kept per group."""
+
+    def __init__(self):
+        self.on = True
+        self.reset()
+
+    def reset(self):
+        self.streams = {}
+
+    def record(self, where, n_end, r_end, K):
+        """where (stream, layer); n_end [B] answer counts at the end of the history; r_end [B, H] stored ranks."""
+        stream, layer = int(where[0]), int(where[1])
+        name = STREAMS.get(stream, str(stream))
+        m = (n_end >= 1).cpu()
+        n = n_end.cpu()[m]
+        r = r_end.cpu()[m].long()
+        old = n >= 16
+        H = int(r_end.shape[1])
+        st = self.streams.setdefault(name, {"entities": 0, "entities_n1": 0, "entities_ge16": 0, "H": H, "K": int(K),
+                                            "layers": [], "sum_rank": 0, "rank_hist": [0] * 9,
+                                            "rank_hist_ge16": [0] * 9, "_groups": [], "_calls": {}})
+        if (st["H"], st["K"]) != (H, int(K)):
+            raise RuntimeError(f"SM159 ranks: stream {name} changed heads / head size")
+        g = st["_calls"].get(layer, 0)
+        st["_calls"][layer] = g + 1
+        mx = r.amax(-1) if r.numel() else torch.zeros(0, dtype=torch.long)
+        if layer == 0:   # a new group of entities
+            if g != len(st["_groups"]):
+                raise RuntimeError(f"SM159 ranks: stream {name} group order broken")
+            st["entities"] += int(m.sum())
+            st["entities_n1"] += int((n == 1).sum())
+            st["entities_ge16"] += int(old.sum())
+            st["_groups"].append([mx, old])
+        else:
+            if g >= len(st["_groups"]) or st["_groups"][g][0].shape[0] != mx.shape[0]:
+                raise RuntimeError(f"SM159 ranks: stream {name} layer {layer} call {g} matches no layer-0 group")
+            st["_groups"][g][0] = torch.maximum(st["_groups"][g][0], mx)
+        if layer not in st["layers"]:
+            st["layers"].append(layer)
+        st["sum_rank"] += int(r.sum())
+        for key, sel in (("rank_hist", r), ("rank_hist_ge16", r[old])):
+            h = torch.bincount(sel.flatten(), minlength=9).tolist()[:9]
+            st[key] = [a + b for a, b in zip(st[key], h)]
+
+    def export(self):
+        out = {}
+        for name, st in sorted(self.streams.items()):
+            calls = set(st["_calls"].values())
+            if len(calls) != 1:
+                raise RuntimeError(f"SM159 ranks: stream {name} layers have different group counts {st['_calls']}")
+            d = {k: v for k, v in st.items() if not k.startswith("_")}
+            d["layers"] = sorted(st["layers"])
+            d["groups"] = calls.pop()
+            mx = torch.cat([x for x, _ in st["_groups"]]) if st["_groups"] else torch.zeros(0, dtype=torch.long)
+            old = torch.cat([o for _, o in st["_groups"]]) if st["_groups"] else torch.zeros(0, dtype=torch.bool)
+            d["entity_max_hist"] = torch.bincount(mx, minlength=9).tolist()[:9]
+            d["entity_max_hist_ge16"] = torch.bincount(mx[old], minlength=9).tolist()[:9]
+            out[name] = d
+        return out
+
+
+RANK_READOUT = RankStats()
+
+
+def selftest_sm159(device="cpu"):
+    """SM159 identities (seeded): the discarded share equals the float64 SVD tail share; caps start at the base rank,
+    grow by at most one per write, never shrink, stay <= max; a write that grows the cap stores the update exactly with
+    float factors; tau above 1 never grows and equals the plain rank-2 codec; tau 0 grows every head that has a tail;
+    grammar and descriptors; the rank read-out."""
+    g = torch.Generator().manual_seed(159)
+    out = {}
+    for K in (16, 32):
+        N, H = 40, 4
+        A = torch.randn(N, H, K, 3, generator=g) @ torch.randn(N, H, 3, K, generator=g)
+        A[0, 0] = 0
+        P = torch.cat([torch.linalg.qr(A)[0][..., :3], torch.randn(N, H, K, 1, generator=g)], -1)   # span ⊇ col(A)
+        lf, rf, s2 = lowrank_factors(A.to(device), P.to(device), 3, with_s2=True)
+        sv = torch.linalg.svdvals(A.double())
+        worst = 0.0
+        for c in (1, 2, 3):
+            share = discarded_share(s2, torch.full((N, H), c, dtype=torch.int64, device=device)).double().cpu()
+            ref = 1 - (sv[..., :c] ** 2).sum(-1) / (sv ** 2).sum(-1).clamp(min=1e-300)
+            ref[0, 0] = 0
+            worst = max(worst, float((share - ref).abs().max()))
+        assert worst < 1e-4, worst
+        out[f"K{K}_share_abs_err_max"] = worst
+        # the step loop of the codec on a synthetic recurrence: cap rules and exact growth (float factors)
+        cf = parse_sm148("lr2fx8g4e100")
+        cap = torch.full((N, H), 2, dtype=torch.int64, device=device)
+        left = torch.zeros(N, H, K, 4, device=device)
+        state = torch.zeros(N, H, K, K, device=device)
+        grown_exact = 0.0
+        for n in range(1, 13):
+            v1 = torch.randn(N, H, K, generator=g).to(device)
+            k1 = torch.randn(N, H, K, generator=g).to(device)
+            Gm = (torch.eye(K) * 0.95 + 0.05 * torch.randn(N, H, K, K, generator=g)).to(device)
+            nxt = state @ Gm + v1.unsqueeze(-1) @ k1.unsqueeze(-2)
+            nn = torch.full((N,), n, dtype=torch.int64, device=device)
+            state, left, c2 = cf.encode_energy(nxt, left, v1, nn, cap)
+            d = c2 - cap
+            assert int(d.min()) >= 0 and int(d.max()) <= 1 and int(c2.max()) <= 4 and int(c2.min()) >= 2
+            if bool((d > 0).any()):
+                e = (state - nxt).flatten(2).norm(dim=-1) / nxt.flatten(2).norm(dim=-1)
+                grown_exact = max(grown_exact, float(e[d > 0].max()))
+            rk = (left.abs().amax(-2) > 0).sum(-1)
+            assert bool((rk <= torch.minimum(nn[:, None], c2)).all())
+            cap = c2
+        assert grown_exact < 5e-4, grown_exact
+        assert int(cap.max()) == 4
+        out[f"K{K}_grown_write_exact_rel_err_max"] = grown_exact
+        # tau > 1: never grows and equals the plain rank-2 codec: float factors to float rounding; int8 factors bit for
+        # bit on most heads (a float-noise difference can flip an int8 code, discrete-codec tolerance)
+        for q, lim in (("f", 1e-4), ("q8", None)):
+            never, plain = parse_sm148(f"lr2{q}x8g4e10001"), parse_sm148(f"lr2{q}x8")
+            cap = torch.full((N, H), 2, dtype=torch.int64, device=device)
+            l1 = torch.zeros(N, H, K, 4, device=device)
+            l2 = torch.zeros(N, H, K, 2, device=device)
+            s1 = s2_ = torch.zeros(N, H, K, K, device=device)
+            for n in range(1, 9):
+                v1 = torch.randn(N, H, K, generator=g).to(device)
+                k1 = torch.randn(N, H, K, generator=g).to(device)
+                Gm = (torch.eye(K) * 0.95 + 0.05 * torch.randn(N, H, K, K, generator=g)).to(device)
+                nn = torch.full((N,), n, dtype=torch.int64, device=device)
+                s1, l1, cap = never.encode_energy(s1 @ Gm + v1.unsqueeze(-1) @ k1.unsqueeze(-2), l1, v1, nn, cap)
+                s2_, l2 = plain.encode(s2_ @ Gm + v1.unsqueeze(-1) @ k1.unsqueeze(-2), l2, v1, nn, None)
+                assert int(cap.max()) == 2
+            e = (s1 - s2_).flatten(2).norm(dim=-1) / s2_.flatten(2).norm(dim=-1)
+            if lim is not None:
+                assert float(e.max()) < lim, float(e.max())
+                out[f"K{K}_tau_above_1_vs_lr2fx8_rel_diff_max"] = float(e.max())
+            else:
+                same = float((e == 0).float().mean())
+                assert same >= 0.8, same
+                out[f"K{K}_tau_above_1_vs_lr2q8x8_identical_head_share"] = same
+        always = parse_sm148("lr2fx8g4e0")
+        cap = torch.full((N, H), 2, dtype=torch.int64, device=device)
+        l1 = torch.zeros(N, H, K, 4, device=device)
+        s1 = torch.zeros(N, H, K, K, device=device)
+        for n in range(1, 6):
+            v1 = torch.randn(N, H, K, generator=g).to(device)
+            k1 = torch.randn(N, H, K, generator=g).to(device)
+            nn = torch.full((N,), n, dtype=torch.int64, device=device)
+            s1, l1, cap = always.encode_energy(s1 * 0.9 + v1.unsqueeze(-1) @ k1.unsqueeze(-2), l1, v1, nn, cap)
+        assert int(cap.min()) == 4, cap.min()   # every head grows to the maximum
+    # grammar
+    c = parse_sm148("lr2q8x8g4e150")
+    c.set_ref(264, 264)
+    assert c.grow == 0.015 and c.rmax == 4 and c.kinds == [2] and c.qmax == 127 and c.weight is None
+    f = c.fields()
+    assert f["grow_tau"] == 0.015 and f["grow_max"] == 4 and f["grow_base"] == 2 and f["spec"] == "2"
+    c6 = parse_sm148("lr2q6x8g4e75")
+    assert c6.qmax == 31 and c6.grow == 0.0075 and parse_sm148("lr2q8x8g3e20").rmax == 3
+    for lab in ("lr2q8x8", "lr2.16.4q8x8", "lr2.16.4q6x8", "lr2q8x8wrk", "lrRq8x8"):
+        cc_ = parse_sm148(lab)
+        cc_.set_ref(264, 264)
+        assert cc_.grow is None and "grow_tau" not in cc_.fields(), lab
+    for bad in ("lr2.16.4q8x8g4e10", "lr4q8x8g4e10", "lr2q8x8g4e10wr", "lrRq8x8g4e10", "lr2q8x8g2e10"):
+        try:
+            parse_sm148(bad)
+            raise AssertionError(f"{bad} accepted")
+        except ValueError:
+            pass
+    assert parse_sm148("lr2q8x8g4e") is None and parse_sm148("lr2q8x8g9e10") is None
+    assert parse_sm148("lr2q8x8e10") is None and parse_sm148("lr2q8x8g4e123456") is None
+    out["sm159_grammar"] = True
+    # rank read-out
+    rs = RankStats()
+    n_end = torch.tensor([0, 1, 3, 20, 40])
+    rs.record((0, 0), n_end, torch.tensor([[2, 2], [1, 1], [2, 3], [4, 2], [2, 2]]), 16)
+    rs.record((0, 0), torch.tensor([2, 30]), torch.tensor([[2, 2], [2, 2]]), 16)   # a second group, layer-major
+    rs.record((0, 1), n_end, torch.tensor([[2, 2], [1, 1], [2, 2], [2, 2], [3, 2]]), 16)
+    rs.record((0, 1), torch.tensor([2, 30]), torch.tensor([[2, 2], [2, 4]]), 16)
+    e = rs.export()["card"]
+    assert e["entities"] == 6 and e["entities_ge16"] == 3 and e["entities_n1"] == 1
+    assert e["entity_max_hist"][1:5] == [1, 1, 2, 2] and e["entity_max_hist_ge16"][1:5] == [0, 0, 1, 2]
+    assert e["rank_hist"][1:5] == [4, 16, 2, 2]
+    rs.reset()
+    rs.record((0, 0), n_end, torch.tensor([[2, 2], [1, 1], [2, 3], [4, 2], [2, 2]]), 16)
+    rs.record((0, 1), n_end, torch.tensor([[2, 2], [1, 1], [2, 2], [2, 2], [3, 2]]), 16)
+    e = rs.export()["card"]
+    assert e["entities"] == 4 and e["entities_ge16"] == 2 and e["entities_n1"] == 1 and e["layers"] == [0, 1] and e["H"] == 2
+    assert e["sum_rank"] == (1 + 1 + 2 + 3 + 4 + 2 + 2 + 2) + (1 + 1 + 2 + 2 + 2 + 2 + 3 + 2)
+    assert e["entity_max_hist"][1:5] == [1, 0, 2, 1] and e["entity_max_hist_ge16"][1:5] == [0, 0, 1, 1]
+    assert e["rank_hist"][1:5] == [4, 9, 2, 1] and e["rank_hist_ge16"][1:5] == [0, 6, 1, 1]
+    out["sm159_rank_readout"] = True
+    print("state_lowrank SM159 selftest OK", out)
+    return out
+
+
 if __name__ == "__main__":
     selftest()
     selftest_sm148()
     selftest_sm157()
+    selftest_sm159()

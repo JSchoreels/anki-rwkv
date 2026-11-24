@@ -709,6 +709,7 @@ def main():
             lowrank = isinstance(state_bits, state_lowrank.LowRankState)
             state_lowrank.SPECTRUM.reset()
             state_lowrank.SPECTRUM.tag = tag
+            state_lowrank.RANK_READOUT.reset()   # SM159: end-of-history ranks of rank-only SM148 codecs
             sm148 = isinstance(state_bits, state_lowrank.LowRankCodec)
             if kind == "fork" and (lowrank_grid or sm148_grid):
                 state_lowrank.set_fork(state_bits if lowrank or sm148 else None)
@@ -838,6 +839,9 @@ def main():
                          "benchmark": bench_metrics(user, labels, predictions), "scorer": scorer_mode, **sm71_fields})
             if lowrank and state_bits.spectrum:   # SM147: aggregates over this user's writes (no ids)
                 rows[-1]["lowrank_spectrum"] = state_lowrank.SPECTRUM.export(tag)
+            if sm148 and state_lowrank.RANK_READOUT.streams:   # SM159: aggregates only (bytes read-out)
+                rows[-1]["lowrank_ranks"] = state_lowrank.RANK_READOUT.export()
+            state_lowrank.RANK_READOUT.reset()
             state_lowrank.SPECTRUM.reset()
             if args.split_existing:
                 import numpy as np
