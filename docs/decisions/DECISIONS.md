@@ -5,6 +5,8 @@ and logged here for review. Details, evidence and how to undo each one: [DECISIO
 
 ## 2026-11-24
 
+- **Agent** - Hourly idle check (`scripts/factory_idle_check.py`, cron at :17) after the GPU sat idle 8 hours
+  when a watcher died; started the ensemble test (SM160) read-out and the release-candidate re-check (SM164).
 - **You** - Fork work goes straight to fork **main** (your Mac follows main only). The release candidate
   (rc-2026-11) is merged into fork main: fb9f59a18, Rust tests 1,596 passed. Release build and tags still need you.
 - **Agent** - Old Tiny weights dropped from the weekend packages. The six-layer Tiny (SM130) replaces the

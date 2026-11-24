@@ -15,6 +15,16 @@ bootstrap; "732 set" = the standard 732-user evaluation pool (722 to 723 rule us
 
 ## 2026-11-24
 
+### D-1124-11 - Hourly factory idle check; SM160 read-out and release-candidate re-check started (Agent, asked by You)
+- **Why:** the deploy-time ensemble test (SM160) finished its GPU work at 15:26; the watcher that should have woken
+  the main session died at the interrupt, so the GPU sat idle about 8 hours. User: "we should have a simple 1h/2h check".
+- **Done:** `scripts/factory_idle_check.py` (78fcebe7) prints BUSY / QUIET / IDLE (exit 0 / 3 / 4) from the queue,
+  nvidia-smi, live launcher/scorer processes and quiet.json. Session cron at :17 every hour runs it; IDLE means read
+  out finished work and start the next backlog item. The cron is session-only: recreate it after any restart.
+- **Also started (23:20):** SM160 read-out (CPU, Sonnet agent) and the release-candidate re-check of the final
+  formats (SM164: Big and Small T24 + 6-bit factors, Tiny T24, 732 + 1,500 users, GPU).
+- **Undo:** CronDelete the job; the script is harmless on its own.
+
 ### D-1124-10 - Fork work goes to fork main; release candidate merged into main (You)
 - **Decision:** "For Anki you can just push straight to main, otherwise the other Mac won't see it". Finished,
   tested fork work is merged into fork `main` and pushed; `rc-2026-11` was only visible as a side branch.
