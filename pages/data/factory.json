@@ -1,7 +1,7 @@
 {
- "generated_at": "2026-11-24T01:19:43+01:00",
- "updated": "2026-11-24 01:19",
- "material": "7a00295844d85fe3",
+ "generated_at": "2026-11-24T01:29:43+01:00",
+ "updated": "2026-11-24 01:29",
+ "material": "04c52b757b182d73",
  "summary": "running 001540",
  "headline": [
   {
@@ -422,7 +422,7 @@
    "track": "small model",
    "ticket": "001540-sm152",
    "started": "00:46",
-   "elapsed": "0:33",
+   "elapsed": "0:43",
    "progress": null,
    "eta": "~02:26"
   }
@@ -2776,7 +2776,7 @@
    "kind": "cpu",
    "minutes": 600,
    "what": "Bounded-memory long-card scorer (SM155): the CPU scorer&rsquo;s memory grows with each user&rsquo;s review count, so the 6 GB limit drops the longest users (13 Big long-card users in the low-rank int8 states test (SM148), the 15 to 16 longest per size in the long-card state drift check (SM136), and 5 Big users that never fit on the GPU). This builds a scorer mode that steps through reviews one at a time and keeps only each card&rsquo;s and note&rsquo;s state, checked to give the same predictions as the current scorer within 1e-5, then scores the missing Big users at the chosen format.",
-   "when": "Started 23:45 Mon 11-23 (CPU code and short exactness tests only tonight; the missing-user scoring waits until the fork speed measurement is done)",
+   "when": "Started 23:45 Mon 11-23; exactness passed 01:28 Tue 11-24 (264 of 264 checks, bitwise equal to the current scorer on every review); scoring the 18 missing Big users at the chosen format and int8 rows since 01:29, about 3 h on 2 CPU processes (done about 04:30)",
    "decides": "Whether every long-card user fits, so long-card checks can say &ldquo;no loss&rdquo; instead of &ldquo;cannot tell&rdquo;, starting with Big&rsquo;s missing users at the chosen format",
    "state": "planned",
    "started_at": "2026-11-23T23:45+01:00"
