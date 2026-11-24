@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-24T06:42:57+01:00",
- "updated": "2026-11-24 06:42",
- "material": "44e80ed05c0eef3c",
- "summary": "running 001550, finished 001549",
+ "generated_at": "2026-11-24T06:47:40+01:00",
+ "updated": "2026-11-24 06:47",
+ "material": "ed398fd864659dd5",
+ "summary": "running 001550",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring, show-time inputs for both heads (curve / instant)",
@@ -422,7 +422,7 @@
    "track": "small model",
    "ticket": "001550-sm158",
    "started": "06:42",
-   "elapsed": "0:00",
+   "elapsed": "0:05",
    "progress": null,
    "eta": "~09:04"
   }
@@ -2751,7 +2751,7 @@
    "kind": "gpu",
    "minutes": 300,
    "what": "Smaller shift vectors and factors on T24 states (SM152): on top of the chosen state format (rank 2 below 16 answers then rank 4, int8 factors), this post-training run scores three smaller variants on the six release models on the 732 set (GPU): int4 shift vectors (&minus;84.5% / &minus;70.4% / &minus;69.5% of the int8 state bytes for Big / Small / Tiny), int6 factors (&minus;84.6% / &minus;71.4% / &minus;69.7%), and both (&minus;87.4% / &minus;75.6% / &minus;74.6%, about 28% to 31% fewer bytes than the chosen format), against the user&rsquo;s budgets; the long-card CPU warnings run later.",
-   "when": "Started 23:25 Mon 11-23 (GPU smoke passed 23:26); Tiny about 00:30, Small about 02:00, Big about 04:30 Tue 11-24 (range 04:00 to 05:30)",
+   "when": "GPU part done 06:42 Tue 11-24 (722 users): int6 factors pass for every size (Big &minus;84.6%, Small &minus;71.4%, Tiny &minus;69.7% of the int8 bytes, at most +0.023% beyond the chosen format); int4 shift vectors pass only for Big (both together: Big &minus;87.4%, worst upper +0.125% vs its own int8) and break the budget for Small and Tiny (upper +0.507% Small two-head (SM118) curve, +1.006% to +1.114% Tiny). Long-card warnings on the CPU since 06:46, about 3 to 4 h (done about 10:00 to 11:00); then the user decides",
    "decides": "Whether the state can shrink further than the chosen format within the user&rsquo;s budgets (Big at most +0.15% vs its own int8; Small and Tiny at most +0.5% and +1.0% total vs Big at int8)",
    "state": "done",
    "started_at": "2026-11-23T23:26:00+01:00",
@@ -2766,7 +2766,7 @@
    "kind": "gpu",
    "minutes": 330,
    "what": "Output-aware T24 on the 732 set (SM158): a separate, pre-registered test of the weighting that looked promising in the output-aware truncation pointer (SM157): the chosen state format (rank 2 below 16 answers then rank 4) truncated with a receptance-plus-removal weight fitted on 100 training users, against plain T24 at the same bytes, on the six release models on the 732 set (GPU); rank 2 weighted for information.",
-   "when": "Launched 03:34 Tue 11-24; waits in the queue behind SM152&rsquo;s Big ticket (ends about 04:30 to 05:30), then about 4 to 6 GPU hours (done roughly 09:30 to 12:00)",
+   "when": "Launched 03:34 Tue 11-24; Tiny done 06:36 (723 users), Small running since 06:36, then Big (done roughly 10:00 to 12:00)",
    "decides": "Whether to ship the weighted truncation: on each Big model a head at least 0.05% better than plain T24 with the CI below 0, no head of any model significantly worse, and the user&rsquo;s budgets met",
    "state": "running",
    "started_at": "2026-11-24T05:10:15+01:00",
