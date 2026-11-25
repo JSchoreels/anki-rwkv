@@ -103,23 +103,33 @@ def goals_block(agg):
     donors = int(agg["donors_with_reviews"])
     avg = unique / donors if donors else 0
     mean10k = DATASET["reviews_per_user_mean"]
+    # Named goals (user 11-26). Reviews = users x the 10k dataset's mean per user. Accuracy estimates come from the
+    # data-scaling test (SM174: from scratch, no teacher, on 10k-dataset users) and stay None until it reports.
     specs = (
-        ("eval-set", f"An evaluation set as large as our standard {EVAL_SET['users']}-user set", EVAL_SET["reviews"],
-         EVAL_SET["users"]),
-        # user-based goals: reviews at the 10k dataset's mean per user
-        ("train5k", "5,000 training users and 2,000 test users", 7_000 * mean10k, 7_000),
-        ("parity", "8,000 training users and 2,000 test users, like the anki-revlogs-10k dataset", DATASET["reviews"],
-         DATASET["users"]),
+        ("test-bench", "Test Bench", 0, EVAL_SET["users"], "Score our current models on real donor data",
+         False, None),
+        ("mit-tiny", "MIT Tiny", 1_500, 500, "First MIT-licensed model: a Tiny trained only on donations", True, None),
+        ("mit-small", "MIT Small", 5_000, 2_000, "An MIT Small that can replace today's Small", True, None),
+        ("full-parity", "Full Parity", 8_000, 2_000, "The size of the 10k dataset: an MIT version of the whole family",
+         False, None),
     )
     out = []
-    for gid, label, target, users in specs:
+    for gid, name, train, test, unlocks, provisional, accuracy in specs:
+        users = train + test
+        target = EVAL_SET["reviews"] if gid == "test-bench" else users * mean10k
         need = max(0, target - unique)
+        users_pct = 100 * min(donors, users) / users
+        reviews_pct = 100 * min(unique, target) / target
         out.append({
-            "id": gid, "label": label, "reviews_target": target, "users_target": users,
-            "progress_pct": round(100 * min(unique, target) / target, 3),
-            "reviews_needed": need,
+            "id": gid, "name": name, "label": name, "unlocks": unlocks, "provisional": provisional,
+            "users_target": users, "train_users": train, "test_users": test, "reviews_target": target,
+            "users_pct": round(users_pct, 3), "reviews_pct": round(reviews_pct, 3),
+            # the bar uses the lower of the two: a model needs many different people, not only many reviews
+            "progress_pct": round(min(users_pct, reviews_pct), 3),
+            "reviews_needed": need, "users_needed": max(0, users - donors),
             "donors_needed_at_current_average": math.ceil(need / avg) if avg else None,
             "donors_needed_at_dataset_mean": math.ceil(need / mean10k),
+            "accuracy_estimate_pct": accuracy,
         })
     return {
         "current_average_reviews_per_donor": round(avg),

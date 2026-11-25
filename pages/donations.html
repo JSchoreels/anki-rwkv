@@ -72,6 +72,7 @@
   <section class="panel" id="sec-goals">
     <div class="panel-head"><h2>Goals</h2></div>
     <div id="goals"></div>
+    <p class="muted">Bars show the lower of users and reviews. *Accuracy relative to today&rsquo;s model of the same size, estimated from training from scratch on matching numbers of users of the 10k dataset.</p>
   </section>
 
   <section class="panel" id="sec-history" hidden>
@@ -124,13 +125,17 @@
       const el = document.createElement('div');
       el.className = 'goal';
       const w = Math.max(0, Math.min(100, x.progress_pct));
-      const done = x.reviews_needed <= 0;
-      const SHORT = { 'eval-set': 'Evaluation set (732 users)', train5k: '7k users (5k train / 2k test)', parity: '10k users (8k train / 2k test)' };
-      el.innerHTML = `<div class="l1"><span class="t">${SHORT[x.id] || x.label} &middot; ${mill(x.reviews_target)} reviews</span><span class="p">${pct(x.progress_pct)}</span></div>`
-        + `<div class="meter" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${w.toFixed(2)}" aria-label="${x.label}"><i style="width:${w}%"></i></div>`
+      const done = x.users_needed <= 0 && x.reviews_needed <= 0;
+      const split = x.train_users ? `${fmt(x.train_users)} train / ${fmt(x.test_users)} test` : `${fmt(x.test_users)} test users`;
+      const acc = x.train_users
+        ? (x.accuracy_estimate_pct != null ? `&asymp;${x.accuracy_estimate_pct}% of today&rsquo;s accuracy*` : 'accuracy estimate: measuring*')
+        : '';
+      el.innerHTML = `<div class="l1"><span class="t">${x.name || x.label}${x.provisional ? ' <span class="muted">(estimate)</span>' : ''}</span><span class="p">${pct(x.progress_pct)}</span></div>`
+        + `<p class="sub">${x.unlocks || ''} &middot; ${split}${acc ? ` &middot; ${acc}` : ''}</p>`
+        + `<div class="meter" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${w.toFixed(2)}" aria-label="${x.name || x.label}"><i style="width:${w}%"></i></div>`
         + (done
           ? `<p class="sub">Reached.</p>`
-          : `<p class="sub">${mill(x.reviews_needed)} to go &middot; ~${fmt(x.donors_needed_at_current_average)}&ndash;${fmt(x.donors_needed_at_dataset_mean)} more donors &middot; ${fmt(donors)} / ${fmt(x.users_target)} users</p>`);
+          : `<p class="sub">users ${fmt(donors)} / ${fmt(x.users_target)} (${pct(x.users_pct)}) &middot; reviews ${mill(Math.max(0, x.reviews_target - x.reviews_needed))} / ${mill(x.reviews_target)} (${pct(x.reviews_pct)})</p>`);
       return el;
     }));
 
