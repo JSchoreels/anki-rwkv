@@ -16,7 +16,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 PY = ROOT / ".venv" / "Scripts" / "python.exe"
 QUIET = ROOT / "artifacts" / "coordination" / "queue" / "quiet.json"
-PATTERNS = ("launch-sm", "run-sm", "launch_", "r01_queue.py run", "score_", "train_", "_report.py")
+PATTERNS = ("launch-sm", "run-sm", "launch_", "r01_queue.py run", "score_", "train_", "_report.py",
+            "cargo", "rustc")
 
 
 def _run(cmd):
@@ -43,7 +44,7 @@ def gpu_state():
 
 
 def processes():
-    ps = ("Get-CimInstance Win32_Process | Where-Object { $_.Name -match 'python|bash' -and $_.CommandLine } | "
+    ps = ("Get-CimInstance Win32_Process | Where-Object { $_.Name -match 'python|bash|cargo|rustc' -and $_.CommandLine } | "
           "ForEach-Object { $_.CommandLine }")
     out = _run(["powershell", "-NoProfile", "-Command", ps])
     hits = []
