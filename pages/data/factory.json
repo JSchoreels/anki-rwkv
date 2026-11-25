@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-25T17:31:19+01:00",
- "updated": "2026-11-25 17:31",
- "material": "dc40da41b1088124",
- "summary": "idle",
+ "generated_at": "2026-11-25T17:48:05+01:00",
+ "updated": "2026-11-25 17:48",
+ "material": "c67051514ea7777c",
+ "summary": "running 001623, finished 001622",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring, show-time inputs for both heads (curve / instant)",
@@ -410,7 +410,23 @@
    }
   ]
  },
- "now": [],
+ "now": [
+  {
+   "what": "Sharpness-aware cool-down (SM172): a next-family training screen: the same short cool-down of the six-layer Tiny two-head (SM130) as the state-energy penalty screen (SM171), but with sharpness-aware steps that look for flatter minima, which should lose less when the card and note states are compressed; its control arm is reused; scored on the 732 set at int8, the chosen format and rank 2",
+   "id": "SM172, ticket 001623",
+   "kind": "gpu",
+   "decides": "Whether a sharpness-aware cool-down makes compressed states cheaper for the next family (go: the rank-2 cost shrinks by at least 0.05% vs the control, CI below 0, without int8 getting more than 0.05% worse)",
+   "why": "",
+   "job": "Sharpness-aware cool-down (SM172): train sm172-tiny-r20",
+   "linked": true,
+   "track": "small model",
+   "ticket": "001623-sm172",
+   "started": "17:48",
+   "elapsed": "0:00",
+   "progress": null,
+   "eta": "~18:38"
+  }
+ ],
  "charts": [
   {
    "title": "Small model, leak-free (SM72s): LogLoss per epoch, 458-user set (lower is better)",
@@ -581,6 +597,15 @@
  "waiting": [],
  "recent": [
   {
+   "ticket": "001622-sm172",
+   "id": "SM172",
+   "what": "Sharpness-aware cool-down (SM172): trainer smoke, two SAM arms",
+   "ended": "17:48",
+   "date": "11-25",
+   "exit": 0,
+   "ran": "0:00"
+  },
+  {
    "ticket": "001621-sm171",
    "id": "SM171",
    "what": "State-energy penalty (SM171): scoring the three arms on the 732 set (REF, T24, Q2), pass 2, cap 0.92",
@@ -621,15 +646,6 @@
    "id": "SM171",
    "what": "State-energy penalty (SM171): train sm171-tiny-lo",
    "ended": "15:34",
-   "date": "11-25",
-   "exit": 0,
-   "ran": "1:14"
-  },
-  {
-   "ticket": "001616-sm171",
-   "id": "SM171",
-   "what": "State-energy penalty (SM171): train sm171-tiny-hi",
-   "ended": "14:18",
    "date": "11-25",
    "exit": 0,
    "ran": "1:14"
@@ -2761,8 +2777,11 @@
    "what": "Sharpness-aware cool-down (SM172): a next-family training screen: the same short cool-down of the six-layer Tiny two-head (SM130) as the state-energy penalty screen (SM171), but with sharpness-aware steps that look for flatter minima, which should lose less when the card and note states are compressed; its control arm is reused; scored on the 732 set at int8, the chosen format and rank 2",
    "when": "Started 17:40 Wed 11-25 (at most about 4 GPU hours)",
    "decides": "Whether a sharpness-aware cool-down makes compressed states cheaper for the next family (go: the rank-2 cost shrinks by at least 0.05% vs the control, CI below 0, without int8 getting more than 0.05% worse)",
-   "state": "planned",
-   "started_at": "2026-11-25T17:40+01:00"
+   "state": "running",
+   "started_at": "2026-11-25T17:47:41+01:00",
+   "started": "17:48",
+   "ticket": "001623-sm172",
+   "ends_at": "2026-11-25T21:47:41+01:00"
   },
   {
    "id": "SM171",
