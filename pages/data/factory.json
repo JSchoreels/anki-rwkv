@@ -1,7 +1,7 @@
 {
- "generated_at": "2026-11-25T06:29:34+01:00",
- "updated": "2026-11-25 06:29",
- "material": "23504813ad0aaeee",
+ "generated_at": "2026-11-25T06:30:43+01:00",
+ "updated": "2026-11-25 06:30",
+ "material": "6cbf1ee2f755bd80",
  "summary": "idle",
  "headline": [
   {
@@ -2770,14 +2770,11 @@
    "kind": "cpu",
    "minutes": 100,
    "what": "Big long cards with 6-bit factors (SM165): the long-card check of the Big two-head (SM91s2) and Big Instant-Only (SM99) models on cards with 128 or more answers, with 6-bit factors, the same way the bounded-memory test (SM155) checked them with 8-bit factors; the only final format without its own long-card read-out",
-   "when": "Launched 04:44 Wed 11-25 on the CPU; scoring done 05:45 (50 of 50 users); read-out started 06:30",
+   "when": "Launched 04:44 Wed 11-25 on the CPU; scoring done 05:45 (50 of 50 users); read-out done 06:40: inside the tolerance",
    "decides": "Nothing by itself (long-card checks are warnings): it fills the last gap before the release",
    "state": "done",
-   "started_at": "2026-11-25T04:44:17+01:00",
-   "ended": "05:45",
-   "exit": 0,
-   "started": "04:44",
-   "ended_at": "2026-11-25T05:45:32+01:00"
+   "started_at": "2026-11-25T04:44+01:00",
+   "ended_at": "2026-11-25T06:40+01:00"
   },
   {
    "id": "SM166",
@@ -3799,6 +3796,57 @@
   }
  ],
  "results": [
+  {
+   "date": "11-25",
+   "kind": "cpu",
+   "id": "SM165",
+   "track": "small model",
+   "name": "Big long cards with 6-bit factors (SM165): the Big two-head (SM91s2) and Big Instant-Only (SM99) models on cards with 128 or more answers, with the release format (6-bit factors), against int8 and against 8-bit factors",
+   "eval": "CPU, bounded-memory scorer (as in SM155), the 50 long-card users (50 of 50 scored), 30,089 reviews on cards with 128+ answers, show-time inputs, paired user bootstrap 95%; a bitwise gate passed first.",
+   "fork": "Nothing changed in the fork",
+   "takeaway": "<strong>Inside the long-card tolerance:</strong> on cards with 128+ answers the 6-bit factors cost Big at most +0.022% vs int8 (largest CI upper bound +0.299%, tolerance 0.5% / 1%); the last gap before the release is closed.",
+   "inputs": "show-time",
+   "started_at": "2026-11-25T04:44+01:00",
+   "ended_at": "2026-11-25T06:40+01:00",
+   "gpu_minutes": 0,
+   "cpu_minutes": 120,
+   "tickets": 2,
+   "detail": {
+    "verdict": "Warning check passed (long-card checks are warnings only). Branch sm165, commit 3460dd0f (RESULT.md)",
+    "table": {
+     "head": [
+      "Model",
+      "Head",
+      "6-bit factors vs int8 [95% CI]",
+      "6-bit vs 8-bit factors [95% CI]"
+     ],
+     "rows": [
+      [
+       "Big two-head (SM91s2)",
+       "curve",
+       "+0.022% [&minus;0.117, +0.299]",
+       "+0.038% [&minus;0.135, +0.336]"
+      ],
+      [
+       "Big two-head (SM91s2)",
+       "instant",
+       "&minus;0.009% [&minus;0.171, +0.166]",
+       "&minus;0.035% [&minus;0.137, +0.122]"
+      ],
+      [
+       "Big Instant-Only (SM99)",
+       "instant",
+       "+0.010% [&minus;0.137, +0.154]",
+       "+0.004% [&minus;0.087, +0.142]"
+      ]
+     ]
+    },
+    "notes": [
+     "Tolerance from the user (11-22): about 0.5% (point) and 1% (CI upper bound) on cards with 128+ answers.",
+     "About 728 review evaluations per second per CPU process."
+    ]
+   }
+  },
   {
    "date": "11-25",
    "kind": "cpu",

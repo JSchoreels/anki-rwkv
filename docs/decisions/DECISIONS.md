@@ -5,6 +5,8 @@ and logged here for review. Details, evidence and how to undo each one: [DECISIO
 
 ## 2026-11-25
 
+- **Agent** - Big long cards with 6-bit factors (SM165): inside the tolerance (at most +0.022%, CI upper +0.299%);
+  no open accuracy check left before the release.
 - **Agent** - Started the links-between-cards study (SM167, CPU only, reuses SM160 predictions) to answer your
   question on card connections; next family only.
 - **Agent** - Weekend release packages (SM166) built, nothing published: six zips plus `INTEGRATION.md`, `WEIGHTS-NOTICE.md` and `SHA256SUMS`;
