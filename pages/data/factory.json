@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-25T17:06:14+01:00",
- "updated": "2026-11-25 17:06",
- "material": "ec29be69c5cc2082",
- "summary": "idle, finished 001621",
+ "generated_at": "2026-11-25T17:30:24+01:00",
+ "updated": "2026-11-25 17:30",
+ "material": "83b15ac0a6e59726",
+ "summary": "idle",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring, show-time inputs for both heads (curve / instant)",
@@ -2759,14 +2759,11 @@
    "kind": "gpu",
    "minutes": 420,
    "what": "State-energy penalty (SM171): a next-family training screen: a short cool-down fine-tune with a penalty on the state energy that rank-2 truncation would drop, so card and note states become nearly low-rank and rank 2 everywhere costs about as little as the chosen format does today; against a control fine-tune without the penalty, scored on the 732 set at int8, the chosen format and rank 2",
-   "when": "Launched 12:50 Wed 11-25 on the six-layer Tiny two-head (SM130): three arms (penalty 1.0, 0.1 and a control without it), about 2,550 steps each; done with scoring about 16:45 to 17:00",
+   "when": "Launched 12:50 Wed 11-25; done 17:05 (about 240 GPU minutes): no go",
    "decides": "Whether training with the penalty is worth using for the next family (go: the rank-2 cost shrinks by at least 0.05% vs the control, CI below 0, without making int8 worse by more than 0.05%)",
    "state": "done",
-   "started_at": "2026-11-25T12:52:02+01:00",
-   "ended": "17:05",
-   "exit": 0,
-   "started": "12:52",
-   "ended_at": "2026-11-25T17:05:45+01:00"
+   "started_at": "2026-11-25T12:35+01:00",
+   "ended_at": "2026-11-25T17:05+01:00"
   },
   {
    "id": "SM170",
@@ -3848,6 +3845,54 @@
   }
  ],
  "results": [
+  {
+   "date": "11-25",
+   "kind": "gpu",
+   "id": "SM171",
+   "track": "small model",
+   "name": "State-energy penalty (SM171): a short cool-down fine-tune of the six-layer Tiny two-head (SM130) with a penalty on the state energy that rank-2 truncation would drop, against a control fine-tune without it",
+   "eval": "GPU: three arms (penalty 1.0, 0.1, control) of about 2,550 steps from the release weights, then the 732 set (723 users) at int8, the chosen format and rank 2 everywhere, show-time inputs, curve and instant heads, paired user bootstrap 95%; design committed before any run.",
+   "fork": "Nothing changed in the fork",
+   "takeaway": "<strong>No go:</strong> the penalty does make rank 2 cheaper (instant cost +0.066% instead of +0.135%), but only by giving up about 0.3% of accuracy at int8; the gentler penalty saves too little.",
+   "inputs": "show-time",
+   "started_at": "2026-11-25T12:50+01:00",
+   "ended_at": "2026-11-25T17:05+01:00",
+   "gpu_minutes": 240,
+   "cpu_minutes": 10,
+   "tickets": 6,
+   "detail": {
+    "verdict": "No go under the pre-registered rule (rank-2 cost must shrink by at least 0.05% vs the control, CI below 0, with int8 no more than 0.05% worse). Branch sm171, commit 569e1f7a (RESULT.md)",
+    "table": {
+     "head": [
+      "Arm",
+      "Rank-2 cost vs own int8, curve / instant",
+      "Own int8 vs the release model, curve / instant"
+     ],
+     "rows": [
+      [
+       "Penalty 1.0",
+       "+0.049% [+0.033, +0.073] / +0.066% [+0.058, +0.075]",
+       "+0.295% [+0.258, +0.331] / +0.338% [+0.311, +0.364]"
+      ],
+      [
+       "Penalty 0.1",
+       "+0.061% [+0.049, +0.072] / +0.096% [+0.087, +0.105]",
+       "+0.029% [&minus;0.005, +0.056] / +0.054% [+0.046, +0.064]"
+      ],
+      [
+       "Control (no penalty)",
+       "+0.084% [+0.069, +0.098] / +0.135% [+0.123, +0.148]",
+       "&minus;0.008% [&minus;0.042, +0.019] / +0.008% [+0.002, +0.015]"
+      ]
+     ]
+    },
+    "notes": [
+     "Penalty 1.0 cuts the rank-2 cost by 0.035% on the curve head (below the 0.05% bar) and 0.069% on the instant head, but its int8 accuracy is about 0.3% worse than the control&rsquo;s.",
+     "Penalty 0.1 cuts less than 0.05% on both heads and its instant int8 guard fails (upper bound +0.052%).",
+     "The penalty arms train at about 15,000 reviews/s, the control at 55,700: the penalty costs almost 4 times the training time."
+    ]
+   }
+  },
   {
    "date": "11-25",
    "kind": "gpu",

@@ -5,6 +5,7 @@ and logged here for review. Details, evidence and how to undo each one: [DECISIO
 
 ## 2026-11-25
 
+- **Agent** - State-energy penalty (SM171): no go; rank 2 gets cheaper only by losing about 0.3% at int8. Dropped.
 - **You** - Published rwkv-family-2026-11-28 (13:14): six models, new weights notice (weights stay under Anki's terms);
   fork main 6cb164606 has the Tiny ensemble and the batched codec.
 - **Agent** - Fork main 6cb164606: Tiny ensemble (SM170), batched codec (SM168) and the new weights notice merged
