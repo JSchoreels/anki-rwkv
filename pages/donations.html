@@ -40,7 +40,7 @@
       <div>
         <p class="eyebrow"><a href="./">anki-rwkv</a> &middot; <a href="factory.html">factory overview</a> &middot; <a href="models.html">model architectures</a> &middot; <a href="campaign.html">R01 campaign</a> &middot; <a href="train.html">8k/2k run</a> &middot; data campaign</p>
         <h1>User data collection campaign</h1>
-        <p class="lede">Our models learn from Anki review histories. Today they are trained and scored on the public anki-revlogs-10k dataset of 10,000 users. This page counts the review histories that people have donated to us directly, after removing duplicates, and shows how far those donations are from three goals. Only totals are shown here: no names, no files and no individual review counts.</p>
+        <p class="lede">Donated Anki review histories, duplicates removed, against the 10k dataset. Totals only.</p>
       </div>
       <button id="theme" class="btn" type="button" aria-label="Toggle light and dark theme">Theme</button>
     </div>
@@ -49,61 +49,29 @@
 
 <main class="wrap">
   <section class="cards" id="headline" aria-label="Headline numbers">
-    <div class="card"><div class="k">Donors with review history</div><div class="v" id="c-donors">&ndash;</div><div class="s" id="c-donors-s"></div></div>
-    <div class="card"><div class="k">Unique reviews donated</div><div class="v" id="c-reviews">&ndash;</div><div class="s" id="c-reviews-s"></div></div>
-    <div class="card big"><div class="k">Share of the 10k dataset&rsquo;s reviews</div><div class="v" id="c-pct">&ndash;</div><div class="s" id="c-pct-s"></div></div>
-    <div class="card"><div class="k">Share of the 10k dataset&rsquo;s users</div><div class="v" id="c-users">&ndash;</div><div class="s" id="c-users-s"></div></div>
+    <div class="card"><div class="k">Donors</div><div class="v" id="c-donors">&ndash;</div><div class="s" id="c-donors-s"></div></div>
+    <div class="card"><div class="k">Unique reviews</div><div class="v" id="c-reviews">&ndash;</div><div class="s" id="c-reviews-s"></div></div>
+    <div class="card big"><div class="k">Of the 10k dataset&rsquo;s reviews</div><div class="v" id="c-pct">&ndash;</div><div class="s" id="c-pct-s"></div></div>
+    <div class="card"><div class="k">Of its users</div><div class="v" id="c-users">&ndash;</div><div class="s" id="c-users-s"></div></div>
   </section>
 
   <section class="panel" id="sec-goals">
-    <div class="panel-head">
-      <h2>Progress toward the goals</h2>
-      <p class="hint" id="goals-hint"></p>
-    </div>
+    <div class="panel-head"><h2>Goals</h2></div>
     <div id="goals"></div>
-    <p class="hint" id="users-note"></p>
   </section>
 
   <section class="panel" id="sec-sizes">
-    <div class="panel-head">
-      <h2>Donors by size</h2>
-      <p class="hint">Each donor is counted once, with all of their files merged and duplicate reviews removed. Sizes are shown as ranges only.</p>
-    </div>
+    <div class="panel-head"><h2>Donors by size (reviews)</h2></div>
     <div class="buckets" id="buckets"></div>
-    <p class="hint" id="sizes-note"></p>
   </section>
 
-  <section class="panel" id="sec-clean">
-    <div class="panel-head">
-      <h2>What was received and what was removed</h2>
-      <p class="hint" id="clean-hint"></p>
-    </div>
-    <div class="facts" id="facts"></div>
-  </section>
-
-  <section class="panel prose" id="sec-method">
-    <h2>How duplicates and same-donor files are found</h2>
-    <p>People often send the same collection twice, or send several files from one Anki profile. We merge these so that every donor counts once and every review counts once. Five checks are used, from the strictest to the loosest:</p>
-    <ol>
-      <li><strong>Identical file.</strong> Two files with the same content hash are the same upload, and the second one is dropped.</li>
-      <li><strong>Identical reviews.</strong> Two collections whose sets of review ids are exactly the same are the same collection exported twice, and the second one is dropped. A review id is the millisecond at which the review was made, so two different people practically never share one.</li>
-      <li><strong>Shared reviews.</strong> When two collections share 10% or more of the review ids of the smaller one, they come from the same person, for example an older and a newer backup of one profile. They are merged into one donor and each review is counted once.</li>
-      <li><strong>Same study sessions.</strong> Deck exports from one profile can have no review ids in common. When two collections have reviews in the same 10-minute windows for at least half of the smaller one&rsquo;s windows, they are treated as one person studying different decks in the same sessions.</li>
-      <li><strong>Same archive.</strong> Files that arrived together in one archive were sent by one donor and are merged.</li>
-    </ol>
-    <p>Collections without review history, such as shared decks exported without their scheduling, are kept out of the review counts because a model cannot learn from them.</p>
-  </section>
-
-  <section class="panel prose" id="sec-donate">
-    <h2>How to donate</h2>
-    <p>To donate your Anki review history, ask the maintainer. A full collection export (a <code>.colpkg</code> file) with scheduling information is the most useful, because it holds every review you have made. Donated files are kept private: only the totals on this page are published.</p>
-  </section>
+  <section class="cards facts" id="facts" aria-label="Received"></section>
 
   <p class="muted" id="updated"></p>
 </main>
 
 <footer class="wrap foot">
-  Source: <a href="https://github.com/JSchoreels/anki-rwkv">github.com/JSchoreels/anki-rwkv</a>. The numbers come from <code>scripts/publish_donations_page.py</code>, which reruns the inventory when the donation folder changes.
+  Source: <a href="https://github.com/JSchoreels/anki-rwkv">github.com/JSchoreels/anki-rwkv</a> &middot; <code>scripts/publish_donations_page.py</code>
 </footer>
 <script src="common.js"></script>
 <script>
@@ -120,30 +88,27 @@
     const a = d.donations, ds = d.dataset, g = d.goals;
     const donors = a.donors_with_reviews, uniq = a.reviews_unique;
     $('c-donors').textContent = fmt(donors);
-    $('c-donors-s').textContent = `All of them with ${fmt(10000)} reviews or more.`;
-    if (a.donors_10k_plus_reviews !== donors) $('c-donors-s').textContent = `${fmt(a.donors_10k_plus_reviews)} of them with ${fmt(10000)} reviews or more.`;
-    $('c-reviews').textContent = fmt(uniq);
-    $('c-reviews-s').textContent = `${fmt(a.reviews_raw_sum)} before duplicates were removed.`;
+    $('c-donors-s').textContent = `avg ${mill(g.current_average_reviews_per_donor)} reviews`;
+    $('c-reviews').textContent = mill(uniq);
+    $('c-reviews-s').textContent = `${mill(a.reviews_raw_sum)} raw`;
     $('c-pct').textContent = pct(g.pct_of_dataset_reviews);
-    $('c-pct-s').textContent = `Of the ${mill(ds.reviews)} reviews in ${ds.name}.`;
+    $('c-pct-s').textContent = `of ${mill(ds.reviews)}`;
     $('c-users').textContent = pct(g.pct_of_dataset_users);
-    $('c-users-s').textContent = `${fmt(donors)} donors against ${fmt(ds.users)} users.`;
+    $('c-users-s').textContent = `of ${fmt(ds.users)}`;
 
-    $('goals-hint').textContent = `Each bar shows the unique donated reviews against the goal. The donors still needed are estimated in two ways: at the current average donor size of ${fmt(g.current_average_reviews_per_donor)} reviews, and at the average user size of the 10k dataset, ${fmt(g.dataset_mean_reviews_per_user)} reviews. Our donors so far are larger than a typical dataset user, so the second estimate is the more cautious one.`;
     $('goals').replaceChildren(...g.goals.map((x) => {
       const el = document.createElement('div');
       el.className = 'goal';
       const w = Math.max(0, Math.min(100, x.progress_pct));
       const done = x.reviews_needed <= 0;
-      el.innerHTML = `<div class="l1"><span class="t">${x.label}: ${mill(x.reviews_target)} reviews</span><span class="p">${pct(x.progress_pct)}</span></div>`
+      const SHORT = { 'eval-set': 'Evaluation set (732 users)', tenth: '10% of the 10k dataset', parity: '10k dataset parity' };
+      el.innerHTML = `<div class="l1"><span class="t">${SHORT[x.id] || x.label} &middot; ${mill(x.reviews_target)} reviews</span><span class="p">${pct(x.progress_pct)}</span></div>`
         + `<div class="meter" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${w.toFixed(2)}" aria-label="${x.label}"><i style="width:${w}%"></i></div>`
         + (done
-          ? `<p class="sub">This goal is reached.</p>`
-          : `<p class="sub">We have ${fmt(uniq)} of ${fmt(x.reviews_target)} reviews, so <b>${fmt(x.reviews_needed)}</b> reviews are still needed. That is about <b>${fmt(x.donors_needed_at_current_average)}</b> more donors at the current average donor size, or about <b>${fmt(x.donors_needed_at_dataset_mean)}</b> more donors at the 10k dataset&rsquo;s average user size.</p>`)
-        + `<p class="sub">In users, this goal corresponds to about ${fmt(x.users_target)} people; we have ${fmt(donors)}.</p>`;
+          ? `<p class="sub">Reached.</p>`
+          : `<p class="sub">${mill(x.reviews_needed)} to go &middot; ~${fmt(x.donors_needed_at_current_average)}&ndash;${fmt(x.donors_needed_at_dataset_mean)} more donors &middot; ${fmt(donors)} / ${fmt(x.users_target)} users</p>`);
       return el;
     }));
-    $('users-note').textContent = `Reviews are not the whole story. A model also needs many different people, because it has to work for study habits it has never seen. A few very large collections cannot replace thousands of ordinary ones, so reaching the review goals is not enough on its own: parity with the 10k dataset also means ${fmt(ds.users)} different users. Half of the dataset's users have fewer than ${fmt(ds.reviews_per_user_median)} reviews, and one in ten has fewer than ${fmt(ds.reviews_per_user_p10)}, so smaller collections are welcome too.`;
 
     const b = a.donors_by_reviews, max = Math.max(1, ...Object.values(b));
     const box = $('buckets');
@@ -155,19 +120,16 @@
       const num = document.createElement('span'); num.className = 'n'; num.textContent = fmt(n);
       box.append(lab, tr, num);
     });
-    $('sizes-note').textContent = `For comparison, the middle user of the 10k dataset has ${fmt(ds.reviews_per_user_median)} reviews, and nine users in ten have fewer than ${fmt(ds.reviews_per_user_p90)}.`;
-
-    const removed = a.reviews_raw_sum - uniq;
-    $('clean-hint').textContent = `We received ${fmt(a.files)} distinct files holding ${fmt(a.collections)} collections${a.errors ? `, of which ${fmt(a.errors)} could not be read` : ', and all of them could be read'}.`;
-    const fact = (k, v, s) => `<div class="card"><div class="k">${k}</div><div class="v">${v}</div><div class="s">${s}</div></div>`;
+    const fact = (k, v) => `<div class="card"><div class="k">${k}</div><div class="v">${v}</div></div>`;
     $('facts').innerHTML = [
-      fact('Exact duplicates removed', fmt(a.exact_duplicates), `Collections that were sent more than once. Together with reviews shared between files of the same donor, ${fmt(removed)} reviews (${pct((100 * removed) / a.reviews_raw_sum)} of the raw total) were counted only once.`),
-      fact('Collections without review history', fmt(a.collections_without_review_history), 'Deck exports without scheduling information. They hold cards but no reviews, so they add nothing to the counts.'),
-      fact('Date range of the reviews', `${a.first_review.slice(0, 4)} to ${a.last_review.slice(0, 4)}`, `The oldest donated review is from ${day(a.first_review)} and the newest is from ${day(a.last_review)}.`),
+      fact('Collections received', fmt(a.collections)),
+      fact('Duplicates removed', fmt(a.exact_duplicates)),
+      fact('Without review history', fmt(a.collections_without_review_history)),
+      fact('Reviews from', `${a.first_review.slice(0, 4)}&ndash;${a.last_review.slice(0, 4)}`),
     ].join('');
 
     const gen = (d.inventory_run || d.generated) ? new Date(d.inventory_run || d.generated) : null;
-    $('updated').textContent = gen ? `Inventory of the donation folder updated on ${gen.toLocaleString('en-US', { dateStyle: 'long', timeStyle: 'short' })}.` : '';
+    $('updated').textContent = gen ? `Updated ${gen.toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' })}.` : '';
   }
 
   fetch('data/donations.json', { cache: 'no-store' })
