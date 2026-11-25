@@ -1,7 +1,7 @@
 {
- "generated_at": "2026-11-25T21:42:03+01:00",
- "updated": "2026-11-25 21:42",
- "material": "81535c071342724d",
+ "generated_at": "2026-11-25T21:43:21+01:00",
+ "updated": "2026-11-25 21:43",
+ "material": "94cd00c7651349dc",
  "summary": "running 001628",
  "headline": [
   {
@@ -414,7 +414,7 @@
   {
    "what": "Deleted-card note ids (SM173): the fork input-parity check (SM161) found that deleted cards get collapsed placeholder note ids in our pipeline, so unrelated cards share one note memory; first measure how many reviews this touches and what fixing it gains at inference (six-layer Tiny two-head (SM130) and Small two-head (SM118) on the 732 set), then a short fine-tune screen only if it matters",
    "id": "SM173, ticket 001628",
-   "kind": "cpu",
+   "kind": "gpu",
    "decides": "Whether the placeholder note ids get fixed in the fork&rsquo;s input building and the next family&rsquo;s training data (go: at least 0.05% overall, CI below 0)",
    "why": "",
    "job": "Deleted-card note ids (SM173): score arm cur (Tiny SM130 + Small SM118 two-head, fp32, 732 set, pass 1)",
@@ -422,7 +422,7 @@
    "track": "small model",
    "ticket": "001628-sm173",
    "started": "21:41",
-   "elapsed": "0:00",
+   "elapsed": "0:01",
    "progress": null,
    "eta": "~21:53"
   }
@@ -2772,10 +2772,10 @@
   {
    "id": "SM173",
    "track": "small model",
-   "kind": "cpu",
+   "kind": "gpu",
    "minutes": 180,
    "what": "Deleted-card note ids (SM173): the fork input-parity check (SM161) found that deleted cards get collapsed placeholder note ids in our pipeline, so unrelated cards share one note memory; first measure how many reviews this touches and what fixing it gains at inference (six-layer Tiny two-head (SM130) and Small two-head (SM118) on the 732 set), then a short fine-tune screen only if it matters",
-   "when": "Started 21:30 Wed 11-25",
+   "when": "Started 21:30 Wed 11-25; cause found and measured: about 27% of training reviews are on deleted cards that share a placeholder note lane (about 47 cards per lane); four-arm GPU rescoring of the 732 set running since 21:58, about 40 minutes",
    "decides": "Whether the placeholder note ids get fixed in the fork&rsquo;s input building and the next family&rsquo;s training data (go: at least 0.05% overall, CI below 0)",
    "state": "running",
    "started_at": "2026-11-25T21:41:39+01:00",
