@@ -1,6 +1,6 @@
 # State-energy penalty (SM171): handoff
 
-Status: RUNNING since 2026-11-25 13:04 (GPU screen launched, chained through scoring and the read-out). Design and rules: `design.md` (pre-registered in 616e4ee1 before any screen run). Question: does a short cool-down of six-layer Tiny two-head (SM130) whose gradient also penalises the energy share a rank-2 truncation of each card / note state would drop (lambda 1.0 and 0.1, against a lambda-0 control) shrink the rank-2 (Q2) cost against its own int8 (REF) by at least 0.05% on both heads (CI below 0), without REF worse than the control's by more than 0.05% (CI upper bound)?
+Status: DONE 2026-11-25 17:05 (read out the same evening). Verdict NO GO, decided on 723 users; see `RESULT.md`. Nothing is running. The sections below are kept as history.
 
 ## Done
 
