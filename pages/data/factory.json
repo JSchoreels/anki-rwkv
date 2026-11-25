@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-25T22:35:36+01:00",
- "updated": "2026-11-25 22:35",
- "material": "7a4b7b7135451801",
- "summary": "idle, finished 001635",
+ "generated_at": "2026-11-25T23:30:03+01:00",
+ "updated": "2026-11-25 23:30",
+ "material": "70b5b2ad0b6b0e26",
+ "summary": "idle",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring, show-time inputs for both heads (curve / instant)",
@@ -2759,14 +2759,11 @@
    "kind": "gpu",
    "minutes": 180,
    "what": "Deleted-card note ids (SM173): the fork input-parity check (SM161) found that deleted cards get collapsed placeholder note ids in our pipeline, so unrelated cards share one note memory; first measure how many reviews this touches and what fixing it gains at inference (six-layer Tiny two-head (SM130) and Small two-head (SM118) on the 732 set), then a short fine-tune screen only if it matters",
-   "when": "Started 21:30 Wed 11-25; cause found and measured: about 27% of training reviews are on deleted cards that share a placeholder note lane (about 47 cards per lane); four-arm GPU rescoring of the 732 set running since 21:58, about 40 minutes",
+   "when": "Started 21:30 Wed 11-25; GPU rescoring done 22:35: harmless, no retrain screen",
    "decides": "Whether the placeholder note ids get fixed in the fork&rsquo;s input building and the next family&rsquo;s training data (go: at least 0.05% overall, CI below 0)",
    "state": "done",
-   "started_at": "2026-11-25T21:41:39+01:00",
-   "ended": "22:35",
-   "exit": 0,
-   "started": "21:41",
-   "ended_at": "2026-11-25T22:35:35+01:00"
+   "started_at": "2026-11-25T21:30+01:00",
+   "ended_at": "2026-11-25T22:35+01:00"
   },
   {
    "id": "SM172",
@@ -3872,6 +3869,59 @@
   }
  ],
  "results": [
+  {
+   "date": "11-25",
+   "kind": "gpu",
+   "id": "SM173",
+   "track": "small model",
+   "name": "Deleted-card note ids (SM173): our pipeline gives deleted cards collapsed placeholder note ids (a float64 column rounds them into blocks of 64, and scoring casts them all to one value); how big is it, and does giving each deleted card its own note (what the fork does) help the released models?",
+   "eval": "CPU measurement of the training data and evaluation pools, then GPU rescoring of the 732 set (723 users) for the six-layer Tiny two-head (SM130) and Small two-head (SM118) in four variants (current, shared blocks, own note per card, reseeded control), show-time inputs, paired user bootstrap 95%; design committed before any score.",
+   "fork": "Nothing changed in the fork: it already gives each deleted card its own note",
+   "takeaway": "<strong>Harmless:</strong> about a quarter of all reviews are on deleted cards, but the released models learned with the collapsed ids, so fixing them at prediction time does not help; on the existing cards the fork shows, the mismatch costs only about +0.01% instant LogLoss.",
+   "inputs": "show-time",
+   "started_at": "2026-11-25T21:30+01:00",
+   "ended_at": "2026-11-25T22:35+01:00",
+   "gpu_minutes": 45,
+   "cpu_minutes": 30,
+   "tickets": 4,
+   "detail": {
+    "verdict": "Harmless under the pre-registered rule; no retrain screen. Branch sm173, commit a55df1f6 (RESULT.md)",
+    "table": {
+     "head": [
+      "Model",
+      "Scope",
+      "Own note per deleted card vs current, curve / instant [95% CI]"
+     ],
+     "rows": [
+      [
+       "six-layer Tiny two-head (SM130)",
+       "all reviews",
+       "+0.000% [&minus;0.029, +0.024] / +0.026% [+0.014, +0.039]"
+      ],
+      [
+       "six-layer Tiny two-head (SM130)",
+       "existing cards only",
+       "&minus;0.012% [&minus;0.049, +0.013] / +0.010% [+0.006, +0.015]"
+      ],
+      [
+       "Small two-head (SM118)",
+       "all reviews",
+       "+0.018% [&minus;0.032, +0.052] / +0.057% [+0.042, +0.073]"
+      ],
+      [
+       "Small two-head (SM118)",
+       "existing cards only",
+       "&minus;0.010% [&minus;0.064, +0.024] / +0.011% [+0.006, +0.018]"
+      ]
+     ]
+    },
+    "notes": [
+     "Deleted-card reviews: 27.0% of the training reviews (93.5% of users), 24.7% of the 732 set, 25.4% of the 1,500 pool; about 47 deleted cards share each placeholder block.",
+     "The reseeded control stays within 0.01%, so the differences are real but small.",
+     "For the next family: train with correct 64-bit placeholder ids from the start; the fork is already correct, so the mismatch then disappears."
+    ]
+   }
+  },
   {
    "date": "11-25",
    "kind": "gpu",
