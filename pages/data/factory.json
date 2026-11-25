@@ -1,7 +1,7 @@
 {
- "generated_at": "2026-11-25T17:30:24+01:00",
+ "generated_at": "2026-11-25T17:30:47+01:00",
  "updated": "2026-11-25 17:30",
- "material": "83b15ac0a6e59726",
+ "material": "f2ba2fb25aea06eb",
  "summary": "idle",
  "headline": [
   {
@@ -3845,6 +3845,50 @@
   }
  ],
  "results": [
+  {
+   "date": "11-25",
+   "kind": "cpu",
+   "id": "SM170",
+   "track": "small model",
+   "name": "Tiny ensemble in the fork (SM170): in the six-layer Tiny&rsquo;s default two-model mode, the instant prediction is the fixed logit average of its two models&rsquo; instant predictions (weight 0.69 on the Instant-Only model)",
+   "eval": "Rust test suites (default and no-default-features), a test against the Python formula on synthetic inputs (within 1e-6), and tests that only Tiny&rsquo;s default mode uses it.",
+   "fork": "Fork branch tiny-ensemble 62f10ed42, merged into fork main 6cb164606 on the user&rsquo;s go (11-25 13:00) together with the batched codec (SM168); shipped in rwkv-family-2026-11-28",
+   "takeaway": "<strong>Shipped:</strong> Tiny users in the default mode get the ensemble&rsquo;s &minus;0.062% instant LogLoss gain (SM169) at no extra cost; Big, Small and the one-model options are unchanged.",
+   "inputs": "show-time",
+   "started_at": "2026-11-25T11:30+01:00",
+   "ended_at": "2026-11-25T11:50+01:00",
+   "gpu_minutes": 0,
+   "cpu_minutes": 20,
+   "tickets": 0,
+   "detail": {
+    "verdict": "Merged and released. Both Rust suites 1,607 passed on fork main 6cb164606.",
+    "table": {
+     "head": [
+      "Check",
+      "Result"
+     ],
+     "rows": [
+      [
+       "Rust suites on fork main",
+       "1,607 passed (both)"
+      ],
+      [
+       "Ensemble vs the Python formula",
+       "within 1e-6"
+      ],
+      [
+       "Deck Options paired Tiny instant figure",
+       "+0.53% vs Big (was +0.58%)"
+      ]
+     ]
+    },
+    "notes": [
+     "The answer buttons follow the ensembled recall (Again = 1 &minus; R); answer time and the instant workload forecast still use the Instant-Only model.",
+     "Reviews cached before the update keep their old values in the stats graphs until Tiny rebuilds its state.",
+     "Still for the Mac: the TypeScript tests and the formatter."
+    ]
+   }
+  },
   {
    "date": "11-25",
    "kind": "gpu",
