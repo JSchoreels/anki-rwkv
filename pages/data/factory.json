@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-25T21:43:21+01:00",
- "updated": "2026-11-25 21:43",
- "material": "94cd00c7651349dc",
- "summary": "running 001628",
+ "generated_at": "2026-11-25T21:55:01+01:00",
+ "updated": "2026-11-25 21:55",
+ "material": "47162d5e74cd7fe0",
+ "summary": "running 001629, finished 001628",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring, show-time inputs for both heads (curve / instant)",
@@ -413,18 +413,18 @@
  "now": [
   {
    "what": "Deleted-card note ids (SM173): the fork input-parity check (SM161) found that deleted cards get collapsed placeholder note ids in our pipeline, so unrelated cards share one note memory; first measure how many reviews this touches and what fixing it gains at inference (six-layer Tiny two-head (SM130) and Small two-head (SM118) on the 732 set), then a short fine-tune screen only if it matters",
-   "id": "SM173, ticket 001628",
+   "id": "SM173, ticket 001629",
    "kind": "gpu",
    "decides": "Whether the placeholder note ids get fixed in the fork&rsquo;s input building and the next family&rsquo;s training data (go: at least 0.05% overall, CI below 0)",
    "why": "",
-   "job": "Deleted-card note ids (SM173): score arm cur (Tiny SM130 + Small SM118 two-head, fp32, 732 set, pass 1)",
+   "job": "Deleted-card note ids (SM173): score arm cur (Tiny SM130 + Small SM118 two-head, fp32, 732 set, pass 2)",
    "linked": true,
    "track": "small model",
-   "ticket": "001628-sm173",
-   "started": "21:41",
-   "elapsed": "0:01",
+   "ticket": "001629-sm173",
+   "started": "21:54",
+   "elapsed": "0:00",
    "progress": null,
-   "eta": "~21:53"
+   "eta": "~21:59"
   }
  ],
  "charts": [
@@ -597,6 +597,15 @@
  "waiting": [],
  "recent": [
   {
+   "ticket": "001628-sm173",
+   "id": "SM173",
+   "what": "Deleted-card note ids (SM173): score arm cur (Tiny SM130 + Small SM118 two-head, fp32, 732 set, pass 1)",
+   "ended": "21:54",
+   "date": "11-25",
+   "exit": 0,
+   "ran": "0:12"
+  },
+  {
    "ticket": "001627-sm172",
    "id": "SM172",
    "what": "Sharpness-aware cool-down (SM172): scoring the two SAM arms on the 732 set (REF, T24, Q2), pass 2, cap 0.92",
@@ -640,15 +649,6 @@
    "date": "11-25",
    "exit": 0,
    "ran": "0:36"
-  },
-  {
-   "ticket": "001622-sm172",
-   "id": "SM172",
-   "what": "Sharpness-aware cool-down (SM172): trainer smoke, two SAM arms",
-   "ended": "17:48",
-   "date": "11-25",
-   "exit": 0,
-   "ran": "0:00"
   }
  ],
  "plan": [
@@ -2779,8 +2779,8 @@
    "decides": "Whether the placeholder note ids get fixed in the fork&rsquo;s input building and the next family&rsquo;s training data (go: at least 0.05% overall, CI below 0)",
    "state": "running",
    "started_at": "2026-11-25T21:41:39+01:00",
-   "started": "21:41",
-   "ticket": "001628-sm173",
+   "started": "21:54",
+   "ticket": "001629-sm173",
    "ends_at": "2026-11-26T00:41:39+01:00"
   },
   {
