@@ -5,6 +5,7 @@ and logged here for review. Details, evidence and how to undo each one: [DECISIO
 
 ## 2026-11-25
 
+- **Agent** - Started the deleted-card note ids check (SM173): measure first, retrain screen only if it matters.
 - **Agent** - Sharpness-aware cool-down (SM172): no go (rank-2 cost shrinks at most 0.006%); dropped.
 - **Agent** - Started the sharpness-aware cool-down screen (SM172, GPU), reusing SM171's control arm.
 - **Agent** - State-energy penalty (SM171): no go; rank 2 gets cheaper only by losing about 0.3% at int8. Dropped.
