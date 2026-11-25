@@ -15,6 +15,22 @@ bootstrap; "732 set" = the standard 732-user evaluation pool (722 to 723 rule us
 
 ## 2026-11-24
 
+### D-1125-06 - Fork main merges and release packages rebuilt with the final notice (Agent, under D-1125-05 "You")
+- **Done (fork):** `tiny-ensemble` (62f10ed42, the Tiny instant ensemble (SM170)) and `codec-batch` (39e8b308f, the
+  batched low-rank codec (SM168), same bytes) merged into fork main; `WEIGHTS-NOTICE.md` replaced by the exact text of
+  `artifacts/small-model/sm166/WEIGHTS-NOTICE.next.md`. Fork main = 6cb164606; `cargo test -p anki --lib` 1,607 passed
+  with default features and with `--no-default-features`. `rc-2026-11` fast-forwarded to the same commit.
+- **Done (packages):** `build_release.py` ships `WEIGHTS-NOTICE.next.md` verbatim (no build-time patching) and stops
+  unless fork main holds the same bytes; `verify_release.py` checks every copy. The six-layer Tiny manuals (section
+  A.2) and the notes describe the ensemble; the Big long-card read-out (SM165) replaces "running"; the speed section
+  mentions the batched codec (SM168) as a fork speed change. All six zips pass from a clean extract; packaged weights
+  and heads match fork main 6cb164606 byte for byte. The repository's own notice copies (top level and
+  `artifacts/hf-family/repo-new/`) carry the same text.
+- **Call taken:** the DRAFT heading and "publishing needs the user's OK" line were removed from `RELEASE_NOTES.md` so
+  the file can be used as the release body as is; the status lives in `artifacts/small-model/sm166/README.md`.
+- **Open for you:** confirm the notice wording; then the main session publishes.
+- **Undo:** revert the fork merge commits / notice commit; rebuild with the old `run_all.sh`.
+
 ### D-1125-05 - Weekend release packages (SM166) built, not published (Agent)
 - **Done:** six packages in the 13 November layout in `work/release-2026-11-28/dist` (uncommitted), built by
   `artifacts/small-model/sm166/build_release.py`. The packages are Big two-head (SM91s2), Big Instant-Only (SM99),

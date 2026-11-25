@@ -6,7 +6,9 @@ uploads nothing.
     python -X utf8 artifacts/small-model/sm166/build_release.py [--out work/release-2026-11-28]
 
 Before: time_vectors.py has written <out>/time-vectors/<key>/time_user_*.npz for every key (see run_all.sh), and
-<out>/fork-main/ holds the fork main files (run_all.sh extracts them with git cat-file from fork main eda153ddb).
+<out>/fork-main/ holds the fork main files (run_all.sh extracts them with git cat-file from fork main FORK_COMMIT).
+WEIGHTS-NOTICE.md is the exact text of WEIGHTS-NOTICE.next.md beside this script (no build-time patching); the build
+stops unless fork main holds the same bytes.
 After: verify_release.py extracts every zip into an empty folder and runs its checks.
 
 Layout (as the 13 November release rwkv-family-2026-11-13): one zip per model with one top-level folder named after the
@@ -25,7 +27,9 @@ HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[2]
 WT = Path("C:/Users/jonat/workspace/wt")
 FORK = Path("C:/Users/jonat/workspace/anki")
-FORK_COMMIT = "eda153ddbff7847de8bf2591fe5e0935a8dfe836"
+FORK_COMMIT = "6cb164606984c14432ef5e9befdedd6cc070f539"   # fork main: Tiny ensemble (SM170), batched codec (SM168), notice
+SPEED_COMMIT = "eda153ddb"                                   # fork main of the speed re-measure (SM163)
+NOTICE = HERE / "WEIGHTS-NOTICE.next.md"                     # shipped verbatim as WEIGHTS-NOTICE.md
 FORK_INFER = "qt/aqt/rwkv_inference"
 HF = ROOT / "artifacts/hf-family/repo-new"          # the 13 November release's manuals (read only)
 TAG = "rwkv-family-2026-11-28"                       # proposed tag, not created
@@ -153,10 +157,12 @@ BYTES = {
 }
 LONG_CARDS = {  # copied from the release-candidate re-check (SM164) warnings
     "sm91s2": "with T24 the curve head is -0.016% [-0.092, +0.086] and the instant head +0.026% [-0.084, +0.110] vs its "
-              "own int8 (SM155, 50 users); the 6-bit-factor version has no long-card read-out yet (the Big long-card "
-              "check with 6-bit factors (SM165) is running).",
-    "sm99": "with T24 the instant head is +0.006% [-0.105, +0.061] vs its own int8 (SM155, 50 users); the 6-bit-factor "
-            "version has no long-card read-out yet (the Big long-card check with 6-bit factors (SM165) is running).",
+              "own int8 (SM155, 50 users); with 6-bit factors the Big long-card check with 6-bit factors (SM165, 50 "
+              "users, 30,089 reviews on cards with 128+ answers) finds both Big models inside the tolerance: at most "
+              "+0.022% vs int8, largest CI upper bound +0.299%.",
+    "sm99": "with T24 the instant head is +0.006% [-0.105, +0.061] vs its own int8 (SM155, 50 users); with 6-bit factors "
+            "the Big long-card check with 6-bit factors (SM165, 50 users, 30,089 reviews on cards with 128+ answers) "
+            "finds both Big models inside the tolerance: at most +0.022% vs int8, largest CI upper bound +0.299%.",
     "sm118": "with 6-bit factors no cell is flagged (SM152, 50 users), and in every model of that check at most 0.107% of cards have a review whose "
              "recall moves by more than 0.10.",
     "sm113": "with 6-bit factors no cell is flagged (SM152, 50 users), and in every model of that check at most 0.107% of cards have a review whose "
@@ -166,7 +172,7 @@ LONG_CARDS = {  # copied from the release-candidate re-check (SM164) warnings
                "+1.852% (SM152).",
     "sm130io": "with T24 the instant head is +0.009% vs its own int8 (SM148, 50 users).",
 }
-SPEED = {  # SM163, fork main eda153ddb, quiet machine, pairs, all threads, 205,785 synthetic reviews
+SPEED = {  # SM163, fork main eda153ddb (before the batched codec (SM168)), quiet machine, pairs, all threads, 205,785 synthetic reviews
     "Big": {"rps": "14,346", "vs_int8": "+38.8%", "rebuild": "14.6 s", "show_p50": "3.0 ms", "answer_p50": "0.76 ms"},
     "Small": {"rps": "45,156", "vs_int8": "-3.9%", "rebuild": "4.7 s", "show_p50": "0.64 ms", "answer_p50": "0.20 ms"},
     "Tiny": {"rps": "80,569", "vs_int8": "-3.9%", "rebuild": "2.7 s", "show_p50": "0.36 ms", "answer_p50": "0.11 ms"},
@@ -268,6 +274,27 @@ def part_a(p, pkg, files, time_report):
              "head on the 732 set and on the 1,500-user pool (release-candidate re-check of the final state formats "
              "(SM164), all three sizes GO).")
     L.append("")
+    if p.get("six_layer"):
+        L.append("### Instant recall of the Tiny pair: the Tiny instant ensemble (SM170)")
+        L.append("")
+        L.append("In the fork's default two-model mode (the six-layer Tiny two-head model (SM130) beside the six-layer "
+                 "Tiny Instant-Only model (SM130)), Tiny's instant recall combines both models:")
+        L.append("")
+        L.append("```")
+        L.append("p = sigmoid(0.69 * logit(p_IO) + 0.31 * logit(p_TH))")
+        L.append("```")
+        L.append("")
+        L.append("where `p_IO` is the instant recall of the six-layer Tiny Instant-Only model (SM130) (package "
+                 "`rwkv-tiny-instant-only`) and `p_TH` the instant head of the six-layer Tiny two-head model (SM130) "
+                 "(package `rwkv-tiny-two-head`), each clipped to [1e-7, 1 - 1e-7] before the logit (the fork computes "
+                 "it in float64). Against the six-layer Tiny Instant-Only model (SM130) alone, instant LogLoss is "
+                 "-0.067% on the 732 set (the deploy-time ensemble test (SM160)) and -0.062% [-0.066, -0.057] on "
+                 "1,385 users (the decisive check (SM169)). The fork's buttons follow the combined recall (Again = "
+                 "1 - p; the other grades keep the Instant-Only model's shares). The curve head, the intervals, the "
+                 "answer time, Tiny with the one-model option and Tiny with RWKV-Instant alone are unchanged: they use "
+                 "one model's own output. The test vectors of each package check that model alone; to reproduce the "
+                 "fork's Tiny pair, run both Tiny packages on the same history and combine them as above.")
+        L.append("")
     L.append("## A.3 State format in the Anki fork")
     L.append("")
     L.append(f"The fork (main {FORK_COMMIT[:9]}, profile value `compact_lowrank`, the default) stores this model's card "
@@ -364,17 +391,20 @@ def part_a(p, pkg, files, time_report):
     L.append("")
     L.append("## A.7 Speed in the fork (SM163)")
     L.append("")
-    L.append(f"Quiet desktop, fork main {FORK_COMMIT[:9]}, release build, the size's pair, all threads, a synthetic "
+    L.append(f"Quiet desktop, fork main {SPEED_COMMIT}, release build, the size's pair, all threads, a synthetic "
              f"collection of 14,000 cards and 205,785 answers: first-launch state build {sp['rps']} reviews/s "
              f"({sp['vs_int8']} vs int8 rows), whole rebuild {sp['rebuild']}; per review p50 {sp['show_p50']} at "
-             f"show time (four button intervals included) and {sp['answer_p50']} for an answer.")
+             f"show time (four button intervals included) and {sp['answer_p50']} for an answer. Fork main "
+             f"{FORK_COMMIT[:9]} adds the batched low-rank codec (SM168): the same stored bytes, a faster replay.")
     L.append("")
     L.append("## A.8 License")
     L.append("")
-    L.append("The model weights are not under the MIT License of the code: read `WEIGHTS-NOTICE.md` (the dataset's "
-             "research terms; the open redistribution question, srs-benchmark issue #353). The answer-time head files "
-             "(`time_head.*.bin`) are trained weights too and fall under the same notice. The test vectors come from "
-             "synthetic users; no dataset rows are shipped.")
+    L.append("The model weights, including the answer-time head files (`time_head.*.bin`), are not under the MIT "
+             "License of the code, and this project grants no license of its own to them: read `WEIGHTS-NOTICE.md`. "
+             "They stay under Anki's terms for the training data (memory research, and individuals' own research); "
+             "any other use, including shipping them in an application, needs permission from Anki. The open "
+             "redistribution question is srs-benchmark issue #353. The test vectors come from synthetic users; no "
+             "dataset rows are shipped.")
     L.append("")
     L.append("---")
     L.append("")
@@ -413,15 +443,12 @@ def main():
     shutil.rmtree(dist, ignore_errors=True)
     pkg_root.mkdir(parents=True)
     dist.mkdir(parents=True)
-    notice = fork_blob("WEIGHTS-NOTICE.md")
-    if notice != (HF / "WEIGHTS-NOTICE.md").read_bytes():
-        raise SystemExit("WEIGHTS-NOTICE.md: fork main and the last release differ")
-    old = b"the `weights.*.bin` and `master.pth` files"
-    if notice.count(old) != 1:
-        raise SystemExit("WEIGHTS-NOTICE.md: expected sentence not found exactly once")
-    # SM166 packages also ship the answer-time head weights: name them (nothing else changes)
-    notice = notice.replace(old, b"the `weights.*.bin`, `time_head.*.bin` and `master.pth` files")
-    manifest = {"tag_proposed": TAG, "published": False, "fork_main": FORK_COMMIT, "packages": {}, "assets": {}}
+    notice = NOTICE.read_bytes()                     # shipped as is: no build-time patching
+    if notice != fork_blob("WEIGHTS-NOTICE.md"):
+        raise SystemExit("WEIGHTS-NOTICE.md: fork main differs from WEIGHTS-NOTICE.next.md")
+    manifest = {"tag_proposed": TAG, "published": False, "fork_main": FORK_COMMIT,
+                "weights_notice": {"source": "artifacts/small-model/sm166/WEIGHTS-NOTICE.next.md",
+                                   "sha256": sha256_bytes(notice)}, "packages": {}, "assets": {}}
     for p in PACKAGES:
         pkg = pkg_root / p["zip"]
         src = Path(p["src"])

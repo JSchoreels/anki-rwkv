@@ -5,6 +5,9 @@ and logged here for review. Details, evidence and how to undo each one: [DECISIO
 
 ## 2026-11-25
 
+- **Agent** - Fork main 6cb164606: Tiny ensemble (SM170), batched codec (SM168) and the new weights notice merged
+  (1,607 Rust tests each way); rc-2026-11 fast-forwarded. Release packages (SM166) rebuilt with the exact notice and
+  the Tiny ensemble in the notes; all six pass from a clean extract; notes made publish-ready, nothing published.
 - **You** - Tiny ensemble ships; everything goes to fork main (Mac retest later); release approved once the weights
   notice says clearly that the weights stay under Anki's terms.
 - **Agent** - GPU idle since 10:06 with the release waiting on you: started the first next-family training screen, the

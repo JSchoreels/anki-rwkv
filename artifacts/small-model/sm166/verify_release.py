@@ -5,7 +5,7 @@
 
 1. SHA256SUMS matches every asset;
 2. each zip is extracted into its own new, empty folder; it must hold exactly one top-level folder named after the zip,
-   WEIGHTS-NOTICE.md and INTEGRATION.md, test vectors of the synthetic users 900001 / 900002 only, and no logs;
+   WEIGHTS-NOTICE.md (byte-identical to WEIGHTS-NOTICE.next.md, as is the top-level asset) and INTEGRATION.md, test vectors of the synthetic users 900001 / 900002 only, and no logs;
 3. in the extracted folder: testvectors/check_testvectors.py and testvectors/check_time_vectors.py must print
    "RESULT: PASS" (each run as its own process, cwd = the extract root);
 4. writes logs/verify-<zip>.log and logs/verify-summary.json next to this script.
@@ -21,6 +21,7 @@ import zipfile
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
+NOTICE = (HERE / "WEIGHTS-NOTICE.next.md").read_bytes()   # every WEIGHTS-NOTICE.md must be this text exactly
 
 
 def sha256(path):
@@ -46,6 +47,9 @@ def main():
         summary["sums"][name] = sha256(dist / name) == digest
     if not all(summary["sums"].values()):
         raise SystemExit(f"SHA256SUMS mismatch: {summary['sums']}")
+    summary["notice_exact"] = (dist / "WEIGHTS-NOTICE.md").read_bytes() == NOTICE
+    if not summary["notice_exact"]:
+        raise SystemExit("WEIGHTS-NOTICE.md asset differs from WEIGHTS-NOTICE.next.md")
     for z in sorted(dist.glob("*.zip")):
         if args.only and z.stem not in args.only:
             continue
@@ -68,6 +72,8 @@ def main():
                      "time_head.json", "weights.f32.bin", "weights.int8.bin"):
             if need not in files:
                 problems.append(f"missing {need}")
+        if (pkg / "WEIGHTS-NOTICE.md").exists() and (pkg / "WEIGHTS-NOTICE.md").read_bytes() != NOTICE:
+            problems.append("WEIGHTS-NOTICE.md differs from WEIGHTS-NOTICE.next.md")
         rec = {"files": len(files), "problems": problems, "checks": {}}
         log = [f"== {z.name} ({z.stat().st_size:,} B), extracted to {pkg}", f"files: {files}"]
         for check in ("check_testvectors.py", "check_time_vectors.py"):

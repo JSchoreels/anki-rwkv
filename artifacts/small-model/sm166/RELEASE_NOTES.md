@@ -1,6 +1,6 @@
-# DRAFT, not published: RWKV family 2026-11-28: Big, Small and Tiny, with answer-time heads and smaller states
+# RWKV family 2026-11-28: Big, Small and Tiny, with answer-time heads and smaller states
 
-Proposed tag `rwkv-family-2026-11-28` (not created). Built by `artifacts/small-model/sm166/build_release.py` (the weekend release packages (SM166)); publishing it needs the user's explicit OK.
+Tag `rwkv-family-2026-11-28`. Built by `artifacts/small-model/sm166/build_release.py` (the weekend release packages (SM166)) against the Anki fork's main branch at 6cb164606.
 
 This release supersedes the 13 November release for new integrations. The 13 November release (`rwkv-family-2026-11-13`) stays downloadable, unchanged.
 
@@ -9,6 +9,7 @@ This release supersedes the 13 November release for new integrations. The 13 Nov
 - **New Small and Tiny models.** Small: the show-time two-head cool-down for Small (SM118) and the longer Small Instant-Only model (SM113). Tiny: the six-layer Tiny two-head model (SM130) and the six-layer Tiny Instant-Only model (SM130), a lighter architecture (`w64-c1-d2p1u1`, 185,057 parameters instead of 311,786). Big is unchanged: the show-time big model (SM91s2) and the show-time instant-only big model (SM99), same weight files as on 13 November.
 - **The older Tiny weights are gone from this release:** the Tiny two-head model (SM106) and the Tiny Instant-Only model (SM101) are only in the 13 November release.
 - **Answer-time heads for all six models.** Each package now has `time_head.f32.bin`, `time_head.int8.bin` and `time_head.json` (format 2). They predict how long the answer will take per button (4 grades x 16 log-time bins), which the Anki fork shows in Card Info.
+- **Tiny instant ensemble in the fork (SM170).** When the fork runs both Tiny models (the default), Tiny's instant recall combines them: `sigmoid(0.69 * logit(p_IO) + 0.31 * logit(p_TH))`, where `p_IO` is the six-layer Tiny Instant-Only model (SM130)'s instant recall and `p_TH` the six-layer Tiny two-head model (SM130)'s instant head, each clipped to [1e-7, 1 - 1e-7]. Instant LogLoss is -0.067% against the Instant-Only model alone on the 732 set (the deploy-time ensemble test (SM160)) and -0.062% [-0.066, -0.057] on 1,385 users (the decisive check (SM169)). The weights are unchanged; the two Tiny manuals describe the combination in section A.2.
 - **Smaller stored state.** The fork now stores each card and note state as low-rank factors (T24: rank 2 below 16 answers, rank 4 from the 16th), with 6-bit factors for Big and Small and 8-bit factors for Tiny. That is 85% (Big), 71% (Small) and 65% (Tiny) fewer state bytes than int8 rows, within the accuracy budgets below. Section A.3 of each `INTEGRATION.md` describes it.
 - **Every package has `WEIGHTS-NOTICE.md`**, and every package's `INTEGRATION.md` now starts with a Part A for this release, followed by the 13 November manual of the same slot as Part B.
 
@@ -33,7 +34,7 @@ Notes on the table:
 
 - Against the 13 November models of the same slot (722 users, w8+s8): the show-time two-head cool-down for Small (SM118) is -0.113% on the curve and -0.100% on instant vs the show-time retrain (SM92). The longer Small Instant-Only model (SM113) is -0.094% vs the Small Instant-Only model (SM98). The six-layer Tiny models are measured against Small, not against the older Tiny: the two-head model is +0.467% (curve) and +0.524% (instant) vs the show-time two-head cool-down for Small (SM118), and the Instant-Only model is +0.564% vs the longer Small Instant-Only model (SM113). Both are inside the user's Tiny budget of +1% vs Small.
 - The fork's state format itself costs +0.034% to +0.089% vs the model's own int8 state on the 732 set (section A.2 of each package).
-- **Long cards** (128 or more answers) were checked as a warning, not a rule. Small with 6-bit factors has no flagged cell. Tiny with T24 is at +0.002% (curve) and -0.044% (instant). Big with T24 is within ±0.03%. **Big with 6-bit factors has no long-card read-out yet**; the Big long-card check with 6-bit factors (SM165) is running.
+- **Long cards** (128 or more answers) were checked as a warning, not a rule. Small with 6-bit factors has no flagged cell. Tiny with T24 is at +0.002% (curve) and -0.044% (instant). Big with T24 is within ±0.03%, and Big with 6-bit factors is inside the tolerance too: at most +0.022% vs int8, largest CI upper bound +0.299% (the Big long-card check with 6-bit factors (SM165), 50 users).
 
 ## State size
 
@@ -55,15 +56,15 @@ Measured on 2026-11-25 on a quiet desktop with fork main eda153ddb, a release bu
 | Small | 45,156 reviews/s | -3.9% | 4.7 s | 0.64 ms / 0.20 ms |
 | Tiny | 80,569 reviews/s | -3.9% | 2.7 s | 0.36 ms / 0.11 ms |
 
-On one thread with long histories (every card past 16 answers), Small trails int8 rows by 17% and Tiny by 24%. Batching the codec is a follow-up after the release; it does not block it.
+On one thread with long histories (every card past 16 answers), Small trailed int8 rows by 17% and Tiny by 24% in this measurement. **Fork speed change since then:** fork main 6cb164606 batches the low-rank codec (SM168). The stored bytes are identical; the one-thread long-history gap shrinks to 3.2% (Small) and 5.0% (Tiny), and the first-launch rebuild gets 5.4% (Big), 4.0% (Small) and 5.0% (Tiny) faster on the same machine (AVX2 and AVX-512 CPUs; other CPUs keep about the old speed).
 
 ## How the fork uses these models
 
-The Anki fork's main branch (eda153ddb) runs exactly these six models, byte for byte, and a size never borrows another size's model.
+The Anki fork's main branch (6cb164606) runs exactly these six models, byte for byte, and a size never borrows another size's model.
 
 | Presets use | Big | Small (default) | Tiny |
 |---|---|---|---|
-| RWKV-Curve and RWKV-Instant (default) | the show-time big model (SM91s2) beside the show-time instant-only big model (SM99) | the show-time two-head cool-down for Small (SM118) beside the longer Small Instant-Only model (SM113) | the six-layer Tiny two-head model (SM130) beside the six-layer Tiny Instant-Only model (SM130) |
+| RWKV-Curve and RWKV-Instant (default) | the show-time big model (SM91s2) beside the show-time instant-only big model (SM99) | the show-time two-head cool-down for Small (SM118) beside the longer Small Instant-Only model (SM113) | the six-layer Tiny two-head model (SM130) beside the six-layer Tiny Instant-Only model (SM130), instant recall from the Tiny instant ensemble (SM170) |
 | both, with "use one model" | the show-time big model (SM91s2) alone | the show-time two-head cool-down for Small (SM118) alone | the six-layer Tiny two-head model (SM130) alone |
 | RWKV-Instant alone | the show-time instant-only big model (SM99) alone | the longer Small Instant-Only model (SM113) alone | the six-layer Tiny Instant-Only model (SM130) alone |
 | RWKV-Curve only | the show-time big model (SM91s2) alone | the show-time two-head cool-down for Small (SM118) alone | the six-layer Tiny two-head model (SM130) alone |
@@ -93,8 +94,4 @@ python testvectors/check_time_vectors.py
 
 **Test vectors and training data:** every test vector comes from two synthetic users (900001 and 900002). They are simulated review histories (fixed seed) in the dataset's on-disk format, written by `scripts/synthetic_testvector_users.py`. No row of the training data is in any package. The models were trained on the anki-revlogs-10k dataset, which is linked rather than shipped: https://huggingface.co/datasets/open-spaced-repetition/anki-revlogs-10k (gated, license "anki-revlogs-10k").
 
-**Weights are not MIT.** Read `WEIGHTS-NOTICE.md`. It covers the dataset's research terms and the open redistribution question (srs-benchmark issue #353). The answer-time head files are trained weights and fall under it too.
-
-## Not in this release
-
-- The instant ensemble for Tiny (SM160: go for Tiny only, -0.067%) is left out, pending the user's decision.
+**Weights are not MIT.** Read `WEIGHTS-NOTICE.md`. The weights (`weights.*.bin`, `time_head.*.bin`, `master.pth`) are not under the code's MIT License, and this project grants no license of its own to them: they stay under Anki's terms for the training data. Those terms allow memory research and individuals' own research; any other use, including shipping the weights in an application, needs permission from Anki. Redistribution is an open question upstream (srs-benchmark issue #353).

@@ -7,7 +7,7 @@ cd "$ROOT"
 PY="$ROOT/.venv/Scripts/python.exe"
 OUT="$ROOT/work/release-2026-11-28"            # never committed (work/.gitignore = *)
 SCRATCH="${SCRATCH:-${TMPDIR:-/tmp}/sm166}"     # synthetic users + clean extracts
-FORK="C:/Users/jonat/workspace/anki"; FC=eda153ddbff7847de8bf2591fe5e0935a8dfe836; INF=qt/aqt/rwkv_inference
+FORK="C:/Users/jonat/workspace/anki"; FC=6cb164606984c14432ef5e9befdedd6cc070f539; INF=qt/aqt/rwkv_inference
 WT="C:/Users/jonat/workspace/wt"
 export CUDA_VISIBLE_DEVICES= PYTHONDONTWRITEBYTECODE=1 RWKV_DELETED_CARDS=neighbour
 
