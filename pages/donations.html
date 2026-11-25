@@ -60,6 +60,11 @@
     <div id="goals"></div>
   </section>
 
+  <section class="panel" id="sec-subjects">
+    <div class="panel-head"><h2>By subject (reviews &middot; donors)</h2></div>
+    <div class="buckets" id="subjects"></div>
+  </section>
+
   <section class="panel" id="sec-sizes">
     <div class="panel-head"><h2>Donors by size (reviews)</h2></div>
     <div class="buckets" id="buckets"></div>
@@ -120,6 +125,21 @@
       const num = document.createElement('span'); num.className = 'n'; num.textContent = fmt(n);
       box.append(lab, tr, num);
     });
+    const rc = a.reviews_by_category || {}, dc = a.donors_by_category || {};
+    const subj = Object.entries(rc).filter(([, n]) => n > 0).sort((x, y) => y[1] - x[1]);
+    const smax = Math.max(1, ...subj.map(([, n]) => n));
+    const sbox = $('subjects');
+    sbox.replaceChildren();
+    subj.forEach(([k, n]) => {
+      const lab = document.createElement('span'); lab.className = 'lab'; lab.textContent = k === 'Deleted cards' ? 'Deleted cards (unknown)' : k;
+      const tr = document.createElement('span'); tr.className = 'track';
+      const bar = document.createElement('i'); bar.style.width = `${(100 * n) / smax}%`; tr.append(bar);
+      const num = document.createElement('span'); num.className = 'n';
+      num.textContent = `${mill(n)}${dc[k] ? ` · ${dc[k]}` : ''}`;
+      sbox.append(lab, tr, num);
+    });
+    $('sec-subjects').hidden = subj.length === 0;
+
     const fact = (k, v) => `<div class="card"><div class="k">${k}</div><div class="v">${v}</div></div>`;
     $('facts').innerHTML = [
       fact('Collections received', fmt(a.collections)),

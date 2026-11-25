@@ -16,6 +16,7 @@ import ctypes
 import hashlib
 import json
 import os
+import re
 import sqlite3
 import sys
 import zipfile
@@ -127,6 +128,85 @@ def iter_sources(folder, scratch):
                             yield f"{entry.name}::{info.filename}", path, inner, nested_sha
 
 
+CATEGORIES = ("Japanese", "Chinese", "Korean", "Medicine", "Other languages", "Other")
+_MED = re.compile(r"anking|zanki|step ?[123]|usmle|comlex|mcat|nclex|nursing|medic|pharm|anatom|physio|patho|"
+                  r"microbio|biochem|boards|lightyear|pepper|sketchy|pathoma|b&b|bnb|uworld|amboss|immunol|clinical",
+                  re.I)
+_JA = re.compile(r"japan|日本|kaishi|jlpt|n[1-5]|kanji|漢字|core ?[26]k|tango|wanikani|kana|文法|漢検|漢檢", re.I)
+_ZH = re.compile(r"chinese|mandarin|hsk|cantonese|中文|汉语|漢語", re.I)
+_KO = re.compile(r"korean|hangul|한국|topik", re.I)
+_LANG = re.compile(r"spanish|french|german|italian|portug|russian|dutch|swedish|polish|arabic|hebrew|greek|latin|"
+                   r"turkish|vietnam|thai|hindi|english|vocab|language|langue|idioma|sprache|esperanto|ukrain", re.I)
+
+
+def _script_shares(text):
+    kana = han = hangul = cyr = letters = 0
+    for ch in text:
+        o = ord(ch)
+        if 0x3040 <= o <= 0x30FF:
+            kana += 1
+        elif 0x4E00 <= o <= 0x9FFF:
+            han += 1
+        elif 0xAC00 <= o <= 0xD7AF:
+            hangul += 1
+        elif 0x0400 <= o <= 0x04FF:
+            cyr += 1
+        if ch.isalpha():
+            letters += 1
+    n = max(1, letters)
+    return kana / n, han / n, hangul / n, cyr / n
+
+
+def classify_deck(name, notetypes, sample_text):
+    """Broad subject of a deck from its name, its note types and a sample of its note text (never stored)."""
+    label = f"{name} {' '.join(notetypes)}"
+    kana, han, hangul, cyr = _script_shares(sample_text)
+    if _MED.search(label):
+        return "Medicine"
+    if kana >= 0.02 or _JA.search(label):
+        return "Japanese"
+    if hangul >= 0.05 or _KO.search(label):
+        return "Korean"
+    if han >= 0.05 or _ZH.search(label):
+        return "Chinese"
+    if cyr >= 0.05 or _LANG.search(label):
+        return "Other languages"
+    return "Other"
+
+
+def _deck_names(cur):
+    try:
+        return {did: name.replace("", "::") for did, name in cur.execute("select id, name from decks")}
+    except sqlite3.OperationalError:
+        decks = json.loads(cur.execute("select decks from col").fetchone()[0])
+        return {int(k): v["name"] for k, v in decks.items()}
+
+
+def _notetype_names(cur):
+    try:
+        return dict(cur.execute("select id, name from notetypes"))
+    except sqlite3.OperationalError:
+        models = json.loads(cur.execute("select models from col").fetchone()[0])
+        return {int(k): v["name"] for k, v in models.items()}
+
+
+def reviews_by_category(cur):
+    decks, models = _deck_names(cur), _notetype_names(cur)
+    per_deck = dict(cur.execute("select c.did, count(*) from revlog r join cards c on c.id = r.cid "
+                                "where r.ease between 1 and 4 group by c.did"))
+    orphan = cur.execute("select count(*) from revlog r left join cards c on c.id = r.cid "
+                         "where r.ease between 1 and 4 and c.id is null").fetchone()[0]
+    out = dict.fromkeys(CATEGORIES, 0)
+    out["Deleted cards"] = orphan
+    for did, n in per_deck.items():
+        rows = cur.execute("select n.mid, n.flds from cards c join notes n on n.id = c.nid where c.did = ? "
+                           "limit 300", (did,)).fetchall()
+        mids = {models.get(m, "") for m, _ in rows}
+        text = " ".join(f[:400] for _, f in rows)
+        out[classify_deck(decks.get(did, ""), mids, text)] += n
+    return out
+
+
 def read_collection(path):
     con = sqlite3.connect(f"file:{Path(path).as_posix()}?mode=ro&immutable=1", uri=True)
     cur = con.cursor()
@@ -142,6 +222,7 @@ def read_collection(path):
     row["first_review"] = datetime.fromtimestamp(lo / 1000, timezone.utc).date().isoformat() if lo else None
     row["last_review"] = datetime.fromtimestamp(hi / 1000, timezone.utc).date().isoformat() if hi else None
     row["review_days"] = q("select count(distinct id/86400000) from revlog where ease between 1 and 4")[0]
+    row["reviews_by_category"] = reviews_by_category(cur)
     ids = [r[0] for r in cur.execute("select id from revlog where ease between 1 and 4")]
     # deck-config ids other than the default one are timestamps unique to the source collection
     try:
@@ -256,6 +337,24 @@ def main():
     Path(args.report).write_text(json.dumps(rows, ensure_ascii=False, indent=1), encoding="utf-8")
 
     unique_reviews = sum(group_reviews.values())
+    # subjects: per donor, sum the category reviews of its non-duplicate collections; a donor's main subject is the
+    # category with most reviews (deleted cards excluded, since their deck is unknown)
+    cat_reviews, cat_donors = {}, {}
+    for root, members in groups.items():
+        per = {}
+        for i in members:
+            if rows[i].get("duplicate_of") or "reviews_by_category" not in rows[i]:
+                continue
+            for k, v in rows[i]["reviews_by_category"].items():
+                per[k] = per.get(k, 0) + v
+        for k, v in per.items():
+            cat_reviews[k] = cat_reviews.get(k, 0) + v
+        known = {k: v for k, v in per.items() if k != "Deleted cards" and v > 0}
+        if known:
+            main_cat = max(known, key=known.get)
+            cat_donors[main_cat] = cat_donors.get(main_cat, 0) + 1
+            for i in members:
+                rows[i]["donor_main_subject"] = main_cat
     ok = [r for r in rows if "error" not in r]
     agg = {
         "generated": datetime.now().isoformat(timespec="minutes"),
@@ -272,6 +371,8 @@ def main():
         "donors_10k_plus_reviews": sum(1 for c in group_reviews.values() if c >= 10_000),
         "first_review": min((r["first_review"] for r in ok if r.get("first_review")), default=None),
         "last_review": max((r["last_review"] for r in ok if r.get("last_review")), default=None),
+        "reviews_by_category": cat_reviews,
+        "donors_by_category": cat_donors,
         # donor sizes as buckets only (no per-donor list), so the aggregate stays non-identifying
         "donors_by_reviews": {
             label: sum(1 for c in group_reviews.values() if lo <= c < hi)

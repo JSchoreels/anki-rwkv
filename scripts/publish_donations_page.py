@@ -50,7 +50,9 @@ AGG_KEYS = (
     "files", "collections", "errors", "exact_duplicates", "mostly_contained", "donors_estimated",
     "reviews_raw_sum", "reviews_unique", "donors_with_reviews", "collections_without_review_history",
     "donors_10k_plus_reviews", "first_review", "last_review", "donors_by_reviews",
+    "reviews_by_category", "donors_by_category",
 )
+CATEGORIES = ("Japanese", "Chinese", "Korean", "Medicine", "Other languages", "Other", "Deleted cards")
 GENERIC = {"anki", "collection", "collections", "export", "backup", "colpkg", "apkg", "anki2", "anki21",
            "review", "reviews", "history", "deck", "decks", "data", "dataset"}
 BUCKETS = ("1-9,999", "10k-49,999", "50k-199,999", "200k-999,999", "1M+")
@@ -134,6 +136,9 @@ def privacy_problems(doc, folder):
         probs.append("unexpected top-level keys")
     if set(doc.get("donations", {})) - set(AGG_KEYS):
         probs.append("unexpected aggregate keys")
+    for key in ("reviews_by_category", "donors_by_category"):
+        if set(doc.get("donations", {}).get(key, {})) - set(CATEGORIES):
+            probs.append(f"unexpected {key} labels")
     if set(doc.get("donations", {}).get("donors_by_reviews", {})) - set(BUCKETS):
         probs.append("unexpected donor buckets")
     # string values only (keys are fixed field names); generic words that any file name may contain are skipped
