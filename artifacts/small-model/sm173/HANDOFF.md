@@ -1,6 +1,6 @@
 # Deleted-card note ids (SM173): handoff
 
-Status: phase 1b RUNNING (GPU, via the queue), started 2026-11-25. Design and rules: `design.md` (pre-registered before any 732-set score).
+Status: DONE 11-25 22:35, verdict HARMLESS (RESULT.md); no phase 2.
 
 ## Done
 

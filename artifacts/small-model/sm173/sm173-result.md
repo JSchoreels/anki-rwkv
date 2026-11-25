@@ -1,0 +1,51 @@
+# Deleted-card note ids (SM173): phase-1 read-out
+
+VERDICT: HARMLESS (rule users 723, with deleted-card reviews 617; rule hits {"A_overall": [], "B_affected": [], "worse_overall": []})
+
+Unaffected users not bitwise equal to cur: {"sm130-th/fix": 68, "sm130-th/lanes": 53, "sm118/fix": 69, "sm118/lanes": 55}
+
+## six-layer Tiny two-head (SM130)
+
+| comparison | scope | curve | instant | reviews |
+|---|---|---:|---:|---:|
+| fix vs cur | overall | +0.000% [-0.029, +0.024] | +0.026% [+0.014, +0.039] | 30,479,310 |
+| fix vs cur | affected | +0.043% [-0.008, +0.093] | +0.080% [+0.032, +0.130] | 6,386,031 |
+| fix vs cur | existing | -0.012% [-0.049, +0.013] | +0.010% [+0.006, +0.015] | 24,093,279 |
+| fix vs cur | overall-deleted-users | +0.001% [-0.034, +0.028] | +0.029% [+0.015, +0.044] | 27,610,730 |
+| lanes vs cur | overall | +0.005% [-0.023, +0.028] | +0.026% [+0.013, +0.039] | 30,479,310 |
+| lanes vs cur | affected | +0.044% [-0.006, +0.093] | +0.080% [+0.031, +0.128] | 6,386,031 |
+| lanes vs cur | existing | -0.006% [-0.041, +0.016] | +0.010% [+0.007, +0.015] | 24,093,279 |
+| lanes vs cur | overall-deleted-users | +0.006% [-0.027, +0.030] | +0.028% [+0.015, +0.043] | 27,610,730 |
+| reseed vs cur | overall | -0.004% [-0.009, +0.002] | -0.001% [-0.003, +0.001] | 30,479,310 |
+| reseed vs cur | affected | -0.009% [-0.021, +0.004] | -0.003% [-0.008, +0.002] | 6,386,031 |
+| reseed vs cur | existing | -0.003% [-0.008, +0.003] | -0.000% [-0.002, +0.002] | 24,093,279 |
+| reseed vs cur | overall-deleted-users | -0.003% [-0.008, +0.003] | -0.001% [-0.003, +0.001] | 27,610,730 |
+| fix vs reseed | overall | +0.004% [-0.028, +0.031] | +0.027% [+0.014, +0.039] | 30,479,310 |
+| fix vs reseed | affected | +0.051% [-0.001, +0.104] | +0.083% [+0.034, +0.133] | 6,386,031 |
+| fix vs reseed | existing | -0.009% [-0.049, +0.017] | +0.011% [+0.006, +0.015] | 24,093,279 |
+| fix vs reseed | overall-deleted-users | +0.004% [-0.035, +0.033] | +0.029% [+0.016, +0.045] | 27,610,730 |
+
+LogLoss cur / fix, affected reviews: curve 0.325681 / 0.325819, instant 0.301201 / 0.301443; overall: curve 0.303388 / 0.303389, instant 0.280061 / 0.280134
+
+## Small two-head (SM118)
+
+| comparison | scope | curve | instant | reviews |
+|---|---|---:|---:|---:|
+| fix vs cur | overall | +0.018% [-0.032, +0.052] | +0.057% [+0.042, +0.073] | 30,479,310 |
+| fix vs cur | affected | +0.118% [+0.053, +0.178] | +0.214% [+0.177, +0.256] | 6,386,031 |
+| fix vs cur | existing | -0.010% [-0.064, +0.024] | +0.011% [+0.006, +0.018] | 24,093,279 |
+| fix vs cur | overall-deleted-users | +0.020% [-0.032, +0.057] | +0.062% [+0.048, +0.081] | 27,610,730 |
+| lanes vs cur | overall | +0.018% [-0.035, +0.053] | +0.058% [+0.044, +0.073] | 30,479,310 |
+| lanes vs cur | affected | +0.117% [+0.051, +0.180] | +0.216% [+0.178, +0.257] | 6,386,031 |
+| lanes vs cur | existing | -0.010% [-0.067, +0.024] | +0.012% [+0.007, +0.018] | 24,093,279 |
+| lanes vs cur | overall-deleted-users | +0.020% [-0.035, +0.058] | +0.063% [+0.049, +0.081] | 27,610,730 |
+| reseed vs cur | overall | -0.003% [-0.011, +0.006] | +0.000% [-0.001, +0.002] | 30,479,310 |
+| reseed vs cur | affected | +0.001% [-0.010, +0.011] | +0.001% [-0.002, +0.005] | 6,386,031 |
+| reseed vs cur | existing | -0.004% [-0.012, +0.006] | -0.000% [-0.002, +0.002] | 24,093,279 |
+| reseed vs cur | overall-deleted-users | -0.002% [-0.010, +0.007] | -0.000% [-0.002, +0.002] | 27,610,730 |
+| fix vs reseed | overall | +0.021% [-0.026, +0.054] | +0.057% [+0.043, +0.072] | 30,479,310 |
+| fix vs reseed | affected | +0.117% [+0.047, +0.182] | +0.213% [+0.175, +0.255] | 6,386,031 |
+| fix vs reseed | existing | -0.006% [-0.056, +0.026] | +0.011% [+0.006, +0.018] | 24,093,279 |
+| fix vs reseed | overall-deleted-users | +0.022% [-0.028, +0.058] | +0.062% [+0.048, +0.080] | 27,610,730 |
+
+LogLoss cur / fix, affected reviews: curve 0.324058 / 0.324441, instant 0.299594 / 0.300236; overall: curve 0.301975 / 0.302031, instant 0.278606 / 0.278765
