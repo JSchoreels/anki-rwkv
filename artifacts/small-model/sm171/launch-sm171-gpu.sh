@@ -63,11 +63,11 @@ train() {  # train FOLDER MINUTES: run (resumes from a snapshot) until complete;
   while ! done_in "$f"; do
     stopped && return 1
     wait_free 30 || return 1
-    if [ "$DRYRUN" = 1 ]; then log "DRYRUN train $f (~$minutes min)"; echo "    cmd: env RWKV_DELETED_CARDS=neighbour SM171_CODE=$R $PY -X utf8 $RUN run --out artifacts/small-model/$f" >> "$LOG"; return 0; fi
+    if [ "$DRYRUN" = 1 ]; then log "DRYRUN train $f (~$minutes min)"; echo "    cmd: env RWKV_DELETED_CARDS=neighbour SM171_CODE=$R $PY -X utf8 $RUN run --out $R/artifacts/small-model/$f" >> "$LOG"; return 0; fi
     log "train: $f (expected ~$minutes min)"
     ( cd "$R" && "$PY" "$QUEUE" run --owner sm171 --purpose "${P}train $f" --claim gpu --expected-minutes "$minutes" \
       --launched-by "detached launcher sm171/launch-sm171-gpu.sh" -- \
-      env RWKV_DELETED_CARDS=neighbour SM171_CODE=$R "$PY" -X utf8 "$RUN" run --out "artifacts/small-model/$f" ) >> "$G/train-$f.out" 2>&1 &
+      env RWKV_DELETED_CARDS=neighbour SM171_CODE=$R "$PY" -X utf8 "$RUN" run --out "$R/artifacts/small-model/$f" ) >> "$G/train-$f.out" 2>&1 &
     pid=$!
     sent=0
     while kill -0 "$pid" 2>/dev/null; do
@@ -75,7 +75,7 @@ train() {  # train FOLDER MINUTES: run (resumes from a snapshot) until complete;
       stopped && why="STOP file"
       { [[ "$b" == NOW* ]] || { [[ "$b" == NEXT* ]] && [ "${b#NEXT }" -le 2 ]; }; } && why="quiet window ($b)"
       if [ -n "$why" ] && [ $sent = 0 ]; then
-        log "snapshot stop of $f ($why)"; ( cd "$R" && env SM171_CODE=$R "$PY" -X utf8 "$RUN" stop --out "artifacts/small-model/$f" > /dev/null 2>&1 ); sent=1
+        log "snapshot stop of $f ($why)"; ( cd "$R" && env SM171_CODE=$R "$PY" -X utf8 "$RUN" stop --out "$R/artifacts/small-model/$f" > /dev/null 2>&1 ); sent=1
       fi
       sleep 30
     done
