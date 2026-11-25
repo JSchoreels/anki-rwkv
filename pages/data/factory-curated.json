@@ -2557,10 +2557,11 @@
     "Weekend release packages (SM166): "
    ],
    "what": "Weekend release packages (SM166): the six release-candidate models (Big, Small and the six-layer Tiny, each two-head and Instant-Only) packaged like the 13 November release, with the final state formats, synthetic test vectors, integration notes, the weights notice and checksums, all checked from a clean extract; nothing is published",
-   "when": "Started 04:55 Wed 11-25",
+   "when": "Started 04:55 Wed 11-25; packages built and verified 05:20; waiting for the user&rsquo;s release go",
    "decides": "Nothing: the packages wait for the user&rsquo;s release go",
-   "state": "running",
-   "started_at": "2026-11-25T04:55+01:00"
+   "state": "done",
+   "started_at": "2026-11-25T04:55+01:00",
+   "ended_at": "2026-11-25T05:20+01:00"
   },
   {
    "id": "SM163",
@@ -3668,6 +3669,69 @@
   "s-w64kd-gate-ctx2048c-dec8-1ep/w8+s8"
  ],
  "results": [
+  {
+   "date": "11-25",
+   "kind": "cpu",
+   "id": "SM166",
+   "track": "small model",
+   "name": "Weekend release packages (SM166): six zips (Big, Small and six-layer Tiny, each two-head and Instant-Only) with the final state formats, answer-time heads, synthetic test vectors, integration notes, the weights notice and checksums; nothing published",
+   "eval": "Built with the 13 November release tooling; every zip checked from a clean extract (model vectors and answer-time vectors, synthetic users only); every shipped weight file compared byte for byte with the fork&rsquo;s main branch (eda153ddb).",
+   "fork": "Nothing changed in the fork",
+   "takeaway": "<strong>Ready, not published:</strong> all six zips pass their test vectors from a clean extract and ship exactly the weights the fork&rsquo;s main branch runs; publishing waits for the user&rsquo;s go.",
+   "inputs": "show-time",
+   "started_at": "2026-11-25T04:55+01:00",
+   "ended_at": "2026-11-25T05:20+01:00",
+   "gpu_minutes": 0,
+   "cpu_minutes": 25,
+   "tickets": 0,
+   "detail": {
+    "verdict": "Packages ready in the local release folder; scripts, manifest and draft release notes in anki-rwkv main 7ec4f7be. Proposed tag rwkv-family-2026-11-28.",
+    "table": {
+     "head": [
+      "Package",
+      "Size",
+      "Test vectors from a clean extract"
+     ],
+     "rows": [
+      [
+       "Big two-head (SM91s2)",
+       "29.9 MB",
+       "pass"
+      ],
+      [
+       "Big Instant-Only (SM99)",
+       "29.9 MB",
+       "pass"
+      ],
+      [
+       "Small two-head (SM118)",
+       "8.7 MB",
+       "pass"
+      ],
+      [
+       "Small Instant-Only (SM113)",
+       "8.6 MB",
+       "pass"
+      ],
+      [
+       "six-layer Tiny two-head (SM130)",
+       "6.4 MB",
+       "pass"
+      ],
+      [
+       "six-layer Tiny Instant-Only (SM130)",
+       "6.3 MB",
+       "pass"
+      ]
+     ]
+    },
+    "notes": [
+     "The older Tiny weights (SM106, SM101) are no longer packaged; the 13 November release stays as it is.",
+     "The Tiny ensemble (SM160) is left out until the user decides.",
+     "The weights notice is being extended to name the answer-time head files too (rebuild and re-check running)."
+    ]
+   }
+  },
   {
    "date": "11-25",
    "kind": "cpu",
