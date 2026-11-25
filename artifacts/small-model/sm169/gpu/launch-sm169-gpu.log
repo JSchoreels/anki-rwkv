@@ -1,0 +1,56 @@
+[sm169 11-25 09:38:32] started: a182d354 SM169 design: correct the writing time (DRYRUN=0; dirty source files: 0)
+[sm169] selftest OK
+users-1500-new.json OK (unchanged)
+users-smoke.json OK (unchanged)
+732 part: 723 users; new part: 665 users; together 1388 (the 1,500 pool has 1500; minus the 100 fit users 1400; 12 not scorable: 732-set users outside the fit list or > 650,000 reviews)
+[sm169 11-25 09:38:56] enqueue: GPU smoke: 2 smoke users, 2 models x T24 with the per-review dump, vs SM164's rows (expected 10 min, max wait 99987 min, 100000 min to the next quiet window)
+[sm169 11-25 09:39:10] exit 0: GPU smoke: 2 smoke users, 2 models x T24 with the per-review dump, vs SM164's rows (nvidia-smi max 603 MiB, baseline 603 MiB)
+[sm169 11-25 09:39:11] Traceback (most recent call last):
+  File "C:\Users\jonat\workspace\wt\sm169\artifacts\small-model\sm169\sm169_report.py", line 308, in <module>
+    main()
+  File "C:\Users\jonat\workspace\wt\sm169\artifacts\small-model\sm169\sm169_report.py", line 304, in main
+    sys.exit({"users": users_cmd, "smoke": smoke_cmd, "report": report_cmd, "selftest": selftest}[a.cmd]())
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\jonat\workspace\wt\sm169\artifacts\small-model\sm169\sm169_report.py", line 159, in smoke_cmd
+    (G / "smoke-check.json").write_text(json.dumps({"ok": ok, "max_vs_sm164": worst_old, "max_dump_vs_row": worst_dump,
+                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\jonat\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\json\__init__.py", line 238, in dumps
+    **kw).encode(obj)
+          ^^^^^^^^^^^
+  File "C:\Users\jonat\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\json\encoder.py", line 202, in encode
+    chunks = list(chunks)
+             ^^^^^^^^^^^^
+  File "C:\Users\jonat\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\json\encoder.py", line 432, in _iterencode
+    yield from _iterencode_dict(o, _current_indent_level)
+  File "C:\Users\jonat\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\json\encoder.py", line 406, in _iterencode_dict
+    yield from chunks
+  File "C:\Users\jonat\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\json\encoder.py", line 439, in _iterencode
+    o = _default(o)
+        ^^^^^^^^^^^
+  File "C:\Users\jonat\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\json\encoder.py", line 180, in default
+    raise TypeError(f'Object of type {o.__class__.__name__} '
+TypeError: Object of type bool is not JSON serializable
+[sm169 11-25 09:39:11] STOP: GPU smoke mismatch (see C:/Users/jonat/workspace/wt/sm169/artifacts/small-model/sm169/gpu/smoke-check.txt, C:/Users/jonat/workspace/wt/sm169/artifacts/small-model/sm169/gpu/smoke-check.json)
+[sm169 11-25 09:39:11] SM169 GPU STOP: ended with exit 1
+[sm169 11-25 09:39:45] started: 3da695a2 SM169: smoke check wrote a numpy bool to JSON (first launch stopped after the smo (DRYRUN=0; dirty source files: 0)
+[sm169] selftest OK
+users-1500-new.json OK (unchanged)
+users-smoke.json OK (unchanged)
+732 part: 723 users; new part: 665 users; together 1388 (the 1,500 pool has 1500; minus the 100 fit users 1400; 12 not scorable: 732-set users outside the fit list or > 650,000 reviews)
+[sm169 11-25 09:40:09] enqueue: GPU smoke: 2 smoke users, 2 models x T24 with the per-review dump, vs SM164's rows (expected 10 min, max wait 99987 min, 100000 min to the next quiet window)
+[sm169 11-25 09:40:17] exit 0: GPU smoke: 2 smoke users, 2 models x T24 with the per-review dump, vs SM164's rows (nvidia-smi max 603 MiB, baseline 603 MiB)
+[sm169 11-25 09:40:18] max |GPU smoke - SM164 row| LogLoss 0.00e+00 (tolerance 1e-05); max |dump - row| LogLoss 3.52e-07 (tolerance 2e-06)
+smoke OK
+[sm169 11-25 09:40:18] enqueue: T24, the six-layer Tiny (2 models), ids >= 5000 of the 1,500 pool (users-1500-new.json) with the per-review dump, e2s-query inputs (pass 1, 2 done, cap 0.8) (expected 50 min, max wait 99947 min, 100000 min to the next quiet window)
+[sm169 11-25 10:03:14] exit 0: T24, the six-layer Tiny (2 models), ids >= 5000 of the 1,500 pool (users-1500-new.json) with the per-review dump, e2s-query inputs (pass 1, 2 done, cap 0.8) (nvidia-smi max 13801 MiB, baseline 603 MiB)
+[sm169 11-25 10:03:14] enqueue: T24, the six-layer Tiny (2 models), ids >= 5000 of the 1,500 pool (users-1500-new.json) with the per-review dump, e2s-query inputs (pass 2, 660 done, cap 0.8) (expected 15 min, max wait 99982 min, 100000 min to the next quiet window)
+[sm169 11-25 10:03:56] exit 0: T24, the six-layer Tiny (2 models), ids >= 5000 of the 1,500 pool (users-1500-new.json) with the per-review dump, e2s-query inputs (pass 2, 660 done, cap 0.8) (nvidia-smi max 13815 MiB, baseline 603 MiB)
+[sm169 11-25 10:03:56] no progress (660 of 665 users): next pass at cap 0.92 (memory only, same numerics)
+[sm169 11-25 10:03:56] enqueue: T24, the six-layer Tiny (2 models), ids >= 5000 of the 1,500 pool (users-1500-new.json) with the per-review dump, e2s-query inputs (pass 3, 660 done, cap 0.92) (expected 15 min, max wait 99982 min, 100000 min to the next quiet window)
+[sm169 11-25 10:05:00] exit 0: T24, the six-layer Tiny (2 models), ids >= 5000 of the 1,500 pool (users-1500-new.json) with the per-review dump, e2s-query inputs (pass 3, 660 done, cap 0.92) (nvidia-smi max 15708 MiB, baseline 603 MiB)
+[sm169 11-25 10:05:01] enqueue: T24, the six-layer Tiny (2 models), ids >= 5000 of the 1,500 pool (users-1500-new.json) with the per-review dump, e2s-query inputs (pass 4, 661 done, cap 0.92) (expected 15 min, max wait 99982 min, 100000 min to the next quiet window)
+[sm169 11-25 10:05:58] exit 0: T24, the six-layer Tiny (2 models), ids >= 5000 of the 1,500 pool (users-1500-new.json) with the per-review dump, e2s-query inputs (pass 4, 661 done, cap 0.92) (nvidia-smi max 15576 MiB, baseline 662 MiB)
+[sm169 11-25 10:05:58] enqueue: T24, the six-layer Tiny (2 models), ids >= 5000 of the 1,500 pool (users-1500-new.json) with the per-review dump, e2s-query inputs (pass 5, 662 done, cap 0.92) (expected 15 min, max wait 99982 min, 100000 min to the next quiet window)
+[sm169 11-25 10:06:35] exit 0: T24, the six-layer Tiny (2 models), ids >= 5000 of the 1,500 pool (users-1500-new.json) with the per-review dump, e2s-query inputs (pass 5, 662 done, cap 0.92) (nvidia-smi max 15414 MiB, baseline 438 MiB)
+[sm169 11-25 10:06:35] new part: 662 of 665 users scored for both models
+[sm169 11-25 10:06:35] SM169 GPU DONE: rows in C:/Users/jonat/workspace/wt/sm169/artifacts/small-model/sm169/gpu/sm169-rows-1500.jsonl, dumps in C:/Users/jonat/workspace/wt/sm169/work/sm169-dump/new (the read-out is the next agent's step)

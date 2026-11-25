@@ -1,6 +1,6 @@
 # Tiny ensemble on the 1,500 users (SM169): handoff
 
-Status: RUNNING since 11-25 09:40 (GPU ticket 001609-sm169). Read-out pending.
+Status: DONE 11-25 (read-out finished): verdict GO, D -0.062% [-0.066, -0.057] on 1,385 users, oracle w 0.67, 82.8% of users improve. See RESULT.md. Dumps in work/sm169-dump/ kept until the main session agrees to delete them.
 
 Design and rules: `design.md` (pre-registered in f761a06a before any row or dump of the new part existed). Question: with w = 0.69 fixed from the deploy-time ensemble test (SM160) and not refitted, does the logit average `sigmoid(w * logit(p_IO) + (1 - w) * logit(p_TH))` of the six-layer Tiny Instant-Only (SM130) and six-layer Tiny two-head (SM130) instant predictions beat the Instant-Only model alone on the 1,500 validation users minus SM160's 100 fit users, at T24 (`w8+lr2.16.4q8x8@e2s-query`)? Go: CI upper bound below 0 AND D at most -0.05%, at least 1,375 rule users, no non-finite row, every dump reproduces its row.
 
