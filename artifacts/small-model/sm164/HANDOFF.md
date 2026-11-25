@@ -1,6 +1,6 @@
 # Release-candidate re-check of the final state formats (SM164): handoff
 
-Status: GPU chain RUNNING (launched 11-24 23:34). The agent that launched it has stopped; a fresh agent (Sonnet, medium effort) does the read-out.
+Status: DONE 11-25. GPU chain finished 02:40; read-out decided: Big F6 GO, Small F6 GO, Tiny T24 GO (see RESULT.md, sm164-result.md). The text below is the historical launch handoff.
 
 Design and rules: `design.md` (pre-registered in 855d0b8f before any row of this run existed). Question: do the six release-candidate models on their final state formats (Big and Small F6 `w8+lr2.16.4q6x8`, six-layer Tiny T24 `w8+lr2.16.4q8x8`) stay inside the user's budgets on the 732 set and on the 1,500 pool? Budgets, CI upper bound per head: Big <= +0.15% vs its own int8; Small <= +0.5% and Tiny <= +1.0% total vs the matching Big model at int8. On the 1,500 pool the Small / Tiny total is decomposed (upper(own int8 vs Big int8, 732 set) + upper(final label vs own int8, 1,500 set)) because the users with id >= 5000 are training users of the Big models.
 
