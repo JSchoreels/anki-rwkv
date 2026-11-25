@@ -1,0 +1,414 @@
+{
+ "code_tree": "C:\\Users\\jonat\\workspace\\wt\\sm171-run",
+ "code_head": "cea0f931460996830736bdaa06e3a7d66418479b",
+ "code_dirty": false,
+ "torch": "2.9.1+cu128",
+ "hook_sha256": "388d83e0da9d07489d9563892cb298b0e5e95ec05592974705e09fb7090a0bb5",
+ "checks": {
+  "P1_trajectory_and_tracked_drop": {
+   "pass": true,
+   "seconds": 1.1,
+   "detail": {
+    "zero_start": {
+     "final_state_max_rel_diff_vs_stock": 0.0,
+     "writes_x_heads": 896,
+     "mean_d_tracked": 0.19535291194915771,
+     "mean_d_exact": 0.19500832264697962,
+     "max_abs_d_tracked_minus_exact": 0.044158286441537076,
+     "p99_abs_d_tracked_minus_exact": 0.007492425992018578,
+     "tracked_ge_exact": true
+    },
+    "carried": {
+     "final_state_max_rel_diff_vs_stock": 0.0,
+     "writes_x_heads": 892,
+     "mean_d_tracked": 0.21790391206741333,
+     "mean_d_exact": 0.21761700127936026,
+     "max_abs_d_tracked_minus_exact": 0.03712431049119913,
+     "p99_abs_d_tracked_minus_exact": 0.007573256028406678,
+     "tracked_ge_exact": true
+    }
+   }
+  },
+  "P2_gradients_vs_autograd": {
+   "pass": true,
+   "seconds": 0.6,
+   "detail": {
+    "zero_start": {
+     "max_rel_grad_diff": 3.374015009539913e-15,
+     "nonzero": true
+    },
+    "carried": {
+     "max_rel_grad_diff": 5.583548692822268e-14,
+     "nonzero": true
+    },
+    "danskin_vs_svd_autograd_max_rel": 3.597072317409896e-15
+   }
+  },
+  "P3_float32_backward": {
+   "pass": true,
+   "seconds": 0.3,
+   "detail": {
+    "max_rel_diff": 6.634286446731964e-07
+   }
+  },
+  "P4_tiny_two_head_real_updates": {
+   "pass": true,
+   "seconds": 110.5,
+   "detail": {
+    "users": [
+     4745,
+     2308
+    ],
+    "chunk_reviews": 256,
+    "lambda": 1.0,
+    "reviews": {
+     "4745": 636,
+     "2308": 939
+    },
+    "arms": {
+     "stock": {
+      "steps": [
+       {
+        "user": 4745,
+        "offset": 0,
+        "reviews": 256,
+        "loss": 1.1519800424575806,
+        "grad_norm": 0.088383749127388,
+        "grad_sha256": "c378b962150e79b7",
+        "card_note_grads_finite": true,
+        "card_note_grad_abs_sum": 3.0405802726745605,
+        "other_grad_abs_sum": 10.43344497680664,
+        "seconds": 11.29
+       },
+       {
+        "user": 4745,
+        "offset": 256,
+        "reviews": 256,
+        "loss": 1.0131498575210571,
+        "grad_norm": 0.10914560407400131,
+        "grad_sha256": "3c7adb733ea6cc32",
+        "card_note_grads_finite": true,
+        "card_note_grad_abs_sum": 3.4027903079986572,
+        "other_grad_abs_sum": 11.727195739746094,
+        "seconds": 10.02
+       },
+       {
+        "user": 4745,
+        "offset": 512,
+        "reviews": 124,
+        "loss": 0.6860606074333191,
+        "grad_norm": 0.1267879456281662,
+        "grad_sha256": "e40ddb8e215de931",
+        "card_note_grads_finite": true,
+        "card_note_grad_abs_sum": 3.433610439300537,
+        "other_grad_abs_sum": 11.99179458618164,
+        "seconds": 1.4
+       },
+       {
+        "user": 2308,
+        "offset": 0,
+        "reviews": 256,
+        "loss": 1.1000645160675049,
+        "grad_norm": 0.1093284860253334,
+        "grad_sha256": "8c8f12e1f586979b",
+        "card_note_grads_finite": true,
+        "card_note_grad_abs_sum": 2.8893070220947266,
+        "other_grad_abs_sum": 11.824187278747559,
+        "seconds": 5.17
+       },
+       {
+        "user": 2308,
+        "offset": 256,
+        "reviews": 256,
+        "loss": 1.7415235042572021,
+        "grad_norm": 0.1407330483198166,
+        "grad_sha256": "c9fbc4f6d8838b85",
+        "card_note_grads_finite": true,
+        "card_note_grad_abs_sum": 2.7763469219207764,
+        "other_grad_abs_sum": 13.394978523254395,
+        "seconds": 6.25
+       },
+       {
+        "user": 2308,
+        "offset": 512,
+        "reviews": 256,
+        "loss": 0.6837948560714722,
+        "grad_norm": 0.16470228135585785,
+        "grad_sha256": "0b6a7246954173bc",
+        "card_note_grads_finite": true,
+        "card_note_grad_abs_sum": 3.077850103378296,
+        "other_grad_abs_sum": 16.831527709960938,
+        "seconds": 1.49
+       }
+      ],
+      "calls": {
+       "card_note": 0,
+       "tap": 0,
+       "diag": 0,
+       "other": 0
+      },
+      "hook": null,
+      "weights_finite_after_steps": true,
+      "carry": {
+       "precision": "deploy",
+       "carry": true,
+       "lanes": "strided",
+       "mode": "strided lanes (v2): update u holds window u of every lane; lane starts from zero",
+       "stats": {
+        "users": 2,
+        "updates": 6,
+        "streams_calls": 6,
+        "peak_table_bytes": 1474062
+       }
+      }
+     },
+     "lam0": {
+      "steps": [
+       {
+        "user": 4745,
+        "offset": 0,
+        "reviews": 256,
+        "loss": 1.1519800424575806,
+        "grad_norm": 0.088383749127388,
+        "grad_sha256": "c378b962150e79b7",
+        "card_note_grads_finite": true,
+        "card_note_grad_abs_sum": 3.0405802726745605,
+        "other_grad_abs_sum": 10.43344497680664,
+        "seconds": 3.41
+       },
+       {
+        "user": 4745,
+        "offset": 256,
+        "reviews": 256,
+        "loss": 1.0131498575210571,
+        "grad_norm": 0.10914560407400131,
+        "grad_sha256": "3c7adb733ea6cc32",
+        "card_note_grads_finite": true,
+        "card_note_grad_abs_sum": 3.4027903079986572,
+        "other_grad_abs_sum": 11.727195739746094,
+        "seconds": 3.93
+       },
+       {
+        "user": 4745,
+        "offset": 512,
+        "reviews": 124,
+        "loss": 0.6860606074333191,
+        "grad_norm": 0.1267879456281662,
+        "grad_sha256": "e40ddb8e215de931",
+        "card_note_grads_finite": true,
+        "card_note_grad_abs_sum": 3.433610439300537,
+        "other_grad_abs_sum": 11.99179458618164,
+        "seconds": 1.65
+       },
+       {
+        "user": 2308,
+        "offset": 0,
+        "reviews": 256,
+        "loss": 1.1000645160675049,
+        "grad_norm": 0.1093284860253334,
+        "grad_sha256": "8c8f12e1f586979b",
+        "card_note_grads_finite": true,
+        "card_note_grad_abs_sum": 2.8893070220947266,
+        "other_grad_abs_sum": 11.824187278747559,
+        "seconds": 7.56
+       },
+       {
+        "user": 2308,
+        "offset": 256,
+        "reviews": 256,
+        "loss": 1.7415235042572021,
+        "grad_norm": 0.1407330483198166,
+        "grad_sha256": "c9fbc4f6d8838b85",
+        "card_note_grads_finite": true,
+        "card_note_grad_abs_sum": 2.7763469219207764,
+        "other_grad_abs_sum": 13.394978523254395,
+        "seconds": 8.27
+       },
+       {
+        "user": 2308,
+        "offset": 512,
+        "reviews": 256,
+        "loss": 0.6837948560714722,
+        "grad_norm": 0.16470228135585785,
+        "grad_sha256": "0b6a7246954173bc",
+        "card_note_grads_finite": true,
+        "card_note_grad_abs_sum": 3.077850103378296,
+        "other_grad_abs_sum": 16.831527709960938,
+        "seconds": 1.75
+       }
+      ],
+      "calls": {
+       "card_note": 25,
+       "tap": 0,
+       "diag": 2,
+       "other": 26
+      },
+      "hook": {
+       "recipe": "sm171-energy",
+       "lambda": 0.0,
+       "rank": 2,
+       "nit": 1,
+       "nit_init": 3,
+       "penalty": "mean over card / note streams of the mean dropped energy share 1 - (s1^2 + s2^2) / ||S||^2 of every stored write x head; gradient only (the logged loss is the stock loss)",
+       "streams": {
+        "0": {
+         "wkv_layers": 1,
+         "heads": 4
+        },
+        "2": {
+         "wkv_layers": 1,
+         "heads": 4
+        }
+       },
+       "hook": "C:\\Users\\jonat\\workspace\\wt\\sm171\\artifacts\\small-model\\sm171\\sm171_energy.py",
+       "hook_sha256": "388d83e0da9d07489d9563892cb298b0e5e95ec05592974705e09fb7090a0bb5",
+       "log": "C:\\Users\\jonat\\workspace\\wt\\sm171\\artifacts\\small-model\\sm171\\check-cpu-sm171-energy.jsonl"
+      },
+      "weights_finite_after_steps": true,
+      "carry": {
+       "precision": "deploy",
+       "carry": true,
+       "lanes": "strided",
+       "mode": "strided lanes (v2): update u holds window u of every lane; lane starts from zero",
+       "stats": {
+        "users": 2,
+        "updates": 6,
+        "streams_calls": 6,
+        "peak_table_bytes": 1474062
+       }
+      }
+     },
+     "lam": {
+      "steps": [
+       {
+        "user": 4745,
+        "offset": 0,
+        "reviews": 256,
+        "loss": 1.1519800424575806,
+        "grad_norm": 0.12898236513137817,
+        "grad_sha256": "923aef0eeccb4fe3",
+        "card_note_grads_finite": true,
+        "card_note_grad_abs_sum": 7.078224182128906,
+        "other_grad_abs_sum": 12.715758323669434,
+        "seconds": 7.23
+       },
+       {
+        "user": 4745,
+        "offset": 256,
+        "reviews": 256,
+        "loss": 1.0131616592407227,
+        "grad_norm": 0.14368852972984314,
+        "grad_sha256": "198db0732fb4fef7",
+        "card_note_grads_finite": true,
+        "card_note_grad_abs_sum": 6.888461589813232,
+        "other_grad_abs_sum": 13.357893943786621,
+        "seconds": 12.25
+       },
+       {
+        "user": 4745,
+        "offset": 512,
+        "reviews": 124,
+        "loss": 0.686042845249176,
+        "grad_norm": 0.14604739844799042,
+        "grad_sha256": "86e258539bc6e667",
+        "card_note_grads_finite": true,
+        "card_note_grad_abs_sum": 6.061167240142822,
+        "other_grad_abs_sum": 13.096840858459473,
+        "seconds": 0.8
+       },
+       {
+        "user": 2308,
+        "offset": 0,
+        "reviews": 256,
+        "loss": 1.100075602531433,
+        "grad_norm": 0.1184295266866684,
+        "grad_sha256": "a80677a164ad4127",
+        "card_note_grads_finite": true,
+        "card_note_grad_abs_sum": 4.160719871520996,
+        "other_grad_abs_sum": 12.876914024353027,
+        "seconds": 0.91
+       },
+       {
+        "user": 2308,
+        "offset": 256,
+        "reviews": 256,
+        "loss": 1.7414982318878174,
+        "grad_norm": 0.14885729551315308,
+        "grad_sha256": "7b6b6e099463ff8f",
+        "card_note_grads_finite": true,
+        "card_note_grad_abs_sum": 3.7090935707092285,
+        "other_grad_abs_sum": 14.431655883789062,
+        "seconds": 0.79
+       },
+       {
+        "user": 2308,
+        "offset": 512,
+        "reviews": 256,
+        "loss": 0.6838074326515198,
+        "grad_norm": 0.16493381559848785,
+        "grad_sha256": "ae53625cba3d3094",
+        "card_note_grads_finite": true,
+        "card_note_grad_abs_sum": 3.1634790897369385,
+        "other_grad_abs_sum": 16.801467895507812,
+        "seconds": 0.5
+       }
+      ],
+      "calls": {
+       "card_note": 25,
+       "tap": 25,
+       "diag": 0,
+       "other": 26
+      },
+      "hook": {
+       "recipe": "sm171-energy",
+       "lambda": 1.0,
+       "rank": 2,
+       "nit": 1,
+       "nit_init": 3,
+       "penalty": "mean over card / note streams of the mean dropped energy share 1 - (s1^2 + s2^2) / ||S||^2 of every stored write x head; gradient only (the logged loss is the stock loss)",
+       "streams": {
+        "0": {
+         "wkv_layers": 1,
+         "heads": 4
+        },
+        "2": {
+         "wkv_layers": 1,
+         "heads": 4
+        }
+       },
+       "hook": "C:\\Users\\jonat\\workspace\\wt\\sm171\\artifacts\\small-model\\sm171\\sm171_energy.py",
+       "hook_sha256": "388d83e0da9d07489d9563892cb298b0e5e95ec05592974705e09fb7090a0bb5",
+       "log": "C:\\Users\\jonat\\workspace\\wt\\sm171\\artifacts\\small-model\\sm171\\check-cpu-sm171-energy.jsonl"
+      },
+      "weights_finite_after_steps": true,
+      "carry": {
+       "precision": "deploy",
+       "carry": true,
+       "lanes": "strided",
+       "mode": "strided lanes (v2): update u holds window u of every lane; lane starts from zero",
+       "stats": {
+        "users": 2,
+        "updates": 6,
+        "streams_calls": 6,
+        "peak_table_bytes": 1474062
+       }
+      }
+     }
+    },
+    "logged_mean_drop": [
+     0.03753176547751442,
+     0.02986776998579672,
+     0.06086436975375879
+    ],
+    "first_update_card_note_grad_change": 1.3279188665861947,
+    "seconds_per_update": {
+     "stock": 5.9366666666666665,
+     "lam0": 4.428333333333334,
+     "lam": 3.7466666666666666
+    }
+   }
+  }
+ },
+ "all_ok": true,
+ "seconds": 112.5
+}
