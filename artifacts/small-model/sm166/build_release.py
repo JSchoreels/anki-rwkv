@@ -416,6 +416,11 @@ def main():
     notice = fork_blob("WEIGHTS-NOTICE.md")
     if notice != (HF / "WEIGHTS-NOTICE.md").read_bytes():
         raise SystemExit("WEIGHTS-NOTICE.md: fork main and the last release differ")
+    old = b"the `weights.*.bin` and `master.pth` files"
+    if notice.count(old) != 1:
+        raise SystemExit("WEIGHTS-NOTICE.md: expected sentence not found exactly once")
+    # SM166 packages also ship the answer-time head weights: name them (nothing else changes)
+    notice = notice.replace(old, b"the `weights.*.bin`, `time_head.*.bin` and `master.pth` files")
     manifest = {"tag_proposed": TAG, "published": False, "fork_main": FORK_COMMIT, "packages": {}, "assets": {}}
     for p in PACKAGES:
         pkg = pkg_root / p["zip"]
