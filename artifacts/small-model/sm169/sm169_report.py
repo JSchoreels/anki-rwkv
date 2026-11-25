@@ -151,7 +151,8 @@ def smoke_cmd():
                 ok = False; lines.append(f"no dump pair {u}")
         except SystemExit as e:
             ok = False; lines.append(str(e))
-    ok = ok and worst_old <= TOL_SMOKE and worst_dump <= TOL_ROW
+    ok = bool(ok and worst_old <= TOL_SMOKE and worst_dump <= TOL_ROW)
+    worst_old, worst_dump = float(worst_old), float(worst_dump)
     lines.append(f"max |GPU smoke - SM164 row| LogLoss {worst_old:.2e} (tolerance {TOL_SMOKE:g}); "
                  f"max |dump - row| LogLoss {worst_dump:.2e} (tolerance {TOL_ROW:g})")
     lines.append("smoke OK" if ok else "smoke FAILED")
