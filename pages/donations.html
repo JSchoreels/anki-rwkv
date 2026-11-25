@@ -130,7 +130,7 @@
       const acc = x.train_users
         ? (x.accuracy_estimate_pct != null ? `&asymp;${x.accuracy_estimate_pct}% of today&rsquo;s accuracy*` : 'accuracy estimate: measuring*')
         : '';
-      el.innerHTML = `<div class="l1"><span class="t">${x.name || x.label}${x.provisional ? ' <span class="muted">(estimate)</span>' : ''}</span><span class="p">${pct(x.progress_pct)}</span></div>`
+      el.innerHTML = `<div class="l1"><span class="t">${x.name || x.label}${x.provisional ? ' <span class="muted">(user count may change)</span>' : ''}</span><span class="p">${pct(x.progress_pct)}</span></div>`
         + `<p class="sub">${x.unlocks || ''} &middot; ${split}${acc ? ` &middot; ${acc}` : ''}</p>`
         + `<div class="meter" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${w.toFixed(2)}" aria-label="${x.name || x.label}"><i style="width:${w}%"></i></div>`
         + (done
