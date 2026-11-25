@@ -108,8 +108,8 @@ def goals_block(agg):
     specs = (
         ("m1", "Milestone 1 (Minimum Viable)", 1_500, 500,
          "First MIT-licensed model trained only on donations", True, None),
-        ("m2", "Milestone 2 (srs-benchmark size)", 5_000, 2_000,
-         "As many users as the srs-benchmark models are trained and tested on", False, None),
+        ("m2", "Milestone 2 (srs-benchmark same training dataset)", 5_000, 2_000,
+         "As many training users as the srs-benchmark models (5,000)", False, None),
         ("m3", "Milestone 3 (Current Anki Fork user trained)", 8_000, 2_000,
          "As many users as the models in today's Anki fork", False, None),
     )
