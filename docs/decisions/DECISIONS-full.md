@@ -42,6 +42,16 @@ bootstrap; "732 set" = the standard 732-user evaluation pool (722 to 723 rule us
   the release instead of a late hot-path change now.
 - **Undo:** start the batching now if the user wants it in the release.
 
+### D-1125-05 - Tiny ensemble ships; everything to fork main; release approved pending notice wording (You)
+- **Decisions (user ~13:00):** (1) the Tiny ensemble (SM170) goes in; (2) "push everything to main": tiny-ensemble and
+  codec-batch (SM168) merge into fork main, the user retests on the Mac later and said to assume it is OK; (3) publish
+  the release, provided the weights notice is precise that the weights stay under Anki's terms.
+- **Notice:** the dataset LICENSE names no owner; it says the data was provided to the FSRS project for memory research
+  and sends other uses to anki.tenderapp.com. New wording (artifacts/small-model/sm166/WEIGHTS-NOTICE.next.md): this
+  project grants no license to the weights; they stay under the data's terms; other uses need Anki's permission via
+  anki.tenderapp.com. Not worded as legal ownership by Anki because the license does not say that; user confirms.
+- **Status:** fork merges + package rebuild running; gh release create after the user confirms the wording.
+
 ### D-1125-04 - Big long-card check with 6-bit factors (SM165) and release packages (SM166) started (Agent)
 - **Why:** Big F6 was the only final format without a long-card read-out (warning only); packages are the next plan step
   (prepared only; publishing needs the user). The Tiny ensemble (SM160) is not in the packages until the user decides.
