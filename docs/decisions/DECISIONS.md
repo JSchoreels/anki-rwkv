@@ -3,6 +3,13 @@
 One line per decision, newest first. **You** = decided by Jonathan; **Agent** = obvious call taken by the agent
 and logged here for review. Details, evidence and how to undo each one: [DECISIONS-full.md](DECISIONS-full.md).
 
+## 2026-11-26
+
+- **You** - Goal: MIT-licensed weights trained only on donated data (from scratch, no teacher). Data campaign page
+  with goals 732-user eval set, 7k users (5k/2k), 10k users (8k/2k); refreshed every 4 h.
+- **Agent** - Started the data-scaling test (SM174): Tiny from scratch, no teacher, 500 to 4,000 users, to set the
+  real donor goal.
+
 ## 2026-11-25
 
 - **Agent** - Deleted-card note ids (SM173): harmless now (fork cost about +0.01% on existing cards); next family
