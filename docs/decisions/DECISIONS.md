@@ -5,6 +5,8 @@ and logged here for review. Details, evidence and how to undo each one: [DECISIO
 
 ## 2026-11-25
 
+- **Agent** - Batched codec (SM168) works: one-thread long-history gap Small -17.9% -> -3.2%, Tiny -24.2% -> -5.0%,
+  bit-identical; fork branch codec-batch 39e8b308f, merged into fork main after the weekend release (AVX2 only).
 - **Agent** - Started the batched low-rank codec (SM168) on its own fork branch; not merged before the release.
 - **Agent** - Links between cards (SM167): no go; correction gains -0.0017% LogLoss (bar 0.05%); not pursued.
 - **Agent** - Big long cards with 6-bit factors (SM165): inside the tolerance (at most +0.022%, CI upper +0.299%);

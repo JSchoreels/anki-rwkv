@@ -1,7 +1,7 @@
 {
- "generated_at": "2026-11-25T06:42:36+01:00",
- "updated": "2026-11-25 06:42",
- "material": "8985c1f3f38e4346",
+ "generated_at": "2026-11-25T08:03:30+01:00",
+ "updated": "2026-11-25 08:03",
+ "material": "6092c885a5786d21",
  "summary": "idle",
  "headline": [
   {
@@ -2759,10 +2759,11 @@
    "kind": "cpu",
    "minutes": 240,
    "what": "Batched low-rank codec in the fork (SM168): the follow-up the clean speed re-measure (SM163) triggered: encode and decode the low-rank card states several cards at a time, bit-identical to today&rsquo;s codec, to close the one-thread long-history gap (Small 17.2%, Tiny 23.9% behind int8 rows); built on its own fork branch and kept out of the weekend release",
-   "when": "Started 06:55 Wed 11-25 (CPU, a few hours)",
+   "when": "Started 06:55 Wed 11-25; done 08:05; on its own fork branch, merged after the weekend release",
    "decides": "Whether the batched codec goes into the fork after the weekend release",
-   "state": "planned",
-   "started_at": "2026-11-25T06:55+01:00"
+   "state": "done",
+   "started_at": "2026-11-25T06:55+01:00",
+   "ended_at": "2026-11-25T08:05+01:00"
   },
   {
    "id": "SM167",
@@ -3808,6 +3809,61 @@
   }
  ],
  "results": [
+  {
+   "date": "11-25",
+   "kind": "cpu",
+   "id": "SM168",
+   "track": "small model",
+   "name": "Batched low-rank codec in the fork (SM168): card states encoded and decoded several cards at a time, bit-identical to the current codec, to close the one-thread long-history gap the clean speed re-measure (SM163) found",
+   "eval": "Fork release builds on a quiet machine (GPU held back), the clean re-measure&rsquo;s harness: one-thread long-history replay (1,000 cards x 24 answers) and the full rebuild (pairs, all threads), median of 3 runs in alternating order; both Rust suites; batched-vs-single byte test on every size and width.",
+   "fork": "Fork branch codec-batch 39e8b308f (from main eda153ddb); not merged: the weekend release stays on eda153ddb",
+   "takeaway": "<strong>Gap mostly closed:</strong> on the one-thread long-history replay Small now trails int8 rows by 3.2% (was 17.9%) and Tiny by 5.0% (was 24.2%); the full rebuild got 4% to 5% faster, and the stored bytes are identical.",
+   "inputs": "show-time",
+   "started_at": "2026-11-25T06:55+01:00",
+   "ended_at": "2026-11-25T08:05+01:00",
+   "gpu_minutes": 0,
+   "cpu_minutes": 70,
+   "tickets": 0,
+   "detail": {
+    "verdict": "Ready for fork main after the weekend release. Tests 1,605 passed in both suites (1,603 plus the new batched-vs-single test). anki-rwkv main bf676330 (artifacts/small-model/sm168/RESULT.md)",
+    "table": {
+     "head": [
+      "Size",
+      "One-thread replay, reviews/s",
+      "vs int8 rows (before &rarr; after)",
+      "Full rebuild, reviews/s",
+      "vs int8 rows (before &rarr; after)"
+     ],
+     "rows": [
+      [
+       "Big",
+       "4,940 &rarr; 5,589",
+       "+8.4% &rarr; +22.6%",
+       "14,530 &rarr; 15,320",
+       "+38.9% &rarr; +48.7%"
+      ],
+      [
+       "Small",
+       "17,225 &rarr; 20,475",
+       "&minus;17.9% &rarr; &minus;3.2%",
+       "47,227 &rarr; 49,121",
+       "&minus;3.4% &rarr; +0.2%"
+      ],
+      [
+       "Tiny",
+       "30,165 &rarr; 37,793",
+       "&minus;24.2% &rarr; &minus;5.0%",
+       "82,844 &rarr; 86,959",
+       "&minus;4.8% &rarr; +0.5%"
+      ]
+     ]
+    },
+    "notes": [
+     "The batching uses AVX2; machines without it (the Mac included) keep one card per solve and were not measured end to end.",
+     "Int8 rows are unchanged."
+    ]
+   }
+  },
   {
    "date": "11-25",
    "kind": "cpu-analysis",
