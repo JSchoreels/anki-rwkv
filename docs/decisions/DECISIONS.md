@@ -5,6 +5,7 @@ and logged here for review. Details, evidence and how to undo each one: [DECISIO
 
 ## 2026-11-25
 
+- **Agent** - Started the decisive 1,500-user check of the Tiny ensemble (SM169, GPU) so your ship decision has it.
 - **Agent** - Batched codec (SM168) works: one-thread long-history gap Small -17.9% -> -3.2%, Tiny -24.2% -> -5.0%,
   bit-identical; fork branch codec-batch 39e8b308f, merged into fork main after the weekend release (AVX2 only).
 - **Agent** - Started the batched low-rank codec (SM168) on its own fork branch; not merged before the release.
