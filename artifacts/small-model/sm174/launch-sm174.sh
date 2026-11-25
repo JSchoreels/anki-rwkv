@@ -32,7 +32,7 @@ VAR=w8+s8hx8
 EDGES=0,1,3,5,9,16,32,128,300,1000
 ROWS=$G/sm174-rows-732.jsonl
 SLICE=$G/sm174-slice-rows.jsonl
-LOG=$G/launch-sm174.log
+LOG=$G/launch-sm174.log; [ "${DRYRUN:-0}" = 1 ] && LOG=$G/launch-sm174-dryrun.log
 P="How many users for MIT weights (SM174): "
 ARMS="n0500 n1000 n2000 n4000 n8000 n8000-kd"
 DRYRUN=${DRYRUN:-0}
