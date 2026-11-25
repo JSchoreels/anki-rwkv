@@ -15,6 +15,14 @@ bootstrap; "732 set" = the standard 732-user evaluation pool (722 to 723 rule us
 
 ## 2026-11-24
 
+### D-1125-08 - Family release rwkv-family-2026-11-28 published (You)
+- **Decision:** user "Yes" (publish, notice precise) and "yes perfect" on the notice wording.
+- **Done:** GitHub release rwkv-family-2026-11-28 (Latest) on JSchoreels/anki-rwkv, 13:14 11-25: 6 zips + INTEGRATION.md +
+  WEIGHTS-NOTICE.md + SHA256SUMS; downloaded back and all checksums OK. Fork main 6cb164606 (Tiny ensemble SM170,
+  batched codec SM168, new notice; 1,607 Rust tests both suites); rc-2026-11 = 6cb164606; anki-rwkv 24978a40.
+- **Still open:** Mac Python/TS tests + just check (user retests later); fork release build (needs the user); Anki
+  permission for shipping weights to other users (anki.tenderapp.com, user's call); HF upload not done.
+
 ### D-1125-06 - Fork main merges and release packages rebuilt with the final notice (Agent, under D-1125-05 "You")
 - **Done (fork):** `tiny-ensemble` (62f10ed42, the Tiny instant ensemble (SM170)) and `codec-batch` (39e8b308f, the
   batched low-rank codec (SM168), same bytes) merged into fork main; `WEIGHTS-NOTICE.md` replaced by the exact text of
@@ -31,7 +39,7 @@ bootstrap; "732 set" = the standard 732-user evaluation pool (722 to 723 rule us
 - **Open for you:** confirm the notice wording; then the main session publishes.
 - **Undo:** revert the fork merge commits / notice commit; rebuild with the old `run_all.sh`.
 
-### D-1125-05 - Weekend release packages (SM166) built, not published (Agent)
+### D-1125-07 - Weekend release packages (SM166) built, not published (Agent)
 - **Done:** six packages in the 13 November layout in `work/release-2026-11-28/dist` (uncommitted), built by
   `artifacts/small-model/sm166/build_release.py`. The packages are Big two-head (SM91s2), Big Instant-Only (SM99),
   Small two-head (SM118), Small Instant-Only (SM113), six-layer Tiny two-head (SM130) and six-layer Tiny Instant-Only
