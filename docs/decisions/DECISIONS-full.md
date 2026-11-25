@@ -15,6 +15,14 @@ bootstrap; "732 set" = the standard 732-user evaluation pool (722 to 723 rule us
 
 ## 2026-11-24
 
+### D-1125-02 - Final state formats pass the release-candidate re-check (Agent, pre-registered rule)
+- **Result:** SM164 (branch sm164, c30a0070): Big F6, Small F6, six-layer Tiny T24 all GO, 9 of 9 cells pass on the
+  732 set and the 1,500 rule. Tightest: Small two-head curve +0.412% (ceiling +0.5%), Tiny two-head curve +0.908%
+  (ceiling +1.0%), Big Instant-Only instant +0.084% (ceiling +0.15%).
+- **Rule note:** on the 1,500 set Small/Tiny use upper(own int8 vs Big int8, 732) + upper(final vs own int8, 1,500),
+  because ids >= 5000 are Big's training users (direct comparison there: Small two-head curve +1.6%, in-sample effect).
+- **Open:** Big F6 has no long-card read-out (Big T24 passed, SM155). Next: SM163 speed, packages.
+
 ### D-1125-01 - 6-bit factors (SM162) merged into fork main (Agent, under D-1124-10 and the user's 11-24 choice)
 - **Done:** fork main eda153ddb (merge of rc-int6 6bbd23b18; rc-2026-11 fast-forwarded to 6bbd23b18). Precision byte 0x26,
   default profile `compact_lowrank` (factor width per size from the card layers: Tiny int8, Big/Small int6),

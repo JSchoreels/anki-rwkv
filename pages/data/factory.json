@@ -1,7 +1,7 @@
 {
- "generated_at": "2026-11-25T03:29:46+01:00",
- "updated": "2026-11-25 03:29",
- "material": "ae13d46c539557ac",
+ "generated_at": "2026-11-25T03:30:49+01:00",
+ "updated": "2026-11-25 03:30",
+ "material": "91af2be963514ec8",
  "summary": "idle",
  "headline": [
   {
@@ -2770,14 +2770,11 @@
    "kind": "gpu",
    "minutes": 270,
    "what": "Release-candidate re-check of the final state formats (SM164): the formats the user chose on 11-24 (Big and Small on the chosen low-rank format with 6-bit factors, Tiny on the chosen low-rank format with 8-bit factors) scored against the size budgets (Small at most +0.5% and Tiny at most +1.0% vs the Big model at int8, Big at most +0.15% vs its own int8; CI upper bound per head) on the 732 set and on the 1,500 validation users; rows already scored by earlier tests are reused, only the missing ones are scored",
-   "when": "Launched 23:20 Tue 11-24; GPU scoring finished 02:40 Wed 11-25; read-out on the CPU started 03:30",
+   "when": "Launched 23:20 Tue 11-24; GPU scoring finished 02:40 Wed 11-25; read-out done 03:40: all three sizes pass",
    "decides": "Whether the final state formats of the weekend release stay inside their budgets on both user sets (a size that fails only the 1,500-user check is held for the user)",
    "state": "done",
-   "started_at": "2026-11-24T23:34:04+01:00",
-   "ended": "02:40",
-   "exit": 0,
-   "started": "23:34",
-   "ended_at": "2026-11-25T02:40:57+01:00"
+   "started_at": "2026-11-24T23:20+01:00",
+   "ended_at": "2026-11-25T03:40+01:00"
   },
   {
    "id": "SM160",
@@ -3763,6 +3760,114 @@
   }
  ],
  "results": [
+  {
+   "date": "11-25",
+   "kind": "gpu",
+   "id": "SM164",
+   "track": "small model",
+   "name": "Release-candidate re-check of the final state formats (SM164): Big and Small on the chosen low-rank format with 6-bit factors, the six-layer Tiny on the chosen low-rank format with 8-bit factors, against the size budgets on the 732 set and on the 1,500 validation users",
+   "eval": "GPU (new rows for the 1,500 users with id 5000 or more) plus reused rows from the low-rank int8 states test (SM148), the int6 factors test (SM152) and the ensemble test (SM160); show-time inputs, curve and instant heads, review-weighted LogLoss, paired user bootstrap 95% (2,000 draws). Those users are Big&rsquo;s own training users, so on the 1,500 set Small and Tiny are judged by two upper bounds added together (own int8 vs Big at int8 on the 732 set, plus the final format vs own int8 on the 1,500 set), pre-registered before any row.",
+   "fork": "Nothing changed in the fork: it confirms the formats already on the fork&rsquo;s main branch (eda153ddb)",
+   "takeaway": "<strong>All three sizes pass:</strong> every model and head stays inside its budget on both user sets; the tightest are Small two-head (SM118) curve at +0.412% (ceiling +0.5%) and six-layer Tiny two-head (SM130) curve at +0.908% (ceiling +1.0%).",
+   "inputs": "show-time",
+   "started_at": "2026-11-24T23:20+01:00",
+   "ended_at": "2026-11-25T03:40+01:00",
+   "gpu_minutes": 188,
+   "cpu_minutes": 20,
+   "tickets": 22,
+   "detail": {
+    "verdict": "Go for every size under the pre-registered rule: Big and Small with 6-bit factors, Tiny with 8-bit factors. Branch sm164, commit c30a0070 (RESULT.md, sm164-result.md)",
+    "table": {
+     "head": [
+      "Model",
+      "Head",
+      "Budget (CI upper bound)",
+      "Final format, 732 set [95% CI]",
+      "1,500-user upper bound",
+      "Verdict"
+     ],
+     "rows": [
+      [
+       "Big two-head (SM91s2)",
+       "curve",
+       "+0.15% vs own int8",
+       "+0.043% [+0.032, +0.056]",
+       "+0.055%",
+       "pass"
+      ],
+      [
+       "Big two-head (SM91s2)",
+       "instant",
+       "+0.15% vs own int8",
+       "+0.069% [+0.063, +0.076]",
+       "+0.077%",
+       "pass"
+      ],
+      [
+       "Big Instant-Only (SM99)",
+       "instant",
+       "+0.15% vs own int8",
+       "+0.074% [+0.067, +0.081]",
+       "+0.084%",
+       "pass"
+      ],
+      [
+       "Small two-head (SM118)",
+       "curve",
+       "+0.5% vs Big at int8",
+       "+0.246% [+0.088, +0.409]",
+       "+0.412%",
+       "pass"
+      ],
+      [
+       "Small two-head (SM118)",
+       "instant",
+       "+0.5% vs Big at int8",
+       "+0.211% [+0.185, +0.238]",
+       "+0.243%",
+       "pass"
+      ],
+      [
+       "Small Instant-Only (SM113)",
+       "instant",
+       "+0.5% vs Big at int8",
+       "+0.081% [+0.056, +0.106]",
+       "+0.116%",
+       "pass"
+      ],
+      [
+       "six-layer Tiny two-head (SM130)",
+       "curve",
+       "+1.0% vs Big at int8",
+       "+0.722% [+0.548, +0.899]",
+       "+0.908%",
+       "pass"
+      ],
+      [
+       "six-layer Tiny two-head (SM130)",
+       "instant",
+       "+1.0% vs Big at int8",
+       "+0.746% [+0.693, +0.802]",
+       "+0.806%",
+       "pass"
+      ],
+      [
+       "six-layer Tiny Instant-Only (SM130)",
+       "instant",
+       "+1.0% vs Big at int8",
+       "+0.668% [+0.619, +0.717]",
+       "+0.720%",
+       "pass"
+      ]
+     ]
+    },
+    "notes": [
+     "Compared directly with the Big model on its own training users, Small and Tiny look much worse (Small two-head curve +1.6% there); that gap is Big&rsquo;s in-sample advantage, which is why the 1,500 rule is split in two.",
+     "Carried warning (not rerun): with 6-bit factors the Tiny two-head curve on long cards was +0.205% [&minus;0.129, +1.852] in the int6 factors test (SM152); Tiny ships with 8-bit factors, so it does not apply.",
+     "Big with 6-bit factors has no long-card read-out of its own; Big with 8-bit factors passed on long cards (SM155)."
+    ]
+   }
+  },
   {
    "date": "11-25",
    "kind": "cpu",

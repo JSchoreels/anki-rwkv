@@ -5,6 +5,8 @@ and logged here for review. Details, evidence and how to undo each one: [DECISIO
 
 ## 2026-11-25
 
+- **Agent** - Release-candidate re-check (SM164): all three final formats pass on both user sets; tightest
+  Small two-head curve +0.412% (of +0.5%) and Tiny two-head curve +0.908% (of +1.0%).
 - **Agent** - Hourly check found the GPU idle at 03:28 (re-check SM164 finished 02:40): started its read-out and the
   clean speed re-measure (SM163), as planned.
 - **Agent** - 6-bit factors (SM162) merged into fork main (eda153ddb): Big and Small states -84.6% / -71.3% of int8 bytes,
