@@ -5,6 +5,7 @@ and logged here for review. Details, evidence and how to undo each one: [DECISIO
 
 ## 2026-11-25
 
+- **Agent** - Preparing the Tiny ensemble fork change on its own branch (SM170) so it is ready if you say yes; not merged.
 - **Agent** - Tiny ensemble confirmed on 1,385 users (SM169): -0.062% [-0.066, -0.057], 82.8% of users improve;
   shipping it is still your call.
 - **Agent** - Started the decisive 1,500-user check of the Tiny ensemble (SM169, GPU) so your ship decision has it.
