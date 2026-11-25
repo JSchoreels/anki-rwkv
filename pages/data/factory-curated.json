@@ -2543,10 +2543,11 @@
     "Tiny ensemble on the 1,500 users (SM169): "
    ],
    "what": "Tiny ensemble on the 1,500 users (SM169): the decisive check of the one go from the ensemble test (SM160): the six-layer Tiny&rsquo;s logit average of its two instant predictions with the weight already fitted (0.69, not refitted), against the six-layer Tiny Instant-Only (SM130) alone, on the 1,500 validation users minus the 100 users the weight was fitted on, at the Tiny release format",
-   "when": "Started 09:30 Wed 11-25",
+   "when": "Started 09:30 Wed 11-25; GPU done 10:06; read-out done 10:40: go",
    "decides": "Whether the Tiny ensemble&rsquo;s gain (&minus;0.067% on the 732 set) holds on the decisive set before the user decides if it ships (go: CI below 0 and at least 0.05%)",
-   "state": "running",
-   "started_at": "2026-11-25T09:30+01:00"
+   "state": "done",
+   "started_at": "2026-11-25T09:30+01:00",
+   "ended_at": "2026-11-25T10:40+01:00"
   },
   {
    "id": "SM168",
@@ -3714,6 +3715,57 @@
   "s-w64kd-gate-ctx2048c-dec8-1ep/w8+s8"
  ],
  "results": [
+  {
+   "date": "11-25",
+   "kind": "gpu",
+   "id": "SM169",
+   "track": "small model",
+   "name": "Tiny ensemble on the 1,500 users (SM169): the six-layer Tiny&rsquo;s logit average of its two instant predictions, weight 0.69 fixed from the ensemble test (SM160), against the six-layer Tiny Instant-Only (SM130) alone, on the 1,500 validation users minus the 100 users the weight was fitted on",
+   "eval": "GPU for the 665 users with id 5000 or more (662 scored, 3 out of GPU memory), the ensemble test&rsquo;s rows and dumps reused for the 723 users of the 732 set; Tiny release format, show-time inputs, instant head, paired user bootstrap 95%; design committed before any new row.",
+   "fork": "Nothing changed in the fork yet",
+   "takeaway": "<strong>Go confirmed:</strong> on 1,385 users the Tiny ensemble gains &minus;0.062% instant LogLoss [&minus;0.066, &minus;0.057] over the Instant-Only model alone (&minus;0.067% on the 732 part, &minus;0.057% on the newer users), and 82.8% of users improve; the weight fitted earlier is already near the best one (0.67).",
+   "inputs": "show-time",
+   "started_at": "2026-11-25T09:30+01:00",
+   "ended_at": "2026-11-25T10:40+01:00",
+   "gpu_minutes": 35,
+   "cpu_minutes": 20,
+   "tickets": 3,
+   "detail": {
+    "verdict": "Go under the pre-registered rule (CI upper bound below 0 and a gain of at least 0.05%). Branch sm169, commit 73a58bc5 (RESULT.md)",
+    "table": {
+     "head": [
+      "Users",
+      "Count",
+      "Ensemble minus Instant-Only alone [95% CI]",
+      "Best weight on these users"
+     ],
+     "rows": [
+      [
+       "All rule users",
+       "1,385",
+       "&minus;0.062% [&minus;0.066, &minus;0.057]",
+       "0.67"
+      ],
+      [
+       "The 732 set",
+       "723",
+       "&minus;0.067% [&minus;0.072, &minus;0.061]",
+       "0.66"
+      ],
+      [
+       "Users with id 5000 or more",
+       "662",
+       "&minus;0.057% [&minus;0.063, &minus;0.051]",
+       "0.68"
+      ]
+     ]
+    },
+    "notes": [
+     "82.8% of users improve (1,147 of 1,385).",
+     "The smoke rows match the release-candidate re-check (SM164) exactly."
+    ]
+   }
+  },
   {
    "date": "11-25",
    "kind": "cpu",
