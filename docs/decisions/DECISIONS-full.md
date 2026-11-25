@@ -15,6 +15,25 @@ bootstrap; "732 set" = the standard 732-user evaluation pool (722 to 723 rule us
 
 ## 2026-11-24
 
+### D-1125-05 - Weekend release packages (SM166) built, not published (Agent)
+- **Done:** six packages in the 13 November layout in `work/release-2026-11-28/dist` (uncommitted), built by
+  `artifacts/small-model/sm166/build_release.py`. The packages are Big two-head (SM91s2), Big Instant-Only (SM99),
+  Small two-head (SM118), Small Instant-Only (SM113), six-layer Tiny two-head (SM130) and six-layer Tiny Instant-Only
+  (SM130). Every zip also has `WEIGHTS-NOTICE.md`, the answer-time head files of fork main eda153ddb and synthetic
+  answer-time test vectors; `SHA256SUMS` covers all 8 assets.
+- **Calls taken:**
+  - The answer-time heads ship, since fork main uses one for every model.
+  - Each `INTEGRATION.md` is a new Part A (this release: scores, F6/T24 state format, head, files, speed) plus the
+    13 November manual of the same slot as Part B. This follows the 13 November precedent of a note on top of the
+    sm92 manual.
+  - `master.pth` is now in every package.
+- **Evidence:** all weights and head files match fork main byte for byte (Big `weights.int8.bin` is not in the fork).
+  The answer-time vectors equal the fork's own fixtures (largest difference 0). Every zip passes both checks from a
+  clean extract (`artifacts/small-model/sm166/logs/verify-summary.json`).
+- **Open for you:** publishing (tag, title, notes). The Big long-card check with 6-bit factors (SM165) is pending.
+  The Tiny ensemble (SM160) is left out until you decide. The weights notice does not name `time_head.*.bin`.
+- **Undo:** delete `work/release-2026-11-28`; nothing was published.
+
 ### D-1125-03 - Speed is no release blocker; codec batching after the release (Agent)
 - **Result:** SM163 (anki-rwkv 97128eb8), quiet machine, median of 3 ABAB runs: full rebuild with the new default Big 14,346
   reviews/s (+38.8% vs int8 rows), Small 45,156 (-3.9%), Tiny 80,569 (-3.9%); 6-bit factors cost <= ~2% end to end.

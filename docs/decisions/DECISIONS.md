@@ -5,6 +5,8 @@ and logged here for review. Details, evidence and how to undo each one: [DECISIO
 
 ## 2026-11-25
 
+- **Agent** - Weekend release packages (SM166) built, nothing published: six zips plus `INTEGRATION.md`, `WEIGHTS-NOTICE.md` and `SHA256SUMS`;
+  answer-time heads included; weights identical to fork main; every zip passes its checks from a clean extract.
 - **Agent** - Speed (SM163) is no release blocker: rebuild -3.9% vs int8 rows for Small and Tiny, Big +38.8%; codec
   batching (one-thread long cards trail 17-24%) waits until after the release.
 - **Agent** - Started the Big long-card check with 6-bit factors (SM165, GPU) and the release packages (SM166, nothing published).
