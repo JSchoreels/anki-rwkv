@@ -2535,6 +2535,20 @@
    "ended_at": "2026-11-25T00:25+01:00"
   },
   {
+   "id": "SM163",
+   "track": "small model",
+   "kind": "cpu",
+   "minutes": 180,
+   "match": [
+    "Clean speed re-measure of state building (SM163): "
+   ],
+   "what": "Clean speed re-measure of state building (SM163): the fork before and after the 6-bit factors (main fb9f59a18 and eda153ddb), per size, with int8 rows, the chosen low-rank format with 8-bit factors and the new default (6-bit factors for Big and Small): full first-launch rebuild of a large synthetic collection, per-review answer and show-time latency (Learning cards included), the Deck Options replay with four threads, and a query batch-size sweep (32 to 1,024); GPU held back by a quiet window so the timings are clean",
+   "when": "Started 03:30 Wed 11-25 (waits for the re-check read-out first); about 2 to 3 hours",
+   "decides": "Whether state building is fast enough for the release, and whether Small or Tiny still trail int8 by more than about 15% (then the codec gets batched across cards in a follow-up)",
+   "state": "running",
+   "started_at": "2026-11-25T03:30+01:00"
+  },
+  {
    "id": "SM164",
    "track": "small model",
    "kind": "gpu",
@@ -2543,7 +2557,7 @@
     "Release-candidate re-check of the final state formats (SM164): "
    ],
    "what": "Release-candidate re-check of the final state formats (SM164): the formats the user chose on 11-24 (Big and Small on the chosen low-rank format with 6-bit factors, Tiny on the chosen low-rank format with 8-bit factors) scored against the size budgets (Small at most +0.5% and Tiny at most +1.0% vs the Big model at int8, Big at most +0.15% vs its own int8; CI upper bound per head) on the 732 set and on the 1,500 validation users; rows already scored by earlier tests are reused, only the missing ones are scored",
-   "when": "Launched 23:20 Tue 11-24 (smoke passed); done about 03:00 to 04:00 Wed 11-25",
+   "when": "Launched 23:20 Tue 11-24; GPU scoring finished 02:40 Wed 11-25; read-out on the CPU started 03:30",
    "decides": "Whether the final state formats of the weekend release stay inside their budgets on both user sets (a size that fails only the 1,500-user check is held for the user)",
    "state": "running",
    "started_at": "2026-11-24T23:20+01:00"
