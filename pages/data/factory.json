@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-25T18:24:38+01:00",
- "updated": "2026-11-25 18:24",
- "material": "2f46da41708c2137",
- "summary": "idle, finished 001623",
+ "generated_at": "2026-11-25T18:25:12+01:00",
+ "updated": "2026-11-25 18:25",
+ "material": "0369ec1f35754573",
+ "summary": "running 001624",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring, show-time inputs for both heads (curve / instant)",
@@ -410,7 +410,23 @@
    }
   ]
  },
- "now": [],
+ "now": [
+  {
+   "what": "Sharpness-aware cool-down (SM172): a next-family training screen: the same short cool-down of the six-layer Tiny two-head (SM130) as the state-energy penalty screen (SM171), but with sharpness-aware steps that look for flatter minima, which should lose less when the card and note states are compressed; its control arm is reused; scored on the 732 set at int8, the chosen format and rank 2",
+   "id": "SM172, ticket 001624",
+   "kind": "gpu",
+   "decides": "Whether a sharpness-aware cool-down makes compressed states cheaper for the next family (go: the rank-2 cost shrinks by at least 0.05% vs the control, CI below 0, without int8 getting more than 0.05% worse)",
+   "why": "",
+   "job": "Sharpness-aware cool-down (SM172): train sm172-tiny-r05",
+   "linked": true,
+   "track": "small model",
+   "ticket": "001624-sm172",
+   "started": "18:24",
+   "elapsed": "0:00",
+   "progress": null,
+   "eta": "~19:14"
+  }
+ ],
  "charts": [
   {
    "title": "Small model, leak-free (SM72s): LogLoss per epoch, 458-user set (lower is better)",
@@ -2761,12 +2777,11 @@
    "what": "Sharpness-aware cool-down (SM172): a next-family training screen: the same short cool-down of the six-layer Tiny two-head (SM130) as the state-energy penalty screen (SM171), but with sharpness-aware steps that look for flatter minima, which should lose less when the card and note states are compressed; its control arm is reused; scored on the 732 set at int8, the chosen format and rank 2",
    "when": "Launched 17:50 Wed 11-25: two arms (rho 0.2 and 0.05), smoke passed; done with scoring about 20:00 to 20:15",
    "decides": "Whether a sharpness-aware cool-down makes compressed states cheaper for the next family (go: the rank-2 cost shrinks by at least 0.05% vs the control, CI below 0, without int8 getting more than 0.05% worse)",
-   "state": "done",
+   "state": "running",
    "started_at": "2026-11-25T17:47:41+01:00",
-   "ended": "18:24",
-   "exit": 0,
-   "started": "17:47",
-   "ended_at": "2026-11-25T18:24:12+01:00"
+   "started": "18:24",
+   "ticket": "001624-sm172",
+   "ends_at": "2026-11-25T21:47:41+01:00"
   },
   {
    "id": "SM171",
