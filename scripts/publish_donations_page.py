@@ -91,8 +91,10 @@ def goals_block(agg):
     specs = (
         ("eval-set", f"An evaluation set as large as our standard {EVAL_SET['users']}-user set", EVAL_SET["reviews"],
          EVAL_SET["users"]),
-        ("tenth", "10% of the anki-revlogs-10k dataset", round(DATASET["reviews"] / 10), DATASET["users"] // 10),
-        ("parity", "The same number of reviews as the anki-revlogs-10k dataset", DATASET["reviews"], DATASET["users"]),
+        # user-based goals: reviews at the 10k dataset's mean per user
+        ("train5k", "5,000 training users and 2,000 test users", 7_000 * mean10k, 7_000),
+        ("parity", "8,000 training users and 2,000 test users, like the anki-revlogs-10k dataset", DATASET["reviews"],
+         DATASET["users"]),
     )
     out = []
     for gid, label, target, users in specs:

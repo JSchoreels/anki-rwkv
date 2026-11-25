@@ -101,7 +101,7 @@
       el.className = 'goal';
       const w = Math.max(0, Math.min(100, x.progress_pct));
       const done = x.reviews_needed <= 0;
-      const SHORT = { 'eval-set': 'Evaluation set (732 users)', tenth: '10% of the 10k dataset', parity: '10k dataset parity' };
+      const SHORT = { 'eval-set': 'Evaluation set (732 users)', train5k: '7k users (5k train / 2k test)', parity: '10k users (8k train / 2k test)' };
       el.innerHTML = `<div class="l1"><span class="t">${SHORT[x.id] || x.label} &middot; ${mill(x.reviews_target)} reviews</span><span class="p">${pct(x.progress_pct)}</span></div>`
         + `<div class="meter" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${w.toFixed(2)}" aria-label="${x.label}"><i style="width:${w}%"></i></div>`
         + (done
