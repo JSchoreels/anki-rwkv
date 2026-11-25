@@ -30,6 +30,19 @@ from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
 OUT = REPO / "pages" / "data" / "donations.json"
+HISTORY = REPO / "pages" / "data" / "donations-history.json"  # aggregate totals over time (no names)
+
+
+def append_history(doc):
+    """Add one aggregate point (time, donors, unique reviews, collections) when the totals changed."""
+    d = doc["donations"]
+    point = {"t": doc.get("inventory_run") or doc.get("generated"), "donors": d["donors_with_reviews"],
+             "reviews": d["reviews_unique"], "collections": d["collections"]}
+    hist = json.loads(HISTORY.read_text(encoding="utf-8")) if HISTORY.exists() else []
+    if hist and all(hist[-1].get(k) == point[k] for k in ("donors", "reviews", "collections")):
+        return
+    hist.append(point)
+    HISTORY.write_text(json.dumps(hist, indent=1) + "\n", encoding="utf-8")
 DEFAULT_FOLDER = "D:/Dropbox/Anki Data"
 SCRATCH = Path(os.environ.get("TEMP") or tempfile.gettempdir()) / "anki-rwkv-donations"
 
@@ -202,6 +215,7 @@ def main():
         return 0
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(json.dumps(doc, indent=1, ensure_ascii=False) + "\n", encoding="utf-8")
+    append_history(doc)
     d, g = doc["donations"], doc["goals"]
     print(f"wrote {OUT.relative_to(REPO).as_posix()}: {d['donors_with_reviews']} donors with reviews, "
           f"{d['reviews_unique']:,} unique reviews ({g['pct_of_dataset_reviews']}% of the 10k dataset)")

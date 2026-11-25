@@ -66,12 +66,17 @@
       <li><b>Nickname:</b> without a Dropbox account you are asked for one. Your Discord name helps; to stay anonymous, reuse the same nickname for later uploads.</li>
       <li><b>Changed your mind?</b> DM <b>@SoundJona</b> on Discord to have something removed.</li>
     </ul>
-    <p class="muted">Files stay private; only the totals on this page are published. Duplicates are detected automatically.</p>
+    <p class="muted">By uploading, you agree that your review history may be used to train models we publish under the MIT license; the files themselves are never shared. Only the totals on this page are published, and duplicates are detected automatically.</p>
   </section>
 
   <section class="panel" id="sec-goals">
     <div class="panel-head"><h2>Goals</h2></div>
     <div id="goals"></div>
+  </section>
+
+  <section class="panel" id="sec-history" hidden>
+    <div class="panel-head"><h2>Progress over time (unique reviews &middot; donors)</h2></div>
+    <div id="history"></div>
   </section>
 
   <section class="panel" id="sec-subjects">
@@ -165,6 +170,32 @@
     const gen = (d.inventory_run || d.generated) ? new Date(d.inventory_run || d.generated) : null;
     $('updated').textContent = gen ? `Updated ${gen.toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' })}.` : '';
   }
+
+  const short = (n) => (n >= 1e6 ? (n / 1e6).toFixed(n >= 1e7 ? 0 : 1) + 'M' : n >= 1e3 ? Math.round(n / 1e3) + 'k' : String(Math.round(n)));
+  function renderHistory(h) {
+    if (!Array.isArray(h) || h.length < 2) return;
+    const W = 720, H = 200, L = 56, R = 16, T = 12, B = 28;
+    const ts = h.map((p) => new Date(p.t).getTime()), ys = h.map((p) => p.reviews);
+    const t0 = Math.min(...ts), t1 = Math.max(...ts), ymax = Math.max(...ys) * 1.1;
+    const x = (t) => L + ((t - t0) / Math.max(1, t1 - t0)) * (W - L - R);
+    const y = (v) => H - B - (v / ymax) * (H - T - B);
+    let path = '';
+    h.forEach((p, i) => {  // step line: totals hold until the next refresh
+      const px = x(ts[i]).toFixed(1), py = y(p.reviews).toFixed(1);
+      path += i === 0 ? `M${px},${py}` : `H${px}V${py}`;
+    });
+    const dots = h.map((p, i) => `<circle cx="${x(ts[i]).toFixed(1)}" cy="${y(p.reviews).toFixed(1)}" r="3.5" fill="var(--accent)"><title>${new Date(p.t).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' })}: ${mill(p.reviews)} reviews, ${p.donors} donors</title></circle>`).join('');
+    const last = h[h.length - 1];
+    const ticks = [0, 0.5, 1].map((f) => `<text x="${L - 8}" y="${(y(f * ymax / 1.1) + 4).toFixed(1)}" text-anchor="end" font-size="12" fill="var(--muted)">${short(f * ymax / 1.1)}</text>`).join('');
+    const dl = (t) => new Date(t).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    $('history').innerHTML = `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Unique donated reviews over time">`
+      + `<line x1="${L}" x2="${W - R}" y1="${H - B}" y2="${H - B}" stroke="var(--line)"/>${ticks}`
+      + `<path d="${path}" fill="none" stroke="var(--accent)" stroke-width="2.5"/>${dots}`
+      + `<text x="${L}" y="${H - 8}" font-size="12" fill="var(--muted)">${dl(t0)}</text>`
+      + `<text x="${W - R}" y="${H - 8}" font-size="12" fill="var(--muted)" text-anchor="end">${dl(t1)} &middot; ${mill(last.reviews)} &middot; ${last.donors} donors</text></svg>`;
+    $('sec-history').hidden = false;
+  }
+  fetch('data/donations-history.json', { cache: 'no-store' }).then((r) => (r.ok ? r.json() : [])).then(renderHistory).catch(() => {});
 
   fetch('data/donations.json', { cache: 'no-store' })
     .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))

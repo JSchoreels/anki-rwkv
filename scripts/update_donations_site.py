@@ -14,6 +14,7 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parent.parent
 PY = REPO / ".venv" / "Scripts" / "python.exe"
 DATA = "pages/data/donations.json"
+HIST = "pages/data/donations-history.json"
 IDENT = ["-c", "user.name=Jonathan Schoreels", "-c", "user.email=jonathan.schoreels@gmail.com"]
 
 
@@ -41,12 +42,12 @@ def main():
         if check.returncode:
             print("FAIL: privacy/consistency check: " + check.stdout.strip()[-300:])
             return 1
-        if not git("status", "--porcelain", "--", DATA):
+        if not git("status", "--porcelain", "--", DATA, HIST):
             print("UNCHANGED: " + pub.stdout.strip().splitlines()[-1])
             return 0
         git(*IDENT, "commit", "-q", "-m",
             "Pages: data campaign stats refreshed\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
-            "--", DATA)
+            "--", DATA, HIST)
         git("fetch", "-q")
         git("merge", "-q", "origin/main")
         git("push", "-q", "origin", "main")
