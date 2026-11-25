@@ -106,12 +106,12 @@ def goals_block(agg):
     # Named goals (user 11-26). Reviews = users x the 10k dataset's mean per user. Accuracy estimates come from the
     # data-scaling test (SM174: from scratch, no teacher, on 10k-dataset users) and stay None until it reports.
     specs = (
-        ("test-bench", "Test Bench", 0, EVAL_SET["users"], "Score our current models on real donor data",
-         False, None),
-        ("mit-tiny", "MIT Tiny", 1_500, 500, "First MIT-licensed model: a Tiny trained only on donations", True, None),
-        ("mit-small", "MIT Small", 5_000, 2_000, "An MIT Small that can replace today's Small", True, None),
-        ("full-parity", "Full Parity", 8_000, 2_000, "The size of the 10k dataset: an MIT version of the whole family",
-         False, None),
+        ("m1", "Milestone 1 (Minimum Viable)", 1_500, 500,
+         "First MIT-licensed model trained only on donations", True, None),
+        ("m2", "Milestone 2 (srs-benchmark size)", 5_000, 2_000,
+         "As many users as the srs-benchmark models are trained and tested on", False, None),
+        ("m3", "Milestone 3 (Current Anki Fork user trained)", 8_000, 2_000,
+         "As many users as the models in today's Anki fork", False, None),
     )
     out = []
     for gid, name, train, test, unlocks, provisional, accuracy in specs:
