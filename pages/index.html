@@ -15,7 +15,7 @@
   <div class="wrap">
     <div class="top-row">
       <div>
-        <p class="eyebrow">anki-rwkv &middot; <a href="factory.html">factory overview</a> &middot; <a href="models.html">model architectures</a> &middot; <a href="campaign.html">R01 campaign</a> &middot; <a href="train.html">8k/2k run</a> &middot; <a href="docs/data-quality/">data quality</a></p>
+        <p class="eyebrow">anki-rwkv &middot; <a href="factory.html">factory overview</a> &middot; <a href="models.html">model architectures</a> &middot; <a href="campaign.html">R01 campaign</a> &middot; <a href="train.html">8k/2k run</a> &middot; <a href="donations.html">data campaign</a> &middot; <a href="docs/data-quality/">data quality</a></p>
         <h1>Predicting memory with <span class="accent">RWKV</span></h1>
         <p class="lede">RWKV is a recurrent network: it reads your Anki reviews one at a time and keeps a small, fixed-size memory for every card, note, deck, preset and you. From that memory it predicts how likely you are to remember a card after any delay. This page shows how, step by step.</p>
       </div>
@@ -45,6 +45,11 @@
       <h2>8k/2k training run</h2>
       <p>Progress of the full run: training on 8,000 users, evaluating on 2,000 held-out users, epoch by epoch.</p>
       <div class="stat" id="hub-train">&ndash;</div>
+    </a>
+    <a class="card" href="donations.html">
+      <h2>Data collection campaign</h2>
+      <p>Review histories donated directly by Anki users: how many reviews and donors we have after removing duplicates, and how far that is from an evaluation set and from the size of the 10k dataset.</p>
+      <div class="stat" id="hub-donations">&ndash;</div>
     </a>
   </nav>
 
@@ -142,6 +147,11 @@
 <div class="tip" id="tip" role="tooltip"></div>
 <script src="common.js"></script>
 <script src="home.js"></script>
+<script>
+  fetch('data/donations.json', { cache: 'no-cache' }).then((r) => r.json()).then((d) => {
+    document.getElementById('hub-donations').innerHTML = `${d.goals.pct_of_dataset_reviews}% <small>of the 10k dataset's reviews · ${d.donations.donors_with_reviews} donors</small>`;
+  }).catch(() => { document.getElementById('hub-donations').textContent = ''; });
+</script>
 <script src="nav.js" defer></script>
 </body>
 </html>

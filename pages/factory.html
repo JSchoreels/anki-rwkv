@@ -144,9 +144,10 @@
   <div class="wrap">
     <div class="top-row">
       <div>
-        <p class="eyebrow"><a href="./">anki-rwkv</a> &middot; factory overview &middot; <a href="models.html">model architectures</a> &middot; <a href="campaign.html">R01 campaign</a> &middot; <a href="train.html">8k/2k run</a> &middot; <a href="docs/data-quality/">data quality</a></p>
+        <p class="eyebrow"><a href="./">anki-rwkv</a> &middot; factory overview &middot; <a href="models.html">model architectures</a> &middot; <a href="campaign.html">R01 campaign</a> &middot; <a href="train.html">8k/2k run</a> &middot; <a href="donations.html">data campaign</a> &middot; <a href="docs/data-quality/">data quality</a></p>
         <h1>Factory overview: what runs, what is planned, what is done</h1>
         <p class="lede">The whole anki-rwkv work in one place. The page updates itself from the job queue and the scoring files; takeaways and the backlog are edited by hand. Today it holds one track, the <b>small model</b>: a 331,511-parameter student (64 channels, distilled from the <b>big model</b>, the fork&rsquo;s 2,762,884-parameter RWKV) trained on 5,000 dataset users and scored on users it never saw, full history, both models with int8 weights and int8 state. LogLoss is lower-is-better; the % is the gap to the big model on the same reviews (positive = student worse). Target: &le; +1.0% on both heads over the 464 held-out users.</p>
+        <p class="hint"><b>Data campaign:</b> <a href="donations.html">how many review histories have been donated so far</a>, after duplicates are removed, and how far they are from an evaluation set and from the size of the 10k dataset<span id="don-stat"></span>.</p>
       </div>
       <button id="theme" class="btn" type="button" aria-label="Toggle light and dark theme">Theme</button>
     </div>
@@ -597,6 +598,9 @@
     $('updated').innerHTML = `Updated ${D.updated}. Sources: the R01 job queue, <code>artifacts/small-model/</code> on the <code>small-model</code> branch (<code>docs/SMALL_MODEL.md</code>) and <code>pages/data/factory-curated.json</code>. Own-collection figures are collection-level aggregates only.`;
   }
 
+  fetch('data/donations.json', { cache: 'no-store' }).then((r) => r.json()).then((d) => {
+    $('don-stat').textContent = ` (today ${d.donations.donors_with_reviews.toLocaleString('en-US')} donors and ${d.donations.reviews_unique.toLocaleString('en-US')} unique reviews, ${d.goals.pct_of_dataset_reviews}% of the 10k dataset's reviews)`;
+  }).catch(() => {});
   fetch('data/factory.json', { cache: 'no-store' })
     .then((r) => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
     .then(render)

@@ -1,0 +1,205 @@
+"""Publish the data-campaign page data (pages/data/donations.json) from the donated-collections folder.
+
+usage: publish_donations_page.py [--folder DIR] [--force] [--check]
+
+The folder is fingerprinted from the sorted list of (file name, size, mtime) of its files, hashed with SHA-256; only the
+hash is stored (as `source_fingerprint` in the json), never the list. When the hash is unchanged the inventory is not
+rerun and only the goals block is recomputed. When it changed, scripts/donor_inventory.py runs with its scratch, its
+per-collection report and its aggregate under %TEMP%/anki-rwkv-donations (outside the repository); everything there is
+deleted afterwards, so the per-collection report (which has donor names) never survives the run.
+
+Privacy: the json keeps only whitelisted aggregate fields (counts, date range, donor sizes as buckets) plus the goals
+block. Before writing, the output is checked to contain no file name of the folder.
+
+--check  writes nothing; exits 1 when the json is missing, the folder changed since the json was written, or the json
+         fails the privacy check, else 0.
+"""
+
+import argparse
+import hashlib
+import json
+import math
+import os
+import re
+import shutil
+import subprocess
+import sys
+import tempfile
+from datetime import datetime
+from pathlib import Path
+
+REPO = Path(__file__).resolve().parents[1]
+OUT = REPO / "pages" / "data" / "donations.json"
+DEFAULT_FOLDER = "D:/Dropbox/Anki Data"
+SCRATCH = Path(os.environ.get("TEMP") or tempfile.gettempdir()) / "anki-rwkv-donations"
+
+# anki-revlogs-10k, from the parquet footers of data/anki-revlogs-10k/revlogs (row counts per user)
+DATASET = {
+    "name": "anki-revlogs-10k",
+    "users": 10_000,
+    "reviews": 727_738_650,
+    "reviews_per_user_median": 30_990,
+    "reviews_per_user_mean": 72_774,
+    "reviews_per_user_p10": 7_535,
+    "reviews_per_user_p90": 180_672,
+}
+EVAL_SET = {"users": 732, "reviews": 30_500_000}  # our standard 732-user evaluation set, about 30.5M reviews
+
+# aggregate fields of donor_inventory.py that may be published (no names, no ids, donor sizes as buckets only)
+AGG_KEYS = (
+    "files", "collections", "errors", "exact_duplicates", "mostly_contained", "donors_estimated",
+    "reviews_raw_sum", "reviews_unique", "donors_with_reviews", "collections_without_review_history",
+    "donors_10k_plus_reviews", "first_review", "last_review", "donors_by_reviews",
+)
+GENERIC = {"anki", "collection", "collections", "export", "backup", "colpkg", "apkg", "anki2", "anki21",
+           "review", "reviews", "history", "deck", "decks", "data", "dataset"}
+BUCKETS = ("1-9,999", "10k-49,999", "50k-199,999", "200k-999,999", "1M+")
+
+
+def folder_files(folder):
+    return sorted((e for e in Path(folder).iterdir() if e.is_file()), key=lambda e: e.name)
+
+
+def fingerprint(folder):
+    items = [(e.name, (st := e.stat()).st_size, st.st_mtime_ns) for e in folder_files(folder)]
+    return hashlib.sha256(json.dumps(items, ensure_ascii=False).encode("utf-8")).hexdigest()
+
+
+def run_inventory(folder):
+    if SCRATCH.resolve().is_relative_to(REPO):
+        sys.exit(f"scratch {SCRATCH} is inside the repository")
+    shutil.rmtree(SCRATCH, ignore_errors=True)
+    SCRATCH.mkdir(parents=True)
+    agg_path = SCRATCH / "aggregate.json"
+    try:
+        cmd = [sys.executable, str(REPO / "scripts" / "donor_inventory.py"), str(folder),
+               "--scratch", str(SCRATCH / "extract"), "--report", str(SCRATCH / "report-local.json"),
+               "--aggregate", str(agg_path)]
+        proc = subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, text=True)
+        if proc.returncode:
+            sys.exit(f"donor_inventory.py failed ({proc.returncode}):\n{proc.stderr[-2000:]}")
+        return json.loads(agg_path.read_text(encoding="utf-8"))
+    finally:
+        shutil.rmtree(SCRATCH, ignore_errors=True)  # extracted collections and the per-collection report
+
+
+def goals_block(agg):
+    unique = int(agg["reviews_unique"])
+    donors = int(agg["donors_with_reviews"])
+    avg = unique / donors if donors else 0
+    mean10k = DATASET["reviews_per_user_mean"]
+    specs = (
+        ("eval-set", f"An evaluation set as large as our standard {EVAL_SET['users']}-user set", EVAL_SET["reviews"],
+         EVAL_SET["users"]),
+        ("tenth", "10% of the anki-revlogs-10k dataset", round(DATASET["reviews"] / 10), DATASET["users"] // 10),
+        ("parity", "The same number of reviews as the anki-revlogs-10k dataset", DATASET["reviews"], DATASET["users"]),
+    )
+    out = []
+    for gid, label, target, users in specs:
+        need = max(0, target - unique)
+        out.append({
+            "id": gid, "label": label, "reviews_target": target, "users_target": users,
+            "progress_pct": round(100 * min(unique, target) / target, 3),
+            "reviews_needed": need,
+            "donors_needed_at_current_average": math.ceil(need / avg) if avg else None,
+            "donors_needed_at_dataset_mean": math.ceil(need / mean10k),
+        })
+    return {
+        "current_average_reviews_per_donor": round(avg),
+        "dataset_mean_reviews_per_user": mean10k,
+        "pct_of_dataset_reviews": round(100 * unique / DATASET["reviews"], 3),
+        "pct_of_dataset_users": round(100 * donors / DATASET["users"], 3),
+        "goals": out,
+    }
+
+
+def build(agg, fp, inventory_run):
+    pub = {k: agg[k] for k in AGG_KEYS if k in agg}
+    pub["donors_by_reviews"] = {b: int(agg.get("donors_by_reviews", {}).get(b, 0)) for b in BUCKETS}
+    return {
+        "generated": datetime.now().isoformat(timespec="minutes"),
+        "inventory_run": inventory_run,
+        "source_fingerprint": fp,
+        "donations": pub,
+        "dataset": DATASET,
+        "goals": goals_block(pub),
+    }
+
+
+def privacy_problems(doc, folder):
+    probs = []
+    if set(doc) - {"generated", "inventory_run", "source_fingerprint", "donations", "dataset", "goals"}:
+        probs.append("unexpected top-level keys")
+    if set(doc.get("donations", {})) - set(AGG_KEYS):
+        probs.append("unexpected aggregate keys")
+    if set(doc.get("donations", {}).get("donors_by_reviews", {})) - set(BUCKETS):
+        probs.append("unexpected donor buckets")
+    # string values only (keys are fixed field names); generic words that any file name may contain are skipped
+    strings = []
+
+    def walk(v):
+        if isinstance(v, str):
+            strings.append(v.lower())
+        elif isinstance(v, dict):
+            for x in v.values():
+                walk(x)
+        elif isinstance(v, list):
+            for x in v:
+                walk(x)
+
+    walk(doc)
+    text = "\n".join(strings)
+    if folder and Path(folder).is_dir():
+        for e in folder_files(folder):
+            for token in {e.name, e.stem, *re.split(r"[\s_\-.()\[\]]+", e.stem)}:
+                token = token.strip().lower()
+                if len(token) >= 5 and not token.isdigit() and token not in GENERIC and token in text:
+                    probs.append(f"a file-name token appears in the output (length {len(token)})")
+    return probs
+
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    ap.add_argument("--folder", default=DEFAULT_FOLDER)
+    ap.add_argument("--force", action="store_true", help="rerun the inventory even if the folder is unchanged")
+    ap.add_argument("--check", action="store_true", help="write nothing; exit 1 if the json is stale or unsafe")
+    args = ap.parse_args()
+    folder = Path(args.folder)
+    if not folder.is_dir():
+        sys.exit(f"folder not found: {folder}")
+    fp = fingerprint(folder)
+    old = json.loads(OUT.read_text(encoding="utf-8")) if OUT.exists() else None
+
+    if args.check:
+        probs = [] if old else ["pages/data/donations.json is missing"]
+        if old and old.get("source_fingerprint") != fp:
+            probs.append("the donation folder changed since the json was written")
+        if old:
+            probs += privacy_problems(old, folder)
+        print("\n".join(probs) if probs else "donations.json is up to date")
+        return 1 if probs else 0
+
+    if old and old.get("source_fingerprint") == fp and not args.force:
+        agg, run = old["donations"], old.get("inventory_run")
+        print("folder unchanged: inventory not rerun")
+    else:
+        agg = run_inventory(folder)
+        run = agg.get("generated")
+    doc = build(agg, fp, run)
+    probs = privacy_problems(doc, folder)
+    if probs:
+        sys.exit("refusing to write: " + "; ".join(probs))
+    strip = lambda d: {k: v for k, v in (d or {}).items() if k != "generated"}  # noqa: E731
+    if old and strip(old) == strip(doc):
+        print("donations.json unchanged")
+        return 0
+    OUT.parent.mkdir(parents=True, exist_ok=True)
+    OUT.write_text(json.dumps(doc, indent=1, ensure_ascii=False) + "\n", encoding="utf-8")
+    d, g = doc["donations"], doc["goals"]
+    print(f"wrote {OUT.relative_to(REPO).as_posix()}: {d['donors_with_reviews']} donors with reviews, "
+          f"{d['reviews_unique']:,} unique reviews ({g['pct_of_dataset_reviews']}% of the 10k dataset)")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
