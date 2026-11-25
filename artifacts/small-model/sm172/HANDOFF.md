@@ -1,6 +1,6 @@
 # Sharpness-aware cool-down (SM172): handoff
 
-Status: RUNNING since 2026-11-25 17:47 (GPU chain via the queue). Design and rules pre-registered in `design.md` (commit 0db7463e). Nothing to decide until `SM172 DONE` or `SM172 STOP`.
+Status: DONE 2026-11-25 19:49 (SM172 DONE). Read-out written: NO GO (no arm reaches -0.05% Q2 cost change; rho 0.2 also worsens int8). See `RESULT.md`. Nothing left to run here; the main session starts a fresh design agent before anything new is launched.
 
 ## Done
 
