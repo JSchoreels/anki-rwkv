@@ -5,6 +5,8 @@ and logged here for review. Details, evidence and how to undo each one: [DECISIO
 
 ## 2026-11-25
 
+- **Agent** - GPU idle since 10:06 with the release waiting on you: started the first next-family training screen, the
+  state-energy penalty (SM171), which aims to make rank 2 nearly free.
 - **Agent** - Tiny ensemble fork change ready on branch tiny-ensemble (62f10ed42, 1,605 Rust tests pass); not merged,
   waiting for your yes.
 - **Agent** - Preparing the Tiny ensemble fork change on its own branch (SM170) so it is ready if you say yes; not merged.
