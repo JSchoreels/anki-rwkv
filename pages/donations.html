@@ -85,7 +85,7 @@
   const $ = (id) => document.getElementById(id);
   const fmt = (n) => Math.round(n).toLocaleString('en-US');
   const pct = (x) => (x >= 10 ? x.toFixed(1) : x >= 1 ? x.toFixed(2) : x.toFixed(3).replace(/0$/, '')) + '%';
-  const mill = (n) => (n >= 1e9 ? (n / 1e9).toFixed(2) + ' billion' : n >= 1e6 ? (n / 1e6).toFixed(n >= 1e8 ? 1 : 2) + ' million' : fmt(n));
+  const mill = (n) => (n >= 1e9 ? (n / 1e9).toFixed(2) + ' billion' : n >= 1e6 ? (n / 1e6).toFixed(n >= 1e8 ? 1 : 2) + ' million' : n >= 1e3 ? Math.round(n / 1e3).toLocaleString('en-US') + 'k' : fmt(n));
   const day = (s) => new Date(s + 'T00:00:00Z').toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' });
   const BUCKET = { '1-9,999': 'fewer than 10,000', '10k-49,999': '10,000 to 49,999', '50k-199,999': '50,000 to 199,999', '200k-999,999': '200,000 to 999,999', '1M+': '1 million or more' };
 
