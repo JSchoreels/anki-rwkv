@@ -13,6 +13,20 @@ bootstrap; "732 set" = the standard 732-user evaluation pool (722 to 723 rule us
 
 ---
 
+## 2026-11-26
+
+### D-1126-01 - Data-scaling test (SM174) design (Agent)
+- Decision: six-layer Tiny (SM130 architecture) from scratch, no teacher, nested random subsets of 500, 1,000, 2,000,
+  4,000 and 8,000 of the 8,000 training users, each under the same review budget (4 x 581.9M reviews); constant LR
+  with early stopping on a 190-user held-out slice, then a one_minus_sin decay; a control with 8,000 users and the
+  usual replay teacher under the same budget; scored on the 732 set vs the release six-layer Tiny two-head (SM130).
+- Why: the 8,000-user arm and the control both fit the 1-2 day budget (~27 GPU h upper bound); the release model
+  trained far longer, so only an equal-budget control separates the teacher's share from the budget's. Small
+  (SM118 architecture) would not fit at about half the speed.
+- Evidence: `artifacts/small-model/sm174/design.md` on branch `sm174`.
+- Undo: stop the launcher (`gpu/STOP`); nothing is shipped from this test (restricted training data).
+- Status: running.
+
 ## 2026-11-24
 
 ### D-1125-08 - Family release rwkv-family-2026-11-28 published (You)

@@ -5,6 +5,9 @@ and logged here for review. Details, evidence and how to undo each one: [DECISIO
 
 ## 2026-11-26
 
+- **Agent** - Data-scaling test (SM174) design: six-layer Tiny from scratch, no teacher, 500 / 1,000 / 2,000 /
+  4,000 / 8,000 users under one budget (four 8k epochs, early stop on a held-out slice), plus 8,000 users with the
+  usual teacher as the equal-budget control; Small left out (budget).
 - **You** - Goal: MIT-licensed weights trained only on donated data (from scratch, no teacher). Data campaign page
   with goals 732-user eval set, 7k users (5k/2k), 10k users (8k/2k); refreshed every 4 h.
 - **Agent** - Started the data-scaling test (SM174): Tiny from scratch, no teacher, 500 to 4,000 users, to set the
