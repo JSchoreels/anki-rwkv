@@ -2543,10 +2543,11 @@
     "Links between cards (SM167): "
    ],
    "what": "Links between cards (SM167): a CPU-only look at whether cards that fail together, or a card failed right after a similar one, carry signal the models miss; after the model&rsquo;s prediction, does a card&rsquo;s error move with the recent errors of cards it is linked to (learned only from the user&rsquo;s past), beyond same-note, same-deck and same-session effects? Reuses the per-review predictions of the ensemble test (SM160); no GPU",
-   "when": "Started 06:30 Wed 11-25",
+   "when": "Started 06:30 Wed 11-25; done 06:50: no go",
    "decides": "Whether a modelling experiment on links between cards is worth GPU time (go: CI below 0 and at least 0.05% LogLoss from a simple correction, on the 732 set); for the next family, not this release",
-   "state": "running",
-   "started_at": "2026-11-25T06:30+01:00"
+   "state": "done",
+   "started_at": "2026-11-25T06:30+01:00",
+   "ended_at": "2026-11-25T06:50+01:00"
   },
   {
    "id": "SM165",
@@ -3684,6 +3685,62 @@
   "s-w64kd-gate-ctx2048c-dec8-1ep/w8+s8"
  ],
  "results": [
+  {
+   "date": "11-25",
+   "kind": "cpu-analysis",
+   "id": "SM167",
+   "track": "small model",
+   "name": "Links between cards (SM167): after the model&rsquo;s prediction, does a card&rsquo;s error move with the recent errors of cards it is linked to (cards failed together earlier, or a card failed right after another), beyond same-note, same-deck and same-session effects?",
+   "eval": "CPU only, the per-review predictions of the ensemble test (SM160) at the chosen format; Small Instant-Only (SM113) on 723 users (30.5 million reviews), also Small two-head (SM118) and Big Instant-Only (SM99); links learned only from each user&rsquo;s past; each linked card compared with a matched card of the same session (same-note pairs removed); correction weight fitted on 100 training users; paired user bootstrap 95%; design pushed before any result.",
+   "fork": "Nothing changed in the fork",
+   "takeaway": "<strong>No go:</strong> a small card-to-card signal is left (cards failed together before), but a correction using it gains only &minus;0.0017% LogLoss, about 30 times below the 0.05% bar; the models already capture the &ldquo;bad day&rdquo; effect.",
+   "inputs": "show-time",
+   "started_at": "2026-11-25T06:30+01:00",
+   "ended_at": "2026-11-25T06:50+01:00",
+   "gpu_minutes": 0,
+   "cpu_minutes": 20,
+   "tickets": 0,
+   "detail": {
+    "verdict": "No go under the pre-registered rule. Branch sm167, commit c6cce85a (RESULT.md)",
+    "table": {
+     "head": [
+      "Link type",
+      "Error correlation, linked",
+      "Same-session control",
+      "Difference [95% CI]",
+      "Reviews with a link"
+     ],
+     "rows": [
+      [
+       "Failed together on 2+ earlier days (twice chance)",
+       "+0.0056",
+       "&minus;0.0001",
+       "+0.0057 [+0.0037, +0.0078]",
+       "10.1%"
+      ],
+      [
+       "Failed together on 1+ earlier day",
+       "+0.0039",
+       "&minus;0.0002",
+       "+0.0041 [+0.0029, +0.0053]",
+       "28.6%"
+      ],
+      [
+       "Failed right after another card (directional)",
+       "+0.0027",
+       "+0.0013",
+       "+0.0014 [&minus;0.0037, +0.0062]",
+       "1.3%"
+      ]
+     ]
+    },
+    "notes": [
+     "LogLoss gain of the link correction over the same-session baseline: &minus;0.0017% [&minus;0.0024, &minus;0.0009] for Small Instant-Only (SM113); &minus;0.0009% for Small two-head (SM118) and &minus;0.0013% for Big Instant-Only (SM99). Even weights fitted on the evaluation users themselves give the same &minus;0.0017%.",
+     "The same-session baseline alone makes LogLoss worse (+0.0015%): the models already capture bad-day effects.",
+     "The dataset has no card text, so links from card content (similar wording) are not ruled out; that would need data we don&rsquo;t have."
+    ]
+   }
+  },
   {
    "date": "11-25",
    "kind": "cpu",

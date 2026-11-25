@@ -5,6 +5,7 @@ and logged here for review. Details, evidence and how to undo each one: [DECISIO
 
 ## 2026-11-25
 
+- **Agent** - Links between cards (SM167): no go; correction gains -0.0017% LogLoss (bar 0.05%); not pursued.
 - **Agent** - Big long cards with 6-bit factors (SM165): inside the tolerance (at most +0.022%, CI upper +0.299%);
   no open accuracy check left before the release.
 - **Agent** - Started the links-between-cards study (SM167, CPU only, reuses SM160 predictions) to answer your
