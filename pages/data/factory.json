@@ -1,7 +1,7 @@
 {
- "generated_at": "2026-11-25T03:30:49+01:00",
- "updated": "2026-11-25 03:30",
- "material": "91af2be963514ec8",
+ "generated_at": "2026-11-25T04:35:04+01:00",
+ "updated": "2026-11-25 04:35",
+ "material": "05b78c2da56ffca4",
  "summary": "idle",
  "headline": [
   {
@@ -2754,15 +2754,38 @@
    "ended_at": "2026-11-25T00:25+01:00"
   },
   {
+   "id": "SM165",
+   "track": "small model",
+   "kind": "gpu",
+   "minutes": 120,
+   "what": "Big long cards with 6-bit factors (SM165): the long-card check of the Big two-head (SM91s2) and Big Instant-Only (SM99) models on cards with 128 or more answers, with 6-bit factors, the same way the bounded-memory test (SM155) checked them with 8-bit factors; the only final format without its own long-card read-out",
+   "when": "Started 04:55 Wed 11-25",
+   "decides": "Nothing by itself (long-card checks are warnings): it fills the last gap before the release",
+   "state": "planned",
+   "started_at": "2026-11-25T04:55+01:00"
+  },
+  {
+   "id": "SM166",
+   "track": "small model",
+   "kind": "cpu",
+   "minutes": 240,
+   "what": "Weekend release packages (SM166): the six release-candidate models (Big, Small and the six-layer Tiny, each two-head and Instant-Only) packaged like the 13 November release, with the final state formats, synthetic test vectors, integration notes, the weights notice and checksums, all checked from a clean extract; nothing is published",
+   "when": "Started 04:55 Wed 11-25",
+   "decides": "Nothing: the packages wait for the user&rsquo;s release go",
+   "state": "planned",
+   "started_at": "2026-11-25T04:55+01:00"
+  },
+  {
    "id": "SM163",
    "track": "small model",
    "kind": "cpu",
    "minutes": 180,
    "what": "Clean speed re-measure of state building (SM163): the fork before and after the 6-bit factors (main fb9f59a18 and eda153ddb), per size, with int8 rows, the chosen low-rank format with 8-bit factors and the new default (6-bit factors for Big and Small): full first-launch rebuild of a large synthetic collection, per-review answer and show-time latency (Learning cards included), the Deck Options replay with four threads, and a query batch-size sweep (32 to 1,024); GPU held back by a quiet window so the timings are clean",
-   "when": "Started 03:30 Wed 11-25 (waits for the re-check read-out first); about 2 to 3 hours",
+   "when": "Started 03:30 Wed 11-25; timing 03:42 to 04:45 on a quiet machine; done 04:50",
    "decides": "Whether state building is fast enough for the release, and whether Small or Tiny still trail int8 by more than about 15% (then the codec gets batched across cards in a follow-up)",
-   "state": "planned",
-   "started_at": "2026-11-25T03:30+01:00"
+   "state": "done",
+   "started_at": "2026-11-25T03:30+01:00",
+   "ended_at": "2026-11-25T04:50+01:00"
   },
   {
    "id": "SM164",
@@ -3760,6 +3783,67 @@
   }
  ],
  "results": [
+  {
+   "date": "11-25",
+   "kind": "cpu",
+   "id": "SM163",
+   "track": "small model",
+   "name": "Clean speed re-measure of state building (SM163): the fork before and after the 6-bit factors, per size and state format, on a quiet machine (GPU held back)",
+   "eval": "Release builds in the fork, synthetic collection of 205,785 reviews (pairs, all threads) plus a one-thread long-history replay, per-review latency, the Deck Options replay with four threads and a query batch sweep; median of 3 runs in alternating order (spread mostly 0.3% to 2.5%, at most 4.7%); CPU 1% to 10% and GPU 0% outside the runs.",
+   "fork": "Nothing changed in the fork: it measures main fb9f59a18 (before) and eda153ddb (after, 6-bit factors)",
+   "takeaway": "<strong>Fast enough for the release:</strong> a full rebuild with the new default runs at 14,346 reviews/s for Big (+38.8% vs int8 rows), 45,156 for Small (&minus;3.9%) and 80,569 for Tiny (&minus;3.9%); the 6-bit factors cost at most about 2% end to end.",
+   "inputs": "show-time",
+   "started_at": "2026-11-25T03:30+01:00",
+   "ended_at": "2026-11-25T04:50+01:00",
+   "gpu_minutes": 0,
+   "cpu_minutes": 80,
+   "tickets": 0,
+   "detail": {
+    "verdict": "No release blocker. The pre-registered 15% rule triggers only on the one-thread long-history replay (Small 17.2% and Tiny 23.9% behind int8 rows); the realistic rebuild is 3.9% behind, so batching the codec across cards becomes a follow-up after the release. anki-rwkv main 97128eb8 (artifacts/small-model/sm163/RESULT.md)",
+    "table": {
+     "head": [
+      "Size",
+      "New default, rebuild reviews/s",
+      "vs int8 rows",
+      "vs before the 6-bit factors",
+      "Rebuild time",
+      "Show-time latency p50"
+     ],
+     "rows": [
+      [
+       "Big",
+       "14,346",
+       "+38.8%",
+       "&minus;2.9%",
+       "14.6 s",
+       "about 3.0 ms"
+      ],
+      [
+       "Small",
+       "45,156",
+       "&minus;3.9%",
+       "&minus;1.1%",
+       "4.7 s",
+       "about 0.6 ms"
+      ],
+      [
+       "Tiny",
+       "80,569",
+       "&minus;3.9%",
+       "+0.6%",
+       "2.7 s",
+       "about 0.3 ms"
+      ]
+     ]
+    },
+    "notes": [
+     "Decoding alone is 19% to 33% slower with 6-bit factors than with 8-bit factors, but that is at most about 2% of a whole rebuild, inside the noise.",
+     "Int8 rows and the 8-bit low-rank format barely moved before vs after (within 2%, one case 3.3%).",
+     "Deck Options savings are 71% (Small) and 85% (Tiny) for pairs, so its table needs no change; a query batch of 512 already sits on the plateau.",
+     "Clean replay numbers are 15% to 25% faster than the old ones measured under GPU load; the ratios between formats hold."
+    ]
+   }
+  },
   {
    "date": "11-25",
    "kind": "gpu",

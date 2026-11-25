@@ -15,6 +15,18 @@ bootstrap; "732 set" = the standard 732-user evaluation pool (722 to 723 rule us
 
 ## 2026-11-24
 
+### D-1125-03 - Speed is no release blocker; codec batching after the release (Agent)
+- **Result:** SM163 (anki-rwkv 97128eb8), quiet machine, median of 3 ABAB runs: full rebuild with the new default Big 14,346
+  reviews/s (+38.8% vs int8 rows), Small 45,156 (-3.9%), Tiny 80,569 (-3.9%); 6-bit factors cost <= ~2% end to end.
+- **Decision:** the pre-registered 15% rule triggers only on the one-thread long-history replay (Small -17.2%, Tiny -23.9%
+  vs int8 rows); on the realistic rebuild the gap is 3.9%. Batching the codec across cards goes to the backlog for after
+  the release instead of a late hot-path change now.
+- **Undo:** start the batching now if the user wants it in the release.
+
+### D-1125-04 - Big long-card check with 6-bit factors (SM165) and release packages (SM166) started (Agent)
+- **Why:** Big F6 was the only final format without a long-card read-out (warning only); packages are the next plan step
+  (prepared only; publishing needs the user). The Tiny ensemble (SM160) is not in the packages until the user decides.
+
 ### D-1125-02 - Final state formats pass the release-candidate re-check (Agent, pre-registered rule)
 - **Result:** SM164 (branch sm164, c30a0070): Big F6, Small F6, six-layer Tiny T24 all GO, 9 of 9 cells pass on the
   732 set and the 1,500 rule. Tightest: Small two-head curve +0.412% (ceiling +0.5%), Tiny two-head curve +0.908%

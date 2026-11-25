@@ -5,6 +5,9 @@ and logged here for review. Details, evidence and how to undo each one: [DECISIO
 
 ## 2026-11-25
 
+- **Agent** - Speed (SM163) is no release blocker: rebuild -3.9% vs int8 rows for Small and Tiny, Big +38.8%; codec
+  batching (one-thread long cards trail 17-24%) waits until after the release.
+- **Agent** - Started the Big long-card check with 6-bit factors (SM165, GPU) and the release packages (SM166, nothing published).
 - **Agent** - Release-candidate re-check (SM164): all three final formats pass on both user sets; tightest
   Small two-head curve +0.412% (of +0.5%) and Tiny two-head curve +0.908% (of +1.0%).
 - **Agent** - Hourly check found the GPU idle at 03:28 (re-check SM164 finished 02:40): started its read-out and the
