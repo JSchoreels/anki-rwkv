@@ -1,6 +1,6 @@
 # Tiny ensemble on the 1,500 users (SM169): design
 
-Written Wed 11-25 about 09:45 (machine clock), before any row or per-review dump of this run existed. Branch `sm169`, worktree `C:/Users/jonat/workspace/wt/sm169`, cut from `origin/sm160` (3a5530cc, the result commit of the deploy-time ensemble test (SM160)). No source change: `scripts/` is SM160's, so every new row and dump comes from the same code as SM160's rows and dumps. GPU scoring plus a CPU read-out; no training.
+Written Wed 11-25 about 09:35 (machine clock), before any row or per-review dump of this run existed. Branch `sm169`, worktree `C:/Users/jonat/workspace/wt/sm169`, cut from `origin/sm160` (3a5530cc, the result commit of the deploy-time ensemble test (SM160)). No source change: `scripts/` is SM160's, so every new row and dump comes from the same code as SM160's rows and dumps. GPU scoring plus a CPU read-out; no training.
 
 ## Question
 
