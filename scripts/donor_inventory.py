@@ -311,36 +311,12 @@ def peak_memory_gb():
         return None
 
 
-def main():
-    ap = argparse.ArgumentParser()
-    ap.add_argument("folder", nargs="+", help="donation folders; the first is the campaign, later ones are partners")
-    ap.add_argument("--scratch", required=True, help="directory OUTSIDE the repository for extracted collections")
-    ap.add_argument("--report", required=True, help="local per-collection JSON (has donor labels: never commit)")
-    ap.add_argument("--aggregate", required=True, help="aggregate-only JSON (publishable)")
-    ap.add_argument("--keep", action="store_true", help="keep extracted collections")
-    ap.add_argument("--source-labels", help="comma-separated public label per folder, e.g. campaign,LMSherlock")
-    args = ap.parse_args()
-    scratch = Path(args.scratch)
-    scratch.mkdir(parents=True, exist_ok=True)
+def group_donors(rows, idsets):
+    """Exact duplicates, mostly-contained files and same-donor groups of the collections read by main().
 
-    t0 = time.time()
-    rows, idsets, catsets = [], [], []
-    labels = (args.source_labels.split(",") if args.source_labels else ["campaign", "partner"])
-    # lazy: one collection is extracted, read and deleted at a time
-    sources = ((si, x) for si, f in enumerate(args.folder) for x in iter_sources(f, scratch, prefix=f"s{si}"))
-    for si, (label, path, kind, sha) in sources:
-        try:
-            row, ids, cats = read_collection(path)
-        except Exception as exc:  # noqa: BLE001 - one bad file must not stop the inventory
-            row, ids, cats = {"error": str(exc)[:200]}, np.zeros(0, np.int64), np.zeros(0, np.uint8)
-        row.update(label=label, kind=kind, file_sha256=sha, source=labels[min(si, len(labels) - 1)])
-        rows.append(row)
-        idsets.append(ids)
-        catsets.append(cats)
-        if not args.keep and Path(path).parent == scratch:
-            Path(path).unlink()
-        print(f"[inventory] {len(rows):3d} {row.get('reviews', 'ERR')!s:>10} reviews  {kind}", file=sys.stderr)
-
+    rows: per-collection dicts with label and file_sha256 (annotated in place: duplicate_of, contained_in,
+    donor_group, shared_review_ids); idsets: their sorted unique answered review ids. Returns (n, sizes, groups),
+    groups = {root index: [member indices]} (members in file order). Also used by scripts/donations_to_dataset.py."""
     n = len(rows)
     size = [int(a.size) for a in idsets]
     windows = [np.unique(a // WINDOW_MS) for a in idsets]  # 10-minute windows with at least one review
@@ -409,6 +385,40 @@ def main():
     for i, j, sh, small in pair_notes:
         if sh:
             rows[i].setdefault("shared_review_ids", []).append({"with": rows[j]["label"], "shared": sh})
+    return n, size, groups
+
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("folder", nargs="+", help="donation folders; the first is the campaign, later ones are partners")
+    ap.add_argument("--scratch", required=True, help="directory OUTSIDE the repository for extracted collections")
+    ap.add_argument("--report", required=True, help="local per-collection JSON (has donor labels: never commit)")
+    ap.add_argument("--aggregate", required=True, help="aggregate-only JSON (publishable)")
+    ap.add_argument("--keep", action="store_true", help="keep extracted collections")
+    ap.add_argument("--source-labels", help="comma-separated public label per folder, e.g. campaign,LMSherlock")
+    args = ap.parse_args()
+    scratch = Path(args.scratch)
+    scratch.mkdir(parents=True, exist_ok=True)
+
+    t0 = time.time()
+    rows, idsets, catsets = [], [], []
+    labels = (args.source_labels.split(",") if args.source_labels else ["campaign", "partner"])
+    # lazy: one collection is extracted, read and deleted at a time
+    sources = ((si, x) for si, f in enumerate(args.folder) for x in iter_sources(f, scratch, prefix=f"s{si}"))
+    for si, (label, path, kind, sha) in sources:
+        try:
+            row, ids, cats = read_collection(path)
+        except Exception as exc:  # noqa: BLE001 - one bad file must not stop the inventory
+            row, ids, cats = {"error": str(exc)[:200]}, np.zeros(0, np.int64), np.zeros(0, np.uint8)
+        row.update(label=label, kind=kind, file_sha256=sha, source=labels[min(si, len(labels) - 1)])
+        rows.append(row)
+        idsets.append(ids)
+        catsets.append(cats)
+        if not args.keep and Path(path).parent == scratch:
+            Path(path).unlink()
+        print(f"[inventory] {len(rows):3d} {row.get('reviews', 'ERR')!s:>10} reviews  {kind}", file=sys.stderr)
+
+    n, size, groups = group_donors(rows, idsets)
 
     # per donor: union of its review ids (collection + deck exports + backups count each review once) = its unique
     # reviews; subjects: a review keeps a known subject over "Deleted cards" when one of the files still has its
