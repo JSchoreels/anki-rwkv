@@ -2557,10 +2557,11 @@
     "Donations to training data (SM177): "
    ],
    "what": "Donations to training data (SM177): a converter from donated Anki collections to our training format (one user per donor, duplicates merged, source label kept), plus a first look at today&rsquo;s models on donor data",
-   "when": "Started 19:45 Thu 11-26 (CPU)",
+   "when": "Started 19:45 Thu 11-26; done 20:45",
    "decides": "Nothing by itself: needed before any MIT model can be trained on donations",
-   "state": "running",
-   "started_at": "2026-11-26T19:45+01:00"
+   "state": "done",
+   "started_at": "2026-11-26T19:45+01:00",
+   "ended_at": "2026-11-26T20:45+01:00"
   },
   {
    "id": "SM175",
@@ -3833,6 +3834,53 @@
   "s-w64kd-gate-ctx2048c-dec8-1ep/w8+s8"
  ],
  "results": [
+  {
+   "date": "11-26",
+   "kind": "cpu",
+   "id": "SM177",
+   "track": "small model",
+   "name": "Donations to training data (SM177): donated collections converted to our training format, one user per donor with duplicates merged and the source kept",
+   "eval": "Review counts checked against the campaign inventory per donor; the release six-layer Tiny two-head (SM130) scored on 20 converted users as a smoke test (CPU).",
+   "fork": "Nothing changed in the fork",
+   "takeaway": "<strong>Donations are ready to train on:</strong> 218 donors and 39.9 million reviews in the training format (campaign 51 users, LMSherlock 107, Expertium 60), every count matching the inventory; the release Tiny loads and scores them without changes.",
+   "inputs": "show-time",
+   "started_at": "2026-11-26T19:45+01:00",
+   "ended_at": "2026-11-26T20:45+01:00",
+   "gpu_minutes": 0,
+   "cpu_minutes": 60,
+   "tickets": 0,
+   "detail": {
+    "verdict": "Converter in main (73815567), doc docs/DONATIONS_DATASET.md; data kept local (gitignored).",
+    "table": {
+     "head": [
+      "Source",
+      "Users",
+      "Reviews kept"
+     ],
+     "rows": [
+      [
+       "Donation campaign",
+       "51",
+       "12.95 million"
+      ],
+      [
+       "LMSherlock",
+       "107",
+       "18.10 million"
+      ],
+      [
+       "Expertium",
+       "60",
+       "8.84 million"
+      ]
+     ]
+    },
+    "notes": [
+     "Smoke test on 20 donor users (information only, different users): curve LogLoss 0.3345 and instant 0.3237, against 0.3014 and 0.2780 on the 732 set.",
+     "Day boundary from each collection&rsquo;s settings (rollover hour, else 4 am; timezone, else UTC for 4 users)."
+    ]
+   }
+  },
   {
    "date": "11-26",
    "kind": "gpu",
