@@ -3,7 +3,9 @@
 Design: `design.md` (pre-registered). Branch `sm174`, worktree `C:/Users/jonat/workspace/wt/sm174`; run tree
 `C:/Users/jonat/workspace/wt/sm174-run` (detached at cea0f931, **never edit it**: SourceWatch kills a running epoch).
 
-## Status (launch Thu 2026-11-26 00:44)
+## Status: COMPLETE Thu 2026-11-26 18:26 ("SM174 DONE", final report exit 0); read-out in RESULT.md
+
+## Launch (Thu 2026-11-26 00:44)
 
 - Launcher `launch-sm174.sh` (commit 8cbc821e), started hidden via WMI (`Win32_Process.Create`, ShowWindow 0) at
   00:44:32: WMI PID 10720 (outer bash). Every GPU step is one queue ticket, owner `sm174`, purpose prefix
