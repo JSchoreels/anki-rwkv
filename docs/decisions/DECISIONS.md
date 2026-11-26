@@ -5,6 +5,7 @@ and logged here for review. Details, evidence and how to undo each one: [DECISIO
 
 ## 2026-11-26
 
+- **Agent** - Timed recalibration (SM175) merged into fork main 36c4f39d7 (1,614 Rust tests, parity 4.5e-9); Mac checks pending.
 - **You** - Implement the per-user recalibration of the timed predictions in the fork now (SM175); recall predictions
   stay as they are (per-user recalibration gave nothing there: SM143, SM66, SM12).
 - **You** - Goal: MIT-licensed weights trained only on donated data (from scratch, no teacher). Data campaign page

@@ -2543,10 +2543,11 @@
     "Per-user recalibration of timed predictions in the fork (SM175): "
    ],
    "what": "Per-user recalibration of timed predictions in the fork (SM175): the rolling per-user correction validated for every model (SM125, SM128, SM140: all 21 timed cells of 2 to 10 s reliable, LogLoss &minus;0.7% to &minus;1.2% vs raw) implemented in the Anki fork for the answer-time predictions only; recall and grade predictions unchanged; parity tests against the Python reference, then merged into the fork&rsquo;s main branch",
-   "when": "Started 01:15 Thu 11-26 (CPU, a few hours)",
+   "when": "Started 01:15 Thu 11-26; merged into the fork&rsquo;s main branch 01:50 (36c4f39d7)",
    "decides": "Nothing by itself: the user approved it (11-26)",
-   "state": "running",
-   "started_at": "2026-11-26T01:15+01:00"
+   "state": "done",
+   "started_at": "2026-11-26T01:15+01:00",
+   "ended_at": "2026-11-26T01:50+01:00"
   },
   {
    "id": "SM174",
@@ -3803,6 +3804,53 @@
   "s-w64kd-gate-ctx2048c-dec8-1ep/w8+s8"
  ],
  "results": [
+  {
+   "date": "11-26",
+   "kind": "cpu",
+   "id": "SM175",
+   "track": "small model",
+   "name": "Per-user recalibration of timed predictions in the fork (SM175): the rolling per-user correction of the answer-time probabilities, validated in SM125, SM128 and SM140, built into the Anki fork",
+   "eval": "Parity with the Python reference on four synthetic users; both Rust test suites; tests that grade-only predictions and scheduling are unchanged and that fits use only earlier reviews.",
+   "fork": "Fork main 36c4f39d7: Card Info&rsquo;s timed probabilities are recalibrated per user (fit in the background on opening, raw until ready)",
+   "takeaway": "<strong>In the fork:</strong> timed predictions (answered within 2 to 30 s) now get the per-user correction that made all 21 timed cells of 2 to 10 s reliable (LogLoss &minus;0.7% to &minus;1.2% vs raw); recall and grade predictions are untouched.",
+   "inputs": "show-time",
+   "started_at": "2026-11-26T01:15+01:00",
+   "ended_at": "2026-11-26T01:50+01:00",
+   "gpu_minutes": 0,
+   "cpu_minutes": 35,
+   "tickets": 0,
+   "detail": {
+    "verdict": "Merged into the fork&rsquo;s main branch (36c4f39d7). Rust tests 1,614 passed in both suites; parity with the reference within 4.5e-9.",
+    "table": {
+     "head": [
+      "Setting",
+      "As built"
+     ],
+     "rows": [
+      [
+       "Blocks",
+       "7 days from the user&rsquo;s first timed review"
+      ],
+      [
+       "Fit data",
+       "latest 30,000 earlier timed reviews; under 1,000 keeps raw"
+      ],
+      [
+       "Per event",
+       "fewer than 20 positives or negatives keeps raw"
+      ],
+      [
+       "Thresholds",
+       "2, 3, 4, 5, 6, 8, 10, 15, 20 and 30 s"
+      ]
+     ]
+    },
+    "notes": [
+     "Grade-only probabilities, the conditional time row and scheduling are unchanged.",
+     "Still for the Mac: Python and TypeScript tests and just check, especially the new background thread in Card Info."
+    ]
+   }
+  },
   {
    "date": "11-25",
    "kind": "gpu",
