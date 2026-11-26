@@ -5,6 +5,8 @@ and compares that fingerprint with the one stored in pages/data/donations.json. 
 has been stable for --settle seconds (so a Dropbox upload in progress is not read half-written), it runs
 scripts/update_donations_site.py, which recomputes the stats, commits only the aggregate json files and pushes.
 On failure (e.g. a git lock while another commit runs) it retries on a later cycle with a growing back-off.
+Every 10 minutes it also runs scripts/ensure_pages_deployed.py: if GitHub's newest site deploy failed, a fresh
+deploy of main is dispatched (never a re-run of an old run, which would republish stale data).
 
 Single instance: a lock file holds the watcher's pid; a second start exits. Log: %LOCALAPPDATA%/anki-rwkv-donations/
 watcher.log (outside the repository, aggregate lines only). Stop: create the file STOP next to the log, or kill
@@ -68,6 +70,7 @@ def main():
     STOP.unlink(missing_ok=True)
     log(f"start pid {os.getpid()} interval {args.interval}s settle {args.settle}s")
     last_fp, stable_since, backoff_until, fails = None, time.time(), 0.0, 0
+    next_deploy_check = 0.0
     try:
         while not STOP.exists():
             try:
@@ -89,6 +92,14 @@ def main():
                     backoff_until = now + min(3600, 120 * 2 ** min(fails, 5))
                 else:
                     fails = 0
+            if now >= next_deploy_check:
+                # every 10 minutes: if GitHub's last site deploy failed (transient artifact errors), deploy main afresh
+                next_deploy_check = now + 600
+                d = subprocess.run([str(PY), str(REPO / "scripts" / "ensure_pages_deployed.py")], cwd=REPO,
+                                   capture_output=True, text=True, encoding="utf-8")
+                line = (d.stdout.strip().splitlines() or ["(no output)"])[-1]
+                if not line.startswith(("OK", "RUNNING")):
+                    log("site deploy: " + line)
             time.sleep(args.interval)
         log("stop file found: exit")
     finally:
