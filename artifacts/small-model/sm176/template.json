@@ -1,0 +1,137 @@
+{
+ "source": "C:\\Users\\jonat\\workspace\\wt\\sm130\\artifacts\\small-model\\sm130-th-e30-st",
+ "protocol_sha256": "b91d754302f33afdf5aed6070280af79f87015b49c512ce3a240156f035a63fc",
+ "decay_sha256": "da2886f9fca9a6770b576988a1a72720045b5ae65ecd7626c7dde27ec491b6eb",
+ "protocol": {
+  "dataset_path": "C:\\Users\\jonat\\workspace\\anki-rwkv\\data\\anki-revlogs-10k-original-20261011",
+  "dataset_revision": "75299740cff05894ef42d7ad990666691efdd2da",
+  "training": {
+   "epochs": 1,
+   "chunk_reviews": 128,
+   "gpu_memory_fraction": 0.95
+  },
+  "execution_mode": {
+   "CUBLAS_WORKSPACE_CONFIG": ":4096:8"
+  },
+  "full_run": {
+   "epoch": 30,
+   "evaluate": false,
+   "benchmark_db": "C:/Users/jonat/workspace/wt/sm72s/artifacts/accuracy/experiments/scale-w64kd-final-sc-lanes-leakfree/run/label-db",
+   "evaluation_set": "none (scripts/accuracy_loop.py evaluates separately)",
+   "snapshot_users": 400,
+   "control_dir": "artifacts/small-model/sm130-th-e30-st/control",
+   "fast_evaluation": true,
+   "fast_evaluation_chunks": 512,
+   "init_master": "C:/Users/jonat/workspace/wt/sm130/artifacts/small-model/sm130-th-cut-e29/master.pth",
+   "init_optimizer": "C:/Users/jonat/workspace/wt/sm130/artifacts/small-model/sm130-th-cut-e29/optimizer.pth",
+   "update_offset": 640262
+  },
+  "accuracy_loop": {
+   "experiment": "scale-w64kd-final-sc-lanes-leakfree",
+   "tier": "final",
+   "seed": 2025,
+   "option_overrides": {
+    "architecture": "w64",
+    "batch_chunks": 16,
+    "native_glue": false,
+    "native_group_norm": false,
+    "native_index": false,
+    "native_wkv": false,
+    "wkv_tile": false,
+    "distillation": {
+     "teacher": "C:/Users/jonat/workspace/wt/sm72/artifacts/small-model/sm72-big-leakfree-1ep/expertium/big-leakfree-1ep/master.pth",
+     "alpha": 0.9,
+     "decay_alpha": 0.5,
+     "kd_source": "replay",
+     "replay": "C:/Users/jonat/workspace/anki-rwkv/artifacts/cache/kd-replay/big-leakfree-1ep-final8k-neighbour"
+    },
+    "chunk_reviews": 2048,
+    "state_carry": {
+     "lanes": "strided"
+    }
+   },
+   "env": {
+    "RWKV_DELETED_CARDS": "neighbour"
+   }
+  },
+  "label_window_trims": [
+   {
+    "user_id": 5599,
+    "from": 32782,
+    "to": 32768,
+    "dropped_reviews": 14,
+    "updates_before": 2
+   }
+  ]
+ },
+ "decay": {
+  "kind": "sm77 constant-LR epoch",
+  "source_run": "C:\\Users\\jonat\\workspace\\wt\\sm72s\\artifacts\\accuracy\\experiments\\scale-w64kd-final-sc-lanes-leakfree\\run",
+  "source_epoch": 29,
+  "epoch": 30,
+  "model": "expertium",
+  "track": "E89-F65e-F77a",
+  "options": {
+   "prefetch_users": true,
+   "preparation_workers": 5,
+   "gpu_packed_features": true,
+   "packed_ipc": true,
+   "async_transfer": true,
+   "batched_id_encodings": true,
+   "grouped_sync": true,
+   "main_threads": 1,
+   "bulk_transfer": true,
+   "parallel_evaluation": true,
+   "exact_shift": true,
+   "exact_index": true,
+   "batch_chunks": 16,
+   "gpu_memory_fraction": 0.8,
+   "fast_samples": true,
+   "prestart_pool": true,
+   "row_tiles_exact": 4,
+   "exact_group_norm": true,
+   "deferred_reads": true,
+   "shared_shift_orders": true,
+   "stream_launches": true,
+   "prefetch_rows": true,
+   "sync_free_loss": true,
+   "columnar_samples": true,
+   "skip_uninitialized_fill": true,
+   "skip_padding_sources": true,
+   "native_wkv": false,
+   "host_placement": "physical",
+   "process_qos": true,
+   "native_group_norm": false,
+   "native_index": false,
+   "deferred_read_depth": 2,
+   "bookkeeping_stride": 8,
+   "wkv_tile": false,
+   "lean_step_reset": true,
+   "native_glue": false,
+   "wddm_flush": true,
+   "architecture": "w64-c1-d2p1u1",
+   "distillation": {
+    "teacher": "C:/Users/jonat/workspace/wt/sm72/artifacts/small-model/sm72-big-leakfree-1ep/expertium/big-leakfree-1ep/master.pth",
+    "alpha": 0.9,
+    "decay_alpha": 0.5,
+    "kd_source": "replay",
+    "replay": "C:/Users/jonat/workspace/anki-rwkv/artifacts/cache/kd-replay/big-leakfree-1ep-final8k-neighbour"
+   },
+   "chunk_reviews": 2048,
+   "state_carry": {
+    "lanes": "strided"
+   },
+   "training_seed": 2025,
+   "show_time_intervals": true
+  },
+  "architecture": "w64-c1-d2p1u1",
+  "training_users": 8000,
+  "training_reviews": 581942724,
+  "lr": "7e-4 constant (no lr_schedule: rwkv default schedule past warmup)",
+  "note": "SM130 (th): the Tiny two-head model (SM106)'s epoch step, epoch 30 (the run's order rule), architecture w64-c1-d2p1u1 (six-layer Tiny: deck 2 / preset 1 / user 1 layers), start = sm130-th-cut-e29 (the pinned cut: trailing deck/preset/user layers removed, AdamW state re-indexed)",
+  "init_master_sha256": "57cb724e31164fda55dd9266e226bf02d7347de25775a11fec217147a82cfaec",
+  "init_optimizer_sha256": "5ee211c7578062673e73fc0f24f95daac2221c8d10f28f96e6f3f80d8dff3f99",
+  "start": "sm106-c1-e29-st",
+  "created_utc": "2026-11-18T21:40:32Z"
+ }
+}
