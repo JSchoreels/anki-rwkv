@@ -248,7 +248,8 @@ def read_collection(path):
     row["cards_reviewed"] = q("select count(distinct cid) from revlog where ease between 1 and 4")[0]
     row["cards"] = q("select count(*) from cards")[0]
     row["notes"] = q("select count(*) from notes")[0]
-    lo, hi = q("select min(id), max(id) from revlog where ease between 1 and 4")
+    # date range ignores impossible dates (wrong device clocks): Anki did not exist before 2006
+    lo, hi = q("select min(id), max(id) from revlog where ease between 1 and 4 and id >= 1136073600000")
     row["first_review"] = datetime.fromtimestamp(lo / 1000, timezone.utc).date().isoformat() if lo else None
     row["last_review"] = datetime.fromtimestamp(hi / 1000, timezone.utc).date().isoformat() if hi else None
     row["review_days"] = q("select count(distinct id/86400000) from revlog where ease between 1 and 4")[0]
