@@ -1,8 +1,9 @@
-"""Publish the data-campaign page data (pages/data/donations.json) from the donated-collections folder.
+"""Publish the data-campaign page data (pages/data/donations.json) from the donated-collections folders.
 
-usage: publish_donations_page.py [--folder DIR] [--force] [--check]
+usage: publish_donations_page.py [--folder DIR ...] [--force] [--check]
 
-The folder is fingerprinted from the sorted list of (file name, size, mtime) of its files, hashed with SHA-256; only the
+The folders (DEFAULT_FOLDERS: the campaign, then LMSherlock's shared collections) are fingerprinted from the list of
+(folder name, file name, size, mtime) of their files, hashed with SHA-256; only the
 hash is stored (as `source_fingerprint` in the json), never the list. When the hash is unchanged the inventory is not
 rerun and only the goals block is recomputed. When it changed, scripts/donor_inventory.py runs with its scratch, its
 per-collection report and its aggregate under %TEMP%/anki-rwkv-donations (outside the repository); everything there is
@@ -43,7 +44,11 @@ def append_history(doc):
         return
     hist.append(point)
     HISTORY.write_text(json.dumps(hist, indent=1) + "\n", encoding="utf-8")
-DEFAULT_FOLDER = "D:/Dropbox/Anki Data"
+
+
+# donation folders: the campaign's Dropbox file request first, then collections shared with us by partners
+DEFAULT_FOLDERS = ("D:/Dropbox/Anki Data", "D:/Dropbox/Jarrett User Collections")
+DEFAULT_FOLDER = DEFAULT_FOLDERS  # old name, kept for importers
 SCRATCH = Path(os.environ.get("TEMP") or tempfile.gettempdir()) / "anki-rwkv-donations"
 
 # anki-revlogs-10k, from the parquet footers of data/anki-revlogs-10k/revlogs (row counts per user)
@@ -63,20 +68,26 @@ AGG_KEYS = (
     "files", "collections", "errors", "exact_duplicates", "mostly_contained", "donors_estimated",
     "reviews_raw_sum", "reviews_unique", "donors_with_reviews", "collections_without_review_history",
     "donors_10k_plus_reviews", "first_review", "last_review", "donors_by_reviews",
-    "reviews_by_category", "donors_by_category",
+    "reviews_by_category", "donors_by_category", "reviews_by_source", "donors_by_source",
 )
+SOURCES = ("campaign", "LMSherlock")  # public label per DEFAULT_FOLDERS entry (credited)
 CATEGORIES = ("Japanese", "Chinese", "Korean", "Medicine", "Other languages", "Other", "Deleted cards")
 GENERIC = {"anki", "collection", "collections", "export", "backup", "colpkg", "apkg", "anki2", "anki21",
-           "review", "reviews", "history", "deck", "decks", "data", "dataset"}
+           "review", "reviews", "history", "deck", "decks", "data", "dataset",
+           "current"}  # "current": common in file names, and part of a fixed milestone name
 BUCKETS = ("1-9,999", "10k-49,999", "50k-199,999", "200k-999,999", "1M+")
 
 
-def folder_files(folder):
-    return sorted((e for e in Path(folder).iterdir() if e.is_file()), key=lambda e: e.name)
+def _folders(folders):
+    return [Path(folders)] if isinstance(folders, (str, Path)) else [Path(f) for f in folders]
 
 
-def fingerprint(folder):
-    items = [(e.name, (st := e.stat()).st_size, st.st_mtime_ns) for e in folder_files(folder)]
+def folder_files(folders):
+    return [e for f in _folders(folders) for e in sorted((e for e in f.iterdir() if e.is_file()), key=lambda e: e.name)]
+
+
+def fingerprint(folders):
+    items = [(e.parent.name, e.name, (st := e.stat()).st_size, st.st_mtime_ns) for e in folder_files(folders)]
     return hashlib.sha256(json.dumps(items, ensure_ascii=False).encode("utf-8")).hexdigest()
 
 
@@ -87,8 +98,8 @@ def run_inventory(folder):
     SCRATCH.mkdir(parents=True)
     agg_path = SCRATCH / "aggregate.json"
     try:
-        cmd = [sys.executable, str(REPO / "scripts" / "donor_inventory.py"), str(folder),
-               "--scratch", str(SCRATCH / "extract"), "--report", str(SCRATCH / "report-local.json"),
+        cmd = [sys.executable, str(REPO / "scripts" / "donor_inventory.py"), *map(str, _folders(folder)),
+               "--source-labels", ",".join(SOURCES), "--scratch", str(SCRATCH / "extract"), "--report", str(SCRATCH / "report-local.json"),
                "--aggregate", str(agg_path)]
         proc = subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, text=True)
         if proc.returncode:
@@ -159,6 +170,9 @@ def privacy_problems(doc, folder):
         probs.append("unexpected top-level keys")
     if set(doc.get("donations", {})) - set(AGG_KEYS):
         probs.append("unexpected aggregate keys")
+    for key in ("reviews_by_source", "donors_by_source"):
+        if set(doc.get("donations", {}).get(key, {})) - set(SOURCES):
+            probs.append(f"unexpected {key} labels")
     for key in ("reviews_by_category", "donors_by_category"):
         if set(doc.get("donations", {}).get(key, {})) - set(CATEGORIES):
             probs.append(f"unexpected {key} labels")
@@ -179,7 +193,7 @@ def privacy_problems(doc, folder):
 
     walk(doc)
     text = "\n".join(strings)
-    if folder and Path(folder).is_dir():
+    if folder and all(f.is_dir() for f in _folders(folder)):
         for e in folder_files(folder):
             for token in {e.name, e.stem, *re.split(r"[\s_\-.()\[\]]+", e.stem)}:
                 token = token.strip().lower()
@@ -190,13 +204,14 @@ def privacy_problems(doc, folder):
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    ap.add_argument("--folder", default=DEFAULT_FOLDER)
+    ap.add_argument("--folder", action="append", help="donation folder (repeatable; default: DEFAULT_FOLDERS)")
     ap.add_argument("--force", action="store_true", help="rerun the inventory even if the folder is unchanged")
     ap.add_argument("--check", action="store_true", help="write nothing; exit 1 if the json is stale or unsafe")
     args = ap.parse_args()
-    folder = Path(args.folder)
-    if not folder.is_dir():
-        sys.exit(f"folder not found: {folder}")
+    folder = [Path(f) for f in (args.folder or DEFAULT_FOLDERS)]
+    missing = [str(f) for f in folder if not f.is_dir()]
+    if missing:
+        sys.exit(f"folder not found: {missing}")
     fp = fingerprint(folder)
     old = json.loads(OUT.read_text(encoding="utf-8")) if OUT.exists() else None
 

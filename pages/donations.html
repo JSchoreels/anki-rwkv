@@ -32,6 +32,13 @@
   .cards .card .v { white-space: nowrap; }
   #sec-donate .btn { display: inline-block; padding: 10px 18px; font-weight: 700; text-decoration: none; background: var(--accent); color: #fff; border-radius: 8px; }
   .donate-list { font-size: 15px; }
+  .buckets .track.stack { display: flex; }
+  .buckets .track.stack i { border-radius: 0; }
+  .buckets .track.stack i.s1 { background: var(--c-extend); }
+  .src-legend { font-size: 14px; color: var(--muted); margin-top: 10px; }
+  .src-legend .sw { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin: 0 6px 0 0; vertical-align: -1px; background: var(--accent); }
+  .src-legend .sw.s1 { background: var(--c-extend); margin-left: 14px; }
+  #sec-sources a { color: var(--accent); }
   @media (max-width: 700px) { .facts { grid-template-columns: minmax(0, 1fr); } .cards .card .v { white-space: normal; } }
 </style>
 </head>
@@ -78,6 +85,13 @@
   <section class="panel" id="sec-history" hidden>
     <div class="panel-head"><h2>Progress over time (unique reviews &middot; donors)</h2></div>
     <div id="history"></div>
+  </section>
+
+  <section class="panel" id="sec-sources" hidden>
+    <div class="panel-head"><h2>By source</h2></div>
+    <div class="buckets" id="sources"></div>
+    <p class="src-legend"><span class="sw"></span>Donation campaign<span class="sw s1"></span>LMSherlock</p>
+    <p>Many collections were shared by <a href="https://www.reddit.com/user/LMSherlock/" target="_blank" rel="noopener">LMSherlock</a>, author of FSRS. Thank you!</p>
   </section>
 
   <section class="panel" id="sec-subjects">
@@ -163,6 +177,27 @@
       sbox.append(lab, tr, num);
     });
     $('sec-subjects').hidden = subj.length === 0;
+
+    // by source: one stacked bar each for users and reviews (campaign, then LMSherlock)
+    const SRC = ['campaign', 'LMSherlock'], SRC_NAME = { campaign: 'Donation campaign', LMSherlock: 'LMSherlock' };
+    const rs = a.reviews_by_source || {}, us = a.donors_by_source || {};
+    const srcbox = $('sources');
+    srcbox.replaceChildren();
+    [['Users', us, fmt], ['Reviews', rs, (n) => (n >= 1e5 ? (n / 1e6).toFixed(1) + 'M' : fmt(n))]].forEach(([k, m, f]) => {
+      const tot = SRC.reduce((t, s) => t + (m[s] || 0), 0);
+      const lab = document.createElement('span'); lab.className = 'lab'; lab.textContent = k;
+      const tr = document.createElement('span'); tr.className = 'track stack';
+      SRC.forEach((s, i) => {
+        const bar = document.createElement('i'); bar.className = `s${i}`;
+        bar.style.width = `${tot ? (100 * (m[s] || 0)) / tot : 0}%`;
+        bar.title = `${SRC_NAME[s]}: ${f(m[s] || 0)}`;
+        tr.append(bar);
+      });
+      const num = document.createElement('span'); num.className = 'n';
+      num.textContent = SRC.map((s) => f(m[s] || 0)).join(' + ');
+      srcbox.append(lab, tr, num);
+    });
+    $('sec-sources').hidden = !Object.keys(rs).length;
 
     const fact = (k, v) => `<div class="card"><div class="k">${k}</div><div class="v">${v}</div></div>`;
     $('facts').innerHTML = [

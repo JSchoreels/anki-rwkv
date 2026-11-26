@@ -1,8 +1,8 @@
-"""Watch the donation folder and refresh the data campaign page when it changes (replaces the 4-hour schedule).
+"""Watch the donation folders and refresh the data campaign page when it changes (replaces the 4-hour schedule).
 
-Every --interval seconds (default 60) it stats the files in the folder (names, sizes, mtimes: no file is opened)
-and compares that fingerprint with the one stored in pages/data/donations.json. When they differ and the folder
-has been stable for --settle seconds (so a Dropbox upload in progress is not read half-written), it runs
+Every --interval seconds (default 60) it stats the files of every donation folder (publish_donations_page.
+DEFAULT_FOLDERS: names, sizes, mtimes; no file is opened) and compares that fingerprint with the one stored in
+pages/data/donations.json. When they differ and the folders have been stable for --settle seconds (so a Dropbox upload in progress is not read half-written), it runs
 scripts/update_donations_site.py, which recomputes the stats, commits only the aggregate json files and pushes.
 On failure (e.g. a git lock while another commit runs) it retries on a later cycle with a growing back-off.
 Every 10 minutes it also runs scripts/ensure_pages_deployed.py: if GitHub's newest site deploy failed, a fresh
@@ -24,7 +24,7 @@ from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO / "scripts"))
-from publish_donations_page import DEFAULT_FOLDER, OUT, fingerprint  # noqa: E402
+from publish_donations_page import DEFAULT_FOLDERS, OUT, fingerprint  # noqa: E402
 
 PY = REPO / ".venv" / "Scripts" / "python.exe"
 HOME = Path(os.environ.get("LOCALAPPDATA") or Path.home()) / "anki-rwkv-donations"
@@ -53,10 +53,11 @@ def published_fingerprint():
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--folder", default=DEFAULT_FOLDER)
+    ap.add_argument("--folder", action="append", help="donation folder (repeatable; default: DEFAULT_FOLDERS)")
     ap.add_argument("--interval", type=int, default=60)
     ap.add_argument("--settle", type=int, default=120)
     args = ap.parse_args()
+    folders = [Path(f) for f in (args.folder or DEFAULT_FOLDERS)]
     HOME.mkdir(parents=True, exist_ok=True)
     if PID.exists():
         try:
@@ -68,13 +69,13 @@ def main():
             return 0
     PID.write_text(str(os.getpid()))
     STOP.unlink(missing_ok=True)
-    log(f"start pid {os.getpid()} interval {args.interval}s settle {args.settle}s")
+    log(f"start pid {os.getpid()} folders {len(folders)} interval {args.interval}s settle {args.settle}s")
     last_fp, stable_since, backoff_until, fails = None, time.time(), 0.0, 0
     next_deploy_check = 0.0
     try:
         while not STOP.exists():
             try:
-                fp = fingerprint(Path(args.folder))
+                fp = fingerprint(folders)
             except Exception as exc:  # noqa: BLE001 - folder briefly unavailable (Dropbox, drive sleep)
                 log(f"fingerprint failed: {exc}")
                 time.sleep(args.interval)

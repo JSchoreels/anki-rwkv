@@ -8,6 +8,12 @@ Outputs:
   --report  local JSON with one row per collection (includes file names = donor labels: keep it local, never commit)
   --aggregate  aggregate-only JSON (counts, no names, no ids) that may be published
 
+Several folders may be given (the campaign first, then partner folders); --source-labels names each one in the
+aggregate's reviews_by_source / donors_by_source.
+
+Memory: review ids are kept as sorted unique int64 numpy arrays with a parallel uint8 array of category codes
+(about 9 bytes per review), so a few hundred collections stay well under a few GB.
+
 Privacy: never commit the --report output or any extracted collection; only the aggregate may be published.
 """
 
@@ -19,9 +25,12 @@ import os
 import re
 import sqlite3
 import sys
+import time
 import zipfile
 from datetime import datetime, timezone
 from pathlib import Path
+
+import numpy as np
 
 ZSTD_DLL = r"C:\Program Files\Git\mingw64\bin\libzstd.dll"
 COLLECTION_NAMES = ("collection.anki21b", "collection.anki21", "collection.anki2")
@@ -95,7 +104,7 @@ def extract_collection(zf, scratch, tag):
     return None, None
 
 
-def iter_sources(folder, scratch):
+def iter_sources(folder, scratch, prefix=""):
     """Yield (label, path_of_sqlite, container_kind, file_sha256)."""
     n = 0
     for entry in sorted(Path(folder).iterdir()):
@@ -108,7 +117,7 @@ def iter_sources(folder, scratch):
         elif low.endswith((".apkg", ".colpkg")):
             n += 1
             with zipfile.ZipFile(entry) as zf:
-                path, inner = extract_collection(zf, scratch, f"c{n:04d}")
+                path, inner = extract_collection(zf, scratch, f"{prefix}c{n:04d}")
             if path:
                 yield entry.name, path, inner, sha
         elif low.endswith(".zip"):
@@ -116,19 +125,23 @@ def iter_sources(folder, scratch):
                 for info in outer.infolist():
                     if info.filename.lower().endswith((".apkg", ".colpkg")):
                         n += 1
-                        nested = scratch / f"n{n:04d}.pkg"
+                        nested = scratch / f"{prefix}n{n:04d}.pkg"
                         with outer.open(info) as src, open(nested, "wb") as dst:
                             while block := src.read(1 << 20):
                                 dst.write(block)
                         nested_sha = sha256_file(nested)
                         with zipfile.ZipFile(nested) as zf:
-                            path, inner = extract_collection(zf, scratch, f"c{n:04d}")
+                            path, inner = extract_collection(zf, scratch, f"{prefix}c{n:04d}")
                         nested.unlink()
                         if path:
                             yield f"{entry.name}::{info.filename}", path, inner, nested_sha
 
 
 CATEGORIES = ("Japanese", "Chinese", "Korean", "Medicine", "Other languages", "Other")
+CODES = (*CATEGORIES, "Deleted cards")  # uint8 category code = index here
+CODE = {c: i for i, c in enumerate(CODES)}
+DELETED = CODE["Deleted cards"]
+WINDOW_MS = 600_000  # 10-minute review windows
 _MED = re.compile(r"anking|zanki|step ?[123]|usmle|comlex|mcat|nclex|nursing|medic|pharm|anatom|physio|patho|"
                   r"microbio|biochem|boards|lightyear|pepper|sketchy|pathoma|b&b|bnb|uworld|amboss|immunol|clinical",
                   re.I)
@@ -207,10 +220,21 @@ def reviews_by_category(cur):
         deck_cat[did] = classify_deck(decks.get(did, ""), mids, text)
         out[deck_cat[did]] += n
     # category of every answered review id, so a donor who sent both a collection and deck exports of it is
-    # counted once per review (the same review id appears in both files)
-    review_cat = {rid: deck_cat.get(did, "Deleted cards") for rid, did in cur.execute(
-        "select r.id, c.did from revlog r left join cards c on c.id = r.cid where r.ease between 1 and 4")}
-    return out, review_cat
+    # counted once per review (the same review id appears in both files): sorted unique int64 ids plus a parallel
+    # uint8 array of category codes (numpy, not dicts: ~9 bytes per review instead of ~100)
+    pairs = np.fromiter(cur.execute("select r.id, coalesce(c.did, -1) from revlog r left join cards c "
+                                    "on c.id = r.cid where r.ease between 1 and 4"),
+                        dtype=[("rid", np.int64), ("did", np.int64)])
+    order = np.argsort(pairs["rid"], kind="stable")
+    rids, dids = pairs["rid"][order], pairs["did"][order]
+    del pairs, order
+    if rids.size > 1:  # a repeated id keeps its last row, as a dict would
+        last = np.append(rids[1:] != rids[:-1], True)
+        rids, dids = rids[last], dids[last]
+    udid, inv = np.unique(dids, return_inverse=True)
+    table = np.array([CODE[deck_cat.get(int(d), "Deleted cards")] for d in udid], dtype=np.uint8)
+    cats = table[inv.reshape(-1)] if rids.size else np.zeros(0, np.uint8)
+    return out, rids, cats
 
 
 def read_collection(path):
@@ -228,61 +252,120 @@ def read_collection(path):
     row["first_review"] = datetime.fromtimestamp(lo / 1000, timezone.utc).date().isoformat() if lo else None
     row["last_review"] = datetime.fromtimestamp(hi / 1000, timezone.utc).date().isoformat() if hi else None
     row["review_days"] = q("select count(distinct id/86400000) from revlog where ease between 1 and 4")[0]
-    row["reviews_by_category"], review_cat = reviews_by_category(cur)
-    ids = [r[0] for r in cur.execute("select id from revlog where ease between 1 and 4")]
-    # deck-config ids other than the default one are timestamps unique to the source collection
-    try:
-        presets = [r[0] for r in cur.execute("select id from deck_config where id != 1")]
-    except sqlite3.OperationalError:
-        presets = []
+    # ids: the answered review ids (ease 1-4), sorted and unique; cats: their category codes
+    row["reviews_by_category"], ids, cats = reviews_by_category(cur)
     con.close()
-    return row, set(ids), set(presets), review_cat
+    return row, ids, cats
+
+
+def count_shared(a, b):
+    """Number of values in both sorted unique int64 arrays (exact); disjoint id ranges are skipped at once."""
+    if not a.size or not b.size or a[-1] < b[0] or b[-1] < a[0]:
+        return 0
+    lo, hi = max(a[0], b[0]), min(a[-1], b[-1])
+    a = a[np.searchsorted(a, lo):np.searchsorted(a, hi, side="right")]
+    b = b[np.searchsorted(b, lo):np.searchsorted(b, hi, side="right")]
+    if a.size > b.size:
+        a, b = b, a
+    if not a.size:
+        return 0
+    # same count as np.intersect1d(a, b, assume_unique=True).size, without sorting the concatenation
+    idx = np.minimum(np.searchsorted(b, a), b.size - 1)
+    return int(np.count_nonzero(b[idx] == a))
+
+
+def merge_group(idlist, catlist):
+    """Unique reviews of one donor and its reviews per category, merging the donor's files in order.
+
+    Same rule as a dict filled file by file: a review takes the category of the first file that knows its card, else
+    "Deleted cards". The categories come back in the order a review of each first appears (file order, then id), so
+    the output and the tie-break of max() match the per-review dict this replaces."""
+    if len(idlist) == 1:
+        uid, ucat, first = idlist[0], catlist[0], None
+    else:
+        allid = np.concatenate(idlist)
+        allcat = np.concatenate(catlist)
+        rank = np.concatenate([np.full(a.size, r, np.int32) for r, a in enumerate(idlist)])
+        order = np.lexsort((rank, allcat == DELETED, allid))  # by id, known subject first, then file order
+        sid = allid[order]
+        start = np.flatnonzero(np.r_[True, sid[1:] != sid[:-1]]) if sid.size else np.zeros(0, np.int64)
+        uid, ucat = sid[start], allcat[order][start]
+        first = np.minimum.reduceat(rank[order], start) if start.size else np.zeros(0, np.int32)
+        del allid, allcat, rank, order, sid
+    if not uid.size:
+        return 0, {}
+    counts = np.bincount(ucat, minlength=len(CODES))
+    seq = ucat if first is None else ucat[np.lexsort((uid, first))]  # dict insertion order: first file, then id
+    codes, pos = np.unique(seq, return_index=True)
+    per = {CODES[c]: int(counts[c]) for c in codes[np.argsort(pos)]}
+    return int(uid.size), per
+
+
+def peak_memory_gb():
+    try:
+        import psutil  # optional: only for the log line
+        mi = psutil.Process().memory_info()
+        return round(getattr(mi, "peak_wset", mi.rss) / 2**30, 2)
+    except Exception:  # noqa: BLE001
+        return None
 
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("folder")
+    ap.add_argument("folder", nargs="+", help="donation folders; the first is the campaign, later ones are partners")
     ap.add_argument("--scratch", required=True, help="directory OUTSIDE the repository for extracted collections")
     ap.add_argument("--report", required=True, help="local per-collection JSON (has donor labels: never commit)")
     ap.add_argument("--aggregate", required=True, help="aggregate-only JSON (publishable)")
     ap.add_argument("--keep", action="store_true", help="keep extracted collections")
+    ap.add_argument("--source-labels", help="comma-separated public label per folder, e.g. campaign,LMSherlock")
     args = ap.parse_args()
     scratch = Path(args.scratch)
     scratch.mkdir(parents=True, exist_ok=True)
 
-    rows, idsets, presetsets, catmaps = [], [], [], []
-    for label, path, kind, sha in iter_sources(args.folder, scratch):
+    t0 = time.time()
+    rows, idsets, catsets = [], [], []
+    labels = (args.source_labels.split(",") if args.source_labels else ["campaign", "partner"])
+    # lazy: one collection is extracted, read and deleted at a time
+    sources = ((si, x) for si, f in enumerate(args.folder) for x in iter_sources(f, scratch, prefix=f"s{si}"))
+    for si, (label, path, kind, sha) in sources:
         try:
-            row, ids, presets, review_cat = read_collection(path)
+            row, ids, cats = read_collection(path)
         except Exception as exc:  # noqa: BLE001 - one bad file must not stop the inventory
-            row, ids, presets, review_cat = {"error": str(exc)[:200]}, set(), set(), {}
-        row.update(label=label, kind=kind, file_sha256=sha)
+            row, ids, cats = {"error": str(exc)[:200]}, np.zeros(0, np.int64), np.zeros(0, np.uint8)
+        row.update(label=label, kind=kind, file_sha256=sha, source=labels[min(si, len(labels) - 1)])
         rows.append(row)
         idsets.append(ids)
-        presetsets.append(presets)
-        catmaps.append(review_cat)
+        catsets.append(cats)
         if not args.keep and Path(path).parent == scratch:
             Path(path).unlink()
         print(f"[inventory] {len(rows):3d} {row.get('reviews', 'ERR')!s:>10} reviews  {kind}", file=sys.stderr)
 
     n = len(rows)
+    size = [int(a.size) for a in idsets]
+    windows = [np.unique(a // WINDOW_MS) for a in idsets]  # 10-minute windows with at least one review
+    # shared review ids of every pair (computed once; used by the duplicate, containment and same-donor rules)
+    shared = np.zeros((n, n), dtype=np.int64)
+    for i in range(n):
+        for j in range(i):
+            shared[i, j] = shared[j, i] = count_shared(idsets[i], idsets[j])
     # exact duplicates: same file, or same set of review ids
     for i in range(n):
         rows[i]["duplicate_of"] = None
         rows[i]["contained_in"] = None
         for j in range(i):
-            if rows[i]["file_sha256"] == rows[j]["file_sha256"] or (idsets[i] and idsets[i] == idsets[j]):
+            if rows[i]["file_sha256"] == rows[j]["file_sha256"] or (
+                    size[i] and size[i] == size[j] and shared[i, j] == size[i]):
                 rows[i]["duplicate_of"] = rows[j]["label"]
                 break
     # partial overlap: share of this collection's review ids found in a bigger collection
     for i in range(n):
-        if rows[i]["duplicate_of"] or not idsets[i]:
+        if rows[i]["duplicate_of"] or not size[i]:
             continue
         best = (0.0, None)
         for j in range(n):
-            if i == j or not idsets[j] or len(idsets[j]) <= len(idsets[i]):
+            if i == j or not size[j] or size[j] <= size[i]:
                 continue
-            share = len(idsets[i] & idsets[j]) / len(idsets[i])
+            share = int(shared[i, j]) / size[i]
             if share > best[0]:
                 best = (share, rows[j]["label"])
         if best[0] >= 0.5:
@@ -301,30 +384,16 @@ def main():
 
     for i in range(n):
         for j in range(i):
-            shared = len(idsets[i] & idsets[j])
-            small = min(len(idsets[i]), len(idsets[j]))
+            sh = int(shared[i, j])
+            small = min(size[i], size[j])
             # same person: they share many exact review ids, or (deck exports of one collection, disjoint
             # review ids) they review in the same 10-minute windows most of the time
-            same = small > 0 and shared >= 0.1 * small
+            same = small > 0 and sh >= 0.1 * small
             if not same and small > 0:
-                bi = {x // 600_000 for x in idsets[i]}
-                bj = {x // 600_000 for x in idsets[j]}
-                same = len(bi & bj) >= 0.5 * min(len(bi), len(bj))
-            pair_notes.append((i, j, shared, small))
+                same = count_shared(windows[i], windows[j]) >= 0.5 * min(windows[i].size, windows[j].size)
+            pair_notes.append((i, j, sh, small))
             if same:
                 parent[find(i)] = find(j)
-    groups = {}
-    for i in range(n):
-        groups.setdefault(find(i), []).append(i)
-    for gid, (root, members) in enumerate(sorted(groups.items(), key=lambda kv: kv[1][0])):
-        for i in members:
-            rows[i]["donor_group"] = gid
-    # unique reviews per donor group = union of review ids
-    group_reviews = {}
-    for root, members in groups.items():
-        union = set().union(*(idsets[i] for i in members))
-        group_reviews[root] = len(union)
-
     # files from one archive were sent by one donor
     for i in range(n):
         for j in range(i):
@@ -336,28 +405,17 @@ def main():
     for gid, (root, members) in enumerate(sorted(groups.items(), key=lambda kv: kv[1][0])):
         for i in members:
             rows[i]["donor_group"] = gid
-    group_reviews = {root: len(set().union(*(idsets[i] for i in members))) for root, members in groups.items()}
-    for i, j, shared, small in pair_notes:
-        if shared:
-            rows[i].setdefault("shared_review_ids", []).append({"with": rows[j]["label"], "shared": shared})
-    Path(args.report).parent.mkdir(parents=True, exist_ok=True)
-    Path(args.report).write_text(json.dumps(rows, ensure_ascii=False, indent=1), encoding="utf-8")
+    for i, j, sh, small in pair_notes:
+        if sh:
+            rows[i].setdefault("shared_review_ids", []).append({"with": rows[j]["label"], "shared": sh})
 
-    unique_reviews = sum(group_reviews.values())
-    # subjects: per donor, sum the category reviews of its non-duplicate collections; a donor's main subject is the
-    # category with most reviews (deleted cards excluded, since their deck is unknown)
-    cat_reviews, cat_donors = {}, {}
+    # per donor: union of its review ids (collection + deck exports + backups count each review once) = its unique
+    # reviews; subjects: a review keeps a known subject over "Deleted cards" when one of the files still has its
+    # card; a donor's main subject is the category with most reviews (deleted cards excluded, since their deck is
+    # unknown)
+    group_reviews, cat_reviews, cat_donors = {}, {}, {}
     for root, members in groups.items():
-        # union of the donor's review ids (collection + deck exports + backups count each review once); a review
-        # keeps a known subject over "Deleted cards" when one of the files still has its card
-        merged = {}
-        for i in members:
-            for rid, cat in catmaps[i].items():
-                if merged.get(rid) in (None, "Deleted cards"):
-                    merged[rid] = cat
-        per = {}
-        for cat in merged.values():
-            per[cat] = per.get(cat, 0) + 1
+        group_reviews[root], per = merge_group([idsets[i] for i in members], [catsets[i] for i in members])
         for k, v in per.items():
             cat_reviews[k] = cat_reviews.get(k, 0) + v
         known = {k: v for k, v in per.items() if k != "Deleted cards" and v > 0}
@@ -366,6 +424,20 @@ def main():
             cat_donors[main_cat] = cat_donors.get(main_cat, 0) + 1
             for i in members:
                 rows[i]["donor_main_subject"] = main_cat
+    Path(args.report).parent.mkdir(parents=True, exist_ok=True)
+    Path(args.report).write_text(json.dumps(rows, ensure_ascii=False, indent=1), encoding="utf-8")
+    unique_reviews = sum(group_reviews.values())
+    # per source: each donor counted once, under the source holding most of its reviews
+    src_reviews, src_donors = {}, {}
+    for root, members in groups.items():
+        if not group_reviews[root]:
+            continue
+        weight = {}
+        for i in members:
+            weight[rows[i]["source"]] = weight.get(rows[i]["source"], 0) + size[i]
+        src = max(weight, key=weight.get)
+        src_reviews[src] = src_reviews.get(src, 0) + group_reviews[root]
+        src_donors[src] = src_donors.get(src, 0) + 1
     ok = [r for r in rows if "error" not in r]
     agg = {
         "generated": datetime.now().isoformat(timespec="minutes"),
@@ -382,6 +454,8 @@ def main():
         "donors_10k_plus_reviews": sum(1 for c in group_reviews.values() if c >= 10_000),
         "first_review": min((r["first_review"] for r in ok if r.get("first_review")), default=None),
         "last_review": max((r["last_review"] for r in ok if r.get("last_review")), default=None),
+        "reviews_by_source": src_reviews,
+        "donors_by_source": src_donors,
         "reviews_by_category": cat_reviews,
         "donors_by_category": cat_donors,
         # donor sizes as buckets only (no per-donor list), so the aggregate stays non-identifying
@@ -395,6 +469,8 @@ def main():
     Path(args.aggregate).parent.mkdir(parents=True, exist_ok=True)
     Path(args.aggregate).write_text(json.dumps(agg, indent=1), encoding="utf-8")
     print(json.dumps(agg, indent=1))
+    print(f"[inventory] {n} collections in {time.time() - t0:.0f} s, peak memory {peak_memory_gb()} GB",
+          file=sys.stderr)
 
 
 if __name__ == "__main__":
