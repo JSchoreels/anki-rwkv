@@ -5,6 +5,7 @@ and logged here for review. Details, evidence and how to undo each one: [DECISIO
 
 ## 2026-11-26
 
+- **Agent** - GPU idle after SM174: started the Small data-scaling test (SM176) and the donations-to-training converter (SM177).
 - **Agent** - Data scaling (SM174): a no-teacher Tiny comes within 1% at about 1,200 users and 0.5% at about 3,200;
   campaign milestones now show about 99.2% / 99.6% / 99.7% of today's accuracy.
 - **You** - LMSherlock's shared collections (D:/Dropbox/Jarrett User Collections) join the data campaign, credited
