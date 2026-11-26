@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-26T18:27:16+01:00",
- "updated": "2026-11-26 18:27",
- "material": "459c8417089ae2d0",
- "summary": "idle, finished 001733",
+ "generated_at": "2026-11-26T18:40:28+01:00",
+ "updated": "2026-11-26 18:40",
+ "material": "8f94eb9464c49855",
+ "summary": "idle",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring, show-time inputs for both heads (curve / instant)",
@@ -2771,14 +2771,11 @@
    "kind": "gpu",
    "minutes": 1800,
    "what": "How many users for MIT weights (SM174): weights we can ship under the MIT license must be trained from scratch on donated data only, with no teacher model; this trains the six-layer Tiny (SM130) architecture from scratch without a teacher on 500, 1,000, 2,000 and 4,000 users of the 10k dataset (a stand-in for donations, experiment only, never shipped) and scores each on the 732 set against the release six-layer Tiny two-head (SM130)",
-   "when": "Launched 01:00 Thu 11-26: six-layer Tiny from scratch without a teacher on 500, 1,000, 2,000, 4,000 and 8,000 users (same 2.33 billion reviews each, early stop on held-out users), then 8,000 users with the teacher as the control; each run about 4.2 to 4.9 hours, all done about 04:00 Fri 11-27",
+   "when": "Launched 01:00 Thu 11-26; all runs done 18:26 Thu",
    "decides": "The donation campaign&rsquo;s real goal: how many donors a from-scratch model needs to come within about 1% and 0.5% of today&rsquo;s models",
    "state": "done",
-   "started_at": "2026-11-26T00:44:34+01:00",
-   "ended": "18:26",
-   "exit": 0,
-   "started": "00:44",
-   "ended_at": "2026-11-26T18:26:47+01:00"
+   "started_at": "2026-11-26T00:35+01:00",
+   "ended_at": "2026-11-26T18:26+01:00"
   },
   {
    "id": "SM173",
@@ -3896,6 +3893,69 @@
   }
  ],
  "results": [
+  {
+   "date": "11-26",
+   "kind": "gpu",
+   "id": "SM174",
+   "track": "small model",
+   "name": "How many users for MIT weights (SM174): the six-layer Tiny (SM130) architecture trained from scratch without a teacher on 500 to 8,000 users of the 10k dataset (a stand-in for donations), against the same training budget with the usual teacher",
+   "eval": "GPU, every run the same budget of 2.33 billion reviews (about 4 passes over 8,000 users) with early stopping on held-out users; scored on the 732 set, show-time inputs, curve and instant heads, paired user bootstrap 95%; the 8,000-user run with the teacher is the fair same-budget reference (the short budget alone costs about 1.3% vs the release model).",
+   "fork": "Nothing changed in the fork",
+   "takeaway": "<strong>About 1,200 donors are enough for a first MIT model:</strong> without a teacher, the Tiny comes within 1% of the same-budget teacher model at about 1,182 users and within 0.5% at about 3,194; dropping the teacher costs only +0.24% / +0.27% at 8,000 users.",
+   "inputs": "show-time",
+   "started_at": "2026-11-26T01:00+01:00",
+   "ended_at": "2026-11-26T18:26+01:00",
+   "gpu_minutes": 1050,
+   "cpu_minutes": 60,
+   "tickets": 40,
+   "detail": {
+    "verdict": "Sets the campaign milestones: Minimum Viable (1,500 training users) about 99.2% of today&rsquo;s accuracy, srs-benchmark size (5,000) about 99.6%, current fork size (8,000) about 99.7%. Branch sm174, commit 1b5222e8 (RESULT.md)",
+    "table": {
+     "head": [
+      "Training users",
+      "vs the same-budget teacher model, curve / instant",
+      "vs the release six-layer Tiny (SM130), curve / instant"
+     ],
+     "rows": [
+      [
+       "500",
+       "+2.69% / +2.30%",
+       "+3.97% / +3.78%"
+      ],
+      [
+       "1,000",
+       "+1.12% / +0.67%",
+       "+2.39% / +2.12%"
+      ],
+      [
+       "2,000",
+       "+0.61% / +0.43%",
+       "+1.87% / +1.88%"
+      ],
+      [
+       "4,000",
+       "+0.45% / +0.25%",
+       "+1.70% / +1.70%"
+      ],
+      [
+       "8,000, no teacher",
+       "+0.24% / +0.27%",
+       "+1.49% / +1.72%"
+      ],
+      [
+       "8,000, with teacher",
+       "reference",
+       "+1.25% / +1.45%"
+      ]
+     ]
+    },
+    "notes": [
+     "The gaps vs the release model mix three effects (fewer users, no teacher, a shorter budget); the same-budget teacher run isolates the budget part, so the middle column is the data and teacher cost.",
+     "The user counts for 1% and 0.5% are interpolated in log2(users) on the worse head.",
+     "Measured on the Tiny architecture; Small and Big may need more users."
+    ]
+   }
+  },
   {
    "date": "11-26",
    "kind": "cpu",

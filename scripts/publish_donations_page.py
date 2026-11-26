@@ -116,14 +116,15 @@ def goals_block(agg):
     avg = unique / donors if donors else 0
     mean10k = DATASET["reviews_per_user_mean"]
     # Named goals (user 11-26). Reviews = users x the 10k dataset's mean per user. Accuracy estimates come from the
-    # data-scaling test (SM174: from scratch, no teacher, on 10k-dataset users) and stay None until it reports.
+    # data-scaling test (SM174: six-layer Tiny from scratch without a teacher on 10k-dataset users, worse head, vs the
+    # same-budget model trained with today's teacher recipe; log2 interpolation: 1.5k +0.82%, 5k +0.39%, 8k +0.27%).
     specs = (
         ("m1", "Milestone 1 (Minimum Viable)", 1_500, 500,
-         "First MIT-licensed model trained only on donations", True, None),
+         "First MIT-licensed model trained only on donations", False, 99.2),
         ("m2", "Milestone 2 (srs-benchmark same training dataset)", 5_000, 2_000,
-         "As many training users as the srs-benchmark models (5,000)", False, None),
+         "As many training users as the srs-benchmark models (5,000)", False, 99.6),
         ("m3", "Milestone 3 (Current Anki Fork user trained)", 8_000, 2_000,
-         "As many users as the models in today's Anki fork", False, None),
+         "As many users as the models in today's Anki fork", False, 99.7),
     )
     out = []
     for gid, name, train, test, unlocks, provisional, accuracy in specs:
