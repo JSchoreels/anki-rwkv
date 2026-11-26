@@ -198,13 +198,19 @@ def reviews_by_category(cur):
                          "where r.ease between 1 and 4 and c.id is null").fetchone()[0]
     out = dict.fromkeys(CATEGORIES, 0)
     out["Deleted cards"] = orphan
+    deck_cat = {}
     for did, n in per_deck.items():
         rows = cur.execute("select n.mid, n.flds from cards c join notes n on n.id = c.nid where c.did = ? "
                            "limit 300", (did,)).fetchall()
         mids = {models.get(m, "") for m, _ in rows}
         text = " ".join(f[:400] for _, f in rows)
-        out[classify_deck(decks.get(did, ""), mids, text)] += n
-    return out
+        deck_cat[did] = classify_deck(decks.get(did, ""), mids, text)
+        out[deck_cat[did]] += n
+    # category of every answered review id, so a donor who sent both a collection and deck exports of it is
+    # counted once per review (the same review id appears in both files)
+    review_cat = {rid: deck_cat.get(did, "Deleted cards") for rid, did in cur.execute(
+        "select r.id, c.did from revlog r left join cards c on c.id = r.cid where r.ease between 1 and 4")}
+    return out, review_cat
 
 
 def read_collection(path):
@@ -222,7 +228,7 @@ def read_collection(path):
     row["first_review"] = datetime.fromtimestamp(lo / 1000, timezone.utc).date().isoformat() if lo else None
     row["last_review"] = datetime.fromtimestamp(hi / 1000, timezone.utc).date().isoformat() if hi else None
     row["review_days"] = q("select count(distinct id/86400000) from revlog where ease between 1 and 4")[0]
-    row["reviews_by_category"] = reviews_by_category(cur)
+    row["reviews_by_category"], review_cat = reviews_by_category(cur)
     ids = [r[0] for r in cur.execute("select id from revlog where ease between 1 and 4")]
     # deck-config ids other than the default one are timestamps unique to the source collection
     try:
@@ -230,7 +236,7 @@ def read_collection(path):
     except sqlite3.OperationalError:
         presets = []
     con.close()
-    return row, set(ids), set(presets)
+    return row, set(ids), set(presets), review_cat
 
 
 def main():
@@ -244,16 +250,17 @@ def main():
     scratch = Path(args.scratch)
     scratch.mkdir(parents=True, exist_ok=True)
 
-    rows, idsets, presetsets = [], [], []
+    rows, idsets, presetsets, catmaps = [], [], [], []
     for label, path, kind, sha in iter_sources(args.folder, scratch):
         try:
-            row, ids, presets = read_collection(path)
+            row, ids, presets, review_cat = read_collection(path)
         except Exception as exc:  # noqa: BLE001 - one bad file must not stop the inventory
-            row, ids, presets = {"error": str(exc)[:200]}, set(), set()
+            row, ids, presets, review_cat = {"error": str(exc)[:200]}, set(), set(), {}
         row.update(label=label, kind=kind, file_sha256=sha)
         rows.append(row)
         idsets.append(ids)
         presetsets.append(presets)
+        catmaps.append(review_cat)
         if not args.keep and Path(path).parent == scratch:
             Path(path).unlink()
         print(f"[inventory] {len(rows):3d} {row.get('reviews', 'ERR')!s:>10} reviews  {kind}", file=sys.stderr)
@@ -341,12 +348,16 @@ def main():
     # category with most reviews (deleted cards excluded, since their deck is unknown)
     cat_reviews, cat_donors = {}, {}
     for root, members in groups.items():
-        per = {}
+        # union of the donor's review ids (collection + deck exports + backups count each review once); a review
+        # keeps a known subject over "Deleted cards" when one of the files still has its card
+        merged = {}
         for i in members:
-            if rows[i].get("duplicate_of") or "reviews_by_category" not in rows[i]:
-                continue
-            for k, v in rows[i]["reviews_by_category"].items():
-                per[k] = per.get(k, 0) + v
+            for rid, cat in catmaps[i].items():
+                if merged.get(rid) in (None, "Deleted cards"):
+                    merged[rid] = cat
+        per = {}
+        for cat in merged.values():
+            per[cat] = per.get(cat, 0) + 1
         for k, v in per.items():
             cat_reviews[k] = cat_reviews.get(k, 0) + v
         known = {k: v for k, v in per.items() if k != "Deleted cards" and v > 0}
