@@ -35,9 +35,11 @@
   .buckets .track.stack { display: flex; }
   .buckets .track.stack i { border-radius: 0; }
   .buckets .track.stack i.s1 { background: var(--c-extend); }
+  .buckets .track.stack i.s2 { background: var(--c-fastmode); }
   .src-legend { font-size: 14px; color: var(--muted); margin-top: 10px; }
   .src-legend .sw { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin: 0 6px 0 0; vertical-align: -1px; background: var(--accent); }
   .src-legend .sw.s1 { background: var(--c-extend); margin-left: 14px; }
+  .src-legend .sw.s2 { background: var(--c-fastmode); margin-left: 14px; }
   #sec-sources a { color: var(--accent); }
   @media (max-width: 700px) { .facts { grid-template-columns: minmax(0, 1fr); } .cards .card .v { white-space: normal; } }
 </style>
@@ -90,8 +92,8 @@
   <section class="panel" id="sec-sources" hidden>
     <div class="panel-head"><h2>By source</h2></div>
     <div class="buckets" id="sources"></div>
-    <p class="src-legend"><span class="sw"></span>Donation campaign<span class="sw s1"></span>LMSherlock</p>
-    <p>Many collections were shared by <a href="https://www.reddit.com/user/LMSherlock/" target="_blank" rel="noopener">LMSherlock</a>, author of FSRS. Thank you!</p>
+    <p class="src-legend"><span class="sw"></span>Donation campaign<span class="sw s1"></span>LMSherlock<span class="sw s2"></span>Expertium</p>
+    <p>Many collections were shared by <a href="https://www.reddit.com/user/LMSherlock/" target="_blank" rel="noopener">LMSherlock</a>, author of FSRS, and from <a href="https://github.com/Expertium" target="_blank" rel="noopener">Expertium</a>&rsquo;s button-usage survey. Thank you!</p>
   </section>
 
   <section class="panel" id="sec-subjects">
@@ -179,7 +181,7 @@
     $('sec-subjects').hidden = subj.length === 0;
 
     // by source: one stacked bar each for users and reviews (campaign, then LMSherlock)
-    const SRC = ['campaign', 'LMSherlock'], SRC_NAME = { campaign: 'Donation campaign', LMSherlock: 'LMSherlock' };
+    const SRC = ['campaign', 'LMSherlock', 'Expertium'], SRC_NAME = { campaign: 'Donation campaign', LMSherlock: 'LMSherlock', Expertium: 'Expertium' };
     const rs = a.reviews_by_source || {}, us = a.donors_by_source || {};
     const srcbox = $('sources');
     srcbox.replaceChildren();
