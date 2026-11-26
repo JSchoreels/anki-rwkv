@@ -8,6 +8,7 @@ test("only issues links for new collection files in the campaign folder", async 
   const link = "https://content.dropboxapi.com/apitul/1/test";
   const calls = [];
   t.mock.method(globalThis, "fetch", async (url, options) => {
+    assert.equal(options.redirect, "manual");
     calls.push({url, options});
     return Response.json(calls.length === 1 ? {access_token: "token"} : {link});
   });
