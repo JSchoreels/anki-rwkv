@@ -5,6 +5,8 @@ and logged here for review. Details, evidence and how to undo each one: [DECISIO
 
 ## 2026-11-26
 
+- **You** - Implement the per-user recalibration of the timed predictions in the fork now (SM175); recall predictions
+  stay as they are (per-user recalibration gave nothing there: SM143, SM66, SM12).
 - **You** - Goal: MIT-licensed weights trained only on donated data (from scratch, no teacher). Data campaign page
   with goals 732-user eval set, 7k users (5k/2k), 10k users (8k/2k); refreshed every 4 h.
 - **Agent** - Started the data-scaling test (SM174): Tiny from scratch, no teacher, 500 to 4,000 users, to set the
