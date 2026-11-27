@@ -1,6 +1,6 @@
 # Today's models on donor data (SM178): handoff
 
-Status: RUNNING again since 11-27 15:56:55 after the timestamp fix below (relaunch, WMI PID 53796; labels kept;
+Status: DONE 11-27 16:48 (196 of 218 donors covered by all six models; 22 largest donors OOM). Read-out in RESULT.md, sm178-result.md/json.
 ticket 001793 = Tiny pass 1, 116 users left). No training; scoring only.
 
 Question: how do the six release-candidate models (Big two-head (SM91s2), Big Instant-Only (SM99), Small two-head (SM118), Small Instant-Only (SM113), six-layer Tiny two-head and Instant-Only (SM130)) score on the 218 donated users (`data/donations-20261126-answer-time`, 39.9M reviews), against the 732 set? Label REF = `w8+s8hx8` (int8 weights, int8 card and note rows), the label of SM148's 732-set rows.
