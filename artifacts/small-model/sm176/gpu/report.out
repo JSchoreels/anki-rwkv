@@ -1,0 +1,27 @@
+# How many users for an MIT Small (SM176): result
+
+Status: **complete**
+
+Every row: Small architecture (`w64`, 331,511 parameters) trained from scratch under the same review budget (four 8k epochs), scored on the 732 set (723 users), show-time inputs, w8+s8hx8, against the Small two-head release model (SM118). % = review-weighted LogLoss vs the reference, paired user bootstrap 95% CI.
+
+| model | curve vs SM118 | instant vs SM118 | curve LogLoss | instant LogLoss | vs the 8,000-user teacher control (SM176 n8000-kd), curve / instant | epochs (best constant epoch + decay) | reviews trained | GPU h | reviews/s |
+|---|---|---|---|---|---|---|---|---|---|
+| 8,000 users, with the usual teacher (SM176 n8000-kd) | +1.19% [+1.06, +1.33] | +1.34% [+1.25, +1.44] | 0.3056 | 0.2824 | - | 2 + 1 | 2.33B | 6.1 | 106,240 |
+| 1,000 users, no teacher (SM176 n1000) | +2.57% [+2.31, +2.90] | +2.36% [+2.21, +2.52] | 0.3097 | 0.2852 | +1.36% [+1.18, +1.60] / +1.01% [+0.94, +1.09] | 16 + 3 | 1.44B | 3.7 | 107,933 |
+| 2,000 users, no teacher (SM176 n2000) | +3.29% [+2.99, +3.65] | +3.30% [+3.09, +3.53] | 0.3119 | 0.2878 | +2.08% [+1.86, +2.32] / +1.93% [+1.80, +2.08] | 2 + 1 | 0.73B | 1.9 | 109,001 |
+| 4,000 users, no teacher (SM176 n4000) | +1.40% [+1.27, +1.56] | +1.55% [+1.45, +1.66] | 0.3062 | 0.2829 | +0.21% [+0.10, +0.29] / +0.21% [+0.18, +0.24] | 5 + 1 | 1.73B | 4.4 | 110,060 |
+
+## Users needed (no-teacher arms, gap = the worse of the two heads)
+
+| threshold | vs SM118, point estimate | vs SM118, CI upper bound | vs the equal-compute teacher control (SM176 n8000-kd), point |
+|---|---|---|---|
+| +1.0% | > 4,000 (extrapolated ~16,994, indicative) | > 4,000 (extrapolated ~15,883, indicative) | ~2,982 |
+| +0.5% | > 4,000 (extrapolated ~37,287, indicative) | > 4,000 (extrapolated ~30,164, indicative) | ~3,590 |
+
+## Held-out slice (early stopping; 190 validation users never trained on, not in the 732 set)
+
+- 8,000 users, with the usual teacher (SM176 n8000-kd): epoch 1: 0.3100 (+0.00%), epoch 2: 0.3061 (-1.26%), epoch 3: 0.3085 (-0.46%). early stop: eval point 3 is not 0.05% below the best earlier point; decay 1 epoch(s) from epoch 2.
+- 1,000 users, no teacher (SM176 n1000): epoch 4: 0.3155 (+0.00%), epoch 8: 0.3121 (-1.10%), epoch 12: 0.3097 (-1.86%), epoch 16: 0.3096 (-1.89%). early stop: eval point 16 is not 0.05% below the best earlier point; decay 3 epoch(s) from epoch 16.
+- 2,000 users, no teacher (SM176 n2000): epoch 2: 0.3164 (+0.00%), epoch 4: 0.3167 (+0.10%). early stop: eval point 4 is not 0.05% below the best earlier point; decay 1 epoch(s) from epoch 2.
+- 4,000 users, no teacher (SM176 n4000): epoch 1: 0.3149 (+0.00%), epoch 2: 0.3139 (-0.31%), epoch 3: 0.3090 (-1.86%), epoch 4: 0.3080 (-2.18%), epoch 5: 0.3080 (-2.19%). early stop: eval point 5 is not 0.05% below the best earlier point; decay 1 epoch(s) from epoch 5.
+

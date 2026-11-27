@@ -13,6 +13,14 @@ bootstrap; "732 set" = the standard 732-user evaluation pool (722 to 723 rule us
 
 ---
 
+## 2026-11-27
+
+### D-1127-01 - Data-scaling test on the Small (SM176) read-out (Agent)
+- Decision: log the result; no model is shipped (restricted training data).
+- Result: vs the same-budget teacher run (SM176 n8000-kd, +1.19% / +1.34% vs the release Small, SM118): 1,000 users +1.36% / +1.01%, 2,000 users +2.08% / +1.93% (stopped after 2 epochs, outlier), 4,000 users +0.21% / +0.21% (curve / instant). Users needed: ~2,982 for +1.0%, ~3,590 for +0.5% (interpolation 2,000 to 4,000); ignoring n2000 about 1,550 / 2,830. Tiny (SM174): ~1,182 / ~3,194.
+- Evidence: `artifacts/small-model/sm176/RESULT.md` on branch `sm176`.
+- Undo: nothing to undo. Follow-up candidate: rerun n2000 with longer patience.
+
 ## 2026-11-26
 
 ### D-1126-01 - Data-scaling test (SM174) design (Agent)

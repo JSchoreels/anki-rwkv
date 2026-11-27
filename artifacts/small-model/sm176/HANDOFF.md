@@ -5,7 +5,7 @@ Design: `design.md` (pre-registered; a diff vs How many users for MIT weights (S
 reused, **never edit it**: SourceWatch kills a running epoch). Model folders:
 `C:/Users/jonat/workspace/wt/sm174-run/artifacts/small-model/sm176/<arm>/e01 ... dNN`.
 
-## Status: RUNNING (launched Thu 2026-11-26 19:44)
+## Status: DONE Fri 2026-11-27 13:06 ("SM176 DONE", final report exit 0); read-out in `RESULT.md`
 
 ## Launch
 

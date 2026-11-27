@@ -3,6 +3,10 @@
 One line per decision, newest first. **You** = decided by Jonathan; **Agent** = obvious call taken by the agent
 and logged here for review. Details, evidence and how to undo each one: [DECISIONS-full.md](DECISIONS-full.md).
 
+## 2026-11-27
+
+- **Agent** - Data-scaling test on the Small (SM176) read out: no-teacher Small is +0.21% from its same-budget teacher run at 4,000 users (+1.36% at 1,000; the 2,000 arm stopped too early, an outlier); users needed ~2,982 (+1%) / ~3,590 (+0.5%), about ~1,550 / ~2,830 ignoring the outlier, vs Tiny ~1,182 / ~3,194.
+
 ## 2026-11-26
 
 - **Agent** - Data-scaling test (SM174) design: six-layer Tiny from scratch, no teacher, 500 / 1,000 / 2,000 /
