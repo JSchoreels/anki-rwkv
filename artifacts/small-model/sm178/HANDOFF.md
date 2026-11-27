@@ -12,6 +12,23 @@ Question: how do the six release-candidate models (Big two-head (SM91s2), Big In
 - **GPU smoke OK** (`smoke.sh`, tickets 001788 and 001789, 1 min): six-layer Tiny two-head (SM130) at `w8+s8` on SM177's 20 smoke users gives curve 0.334454 / instant 0.323671 on 1,621,900 benchmark reviews, equal to SM177's CPU values to 6 decimals; the six models at REF on 3 donors give 18 finite rows (`gpu/smoke-rows.jsonl`, `gpu/smoke-check.json`, `gpu/smoke-ok`). GPU rate about 40-50k review-evaluations/s on the Tiny.
 - `sm178_report.py report` tested on the smoke rows (works; exit 2 there only because 3 of 218 users are covered).
 
+## 11-27 crash and fix
+
+- First run: labels done 15:27; ticket 001790 (Tiny) stopped after 106 of 218 users (3.5 min) with a CUDA device-side
+  assert (`gpu/score.out`). Cause: donor 1000029 has one review with a zeroed id (1970), so a 55-year interval, past
+  the model's interval grid (exp(21) s, about 42 years): `srs_model.interp`'s searchsorted index runs off the grid.
+  Donor 1000155 has 105 reviews from a clock set to May 2000 (within the grid, but impossible). Found with
+  `CUDA_LAUNCH_BLOCKING=1` on that user (ticket 001791) and a scan of all users' intervals and dates.
+- Fix: the converter (main a57b788f) drops reviews answered before 2006-01-01 UTC. The donation folders grew since
+  11-26 (284 collections, 227 donors: donors renumbered), so SM178 keeps its 218-donor snapshot and applies the same
+  rule in place: `sm178_timefix.py` -> `data/donations-20261126-timefix` (+ `-answer-time`). Check: rebuilding without
+  dropping equals the 11-26 build bit for bit on all 218 users; with dropping, the two donors equal a fresh fixed
+  conversion bit for bit. Dropped: 106 bad reviews + 274 reviews of 74 cards whose only Learning start was in 2000;
+  39,891,421 -> 39,891,041 reviews. The other 216 users are unchanged, so their 106 scored rows and labels stand.
+- `sm178_score.py` / `sm178_report.py` now point at the timefix folders; the two donors' labels were rebuilt in
+  `work/sm178/run/label-db` (436 entries). GPU check (ticket 001792): donor 1000029 scores (curve 0.4083, instant 0.4041,
+  Tiny two-head (SM130)); donor 1000155 (1.4M reviews) is OOM at cap 0.8, which the launcher's 0.92 pass handles.
+
 ## Running
 
 - Launcher `launch-sm178.sh`, started hidden via WMI at 11-27 14:49:55 (WMI PID 18956, outer bash). Steps: (1) labels, CPU, 2 processes, largest users first (peaks seen 2.2 + 1.7 GB), expected about 40 min (SM177's 20 users took 2 min 17 s for 2.2M reviews), then `work/sm178/run/labels-done`; (2) checks `gpu/smoke-ok` (present); (3) one queue ticket per size, order Tiny, Small, Big (2 models each, all 218 users), passes at cap 0.8 then 0.92 after a pass without progress -> `gpu/sm178-rows.jsonl`. Expected GPU time about 20 + 25 + 35 min (SM164's REF tickets scaled to 39.9M reviews; the 8 donors with 840k to 1.5M reviews may need the 0.92 pass or fail on memory).

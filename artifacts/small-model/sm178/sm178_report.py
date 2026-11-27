@@ -17,7 +17,7 @@ import numpy as np
 HERE = Path(__file__).resolve().parent
 ROWS = HERE / "gpu" / "sm178-rows.jsonl"
 ROWS732 = Path("C:/Users/jonat/workspace/wt/sm164/artifacts/small-model/sm148/gpu/sm148-rows-732.jsonl")
-SOURCES = Path("C:/Users/jonat/workspace/anki-rwkv/data/donations-20261126/sources.parquet")
+SOURCES = Path("C:/Users/jonat/workspace/anki-rwkv/data/donations-20261126-timefix/sources.parquet")
 REF = "w8+s8hx8@e2s-query"
 MODELS = [  # tag, plain name, heads, matching Big tag
     ("sm91s2-big-showtime", "Big two-head (SM91s2)", ("ahead", "instant"), None),

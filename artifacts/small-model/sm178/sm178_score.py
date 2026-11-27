@@ -17,8 +17,8 @@ from pathlib import Path
 
 MAIN = Path(r"C:\Users\jonat\workspace\anki-rwkv")
 SCORER_WT = Path(r"C:\Users\jonat\workspace\wt\sm164")
-DATA = MAIN / "data" / "donations-20261126-answer-time"
-SOURCES = MAIN / "data" / "donations-20261126" / "sources.parquet"
+DATA = MAIN / "data" / "donations-20261126-timefix-answer-time"   # 11-27: pre-2006 reviews dropped (sm178_timefix.py)
+SOURCES = MAIN / "data" / "donations-20261126-timefix" / "sources.parquet"
 HERE = Path(__file__).resolve().parent
 SM177_SMOKE = [1000197, 1000132, 1000104, 1000046, 1000164, 1000122, 1000084, 1000117, 1000170, 1000210, 1000121,
                1000161, 1000019, 1000125, 1000136, 1000195, 1000020, 1000094, 1000213, 1000118]
