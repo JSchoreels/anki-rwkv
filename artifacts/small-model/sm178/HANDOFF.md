@@ -1,6 +1,7 @@
 # Today's models on donor data (SM178): handoff
 
-Status: RUNNING since 11-27 14:49 (labels on the CPU, then three GPU tickets). No training; scoring only.
+Status: RUNNING again since 11-27 15:56:55 after the timestamp fix below (relaunch, WMI PID 53796; labels kept;
+ticket 001793 = Tiny pass 1, 116 users left). No training; scoring only.
 
 Question: how do the six release-candidate models (Big two-head (SM91s2), Big Instant-Only (SM99), Small two-head (SM118), Small Instant-Only (SM113), six-layer Tiny two-head and Instant-Only (SM130)) score on the 218 donated users (`data/donations-20261126-answer-time`, 39.9M reviews), against the 732 set? Label REF = `w8+s8hx8` (int8 weights, int8 card and note rows), the label of SM148's 732-set rows.
 
@@ -30,6 +31,11 @@ Question: how do the six release-candidate models (Big two-head (SM91s2), Big In
   Tiny two-head (SM130)); donor 1000155 (1.4M reviews) is OOM at cap 0.8, which the launcher's 0.92 pass handles.
 
 ## Running
+
+- **Relaunch 11-27 15:56:55** (WMI PID 53796): Tiny ticket 001793 started at once (116 of 218 users left: 106 not
+  reached + 4 OOM users and their rows from the first pass); donor 1000029 scored in it with the same values as the
+  check ticket 001792. ETA `SM178 DONE` about 17:15 to 17:45 on 11-27 (Tiny ~12 min left + Small ~25 + Big ~35, plus
+  0.92 passes for the 1M+ review donors). Everything below still applies.
 
 - Launcher `launch-sm178.sh`, started hidden via WMI at 11-27 14:49:55 (WMI PID 18956, outer bash). Steps: (1) labels, CPU, 2 processes, largest users first (peaks seen 2.2 + 1.7 GB), expected about 40 min (SM177's 20 users took 2 min 17 s for 2.2M reviews), then `work/sm178/run/labels-done`; (2) checks `gpu/smoke-ok` (present); (3) one queue ticket per size, order Tiny, Small, Big (2 models each, all 218 users), passes at cap 0.8 then 0.92 after a pass without progress -> `gpu/sm178-rows.jsonl`. Expected GPU time about 20 + 25 + 35 min (SM164's REF tickets scaled to 39.9M reviews; the 8 donors with 840k to 1.5M reviews may need the 0.92 pass or fail on memory).
 - ETA: labels done about 15:30, `SM178 DONE` about 16:30 to 17:00 on 11-27 (later if other tickets queue in between).
