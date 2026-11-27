@@ -5,6 +5,8 @@ and logged here for review. Details, evidence and how to undo each one: [DECISIO
 
 ## 2026-11-27
 
+- **You** - Fushi joins the data campaign as a fourth credited source; their first batch (3 donors, real data) is
+  included with their OK. Format accepted (fetch_fushi_batch.py).
 - **Agent** - GPU idle: started scoring the release models on all donor users (SM178), as recommended.
 - **Agent** - Small data scaling (SM176): at 4,000 users without a teacher, +0.21% vs the same-budget teacher model;
   Milestone 2 (5,000 training users) is enough for an MIT Small.
