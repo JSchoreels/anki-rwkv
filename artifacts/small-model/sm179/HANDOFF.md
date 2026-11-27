@@ -1,6 +1,6 @@
 # Session inputs (SM179): handoff
 
-Status: RUNNING since Fri 2026-11-27 18:30 (GPU, via the queue). Nothing to do until `SM179 DONE` or `SM179 STOP` appears in the log.
+Status: DONE 2026-11-27 22:45 (SM179 DONE). Read out in `RESULT.md`: verdict GO for the session inputs arm (instant head -0.065% [-0.073, -0.058], curve +0.001% [-0.002, +0.003]); the card-state arm is NO GO (curve -0.003%, instant -0.008%). Nothing left to do here; the main session decides the follow-up.
 
 ## Done
 
