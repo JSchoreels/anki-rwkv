@@ -2543,10 +2543,11 @@
     "Session inputs (SM179): "
    ],
    "what": "Session inputs (SM179): new causal inputs about the current study session (reviews in the last 10 and 60 minutes, time since the session started, position in the session, the session&rsquo;s recent Again rate), and possibly the card state the models ignore today, tested with a short fine-tune of the six-layer Tiny two-head (SM130) against a control",
-   "when": "Started 18:10 Fri 11-27 (at most about 4 GPU hours)",
+   "when": "Started 18:10 Fri 11-27; done 22:45: go for session inputs",
    "decides": "Whether session inputs lower LogLoss enough to add them (go: at least 0.05%, CI below 0, on either head)",
-   "state": "running",
-   "started_at": "2026-11-27T18:10+01:00"
+   "state": "done",
+   "started_at": "2026-11-27T18:10+01:00",
+   "ended_at": "2026-11-27T23:40+01:00"
   },
   {
    "id": "SM180",
@@ -3878,6 +3879,48 @@
   "s-w64kd-gate-ctx2048c-dec8-1ep/w8+s8"
  ],
  "results": [
+  {
+   "date": "11-27",
+   "kind": "gpu",
+   "id": "SM179",
+   "track": "small model",
+   "name": "Session inputs (SM179): six new inputs about the current study session (reviews in the last 10 and 60 minutes, time since the session started, position in the session, the session&rsquo;s recent Again rate, the gap since the previous review) and, separately, the card state the models ignore today; short fine-tune of the six-layer Tiny two-head (SM130) against the SM171 control",
+   "eval": "GPU, about 2,550 steps per arm from the release weights; 732 set (723 users), show-time inputs, paired user bootstrap 95%; new inputs enter through zero-initialised weights, so step 0 equals the release model; design committed before any run.",
+   "fork": "Nothing changed in the fork",
+   "takeaway": "<strong>Go for session inputs:</strong> they lower instant LogLoss by &minus;0.065% [&minus;0.073, &minus;0.058] after only a short fine-tune (curve unchanged); the card state helps far less (&minus;0.008% instant) and is not worth adding.",
+   "inputs": "show-time",
+   "started_at": "2026-11-27T18:10+01:00",
+   "ended_at": "2026-11-27T23:40+01:00",
+   "gpu_minutes": 66,
+   "cpu_minutes": 20,
+   "tickets": 6,
+   "detail": {
+    "verdict": "Go for session inputs under the pre-registered rule (at least 0.05%, CI below 0, on either head); no go for card state. Branch sm179, commit 8aab3a56 (RESULT.md); feature code on sm179-run.",
+    "table": {
+     "head": [
+      "Arm",
+      "Curve vs control [95% CI]",
+      "Instant vs control [95% CI]"
+     ],
+     "rows": [
+      [
+       "Session inputs (6 columns)",
+       "+0.001% [&minus;0.002, +0.003]",
+       "<strong>&minus;0.065%</strong> [&minus;0.073, &minus;0.058]"
+      ],
+      [
+       "Card state (4 one-hot columns)",
+       "&minus;0.003% [&minus;0.006, &minus;0.001]",
+       "&minus;0.008% [&minus;0.011, &minus;0.006]"
+      ]
+     ]
+    },
+    "notes": [
+     "The gain comes from a short fine-tune; training with the inputs from the start (next family) may give more.",
+     "All inputs are causal and computable in the fork from the review log; next: confirm on the 1,500 users and on Small."
+    ]
+   }
+  },
   {
    "date": "11-27",
    "kind": "gpu",

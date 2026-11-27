@@ -5,6 +5,8 @@ and logged here for review. Details, evidence and how to undo each one: [DECISIO
 
 ## 2026-11-27
 
+- **Agent** - Session inputs (SM179): go, -0.065% instant LogLoss on a short Tiny fine-tune; card state no go.
+  Next: confirm on 1,500 users and Small; candidate input for the next family.
 - **You** - Keep exploring features for LogLoss and model size while donors arrive (supersedes the idle-GPU note above).
 - **Agent** - Started session inputs (SM179, LogLoss) and 4-bit weights (SM180, size).
 - **You** - Keep the GPU idle until more donors arrive; then a first MIT Tiny run (Small 2,000-user rerun parked).
