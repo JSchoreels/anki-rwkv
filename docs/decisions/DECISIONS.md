@@ -5,6 +5,8 @@ and logged here for review. Details, evidence and how to undo each one: [DECISIO
 
 ## 2026-11-27
 
+- **You** - Keep exploring features for LogLoss and model size while donors arrive (supersedes the idle-GPU note above).
+- **Agent** - Started session inputs (SM179, LogLoss) and 4-bit weights (SM180, size).
 - **You** - Keep the GPU idle until more donors arrive; then a first MIT Tiny run (Small 2,000-user rerun parked).
 - **Agent** - Release models on donor data (SM178): donors about 20% / 27% harder (curve / instant), family ranking holds.
 - **Agent** - Donor data: reviews dated before 2006 (a wrong clock, a zeroed id) are dropped by the converter; they

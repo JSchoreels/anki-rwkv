@@ -2535,6 +2535,34 @@
    "ended_at": "2026-11-25T00:25+01:00"
   },
   {
+   "id": "SM179",
+   "track": "small model",
+   "kind": "gpu",
+   "minutes": 240,
+   "match": [
+    "Session inputs (SM179): "
+   ],
+   "what": "Session inputs (SM179): new causal inputs about the current study session (reviews in the last 10 and 60 minutes, time since the session started, position in the session, the session&rsquo;s recent Again rate), and possibly the card state the models ignore today, tested with a short fine-tune of the six-layer Tiny two-head (SM130) against a control",
+   "when": "Started 18:10 Fri 11-27 (at most about 4 GPU hours)",
+   "decides": "Whether session inputs lower LogLoss enough to add them (go: at least 0.05%, CI below 0, on either head)",
+   "state": "running",
+   "started_at": "2026-11-27T18:10+01:00"
+  },
+  {
+   "id": "SM180",
+   "track": "small model",
+   "kind": "gpu",
+   "minutes": 360,
+   "match": [
+    "4-bit weights (SM180): "
+   ],
+   "what": "4-bit weights (SM180): the six release models with their weights stored in 4 bits instead of 8 (per-channel or per-group scales), first without retraining, then a short quantization-aware fine-tune only for a size where that costs too much",
+   "when": "Started 18:10 Fri 11-27 (at most about 6 GPU hours)",
+   "decides": "Whether the model weights can be halved in size for free (rule: CI upper bound at most +0.15% per head vs 8-bit weights)",
+   "state": "running",
+   "started_at": "2026-11-27T18:10+01:00"
+  },
+  {
    "id": "SM178",
    "track": "small model",
    "kind": "gpu",
