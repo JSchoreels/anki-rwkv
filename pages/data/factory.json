@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-27T16:48:23+01:00",
- "updated": "2026-11-27 16:48",
- "material": "01ea0071c0b8afae",
- "summary": "idle, finished 001804",
+ "generated_at": "2026-11-27T17:40:14+01:00",
+ "updated": "2026-11-27 17:40",
+ "material": "638a02514d0391ad",
+ "summary": "idle",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring, show-time inputs for both heads (curve / instant)",
@@ -2759,14 +2759,11 @@
    "kind": "gpu",
    "minutes": 90,
    "what": "Today&rsquo;s models on donor data (SM178): the six release models scored on all 218 donated users (converted by SM177), against their scores on the 732 set, split by source (campaign, LMSherlock, Expertium); no training",
-   "when": "Started 14:40 Fri 11-27",
+   "when": "Started 14:40 Fri 11-27; first run crashed on a review dated 1970 (fixed in the converter); rerun done 16:48",
    "decides": "Nothing by itself: shows how different the donor population is before any MIT model is trained on it",
    "state": "done",
-   "started_at": "2026-11-27T14:50:08+01:00",
-   "ended": "16:48",
-   "exit": 0,
-   "started": "14:50",
-   "ended_at": "2026-11-27T16:48:02+01:00"
+   "started_at": "2026-11-27T14:40+01:00",
+   "ended_at": "2026-11-27T17:50+01:00"
   },
   {
    "id": "SM176",
@@ -3932,6 +3929,68 @@
   }
  ],
  "results": [
+  {
+   "date": "11-27",
+   "kind": "gpu",
+   "id": "SM178",
+   "track": "small model",
+   "name": "Today&rsquo;s models on donor data (SM178): the six release models scored on the donated users (converted by SM177), against their scores on the 732 set, split by source",
+   "eval": "GPU, int8 weights and states, show-time inputs, 196 of 218 donors (the 22 largest histories ran out of GPU memory); paired with the matching Big model for the size margins.",
+   "fork": "Nothing changed in the fork",
+   "takeaway": "<strong>Donors are harder to predict, but the family ranking holds:</strong> every model scores about 20% higher LogLoss on curve and 27% on instant on donors than on the 732 set; against Big, Small is only +0.04% / +0.06% and Tiny +0.36% / +0.44% there, smaller margins than on the 732 set.",
+   "inputs": "show-time",
+   "started_at": "2026-11-27T14:40+01:00",
+   "ended_at": "2026-11-27T17:50+01:00",
+   "gpu_minutes": 90,
+   "cpu_minutes": 60,
+   "tickets": 8,
+   "detail": {
+    "verdict": "Information only. Branch sm178, commit c95197cd (RESULT.md); converter fix in main a57b788f (reviews dated before 2006 are dropped).",
+    "table": {
+     "head": [
+      "Model",
+      "Donors, curve / instant",
+      "732 set, curve / instant"
+     ],
+     "rows": [
+      [
+       "Big two-head (SM91s2)",
+       "0.3618 / 0.3520",
+       "0.2997 / 0.2760"
+      ],
+      [
+       "Big Instant-Only (SM99)",
+       "&ndash; / 0.3517",
+       "&ndash; / 0.2757"
+      ],
+      [
+       "Small two-head (SM118)",
+       "0.3620 / 0.3522",
+       "0.3003 / 0.2764"
+      ],
+      [
+       "Small Instant-Only (SM113)",
+       "&ndash; / 0.3516",
+       "&ndash; / 0.2757"
+      ],
+      [
+       "six-layer Tiny two-head (SM130)",
+       "0.3631 / 0.3535",
+       "0.3017 / 0.2778"
+      ],
+      [
+       "six-layer Tiny Instant-Only (SM130)",
+       "&ndash; / 0.3529",
+       "&ndash; / 0.2773"
+      ]
+     ]
+    },
+    "notes": [
+     "By source (Big two-head, curve / instant): campaign 0.4006 / 0.3910, LMSherlock 0.3572 / 0.3468, Expertium 0.3340 / 0.3248; the size ordering is the same in each source.",
+     "The 22 largest donor histories ran out of GPU memory even at the 0.92 cap; the bounded-memory scorer (SM155) could cover them."
+    ]
+   }
+  },
   {
    "date": "11-27",
    "kind": "gpu",
