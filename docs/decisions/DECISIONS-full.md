@@ -13,6 +13,22 @@ bootstrap; "732 set" = the standard 732-user evaluation pool (722 to 723 rule us
 
 ---
 
+### D-1127-02 - Donor reviews before 2006 dropped; SM178 keeps its 218-donor snapshot (Agent)
+- **Decision:** `scripts/donations_to_dataset.py` drops answered reviews whose review id is before 2006-01-01 UTC
+  (Anki did not exist yet), after the inventory count check and before the dataset-builder rules. For the scoring of
+  the release models on donor data (SM178) the same rule is applied to the 11-26 snapshot itself
+  (`sm178_timefix.py` -> `data/donations-20261126-timefix`), not by a fresh conversion: the donation folders grew
+  to 284 collections / 227 donors since 11-26, which renumbers donors and would throw away the 106 users already scored.
+- **Why:** one donor has a single review with a zeroed id (1970): a 55-year interval, past the model's interval grid
+  (exp(21) s, about 42 years), so `interp` indexes off the grid and the GPU scorer hits a device-side assert
+  (ticket 001790, after 106 of 218 users). Another donor has 105 reviews from a clock set to May 2000.
+- **Evidence:** the snapshot rebuild without dropping equals the 11-26 build bit for bit on all 218 users (both layouts);
+  with dropping, the two donors equal a fresh conversion with the fixed converter bit for bit. Rows: 106 bad
+  reviews, plus 274 reviews of 74 cards whose only Learning start was in 2000 (builder rule: no Learning start =
+  card dropped); 39,891,421 -> 39,891,041 reviews. Fresh conversion (`data/donations-20261127`, 284 collections,
+  227 donors, 115 bad rows dropped): count check 0 mismatches.
+- **Undo:** remove `MIN_REVIEW_MS` filter; point SM178 back at `data/donations-20261126`. **Status:** done.
+
 ## 2026-11-24
 
 ### D-1125-08 - Family release rwkv-family-2026-11-28 published (You)

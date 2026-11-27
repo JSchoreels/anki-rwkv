@@ -50,6 +50,10 @@ FOLDERS = ("D:/Dropbox/Anki Data", "D:/Dropbox/Jarrett User Collections", "D:/Dr
 SOURCES = ("campaign", "LMSherlock", "Expertium")
 USER_BASE = 1_000_000          # donor users are 1,000,001+; the 10k dataset uses 1..10,000
 DEFAULT_ROLLOVER = 4           # Anki's own correction when a v2 collection has no rollover set
+# Reviews answered before 2006-01-01 UTC (review id = answer time in ms) cannot be real: Anki's first release is
+# from late 2006. They come from a wrong device clock (one collection has reviews dated 2000) or a zeroed id
+# (1970); their intervals reach decades and break the model's interval grid (exp(21) s, about 42 years).
+MIN_REVIEW_MS = 1_136_073_600_000
 REV_DT = np.dtype([("id", np.int64), ("cid", np.int64), ("ease", np.int8), ("time", np.int64), ("type", np.int8),
                    ("factor", np.int64)])
 CARD_DT = np.dtype([("id", np.int64), ("nid", np.int64), ("did", np.int64)])
@@ -348,7 +352,8 @@ def main():
 
         # pass 2 ---------------------------------------------------------------------------------------------
         meta, mismatches = [], []
-        totals = {"donors": len(donors), "users": 0, "skipped_no_reviews": 0, "skipped_no_learning_start": 0}
+        totals = {"donors": len(donors), "users": 0, "skipped_no_reviews": 0, "skipped_no_learning_start": 0,
+                  "reviews_dropped_bad_time": 0}
         next_user = USER_BASE + 1
         for gid, members in enumerate(donors):
             inv_unique, _ = inv.merge_group([idsets[i] for i in members], [catsets[i] for i in members])
@@ -366,6 +371,15 @@ def main():
             union = int(rev.size)
             if union != inv_unique:
                 mismatches.append({"donor_group": gid, "converter": union, "inventory": inv_unique})
+            bad_time = rev["id"] < MIN_REVIEW_MS
+            n_bad_time = int(bad_time.sum())
+            if n_bad_time:  # after the count check, which compares the full union with the inventory
+                rev = rev[~bad_time]
+                totals["reviews_dropped_bad_time"] += n_bad_time
+            del bad_time
+            if not rev.size:
+                totals["skipped_no_reviews"] += 1
+                continue
             day_cfg = next((days[i] for i in prio if days[i]), {})
             nda, day_info = next_day_at(day_cfg, int(rev["id"].max()))
             show = build_revlogs(rev, nda, show_time=True)
@@ -382,7 +396,8 @@ def main():
                 write_user(answer_out, user, build_revlogs(rev, nda, show_time=False), cards_df, decks_df)
             kept_cards = show["card_id"].unique()
             meta.append({"user_id": user, "source": source, "files": len(members),
-                         "reviews_unique": inv_unique, "reviews": int(len(show)),
+                         "reviews_unique": inv_unique, "reviews_dropped_bad_time": n_bad_time,
+                         "reviews": int(len(show)),
                          "cards_reviewed": int(kept_cards.size),
                          "reviews_deleted_cards": int((~show["card_id"].isin(cards["id"])).sum()),
                          "cards": int(cards.size), "decks": int(decks.size),

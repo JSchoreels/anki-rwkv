@@ -33,7 +33,15 @@
    - `review_time` = review id - duration (show time); `day_offset` = trunc((review_time / 1000 - next_day_at) / 86400), shifted so the user's first day is 0;
    - `elapsed_days` = `day_offset` difference and `elapsed_seconds` = trunc(review_time difference / 1000), clamped at 0 (seconds only), from the card's previous kept row in (card id, review id) order; -1 on state 0;
    - rows sorted by `review_time` (stable sort; ties keep the card/review order; the builder's sort has no tie-break).
-7. **Counts**: `reviews_unique` is the inventory's unique count (`donor_inventory.merge_group`); `reviews` is smaller because of the builder rules in 6 (cram rows, history before the last Learning start, cards never in Learning).
+7. **Impossible timestamps** (added 11-27): answered reviews whose review id (answer time) is before 2006-01-01 UTC
+   are dropped after the count check and before the builder rules (`MIN_REVIEW_MS`). Anki did not exist yet; the
+   rows come from a wrong device clock (one collection dated 2000) or a zeroed id (1970), and their intervals of
+   decades run off the model's interval grid (exp(21) s, about 42 years): the GPU scorer then fails with a
+   device-side assert. `sources.parquet` counts them per user (`reviews_dropped_bad_time`), `summary.json` in total.
+   A card whose only Learning start was such a row loses its other rows too (rule 6). In the 11-26 build: 106 rows
+   of 2 donors, plus 274 rows of 74 cards that lost their Learning start; `data/donations-20261126-timefix` is that
+   build with the rule applied in place (SM178's `sm178_timefix.py`, same users and ids).
+8. **Counts**: `reviews_unique` is the inventory's unique count (`donor_inventory.merge_group`); `reviews` is smaller because of the builder rules in 6 (cram rows, history before the last Learning start, cards never in Learning).
 
 ## Day boundary
 
