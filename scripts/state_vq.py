@@ -819,8 +819,13 @@ def training_layout(model):
 
 def install_training(model, value, device, wkv_chunk=1 << 20, shift_chunk=8192):
     """Route the card/note mixers of `model` through the QAT hooks (expertium/model/state_vq_hooks.py) with the
-    recipe's codecs on `device`. Returns the description written into the training result."""
+    recipe's codecs on `device`. Returns the description written into the training result.
+    SM180: recipe "weight-qat" ({"recipe": "weight-qat", "bits": 4, "group": 32}) installs the 4-bit weight QAT
+    (scripts/weight_qat.py, straight-through) instead; no mixer is touched and no codebook is read."""
     global LEARNED
+    if isinstance(value, dict) and value.get("recipe") == "weight-qat":
+        from scripts import weight_qat
+        return weight_qat.install(model, value, device)
     from expertium.model import state_vq_hooks as hooks
     spec = training_spec(value)
     books = Codebooks.load(spec["codebooks"])

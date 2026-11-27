@@ -24,6 +24,8 @@ with h, else float32), e.g. w8+s8h, w8+s8x8, w8+s4c8nhx8; on CUDA they run throu
 SM49 (expertium): +s4 with the same suffixes (int4 card and note rows), x4 = int4 shift vectors, g = one scale per head
 (16 rows) instead of per row (kernel flag HEAD_SCALE), e.g. w8+s4hx8, w8+s4hx4, w8+s4hgx4; per-stream form card spec + c,
 note spec + n (as in s4c8n), e.g. w8+s4hgx4c8hx8n = w8+s4hgx4 cards with SM47's w8+s4c8nhx8 notes.
+SM180 weight prefixes: w8 (int8 per row, the release weights.int8.bin), w4 / w4g32 (int4, one float32 scale
+per 32 input columns of a row), w4g16 (int4, groups of 16); always every 2-D .weight, the rest float32.
 On CPU the expertium models route their WKV recurrence through scripts/state_vq.py (before SM32, +s8 was silently
 ignored on the CPU path: RWKV7TimeMixer calls reference_rwkv7, not the patched RWKV7_WKV, for CPU tensors).
 Resumable JSONL, one row per (user, tag/variant).
@@ -369,7 +371,8 @@ class IntState(tuple):
 
 def parse_variant(name):
     weights, _, state = name.partition("+")
-    scheme = {"fp32": "fp32", "w8": "w8-pc", "w4": "w4-g32"}.get(weights)
+    # SM180: explicit 4-bit group sizes, w4g32 (= w4) and w4g16, every 2-D .weight (the int8 tensors of w8)
+    scheme = {"fp32": "fp32", "w8": "w8-pc", "w4": "w4-g32", "w4g32": "w4-g32", "w4g16": "w4-g16"}.get(weights)
     if state.startswith("vq") and scheme is not None:
         return scheme, state
     from scripts import state_lowrank   # SM147: +lr1 / +lr2 / +lr4 rank-r truncation, +lrsv float state + spectrum

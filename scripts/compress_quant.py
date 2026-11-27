@@ -31,6 +31,7 @@ WEIGHT_SCHEMES = {
     "w4-pc": (4, None),
     "w4-g64": (4, 64),
     "w4-g32": (4, 32),
+    "w4-g16": (4, 16),   # SM180: 4-bit weights screen (smaller groups)
     "w3-pc": (3, None),  # codes -3..3
     "w3-g32": (3, 32),
     "w2-g32": (2, 32),   # codes -1..1 (ternary, abs-mean scale, stored in 2 bits)
