@@ -1,0 +1,252 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="nav-label" content="data campaign">
+<meta name="nav-order" content="5">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Data Collection Campaign</title>
+<meta name="description" content="User data collection campaign: how many Anki review histories have been donated so far, how duplicates are removed, and how far we are from an evaluation set and from the size of the anki-revlogs-10k dataset.">
+<link rel="stylesheet" href="style.css">
+<style>
+  .lede { max-width: 78ch; }
+  .goal { padding: 12px 0; border-top: 1px solid var(--line); }
+  .goal:first-of-type { border-top: none; padding-top: 4px; }
+  .goal .l1 { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 12px; align-items: baseline; }
+  .goal .t { font-weight: 600; }
+  .goal .p { font-variant-numeric: tabular-nums; color: var(--accent); font-weight: 700; }
+  .meter { position: relative; height: 12px; border-radius: 99px; background: var(--line); overflow: hidden; margin: 8px 0 6px; }
+  .meter i { display: block; height: 100%; min-width: 3px; background: var(--accent); border-radius: 99px; }
+  .goal .sub { font-size: 14px; color: var(--muted); margin: 2px 0 0; font-variant-numeric: tabular-nums; }
+  .goal .sub b { color: var(--ink); font-weight: 600; }
+  .buckets { display: grid; grid-template-columns: max-content 1fr max-content; gap: 8px 12px; align-items: center; margin-top: 10px; font-variant-numeric: tabular-nums; }
+  .buckets .lab { font-size: 14px; color: var(--muted); }
+  .buckets .track { height: 18px; background: var(--grid); border-radius: 6px; overflow: hidden; }
+  .buckets .track i { display: block; height: 100%; background: var(--accent); border-radius: 6px; }
+  .buckets .n { font-weight: 600; min-width: 2ch; text-align: right; }
+  .facts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-top: 10px; }
+  .facts .card .v { font-size: clamp(1.2rem, 2.6vw, 1.6rem); }
+  .panel p { margin: 6px 0; }
+  .panel ol, .panel ul { margin: 8px 0 0; padding-left: 20px; }
+  .panel li { margin-bottom: 6px; }
+  .cards .card .v { white-space: nowrap; }
+  #sec-donate .btn { display: inline-block; padding: 10px 18px; font-weight: 700; text-decoration: none; background: var(--accent); color: #fff; border-radius: 8px; }
+  .donate-list { font-size: 15px; }
+  .buckets .track.stack { display: flex; }
+  .buckets .track.stack i { border-radius: 0; }
+  .buckets .track.stack i.s1 { background: var(--c-accepted); }
+  .buckets .track.stack i.s2 { background: var(--c-fastmode); }
+  .buckets .track.stack i.s3 { background: var(--c-stack_candidate); }
+  .src-legend { font-size: 14px; color: var(--muted); margin-top: 10px; }
+  .src-legend .sw { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin: 0 6px 0 0; vertical-align: -1px; background: var(--accent); }
+  .src-legend .sw.s1 { background: var(--c-accepted); margin-left: 14px; }
+  .src-legend .sw.s2 { background: var(--c-fastmode); margin-left: 14px; }
+  .src-legend .sw.s3 { background: var(--c-stack_candidate); margin-left: 14px; }
+  #sec-sources a { color: var(--accent); }
+  @media (max-width: 700px) { .facts { grid-template-columns: minmax(0, 1fr); } .cards .card .v { white-space: normal; } }
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <div class="top-row">
+      <div>
+        <p class="eyebrow"><a href="./">anki-rwkv</a> &middot; <a href="factory.html">factory overview</a> &middot; <a href="models.html">model architectures</a> &middot; <a href="campaign.html">R01 campaign</a> &middot; <a href="train.html">8k/2k run</a> &middot; data campaign</p>
+        <h1>User data collection campaign</h1>
+        <p class="lede">Donated Anki review histories, duplicates removed, against the 10k dataset. Totals only.</p>
+      </div>
+      <button id="theme" class="btn" type="button" aria-label="Toggle light and dark theme">Theme</button>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="cards" id="headline" aria-label="Headline numbers">
+    <div class="card"><div class="k">Donors</div><div class="v" id="c-donors">&ndash;</div><div class="s" id="c-donors-s"></div></div>
+    <div class="card"><div class="k">Unique reviews</div><div class="v" id="c-reviews">&ndash;</div><div class="s" id="c-reviews-s"></div></div>
+    <div class="card big"><div class="k">Of the 10k dataset&rsquo;s reviews</div><div class="v" id="c-pct">&ndash;</div><div class="s" id="c-pct-s"></div></div>
+    <div class="card"><div class="k">Of its users</div><div class="v" id="c-users">&ndash;</div><div class="s" id="c-users-s"></div></div>
+  </section>
+
+  <section class="panel" id="sec-donate">
+    <div class="panel-head"><h2>Donate your review history</h2></div>
+    <p><a class="btn" href="https://www.dropbox.com/request/hfrfyf6vnsapkxnfpobe" target="_blank" rel="noopener">Upload to the Dropbox file request</a></p>
+    <ul class="donate-list">
+      <li><b>What to upload:</b> your <code>collection.anki2</code> file, or a cleaner export from <i>File &rsaquo; Export</i> (a <code>.colpkg</code> of the whole collection). Exporting a single deck? Tick <i>Include scheduling information</i>, or it has no reviews.</li>
+      <li><b>Media:</b> not needed; untick <i>Include media</i> if you like.</li>
+      <li><b>Nickname:</b> without a Dropbox account you are asked for one. Your Discord name helps; to stay anonymous, reuse the same nickname for later uploads.</li>
+      <li><b>Changed your mind?</b> DM <b>@SoundJona</b> on Discord to have something removed.</li>
+    </ul>
+    <p class="muted">By uploading, you agree that your review history may be used to train models we publish under the MIT license; the files themselves are never shared. Only the totals on this page are published, and duplicates are detected automatically.</p>
+  </section>
+
+  <section class="panel" id="sec-goals">
+    <div class="panel-head"><h2>Milestones</h2></div>
+    <div id="goals"></div>
+    <p class="muted">Bars show the lower of users and reviews. *LogLoss relative to a model trained with today&rsquo;s recipe, measured by training the Tiny model from scratch without a teacher on matching numbers of users of the 10k dataset.</p>
+  </section>
+
+  <section class="panel" id="sec-history" hidden>
+    <div class="panel-head"><h2>Progress over time (unique reviews &middot; donors)</h2></div>
+    <div id="history"></div>
+  </section>
+
+  <section class="panel" id="sec-sources" hidden>
+    <div class="panel-head"><h2>By source</h2></div>
+    <div class="buckets" id="sources"></div>
+    <p class="src-legend"><span class="sw"></span>Donation campaign<span class="sw s1"></span>LMSherlock<span class="sw s2"></span>Expertium<span class="sw s3"></span>Fushi</p>
+    <p>Many collections were shared by <a href="https://www.reddit.com/user/LMSherlock/" target="_blank" rel="noopener">LMSherlock</a>, author of FSRS, and from <a href="https://github.com/Expertium" target="_blank" rel="noopener">Expertium</a>&rsquo;s button-usage survey, and opt-in donations from users of <a href="https://fushi.moe" target="_blank" rel="noopener">Fushi</a>. Thank you!</p>
+  </section>
+
+  <section class="panel" id="sec-subjects">
+    <div class="panel-head"><h2>By subject (reviews &middot; donors)</h2></div>
+    <div class="buckets" id="subjects"></div>
+  </section>
+
+  <section class="panel" id="sec-sizes">
+    <div class="panel-head"><h2>Donors by size (reviews)</h2></div>
+    <div class="buckets" id="buckets"></div>
+  </section>
+
+  <section class="cards facts" id="facts" aria-label="Received"></section>
+
+  <p class="muted" id="updated"></p>
+</main>
+
+<footer class="wrap foot">
+  Source: <a href="https://github.com/JSchoreels/anki-rwkv">github.com/JSchoreels/anki-rwkv</a> &middot; <code>scripts/publish_donations_page.py</code>
+</footer>
+<script src="common.js"></script>
+<script>
+(() => {
+  'use strict';
+  const $ = (id) => document.getElementById(id);
+  const fmt = (n) => Math.round(n).toLocaleString('en-US');
+  const pct = (x) => (x >= 10 ? x.toFixed(1) : x >= 1 ? x.toFixed(2) : x.toFixed(3).replace(/0$/, '')) + '%';
+  const mill = (n) => (n >= 1e9 ? (n / 1e9).toFixed(2) + ' billion' : n >= 1e6 ? (n / 1e6).toFixed(n >= 1e8 ? 1 : 2) + ' million' : n >= 1e3 ? Math.round(n / 1e3).toLocaleString('en-US') + 'k' : fmt(n));
+  const day = (s) => new Date(s + 'T00:00:00Z').toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' });
+  const BUCKET = { '1-9,999': 'fewer than 10,000', '10k-49,999': '10,000 to 49,999', '50k-199,999': '50,000 to 199,999', '200k-999,999': '200,000 to 999,999', '1M+': '1 million or more' };
+
+  function render(d) {
+    const a = d.donations, ds = d.dataset, g = d.goals;
+    const donors = a.donors_with_reviews, uniq = a.reviews_unique;
+    $('c-donors').textContent = fmt(donors);
+    $('c-donors-s').textContent = `avg ${mill(g.current_average_reviews_per_donor)} reviews`;
+    $('c-reviews').textContent = mill(uniq);
+    $('c-reviews-s').textContent = `${mill(a.reviews_raw_sum)} raw`;
+    $('c-pct').textContent = pct(g.pct_of_dataset_reviews);
+    $('c-pct-s').textContent = `of ${mill(ds.reviews)}`;
+    $('c-users').textContent = pct(g.pct_of_dataset_users);
+    $('c-users-s').textContent = `of ${fmt(ds.users)}`;
+
+    $('goals').replaceChildren(...g.goals.map((x) => {
+      const el = document.createElement('div');
+      el.className = 'goal';
+      const w = Math.max(0, Math.min(100, x.progress_pct));
+      const done = x.users_needed <= 0 && x.reviews_needed <= 0;
+      const split = x.train_users ? `${fmt(x.train_users)} train / ${fmt(x.test_users)} test` : `${fmt(x.test_users)} test users`;
+      const acc = x.train_users
+        ? (x.accuracy_estimate_pct != null ? `&asymp;${x.accuracy_estimate_pct}% of today&rsquo;s accuracy*` : 'accuracy estimate: measuring*')
+        : '';
+      el.innerHTML = `<div class="l1"><span class="t">${x.name || x.label}${x.provisional ? ' <span class="muted">(user count may change)</span>' : ''}</span><span class="p">${pct(x.progress_pct)}</span></div>`
+        + `<p class="sub">${x.unlocks || ''} &middot; ${split}${acc ? ` &middot; ${acc}` : ''}</p>`
+        + `<div class="meter" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${w.toFixed(2)}" aria-label="${x.name || x.label}"><i style="width:${w}%"></i></div>`
+        + (done
+          ? `<p class="sub">Reached.</p>`
+          : `<p class="sub">users ${fmt(donors)} / ${fmt(x.users_target)} (${pct(x.users_pct)}) &middot; reviews ${mill(Math.max(0, x.reviews_target - x.reviews_needed))} / ${mill(x.reviews_target)} (${pct(x.reviews_pct)})</p>`);
+      return el;
+    }));
+
+    const b = a.donors_by_reviews, max = Math.max(1, ...Object.values(b));
+    const box = $('buckets');
+    box.replaceChildren();
+    Object.entries(b).forEach(([k, n]) => {
+      const lab = document.createElement('span'); lab.className = 'lab'; lab.textContent = `${BUCKET[k] || k} reviews`;
+      const tr = document.createElement('span'); tr.className = 'track';
+      const bar = document.createElement('i'); bar.style.width = `${(100 * n) / max}%`; tr.append(bar);
+      const num = document.createElement('span'); num.className = 'n'; num.textContent = fmt(n);
+      box.append(lab, tr, num);
+    });
+    const rc = a.reviews_by_category || {}, dc = a.donors_by_category || {};
+    const subj = Object.entries(rc).filter(([, n]) => n > 0).sort((x, y) => y[1] - x[1]);
+    const smax = Math.max(1, ...subj.map(([, n]) => n));
+    const sbox = $('subjects');
+    sbox.replaceChildren();
+    subj.forEach(([k, n]) => {
+      const lab = document.createElement('span'); lab.className = 'lab'; lab.textContent = k === 'Deleted cards' ? 'Deleted cards (unknown)' : k;
+      const tr = document.createElement('span'); tr.className = 'track';
+      const bar = document.createElement('i'); bar.style.width = `${(100 * n) / smax}%`; tr.append(bar);
+      const num = document.createElement('span'); num.className = 'n';
+      num.textContent = `${mill(n)}${dc[k] ? ` · ${dc[k]}` : ''}`;
+      sbox.append(lab, tr, num);
+    });
+    $('sec-subjects').hidden = subj.length === 0;
+
+    // by source: one stacked bar each for users and reviews (campaign, then LMSherlock)
+    const SRC = ['campaign', 'LMSherlock', 'Expertium', 'Fushi'], SRC_NAME = { campaign: 'Donation campaign', LMSherlock: 'LMSherlock', Expertium: 'Expertium', Fushi: 'Fushi' };
+    const rs = a.reviews_by_source || {}, us = a.donors_by_source || {};
+    const srcbox = $('sources');
+    srcbox.replaceChildren();
+    [['Users', us, fmt], ['Reviews', rs, (n) => (n >= 1e5 ? (n / 1e6).toFixed(1) + 'M' : fmt(n))]].forEach(([k, m, f]) => {
+      const tot = SRC.reduce((t, s) => t + (m[s] || 0), 0);
+      const lab = document.createElement('span'); lab.className = 'lab'; lab.textContent = k;
+      const tr = document.createElement('span'); tr.className = 'track stack';
+      SRC.forEach((s, i) => {
+        const bar = document.createElement('i'); bar.className = `s${i}`;
+        bar.style.width = `${tot ? (100 * (m[s] || 0)) / tot : 0}%`;
+        bar.title = `${SRC_NAME[s]}: ${f(m[s] || 0)}`;
+        tr.append(bar);
+      });
+      const num = document.createElement('span'); num.className = 'n';
+      num.textContent = SRC.map((s) => f(m[s] || 0)).join(' + ');
+      srcbox.append(lab, tr, num);
+    });
+    $('sec-sources').hidden = !Object.keys(rs).length;
+
+    const fact = (k, v) => `<div class="card"><div class="k">${k}</div><div class="v">${v}</div></div>`;
+    $('facts').innerHTML = [
+      fact('Collections received', fmt(a.collections)),
+      fact('Duplicates removed', fmt(a.exact_duplicates)),
+      fact('Without review history', fmt(a.collections_without_review_history)),
+      fact('Reviews from', `${a.first_review.slice(0, 4)}&ndash;${a.last_review.slice(0, 4)}`),
+    ].join('');
+
+    const gen = (d.inventory_run || d.generated) ? new Date(d.inventory_run || d.generated) : null;
+    $('updated').textContent = gen ? `Updated ${gen.toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' })}.` : '';
+  }
+
+  const short = (n) => (n >= 1e6 ? (n / 1e6).toFixed(n >= 1e7 ? 0 : 1) + 'M' : n >= 1e3 ? Math.round(n / 1e3) + 'k' : String(Math.round(n)));
+  function renderHistory(h) {
+    if (!Array.isArray(h) || h.length < 2) return;
+    const W = 720, H = 200, L = 56, R = 16, T = 12, B = 28;
+    const ts = h.map((p) => new Date(p.t).getTime()), ys = h.map((p) => p.reviews);
+    const t0 = Math.min(...ts), t1 = Math.max(...ts), ymax = Math.max(...ys) * 1.1;
+    const x = (t) => L + ((t - t0) / Math.max(1, t1 - t0)) * (W - L - R);
+    const y = (v) => H - B - (v / ymax) * (H - T - B);
+    let path = '';
+    h.forEach((p, i) => {  // step line: totals hold until the next refresh
+      const px = x(ts[i]).toFixed(1), py = y(p.reviews).toFixed(1);
+      path += i === 0 ? `M${px},${py}` : `H${px}V${py}`;
+    });
+    const dots = h.map((p, i) => `<circle cx="${x(ts[i]).toFixed(1)}" cy="${y(p.reviews).toFixed(1)}" r="3.5" fill="var(--accent)"><title>${new Date(p.t).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' })}: ${mill(p.reviews)} reviews, ${p.donors} donors</title></circle>`).join('');
+    const last = h[h.length - 1];
+    const ticks = [0, 0.5, 1].map((f) => `<text x="${L - 8}" y="${(y(f * ymax / 1.1) + 4).toFixed(1)}" text-anchor="end" font-size="12" fill="var(--muted)">${short(f * ymax / 1.1)}</text>`).join('');
+    const dl = (t) => new Date(t).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    $('history').innerHTML = `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Unique donated reviews over time">`
+      + `<line x1="${L}" x2="${W - R}" y1="${H - B}" y2="${H - B}" stroke="var(--line)"/>${ticks}`
+      + `<path d="${path}" fill="none" stroke="var(--accent)" stroke-width="2.5"/>${dots}`
+      + `<text x="${L}" y="${H - 8}" font-size="12" fill="var(--muted)">${dl(t0)}</text>`
+      + `<text x="${W - R}" y="${H - 8}" font-size="12" fill="var(--muted)" text-anchor="end">${dl(t1)} &middot; ${mill(last.reviews)} &middot; ${last.donors} donors</text></svg>`;
+    $('sec-history').hidden = false;
+  }
+  fetch('data/donations-history.json', { cache: 'no-store' }).then((r) => (r.ok ? r.json() : [])).then(renderHistory).catch(() => {});
+
+  fetch('data/donations.json', { cache: 'no-store' })
+    .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
+    .then(render)
+    .catch(() => { $('updated').textContent = 'The donation numbers could not be loaded.'; });
+})();
+</script>
+<script src="nav.js" defer></script>
+</body>
+</html>

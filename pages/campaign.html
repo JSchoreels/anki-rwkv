@@ -2,6 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<meta name="nav-label" content="R01 campaign">
+<meta name="nav-order" content="3">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>R01 GPU Speedup Campaign</title>
 <meta name="description" content="Interactive record of the R01 campaign that sped up RWKV spaced-repetition model training on a single GPU, with exact bitwise parity.">
@@ -13,7 +15,7 @@
   <div class="wrap">
     <div class="top-row">
       <div>
-        <p class="eyebrow"><a href="./" style="color: inherit">anki-rwkv</a> &middot; R01 campaign &middot; <a href="models.html" style="color: inherit">model architectures</a> &middot; <a href="train.html" style="color: inherit">8k/2k training run</a></p>
+        <p class="eyebrow"><a href="./">anki-rwkv</a> &middot; <a href="factory.html">factory overview</a> &middot; <a href="models.html">model architectures</a> &middot; R01 campaign &middot; <a href="train.html">8k/2k run</a> &middot; <a href="docs/data-quality/">data quality</a></p>
         <h1>Making RWKV training <span id="h-speedup-title" class="accent">several times</span> faster, bit for bit</h1>
         <p class="lede">Every iteration tests one optimisation against the last accepted configuration. A change only counts if the trained weights stay <strong>bitwise identical</strong> and throughput really improves.</p>
       </div>
@@ -182,7 +184,7 @@
   <section class="panel prose">
     <h2>How to read this</h2>
     <ul>
-      <li><strong>Reviews/s</strong> is training throughput on a fixed cohort of 80 users (7,654,975 review presentations), including data loading, worker start-up, transfers and updates. Model: Expertium (light). The original Alex/default model was only measured in early iterations and is not plotted.</li>
+      <li><strong>Reviews/s</strong> is training throughput on a fixed cohort of 80 users (7,654,975 review presentations), including data loading, worker start-up, transfers and updates. Model: compact model (outside research). The original Alex/default model was only measured in early iterations and is not plotted.</li>
       <li><strong>Exact parity gate.</strong> A candidate must reproduce the accepted run&rsquo;s four loss values, every update, gradient norms and final weights bit for bit. Faster-but-different variants are kept separately (&ldquo;fastmode&rdquo;) and never become the reference.</li>
       <li><strong>Machine-state noise.</strong> Identical single runs differ by roughly 5&ndash;10% depending on GPU clocks, background load and Windows scheduling, so a single full run can go <em>down</em> even when a change helps. That is why the accepted line is not monotonic (for example, around 0072).</li>
       <li><strong>Replicated blocks.</strong> From iteration 0048 onward, candidates are measured in interleaved reference/candidate blocks. A block records the per-update gain; the campaign promotes only when the lower confidence bound is positive, marks a <em>stack candidate</em> when the mean is promising but not proven, <em>extends</em> with more blocks when undecided, and rejects otherwise.</li>
@@ -217,5 +219,6 @@
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1/dist/chartjs-plugin-annotation.min.js"></script>
 <script src="app.js"></script>
 <script src="pipeline.js"></script>
+<script src="nav.js" defer></script>
 </body>
 </html>

@@ -13,6 +13,17 @@
 - **Model choice:** use Sonnet at medium effort for mechanical steps (scoring, tables, runbooks, simple merges). Keep Opus for design work.
 - **Queue position:** detach jobs when first enqueued; re-registering a waiting ticket loses its queue position.
 
+**Priority re-assessment (human decision 2026-10-15):** a final result (a screen verdict, a finished run, a gate stop; not a mid-runbook ticket) can change what should come next, so the next steps are re-ranked before anything else is launched.
+- **Who:** once the result agent has committed its verdict, the main session starts a fresh agent on **Opus 5.5 at high effort**. This is design work, not result processing.
+- **Input:** the track's goal and backlog (e.g. `docs/SMALL_MODEL.md` "Priorities" and "Backlog"), the new result and the parked items the user holds.
+- **Output:**
+  1. updates the backlog rows the result touches (status, next step, items superseded or newly justified);
+  2. proposes a ranked top 3 in the track's "Priorities" section, each with a one-line reason against the goal, GPU cost and what it decides;
+  3. names any queued step that the result made pointless or mis-sized.
+- **It only proposes:** it enqueues nothing and changes no runbook. The main session relays the order, and the user approves or edits it before anything launches.
+
+**Flow audit (human decision 2026-10-14):** on every wake caused by a finished queue ticket, also run a small agent (Haiku, or Sonnet at low effort) through [docs/FLOW_AUDIT.md](docs/FLOW_AUDIT.md). It checks the job against the coordination flow: lane and `--timing`, quiet windows, `--expected-minutes`, handoff, pushed commits, docs. It appends one entry to `docs/FLOW_AUDIT_LOG.md`. It only reports, and the main session decides on fixes.
+
 # Optimization records
 
 `docs/GPU_OPTIMIZATIONS.md` is the persistent list of GPU and general training
@@ -69,6 +80,24 @@ optimization tracks, including ideas that have not been implemented or tested.
   and next steps. Keep these separate from GPU and training optimization tracks.
 - Preserve pending and completed investigations. Any claimed training benefit
   from filtering remains subject to the validation requirements below.
+
+## Evaluation tolerance (adopted 2026-10-14)
+
+- Training changes still need bit-identical parity (weights, updates, losses, held-out inputs) as before; this rule covers the evaluation path only.
+- An evaluation path may differ from `scripts/fast_evaluation.py --mode reference` only by floating-point reduction order, and only when all of these hold against the reference on the same checkpoint and users (`scripts/check_fast_evaluation.py compare`, field `tolerance.passes`):
+  - identical `validation_input_sha256` and identical label counts, benchmark sizes and coverage;
+  - every aggregate metric (Curve/Instant log loss label-weighted and user-averaged; benchmark LogLoss, RMSE(bins), AUC and RMSE for both heads, review-weighted and user-averaged) within |Δ| ≤ 1e-6;
+  - every per-user loss (the four R01 losses; benchmark LogLoss, RMSE(bins), RMSE) within |Δ| ≤ 1e-5;
+  - per-user AUC within |Δ| ≤ 1e-4: AUC is a rank statistic, so a 1e-7 change can swap near-tied predictions and move one user's six-decimal AUC by about 1e-5.
+- Every evaluation result records its mode (`fast`/`reference`, batch chunks) and the commit; `--mode reference` and the exact one-section mode (`--batch-chunks 8`) stay available, and any claim of bit-identical scores uses one of them.
+- A new evaluation path, a changed batch size, precision, kernel or model architecture is re-checked against the reference before its numbers are used. Evidence and thresholds: [EVAL_SPEED.md](docs/EVAL_SPEED.md#evaluation-tolerance-rule).
+
+### Discrete state codecs (adopted 2026-10-20)
+
+- For +vq variants (discrete codeword choices) the GPU-vs-CPU check uses a looser rule than the strict one above; the base float state and the int8/int4 (+s) variants keep the strict 1e-5 rule.
+- A +vq GPU check passes when, over the check users: no predictions are missing and per-user |Δ benchmark LogLoss| ≤ 3e-4 on both heads (curve/ahead and instant); and the review-weighted mean of the signed Δ is ≤ 1e-4 in absolute value on both heads. Both thresholds are flags of the check script (`--discrete-tol`, `--discrete-mean-tol`); the check JSON records the rule, the per-user Δ and the weighted mean.
+- Extended 2026-10-21 (user approved, SM49): the coarse int formats with int4 note rows or int4 shift vectors (`s4` notes, `x4`, per-head scales `g`, e.g. w8+s4hx8, w8+s4hx4, w8+s4hgx4, w8+s4hgx4c8hx8n) also use this rule. With 15 levels, float noise of one ulp (±2^-23) before the rounding already moves their CPU results by 1.6e-5 to 2.9e-5 (the older int variants: 1e-6 to 3e-6), so the strict 1e-5 rule cannot hold. Every other int variant keeps the strict rule.
+- Why: bitwise GPU = CPU is impossible for discrete codecs. The float state already differs by about 2e-6 between devices, and that flips any nearest-codeword pick whose squared-distance gap is about 1e-7 or less (near ties). The recurrence amplifies a flip, but the flips have random sign and average out over users. No first-flip instrumentation is required.
 
 ## Validation requires an explicit user request
 

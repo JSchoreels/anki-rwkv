@@ -26,7 +26,7 @@ R01 = ROOT / "artifacts" / "retraining" / "gpu-retrain-r01"
 OUT = ROOT / "pages" / "data" / "r01.json"
 
 MODEL_KEYS = {"expertium": "expertium", "baseline": "alex"}
-MODEL_LABELS = {"expertium": "Expertium (light)", "alex": "Alex (default)"}
+MODEL_LABELS = {"expertium": "Compact model (outside research)", "alex": "Alex (default)"}  # pages never name the outside researcher
 
 
 def num(text):
@@ -130,6 +130,17 @@ def read_result(it, mdir, track):
         return json.loads(p.read_text(encoding="utf-8"))
     except Exception:
         return None
+
+
+def unname(value):
+    """Page text says "compact-model" (outside research) instead of the researcher's name; keys such as "expertium" stay."""
+    if isinstance(value, str):
+        return re.sub(r"\bExpertium\b", "compact-model", value)
+    if isinstance(value, list):
+        return [unname(v) for v in value]
+    if isinstance(value, dict):
+        return {k: unname(v) for k, v in value.items()}
+    return value
 
 
 def main():
@@ -373,6 +384,7 @@ def main():
         "milestones": milestones,
     }
     OUT.parent.mkdir(parents=True, exist_ok=True)
+    data = unname(data)
     OUT.write_text(json.dumps(data, indent=1, ensure_ascii=False) + "\n", encoding="utf-8")
     print(f"wrote {OUT.relative_to(ROOT)}: {len(entries)} entries, {len(milestones)} milestones, "
           f"latest iteration {data['headline']['latest_iteration']}, "

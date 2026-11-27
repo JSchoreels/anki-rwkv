@@ -48,9 +48,9 @@ def main():
     d3 = ("/*\n" + (vendor / "D3-LICENSE.txt").read_text() + "\n*/\n" +
           (vendor / "d3-7.9.0.min.js").read_text()).replace("</script", "<\\/script")
     template = (ROOT / "scripts/review_relations_graph.html").read_text(encoding="utf-8")
-    template = template.replace('<p id="scope" class="muted"></p>',
-                                '<p id="scope" class="muted"></p>\n'
-                                '<p><a href="cluster-95.html">Why the large 95% cluster shares reviews</a></p>')
+    template = template.replace('<p id="scope" class="lede"></p>',
+                                '<p id="scope" class="lede"></p>\n'
+                                '        <p class="lede"><a href="cluster-95.html">Why the large 95% cluster shares reviews</a></p>')
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(template.replace("__REVIEW_RELATIONS_DATA__", encoded).replace("__D3_SOURCE__", d3), encoding="utf-8")
     print(f"Published {len(nodes):,} groups and {len(edges):,} relations: {args.output}")

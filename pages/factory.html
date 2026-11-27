@@ -1,0 +1,614 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="nav-label" content="factory overview">
+<meta name="nav-order" content="1">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Factory Overview</title>
+<meta name="description" content="Factory overview of the anki-rwkv work: the job running now, the planned timetable, the backlog, and every GPU and CPU result with absolute LogLoss and evaluation size.">
+<link rel="stylesheet" href="style.css">
+<style>
+  .sm-table th, .sm-table td { white-space: normal; vertical-align: top; }
+  .sm-table td.num { white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .sm-table td.when { white-space: nowrap; color: var(--muted); }
+  .sm-table td.when.note { white-space: normal; min-width: 11rem; max-width: 16rem; }
+  .sm-table .id { color: var(--muted); font-size: 12.5px; }
+  .sm-table .pct { color: var(--muted); font-size: 12.5px; }
+  .sm-table > tbody > tr.best > td { background: var(--accent-soft); }
+  .sm-table tr.brk td { color: var(--muted); font-style: italic; }
+  .sm-table > tbody > tr.res > td { border-bottom: none; padding-top: 14px; }
+  .sm-table > tbody > tr.tkrow > td { padding-top: 0; padding-bottom: 14px; border-bottom: 2px solid var(--muted); }
+  .sm-table > tbody > tr.alt > td { background: var(--grid); }
+  .sm-table > tbody > tr.best > td { background: var(--accent-soft); }
+  .secnav { position: sticky; top: 0; z-index: 20; background: var(--bg); border-bottom: 1px solid var(--line); }
+  .secnav .wrap { display: flex; flex-wrap: wrap; gap: 4px 6px; padding-top: 8px; padding-bottom: 8px; }
+  .secnav a { padding: 4px 10px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); text-decoration: none; font-size: 14px; white-space: nowrap; }
+  .secnav a:hover { border-color: var(--accent); }
+  .secnav a[aria-current="true"] { background: var(--accent); border-color: var(--accent); color: var(--bg); }
+  .secnav .n { opacity: .75; font-size: 12.5px; }
+  main section[id] { scroll-margin-top: 56px; }
+  @media (max-width: 760px) {
+    .secnav .wrap { flex-wrap: nowrap; overflow-x: auto; }
+    .rc table.tk-table th, .rc table.tk-table td { white-space: nowrap; }
+  }
+  .tk .verdict { font-weight: 600; margin: 0 0 4px; }
+  .tk ul { margin: 4px 0 0; padding-left: 18px; }
+  .tk li { margin: 2px 0; }
+  .tk-wrap { overflow-x: auto; margin: 4px 0; }
+  table.tk-table { width: auto; font-size: 13px; }
+  table.tk-table th { position: static; font-size: 12px; background: none; }
+  table.tk-table th, table.tk-table td { padding: 3px 14px 3px 0; white-space: normal; min-width: 64px; }
+  .table-wrap.free { max-height: none; }
+  .sm-table.fam td.size { font-weight: 700; font-size: 1.05rem; }
+  .sm-table.fam > tbody > tr.grp > td { border-top: 2px solid var(--muted); }
+  .sm-table.fam th.grp { text-align: center; border-bottom: 1px solid var(--line); }
+  .sm-table.fam .sep { border-left: 2px solid var(--line); }
+  .sm-table.fam td.m { white-space: nowrap; }
+  .sm-table.fam td.e { min-width: 6.5rem; }
+  .sm-table.fam td.v { white-space: nowrap; }
+  .sm-table.fam td.num b { font-weight: 600; }
+  .sm-table.fam .vs { white-space: nowrap; }
+  #sec-family .eta { color: var(--c-extend); font-weight: 600; font-size: 13px; }
+  .d { font-size: 12.5px; font-weight: 600; white-space: nowrap; }
+  .d.good { color: var(--c-accepted); }
+  .d.mid { color: var(--c-extend); }
+  .d.bad { color: var(--c-rejected); }
+  .d.flat, .d.ref { color: var(--muted); font-weight: 400; }
+  .tag.fam-done { border-color: var(--c-accepted); color: var(--c-accepted); }
+  .tag.fam-running { border-color: var(--c-extend); color: var(--c-extend); }
+  .tag.fam-queued { border-color: var(--accent); color: var(--accent); }
+  .tag { display: inline-block; border-radius: 999px; padding: 1px 9px; font-size: 12.5px; border: 1px solid var(--line); white-space: nowrap; }
+  .tag.running, .tag.gpu-train { border-color: var(--c-extend); color: var(--c-extend); }
+  .tag.next, .tag.gpu-score { border-color: var(--accent); color: var(--accent); }
+  .tag.idea, .tag.cpu { border-color: var(--c-screen); color: var(--c-screen); }
+  .tag.parked, .tag.gpu-speed { border-color: var(--c-stack_candidate); color: var(--c-stack_candidate); }
+  .tag.done, .tag.collection { border-color: var(--c-accepted); color: var(--c-accepted); }
+  .tag.dropped, .tag.break { border-color: var(--c-rejected); color: var(--c-rejected); }
+  .tag.trk { border-color: var(--line); color: var(--muted); font-size: 11.5px; padding: 0 7px; margin-left: 4px; }
+  .tag.ship { border-color: var(--c-accepted); color: var(--c-accepted); font-size: 11.5px; padding: 0 7px; margin-left: 4px; font-weight: 400; text-decoration: none; }
+  .tag.ship.pending { border-style: dashed; border-color: var(--muted); color: var(--muted); }
+  .lede { max-width: none; }
+  .good { color: var(--c-accepted); font-weight: 600; }
+  .filters { display: flex; flex-wrap: wrap; gap: 6px 8px; margin: 8px 0 4px; }
+  .filters .chip[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); }
+  .now { display: grid; gap: 10px; }
+  .now .card .v { font-size: 1.15rem; white-space: normal; }
+  .bar { height: 8px; border-radius: 99px; background: var(--line); overflow: hidden; margin: 8px 0 4px; }
+  .bar i { display: block; height: 100%; background: var(--accent); }
+  .cards .card .v { font-size: clamp(1.15rem, 2.4vw, 1.6rem); white-space: nowrap; }
+  .cardlist { display: none; }
+  .rc { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; margin-top: 8px; }
+  .rc.best { background: var(--accent-soft); }
+  .rc.brk { color: var(--muted); font-style: italic; }
+  .rc .l1 { display: flex; flex-wrap: wrap; gap: 4px 8px; align-items: baseline; font-variant-numeric: tabular-nums; }
+  .rc .t { font-weight: 600; }
+  .rc .tx { margin: 4px 0; overflow-wrap: anywhere; }
+  .rc .tg { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+  .rc .sub { color: var(--muted); font-size: 13px; overflow-wrap: anywhere; }
+  .rc .ll { display: flex; flex-wrap: wrap; gap: 2px 16px; margin: 4px 0; font-variant-numeric: tabular-nums; }
+  .earlier { color: var(--muted); font-size: 13px; margin: 6px 0 0; }
+  .cards.hl { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .card .s a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
+  .card .k a { color: var(--accent); }
+  .cmp { overflow-x: auto; margin-top: 6px; }
+  .cmp .foot { color: var(--muted); font-size: 12px; margin-top: 4px; }
+  .cmp table, .mini { font-size: 13px; }
+  .cmp th, .cmp td { padding: 4px 8px; }
+  .cmp th:first-child, .cmp td:first-child { padding-left: 0; }
+  .wrap { max-width: 1600px; }  /* this page is table-heavy: wider than the site's 1120px */
+  .cmp td:first-child { white-space: normal; min-width: 20rem; }
+  .card.wide { grid-column: 1 / -1; }
+  .cmp th.n, .cmp td.n, .mini th.n, .mini td.n { text-align: right; font-variant-numeric: tabular-nums; }
+  .cmp td.n.good { font-weight: 600; }
+  /* gap to the big model: <= 0.25% green, 0.25-0.50% yellow, > 0.50% orange-red */
+  .cmp td.n.mid { color: var(--c-extend); font-weight: 600; }
+  .cmp td.n.far { color: var(--c-rejected); font-weight: 600; }
+  .cmp tr.ref td { color: var(--muted); }
+  .cmp tr.top td:first-child { font-weight: 600; }
+  .cmp td { vertical-align: top; }
+  .cmp tbody tr + tr td { border-top: 1px solid var(--line); }
+  .cmp .vnote { color: var(--muted); font-size: 12px; font-weight: 400; margin-top: 2px; line-height: 1.35; }
+  .cmp .ev { color: var(--muted); }
+  .now h3 { margin: 10px 0 0; font-size: 14px; color: var(--muted); font-weight: 600; }
+  .now .table-wrap { margin-top: 4px; max-height: none; }
+  .mini th, .mini td { padding: 5px 8px; vertical-align: top; }
+  .mini td.d { white-space: normal; min-width: 18rem; overflow-wrap: anywhere; }
+  .mini td.w { white-space: nowrap; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .mini tr.fail td { background: color-mix(in srgb, var(--c-rejected) 9%, transparent); }
+  .tag.ok { border-color: var(--c-accepted); color: var(--c-accepted); }
+  .tag.fail { border-color: var(--c-rejected); color: var(--c-rejected); font-weight: 600; }
+  .tag.leak { border-color: var(--c-rejected); color: var(--c-rejected); font-size: 11.5px; padding: 0 7px; margin-left: 4px; }
+  .cmp tr.leak td { opacity: .72; }
+  .fld { margin-top: 6px; font-size: 13.5px; }
+  .fld.what { font-size: 1.05rem; font-weight: 600; }
+  .fld b { color: var(--muted); font-weight: 600; margin-right: 4px; }
+  .fld.job { color: var(--muted); font-size: 12.5px; overflow-wrap: anywhere; }
+  @media (max-width: 640px) {
+    .tablewrap-sm { display: none; }
+    .mini td.d { min-width: 13rem; }
+    .cardlist { display: block; }
+    .panel { padding: 12px; }
+    .cards .card .v { white-space: normal; }
+    .top-row { flex-wrap: wrap; }
+    code { overflow-wrap: anywhere; }
+    h1 { font-size: 1.35rem; }
+  }
+  @media (max-width: 860px) { .cards { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 700px) { .cards.hl { grid-template-columns: minmax(0, 1fr); } }
+  @media (max-width: 420px) { .cards { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <div class="top-row">
+      <div>
+        <p class="eyebrow"><a href="./">anki-rwkv</a> &middot; factory overview &middot; <a href="models.html">model architectures</a> &middot; <a href="campaign.html">R01 campaign</a> &middot; <a href="train.html">8k/2k run</a> &middot; <a href="donations.html">data campaign</a> &middot; <a href="docs/data-quality/">data quality</a></p>
+        <h1>Factory overview: what runs, what is planned, what is done</h1>
+        <p class="lede">The whole anki-rwkv work in one place. The page updates itself from the job queue and the scoring files; takeaways and the backlog are edited by hand. Today it holds one track, the <b>small model</b>: a 331,511-parameter student (64 channels, distilled from the <b>big model</b>, the fork&rsquo;s 2,762,884-parameter RWKV) trained on 5,000 dataset users and scored on users it never saw, full history, both models with int8 weights and int8 state. LogLoss is lower-is-better; the % is the gap to the big model on the same reviews (positive = student worse). Target: &le; +1.0% on both heads over the 464 held-out users.</p>
+        <p class="hint"><b>Data campaign:</b> <a href="donations.html">how many review histories have been donated so far</a>, after duplicates are removed, and how far they are from an evaluation set and from the size of the 10k dataset<span id="don-stat"></span>.</p>
+      </div>
+      <button id="theme" class="btn" type="button" aria-label="Toggle light and dark theme">Theme</button>
+    </div>
+  </div>
+</header>
+
+<nav class="secnav" aria-label="Sections"><div class="wrap">
+  <a href="#headline">Top</a><a href="#sec-family">RWKV family</a><a href="#sec-now">1. Running now <span class="n" id="n-now"></span></a><a href="#sec-plan">2. Planned <span class="n" id="n-plan"></span></a><a href="#sec-backlog">3. Backlog <span class="n" id="n-backlog"></span></a><a href="#sec-results">4. Results <span class="n" id="n-results"></span></a>
+</div></nav>
+
+<main class="wrap">
+  <section class="cards hl" id="headline" aria-label="Headline"></section>
+
+  <section class="panel" id="sec-family">
+    <div class="panel-head"><h2>The RWKV family</h2><p class="hint" id="family-eval"></p></div>
+    <div class="table-wrap free tablewrap-sm"><table class="sm-table fam" id="family"></table></div>
+    <div class="cardlist" id="family-cards"></div>
+    <p class="hint" id="family-note"></p>
+    <div id="gen-wrap" hidden>
+      <h3 id="gen-title"></h3><p class="hint" id="gen-eval"></p>
+      <div class="table-wrap free tablewrap-sm"><table class="sm-table fam" id="family-gen"></table></div>
+      <div class="cardlist" id="gen-cards"></div>
+      <p class="hint" id="gen-note"></p>
+    </div>
+  </section>
+
+  <section class="panel" id="sec-now">
+    <div class="panel-head"><h2>1. Running now</h2><p class="hint" id="now-asof"></p></div>
+    <div class="now" id="now"></div>
+  </section>
+
+  <section class="panel" id="sec-plan">
+    <div class="panel-head">
+      <h2>2. Planned</h2>
+      <p class="hint">Times marked ~ are estimates, laid out in your browser from the running job and each job&rsquo;s expected minutes. A GPU job starts only if it also ends before the break starts; otherwise it waits until the break ends.</p>
+    </div>
+    <div class="table-wrap free tablewrap-sm"><table class="sm-table" id="plan"></table></div>
+    <div class="cardlist" id="plan-cards"></div>
+  </section>
+
+  <section class="panel" id="sec-backlog">
+    <div class="panel-head">
+      <h2>3. Backlog</h2>
+      <p class="hint">Ideas and follow-ups with the reason they are there. Pointers from outside research are marked; we keep our own training setup.</p>
+    </div>
+    <div class="filters" id="filters" role="group" aria-label="Filter by status"></div>
+    <div class="table-wrap free tablewrap-sm"><table class="sm-table" id="backlog"></table></div>
+    <div class="cardlist" id="backlog-cards"></div>
+  </section>
+
+  <section class="panel" id="sec-results">
+    <div class="panel-head">
+      <h2>4. Results</h2>
+      <p class="hint">Newest first, GPU and CPU work together. Each row gives the absolute LogLoss (curve / instant), the gap to the big model on the same reviews, and the evaluation size. &ldquo;Decay&rdquo; = the final pass with the learning rate brought to zero; &ldquo;window&rdquo; = consecutive reviews of one user per training sample.</p>
+    </div>
+    <div class="filters" id="kinds" role="group" aria-label="Filter by kind"></div>
+    <div class="table-wrap free tablewrap-sm"><table class="sm-table" id="results"></table></div>
+    <div class="cardlist" id="results-cards"></div>
+  </section>
+
+  <p class="muted" id="updated"></p>
+</main>
+
+<script src="common.js"></script>
+<script>
+(() => {
+  'use strict';
+  const KIND = { 'gpu-train': 'GPU training', 'gpu-score': 'GPU scoring', 'gpu-speed': 'GPU speed', cpu: 'CPU analysis', collection: 'own collection', break: 'break', next: 'next' };
+  const tag = (k) => `<span class="tag ${k}">${KIND[k] || k}</span>`;
+  const trk = (t) => (t ? ` <span class="tag trk">${t}</span>` : '');
+  const name = (n, id, t) => `${n}${id ? ` <span class="id">(${id})</span>` : ''}${trk(t)}`;
+  const $ = (id) => document.getElementById(id);
+  const T = (id, head, rows) => {
+    $(id).innerHTML = `<thead><tr>${head.map((h) => `<th>${h}</th>`).join('')}</tr></thead><tbody>${rows.join('')}</tbody>`;
+  };
+  const chips = (elId, items, all, key, onPick) => {
+    const f = $(elId);
+    ['all', ...items].forEach((k) => {
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'chip'; b.textContent = k === 'all' ? `all (${all.length})` : `${KIND[k] || k} (${all.filter((r) => r[key] === k).length})`;
+      b.setAttribute('aria-pressed', String(k === 'all'));
+      b.addEventListener('click', () => { f.querySelectorAll('.chip').forEach((c) => c.setAttribute('aria-pressed', 'false')); b.setAttribute('aria-pressed', 'true'); onPick(k); });
+      f.appendChild(b);
+    });
+  };
+  const none = (v) => v === null || v === undefined;
+  const ll = (v, p) => (none(v) && none(p)) ? '&ndash;'
+    : `${none(v) ? '' : v.toFixed(v < 0.4 ? 5 : 4)}${none(p) ? '' : ` <span class="pct${p <= 1.0 ? ' good' : ''}">${p > 0 ? '+' : ''}${p.toFixed(2)}%</span>`}`;
+
+
+  // Headline comparison: rows {variant, note, curve, instant, curve_pct, instant_pct, eval, ref} (variant = short name, note = details; ships = the Anki fork build that ships it, ships_href its release, ships_pending = only on fork main); the `ref` row is the big model.
+  // `quant` per row: one shared value becomes a footnote under the table, mixed values get a Quant. column.
+  // Missing gaps are computed against the ref row (positive = worse than the big model).
+  const QUANT = { 'w8+s8': '8-bit weights and 8-bit card/note state (w8+s8). The app runs the big model with full-precision weights and 8-bit state; 8-bit weights change its LogLoss by &le; 0.01%',
+    'fp32': 'none, full precision (fp32)' };
+  const cmpTable = (all) => {
+    // reference first, then leak-free rows, then rows trained on the deleted-card leak inputs (flagged)
+    const rows = [...all.filter((r) => r.ref), ...all.filter((r) => !r.ref && !r.leak), ...all.filter((r) => !r.ref && r.leak)];
+    const ref = rows.find((r) => r.ref) || {};
+    const leaky = rows.some((r) => r.leak);
+    const gap = (v, p, f) => (!none(p) ? p : (none(v) || none(f) ? null : (v / f - 1) * 100));
+    const num = (v) => (none(v) ? '&ndash;' : v.toFixed(v < 0.4 ? 5 : 4));
+    const pc = (p, isRef) => (isRef ? '<td class="n">&ndash;</td>' : none(p) ? '<td class="n">&ndash;</td>'
+      : `<td class="n ${p <= 0.25 ? 'good' : p <= 0.5 ? 'mid' : 'far'}">${p > 0 ? '+' : ''}${p.toFixed(2)}%</td>`);
+    const dated = rows.some((r) => r.date);  // date column only when a row carries one
+    const quants = [...new Set(rows.map((r) => r.quant || ''))];
+    const qcol = quants.length > 1;
+    const trs = rows.map((r, i) => `<tr class="${r.ref ? 'ref' : i === rows.findIndex((x) => !x.ref) ? 'top' : r.leak ? 'leak' : ''}"><td>${r.variant}${r.leak ? ' <span class="tag leak">leak inputs</span>' : ''}${r.ships ? (r.ships_href ? ` <a class="tag ship${r.ships_pending ? ' pending' : ''}" href="${r.ships_href}">${r.ships}</a>` : ` <span class="tag ship${r.ships_pending ? ' pending' : ''}">${r.ships}</span>`) : ''}${r.note ? `<div class="vnote">${r.note}</div>` : ''}</td>`
+      + `<td class="n">${num(r.curve)}</td><td class="n">${num(r.instant)}</td>`
+      + pc(gap(r.curve, r.curve_pct, ref.curve), r.ref) + pc(gap(r.instant, r.instant_pct, ref.instant), r.ref)
+      + (qcol ? `<td class="n ev">${QUANT[r.quant] ? r.quant : (r.quant || '&ndash;')}</td>` : '')
+      + `<td class="n ev">${r.eval || ''}</td>` + (dated ? `<td class="n ev">${r.date || ''}</td>` : '') + '</tr>').join('');
+    return `<div class="cmp"><table><thead><tr><th>Variant</th><th class="n">Curve</th><th class="n">Instant</th>`
+      + `<th class="n">&Delta; curve</th><th class="n">&Delta; instant</th>` + (qcol ? '<th class="n">Quant.</th>' : '')
+      + '<th class="n">Eval</th>' + (dated ? '<th class="n">Date</th>' : '') + `</tr></thead><tbody>${trs}</tbody></table>`
+      + (!qcol && quants[0] ? `<div class="foot">All rows quantized: ${QUANT[quants[0]] || quants[0]}.</div>` : '')
+      + (leaky ? '<div class="foot"><span class="tag leak">leak inputs</span> trained on inputs that include deleted cards (future information a deployed model never has); listed last, not a fair comparison.</div>' : '') + '</div>';
+  };
+  const exitTag = (x) => (x === 0 ? '<span class="tag ok">ok</span>' : none(x) ? '<span class="tag">?</span>'
+    : `<span class="tag fail">${x === 143 ? 'stopped' : 'failed'}, exit ${x}</span>`);
+  const tid = (r) => `${r.id ? `${r.id} ` : ''}<span class="id">${(r.ticket || '').slice(0, 6)}</span>`;
+
+  // ---- live timetable: laid out here, at page load, from the generated states and the current time
+  const pad = (n) => String(n).padStart(2, '0');
+  const hm = (d) => `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  const sameDay = (a, b) => a.toDateString() === b.toDateString();
+  const dayWord = (d, ref) => {
+    if (sameDay(d, ref)) return '';
+    const next = new Date(ref); next.setDate(next.getDate() + 1);
+    return sameDay(d, next) ? 'tomorrow ' : `${d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })} `;
+  };
+  const at = (d, ref, est) => `${dayWord(d, ref)}${est ? '~' : ''}${hm(d)}`;
+  const STATE = {
+    running: () => '<span class="tag running">running</span>',
+    waiting: () => '<span class="tag next">queued</span>',
+    done: (r) => `<span class="tag done">${r.exit ? 'failed, exit ' + r.exit : 'done'}</span>`,
+    partial: () => '<span class="tag idea">partly done</span>',
+    planned: () => '<span class="tag idea">planned</span>',
+    hold: () => '<span class="tag parked">on hold</span>',
+    dropped: () => '<span class="tag dropped">dropped</span>',
+  };
+
+  // Break config {start:"22:00", end:"02:00", until:"2026-10-18T02:00", label}: a daily break, the last one ending at
+  // `until`. No GPU job starts unless it also ends before the break starts; otherwise it starts when the break ends.
+  // Returns the first break ending after `t` (t may be inside it), or null past `until` (drop the key to remove it).
+  function breakWindow(cfg, t) {
+    if (!cfg || !cfg.until) return null;
+    const until = new Date(cfg.until);
+    if (isNaN(until) || until <= t) return null;
+    const [sh, sm] = cfg.start.split(':').map(Number); const [eh, em] = cfg.end.split(':').map(Number);
+    const len = (((eh * 60 + em) - (sh * 60 + sm)) + 1440) % 1440 || 1440;
+    let end = new Date(t); end.setHours(eh, em, 0, 0);
+    if (end <= t) end = new Date(end.getTime() + 86400000);
+    if (end > until) return null;
+    return { start: new Date(end.getTime() - len * 60000), end, label: cfg.label || 'Break: no GPU work', text: `${cfg.start} &ndash; ${cfg.end}` };
+  }
+
+  function layout(D, nowD) {
+    let brk = null;
+    const done = [], running = [], pending = [], fixed = [];
+    (D.plan || []).forEach((r) => {
+      if (r.state === 'done' && r.ended_at) done.push(Object.assign({}, r, { s: r.started_at ? new Date(r.started_at) : null, e: new Date(r.ended_at) }));
+      else if (r.state === 'running' && r.started_at) {
+        let e = r.ends_at ? new Date(r.ends_at) : null;
+        if (e && e < nowD) e = new Date(nowD.getTime() + 5 * 60000); // overrun: assume a few more minutes
+        running.push(Object.assign({}, r, { s: new Date(r.started_at), e }));
+      } else if (r.state === 'hold' || r.state === 'dropped' || (r.when && !r.minutes)) fixed.push(r);
+      else pending.push(r);
+    });
+    done.sort((a, b) => a.e - b.e);
+    let cursor = new Date(Math.max(nowD.getTime(), ...running.map((r) => (r.e ? r.e.getTime() : 0))));
+    const laid = []; let breakAt = -1;
+    pending.forEach((r) => {
+      const m = r.minutes || 0;
+      let s = new Date(cursor);
+      const b = breakWindow(D.gpu_break, s);
+      if (b && (s >= b.start || s.getTime() + m * 60000 > b.start.getTime())) {
+        s = new Date(b.end);
+        if (breakAt < 0) { breakAt = laid.length; brk = b; }
+      }
+      const e = new Date(s.getTime() + m * 60000);
+      laid.push(Object.assign({}, r, { s, e }));
+      cursor = e;
+    });
+    return { done, running, laid, fixed, brk, breakAt };
+  }
+
+  function whenText(r, nowD) {
+    if (r.state === 'done') return `${r.s ? at(r.s, nowD, false) + ' &ndash; ' : 'ended '}${hm(r.e)}`;
+    if (r.state === 'running') return `since ${at(r.s, nowD, false)}${r.e ? `, ends ${at(r.e, nowD, true)}` : ''}`;
+    if (r.state === 'hold' || r.state === 'dropped' || (r.when && !r.minutes)) return r.when || '';
+    return `${at(r.s, nowD, true)} &ndash; ${sameDay(r.s, r.e) ? '' : dayWord(r.e, nowD)}~${hm(r.e)}`;
+  }
+
+  function drawPlan(D) {
+    const nowD = new Date();
+    const L = layout(D, nowD);
+    const older = L.done.filter((r) => nowD - r.e > 6 * 3600000);
+    const items = [];
+    if (older.length) { items.push({ earlier: older }); older.forEach((r) => items.push({ r, old: true })); }
+    L.done.filter((r) => nowD - r.e <= 6 * 3600000).concat(L.running).forEach((r) => items.push({ r }));
+    L.laid.forEach((r, i) => { if (i === L.breakAt) items.push({ brk: L.brk }); items.push({ r }); });
+    L.fixed.forEach((r) => items.push({ r }));
+    const trs = [], cs = [];
+    items.forEach((it) => {
+      if (it.earlier) {
+        const btn = `<button type="button" class="chip" data-old aria-expanded="false">Done earlier (${it.earlier.length}): show</button>`;
+        trs.push(`<tr class="brk"><td colspan="5">${btn}</td></tr>`);
+        cs.push(`<p class="earlier">${btn}</p>`);
+      } else if (it.brk) {
+        const b = it.brk;
+        trs.push(`<tr class="brk"><td class="when">${b.text}</td><td></td><td>${tag('break')}</td><td>${b.label}</td><td></td></tr>`);
+        cs.push(`<div class="rc brk"><div class="l1"><span class="t">${b.text}</span>${tag('break')}</div><div class="tx">${b.label}</div></div>`);
+      } else {
+        const r = it.r, when = whenText(r, nowD), st = (STATE[r.state] || (() => ''))(r);
+        const old = it.old ? ' class="old" hidden' : '';
+        trs.push(`<tr${old}><td class="when${when.length > 32 ? ' note' : ''}">${when}</td><td>${st}</td><td>${tag(r.kind)}</td><td>${name(r.what, r.id, r.track)}</td><td>${r.decides || ''}</td></tr>`);
+        cs.push(`<div class="rc${it.old ? ' old' : ''}"${it.old ? ' hidden' : ''}><div class="l1"><span class="t">${when}</span>${st}</div><div class="tx">${name(r.what, r.id, '')}</div>`
+          + (r.decides ? `<div class="sub">${r.decides}</div>` : '') + `<div class="tg">${tag(r.kind)}${trk(r.track)}</div></div>`);
+      }
+    });
+    T('plan', ['When', 'Status', 'Kind', 'What', 'Decides'], trs);
+    $('plan-cards').innerHTML = cs.join('');
+    document.querySelectorAll('[data-old]').forEach((b) => b.addEventListener('click', () => {
+      const open = b.getAttribute('aria-expanded') !== 'true';
+      document.querySelectorAll('#plan .old, #plan-cards .old').forEach((x) => { x.hidden = !open; });
+      document.querySelectorAll('[data-old]').forEach((x) => { x.setAttribute('aria-expanded', String(open)); x.textContent = x.textContent.replace(/: (show|hide)$/, open ? ': hide' : ': show'); });
+    }));
+  }
+
+  // One small SVG line chart per head (curve, instant) from D.charts: points [epoch, curve, instant], a dashed
+  // reference line (ref) and optional result markers (marks).
+  function epochChart(c) {
+    const W = 320, H = 190, L = 46, R = 10, T = 10, B = 30;
+    const panel = (head, idx) => {
+      const ys = c.points.map((p) => p[idx]).concat(c.ref ? [c.ref[head]] : [], (c.marks || []).map((m) => m[head]));
+      let lo = Math.min(...ys), hi = Math.max(...ys); const pad = (hi - lo) * 0.08 || 0.001; lo -= pad; hi += pad;
+      const n = Math.max(c.epochs || 0, ...c.points.map((p) => p[0]));
+      const x = (e) => L + (W - L - R) * (e - 1) / Math.max(1, n - 1), y = (v) => T + (H - T - B) * (hi - v) / (hi - lo);
+      const ticks = [0, 1, 2, 3, 4].map((i) => lo + (hi - lo) * i / 4);
+      let s = ticks.map((v) => `<line x1="${L}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}" stroke="var(--grid)"/><text x="${L - 6}" y="${y(v) + 4}" text-anchor="end" font-size="10" fill="var(--muted)">${v.toFixed(3)}</text>`).join('');
+      for (let e = 1; e <= n; e++) if (n <= 12 || e === 1 || e % 4 === 0) s += `<text x="${x(e)}" y="${H - B + 14}" text-anchor="middle" font-size="10" fill="var(--muted)">${e}</text>`;
+      s += `<text x="${(L + W - R) / 2}" y="${H - 2}" text-anchor="middle" font-size="10" fill="var(--muted)">epoch</text>`;
+      if (c.ref) s += `<line x1="${L}" x2="${W - R}" y1="${y(c.ref[head])}" y2="${y(c.ref[head])}" stroke="var(--muted)" stroke-dasharray="5 4"><title>${c.ref.label}: ${c.ref[head].toFixed(5)}</title></line>`;
+      s += `<polyline fill="none" stroke="var(--accent)" stroke-width="2" stroke-linejoin="round" points="${c.points.map((p) => `${x(p[0])},${y(p[idx])}`).join(' ')}"/>`;
+      s += c.points.map((p) => `<circle cx="${x(p[0])}" cy="${y(p[idx])}" r="3" fill="var(--accent)"><title>epoch ${p[0]}: ${p[idx].toFixed(5)}</title></circle>`).join('');
+      s += (c.marks || []).map((m) => `<rect x="${x(m.epoch) - 4}" y="${y(m[head]) - 4}" width="8" height="8" fill="var(--c-extend)"><title>${m.label}: ${m[head].toFixed(5)}</title></rect>`).join('');
+      return `<div style="flex:1 1 280px;min-width:0"><div class="s"><b>${head}</b> (last: ${c.points[c.points.length - 1][idx].toFixed(5)})</div><svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="${head} LogLoss per epoch">${s}</svg></div>`;
+    };
+    const key = (sw, label) => `<span style="display:inline-flex;align-items:center;gap:5px;margin-right:14px">${sw}${label}</span>`;
+    const legend = key('<svg width="18" height="8"><line x1="0" x2="18" y1="4" y2="4" stroke="var(--accent)" stroke-width="2"/></svg>', 'per epoch')
+      + (c.ref ? key('<svg width="18" height="8"><line x1="0" x2="18" y1="4" y2="4" stroke="var(--muted)" stroke-dasharray="5 4"/></svg>', c.ref.label) : '')
+      + (c.marks || []).map((m) => key('<svg width="8" height="8"><rect width="8" height="8" fill="var(--c-extend)"/></svg>', m.label)).join('');
+    return `<h3>${c.title}${c.id ? ` <span class="id">(${c.id})</span>` : ''}</h3><div class="s">${legend}</div>`
+      + `<div style="display:flex;flex-wrap:wrap;gap:16px">${panel('curve', 1)}${panel('instant', 2)}</div>${c.note ? `<div class="s">${c.note}</div>` : ''}`;
+  }
+
+  // The RWKV family: one row per size x variant, show-time LogLoss and % vs the reference big model.
+  function drawFamily(F) {
+    if (!F) { $('sec-family').hidden = true; return; }
+    // One row per size; the Big two-head model is the reference, Tiny also shows its delta against Small.
+    const get = (size, variant) => F.rows.find((r) => r.size === size && r.variant === variant);
+    const big = get('Big', 'Two-head'), num = (x) => x.toLocaleString('en-US');
+    const sizes = [...new Set(F.rows.map((r) => r.size))];
+    const pc = (v, r) => (v / r - 1) * 100, sg = (p) => `${p > 0 ? '+' : '&minus;'}${Math.abs(p).toFixed(Math.abs(p) >= 10 ? 1 : 2)}%`;
+    // LogLoss: green = better, orange = worse, grey = within 0.05% (the minimum effect); size: share saved
+    const dLL = (v, r) => { const p = pc(v, r); return `<span class="d ${p <= 0.25 ? 'good' : p <= 0.5 ? 'mid' : 'bad'}">${sg(p)}</span>`; };
+    const dSz = (v, r) => `<span class="d ${v < r ? 'good' : v > r ? 'bad' : 'flat'}">${sg(pc(v, r))}</span>`;
+    const REF = '<span class="d ref">reference</span>';
+    const vsSmall = (x) => x ? `<div class="vs">${x} <span class="id">vs Small</span></div>` : '';
+    const st = (k) => `<span class="tag fam-${k}">${{ done: 'ready', running: 'training', queued: 'queued' }[k] || k}</span>`;
+    const model = (r) => `<b>${r.id}</b>`;
+    const stat = (r) => st(r.state);
+    const eta = (r) => r.eta ? `<span class="eta">${r.eta}</span>` : '<span class="id">&ndash;</span>';
+    // one LogLoss cell: value, delta vs Big's two-head (reference cell for Big's own two-head), and for Tiny vs Small
+    const ll = (r, head) => {
+      const v = r[head];
+      if (none(v)) return '<span class="id">not scored yet</span>';
+      if (r === big) return `<b>${v.toFixed(5)}</b><div>${REF}</div>`;
+      const sm = r.size === 'Tiny' ? get('Small', r.variant) : null;
+      return `<b>${v.toFixed(5)}</b><div>${dLL(v, big[head])}</div>${sm && !none(sm[head]) ? vsSmall(dLL(v, sm[head])) : ''}`;
+    };
+    const sz = (size, key, unit) => {
+      const r = get(size, 'Two-head'), v = r[key];
+      if (size === 'Big') return `${num(v)}${unit}<div>${REF}</div>`;
+      const sm = size === 'Tiny' ? get('Small', 'Two-head')[key] : null;
+      return `${num(v)}${unit}<div>${dSz(v, big[key])}</div>${sm ? vsSmall(dSz(v, sm)) : ''}`;
+    };
+    $('family-eval').innerHTML = `${F.eval}. Every % is against the Big two-head model (${big.id}); the Tiny rows also show the change against Small. `
+      + `LogLoss: lower is better; same colour code as the headline: <span class="d good">&le; +0.25%</span>, <span class="d mid">+0.25 to +0.50%</span>, `
+      + `<span class="d bad">above +0.50%</span>. Parameters and memory: <span class="d good">&minus;%</span> = saved.`;
+    const trs = [], cs = [];
+    sizes.forEach((size) => {
+      const rows = F.rows.filter((r) => r.size === size), n = rows.length;
+      rows.forEach((r, k) => {
+        const io = r.variant === 'Instant-Only';
+        trs.push(`<tr class="${k === 0 ? 'grp' : ''}">`
+          + (k === 0 ? `<td class="size" rowspan="${n}">${size}</td><td class="num" rowspan="${n}">${sz(size, 'params', '')}</td>`
+            + `<td class="num" rowspan="${n}">${sz(size, 'mem_b', ' B')}</td>` : '')
+          + `<td class="v"><b>${r.variant}</b></td><td>${model(r)}</td>`
+          + `<td class="num">${io && none(r.curve) ? '<span class="id">not trained</span>' : ll(r, 'curve')}</td><td class="num">${ll(r, 'instant')}</td>`
+          + `<td class="m">${stat(r)}</td><td class="e">${eta(r)}</td></tr>`);
+      });
+      cs.push(`<div class="card"><div class="k"><b>${size}</b></div>`
+        + `<div class="fld"><b>Parameters</b>${sz(size, 'params', '')}</div><div class="fld"><b>Memory per card + note</b>${sz(size, 'mem_b', ' B')}</div>`
+        + rows.map((r) => `<div class="fld"><b>${r.variant}</b>${model(r)} ${stat(r)}${r.eta ? `<div><b>ETA</b> ${eta(r)}</div>` : ''}`
+          + `<div>${r.variant === 'Two-head' ? `<b>Curve</b> ${ll(r, 'curve')} ` : ''}<b>Instant</b> ${ll(r, 'instant')}</div></div>`).join('') + '</div>');
+    });
+    $('family').innerHTML = '<thead><tr><th>Size</th><th>Parameters</th><th>Memory per card + note</th><th>Variant</th><th>Model</th>'
+      + '<th>Curve</th><th>Instant</th><th>Status</th><th>ETA</th></tr></thead><tbody>' + trs.join('') + '</tbody>';
+    $('family-cards').innerHTML = cs.join('');
+    const uses = [...new Map(F.rows.map((r) => [r.variant, r.use])).entries()];
+    $('family-note').innerHTML = uses.map(([v, u]) => `<b>${v}</b>: ${u}.`).join(' ')
+      + ' Curve and instant are show-time LogLoss. ' + (F.note || '');
+    drawGen(F.gen);
+  }
+
+  // Previous family generation -> current candidates: one row per size x variant, paired change with CI.
+  function drawGen(G) {
+    if (!G || !G.rows) return;
+    $('gen-wrap').hidden = false;
+    const f2 = (x) => `${x > 0 ? '+' : x < 0 ? '&minus;' : ''}${Math.abs(x).toFixed(3)}`;
+    const nm = (m) => `${m.name} <span class="id">(${m.id})</span>`;
+    const llv = (m, head) => (m && !none(m[head]) ? m[head].toFixed(5) : null);
+    // change cell: % with CI, green when CI below 0 and at least 0.05% better, grey otherwise
+    const dc = (d, bw) => {
+      if (!d) return '<span class="id">&ndash;</span>';
+      const cls = d[2] < 0 && d[0] <= -0.05 ? 'good' : d[1] > 0 ? 'bad' : 'flat';
+      return `<span class="d ${cls}">${f2(d[0])}%</span><div class="vs"><span class="id">[${f2(d[1])}, ${f2(d[2])}]</span></div>`
+        + (bw ? `<div class="vs"><span class="id">${bw} users</span></div>` : '');
+    };
+    const head = (r, h) => {
+      const io = r.variant === 'Instant-Only' && h === 'curve';
+      if (io) return { p: '<span class="id">not trained</span>', c: '', d: '' };
+      const p = llv(r.prev, h), c = llv(r.cur, h);
+      return { p: p ? `<b>${p}</b>` : '&ndash;', c: r.cur ? (c ? `<b>${c}</b>` : '&ndash;') : '<span class="id">unchanged</span>', d: r.cur ? dc(r['d_' + h], r['bw_' + h]) : '' };
+    };
+    $('gen-title').innerHTML = G.title;
+    $('gen-eval').innerHTML = `Previous = ${G.prev}; current = ${G.cur}. ${G.eval}.`;
+    const sizes = [...new Set(G.rows.map((r) => r.size))], trs = [], cs = [];
+    sizes.forEach((size) => {
+      const rows = G.rows.filter((r) => r.size === size);
+      rows.forEach((r, k) => {
+        const cu = head(r, 'curve'), ins = head(r, 'instant');
+        const cur = r.cur ? `${nm(r.cur)}${r.cur.go ? ` <span class="tag fam-done">go ${r.cur.go}</span>` : ''}` : `<span class="id">${r.why}</span>`;
+        trs.push(`<tr class="${k === 0 ? 'grp' : ''}">` + (k === 0 ? `<td class="size" rowspan="${rows.length}">${size}</td>` : '')
+          + `<td class="v"><b>${r.variant}</b></td><td>${nm(r.prev)}</td><td>${cur}</td>`
+          + `<td class="num sep">${cu.p}</td><td class="num">${cu.c}</td><td class="num">${cu.d}</td>`
+          + `<td class="num sep">${ins.p}</td><td class="num">${ins.c}</td><td class="num">${ins.d}</td>`
+          + `<td class="sep">${r.time_prev}</td><td>${r.time_cur}</td></tr>`);
+        cs.push(`<div class="card"><div class="k"><b>${size} ${r.variant}</b></div>`
+          + `<div class="fld"><b>Previous</b>${nm(r.prev)}</div><div class="fld"><b>Current</b>${cur}</div>`
+          + (r.variant === 'Two-head' ? `<div class="fld"><b>Curve</b>${cu.p} &rarr; ${cu.c} ${cu.d}</div>` : '')
+          + `<div class="fld"><b>Instant</b>${ins.p} &rarr; ${ins.c} ${ins.d}</div>`
+          + `<div class="fld"><b>Answer time</b>${r.time_prev} &rarr; ${r.time_cur}</div></div>`);
+      });
+    });
+    $('family-gen').innerHTML = '<thead><tr><th rowspan="2">Size</th><th rowspan="2">Variant</th><th rowspan="2">Previous (11-13 release)</th><th rowspan="2">Current candidate</th>'
+      + '<th class="grp sep" colspan="3">Curve LogLoss</th><th class="grp sep" colspan="3">Instant LogLoss</th><th class="grp sep" colspan="2">Answer-time head</th></tr>'
+      + '<tr><th class="sep">previous</th><th>current</th><th>change</th><th class="sep">previous</th><th>current</th><th>change</th><th class="sep">previous</th><th>current</th></tr></thead>'
+      + '<tbody>' + trs.join('') + '</tbody>';
+    $('gen-cards').innerHTML = cs.join('');
+    $('gen-note').innerHTML = G.note + '.';
+  }
+
+  function render(D) {
+    drawFamily(D.family);
+    $('headline').innerHTML = (D.headline || []).map((h) => `<div class="card${h.big ? ' big' : ''}${h.compare ? ' wide' : ''}"><div class="k">${h.k}${trk(h.track)}</div><div class="v">${h.v}</div>`
+      + (h.compare ? cmpTable(h.compare) : `<div class="s">${h.s || ''}</div>`)
+      + (h.link ? `<div class="s"><a href="${h.link.href}">${h.link.text}</a></div>` : '') + '</div>').join('');
+
+    $('now-asof').textContent = `As of ${D.updated}. Progress is refreshed whenever a job starts or ends.`;
+    const cards = (D.now || []).map((r) => {
+      const pct = none(r.progress) ? null : Math.round(r.progress * 100);
+      const speed = r.rev_s ? ` &middot; ${r.rev_s.toLocaleString('en-US')} reviews/s` : '';
+      return `<div class="card"><div class="k">${tag(r.kind)}${trk(r.track)} started ${r.started}${r.elapsed ? ` (${r.elapsed} ago)` : ''}${r.eta ? ` &middot; expected end ${r.eta}` : ''}</div>`
+        + (pct === null ? '' : `<div class="bar"><i style="width:${pct}%"></i></div><div class="s">${pct}% done${speed}</div>`)
+        + `<div class="fld what"><b>What</b>${r.what}${r.id ? ` <span class="id">(${r.id})</span>` : ''}</div>`
+        + `<div class="fld"><b>Decides</b>${r.decides || (r.linked === false ? '<span class="id">not in the plan yet (no curated entry matches this job)</span>' : '<span class="id">&ndash;</span>')}</div>`
+        + (r.why ? `<div class="fld"><b>Why</b>${r.why}</div>` : '')
+        + (r.job && r.job !== r.what ? `<div class="fld job">Queue job: ${r.job}</div>` : '') + '</div>';
+    });
+    if (!cards.length) cards.push('<div class="card"><div class="v">No job is running</div></div>');
+    let extra = (D.charts || []).map(epochChart).join('');
+    const mini = (head, rows) => `<div class="table-wrap"><table class="mini"><thead><tr>${head.map((h) => `<th${h[1] ? ' class="n"' : ''}>${h[0]}</th>`).join('')}</tr></thead><tbody>${rows.join('')}</tbody></table></div>`;
+    if ((D.waiting || []).length) extra += `<h3>Waiting in the queue (${D.waiting.length})</h3>` + mini([['ID'], ['Description'], ['Flags']],
+      D.waiting.map((w) => `<tr><td class="w">${tid(w)}</td><td class="d">${w.what}</td><td class="w">${w.flags || ''}</td></tr>`));
+    if ((D.recent || []).length) extra += `<h3>Finished recently</h3>` + mini([['ID'], ['Description'], ['Finished'], ['Status'], ['Duration', 1]],
+      D.recent.map((w) => `<tr${w.exit ? ' class="fail"' : ''}><td class="w">${tid(w)}</td><td class="d">${w.what}</td><td class="w">${w.date} ${w.ended}</td><td>${exitTag(w.exit)}</td><td class="w n">${w.ran || '&ndash;'}</td></tr>`));
+    $('now').innerHTML = cards.join('') + extra;
+
+    drawPlan(D);
+
+    const back = D.backlog || [];
+    const drawBack = (k) => T('backlog', ['Status', 'Item', 'Why / next step'], back.filter((x) => k === 'all' || x.status === k).map((r) =>
+      `<tr><td><span class="tag ${r.status}">${r.status}</span></td><td>${name(r.item, r.id, r.track)}</td><td>${r.why}</td></tr>`));
+    const drawBackAll = (k) => {
+      drawBack(k);
+      $('backlog-cards').innerHTML = back.filter((x) => k === 'all' || x.status === k).map((r) =>
+        `<div class="rc"><div class="l1"><span class="tag ${r.status}">${r.status}</span></div><div class="tx">${name(r.item, r.id, r.track)}</div><div class="sub">${r.why}</div></div>`).join('');
+    };
+    chips('filters', ['next', 'idea', 'parked', 'done', 'dropped'], back, 'status', drawBackAll); drawBackAll('all');
+
+    const res = D.results || [];
+    // Times: started_at / ended_at / gpu_minutes / tickets come from the queue history (GPU rows only).
+    // Takeaway: `detail` {verdict, table {head, rows}, notes[]} when present, else the plain `takeaway` string.
+    const hm = (s) => s.slice(11, 16);
+    const dur = (m) => (m < 60 ? `${m} min` : `${Math.floor(m / 60)} h ${String(m % 60).padStart(2, '0')}`);
+    const ran = (r) => (r.started_at ? `${r.started_at.slice(5, 10)} ${hm(r.started_at)} &rarr; ${r.ended_at.slice(5, 10) === r.started_at.slice(5, 10) ? '' : `${r.ended_at.slice(5, 10)} `}${hm(r.ended_at)}` : '');
+    const took = (r) => (none(r.gpu_minutes) ? '&ndash;' : `${dur(r.gpu_minutes)} GPU${r.tickets > 1 ? `<br><span class="id">${r.tickets} jobs</span>` : ''}`);
+    const take = (r) => {
+      if (r.takeaway === 'pending') return '<span class="id">takeaway pending</span>';
+      const d = r.detail;
+      if (!d) return r.takeaway;
+      const tb = d.table ? `<div class="tk-wrap"><table class="tk-table"><thead><tr>${d.table.head.map((h) => `<th>${h}</th>`).join('')}</tr></thead>`
+        + `<tbody>${d.table.rows.map((row) => `<tr>${row.map((c) => `<td>${c}</td>`).join('')}</tr>`).join('')}</tbody></table></div>` : '';
+      const notes = d.notes ? [].concat(d.notes) : [];  // a single string is accepted as one note
+      const ul = notes.length ? `<ul>${notes.map((n) => `<li>${n}</li>`).join('')}</ul>` : '';
+      return `<div class="tk"><p class="verdict">${d.verdict}</p>${tb}${ul}</div>`;
+    };
+    // Show-time inputs are the standard since 11-11; rows whose LogLoss columns were scored on normal inputs say so.
+    const inp = (r) => ((none(r.curve) && none(r.instant)) || r.inputs === 'show-time') ? '' : ' <span class="tag" title="Scored on normal inputs (the interval runs to the answer); not comparable with show-time numbers">normal inputs</span>';
+    const drawRes = (k) => T('results', ['Date', 'Took', 'Kind', 'Result', 'Curve LogLoss', 'Instant LogLoss', 'Evaluated on'], res.filter((x) => k === 'all' || x.kind === k).map((r, i) => {
+      const b = (r.flag === 'best' ? ' best' : '') + (i % 2 ? ' alt' : '');
+      return `<tr class="res${b}"><td class="when">${r.date}${r.started_at ? `<br><span class="id">${ran(r)}</span>` : ''}</td><td class="num">${took(r)}</td><td>${tag(r.kind)}</td><td>${name(r.name, r.id, r.track)}</td><td class="num">${ll(r.curve, r.curve_pct)}</td><td class="num">${ll(r.instant, r.instant_pct)}${inp(r)}</td><td>${r.eval}${r.fork ? `<br><span class="id">${r.fork}</span>` : ''}</td></tr>`
+        + `<tr class="tkrow${b}"><td colspan="7">${take(r)}</td></tr>`;
+    }));
+    const drawResAll = (k) => {
+      drawRes(k);
+      $('results-cards').innerHTML = res.filter((x) => k === 'all' || x.kind === k).map((r) =>
+        `<div class="rc${r.flag === 'best' ? ' best' : ''}"><div class="l1"><span class="t">${name(r.name, r.id, r.track)}</span></div>`
+        + `<div class="ll"><span>Curve ${ll(r.curve, r.curve_pct)}</span><span>Instant ${ll(r.instant, r.instant_pct)}${inp(r)}</span></div>`
+        + `<div class="sub">${r.date}${r.started_at ? ` &middot; ran ${ran(r)} &middot; ${took(r).replace('<br>', ', ')}` : ''} &middot; ${r.eval}${r.fork ? ` &middot; ${r.fork}` : ''}</div>`
+        + `<div class="tx">${take(r)}</div><div class="tg">${tag(r.kind)}</div></div>`).join('');
+    };
+    chips('kinds', ['gpu-train', 'gpu-score', 'gpu-speed', 'cpu', 'collection'], res, 'kind', drawResAll); drawResAll('all');
+
+    // Section bar: item counts, and the section in view is highlighted.
+    [['n-now', D.now], ['n-plan', D.plan], ['n-backlog', D.backlog], ['n-results', D.results]].forEach(([id, xs]) => { $(id).textContent = `(${(xs || []).length})`; });
+    const navLinks = [...document.querySelectorAll('.secnav a')];
+    const seen = new Map();
+    const io = new IntersectionObserver((es) => {
+      es.forEach((e) => seen.set(e.target.id, e.isIntersecting));
+      const cur = navLinks.map((l) => l.getAttribute('href').slice(1)).find((id) => seen.get(id));
+      navLinks.forEach((l) => l.setAttribute('aria-current', String(l.getAttribute('href') === `#${cur}`)));
+    }, { rootMargin: '-60px 0px -55% 0px' });
+    navLinks.forEach((l) => io.observe($(l.getAttribute('href').slice(1))));
+    $('updated').innerHTML = `Updated ${D.updated}. Sources: the R01 job queue, <code>artifacts/small-model/</code> on the <code>small-model</code> branch (<code>docs/SMALL_MODEL.md</code>) and <code>pages/data/factory-curated.json</code>. Own-collection figures are collection-level aggregates only.`;
+  }
+
+  fetch('data/donations.json', { cache: 'no-store' }).then((r) => r.json()).then((d) => {
+    $('don-stat').textContent = ` (today ${d.donations.donors_with_reviews.toLocaleString('en-US')} donors and ${d.donations.reviews_unique.toLocaleString('en-US')} unique reviews, ${d.goals.pct_of_dataset_reviews}% of the 10k dataset's reviews)`;
+  }).catch(() => {});
+  fetch('data/factory.json', { cache: 'no-store' })
+    .then((r) => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+    .then(render)
+    .catch((e) => {
+      $('now').innerHTML = `<div class="card"><div class="v">Could not load data/factory.json</div><div class="s">${e}. Serve the pages folder over HTTP (file:// does not work) and check that the file exists.</div></div>`;
+    });
+})();
+</script>
+<script src="nav.js" defer></script>
+</body>
+</html>

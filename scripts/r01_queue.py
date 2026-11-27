@@ -30,6 +30,7 @@ TICKETS = QUEUE / "tickets"
 STALE = QUEUE / "stale"
 HISTORY = QUEUE / "history.jsonl"
 COUNTER = QUEUE / "next-seq"
+CHANGED = QUEUE / "changed"  # touched on every ticket state change; scripts/publish_factory_loop.sh wakes on it
 EXIT_WAIT_EXPIRED = 75  # EX_TEMPFAIL: the ticket gave up waiting; nothing ran
 EXIT_CANCELLED = 76  # the ticket was cancelled (or otherwise removed) while waiting; nothing ran
 CANCEL_GRACE_SECONDS = 5.0  # how long `cancel` lets a waiting wrapper notice before terminating it
@@ -93,6 +94,15 @@ def _append_history(record):
         _retry(append)
     except OSError:
         pass
+    _changed()
+
+
+def _changed():
+    """Mark that a ticket changed state (registered, started, finished, retired). Best effort: never fails the queue."""
+    try:
+        CHANGED.touch()
+    except OSError:
+        pass
 
 
 # ----------------------------------------------------------------------------- process liveness
@@ -104,6 +114,37 @@ def _process_started(pid):
         return psutil.Process(pid).create_time()
     except Exception:
         return None
+
+
+def _launcher(launched_by=None):
+    """Best-effort record of who started this `run`: parent chain, terminal flags, explicit statement. Never raises."""
+    info = {"launched_by": launched_by or os.environ.get("R01_LAUNCHED_BY") or None}
+    try:
+        info["stdin_tty"] = sys.stdin.isatty()
+        info["stdout_tty"] = sys.stdout.isatty()
+    except Exception:
+        pass
+    try:
+        import psutil
+
+        chain, process = [], psutil.Process(os.getpid())
+        for _ in range(4):  # venv launcher stubs add a hop
+            process = process.parent()
+            if process is None:
+                break
+            try:
+                command = " ".join(process.cmdline())[:300]
+            except Exception:
+                command = None
+            try:
+                name = process.name()
+            except Exception:
+                name = None
+            chain.append({"pid": process.pid, "name": name, "cmdline": command})
+        info["parents"] = chain
+    except Exception as error:
+        info["parents_error"] = type(error).__name__
+    return info
 
 
 def _alive(pid, started=None):
@@ -285,6 +326,7 @@ def _retire(record, reason):
             path.unlink()
         except OSError:
             pass
+    _changed()
 
 
 def _stale_reason(record, now):
@@ -310,9 +352,17 @@ def sweep(announce=True):
     return live
 
 
+def _claims_of(record):
+    """Claims a ticket needs; a timing ticket always needs cpu-heavy too (tickets made by older code lack it in the file)."""
+    claims = set(record.get("claims") or [])
+    if record.get("timing"):
+        claims.add("cpu-heavy")
+    return claims
+
+
 def _blockers(me, live):
-    mine = set(me["claims"])
-    return [other for other in live if other["seq"] < me["seq"] and other["ticket"] != me["ticket"] and mine & set(other["claims"])]
+    mine = _claims_of(me)
+    return [other for other in live if other["seq"] < me["seq"] and other["ticket"] != me["ticket"] and mine & _claims_of(other)]
 
 
 def _outside_holders(me):
@@ -323,6 +373,70 @@ def _outside_holders(me):
         if current is not None and current.get("ticket") != me["ticket"]:
             found.append((name, current))
     return found
+
+
+QUIET = COORDINATION / "queue" / "quiet.json"
+DEFAULT_EXPECTED_MINUTES = 60.0
+
+
+def _quiet_windows():
+    """Valid windows of quiet.json as (start, end, entry) in naive local time; anything malformed is ignored."""
+    try:
+        windows = json.loads(QUIET.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return []
+    found = []
+    for window in windows if isinstance(windows, list) else []:
+        try:
+            start, end = (datetime.fromisoformat(window[key]) for key in ("start", "end"))
+        except (KeyError, TypeError, ValueError):
+            continue
+        start, end = (moment.astimezone().replace(tzinfo=None) if moment.tzinfo else moment for moment in (start, end))
+        if end > start:
+            found.append((start, end, window))
+    return found
+
+
+def _quiet_hit(me):
+    """(reason, window end) when a GPU quiet window holds the ticket back now, else None.
+
+    queue/quiet.json holds [{"start": "2026-10-14T21:00", "end": "2026-10-15T01:00", "reason": "..."}] in local time.
+    A ticket does not start inside a window, nor when its expected end (--expected-minutes, default 60) would
+    reach into one. A window with "scope": "timing" only holds tickets run with --timing (speed benchmarks, which
+    other load on the PC would invalidate); other GPU jobs run through it. Running jobs are never interrupted.
+    Delete the file or the entry to lift a window early."""
+    if not me.get("claims") or "gpu" not in me["claims"]:
+        return None
+    timing = bool(me.get("timing"))
+    now = datetime.now()
+    expected = timedelta(minutes=me.get("expected_minutes") or DEFAULT_EXPECTED_MINUTES)
+    for start, end, window in _quiet_windows():
+        if window.get("scope", "all") == "timing" and not timing:
+            continue  # the user is using the PC: accuracy jobs may run, only speed measurements would be invalid
+        if now < end and now + expected > start:
+            return f"GPU quiet window {window['start']} to {window['end']} ({window.get('reason', 'no reason given')})", end
+    return None
+
+
+def _quiet_block(me):
+    """Reason the ticket must not start now because of a GPU quiet window, else None."""
+    hit = _quiet_hit(me)
+    return hit[0] if hit else None
+
+
+def _bypassed(me, other):
+    """True when a waiting ticket that a quiet window holds back must not hold up `me`, which the window lets through.
+
+    When the only claim shared is cpu-heavy, `me` passes the held ticket only if it is expected to end before the window
+    does (the held timing ticket's expected start); otherwise it would still be running when the benchmark is due."""
+    if other.get("state") != "waiting":
+        return False
+    hit = _quiet_hit(other)
+    if not hit:
+        return False
+    if _claims_of(me) & _claims_of(other) == {"cpu-heavy"}:
+        return datetime.now() + timedelta(minutes=me.get("expected_minutes") or DEFAULT_EXPECTED_MINUTES) <= hit[1]
+    return True
 
 
 def _try_start(me):
@@ -344,6 +458,7 @@ def _try_start(me):
         return None
     me.update(state="running", started=_iso(), held=held, heartbeat=_iso())
     _write_ticket(me)
+    _changed()
     return True
 
 
@@ -360,7 +475,8 @@ def _describe(record, now=None):
         age = _duration((now - datetime.fromisoformat(since)).total_seconds())
         return f"{record['ticket']} running {age} ({record.get('owner')}: {record.get('purpose')})"
     if state == "waiting":
-        return f"{record['ticket']} waiting ({record.get('owner')}: {record.get('purpose')})"
+        flags = (", timing" if record.get("timing") else "") + (f", expected {record['expected_minutes']:g} min" if record.get("expected_minutes") else "")
+        return f"{record['ticket']} waiting{flags} ({record.get('owner')}: {record.get('purpose')})"
     return f"{record['ticket']} reserved until {record.get('expires')} ({record.get('owner')}: {record.get('purpose')})"
 
 
@@ -381,13 +497,23 @@ def _cancelled_exit(me, waiting_since):
     raise SystemExit(EXIT_CANCELLED)
 
 
-def hold(owner, purpose, claims, heartbeat=60.0, max_wait_minutes=None, ticket=None, command=None, hold_minutes=30.0):
+def hold(owner, purpose, claims, heartbeat=60.0, max_wait_minutes=None, ticket=None, command=None, hold_minutes=30.0,
+         expected_minutes=None, timing=False, launcher=None):
     """Register (or attach to) a ticket and block until it holds its claims. Returns the running ticket record."""
     _ensure_dirs()
-    claims = sorted(set(claims), key=NAMES.index)
+    claims = sorted(set(claims) | ({"cpu-heavy"} if timing else set()), key=NAMES.index)  # a speed benchmark excludes CPU-heavy steps
     me = _attach(ticket, owner) if ticket else _new_ticket(owner, purpose, claims, hold_minutes, command)
+    if timing:
+        claims = me["claims"] = sorted(set(me["claims"]) | {"cpu-heavy"}, key=NAMES.index)
     me.update(state="waiting", pid=os.getpid(), pid_started=_process_started(os.getpid()), heartbeat=_iso(), command=command)
+    if expected_minutes:
+        me["expected_minutes"] = expected_minutes
+    if timing:
+        me["timing"] = True
+    if launcher:
+        me["launcher"] = launcher
     _write_ticket(me)
+    _changed()
     print(f"[queue] {me['ticket']} registered for {', '.join(claims)}: {purpose}", flush=True)
     waiting_since = time.monotonic()
     deadline = None if max_wait_minutes is None else waiting_since + max_wait_minutes * 60.0
@@ -397,8 +523,13 @@ def hold(owner, purpose, claims, heartbeat=60.0, max_wait_minutes=None, ticket=N
             live = sweep()
             if not me["_path"].exists():
                 _cancelled_exit(me, waiting_since)
-            blockers, outside = _blockers(me, live), _outside_holders(me)
-            started = False if blockers or outside else _try_start(me)
+            blockers = [other for other in _blockers(me, live) if not _bypassed(me, other)]
+            outside = _outside_holders(me)
+            hit = None if blockers or outside else _quiet_hit(me)
+            quiet = hit[0] if hit else None
+            if quiet and (last_line is None or time.monotonic() - last_line >= heartbeat):
+                print(f"[queue] {me['ticket']} waiting: {quiet}", flush=True)
+            started = False if blockers or outside or quiet else _try_start(me)
             if started is None:  # _try_start found the ticket removed after taking the claims
                 _cancelled_exit(me, waiting_since)
             if started:
@@ -423,6 +554,8 @@ def hold(owner, purpose, claims, heartbeat=60.0, max_wait_minutes=None, ticket=N
                 _write_ticket(me)
                 last_beat = now
             timeout = heartbeat if deadline is None else max(0.05, min(heartbeat, deadline - now))
+            if hit:  # wake when the window ends, not up to a heartbeat later
+                timeout = max(0.05, min(timeout, (hit[1] - datetime.now()).total_seconds() + 0.2))
             watcher.wait(timeout)
 
 
@@ -454,6 +587,27 @@ def detach(record):
         pass
 
 
+def _relative_to_caller(command, cwd=None):
+    """Relative path arguments that name a file or folder in the caller's directory when that is not ROOT (e.g. a worktree).
+
+    Commands run with cwd=ROOT, so such a path would silently resolve to the main checkout's copy instead."""
+    cwd = Path(cwd or Path.cwd()).resolve()
+    if cwd == ROOT:
+        return []
+    found = []
+    for arg in command:
+        if not arg or arg.startswith("-") or Path(arg).is_absolute() or "=" in arg:
+            continue
+        if not ("/" in arg or "\\" in arg or Path(arg).suffix in (".py", ".sh")):
+            continue  # bare words such as `train` or an experiment name are subcommands, not paths
+        try:
+            if (cwd / arg).exists():
+                found.append(arg)
+        except OSError:
+            pass
+    return found
+
+
 def run_command(command, heartbeat=60.0, record=None):
     """Run a command bound to this process's lifetime; refresh the ticket heartbeat while it runs. Returns the exit code."""
     command = list(command[1:] if command[:1] == ["--"] else command)
@@ -461,6 +615,11 @@ def run_command(command, heartbeat=60.0, record=None):
         raise SystemExit("[queue] run needs a command after --")
     local = ROOT / command[0]
     executable = str(local) if local.is_file() else shutil.which(command[0]) or command[0]
+    if os.name == "nt" and Path(executable).name.lower() in ("bash", "bash.exe") and "system32" in executable.lower():
+        # a shell without Git Bash on PATH resolves "bash" to the WSL launcher, which fails with no distribution installed
+        git_bash = Path(os.environ.get("ProgramFiles", r"C:\Program Files")) / "Git" / "usr" / "bin" / "bash.exe"
+        if git_bash.is_file():
+            executable = str(git_bash)
     if executable.lower().endswith(".py"):
         command = [sys.executable, executable, *command[1:]]
     else:
@@ -489,6 +648,9 @@ def run_command(command, heartbeat=60.0, record=None):
 # ----------------------------------------------------------------------------- commands
 
 def status():
+    for start, end, window in _quiet_windows():
+        if end > datetime.now():
+            print(f"[queue] GPU quiet window ({window.get('scope', 'all')}) {window.get('start')} to {window.get('end')}: {window.get('reason', '')}")
     _ensure_dirs()
     now = _utc()
     live = sweep()
@@ -560,6 +722,9 @@ def main():
         if action == "run":
             p.add_argument("--ticket", help="attach to a reservation made with enqueue (keeps its place in the queue)")
             p.add_argument("--heartbeat-seconds", type=float, default=60.0)
+            p.add_argument("--expected-minutes", type=float, help="expected run time; a ticket never starts if it would run into a GPU quiet window (default 60)")
+            p.add_argument("--timing", action="store_true", help="speed measurement: held by quiet windows with scope timing; also claims cpu-heavy")
+            p.add_argument("--launched-by", help="who launched this job, e.g. 'detached runbook X' or 'agent, detached' (also R01_LAUNCHED_BY); stored in the ticket's launcher field")
             p.add_argument("--max-wait-minutes", type=float, help="give up with exit code 75 instead of waiting indefinitely")
             p.add_argument("command", nargs=REMAINDER)
     p = sub.add_parser("cancel")
@@ -584,7 +749,11 @@ def main():
     command = args.command[1:] if args.command[:1] == ["--"] else args.command
     if not command:
         parser.error("run needs a command after --")
-    record = hold(args.owner, args.purpose, claims, heartbeat, args.max_wait_minutes, args.ticket, command, args.hold_minutes)
+    relative = _relative_to_caller(command)
+    if relative:
+        parser.error(f"the queue runs commands from {ROOT}, not from {Path.cwd()}; pass absolute paths for: {', '.join(relative)}")
+    record = hold(args.owner, args.purpose, claims, heartbeat, args.max_wait_minutes, args.ticket, command, args.hold_minutes,
+                  args.expected_minutes, args.timing, _launcher(args.launched_by))
     code = None
     try:
         code = run_command(command, heartbeat, record)

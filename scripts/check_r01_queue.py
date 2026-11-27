@@ -5,6 +5,7 @@ concurrency of disjoint claims, event-driven wake-up (well under the 30 s heartb
 outside the queue, reservations, give-up exit codes, cancellation, and cancellation of a waiting wrapper (it must exit without running).
 """
 from argparse import ArgumentParser
+from datetime import datetime, timedelta, timezone
 import json
 import os
 from pathlib import Path
@@ -19,6 +20,7 @@ from scripts.experiment_provenance import process_provenance  # noqa: E402
 PYTHON = sys.executable
 QUEUE = str(ROOT / "scripts" / "r01_queue.py")
 CLAIM = str(ROOT / "scripts" / "r01_claim.py")
+WAIT = str(ROOT / "scripts" / "r01_queue_wait.py")
 CHILD = (
     "import sys, time\n"
     "log, name, seconds = sys.argv[1], sys.argv[2], float(sys.argv[3])\n"
@@ -193,6 +195,152 @@ def check_give_up_and_claim_run(h, report):
     report["give_up"] = {"exit_code": 75, "claim_run_wake_s": round(wake, 3)}
 
 
+def check_quiet_windows(h, report):
+    """Regression (2026-10-14): quiet windows hold gpu tickets, a scoped window lets other tickets pass the held head, bad files are ignored."""
+    os.environ["R01_COORDINATION_ROOT"] = str(h.root)  # before the import: the queue module reads it once
+    from scripts import r01_queue as Q
+
+    quiet = h.root / "queue" / "quiet.json"
+    assert Q.QUIET == quiet, "the check must not touch the live quiet.json"
+    now = datetime.now()
+    stamp = lambda moment: moment.isoformat(timespec="seconds")
+    gpu = {"claims": ["gpu"], "expected_minutes": 10}
+
+    def held(me, *windows, raw=None):
+        quiet.write_text(raw if raw is not None else json.dumps(list(windows)), encoding="utf-8")
+        return Q._quiet_block(me) is not None
+
+    window = {"start": stamp(now + timedelta(minutes=30)), "end": stamp(now + timedelta(minutes=90))}
+    assert not held({**gpu, "expected_minutes": 29}, window) and held({**gpu, "expected_minutes": 31}, window), "expected end must reach into the window to be held"
+    assert held(gpu, {"start": stamp(now - timedelta(minutes=5)), "end": stamp(now + timedelta(minutes=5))}), "inside a window"
+    assert not held(gpu, {"start": stamp(now - timedelta(hours=3)), "end": stamp(now - timedelta(hours=2))}), "past window"
+    assert not held({"claims": ["ledger"]}, {"start": stamp(now - timedelta(minutes=5)), "end": stamp(now + timedelta(minutes=5))}), "only gpu tickets are held"
+    inside = {"start": stamp(now - timedelta(minutes=5)), "end": stamp(now + timedelta(minutes=5))}
+    assert not held(gpu, {**inside, "scope": "timing"}) and held({**gpu, "timing": True}, {**inside, "scope": "timing"}), "scope timing"
+    assert held(gpu, {**inside, "start": stamp(now - timedelta(minutes=1))}, {"start": "nope", "end": "x"}, inside), "a bad entry must not hide a good one"
+    aware = datetime.now(timezone.utc)
+    assert held(gpu, {"start": (aware - timedelta(minutes=5)).isoformat(timespec="seconds"), "end": (aware + timedelta(minutes=5)).isoformat(timespec="seconds")}), "timezone-aware window"
+    for raw in ("", "{", "{}", '{"start": "a"}', "[1, null, \"x\"]", '[{"start": "2026-10-14T21:00"}]', json.dumps([{"start": inside["end"], "end": inside["start"]}])):
+        assert not held(gpu, raw=raw), f"malformed quiet.json must be ignored: {raw!r}"
+    Q.status()  # must not crash on the last (inverted) file
+
+    # live: a held timing ticket at the head must not hold up a later non-timing ticket
+    quiet.write_text(json.dumps([{"start": stamp(now - timedelta(minutes=1)), "end": stamp(now + timedelta(seconds=9)), "scope": "timing", "reason": "check"}]), encoding="utf-8")
+    end = datetime.fromisoformat(json.loads(quiet.read_text(encoding="utf-8"))[0]["end"]).timestamp()
+    h.run("T", 0.2, ["gpu"], extra=["--timing", "--expected-minutes", "5"])
+    deadline = time.monotonic() + 10
+    while not any(name.endswith("-T.json") for name in h.tickets()) and time.monotonic() < deadline:
+        time.sleep(0.05)
+    time.sleep(0.5)
+    h.run("N", 0.2, ["gpu"])
+    h.wait("N")
+    started_n = h.events()[("N", "start")]
+    assert started_n < end, "a non-timing ticket must run through a timing window, even behind a held timing ticket"
+    assert ("T", "start") not in h.events(), "a timing ticket must wait for the window to end"
+    h.wait("T", timeout=30)
+    late = h.events()[("T", "start")] - end
+    assert -0.5 <= late < WAKE_LIMIT, f"the held ticket should start right after the window ends, not a heartbeat later: {late}"
+    quiet.unlink()
+    report["quiet_windows"] = {"non_timing_ran_before_window_end": True, "timing_start_after_window_end_s": round(late, 3)}
+
+
+def _ticket_exists(h, suffix, timeout=10):
+    deadline = time.monotonic() + timeout
+    while not any(name.endswith(suffix) for name in h.tickets()) and time.monotonic() < deadline:
+        time.sleep(0.05)
+    time.sleep(0.4)  # let the wrapper settle into its wait
+
+
+def check_cpu_heavy(h, report):
+    """The cpu-heavy claim: CPU accuracy steps run beside ordinary gpu jobs but never beside a --timing speed benchmark."""
+    # 1. cpu-heavy runs alongside a non-timing gpu ticket
+    h.run("G1", 2.5, ["gpu"])
+    h.wait_for("G1", "start")
+    h.run("C1", 0.3, ["cpu-heavy"], extra=["--expected-minutes", "1"])
+    h.wait("C1")
+    assert h.events()[("C1", "start")] < h.events()[("G1", "end")] if ("G1", "end") in h.events() else True, "cpu-heavy must not wait for a plain gpu job"
+    assert ("G1", "end") not in h.events() or h.events()[("C1", "end")] <= h.events()[("G1", "end")], "cpu-heavy should have run inside the gpu job"
+    h.wait("G1")
+    # 2. cpu-heavy waits for a running timing ticket (which holds gpu and cpu-heavy)
+    h.run("T2", 2.0, ["gpu"], extra=["--timing", "--expected-minutes", "1"])
+    h.wait_for("T2", "start")
+    assert (h.root / "claims" / "cpu-heavy").exists(), "a timing ticket must hold cpu-heavy"
+    h.run("C2", 0.2, ["cpu-heavy"])
+    h.wait("T2", "C2")
+    assert h.events()[("T2", "end")] <= h.events()[("C2", "start")], "cpu-heavy must wait for the timing ticket"
+    # 3. a timing ticket waits for a running cpu-heavy ticket
+    h.run("C3", 2.0, ["cpu-heavy"])
+    h.wait_for("C3", "start")
+    h.run("T3", 0.2, ["gpu"], extra=["--timing"])
+    h.wait("C3", "T3")
+    assert h.events()[("C3", "end")] <= h.events()[("T3", "start")], "a timing ticket must wait for cpu-heavy"
+    # 4. a timing ticket held by a quiet window does not block a later cpu-heavy ticket that ends before the window does
+    now = datetime.now()
+    quiet = h.root / "queue" / "quiet.json"
+    window_end = now + timedelta(seconds=14)
+    quiet.write_text(json.dumps([{"start": (now - timedelta(minutes=1)).isoformat(timespec="seconds"), "end": window_end.isoformat(timespec="seconds"), "scope": "timing", "reason": "check"}]), encoding="utf-8")
+    end = datetime.fromisoformat(window_end.isoformat(timespec="seconds")).timestamp()
+    h.run("T4", 0.2, ["gpu"], extra=["--timing", "--expected-minutes", "5"])
+    _ticket_exists(h, "-T4.json")
+    h.run("C4", 0.2, ["cpu-heavy"], extra=["--expected-minutes", "0.05"])  # 3 s: ends well before the window does
+    h.wait("C4")
+    assert h.events()[("C4", "start")] < end and ("T4", "start") not in h.events(), "cpu-heavy must pass a quiet-window-held timing ticket"
+    h.run("C5", 0.2, ["cpu-heavy"], extra=["--expected-minutes", "10"])  # would still run at the benchmark's start: it must queue behind
+    time.sleep(1.5)
+    assert ("C5", "start") not in h.events(), "cpu-heavy that would overlap the held timing start must wait behind it"
+    h.wait("T4", "C5", timeout=40)
+    assert h.events()[("T4", "end")] <= h.events()[("C5", "start")], "C5 queues behind the timing ticket"
+    quiet.unlink()
+    assert not (h.root / "claims" / "cpu-heavy").exists() and h.tickets() == []
+    report["cpu_heavy"] = {"beside_gpu": True, "waits_for_timing": True, "timing_waits_for_cpu_heavy": True, "passes_held_timing": True, "overlapping_waits": True}
+
+
+def check_wait_script(h, report):
+    """r01_queue_wait.py in follow mode reports a ticket that came and went between two polls, and exits once per finish."""
+    watcher = subprocess.Popen([PYTHON, WAIT, "--interval", "30"], cwd=ROOT, env=h.env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, encoding="utf-8")
+    time.sleep(1.0)
+    h.run("W", 0.1, ["ledger"])
+    h.wait("W")
+    output, _ = watcher.communicate(timeout=40)  # the 30 s poll sees only the history line, never the ticket
+    assert "finished:" in output and "-W" in output, output
+    report["wait_script"] = output.strip().splitlines()
+
+
+def check_relative_paths(h, report):
+    """A command queued from another directory (a worktree) is refused when a relative path argument names something there."""
+    caller = h.root / "caller"
+    (caller / "scripts").mkdir(parents=True)
+    (caller / "scripts" / "job.py").write_text("print('wrong checkout')\n", encoding="utf-8")
+    before = len(list((h.root / "queue" / "tickets").glob("*.json")))
+    done = subprocess.run([PYTHON, QUEUE, "run", "--owner", "check", "--purpose", "relative", "--claim", "gpu", "--expected-minutes", "1",
+                           "--", PYTHON, "scripts/job.py", "train", "name"], cwd=caller, env=h.env, capture_output=True, text=True, encoding="utf-8", timeout=30)
+    assert done.returncode == 2 and "scripts/job.py" in done.stderr and "absolute" in done.stderr, (done.returncode, done.stderr)
+    assert len(list((h.root / "queue" / "tickets").glob("*.json"))) == before, "a refused command must not register a ticket"
+    report["relative_paths"] = done.stderr.strip().splitlines()[-1]
+
+
+def check_launcher(h, report):
+    """The history record carries a launcher field: explicit --launched-by / R01_LAUNCHED_BY, tty flags and the parent chain."""
+    h.run("launcher-flag", 0.2, ["gpu"], extra=("--launched-by", "check flag"))
+    h.wait("launcher-flag")
+    assert h.results["launcher-flag"]["exit_code"] == 0, h.results["launcher-flag"]
+    env = {**h.env, "R01_LAUNCHED_BY": "check env"}
+    done = subprocess.run([PYTHON, QUEUE, "run", "--owner", "launcher-env", "--purpose", "launcher env", "--claim", "gpu", "--expected-minutes", "1",
+                           "--", PYTHON, "-c", "pass"], cwd=ROOT, env=env, capture_output=True, text=True, encoding="utf-8", timeout=30)
+    assert done.returncode == 0, done.stderr
+    records = {}
+    for line in (h.root / "queue" / "history.jsonl").read_text(encoding="utf-8").splitlines():
+        record = json.loads(line)
+        if record.get("owner", "").startswith("launcher-"):
+            records[record["owner"]] = record
+    flag, env_record = records["launcher-flag"]["launcher"], records["launcher-env"]["launcher"]
+    assert flag["launched_by"] == "check flag" and env_record["launched_by"] == "check env", (flag, env_record)
+    for launcher in (flag, env_record):
+        assert isinstance(launcher["stdin_tty"], bool) and launcher["stdout_tty"] is False, launcher  # stdout is piped by the harness
+        assert launcher.get("parents") and os.getpid() in [p["pid"] for p in launcher["parents"]], launcher  # this checker is in the chain (venv stubs add hops)
+    report["launcher"] = {"flag": flag, "env": env_record}
+
+
 def main():
     parser = ArgumentParser(description=__doc__)
     parser.add_argument("--output", type=Path, required=True)
@@ -204,7 +352,7 @@ def main():
     h = Harness(output)
     report = {"provenance": process_provenance(), "wake_limit_s": WAKE_LIMIT}
     started = time.monotonic()
-    for check in (check_fifo_and_wake, check_outside_holder, check_stale_ticket, check_reservation_and_cancel, check_cancel_waiting_wrapper, check_give_up_and_claim_run):
+    for check in (check_fifo_and_wake, check_outside_holder, check_stale_ticket, check_reservation_and_cancel, check_cancel_waiting_wrapper, check_give_up_and_claim_run, check_quiet_windows, check_cpu_heavy, check_relative_paths, check_launcher, check_wait_script):
         print(f"[check] {check.__name__}", flush=True)
         check(h, report)
     status = h.command("status").stdout

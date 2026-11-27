@@ -1,5 +1,76 @@
 # anki-rwkv
 
+Training and compression research for the RWKV spaced-repetition model used in Anki. This repository contains the RWKV model, preprocessing, CUDA training kernel, trainer, evaluation, and recurrent inference code from [srs-benchmark](https://github.com/open-spaced-repetition/srs-benchmark), with the small supporting subset needed to run that pipeline independently.
+
+The starting point is the original 2,762,884-parameter architecture. Expertium's historical 192,800-parameter iter36 architecture is included separately for matched CPU and CUDA trials. The default baseline remains unchanged; compressed-state deployment is documented as research and is not enabled in these trials.
+
+Today most of the work happens in "the factory" described below: a daily loop that designs, trains, scores and packages families of RWKV memory models for the Anki fork. The sections after it are the project's earlier history (the R01 speed campaign and the first trials) and the reference procedures.
+
+## The factory
+
+The factory is the routine that turns an idea into a tested model or format that the Anki fork can ship. It runs on one desktop GPU (an RTX 5080) shared through a queue. An AI main session coordinates the work, short-lived agents run single steps, and the repository owner decides releases and real trade-offs. The live state is on the [factory page](https://jschoreels.github.io/anki-rwkv/factory.html).
+
+### What it produces
+
+- **A model family in three sizes.** Big uses the fork's original 2,762,884-parameter architecture, Small has 331,511 parameters and the six-layer Tiny has 185,057.
+- **Two models per size.** The two-head model predicts both the recall curve over time (used by the RWKV-Curve scheduler) and the instant answer (used by RWKV-Instant). The Instant-Only model is trained with its curve head switched off: it is a little better on the instant answer, and its curve head must never be used. The fork runs each size only with that size's own models, and an option lets it run the two-head model alone.
+- **Compact card-state formats.** The model keeps a recurrent state for every card and note, so state size matters as much as weight size for a large collection. The reference format is int8 card rows with compact notes. T24 is a low-rank format (rank 2 below 16 answers, rank 4 after, int8 factors), and T24 with 6-bit factors goes further. On 2026-11-24 the owner chose T24 with 6-bit factors for Big and Small (84.6% and 71.4% fewer bytes than int8) and plain T24 for Tiny, because of a long-card warning.
+- **Family releases.** A family release is a tagged GitHub release with the weights of every model, its integration notes, test vectors and [WEIGHTS-NOTICE.md](WEIGHTS-NOTICE.md), matched to the Anki fork version that runs them. The latest is [`rwkv-family-2026-11-13`](https://github.com/JSchoreels/anki-rwkv/releases/tag/rwkv-family-2026-11-13), packaged by the family release step (SM108). The next family is being prepared with these candidates: Big two-head (SM91s2), Big Instant-Only (SM99), Small two-head (SM118), Small Instant-Only (SM113), and the six-layer Tiny two-head and Instant-Only models (SM130).
+
+### How one experiment moves through the factory
+
+```mermaid
+flowchart LR
+  A[Idea<br/>backlog] --> B[Design with<br/>go rule]
+  B --> C[Worktree +<br/>branch smNNN]
+  C --> D[Launcher +<br/>GPU queue]
+  D --> E[Scoring on<br/>fixed pools]
+  E --> F{Go rule /<br/>size budget}
+  F -->|go| G[Anki fork<br/>+ tests]
+  F -->|no go| H[RESULT.md,<br/>decision log]
+  G --> I[Release<br/>owner's OK]
+  G --> H
+```
+
+1. **Idea.** Ideas wait in the backlog of the factory page and in [docs/ACCURACY_IDEAS.md](docs/ACCURACY_IDEAS.md). Some come from outside research and papers ([docs/IDEA_SCOUTING.md](docs/IDEA_SCOUTING.md)); those are treated as pointers, and this repository's own training and scoring pipeline stays the reference.
+2. **Pre-registered design.** Each experiment gets an ID (SMnnn) and a `design.md` that is committed before any result exists. It states the question, the models, the evaluation pool and the go rule, so the verdict cannot be tuned after the fact.
+3. **One worktree and one branch per experiment.** The experiment lives in its own git worktree on branch `smNNN`, with its files under `artifacts/small-model/smNNN/` on that branch. More than a hundred such branches are on the remote; only a few older folders are on `main`.
+4. **Launcher and GPU queue.** A launcher script (`launch-smNNN-*.sh`) typically checks for a clean tree, runs a small smoke check and then submits each step as a ticket to [`scripts/r01_queue.py`](scripts/r01_queue.py). The queue runs tickets in order per shared resource (the GPU, the training sources), so sessions never collide. Quiet windows in `artifacts/coordination/queue/quiet.json` hold new GPU tickets back, for example during speed measurements. A `STOP` file stops a launcher before its next ticket, and a stopped launcher can be resumed without redoing finished work.
+5. **Scoring on fixed evaluation pools.** The standard readout is the 732-user set (722 to 723 users after the scoring rules, never seen by the big model). Decisive checks use all 1,500 validation users. Both heads are scored on show-time inputs, the inputs the fork has when a card is shown. Results are given as the LogLoss change in % against the big model (1 leak-free epoch) (SM72 big), with int8 weights and int8 state.
+6. **The go rule.** A change is compared per user against its control, with a 95% paired user-bootstrap confidence interval. It is a go only when the upper end of that interval is below 0 and the gain is at least 0.05%. For example, output-aware truncation (SM158) gained 0.008% to 0.027% on the instant heads and was not adopted.
+7. **Size budgets.** Smaller models and state formats are judged by their total cost against the Big model at int8: Small may lose at most 0.5% and Tiny at most 1.0%, and Big may lose at most 0.15% against its own int8, each on the upper end of the confidence interval and for each head. Long-card and per-card checks are warnings, not gates.
+8. **RESULT.md and HANDOFF.md.** Every experiment folder ends with a `RESULT.md` (question, rules, verdict, numbers). While a job runs, its `HANDOFF.md` records the job IDs, output paths, how to check, stop and resume it, and the exact follow-up commands.
+9. **Factory page.** [`pages/factory.html`](pages/factory.html) shows what runs now, the timetable, the backlog and every result. It is built from the hand-edited [`pages/data/factory-curated.json`](pages/data/factory-curated.json) plus the live queue by [`scripts/publish_factory_page.py`](scripts/publish_factory_page.py), which a loop runs every 5 minutes (details in [pages/README.md](pages/README.md)).
+10. **Decision log.** Every decision is logged in [docs/decisions/DECISIONS.md](docs/decisions/DECISIONS.md) (one line each) and [docs/decisions/DECISIONS-full.md](docs/decisions/DECISIONS-full.md) (why, evidence, scope and how to undo it). Each entry says whether the owner decided or an agent took an obvious call alone.
+11. **Integration into the Anki fork.** Adopted models and formats are ported to the fork's Rust runtime on a fork branch, checked against this repository's outputs (for example the fork input parity check (SM161), which found a Learning-card interval bug before the release) and run through the fork's tests. Finished, tested fork work is merged into fork `main`.
+12. **Packaging and release.** Release packages, tags, Hugging Face uploads and the fork release build all need the owner's explicit OK.
+
+### Who does what
+
+- **The main session** (an AI coding agent) keeps the plan, reads out finished work, updates the factory page and the decision log, and starts the next backlog item.
+- **Short-lived agents** each run one step (a design, a launch, a read-out, a fork port) and stop. Before a long wait they write a `HANDOFF.md`, and a fresh agent picks up from that file when the results land, instead of one agent waiting for hours.
+- **GPU jobs run detached** in hidden processes, so they keep running when an agent stops.
+- **The hourly idle check** [`scripts/factory_idle_check.py`](scripts/factory_idle_check.py) prints BUSY, QUIET or IDLE from the queue, the GPU load, live launcher processes and the quiet windows. IDLE means nothing runs and no quiet window explains it, so the main session reads out what finished and starts the next item. It exists because a dead watcher once left the GPU idle for about eight hours.
+- **The owner** decides releases, installs, anything touching a private Anki profile, and any real trade-off between accuracy and size or speed beyond the agreed budgets. Obvious calls are taken by the agents and logged for review.
+
+### Where to look
+
+- [Factory page](https://jschoreels.github.io/anki-rwkv/factory.html): what runs now, the plan, the backlog and every result.
+- [Decision log](docs/decisions/DECISIONS.md) and [complete decision log](docs/decisions/DECISIONS-full.md).
+- [docs/SMALL_MODEL_INTEGRATION.md](docs/SMALL_MODEL_INTEGRATION.md): integration manual for a small model package (file formats, inputs, forward pass, state).
+- [docs/ACCURACY_LOOP.md](docs/ACCURACY_LOOP.md): the paired, seeded comparison method the go rules grew out of; ideas in [docs/ACCURACY_IDEAS.md](docs/ACCURACY_IDEAS.md), results in [docs/ACCURACY_LOG.md](docs/ACCURACY_LOG.md).
+- [docs/COMPRESSION.md](docs/COMPRESSION.md) and [docs/COMPRESSION_INTEGRATION.md](docs/COMPRESSION_INTEGRATION.md): state and weight compression.
+- [docs/GPU_TRAINING.md](docs/GPU_TRAINING.md) and [docs/R01_PARALLEL_SESSIONS.md](docs/R01_PARALLEL_SESSIONS.md): GPU setup, and the queue claims and session rules.
+- `artifacts/small-model/`: experiment folders (each experiment's full folder is on its own `smNNN` branch).
+
+## Start here
+
+- [The factory](#the-factory): what the project produces today and how one experiment moves from idea to release.
+- [Factory page](https://jschoreels.github.io/anki-rwkv/factory.html): live status, plan, backlog and results.
+- [Decision log](docs/decisions/DECISIONS.md): every decision, newest first, with the [complete version](docs/decisions/DECISIONS-full.md).
+- [Documentation guide](docs/README.md): choose the overview or procedure you need.
+- [Artifact guide](artifacts/README.md): current results and short folder guides.
+
 ## R01 GPU speedup dashboard
 
 **[Open the interactive dashboard](https://jschoreels.github.io/anki-rwkv/campaign.html)** - Expertium training throughput went from **30,005 reviews/s** (original baseline) to **200,356 reviews/s** (accepted in iteration 0080), a **x6.68** speedup with bitwise-identical results.
@@ -7,15 +78,6 @@
 The dashboard plots the accepted throughput over every R01 iteration with each candidate optimisation coloured by decision, the cumulative speedup, and the replicated-block gains with lower confidence bounds. A milestone timeline explains what each major step changed (sort-free exact kernels, deferred host reads, native C++ launch path, core pinning, process QoS) and why it mattered. Regenerate the data with `scripts/build_r01_pages_data.py`; see [pages/README.md](pages/README.md). The [site home](https://jschoreels.github.io/anki-rwkv/) explains how RWKV reads a review history with interactive examples, and the [architecture page](https://jschoreels.github.io/anki-rwkv/models.html) compares the Alex and Expertium models block by block.
 
 R01 and GPU trial defaults now permit a 95% Torch GPU allocation budget. R01 uses a 2% measured speed-gain gate for exact update, weight, input and score parity, and a 5% target for other adaptations; [the ledger](docs/GPU_OPTIMIZATIONS.md) records the current accepted configuration and per-trial limits.
-
-Training and compression research for the RWKV spaced-repetition model used in Anki. This repository contains the RWKV model, preprocessing, CUDA training kernel, trainer, evaluation, and recurrent inference code from [srs-benchmark](https://github.com/open-spaced-repetition/srs-benchmark), with the small supporting subset needed to run that pipeline independently.
-
-The starting point is the original 2,762,884-parameter architecture. Expertium's historical 192,800-parameter iter36 architecture is included separately for matched CPU and CUDA trials. The default baseline remains unchanged; compressed-state deployment is documented as research and is not enabled in these trials.
-
-## Start here
-
-- [Documentation guide](docs/README.md): choose the overview or procedure you need.
-- [Artifact guide](artifacts/README.md): current results and short folder guides.
 
 ## Local GPU results — 2026-10-11
 
@@ -43,7 +105,19 @@ The imported baseline is pinned to srs-benchmark commit [`3effecc37c9584e8323ee9
 
 Local baseline adaptations include FSRS feature selection for benchmark-label alignment, extraction of three required utility functions, packaging, verification, project-specific configuration files, direct per-user metadata partition reads, group-index preparation without per-group DataFrame copies, configurable preparation padding with the original defaults, and opt-in reference recurrence and fused shift paths on CUDA. The separate `expertium/` package pins an upstream historical model with adapted import namespaces and opt-in exact row/shift selection and fused shift paths; `expertium/upstream.json` records both original and adapted hashes. The broader FSRS/LSTM/DASH benchmark suite is excluded.
 
-Upstream code licensing and checkpoint redistribution terms are discussed in [srs-benchmark issue #353](https://github.com/open-spaced-repetition/srs-benchmark/issues/353). Imported code retains upstream notices and is not assigned a new license here. Dataset terms are available on the dataset's own Hugging Face page.
+## License
+
+The code written for this repository is released under the [MIT License](LICENSE). That covers the training speedups, the scoring and experiment scripts, the factory tooling and the pages.
+
+The released model weights are not covered by the MIT License; see [WEIGHTS-NOTICE.md](WEIGHTS-NOTICE.md).
+
+Third-party code keeps its own terms and is **not** relicensed here:
+
+- **srs-benchmark** (`rwkv/`, `features/`, `config.py`, `utils.py`; files and hashes in [`upstream.json`](upstream.json)): the upstream repository has no license file yet. Licensing and checkpoint redistribution are discussed in [srs-benchmark issue #353](https://github.com/open-spaced-repetition/srs-benchmark/issues/353).
+- **rwkv-anki-autoresearch** (`expertium/`; files and hashes in [`expertium/upstream.json`](expertium/upstream.json)): the upstream repository has no license file yet.
+- **RWKV-LM** by BlinkDL, the origin of the RWKV model code: Apache-2.0.
+
+The anki-revlogs-10k dataset is not part of this repository; its terms are on the dataset's own Hugging Face page. Trained checkpoints are not committed.
 
 ## How RWKV is trained
 
@@ -232,7 +306,12 @@ rwkv/           Upstream model, training, preprocessing, evaluation, and CUDA ke
 features/       Minimal FSRS features needed to align benchmark labels
 configs/        Dataset paths, preprocessing, two training phases, and evaluation
 expertium/      Separate historical iter36 architecture and provenance
-scripts/        Verification, dataset download, CPU/CUDA trials, and matched comparisons
+scripts/        Verification, dataset download, CPU/CUDA trials, matched comparisons, the GPU queue
+                (r01_queue.py), the factory page publisher and the hourly idle check
+docs/           Procedures and reports; docs/decisions/ holds the decision log
+pages/          GitHub Pages site, including the factory page (factory.html, data/factory-curated.json)
+artifacts/      Results and experiment folders (small-model/; most experiments live on smNNN branches)
+WEIGHTS-NOTICE.md  Terms for the released model weights
 upstream.json   Exact imported revision and source hashes
 pyproject.toml  Training dependencies and optional native build metadata
 uv.lock         Resolved dependency versions

@@ -1,0 +1,1214 @@
+{
+ "tag_proposed": "rwkv-family-2026-11-28",
+ "published": false,
+ "fork_main": "6cb164606984c14432ef5e9befdedd6cc070f539",
+ "weights_notice": {
+  "source": "artifacts/small-model/sm166/WEIGHTS-NOTICE.next.md",
+  "sha256": "d5602f6ee846c04a77bab3ff5c1af6ad0b7fcd5592ba54ce567391169c730a06"
+ },
+ "packages": {
+  "rwkv-big-two-head": {
+   "model": "the show-time big model (SM91s2)",
+   "key": "sm91s2",
+   "label": "sm91s2-big-showtime",
+   "size": "Big",
+   "variant": "two-head",
+   "source": "C:/Users/jonat/workspace/wt/big-package/artifacts/models/sm91s2",
+   "source_files_left_out": [
+    "INTEGRATION.md",
+    "testvectors/check_testvectors.log",
+    "testvectors/make_testvectors.log"
+   ],
+   "integration_part_b": "artifacts/hf-family/repo-new/rwkv-big-two-head/INTEGRATION.md",
+   "state_format": {
+    "name": "F6",
+    "label": "w8+lr2.16.4q6x8",
+    "byte": "0x26",
+    "factors": "int6 factor codes (a float16 scale of max/31 per factor vector, codes in [-31, 31], bit-packed four codes in three bytes)"
+   },
+   "fork_files": [
+    {
+     "path": "weights.f32.bin",
+     "bytes": 11082637,
+     "sha256": "b53a89729d518c2db970833b7159904368fe9e882298e0f715f4d302f7cf4ed5",
+     "fork_path": "qt/aqt/rwkv_inference/RWKV_trained_on_5000_10000.bin",
+     "fork_identical": true,
+     "fork": "identical: `RWKV_trained_on_5000_10000.bin`"
+    },
+    {
+     "path": "weights.int8.bin",
+     "bytes": 3027096,
+     "sha256": "a3dc5df4db4cbb801c8eb816e12fc3c7f48cd5943a04a928fc4e23de00921255",
+     "fork_identical": null,
+     "fork": "not in the fork (no int8 Big weights; the Big engine runs f32)"
+    },
+    {
+     "path": "master.pth",
+     "bytes": 11251089,
+     "sha256": "67ee8e9b0d0169733242c40646e0d2e5637845a25775762002ffc4e6396f9590",
+     "fork_path": "qt/aqt/rwkv_inference/RWKV_trained_on_5000_10000.pth",
+     "fork_identical": true,
+     "fork": "identical: `RWKV_trained_on_5000_10000.pth`"
+    },
+    {
+     "path": "time_head.f32.bin",
+     "bytes": 702386,
+     "sha256": "33d1e3c616a07a13f6cb38ff07e26dfdecfc870665142cf0dbfe22b1baf39a6b",
+     "fork_path": "qt/aqt/rwkv_inference/RWKV_trained_on_5000_10000.time_head.f32.bin",
+     "fork_identical": true,
+     "fork": "identical: `RWKV_trained_on_5000_10000.time_head.f32.bin`"
+    },
+    {
+     "path": "time_head.int8.bin",
+     "bytes": 177082,
+     "sha256": "6d413837e6b8aab08b6f5c37ee726a31cd6366b5ce6bee64f4b3e7a6ab978de1",
+     "fork_path": "qt/aqt/rwkv_inference/RWKV_trained_on_5000_10000.time_head.int8.bin",
+     "fork_identical": true,
+     "fork": "identical: `RWKV_trained_on_5000_10000.time_head.int8.bin`"
+    },
+    {
+     "path": "time_head.json",
+     "bytes": 4416,
+     "sha256": "8fa5060c1cf2d54c95df41a5454ee9a6bb8c875887c49df4909b34a71d81e565",
+     "fork_path": "qt/aqt/rwkv_inference/RWKV_trained_on_5000_10000.time_head.json",
+     "fork_identical": true,
+     "fork": "identical: `RWKV_trained_on_5000_10000.time_head.json`"
+    }
+   ],
+   "time_vectors": {
+    "key": "sm91s2",
+    "kind": "fork",
+    "package": "C:\\Users\\jonat\\workspace\\wt\\big-package\\artifacts\\models\\sm91s2",
+    "users": {
+     "900001": {
+      "time_rows": 1588,
+      "frozen_rows": 500,
+      "fixture_rows": 233,
+      "fixture_max_abs_logit_diff_fp32": 0.0,
+      "fixture_max_abs_logit_diff_int8": 0.0
+     },
+     "900002": {
+      "time_rows": 1406,
+      "frozen_rows": 500,
+      "fixture_rows": 228,
+      "fixture_max_abs_logit_diff_fp32": 0.0,
+      "fixture_max_abs_logit_diff_int8": 0.0
+     }
+    },
+    "trunk": "master.pth == weights.f32.bin, 504 tensors bit for bit",
+    "head": {
+     "format_version": 2.0,
+     "inputs": 1306,
+     "f32_sha256": "33d1e3c616a07a13f6cb38ff07e26dfdecfc870665142cf0dbfe22b1baf39a6b",
+     "int8_sha256": "6d413837e6b8aab08b6f5c37ee726a31cd6366b5ce6bee64f4b3e7a6ab978de1"
+    },
+    "fixture_max_abs_logit_diff": 0.0,
+    "fixture": {
+     "path": "C:/Users/jonat/workspace/anki-rwkv/work/release-2026-11-28/fork-main/sm91s2/fixture-time-vectors.json.gz",
+     "sha256": "81dc428af13a8ff09607e399e20e8082d41f2c12a0add4fcc653344c7ed7667f"
+    },
+    "result": "PASS"
+   },
+   "files": {
+    "architecture.json": {
+     "bytes": 18928,
+     "sha256": "5c15decc492f7a03e2ff35d9c28ba7484906a0f3fd57c6583f2db11ed2668ddc"
+    },
+    "INTEGRATION.md": {
+     "bytes": 21227,
+     "sha256": "edf024f25c6d99fe6d2d6adb71c8cad2eba14993dce4df21ac4e2a2f17e2dcad"
+    },
+    "manifest.json": {
+     "bytes": 26677,
+     "sha256": "31dc5e521429392e319ff1389d2370fb74da34bb29b1ab25fd5f76d0c31ed32f"
+    },
+    "master.pth": {
+     "bytes": 11251089,
+     "sha256": "67ee8e9b0d0169733242c40646e0d2e5637845a25775762002ffc4e6396f9590"
+    },
+    "parity.json": {
+     "bytes": 2980,
+     "sha256": "e88ea33167893a2508eb5de471f1ad26c7115f793c7081cf78c36ead835cd9e5"
+    },
+    "reference/answer_time_numpy.py": {
+     "bytes": 7068,
+     "sha256": "ebc0fe738dac3df9a99014eb23b392e31bbae251d033f4b68302eec63ce6717b"
+    },
+    "reference/run_reference.py": {
+     "bytes": 5146,
+     "sha256": "14eca81d0a81fced4d2af3159ef13bae8d5d82ce31899aa6138825487029632e"
+    },
+    "reference/small_model_numpy.py": {
+     "bytes": 11710,
+     "sha256": "026d2bf31497df5ce459c413d766a8bf45ebd20a015d683700db8ec38c932b11"
+    },
+    "reference/small_model_recurrent.py": {
+     "bytes": 11551,
+     "sha256": "9ac13dc64c88dd0cf39cfd95f410c6020ed5503375eab7824db575c11c6db95d"
+    },
+    "reference/weights_io.py": {
+     "bytes": 2199,
+     "sha256": "4d46a2c6b3f4c9bc613fec14efcad2d7732be096448275d1d6e3e0a0746f22da"
+    },
+    "testvectors/check_testvectors.py": {
+     "bytes": 2184,
+     "sha256": "b133551b016f0e4a5b70e46e99b344a9ac86026a742a9f9af860945c7a530fbb"
+    },
+    "testvectors/check_time_vectors.py": {
+     "bytes": 3202,
+     "sha256": "ab98d3da08f993b64acc60b42e7738fa747092a7656d4cd3c3a16b070774235f"
+    },
+    "testvectors/make_testvectors.py": {
+     "bytes": 8444,
+     "sha256": "88524267655cd6dbc2728f82d1267e9b361fc3f9e7863053d1e0c5a4aff613cc"
+    },
+    "testvectors/time_user_900001.npz": {
+     "bytes": 2249718,
+     "sha256": "07416b837dfeedd1ed364a7c81f186a9d4b7f881174e31cf68b4e19b75da7a07"
+    },
+    "testvectors/time_user_900002.npz": {
+     "bytes": 2154109,
+     "sha256": "cb21ec804289b656ff39e1f415fc0f7fe3b75cb1e0d6ef3912e901f514fda927"
+    },
+    "testvectors/user_900001.npz": {
+     "bytes": 720397,
+     "sha256": "ebf2cd2b803e43d477cf0fd288158d6b3668daeeb5792d384d4d4643b9bd07ff"
+    },
+    "testvectors/user_900002.npz": {
+     "bytes": 632768,
+     "sha256": "a89e5543387aa57afb96a965957d02f5fdda194660894df6b84062cb31b262f2"
+    },
+    "time_head.f32.bin": {
+     "bytes": 702386,
+     "sha256": "33d1e3c616a07a13f6cb38ff07e26dfdecfc870665142cf0dbfe22b1baf39a6b"
+    },
+    "time_head.int8.bin": {
+     "bytes": 177082,
+     "sha256": "6d413837e6b8aab08b6f5c37ee726a31cd6366b5ce6bee64f4b3e7a6ab978de1"
+    },
+    "time_head.json": {
+     "bytes": 4416,
+     "sha256": "8fa5060c1cf2d54c95df41a5454ee9a6bb8c875887c49df4909b34a71d81e565"
+    },
+    "WEIGHTS-NOTICE.md": {
+     "bytes": 1778,
+     "sha256": "d5602f6ee846c04a77bab3ff5c1af6ad0b7fcd5592ba54ce567391169c730a06"
+    },
+    "weights.f32.bin": {
+     "bytes": 11082637,
+     "sha256": "b53a89729d518c2db970833b7159904368fe9e882298e0f715f4d302f7cf4ed5"
+    },
+    "weights.int8.bin": {
+     "bytes": 3027096,
+     "sha256": "a3dc5df4db4cbb801c8eb816e12fc3c7f48cd5943a04a928fc4e23de00921255"
+    }
+   }
+  },
+  "rwkv-big-instant-only": {
+   "model": "the show-time instant-only big model (SM99)",
+   "key": "sm99",
+   "label": "sm99-big-inst-e2",
+   "size": "Big",
+   "variant": "Instant-Only",
+   "source": "C:/Users/jonat/workspace/wt/big-package/artifacts/models/sm99",
+   "source_files_left_out": [
+    "INTEGRATION.md",
+    "testvectors/check_testvectors.log",
+    "testvectors/make_testvectors.log"
+   ],
+   "integration_part_b": "artifacts/hf-family/repo-new/rwkv-big-instant-only/INTEGRATION.md",
+   "state_format": {
+    "name": "F6",
+    "label": "w8+lr2.16.4q6x8",
+    "byte": "0x26",
+    "factors": "int6 factor codes (a float16 scale of max/31 per factor vector, codes in [-31, 31], bit-packed four codes in three bytes)"
+   },
+   "fork_files": [
+    {
+     "path": "weights.f32.bin",
+     "bytes": 11082637,
+     "sha256": "682ba1ff207c51af7de5e2abeb25593362aa706b292cbcc338a1591fad0d935c",
+     "fork_path": "qt/aqt/rwkv_inference/sm99/weights.f32.bin",
+     "fork_identical": true,
+     "fork": "identical: `sm99/weights.f32.bin`"
+    },
+    {
+     "path": "weights.int8.bin",
+     "bytes": 3027096,
+     "sha256": "0076501c230db7d1a1cd6444b1cabd59118c473261e0bf3c148c77cf99b1f8b8",
+     "fork_identical": null,
+     "fork": "not in the fork (no int8 Big weights; the Big engine runs f32)"
+    },
+    {
+     "path": "master.pth",
+     "bytes": 11251089,
+     "sha256": "c49e45d698194da033caa1231f598f875922a4a2a3e921714a3fd433d37e5768",
+     "fork_identical": null,
+     "fork": "not shipped by the fork (the fork's build bundles weights.f32.bin)"
+    },
+    {
+     "path": "time_head.f32.bin",
+     "bytes": 702386,
+     "sha256": "8bd4f05b426e20251d0dba84cdb69ed2038e5ec08c5428854e00a9672e7556f3",
+     "fork_path": "qt/aqt/rwkv_inference/sm99/time_head.f32.bin",
+     "fork_identical": true,
+     "fork": "identical: `sm99/time_head.f32.bin`"
+    },
+    {
+     "path": "time_head.int8.bin",
+     "bytes": 177082,
+     "sha256": "f61dd07e51d6cc1e4b48bef2ab6015af23437fb5a1faa9873a1bd338b5273578",
+     "fork_path": "qt/aqt/rwkv_inference/sm99/time_head.int8.bin",
+     "fork_identical": true,
+     "fork": "identical: `sm99/time_head.int8.bin`"
+    },
+    {
+     "path": "time_head.json",
+     "bytes": 4373,
+     "sha256": "310ac6c58bd6d2b07745ecbe97f8890c86551cb9611ff08deaf8e485f4898831",
+     "fork_path": "qt/aqt/rwkv_inference/sm99/time_head.json",
+     "fork_identical": true,
+     "fork": "identical: `sm99/time_head.json`"
+    }
+   ],
+   "time_vectors": {
+    "key": "sm99",
+    "kind": "fork",
+    "package": "C:\\Users\\jonat\\workspace\\wt\\big-package\\artifacts\\models\\sm99",
+    "users": {
+     "900001": {
+      "time_rows": 1588,
+      "frozen_rows": 500,
+      "fixture_rows": 233,
+      "fixture_max_abs_logit_diff_fp32": 0.0,
+      "fixture_max_abs_logit_diff_int8": 0.0
+     },
+     "900002": {
+      "time_rows": 1406,
+      "frozen_rows": 500,
+      "fixture_rows": 228,
+      "fixture_max_abs_logit_diff_fp32": 0.0,
+      "fixture_max_abs_logit_diff_int8": 0.0
+     }
+    },
+    "trunk": "master.pth == weights.f32.bin, 504 tensors bit for bit",
+    "head": {
+     "format_version": 2.0,
+     "inputs": 1306,
+     "f32_sha256": "8bd4f05b426e20251d0dba84cdb69ed2038e5ec08c5428854e00a9672e7556f3",
+     "int8_sha256": "f61dd07e51d6cc1e4b48bef2ab6015af23437fb5a1faa9873a1bd338b5273578"
+    },
+    "fixture_max_abs_logit_diff": 0.0,
+    "fixture": {
+     "path": "C:/Users/jonat/workspace/anki-rwkv/work/release-2026-11-28/fork-main/sm99/fixture-time-vectors.json.gz",
+     "sha256": "0eb6544104f95bdea62ab8d834eeab2840aea2a535061eec0ddbdcf26820f6ed"
+    },
+    "result": "PASS"
+   },
+   "files": {
+    "architecture.json": {
+     "bytes": 18928,
+     "sha256": "5c15decc492f7a03e2ff35d9c28ba7484906a0f3fd57c6583f2db11ed2668ddc"
+    },
+    "INTEGRATION.md": {
+     "bytes": 21172,
+     "sha256": "dfb5d283507a142ec8a1c426f0baad3d230079f036943d3592e1412f7b047af1"
+    },
+    "manifest.json": {
+     "bytes": 28868,
+     "sha256": "1626197ecbb3d828a805fe79d9546317f4c1119768392f3f454bded7755509fc"
+    },
+    "master.pth": {
+     "bytes": 11251089,
+     "sha256": "c49e45d698194da033caa1231f598f875922a4a2a3e921714a3fd433d37e5768"
+    },
+    "parity.json": {
+     "bytes": 2954,
+     "sha256": "dbb38197ac2a799b6e0391e7673c66fc78dcba2d1e62d3ec9df21913031db384"
+    },
+    "reference/answer_time_numpy.py": {
+     "bytes": 7068,
+     "sha256": "ebc0fe738dac3df9a99014eb23b392e31bbae251d033f4b68302eec63ce6717b"
+    },
+    "reference/run_reference.py": {
+     "bytes": 5146,
+     "sha256": "14eca81d0a81fced4d2af3159ef13bae8d5d82ce31899aa6138825487029632e"
+    },
+    "reference/small_model_numpy.py": {
+     "bytes": 11710,
+     "sha256": "026d2bf31497df5ce459c413d766a8bf45ebd20a015d683700db8ec38c932b11"
+    },
+    "reference/small_model_recurrent.py": {
+     "bytes": 11551,
+     "sha256": "9ac13dc64c88dd0cf39cfd95f410c6020ed5503375eab7824db575c11c6db95d"
+    },
+    "reference/weights_io.py": {
+     "bytes": 2199,
+     "sha256": "4d46a2c6b3f4c9bc613fec14efcad2d7732be096448275d1d6e3e0a0746f22da"
+    },
+    "testvectors/check_testvectors.py": {
+     "bytes": 2184,
+     "sha256": "b133551b016f0e4a5b70e46e99b344a9ac86026a742a9f9af860945c7a530fbb"
+    },
+    "testvectors/check_time_vectors.py": {
+     "bytes": 3202,
+     "sha256": "ab98d3da08f993b64acc60b42e7738fa747092a7656d4cd3c3a16b070774235f"
+    },
+    "testvectors/make_testvectors.py": {
+     "bytes": 8444,
+     "sha256": "88524267655cd6dbc2728f82d1267e9b361fc3f9e7863053d1e0c5a4aff613cc"
+    },
+    "testvectors/time_user_900001.npz": {
+     "bytes": 2255138,
+     "sha256": "3b713d2459ed53da0a76eebffcef1f24cce2e2171cff6c012124cefdb5ff0bc7"
+    },
+    "testvectors/time_user_900002.npz": {
+     "bytes": 2159131,
+     "sha256": "b0dd64d0b6d7fad3a0f65654a60f4df373f7d39cb3c3695bdcd74a491ade8e16"
+    },
+    "testvectors/user_900001.npz": {
+     "bytes": 720193,
+     "sha256": "a397865723ed7f4ceaf9327a9c90d11fd6264b885abf00340e9a85d1aba3ea01"
+    },
+    "testvectors/user_900002.npz": {
+     "bytes": 632231,
+     "sha256": "074add5f00e99ade6de2741b01d856df5bd5fe0c4b139dccd1cfc4eef8586aeb"
+    },
+    "time_head.f32.bin": {
+     "bytes": 702386,
+     "sha256": "8bd4f05b426e20251d0dba84cdb69ed2038e5ec08c5428854e00a9672e7556f3"
+    },
+    "time_head.int8.bin": {
+     "bytes": 177082,
+     "sha256": "f61dd07e51d6cc1e4b48bef2ab6015af23437fb5a1faa9873a1bd338b5273578"
+    },
+    "time_head.json": {
+     "bytes": 4373,
+     "sha256": "310ac6c58bd6d2b07745ecbe97f8890c86551cb9611ff08deaf8e485f4898831"
+    },
+    "WEIGHTS-NOTICE.md": {
+     "bytes": 1778,
+     "sha256": "d5602f6ee846c04a77bab3ff5c1af6ad0b7fcd5592ba54ce567391169c730a06"
+    },
+    "weights.f32.bin": {
+     "bytes": 11082637,
+     "sha256": "682ba1ff207c51af7de5e2abeb25593362aa706b292cbcc338a1591fad0d935c"
+    },
+    "weights.int8.bin": {
+     "bytes": 3027096,
+     "sha256": "0076501c230db7d1a1cd6444b1cabd59118c473261e0bf3c148c77cf99b1f8b8"
+    }
+   }
+  },
+  "rwkv-small-two-head": {
+   "model": "the show-time two-head cool-down for Small (SM118)",
+   "key": "sm118",
+   "label": "sm118-e26-dec2ep32k-t91s2",
+   "size": "Small",
+   "variant": "two-head",
+   "source": "C:/Users/jonat/workspace/wt/fork-rc-export/artifacts/models/sm118",
+   "source_files_left_out": [],
+   "integration_part_b": "artifacts/hf-family/repo-new/rwkv-small-two-head/INTEGRATION.md",
+   "state_format": {
+    "name": "F6",
+    "label": "w8+lr2.16.4q6x8",
+    "byte": "0x26",
+    "factors": "int6 factor codes (a float16 scale of max/31 per factor vector, codes in [-31, 31], bit-packed four codes in three bytes)"
+   },
+   "fork_files": [
+    {
+     "path": "weights.f32.bin",
+     "bytes": 1351553,
+     "sha256": "379168c80e8d546ebac892adda49e9a012b71c92b44cf8c9f94d4202f2530c3c",
+     "fork_path": "qt/aqt/rwkv_inference/sm118/weights.f32.bin",
+     "fork_identical": true,
+     "fork": "identical: `sm118/weights.f32.bin`"
+    },
+    {
+     "path": "weights.int8.bin",
+     "bytes": 436391,
+     "sha256": "12d3c2d658738e6132a05deadb4014f482fa9d42da2c64d0f0c7112f3f7672c6",
+     "fork_path": "qt/aqt/rwkv_inference/sm118/weights.int8.bin",
+     "fork_identical": true,
+     "fork": "identical: `sm118/weights.int8.bin`"
+    },
+    {
+     "path": "master.pth",
+     "bytes": 1489805,
+     "sha256": "b4fe1175d25a7e6abff70e87ac0af1f4d76db9622d54f7cb53196fbf35117eb6",
+     "fork_identical": null,
+     "fork": "not shipped by the fork (the fork's build bundles weights.f32.bin)"
+    },
+    {
+     "path": "time_head.f32.bin",
+     "bytes": 276402,
+     "sha256": "9ffa3ad6e03e55464dbafd7f9dd989fae1fb151531a5aa64784ced7fcc2f561e",
+     "fork_path": "qt/aqt/rwkv_inference/sm118/time_head.f32.bin",
+     "fork_identical": true,
+     "fork": "identical: `sm118/time_head.f32.bin`"
+    },
+    {
+     "path": "time_head.int8.bin",
+     "bytes": 70586,
+     "sha256": "c1db73daaecbee6c77622e6c25e335fb37f51205eaf11916a0fe621821941d0e",
+     "fork_path": "qt/aqt/rwkv_inference/sm118/time_head.int8.bin",
+     "fork_identical": true,
+     "fork": "identical: `sm118/time_head.int8.bin`"
+    },
+    {
+     "path": "time_head.json",
+     "bytes": 4374,
+     "sha256": "8e7be9e1155e7a8daf1243ea728fad322feb00354183df4e1969ee44514575f2",
+     "fork_path": "qt/aqt/rwkv_inference/sm118/time_head.json",
+     "fork_identical": true,
+     "fork": "identical: `sm118/time_head.json`"
+    }
+   ],
+   "time_vectors": {
+    "key": "sm118",
+    "kind": "expertium",
+    "package": "C:\\Users\\jonat\\workspace\\wt\\fork-rc-export\\artifacts\\models\\sm118",
+    "users": {
+     "900001": {
+      "time_rows": 1588,
+      "frozen_rows": 500,
+      "fixture_rows": 233,
+      "fixture_max_abs_logit_diff_fp32": 0.0,
+      "fixture_max_abs_logit_diff_int8": 0.0
+     },
+     "900002": {
+      "time_rows": 1406,
+      "frozen_rows": 500,
+      "fixture_rows": 228,
+      "fixture_max_abs_logit_diff_fp32": 0.0,
+      "fixture_max_abs_logit_diff_int8": 0.0
+     }
+    },
+    "trunk": "master.pth == weights.f32.bin, 420 tensors bit for bit",
+    "head": {
+     "format_version": 2.0,
+     "inputs": 474,
+     "f32_sha256": "9ffa3ad6e03e55464dbafd7f9dd989fae1fb151531a5aa64784ced7fcc2f561e",
+     "int8_sha256": "c1db73daaecbee6c77622e6c25e335fb37f51205eaf11916a0fe621821941d0e"
+    },
+    "fixture_max_abs_logit_diff": 0.0,
+    "fixture": {
+     "path": "C:/Users/jonat/workspace/anki-rwkv/work/release-2026-11-28/fork-main/sm118/fixture-time-vectors.json.gz",
+     "sha256": "0071a526fe22da8f18e5ca535a9bb39e82997fc91adb2b11863484ece1467bce"
+    },
+    "result": "PASS"
+   },
+   "files": {
+    "architecture.json": {
+     "bytes": 16034,
+     "sha256": "9bd41f1189dc0113277d371223ce805612aaec07101804160fe86312eed15de3"
+    },
+    "INTEGRATION.md": {
+     "bytes": 78536,
+     "sha256": "f47bf70de9151023372a8e0a2c04d0d2882e0a2975f3c9e4be4d0219cac10c59"
+    },
+    "manifest.json": {
+     "bytes": 25898,
+     "sha256": "7c8d97ba750c068d40fb72f8dab7c5d1745deacd0f286b26adab40151cb9a8fb"
+    },
+    "master.pth": {
+     "bytes": 1489805,
+     "sha256": "b4fe1175d25a7e6abff70e87ac0af1f4d76db9622d54f7cb53196fbf35117eb6"
+    },
+    "parity.json": {
+     "bytes": 3158,
+     "sha256": "6262ab0df1810e64818bd369dc15845b9a2e131d9be773a54089d907f6d18b34"
+    },
+    "reference/answer_time_numpy.py": {
+     "bytes": 7068,
+     "sha256": "ebc0fe738dac3df9a99014eb23b392e31bbae251d033f4b68302eec63ce6717b"
+    },
+    "reference/run_reference.py": {
+     "bytes": 5146,
+     "sha256": "14eca81d0a81fced4d2af3159ef13bae8d5d82ce31899aa6138825487029632e"
+    },
+    "reference/small_model_numpy.py": {
+     "bytes": 11480,
+     "sha256": "adb807c3375a1ff7747b4be092abb3d65494c3263d1e94364527c665d00dcbf8"
+    },
+    "reference/small_model_recurrent.py": {
+     "bytes": 9717,
+     "sha256": "1fe71c23f87d9cbdde864042a952a4e4f128d8e70d473827e024f7d0f0547efc"
+    },
+    "reference/weights_io.py": {
+     "bytes": 2199,
+     "sha256": "4d46a2c6b3f4c9bc613fec14efcad2d7732be096448275d1d6e3e0a0746f22da"
+    },
+    "testvectors/check_testvectors.py": {
+     "bytes": 2184,
+     "sha256": "b133551b016f0e4a5b70e46e99b344a9ac86026a742a9f9af860945c7a530fbb"
+    },
+    "testvectors/check_time_vectors.py": {
+     "bytes": 3202,
+     "sha256": "ab98d3da08f993b64acc60b42e7738fa747092a7656d4cd3c3a16b070774235f"
+    },
+    "testvectors/make_testvectors.py": {
+     "bytes": 7640,
+     "sha256": "5801fa61d4083a892fc0cacf5ed28f5ceb2621ba0aa7dd9c7247c917c67454fa"
+    },
+    "testvectors/time_user_900001.npz": {
+     "bytes": 2093757,
+     "sha256": "9c27cf3442e94c2b199eec687d80e83d57658ae4cb0891deb6f8dda9779e6895"
+    },
+    "testvectors/time_user_900002.npz": {
+     "bytes": 1995705,
+     "sha256": "3c8e00a408fc3f3e543417f23b7efd3c2ab16f3c4aae5e2a0485a80379e5bceb"
+    },
+    "testvectors/user_900001.npz": {
+     "bytes": 721744,
+     "sha256": "3247f5c8ebfba0af20a970540e4805f8fae981ffce650cd3a5cc5691c2a368c8"
+    },
+    "testvectors/user_900002.npz": {
+     "bytes": 633932,
+     "sha256": "e2f98ec7d2a3209c4bd5216ac1c44db26b21bcdcb17a216fa180a270f8c8ee34"
+    },
+    "time_head.f32.bin": {
+     "bytes": 276402,
+     "sha256": "9ffa3ad6e03e55464dbafd7f9dd989fae1fb151531a5aa64784ced7fcc2f561e"
+    },
+    "time_head.int8.bin": {
+     "bytes": 70586,
+     "sha256": "c1db73daaecbee6c77622e6c25e335fb37f51205eaf11916a0fe621821941d0e"
+    },
+    "time_head.json": {
+     "bytes": 4374,
+     "sha256": "8e7be9e1155e7a8daf1243ea728fad322feb00354183df4e1969ee44514575f2"
+    },
+    "WEIGHTS-NOTICE.md": {
+     "bytes": 1778,
+     "sha256": "d5602f6ee846c04a77bab3ff5c1af6ad0b7fcd5592ba54ce567391169c730a06"
+    },
+    "weights.f32.bin": {
+     "bytes": 1351553,
+     "sha256": "379168c80e8d546ebac892adda49e9a012b71c92b44cf8c9f94d4202f2530c3c"
+    },
+    "weights.int8.bin": {
+     "bytes": 436391,
+     "sha256": "12d3c2d658738e6132a05deadb4014f482fa9d42da2c64d0f0c7112f3f7672c6"
+    }
+   }
+  },
+  "rwkv-small-instant-only": {
+   "model": "the longer Small Instant-Only model (SM113)",
+   "key": "sm113",
+   "label": "sm113-inst-e35st-st-dec2ep32k-t99",
+   "size": "Small",
+   "variant": "Instant-Only",
+   "source": "C:/Users/jonat/workspace/wt/time-heads-package/artifacts/models/sm113",
+   "source_files_left_out": [],
+   "integration_part_b": "artifacts/hf-family/repo-new/rwkv-small-instant-only/INTEGRATION.md",
+   "state_format": {
+    "name": "F6",
+    "label": "w8+lr2.16.4q6x8",
+    "byte": "0x26",
+    "factors": "int6 factor codes (a float16 scale of max/31 per factor vector, codes in [-31, 31], bit-packed four codes in three bytes)"
+   },
+   "fork_files": [
+    {
+     "path": "weights.f32.bin",
+     "bytes": 1351553,
+     "sha256": "cc87f080eb5f25405aa2afc85fe532b9f59888aa6bbf1464e1a445cb92c42388",
+     "fork_path": "qt/aqt/rwkv_inference/sm113/weights.f32.bin",
+     "fork_identical": true,
+     "fork": "identical: `sm113/weights.f32.bin`"
+    },
+    {
+     "path": "weights.int8.bin",
+     "bytes": 436391,
+     "sha256": "87bce8dbb48a11dd599646547d241b39b6c881a8f7702aacd6284f6a9d1ecc54",
+     "fork_path": "qt/aqt/rwkv_inference/sm113/weights.int8.bin",
+     "fork_identical": true,
+     "fork": "identical: `sm113/weights.int8.bin`"
+    },
+    {
+     "path": "master.pth",
+     "bytes": 1489805,
+     "sha256": "e4574e2aa8b2cfe6360dbd86f2a75b71d23ea81677b00ffcc9c3abce6b4cb736",
+     "fork_identical": null,
+     "fork": "not shipped by the fork (the fork's build bundles weights.f32.bin)"
+    },
+    {
+     "path": "time_head.f32.bin",
+     "bytes": 276402,
+     "sha256": "8c2add105e0ca05e8d068923dc45914fba45f4b9ce77ed11565ff5f0e48527f9",
+     "fork_path": "qt/aqt/rwkv_inference/sm113/time_head.f32.bin",
+     "fork_identical": true,
+     "fork": "identical: `sm113/time_head.f32.bin`"
+    },
+    {
+     "path": "time_head.int8.bin",
+     "bytes": 70586,
+     "sha256": "692878669f94d1ececaf0acbb26add421701f435108d0ca6d745d9e205723152",
+     "fork_path": "qt/aqt/rwkv_inference/sm113/time_head.int8.bin",
+     "fork_identical": true,
+     "fork": "identical: `sm113/time_head.int8.bin`"
+    },
+    {
+     "path": "time_head.json",
+     "bytes": 4367,
+     "sha256": "7d50c72f0cf98a619aa7d538299f7a8d875d7e7399cc40ba6614b54cb64a424e",
+     "fork_path": "qt/aqt/rwkv_inference/sm113/time_head.json",
+     "fork_identical": true,
+     "fork": "identical: `sm113/time_head.json`"
+    }
+   ],
+   "time_vectors": {
+    "key": "sm113",
+    "kind": "expertium",
+    "package": "C:\\Users\\jonat\\workspace\\wt\\time-heads-package\\artifacts\\models\\sm113",
+    "users": {
+     "900001": {
+      "time_rows": 1588,
+      "frozen_rows": 500,
+      "fixture_rows": 233,
+      "fixture_max_abs_logit_diff_fp32": 0.0,
+      "fixture_max_abs_logit_diff_int8": 0.0
+     },
+     "900002": {
+      "time_rows": 1406,
+      "frozen_rows": 500,
+      "fixture_rows": 228,
+      "fixture_max_abs_logit_diff_fp32": 0.0,
+      "fixture_max_abs_logit_diff_int8": 0.0
+     }
+    },
+    "trunk": "master.pth == weights.f32.bin, 420 tensors bit for bit",
+    "head": {
+     "format_version": 2.0,
+     "inputs": 474,
+     "f32_sha256": "8c2add105e0ca05e8d068923dc45914fba45f4b9ce77ed11565ff5f0e48527f9",
+     "int8_sha256": "692878669f94d1ececaf0acbb26add421701f435108d0ca6d745d9e205723152"
+    },
+    "fixture_max_abs_logit_diff": 0.0,
+    "fixture": {
+     "path": "C:/Users/jonat/workspace/anki-rwkv/work/release-2026-11-28/fork-main/sm113/fixture-time-vectors.json.gz",
+     "sha256": "767cf9ade3cba0510567776d782d4d8c26f66745eaf4322063dc3b7687e966f6"
+    },
+    "result": "PASS"
+   },
+   "files": {
+    "architecture.json": {
+     "bytes": 16034,
+     "sha256": "9bd41f1189dc0113277d371223ce805612aaec07101804160fe86312eed15de3"
+    },
+    "INTEGRATION.md": {
+     "bytes": 79300,
+     "sha256": "dfb3d40103093b84016b3d8b744b7f4c71dbda2cfc48d36f0fbcf473ef72dd23"
+    },
+    "manifest.json": {
+     "bytes": 29197,
+     "sha256": "5138c7a1f847935ef77591c89d4093769ab363f4fdd4f33ac6a0d848f6e5543c"
+    },
+    "master.pth": {
+     "bytes": 1489805,
+     "sha256": "e4574e2aa8b2cfe6360dbd86f2a75b71d23ea81677b00ffcc9c3abce6b4cb736"
+    },
+    "parity.json": {
+     "bytes": 3162,
+     "sha256": "e065a2d1f771803b215851f79c2073934804d58b47bdfce082a1b6087b4638d1"
+    },
+    "reference/answer_time_numpy.py": {
+     "bytes": 7068,
+     "sha256": "ebc0fe738dac3df9a99014eb23b392e31bbae251d033f4b68302eec63ce6717b"
+    },
+    "reference/run_reference.py": {
+     "bytes": 5146,
+     "sha256": "14eca81d0a81fced4d2af3159ef13bae8d5d82ce31899aa6138825487029632e"
+    },
+    "reference/small_model_numpy.py": {
+     "bytes": 11480,
+     "sha256": "adb807c3375a1ff7747b4be092abb3d65494c3263d1e94364527c665d00dcbf8"
+    },
+    "reference/small_model_recurrent.py": {
+     "bytes": 9717,
+     "sha256": "1fe71c23f87d9cbdde864042a952a4e4f128d8e70d473827e024f7d0f0547efc"
+    },
+    "reference/weights_io.py": {
+     "bytes": 2199,
+     "sha256": "4d46a2c6b3f4c9bc613fec14efcad2d7732be096448275d1d6e3e0a0746f22da"
+    },
+    "testvectors/check_testvectors.py": {
+     "bytes": 2184,
+     "sha256": "b133551b016f0e4a5b70e46e99b344a9ac86026a742a9f9af860945c7a530fbb"
+    },
+    "testvectors/check_time_vectors.py": {
+     "bytes": 3202,
+     "sha256": "ab98d3da08f993b64acc60b42e7738fa747092a7656d4cd3c3a16b070774235f"
+    },
+    "testvectors/make_testvectors.py": {
+     "bytes": 7640,
+     "sha256": "5801fa61d4083a892fc0cacf5ed28f5ceb2621ba0aa7dd9c7247c917c67454fa"
+    },
+    "testvectors/time_user_900001.npz": {
+     "bytes": 2093798,
+     "sha256": "5b4599eba99285326a093330f7796eebb00da2a12fa68782302c4c445b133da6"
+    },
+    "testvectors/time_user_900002.npz": {
+     "bytes": 1996905,
+     "sha256": "d394b7bd7ceae9957ac2158871cc15d898acb0b3a1ec2645c4b2133c7fd97a25"
+    },
+    "testvectors/user_900001.npz": {
+     "bytes": 697497,
+     "sha256": "1e1c5ee231aafdaeb815fd396462e545f10749a565fcdf1e83cd2b5c4d05c9bb"
+    },
+    "testvectors/user_900002.npz": {
+     "bytes": 611442,
+     "sha256": "b58985dd4349ad739cf39cc07ad2cdc44ec20f080f2e71971b9fdb4bf139f1d7"
+    },
+    "time_head.f32.bin": {
+     "bytes": 276402,
+     "sha256": "8c2add105e0ca05e8d068923dc45914fba45f4b9ce77ed11565ff5f0e48527f9"
+    },
+    "time_head.int8.bin": {
+     "bytes": 70586,
+     "sha256": "692878669f94d1ececaf0acbb26add421701f435108d0ca6d745d9e205723152"
+    },
+    "time_head.json": {
+     "bytes": 4367,
+     "sha256": "7d50c72f0cf98a619aa7d538299f7a8d875d7e7399cc40ba6614b54cb64a424e"
+    },
+    "WEIGHTS-NOTICE.md": {
+     "bytes": 1778,
+     "sha256": "d5602f6ee846c04a77bab3ff5c1af6ad0b7fcd5592ba54ce567391169c730a06"
+    },
+    "weights.f32.bin": {
+     "bytes": 1351553,
+     "sha256": "cc87f080eb5f25405aa2afc85fe532b9f59888aa6bbf1464e1a445cb92c42388"
+    },
+    "weights.int8.bin": {
+     "bytes": 436391,
+     "sha256": "87bce8dbb48a11dd599646547d241b39b6c881a8f7702aacd6284f6a9d1ecc54"
+    }
+   }
+  },
+  "rwkv-tiny-two-head": {
+   "model": "the six-layer Tiny two-head model (SM130)",
+   "key": "sm130th",
+   "label": "sm130-th-dec2ep32k-t91s2",
+   "size": "Tiny",
+   "variant": "two-head",
+   "source": "C:/Users/jonat/workspace/wt/fork-rc-export/artifacts/models/sm130th",
+   "source_files_left_out": [],
+   "integration_part_b": "artifacts/hf-family/repo-new/rwkv-tiny-two-head/INTEGRATION.md",
+   "state_format": {
+    "name": "T24",
+    "label": "w8+lr2.16.4q8x8",
+    "byte": "0x28",
+    "factors": "int8 factor codes (a float16 scale of max/127 per factor vector, codes in [-127, 127])"
+   },
+   "fork_files": [
+    {
+     "path": "weights.f32.bin",
+     "bytes": 752409,
+     "sha256": "4d64bc9c1dc2432e016596ade4d3575933ad74bbbad3cc4672977bc871c7c232",
+     "fork_path": "qt/aqt/rwkv_inference/sm130th/weights.f32.bin",
+     "fork_identical": true,
+     "fork": "identical: `sm130th/weights.f32.bin`"
+    },
+    {
+     "path": "weights.int8.bin",
+     "bytes": 238585,
+     "sha256": "cef6ac7391eb611ae36046b324b7e189693c1982b42f4cf4212569ab3f765220",
+     "fork_path": "qt/aqt/rwkv_inference/sm130th/weights.int8.bin",
+     "fork_identical": true,
+     "fork": "identical: `sm130th/weights.int8.bin`"
+    },
+    {
+     "path": "master.pth",
+     "bytes": 818819,
+     "sha256": "48a5e724cf38b53a32d570d4d034791f1da2cfcbe878572ff03ad434d7fb75af",
+     "fork_identical": null,
+     "fork": "not shipped by the fork (the fork's build bundles weights.f32.bin)"
+    },
+    {
+     "path": "time_head.f32.bin",
+     "bytes": 210866,
+     "sha256": "411e29c31220b9cfae4efe846a71c147ffb8e1f92d527f35ac1db0e27c0fc949",
+     "fork_path": "qt/aqt/rwkv_inference/sm130th/time_head.f32.bin",
+     "fork_identical": true,
+     "fork": "identical: `sm130th/time_head.f32.bin`"
+    },
+    {
+     "path": "time_head.int8.bin",
+     "bytes": 54202,
+     "sha256": "4ce90a46965e308a0785706804601aa6cc0f9e7aeee0f617b0882fa1c31a704f",
+     "fork_path": "qt/aqt/rwkv_inference/sm130th/time_head.int8.bin",
+     "fork_identical": true,
+     "fork": "identical: `sm130th/time_head.int8.bin`"
+    },
+    {
+     "path": "time_head.json",
+     "bytes": 4209,
+     "sha256": "93ab1be8335302c4dff5762e6fd548a77851f5c60eaf559a2a36b62a1f6f3744",
+     "fork_path": "qt/aqt/rwkv_inference/sm130th/time_head.json",
+     "fork_identical": true,
+     "fork": "identical: `sm130th/time_head.json`"
+    }
+   ],
+   "time_vectors": {
+    "key": "sm130th",
+    "kind": "expertium",
+    "package": "C:\\Users\\jonat\\workspace\\wt\\fork-rc-export\\artifacts\\models\\sm130th",
+    "users": {
+     "900001": {
+      "time_rows": 1588,
+      "frozen_rows": 500,
+      "fixture_rows": 233,
+      "fixture_max_abs_logit_diff_fp32": 0.0,
+      "fixture_max_abs_logit_diff_int8": 0.0
+     },
+     "900002": {
+      "time_rows": 1406,
+      "frozen_rows": 500,
+      "fixture_rows": 228,
+      "fixture_max_abs_logit_diff_fp32": 0.0,
+      "fixture_max_abs_logit_diff_int8": 0.0
+     }
+    },
+    "trunk": "master.pth == weights.f32.bin, 210 tensors bit for bit",
+    "head": {
+     "format_version": 2.0,
+     "inputs": 346,
+     "f32_sha256": "411e29c31220b9cfae4efe846a71c147ffb8e1f92d527f35ac1db0e27c0fc949",
+     "int8_sha256": "4ce90a46965e308a0785706804601aa6cc0f9e7aeee0f617b0882fa1c31a704f"
+    },
+    "fixture_max_abs_logit_diff": 0.0,
+    "fixture": {
+     "path": "C:/Users/jonat/workspace/anki-rwkv/work/release-2026-11-28/fork-main/sm130th/fixture-time-vectors.json.gz",
+     "sha256": "3404be1a661358132798f4ad9e23650df3c813a45e72379800b93ebbcceaaeb4"
+    },
+    "result": "PASS"
+   },
+   "files": {
+    "architecture.json": {
+     "bytes": 9083,
+     "sha256": "e5acb452e53788141c44d3ad9d98bcec124b9cfbecaa29718085717ee4022618"
+    },
+    "INTEGRATION.md": {
+     "bytes": 81760,
+     "sha256": "61ab1bace16b37e3de135fac1f3b289ea0e074bcf0c030f7aa3cf2bf79fb818d"
+    },
+    "manifest.json": {
+     "bytes": 25691,
+     "sha256": "a8809ec61caf02a997d61e65cf34afaaa0da2124fd000f4c434b337cdf50e7bb"
+    },
+    "master.pth": {
+     "bytes": 818819,
+     "sha256": "48a5e724cf38b53a32d570d4d034791f1da2cfcbe878572ff03ad434d7fb75af"
+    },
+    "parity.json": {
+     "bytes": 3163,
+     "sha256": "9e4baa2eeed73a8e8c8267465497471a147a8ca94e454a760c88033cb008a660"
+    },
+    "reference/answer_time_numpy.py": {
+     "bytes": 7068,
+     "sha256": "ebc0fe738dac3df9a99014eb23b392e31bbae251d033f4b68302eec63ce6717b"
+    },
+    "reference/run_reference.py": {
+     "bytes": 5146,
+     "sha256": "14eca81d0a81fced4d2af3159ef13bae8d5d82ce31899aa6138825487029632e"
+    },
+    "reference/small_model_numpy.py": {
+     "bytes": 11480,
+     "sha256": "adb807c3375a1ff7747b4be092abb3d65494c3263d1e94364527c665d00dcbf8"
+    },
+    "reference/small_model_recurrent.py": {
+     "bytes": 9717,
+     "sha256": "1fe71c23f87d9cbdde864042a952a4e4f128d8e70d473827e024f7d0f0547efc"
+    },
+    "reference/weights_io.py": {
+     "bytes": 2199,
+     "sha256": "4d46a2c6b3f4c9bc613fec14efcad2d7732be096448275d1d6e3e0a0746f22da"
+    },
+    "testvectors/check_testvectors.py": {
+     "bytes": 2184,
+     "sha256": "b133551b016f0e4a5b70e46e99b344a9ac86026a742a9f9af860945c7a530fbb"
+    },
+    "testvectors/check_time_vectors.py": {
+     "bytes": 3202,
+     "sha256": "ab98d3da08f993b64acc60b42e7738fa747092a7656d4cd3c3a16b070774235f"
+    },
+    "testvectors/make_testvectors.py": {
+     "bytes": 7640,
+     "sha256": "5801fa61d4083a892fc0cacf5ed28f5ceb2621ba0aa7dd9c7247c917c67454fa"
+    },
+    "testvectors/time_user_900001.npz": {
+     "bytes": 1609823,
+     "sha256": "b6785701c867305f251d5376d393ca5d1b81fdb216aec745b423b52e03dc763f"
+    },
+    "testvectors/time_user_900002.npz": {
+     "bytes": 1515834,
+     "sha256": "381f5ac2ac5cb96d3ff64abe282be528e1a1f2d5927b7918792138cfac6e07a2"
+    },
+    "testvectors/user_900001.npz": {
+     "bytes": 722232,
+     "sha256": "871dd8c36678ec9246f09b5b721b69323e5d4e07479aca0feefd0d4684ca10d8"
+    },
+    "testvectors/user_900002.npz": {
+     "bytes": 634589,
+     "sha256": "39d6b9ee9269448e8667e595c178ae814186fecfebd5456a9c2f74553e833094"
+    },
+    "time_head.f32.bin": {
+     "bytes": 210866,
+     "sha256": "411e29c31220b9cfae4efe846a71c147ffb8e1f92d527f35ac1db0e27c0fc949"
+    },
+    "time_head.int8.bin": {
+     "bytes": 54202,
+     "sha256": "4ce90a46965e308a0785706804601aa6cc0f9e7aeee0f617b0882fa1c31a704f"
+    },
+    "time_head.json": {
+     "bytes": 4209,
+     "sha256": "93ab1be8335302c4dff5762e6fd548a77851f5c60eaf559a2a36b62a1f6f3744"
+    },
+    "WEIGHTS-NOTICE.md": {
+     "bytes": 1778,
+     "sha256": "d5602f6ee846c04a77bab3ff5c1af6ad0b7fcd5592ba54ce567391169c730a06"
+    },
+    "weights.f32.bin": {
+     "bytes": 752409,
+     "sha256": "4d64bc9c1dc2432e016596ade4d3575933ad74bbbad3cc4672977bc871c7c232"
+    },
+    "weights.int8.bin": {
+     "bytes": 238585,
+     "sha256": "cef6ac7391eb611ae36046b324b7e189693c1982b42f4cf4212569ab3f765220"
+    }
+   }
+  },
+  "rwkv-tiny-instant-only": {
+   "model": "the six-layer Tiny Instant-Only model (SM130)",
+   "key": "sm130io",
+   "label": "sm130-io-dec2ep32k-t99",
+   "size": "Tiny",
+   "variant": "Instant-Only",
+   "source": "C:/Users/jonat/workspace/wt/fork-rc-export/artifacts/models/sm130io",
+   "source_files_left_out": [],
+   "integration_part_b": "artifacts/hf-family/repo-new/rwkv-tiny-instant-only/INTEGRATION.md",
+   "state_format": {
+    "name": "T24",
+    "label": "w8+lr2.16.4q8x8",
+    "byte": "0x28",
+    "factors": "int8 factor codes (a float16 scale of max/127 per factor vector, codes in [-127, 127])"
+   },
+   "fork_files": [
+    {
+     "path": "weights.f32.bin",
+     "bytes": 752409,
+     "sha256": "89703de0a195426905e59a0abd428a52a09b0eab1ba653b5a902e5f849018f82",
+     "fork_path": "qt/aqt/rwkv_inference/sm130io/weights.f32.bin",
+     "fork_identical": true,
+     "fork": "identical: `sm130io/weights.f32.bin`"
+    },
+    {
+     "path": "weights.int8.bin",
+     "bytes": 238585,
+     "sha256": "24b39f61129bd9eb45156f45a32e749e1a0cf8d75e9271c2ed7038f9d6265771",
+     "fork_path": "qt/aqt/rwkv_inference/sm130io/weights.int8.bin",
+     "fork_identical": true,
+     "fork": "identical: `sm130io/weights.int8.bin`"
+    },
+    {
+     "path": "master.pth",
+     "bytes": 818819,
+     "sha256": "23f037282379199bd113a5297737c920fcbefd702b7b76eecc0095b8a31186a2",
+     "fork_identical": null,
+     "fork": "not shipped by the fork (the fork's build bundles weights.f32.bin)"
+    },
+    {
+     "path": "time_head.f32.bin",
+     "bytes": 210866,
+     "sha256": "d4a5423084400514a9f0a6f1db314e76ad197a4d790997f950012f42b5a396c5",
+     "fork_path": "qt/aqt/rwkv_inference/sm130io/time_head.f32.bin",
+     "fork_identical": true,
+     "fork": "identical: `sm130io/time_head.f32.bin`"
+    },
+    {
+     "path": "time_head.int8.bin",
+     "bytes": 54202,
+     "sha256": "f3e27cc22bda5131442abefbf50fdb8c67f46428e6d924f6529c9f18f6b7c086",
+     "fork_path": "qt/aqt/rwkv_inference/sm130io/time_head.int8.bin",
+     "fork_identical": true,
+     "fork": "identical: `sm130io/time_head.int8.bin`"
+    },
+    {
+     "path": "time_head.json",
+     "bytes": 4213,
+     "sha256": "a8f337278f4546bbcbffb5f7d29ec296654a3283c2ee8db39f7c7e7c831b314f",
+     "fork_path": "qt/aqt/rwkv_inference/sm130io/time_head.json",
+     "fork_identical": true,
+     "fork": "identical: `sm130io/time_head.json`"
+    }
+   ],
+   "time_vectors": {
+    "key": "sm130io",
+    "kind": "expertium",
+    "package": "C:\\Users\\jonat\\workspace\\wt\\fork-rc-export\\artifacts\\models\\sm130io",
+    "users": {
+     "900001": {
+      "time_rows": 1588,
+      "frozen_rows": 500,
+      "fixture_rows": 233,
+      "fixture_max_abs_logit_diff_fp32": 0.0,
+      "fixture_max_abs_logit_diff_int8": 0.0
+     },
+     "900002": {
+      "time_rows": 1406,
+      "frozen_rows": 500,
+      "fixture_rows": 228,
+      "fixture_max_abs_logit_diff_fp32": 0.0,
+      "fixture_max_abs_logit_diff_int8": 0.0
+     }
+    },
+    "trunk": "master.pth == weights.f32.bin, 210 tensors bit for bit",
+    "head": {
+     "format_version": 2.0,
+     "inputs": 346,
+     "f32_sha256": "d4a5423084400514a9f0a6f1db314e76ad197a4d790997f950012f42b5a396c5",
+     "int8_sha256": "f3e27cc22bda5131442abefbf50fdb8c67f46428e6d924f6529c9f18f6b7c086"
+    },
+    "fixture_max_abs_logit_diff": 0.0,
+    "fixture": {
+     "path": "C:/Users/jonat/workspace/anki-rwkv/work/release-2026-11-28/fork-main/sm130io/fixture-time-vectors.json.gz",
+     "sha256": "1765f90a4f45838e3bc2b2e26fcea700a8f55fef7be2088af1daf98fb33657b1"
+    },
+    "result": "PASS"
+   },
+   "files": {
+    "architecture.json": {
+     "bytes": 9083,
+     "sha256": "e5acb452e53788141c44d3ad9d98bcec124b9cfbecaa29718085717ee4022618"
+    },
+    "INTEGRATION.md": {
+     "bytes": 81619,
+     "sha256": "9318154cfe113b956257dc2d29c0b15486ca305dd01f03cc455f97e23a1bc159"
+    },
+    "manifest.json": {
+     "bytes": 25275,
+     "sha256": "6c1e77e373108ff325011abf26430d759c7ed5a87e9c7d26027383b2e04cf8e0"
+    },
+    "master.pth": {
+     "bytes": 818819,
+     "sha256": "23f037282379199bd113a5297737c920fcbefd702b7b76eecc0095b8a31186a2"
+    },
+    "parity.json": {
+     "bytes": 3154,
+     "sha256": "21ee2bf999e35accb4108d37c080ad8c567a9057b095ce348c08aceb3472ab91"
+    },
+    "reference/answer_time_numpy.py": {
+     "bytes": 7068,
+     "sha256": "ebc0fe738dac3df9a99014eb23b392e31bbae251d033f4b68302eec63ce6717b"
+    },
+    "reference/run_reference.py": {
+     "bytes": 5146,
+     "sha256": "14eca81d0a81fced4d2af3159ef13bae8d5d82ce31899aa6138825487029632e"
+    },
+    "reference/small_model_numpy.py": {
+     "bytes": 11480,
+     "sha256": "adb807c3375a1ff7747b4be092abb3d65494c3263d1e94364527c665d00dcbf8"
+    },
+    "reference/small_model_recurrent.py": {
+     "bytes": 9717,
+     "sha256": "1fe71c23f87d9cbdde864042a952a4e4f128d8e70d473827e024f7d0f0547efc"
+    },
+    "reference/weights_io.py": {
+     "bytes": 2199,
+     "sha256": "4d46a2c6b3f4c9bc613fec14efcad2d7732be096448275d1d6e3e0a0746f22da"
+    },
+    "testvectors/check_testvectors.py": {
+     "bytes": 2184,
+     "sha256": "b133551b016f0e4a5b70e46e99b344a9ac86026a742a9f9af860945c7a530fbb"
+    },
+    "testvectors/check_time_vectors.py": {
+     "bytes": 3202,
+     "sha256": "ab98d3da08f993b64acc60b42e7738fa747092a7656d4cd3c3a16b070774235f"
+    },
+    "testvectors/make_testvectors.py": {
+     "bytes": 7640,
+     "sha256": "5801fa61d4083a892fc0cacf5ed28f5ceb2621ba0aa7dd9c7247c917c67454fa"
+    },
+    "testvectors/time_user_900001.npz": {
+     "bytes": 1611915,
+     "sha256": "9008918050d68a71b74f701cceb800c47a049d821d89e0e03e15ac8aecf4ba8d"
+    },
+    "testvectors/time_user_900002.npz": {
+     "bytes": 1513260,
+     "sha256": "eb0e4e5a9468deb197fc54c711b72cc6fb9bce4738d0aa807679d2ada547335e"
+    },
+    "testvectors/user_900001.npz": {
+     "bytes": 670260,
+     "sha256": "8e370ff5cb16bae4cfdc05c9d3f57fd5c50e664fc540bb79995c3806ac21c11a"
+    },
+    "testvectors/user_900002.npz": {
+     "bytes": 587676,
+     "sha256": "c2ad927995007445f34f30015f57b212063c7425224d96410226aaf6e05c57f8"
+    },
+    "time_head.f32.bin": {
+     "bytes": 210866,
+     "sha256": "d4a5423084400514a9f0a6f1db314e76ad197a4d790997f950012f42b5a396c5"
+    },
+    "time_head.int8.bin": {
+     "bytes": 54202,
+     "sha256": "f3e27cc22bda5131442abefbf50fdb8c67f46428e6d924f6529c9f18f6b7c086"
+    },
+    "time_head.json": {
+     "bytes": 4213,
+     "sha256": "a8f337278f4546bbcbffb5f7d29ec296654a3283c2ee8db39f7c7e7c831b314f"
+    },
+    "WEIGHTS-NOTICE.md": {
+     "bytes": 1778,
+     "sha256": "d5602f6ee846c04a77bab3ff5c1af6ad0b7fcd5592ba54ce567391169c730a06"
+    },
+    "weights.f32.bin": {
+     "bytes": 752409,
+     "sha256": "89703de0a195426905e59a0abd428a52a09b0eab1ba653b5a902e5f849018f82"
+    },
+    "weights.int8.bin": {
+     "bytes": 238585,
+     "sha256": "24b39f61129bd9eb45156f45a32e749e1a0cf8d75e9271c2ed7038f9d6265771"
+    }
+   }
+  }
+ },
+ "assets": {
+  "rwkv-big-two-head.zip": {
+   "bytes": 29928493,
+   "sha256": "c344bfcf09b70164a2cb88d093053869cd524b55310eb8b02feec1b4c2c738a4"
+  },
+  "rwkv-big-instant-only.zip": {
+   "bytes": 29940831,
+   "sha256": "808c9ee59baaa5e3327fcbc88223633b0b25d70737e39c33d9af02005e696472"
+  },
+  "rwkv-small-two-head.zip": {
+   "bytes": 8685862,
+   "sha256": "251c17d5dab1e45cdcde2872a3a4fd4a7601167043289fb276d962ccde670955"
+  },
+  "rwkv-small-instant-only.zip": {
+   "bytes": 8640663,
+   "sha256": "373338d6e5d469d091e27b18caf502925aee055f4c00ac65aa06a9e7145a85fd"
+  },
+  "rwkv-tiny-two-head.zip": {
+   "bytes": 6361897,
+   "sha256": "0a3cd857f9a503685a01a4b9afed3eeb12e1aec2a4e2eabeafabceb60c5f952c"
+  },
+  "rwkv-tiny-instant-only.zip": {
+   "bytes": 6261140,
+   "sha256": "8aede4745783c0a1b8d1718697e2c515ea444a1ee1e61e6cf343bdb90a239814"
+  },
+  "INTEGRATION.md": {
+   "bytes": 78536,
+   "sha256": "f47bf70de9151023372a8e0a2c04d0d2882e0a2975f3c9e4be4d0219cac10c59"
+  },
+  "WEIGHTS-NOTICE.md": {
+   "bytes": 1778,
+   "sha256": "d5602f6ee846c04a77bab3ff5c1af6ad0b7fcd5592ba54ce567391169c730a06"
+  },
+  "SHA256SUMS": {
+   "bytes": 711,
+   "sha256": "4811799afb7390df0211d9bf1f592fff1087ae67f540e4335c96863ce96a1e79"
+  }
+ }
+}

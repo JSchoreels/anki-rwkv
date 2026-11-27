@@ -613,6 +613,47 @@ def noise(args):
     return 0
 
 
+def screen(args):
+    """Adopted screening protocol (2026-10-14): k paired runs, each candidate against its own baseline (same init seed and
+    order seed). Per head: mean paired delta over the k pairs, its user-bootstrap CI, the spread of the k deltas, and
+    sigma = the larger SD of the per-run review-weighted LogLoss across the baselines and across the candidates.
+    Band = 2 x sigma x sqrt2 / sqrt k. Promote only if all k deltas share a sign and |mean| exceeds the band."""
+    pairs = [p.split("=", 1) for p in args.pairs]
+    if any(len(p) != 2 for p in pairs):
+        raise SystemExit("pairs are CANDIDATE=BASELINE")
+    k = len(pairs)
+    rows = {n: {r["user_id"]: r for r in read_jsonl(exp_dir(n) / "eval" / "per_user.jsonl")} for p in pairs for n in p}
+    sd = lambda xs: math.sqrt(sum((x - sum(xs) / len(xs)) ** 2 for x in xs) / (len(xs) - 1)) if len(xs) > 1 else float("nan")  # noqa: E731
+    out = {"pairs": pairs, "k": k, "computed_utc": now(), "sign": "candidate - baseline; negative is better", "heads": {}}
+    for head, label in (("ahead", "curve"), ("instant", "instant")):
+        users = sorted(set.intersection(*(set(r) for r in rows.values())))
+        users = [u for u in users if all(head in r[u].get("benchmark", {}) for r in rows.values())]
+        w = [rows[pairs[0][0]][u]["benchmark"][head]["size"] for u in users]
+        ll = lambda n: sum(rows[n][u]["benchmark"][head]["LogLoss"] * x for u, x in zip(users, w)) / sum(w)  # noqa: E731
+        deltas = [ll(c) - ll(b) for c, b in pairs]
+        per_user = [[rows[c][u]["benchmark"][head]["LogLoss"] - rows[b][u]["benchmark"][head]["LogLoss"] for u in users] for c, b in pairs]
+        mean_d = [sum(col) / k for col in zip(*per_user)]
+        rng = random.Random(20261014)
+        n = len(users)
+        boot = sorted(sum(mean_d[i] * w[i] for i in idx) / sum(w[i] for i in idx)
+                      for idx in ([rng.randrange(n) for _ in range(n)] for _ in range(2000)))
+        mean = sum(deltas) / k
+        sigma = max(sd([ll(b) for _, b in pairs]), sd([ll(c) for c, _ in pairs])) if k > 1 else float("nan")
+        band = 2 * sigma * math.sqrt(2) / math.sqrt(k)
+        same_sign = all(d < 0 for d in deltas) or all(d > 0 for d in deltas)
+        out["heads"][label] = {"users": n, "deltas": deltas, "mean": mean, "spread_of_deltas": sd(deltas), "sigma_run": sigma,
+                               "band": band, "ci95_user_bootstrap": [boot[int(0.025 * len(boot))], boot[int(0.975 * len(boot))]],
+                               "consistent_sign": same_sign, "clears_band": same_sign and abs(mean) > band}
+        h = out["heads"][label]
+        print(f"{label:8s} users {n}  deltas {' '.join(f'{d:+.5f}' for d in deltas)}  mean {mean:+.5f}  spread {h['spread_of_deltas']:.5f}  "
+              f"sigma {sigma:.5f}  band {band:.5f}  CI [{h['ci95_user_bootstrap'][0]:+.5f}, {h['ci95_user_bootstrap'][1]:+.5f}]  "
+              f"sign {'consistent' if same_sign else 'MIXED'}  {'CLEARS' if h['clears_band'] else 'inside band'}")
+    target = BASE / "comparisons" / ("screen--" + "--".join(f"{c}-vs-{b}" for c, b in pairs) + ".json")
+    atomic_json(target, out)
+    print(f"[screen] {target.relative_to(ROOT).as_posix()}")
+    return 0
+
+
 def check_eval(args):
     """Compare an experiment's per-user scores with a reference result.json (e.g. the full run's in-training evaluation)."""
     rows = {r["user_id"]: r for r in read_jsonl(exp_dir(args.name) / "eval" / "per_user.jsonl")}
@@ -697,6 +738,7 @@ def main():
     p.add_argument("control")
     p.add_argument("candidate")
     sub.add_parser("noise").add_argument("names", nargs="+")
+    sub.add_parser("screen").add_argument("pairs", nargs="+", help="CANDIDATE=BASELINE, one per order seed")
     p = sub.add_parser("check-eval")
     p.add_argument("name")
     p.add_argument("reference", type=Path)
@@ -704,7 +746,7 @@ def main():
     args = parser.parse_args()
     handlers = {"tiers": lambda a: build_tiers(a.split), "prepare": prepare, "train": train, "_epoch": run_epoch,
                 "evaluate": evaluate, "collection": collection, "report": report, "compare": compare,
-                "noise": noise, "check-eval": check_eval, "status": status}
+                "noise": noise, "screen": screen, "check-eval": check_eval, "status": status}
     return handlers[args.command](args)
 
 

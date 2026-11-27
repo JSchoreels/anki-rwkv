@@ -15,7 +15,7 @@
   }
  },
  "models": {
-  "expertium": "Expertium (light)",
+  "expertium": "Compact model (outside research)",
   "alex": "Alex (default)"
  },
  "headline": {
@@ -116,7 +116,7 @@
    "track": "F01-F16",
    "label": "F16",
    "track_name": "Increase preparation parallelism",
-   "description": "Prepare the next user while the current user trains, preserving ordered updates and review exposure. Raise Expertium preparation from six to eight workers with bounded queues.",
+   "description": "Prepare the next user while the current user trains, preserving ordered updates and review exposure. Raise compact-model preparation from six to eight workers with bounded queues.",
    "reviews_per_second": 70670.7230113926,
    "previous_accepted_reviews_per_second": 55810.1184518458,
    "vs_previous_accepted_percent": 26.627079411001176,
@@ -662,7 +662,7 @@
    "track": "E24-F37",
    "label": "F37",
    "track_name": "Loss without host synchronization",
-   "description": "Remove the six host synchronizations inside the Expertium training loss: two NaN checks right after the forward and four label-count reads R01 never uses. Any NaN they catch also makes the loss non-finite, which F33's deferred check still rejects one update later; same arithmetic, reviews, batches, seeds and 167 updates as 0024.",
+   "description": "Remove the six host synchronizations inside the compact-model training loss: two NaN checks right after the forward and four label-count reads R01 never uses. Any NaN they catch also makes the loss non-finite, which F33's deferred check still rejects one update later; same arithmetic, reviews, batches, seeds and 167 updates as 0024.",
    "reviews_per_second": 134890.86725792725,
    "previous_accepted_reviews_per_second": 137292.9204834901,
    "vs_previous_accepted_percent": -1.749582729469068,
@@ -767,7 +767,7 @@
    "track": "E30-F37",
    "label": "F37",
    "track_name": "Loss without host synchronization",
-   "description": "Remove two NaN synchronizations and four unused label-count host reads from Expertium loss on E30. Deferred finite checks remain active and all arithmetic is unchanged.",
+   "description": "Remove two NaN synchronizations and four unused label-count host reads from compact-model loss on E30. Deferred finite checks remain active and all arithmetic is unchanged.",
    "reviews_per_second": 151990.37124057228,
    "previous_accepted_reviews_per_second": 143293.32692255976,
    "vs_previous_accepted_percent": 6.069399395488029,
@@ -2431,7 +2431,7 @@
    "iteration": 3,
    "title": "More preparation workers (F16)",
    "kind": "host",
-   "comment": "Raising Expertium batch preparation from six to eight workers with bounded queues was the first large host-side win: the model was starved by input preparation, not by the GPU.",
+   "comment": "Raising compact-model batch preparation from six to eight workers with bounded queues was the first large host-side win: the model was starved by input preparation, not by the GPU.",
    "reviews_per_second": 70670.7230113926,
    "gain_vs_previous_accepted_percent": 26.627079411001176,
    "speedup_x": 2.3552982173435297,

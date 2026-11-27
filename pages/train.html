@@ -2,6 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<meta name="nav-label" content="8k/2k run">
+<meta name="nav-order" content="4">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>8k Training Run</title>
 <meta name="description" content="Live progress of the 8k-user training / 2k-user held-out evaluation run: which user slices each epoch has trained, and the held-out metrics after each evaluation.">
@@ -13,7 +15,7 @@
   <div class="wrap">
     <div class="top-row">
       <div>
-        <p class="eyebrow"><a href="./">anki-rwkv</a> &middot; <a href="campaign.html">R01 campaign</a> &middot; <a href="models.html">model architectures</a> &middot; full run</p>
+        <p class="eyebrow"><a href="./">anki-rwkv</a> &middot; <a href="factory.html">factory overview</a> &middot; <a href="models.html">model architectures</a> &middot; <a href="campaign.html">R01 campaign</a> &middot; 8k/2k run &middot; <a href="docs/data-quality/">data quality</a></p>
         <h1>8k / 2k training run</h1>
         <p class="lede">Each row is one epoch over the 8,000 training users, cut into slices of <span id="slice-pct">5</span>% of all users. A slice turns green once trained. The last 20% are the 2,000 held-out users: they turn green when that epoch is evaluated, and the metrics appear on the right.</p>
       </div>
@@ -76,6 +78,7 @@
 
   <section class="panel">
     <div class="panel-head"><h2>Run details</h2></div>
+    <p class="hint">This run has no end-of-run cool-down. A 0.25-epoch <code>one_minus_sin</code> decay of the learning rate at the end of full runs (accuracy experiment A08) was settled afterwards and is now the default (merged to main as <code>73f0d53</code>); it gave a small, consistent LogLoss gain on 1,000 screen users.</p>
     <div class="table-wrap">
       <table id="details"><tbody></tbody></table>
     </div>
@@ -87,5 +90,6 @@
 </footer>
 
 <script src="train.js"></script>
+<script src="nav.js" defer></script>
 </body>
 </html>

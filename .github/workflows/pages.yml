@@ -7,6 +7,7 @@ on:
       - "pages/**"
       - "docs/data-quality/**"
       - ".github/workflows/pages.yml"
+      - "scripts/build_pages_nav.py"
   workflow_dispatch:
 
 permissions:
@@ -33,6 +34,9 @@ jobs:
           mkdir -p _site/docs
           cp -r pages/. _site/
           cp -r docs/data-quality _site/docs/data-quality
+      # Shared menu: list every page (titles / nav metas) in nav.json and add nav.js where a page lacks it.
+      - name: Build site menu
+        run: python3 scripts/build_pages_nav.py _site --inject
       - uses: actions/upload-pages-artifact@v3
         with:
           path: _site

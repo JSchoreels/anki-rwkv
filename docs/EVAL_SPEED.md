@@ -107,22 +107,26 @@ Requested to decide whether fast evaluation may become the full-run default. Eve
 | iter36 epoch 09 | 300 | 2.0e-8 | 1.0e-6 | 4e-6 | yes | 898.1 (recorded) | 99.6 | yes |
 | iter36 epoch 10, final set | 2,000 | 2.0e-9 | 1.0e-6 | 1.1e-5 | yes | 5,825.3 (recorded) | 612.4 | yes |
 | upstream 2.76M baseline (`RWKV_trained_on_5000_10000.pth`), fork-unseen users < 5000 | 100 | 5.0e-8 | 3.8e-8 | 1e-6 | yes | 335.5 (standalone) | 38.7 | yes |
-| EV07 full-run smoke, iter36 trained 1 epoch on 50 users, `fast_evaluation` false vs true | 100 | P3-AGG | P3-LOSS | P3-AUC | P3-HASH | P3-REF | P3-FAST | P3-PASS |
+| EV07 full-run smoke, iter36 trained 1 epoch on 50 users, `fast_evaluation` false vs true | 100 | 1.0e-7 | 4.2e-8 | 2e-6 | yes | 232.3 (in-run reference; indicative) | 37.2 (in-run fast; indicative) | yes |
 
 Epochs 01–09 used 7 workers; epoch 07's fast row is the 5-worker run of job 1. The per-user loss maximum of 1.0e-6 is always the six-decimal rounding step of a benchmark LogLoss or RMSE (one to two users per checkpoint); the unrounded R01 losses differ by at most 9.6e-8 (epoch 02). In total 4,700 iter36 user-evaluations over 10 checkpoints plus 100 baseline user-evaluations, all with identical inputs and label counts.
 
+EV07 smoke (`artifacts/eval-speed/promotion/p3/`, `compare-runs.json`): two complete `run_full_training.py run` executions from the same tiny `run.json` (50 train users, 1 epoch, 80 validation + 20 final-test users, label DB copied key by key from the 8k run), differing only in `"fast_evaluation"`. Training was bit-identical (same trained parameter hash, updates and review presentations); per-user field sets identical; the fast result adds only `evaluation_batch_chunks` and the `fast_evaluation` timing block; both record `evaluation_mode` and the same `validation_input_sha256`; `page_state` page data has the same keys with numbers within 2.4e-8, and its final-evaluation time estimate drops from 232.3 to 37.2 s (indicative only: ticket 000312 was not a `--timing` job and other GPU or CPU work could run alongside; not a speed result). The first attempt (job 4) failed before training because the native launch DLL is cached only in the main checkout; the retry read it from there via `GPU_R01_CONTROLLER_ROOT`.
+
+Every check passes the proposed tolerance.
+
 Not covered: the Expertium width-80 variant on branch `expertium-catch-up` (`expertium/model/variant_model.py`) has a different head (GRU forgetting curve, no ahead residual, its own `_get_loss_variant`). `loss_terms` replicates only the iter36/upstream `_get_loss`, so `evaluate_fast` refuses other model classes (`supports_fast`), and a full run with such a model falls back to the reference evaluation and records `evaluation_mode` accordingly. Supporting it needs a variant-specific per-position term function (EV08).
 
-## Proposed evaluation-tolerance rule
+## Evaluation-tolerance rule
 
-PROPOSED 2026-10-14, awaiting the human decision; not in force. The exact wording for `AGENT.md` and `docs/GPU_RETRAIN_LOOP.md` is the patch [proposals/eval-tolerance-rule.diff](proposals/eval-tolerance-rule.diff) (`git apply docs/proposals/eval-tolerance-rule.diff` once approved). `scripts/check_fast_evaluation.py compare` reports the check as `tolerance.passes`.
+ADOPTED 2026-10-14, decided by the user. Applied to `AGENT.md` and `docs/GPU_RETRAIN_LOOP.md` (patch kept at [proposals/eval-tolerance-rule.diff](proposals/eval-tolerance-rule.diff)). Full runs now default to `fast_evaluation` true (2026-10-14, user decision); `fast_evaluation: false` / `--mode reference` stay available. `scripts/check_fast_evaluation.py compare` reports the check as `tolerance.passes`.
 
 - Training changes still need bit-identical parity.
 - The evaluation path may differ from the reference only by floating-point reduction order, with identical `validation_input_sha256`, identical label counts, benchmark sizes and coverage, and:
 
 | Quantity | Proposed limit | Largest observed (P1–P3) | Margin |
 |---|---|---|---|
-| Any aggregate metric | ≤ 1e-6 | 8.1e-8 (epoch 05, benchmark AUC user-average) | 12x |
+| Any aggregate metric | ≤ 1e-6 | 1.0e-7 (EV07 smoke, a user-averaged six-decimal benchmark metric); 8.1e-8 on the full-run checkpoints | 10x |
 | Per-user loss (R01 losses; benchmark LogLoss, RMSE(bins), RMSE) | ≤ 1e-5 | 1.0e-6 (six-decimal rounding step); 9.6e-8 unrounded | 10x |
 | Per-user AUC | ≤ 1e-4 | 1.6e-5 (epoch 05) | 6x |
 
@@ -149,5 +153,5 @@ Recorded as EV02–EV08 in [GPU_OPTIMIZATIONS.md](GPU_OPTIMIZATIONS.md#optimizat
 - EV04: GPU-side feature encodings for evaluation (the training path's `gpu_packed_features`) would cut worker CPU and the ~50 MB per batch transfer, but GPU `sin/cos` differ from the CPU `prepare` inputs: inputs would no longer be identical.
 - EV05: BF16 evaluation forward: faster on the GPU, which is not the bottleneck; changes results; screening only.
 - EV06: `scripts/fast_evaluation.py` is now in `R01SourceWatch` (`scripts/run_gpu_r01.py`, listed only when present in the source archive, so older archives keep their watch set).
-- EV07: a full-run smoke with `"fast_evaluation": true` to check the `run_case` wiring end to end (done in the promotion campaign above).
+- EV07: done; full-run smoke passed (promotion campaign above).
 - EV08: per-position terms for Expertium variant heads (width-80 GRU curve) so they can use the fast path.

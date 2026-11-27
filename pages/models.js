@@ -1,5 +1,5 @@
-// Architecture page. Every count is derived from the two configurations below, which mirror
-// rwkv/architecture.py (Alex, default) and expertium/architecture.py (Expertium iter36).
+// Architecture page. Every count is derived from the configurations below: rwkv/architecture.py (Alex, default) and the w64
+// preset (ours, the small model on the factory page). The older iter36 config is kept only as a labelled snapshot.
 (() => {
   'use strict';
   const { h, bindTip, fmt, esc } = window.UI;
@@ -17,61 +17,87 @@
   };
   const MODELS = {
     alex: {
-      name: 'Alex', full: 'Alex (default)', C: 128, H: 4, F: 4, headMult: 4, curves: 128, points: 128,
+      name: 'Alex', full: 'Alex (default)', C: 128, H: 4, hd: 32, F: 4, headMult: 4, curves: 128, points: 128,
       streams: [['card', 3, 1.5], ['deck', 4, 2], ['note', 2, 1.5], ['preset', 3, 2], ['user', 4, 2]],
     },
-    exp: {
-      name: 'Expertium', full: 'Expertium iter36', C: 32, H: 1, F: 4, headMult: 4, curves: 64, points: 64,
+    // Ours: the w64 preset at 92 inputs; must total W64_PARAMETERS = 331,511.
+    ours: {
+      name: 'Ours', full: 'Ours (small model, w64)', C: 64, H: 4, hd: 16, F: 2, headMult: 2, curves: 3, points: 0, gru: 3,
+      inputs: 92, pava: 0, lora: { d: 4, a: 4, v: 2, g: 4 }, stripV0: true,
+      mixers: { card: [0], deck: [0, 3], note: [0], preset: [], user: [] },
+      streams: [['card', 2, 1], ['deck', 4, 1], ['note', 1, 1], ['preset', 3, 1], ['user', 3, 1]],
+    },
+    // Older config trained in this repository (iter36 snapshot): 64 fixed curves + 64-point correction head.
+    iter36: {
+      name: 'iter36', full: 'iter36 snapshot', C: 32, H: 1, hd: 32, F: 4, headMult: 4, curves: 64, points: 64,
       streams: [['card', 1, 1], ['deck', 4, 1], ['note', 3, 1], ['preset', 3, 1], ['user', 3, 1]],
     },
   };
 
-  // Parameters of one RWKV-7 layer (time mixer + channel mixer), grouped for display.
-  function layerParams(C, H, cmf) {
+  // Parameters of one RWKV-7 layer (time mixer + channel mixer), grouped for display. `layer` is the index inside the stream;
+  // The w64 trunk strips the channel mixer (to a 5-parameter dummy) in most layers and the value-residual LoRA (to 3) in layer 1.
+  function layerParams(m, stream, layer, cmf) {
+    const { C, H } = m;
+    const L = m.lora || LORA;
+    const mixer = !m.mixers || m.mixers[stream].includes(layer);
     const k = Math.floor(cmf * C);
+    const vres = m.stripV0 && layer === 0 ? 3 : 2 * C * L.v + C;
     return {
       rkvo: 4 * C * C,
-      ffn: 2 * C * k,
-      decay: 2 * C * LORA.d + C,
-      arate: 2 * C * LORA.a + C,
-      gate: 2 * C * LORA.g,
-      vres: 2 * C * LORA.v + C,
-      small: 4 * C /* 2 norms */ + 9 * C /* 8 shift mixes + bonus */ + 2 * (C * H + H) /* k/v scales */ + 3 * C /* FFN norm + mix */,
+      ffn: mixer ? 2 * C * k + 3 * C : 5,
+      decay: 2 * C * L.d + C,
+      arate: 2 * C * L.a + C,
+      gate: 2 * C * L.g,
+      vres,
+      small: 4 * C /* 2 norms */ + 9 * C /* 8 shift mixes + bonus */ + 2 * (C * H + H) /* k/v scales */,
     };
   }
+  const hasMixer = (m, stream, layer) => !m.mixers || m.mixers[stream].includes(layer);
+  const streamParams = (m, s, n, f) => Array.from({ length: n }, (_, l) => sum(layerParams(m, s, l, f))).reduce((a, b) => a + b, 0);
+  // fp32 recurrent state of one stream: WKV matrices + a token-shift vector for the time mixer (+ one for each active channel mixer)
+  const streamBytes = (m, s, n) => Array.from({ length: n }, (_, l) => (m.H * m.hd * m.hd + m.C + (hasMixer(m, s, l) ? m.C : 0)) * 4).reduce((a, b) => a + b, 0);
   const sum = (o) => Object.values(o).reduce((a, b) => a + b, 0);
 
   function components(m) {
     const { C, H, F, headMult: hm, curves, points } = m;
     const Fd = F * C, hd = hm * C;
-    const out = [{ id: 'enc', label: 'Input encoder', color: 'var(--s1)', n: 92 * Fd + Fd + 2 * Fd + Fd * C + C,
-      desc: `92 → ${Fd} → ${C}, SiLU + LayerNorm` }];
+    const nin = m.inputs || 92;
+    const out = [{ id: 'enc', label: 'Input encoder', color: 'var(--s1)', n: nin * Fd + Fd + 2 * Fd + Fd * C + C,
+      desc: `${nin} → ${Fd} → ${C}, SiLU + LayerNorm` }];
     for (const [s, n, f] of m.streams) {
-      const per = sum(layerParams(C, H, f));
-      out.push({ id: s, label: `${s[0].toUpperCase()}${s.slice(1)} stream`, color: STREAM_COLORS[s], n: per * n,
-        desc: `${n} layer${n > 1 ? 's' : ''} × ${fmt(per)} parameters; ${STREAM_TEXT[s]}` });
+      const tot = streamParams(m, s, n, f);
+      out.push({ id: s, label: `${s[0].toUpperCase()}${s.slice(1)} stream`, color: STREAM_COLORS[s], n: tot,
+        desc: `${n} layer${n > 1 ? 's' : ''}, ${fmt(tot)} parameters; ${STREAM_TEXT[s]}` });
     }
-    out.push({ id: 'heads', label: 'Output heads', color: 'var(--s7)',
-      n: 2 * C + (C * hd + hd + hd * points + points) + (C * C + C + 2 * C + C * hd + hd + hd * curves + curves) + (C * hd + hd + hd * 4 + 4),
-      desc: `${curves} basis curves, ${points} correction points, 4 grades` });
+    const instant = C * hd + hd + hd * 4 + 4;
+    if (m.gru) {
+      // prehead norm + 6 dummy 1x1 parameters kept by the code + weight head + (w, S, d) linears for N curves + Instant head
+      out.push({ id: 'heads', label: 'Output heads', color: 'var(--s7)',
+        n: (m.pava || 0) + 2 * C + 6 + (C * C + C + 2 * C + C * hd + hd) + 3 * (m.gru * hd + m.gru) + instant,
+        desc: `${m.gru} learned power-law curves (weight, stability, decay each), no correction head, 4 grades${m.pava ? ', PAVA’s 3 thresholds' : ''}` });
+    } else {
+      out.push({ id: 'heads', label: 'Output heads', color: 'var(--s7)',
+        n: 2 * C + (C * hd + hd + hd * points + points) + (C * C + C + 2 * C + C * hd + hd + hd * curves + curves) + instant,
+        desc: `${curves} basis curves, ${points} correction points, 4 grades` });
+    }
     return out;
   }
   for (const m of Object.values(MODELS)) {
     m.comp = components(m);
     m.total = m.comp.reduce((a, c) => a + c.n, 0);
     m.layers = m.streams.reduce((a, s) => a + s[1], 0);
-    m.layerBytes = (m.H * 32 * 32 + 2 * m.C) * 4; // WKV matrices + two token-shift vectors, fp32
   }
-  const A = MODELS.alex, E = MODELS.exp;
+  const A = MODELS.alex, E = MODELS.ours, I = MODELS.iter36;
+  console.assert(E.total === 331511, 'ours should match W64_PARAMETERS', E.total);
   const kib = (b) => (b / 1024).toLocaleString('en-US', { maximumFractionDigits: 2 }) + ' KiB';
 
   // ---------- Headline ----------
   $('h-params').textContent = `${(A.total / 1e6).toFixed(2)}M vs ${Math.round(E.total / 1e3)}k`;
-  $('h-params-sub').textContent = `Alex ${fmt(A.total)} · Expertium ${fmt(E.total)} (${(A.total / E.total).toFixed(1)}× smaller)`;
+  $('h-params-sub').textContent = `Alex ${fmt(A.total)} · ours ${fmt(E.total)} (${(A.total / E.total).toFixed(1)}× smaller)`;
   $('h-width').textContent = `${A.C}×${A.H} vs ${E.C}×${E.H}`;
   $('h-layers').textContent = `${A.layers} vs ${E.layers}`;
-  $('h-layers-sub').textContent = `per stream: Alex ${A.streams.map((s) => s[1]).join('/')}, Expertium ${E.streams.map((s) => s[1]).join('/')} (card/deck/note/preset/user)`;
-  $('h-mem').textContent = `${kib(A.layerBytes * A.streams[0][1]).replace(' KiB', '')} vs ${kib(E.layerBytes * E.streams[0][1])}`;
+  $('h-layers-sub').textContent = `per stream: Alex ${A.streams.map((s) => s[1]).join('/')}, ours ${E.streams.map((s) => s[1]).join('/')} (card/deck/note/preset/user)`;
+  $('h-mem').textContent = `${kib(streamBytes(A, 'card', A.streams[0][1])).replace(' KiB', '')} vs ${kib(streamBytes(E, 'card', E.streams[0][1]))}`;
 
   // ---------- 92 input features ----------
   const G = {
@@ -152,7 +178,7 @@
     const flow = h('div', { class: 'flow' });
     const enc = m.comp[0];
     flow.append(h('div', { class: 'sbar-label', style: { 'margin-top': '0' } }, m.full, h('span', {}, fmt(m.total) + ' parameters')));
-    flow.append(h('div', { class: 'stage' }, h('div', { class: 't' }, '92 input numbers per review', h('span', {}, 'same in both')),
+    flow.append(h('div', { class: 'stage' }, h('div', { class: 't' }, `${m.inputs || 92} input numbers per review`, h('span', {}, 'the shared layout')),
       h('div', { class: 'sub' }, 'plus a query copy of each review with the answer blanked')));
     flow.append(h('div', { class: 'arrow' }));
     flow.append(h('div', { class: 'stage stream', style: { '--fc': enc.color } },
@@ -164,10 +190,13 @@
       for (let i = 0; i < n; i++) {
         const bar = h('div', { class: 'layer', style: { width: (100 * m.C / UNIT) + '%', '--fc': comp.color } });
         for (let j = 0; j < m.H; j++) bar.append(h('i'));
-        bindTip(bar, `<b>${comp.label}, layer ${i + 1}</b>${m.C} channels in ${m.H} head${m.H > 1 ? 's' : ''} of 32<div class="m">${fmt(sum(layerParams(m.C, m.H, f)))} parameters</div>`);
-        const ffn = h('div', { class: 'layer cm', style: { width: (100 * Math.floor(f * m.C) / UNIT) + '%', '--fc': comp.color } });
-        bindTip(ffn, `<b>Channel mixer</b>feed-forward width ${Math.floor(f * m.C)} (${f}× hidden width)`);
-        layers.append(bar, ffn);
+        bindTip(bar, `<b>${comp.label}, layer ${i + 1}</b>${m.C} channels in ${m.H} head${m.H > 1 ? 's' : ''} of ${m.hd}<div class="m">${fmt(sum(layerParams(m, s, i, f)))} parameters</div>`);
+        layers.append(bar);
+        if (hasMixer(m, s, i)) {
+          const ffn = h('div', { class: 'layer cm', style: { width: (100 * Math.floor(f * m.C) / UNIT) + '%', '--fc': comp.color } });
+          bindTip(ffn, `<b>Channel mixer</b>feed-forward width ${Math.floor(f * m.C)} (${f}× hidden width)`);
+          layers.append(ffn);
+        }
       }
       flow.append(h('div', { class: 'stage stream', style: { '--fc': comp.color } },
         h('div', { class: 't' }, comp.label, h('span', {}, `${n} × layer · ${fmt(comp.n)}`)),
@@ -177,8 +206,10 @@
     const hd = m.headMult * m.C;
     flow.append(h('div', { class: 'heads3' },
       h('div', { class: 'stage stream', style: { '--fc': 'var(--s7)' } }, h('div', { class: 't' }, 'Curve mix'),
-        h('div', { class: 'sub' }, `${m.C}→${m.C}→${hd}→ weights for ${m.curves} basis curves`)),
-      h('div', { class: 'stage stream', style: { '--fc': 'var(--s7)' } }, h('div', { class: 't' }, 'Curve correction'),
+        h('div', { class: 'sub' }, m.gru ? `${m.C}→${m.C}→${hd}→ weight, stability and decay for ${m.curves} power-law curves` : `${m.C}→${m.C}→${hd}→ weights for ${m.curves} basis curves`)),
+      m.gru ? h('div', { class: 'stage stream', style: { '--fc': 'var(--s7)' } }, h('div', { class: 't' }, 'No correction head'),
+        h('div', { class: 'sub' }, 'switched off (RWKV_NO_AHEAD_RESIDUAL)'))
+        : h('div', { class: 'stage stream', style: { '--fc': 'var(--s7)' } }, h('div', { class: 't' }, 'Curve correction'),
         h('div', { class: 'sub' }, `${m.C}→${hd}→ ${m.points} time points`)),
       h('div', { class: 'stage stream', style: { '--fc': 'var(--s7)' } }, h('div', { class: 't' }, 'Instant'),
         h('div', { class: 'sub' }, `${m.C}→${hd}→ 4 grades`))));
@@ -211,7 +242,7 @@
   }
   waffle($('w-alex'), A, 'w-alex');
   waffle($('w-exp'), E, 'w-exp');
-  $('w-exp-cap').textContent = `The whole Expertium model fits in the space Alex spends on its input encoder and part of its card stream.`;
+  $('w-exp-cap').textContent = `Our whole model fits in the space Alex spends on its input encoder and part of its card stream.`;
 
   const allCells = () => Object.values(waffleCells).flat();
   A.comp.forEach((c) => {
@@ -234,7 +265,7 @@
   }
   const pt = $('ptable');
   pt.append(h('thead', {}, h('tr', {}, h('th', {}, 'Component'), h('th', { class: 'r' }, 'Alex'), h('th', { class: 'r' }, 'share'),
-    h('th', { class: 'r' }, 'Expertium'), h('th', { class: 'r' }, 'share'), h('th', { class: 'r' }, 'ratio'))));
+    h('th', { class: 'r' }, 'Ours'), h('th', { class: 'r' }, 'share'), h('th', { class: 'r' }, 'ratio'))));
   const tb = h('tbody');
   A.comp.forEach((c, i) => {
     const e = E.comp[i];
@@ -260,7 +291,7 @@
   LP.forEach(([, label, color]) => $('lkeys').append(h('span', {}, h('i', { style: { background: color } }), label)));
   function layerWaffle(el, m, stream) {
     const f = m.streams.find((s) => s[0] === stream)[2];
-    const p = layerParams(m.C, m.H, f);
+    const p = layerParams(m, stream, 0, f);
     const total = sum(p);
     const items = LP.map(([id, label, color]) => ({ id, label, color, n: p[id] }));
     // 100 squares = 100% of this layer
@@ -276,7 +307,7 @@
         el.append(cell);
       }
     });
-    return `${fmt(total)} parameters per layer (width ${m.C}, feed-forward ${Math.floor(f * m.C)})`;
+    return `${fmt(total)} parameters in the first layer (width ${m.C}, ${hasMixer(m, stream, 0) ? 'feed-forward ' + Math.floor(f * m.C) : 'channel mixer stripped'})`;
   }
   let curStream = 'deck';
   function drawLayer() {
@@ -293,18 +324,18 @@
 
   // ---------- State memory ----------
   function memory(el, m) {
-    const size = 18; // same size in both models: every tile is one 32x32 matrix
+    const size = 18; // tile size is fixed; one tile is one head's state matrix (32x32 for Alex, 16x16 for ours)
     for (const [s, n] of m.streams) {
       const mats = h('div', { class: 'mats' });
       for (let l = 0; l < n; l++) {
         if (l) mats.append(h('span', { class: 'sep' }));
         for (let j = 0; j < m.H; j++) {
           const mat = h('span', { class: 'mat', style: { '--fc': STREAM_COLORS[s], '--ms': size + 'px' } });
-          bindTip(mat, `<b>${s} stream · layer ${l + 1} · head ${j + 1}</b>32×32 state matrix = 1,024 numbers (4 KiB)`);
+          bindTip(mat, `<b>${s} stream · layer ${l + 1} · head ${j + 1}</b>${m.hd}×${m.hd} state matrix = ${fmt(m.hd * m.hd)} numbers (${kib(m.hd * m.hd * 4)})`);
           mats.append(mat);
         }
       }
-      const bytes = m.layerBytes * n;
+      const bytes = streamBytes(m, s, n);
       el.append(h('div', { class: 'mem' },
         h('div', { class: 'nm' }, `per ${s}`, h('small', {}, `${n} layer${n > 1 ? 's' : ''} × ${m.H} head${m.H > 1 ? 's' : ''}`)),
         mats, h('div', { class: 'kib' }, kib(bytes), h('small', {}, fmt(bytes / 4) + ' numbers'))));
@@ -314,7 +345,7 @@
   memory($('mem-exp'), E);
   const headColors = ['var(--s1)', 'var(--s2)', 'var(--s3)', 'var(--s4)'];
   for (const [id, m] of [['vec-alex', A], ['vec-exp', E]]) {
-    for (let i = 0; i < m.C; i++) $(id).append(h('i', { style: { '--fc': headColors[Math.floor(i / 32)] } }));
+    for (let i = 0; i < m.C; i++) $(id).append(h('i', { style: { '--fc': headColors[Math.floor(i / m.hd)] } }));
   }
 
   // ---------- Output-head rugs (log time axis) ----------
@@ -334,32 +365,70 @@
     });
     if (withTicks) TICKS.forEach(([s, l], i) => el.append(h('span', { class: 'tick' + (i % 2 ? '' : ' minor'), style: { left: pos(s) + '%' } }, l)));
   }
-  for (const [k, m] of [['alex', A], ['exp', E]]) {
+  // Ours: three curves whose stability is predicted per review. The ticks mark only the starting
+  // values (bias), log-spaced from 1 hour to 1 year.
+  {
+    const n = E.gru;
+    const init = Array.from({ length: n }, (_, i) => Math.exp(Math.log(3600) + (Math.log(31536000) - Math.log(3600)) * i / (n - 1)));
+    $('rug-exp-n').textContent = `${n} learned power-law curves, head width ${E.headMult * E.C}; no correction head`;
+    rug($('rug-exp-s'), init, 'var(--s1)', 'Initial stability of curve', true);
+  }
+  for (const [k, m] of [['alex', A], ['iter36', I]]) {
     $(`rug-${k}-n`).textContent = `${m.curves} basis curves (top) and ${m.points} correction points (bottom), head width ${m.headMult * m.C}`;
     rug($(`rug-${k}-s`), space(m.curves, 0.1, 22), 'var(--s1)', 'Basis curve', false);
     rug($(`rug-${k}-p`), space(m.points, 0.5, 21), 'var(--s2)', 'Correction point', true);
   }
 
-  $('ahead-n').textContent = fmt(E.C * E.headMult * E.C + E.headMult * E.C + E.headMult * E.C * E.points + E.points);
+  $('ahead-n').textContent = fmt(I.C * I.headMult * I.C + I.headMult * I.C + I.headMult * I.C * I.points + I.points);
+  $('iter-total').textContent = fmt(I.total);
 
   // ---------- Comparison table ----------
+  const mixNote = '1, but kept in only 4 of the 13 layers (card 1, deck 1 and 4, note 1)';
+  const loraNote = '4 / 4 / 2 / 4 (value LoRA stripped in layer 1 of each stream)';
   const rows = [
     ['Parameters', fmt(A.total), fmt(E.total)],
     ['Hidden width (d_model)', A.C, E.C],
-    ['Heads (32 channels each)', A.H, E.H],
-    ['Layers: card / deck / note / preset / user', A.streams.map((s) => s[1]).join(' / '), E.streams.map((s) => s[1]).join(' / ')],
-    ['Channel-mixer factor', A.streams.map((s) => s[2]).join(' / '), E.streams.map((s) => s[2]).join(' / ')],
-    ['LoRA ranks: decay / in-context rate / value / gate', '16 / 16 / 8 / 16', '16 / 16 / 8 / 16'],
-    ['Input encoder', `92 → ${A.F * A.C} → ${A.C}`, `92 → ${E.F * E.C} → ${E.C}`],
-    ['Curve head', `${A.curves} fixed exp. curves + ${A.points}-pt correction`, `${E.curves} fixed exp. curves + ${E.points}-pt correction; now: 3 learned power-law curves`],
+    ['Heads (channels per head)', `${A.H} (${A.hd})`, `${E.H} (${E.hd})`],
+    ['Layers: card / deck / note / preset / user', ...[A, E].map((m) => m.streams.map((s) => s[1]).join(' / '))],
+    ['Channel-mixer factor', A.streams.map((s) => s[2]).join(' / '), mixNote],
+    ['LoRA ranks: decay / in-context rate / value / gate', '16 / 16 / 8 / 16', loraNote],
+    ['Input encoder', `92 → ${A.F * A.C} → ${A.C}`, `92 → ${E.F * E.C} → ${E.C} (input 22 zeroed)`],
+    ['Curve head', `${A.curves} fixed exp. curves + ${A.points}-pt correction`, `${E.gru} learned power-law curves (weight, S, d per review), no correction head`],
     ['Head inner width', A.headMult * A.C, E.headMult * E.C],
-    ['State per card', kib(A.layerBytes * A.streams[0][1]), kib(E.layerBytes * E.streams[0][1])],
-    ['State per note', kib(A.layerBytes * A.streams[2][1]), kib(E.layerBytes * E.streams[2][1])],
-    ['Dropout: card, note / deck, preset, user / per layer', '0.02 / 0.05 / 0.01', '0.02 / 0.05 / 0.01'],
+    ['State per card (fp32)', ...[A, E].map((m) => kib(streamBytes(m, 'card', m.streams[0][1])))],
+    ['State per note (fp32)', ...[A, E].map((m) => kib(streamBytes(m, 'note', m.streams[2][1])))],
+    ['Training', 'trained on the review labels', 'distilled from Alex’s model (the fork), windows up to 32,768 reviews, final LR decay'],
+    ['Scored here with', 'int8 weights and int8 state (the w8+s8 reference)', 'int8 weights and int8 state'],
+    ['Dropout: card, note / deck, preset, user / per layer', '0.02 / 0.05 / 0.01', '0.01 / 0.025 / 0.005'],
   ];
   const ct = $('ctable');
-  ct.append(h('thead', {}, h('tr', {}, h('th', {}, ''), h('th', { class: 'r' }, 'Alex (default)'), h('th', { class: 'r' }, 'Expertium iter36'))));
+  ct.append(h('thead', {}, h('tr', {}, h('th', {}, ''), h('th', { class: 'r' }, 'Alex (default)'), h('th', { class: 'r' }, 'Ours'))));
   const cb = h('tbody');
-  rows.forEach(([k, a, e]) => cb.append(h('tr', {}, h('td', {}, k), h('td', { class: 'r' }, String(a)), h('td', { class: 'r' }, String(e)))));
+  rows.forEach(([k, ...v]) => cb.append(h('tr', {}, h('td', {}, k), ...v.map((x) => h('td', { class: 'r' }, String(x))))));
   ct.append(cb);
+
+  // ---------- Results, read from the factory page's curated headline (pages/data/factory-curated.json) ----------
+  const pct = (x) => (x > 0 ? '+' : '') + x.toFixed(2) + '%';
+  fetch('data/factory-curated.json').then((r) => r.json()).then((d) => {
+    const cards = (d.headline || []).filter((c) => c.compare);
+    if (!cards.length) return;
+    const out = $('results-tables');
+    for (const c of cards) {
+      const ref = c.compare.find((r) => r.ref);
+      const t = h('table', { class: 'plain' });
+      t.append(h('thead', {}, h('tr', {}, h('th', {}, ''), h('th', { class: 'r' }, 'Curve'), h('th', { class: 'r' }, 'Instant'),
+        h('th', { class: 'r' }, 'Δ curve'), h('th', { class: 'r' }, 'Δ instant'), h('th', { class: 'r' }, 'Eval'))));
+      const body = h('tbody');
+      for (const r of c.compare) {
+        const dc = r.ref ? null : (r.curve_pct ?? (ref ? 100 * (r.curve / ref.curve - 1) : null));
+        const di = r.ref ? null : (r.instant_pct ?? (ref ? 100 * (r.instant / ref.instant - 1) : null));
+        const name = r.ref ? `Alex’s model: ${r.variant}` : `Ours: ${r.variant}`;
+        body.append(h('tr', {}, h('td', {}, name), h('td', { class: 'r' }, r.curve.toFixed(5)), h('td', { class: 'r' }, r.instant.toFixed(5)),
+          h('td', { class: 'r' }, dc == null ? '–' : pct(dc)), h('td', { class: 'r' }, di == null ? '–' : pct(di)), h('td', { class: 'r' }, r.eval || '')));
+      }
+      t.append(body);
+      out.append(h('h3', { html: c.k.replace(/ \(curve \/ instant\)/, '') }), h('div', { class: 'table-wrap' }, t));
+    }
+    $('results').hidden = false;
+  }).catch(() => {});
 })();
