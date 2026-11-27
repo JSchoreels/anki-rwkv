@@ -68,7 +68,8 @@ class VariantSrsRWKVRnn(SrsRWKVRnn):
         self.zero_features = list(variant.zero_features)
         self.interleave_on = bool(variant.interleave)
         self.layer_steps = layer_steps(interleave_schedule([c.n_layers for _, c in config.modules]))
-        self.card_features_dim = 92
+        from rwkv.extra_inputs import DIMS as _sm179_dims  # SM179: + extra input columns (0 unless SM179_INPUTS)
+        self.card_features_dim = 92 + _sm179_dims
         self.d_model = config.d_model
         self.features_fc_dim = config.features_fc_mult * config.d_model
         self.ahead_head_dim = config.head_fc_mult * self.d_model

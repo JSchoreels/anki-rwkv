@@ -20,6 +20,8 @@ KEEP = ["card_id", "day_offset", "day_offset_first", "elapsed_days", "elapsed_da
         "deck_id_is_nan", "preset_id_is_nan", "i", "is_first_review", "cum_new_cards", "diff_new_cards", "diff_reviews",
         "cum_new_cards_today", "cum_reviews_today", "scaled_elapsed_days", "scaled_elapsed_days_cumulative",
         "scaled_elapsed_seconds", "scaled_elapsed_seconds_cumulative", "day_offset_diff", "day_of_week", "is_query"]
+from rwkv import extra_inputs as _extra_inputs  # noqa: E402
+KEEP = KEEP + _extra_inputs.COLUMNS  # SM179 opt-in (SM179_INPUTS); unset = the list above
 REJECT = ["rating", "duration", "scaled_duration", "state", "scaled_state", "y", "rating_1", "rating_2", "rating_3",
           "rating_4", "skip", "has_label", "label_elapsed_seconds", "label_elapsed_days", "label_y", "label_rating",
           "label_review_th", "label_is_equalize"]

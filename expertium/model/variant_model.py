@@ -219,7 +219,8 @@ class VariantSrsRWKV(SrsRWKV):
         if variant.stream_major:  # SM72: the sequential order on the canonical path (where state carry hooks in)
             self.layer_steps = [(i, layer) for i, depth in enumerate(self.stream_depths) for layer in range(depth)]
 
-        self.card_features_dim = 92
+        from rwkv.extra_inputs import DIMS as _sm179_dims  # SM179: + extra input columns (0 unless SM179_INPUTS)
+        self.card_features_dim = 92 + _sm179_dims
         self.d_model = anki_rwkv_config.d_model
         self.features_fc_dim = anki_rwkv_config.features_fc_mult * self.d_model
         self.ahead_head_dim = anki_rwkv_config.head_fc_mult * self.d_model

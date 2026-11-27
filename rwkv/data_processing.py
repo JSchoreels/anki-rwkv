@@ -39,6 +39,9 @@ CARD_FEATURE_COLUMNS = [
     "scaled_state",
     "is_query",
 ]
+# SM179 (rwkv/extra_inputs.py): extra columns after the 24 above only when SM179_INPUTS is set; unset = none.
+from rwkv import extra_inputs as _extra_inputs  # noqa: E402
+CARD_FEATURE_COLUMNS += _extra_inputs.COLUMNS
 
 STATISTICS = {
     "elapsed_days_mean": 1.51,
@@ -334,6 +337,8 @@ def get_rwkv_data(data_path, user_id, equalize_review_ths=[]):
         # this process and of the workers it spawns (training, replay export, LMDB build). Unset = unchanged frame.
         from scripts.sm71_leak import neutralise
         df, _ = neutralise(df, deleted_cards, data_path, user_id)
+    if _extra_inputs.COLUMNS:  # SM179 opt-in (SM179_INPUTS); unset = unchanged frame
+        df = _extra_inputs.add_columns(df, data_path, user_id)
     return df
 
 
@@ -400,7 +405,7 @@ def add_queries(section_df, equalize_review_ths):
         "day_offset_diff",
         "day_of_week",
         "is_query",
-    ]
+    ] + _extra_inputs.COLUMNS  # SM179: kept on query rows (the moment the card is shown); unset = []
 
     reject_columns = [
         "rating",
