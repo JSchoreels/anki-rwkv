@@ -5,6 +5,7 @@ DEFAULT_FOLDERS: names, sizes, mtimes; no file is opened) and compares that fing
 pages/data/donations.json. When they differ and the folders have been stable for --settle seconds (so a Dropbox upload in progress is not read half-written), it runs
 scripts/update_donations_site.py, which recomputes the stats, commits only the aggregate json files and pushes.
 On failure (e.g. a git lock while another commit runs) it retries on a later cycle with a growing back-off.
+Every 30 minutes it syncs the Fushi donation feed (scripts/fetch_fushi_batch.py; private URL kept outside the repo).
 Every 10 minutes it also runs scripts/ensure_pages_deployed.py: if GitHub's newest site deploy failed, a fresh
 deploy of main is dispatched (never a re-run of an old run, which would republish stale data).
 
@@ -72,6 +73,7 @@ def main():
     log(f"start pid {os.getpid()} folders {len(folders)} interval {args.interval}s settle {args.settle}s")
     last_fp, stable_since, backoff_until, fails = None, time.time(), 0.0, 0
     next_deploy_check = 0.0
+    next_fushi_sync = 0.0
     try:
         while not STOP.exists():
             try:
@@ -93,6 +95,15 @@ def main():
                     backoff_until = now + min(3600, 120 * 2 ** min(fails, 5))
                 else:
                     fails = 0
+            if now >= next_fushi_sync:
+                # every 30 minutes: sync the Fushi donation feed (304 when unchanged); new files land in the Fushi
+                # folder and the fingerprint check above picks them up on the next cycles
+                next_fushi_sync = now + 1800
+                fs = subprocess.run([str(PY), "-X", "utf8", str(REPO / "scripts" / "fetch_fushi_batch.py")], cwd=REPO,
+                                    capture_output=True, text=True, encoding="utf-8")
+                last = (fs.stdout.strip().splitlines() or ["(no output)"])[-1]
+                if not last.startswith("UNCHANGED"):
+                    log("fushi feed: " + last)
             if now >= next_deploy_check:
                 # every 10 minutes: if GitHub's last site deploy failed (transient artifact errors), deploy main afresh
                 next_deploy_check = now + 600
