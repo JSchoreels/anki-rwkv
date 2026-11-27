@@ -1,6 +1,10 @@
 # Anki-RWKV campaign uploads
 
-GitHub Pages serves the public campaign and its totals. This Worker issues a 15-minute Dropbox upload link for a new, randomly named collection under `/Anki Data`. Anki posts the archive directly to Dropbox. The Worker accepts an empty POST at `/v1/upload-link` and returns JSON with a `link` field on success. Anki checks Dropbox’s receipt before scheduling the next donation.
+GitHub Pages serves the public campaign and its totals. This Worker issues a 15-minute Dropbox upload link for a new collection snapshot under `/Anki Data`. For archives up to 150 MB, Anki posts the archive directly to Dropbox. The Worker accepts an empty POST at `/v1/upload-link` and returns JSON with a `link` field on success. Anki checks Dropbox’s receipt before scheduling the next donation.
+
+Current clients send a campaign-specific UUIDv4 in the `X-Collection-ID` header when requesting a link or starting a session. Anki generates the ID on the first donation and stores it in synced collection settings. Once it syncs, donations from other devices share the same ID. Two devices donating before the first ID syncs can initially have different IDs. Files are named `anki-<collection-id>-<UTC-timestamp>.colpkg`, using the upload service’s clock. Dropbox adds a numbered suffix on a collision so both snapshots are kept. Older clients can omit the header and continue to receive a fresh random filename.
+
+For larger archives Anki starts a Dropbox upload session with an empty POST to `/v1/upload-session` and the byte count in `X-Upload-Size`. It sends sequential 8 MiB chunks to `/v1/upload-chunk` with the signed session cursor as a bearer token. The Worker streams each chunk to Dropbox. The cursor binds the destination, offset, size and expiration. Only the final chunk commits the file, and the Worker returns the Dropbox content hash after checking the committed size. Incomplete Dropbox sessions expire after seven days.
 
 Run `node --test worker.test.mjs` to check the route. Deploy this directory with Wrangler 4.36 or later using `wrangler deploy`. The configuration binds the per-location rate limiter used for link requests.
 
