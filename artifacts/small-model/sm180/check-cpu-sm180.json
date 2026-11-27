@@ -1,0 +1,156 @@
+{
+ "all_ok": true,
+ "code_tree": "C:\\Users\\jonat\\workspace\\wt\\sm180-run",
+ "commit": "81c2e9337d8fe2a869c19d22c78c22947d9a0312",
+ "dirty": false,
+ "checks": {
+  "C1 parse w4g32+lr2.16.4q6x8": {
+   "value": "w4-g32 LowRankCodec",
+   "ok": true
+  },
+  "C1 parse w4g16+lr2.16.4q6x8": {
+   "value": "w4-g16 LowRankCodec",
+   "ok": true
+  },
+  "C1 parse w4g32+lr2.16.4q8x8": {
+   "value": "w4-g32 LowRankCodec",
+   "ok": true
+  },
+  "C1 parse w4g16+lr2.16.4q8x8": {
+   "value": "w4-g16 LowRankCodec",
+   "ok": true
+  },
+  "C1 parse w8+lr2.16.4q6x8": {
+   "value": "w8-pc LowRankCodec",
+   "ok": true
+  },
+  "C1 parse w8+lr2.16.4q8x8": {
+   "value": "w8-pc LowRankCodec",
+   "ok": true
+  },
+  "C1 parse w8+s8hx8": {
+   "value": "w8-pc IntState",
+   "ok": true
+  },
+  "C1 parse w4+s8hx8": {
+   "value": "w4-g32 IntState",
+   "ok": true
+  },
+  "C1 parse fp32": {
+   "value": "fp32 int",
+   "ok": true
+  },
+  "C1 scheme table": {
+   "value": {
+    "w8-pc": [
+     8,
+     null
+    ],
+    "w4-g32": [
+     4,
+     32
+    ],
+    "w4-g16": [
+     4,
+     16
+    ]
+   },
+   "ok": true
+  },
+  "C2 small quantized list = every 2-D .weight": {
+   "value": 217,
+   "ok": true
+  },
+  "C2 small w8 = int8 per row (weights.int8.bin rule)": {
+   "value": 0.0,
+   "ok": true
+  },
+  "C2 small w4-g32: fake_quant on the list, other tensors bitwise equal, codes in -7..7": {
+   "value": {
+    "tensors_changed": 190,
+    "max_levels_per_row_group": 15,
+    "bytes": 272347,
+    "bytes_w8": 410459
+   },
+   "ok": true
+  },
+  "C2 small w4-g16: fake_quant on the list, other tensors bitwise equal, codes in -7..7": {
+   "value": {
+    "tensors_changed": 190,
+    "max_levels_per_row_group": 13,
+    "bytes": 310459,
+    "bytes_w8": 410459
+   },
+   "ok": true
+  },
+  "C2 tiny quantized list = every 2-D .weight": {
+   "value": 105,
+   "ok": true
+  },
+  "C2 tiny w8 = int8 per row (weights.int8.bin rule)": {
+   "value": 0.0,
+   "ok": true
+  },
+  "C2 tiny w4-g32: fake_quant on the list, other tensors bitwise equal, codes in -7..7": {
+   "value": {
+    "tensors_changed": 87,
+    "max_levels_per_row_group": 15,
+    "bytes": 149287,
+    "bytes_w8": 226191
+   },
+   "ok": true
+  },
+  "C2 tiny w4-g16: fake_quant on the list, other tensors bitwise equal, codes in -7..7": {
+   "value": {
+    "tensors_changed": 87,
+    "max_levels_per_row_group": 14,
+    "bytes": 170807,
+    "bytes_w8": 226191
+   },
+   "ok": true
+  },
+  "C3 plain grouped downcast = copy_downcast_ (before install)": {
+   "value": 210,
+   "ok": true
+  },
+  "C3 install selects exactly the scorer's quantized list": {
+   "value": 105,
+   "ok": true
+  },
+  "C3 after install, every downcast: child 2-D weights = scorer w4g32 weight cast to the child dtype; other child tensors = the plain downcast; master (latent) unchanged": {
+   "value": {
+    "downcasts": 1,
+    "tensors_last_downcast": 105,
+    "child_dtypes": [
+     "torch.bfloat16",
+     "torch.float32"
+    ]
+   },
+   "ok": true
+  },
+  "C3 gradient transfer child -> master unchanged (STE: applied to the latent weights)": {
+   "value": 0,
+   "ok": true
+  },
+  "C3 flat-buffer sync refused while installed": {
+   "value": true,
+   "ok": true
+  },
+  "C3 float32 training (child is master) refused": {
+   "value": true,
+   "ok": true
+  },
+  "C3 uninstall: downcast is the plain copy again": {
+   "value": 0,
+   "ok": true
+  },
+  "C4 unknown key refused": {
+   "value": true,
+   "ok": true
+  },
+  "C4 state_vq.install_training: weight_qat reached only for recipe weight-qat": {
+   "value": true,
+   "ok": true
+  }
+ }
+}
