@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-27T18:31:28+01:00",
- "updated": "2026-11-27 18:31",
- "material": "297dbe81af6e8ba8",
- "summary": "running 001809, finished 001808",
+ "generated_at": "2026-11-27T19:10:11+01:00",
+ "updated": "2026-11-27 19:10",
+ "material": "edefe51a4ea71622",
+ "summary": "running 001810, finished 001809",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring, show-time inputs for both heads (curve / instant)",
@@ -412,19 +412,19 @@
  },
  "now": [
   {
-   "what": "4-bit weights (SM180): the six release models with their weights stored in 4 bits instead of 8 (per-channel or per-group scales), first without retraining, then a short quantization-aware fine-tune only for a size where that costs too much",
-   "id": "SM180, ticket 001809",
+   "what": "Session inputs (SM179): new causal inputs about the current study session (reviews in the last 10 and 60 minutes, time since the session started, position in the session, the session&rsquo;s recent Again rate), and possibly the card state the models ignore today, tested with a short fine-tune of the six-layer Tiny two-head (SM130) against a control",
+   "id": "SM179, ticket 001810",
    "kind": "gpu",
-   "decides": "Whether the model weights can be halved in size for free (rule: CI upper bound at most +0.15% per head vs 8-bit weights)",
+   "decides": "Whether session inputs lower LogLoss enough to add them (go: at least 0.05%, CI below 0, on either head)",
    "why": "",
-   "job": "4-bit weights (SM180): PTQ tiny (2 models x w4g32 / w4g16), 723-user list of the 732 set, e2s-query (pass 1, 0 done, cap 0.8)",
+   "job": "Session inputs (SM179): train sm179-tiny-ses",
    "linked": true,
    "track": "small model",
-   "ticket": "001809-sm180",
-   "started": "18:30",
+   "ticket": "001810-sm179",
+   "started": "19:09",
    "elapsed": "0:00",
    "progress": null,
-   "eta": "~19:15"
+   "eta": "~19:39"
   }
  ],
  "charts": [
@@ -596,13 +596,22 @@
  ],
  "waiting": [
   {
-   "ticket": "001810-sm179",
-   "id": "SM179",
-   "what": "Session inputs (SM179): train sm179-tiny-ses",
-   "flags": "expected 30 min"
+   "ticket": "001811-sm180",
+   "id": "SM180",
+   "what": "4-bit weights (SM180): PTQ tiny (2 models x w4g32 / w4g16), 723-user list of the 732 set, e2s-query (pass 2, 722 done, cap 0.8)",
+   "flags": "expected 40 min"
   }
  ],
  "recent": [
+  {
+   "ticket": "001809-sm180",
+   "id": "SM180",
+   "what": "4-bit weights (SM180): PTQ tiny (2 models x w4g32 / w4g16), 723-user list of the 732 set, e2s-query (pass 1, 0 done, cap 0.8)",
+   "ended": "19:09",
+   "date": "11-27",
+   "exit": 0,
+   "ran": "0:38"
+  },
   {
    "ticket": "001808-sm179",
    "id": "SM179",
@@ -644,15 +653,6 @@
    "id": "SM178",
    "what": "Today&#x27;s models on donor data (SM178): REF, big (2 models), 218 donor users, e2s-query inputs (pass 4, 196 done, cap 0.92)",
    "ended": "16:48",
-   "date": "11-27",
-   "exit": 0,
-   "ran": "0:03"
-  },
-  {
-   "ticket": "001803-sm178",
-   "id": "SM178",
-   "what": "Today&#x27;s models on donor data (SM178): REF, big (2 models), 218 donor users, e2s-query inputs (pass 3, 191 done, cap 0.92)",
-   "ended": "16:44",
    "date": "11-27",
    "exit": 0,
    "ran": "0:03"
@@ -2784,9 +2784,11 @@
    "what": "Session inputs (SM179): new causal inputs about the current study session (reviews in the last 10 and 60 minutes, time since the session started, position in the session, the session&rsquo;s recent Again rate), and possibly the card state the models ignore today, tested with a short fine-tune of the six-layer Tiny two-head (SM130) against a control",
    "when": "Started 18:10 Fri 11-27 (at most about 4 GPU hours)",
    "decides": "Whether session inputs lower LogLoss enough to add them (go: at least 0.05%, CI below 0, on either head)",
-   "state": "waiting",
-   "started_at": "2026-11-27T18:10+01:00",
-   "ticket": "001810-sm179"
+   "state": "running",
+   "started_at": "2026-11-27T18:30:40+01:00",
+   "started": "19:09",
+   "ticket": "001810-sm179",
+   "ends_at": "2026-11-27T22:30:40+01:00"
   },
   {
    "id": "SM180",
@@ -2796,11 +2798,9 @@
    "what": "4-bit weights (SM180): the six release models with their weights stored in 4 bits instead of 8 (per-channel or per-group scales), first without retraining, then a short quantization-aware fine-tune only for a size where that costs too much",
    "when": "Started 18:10 Fri 11-27 (at most about 6 GPU hours)",
    "decides": "Whether the model weights can be halved in size for free (rule: CI upper bound at most +0.15% per head vs 8-bit weights)",
-   "state": "running",
-   "started_at": "2026-11-27T18:25:02+01:00",
-   "started": "18:30",
-   "ticket": "001809-sm180",
-   "ends_at": "2026-11-28T00:25:02+01:00"
+   "state": "waiting",
+   "started_at": "2026-11-27T18:10+01:00",
+   "ticket": "001811-sm180"
   },
   {
    "id": "SM178",
