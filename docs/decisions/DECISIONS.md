@@ -5,6 +5,7 @@ and logged here for review. Details, evidence and how to undo each one: [DECISIO
 
 ## 2026-11-27
 
+- **You** - Keep the GPU idle until more donors arrive; then a first MIT Tiny run (Small 2,000-user rerun parked).
 - **Agent** - Release models on donor data (SM178): donors about 20% / 27% harder (curve / instant), family ranking holds.
 - **Agent** - Donor data: reviews dated before 2006 (a wrong clock, a zeroed id) are dropped by the converter; they
   crashed the scoring of the release models on donor data (SM178), which keeps its 218-donor snapshot, fixed in place.
