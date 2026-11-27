@@ -2,7 +2,7 @@
 
 usage: publish_donations_page.py [--folder DIR ...] [--force] [--check]
 
-The folders (DEFAULT_FOLDERS: the campaign, LMSherlock's shared collections, Expertium's survey collections) are fingerprinted from the list of
+The folders (DEFAULT_FOLDERS: the campaign, LMSherlock's shared collections, Expertium's survey collections, Fushi's opt-in batches) are fingerprinted from the list of
 (folder name, file name, size, mtime) of their files, hashed with SHA-256; only the
 hash is stored (as `source_fingerprint` in the json), never the list. When the hash is unchanged the inventory is not
 rerun and only the goals block is recomputed. When it changed, scripts/donor_inventory.py runs with its scratch, its
@@ -48,7 +48,7 @@ def append_history(doc):
 
 # donation folders: the campaign's Dropbox file request first, then collections shared with us by partners
 DEFAULT_FOLDERS = ("D:/Dropbox/Anki Data", "D:/Dropbox/Jarrett User Collections",
-                   "D:/Dropbox/Expertium Survey Collections")
+                   "D:/Dropbox/Expertium Survey Collections", "D:/Dropbox/Fushi Collections")
 DEFAULT_FOLDER = DEFAULT_FOLDERS  # old name, kept for importers
 SCRATCH = Path(os.environ.get("TEMP") or tempfile.gettempdir()) / "anki-rwkv-donations"
 
@@ -71,7 +71,7 @@ AGG_KEYS = (
     "donors_10k_plus_reviews", "first_review", "last_review", "donors_by_reviews",
     "reviews_by_category", "donors_by_category", "reviews_by_source", "donors_by_source",
 )
-SOURCES = ("campaign", "LMSherlock", "Expertium")  # public label per DEFAULT_FOLDERS entry (credited)
+SOURCES = ("campaign", "LMSherlock", "Expertium", "Fushi")  # public label per DEFAULT_FOLDERS entry (credited)
 CATEGORIES = ("Japanese", "Chinese", "Korean", "Medicine", "Other languages", "Other", "Deleted cards")
 GENERIC = {"anki", "collection", "collections", "export", "backup", "colpkg", "apkg", "anki2", "anki21",
            "review", "reviews", "history", "deck", "decks", "data", "dataset",
