@@ -3,6 +3,11 @@
 One line per decision, newest first. **You** = decided by Jonathan; **Agent** = obvious call taken by the agent
 and logged here for review. Details, evidence and how to undo each one: [DECISIONS-full.md](DECISIONS-full.md).
 
+## 2026-11-27
+
+- **Agent** - Small data scaling (SM176): at 4,000 users without a teacher, +0.21% vs the same-budget teacher model;
+  Milestone 2 (5,000 training users) is enough for an MIT Small.
+
 ## 2026-11-26
 
 - **Agent** - GPU idle after SM174: started the Small data-scaling test (SM176) and the donations-to-training converter (SM177).

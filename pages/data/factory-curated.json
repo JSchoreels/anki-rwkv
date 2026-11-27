@@ -2543,10 +2543,11 @@
     "How many users for an MIT Small (SM176): "
    ],
    "what": "How many users for an MIT Small (SM176): the data-scaling test of SM174 repeated on the Small architecture of Small two-head (SM118): from scratch without a teacher on 1,000 to 8,000 users of the 10k dataset, against the same budget with the teacher",
-   "when": "Launched 19:45 Thu 11-26: the 8,000-user teacher reference first, then 1,000, 2,000 and 4,000 users without the teacher (8,000 without was dropped to fit the budget); about 22 GPU hours, done about 18:00 Fri 11-27 (at the latest 05:15 Sat)",
+   "when": "Launched 19:45 Thu 11-26; done 13:06 Fri 11-27",
    "decides": "How many donors an MIT Small needs (checks Milestone 2&rsquo;s 5,000 training users)",
-   "state": "running",
-   "started_at": "2026-11-26T19:45+01:00"
+   "state": "done",
+   "started_at": "2026-11-26T19:45+01:00",
+   "ended_at": "2026-11-27T13:06+01:00"
   },
   {
    "id": "SM177",
@@ -3834,6 +3835,58 @@
   "s-w64kd-gate-ctx2048c-dec8-1ep/w8+s8"
  ],
  "results": [
+  {
+   "date": "11-27",
+   "kind": "gpu",
+   "id": "SM176",
+   "track": "small model",
+   "name": "How many users for an MIT Small (SM176): the Small architecture of Small two-head (SM118) trained from scratch without a teacher on 1,000, 2,000 and 4,000 users of the 10k dataset, against the same budget with the teacher on 8,000 users",
+   "eval": "GPU, same 2.33-billion-review budget and early stopping as the Tiny test (SM174); 732 set, show-time inputs, curve and instant heads, paired user bootstrap 95%.",
+   "fork": "Nothing changed in the fork",
+   "takeaway": "<strong>Small needs about as many users as Tiny:</strong> at 4,000 users without a teacher it is within +0.21% of the same-budget teacher model (Tiny: +0.45%); within 1% somewhere between about 1,550 and 3,000 users, within 0.5% at about 2,800 to 3,600.",
+   "inputs": "show-time",
+   "started_at": "2026-11-26T19:45+01:00",
+   "ended_at": "2026-11-27T13:06+01:00",
+   "gpu_minutes": 1040,
+   "cpu_minutes": 30,
+   "tickets": 30,
+   "detail": {
+    "verdict": "Milestone 2 (5,000 training users) is comfortably enough for an MIT Small. Branch sm176, commit 13a2aa1e (RESULT.md)",
+    "table": {
+     "head": [
+      "Training users",
+      "vs the same-budget teacher model, curve / instant",
+      "vs the release Small two-head (SM118), curve / instant"
+     ],
+     "rows": [
+      [
+       "1,000",
+       "+1.36% / +1.01%",
+       "+2.57% / +2.36%"
+      ],
+      [
+       "2,000 (outlier, stopped early)",
+       "+2.08% / +1.93%",
+       "+3.29% / +3.30%"
+      ],
+      [
+       "4,000",
+       "+0.21% / +0.21%",
+       "+1.40% / +1.55%"
+      ],
+      [
+       "8,000 with teacher",
+       "reference",
+       "+1.19% / +1.34%"
+      ]
+     ]
+    },
+    "notes": [
+     "The 2,000-user run stopped after only 2 epochs plus the decay (0.73 billion reviews against 1.4 to 1.7 billion for the others), most likely a noisy held-out slice, so it is worse than 1,000 users; the user counts are given with and without it.",
+     "8,000 users without a teacher was dropped to fit the budget."
+    ]
+   }
+  },
   {
    "date": "11-26",
    "kind": "cpu",
