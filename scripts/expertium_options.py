@@ -36,7 +36,8 @@ E2S_ENV = "EXPERTIUM_END_TO_START"
 # student from gradients, so an AdamW and a Muon run share the same teacher targets (SM20).
 # The SM32b state-VQ QAT (state_vq) only changes the student's forward, never the batch or the teacher input.
 # The instant-only small model (SM57) curve_loss_weight only scales loss terms, like instant_loss_weight.
-TEACHER_BLIND = ("distillation", "optimizer", "instant_loss_weight", "state_vq", "curve_loss_weight")
+# The pairwise ranking term (SM182) pair_rank only adds a loss term on the student's outputs.
+TEACHER_BLIND = ("distillation", "optimizer", "instant_loss_weight", "state_vq", "curve_loss_weight", "pair_rank")
 # Accepted R01 switches whose kernels assume d_model 32 / head size 32 (or need one that does). A variant of
 # another width runs the generic PyTorch or NVRTC path for these; `compatible_options` drops them.
 WIDTH32_ONLY = ("row_tiles_exact", "native_wkv", "wkv_tile", "wkv_rows", "exact_index", "skip_padding_sources",

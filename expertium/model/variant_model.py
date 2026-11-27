@@ -24,6 +24,71 @@ VARIANT_DTYPE_EXCLUDE = DTYPE_EXCLUDE + ["gru_"]
 CARRY_HOOK = [None]
 # SM33: the last grade-order penalty value (detached tensor) and its pair count, for logging; untouched when off.
 GRADE_ORDER_LAST = [None, None]
+# SM182: the last pairwise ranking terms (detached tensors: curve, instant), for diagnostics; untouched when off.
+PAIR_RANK_LAST = [None, None]
+PAIR_RANK_KEYS = ("weight", "logloss", "pairs")
+_WEYL = {}
+
+
+def _weyl_pairs(pairs, device):
+    """The 2-D Kronecker sequence ((i + 1/2) x (sqrt 5 - 1) / 2, (i + 1/2) x (sqrt 2 - 1)) mod 1, i < pairs, float64:
+    equidistributed (passed quantile, failed quantile) pairs, deterministic (no random state, resume-safe)."""
+    key = (int(pairs), str(device))
+    if key not in _WEYL:
+        i = torch.arange(int(pairs), dtype=torch.float64) + 0.5
+        _WEYL[key] = (torch.frac(i * 0.6180339887498949).to(device), torch.frac(i * 0.41421356237309515).to(device))
+    return _WEYL[key]
+
+
+def pair_logistic(score, y, mask, pairs):
+    """SM182: mean over `pairs` (passed, failed) pairs of the rows with mask > 0 of softplus(score_failed -
+    score_passed) = -log sigmoid(score_passed - score_failed), the logistic pairwise (RankNet) loss; its expectation
+    over all pairs is a smooth surrogate of 1 - AUC. Pair k takes the passed row at quantile a_k of the passed rows
+    and the failed row at quantile b_k of the failed rows (both in their batch order), with (a_k, b_k) the Kronecker
+    sequence of _weyl_pairs. 0 when a class is empty. Fixed shapes only: no host sync."""
+    s = score.reshape(-1).float()
+    y = y.reshape(-1)
+    m = mask.reshape(-1) > 0
+    if s.numel() != y.numel() or s.numel() != m.numel():
+        raise ValueError("pair_logistic: score, label and mask sizes differ")
+    passed, failed = m & (y > 0.5), m & (y <= 0.5)
+    n_pass, n_fail = passed.sum(), failed.sum()
+    pass_rows = torch.sort((~passed).to(torch.int32), stable=True).indices   # passed rows first, in batch order
+    fail_rows = torch.sort((~failed).to(torch.int32), stable=True).indices
+    a, b = _weyl_pairs(pairs, s.device)
+    i = torch.minimum((a * n_pass).long(), (n_pass - 1).clamp(min=0))
+    j = torch.minimum((b * n_fail).long(), (n_fail - 1).clamp(min=0))
+    margin = s.index_select(0, pass_rows.index_select(0, i)) - s.index_select(0, fail_rows.index_select(0, j))
+    value = torch.nn.functional.softplus(-margin).mean()
+    return torch.where((n_pass > 0) & (n_fail > 0), value, torch.zeros_like(value))
+
+
+def instant_score(out_p_logits):
+    """The instant head's pass logit: logit(1 - P(Again)) = logsumexp(Hard, Good, Easy logits) - Again logit."""
+    logits = out_p_logits.float()
+    return torch.logsumexp(logits[..., 1:], dim=-1) - logits[..., 0]
+
+
+def pair_rank_terms(curve_logits, out_p_logits, hard_y, ahead_mask, immediate_mask, pairs):
+    """SM182: (curve term, instant term). Curve: the curve logits of the update rows (the curve head at each review's
+    elapsed time) against the review's recall; instant: the instant pass logit of the query rows. Hard labels only
+    (never the distillation targets). One training batch holds one user's window, so every pair is within one user."""
+    return (pair_logistic(curve_logits, hard_y, ahead_mask, pairs),
+            pair_logistic(instant_score(out_p_logits), hard_y, immediate_mask, pairs))
+
+
+def apply_pair_rank(model, spec):
+    """SM182 track option "pair_rank": {"weight": w > 0, "logloss": s >= 0 (default 1.0), "pairs": n (default 65536)}
+    -> training loss = s x the stock loss + w x (curve pair term + instant pair term). Returns the settings."""
+    if not isinstance(spec, dict) or set(spec) - set(PAIR_RANK_KEYS) or "weight" not in spec:
+        raise ValueError(f"pair_rank: expected a dict with keys {PAIR_RANK_KEYS} (weight required), got {spec!r}")
+    if not hasattr(model, "pair_rank_weight"):
+        raise ValueError("pair_rank needs the Expertium variant loss")
+    weight, logloss, pairs = float(spec["weight"]), float(spec.get("logloss", 1.0)), int(spec.get("pairs", 65536))
+    if not (weight > 0.0 and logloss >= 0.0 and pairs >= 1 and math.isfinite(weight) and math.isfinite(logloss)):
+        raise ValueError(f"pair_rank: need weight > 0, logloss >= 0, pairs >= 1, got {spec!r}")
+    model.pair_rank_weight, model.pair_rank_logloss, model.pair_rank_pairs = weight, logloss, pairs
+    return {"weight": weight, "logloss": logloss, "pairs": pairs}
 
 
 def grade_order_penalty(model, out_w, out_s_raw, out_d_raw, global_labels, horizons):
@@ -205,6 +270,12 @@ class VariantSrsRWKV(SrsRWKV):
         # the term is never computed, so the loss and gradients are bit for bit today's.
         self.grade_order_weight = 0.0
         self.grade_order_horizons: List[float] = [86400.0]
+        # SM182 (track option "pair_rank", apply_pair_rank): within-batch pairwise ranking term (a batch = one user's
+        # window): loss = pair_rank_logloss x the stock loss + pair_rank_weight x (curve pairs + instant pairs). The
+        # default weight 0.0 never computes the term nor touches the stock loss: loss and gradients are today's.
+        self.pair_rank_weight = 0.0
+        self.pair_rank_logloss = 1.0
+        self.pair_rank_pairs = 65536
 
         self.gru_n = int(variant.gru_head)
         self.gru_on = self.gru_n > 0
@@ -307,6 +378,17 @@ class VariantSrsRWKV(SrsRWKV):
         (scripts/gpu_r01_samples.add_grade_probes marks probe g with label_elapsed_days = -g). Zero when every pair is
         ordered; no host sync."""
         return grade_order_penalty(self, out_w, out_s_raw, out_d_raw, global_labels, self.grade_order_horizons)
+
+    # ---- SM182 pairwise ranking term ----
+    @torch.jit.ignore
+    def _pair_rank_loss(self, loss_avg: torch.Tensor, curve_logits: torch.Tensor, out_p_logits: torch.Tensor,
+                        hard_y: torch.Tensor, ahead_mask: torch.Tensor, immediate_mask: torch.Tensor) -> torch.Tensor:
+        """pair_rank_logloss x loss_avg + pair_rank_weight x (curve term + instant term) (pair_rank_terms); no sync."""
+        curve, instant = pair_rank_terms(curve_logits, out_p_logits, hard_y, ahead_mask, immediate_mask,
+                                         self.pair_rank_pairs)
+        PAIR_RANK_LAST[0], PAIR_RANK_LAST[1] = curve.detach(), instant.detach()
+        base = loss_avg if self.pair_rank_logloss == 1.0 else self.pair_rank_logloss * loss_avg
+        return base + self.pair_rank_weight * (curve + instant)
 
     # ---- GRU curve head (RWKV_GRU_HEAD) ----
     @torch.jit.ignore
@@ -619,6 +701,8 @@ class VariantSrsRWKV(SrsRWKV):
         if self.grade_order_weight > 0.0:
             loss_avg = loss_avg + self.grade_order_weight * self._grade_order_penalty(
                 out_w, out_s_raw, out_d_raw, global_labels)
+        if self.pair_rank_weight > 0.0:
+            loss_avg = self._pair_rank_loss(loss_avg, curve_logits, out_p_logits, hard_y, ahead_mask, immediate_mask)
         loss_tensor = (
             AHEAD_SCALE * curve_loss.detach()
             + IMMEDIATE_SCALE * p_loss.detach()

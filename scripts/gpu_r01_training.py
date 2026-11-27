@@ -411,6 +411,10 @@ def run_case(args):
             base.grade_order_horizons = [float(day) * 86400.0 for day in spec["horizons_days"]]
             report["grade_order"] = {"weight": base.grade_order_weight, "horizons_days": list(spec["horizons_days"]),
                                      "density": float(spec.get("density", 0.0)), "seed": int(spec.get("seed", 33))}
+        if options.get("pair_rank"):
+            # SM182: within-batch pairwise ranking term on both heads (expertium.model.variant_model.apply_pair_rank).
+            from expertium.model.variant_model import apply_pair_rank
+            report["pair_rank"] = apply_pair_rank(base, options["pair_rank"])
         if options.get("wddm_flush_streams"):
             # F77b: identity flush points between hierarchy streams in forward and backward.
             if not hasattr(base, "wddm_flush_streams"):
