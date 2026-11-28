@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-28T04:27:33+01:00",
- "updated": "2026-11-28 04:27",
- "material": "d908fea1dc6fb354",
- "summary": "running 001847, finished 001846",
+ "generated_at": "2026-11-28T04:29:47+01:00",
+ "updated": "2026-11-28 04:29",
+ "material": "81ef82cdd68405b9",
+ "summary": "running 001847",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring, show-time inputs for both heads (curve / instant)",
@@ -422,7 +422,7 @@
    "track": "small model",
    "ticket": "001847-sm181",
    "started": "04:27",
-   "elapsed": "0:00",
+   "elapsed": "0:02",
    "progress": null,
    "eta": "~04:47"
   }
@@ -2801,14 +2801,11 @@
    "kind": "gpu",
    "minutes": 90,
    "what": "AUC ceiling (SM182): the six-layer Tiny two-head (SM130) fine-tuned with a pairwise ranking loss (pure, and mixed with LogLoss) to find how much discrimination (within-user AUC) LogLoss training leaves on the table",
-   "when": "Queued 01:40 Sat 11-28 behind the session-inputs confirmation; done about 05:30 to 06:30",
+   "when": "Queued 01:40 Sat 11-28; done 03:56",
    "decides": "Whether a ranking term is worth adding to training (mixed arm: within-user AUC up, LogLoss at most 0.05% worse)",
    "state": "done",
-   "started_at": "2026-11-28T01:15:49+01:00",
-   "ended": "03:48",
-   "exit": 0,
-   "started": "01:15",
-   "ended_at": "2026-11-28T03:48:04+01:00"
+   "started_at": "2026-11-28T01:40+01:00",
+   "ended_at": "2026-11-28T04:40+01:00"
   },
   {
    "id": "SM180",
@@ -3998,6 +3995,48 @@
   }
  ],
  "results": [
+  {
+   "date": "11-28",
+   "kind": "gpu",
+   "id": "SM182",
+   "track": "small model",
+   "name": "AUC ceiling (SM182): the six-layer Tiny two-head (SM130) fine-tuned with a pairwise ranking loss (pure, and mixed with LogLoss) to see how much discrimination LogLoss training leaves on the table",
+   "eval": "GPU, short fine-tune (about 2,550 steps) per arm against the SM171 control; 732 set (723 users), show-time inputs; within-user and overall AUC, LogLoss and calibration, paired user bootstrap 95%.",
+   "fork": "Nothing changed in the fork",
+   "takeaway": "<strong>LogLoss training leaves almost no AUC on the table:</strong> even training only for ranking gains at most +0.12% within-user AUC (overall AUC unchanged) while calibration gets much worse; a per-user recalibration recovers all of that, so the models already rank as well as their inputs allow.",
+   "inputs": "show-time",
+   "started_at": "2026-11-28T01:40+01:00",
+   "ended_at": "2026-11-28T04:40+01:00",
+   "gpu_minutes": 80,
+   "cpu_minutes": 20,
+   "tickets": 6,
+   "detail": {
+    "verdict": "Ceiling measured; the mixed arm is not useful (curve LogLoss CI upper +0.071%, above +0.05%). Ranking losses are not worth pursuing for this model family. Branch sm182, commit 4c96197b (RESULT.md)",
+    "table": {
+     "head": [
+      "Arm",
+      "Within-user AUC, curve / instant",
+      "LogLoss, curve / instant"
+     ],
+     "rows": [
+      [
+       "Pure ranking",
+       "+0.0010 / +0.0002",
+       "+0.248% / +0.171%"
+      ],
+      [
+       "LogLoss + ranking (weight 0.91)",
+       "+0.0008 / +0.0002",
+       "+0.029% [&minus;0.022, +0.071] / &minus;0.014%"
+      ]
+     ]
+    },
+    "notes": [
+     "Calibration error (ECE) of the pure ranking model: 0.0089 against 0.0016 for the control.",
+     "Better predictions now have to come from new information (like the session inputs, SM179), not from a different training objective."
+    ]
+   }
+  },
   {
    "date": "11-28",
    "kind": "gpu",
