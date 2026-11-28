@@ -3926,6 +3926,53 @@
  "results": [
   {
    "date": "11-28",
+   "kind": "cpu-analysis",
+   "id": "SM184",
+   "track": "small model",
+   "name": "Small + Tiny ensemble (SM184): logit averages across sizes (Small and Tiny, and Big with Small for reference) from the per-review predictions saved by the ensemble test (SM160), weights fitted on 100 separate users",
+   "eval": "CPU only, 732 set (718 users), chosen state format, instant head, paired user bootstrap 95%.",
+   "fork": "Nothing changed in the fork",
+   "takeaway": "<strong>Small + Tiny does not help:</strong> the fitted weights give Tiny almost nothing (0 to 8%), and no Small + Tiny mix beats Small&rsquo;s own two-model ensemble (&minus;0.021%); only Big + Small helps (&minus;0.19% vs Small alone, &minus;0.18% vs Big alone), at Big&rsquo;s cost plus Small&rsquo;s.",
+   "inputs": "show-time",
+   "started_at": "2026-11-28T10:40+01:00",
+   "ended_at": "2026-11-28T10:50+01:00",
+   "gpu_minutes": 0,
+   "cpu_minutes": 10,
+   "tickets": 0,
+   "detail": {
+    "verdict": "No go for Small + Tiny. Branch sm184, commit e63c5e1c (RESULT.md)",
+    "table": {
+     "head": [
+      "Instant head",
+      "vs Small Instant-Only alone [95% CI]",
+      "vs Big Instant-Only alone"
+     ],
+     "rows": [
+      [
+       "Small Instant-Only + Tiny Instant-Only (0.92 / 0.08)",
+       "&minus;0.003% [&minus;0.005, &minus;0.002]",
+       "+0.008%"
+      ],
+      [
+       "All four Small and Tiny models",
+       "&minus;0.021%",
+       "&minus;0.010%"
+      ],
+      [
+       "Big Instant-Only + Small Instant-Only (0.68 / 0.32)",
+       "<strong>&minus;0.192%</strong> [&minus;0.213, &minus;0.172]",
+       "&minus;0.180%"
+      ]
+     ]
+    },
+    "notes": [
+     "On this set Big Instant-Only alone is level with Small Instant-Only alone; mixing the two sizes helps because they make different mistakes.",
+     "A Big + Small pair would cost Big&rsquo;s compute and state plus Small&rsquo;s."
+    ]
+   }
+  },
+  {
+   "date": "11-28",
    "kind": "gpu",
    "id": "SM181",
    "track": "small model",
