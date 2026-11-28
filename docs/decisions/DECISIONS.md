@@ -5,6 +5,8 @@ and logged here for review. Details, evidence and how to undo each one: [DECISIO
 
 ## 2026-11-28
 
+- **Agent** - Tiny Instant-Only with session inputs (SM183): -0.589% instant; started the Small cool-down with session
+  inputs (SM185).
 - **Agent** - Tiny two-head full cool-down with session inputs (SM183): go, -0.499% instant / -0.029% curve vs the
   release Tiny on the 732 set (-0.474% / -0.040% on 761 more users); within-user instant AUC +0.25%.
 - **Agent** - Session inputs confirmed (SM181): -0.063% instant on 761 more users, -0.065% for Small, AUC up slightly;

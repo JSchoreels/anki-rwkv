@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-28T17:06:56+01:00",
- "updated": "2026-11-28 17:06",
- "material": "a035b49aaf8bf5d7",
- "summary": "idle, finished 001867",
+ "generated_at": "2026-11-28T17:29:21+01:00",
+ "updated": "2026-11-28 17:29",
+ "material": "e33d029d4902d69b",
+ "summary": "idle",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring, show-time inputs for both heads (curve / instant)",
@@ -2783,14 +2783,11 @@
    "kind": "gpu",
    "minutes": 720,
    "what": "Tiny cool-down with session inputs (SM183): the six-layer Tiny&rsquo;s full release cool-down (two passes over the 8,000 users) repeated with the session inputs, first the two-head model, then the Instant-Only model; the release models are the controls after a bit-for-bit check of the recipe",
-   "when": "Launched 05:42 Sat 11-28; two-head result 11:45: go, &minus;0.50% instant and &minus;0.03% curve vs the release Tiny; the Instant-Only model runs now, done about 19:00",
+   "when": "Launched 05:42 Sat 11-28; done 17:08: go for both models",
    "decides": "Whether a Tiny with session inputs beats the release Tiny enough to ship (go: instant at least 0.05% better, CI below 0, curve not worse by more than 0.05%)",
    "state": "done",
-   "started_at": "2026-11-28T05:42:53+01:00",
-   "ended": "17:06",
-   "exit": 0,
-   "started": "05:42",
-   "ended_at": "2026-11-28T17:06:28+01:00"
+   "started_at": "2026-11-28T05:42+01:00",
+   "ended_at": "2026-11-28T17:08+01:00"
   },
   {
    "id": "SM182",
@@ -3992,6 +3989,61 @@
   }
  ],
  "results": [
+  {
+   "date": "11-28",
+   "kind": "gpu",
+   "id": "SM183",
+   "track": "small model",
+   "name": "Tiny cool-down with session inputs (SM183): the six-layer Tiny&rsquo;s exact release cool-down (two passes over the 8,000 users) repeated with the six session inputs, for the two-head and the Instant-Only model; the release models are the controls after a bit-for-bit check of the recipe",
+   "eval": "GPU, about 11 hours; 732 set (723 users) and 761 held-out users, int8 card states, show-time inputs, paired user bootstrap 95%; AUC report-only.",
+   "fork": "Nothing changed in the fork yet: the session inputs must first be computed there",
+   "takeaway": "<strong>Session inputs make Tiny clearly better:</strong> &minus;0.50% instant LogLoss for the two-head model (&minus;0.47% on 761 more users) and &minus;0.59% for the Instant-Only model, the curve slightly better too, and within-user instant AUC up about 0.25%, at the same training cost.",
+   "inputs": "show-time",
+   "started_at": "2026-11-28T05:42+01:00",
+   "ended_at": "2026-11-28T17:08+01:00",
+   "gpu_minutes": 660,
+   "cpu_minutes": 30,
+   "tickets": 12,
+   "detail": {
+    "verdict": "Go for both six-layer Tiny models. Branch sm183 (sm183-result.md). Scored with int8 card states; the shipped compressed formats are still to check.",
+    "table": {
+     "head": [
+      "Model",
+      "Set",
+      "Curve [95% CI]",
+      "Instant [95% CI]",
+      "Instant within-user AUC"
+     ],
+     "rows": [
+      [
+       "six-layer Tiny two-head (SM130)",
+       "732 set",
+       "&minus;0.029% [&minus;0.047, &minus;0.008]",
+       "<strong>&minus;0.499%</strong> [&minus;0.578, &minus;0.420]",
+       "0.8418 &rarr; 0.8439"
+      ],
+      [
+       "six-layer Tiny two-head (SM130)",
+       "761 more users",
+       "&minus;0.040% [&minus;0.051, &minus;0.030]",
+       "<strong>&minus;0.474%</strong> [&minus;0.573, &minus;0.396]",
+       "0.8392 &rarr; 0.8415"
+      ],
+      [
+       "six-layer Tiny Instant-Only (SM130)",
+       "732 set",
+       "+0.001%",
+       "<strong>&minus;0.589%</strong> [&minus;0.699, &minus;0.484]",
+       "0.8427 &rarr; 0.8449"
+      ]
+     ]
+    },
+    "notes": [
+     "A short fine-tune showed only &minus;0.065% (SM179/SM181): the model needs a full cool-down to learn to use the session inputs.",
+     "Next: the same for Small (SM185), then Big, then the session inputs in the fork."
+    ]
+   }
+  },
   {
    "date": "11-28",
    "kind": "cpu-analysis",
