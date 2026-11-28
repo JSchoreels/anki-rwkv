@@ -1,6 +1,6 @@
 # Small cool-down with session inputs (SM185): handoff
 
-Status: PREPARED (design, scripts, CPU proofs ALL OK); launch pending.
+Status: RUNNING since 2026-11-28 17:44 (hidden via WMI, wrapper pid 45128). Ticket 001868 (two-head trainer smoke) passed 17:44 (2 updates, 11.6 s); ticket 001869 (G0: `sm185-th-ctlcheck` to 400 users) started 17:44:29.
 
 ## Done
 
@@ -26,7 +26,7 @@ The release models are the controls if G0 passes: `sm185-th-ctlcheck` (SM118's p
 | 7 | Instant-Only chain only if minutes used + 740 <= `BUDGET_TOTAL` (960): normally skipped, log `Instant-Only chain not run (budget ...)` | (~740 min) |
 | 8 | `SM185 DONE` | |
 
-ETA: `SM185 TH` and `SM185 DONE` about 08:00 Sun 11-29 (07:30-09:30) if launched about 18:15 Sat; later if other tickets interleave. About 13.2 GPU hours in total (two-head only).
+ETA: G0 result about 18:10 Sat; pass 1 ends about 00:10 Sun, pass 2 about 06:10 Sun; `SM185 TH` and `SM185 DONE` about 07:30 Sun 11-29 (07:00-09:00); later if other tickets interleave. About 13.2 GPU hours in total (two-head only).
 
 ## Paths and patterns
 
