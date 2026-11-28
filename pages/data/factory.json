@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-28T01:16:08+01:00",
+ "generated_at": "2026-11-28T01:16:43+01:00",
  "updated": "2026-11-28 01:16",
- "material": "30f2df9c78fd52ba",
- "summary": "running 001832, finished 001831",
+ "material": "b21c535a654187fd",
+ "summary": "running 001833, finished 001832",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring, show-time inputs for both heads (curve / instant)",
@@ -412,19 +412,19 @@
  },
  "now": [
   {
-   "what": "AUC ceiling (SM182): the six-layer Tiny two-head (SM130) fine-tuned with a pairwise ranking loss (pure, and mixed with LogLoss) to find how much discrimination (within-user AUC) LogLoss training leaves on the table",
-   "id": "SM182, ticket 001832",
+   "what": "4-bit weights (SM180): the six release models with their weights stored in 4 bits instead of 8 (per-channel or per-group scales), first without retraining, then a short quantization-aware fine-tune only for a size where that costs too much",
+   "id": "SM180, ticket 001833",
    "kind": "gpu",
-   "decides": "Whether a ranking term is worth adding to training (mixed arm: within-user AUC up, LogLoss at most 0.05% worse)",
+   "decides": "Whether the model weights can be halved in size for free (rule: CI upper bound at most +0.15% per head vs 8-bit weights)",
    "why": "",
-   "job": "AUC ceiling (SM182): smoke: trainer arms R and M, control REF with dump on 3 users",
+   "job": "4-bit weights (SM180): QAT sm118: arm and control at w4g32 / w8, 723-user list of the 732 set, e2s-query (pass 1, 0 done, cap 0.8)",
    "linked": true,
    "track": "small model",
-   "ticket": "001832-sm182",
-   "started": "01:15",
+   "ticket": "001833-sm180",
+   "started": "01:16",
    "elapsed": "0:00",
    "progress": null,
-   "eta": "~01:23"
+   "eta": "~02:06"
   }
  ],
  "charts": [
@@ -596,19 +596,28 @@
  ],
  "waiting": [
   {
-   "ticket": "001833-sm180",
-   "id": "SM180",
-   "what": "4-bit weights (SM180): QAT sm118: arm and control at w4g32 / w8, 723-user list of the 732 set, e2s-query (pass 1, 0 done, cap 0.8)",
-   "flags": "expected 50 min"
-  },
-  {
    "ticket": "001834-sm181",
    "id": "SM181",
    "what": "Session inputs confirmation (SM181): scoring sm171-tiny-ctl (REF, inputs none, dump) on decisive, pass 1, cap 0.8",
    "flags": "expected 25 min"
+  },
+  {
+   "ticket": "001835-sm182",
+   "id": "SM182",
+   "what": "AUC ceiling (SM182): train sm182-tiny-r",
+   "flags": "expected 30 min"
   }
  ],
  "recent": [
+  {
+   "ticket": "001832-sm182",
+   "id": "SM182",
+   "what": "AUC ceiling (SM182): smoke: trainer arms R and M, control REF with dump on 3 users",
+   "ended": "01:16",
+   "date": "11-28",
+   "exit": 0,
+   "ran": "0:00"
+  },
   {
    "ticket": "001831-sm181",
    "id": "SM181",
@@ -653,15 +662,6 @@
    "date": "11-27",
    "exit": 0,
    "ran": "0:00"
-  },
-  {
-   "ticket": "001826-sm180",
-   "id": "SM180",
-   "what": "4-bit weights (SM180): QAT sm130th: arm and control at w4g32 / w8, 723-user list of the 732 set, e2s-query (pass 1, 0 done, cap 0.8)",
-   "ended": "23:55",
-   "date": "11-27",
-   "exit": 0,
-   "ran": "0:38"
   }
  ],
  "plan": [
@@ -2814,11 +2814,9 @@
    "what": "AUC ceiling (SM182): the six-layer Tiny two-head (SM130) fine-tuned with a pairwise ranking loss (pure, and mixed with LogLoss) to find how much discrimination (within-user AUC) LogLoss training leaves on the table",
    "when": "Queued 01:40 Sat 11-28 behind the session-inputs confirmation; done about 05:30 to 06:30",
    "decides": "Whether a ranking term is worth adding to training (mixed arm: within-user AUC up, LogLoss at most 0.05% worse)",
-   "state": "running",
-   "started_at": "2026-11-28T01:15:49+01:00",
-   "started": "01:15",
-   "ticket": "001832-sm182",
-   "ends_at": "2026-11-28T02:45:49+01:00"
+   "state": "waiting",
+   "started_at": "2026-11-28T01:40+01:00",
+   "ticket": "001835-sm182"
   },
   {
    "id": "SM180",
@@ -2828,9 +2826,11 @@
    "what": "4-bit weights (SM180): the six release models with their weights stored in 4 bits instead of 8 (per-channel or per-group scales), first without retraining, then a short quantization-aware fine-tune only for a size where that costs too much",
    "when": "Started 18:10 Fri 11-27 (at most about 6 GPU hours)",
    "decides": "Whether the model weights can be halved in size for free (rule: CI upper bound at most +0.15% per head vs 8-bit weights)",
-   "state": "waiting",
-   "started_at": "2026-11-27T18:10+01:00",
-   "ticket": "001833-sm180"
+   "state": "running",
+   "started_at": "2026-11-27T18:25:02+01:00",
+   "started": "01:16",
+   "ticket": "001833-sm180",
+   "ends_at": "2026-11-28T00:25:02+01:00"
   },
   {
    "id": "SM178",
