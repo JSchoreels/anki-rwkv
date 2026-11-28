@@ -1,0 +1,64 @@
+[2026-11-28 05:42:50] launch (DRYRUN=0)
+{"folders": {"sm183-io-ses-p1": {"chain": "io", "arm": "ses", "pass": 1, "inputs": "session", "users": 8000, "reviews": 581942724}, "sm183-th-ctlcheck": {"chain": "th", "arm": "ctlcheck", "pass": 1, "inputs": "(unset)", "users": 8000, "reviews": 581942724}, "sm183-th-ses-p1": {"chain": "th", "arm": "ses", "pass": 1, "inputs": "session", "users": 8000, "reviews": 581942724}}, "ok": true, "problems": [], "warnings": []}
+[2026-11-28 05:42:52] commit a85f8357, run tree cd220759, GPU minutes so far 0
+[2026-11-28 05:42:52] ticket: trainer smoke of sm183-th-ses-p1 (2 users x 512 reviews, scratch copy) (expected 8 min)
+[2026-11-28 05:43:03] exit 0: trainer smoke of sm183-th-ses-p1 (2 users x 512 reviews, scratch copy)
+[2026-11-28 05:43:03] smoke sm183-th-ses-p1: {"smoke": "sm183-th-ses-p1", "exit": 0, "status": "complete", "updates": 2, "reviews": 1024, "error": null, "seconds": 9.4}
+[2026-11-28 05:43:03] train: sm183-th-ctlcheck (SM179_INPUTS=unset, expected ~15 min, until users-00400)
+[2026-11-28 05:51:36] snapshot stop of sm183-th-ctlcheck (reached users-00400)
+[2026-11-28 05:52:07] exit 1: train sm183-th-ctlcheck
+{"g0_ok": true, "problems": []}
+[2026-11-28 05:52:10] G0 control reproduction: pass (the release models are the controls)
+[2026-11-28 05:52:10] train: sm183-th-ses-p1 (SM179_INPUTS=session, expected ~165 min)
+[2026-11-28 08:22:23] exit 0: train sm183-th-ses-p1
+[2026-11-28 08:22:24] sm183-th-ses-p1 complete: 581,942,724 reviews, 149.5 min, 64,866 reviews/s, peak allocated 4,224 MiB, reserved 9,202 MiB, process tree RSS 12,099 MiB, update offset end 728574, trained c2e4f83f1a92
+[sm183-prepare] p2 sm183-th-ses-p2: 8,000 users, 581,942,724 reviews, from sm183-th-ses-p1 master 9199667bbc78, update offset 728574, lr_resume {"total_reviews": 1163885448, "reviews_offset": 581942724}
+{"folders": {"sm183-io-ses-p1": {"chain": "io", "arm": "ses", "pass": 1, "inputs": "session", "users": 8000, "reviews": 581942724}, "sm183-th-ctlcheck": {"chain": "th", "arm": "ctlcheck", "pass": 1, "inputs": "(unset)", "users": 8000, "reviews": 581942724}, "sm183-th-ses-p1": {"chain": "th", "arm": "ses", "pass": 1, "inputs": "session", "users": 8000, "reviews": 581942724}, "sm183-th-ses-p2": {"chain": "th", "arm": "ses", "pass": 2, "inputs": "session", "users": 8000, "reviews": 581942724}}, "ok": true, "problems": [], "warnings": []}
+[2026-11-28 08:22:27] train: sm183-th-ses-p2 (SM179_INPUTS=session, expected ~165 min)
+[2026-11-28 10:53:12] exit 0: train sm183-th-ses-p2
+[2026-11-28 10:53:12] sm183-th-ses-p2 complete: 581,942,724 reviews, 150.4 min, 64,479 reviews/s, peak allocated 4,226 MiB, reserved 10,160 MiB, process tree RSS 12,204 MiB, update offset end 750652, trained 933bdedf49d1
+[2026-11-28 10:53:13] ticket: scoring sm130-th-release (REF, inputs none, dump) on the 732 set, pass 1, cap 0.8 (expected 20 min)
+[2026-11-28 11:04:03] exit 0: scoring sm130-th-release (REF, inputs none, dump) on the 732 set, pass 1, cap 0.8
+[2026-11-28 11:04:03] sm130-th-release (732): 723 users scored (target 723)
+[2026-11-28 11:04:03] ticket: scoring sm183-th-ses (REF, inputs session, dump) on the 732 set, pass 1, cap 0.8 (expected 20 min)
+[2026-11-28 11:14:12] exit 0: scoring sm183-th-ses (REF, inputs session, dump) on the 732 set, pass 1, cap 0.8
+[2026-11-28 11:14:12] sm183-th-ses (732): 723 users scored (target 723)
+[2026-11-28 11:14:13] ticket: scoring sm130-th-release (REF, inputs none, dump) on the decisive set, pass 1, cap 0.8 (expected 30 min)
+[2026-11-28 11:28:18] exit 0: scoring sm130-th-release (REF, inputs none, dump) on the decisive set, pass 1, cap 0.8
+[2026-11-28 11:28:18] sm130-th-release (decisive): 760 users scored (target 765)
+[2026-11-28 11:28:18] ticket: scoring sm130-th-release (REF, inputs none, dump) on the decisive set, pass 2, cap 0.92 (expected 30 min)
+[2026-11-28 11:28:57] exit 0: scoring sm130-th-release (REF, inputs none, dump) on the decisive set, pass 2, cap 0.92
+[2026-11-28 11:28:57] sm130-th-release (decisive): 762 users scored (target 765)
+[2026-11-28 11:28:57] ticket: scoring sm130-th-release (REF, inputs none, dump) on the decisive set, pass 3, cap 0.92 (expected 30 min)
+[2026-11-28 11:29:23] exit 0: scoring sm130-th-release (REF, inputs none, dump) on the decisive set, pass 3, cap 0.92
+[2026-11-28 11:29:23] sm130-th-release (decisive): 762 users scored (target 765)
+[2026-11-28 11:29:23] ticket: scoring sm183-th-ses (REF, inputs session, dump) on the decisive set, pass 1, cap 0.8 (expected 30 min)
+[2026-11-28 11:43:44] exit 0: scoring sm183-th-ses (REF, inputs session, dump) on the decisive set, pass 1, cap 0.8
+[2026-11-28 11:43:44] sm183-th-ses (decisive): 761 users scored (target 765)
+[2026-11-28 11:43:45] ticket: scoring sm183-th-ses (REF, inputs session, dump) on the decisive set, pass 2, cap 0.92 (expected 30 min)
+[2026-11-28 11:44:14] exit 0: scoring sm183-th-ses (REF, inputs session, dump) on the decisive set, pass 2, cap 0.92
+[2026-11-28 11:44:14] sm183-th-ses (decisive): 761 users scored (target 765)
+[2026-11-28 11:44:15] sm183-th-ses (decisive): no progress in the last pass, 761 users; moving on
+[2026-11-28 11:45:35] report exit 0 (0 decided, 2 pending): **six-layer Tiny two-head (SM130): GO** 
+[2026-11-28 11:45:35] SM183 TH read-out written (361 GPU minutes so far)
+[2026-11-28 11:45:35] ticket: trainer smoke of sm183-io-ses-p1 (2 users x 512 reviews, scratch copy) (expected 8 min)
+[2026-11-28 11:45:45] exit 0: trainer smoke of sm183-io-ses-p1 (2 users x 512 reviews, scratch copy)
+[2026-11-28 11:45:45] smoke sm183-io-ses-p1: {"smoke": "sm183-io-ses-p1", "exit": 0, "status": "complete", "updates": 2, "reviews": 1024, "error": null, "seconds": 9.3}
+[2026-11-28 11:45:46] train: sm183-io-ses-p1 (SM179_INPUTS=session, expected ~165 min)
+[2026-11-28 14:15:57] exit 0: train sm183-io-ses-p1
+[2026-11-28 14:15:58] sm183-io-ses-p1 complete: 581,942,724 reviews, 149.6 min, 64,833 reviews/s, peak allocated 4,224 MiB, reserved 9,202 MiB, process tree RSS 12,051 MiB, update offset end 927276, trained 51e6035a6862
+[sm183-prepare] p2 sm183-io-ses-p2: 8,000 users, 581,942,724 reviews, from sm183-io-ses-p1 master c65f619a4536, update offset 927276, lr_resume {"total_reviews": 1163885448, "reviews_offset": 581942724}
+{"folders": {"sm183-io-ses-p1": {"chain": "io", "arm": "ses", "pass": 1, "inputs": "session", "users": 8000, "reviews": 581942724}, "sm183-io-ses-p2": {"chain": "io", "arm": "ses", "pass": 2, "inputs": "session", "users": 8000, "reviews": 581942724}, "sm183-th-ctlcheck": {"chain": "th", "arm": "ctlcheck", "pass": 1, "inputs": "(unset)", "users": 8000, "reviews": 581942724}, "sm183-th-ses-p1": {"chain": "th", "arm": "ses", "pass": 1, "inputs": "session", "users": 8000, "reviews": 581942724}, "sm183-th-ses-p2": {"chain": "th", "arm": "ses", "pass": 2, "inputs": "session", "users": 8000, "reviews": 581942724}}, "ok": true, "problems": [], "warnings": []}
+[2026-11-28 14:16:03] train: sm183-io-ses-p2 (SM179_INPUTS=session, expected ~165 min)
+[2026-11-28 16:46:14] exit 0: train sm183-io-ses-p2
+[2026-11-28 16:46:15] sm183-io-ses-p2 complete: 581,942,724 reviews, 149.6 min, 64,853 reviews/s, peak allocated 4,226 MiB, reserved 10,160 MiB, process tree RSS 12,117 MiB, update offset end 949354, trained 308deba93cc4
+[2026-11-28 16:46:15] ticket: scoring sm130-io-release (REF, inputs none, dump) on the 732 set, pass 1, cap 0.8 (expected 20 min)
+[2026-11-28 16:56:16] exit 0: scoring sm130-io-release (REF, inputs none, dump) on the 732 set, pass 1, cap 0.8
+[2026-11-28 16:56:16] sm130-io-release (732): 723 users scored (target 723)
+[2026-11-28 16:56:17] ticket: scoring sm183-io-ses (REF, inputs session, dump) on the 732 set, pass 1, cap 0.8 (expected 20 min)
+[2026-11-28 17:06:28] exit 0: scoring sm183-io-ses (REF, inputs session, dump) on the 732 set, pass 1, cap 0.8
+[2026-11-28 17:06:28] sm183-io-ses (732): 723 users scored (target 723)
+[2026-11-28 17:06:28] Instant-Only decisive scoring skipped (budget: 682 GPU minutes used > 680)
+[2026-11-28 17:08:24] report exit 0 (0 decided, 2 pending): **six-layer Tiny two-head (SM130): GO** **six-layer Tiny Instant-Only (SM130): GO (732 set only; decisive users not scored)** 
+[2026-11-28 17:08:25] GPU minutes used: 682
+[2026-11-28 17:08:25] SM183 DONE

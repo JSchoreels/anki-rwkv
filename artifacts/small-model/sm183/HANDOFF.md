@@ -1,6 +1,6 @@
 # Tiny cool-down with session inputs (SM183): handoff
 
-Status: RUNNING since 2026-11-28 05:42 (launcher pid 49564, hidden via WMI). First ticket 001852 (two-head trainer smoke) started 05:42:52.
+Status: DONE 2026-11-28 17:08 (`SM183 DONE`); read-out written in `RESULT.md`. Two-head GO (instant -0.499% on the 732 set, -0.474% on the decisive users; curve -0.03% / -0.04%); Instant-Only GO on the 732 set only (instant -0.589%). Scoring used REF int8 states (w8+s8hx8); shipped T24 / 6-bit formats still to be checked.
 
 ## Done
 
