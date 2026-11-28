@@ -5,6 +5,8 @@ and logged here for review. Details, evidence and how to undo each one: [DECISIO
 
 ## 2026-11-28
 
+- **Agent** - Session inputs confirmed (SM181): -0.063% instant on 761 more users, -0.065% for Small, AUC up slightly;
+  they join the next family's recipe.
 - **Agent** - AUC ceiling (SM182): ranking-only training gains at most +0.12% within-user AUC; LogLoss training leaves
   almost nothing; ranking losses dropped.
 - **Agent** - 4-bit weights (SM180): free only for Small after a short retraining; not adopted now (weights are

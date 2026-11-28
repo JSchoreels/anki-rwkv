@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-28T05:11:59+01:00",
- "updated": "2026-11-28 05:11",
- "material": "337872daaa74149e",
- "summary": "idle, finished 001851",
+ "generated_at": "2026-11-28T05:30:00+01:00",
+ "updated": "2026-11-28 05:30",
+ "material": "71df9a907c9a0bfc",
+ "summary": "idle",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring, show-time inputs for both heads (curve / instant)",
@@ -2771,14 +2771,11 @@
    "kind": "gpu",
    "minutes": 150,
    "what": "Session inputs confirmation (SM181): the session-inputs gain (SM179) checked on 765 more users and on Small two-head (SM118), with overall and within-user AUC reported for every arm",
-   "when": "Queued 00:50 Sat 11-28 behind the 4-bit weights retraining; done about 03:40",
+   "when": "Queued 00:50 Sat 11-28; done 05:13: confirmed",
    "decides": "Whether session inputs go into the next family&rsquo;s recipe",
    "state": "done",
-   "started_at": "2026-11-28T01:15:39+01:00",
-   "ended": "05:11",
-   "exit": 0,
-   "started": "01:15",
-   "ended_at": "2026-11-28T05:11:30+01:00"
+   "started_at": "2026-11-28T00:50+01:00",
+   "ended_at": "2026-11-28T05:40+01:00"
   },
   {
    "id": "SM182",
@@ -3980,6 +3977,51 @@
   }
  ],
  "results": [
+  {
+   "date": "11-28",
+   "kind": "gpu",
+   "id": "SM181",
+   "track": "small model",
+   "name": "Session inputs confirmation (SM181): the session-inputs gain checked on 761 more users (Tiny) and on Small two-head (SM118), with overall and within-user AUC",
+   "eval": "GPU; the Tiny session arm and control rescored on the users with id 5000 or more (held out from Tiny); a new Small fine-tune with session inputs against the SM149 control on the 732 set; paired user bootstrap 95%.",
+   "fork": "Nothing changed in the fork yet",
+   "takeaway": "<strong>Confirmed on both:</strong> session inputs lower instant LogLoss by &minus;0.063% on 761 more users (Tiny) and &minus;0.065% for Small, with the curve unchanged; instant AUC also rises slightly (within-user +0.0003 to +0.0004, CI above 0 everywhere). They go into the next family&rsquo;s recipe.",
+   "inputs": "show-time",
+   "started_at": "2026-11-28T00:50+01:00",
+   "ended_at": "2026-11-28T05:40+01:00",
+   "gpu_minutes": 150,
+   "cpu_minutes": 20,
+   "tickets": 9,
+   "detail": {
+    "verdict": "Go on both axes. Branch sm181, commit 8d406426 (RESULT.md).",
+    "table": {
+     "head": [
+      "Check",
+      "Curve [95% CI]",
+      "Instant [95% CI]",
+      "Instant within-user AUC"
+     ],
+     "rows": [
+      [
+       "Tiny, 761 more users",
+       "&minus;0.000% [&minus;0.003, +0.002]",
+       "&minus;0.063% [&minus;0.071, &minus;0.056]",
+       "+0.0003 to +0.0004"
+      ],
+      [
+       "Small two-head (SM118), 732 set",
+       "+0.003% [&minus;0.001, +0.007]",
+       "&minus;0.065% [&minus;0.073, &minus;0.057]",
+       "+0.0003 to +0.0004"
+      ]
+     ]
+    },
+    "notes": [
+     "Unlike a ranking loss (SM182), the new information improves both LogLoss and discrimination.",
+     "Training cost unchanged (Small 28,779 against 28,883 reviews/s)."
+    ]
+   }
+  },
   {
    "date": "11-28",
    "kind": "gpu",
