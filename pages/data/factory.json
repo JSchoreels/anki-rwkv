@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-28T02:43:36+01:00",
- "updated": "2026-11-28 02:43",
- "material": "924823aaf752b412",
- "summary": "running 001836, finished 001835",
+ "generated_at": "2026-11-28T02:44:11+01:00",
+ "updated": "2026-11-28 02:44",
+ "material": "e5c101cb31788138",
+ "summary": "running 001837, finished 001836",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring, show-time inputs for both heads (curve / instant)",
@@ -412,19 +412,19 @@
  },
  "now": [
   {
-   "what": "4-bit weights (SM180): the six release models with their weights stored in 4 bits instead of 8 (per-channel or per-group scales), first without retraining, then a short quantization-aware fine-tune only for a size where that costs too much",
-   "id": "SM180, ticket 001836",
+   "what": "Session inputs confirmation (SM181): the session-inputs gain (SM179) checked on 765 more users and on Small two-head (SM118), with overall and within-user AUC reported for every arm",
+   "id": "SM181, ticket 001837",
    "kind": "gpu",
-   "decides": "Whether the model weights can be halved in size for free (rule: CI upper bound at most +0.15% per head vs 8-bit weights)",
+   "decides": "Whether session inputs go into the next family&rsquo;s recipe",
    "why": "",
-   "job": "4-bit weights (SM180): QAT sm118: arm and control at w4g32 / w8, 723-user list of the 732 set, e2s-query (pass 2, 721 done, cap 0.8)",
+   "job": "Session inputs confirmation (SM181): scoring sm171-tiny-ctl (REF, inputs none, dump) on decisive, pass 2, cap 0.92",
    "linked": true,
    "track": "small model",
-   "ticket": "001836-sm180",
+   "ticket": "001837-sm181",
    "started": "02:43",
    "elapsed": "0:00",
    "progress": null,
-   "eta": "~03:23"
+   "eta": "~03:08"
   }
  ],
  "charts": [
@@ -596,19 +596,28 @@
  ],
  "waiting": [
   {
-   "ticket": "001837-sm181",
-   "id": "SM181",
-   "what": "Session inputs confirmation (SM181): scoring sm171-tiny-ctl (REF, inputs none, dump) on decisive, pass 2, cap 0.92",
-   "flags": "expected 25 min"
-  },
-  {
    "ticket": "001838-sm182",
    "id": "SM182",
    "what": "AUC ceiling (SM182): train sm182-tiny-m",
    "flags": "expected 30 min"
+  },
+  {
+   "ticket": "001839-sm180",
+   "id": "SM180",
+   "what": "4-bit weights (SM180): QAT sm118: arm and control at w4g32 / w8, 723-user list of the 732 set, e2s-query (pass 3, 722 done, cap 0.8)",
+   "flags": "expected 40 min"
   }
  ],
  "recent": [
+  {
+   "ticket": "001836-sm180",
+   "id": "SM180",
+   "what": "4-bit weights (SM180): QAT sm118: arm and control at w4g32 / w8, 723-user list of the 732 set, e2s-query (pass 2, 721 done, cap 0.8)",
+   "ended": "02:43",
+   "date": "11-28",
+   "exit": 0,
+   "ran": "0:00"
+  },
   {
    "ticket": "001835-sm182",
    "id": "SM182",
@@ -653,15 +662,6 @@
    "date": "11-28",
    "exit": 0,
    "ran": "0:00"
-  },
-  {
-   "ticket": "001830-sm180",
-   "id": "SM180",
-   "what": "4-bit weights (SM180): train sm180-sm118-ctl",
-   "ended": "01:15",
-   "date": "11-28",
-   "exit": 0,
-   "ran": "0:39"
   }
  ],
  "plan": [
@@ -2802,9 +2802,11 @@
    "what": "Session inputs confirmation (SM181): the session-inputs gain (SM179) checked on 765 more users and on Small two-head (SM118), with overall and within-user AUC reported for every arm",
    "when": "Queued 00:50 Sat 11-28 behind the 4-bit weights retraining; done about 03:40",
    "decides": "Whether session inputs go into the next family&rsquo;s recipe",
-   "state": "waiting",
-   "started_at": "2026-11-28T00:50+01:00",
-   "ticket": "001837-sm181"
+   "state": "running",
+   "started_at": "2026-11-28T01:15:39+01:00",
+   "started": "02:43",
+   "ticket": "001837-sm181",
+   "ends_at": "2026-11-28T03:45:39+01:00"
   },
   {
    "id": "SM182",
@@ -2826,11 +2828,9 @@
    "what": "4-bit weights (SM180): the six release models with their weights stored in 4 bits instead of 8 (per-channel or per-group scales), first without retraining, then a short quantization-aware fine-tune only for a size where that costs too much",
    "when": "Started 18:10 Fri 11-27 (at most about 6 GPU hours)",
    "decides": "Whether the model weights can be halved in size for free (rule: CI upper bound at most +0.15% per head vs 8-bit weights)",
-   "state": "running",
-   "started_at": "2026-11-27T18:25:02+01:00",
-   "started": "02:43",
-   "ticket": "001836-sm180",
-   "ends_at": "2026-11-28T00:25:02+01:00"
+   "state": "waiting",
+   "started_at": "2026-11-27T18:10+01:00",
+   "ticket": "001839-sm180"
   },
   {
    "id": "SM178",
