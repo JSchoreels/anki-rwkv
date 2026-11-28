@@ -1,6 +1,6 @@
 # AUC ceiling (SM182): handoff
 
-Status: RUNNING since Sat 2026-11-28 01:04 (launcher started; first ticket queued behind SM180 and SM181). Nothing to do until `SM182 DONE` or `SM182 STOP` appears in the log.
+Status: DONE Sat 2026-11-28 03:56 (`SM182 DONE`); read-out written (`RESULT.md`): M NOT USEFUL (curve LogLoss CI upper +0.071% > +0.05%); R within-user AUC +0.12% curve / +0.03% instant, Platt recovers its LogLoss gap. RA not needed.
 
 ## Done
 
