@@ -1,6 +1,6 @@
 # 4-bit weights (SM180): handoff
 
-Status: RUNNING since Fri 11-27 18:28 (launcher), first PTQ ticket 001809-sm180 started 18:30.
+Status: DONE Sat 11-28 03:02 (`SM180 GPU DONE`), read out in `RESULT.md`: PTQ fails for Big, Small and Tiny at both group sizes; QAT (w4g32) free for Small two-head (SM118), not free for six-layer Tiny two-head (SM130) (instant upper +0.204% vs +0.15%).
 
 Design and rules: `design.md` (pre-registered in 7bed242c before any row of this screen existed). Question: can the int8 weights of the six release models go to int4 (one float32 scale per group of 32 or 16 input columns, every 2-D `.weight` = the release int8 tensors, the rest float32) at a negligible cost? Rule: int4 vs the same model at int8 with the chosen state formats (F6 for Big and Small, T24 for Tiny), CI upper bound <= +0.15% per head on the 723-user list of the 732 set. If neither group size is free for Small or Tiny, one straight-through QAT fine-tune arm per failing size (SM171 recipe) is trained and scored against a matched control.
 

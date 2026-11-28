@@ -5,3 +5,65 @@
 [sm180 11-27 18:30:40] exit 0: GPU smoke: 5 users, 6 models, int8 REF / T24 / F6 (vs SM164's rows, bitwise) + int4 g32 / g16 (nvidia-smi max 1198 MiB, baseline 389 MiB)
 [sm180 11-27 18:30:40] [sm180] smoke OK: 18 int8 (model, label) cells bitwise equal to SM164's GPU smoke rows, 12 int4 cells finite / smaller / different
 [sm180 11-27 18:30:40] ticket: PTQ tiny (2 models x w4g32 / w4g16), 723-user list of the 732 set, e2s-query (pass 1, 0 done, cap 0.8) (expected 45 min)
+[sm180 11-27 19:09:42] exit 0: PTQ tiny (2 models x w4g32 / w4g16), 723-user list of the 732 set, e2s-query (pass 1, 0 done, cap 0.8) (nvidia-smi max 13808 MiB, baseline 393 MiB)
+[sm180 11-27 19:09:42] ticket: PTQ tiny (2 models x w4g32 / w4g16), 723-user list of the 732 set, e2s-query (pass 2, 722 done, cap 0.8) (expected 40 min)
+[sm180 11-27 19:28:06] exit 0: PTQ tiny (2 models x w4g32 / w4g16), 723-user list of the 732 set, e2s-query (pass 2, 722 done, cap 0.8) (nvidia-smi max 9596 MiB, baseline 533 MiB)
+[sm180 11-27 19:28:07] PTQ tiny (2 models x w4g32 / w4g16): 723 of 723 users for every label (4 labels; the rule needs 715)
+[sm180 11-27 19:28:07] ticket: PTQ small (2 models x w4g32 / w4g16), 723-user list of the 732 set, e2s-query (pass 1, 0 done, cap 0.8) (expected 55 min)
+[sm180 11-27 20:40:33] exit 0: PTQ small (2 models x w4g32 / w4g16), 723-user list of the 732 set, e2s-query (pass 1, 0 done, cap 0.8) (nvidia-smi max 14033 MiB, baseline 744 MiB)
+[sm180 11-27 20:40:34] ticket: PTQ small (2 models x w4g32 / w4g16), 723-user list of the 732 set, e2s-query (pass 2, 721 done, cap 0.8) (expected 40 min)
+[sm180 11-27 20:50:51] exit 0: PTQ small (2 models x w4g32 / w4g16), 723-user list of the 732 set, e2s-query (pass 2, 721 done, cap 0.8) (nvidia-smi max 14158 MiB, baseline 745 MiB)
+[sm180 11-27 20:50:51] ticket: PTQ small (2 models x w4g32 / w4g16), 723-user list of the 732 set, e2s-query (pass 3, 722 done, cap 0.8) (expected 40 min)
+[sm180 11-27 21:01:27] exit 0: PTQ small (2 models x w4g32 / w4g16), 723-user list of the 732 set, e2s-query (pass 3, 722 done, cap 0.8) (nvidia-smi max 14198 MiB, baseline 904 MiB)
+[sm180 11-27 21:01:27] PTQ small (2 models x w4g32 / w4g16): 723 of 723 users for every label (4 labels; the rule needs 715)
+[sm180 11-27 21:01:28] ticket: PTQ big (2 models x w4g32 / w4g16), 723-user list of the 732 set, e2s-query (pass 1, 0 done, cap 0.8) (expected 90 min)
+[sm180 11-27 22:45:22] exit 0: PTQ big (2 models x w4g32 / w4g16), 723-user list of the 732 set, e2s-query (pass 1, 0 done, cap 0.8) (nvidia-smi max 14526 MiB, baseline 903 MiB)
+[sm180 11-27 22:45:23] ticket: PTQ big (2 models x w4g32 / w4g16), 723-user list of the 732 set, e2s-query (pass 2, 713 done, cap 0.8) (expected 40 min)
+[sm180 11-27 22:48:25] exit 0: PTQ big (2 models x w4g32 / w4g16), 723-user list of the 732 set, e2s-query (pass 2, 713 done, cap 0.8) (nvidia-smi max 13883 MiB, baseline 1200 MiB)
+[sm180 11-27 22:48:25] no progress on PTQ big (2 models x w4g32 / w4g16) (713 users): next pass at cap 0.92 (memory only, same numerics)
+[sm180 11-27 22:48:25] ticket: PTQ big (2 models x w4g32 / w4g16), 723-user list of the 732 set, e2s-query (pass 3, 713 done, cap 0.92) (expected 40 min)
+[sm180 11-27 22:54:11] exit 0: PTQ big (2 models x w4g32 / w4g16), 723-user list of the 732 set, e2s-query (pass 3, 713 done, cap 0.92) (nvidia-smi max 15713 MiB, baseline 789 MiB)
+[sm180 11-27 22:54:12] ticket: PTQ big (2 models x w4g32 / w4g16), 723-user list of the 732 set, e2s-query (pass 4, 714 done, cap 0.92) (expected 40 min)
+[sm180 11-27 22:58:33] exit 0: PTQ big (2 models x w4g32 / w4g16), 723-user list of the 732 set, e2s-query (pass 4, 714 done, cap 0.92) (nvidia-smi max 15637 MiB, baseline 647 MiB)
+[sm180 11-27 22:58:33] PTQ big (2 models x w4g32 / w4g16): 718 of 723 users for every label (4 labels; the rule needs 715)
+[sm180 11-27 22:58:37] PTQ report (exit 0: 0 decided, 2 pending, 3 invalid):
+    [sm180] PTQ Big: PTQ fails
+    [sm180] PTQ Small: PTQ fails -> QAT Small two-head (SM118)
+    [sm180] PTQ Tiny: PTQ fails -> QAT six-layer Tiny two-head (SM130)
+    [sm180] PTQ status decided
+[sm180 11-27 22:58:38] QAT target sm130th: arm sm180-sm130th-qat, control sm171-tiny-ctl (estimate: train ~30 min + control ~0 min + scoring)
+{"model": "six-layer Tiny two-head (SM130)", "arm": "C:\\Users\\jonat\\workspace\\wt\\sm180-run\\artifacts\\small-model\\sm180-sm130th-qat", "control": "C:\\Users\\jonat\\workspace\\wt\\sm171-run\\artifacts\\small-model\\sm171-tiny-ctl", "users": 944, "reviews": 67310673, "ok": true, "problems": []}
+[sm180 11-27 22:58:38] ticket: trainer smoke, QAT arm (control reused) of sm130th (expected 8 min)
+[sm180 11-27 22:58:49] exit 0: trainer smoke, QAT arm (control reused) of sm130th (nvidia-smi max 595 MiB, baseline 595 MiB)
+[sm180 11-27 22:58:49] train: sm180-sm130th-qat (expected ~30 min)
+[sm180 11-27 23:16:54] exit 0: train sm180-sm130th-qat
+[sm180 11-27 23:16:54] sm180-sm130th-qat complete: 67,310,673 reviews, 17.9 min, 62,767 reviews/s, peak allocated 4,211 MiB, reserved 8,330 MiB, state_vq {'recipe': 'weight-qat', 'bits': 4, 'group': 32, 'quantized_tensors': 105, 'quantized_parameters': 176403, 'device': 'cuda:0', 'downcasts': 2570, 'what': 'SM180 straight-through QAT: child 2-D weights = fake_quant(master) after every master/child sync', 'tensors_last_downcast': 105}
+[sm180 11-27 23:16:55] ticket: QAT sm130th: arm and control at w4g32 / w8, 723-user list of the 732 set, e2s-query (pass 1, 0 done, cap 0.8) (expected 40 min)
+[sm180 11-27 23:55:50] exit 0: QAT sm130th: arm and control at w4g32 / w8, 723-user list of the 732 set, e2s-query (pass 1, 0 done, cap 0.8) (nvidia-smi max 13869 MiB, baseline 595 MiB)
+[sm180 11-27 23:55:50] ticket: QAT sm130th: arm and control at w4g32 / w8, 723-user list of the 732 set, e2s-query (pass 2, 722 done, cap 0.8) (expected 40 min)
+[sm180 11-27 23:56:32] exit 0: QAT sm130th: arm and control at w4g32 / w8, 723-user list of the 732 set, e2s-query (pass 2, 722 done, cap 0.8) (nvidia-smi max 13383 MiB, baseline 595 MiB)
+[sm180 11-27 23:56:32] QAT sm130th: arm and control at w4g32 / w8: 723 of 723 users for every label (4 labels; the rule needs 715)
+[sm180 11-27 23:56:32] QAT target sm118: arm sm180-sm118-qat, control sm180-sm118-ctl (estimate: train ~50 min + control ~45 min + scoring)
+[sm180-prepare] sm180-sm118-qat: 846 users, 67,109,790 reviews, peak 7e-05, from E89-F65e-F77a b4fe1175d25a, QAT {"recipe": "weight-qat", "bits": 4, "group": 32}
+[sm180-prepare] sm180-sm118-ctl: 846 users, 67,109,790 reviews, peak 7e-05, from E89-F65e-F77a b4fe1175d25a, control
+{"model": "Small two-head (SM118)", "arm": "C:\\Users\\jonat\\workspace\\wt\\sm180-run\\artifacts\\small-model\\sm180-sm118-qat", "control": "C:\\Users\\jonat\\workspace\\wt\\sm180-run\\artifacts\\small-model\\sm180-sm118-ctl", "users": 846, "reviews": 67109790, "ok": true, "problems": []}
+[sm180 11-27 23:56:33] ticket: trainer smoke, QAT arm and control of sm118 (expected 8 min)
+[sm180 11-27 23:56:54] exit 0: trainer smoke, QAT arm and control of sm118 (nvidia-smi max 595 MiB, baseline 595 MiB)
+[sm180 11-27 23:56:54] train: sm180-sm118-qat (expected ~50 min)
+[sm180 11-28 00:36:35] exit 0: train sm180-sm118-qat
+[sm180 11-28 00:36:36] sm180-sm118-qat complete: 67,109,790 reviews, 39.5 min, 28,326 reviews/s, peak allocated 7,063 MiB, reserved 11,796 MiB, state_vq {'recipe': 'weight-qat', 'bits': 4, 'group': 32, 'quantized_tensors': 217, 'quantized_parameters': 315423, 'device': 'cuda:0', 'downcasts': 2511, 'what': 'SM180 straight-through QAT: child 2-D weights = fake_quant(master) after every master/child sync', 'tensors_last_downcast': 217}
+[sm180 11-28 00:36:36] train: sm180-sm118-ctl (expected ~45 min)
+[sm180 11-28 01:15:47] exit 0: train sm180-sm118-ctl
+[sm180 11-28 01:15:47] sm180-sm118-ctl complete: 67,109,790 reviews, 38.9 min, 28,765 reviews/s, peak allocated 7,063 MiB, reserved 11,796 MiB, state_vq None
+[sm180 11-28 01:15:48] ticket: QAT sm118: arm and control at w4g32 / w8, 723-user list of the 732 set, e2s-query (pass 1, 0 done, cap 0.8) (expected 50 min)
+[sm180 11-28 02:11:18] exit 0: QAT sm118: arm and control at w4g32 / w8, 723-user list of the 732 set, e2s-query (pass 1, 0 done, cap 0.8) (nvidia-smi max 13883 MiB, baseline 1131 MiB)
+[sm180 11-28 02:11:19] ticket: QAT sm118: arm and control at w4g32 / w8, 723-user list of the 732 set, e2s-query (pass 2, 721 done, cap 0.8) (expected 40 min)
+[sm180 11-28 02:43:47] exit 0: QAT sm118: arm and control at w4g32 / w8, 723-user list of the 732 set, e2s-query (pass 2, 721 done, cap 0.8) (nvidia-smi max 13901 MiB, baseline 594 MiB)
+[sm180 11-28 02:43:48] ticket: QAT sm118: arm and control at w4g32 / w8, 723-user list of the 732 set, e2s-query (pass 3, 722 done, cap 0.8) (expected 40 min)
+[sm180 11-28 03:02:51] exit 0: QAT sm118: arm and control at w4g32 / w8, 723-user list of the 732 set, e2s-query (pass 3, 722 done, cap 0.8) (nvidia-smi max 15500 MiB, baseline 594 MiB)
+[sm180 11-28 03:02:52] QAT sm118: arm and control at w4g32 / w8: 723 of 723 users for every label (4 labels; the rule needs 715)
+[sm180 11-28 03:02:55] QAT report (exit 0: 0 decided, 2 pending, 3 invalid):
+    [sm180] QAT six-layer Tiny two-head (SM130): QAT not free
+    [sm180] QAT Small two-head (SM118): QAT free
+    [sm180] QAT status decided
+[sm180 11-28 03:02:55] SM180 GPU DONE: PTQ read-out sm180-ptq.md, QAT read-out sm180-qat.md
