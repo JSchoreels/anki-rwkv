@@ -5,6 +5,8 @@ and logged here for review. Details, evidence and how to undo each one: [DECISIO
 
 ## 2026-11-28
 
+- **Agent** - 4-bit weights (SM180): free only for Small after a short retraining; not adopted now (weights are
+  already small next to card states).
 - **You** - Measure AUC too; run an AUC-ceiling screen (SM182, ranking loss).
 - **Agent** - Queued the session-inputs confirmation (SM181, 765 more users + Small, AUC reported) and SM182.
 

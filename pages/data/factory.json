@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-28T03:28:02+01:00",
- "updated": "2026-11-28 03:28",
- "material": "fff000aa58f86aee",
- "summary": "running 001843, finished 001842",
+ "generated_at": "2026-11-28T03:29:54+01:00",
+ "updated": "2026-11-28 03:29",
+ "material": "3d266ec2ccf47ad8",
+ "summary": "running 001843",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring, show-time inputs for both heads (curve / instant)",
@@ -422,7 +422,7 @@
    "track": "small model",
    "ticket": "001843-sm182",
    "started": "03:27",
-   "elapsed": "0:00",
+   "elapsed": "0:02",
    "progress": null,
    "eta": "~03:47"
   }
@@ -2820,14 +2820,11 @@
    "kind": "gpu",
    "minutes": 360,
    "what": "4-bit weights (SM180): the six release models with their weights stored in 4 bits instead of 8 (per-channel or per-group scales), first without retraining, then a short quantization-aware fine-tune only for a size where that costs too much",
-   "when": "Started 18:10 Fri 11-27 (at most about 6 GPU hours)",
+   "when": "Started 18:10 Fri 11-27; done 03:02 Sat 11-28",
    "decides": "Whether the model weights can be halved in size for free (rule: CI upper bound at most +0.15% per head vs 8-bit weights)",
    "state": "done",
-   "started_at": "2026-11-27T18:25:02+01:00",
-   "ended": "03:02",
-   "exit": 0,
-   "started": "18:25",
-   "ended_at": "2026-11-28T03:02:51+01:00"
+   "started_at": "2026-11-27T18:10+01:00",
+   "ended_at": "2026-11-28T03:30+01:00"
   },
   {
    "id": "SM178",
@@ -4005,6 +4002,56 @@
   }
  ],
  "results": [
+  {
+   "date": "11-28",
+   "kind": "gpu",
+   "id": "SM180",
+   "track": "small model",
+   "name": "4-bit weights (SM180): the release models with 4-bit weights (one scale per group of 32 or 16), first without retraining, then a short quantization-aware fine-tune for Small and Tiny",
+   "eval": "GPU, 732 set (723 users), show-time inputs, chosen state formats, paired user bootstrap 95%; rule: CI upper bound at most +0.15% per head vs 8-bit weights; the fine-tunes are compared with matched 8-bit controls.",
+   "fork": "Nothing changed in the fork",
+   "takeaway": "<strong>Only Small can drop to 4-bit weights, and only after a short retraining:</strong> without retraining every size fails (instant heads up to +1%); with it Small two-head (SM118) passes (+0.083% / +0.103%) while the six-layer Tiny misses on its instant head (+0.190%). The saving is small in absolute terms (Small 410 kB to 272 kB).",
+   "inputs": "show-time",
+   "started_at": "2026-11-27T18:10+01:00",
+   "ended_at": "2026-11-28T03:30+01:00",
+   "gpu_minutes": 300,
+   "cpu_minutes": 30,
+   "tickets": 20,
+   "detail": {
+    "verdict": "No change for the current family: the weight files are already small next to the card states. Branch sm180, commit b436a72a (RESULT.md)",
+    "table": {
+     "head": [
+      "Model",
+      "Without retraining (worst head, CI upper)",
+      "Short retraining, curve / instant",
+      "Weight bytes"
+     ],
+     "rows": [
+      [
+       "Big two-head (SM91s2)",
+       "+0.265% instant (groups of 32)",
+       "not run",
+       "&minus;36.9%"
+      ],
+      [
+       "Small two-head (SM118)",
+       "+1.073% instant",
+       "+0.083% / +0.103% (free)",
+       "410 kB &rarr; 272 kB"
+      ],
+      [
+       "six-layer Tiny two-head (SM130)",
+       "+0.274% instant (groups of 16)",
+       "+0.085% / +0.190% (not free)",
+       "226 kB &rarr; 149 kB"
+      ]
+     ]
+    },
+    "notes": [
+     "4-bit weights could be part of a future size push (with training aware of them from the start), not a change worth shipping now."
+    ]
+   }
+  },
   {
    "date": "11-27",
    "kind": "gpu",
