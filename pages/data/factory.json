@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-28T02:44:11+01:00",
+ "generated_at": "2026-11-28T02:44:55+01:00",
  "updated": "2026-11-28 02:44",
- "material": "e5c101cb31788138",
- "summary": "running 001837, finished 001836",
+ "material": "5005214ded1777ea",
+ "summary": "running 001838, finished 001837",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring, show-time inputs for both heads (curve / instant)",
@@ -412,19 +412,19 @@
  },
  "now": [
   {
-   "what": "Session inputs confirmation (SM181): the session-inputs gain (SM179) checked on 765 more users and on Small two-head (SM118), with overall and within-user AUC reported for every arm",
-   "id": "SM181, ticket 001837",
+   "what": "AUC ceiling (SM182): the six-layer Tiny two-head (SM130) fine-tuned with a pairwise ranking loss (pure, and mixed with LogLoss) to find how much discrimination (within-user AUC) LogLoss training leaves on the table",
+   "id": "SM182, ticket 001838",
    "kind": "gpu",
-   "decides": "Whether session inputs go into the next family&rsquo;s recipe",
+   "decides": "Whether a ranking term is worth adding to training (mixed arm: within-user AUC up, LogLoss at most 0.05% worse)",
    "why": "",
-   "job": "Session inputs confirmation (SM181): scoring sm171-tiny-ctl (REF, inputs none, dump) on decisive, pass 2, cap 0.92",
+   "job": "AUC ceiling (SM182): train sm182-tiny-m",
    "linked": true,
    "track": "small model",
-   "ticket": "001837-sm181",
-   "started": "02:43",
+   "ticket": "001838-sm182",
+   "started": "02:44",
    "elapsed": "0:00",
    "progress": null,
-   "eta": "~03:08"
+   "eta": "~03:14"
   }
  ],
  "charts": [
@@ -596,19 +596,28 @@
  ],
  "waiting": [
   {
-   "ticket": "001838-sm182",
-   "id": "SM182",
-   "what": "AUC ceiling (SM182): train sm182-tiny-m",
-   "flags": "expected 30 min"
-  },
-  {
    "ticket": "001839-sm180",
    "id": "SM180",
    "what": "4-bit weights (SM180): QAT sm118: arm and control at w4g32 / w8, 723-user list of the 732 set, e2s-query (pass 3, 722 done, cap 0.8)",
    "flags": "expected 40 min"
+  },
+  {
+   "ticket": "001840-sm181",
+   "id": "SM181",
+   "what": "Session inputs confirmation (SM181): scoring sm171-tiny-ctl (REF, inputs none, dump) on decisive, pass 3, cap 0.92",
+   "flags": "expected 25 min"
   }
  ],
  "recent": [
+  {
+   "ticket": "001837-sm181",
+   "id": "SM181",
+   "what": "Session inputs confirmation (SM181): scoring sm171-tiny-ctl (REF, inputs none, dump) on decisive, pass 2, cap 0.92",
+   "ended": "02:44",
+   "date": "11-28",
+   "exit": 0,
+   "ran": "0:00"
+  },
   {
    "ticket": "001836-sm180",
    "id": "SM180",
@@ -650,15 +659,6 @@
    "id": "SM182",
    "what": "AUC ceiling (SM182): smoke: trainer arms R and M, control REF with dump on 3 users",
    "ended": "01:16",
-   "date": "11-28",
-   "exit": 0,
-   "ran": "0:00"
-  },
-  {
-   "ticket": "001831-sm181",
-   "id": "SM181",
-   "what": "Session inputs confirmation (SM181): trainer smoke, Small session arm",
-   "ended": "01:15",
    "date": "11-28",
    "exit": 0,
    "ran": "0:00"
@@ -2802,11 +2802,9 @@
    "what": "Session inputs confirmation (SM181): the session-inputs gain (SM179) checked on 765 more users and on Small two-head (SM118), with overall and within-user AUC reported for every arm",
    "when": "Queued 00:50 Sat 11-28 behind the 4-bit weights retraining; done about 03:40",
    "decides": "Whether session inputs go into the next family&rsquo;s recipe",
-   "state": "running",
-   "started_at": "2026-11-28T01:15:39+01:00",
-   "started": "02:43",
-   "ticket": "001837-sm181",
-   "ends_at": "2026-11-28T03:45:39+01:00"
+   "state": "waiting",
+   "started_at": "2026-11-28T00:50+01:00",
+   "ticket": "001840-sm181"
   },
   {
    "id": "SM182",
@@ -2816,9 +2814,11 @@
    "what": "AUC ceiling (SM182): the six-layer Tiny two-head (SM130) fine-tuned with a pairwise ranking loss (pure, and mixed with LogLoss) to find how much discrimination (within-user AUC) LogLoss training leaves on the table",
    "when": "Queued 01:40 Sat 11-28 behind the session-inputs confirmation; done about 05:30 to 06:30",
    "decides": "Whether a ranking term is worth adding to training (mixed arm: within-user AUC up, LogLoss at most 0.05% worse)",
-   "state": "waiting",
-   "started_at": "2026-11-28T01:40+01:00",
-   "ticket": "001838-sm182"
+   "state": "running",
+   "started_at": "2026-11-28T01:15:49+01:00",
+   "started": "02:44",
+   "ticket": "001838-sm182",
+   "ends_at": "2026-11-28T02:45:49+01:00"
   },
   {
    "id": "SM180",
