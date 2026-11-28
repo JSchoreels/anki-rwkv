@@ -3,6 +3,11 @@
 One line per decision, newest first. **You** = decided by Jonathan; **Agent** = obvious call taken by the agent
 and logged here for review. Details, evidence and how to undo each one: [DECISIONS-full.md](DECISIONS-full.md).
 
+## 2026-11-28
+
+- **You** - Measure AUC too; run an AUC-ceiling screen (SM182, ranking loss).
+- **Agent** - Queued the session-inputs confirmation (SM181, 765 more users + Small, AUC reported) and SM182.
+
 ## 2026-11-27
 
 - **Agent** - Session inputs (SM179): go, -0.065% instant LogLoss on a short Tiny fine-tune; card state no go.
