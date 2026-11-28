@@ -1,6 +1,6 @@
 # Session inputs confirmation (SM181): handoff
 
-Status: RUNNING since Sat 2026-11-28 00:44 (launcher started hidden via WMI, PID 51148, outer bash). First ticket 001831-sm181 (trainer smoke) registered at 00:44:34, waiting behind SM180's 001830 (`train sm180-sm118-ctl`, started about 00:36, about 40 min).
+Status: DONE 2026-11-28 05:13, read out: verdict CONFIRMED (both axes). See `RESULT.md`.
 
 ## Done
 
