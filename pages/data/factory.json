@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-28T03:29:54+01:00",
- "updated": "2026-11-28 03:29",
- "material": "3d266ec2ccf47ad8",
- "summary": "running 001843",
+ "generated_at": "2026-11-28T03:37:59+01:00",
+ "updated": "2026-11-28 03:37",
+ "material": "47e919833a1cb7df",
+ "summary": "running 001844, finished 001843",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring, show-time inputs for both heads (curve / instant)",
@@ -412,19 +412,19 @@
  },
  "now": [
   {
-   "what": "AUC ceiling (SM182): the six-layer Tiny two-head (SM130) fine-tuned with a pairwise ranking loss (pure, and mixed with LogLoss) to find how much discrimination (within-user AUC) LogLoss training leaves on the table",
-   "id": "SM182, ticket 001843",
+   "what": "Session inputs confirmation (SM181): the session-inputs gain (SM179) checked on 765 more users and on Small two-head (SM118), with overall and within-user AUC reported for every arm",
+   "id": "SM181, ticket 001844",
    "kind": "gpu",
-   "decides": "Whether a ranking term is worth adding to training (mixed arm: within-user AUC up, LogLoss at most 0.05% worse)",
+   "decides": "Whether session inputs go into the next family&rsquo;s recipe",
    "why": "",
-   "job": "AUC ceiling (SM182): scoring sm182-tiny-r (REF, per-review dump) on the 732 set, pass 1, cap 0.8",
+   "job": "Session inputs confirmation (SM181): scoring sm179-tiny-ses (REF, inputs session, dump) on decisive, pass 2, cap 0.92",
    "linked": true,
    "track": "small model",
-   "ticket": "001843-sm182",
-   "started": "03:27",
-   "elapsed": "0:02",
+   "ticket": "001844-sm181",
+   "started": "03:37",
+   "elapsed": "0:00",
    "progress": null,
-   "eta": "~03:47"
+   "eta": "~04:02"
   }
  ],
  "charts": [
@@ -596,13 +596,22 @@
  ],
  "waiting": [
   {
-   "ticket": "001844-sm181",
-   "id": "SM181",
-   "what": "Session inputs confirmation (SM181): scoring sm179-tiny-ses (REF, inputs session, dump) on decisive, pass 2, cap 0.92",
-   "flags": "expected 25 min"
+   "ticket": "001845-sm182",
+   "id": "SM182",
+   "what": "AUC ceiling (SM182): scoring sm182-tiny-m (REF, per-review dump) on the 732 set, pass 1, cap 0.8",
+   "flags": "expected 20 min"
   }
  ],
  "recent": [
+  {
+   "ticket": "001843-sm182",
+   "id": "SM182",
+   "what": "AUC ceiling (SM182): scoring sm182-tiny-r (REF, per-review dump) on the 732 set, pass 1, cap 0.8",
+   "ended": "03:37",
+   "date": "11-28",
+   "exit": 0,
+   "ran": "0:10"
+  },
   {
    "ticket": "001842-sm181",
    "id": "SM181",
@@ -647,15 +656,6 @@
    "date": "11-28",
    "exit": 0,
    "ran": "0:17"
-  },
-  {
-   "ticket": "001837-sm181",
-   "id": "SM181",
-   "what": "Session inputs confirmation (SM181): scoring sm171-tiny-ctl (REF, inputs none, dump) on decisive, pass 2, cap 0.92",
-   "ended": "02:44",
-   "date": "11-28",
-   "exit": 0,
-   "ran": "0:00"
   }
  ],
  "plan": [
@@ -2796,9 +2796,11 @@
    "what": "Session inputs confirmation (SM181): the session-inputs gain (SM179) checked on 765 more users and on Small two-head (SM118), with overall and within-user AUC reported for every arm",
    "when": "Queued 00:50 Sat 11-28 behind the 4-bit weights retraining; done about 03:40",
    "decides": "Whether session inputs go into the next family&rsquo;s recipe",
-   "state": "waiting",
-   "started_at": "2026-11-28T00:50+01:00",
-   "ticket": "001844-sm181"
+   "state": "running",
+   "started_at": "2026-11-28T01:15:39+01:00",
+   "started": "03:37",
+   "ticket": "001844-sm181",
+   "ends_at": "2026-11-28T03:45:39+01:00"
   },
   {
    "id": "SM182",
@@ -2808,11 +2810,9 @@
    "what": "AUC ceiling (SM182): the six-layer Tiny two-head (SM130) fine-tuned with a pairwise ranking loss (pure, and mixed with LogLoss) to find how much discrimination (within-user AUC) LogLoss training leaves on the table",
    "when": "Queued 01:40 Sat 11-28 behind the session-inputs confirmation; done about 05:30 to 06:30",
    "decides": "Whether a ranking term is worth adding to training (mixed arm: within-user AUC up, LogLoss at most 0.05% worse)",
-   "state": "running",
-   "started_at": "2026-11-28T01:15:49+01:00",
-   "started": "03:27",
-   "ticket": "001843-sm182",
-   "ends_at": "2026-11-28T02:45:49+01:00"
+   "state": "waiting",
+   "started_at": "2026-11-28T01:40+01:00",
+   "ticket": "001845-sm182"
   },
   {
    "id": "SM180",
