@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-11-28T17:44:38+01:00",
- "updated": "2026-11-28 17:44",
- "material": "64d09dd92c0f64d1",
- "summary": "running 001869, finished 001868",
+ "generated_at": "2026-11-28T17:45:29+01:00",
+ "updated": "2026-11-28 17:45",
+ "material": "e6c40a2f1633e53d",
+ "summary": "running 001869",
  "headline": [
   {
    "k": "Best, 732-user standard set, leak-free scoring, show-time inputs for both heads (curve / instant)",
@@ -412,17 +412,17 @@
  },
  "now": [
   {
-   "what": "Small cool-down with session inputs (SM185): train sm185-th-ctlcheck",
-   "id": "001869-sm185",
-   "kind": "gpu-train",
-   "decides": "",
+   "what": "Small cool-down with session inputs (SM185): the exact release cool-down of Small two-head (SM118) repeated with the six session inputs, as SM183 did for Tiny; the release model is the control after a bit-for-bit check of the recipe; the Small Instant-Only (SM113) counterpart is prepared but needs about 12 more GPU hours",
+   "id": "SM185, ticket 001869",
+   "kind": "gpu",
+   "decides": "Whether Small with session inputs beats the release Small enough to ship (go: instant at least 0.05% better, CI below 0, curve not worse by more than 0.05%)",
    "why": "",
    "job": "Small cool-down with session inputs (SM185): train sm185-th-ctlcheck",
-   "linked": false,
+   "linked": true,
    "track": "small model",
    "ticket": "001869-sm185",
    "started": "17:44",
-   "elapsed": "0:00",
+   "elapsed": "0:01",
    "progress": null,
    "eta": "~18:09"
   }
@@ -598,7 +598,7 @@
  "recent": [
   {
    "ticket": "001868-sm185",
-   "id": "",
+   "id": "SM185",
    "what": "Small cool-down with session inputs (SM185): trainer smoke of sm185-th-ses-p1 (2 users x 512 reviews, scratch copy)",
    "ended": "17:44",
    "date": "11-28",
@@ -2792,6 +2792,20 @@
    "state": "done",
    "started_at": "2026-11-28T00:50+01:00",
    "ended_at": "2026-11-28T05:40+01:00"
+  },
+  {
+   "id": "SM185",
+   "track": "small model",
+   "kind": "gpu",
+   "minutes": 790,
+   "what": "Small cool-down with session inputs (SM185): the exact release cool-down of Small two-head (SM118) repeated with the six session inputs, as SM183 did for Tiny; the release model is the control after a bit-for-bit check of the recipe; the Small Instant-Only (SM113) counterpart is prepared but needs about 12 more GPU hours",
+   "when": "Launched 17:55 Sat 11-28; two-head result about 07:30 Sun 11-29 (about 13 GPU hours)",
+   "decides": "Whether Small with session inputs beats the release Small enough to ship (go: instant at least 0.05% better, CI below 0, curve not worse by more than 0.05%)",
+   "state": "running",
+   "started_at": "2026-11-28T17:44:16+01:00",
+   "started": "17:44",
+   "ticket": "001869-sm185",
+   "ends_at": "2026-11-29T06:54:16+01:00"
   },
   {
    "id": "SM183",
